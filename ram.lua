@@ -1,6 +1,7 @@
 local exports = {}
 
 function exports.install_ram_monitor(mem, start_addr, end_addr, name, callback)
+	print(string.format("Installing RAM monitor '%s': 0x%04X - 0x%04X", name, start_addr, end_addr))
 	local prev_values = {}
 	local active = true
 
