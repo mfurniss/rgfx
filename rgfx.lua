@@ -41,3 +41,13 @@ local screen = manager.machine.screens[":screen"]
 print(screen)
 local fps = 1 / screen.refresh
 print(fps)
+
+-- Simple MQTT publisher using mosquitto_pub
+local function mqtt_publish(topic, message)
+    local cmd = string.format('mosquitto_pub -h localhost -t "%s" -m "%s"', topic, message)
+    os.execute(cmd)
+end
+
+-- Publish game info
+mqtt_publish("rgfx/game", game_name)
+print("Published game name to MQTT: " .. game_name)
