@@ -1,5 +1,5 @@
 package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
-local ram_mon = require("install_ram_monitor")
+local ram = require("ram")
 
 print(emu.app_name() .. " " .. emu.app_version())
 
@@ -40,43 +40,9 @@ print(screen)
 local fps = 1 / screen.refresh
 print(fps)
 
--- local counter = 0
--- emu.register_frame_done(function()
--- 	counter = counter + 10
--- 	if counter >= screen.refresh then
--- 		counter = 0
--- 		print("Player 1 Score:", get_player_score(0), manager.machine.time)
--- 	end
--- end)
-
-local function on_memory_write(offset, data)
-	print(string.format("0x%X", offset), string.format("0x%X", data))
+local function on_memory_write(addr, data)
+	-- print(string.format("0x%04X: 0x%02X", addr, data))
+	print("Player 1 Score:", get_player_score(0), manager.machine.time)
 end
 
-local mem = cpu.spaces["program"]
-
--- mem:install_write_tap(0x4800, 0x4BFF, "w1", on_memory_write)
--- mem:install_write_tap(0x5000, 0x50FF, "w2", on_memory_write)
-
--- local mem_handler = mem:install_write_tap(0x4E80, 0x4E83, "writes", on_memory_write)
-
-local prev_values = {}
-local watch_start = 0x4E80
-local watch_end = 0x4E83
-
--- Initialize previous values
-for addr = watch_start, watch_end do
-	prev_values[addr] = mem:read_u8(addr)
-end
-
--- Check every frame
-emu.register_frame_done(function()
-	for addr = watch_start, watch_end do
-		local current = mem:read_u8(addr)
-		if current ~= prev_values[addr] then
-			print(string.format("0x%04X: 0x%02X -> 0x%02X", addr, prev_values[addr], current))
-			prev_values[addr] = current
-			print("Player 1 Score:", get_player_score(0), manager.machine.time)
-		end
-	end
-end, "ram_monitor")
+local monitor = ram.install_ram_monitor(cpu.spaces["program"], 0x4E80, 0x4E83, "ram_monitor", on_memory_write)
