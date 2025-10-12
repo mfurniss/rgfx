@@ -2,5 +2,9 @@
   "Lua.diagnostics.globals": [
     "emu",
     "manager"
-  ]
+  ],
+  "[lua]": {
+    "editor.defaultFormatter": "JohnnyMorganz.stylua",
+    "editor.formatOnSave": true
+  }
 }
