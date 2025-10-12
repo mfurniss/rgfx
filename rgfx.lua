@@ -4,6 +4,18 @@ local interceptors_dir = "interceptors"
 package.path = package.path .. ";" .. base_path .. "?.lua"
 package.path = package.path .. ";" .. base_path .. interceptors_dir .. "/?.lua"
 
+-- autoboot.lua
+-- Open a global logfile in macOS temp directory
+local logfile_path = "/tmp/mame_out.txt"
+
+_G.logfile = io.open(logfile_path, "w")
+if _G.logfile then
+	_G.logfile:setvbuf("no") -- flush immediately
+	print("Log file opened at: " .. logfile_path)
+else
+	print("Failed to open log file at: " .. logfile_path)
+end
+
 print(emu.app_name() .. " " .. emu.app_version())
 
 for tag, screen in pairs(manager.machine.screens) do
@@ -42,12 +54,21 @@ print(screen)
 local fps = 1 / screen.refresh
 print(fps)
 
--- Simple MQTT publisher using mosquitto_pub
-local function mqtt_publish(topic, message)
-    local cmd = string.format('mosquitto_pub -h localhost -t "%s" -m "%s"', topic, message)
-    os.execute(cmd)
+local function publish(topic, message)
+	-- local cmd = string.format('mosquitto_pub -h localhost -t "%s" -m "%s"', topic, message)
+	-- os.execute(cmd)
+	if _G.logfile then
+		_G.logfile:write(string.format("%s %s\n", topic, message))
+	end
 end
 
--- Publish game info
-mqtt_publish("rgfx/game", game_name)
-print("Published game name to MQTT: " .. game_name)
+publish("rgfx/game", game_name)
+
+local stop_cb = function()
+	if _G.logfile then
+		_G.logfile:close()
+		_G.logfile = nil
+	end
+end
+
+emu.add_machine_stop_notifier(stop_cb)

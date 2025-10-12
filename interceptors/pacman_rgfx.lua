@@ -20,7 +20,11 @@ local function make_score_callback()
 	return function(offset, data)
 		local current_score = get_player_score(0)
 		if current_score ~= last_score then
-			print("Player 1 Score:", current_score, manager.machine.time)
+			local s = string.format("Player 1 Score: %s", current_score)
+			print(s)
+			if _G.logfile then
+				_G.logfile:write(s .. "\n")
+			end
 			last_score = current_score
 		end
 	end
