@@ -1,4 +1,8 @@
-package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
+local base_path = debug.getinfo(1, "S").source:sub(2):match("(.*/)") or ""
+local interceptors_dir = "interceptors"
+
+package.path = package.path .. ";" .. base_path .. "?.lua"
+package.path = package.path .. ";" .. base_path .. interceptors_dir .. "/?.lua"
 
 print(emu.app_name() .. " " .. emu.app_version())
 
@@ -11,10 +15,10 @@ local game_name = emu.romname()
 print("Game ROM name: " .. game_name)
 
 local game_script = game_name .. "_rgfx"
-print("Looking for: " .. game_script .. ".lua")
+print("Looking for: " .. interceptors_dir .. "/" .. game_script .. ".lua")
 local status = pcall(require, game_script)
 if status then
-	print("Loaded game script: " .. game_script .. ".lua")
+	print("Loaded game script: " .. interceptors_dir .. "/" .. game_script .. ".lua")
 else
 	print("No game-specific script found")
 end
