@@ -3,11 +3,11 @@ local ram = require("ram")
 
 local cpu = manager.machine.devices[":maincpu"]
 
-local function get_player_score(p)
-	local mem = cpu.spaces["program"]
+local function get_player_score(dword)
 	local score = 0
-	for i = 3, 0, -1 do -- Read backwards: 3, 2, 1, 0
-		local byte = mem:read_u8(0x4E80 + i)
+	-- Process 4 bytes (32 bits) as BCD
+	for i = 3, 0, -1 do
+		local byte = (dword >> (i * 8)) & 0xFF
 		local hi = math.floor(byte / 16)
 		local lo = byte % 16
 		score = score * 100 + hi * 10 + lo
@@ -16,16 +16,13 @@ local function get_player_score(p)
 end
 
 local function make_score_callback()
-	local last_score = nil
-	return function(offset, data)
-		local current_score = get_player_score(0)
-		if current_score ~= last_score then
-			local s = string.format("Player 1 Score: %s", current_score)
-			print(s)
-			if _G.logfile then
-				_G.logfile:write(s .. "\n")
-			end
-			last_score = current_score
+	return function(_, current, _)
+		local current_score = get_player_score(current)
+
+		local s = string.format("Player 1 Score: %s", current_score)
+		print(s)
+		if _G.logfile then
+			_G.logfile:write(s .. "\n")
 		end
 	end
 end
@@ -33,11 +30,12 @@ end
 local map = {
 	player_one_score = {
 		addr_start = 0x4E80,
-		addr_end = 0x4E83,
+		addr_end = 0x4E80,
 		callback = make_score_callback(),
+		size = 4,
 	},
 }
 
 for name, config in pairs(map) do
-	ram.install_ram_monitor(cpu.spaces["program"], config.addr_start, config.addr_end, name, config.callback)
+	ram.install_ram_monitor(cpu.spaces["program"], config.addr_start, config.addr_end, name, config.callback, config.size)
 end
