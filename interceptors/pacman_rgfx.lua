@@ -12,6 +12,7 @@ local function get_player_score(dword)
 		local lo = byte % 16
 		score = score * 100 + hi * 10 + lo
 	end
+
 	return score
 end
 
@@ -37,5 +38,12 @@ local map = {
 }
 
 for name, config in pairs(map) do
-	ram.install_ram_monitor(cpu.spaces["program"], config.addr_start, config.addr_end, name, config.callback, config.size)
+	ram.install_ram_monitor(
+		cpu.spaces["program"],
+		config.addr_start,
+		config.addr_end,
+		name,
+		config.callback,
+		config.size
+	)
 end
