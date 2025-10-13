@@ -43,5 +43,11 @@ local map = {
 }
 
 for name, config in pairs(map) do
-	ram.install_ram_monitor(cpu.spaces["program"], config.addr_start, config.addr_end, name, config.callback)
+	ram.install_ram_monitor({
+		mem = cpu.spaces["program"],
+		start_addr = config.addr_start,
+		end_addr = config.addr_end,
+		name = name,
+		callback = config.callback,
+	})
 end

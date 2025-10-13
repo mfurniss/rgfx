@@ -21,12 +21,14 @@ local function make_score_callback()
 		local current_score = get_player_score(current)
 
 		local s = string.format("Player 1 Score: %s", current_score)
-		print(s)
+		-- print(s)
 		if _G.logfile then
 			_G.logfile:write(s .. "\n")
 		end
 	end
 end
+
+-- https://github.com/BleuLlama/GameDocs/blob/master/disassemble/mspac.asm
 
 local map = {
 	player_one_score = {
@@ -35,15 +37,72 @@ local map = {
 		callback = make_score_callback(),
 		size = 4,
 	},
+	power_pill = {
+		addr_start = 0x4DA6,
+		addr_end = 0x4DA6,
+		callback = function(_, current, _)
+			print("POWER PILL", current)
+		end,
+		size = 1,
+	},
+	-- power_pill_flash_counter = {
+	-- 	addr_start = 0x4DCF,
+	-- 	addr_end = 0x4DCF,
+	-- 	callback = function(_, current, _)
+	-- 		print("POWER PILL FLASH COUNTER", current)
+	-- 	end,
+	-- 	size = 1,
+	-- },
+	-- blue_ghost_counter = {
+	-- 	addr_start = 0x4DCB,
+	-- 	addr_end = 0x4DCB,
+	-- 	callback = function(_, current, _)
+	-- 		print("Blue ghost counter:", current)
+	-- 	end,
+	-- 	size = 2,
+	-- },
+	-- ghost_states = {
+	-- 	addr_start = 0x4DA7,
+	-- 	addr_end = 0x4DA7,
+	-- 	callback = function(_, current, _)
+	-- 		print("GHOST STATES", string.format("0x%08X", current))
+	-- 	end,
+	-- 	size = 4,
+	-- },
+	-- power_pill_flash_counter = {
+	-- 	addr_start = 0x4DCF,
+	-- 	addr_end = 0x4DCF,
+	-- 	callback = function(_, current, _)
+	-- 		print("Flash counter:", current)
+	-- 	end,
+	-- 	size = 1,
+	-- },
+	-- GHOST COLORS
+	-- 0x01 = red
+	-- 0x03 = pink
+	-- 0x05 = cyan
+	-- 0x07 = orange
+	-- 0x11 = blue
+	-- 0x12 = white
+	red_ghost_color = {
+		addr_start = 0x4C03,
+		addr_end = 0x4C03,
+		-- callback = function(addr, current, previous) end,
+	},
+	pink_ghost_color = {
+		addr_start = 0x4C05,
+		addr_end = 0x4C05,
+		-- callback = function(addr, current, previous) end,
+	},
 }
 
 for name, config in pairs(map) do
-	ram.install_ram_monitor(
-		cpu.spaces["program"],
-		config.addr_start,
-		config.addr_end,
-		name,
-		config.callback,
-		config.size
-	)
+	ram.install_ram_monitor({
+		mem = cpu.spaces["program"],
+		start_addr = config.addr_start,
+		end_addr = config.addr_end,
+		name = name,
+		callback = config.callback,
+		size = config.size,
+	})
 end

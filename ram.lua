@@ -1,41 +1,44 @@
 local exports = {}
 
 local size_config = {
-	[1] = {
-		read_func = function(mem, addr)
-			return mem:read_u8(addr)
-		end,
-		hex_format = "0x%02X",
-	},
-	[2] = {
-		read_func = function(mem, addr)
-			return mem:read_u16(addr)
-		end,
-		hex_format = "0x%04X",
-	},
-	[4] = {
-		read_func = function(mem, addr)
-			return mem:read_u32(addr)
-		end,
-		hex_format = "0x%08X",
-	},
+	[1] = { method = "read_u8", hex_format = "0x%02X" },
+	[2] = { method = "read_u16", hex_format = "0x%04X" },
+	[4] = { method = "read_u32", hex_format = "0x%08X" }
 }
 
--- size: 1 (byte), 2 (word), or 4 (dword) - defaults to 1
--- callback receives: callback(addr, current_value, previous_value)
-function exports.install_ram_monitor(mem, start_addr, end_addr, name, callback, size)
-	size = size or 1
+-- options:
+--   mem (required): memory space
+--   start_addr (required): starting address
+--   end_addr (optional): ending address, defaults to start_addr
+--   name (optional): name for the monitor
+--   callback (optional): callback(addr, current_value, previous_value)
+--   size (optional): 1 (byte), 2 (word), or 4 (dword) - defaults to 1
+function exports.install_ram_monitor(options)
+	local mem = options.mem
+	local start_addr = options.start_addr
+	local end_addr = options.end_addr or start_addr
+	local name = options.name
+	local callback = options.callback
+	local size = options.size or 1
+
+	if not mem then
+		error("mem is required")
+	end
+	if not start_addr then
+		error("start_addr is required")
+	end
 
 	local config = size_config[size]
-
 	if not config then
 		error(string.format("Invalid size %d. Must be 1, 2, or 4", size))
 	end
 
-	local read_func = config.read_func
+	local read_func = mem[config.method]
 	local hex_format = config.hex_format
 
-	print(string.format("Installing RAM monitor '%s' (size=%d): 0x%04X - 0x%04X", name, size, start_addr, end_addr))
+	if name then
+		print(string.format("Installing RAM monitor '%s' (size=%d): 0x%04X - 0x%04X", name, size, start_addr, end_addr))
+	end
 
 	local prev_values = {}
 	local active = true
@@ -53,8 +56,12 @@ function exports.install_ram_monitor(mem, start_addr, end_addr, name, callback, 
 			local current = read_func(mem, addr)
 
 			if current ~= prev_values[addr] then
-				print(string.format(hex_format, current))
-				callback(addr, current, prev_values[addr])
+				if name then
+					print(name, string.format(hex_format, current))
+				end
+				if callback then
+					callback(addr, current, prev_values[addr])
+				end
 				prev_values[addr] = current
 			end
 		end
