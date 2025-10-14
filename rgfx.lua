@@ -7,15 +7,15 @@ package.path = package.path .. ";" .. base_path .. interceptors_dir .. "/?.lua"
 -- autoboot.lua
 -- Get OS temp directory (cross-platform)
 local function get_temp_dir()
-	local os_name = package.config:sub(1,1) == '\\' and 'windows' or 'unix'
-	if os_name == 'windows' then
-		return os.getenv('TEMP') or os.getenv('TMP') or 'C:\\Temp'
+	local os_name = package.config:sub(1, 1) == "\\" and "windows" or "unix"
+	if os_name == "windows" then
+		return os.getenv("TEMP") or os.getenv("TMP") or "C:\\Temp"
 	else
-		return os.getenv('TMPDIR') or '/tmp'
+		return os.getenv("TMPDIR") or "/tmp"
 	end
 end
 
-local logfile_path = get_temp_dir() .. (package.config:sub(1,1) == '\\' and '\\' or '/') .. "rgfx_events.log"
+local logfile_path = get_temp_dir() .. (package.config:sub(1, 1) == "\\" and "\\" or "/") .. "rgfx_events.log"
 
 _G.logfile = io.open(logfile_path, "w")
 if _G.logfile then
@@ -71,7 +71,7 @@ function _G.publish_mqtt(topic, message)
 	end
 end
 
-publish_mqtt("rgfx/game", game_name)
+publish_mqtt("rgfx/event/game", game_name)
 
 local prestart_cb = function()
 	print("Machine prestart")

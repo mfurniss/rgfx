@@ -2,39 +2,142 @@
 """
 RGFX MQTT Bridge
 Tails the MAME log file and publishes events to MQTT broker with low latency.
+Displays events in a static terminal UI.
 """
 
 import time
 import argparse
 import sys
 import tempfile
+import curses
+from datetime import datetime
+from collections import OrderedDict
 from pathlib import Path
 import paho.mqtt.client as mqtt
 
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("Connected to MQTT broker")
-    else:
-        print(f"Failed to connect, return code {rc}")
+class BridgeUI:
+    def __init__(self, stdscr):
+        self.stdscr = stdscr
+        self.topics = OrderedDict()  # topic -> (message, timestamp)
+        self.status = "Starting..."
+        self.message_count = 0
+        self.logfile_path = ""
+
+        # Setup curses
+        curses.curs_set(0)  # Hide cursor
+        self.stdscr.nodelay(True)  # Non-blocking input
+
+        # Setup colors
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Header
+        curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)   # Topic
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Message
+        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Timestamp
+
+    def set_status(self, status):
+        self.status = status
+        self.render()
+
+    def set_logfile(self, path):
+        self.logfile_path = path
+        self.render()
+
+    def add_message(self, topic, message):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        # Format: topic="rgfx/event/player_one_score" message="1000"
+        self.topics[topic] = (message, timestamp)
+        self.message_count += 1
+        self.render()
+
+    def render(self):
+        try:
+            self.stdscr.clear()
+            height, width = self.stdscr.getmaxyx()
+
+            # Header
+            title = "RGFX MQTT Bridge"
+            self.stdscr.addstr(0, (width - len(title)) // 2, title,
+                              curses.color_pair(1) | curses.A_BOLD)
+
+            # Status line
+            status_line = f"Status: {self.status} | Messages: {self.message_count} | Topics: {len(self.topics)}"
+            self.stdscr.addstr(1, 0, status_line[:width-1])
+
+            # Log file info
+            if self.logfile_path:
+                log_line = f"Log file: {self.logfile_path}"
+                self.stdscr.addstr(2, 0, log_line[:width-1], curses.color_pair(4))
+
+            # Separator
+            self.stdscr.addstr(3, 0, "─" * (width - 1))
+
+            # Column headers
+            header = f"{'TOPIC':<40} {'MESSAGE':<30} {'TIME':<8}"
+            self.stdscr.addstr(4, 0, header[:width-1], curses.A_BOLD)
+
+            # Topics and messages
+            row = 5
+            max_rows = height - 7  # Leave room for header and footer
+
+            # Sort topics alphabetically
+            topics_list = sorted(self.topics.items())
+            for topic, (message, timestamp) in topics_list[:max_rows]:
+                if row >= height - 2:
+                    break
+
+                # Truncate long values to fit screen
+                topic_display = topic[:39]
+                message_display = message[:29]
+
+                try:
+                    self.stdscr.addstr(row, 0, topic_display, curses.color_pair(2))
+                    self.stdscr.addstr(row, 41, message_display, curses.color_pair(3))
+                    self.stdscr.addstr(row, 72, timestamp, curses.color_pair(4))
+                except curses.error:
+                    pass  # Ignore errors from writing at edge of screen
+
+                row += 1
+
+            # Footer
+            footer = "Press 'q' to quit | 'c' to clear"
+            try:
+                self.stdscr.addstr(height - 1, 0, footer[:width-1],
+                                  curses.color_pair(1))
+            except curses.error:
+                pass
+
+            self.stdscr.refresh()
+        except Exception:
+            pass  # Ignore render errors
+
+    def check_input(self):
+        """Check for keyboard input, returns True if should quit"""
+        key = self.stdscr.getch()
+        if key == ord('q') or key == ord('Q'):
+            return True
+        elif key == ord('c') or key == ord('C'):
+            self.topics.clear()
+            self.message_count = 0
+            self.render()
+        return False
 
 
-def on_disconnect(client, userdata, rc):
-    if rc != 0:
-        print("Unexpected disconnect, reconnecting...")
-
-
-def tail_file(filepath):
+def tail_file(filepath, ui):
     """
     Generator that yields new lines from a file as they are written.
     Handles file creation, rotation, and truncation.
+    Yields None when no data to allow checking for keyboard input.
     """
     filepath = Path(filepath)
 
     # Wait for file to exist
     while not filepath.exists():
-        print(f"Waiting for {filepath} to be created...")
+        ui.set_status(f"Waiting for log file to be created...")
         time.sleep(1)
+        yield None  # Allow checking for input while waiting
+
+    ui.set_status("Reading log file")
 
     with open(filepath, 'r') as f:
         # Start at the end of the file
@@ -47,12 +150,76 @@ def tail_file(filepath):
             else:
                 # No new data, sleep briefly
                 time.sleep(0.01)  # 10ms polling for low latency
+                yield None  # Allow checking for input while waiting
 
                 # Check if file was truncated or rotated
                 current_size = filepath.stat().st_size
                 if current_size < f.tell():
-                    print("File truncated, seeking to beginning")
+                    ui.set_status("File truncated, seeking to beginning")
                     f.seek(0)
+
+
+def run_bridge(stdscr, broker, port, logfile, qos):
+    ui = BridgeUI(stdscr)
+    ui.set_logfile(str(logfile))
+    ui.set_status("Connecting to MQTT broker...")
+
+    # Create MQTT client with persistent connection
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            ui.set_status(f"Connected to {broker}:{port}")
+        else:
+            ui.set_status(f"Connection failed: {rc}")
+
+    def on_disconnect(client, userdata, rc):
+        if rc != 0:
+            ui.set_status("Disconnected - reconnecting...")
+
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    try:
+        client.connect(broker, port, 60)
+    except Exception as e:
+        ui.set_status(f"Error: {e}")
+        time.sleep(3)
+        return
+
+    # Start network loop in background thread
+    client.loop_start()
+
+    try:
+        for line in tail_file(logfile, ui):
+            # Check for quit command
+            if ui.check_input():
+                break
+
+            # Skip None values (just for checking input)
+            if line is None:
+                continue
+
+            # Parse line: "topic message"
+            parts = line.split(' ', 1)
+            if len(parts) == 2:
+                topic, message = parts
+                # Publish with low latency
+                result = client.publish(topic, message, qos=qos)
+                if result.rc == mqtt.MQTT_ERR_SUCCESS:
+                    # Display: use topic as-is, message as value
+                    ui.add_message(topic, message)
+            elif len(parts) == 1 and parts[0]:
+                # Topic with no message (shouldn't happen but handle it)
+                topic = parts[0]
+                client.publish(topic, "", qos=qos)
+                ui.add_message(topic, "")
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        client.loop_stop()
+        client.disconnect()
 
 
 def main():
@@ -67,46 +234,10 @@ def main():
 
     args = parser.parse_args()
 
-    # Create MQTT client with persistent connection
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
-
-    print(f"Connecting to MQTT broker at {args.broker}:{args.port}...")
     try:
-        client.connect(args.broker, args.port, 60)
-    except Exception as e:
-        print(f"Error connecting to broker: {e}")
-        sys.exit(1)
-
-    # Start network loop in background thread
-    client.loop_start()
-
-    print(f"Tailing log file: {args.logfile}")
-    print("Bridge running. Press Ctrl+C to exit.")
-
-    try:
-        for line in tail_file(args.logfile):
-            # Parse line: "topic message"
-            parts = line.split(' ', 1)
-            if len(parts) == 2:
-                topic, message = parts
-                # Publish with low latency
-                result = client.publish(topic, message, qos=args.qos)
-                if result.rc != mqtt.MQTT_ERR_SUCCESS:
-                    print(f"Failed to publish: {topic} {message}")
-            elif len(parts) == 1 and parts[0]:
-                # Topic with no message
-                topic = parts[0]
-                client.publish(topic, "", qos=args.qos)
-            # Ignore empty lines
-
+        curses.wrapper(run_bridge, args.broker, args.port, args.logfile, args.qos)
     except KeyboardInterrupt:
-        print("\nShutting down...")
-    finally:
-        client.loop_stop()
-        client.disconnect()
-        print("Disconnected from MQTT broker")
+        pass
 
 
 if __name__ == '__main__':

@@ -5,11 +5,11 @@ local cpu = manager.machine.devices[":maincpu"]
 
 local function get_player_score(dword)
 	local score = 0
-	-- Process dword as BCD
+	-- Process 4 bytes (32 bits) as BCD
 	for i = 3, 0, -1 do
 		local byte = (dword >> (i * 8)) & 0xFF
-		local hi = math.floor(byte / 16)
-		local lo = byte % 16
+		local hi = (byte >> 4) & 0x0F -- Upper 4 bits (high nibble)
+		local lo = byte & 0x0F -- Lower 4 bits (low nibble)
 		score = score * 100 + hi * 10 + lo
 	end
 
@@ -21,26 +21,23 @@ end
 local map = {
 	player_one_score = {
 		addr_start = 0x4E80,
-		addr_end = 0x4E80,
+		size = 4,
 		callback = function(_, current, _)
 			local current_score = get_player_score(current)
-			_G.publish_mqtt("rgfx/event", "player_one_score " .. current_score)
+			_G.publish_mqtt("rgfx/event/player/score/p1", current_score)
 		end,
-		size = 4,
 	},
 	power_pill = {
 		addr_start = 0x4DA6,
-		addr_end = 0x4DA6,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event", "power_pill " .. current)
+			_G.publish_mqtt("rgfx/event/player/pill/state", current)
 		end,
-		size = 1,
 	},
 	-- power_pill_flash_counter = {
 	-- 	addr_start = 0x4DCF,
 	-- 	addr_end = 0x4DCF,
 	-- 	callback = function(_, current, _)
-	-- 		print("POWER PILL FLASH COUNTER", current)
+	-- 		_G.publish_mqtt("rgfx/event/power_pill/counter", current)
 	-- 	end,
 	-- 	size = 1,
 	-- },
@@ -60,14 +57,6 @@ local map = {
 	-- 	end,
 	-- 	size = 4,
 	-- },
-	-- power_pill_flash_counter = {
-	-- 	addr_start = 0x4DCF,
-	-- 	addr_end = 0x4DCF,
-	-- 	callback = function(_, current, _)
-	-- 		print("Flash counter:", current)
-	-- 	end,
-	-- 	size = 1,
-	-- },
 	-- GHOST COLORS
 	-- 0x01 = red
 	-- 0x03 = pink
@@ -77,13 +66,27 @@ local map = {
 	-- 0x12 = white
 	red_ghost_color = {
 		addr_start = 0x4C03,
-		addr_end = 0x4C03,
-		-- callback = function(addr, current, previous) end,
+		callback = function(_, current, _)
+			_G.publish_mqtt("rgfx/event/ghost/red/color", current)
+		end,
 	},
 	pink_ghost_color = {
 		addr_start = 0x4C05,
-		addr_end = 0x4C05,
-		-- callback = function(addr, current, previous) end,
+		callback = function(_, current, _)
+			_G.publish_mqtt("rgfx/event/ghost/pink/color", current)
+		end,
+	},
+	cyan_ghost_color = {
+		addr_start = 0x4C07,
+		callback = function(_, current, _)
+			_G.publish_mqtt("rgfx/event/ghost/cyan/color", current)
+		end,
+	},
+	orange_ghost_color = {
+		addr_start = 0x4C09,
+		callback = function(_, current, _)
+			_G.publish_mqtt("rgfx/event/ghost/orange/color", current)
+		end,
 	},
 }
 
