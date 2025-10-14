@@ -3,32 +3,30 @@ local ram = require("ram")
 
 local cpu = manager.machine.devices[":maincpu"]
 
-local function get_player_score(p)
+local function make_score_callback(start_addr, end_addr)
 	local mem = cpu.spaces["program"]
-	local score = 0
-	-- Galaga current player score in video RAM at 0x83F8+ (6 digits)
-	-- 0x83F8 = units place, ascending for higher digits
-	-- Values 0-9 map to themselves, 24 = blank
-	-- Reading from highest digit to lowest
-	for i = 5, 0, -1 do
-		local digit = mem:read_u8(0x83F8 + i)
-		if digit >= 0 and digit <= 9 then
-			score = score * 10 + digit
-		elseif digit == 24 then
-			-- blank, treat as 0
-			score = score * 10
-		end
-	end
-	return score
-end
-
-local function make_score_callback()
 	local last_score = nil
-	return function(offset, data)
-		local current_score = get_player_score(0)
-		if current_score ~= last_score then
-			print("Player 1 Score:", current_score, manager.machine.time)
-			last_score = current_score
+	local num_digits = end_addr - start_addr + 1
+
+	return function(_, _, _)
+		local score = 0
+		-- Galaga score in video RAM
+		-- start_addr = units place, ascending for higher digits
+		-- Values 0-9 map to themselves, 24 = blank
+		-- Reading from highest digit to lowest
+		for i = num_digits - 1, 0, -1 do
+			local digit = mem:read_u8(start_addr + i)
+			if digit >= 0 and digit <= 9 then
+				score = score * 10 + digit
+			elseif digit == 24 then
+				-- blank, treat as 0
+				score = score * 10
+			end
+		end
+
+		if score ~= last_score then
+			print("Player 1 Score:", score)
+			last_score = score
 		end
 	end
 end
@@ -38,7 +36,6 @@ local map = {
 	player_one_score = {
 		addr_start = 0x83F8,
 		addr_end = 0x83FD,
-		callback = make_score_callback(),
 	},
 }
 
@@ -48,6 +45,6 @@ for name, config in pairs(map) do
 		start_addr = config.addr_start,
 		end_addr = config.addr_end,
 		name = name,
-		callback = config.callback,
+		callback = make_score_callback(config.addr_start, config.addr_end),
 	})
 end

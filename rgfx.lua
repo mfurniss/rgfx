@@ -54,7 +54,7 @@ print(screen)
 local fps = 1 / screen.refresh
 print(fps)
 
-local function publish(topic, message)
+function _G.publish_mqtt(topic, message)
 	-- local cmd = string.format('mosquitto_pub -h localhost -t "%s" -m "%s"', topic, message)
 	-- os.execute(cmd)
 	if _G.logfile then
@@ -62,7 +62,11 @@ local function publish(topic, message)
 	end
 end
 
-publish("rgfx/game", game_name)
+publish_mqtt("rgfx/game", game_name)
+
+local prestart_cb = function()
+	print("Machine prestart")
+end
 
 local stop_cb = function()
 	if _G.logfile then
@@ -71,4 +75,5 @@ local stop_cb = function()
 	end
 end
 
+emu.register_prestart(prestart_cb)
 emu.add_machine_stop_notifier(stop_cb)
