@@ -57,35 +57,38 @@ local map = {
 	-- 	end,
 	-- 	size = 4,
 	-- },
-	-- GHOST COLORS
-	-- 0x01 = red
-	-- 0x03 = pink
-	-- 0x05 = cyan
-	-- 0x07 = orange
-	-- 0x11 = blue
-	-- 0x12 = white
-	red_ghost_color = {
+	-- GHOST STATES
+	-- 0x01 = red (normal)
+	-- 0x03 = pink (normal)
+	-- 0x05 = cyan (normal)
+	-- 0x07 = orange (normal)
+	-- 0x11 (17) = blue (vulnerable - power pill active)
+	-- 0x12 (18) = white (flashing - power pill wearing off)
+	-- 0x18 (24) = score display (200/400/800/1600 - ghost being eaten)
+	-- 0x19 (25) = eyes (returning to ghost home after being eaten)
+	-- 0x1d (29) = cutscene color (intermissions only)
+	red_ghost_state = {
 		addr_start = 0x4C03,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/red/color", current)
+			_G.publish_mqtt("rgfx/event/ghost/red/state", current)
 		end,
 	},
-	pink_ghost_color = {
+	pink_ghost_state = {
 		addr_start = 0x4C05,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/pink/color", current)
+			_G.publish_mqtt("rgfx/event/ghost/pink/state", current)
 		end,
 	},
-	cyan_ghost_color = {
+	cyan_ghost_state = {
 		addr_start = 0x4C07,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/cyan/color", current)
+			_G.publish_mqtt("rgfx/event/ghost/cyan/state", current)
 		end,
 	},
-	orange_ghost_color = {
+	orange_ghost_state = {
 		addr_start = 0x4C09,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/orange/color", current)
+			_G.publish_mqtt("rgfx/event/ghost/orange/state", current)
 		end,
 	},
 }
