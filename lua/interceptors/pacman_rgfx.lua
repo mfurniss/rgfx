@@ -24,20 +24,20 @@ local map = {
 		size = 4,
 		callback = function(_, current, _)
 			local current_score = get_player_score(current)
-			_G.publish_mqtt("rgfx/event/player/score/p1", current_score)
+			_G.event("player/score/p1", current_score)
 		end,
 	},
 	power_pill = {
 		addr_start = 0x4DA6,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/player/pill/state", current)
+			_G.event("player/pill/state", current)
 		end,
 	},
 	-- power_pill_flash_counter = {
 	-- 	addr_start = 0x4DCF,
 	-- 	addr_end = 0x4DCF,
 	-- 	callback = function(_, current, _)
-	-- 		_G.publish_mqtt("rgfx/event/power_pill/counter", current)
+	-- 		_G.event("power_pill/counter", current)
 	-- 	end,
 	-- 	size = 1,
 	-- },
@@ -70,25 +70,25 @@ local map = {
 	red_ghost_state = {
 		addr_start = 0x4C03,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/red/state", current)
+			_G.event("ghost/red/state", current)
 		end,
 	},
 	pink_ghost_state = {
 		addr_start = 0x4C05,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/pink/state", current)
+			_G.event("ghost/pink/state", current)
 		end,
 	},
 	cyan_ghost_state = {
 		addr_start = 0x4C07,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/cyan/state", current)
+			_G.event("ghost/cyan/state", current)
 		end,
 	},
 	orange_ghost_state = {
 		addr_start = 0x4C09,
 		callback = function(_, current, _)
-			_G.publish_mqtt("rgfx/event/ghost/orange/state", current)
+			_G.event("ghost/orange/state", current)
 		end,
 	},
 }

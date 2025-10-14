@@ -4,26 +4,8 @@ local interceptors_dir = "interceptors"
 package.path = package.path .. ";" .. base_path .. "?.lua"
 package.path = package.path .. ";" .. base_path .. interceptors_dir .. "/?.lua"
 
--- autoboot.lua
--- Get OS temp directory (cross-platform)
-local function get_temp_dir()
-	local os_name = package.config:sub(1, 1) == "\\" and "windows" or "unix"
-	if os_name == "windows" then
-		return os.getenv("TEMP") or os.getenv("TMP") or "C:\\Temp"
-	else
-		return os.getenv("TMPDIR") or "/tmp"
-	end
-end
-
-local logfile_path = get_temp_dir() .. (package.config:sub(1, 1) == "\\" and "\\" or "/") .. "rgfx_events.log"
-
-_G.logfile = io.open(logfile_path, "w")
-if _G.logfile then
-	_G.logfile:setvbuf("no") -- flush immediately
-	print("Log file opened at: " .. logfile_path)
-else
-	print("Failed to open log file at: " .. logfile_path)
-end
+-- Load event logging module (defines _G.event and event_file)
+require("event")
 
 print(emu.app_name() .. " " .. emu.app_version())
 
@@ -32,10 +14,10 @@ for tag, screen in pairs(manager.machine.screens) do
 end
 
 -- Dynamically load game-specific script based on game name
-local game_name = emu.romname()
-print("Game ROM name: " .. game_name)
+local rom_name = emu.romname()
+print("ROM name: " .. rom_name)
 
-local game_script = game_name .. "_rgfx"
+local game_script = rom_name .. "_rgfx"
 print("Looking for: " .. interceptors_dir .. "/" .. game_script .. ".lua")
 local status = pcall(require, game_script)
 if status then
@@ -63,25 +45,14 @@ print(screen)
 local fps = 1 / screen.refresh
 print(fps)
 
-function _G.publish_mqtt(topic, message)
-	-- local cmd = string.format('mosquitto_pub -h localhost -t "%s" -m "%s"', topic, message)
-	-- os.execute(cmd)
-	if _G.logfile then
-		_G.logfile:write(string.format("%s %s\n", topic, message))
-	end
-end
-
-publish_mqtt("rgfx/event/game", game_name)
+event("game", rom_name)
 
 local prestart_cb = function()
 	print("Machine prestart")
 end
 
 local stop_cb = function()
-	if _G.logfile then
-		_G.logfile:close()
-		_G.logfile = nil
-	end
+	event_cleanup()
 end
 
 emu.register_prestart(prestart_cb)

@@ -30,7 +30,7 @@ local map = {
 		addr_end = 0x83FD,
 		callback = function(_, _, _)
 			local score = get_galaga_score(0x83F8)
-			_G.publish_mqtt("rgfx/event/player_one_score", score)
+			_G.event("player_one_score", score)
 		end,
 	},
 }
