@@ -5,8 +5,17 @@ package.path = package.path .. ";" .. base_path .. "?.lua"
 package.path = package.path .. ";" .. base_path .. interceptors_dir .. "/?.lua"
 
 -- autoboot.lua
--- Open a global logfile in macOS temp directory
-local logfile_path = "/tmp/mame_out.txt"
+-- Get OS temp directory (cross-platform)
+local function get_temp_dir()
+	local os_name = package.config:sub(1,1) == '\\' and 'windows' or 'unix'
+	if os_name == 'windows' then
+		return os.getenv('TEMP') or os.getenv('TMP') or 'C:\\Temp'
+	else
+		return os.getenv('TMPDIR') or '/tmp'
+	end
+end
+
+local logfile_path = get_temp_dir() .. (package.config:sub(1,1) == '\\' and '\\' or '/') .. "rgfx_events.log"
 
 _G.logfile = io.open(logfile_path, "w")
 if _G.logfile then

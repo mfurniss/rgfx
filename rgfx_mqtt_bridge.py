@@ -7,6 +7,7 @@ Tails the MAME log file and publishes events to MQTT broker with low latency.
 import time
 import argparse
 import sys
+import tempfile
 from pathlib import Path
 import paho.mqtt.client as mqtt
 
@@ -55,10 +56,13 @@ def tail_file(filepath):
 
 
 def main():
+    # Default log file in OS temp directory
+    default_logfile = Path(tempfile.gettempdir()) / 'rgfx_events.log'
+
     parser = argparse.ArgumentParser(description='RGFX MQTT Bridge')
     parser.add_argument('--broker', default='localhost', help='MQTT broker host (default: localhost)')
     parser.add_argument('--port', type=int, default=1883, help='MQTT broker port (default: 1883)')
-    parser.add_argument('--logfile', default='/tmp/mame_out.txt', help='Path to MAME log file (default: /tmp/mame_out.txt)')
+    parser.add_argument('--logfile', default=str(default_logfile), help=f'Path to RGFX events log file (default: {default_logfile})')
     parser.add_argument('--qos', type=int, default=0, choices=[0, 1, 2], help='MQTT QoS level (default: 0)')
 
     args = parser.parse_args()
