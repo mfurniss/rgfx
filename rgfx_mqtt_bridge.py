@@ -14,6 +14,7 @@ from datetime import datetime
 from collections import OrderedDict
 from pathlib import Path
 import paho.mqtt.client as mqtt
+import logging
 
 
 class BridgeUI:
@@ -22,6 +23,7 @@ class BridgeUI:
         self.topics = OrderedDict()  # topic -> (message, timestamp)
         self.status = "Starting..."
         self.message_count = 0
+        self.sent_count = 0
         self.logfile_path = ""
 
         # Setup curses
@@ -50,6 +52,10 @@ class BridgeUI:
         self.message_count += 1
         self.render()
 
+    def increment_sent(self):
+        self.sent_count += 1
+        self.render()
+
     def render(self):
         try:
             self.stdscr.clear()
@@ -61,7 +67,7 @@ class BridgeUI:
                               curses.color_pair(1) | curses.A_BOLD)
 
             # Status line
-            status_line = f"Status: {self.status} | Messages: {self.message_count} | Topics: {len(self.topics)}"
+            status_line = f"Status: {self.status} | Received: {self.message_count} | Sent: {self.sent_count} | Topics: {len(self.topics)}"
             self.stdscr.addstr(1, 0, status_line[:width-1])
 
             # Log file info
@@ -119,6 +125,7 @@ class BridgeUI:
         elif key == ord('c') or key == ord('C'):
             self.topics.clear()
             self.message_count = 0
+            self.sent_count = 0
             self.render()
         return False
 
@@ -204,16 +211,21 @@ def run_bridge(stdscr, broker, port, logfile, qos):
             parts = line.split(' ', 1)
             if len(parts) == 2:
                 topic, message = parts
-                # Publish with low latency
-                result = client.publish(topic, message, qos=qos)
-                if result.rc == mqtt.MQTT_ERR_SUCCESS:
-                    # Display: use topic as-is, message as value
-                    ui.add_message(topic, message)
+                # Display: use original topic for UI
+                ui.add_message(topic, message)
+                # Publish test message for any detected event
+                client.publish("rgfx/test", message, qos=qos)
+                epoch_time = time.time()
+                logging.info(f"rgfx/test {epoch_time}")
+                ui.increment_sent()
             elif len(parts) == 1 and parts[0]:
                 # Topic with no message (shouldn't happen but handle it)
                 topic = parts[0]
-                client.publish(topic, "", qos=qos)
                 ui.add_message(topic, "")
+                client.publish("rgfx/test", "", qos=qos)
+                epoch_time = time.time()
+                logging.info(f"rgfx/test {epoch_time}")
+                ui.increment_sent()
 
     except KeyboardInterrupt:
         pass
@@ -233,6 +245,14 @@ def main():
     parser.add_argument('--qos', type=int, default=0, choices=[0, 1, 2], help='MQTT QoS level (default: 0)')
 
     args = parser.parse_args()
+
+    # Setup logging to file with epoch timestamps
+    log_path = Path(tempfile.gettempdir()) / 'rgfx_mqtt_bridge.log'
+    logging.basicConfig(
+        filename=str(log_path),
+        level=logging.INFO,
+        format='%(message)s'
+    )
 
     try:
         curses.wrapper(run_bridge, args.broker, args.port, args.logfile, args.qos)

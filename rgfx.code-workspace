@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "RGFX (Root)",
+			"path": "."
+		},
+		{
+			"name": "ESP32",
+			"path": "esp32"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"esp32": true
+		}
+	}
+}
