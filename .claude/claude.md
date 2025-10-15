@@ -4,7 +4,7 @@ A MAME Lua scripting framework for monitoring retro arcade game state and publis
 
 ## Project Overview
 
-RGFX intercepts memory changes in MAME-emulated arcade games and publishes game events (score changes, ghost states, power-ups, etc.) to an MQTT broker for consumption by external applications.
+RGFX intercepts memory changes in MAME-emulated arcade games and publishes game events (score changes, entity states, power-ups, etc.) to an MQTT broker for consumption by external applications.
 
 ## Architecture
 
@@ -28,21 +28,7 @@ Events are written as: `topic value`
 Example topics:
 - `game` - ROM name
 - `player/score/p1` - Player 1 score
-- `ghost/red/state` - Ghost state (1=normal, 17=blue/vulnerable, 24=eaten, 25=eyes)
-- `player/pill/state` - Power pill state
-
-## Ghost States (Pac-Man)
-
-From disassembled Ms. Pac-Man source code:
-- `0x01` = red (normal)
-- `0x03` = pink (normal)
-- `0x05` = cyan (normal)
-- `0x07` = orange (normal)
-- `0x11` (17) = blue (vulnerable - power pill active)
-- `0x12` (18) = white (flashing - power pill wearing off)
-- `0x18` (24) = score display (200/400/800/1600 - ghost being eaten)
-- `0x19` (25) = eyes (returning to ghost home after being eaten)
-- `0x1d` (29) = cutscene color (intermissions only)
+- Game-specific event topics defined in interceptor files
 
 ## Running
 
