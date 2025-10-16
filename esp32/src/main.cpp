@@ -9,59 +9,7 @@
 #define BRIGHTNESS  64  // 25% brightness
 #define FLASH_DURATION_MS  10  // MQTT message flash duration
 
-const uint8_t font_A[7] = {
-	0b01110,
-	0b10001,
-	0b10001,
-	0b11111,
-	0b10001,
-	0b10001,
-	0b10001
-};
-
-const uint8_t font_B[7] = {
-	0b11110,
-	0b10001,
-	0b10001,
-	0b11110,
-	0b10001,
-	0b10001,
-	0b11110,
-};
-
-const uint8_t font_C[7] = {
-	0b01110,
-	0b10001,
-	0b10000,
-	0b10000,
-	0b10000,
-	0b10001,
-	0b01110,
-};
-
 Matrix matrix(WIDTH, HEIGHT);
-
-
-const uint8_t* const font[3] PROGMEM = {
-	font_A,
-	font_B,
-	font_C
-};
-
-void drawChar(CRGB* leds, char c, int ox, int oy) {
-
-	int char_index = c - 'A';
-	const uint8_t* char_data = (const uint8_t*)pgm_read_ptr(&font[char_index]);
-
-	for(int y = 0; y < 7; y++) {
-		for(int x = 0; x < 5; x++) {
-			if((char_data[y] >> (4 - x)) & 0x01) {
-				leds[matrix.xy(x + ox, y + oy)] = CRGB::White;
-			}
-		}
-	}
-}
-
 
 void setup() {
 	Serial.begin(115200);
@@ -85,10 +33,10 @@ void setup() {
 	fill_solid(matrix.leds, matrix.size, CRGB::Blue);
 	FastLED.show();
 
-	// Connect to WiFi and setup MQTT (with 5 second timeout)
+	// Connect to WiFi and setup UDP (with 5 second timeout)
 	setupWiFi();
 
-	// If WiFi connected, show green (temporarily, until MQTT connects)
+	// If WiFi connected, show green
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("WiFi connected! Showing GREEN");
 		fill_solid(matrix.leds, matrix.size, CRGB::Green);
@@ -99,8 +47,14 @@ void setup() {
 		FastLED.show();
 	}
 
-	// Setup MQTT (will turn LEDs dark if it connects)
-	setupMQTT();
+	// MQTT DISABLED FOR UDP TESTING
+	// setupMQTT();
+	setupUDP();
+
+	// Turn LEDs dark after UDP setup
+	Serial.println("UDP ready - LEDs going DARK");
+	fill_solid(matrix.leds, matrix.size, CRGB::Black);
+	FastLED.show();
 }
 
 // Effect control variables (defined here, declared as extern in mqtt.h)
@@ -112,6 +66,22 @@ bool powerOn = true;
 uint8_t currentBrightness = BRIGHTNESS;
 
 void loop() {
-	// Process MQTT as fast as possible - tight loop with no delays
-	mqttLoop();
+	// MQTT DISABLED FOR UDP TESTING
+	// mqttLoop();
+
+	// Process incoming UDP packets
+	processUDP();
+
+	// Check for UDP color updates
+	uint32_t color;
+	if (checkUDPColor(&color)) {
+		fill_solid(matrix.leds, matrix.size, color);
+	}
+
+	// Fade to black for flash effect
+	fadeToBlackBy(matrix.leds, matrix.size, 50);
+	FastLED.show();
+
+	// Small delay
+	delay(1);
 }

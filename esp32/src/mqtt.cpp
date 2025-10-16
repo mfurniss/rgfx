@@ -3,7 +3,14 @@
 #include <FastLED.h>
 #include <WiFiUdp.h>
 
-#define UDP_PORT 8888  // Port to listen on for UDP messages
+WiFiUDP udp;
+
+#define UDP_PORT 1234  // Port to listen on for UDP messages
+#define UDP_BUFFER_SIZE 64
+
+// UDP message handling
+volatile bool newColorAvailable = false;
+volatile uint32_t pendingColor = 0;
 
 // WiFi credentials
 const char* WIFI_SSID = "rme-guest";
@@ -30,6 +37,7 @@ extern Matrix matrix;
 // Toggle state
 bool ledsOn = false;
 
+
 // MQTT callback function - called when a message is received
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
 	static unsigned long lastCallbackTime = 0;
@@ -40,24 +48,19 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 	Serial.println("ms");
 	lastCallbackTime = now;
 
-	// TOGGLE: On -> Off, Off -> On
-	if (ledsOn) {
-		// Turn OFF
-		fill_solid(matrix.leds, matrix.size, CRGB::Black);
-		ledsOn = false;
-		Serial.println("OFF");
-	} else {
-		// Turn ON (yellow)
-		fill_solid(matrix.leds, matrix.size, CRGB::Yellow);
-		ledsOn = true;
-		Serial.println("ON");
-	}
-	FastLED.show();
-}
-
-// No longer needed
-void updateLEDs() {
-	// Nothing to do
+	// // TOGGLE: On -> Off, Off -> On
+	// if (ledsOn) {
+	//  // Turn OFF
+	//  fill_solid(matrix.leds, matrix.size, CRGB::Black);
+	//  ledsOn = false;
+	//  Serial.println("OFF");
+	// } else {
+	//  // Turn ON (yellow)
+	//  fill_solid(matrix.leds, matrix.size, CRGB::Yellow);
+	//  ledsOn = true;
+	//  Serial.println("ON");
+	// }
+	// FastLED.show();
 }
 
 // WiFi connection setup (non-blocking with timeout)
@@ -102,6 +105,29 @@ void setupMQTT() {
 		reconnectMQTT();
 	} else {
 		Serial.println("Skipping MQTT setup - no WiFi connection");
+	}
+}
+
+void setupUDP() {
+	if (udp.begin(UDP_PORT)) {
+		Serial.printf("UDP listener started on port %d\n", UDP_PORT);
+	} else {
+		Serial.println("ERROR: Failed to start UDP listener!");
+	}
+}
+
+// Check for UDP packets and process them (call from main loop)
+void processUDP() {
+	int packetSize = udp.parsePacket();
+	if (packetSize > 0) {
+		char buffer[UDP_BUFFER_SIZE];
+		int len = udp.read(buffer, UDP_BUFFER_SIZE - 1);
+		if (len > 0) {
+			buffer[len] = '\0';  // Null terminate
+			pendingColor = (uint32_t) strtol(buffer, NULL, 16);
+			newColorAvailable = true;
+			Serial.printf("UDP RX: color=%s\n", buffer);
+		}
 	}
 }
 
@@ -162,4 +188,14 @@ void mqttLoop() {
 			mqttClient.loop();
 		}
 	}
+}
+
+// Check for UDP color updates and apply them (call from main loop)
+bool checkUDPColor(uint32_t* color) {
+	if (newColorAvailable) {
+		*color = pendingColor;
+		newColorAvailable = false;
+		return true;
+	}
+	return false;
 }

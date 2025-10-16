@@ -34,8 +34,11 @@ extern uint32_t lastSwitchTime;
 // Function declarations
 void setupWiFi();
 void setupMQTT();
+void setupUDP();
+void processUDP();
 void reconnectMQTT();
 void mqttLoop();
 void updateLEDs();
+bool checkUDPColor(uint32_t* color);
 
 #endif

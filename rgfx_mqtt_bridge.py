@@ -15,7 +15,13 @@ from collections import OrderedDict
 from pathlib import Path
 import paho.mqtt.client as mqtt
 import logging
+import socket
 
+UDP_IP = "192.168.30.146"
+UDP_PORT = 1234
+
+# Create a single reusable UDP socket
+udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 class BridgeUI:
     def __init__(self, stdscr):
@@ -169,33 +175,34 @@ def tail_file(filepath, ui):
 def run_bridge(stdscr, broker, port, logfile, qos):
     ui = BridgeUI(stdscr)
     ui.set_logfile(str(logfile))
-    ui.set_status("Connecting to MQTT broker...")
+    ui.set_status("UDP-only mode (MQTT disabled)")
 
-    # Create MQTT client with persistent connection
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
-
-    def on_connect(client, userdata, flags, rc):
-        if rc == 0:
-            ui.set_status(f"Connected to {broker}:{port}")
-        else:
-            ui.set_status(f"Connection failed: {rc}")
-
-    def on_disconnect(client, userdata, rc):
-        if rc != 0:
-            ui.set_status("Disconnected - reconnecting...")
-
-    client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
-
-    try:
-        client.connect(broker, port, 60)
-    except Exception as e:
-        ui.set_status(f"Error: {e}")
-        time.sleep(3)
-        return
-
-    # Start network loop in background thread
-    client.loop_start()
+    # MQTT DISABLED FOR UDP TESTING
+    # # Create MQTT client with persistent connection
+    # client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    #
+    # def on_connect(client, userdata, flags, rc):
+    #     if rc == 0:
+    #         ui.set_status(f"Connected to {broker}:{port}")
+    #     else:
+    #         ui.set_status(f"Connection failed: {rc}")
+    #
+    # def on_disconnect(client, userdata, rc):
+    #     if rc != 0:
+    #         ui.set_status("Disconnected - reconnecting...")
+    #
+    # client.on_connect = on_connect
+    # client.on_disconnect = on_disconnect
+    #
+    # try:
+    #     client.connect(broker, port, 60)
+    # except Exception as e:
+    #     ui.set_status(f"Error: {e}")
+    #     time.sleep(3)
+    #     return
+    #
+    # # Start network loop in background thread
+    # client.loop_start()
 
     try:
         for line in tail_file(logfile, ui):
@@ -213,25 +220,32 @@ def run_bridge(stdscr, broker, port, logfile, qos):
                 topic, message = parts
                 # Display: use original topic for UI
                 ui.add_message(topic, message)
-                # Publish test message for any detected event
-                client.publish("rgfx/test", message, qos=qos)
+                # MQTT DISABLED FOR UDP TESTING
+                # client.publish("rgfx/test", message, qos=qos)
+                # Send UDP packet using the shared socket
+                udp_sock.sendto("FF00FF".encode(), (UDP_IP, UDP_PORT))
                 epoch_time = time.time()
-                logging.info(f"rgfx/test {epoch_time}")
+                logging.info(f"UDP {epoch_time}")
                 ui.increment_sent()
             elif len(parts) == 1 and parts[0]:
                 # Topic with no message (shouldn't happen but handle it)
                 topic = parts[0]
                 ui.add_message(topic, "")
-                client.publish("rgfx/test", "", qos=qos)
+                # MQTT DISABLED FOR UDP TESTING
+                # client.publish("rgfx/test", "", qos=qos)
+                # Send UDP packet using the shared socket
+                udp_sock.sendto("FF0000".encode(), (UDP_IP, UDP_PORT))
                 epoch_time = time.time()
-                logging.info(f"rgfx/test {epoch_time}")
+                logging.info(f"UDP {epoch_time}")
                 ui.increment_sent()
 
     except KeyboardInterrupt:
         pass
     finally:
-        client.loop_stop()
-        client.disconnect()
+        # MQTT DISABLED FOR UDP TESTING
+        # client.loop_stop()
+        # client.disconnect()
+        pass
 
 
 def main():
