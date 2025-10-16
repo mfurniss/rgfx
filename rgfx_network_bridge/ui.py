@@ -20,7 +20,6 @@ class BridgeUI:
 
         # Setup curses
         curses.curs_set(0)  # Hide cursor
-        self.stdscr.nodelay(True)  # Non-blocking input
 
         # Setup colors
         curses.start_color()
@@ -98,7 +97,7 @@ class BridgeUI:
                 row += 1
 
             # Footer
-            footer = "Press 'q' to quit | 'c' to clear"
+            footer = "Press Ctrl+C to quit"
             try:
                 self.stdscr.addstr(height - 1, 0, footer[:width-1],
                                   curses.color_pair(1))
@@ -108,15 +107,3 @@ class BridgeUI:
             self.stdscr.refresh()
         except Exception:
             pass  # Ignore render errors
-
-    def check_input(self):
-        """Check for keyboard input, returns True if should quit"""
-        key = self.stdscr.getch()
-        if key == ord('q') or key == ord('Q'):
-            return True
-        elif key == ord('c') or key == ord('C'):
-            self.topics.clear()
-            self.message_count = 0
-            self.sent_count = 0
-            self.render()
-        return False

@@ -1,0 +1,6 @@
+{
+  "broker": "localhost",
+  "port": 1883,
+  "eventsfile": "/tmp/rgfx_events.log",
+  "qos": 0
+}

@@ -73,10 +73,11 @@ void loop() {
 	// Process incoming UDP packets
 	processUDP();
 
-	// Check for UDP color updates
-	uint32_t color;
-	if (checkUDPColor(&color)) {
-		fill_solid(matrix.leds, matrix.size, color);
+	// Check for UDP message updates
+	UDPMessage message;
+	if (checkUDPMessage(&message)) {
+		// For now, just handle color - effect name available in message.effect
+		fill_solid(matrix.leds, matrix.size, message.color);
 	}
 
 	// Fade to black for flash effect
