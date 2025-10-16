@@ -1,11 +1,11 @@
 {
 	"folders": [
 		{
-			"name": "RGFX (Root)",
+			"name": "rgfx (Root)",
 			"path": "."
 		},
 		{
-			"name": "ESP32",
+			"name": "esp32",
 			"path": "esp32"
 		}
 	],
