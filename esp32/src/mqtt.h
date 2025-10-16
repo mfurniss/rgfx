@@ -5,10 +5,6 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
-// WiFi credentials
-extern const char* WIFI_SSID;
-extern const char* WIFI_PASSWORD;
-
 // MQTT broker settings
 extern const char* MQTT_SERVER;
 extern const int MQTT_PORT;
@@ -32,13 +28,9 @@ extern uint8_t currentBrightness;
 extern uint32_t lastSwitchTime;
 
 // Function declarations
-void setupWiFi();
 void setupMQTT();
-void setupUDP();
-void processUDP();
 void reconnectMQTT();
 void mqttLoop();
 void updateLEDs();
-bool checkUDPColor(uint32_t* color);
 
 #endif

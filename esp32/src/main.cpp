@@ -1,9 +1,13 @@
 #include <FastLED.h>
+#include <WiFi.h>
 #include "matrix.h"
-#include "fire.h"
-#include "wave.h"
-#include "sparkle.h"
+#include "effects/fire.h"
+#include "effects/wave.h"
+#include "effects/sparkle.h"
+#include "wifi_setup.h"
+#include "udp.h"
 #include "mqtt.h"
+#include "log.h"
 
 #define LED_PIN     16  // RX2 = GPIO16
 #define BRIGHTNESS  64  // 25% brightness
@@ -14,14 +18,11 @@ Matrix matrix(WIDTH, HEIGHT);
 void setup() {
 	Serial.begin(115200);
 	delay(1000);
-	Serial.println("\n\nESP32 LED Matrix starting...");
+	log("\n\nESP32 LED Matrix starting...");
 
-	Serial.print("Matrix size: ");
-	Serial.println(matrix.size);
-	Serial.print("LED Pin: ");
-	Serial.println(LED_PIN);
-	Serial.print("Brightness: ");
-	Serial.println(BRIGHTNESS);
+	log("Matrix size: " + String(matrix.size));
+	log("LED Pin: " + String(LED_PIN));
+	log("Brightness: " + String(BRIGHTNESS));
 
 	FastLED.addLeds<WS2812B, LED_PIN, GRB>(matrix.leds, matrix.size);
 	FastLED.setMaxPowerInVoltsAndMilliamps(5, 300);
@@ -29,7 +30,7 @@ void setup() {
 	FastLED.setCorrection(TypicalPixelString);
 
 	// Show BLUE while booting and waiting for WiFi
-	Serial.println("Booting... Showing BLUE");
+	log("Booting... Showing BLUE");
 	fill_solid(matrix.leds, matrix.size, CRGB::Blue);
 	FastLED.show();
 
@@ -38,11 +39,11 @@ void setup() {
 
 	// If WiFi connected, show green
 	if (WiFi.status() == WL_CONNECTED) {
-		Serial.println("WiFi connected! Showing GREEN");
+		log("WiFi connected! Showing GREEN");
 		fill_solid(matrix.leds, matrix.size, CRGB::Green);
 		FastLED.show();
 	} else {
-		Serial.println("WiFi failed. Showing RED");
+		log("WiFi failed. Showing RED");
 		fill_solid(matrix.leds, matrix.size, CRGB::Red);
 		FastLED.show();
 	}
@@ -52,7 +53,7 @@ void setup() {
 	setupUDP();
 
 	// Turn LEDs dark after UDP setup
-	Serial.println("UDP ready - LEDs going DARK");
+	log("UDP ready - LEDs going DARK");
 	fill_solid(matrix.leds, matrix.size, CRGB::Black);
 	FastLED.show();
 }

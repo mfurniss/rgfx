@@ -1,20 +1,8 @@
 #include "mqtt.h"
 #include "matrix.h"
+#include "log.h"
 #include <FastLED.h>
-#include <WiFiUdp.h>
-
-WiFiUDP udp;
-
-#define UDP_PORT 1234  // Port to listen on for UDP messages
-#define UDP_BUFFER_SIZE 64
-
-// UDP message handling
-volatile bool newColorAvailable = false;
-volatile uint32_t pendingColor = 0;
-
-// WiFi credentials
-const char* WIFI_SSID = "rme-guest";
-const char* WIFI_PASSWORD = "soulmanstax57";
+#include <WiFi.h>
 
 // MQTT broker settings
 const char* MQTT_SERVER = "192.168.30.18";
@@ -43,9 +31,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 	static unsigned long lastCallbackTime = 0;
 	unsigned long now = millis();
 
-	Serial.print("Callback! Delta: ");
-	Serial.print(now - lastCallbackTime);
-	Serial.println("ms");
+	log("Callback! Delta: " + String(now - lastCallbackTime) + "ms");
 	lastCallbackTime = now;
 
 	// // TOGGLE: On -> Off, Off -> On
@@ -63,37 +49,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 	// FastLED.show();
 }
 
-// WiFi connection setup (non-blocking with timeout)
-void setupWiFi() {
-	Serial.println();
-	Serial.print("Connecting to WiFi: ");
-	Serial.println(WIFI_SSID);
-
-	WiFi.mode(WIFI_STA);
-	WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
-	// Try to connect for 5 seconds max
-	int attempts = 0;
-	while (WiFi.status() != WL_CONNECTED && attempts < 10) {
-		delay(500);
-		Serial.print(".");
-		attempts++;
-	}
-
-	Serial.println();
-	if (WiFi.status() == WL_CONNECTED) {
-		Serial.println("WiFi connected!");
-		Serial.print("IP address: ");
-		Serial.println(WiFi.localIP());
-
-		// AFTER connection, disable power saving for low latency
-		WiFi.setSleep(WIFI_PS_NONE);
-		WiFi.setTxPower(WIFI_POWER_19_5dBm);  // Max power
-		Serial.println("WiFi power saving DISABLED for low latency");
-	} else {
-		Serial.println("WiFi connection failed - continuing without MQTT");
-	}
-}
 
 // Setup MQTT client
 void setupMQTT() {
@@ -104,32 +59,10 @@ void setupMQTT() {
 		mqttClient.setCallback(mqttCallback);
 		reconnectMQTT();
 	} else {
-		Serial.println("Skipping MQTT setup - no WiFi connection");
+		log("Skipping MQTT setup - no WiFi connection");
 	}
 }
 
-void setupUDP() {
-	if (udp.begin(UDP_PORT)) {
-		Serial.printf("UDP listener started on port %d\n", UDP_PORT);
-	} else {
-		Serial.println("ERROR: Failed to start UDP listener!");
-	}
-}
-
-// Check for UDP packets and process them (call from main loop)
-void processUDP() {
-	int packetSize = udp.parsePacket();
-	if (packetSize > 0) {
-		char buffer[UDP_BUFFER_SIZE];
-		int len = udp.read(buffer, UDP_BUFFER_SIZE - 1);
-		if (len > 0) {
-			buffer[len] = '\0';  // Null terminate
-			pendingColor = (uint32_t) strtol(buffer, NULL, 16);
-			newColorAvailable = true;
-			Serial.printf("UDP RX: color=%s\n", buffer);
-		}
-	}
-}
 
 // Connect/reconnect to MQTT broker (non-blocking, single attempt)
 void reconnectMQTT() {
@@ -137,7 +70,7 @@ void reconnectMQTT() {
 		return; // Already connected
 	}
 
-	Serial.print("Attempting MQTT connection...");
+	log("Attempting MQTT connection...");
 
 	// Create unique client ID to avoid conflicts
 	String clientId = String(MQTT_CLIENT_ID) + "_" + String(random(0xffff), HEX);
@@ -151,25 +84,21 @@ void reconnectMQTT() {
 	}
 
 	if (connected) {
-		Serial.println("connected!");
+		log("connected!");
 
 		// Subscribe without QoS parameter (use default)
 		bool subResult = mqttClient.subscribe(MQTT_TOPIC_TEST);
 
-		Serial.print("Subscribe result: ");
-		Serial.println(subResult ? "SUCCESS" : "FAILED");
-		Serial.println("Subscribed to topic:");
-		Serial.print("  - ");
-		Serial.println(MQTT_TOPIC_TEST);
+		log("Subscribe result: " + String(subResult ? "SUCCESS" : "FAILED"));
+		log("Subscribed to topic:");
+		log("  - " + String(MQTT_TOPIC_TEST));
 
 		// Turn LEDs dark when MQTT connects
-		Serial.println("MQTT connected - LEDs going DARK");
+		log("MQTT connected - LEDs going DARK");
 		fill_solid(matrix.leds, matrix.size, CRGB::Black);
 		FastLED.show();
 	} else {
-		Serial.print("failed, rc=");
-		Serial.print(mqttClient.state());
-		Serial.println(" - will retry in loop");
+		log("failed, rc=" + String(mqttClient.state()) + " - will retry in loop");
 	}
 }
 
@@ -190,12 +119,3 @@ void mqttLoop() {
 	}
 }
 
-// Check for UDP color updates and apply them (call from main loop)
-bool checkUDPColor(uint32_t* color) {
-	if (newColorAvailable) {
-		*color = pendingColor;
-		newColorAvailable = false;
-		return true;
-	}
-	return false;
-}

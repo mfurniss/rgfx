@@ -3,3 +3,9 @@ docs/
 .DS_Store
 cfg/
 .claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
