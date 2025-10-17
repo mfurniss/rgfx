@@ -1,9 +1,11 @@
 #include <FastLED.h>
 #include <WiFi.h>
+#include <map>
 #include "matrix.h"
 #include "effects/fire.h"
 #include "effects/wave.h"
 #include "effects/sparkle.h"
+#include "effects/pulse.h"
 #include "wifi_setup.h"
 #include "udp.h"
 #include "mqtt.h"
@@ -14,6 +16,15 @@
 #define FLASH_DURATION_MS  10  // MQTT message flash duration
 
 Matrix matrix(WIDTH, HEIGHT);
+
+// Effect function pointer type
+typedef void (*EffectFunction)(Matrix&, uint32_t);
+
+// Effect lookup table
+std::map<String, EffectFunction> effectMap = {
+	{"pulse", pulse}
+	// Add more effects here
+};
 
 void setup() {
 	Serial.begin(115200);
@@ -37,16 +48,13 @@ void setup() {
 	// Connect to WiFi and setup UDP (with 5 second timeout)
 	setupWiFi();
 
-	// If WiFi connected, show green
+	// Show WiFi connection status with LEDs
 	if (WiFi.status() == WL_CONNECTED) {
-		log("WiFi connected! Showing GREEN");
 		fill_solid(matrix.leds, matrix.size, CRGB::Green);
-		FastLED.show();
 	} else {
-		log("WiFi failed. Showing RED");
 		fill_solid(matrix.leds, matrix.size, CRGB::Red);
-		FastLED.show();
 	}
+	FastLED.show();
 
 	// MQTT DISABLED FOR UDP TESTING
 	// setupMQTT();
@@ -58,14 +66,6 @@ void setup() {
 	FastLED.show();
 }
 
-// Effect control variables (defined here, declared as extern in mqtt.h)
-Effect currentEffect = SPARKLE;
-uint32_t lastSwitchTime = 0;
-const uint32_t effectDuration = 30 * 1000;
-bool autoSwitch = true;
-bool powerOn = true;
-uint8_t currentBrightness = BRIGHTNESS;
-
 void loop() {
 	// MQTT DISABLED FOR UDP TESTING
 	// mqttLoop();
@@ -76,14 +76,17 @@ void loop() {
 	// Check for UDP message updates
 	UDPMessage message;
 	if (checkUDPMessage(&message)) {
-		// For now, just handle color - effect name available in message.effect
-		fill_solid(matrix.leds, matrix.size, message.color);
+		// Look up effect in map and call it
+		auto it = effectMap.find(message.effect);
+		if (it != effectMap.end()) {
+			it->second(matrix, message.color);
+		}
 	}
 
 	// Fade to black for flash effect
 	fadeToBlackBy(matrix.leds, matrix.size, 50);
 	FastLED.show();
 
-	// Small delay
+	// Yield to task scheduler (prevents watchdog timer issues)
 	delay(1);
 }

@@ -10,5 +10,6 @@ extern const char* WIFI_PASSWORD;
 
 // Function declarations
 void setupWiFi();
+String getWiFiStatusString(wl_status_t status);
 
 #endif
