@@ -1,0 +1,15 @@
+https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
+
+[*] Multi-project VSCode workspace
+[*] Research MQTT / UPD latency
+[ ] Move MAME code to own VSCode sub-project
+[ ] Research ESP Web Tools https://esphome.github.io/esp-web-tools/
+[ ] Initial setup + WiFi config
+[ ] MQTT broker discovery
+[ ] OTA updater
+[ ] Per-device LED config
+[ ] Game event to network message mapping
+[ ] Research Electron app and Aedes pure JS MQTT
+[ ] Device logging - on device logs, via network and web interface
+[ ] Rearch other emulators
+[ ] Unit and integration tests
