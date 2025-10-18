@@ -1,6 +1,6 @@
 {
   "broker": "localhost",
   "port": 1883,
-  "eventsfile": "/tmp/rgfx_events.log",
-  "qos": 0
+  "qos": 0,
+  "_comment": "eventsfile defaults to system temp directory (tempfile.gettempdir())/rgfx_events.log. Override here if needed."
 }

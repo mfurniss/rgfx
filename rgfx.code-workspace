@@ -5,12 +5,17 @@
 			"path": "."
 		},
 		{
+			"name": "mame",
+			"path": "mame"
+		},
+		{
 			"name": "esp32",
 			"path": "esp32"
 		}
 	],
 	"settings": {
 		"files.exclude": {
+			"mame": true,
 			"esp32": true
 		}
 	}

@@ -1,7 +1,6 @@
 .clinerules
 docs/
 .DS_Store
-cfg/
 .claude/
 
 # Python
