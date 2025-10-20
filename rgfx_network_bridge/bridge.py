@@ -17,7 +17,7 @@ import colorsys
 import random
 from ui import BridgeUI
 
-UDP_IP = "192.168.30.146"
+UDP_IP = "192.168.10.86"
 UDP_PORT = 1234
 
 # Create a single reusable UDP socket

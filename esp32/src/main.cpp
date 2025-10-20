@@ -6,7 +6,7 @@
 #include "effects/wave.h"
 #include "effects/sparkle.h"
 #include "effects/pulse.h"
-#include "wifi_setup.h"
+#include "config_portal.h"
 #include "udp.h"
 #include "mqtt.h"
 #include "log.h"
@@ -40,16 +40,16 @@ void setup() {
 	FastLED.setBrightness(BRIGHTNESS);
 	FastLED.setCorrection(TypicalPixelString);
 
-	// Show BLUE while booting and waiting for WiFi
-	log("Booting... Showing BLUE");
+	// Show BLUE while connecting to WiFi / in config portal
+	log("Connecting to WiFi...");
 	fill_solid(matrix.leds, matrix.size, CRGB::Blue);
 	FastLED.show();
 
-	// Connect to WiFi and setup UDP (with 5 second timeout)
-	setupWiFi();
+	// Start config portal and connect to WiFi
+	bool wifiConnected = ConfigPortal::begin();
 
 	// Show WiFi connection status with LEDs
-	if (WiFi.status() == WL_CONNECTED) {
+	if (wifiConnected) {
 		fill_solid(matrix.leds, matrix.size, CRGB::Green);
 	} else {
 		fill_solid(matrix.leds, matrix.size, CRGB::Red);
@@ -67,6 +67,21 @@ void setup() {
 }
 
 void loop() {
+	// Check for serial commands (for debugging)
+	if (Serial.available()) {
+		String cmd = Serial.readStringUntil('\n');
+		cmd.trim();
+		if (cmd == "factory_reset") {
+			log("Factory reset: Erasing WiFi credentials and rebooting...");
+			ConfigPortal::resetSettings();
+			delay(1000);
+			ESP.restart();
+		} else if (cmd == "portal") {
+			log("Opening config portal...");
+			ConfigPortal::openPortal();
+		}
+	}
+
 	// MQTT DISABLED FOR UDP TESTING
 	// mqttLoop();
 
