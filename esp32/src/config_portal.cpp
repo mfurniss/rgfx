@@ -1,11 +1,17 @@
 #include "config_portal.h"
+#include "config_leds.h"
 #include "log.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
 #include <IotWebConfParameter.h>
+#include <EEPROM.h>
+
+// External functions to get LED config storage pointers
+extern char* getLedBrightnessValuePtr();
+extern char* getLedDataPinValuePtr();
 
 // IotWebConf configuration
-#define CONFIG_VERSION "rgfx1"
+#define CONFIG_VERSION "rgfx2"
 #define AP_NAME_PREFIX "rgfx-node-"
 
 // DNS server for captive portal
@@ -16,6 +22,19 @@ WebServer server(80);
 
 // IotWebConf instance
 static IotWebConf* iotWebConf = nullptr;
+
+// LED configuration parameters
+static IotWebConfNumberParameter ledBrightnessParam = IotWebConfNumberParameter(
+	"LED Brightness", "ledBrightness", getLedBrightnessValuePtr(), 4,
+	"64", "1-255", "min='1' max='255' step='1'"
+);
+static IotWebConfNumberParameter ledDataPinParam = IotWebConfNumberParameter(
+	"LED Data Pin", "ledDataPin", getLedDataPinValuePtr(), 3,
+	"16", "GPIO 0-33", "min='0' max='33' step='1'"
+);
+
+// LED settings parameter group
+static IotWebConfParameterGroup ledGroup = IotWebConfParameterGroup("ledSettings", "LED Settings");
 
 // Generate unique AP name based on MAC address
 String generateAPName() {
@@ -50,6 +69,8 @@ String stateToString(uint8_t state) {
 // Callback when config is saved
 void configSaved() {
 	log("Configuration saved");
+	// Apply brightness changes immediately (no reboot required)
+	ConfigLeds::applyBrightness();
 }
 
 // Callback when WiFi connects
@@ -85,6 +106,11 @@ void ConfigPortal::begin() {
 	// Set WiFi connection timeout to 10 seconds (faster than 30s default)
 	iotWebConf->setWifiConnectionTimeoutMs(10000);
 
+	// Add LED configuration parameters
+	ledGroup.addItem(&ledBrightnessParam);
+	ledGroup.addItem(&ledDataPinParam);
+	iotWebConf->addParameterGroup(&ledGroup);
+
 	// Initialize - this will connect to WiFi or start AP mode
 	log("Starting IotWebConf...");
 
@@ -95,8 +121,8 @@ void ConfigPortal::begin() {
 	} else {
 		log("No valid configuration - starting in AP mode");
 		log("Connect to SSID: " + apName);
-		log("Password: NONE (open network on first boot)");
-		log("Then navigate to: http://192.168.4.1");
+		log("AP Password: " + String(iotWebConf->getApPasswordParameter()->valueBuffer));
+		log("Navigate to: http://192.168.4.1");
 		log("IMPORTANT: Set an AP password in the web interface!");
 	}
 
@@ -164,10 +190,23 @@ String ConfigPortal::getStateName() {
 	return "Uninitialized";
 }
 
+uint8_t ConfigPortal::getLedBrightness() {
+	return ConfigLeds::getBrightness();
+}
+
+uint8_t ConfigPortal::getLedDataPin() {
+	return ConfigLeds::getDataPin();
+}
+
 void ConfigPortal::resetSettings() {
-	log("Factory reset: Erasing WiFi credentials...");
+	log("Factory reset: Erasing all configuration...");
 	if (iotWebConf) {
-		iotWebConf->resetWifiAuthInfo();
-		log("Credentials erased - restarting...");
+		// Invalidate config by writing incorrect version to EEPROM
+		// This forces full reinitialization on next boot
+		EEPROM.begin(512);
+		EEPROM.write(0, 0xFF);  // Corrupt the config signature
+		EEPROM.commit();
+		EEPROM.end();
+		log("Configuration erased - restarting...");
 	}
 }

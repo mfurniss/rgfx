@@ -7,12 +7,11 @@
 #include "effects/sparkle.h"
 #include "effects/pulse.h"
 #include "config_portal.h"
+#include "config_leds.h"
 #include "udp.h"
 #include "mqtt.h"
 #include "log.h"
 
-#define LED_PIN     16  // RX2 = GPIO16
-#define BRIGHTNESS  64  // 25% brightness
 #define FLASH_DURATION_MS  10  // MQTT message flash duration
 
 Matrix matrix(WIDTH, HEIGHT);
@@ -31,23 +30,17 @@ void setup() {
 	delay(100);
 	log("\n\nRGFX Node starting...");
 
-	log("Matrix size: " + String(matrix.size));
-	log("LED Pin: " + String(LED_PIN));
-	log("Brightness: " + String(BRIGHTNESS));
+	// Start config portal first to load configuration
+	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
+	ConfigPortal::begin();
 
-	FastLED.addLeds<WS2812B, LED_PIN, GRB>(matrix.leds, matrix.size);
-	FastLED.setMaxPowerInVoltsAndMilliamps(5, 300);
-	FastLED.setBrightness(BRIGHTNESS);
-	FastLED.setCorrection(TypicalPixelString);
+	// Initialize LEDs with configured parameters
+	ConfigLeds::initLeds(matrix);
 
 	// Show BLUE while connecting to WiFi / in config portal
 	log("Connecting to WiFi...");
 	fill_solid(matrix.leds, matrix.size, CRGB::Blue);
 	FastLED.show();
-
-	// Start config portal and connect to WiFi
-	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
-	ConfigPortal::begin();
 }
 
 // Track WiFi connection state
@@ -61,6 +54,22 @@ void loop() {
 
 	// Check WiFi connection state and update LEDs accordingly
 	bool isConnected = ConfigPortal::isWiFiConnected();
+	String state = ConfigPortal::getStateName();
+
+	// Check if in AP mode (NotConfigured or ApMode states)
+	static bool inApMode = false;
+	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
+
+	if (nowInApMode && !inApMode) {
+		// Just entered AP mode - show PURPLE immediately
+		log("Entering AP mode - LEDs PURPLE");
+		fill_solid(matrix.leds, matrix.size, CRGB::Purple);
+		FastLED.show();
+		inApMode = true;
+		initialConnectionAttemptDone = true;
+		return;
+	}
+	inApMode = nowInApMode;
 
 	// If we haven't made initial connection attempt yet, keep LEDs BLUE (trying to connect)
 	if (!initialConnectionAttemptDone && !isConnected) {
