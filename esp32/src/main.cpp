@@ -46,27 +46,56 @@ void setup() {
 	FastLED.show();
 
 	// Start config portal and connect to WiFi
-	bool wifiConnected = ConfigPortal::begin();
-
-	// Show WiFi connection status with LEDs
-	if (wifiConnected) {
-		fill_solid(matrix.leds, matrix.size, CRGB::Green);
-	} else {
-		fill_solid(matrix.leds, matrix.size, CRGB::Red);
-	}
-	FastLED.show();
-
-	// MQTT DISABLED FOR UDP TESTING
-	// setupMQTT();
-	setupUDP();
-
-	// Turn LEDs dark after UDP setup
-	log("UDP ready - LEDs going DARK");
-	fill_solid(matrix.leds, matrix.size, CRGB::Black);
-	FastLED.show();
+	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
+	ConfigPortal::begin();
 }
 
+// Track WiFi connection state
+static bool wasConnected = false;
+static bool udpSetupDone = false;
+static bool initialConnectionAttemptDone = false;
+
 void loop() {
+	// Process config portal web requests (MUST be called in loop)
+	ConfigPortal::process();
+
+	// Check WiFi connection state and update LEDs accordingly
+	bool isConnected = ConfigPortal::isWiFiConnected();
+
+	// If we haven't made initial connection attempt yet, keep LEDs BLUE (trying to connect)
+	if (!initialConnectionAttemptDone && !isConnected) {
+		// Still waiting for initial connection attempt to complete
+		// LEDs stay BLUE until we know the result
+		return;
+	}
+
+	if (isConnected != wasConnected) {
+		// WiFi state changed
+		wasConnected = isConnected;
+		initialConnectionAttemptDone = true;
+
+		if (isConnected) {
+			// Just connected - setup UDP and show GREEN briefly
+			log("WiFi connected - setting up UDP");
+			fill_solid(matrix.leds, matrix.size, CRGB::Green);
+			FastLED.show();
+			delay(500);
+
+			setupUDP();
+			udpSetupDone = true;
+
+			// Go dark for normal operation
+			fill_solid(matrix.leds, matrix.size, CRGB::Black);
+			FastLED.show();
+		} else {
+			// Disconnected or failed to connect - show PURPLE (AP mode)
+			log("WiFi not connected - entering AP mode");
+			fill_solid(matrix.leds, matrix.size, CRGB::Purple);
+			FastLED.show();
+			udpSetupDone = false;
+		}
+	}
+
 	// Check for serial commands (for debugging)
 	if (Serial.available()) {
 		String cmd = Serial.readStringUntil('\n');
@@ -76,31 +105,31 @@ void loop() {
 			ConfigPortal::resetSettings();
 			delay(1000);
 			ESP.restart();
-		} else if (cmd == "portal") {
-			log("Opening config portal...");
-			ConfigPortal::openPortal();
 		}
 	}
 
-	// MQTT DISABLED FOR UDP TESTING
-	// mqttLoop();
+	// Only process UDP if WiFi is connected and UDP is set up
+	if (isConnected && udpSetupDone) {
+		// MQTT DISABLED FOR UDP TESTING
+		// mqttLoop();
 
-	// Process incoming UDP packets
-	processUDP();
+		// Process incoming UDP packets
+		processUDP();
 
-	// Check for UDP message updates
-	UDPMessage message;
-	if (checkUDPMessage(&message)) {
-		// Look up effect in map and call it
-		auto it = effectMap.find(message.effect);
-		if (it != effectMap.end()) {
-			it->second(matrix, message.color);
+		// Check for UDP message updates
+		UDPMessage message;
+		if (checkUDPMessage(&message)) {
+			// Look up effect in map and call it
+			auto it = effectMap.find(message.effect);
+			if (it != effectMap.end()) {
+				it->second(matrix, message.color);
+			}
 		}
-	}
 
-	// Fade to black for flash effect
-	fadeToBlackBy(matrix.leds, matrix.size, 50);
-	FastLED.show();
+		// Fade to black for flash effect
+		fadeToBlackBy(matrix.leds, matrix.size, 50);
+		FastLED.show();
+	}
 
 	// Yield to task scheduler (prevents watchdog timer issues)
 	delay(1);

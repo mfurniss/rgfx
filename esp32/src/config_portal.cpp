@@ -1,121 +1,173 @@
 #include "config_portal.h"
 #include "log.h"
-#include <WiFi.h>
+#include <IotWebConf.h>
+#include <IotWebConfUsing.h>
+#include <IotWebConfParameter.h>
 
-// ESP_WiFiManager - must include Impl in only ONE file
-#include <ESP_WiFiManager.h>
-#include <ESP_WiFiManager-Impl.h>
+// IotWebConf configuration
+#define CONFIG_VERSION "rgfx1"
+#define AP_NAME_PREFIX "rgfx-node-"
 
-// WiFiManager instance (pointer to avoid global constructor issues)
-static ESP_WiFiManager* wifiManager = nullptr;
+// DNS server for captive portal
+DNSServer dnsServer;
 
-#define PORTAL_TIMEOUT 120  // Config portal timeout (seconds)
+// Web server on port 80
+WebServer server(80);
+
+// IotWebConf instance
+static IotWebConf* iotWebConf = nullptr;
 
 // Generate unique AP name based on MAC address
 String generateAPName() {
 	uint8_t mac[6];
 	WiFi.macAddress(mac);
-
-	// Use last 2 bytes of MAC to generate 4 random-looking characters
 	char suffix[5];
 	sprintf(suffix, "%02x%02x", mac[4], mac[5]);
-
-	String apName = "rgfx-node-";
+	String apName = AP_NAME_PREFIX;
 	apName += suffix;
 	apName.toLowerCase();
-
 	return apName;
 }
 
-bool ConfigPortal::begin() {
-	log("Starting Config Portal...");
-	Serial.flush();
+// State name lookup table
+static const char* STATE_NAMES[] = {
+	"Boot",           // 0
+	"NotConfigured",  // 1
+	"ApMode",         // 2
+	"Connecting",     // 3
+	"OnLine",         // 4
+	"OffLine"         // 5
+};
 
-	// Create WiFiManager instance if not already created
-	if (!wifiManager) {
-		log("Creating WiFiManager instance...");
-		Serial.flush();
-		wifiManager = new ESP_WiFiManager();
+// Helper to convert state enum to human-readable string
+String stateToString(uint8_t state) {
+	if (state < 6) {
+		return STATE_NAMES[state];
 	}
+	return "Unknown(" + String(state) + ")";
+}
 
-	// Initialize WiFi in station mode
-	log("Setting WiFi mode...");
-	Serial.flush();
-	WiFi.mode(WIFI_STA);
-	delay(100);
+// Callback when config is saved
+void configSaved() {
+	log("Configuration saved");
+}
+
+// Callback when WiFi connects
+void wifiConnected() {
+	log("WiFi connected!");
+	log("IP address: " + WiFi.localIP().toString());
+	log("Config portal available at: http://" + WiFi.localIP().toString());
+}
+
+void ConfigPortal::begin() {
+	log("Initializing config portal...");
 
 	// Generate unique AP name
-	log("Generating AP name...");
-	Serial.flush();
 	String apName = generateAPName();
-	log("AP Name: " + apName);
-	Serial.flush();
+	log("AP name: " + apName);
 
-	// Set device hostname
-	log("Setting hostname...");
-	Serial.flush();
-	WiFi.setHostname(apName.c_str());
+	// Initialize IotWebConf with NO password (empty string = open AP)
+	iotWebConf = new IotWebConf(
+		apName.c_str(),           // Thing name (AP SSID)
+		&dnsServer,                // DNS server
+		&server,                   // Web server
+		"",                        // Empty password = open AP
+		CONFIG_VERSION             // Config version
+	);
 
-	// Set timeout for config portal
-	log("Setting portal timeout...");
-	Serial.flush();
-	wifiManager->setConfigPortalTimeout(PORTAL_TIMEOUT);
+	// Set callbacks
+	iotWebConf->setConfigSavedCallback(&configSaved);
+	iotWebConf->setWifiConnectionCallback(&wifiConnected);
 
-	// Attempt to auto-connect to saved WiFi
-	// If it fails, it will start a config portal AP with unique name
-	log("Calling autoConnect...");
-	Serial.flush();
-	bool connected = wifiManager->autoConnect(apName.c_str());
-	log("autoConnect returned: " + String(connected));
-	Serial.flush();
+	// Skip AP mode if we have saved credentials (go straight to connecting)
+	iotWebConf->skipApStartup();
 
-	if (connected) {
-		log("WiFi connected to: " + WiFi.SSID());
-		log("IP address: " + WiFi.localIP().toString());
+	// Set WiFi connection timeout to 10 seconds (faster than 30s default)
+	iotWebConf->setWifiConnectionTimeoutMs(10000);
 
-		// Disable power saving for low latency
-		// WiFi.setSleep(WIFI_PS_NONE);
-		// WiFi.setTxPower(WIFI_POWER_19_5dBm);
-		log("WiFi power saving DISABLED for low latency");
+	// Initialize - this will connect to WiFi or start AP mode
+	log("Starting IotWebConf...");
 
-		// Start web portal on local network IP for remote configuration
-		// log("Starting web portal on local IP...");
-		// wifiManager->startConfigPortal();
-		// log("Web portal running at: http://" + WiFi.localIP().toString() + "/");
+	boolean validConfig = iotWebConf->init();
 
-		return true;
+	if (validConfig) {
+		log("Valid configuration loaded");
 	} else {
-		log("WiFi connection failed or portal timeout");
-		return false;
+		log("No valid configuration - starting in AP mode");
+		log("Connect to SSID: " + apName);
+		log("Password: NONE (open network on first boot)");
+		log("Then navigate to: http://192.168.4.1");
+		log("IMPORTANT: Set an AP password in the web interface!");
+	}
+
+	// Set up web server handlers
+	server.on("/", HTTP_GET, []() {
+		if (iotWebConf->handleCaptivePortal()) {
+			return;
+		}
+		String page = "<!DOCTYPE html><html><head><meta charset='utf-8'>";
+		page += "<title>RGFX Node</title>";
+		page += "<style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;}</style>";
+		page += "</head><body>";
+		page += "<h1>RGFX Node</h1>";
+		page += "<p>Go to <a href='/config'>configuration page</a> to set up WiFi.</p>";
+		page += "</body></html>";
+		server.send(200, "text/html", page);
+	});
+	server.on("/config", []() { iotWebConf->handleConfig(); });
+	server.onNotFound([]() { iotWebConf->handleNotFound(); });
+
+	// Disable WiFi power saving for low latency
+	WiFi.setSleep(WIFI_PS_NONE);
+	WiFi.setTxPower(WIFI_POWER_19_5dBm);
+
+	log("Config portal initialization complete");
+	if (WiFi.status() == WL_CONNECTED) {
+		log("WiFi connected to: " + WiFi.SSID());
+		log("Portal accessible at: http://" + WiFi.localIP().toString());
 	}
 }
 
-void ConfigPortal::openPortal() {
-	if (!wifiManager) {
-		wifiManager = new ESP_WiFiManager();
-	}
-	String apName = generateAPName();
-	log("Opening config portal: " + apName);
-	wifiManager->startConfigPortal(apName.c_str());
-}
+void ConfigPortal::process() {
+	// Must be called in loop to handle web requests
+	if (iotWebConf) {
+		static uint8_t lastState = 255;
+		uint8_t currentState = iotWebConf->getState();
 
-void ConfigPortal::resetSettings() {
-	log("Factory reset: Erasing WiFi credentials...");
-	if (wifiManager) {
-		wifiManager->resetSettings();
+		// Log state changes with readable names
+		if (currentState != lastState && lastState != 255) {
+			log("State: " + stateToString(lastState) + " -> " + stateToString(currentState));
+		}
+		lastState = currentState;
+
+		iotWebConf->doLoop();
 	}
 }
 
 bool ConfigPortal::isWiFiConnected() {
-	return WiFi.status() == WL_CONNECTED;
+	// Only consider connected if we have a valid IP (not AP mode)
+	return WiFi.status() == WL_CONNECTED && iotWebConf->getState() == iotwebconf::NetworkState::OnLine;
 }
 
 String ConfigPortal::getWiFiStatus() {
-	if (isWiFiConnected()) {
+	if (WiFi.status() == WL_CONNECTED) {
 		return "Connected to " + WiFi.SSID() + " (" + WiFi.localIP().toString() + ")";
 	} else {
-		return "Disconnected";
+		return "Not connected - AP mode active";
 	}
 }
 
-// NOTE: ConfigPortal::openPortal() implementation is in main.cpp
+String ConfigPortal::getStateName() {
+	if (iotWebConf) {
+		return stateToString(iotWebConf->getState());
+	}
+	return "Uninitialized";
+}
+
+void ConfigPortal::resetSettings() {
+	log("Factory reset: Erasing WiFi credentials...");
+	if (iotWebConf) {
+		iotWebConf->resetWifiAuthInfo();
+		log("Credentials erased - restarting...");
+	}
+}

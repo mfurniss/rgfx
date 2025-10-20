@@ -7,17 +7,23 @@ WiFiUDP udp;
 // UDP message handling
 volatile bool newMessageAvailable = false;
 UDPMessage pendingMessage;
+static bool udpInitialized = false;
 
 void setupUDP() {
 	if (udp.begin(UDP_PORT)) {
 		log("UDP listener started on port " + String(UDP_PORT));
+		udpInitialized = true;
 	} else {
 		log("ERROR: Failed to start UDP listener!");
+		udpInitialized = false;
 	}
 }
 
 // Check for UDP packets and process them (call from main loop)
 void processUDP() {
+	if (!udpInitialized) {
+		return;
+	}
 	int packetSize = udp.parsePacket();
 	if (packetSize > 0) {
 		char buffer[UDP_BUFFER_SIZE];
