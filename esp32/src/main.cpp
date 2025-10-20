@@ -28,8 +28,8 @@ std::map<String, EffectFunction> effectMap = {
 
 void setup() {
 	Serial.begin(115200);
-	delay(1000);
-	log("\n\nESP32 LED Matrix starting...");
+	delay(100);
+	log("\n\nRGFX Node starting...");
 
 	log("Matrix size: " + String(matrix.size));
 	log("LED Pin: " + String(LED_PIN));

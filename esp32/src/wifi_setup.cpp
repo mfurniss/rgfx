@@ -3,8 +3,8 @@
 #include <map>
 
 // WiFi credentials
-const char* WIFI_SSID = "rme-guest";
-const char* WIFI_PASSWORD = "soulmanstax57";
+const char* WIFI_SSID = "rays-music-exchange";
+const char* WIFI_PASSWORD = "ch33zewh!zb0y";
 
 // WiFi status lookup table
 static const std::map<wl_status_t, String> wifiStatusMap = {
