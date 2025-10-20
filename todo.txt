@@ -1,10 +1,10 @@
 https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 
-[*] Multi-project VSCode workspace
-[*] Research MQTT / UPD latency
-[ ] Move MAME code to own VSCode sub-project
+[X] Multi-project VSCode workspace
+[X] Research MQTT / UPD latency
+[X] Move MAME code to own VSCode sub-project
 [ ] Research ESP Web Tools https://esphome.github.io/esp-web-tools/
-[ ] Initial setup + WiFi config
+[X] Initial setup + WiFi config
 [ ] MQTT broker discovery
 [ ] OTA updater
 [ ] Per-device LED config
@@ -14,4 +14,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Rearch other emulators
 [ ] Unit and integration tests
 [ ] Virtual LED arrays with down-sampling
-[ ] Store LED and WiFi config on ESP32 devices
+[X] Store LED and WiFi config on ESP32 devices
+[ ] Implmement test LEDs into config
