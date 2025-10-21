@@ -18,6 +18,9 @@
     },
     {
       "path": "rgfx.io"
+    },
+    {
+      "path": "rgfx-hub"
     }
   ],
   "settings": {
@@ -26,7 +29,8 @@
       "esp32": true,
       "py-bridge": true,
       "esp32-installer": true,
-      "rgfx.io": true
+      "rgfx.io": true,
+      "rgfx-hub": true
     }
   }
 }
