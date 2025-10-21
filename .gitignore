@@ -1,6 +1,7 @@
-docs/
 .DS_Store
 .claude/
+mame/docs/
+esp32/docs/
 __pycache__/
 *.pyc
 *.pyo
