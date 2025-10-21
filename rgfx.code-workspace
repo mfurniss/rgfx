@@ -15,6 +15,9 @@
     },
     {
       "path": "esp32-installer"
+    },
+    {
+      "path": "rgfx.io"
     }
   ],
   "settings": {
@@ -22,7 +25,8 @@
       "mame": true,
       "esp32": true,
       "py-bridge": true,
-      "esp32-installer": true
+      "esp32-installer": true,
+      "rgfx.io": true
     }
   }
 }
