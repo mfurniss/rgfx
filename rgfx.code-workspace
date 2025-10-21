@@ -1,22 +1,28 @@
 {
-	"folders": [
-		{
-			"name": "rgfx (Root)",
-			"path": "."
-		},
-		{
-			"name": "mame",
-			"path": "mame"
-		},
-		{
-			"name": "esp32",
-			"path": "esp32"
-		}
-	],
-	"settings": {
-		"files.exclude": {
-			"mame": true,
-			"esp32": true
-		}
-	}
+  "folders": [
+    {
+      "name": "rgfx (Root)",
+      "path": "."
+    },
+    {
+      "path": "mame"
+    },
+    {
+      "path": "esp32"
+    },
+    {
+      "path": "py-bridge"
+    },
+    {
+      "path": "esp32-installer"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "mame": true,
+      "esp32": true,
+      "py-bridge": true,
+      "esp32-installer": true
+    }
+  }
 }

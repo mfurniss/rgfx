@@ -1,9 +1,6 @@
-.clinerules
 docs/
 .DS_Store
 .claude/
-
-# Python
 __pycache__/
 *.pyc
 *.pyo
