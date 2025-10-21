@@ -4,6 +4,7 @@
 
 #include <FastLED.h>
 #include <WiFi.h>
+#include <ArduinoOTA.h>
 #include <map>
 #include "matrix.h"
 #include "effects/fire.h"
@@ -31,8 +32,8 @@ std::map<String, EffectFunction> effectMap = {
 
 void setup() {
 	Serial.begin(115200);
-	delay(100);
-	log("\n\nRGFX Node starting...");
+	delay(200);
+	log("\n\nRGFX Driver starting...");
 
 	// Start config portal first to load configuration
 	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
@@ -50,6 +51,7 @@ void setup() {
 // Track WiFi connection state
 static bool wasConnected = false;
 static bool udpSetupDone = false;
+static bool otaSetupDone = false;
 static bool initialConnectionAttemptDone = false;
 
 void loop() {
@@ -88,11 +90,42 @@ void loop() {
 		initialConnectionAttemptDone = true;
 
 		if (isConnected) {
-			// Just connected - setup UDP and show GREEN briefly
-			log("WiFi connected - setting up UDP");
+			// Just connected - setup OTA, UDP and show GREEN briefly
+			log("WiFi connected - setting up OTA and UDP");
 			fill_solid(matrix.leds, matrix.size, CRGB::Green);
 			FastLED.show();
 			delay(500);
+
+			// Setup OTA updates (must be done after WiFi is connected)
+			// NOTE: For multiple devices, customize hostname per device (e.g., "rgfx-driver-1", "rgfx-driver-2")
+			ArduinoOTA.setHostname("rgfx-driver");
+			ArduinoOTA.onStart([]() {
+				log("OTA Update starting...");
+				fill_solid(matrix.leds, matrix.size, CRGB::Orange);
+				FastLED.show();
+			});
+			ArduinoOTA.onEnd([]() {
+				log("OTA Update complete!");
+				fill_solid(matrix.leds, matrix.size, CRGB::Green);
+				FastLED.show();
+			});
+			ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+				static unsigned int lastPercent = 0;
+				unsigned int percent = (progress / (total / 100));
+				if (percent != lastPercent && percent % 10 == 0) {
+					log("OTA Progress: " + String(percent) + "%");
+					lastPercent = percent;
+				}
+			});
+			ArduinoOTA.onError([](ota_error_t error) {
+				log("OTA Error: " + String(error));
+				fill_solid(matrix.leds, matrix.size, CRGB::Red);
+				FastLED.show();
+			});
+			ArduinoOTA.begin();
+			delay(100);  // Give OTA time to initialize
+			log("OTA Ready");
+			otaSetupDone = true;
 
 			setupUDP();
 			udpSetupDone = true;
@@ -106,6 +139,7 @@ void loop() {
 			fill_solid(matrix.leds, matrix.size, CRGB::Purple);
 			FastLED.show();
 			udpSetupDone = false;
+			otaSetupDone = false;
 		}
 	}
 
@@ -121,8 +155,11 @@ void loop() {
 		}
 	}
 
-	// Only process UDP if WiFi is connected and UDP is set up
-	if (isConnected && udpSetupDone) {
+	// Only process UDP/OTA if WiFi is connected and setup is done
+	if (isConnected && udpSetupDone && otaSetupDone) {
+		// Handle OTA updates
+		ArduinoOTA.handle();
+
 		// MQTT DISABLED FOR UDP TESTING
 		// mqttLoop();
 

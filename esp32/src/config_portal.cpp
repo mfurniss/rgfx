@@ -25,13 +25,13 @@ static IotWebConf* iotWebConf = nullptr;
 
 // LED configuration parameters
 static IotWebConfNumberParameter ledBrightnessParam = IotWebConfNumberParameter(
-	"LED Brightness", "ledBrightness", getLedBrightnessValuePtr(), 4,
-	"64", "1-255", "min='1' max='255' step='1'"
-);
+      "LED Brightness", "ledBrightness", getLedBrightnessValuePtr(), 4,
+      "64", "1-255", "min='1' max='255' step='1'"
+    );
 static IotWebConfNumberParameter ledDataPinParam = IotWebConfNumberParameter(
-	"LED Data Pin", "ledDataPin", getLedDataPinValuePtr(), 3,
-	"16", "GPIO 0-33", "min='0' max='33' step='1'"
-);
+      "LED Data Pin", "ledDataPin", getLedDataPinValuePtr(), 3,
+      "16", "GPIO 0-33", "min='0' max='33' step='1'"
+    );
 
 // LED settings parameter group
 static IotWebConfParameterGroup ledGroup = IotWebConfParameterGroup("ledSettings", "LED Settings");
@@ -89,11 +89,11 @@ void ConfigPortal::begin() {
 
 	// Initialize IotWebConf with NO password (empty string = open AP)
 	iotWebConf = new IotWebConf(
-		apName.c_str(),           // Thing name (AP SSID)
-		&dnsServer,                // DNS server
-		&server,                   // Web server
-		"",                        // Empty password = open AP
-		CONFIG_VERSION             // Config version
+	  apName.c_str(),           // Thing name (AP SSID)
+	  &dnsServer,                // DNS server
+	  &server,                   // Web server
+	  "",                        // Empty password = open AP
+	  CONFIG_VERSION             // Config version
 	);
 
 	// Set callbacks
@@ -132,16 +132,20 @@ void ConfigPortal::begin() {
 			return;
 		}
 		String page = "<!DOCTYPE html><html><head><meta charset='utf-8'>";
-		page += "<title>RGFX Node</title>";
+		page += "<title>RGFX Driver</title>";
 		page += "<style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;}</style>";
 		page += "</head><body>";
-		page += "<h1>RGFX Node</h1>";
+		page += "<h1>RGFX Driver</h1>";
 		page += "<p>Go to <a href='/config'>configuration page</a> to set up WiFi.</p>";
 		page += "</body></html>";
 		server.send(200, "text/html", page);
 	});
-	server.on("/config", []() { iotWebConf->handleConfig(); });
-	server.onNotFound([]() { iotWebConf->handleNotFound(); });
+	server.on("/config", []() {
+		iotWebConf->handleConfig();
+	});
+	server.onNotFound([]() {
+		iotWebConf->handleNotFound();
+	});
 
 	// Disable WiFi power saving for low latency
 	WiFi.setSleep(WIFI_PS_NONE);

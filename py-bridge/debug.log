@@ -1,0 +1,5 @@
+2025-10-21 14:53:02,776 DEBUG: run_bridge
+2025-10-21 14:54:31,223 DEBUG: run_bridge
+2025-10-21 14:54:31,223 DEBUG: client: <paho.mqtt.client.Client object at 0x103f426d0>
+2025-10-21 15:10:33,859 DEBUG: run_bridge
+2025-10-21 15:10:33,860 DEBUG: client: <paho.mqtt.client.Client object at 0x1039819d0>

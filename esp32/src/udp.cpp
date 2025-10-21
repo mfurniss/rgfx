@@ -40,9 +40,9 @@ void processUDP() {
 				const char* colorHex = doc["color"];
 				pendingMessage.color = (uint32_t) strtol(colorHex, NULL, 16);
 				newMessageAvailable = true;
-				// Serial.printf("UDP RX: effect=%s color=%s\n", pendingMessage.effect.c_str(), colorHex);
+				log("UDP RX: " + String(buffer));
 			} else {
-				Serial.printf("JSON parse error: %s\n", error.c_str());
+				log("UPD RX: JSON parse error: " + String(error.c_str()));
 			}
 		}
 	}

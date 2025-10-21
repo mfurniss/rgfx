@@ -1,11 +1,17 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import dgram from 'node:dgram';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
+
+// UDP test configuration
+const UDP_IP = '192.168.10.86';
+const UDP_PORT = 1234;
+const udpSocket = dgram.createSocket('udp4');
 
 const createWindow = () => {
   // Create the browser window.
@@ -33,7 +39,21 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+
+  // Start sending UDP test messages every second
+  setInterval(() => {
+    const message = JSON.stringify({ effect: 'pulse', color: '0xFF0000' });
+    udpSocket.send(message, UDP_PORT, UDP_IP, (err) => {
+      if (err) {
+        console.error('UDP send error:', err);
+      } else {
+        console.log('UDP sent:', message);
+      }
+    });
+  }, 1000);
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

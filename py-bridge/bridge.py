@@ -13,6 +13,7 @@ import time
 import sys
 import tempfile
 import curses
+import logging
 import json
 from pathlib import Path
 import paho.mqtt.client as mqtt
@@ -26,6 +27,12 @@ UDP_PORT = 1234
 
 # Create a single reusable UDP socket
 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+logging.basicConfig(
+    filename="debug.log",
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s: %(message)s",
+)
 
 
 def tail_file(filepath, ui):
@@ -42,14 +49,14 @@ def tail_file(filepath, ui):
 
     ui.set_status("Reading events file")
 
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         # Start at the end of the file
         f.seek(0, 2)
 
         while True:
             line = f.readline()
             if line:
-                yield line.rstrip('\n')
+                yield line.rstrip("\n")
             else:
                 # No new data, sleep briefly
                 time.sleep(0.01)  # 10ms polling for low latency
@@ -62,41 +69,44 @@ def tail_file(filepath, ui):
 
 
 def run_bridge(stdscr, broker, port, eventsfile, qos):
+    logging.debug("run_bridge")
     ui = BridgeUI(stdscr)
     ui.set_logfile(str(eventsfile))
-    ui.set_status("UDP-only mode (MQTT disabled)")
+    ui.set_udp(UDP_IP, UDP_PORT)
+    ui.set_status("UDP and MQTT enabled")
 
-    # MQTT DISABLED FOR UDP TESTING
-    # # Create MQTT client with persistent connection
-    # client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
-    #
-    # def on_connect(client, userdata, flags, rc):
-    #     if rc == 0:
-    #         ui.set_status(f"Connected to {broker}:{port}")
-    #     else:
-    #         ui.set_status(f"Connection failed: {rc}")
-    #
-    # def on_disconnect(client, userdata, rc):
-    #     if rc != 0:
-    #         ui.set_status("Disconnected - reconnecting...")
-    #
-    # client.on_connect = on_connect
-    # client.on_disconnect = on_disconnect
-    #
-    # try:
-    #     client.connect(broker, port, 60)
-    # except Exception as e:
-    #     ui.set_status(f"Error: {e}")
-    #     time.sleep(3)
-    #     return
-    #
-    # # Start network loop in background thread
-    # client.loop_start()
+    # Create MQTT client with persistent connection
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+
+    logging.debug(f"client: {client}")
+
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            ui.set_status(f"Connected to {broker}:{port}")
+        else:
+            ui.set_status(f"Connection failed: {rc}")
+
+    def on_disconnect(client, userdata, rc):
+        if rc != 0:
+            ui.set_status("Disconnected - reconnecting...")
+
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    try:
+        client.connect(broker, port, 60)
+    except Exception as e:
+        ui.set_status(f"Error: {e}")
+        time.sleep(3)
+        return
+
+    # Start network loop in background thread
+    client.loop_start()
 
     try:
         for line in tail_file(eventsfile, ui):
             # Parse line: "topic message"
-            parts = line.split(' ', 1)
+            parts = line.split(" ", 1)
             topic, message = parts
             # Display: use original topic for UI
             ui.add_message(topic, message)
@@ -104,22 +114,20 @@ def run_bridge(stdscr, broker, port, eventsfile, qos):
             # Send UDP packet with effect and random color
             hue = random.random()  # 0.0 to 1.0
             rgb = colorsys.hls_to_rgb(hue, 0.5, 1.0)  # lightness=0.5, saturation=1.0
-            hex_color = "{:02X}{:02X}{:02X}".format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255))
+            hex_color = "{:02X}{:02X}{:02X}".format(
+                int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)
+            )
 
-            payload = {
-                "effect": "pulse",
-                "color": hex_color
-            }
+            payload = {"effect": "pulse", "color": hex_color}
             udp_sock.sendto(json.dumps(payload).encode(), (UDP_IP, UDP_PORT))
             ui.increment_sent()
-           
 
     except KeyboardInterrupt:
         pass
     finally:
         # MQTT DISABLED FOR UDP TESTING
-        # client.loop_stop()
-        # client.disconnect()
+        client.loop_stop()
+        client.disconnect()
         pass
 
 
@@ -127,22 +135,22 @@ def load_config(config_file=None):
     """Load configuration from JSON file, using defaults if not found"""
     # Default configuration
     config = {
-        'broker': 'localhost',
-        'port': 1883,
-        'eventsfile': str(Path(tempfile.gettempdir()) / 'rgfx_events.log'),
-        'qos': 0
+        "broker": "localhost",
+        "port": 1883,
+        "eventsfile": str(Path(tempfile.gettempdir()) / "rgfx_events.log"),
+        "qos": 0,
     }
 
     # Determine config file path
     if config_file is None:
-        config_path = Path('rgfx_network_bridge_config.json')
+        config_path = Path("rgfx_network_bridge_config.json")
     else:
         config_path = Path(config_file)
 
     # Try to load config file
     if config_path.exists():
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 user_config = json.load(f)
                 config.update(user_config)
         except Exception as e:
@@ -161,8 +169,8 @@ def main():
     config_file = None
     if len(sys.argv) > 1:
         arg = sys.argv[1]
-        if arg.startswith('config='):
-            config_file = arg.split('=', 1)[1]
+        if arg.startswith("config="):
+            config_file = arg.split("=", 1)[1]
         else:
             print("Usage: bridge.py [config=path/to/config.json]")
             sys.exit(1)
@@ -170,11 +178,16 @@ def main():
     config = load_config(config_file)
 
     try:
-        curses.wrapper(run_bridge, config['broker'], config['port'],
-                      config['eventsfile'], config['qos'])
+        curses.wrapper(
+            run_bridge,
+            config["broker"],
+            config["port"],
+            config["eventsfile"],
+            config["qos"],
+        )
     except KeyboardInterrupt:
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -17,6 +17,8 @@ class BridgeUI:
         self.message_count = 0
         self.sent_count = 0
         self.logfile_path = ""
+        self.udp_ip = ""
+        self.udp_port = ""
 
         # Setup curses
         curses.curs_set(0)  # Hide cursor
@@ -30,6 +32,11 @@ class BridgeUI:
 
     def set_status(self, status):
         self.status = status
+        self.render()
+
+    def set_udp(self, ip, port):
+        self.udp_ip = ip
+        self.udp_port = port
         self.render()
 
     def set_logfile(self, path):
@@ -68,6 +75,11 @@ class BridgeUI:
 
             # Separator
             self.stdscr.addstr(3, 0, "─" * (width - 1))
+
+
+            # UDP line
+            udp_line = f"UDP IP: {self.udp_ip} | UDP Port: {self.udp_port}"
+            self.stdscr.addstr(3, 0, udp_line[:width-1])
 
             # Column headers
             header = f"{'TOPIC':<40} {'MESSAGE':<30} {'TIME':<8}"
