@@ -90,8 +90,8 @@ void loop() {
 		initialConnectionAttemptDone = true;
 
 		if (isConnected) {
-			// Just connected - setup OTA, UDP and show GREEN briefly
-			log("WiFi connected - setting up OTA and UDP");
+			// Just connected - setup OTA, MQTT, UDP and show GREEN briefly
+			log("WiFi connected - setting up OTA, MQTT and UDP");
 			fill_solid(matrix.leds, matrix.size, CRGB::Green);
 			FastLED.show();
 			delay(500);
@@ -127,6 +127,9 @@ void loop() {
 			log("OTA Ready");
 			otaSetupDone = true;
 
+			// Setup MQTT
+			setupMQTT();
+
 			setupUDP();
 			udpSetupDone = true;
 
@@ -160,8 +163,8 @@ void loop() {
 		// Handle OTA updates
 		ArduinoOTA.handle();
 
-		// MQTT DISABLED FOR UDP TESTING
-		// mqttLoop();
+		// Handle MQTT
+		mqttLoop();
 
 		// Process incoming UDP packets
 		processUDP();

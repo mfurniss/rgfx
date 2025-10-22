@@ -3,9 +3,10 @@
 #include "log.h"
 #include <FastLED.h>
 #include <WiFi.h>
+#include <ArduinoJson.h>
 
 // MQTT broker settings
-const char* MQTT_SERVER = "192.168.30.18";
+const char* MQTT_SERVER = "192.168.10.23";
 const int MQTT_PORT = 1883;
 const char* MQTT_CLIENT_ID = "ESP32_LED_Matrix";
 const char* MQTT_USER = "";  // Leave empty if no authentication
@@ -97,6 +98,9 @@ void reconnectMQTT() {
 		log("MQTT connected - LEDs going DARK");
 		fill_solid(matrix.leds, matrix.size, CRGB::Black);
 		FastLED.show();
+
+		// Send driver connect message
+		sendDriverConnect();
 	} else {
 		log("failed, rc=" + String(mqttClient.state()) + " - will retry in loop");
 	}
@@ -116,6 +120,46 @@ void mqttLoop() {
 		} else {
 			mqttClient.loop();
 		}
+	}
+}
+
+// Send driver connect message with device info
+void sendDriverConnect() {
+	if (!mqttClient.connected()) {
+		log("Can't send driver connect - MQTT not connected");
+		return;
+	}
+
+	// Create JSON document
+	JsonDocument doc;
+
+	// Add device information
+	doc["ip"] = WiFi.localIP().toString();
+	doc["mac"] = WiFi.macAddress();
+	doc["chipModel"] = ESP.getChipModel();
+	doc["chipRevision"] = ESP.getChipRevision();
+	doc["cpuFreqMHz"] = ESP.getCpuFreqMHz();
+	doc["flashSize"] = ESP.getFlashChipSize();
+	doc["freeHeap"] = ESP.getFreeHeap();
+	doc["sdkVersion"] = ESP.getSdkVersion();
+
+	// Add LED configuration
+	doc["ledCount"] = matrix.size;
+	doc["matrixWidth"] = matrix.width;
+	doc["matrixHeight"] = matrix.height;
+
+	// Serialize to string
+	String payload;
+	serializeJson(doc, payload);
+
+	// Publish to rgfx/system/driver/connect
+	bool result = mqttClient.publish("rgfx/system/driver/connect", payload.c_str());
+
+	if (result) {
+		log("Driver connect message sent");
+		log(payload);
+	} else {
+		log("Failed to send driver connect message");
 	}
 }
 

@@ -1,22 +1,44 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import dgram from 'node:dgram';
+import log from 'electron-log/main';
+import { Mqtt } from './mqtt';
+import { Udp } from './udp';
+import { EventFileReader } from './EventFileReader';
+
+// Initialize electron-log
+log.initialize();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 
-// UDP test configuration
-const UDP_IP = '192.168.10.86';
-const UDP_PORT = 1234;
-const udpSocket = dgram.createSocket('udp4');
+log.info('RGFX Hub starting...');
+
+// Initialize MQTT broker and UDP sender
+const mqtt = new Mqtt(1883);
+const udp = new Udp('192.168.10.86', 1234);
+const eventReader = new EventFileReader();
+
+// Start MQTT broker
+mqtt.start();
+
+// Subscribe to driver connect messages
+mqtt.subscribe('rgfx/system/driver/connect', (_topic, payload) => {
+  log.info(`Driver connected: ${payload}`);
+});
+
+// Start reading events and send UDP for each event
+eventReader.start((topic, message) => {
+  log.info(`Event: ${topic} = ${message}`);
+  udp.send();
+});
 
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
+    width: 1000,
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -34,6 +56,8 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  return mainWindow;
 };
 
 // This method will be called when Electron has finished
@@ -42,17 +66,8 @@ const createWindow = () => {
 app.on('ready', () => {
   createWindow();
 
-  // Start sending UDP test messages every second
-  setInterval(() => {
-    const message = JSON.stringify({ effect: 'pulse', color: '0xFF0000' });
-    udpSocket.send(message, UDP_PORT, UDP_IP, (err) => {
-      if (err) {
-        console.error('UDP send error:', err);
-      } else {
-        console.log('UDP sent:', message);
-      }
-    });
-  }, 1000);
+  // Start UDP test
+  // udpSender.startTest();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -62,6 +77,13 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// Cleanup on app quit
+app.on('before-quit', async () => {
+  log.info('Shutting down...');
+  udp.stop();
+  await mqtt.stop();
 });
 
 app.on('activate', () => {

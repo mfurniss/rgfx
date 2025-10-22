@@ -32,5 +32,6 @@ void setupMQTT();
 void reconnectMQTT();
 void mqttLoop();
 void updateLEDs();
+void sendDriverConnect();
 
 #endif
