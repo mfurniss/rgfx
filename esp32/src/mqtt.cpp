@@ -1,5 +1,6 @@
 #include "mqtt.h"
 #include "matrix.h"
+#include "sys_info.h"
 #include "log.h"
 #include <FastLED.h>
 #include <WiFi.h>
@@ -55,7 +56,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void setupMQTT() {
 	// Only setup MQTT if WiFi is connected
 	if (WiFi.status() == WL_CONNECTED) {
-		mqttClient.setBufferSize(256);  // Set buffer size BEFORE connecting
+		mqttClient.setBufferSize(512);  // Set buffer size BEFORE connecting
 		mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
 		mqttClient.setCallback(mqttCallback);
 		reconnectMQTT();
@@ -130,23 +131,8 @@ void sendDriverConnect() {
 		return;
 	}
 
-	// Create JSON document
-	JsonDocument doc;
-
-	// Add device information
-	doc["ip"] = WiFi.localIP().toString();
-	doc["mac"] = WiFi.macAddress();
-	doc["chipModel"] = ESP.getChipModel();
-	doc["chipRevision"] = ESP.getChipRevision();
-	doc["cpuFreqMHz"] = ESP.getCpuFreqMHz();
-	doc["flashSize"] = ESP.getFlashChipSize();
-	doc["freeHeap"] = ESP.getFreeHeap();
-	doc["sdkVersion"] = ESP.getSdkVersion();
-
-	// Add LED configuration
-	doc["ledCount"] = matrix.size;
-	doc["matrixWidth"] = matrix.width;
-	doc["matrixHeight"] = matrix.height;
+	// Get system information
+	JsonDocument doc = SysInfo::getSysInfo(matrix);
 
 	// Serialize to string
 	String payload;
