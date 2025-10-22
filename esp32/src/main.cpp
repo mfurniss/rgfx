@@ -5,6 +5,7 @@
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
+#include <ESPmDNS.h>
 #include <map>
 #include "matrix.h"
 #include "effects/fire.h"
@@ -127,7 +128,14 @@ void loop() {
 			log("OTA Ready");
 			otaSetupDone = true;
 
-			// Setup MQTT
+			// Initialize mDNS for service discovery
+			if (MDNS.begin("rgfx-driver")) {
+				log("mDNS responder started");
+			} else {
+				log("Error starting mDNS responder");
+			}
+
+			// Setup MQTT (will use mDNS to discover broker)
 			setupMQTT();
 
 			setupUDP();

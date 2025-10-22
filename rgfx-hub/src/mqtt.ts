@@ -1,12 +1,15 @@
 import Aedes from 'aedes';
 import { createServer, Server } from 'node:net';
 import log from 'electron-log/main';
+import Bonjour from 'bonjour-service';
 
 export class Mqtt {
   private aedes: Aedes;
   private server: Server;
   private port: number;
   private subscriptions: Map<string, (topic: string, payload: string) => void> = new Map();
+  private bonjour?: Bonjour;
+  private mdnsService?: any;
 
   constructor(port: number = 1883) {
     this.port = port;
@@ -49,11 +52,32 @@ export class Mqtt {
   start() {
     this.server.listen(this.port, () => {
       log.info(`Aedes MQTT Broker listening on port ${this.port}`);
+
+      // Announce MQTT broker via mDNS
+      this.bonjour = new Bonjour();
+      this.mdnsService = this.bonjour.publish({
+        name: 'RGFX Hub',
+        type: 'mqtt',
+        port: this.port,
+        host: 'rgfx-hub.local',  // Explicitly set hostname to avoid conflicts with macOS system hostname
+        txt: {
+          version: '1.0'
+        }
+      });
+      log.info('MQTT broker announced via mDNS as "RGFX Hub._mqtt._tcp" at rgfx-hub.local');
     });
   }
 
   stop() {
     return new Promise<void>((resolve) => {
+      // Unpublish mDNS service
+      if (this.mdnsService) {
+        this.mdnsService.stop();
+      }
+      if (this.bonjour) {
+        this.bonjour.destroy();
+      }
+
       this.aedes.close(() => {
         this.server.close(() => {
           log.info('MQTT broker stopped');

@@ -1,6 +1,7 @@
 #include "config_portal.h"
 #include "config_leds.h"
 #include "log.h"
+#include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
 #include <IotWebConfParameter.h>
@@ -12,7 +13,6 @@ extern char* getLedDataPinValuePtr();
 
 // IotWebConf configuration
 #define CONFIG_VERSION "rgfx2"
-#define AP_NAME_PREFIX "rgfx-node-"
 
 // DNS server for captive portal
 DNSServer dnsServer;
@@ -35,18 +35,6 @@ static IotWebConfNumberParameter ledDataPinParam = IotWebConfNumberParameter(
 
 // LED settings parameter group
 static IotWebConfParameterGroup ledGroup = IotWebConfParameterGroup("ledSettings", "LED Settings");
-
-// Generate unique AP name based on MAC address
-String generateAPName() {
-	uint8_t mac[6];
-	WiFi.macAddress(mac);
-	char suffix[5];
-	sprintf(suffix, "%02x%02x", mac[4], mac[5]);
-	String apName = AP_NAME_PREFIX;
-	apName += suffix;
-	apName.toLowerCase();
-	return apName;
-}
 
 // State name lookup table
 static const char* STATE_NAMES[] = {
@@ -83,8 +71,8 @@ void wifiConnected() {
 void ConfigPortal::begin() {
 	log("Initializing config portal...");
 
-	// Generate unique AP name
-	String apName = generateAPName();
+	// Get unique device name (same as MQTT client ID)
+	String apName = Utils::getDeviceName();
 	log("AP name: " + apName);
 
 	// Initialize IotWebConf with NO password (empty string = open AP)

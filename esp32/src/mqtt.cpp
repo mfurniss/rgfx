@@ -2,14 +2,15 @@
 #include "matrix.h"
 #include "sys_info.h"
 #include "log.h"
+#include "utils.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include <ESPmDNS.h>
 
 // MQTT broker settings
-const char* MQTT_SERVER = "192.168.10.23";
 const int MQTT_PORT = 1883;
-const char* MQTT_CLIENT_ID = "ESP32_LED_Matrix";
+String MQTT_SERVER = "";  // Will be discovered via mDNS
 const char* MQTT_USER = "";  // Leave empty if no authentication
 const char* MQTT_PASSWORD = "";  // Leave empty if no authentication
 
@@ -30,34 +31,42 @@ bool ledsOn = false;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-	static unsigned long lastCallbackTime = 0;
-	unsigned long now = millis();
-
-	log("Callback! Delta: " + String(now - lastCallbackTime) + "ms");
-	lastCallbackTime = now;
-
-	// // TOGGLE: On -> Off, Off -> On
-	// if (ledsOn) {
-	//  // Turn OFF
-	//  fill_solid(matrix.leds, matrix.size, CRGB::Black);
-	//  ledsOn = false;
-	//  Serial.println("OFF");
-	// } else {
-	//  // Turn ON (yellow)
-	//  fill_solid(matrix.leds, matrix.size, CRGB::Yellow);
-	//  ledsOn = true;
-	//  Serial.println("ON");
-	// }
-	// FastLED.show();
+	// Message handling will be implemented here
 }
 
+
+// Discover MQTT broker via mDNS
+bool discoverMQTTBroker() {
+	log("Discovering MQTT broker via mDNS...");
+
+	int n = MDNS.queryService("mqtt", "tcp");
+	if (n == 0) {
+		log("No MQTT brokers found via mDNS");
+		return false;
+	}
+
+	log("Found " + String(n) + " MQTT broker(s)");
+
+	// Use the first broker found
+	MQTT_SERVER = MDNS.IP(0).toString();
+	log("Discovered broker: " + MQTT_SERVER + ":" + String(MQTT_PORT));
+	log("Service name: " + String(MDNS.hostname(0)));
+
+	return true;
+}
 
 // Setup MQTT client
 void setupMQTT() {
 	// Only setup MQTT if WiFi is connected
 	if (WiFi.status() == WL_CONNECTED) {
-		mqttClient.setBufferSize(512);  // Set buffer size BEFORE connecting
-		mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+		// Discover broker via mDNS
+		if (!discoverMQTTBroker()) {
+			log("ERROR: No MQTT broker found via mDNS. Make sure rgfx-hub is running.");
+			return;
+		}
+
+		mqttClient.setBufferSize(1024);  // Set buffer size BEFORE connecting (large enough for system info JSON)
+		mqttClient.setServer(MQTT_SERVER.c_str(), MQTT_PORT);
 		mqttClient.setCallback(mqttCallback);
 		reconnectMQTT();
 	} else {
@@ -74,8 +83,8 @@ void reconnectMQTT() {
 
 	log("Attempting MQTT connection...");
 
-	// Create unique client ID to avoid conflicts
-	String clientId = String(MQTT_CLIENT_ID) + "_" + String(random(0xffff), HEX);
+	// Create unique client ID based on MAC address (stable across reboots)
+	String clientId = Utils::getDeviceName();
 
 	// Simple connection - no LWT, just connect
 	bool connected;
@@ -138,6 +147,26 @@ void sendDriverConnect() {
 	String payload;
 	serializeJson(doc, payload);
 
+	// Check if payload exceeds MQTT buffer size
+	if (payload.length() > mqttClient.getBufferSize()) {
+		log("ERROR: System info payload too large for MQTT buffer");
+		log("Payload size: " + String(payload.length()) + " bytes");
+		log("Buffer size: " + String(mqttClient.getBufferSize()) + " bytes");
+
+		// Send error message instead
+		JsonDocument errorDoc;
+		errorDoc["error"] = "Payload too large for MQTT buffer";
+		errorDoc["payloadSize"] = payload.length();
+		errorDoc["bufferSize"] = mqttClient.getBufferSize();
+		errorDoc["mac"] = WiFi.macAddress();
+		errorDoc["ip"] = WiFi.localIP().toString();
+
+		String errorPayload;
+		serializeJson(errorDoc, errorPayload);
+		mqttClient.publish("rgfx/system/driver/connect", errorPayload.c_str());
+		return;
+	}
+
 	// Publish to rgfx/system/driver/connect
 	bool result = mqttClient.publish("rgfx/system/driver/connect", payload.c_str());
 
@@ -146,6 +175,7 @@ void sendDriverConnect() {
 		log(payload);
 	} else {
 		log("Failed to send driver connect message");
+		log("Payload size: " + String(payload.length()) + " bytes");
 	}
 }
 

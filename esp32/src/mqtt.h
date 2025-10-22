@@ -6,7 +6,7 @@
 #include <PubSubClient.h>
 
 // MQTT broker settings
-extern const char* MQTT_SERVER;
+extern String MQTT_SERVER;
 extern const int MQTT_PORT;
 extern const char* MQTT_CLIENT_ID;
 extern const char* MQTT_USER;
