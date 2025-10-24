@@ -31,6 +31,7 @@ JsonDocument SysInfo::getSysInfo(Matrix& matrix) {
 	doc["sdkVersion"] = ESP.getSdkVersion();
 	doc["sketchSize"] = ESP.getSketchSize();
 	doc["freeSketchSpace"] = ESP.getFreeSketchSpace();
+	doc["uptimeMs"] = millis();
 
 	// LED configuration
 	doc["ledCount"] = matrix.size;

@@ -49,6 +49,26 @@ export class Mqtt {
     log.info(`Subscribed to MQTT topic: ${topic}`);
   }
 
+  publish(topic: string, payload: string) {
+    this.aedes.publish(
+      {
+        cmd: 'publish',
+        qos: 0,
+        dup: false,
+        topic,
+        payload: Buffer.from(payload),
+        retain: false,
+      },
+      (err) => {
+        if (err) {
+          log.error(`Failed to publish to ${topic}:`, err);
+        } else {
+          log.info(`Published to ${topic}: ${payload}`);
+        }
+      }
+    );
+  }
+
   start() {
     this.server.listen(this.port, () => {
       log.info(`Aedes MQTT Broker listening on port ${this.port}`);

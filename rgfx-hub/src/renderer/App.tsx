@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CssBaseline,
   ThemeProvider,
@@ -12,16 +12,48 @@ import {
   Grid,
   Chip,
 } from '@mui/material';
-import {
-  Devices as DevicesIcon,
-  Router as RouterIcon,
-  Storage as StorageIcon,
-} from '@mui/icons-material';
+import type { Device, SystemStatus } from '../types';
+import DeviceCard from './DeviceCard';
 
 // Create Material UI theme (default theme)
 const theme = createTheme();
- 
+
 const App: React.FC = () => {
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
+    mqttBroker: 'stopped',
+    udpServer: 'inactive',
+    eventReader: 'stopped',
+    devicesConnected: 0,
+    hubIp: 'Unknown',
+  });
+
+  useEffect(() => {
+    // Set up IPC listeners
+    window.rgfx.onDeviceConnected((device: Device) => {
+      setDevices((prev) => {
+        // Check if device already exists
+        const exists = prev.find((d) => d.id === device.id);
+        if (exists) {
+          // Update existing device
+          return prev.map((d) => (d.id === device.id ? device : d));
+        }
+        // Add new device
+        return [...prev, device];
+      });
+    });
+
+    window.rgfx.onDeviceDisconnected((device: Device) => {
+      setDevices((prev) =>
+        prev.map((d) => (d.id === device.id ? device : d))
+      );
+    });
+
+    window.rgfx.onSystemStatus((status: SystemStatus) => {
+      setSystemStatus(status);
+    });
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -32,74 +64,23 @@ const App: React.FC = () => {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               RGFX Hub
             </Typography>
-            <Chip label="Connected" color="success" size="small" />
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                {systemStatus.hubIp}
+              </Typography>
+              <Chip
+                label={systemStatus.mqttBroker === 'running' ? 'Hub Connected' : 'Hub Disconnected'}
+                color={systemStatus.mqttBroker === 'running' ? 'success' : 'error'}
+                size="small"
+              />
+            </Box>
           </Toolbar>
         </AppBar>
 
         {/* Main Content */}
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1, overflow: 'auto' }}>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flex: 1, overflow: 'auto' }}>
           <Grid container spacing={3}>
-            {/* Device Registry Card */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Paper
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 240,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <DevicesIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6">Device Registry</Typography>
-                </Box>
-                <Typography color="text.secondary">
-                  No devices discovered yet
-                </Typography>
-              </Paper>
-            </Grid>
-
-            {/* Event Mapping Card */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Paper
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 240,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <RouterIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6">Event Mapping</Typography>
-                </Box>
-                <Typography color="text.secondary">
-                  Configure game event mappings
-                </Typography>
-              </Paper>
-            </Grid>
-
-            {/* Logs Card */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Paper
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 240,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <StorageIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6">System Logs</Typography>
-                </Box>
-                <Typography color="text.secondary">
-                  View system logs and events
-                </Typography>
-              </Paper>
-            </Grid>
-
-            {/* Status Section */}
+            {/* System Status Section */}
             <Grid size={12}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
@@ -110,29 +91,53 @@ const App: React.FC = () => {
                     <Typography variant="body2" color="text.secondary">
                       MQTT Broker
                     </Typography>
-                    <Typography variant="h6">Running</Typography>
+                    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
+                      {systemStatus.mqttBroker}
+                    </Typography>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Typography variant="body2" color="text.secondary">
                       UDP Server
                     </Typography>
-                    <Typography variant="h6">Active</Typography>
+                    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
+                      {systemStatus.udpServer}
+                    </Typography>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Typography variant="body2" color="text.secondary">
                       Event Reader
                     </Typography>
-                    <Typography variant="h6">Monitoring</Typography>
+                    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
+                      {systemStatus.eventReader}
+                    </Typography>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Typography variant="body2" color="text.secondary">
                       Devices Connected
                     </Typography>
-                    <Typography variant="h6">0</Typography>
+                    <Typography variant="h6">{systemStatus.devicesConnected}</Typography>
                   </Grid>
                 </Grid>
               </Paper>
             </Grid>
+
+            {/* Devices Section */}
+            {devices.length === 0 ? (
+              <Grid size={12}>
+                <Paper sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography color="text.secondary">
+                    No devices discovered yet. Waiting for drivers to connect...
+                  </Typography>
+                </Paper>
+              </Grid>
+            ) : (
+              devices.map((device) => (
+                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={device.id}>
+                  <DeviceCard device={device} />
+                </Grid>
+              ))
+            )}
+
           </Grid>
         </Container>
       </Box>

@@ -36,8 +36,13 @@ bool ledsOn = false;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String &topic, String &payload) {
-	// Message handling will be implemented here
 	log("MQTT RX: " + topic + " = " + payload);
+
+	// Respond to discovery requests from Hub
+	if (topic == "rgfx/system/discover") {
+		log("Received discovery request - sending driver info");
+		sendDriverConnect();
+	}
 }
 
 
@@ -125,12 +130,13 @@ void reconnectMQTT() {
 		// Reset failure counter on successful connection
 		consecutiveFailures = 0;
 
-		// Subscribe with QoS 2 (exactly-once delivery)
-		bool subResult = mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
+		// Subscribe to topics with QoS 2 (exactly-once delivery)
+		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
+		mqttClient.subscribe("rgfx/system/discover", 2);
 
-		log("Subscribe result: " + String(subResult ? "SUCCESS" : "FAILED"));
-		log("Subscribed to topic with QoS 2:");
+		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
+		log("  - rgfx/system/discover");
 
 		// Turn LEDs dark when MQTT connects
 		log("MQTT connected - LEDs going DARK");
