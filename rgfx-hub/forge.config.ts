@@ -58,7 +58,7 @@ const config: ForgeConfig = {
       renderer: [
         {
           name: 'main_window',
-          config: 'vite.renderer.config.ts',
+          config: 'src/renderer/vite.renderer.config.js',
         },
       ],
     }),
