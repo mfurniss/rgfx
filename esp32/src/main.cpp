@@ -51,6 +51,7 @@ void setup() {
 
 // Track WiFi connection state
 static bool wasConnected = false;
+static bool mqttSetupDone = false;
 static bool udpSetupDone = false;
 static bool otaSetupDone = false;
 static bool initialConnectionAttemptDone = false;
@@ -137,6 +138,7 @@ void loop() {
 
 			// Setup MQTT (will use mDNS to discover broker)
 			setupMQTT();
+			mqttSetupDone = true;
 
 			setupUDP();
 			udpSetupDone = true;
@@ -149,6 +151,7 @@ void loop() {
 			log("WiFi not connected - entering AP mode");
 			fill_solid(matrix.leds, matrix.size, CRGB::Purple);
 			FastLED.show();
+			mqttSetupDone = false;
 			udpSetupDone = false;
 			otaSetupDone = false;
 		}
@@ -166,13 +169,15 @@ void loop() {
 		}
 	}
 
+	// Handle MQTT independently (only needs WiFi)
+	if (isConnected && mqttSetupDone) {
+		mqttLoop();
+	}
+
 	// Only process UDP/OTA if WiFi is connected and setup is done
 	if (isConnected && udpSetupDone && otaSetupDone) {
 		// Handle OTA updates
 		ArduinoOTA.handle();
-
-		// Handle MQTT
-		mqttLoop();
 
 		// Process incoming UDP packets
 		processUDP();

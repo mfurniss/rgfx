@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <PubSubClient.h>
+#include <MQTTClient.h>
 
 // MQTT broker settings
 extern String MQTT_SERVER;
@@ -17,7 +17,7 @@ extern const char* MQTT_TOPIC_TEST;
 extern const char* MQTT_TOPIC_STATUS;
 
 // MQTT client
-extern PubSubClient mqttClient;
+extern MQTTClient mqttClient;
 
 // Effect control variables (shared with main.cpp)
 enum Effect { SPARKLE, WAVE, FIRE };
