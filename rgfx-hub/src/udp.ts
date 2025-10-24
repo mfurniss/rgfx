@@ -3,7 +3,7 @@ import log from 'electron-log/main';
 
 export class Udp {
   private socket: dgram.Socket;
-  private ip: string;
+  public ip: string; // Make public so main.ts can access it
   private port: number;
   private onErrorCallback?: (error: Error) => void;
   private onSuccessCallback?: () => void;
@@ -12,6 +12,15 @@ export class Udp {
     this.ip = ip;
     this.port = port;
     this.socket = dgram.createSocket('udp4');
+
+    // Listen for socket-level errors (DNS, binding, network interface errors)
+    this.socket.on('error', (err) => {
+      log.error(`UDP socket error: ${err.message}`);
+      if (this.onErrorCallback) {
+        this.onErrorCallback(err);
+      }
+    });
+
     log.info(`UDP configured for ${this.ip}:${this.port}`);
   }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -47,9 +47,8 @@ const formatUptime = (ms: number): string => {
   }
 };
 
-const formatTimestamp = (timestamp: number): string => {
-  const now = Date.now();
-  const diff = now - timestamp;
+const formatTimestamp = (timestamp: number, currentTime: number): string => {
+  const diff = currentTime - timestamp;
   const seconds = Math.floor(diff / 1000);
 
   if (seconds < 60) {
@@ -80,6 +79,16 @@ const InfoRow: React.FC<{ label: string; value: string | number }> = ({ label, v
 
 const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
   const { sysInfo } = device;
+  const [now, setNow] = useState(Date.now());
+
+  // Update every second for live timestamps and uptime
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!sysInfo) {
     return (
@@ -89,6 +98,14 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
       </Paper>
     );
   }
+
+  // Calculate current uptime based on initial uptimeMs from device
+  const deviceUptimeAtSnapshot = sysInfo.uptimeMs;
+  const timeOfSnapshot = device.lastSeen;
+  const timeSinceSnapshot = now - timeOfSnapshot;
+  const currentUptime = device.connected
+    ? deviceUptimeAtSnapshot + timeSinceSnapshot
+    : deviceUptimeAtSnapshot;
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -205,13 +222,13 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
           </Typography>
         </Box>
         <Stack spacing={0.5}>
-          <InfoRow label="Device Uptime" value={formatUptime(sysInfo.uptimeMs)} />
-          <InfoRow label="Hub First Seen" value={formatTimestamp(device.firstSeen)} />
-          <InfoRow label="Hub Last Seen" value={formatTimestamp(device.lastSeen)} />
-          <InfoRow label="MQTT Received" value={device.stats.mqttMessagesReceived} />
-          <InfoRow label="MQTT Failed" value={device.stats.mqttMessagesFailed} />
-          <InfoRow label="UDP Sent" value={device.stats.udpMessagesSent} />
-          <InfoRow label="UDP Failed" value={device.stats.udpMessagesFailed} />
+          <InfoRow label="Device Uptime" value={formatUptime(currentUptime)} />
+          <InfoRow label="Hub First Seen" value={formatTimestamp(device.firstSeen, now)} />
+          <InfoRow label="Hub Last Seen" value={formatTimestamp(device.lastSeen, now)} />
+          <InfoRow label="MQTT Messages" value={device.stats.mqttMessagesReceived} />
+          <InfoRow label="MQTT Errors" value={device.stats.mqttMessagesFailed} />
+          <InfoRow label="UDP Packets Sent" value={device.stats.udpMessagesSent} />
+          <InfoRow label="UDP Send Errors" value={device.stats.udpMessagesFailed} />
         </Stack>
       </Box>
     </Paper>

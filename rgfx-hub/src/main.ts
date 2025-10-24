@@ -41,14 +41,23 @@ function findDeviceByIp(ip: string): Device | undefined {
 
 // Helper to increment UDP stats for device
 function trackUdpSend(success: boolean) {
-  const device = findDeviceByIp(udp['ip']); // Access the IP from UDP instance
+  const device = findDeviceByIp(udp.ip);
   if (device) {
     if (success) {
       device.stats.udpMessagesSent++;
+      log.info(`UDP sent to ${device.name}: ${device.stats.udpMessagesSent} total`);
     } else {
       device.stats.udpMessagesFailed++;
+      log.info(`UDP failed to ${device.name}: ${device.stats.udpMessagesFailed} total`);
     }
     devices.set(device.id, device);
+
+    // Send updated device to renderer
+    if (mainWindow) {
+      mainWindow.webContents.send('device:connected', device);
+    }
+  } else {
+    log.warn(`trackUdpSend: No device found with IP ${udp.ip}`);
   }
 }
 
