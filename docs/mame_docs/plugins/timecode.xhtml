@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Timecode Recorder Plugin</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="timecode-recorder-plugin">
+<span id="plugins-timecode"></span><h1>Timecode Recorder Plugin</h1>
+<p>The timecode recorder plugin logs time codes to a text file in conjunction with
+creating an input recording file to assist people creating gameplay videos.  The
+time code log file is <em>only</em> created when making an input recording.  The time
+code log file has the same name as the input recording file with the extension
+<strong>.timecode</strong> appended.  Use the <a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-record"><span class="std std-ref">record</span></a> and
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-inputdirectory"><span class="std std-ref">input_directory</span></a> options to create an
+input recording and specify the location for the output files.</p>
+<p>By default, the plugin records a time code when you press the <strong>F12</strong> key on the
+keyboard while not pressing either <strong>Shift</strong> or <strong>Alt</strong> key.  You can change
+this setting in the options menu for the plugin (choose <strong>Plugin Options</strong> from
+the main menu during emulation, and then choose <strong>Timecode Recorder</strong>).</p>
+<p>Settings for the plugin are stored in JSON format in the file <strong>plugin.cfg</strong> in
+the <strong>timecode</strong> folder inside your plugin data folder (see the
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-homepath"><span class="std std-ref">homepath option</span></a>).</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

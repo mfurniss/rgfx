@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>GLSL Effects for *nix, OS X, and Windows</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="glsl-effects-for-nix-os-x-and-windows">
+<h1>GLSL Effects for *nix, OS X, and Windows</h1>
+<p>By default, MAME outputs an idealized version of the video as it would be on the way to the arcade cabinet's monitor, with minimal modification of the output (primarily to stretch the game image back to the aspect ratio the monitor would traditionally have, usually 4:3) -- this works well, but misses some of the nostalgia factor. Arcade monitors were never ideal, even in perfect condition, and the nature of a CRT display distorts that image in ways that change the appearance significantly.</p>
+<p>Modern LCD monitors simply do not look the same, and even computer CRT monitors cannot match the look of an arcade monitor without help.</p>
+<p>That's where GLSL comes into the picture.</p>
+<p>GLSL simulates most of the effects that a CRT arcade monitor has on the video, making the result look a lot more authentic. However, GLSL requires some effort on the user's part: the settings you use are going to be tailored to your PC's system specs, and especially the monitor you're using. Additionally, there were hundreds of thousands of monitors out there in arcades. Each was tuned and maintained differently, meaning there is no one correct appearance to judge by either. Basic guidelines will be provided here to help you, but you may also wish to ask for opinions on popular MAME-centric forums.</p>
+<section id="resolution-and-aspect-ratio">
+<h2>Resolution and Aspect Ratio</h2>
+<p>Resolution is a very important subject for GLSL settings. You will want MAME to be using the native resolution of your monitor to avoid additional distortion and lag created by your monitor upscaling the display image.</p>
+<p>While most arcade machines used a 4:3 ratio display (or 3:4 for vertically oriented monitors like Pac-Man), it's difficult to find a consumer display that is 4:3 at this point. The good news is that that extra space on the sides isn't wasted. Many arcade cabinets used bezel artwork around the main display, and should you have the necessary artwork files, MAME will display that artwork. Turn the artwork view to Cropped for best results.</p>
+<p>Some older LCD displays used a native resolution of 1280x1024, which is a 5:4 aspect ratio. There's not enough extra space to display artwork, and you'll end up with some very slight pillarboxing, but the results will be on-par with a 4:3 monitor.</p>
+</section>
+<section id="getting-started-with-glsl">
+<h2>Getting Started with GLSL</h2>
+<p>You will need to have followed the initial MAME setup instructions elsewhere in this manual before beginning. Official MAME distributions include GLSL support by default, but do NOT include the GLSL shader files. You will need to obtain the shader files from third party online sources.</p>
+<p>Open your <code class="docutils literal notranslate"><span class="pre">mame.ini</span></code> in your text editor of choice (e.g. Notepad), and make sure the following options are set correctly:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">video</span> <span class="pre">opengl</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter</span> <span class="pre">0</span></code></p></li>
+</ul>
+<p>The former is required because GLSL requires OpenGL support. The latter turns off extra filtering that interferes with GLSL output.</p>
+<p>Lastly, one more edit will turn GLSL on:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">gl_glsl</span> <span class="pre">1</span></code></p></li>
+</ul>
+<p>Save the .INI file and you're ready to begin.</p>
+</section>
+<section id="tweaking-glsl-settings-inside-mame">
+<h2>Tweaking GLSL Settings inside MAME</h2>
+<p>For multiple, complicated to explain reasons, GLSL settings are no longer saved when you exit MAME. This means that while tweaking settings is a little more work on your part, the results will always come out as expected.</p>
+<p>Start by loading MAME with the game of your choice (e.g. <strong>mame pacman</strong>)</p>
+<p>The tilde key (<strong>~</strong>) brings up the on-screen display options. Use up and down to go through the various settings, while left and right will allow you to change that setting. Results will be shown in real time as you're changing these settings.</p>
+<p>Once you've found settings you like, write the numbers down on a notepad and exit MAME.</p>
+</section>
+<section id="configuration-editing">
+<h2>Configuration Editing</h2>
+<p>As referenced in <a class="reference internal" href="multiconfig.xhtml#advanced-multi-cfg"><span class="std std-ref">Order of Config Loading</span></a>, MAME has a order in which it processes INI files. The GLSL settings can be edited in <code class="docutils literal notranslate"><span class="pre">mame.ini</span></code>, but to take full advantage of the power of MAME's config files, you'll want to copy the GLSL settings from mame.ini to one of the other config files and make changes there.</p>
+<p>For instance, once you've found GLSL settings you think are appropriate for Neo Geo games, you can put those settings into neogeo.ini so that all Neo-Geo games will be able to take advantage of those settings without needing to add it to every game INI manually.</p>
+</section>
+<section id="configuration-settings">
+<h2>Configuration Settings</h2>
+<div class="line-block">
+<div class="line"><strong>gl_glsl</strong></div>
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Enables GLSL when set to 1, disabled if set to 0. Defaults to <em>0</em>.</div>
+<div class="line"><br /></div>
+</div>
+<div class="line"><strong>gl_glsl_filter</strong></div>
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Enables filtering to GLSL output. Reduces jagginess at the cost of blurriness.</div>
+<div class="line"><br /></div>
+</div>
+<div class="line"><strong>glsl_shader_mame0</strong></div>
+<div class="line-block">
+<div class="line">...</div>
+</div>
+<div class="line"><strong>glsl_shader_mame9</strong></div>
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Specifies the shaders to run, in the order from 0 to 9. See your shader pack author for details on which to run in which order for best effect.</div>
+<div class="line"><br /></div>
+</div>
+<div class="line"><strong>glsl_shader_screen0</strong></div>
+<div class="line-block">
+<div class="line">...</div>
+</div>
+<div class="line"><strong>glsl_shader_screen9</strong></div>
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Specifies screen to apply the shaders on.</div>
+<div class="line"><br /></div>
+</div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SDL-Specific Command-line Options</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="sdl-specific-command-line-options">
+<h1>SDL-Specific Command-line Options</h1>
+<p>This section contains configuration options that are specific to any build
+supported by SDL (including Windows when built with SDL instead of native).</p>
+<section id="performance-options">
+<h2>Performance Options</h2>
+<p id="mame-scommandline-sdlvideofps"><strong>-[no]sdlvideofps</strong></p>
+<blockquote>
+<div><p>Enable output of benchmark data on the SDL video subsystem, including your
+system’s video driver, X server (if applicable), and OpenGL stack in
+<strong>-video opengl</strong> mode.</p>
+</div></blockquote>
+</section>
+<section id="video-options">
+<h2>Video Options</h2>
+<p id="mame-scommandline-centerh"><strong>-[no]centerh</strong></p>
+<blockquote>
+<div><p>Center horizontally within the view area. Default is ON (<strong>-centerh</strong>).</p>
+</div></blockquote>
+<p id="mame-scommandline-centerv"><strong>-[no]centerv</strong></p>
+<blockquote>
+<div><p>Center vertically within the view area. Default is ON (<strong>-centerv</strong>).</p>
+</div></blockquote>
+</section>
+<section id="video-soft-specific-options">
+<h2>Video Soft-Specific Options</h2>
+<p id="mame-scommandline-scalemode"><strong>-scalemode</strong></p>
+<blockquote>
+<div><p>Scale mode: none, async, yv12, yuy2, yv12x2, yuy2x2 (<strong>-video soft</strong> only).
+Default is <em>none</em>.</p>
+</div></blockquote>
+</section>
+<section id="sdl-keyboard-mapping">
+<h2>SDL Keyboard Mapping</h2>
+<p id="mame-scommandline-keymap"><strong>-keymap</strong></p>
+<blockquote>
+<div><p>Enable keymap.  Default is OFF (<strong>-nokeymap</strong>)</p>
+</div></blockquote>
+<p id="mame-scommandline-keymapfile"><strong>-keymap_file</strong> <em>&lt;file&gt;</em></p>
+<blockquote>
+<div><p>Keymap file name.  Default is <code class="docutils literal notranslate"><span class="pre">keymap.dat</span></code>.</p>
+</div></blockquote>
+</section>
+<section id="sdl-input-options">
+<h2>SDL Input Options</h2>
+<p id="mame-scommandline-enabletouch"><strong>-enable_touch</strong></p>
+<blockquote>
+<div><p>Enable support for touch input.  If this option is switched off, mouse input
+simulated from touch devices will be used instead.  Default is OFF
+(<strong>-noenable_touch</strong>)</p>
+</div></blockquote>
+<p id="mame-scommandline-sixaxis"><strong>-sixaxis</strong></p>
+<blockquote>
+<div><p>Use special handling for PlayStation 3 SixAxis controllers.  May cause
+undesirable behaviour with other controllers.  Only affects the <code class="docutils literal notranslate"><span class="pre">sdljoy</span></code>
+joystick provider.  Default is OFF (<strong>-nosixaxis</strong>)</p>
+</div></blockquote>
+<p id="mame-scommandline-duallightgun"><strong>-[no]dual_lightgun</strong> / <strong>-[no]dual</strong></p>
+<blockquote>
+<div><p>Controls whether or not MAME attempts to track two lightguns that appear as
+a single mouse.  This option requires the <a class="reference internal" href="commandline-all.xhtml#mame-commandline-nolightgun"><span class="std std-ref">lightgun option</span></a> to be on and the <a class="reference internal" href="commandline-all.xhtml#mame-commandline-lightgunprovider"><span class="std std-ref">lightgunprovider
+option</span></a> to be set to <em>sdl</em>.</p>
+<p>This option supports dual lightgun setups that work by setting the mouse
+pointer location at the moment a lightgun trigger is activated.  The primary
+and secondary triggers on the first lightgun correspond to the first and
+second mouse buttons, and the primary and secondary triggers on the second
+lightgun correspond to the third and fourth mouse buttons.</p>
+<p>The default is OFF (<strong>-nodual_lightgun</strong>).</p>
+</div></blockquote>
+</section>
+<section id="sdl-lightgun-mapping">
+<h2>SDL Lightgun Mapping</h2>
+<div class="line-block" id="mame-scommandline-lightgunindex">
+<div class="line"><br /></div>
+<div class="line"><strong>-lightgun_index1</strong> <em>&lt;name&gt;</em></div>
+<div class="line"><strong>-lightgun_index2</strong> <em>&lt;name&gt;</em></div>
+<div class="line">...</div>
+<div class="line"><strong>-lightgun_index8</strong> <em>&lt;name&gt;</em></div>
+<div class="line"><br /></div>
+</div>
+<p>Device name or ID mapped to a given lightgun slot.</p>
+</section>
+<section id="sdl-low-level-driver-options">
+<h2>SDL Low-level Driver Options</h2>
+<p id="mame-scommandline-videodriver"><strong>-videodriver</strong> <em>&lt;driver&gt;</em></p>
+<blockquote>
+<div><p>SDL video driver to use ('x11', 'directfb', ... or '<em>auto</em>' for SDL default)</p>
+</div></blockquote>
+<p id="mame-scommandline-audiodriver"><strong>-audiodriver</strong> <em>&lt;driver&gt;</em></p>
+<blockquote>
+<div><p>SDL audio driver to use ('alsa', 'arts', ... or '<em>auto</em>' for SDL default)</p>
+</div></blockquote>
+<p id="mame-scommandline-gllib"><strong>-gl_lib</strong> <em>&lt;driver&gt;</em></p>
+<blockquote>
+<div><p>Alternative <strong>libGL.so</strong> to use; '<em>auto</em>' for system default</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

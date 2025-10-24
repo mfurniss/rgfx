@@ -25,7 +25,6 @@ export class EventFileReader {
 
       // Start watching the file
       this.watcher = watch(this.filePath, (eventType) => {
-        log.info(`File event: ${eventType}`);
         if (eventType === 'change') {
           this.readNewLines(onEvent);
         }

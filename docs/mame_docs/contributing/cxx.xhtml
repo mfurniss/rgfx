@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>C++ Coding Guidelines</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="c-coding-guidelines">
+<span id="contributing-cxx"></span><h1>C++ Coding Guidelines</h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#introduction" id="id1">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#definitions" id="id2">Definitions</a></p></li>
+<li><p><a class="reference internal" href="#source-file-format" id="id3">Source file format</a></p></li>
+<li><p><a class="reference internal" href="#naming-conventions" id="id4">Naming conventions</a></p></li>
+<li><p><a class="reference internal" href="#variables-and-literals" id="id5">Variables and literals</a></p></li>
+<li><p><a class="reference internal" href="#bracing-and-indentation" id="id6">Bracing and indentation</a></p></li>
+<li><p><a class="reference internal" href="#spacing" id="id7">Spacing</a></p></li>
+<li><p><a class="reference internal" href="#scoping" id="id8">Scoping</a></p></li>
+<li><p><a class="reference internal" href="#const-correctness" id="id9">Const Correctness</a></p></li>
+<li><p><a class="reference internal" href="#comments" id="id10">Comments</a></p></li>
+<li><p><a class="reference internal" href="#mame-specific-helpers" id="id11">MAME-Specific Helpers</a></p></li>
+<li><p><a class="reference internal" href="#logging" id="id12">Logging</a></p></li>
+<li><p><a class="reference internal" href="#structural-organization" id="id13">Structural organization</a></p></li>
+</ul>
+</nav>
+<section id="introduction">
+<span id="contributing-cxx-intro"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Introduction</a></h2>
+<p><strong>In terms of coding conventions, the style present within an existing
+source file should be favoured over the standards found below.</strong></p>
+<p>When a new source file is being created, the following coding
+conventions should be observed if creating a new file within the MAME
+core (<code class="docutils literal notranslate"><span class="pre">src/emu</span></code> and <code class="docutils literal notranslate"><span class="pre">src/lib</span></code>).  If the source file is outside the
+core, deference can be given to a contributor’s preferred style,
+although it is strongly encouraged to code with the understanding that
+the file may need to be comprehensible by more than one person as time
+marches forward.</p>
+</section>
+<section id="definitions">
+<span id="contributing-cxx-definitions"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Definitions</a></h2>
+<dl class="simple">
+<dt>Snake case</dt><dd><p>All lowercase letters with words separated by underscores:
+<code class="docutils literal notranslate"><span class="pre">this_is_snake_case</span></code></p>
+</dd>
+<dt>Screaming snake case</dt><dd><p>All uppercase letters with words separated by underscores:
+<code class="docutils literal notranslate"><span class="pre">SCREAMING_SNAKE_CASE</span></code></p>
+</dd>
+<dt>Camel case:</dt><dd><p>Lowercase initial letter, first letter of each subsequent word
+capitalised, with no separators between words: <code class="docutils literal notranslate"><span class="pre">exampleCamelCase</span></code></p>
+</dd>
+<dt>Llama case:</dt><dd><p>Uppercase initial letter, first letter of each subsequent word
+capitalised, with no separators between words: <code class="docutils literal notranslate"><span class="pre">LlamaCaseSample</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="source-file-format">
+<span id="contributing-cxx-fileformat"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Source file format</a></h2>
+<p>MAME C++ source files are encoded as UTF-8 text, assuming fixed-width
+characters, with tab stops at four-space intervals.  Source files should
+end with a terminating end-of-line.  Any valid printable Unicode text is
+permitted in comments.  Outside comments and strings, only the printable
+ASCII subset of Unicode is permitted.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">srcclean</span></code> tool is used to enforce file format rules before each
+release.  You can build this tool and apply it to the files you modify
+before opening a pull request to avoid conflicts or surprising changes
+later.</p>
+</section>
+<section id="naming-conventions">
+<span id="contributing-cxx-naming"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink">Naming conventions</a></h2>
+<dl class="simple">
+<dt>Preprocessor macros</dt><dd><p>Macro names should use screaming snake case.  Macros are always
+global and name conflicts can cause confusing errors – think
+carefully about what macros really need to be in headers and name
+them carefully.</p>
+</dd>
+<dt>Include guards</dt><dd><p>Include guard macros should begin with <code class="docutils literal notranslate"><span class="pre">MAME_</span></code>, and end with a
+capitalised version of the file name, with separators replaced by
+underscores.</p>
+</dd>
+<dt>Constants</dt><dd><p>Constants should use screaming snake case, whether they are constant
+globals, constant data members, enumerators or preprocessor
+constants.</p>
+</dd>
+<dt>Functions</dt><dd><p>Free functions names should use snake case.  (There are some utility
+function that were previously implemented as preprocessor macros
+that still use screaming snake case.)</p>
+</dd>
+<dt>Classes</dt><dd><p>Class names should use snake case.  Abstract class names should end
+in <code class="docutils literal notranslate"><span class="pre">_base</span></code>.  Public member functions (including static member
+functions) should use snake case.</p>
+</dd>
+<dt>Device classes</dt><dd><p>Concrete driver <code class="docutils literal notranslate"><span class="pre">driver_device</span></code> implementation names
+conventionally end in <code class="docutils literal notranslate"><span class="pre">_state</span></code>, while other concrete device class
+names end in <code class="docutils literal notranslate"><span class="pre">_device</span></code>.  Concrete <code class="docutils literal notranslate"><span class="pre">device_interface</span></code> names
+conventionally begin with <code class="docutils literal notranslate"><span class="pre">device_</span></code> and end with <code class="docutils literal notranslate"><span class="pre">_interface</span></code>.</p>
+</dd>
+<dt>Device types</dt><dd><p>Device types should use screaming snake case.  Remember that device
+types are names in the global namespace, so choose explicit,
+unambiguous names.</p>
+</dd>
+<dt>Enumerations</dt><dd><p>The enumeration name should use snake case.  The enumerators should
+use screaming snake case.</p>
+</dd>
+<dt>Template parameters</dt><dd><p>Template parameters should use llama case (both type and value
+parameters).</p>
+</dd>
+</dl>
+<p>Identifiers containing two consecutive underscores or starting with an
+underscore followed by an uppercase letter are always reserved and
+should not be used.</p>
+<p>Type names and other identifiers with a leading underscore should be
+avoided within the global namespace, as they are explicitly reserved
+according to the C++ standard.  Additionally, identifiers suffixed with
+<code class="docutils literal notranslate"><span class="pre">_t</span></code> should be avoided within the global namespace, as they are also
+reserved according to POSIX standards.  While MAME violates this policy
+occasionally – most notably with <code class="docutils literal notranslate"><span class="pre">device_t</span></code> – it’s considered to be an
+unfortunate legacy decision that should be avoided in any new code.</p>
+</section>
+<section id="variables-and-literals">
+<span id="contributing-cxx-literals"></span><h2><a class="toc-backref" href="#id5" role="doc-backlink">Variables and literals</a></h2>
+<p>Octal literals are discouraged from use outside of specific cases.  They
+lack the obvious letter-based prefixes found in hexadecimal and binary
+literals, and therefore can be difficult to distinguish at a glance from
+a decimal literal to coders who are unfamiliar with octal notation.</p>
+<p>Lower-case hexadecimal literals are preferred, e.g. <code class="docutils literal notranslate"><span class="pre">0xbadc0de</span></code> rather
+than <code class="docutils literal notranslate"><span class="pre">0xBADC0DE</span></code>.  For clarity, try not to exceed the bit width of the
+variable which will be used to store it.</p>
+<p>Binary literals have rarely been used in the MAME source code due to the
+<code class="docutils literal notranslate"><span class="pre">0b</span></code> prefix not being standardised until C++14, but there is no policy
+to avoid their use.</p>
+<p>Integer suffix notation should be used when specifying 64-bit literals,
+but is not strictly required in other cases.  It can, however, clarify
+the intended use of a given literal at a glance.  Uppercase long integer
+literal suffixes should be used to avoid confusion with the digit 1,
+e.g.  <code class="docutils literal notranslate"><span class="pre">7LL</span></code> rather than <code class="docutils literal notranslate"><span class="pre">7ll</span></code>.</p>
+<p>Digit grouping should be used for longer numeric literals, as it aids in
+recognising order of magnitude or bit field positions at a glance.
+Decimal literals should use groups of three digits, and hexadecimal
+literals should use groups of four digits, outside of specific
+situations where different grouping would be easier to understand, e.g.
+<code class="docutils literal notranslate"><span class="pre">4'433'619</span></code> or <code class="docutils literal notranslate"><span class="pre">0xfff8'1fff</span></code>.</p>
+<p>Types that do not have a specifically defined size should be avoided if
+they are to be registered with MAME’s save-state system, as it harms
+portability.  In general, this means avoiding the use of <code class="docutils literal notranslate"><span class="pre">int</span></code> for
+these members.</p>
+<p>It's encouraged, but not required, for class data members to be prefixed
+with <code class="docutils literal notranslate"><span class="pre">m_</span></code> for non-static instance members and <code class="docutils literal notranslate"><span class="pre">s_</span></code> for static
+members.  This does not apply to nested classes or structs.</p>
+</section>
+<section id="bracing-and-indentation">
+<span id="contributing-cxx-braceindent"></span><h2><a class="toc-backref" href="#id6" role="doc-backlink">Bracing and indentation</a></h2>
+<p>Tabs are used for initial indentation of lines, with one tab used per
+nested scope level.  Statements split across multiple lines should be
+indented by two tabs.  Spaces are used for alignment at other places
+within a line.</p>
+<p>Either K&amp;R or Allman-style bracing is preferred.  There is no specific
+preference for bracing on single-line statements, although bracing
+should be consistent for a given <code class="docutils literal notranslate"><span class="pre">if/else</span></code> block, as shown:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">call_some_function</span><span class="p">();</span>
+<span class="w">    </span><span class="n">x</span><span class="o">--</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When using a series of <code class="docutils literal notranslate"><span class="pre">if</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span></code> or <code class="docutils literal notranslate"><span class="pre">if</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span> <span class="pre">if</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span></code>
+blocks with comments at the top indentation level, avoid extraneous
+newlines.  The use of additional newlines may lead to <code class="docutils literal notranslate"><span class="pre">else</span> <span class="pre">if</span></code> or
+<code class="docutils literal notranslate"><span class="pre">else</span></code> blocks being missed due to the newlines pushing the blocks
+outside the visible editor height:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Early-out if our hypothetical counter has run out.</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="c1">// We should do something if the counter is running.</span>
+<span class="k">else</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">call_some_function</span><span class="p">();</span>
+<span class="w">    </span><span class="n">x</span><span class="o">--</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Indentation for <code class="docutils literal notranslate"><span class="pre">case</span></code> statements inside a <code class="docutils literal notranslate"><span class="pre">switch</span></code> body can either
+be on the same level as the <code class="docutils literal notranslate"><span class="pre">switch</span></code> statement or inward by one level.
+There is no specific style which is used across all core files, although
+indenting by one level appears to be used most often.</p>
+</section>
+<section id="spacing">
+<span id="contributing-cxx-spacing"></span><h2><a class="toc-backref" href="#id7" role="doc-backlink">Spacing</a></h2>
+<p>Consistent single-spacing between binary operators, variables, and
+literals is strongly preferred.  The following examples exhibit
+reasonably consistent spacing:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(((</span><span class="n">bar</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">baz</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">((</span><span class="n">bar</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">baz</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x0e</span><span class="p">;</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bar</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">baz</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The following examples exhibit extremes in either direction, although
+having extra spaces is less difficult to read than having too few:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">bar</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">baz</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">((</span><span class="n">bar</span><span class="o">&lt;&lt;</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">baz</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0x0e</span><span class="p">;</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">bar</span><span class="o">?</span><span class="n">baz</span><span class="o">:</span><span class="mi">5</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>A space should be used between a fundamental C++ statement and its
+opening parenthesis, e.g.:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">...</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">...</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">foo</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">...</span>
+</pre></div>
+</div>
+</section>
+<section id="scoping">
+<span id="contributing-cxx-scoping"></span><h2><a class="toc-backref" href="#id8" role="doc-backlink">Scoping</a></h2>
+<p>Variables should be scoped as narrowly as is reasonably possible.  There
+are many instances of C89-style local variable declaration in the MAME
+codebase, but this is largely a hold-over from MAME’s early days, which
+pre-date the C99 specification.</p>
+<p>The following two snippets exhibit the legacy style of local variable
+declaration, followed by the more modern and preferred style:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">example_device::some_function</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">size</span><span class="p">(</span><span class="n">m_buffer</span><span class="p">);</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">some_other_function</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">example_device::some_function</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">size</span><span class="p">(</span><span class="n">m_buffer</span><span class="p">);</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">some_other_function</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Enumerated values, structs, and classes used only by one specific device
+should be declared within the device's class itself.  This avoids
+pollution of the global namespace and makes the device-specific use of
+them more obvious at a glance.</p>
+</section>
+<section id="const-correctness">
+<span id="contributing-cxx-const"></span><h2><a class="toc-backref" href="#id9" role="doc-backlink">Const Correctness</a></h2>
+<p>Const-correctness has not historically been a strict requirement of code
+that goes into MAME, but there’s increasing value in it as the amount of
+code refactoring increases and technical debt decreases.</p>
+<p>When writing new code, it’s worth taking the time to determine if a
+local variable can be declared <code class="docutils literal notranslate"><span class="pre">const</span></code>.  Similarly, it's encouraged to
+consider which member functions of a new class can be <code class="docutils literal notranslate"><span class="pre">const</span></code>
+qualified.</p>
+<p>In a similar vein, arrays of constants should be declared <code class="docutils literal notranslate"><span class="pre">constexpr</span></code>
+and should use screaming snake case, as outlined towards the top of this
+document.  Lastly, arrays of C-style strings should be declared as both
+a const array of const strings, as so:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="n">EXAMPLE_NAMES</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="s">&quot;1-bit&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;2-bit&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;4-bit&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;Invalid&quot;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+<section id="comments">
+<span id="contributing-cxx-comments"></span><h2><a class="toc-backref" href="#id10" role="doc-backlink">Comments</a></h2>
+<p>While <code class="docutils literal notranslate"><span class="pre">/*</span> <span class="pre">ANSI</span> <span class="pre">C</span> <span class="pre">comments</span> <span class="pre">*/</span></code> are often found in the codebase, there
+has been a gradual shift towards <code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">C++-style</span> <span class="pre">comments</span></code> for
+single-line comments.  This is very much a guideline, and coders are
+encouraged to use whichever style is most comfortable.</p>
+<p>Unless specifically quoting content from a machine or ancillary
+materials, comments should be in English so as to match the predominant
+language that the MAME team shares worldwide.</p>
+<p>Commented-out code should typically be removed prior to authoring a pull
+request, as it has a tendency to rot due to the fast-moving nature of
+MAME’s core API.  If there is a desire known beforehand for the code to
+eventually be included, it should be bookended in <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(0)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(false)</span></code>, as code removed through a preprocessor macro will rot at
+the same rate.</p>
+</section>
+<section id="mame-specific-helpers">
+<span id="contributing-cxx-helpers"></span><h2><a class="toc-backref" href="#id11" role="doc-backlink">MAME-Specific Helpers</a></h2>
+<p>When at all possible, use helper functions and macros for bit
+manipulation operations.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">BIT(value,</span> <span class="pre">bit)</span></code> helper can be used to extract the state of a bit
+at a given position from an integer value.  The resulting value will be
+aligned to the least significant bit position, i.e. will be either 0 or
+1.</p>
+<p>An overload of the same function, <code class="docutils literal notranslate"><span class="pre">BIT(value,</span> <span class="pre">bit,</span> <span class="pre">width)</span></code> can be used
+to extract a bit field of a specified width from an integer value,
+starting at the specified bit position.  The result will also be
+right-justified and will be of the same type as the incoming value.</p>
+<p>There are, additionally, a number of helpers for functionality such as
+counting leading zeroes/ones, population count, and signed/unsigned
+integer multiplication and division for both 32-bit and 64-bit results.
+Not all of these helpers have wide use in the MAME codebase, but using
+them in new code is strongly preferred when that code is performance-
+critical, as they utilise inline assembly or compiler intrinsics per-
+platform when available.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">count_leading_zeros_32/64(T</span> <span class="pre">value)</span></code></dt><dd><p>Accepts an unsigned 32/64-bit value and returns an unsigned 8-bit
+value containing the number of consecutive zeros starting from the
+most significant bit.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">count_leading_ones_32/64(T</span> <span class="pre">value)</span></code></dt><dd><p>Same functionality as above, but examining consecutive one-bits.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">population_count_32/64(T</span> <span class="pre">value)</span></code></dt><dd><p>Accepts an unsigned 32/64-bit value and returns the number of
+one-bits found, i.e. the Hamming weight of the value.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">rotl_32/64(T</span> <span class="pre">value,</span> <span class="pre">int</span> <span class="pre">shift)</span></code></dt><dd><p>Performs a circular/barrel left shift of an unsigned 32/64-bit value
+with the specified shift value. The shift value will be masked to
+the valid bit range for a 32-bit or 64-bit value.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">rotr_32/64(T</span> <span class="pre">value,</span> <span class="pre">int</span> <span class="pre">shift)</span></code></dt><dd><p>Same functionality as above, but with a right shift.</p>
+</dd>
+</dl>
+<p>For documentation on helpers related to multiplication and division,
+refer to <code class="docutils literal notranslate"><span class="pre">src/osd/eminline.h</span></code>.</p>
+</section>
+<section id="logging">
+<span id="contributing-cxx-logging"></span><h2><a class="toc-backref" href="#id12" role="doc-backlink">Logging</a></h2>
+<p>MAME has multiple logging function for different purposes.  Two of the
+most frequently used logging functions are <code class="docutils literal notranslate"><span class="pre">logerror</span></code> and
+<code class="docutils literal notranslate"><span class="pre">osd_printf_verbose</span></code>:</p>
+<ul class="simple">
+<li><p>Devices inherit a <code class="docutils literal notranslate"><span class="pre">logerror</span></code> member function.  This automatically
+includes the fully-qualified tag of the invoking device in log
+messages.  Output is sent to MAME’s debugger’s rotating log buffer if
+the debugger is enabled.  If the
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-log"><span class="std std-ref">-log option</span></a> is enabled, it’s also
+written to the file <code class="docutils literal notranslate"><span class="pre">error.log</span></code> in the working directory.  If the
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-oslog"><span class="std std-ref">-oslog option</span></a> is enabled, it’s
+additionally sent to the OS diagnostic output (the host debugger
+diagnostic log on Windows if a host debugger is attached, or standard
+error otherwise).</p></li>
+<li><p>The output of the <code class="docutils literal notranslate"><span class="pre">osd_printf_verbose</span></code> function is sent to standard
+error if the <a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-verbose"><span class="std std-ref">-verbose option</span></a> is
+enabled.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">osd_printf_verbose</span></code> function should be used for logging that is
+useful for diagnosing user issues, while <code class="docutils literal notranslate"><span class="pre">logerror</span></code> should be used for
+messages more relevant to developers (either developing MAME itself, or
+developing software for emulated systems using MAME’s debugger).</p>
+<p>For debug logging, a channel-based logging system exists via the header
+<code class="docutils literal notranslate"><span class="pre">logmacro.h</span></code>.  It can be used as a generic logging system as follows,
+without needing to make use of its ability to mask out specific
+channels:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// All other headers in the .cpp file should be above this line.</span>
+<span class="cp">#define VERBOSE (1)</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;logmacro.h&quot;</span>
+<span class="p">...</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">some_device</span><span class="o">::</span><span class="n">some_reg_write</span><span class="p">(</span><span class="n">u8</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">LOG</span><span class="p">(</span><span class="s">&quot;%s: some_reg_write: %02x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">machine</span><span class="p">().</span><span class="n">describe_context</span><span class="p">(),</span><span class="w"> </span><span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The above example also makes use of a helper function which is available
+in all derivatives of <code class="docutils literal notranslate"><span class="pre">device_t</span></code>: <code class="docutils literal notranslate"><span class="pre">machine().describe_context()</span></code>.
+This function will return a string that describes the emulation context
+in which the function is being run.  This includes the fully-qualified
+tag of the currently executing device (if any).  If the relevant device
+implements <code class="docutils literal notranslate"><span class="pre">device_state_interface</span></code>, it will also include the current
+program-counter value reported by the device.</p>
+<p>For more fine-grained control, specific bit masks can be defined and
+used via the <code class="docutils literal notranslate"><span class="pre">LOGMASKED</span></code> macro:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// All other headers in the .cpp file should be above this line.</span>
+<span class="cp">#define LOG_FOO (1 &lt;&lt; 1U)</span>
+<span class="cp">#define LOG_BAR (1 &lt;&lt; 2U)</span>
+
+<span class="cp">#define VERBOSE (LOG_FOO | LOG_BAR)</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;logmacro.h&quot;</span>
+<span class="p">...</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">some_device</span><span class="o">::</span><span class="n">some_reg_write</span><span class="p">(</span><span class="n">u8</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">LOGMASKED</span><span class="p">(</span><span class="n">LOG_FOO</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;some_reg_write: %02x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">some_device</span><span class="o">::</span><span class="n">another_reg_write</span><span class="p">(</span><span class="n">u8</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">LOGMASKED</span><span class="p">(</span><span class="n">LOG_BAR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;another_reg_write: %02x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that the least significant bit position for user-supplied masks is
+1, as bit position 0 is reserved for <code class="docutils literal notranslate"><span class="pre">LOG_GENERAL</span></code>.</p>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">LOG</span></code> and <code class="docutils literal notranslate"><span class="pre">LOGMASKED</span></code> will use the device-supplied
+<code class="docutils literal notranslate"><span class="pre">logerror</span></code> function. However, this can be redirected as desired.  The
+most common use case would be to direct output to the standard output
+instead, which can be accomplished by explicitly defining
+<code class="docutils literal notranslate"><span class="pre">LOG_OUTPUT_FUNC</span></code> as so:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#define LOG_OUTPUT_FUNC osd_printf_info</span>
+</pre></div>
+</div>
+<p>A developer should always ensure that <code class="docutils literal notranslate"><span class="pre">VERBOSE</span></code> is set to 0 and that
+any definition of <code class="docutils literal notranslate"><span class="pre">LOG_OUTPUT_FUNC</span></code> is commented out prior to opening
+a pull request.</p>
+</section>
+<section id="structural-organization">
+<span id="contributing-cxx-structure"></span><h2><a class="toc-backref" href="#id13" role="doc-backlink">Structural organization</a></h2>
+<p>All C++ source files must begin with a two comments listing the
+distribution license and copyright holders in a standard format.
+Licenses are specified by their SPDX short identifier if available.
+Here is an example of the standard format:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// license:BSD-3-Clause</span>
+<span class="c1">// copyright-holders:David Haywood, Tomasz Slanina</span>
+</pre></div>
+</div>
+<p>Header includes should generally be grouped from most-dependent to
+least-dependent, and sorted alphabetically within said groups:</p>
+<ul class="simple">
+<li><p>The project prefix header, <code class="docutils literal notranslate"><span class="pre">emu.h</span></code>, must be the first thing in a
+translation unit</p></li>
+<li><p>Local project headers (i.e. headers found in the same source
+directory)</p></li>
+<li><p>Headers in <code class="docutils literal notranslate"><span class="pre">src/devices</span></code></p></li>
+<li><p>Headers in <code class="docutils literal notranslate"><span class="pre">src/emu</span></code></p></li>
+<li><p>Headers in <code class="docutils literal notranslate"><span class="pre">src/lib/formats</span></code></p></li>
+<li><p>Headers in <code class="docutils literal notranslate"><span class="pre">src/lib/util</span></code></p></li>
+<li><p>Headers from the OSD layer</p></li>
+<li><p>C++ standard library headers</p></li>
+<li><p>C standard library headers</p></li>
+<li><p>OS-specific headers</p></li>
+<li><p>Layout headers</p></li>
+</ul>
+<p>Finally, task-specific headers such as <code class="docutils literal notranslate"><span class="pre">logmacro.h</span></code> - described in the
+previous section - should be included last.  A practical example
+follows:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;emu.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cpu/m68000/m68000.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;machine/mc68328.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;machine/ram.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;sound/dac.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video/mc68328lcd.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video/sed1375.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;emupal.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;screen.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;speaker.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;pilot1k.lh&quot;</span>
+
+<span class="cp">#define VERBOSE (0)</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;logmacro.h&quot;</span>
+</pre></div>
+</div>
+<p>In most cases, the class declaration for a system driver should be
+within the corresponding source file along with the implementation.  In
+such cases, the class declaration and all contents of the source file,
+excluding the <code class="docutils literal notranslate"><span class="pre">GAME</span></code>, <code class="docutils literal notranslate"><span class="pre">COMP</span></code>, or <code class="docutils literal notranslate"><span class="pre">CONS</span></code> macro, should be enclosed
+in an anonymous namespace (this produces better compiler diagnostics,
+allows more aggressive optimisation, reduces the chance of duplicate
+symbols, and reduces linking time).</p>
+<p>Within a class declaration, there should be one section for each member
+access level (<code class="docutils literal notranslate"><span class="pre">public</span></code>, <code class="docutils literal notranslate"><span class="pre">protected</span></code> and <code class="docutils literal notranslate"><span class="pre">private</span></code>) if practical.
+This may not be possible in cases where private constants and/or types
+need to be declared before public members.  Members should use the least
+public access level necessary.  Overridden virtual member functions
+should generally use the same access level as the corresponding member
+function in the base class.</p>
+<p>Class member declarations should be grouped to aid understanding:</p>
+<ul class="simple">
+<li><p>Within a member access level section, constants, types, data members,
+instance member functions and static member functions should be
+grouped.</p></li>
+<li><p>In device classes, configuration member functions should be grouped
+separately from live signal member functions.</p></li>
+<li><p>Overridden virtual member functions should be grouped according to the
+base classes they are inherited from.</p></li>
+</ul>
+<p>For classes with multiple overloaded constructors, constructor
+delegation should be used where possible to avoid repeated member
+initialiser lists.</p>
+<p>Constants which are used by a device or machine driver should be in the
+form of explicitly-sized enumerated values within the class declaration,
+or be relegated to <code class="docutils literal notranslate"><span class="pre">#define</span></code> macros within the source file.  This
+helps avoid polluting the preprocessor.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

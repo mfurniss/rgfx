@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Execution Debugger Commands</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="execution-debugger-commands">
+<span id="debugger-execution-list"></span><h1>Execution Debugger Commands</h1>
+<dl class="simple">
+<dt><a class="reference internal" href="#debugger-command-step"><span class="std std-ref">step</span></a></dt><dd><p>single step for &lt;count&gt; instructions (F11)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-over"><span class="std std-ref">over</span></a></dt><dd><p>single step over &lt;count&gt; instructions (F10)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-out"><span class="std std-ref">out</span></a></dt><dd><p>single step until the current subroutine/exception handler returns
+(Shift-F11)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-go"><span class="std std-ref">go</span></a></dt><dd><p>resume execution (F5)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gbt"><span class="std std-ref">gbt</span></a></dt><dd><p>resume execution until next true branch is executed</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gbf"><span class="std std-ref">gbf</span></a></dt><dd><p>resume execution until next false branch is executed</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gex"><span class="std std-ref">gex</span></a></dt><dd><p>resume execution until exception is raised</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gint"><span class="std std-ref">gint</span></a></dt><dd><p>resume execution until interrupt is taken (F7)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gni"><span class="std std-ref">gni</span></a></dt><dd><p>resume execution until next further instruction</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gtime"><span class="std std-ref">gtime</span></a></dt><dd><p>resume execution until the given delay has elapsed</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-gvblank"><span class="std std-ref">gvblank</span></a></dt><dd><p>resume execution until next vertical blanking interval (F8)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-next"><span class="std std-ref">next</span></a></dt><dd><p>resume execution until the next CPU switch (F6)</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-focus"><span class="std std-ref">focus</span></a></dt><dd><p>focus debugger only on &lt;CPU&gt;</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-ignore"><span class="std std-ref">ignore</span></a></dt><dd><p>stop debugging on &lt;CPU&gt;</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-observe"><span class="std std-ref">observe</span></a></dt><dd><p>resume debugging on &lt;CPU&gt;</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-trace"><span class="std std-ref">trace</span></a></dt><dd><p>trace the specified CPU to a file</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-traceover"><span class="std std-ref">traceover</span></a></dt><dd><p>trace the specified CPU to a file skipping subroutines</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-traceflush"><span class="std std-ref">traceflush</span></a></dt><dd><p>flush all open trace files.</p>
+</dd>
+</dl>
+<section id="step">
+<span id="debugger-command-step"></span><h2>step</h2>
+<p><strong>s[tep] [&lt;count&gt;]</strong></p>
+<p>Single steps one or more instructions on the currently executing CPU.
+Executes one instruction if <strong>&lt;count&gt;</strong> is omitted, or steps <strong>&lt;count&gt;</strong>
+instructions if it is supplied.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">s</span></code></dt><dd><p>Steps forward one instruction on the current CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">step</span> <span class="pre">4</span></code></dt><dd><p>Steps forward four instructions on the current CPU.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="over">
+<span id="debugger-command-over"></span><h2>over</h2>
+<p><strong>o[ver] [&lt;count&gt;]</strong></p>
+<p>The over command single steps “over” one or more instructions on the
+currently executing CPU, stepping over subroutine calls and exception
+handler traps and counting them as a single instruction.  Note that when
+stepping over a subroutine call, code may execute on other CPUs before
+the subroutine returns.</p>
+<p>Steps over one instruction if <strong>&lt;count&gt;</strong> is omitted, or steps over
+<strong>&lt;count&gt;</strong> instructions if it is supplied.</p>
+<p>Note that the step over functionality may not be implemented for all CPU
+types.  If it is not implemented, then <code class="docutils literal notranslate"><span class="pre">over</span></code> will behave exactly like
+<a class="reference internal" href="#debugger-command-step"><span class="std std-ref">step</span></a>.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">o</span></code></dt><dd><p>Steps forward over one instruction on the current CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">over</span> <span class="pre">4</span></code></dt><dd><p>Steps forward over four instructions on the current CPU.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="out">
+<span id="debugger-command-out"></span><h2>out</h2>
+<p><strong>out</strong></p>
+<p>Single steps until a return from subroutine or return from exception
+instruction is encountered.  Note that because it detects return from
+exception conditions, if you attempt to step out of a subroutine and an
+interrupt/exception occurs before the subroutine completes, execution
+may stop prematurely at the end of the exception handler.</p>
+<p>Note that the step out functionality may not be implemented for all CPU
+types.  If it is not implemented, then <code class="docutils literal notranslate"><span class="pre">out</span></code> will behave exactly like
+<a class="reference internal" href="#debugger-command-step"><span class="std std-ref">step</span></a>.</p>
+<p>Example:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">out</span></code></dt><dd><p>Steps until a subroutine or exception handler returns.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="go">
+<span id="debugger-command-go"></span><h2>go</h2>
+<p><strong>g[o] [&lt;address&gt;]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until a
+breakpoint or watchpoint is triggered, or a debugger break is manually
+requested.  If the optional <strong>&lt;address&gt;</strong> is supplied, a temporary
+unconditional breakpoint will be set for the visible CPU at the
+specified address.  It will be cleared automatically when triggered.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">g</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or a
+break is manually requested.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">1234</span></code></dt><dd><p>Resume execution, stopping at address 1234, unless another condition
+causes execution to stop before then.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gbf">
+<span id="debugger-command-gbf"></span><h2>gbf</h2>
+<p><strong>gbf [&lt;condition&gt;]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until
+a breakpoint or watchpoint is triggered, or until a conditional branch
+or skip instruction is not taken, following any delay slots.</p>
+<p>The optional <strong>&lt;condition&gt;</strong> parameter lets you specify an expression
+that will be evaluated each time a conditional branch is encountered.
+If the result of the expression is true (non-zero), execution will be
+halted after the branch if it is not taken; otherwise, execution will
+continue with no notification.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gbf</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or
+until the next false branch.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">gbf</span> <span class="pre">{pc</span> <span class="pre">!=</span> <span class="pre">1234}</span></code></dt><dd><p>Resume execution until the next false branch, disregarding the
+instruction at address 1234.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gbt">
+<span id="debugger-command-gbt"></span><h2>gbt</h2>
+<p><strong>gbt [&lt;condition&gt;]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until
+a breakpoint or watchpoint is triggered, or until a conditional branch
+or skip instruction is taken, following any delay slots.</p>
+<p>The optional <strong>&lt;condition&gt;</strong> parameter lets you specify an expression
+that will be evaluated each time a conditional branch is encountered.
+If the result of the expression is true (non-zero), execution will be
+halted after the branch if it is taken; otherwise, execution will
+continue with no notification.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gbt</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or
+until the next true branch.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">gbt</span> <span class="pre">{pc</span> <span class="pre">!=</span> <span class="pre">1234}</span></code></dt><dd><p>Resume execution until the next true branch, disregarding the
+instruction at address 1234.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gex">
+<span id="debugger-command-gex"></span><h2>gex</h2>
+<p><strong>ge[x] [&lt;exception&gt;,[&lt;condition&gt;]]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until
+a breakpoint or watchpoint is triggered, or until an exception condition
+is raised on the current CPU.  Use the optional <strong>&lt;exception&gt;</strong>
+parameter to stop execution only for a specific exception condition.  If
+<strong>&lt;exception&gt;</strong> is omitted, execution will stop for any exception
+condition.</p>
+<p>The optional <strong>&lt;condition&gt;</strong> parameter lets you specify an expression
+that will be evaluated each time the specified exception condition
+is raised.  If the result of the expression is true (non-zero), the
+exception will halt execution; otherwise, execution will continue with
+no notification.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gex</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or
+until any exception condition is raised on the current CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ge</span> <span class="pre">2</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or
+until exception condition 2 is raised on the current CPU.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gint">
+<span id="debugger-command-gint"></span><h2>gint</h2>
+<p><strong>gi[nt] [&lt;irqline&gt;]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until a
+breakpoint or watchpoint is triggered, or until an interrupt is asserted
+and acknowledged on the current CPU.  Use the optional <strong>&lt;irqline&gt;</strong>
+parameter to stop execution only for a specific interrupt line being
+asserted and acknowledged.  If <strong>&lt;irqline&gt;</strong> is omitted, execution will
+stop when any interrupt is acknowledged.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gi</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or
+any interrupt is asserted and acknowledged on the current CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">gint</span> <span class="pre">4</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or
+interrupt request line 4 is asserted and acknowledged on the current
+CPU.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gni">
+<span id="debugger-command-gni"></span><h2>gni</h2>
+<p><strong>gni [&lt;count&gt;]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until a
+breakpoint or watchpoint is triggered.  A temporary unconditional breakpoint
+is set at the program address <strong>&lt;count&gt;</strong> instructions sequentially past the
+current one.  When this breakpoint is hit, it is automatically removed.</p>
+<p>The <strong>&lt;count&gt;</strong> parameter is optional and defaults to 1 if omitted.  If
+<strong>&lt;count&gt;</strong> is specified as zero, the command does nothing.  <strong>&lt;count&gt;</strong> is
+not permitted to exceed 512 decimal.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gni</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, including
+the temporary breakpoint set at the address of the following instruction.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">gni</span> <span class="pre">2</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered.  A temporary
+breakpoint is set two instructions past the current one.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gtime">
+<span id="debugger-command-gtime"></span><h2>gtime</h2>
+<p><strong>gt[ime] &lt;milliseconds&gt;</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until a
+specified interval of emulated time has elapsed.  The interval is
+specified in milliseconds.</p>
+<p>Example:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gtime</span> <span class="pre">#10000</span></code></dt><dd><p>Resume execution for ten seconds of emulated time.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="gvblank">
+<span id="debugger-command-gvblank"></span><h2>gvblank</h2>
+<p><strong>gv[blank]</strong></p>
+<p>Resumes execution.  Control will not be returned to the debugger until a
+breakpoint or watchpoint is triggered, or until the beginning of the
+vertical blanking interval for an emulated screen.</p>
+<p>Example:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">gv</span></code></dt><dd><p>Resume execution until a breakpoint/watchpoint is triggered, or a
+vertical blanking interval starts.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="next">
+<span id="debugger-command-next"></span><h2>next</h2>
+<p><strong>n[ext]</strong></p>
+<p>Resumes execution until a different CPU is scheduled.  Execution will
+not stop when a CPU is scheduled if it is ignored due to the use of
+<a class="reference internal" href="#debugger-command-ignore"><span class="std std-ref">ignore</span></a> or <a class="reference internal" href="#debugger-command-focus"><span class="std std-ref">focus</span></a>.</p>
+<p>Example:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">n</span></code></dt><dd><p>Resume execution, stopping when a different CPU that is not ignored
+is scheduled.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="focus">
+<span id="debugger-command-focus"></span><h2>focus</h2>
+<p><strong>focus &lt;CPU&gt;</strong></p>
+<p>Focus exclusively on to the specified <strong>&lt;CPU&gt;</strong>, ignoring all other
+CPUs.  The <strong>&lt;CPU&gt;</strong> argument can be a device tag or debugger CPU number
+(see <a class="reference internal" href="index.xhtml#debugger-devicespec"><span class="std std-ref">Specifying devices and address spaces</span></a> for details).  This is equivalent to
+using the <a class="reference internal" href="#debugger-command-ignore"><span class="std std-ref">ignore</span></a> command to ignore all CPUs
+besides the specified CPU.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">focus</span> <span class="pre">1</span></code></dt><dd><p>Focus exclusively on the second CPU in the system (zero-based
+index), ignoring all other CPUs.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">focus</span> <span class="pre">audiopcb:melodycpu</span></code></dt><dd><p>Focus exclusively on the CPU with the absolute tag path
+<code class="docutils literal notranslate"><span class="pre">:audiopcb:melodycpu</span></code>.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="ignore">
+<span id="debugger-command-ignore"></span><h2>ignore</h2>
+<p><strong>ignore [&lt;CPU&gt;[,&lt;CPU&gt;[,…]]]</strong></p>
+<p>Ignores the specified CPUs in the debugger.  CPUs can be specified by
+tag or debugger CPU number (see <a class="reference internal" href="index.xhtml#debugger-devicespec"><span class="std std-ref">Specifying devices and address spaces</span></a> for details).
+The debugger never shows execution for ignored CPUs, and breakpoints or
+watchpoints on ignored CPUs have no effect.  If no CPUs are specified,
+currently ignored CPUs will be listed.  Use the
+<a class="reference internal" href="#debugger-command-observe"><span class="std std-ref">observe</span></a> command to stop ignoring a CPU.</p>
+<p>Note that you cannot ignore all CPUs; at least CPU must be observed at
+all times.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">ignore</span> <span class="pre">audiocpu</span></code></dt><dd><p>Ignore the CPU with the absolute tag path <code class="docutils literal notranslate"><span class="pre">:audiocpu</span></code> when using
+the debugger.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ignore</span> <span class="pre">2,3,4</span></code></dt><dd><p>Ignore the third, fourth and fifth CPUs in the system (zero-based
+indices) when using the debugger.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ignore</span></code></dt><dd><p>List the CPUs that are currently being ignored by the debugger.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="observe">
+<span id="debugger-command-observe"></span><h2>observe</h2>
+<p><strong>observe [&lt;CPU&gt;[,&lt;CPU&gt;[,…]]]</strong></p>
+<p>Allow interaction with the specified CPUs in the debugger.  CPUs can be
+specified by tag or debugger CPU number (see <a class="reference internal" href="index.xhtml#debugger-devicespec"><span class="std std-ref">Specifying devices and address spaces</span></a>
+for details).  This command reverses the effects of the
+<a class="reference internal" href="#debugger-command-ignore"><span class="std std-ref">ignore</span></a> command.  If no CPUs are specified,
+currently observed CPUs will be listed.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">observe</span> <span class="pre">audiocpu</span></code></dt><dd><p>Stop ignoring the CPU with the absolute tag path <code class="docutils literal notranslate"><span class="pre">:audiocpu</span></code> when
+using the debugger.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">observe</span> <span class="pre">2,3,4</span></code></dt><dd><p>Stop ignoring the third, fourth and fifth CPUs in the system
+(zero-based indices) when using the debugger.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">observe</span></code></dt><dd><p>List the CPUs that are currently being observed by the debugger.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="trace">
+<span id="debugger-command-trace"></span><h2>trace</h2>
+<p><strong>trace {&lt;filename&gt;|off}[,&lt;CPU&gt;[,[noloop|logerror][,&lt;action&gt;]]]</strong></p>
+<p>Starts or stops tracing for execution of the specified <strong>&lt;CPU&gt;</strong>, or the
+currently visible CPU if no CPU is specified.  To enable tracing,
+specify the trace log file name in the <strong>&lt;filename&gt;</strong> parameter.  To
+disable tracing, use the keyword <code class="docutils literal notranslate"><span class="pre">off</span></code> for the <strong>&lt;filename&gt;</strong>
+parameter.  If the <strong>&lt;filename&gt;</strong> argument begins with two right angle
+brackets (<strong>&gt;&gt;</strong>), it is treated as a directive to open the file for
+appending rather than overwriting.</p>
+<p>The optional third parameter is a flags field.  The supported flags are
+<code class="docutils literal notranslate"><span class="pre">noloop</span></code> and <code class="docutils literal notranslate"><span class="pre">logerror</span></code>.  Multiple flags must be separated by <code class="docutils literal notranslate"><span class="pre">|</span></code>
+(pipe) characters.  By default, loops are detected and condensed to a
+single line.  If the <code class="docutils literal notranslate"><span class="pre">noloop</span></code> flag is specified, loops will not be
+detected and every instruction will be logged as executed.  If the
+<code class="docutils literal notranslate"><span class="pre">logerror</span></code> flag is specified, error log output will be included in the
+trace log.</p>
+<p>The optional <strong>&lt;action&gt;</strong> parameter is a debugger command to execute
+before each trace message is logged.  Generally, this will include a
+<a class="reference internal" href="general.xhtml#debugger-command-tracelog"><span class="std std-ref">tracelog</span></a> or <a class="reference internal" href="general.xhtml#debugger-command-tracesym"><span class="std std-ref">tracesym</span></a>
+command to include additional information in the trace log.  Note that
+you may need to surround the action within braces <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">}</span></code> to ensure
+commas and semicolons within the command are not interpreted in the
+context of the <code class="docutils literal notranslate"><span class="pre">trace</span></code> command itself.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">joust.tr</span></code></dt><dd><p>Begin tracing the execution of the currently visible CPU, logging
+output to the file <strong>joust.tr</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">dribling.tr,maincpu</span></code></dt><dd><p>Begin tracing the execution of the CPU with the absolute tag path
+<code class="docutils literal notranslate"><span class="pre">:maincpu:</span></code>, logging output to the file <strong>dribling.tr</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">starswep.tr,,noloop</span></code></dt><dd><p>Begin tracing the execution of the currently visible CPU, logging
+output to the file <strong>starswep.tr</strong>, with loop detection disabled.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">starswep.tr,1,logerror</span></code></dt><dd><p>Begin tracing the execution of the second CPU in the system
+(zero-based index), logging output along with error log output to
+the file <strong>starswep.tr</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">starswep.tr,0,logerror|noloop</span></code></dt><dd><p>Begin tracing the execution of the first CPU in the system
+(zero-based index), logging output along with error log output to
+the file <strong>starswep.tr</strong>, with loop detection disabled.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">&gt;&gt;pigskin.tr</span></code></dt><dd><p>Begin tracing execution of the currently visible CPU, appending log
+output to the file <strong>pigskin.tr</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">off,0</span></code></dt><dd><p>Turn off tracing for the first CPU in the system (zero-based index).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">asteroid.tr,,,{tracelog</span> <span class="pre">&quot;A=%02X</span> <span class="pre">&quot;,a}</span></code></dt><dd><p>Begin tracing the execution of the currently visible CPU, logging
+output to the file <strong>asteroid.tr</strong>.  Before each line, output
+<strong>A=&lt;aval&gt;</strong> to the trace log.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="traceover">
+<span id="debugger-command-traceover"></span><h2>traceover</h2>
+<p><strong>traceover {&lt;filename&gt;|off}[,&lt;CPU&gt;[,[noloop|logerror][,&lt;action&gt;]]]</strong></p>
+<p>Starts or stops tracing for execution of the specified <strong>&lt;CPU&gt;</strong>, or the
+currently visible CPU if no CPU is specified.  When a subroutine call is
+encountered, tracing will skip over the subroutine.  The same algorithm
+is used as is used in the <a class="reference internal" href="#debugger-command-over"><span class="std std-ref">step over</span></a>
+command.  It will not work properly with recursive functions, or if the
+return address does not immediately follow the call instruction.</p>
+<p>This command accepts the same parameters as the
+<a class="reference internal" href="#debugger-command-trace"><span class="std std-ref">trace</span></a> command.  Please refer to the
+corresponding section for a detailed description of options and more
+examples.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">traceover</span> <span class="pre">joust.tr</span></code></dt><dd><p>Begin tracing the execution of the currently visible CPU, logging
+output to the file <strong>joust.tr</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">traceover</span> <span class="pre">dribling.tr,maincpu</span></code></dt><dd><p>Begin tracing the execution of the CPU with the absolute tag path
+<code class="docutils literal notranslate"><span class="pre">:maincpu:</span></code>, logging output to the file <strong>dribling.tr</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">traceover</span> <span class="pre">starswep.tr,,noloop</span></code></dt><dd><p>Begin tracing the execution of the currently visible CPU, logging
+output to the file <strong>starswep.tr</strong>, with loop detection disabled.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">traceover</span> <span class="pre">off,0</span></code></dt><dd><p>Turn off tracing for the first CPU in the system (zero-based index).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">traceover</span> <span class="pre">asteroid.tr,,,{tracelog</span> <span class="pre">&quot;A=%02X</span> <span class="pre">&quot;,a}</span></code></dt><dd><p>Begin tracing the execution of the currently visible CPU, logging
+output to the file <strong>asteroid.tr</strong>.  Before each line, output
+<strong>A=&lt;aval&gt;</strong> to the trace log.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+<section id="traceflush">
+<span id="debugger-command-traceflush"></span><h2>traceflush</h2>
+<p><strong>traceflush</strong></p>
+<p>Flushes all open trace log files to disk.</p>
+<p>Example:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">traceflush</span></code></dt><dd><p>Flush trace log files.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-execution-list"><span class="std std-ref">Execution Debugger Commands</span></a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

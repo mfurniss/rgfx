@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Shifter Toggle Disable</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="shifter-toggle-disable">
+<h1>Shifter Toggle Disable</h1>
+<p>This is an advanced feature for alternative shifter handling for certain older arcade machines such as Spy Hunter and Outrun that used a two-way toggle switch for the shifter. By default, the shifter is treated as a toggle switch. One press of the mapped control for the shifter will switch it from low to high, and another will switch it back. This may not be ideal if you have access to a physical shifter that works identically to how the original machines did. (The input is on when in one gear, the input is off otherwise)</p>
+<p>Note that this feature will <em>not</em> help controller users and will not help with games that have more than two shifter states (e.g. five gears in modern racing games)</p>
+<p>This feature is not exposed through the graphical user interface in any way, as it is an extremely advanced tweak intended explicitly for people who have this specific need, have the hardware to take advantage of it, and the knowledge to use it correctly.</p>
+<section id="disabling-and-enabling-shifter-toggle">
+<h2>Disabling and Enabling Shifter Toggle</h2>
+<p>This example will use the game Spy Hunter (set <em>spyhunt</em>) to demonstrate the exact change needed:</p>
+<p>You will need to manually edit the game .CFG file in the CFG folder (e.g. <code class="docutils literal notranslate"><span class="pre">spyhunt.cfg</span></code>)</p>
+<p>Start by loading MAME with the game in question. In our case, that will be <strong>mame spyhunt</strong>.</p>
+<p>Set up the controls as you would please, including mapping the shifter. Exit MAME, open the .cfg file in your text editor of choice.</p>
+<p>Inside the <code class="docutils literal notranslate"><span class="pre">spyhunt.cfg</span></code> file, you will find the following for the input. The actual input code in the middle can and will vary depending on the controller number and what input you have mapped.</p>
+<div class="line-block">
+<div class="line"><strong>&lt;port tag=&quot;:ssio:IP0&quot; type=&quot;P1_BUTTON2&quot; mask=&quot;16&quot; defvalue=&quot;16&quot;&gt;</strong></div>
+<div class="line-block">
+<div class="line">&lt;newseq type=&quot;standard&quot;&gt;</div>
+<div class="line-block">
+<div class="line">JOYCODE_1_RYAXIS_NEG_SWITCH OR JOYCODE_1_RYAXIS_POS_SWITCH</div>
+</div>
+<div class="line">&lt;/newseq&gt;</div>
+</div>
+<div class="line">&lt;/port&gt;</div>
+<div class="line"><br /></div>
+</div>
+<p>The line you need to edit will be the port line defining the actual input. For Spy Hunter, that's going to be <em>P1_BUTTON2</em>. Add <strong>toggle=&quot;no&quot;</strong> to the end of the tag, like follows:</p>
+<div class="line-block">
+<div class="line"><strong>&lt;port tag=&quot;:ssio:IP0&quot; type=&quot;P1_BUTTON2&quot; mask=&quot;16&quot; defvalue=&quot;16&quot; toggle=&quot;no&quot;&gt;</strong></div>
+<div class="line-block">
+<div class="line">&lt;newseq type=&quot;standard&quot;&gt;</div>
+<div class="line-block">
+<div class="line">JOYCODE_1_RYAXIS_NEG_SWITCH OR JOYCODE_1_RYAXIS_POS_SWITCH</div>
+</div>
+<div class="line">&lt;/newseq&gt;</div>
+</div>
+<div class="line">&lt;/port&gt;</div>
+<div class="line"><br /></div>
+</div>
+<p>Save and exit. To disable this, simply remove the <strong>toggle=&quot;no&quot;</strong> from each desired .CFG input.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

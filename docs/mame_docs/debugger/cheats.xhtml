@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Cheat Debugger Commands</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="cheat-debugger-commands">
+<span id="debugger-cheats-list"></span><h1>Cheat Debugger Commands</h1>
+<dl class="simple">
+<dt><a class="reference internal" href="#debugger-command-cheatinit"><span class="std std-ref">cheatinit</span></a></dt><dd><p>initialize the cheat search to the selected memory area</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-cheatrange"><span class="std std-ref">cheatrange</span></a></dt><dd><p>add selected memory area to cheat search</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-cheatnext"><span class="std std-ref">cheatnext</span></a></dt><dd><p>filter cheat candidates by comparing to previous values</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-cheatnextf"><span class="std std-ref">cheatnextf</span></a></dt><dd><p>filter cheat candidates by comparing to initial value</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-cheatlist"><span class="std std-ref">cheatlist</span></a></dt><dd><p>show the list of cheat search matches or save them to a file</p>
+</dd>
+<dt><a class="reference internal" href="#debugger-command-cheatundo"><span class="std std-ref">cheatundo</span></a></dt><dd><p>undo the last cheat search (state only)</p>
+</dd>
+</dl>
+<p>The debugger includes basic cheat search functionality, which works
+by saving the contents of memory, and then filtering locations according
+to how the values change.</p>
+<p>We’ll demonstrate use of the cheat search functionality to make an
+infinite lives cheat for Raiden (<code class="docutils literal notranslate"><span class="pre">raiden</span></code>):</p>
+<ul>
+<li><p>Start the game with the debugger active.  Allow the game to run,
+insert a coin, and start a game, then break into the debugger.</p></li>
+<li><p>Ensure the main CPU is visible, and start a search for 8-bit unsigned
+values using the
+<a class="reference internal" href="#debugger-command-cheatinit"><span class="std std-ref">cheatinit command</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span><span class="n">cheatinit</span> <span class="n">ub</span>
+<span class="mi">36928</span> <span class="n">cheat</span> <span class="n">locations</span> <span class="n">initialized</span> <span class="k">for</span> <span class="n">NEC</span> <span class="n">V30</span> <span class="s1">&#39;:maincpu&#39;</span> <span class="n">program</span> <span class="n">space</span>
+</pre></div>
+</div>
+</li>
+<li><p>Allow the game to run, lose a life and break into the debugger.</p></li>
+<li><p>Use the <a class="reference internal" href="#debugger-command-cheatnext"><span class="std std-ref">cheatnext command</span></a> to
+filter locations that have decreased by 1:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span><span class="n">cheatnext</span> <span class="o">-</span><span class="p">,</span><span class="mi">1</span>
+<span class="mi">12</span> <span class="n">cheats</span> <span class="n">found</span>
+</pre></div>
+</div>
+</li>
+<li><p>Allow the game to run, lose another life, break into the
+debugger, and filter locations that have decreased by 1 again:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span><span class="n">cheatnext</span> <span class="o">-</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">Address</span><span class="o">=</span><span class="mi">0</span><span class="n">B85</span> <span class="n">Start</span><span class="o">=</span><span class="mi">03</span> <span class="n">Current</span><span class="o">=</span><span class="mi">01</span>
+<span class="mi">1</span> <span class="n">cheats</span> <span class="n">found</span>
+</pre></div>
+</div>
+</li>
+<li><p>Use the <a class="reference internal" href="#debugger-command-cheatlist"><span class="std std-ref">cheatlist command</span></a> to save
+the cheat candidate to a file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span><span class="n">cheatlist</span> <span class="n">raiden</span><span class="o">-</span><span class="n">p1</span><span class="o">-</span><span class="n">lives</span><span class="o">.</span><span class="n">xml</span>
+</pre></div>
+</div>
+</li>
+<li><p>The file now contains an XML fragment with cheat to set the candidate
+location to the initial value:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;cheat</span><span class="w"> </span><span class="na">desc=</span><span class="s">&quot;Possibility 1: 00B85 (01)&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;script</span><span class="w"> </span><span class="na">state=</span><span class="s">&quot;run&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;action&gt;</span>:maincpu.pb@0x00B85=0x03<span class="nt">&lt;/action&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/cheat&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<section id="cheatinit">
+<span id="debugger-command-cheatinit"></span><h2>cheatinit</h2>
+<p><strong>cheatinit [[&lt;sign&gt;[&lt;width&gt;[&lt;swap&gt;]]],[&lt;address&gt;,&lt;length&gt;[,&lt;space&gt;]]]</strong></p>
+<p>Initialize the cheat search to writable RAM areas in the specified
+address space.  May be abbreviated to <code class="docutils literal notranslate"><span class="pre">ci</span></code>.</p>
+<p>The first argument specifies the data format to search for.  The
+<strong>&lt;sign&gt;</strong> may be <strong>u</strong> for unsigned or <strong>s</strong> for signed, the
+<strong>&lt;width&gt;</strong> may be <strong>b</strong> for 8-bit (byte), <strong>w</strong> for 16-bit (word),
+<strong>d</strong> for 32-bit (double word), or <strong>q</strong> for 64-bit (quadruple word);
+<strong>&lt;swap&gt;</strong> may be <strong>s</strong> for reversed byte order.  If the first argument
+is omitted or empty, the data format from the previous cheat search is
+used, or unsigned 8-bit format if this is the first cheat search.</p>
+<p>The <strong>&lt;address&gt;</strong> specifies the address to start searching from, and the
+<strong>&lt;length&gt;</strong> specifies how much memory to search.  If specified,
+writable RAM in the range <strong>&lt;address&gt;</strong> through
+<strong>&lt;address&gt;+&lt;length&gt;-1</strong>, inclusive, will be searched; otherwise, all
+writable RAM in the address space will be searched.</p>
+<p>See <a class="reference internal" href="index.xhtml#debugger-devicespec"><span class="std std-ref">Specifying devices and address spaces</span></a> for details on specifying address spaces.
+If the address space is not specified, it defaults to the first address
+space exposed by the visible CPU.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cheatinit</span> <span class="pre">ub,0x1000,0x10</span></code></dt><dd><p>Initialize the cheat search for unsigned 8-bit values in addresses
+0x1000-0x100f in the program space of the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cheatinit</span> <span class="pre">sw,0x2000,0x1000,1</span></code></dt><dd><p>Initialize the cheat search for signed 16-bit values in addresses
+0x2000-0x2fff in the program space of the second CPU in the system
+(zero-based index).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cheatinit</span> <span class="pre">uds,0x0000,0x1000</span></code></dt><dd><p>Initialize the cheat search for unsigned 64-bit values with reverse
+byte order in addresses 0x0000-0x0fff in the program space of the
+visible CPU.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-cheats-list"><span class="std std-ref">Cheat Debugger Commands</span></a></p>
+</section>
+<section id="cheatrange">
+<span id="debugger-command-cheatrange"></span><h2>cheatrange</h2>
+<p><strong>cheatrange &lt;address&gt;,&lt;length&gt;</strong></p>
+<p>Add writable RAM areas to the cheat search.  May be abbreviated to
+<code class="docutils literal notranslate"><span class="pre">cr</span></code>.  Before using this command, the
+<a class="reference internal" href="#debugger-command-cheatinit"><span class="std std-ref">cheatinit command</span></a> must be used to
+initialize the cheat search and set the address space and data format.</p>
+<p>The <strong>&lt;address&gt;</strong> specifies the address to start searching from, and the
+<strong>&lt;length&gt;</strong> specifies how much memory to search.  Writable RAM in the
+range <strong>&lt;address&gt;</strong> through <strong>&lt;address&gt;+&lt;length&gt;-1</strong>, inclusive, will be
+added to the areas to search.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cheatrange</span> <span class="pre">0x1000,0x10</span></code></dt><dd><p>Add addresses 0x1000-0x100f to the areas to search for cheats.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-cheats-list"><span class="std std-ref">Cheat Debugger Commands</span></a></p>
+</section>
+<section id="cheatnext">
+<span id="debugger-command-cheatnext"></span><h2>cheatnext</h2>
+<p><strong>cheatnext &lt;condition&gt;[,&lt;comparisonvalue&gt;]</strong></p>
+<p>Filter candidates by comparing to the previous search values.  If five
+or fewer candidates remain, they will be shown in the debugger console.
+May be abbreviated to <code class="docutils literal notranslate"><span class="pre">cn</span></code>.</p>
+<p>Possible <strong>&lt;condition&gt;</strong> arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">all</span></code></dt><dd><p>Use to update the last value without changing the current matches
+(the <strong>&lt;comparisonvalue&gt;</strong> is not used).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">equal</span></code> (<code class="docutils literal notranslate"><span class="pre">eq</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that are equal to
+the previous search; with <strong>&lt;comparisonvalue&gt;</strong>, search for values
+that are equal to the <strong>&lt;comparisonvalue&gt;</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">notequal</span></code> (<code class="docutils literal notranslate"><span class="pre">ne</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that are not equal
+to the previous search; with <strong>&lt;comparisonvalue&gt;</strong>, search for
+values that are not equal to the <strong>&lt;comparisonvalue&gt;</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">decrease</span></code> (<code class="docutils literal notranslate"><span class="pre">de</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that have decreased
+since the previous search; with <strong>&lt;comparisonvalue&gt;</strong>, search for
+values that have decreased by the <strong>&lt;comparisonvalue&gt;</strong> since the
+previous search.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">increase</span></code> (<code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that have increased
+since the previous search; with <strong>&lt;comparisonvalue&gt;</strong>, search for
+values that have increased by the <strong>&lt;comparisonvalue&gt;</strong> since the
+previous search.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">decreaseorequal</span></code> (<code class="docutils literal notranslate"><span class="pre">deeq</span></code>)</dt><dd><p>Search for values that have decreased or are unchanged since the
+previous search (the <strong>&lt;comparisonvalue&gt;</strong> is not used).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">increaseorequal</span></code> (<code class="docutils literal notranslate"><span class="pre">ineq</span></code>)</dt><dd><p>Search for values that have increased or are unchanged since the
+previous search (the <strong>&lt;comparisonvalue&gt;</strong> is not used).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">smallerof</span></code> (<code class="docutils literal notranslate"><span class="pre">lt</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>)</dt><dd><p>Search for values that are less than the <strong>&lt;comparisonvalue&gt;</strong> (the
+<strong>&lt;comparisonvalue&gt;</strong> is required).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">greaterof</span></code> (<code class="docutils literal notranslate"><span class="pre">gt</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>)</dt><dd><p>Search for values that are greater than the <strong>&lt;comparisonvalue&gt;</strong>
+(the <strong>&lt;comparisonvalue&gt;</strong> is required).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">changedby</span></code> (<code class="docutils literal notranslate"><span class="pre">ch</span></code>, <code class="docutils literal notranslate"><span class="pre">~</span></code>)</dt><dd><p>Search for values that have changed by the <strong>&lt;comparisonvalue&gt;</strong>
+since the previous search (the <strong>&lt;comparisonvalue&gt;</strong> is required).</p>
+</dd>
+</dl>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cheatnext</span> <span class="pre">increase</span></code></dt><dd><p>Search for all values that have increased since the previous search.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cheatnext</span> <span class="pre">decrease,1</span></code></dt><dd><p>Search for all values that have decreased by 1 since the previous
+search.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-cheats-list"><span class="std std-ref">Cheat Debugger Commands</span></a></p>
+<blockquote>
+<div></div></blockquote>
+</section>
+<section id="cheatnextf">
+<span id="debugger-command-cheatnextf"></span><h2>cheatnextf</h2>
+<p><strong>cheatnextf &lt;condition&gt;[,&lt;comparisonvalue&gt;]</strong></p>
+<p>Filter candidates by comparing to the initial search values.  If five or
+fewer candidates remain, they will be shown in the debugger console.
+May be abbreviated to <code class="docutils literal notranslate"><span class="pre">cn</span></code>.</p>
+<p>Possible <strong>&lt;condition&gt;</strong> arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">all</span></code></dt><dd><p>Use to update the last value without changing the current matches
+(the <strong>&lt;comparisonvalue&gt;</strong> is not used).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">equal</span></code> (<code class="docutils literal notranslate"><span class="pre">eq</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that are equal to
+the initial search; with <strong>&lt;comparisonvalue&gt;</strong>, search for values
+that are equal to the <strong>&lt;comparisonvalue&gt;</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">notequal</span></code> (<code class="docutils literal notranslate"><span class="pre">ne</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that are not equal
+to the initial search; with <strong>&lt;comparisonvalue&gt;</strong>, search for values
+that are not equal to the <strong>&lt;comparisonvalue&gt;</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">decrease</span></code> (<code class="docutils literal notranslate"><span class="pre">de</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that have decreased
+since the initial search; with <strong>&lt;comparisonvalue&gt;</strong>, search for
+values that have decreased by the <strong>&lt;comparisonvalue&gt;</strong> since the
+initial search.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">increase</span></code> (<code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code>)</dt><dd><p>Without <strong>&lt;comparisonvalue&gt;</strong>, search for values that have increased
+since the initial search; with <strong>&lt;comparisonvalue&gt;</strong>, search for
+values that have increased by the <strong>&lt;comparisonvalue&gt;</strong> since the
+initial search.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">decreaseorequal</span></code> (<code class="docutils literal notranslate"><span class="pre">deeq</span></code>)</dt><dd><p>Search for values that have decreased or are unchanged since the
+initial search (the <strong>&lt;comparisonvalue&gt;</strong> is not used).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">increaseorequal</span></code> (<code class="docutils literal notranslate"><span class="pre">ineq</span></code>)</dt><dd><p>Search for values that have increased or are unchanged since the
+initial search (the <strong>&lt;comparisonvalue&gt;</strong> is not used).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">smallerof</span></code> (<code class="docutils literal notranslate"><span class="pre">lt</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>)</dt><dd><p>Search for values that are less than the <strong>&lt;comparisonvalue&gt;</strong> (the
+<strong>&lt;comparisonvalue&gt;</strong> is required).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">greaterof</span></code> (<code class="docutils literal notranslate"><span class="pre">gt</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>)</dt><dd><p>Search for values that are greater than the <strong>&lt;comparisonvalue&gt;</strong>
+(the <strong>&lt;comparisonvalue&gt;</strong> is required).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">changedby</span></code> (<code class="docutils literal notranslate"><span class="pre">ch</span></code>, <code class="docutils literal notranslate"><span class="pre">~</span></code>)</dt><dd><p>Search for values that have changed by the <strong>&lt;comparisonvalue&gt;</strong>
+since the initial search (the <strong>&lt;comparisonvalue&gt;</strong> is required).</p>
+</dd>
+</dl>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cheatnextf</span> <span class="pre">increase</span></code></dt><dd><p>Search for all values that have increased since the initial search.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cheatnextf</span> <span class="pre">decrease,1</span></code></dt><dd><p>Search for all values that have decreased by 1 since the initial
+search.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-cheats-list"><span class="std std-ref">Cheat Debugger Commands</span></a></p>
+</section>
+<section id="cheatlist">
+<span id="debugger-command-cheatlist"></span><h2>cheatlist</h2>
+<p><strong>cheatlist [&lt;filename&gt;]</strong></p>
+<p>Without <strong>&lt;filename&gt;</strong>, show the current cheat matches in the debugger
+console; with <strong>&lt;filename&gt;</strong>, save the current cheat matches in basic
+XML format to the specified file.  May be abbreviated to <code class="docutils literal notranslate"><span class="pre">cl</span></code>.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cheatlist</span></code></dt><dd><p>Show the current matches in the console.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cheatlist</span> <span class="pre">cheat.xml</span></code></dt><dd><p>Save the current matches to the file <strong>cheat.xml</strong> in XML format.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-cheats-list"><span class="std std-ref">Cheat Debugger Commands</span></a></p>
+</section>
+<section id="cheatundo">
+<span id="debugger-command-cheatundo"></span><h2>cheatundo</h2>
+<p><strong>cheatundo</strong></p>
+<p>Undo filtering of cheat candidates by the most recent
+<a class="reference internal" href="#debugger-command-cheatnext"><span class="std std-ref">cheatnext</span></a> or
+<a class="reference internal" href="#debugger-command-cheatnextf"><span class="std std-ref">cheatnextf</span></a> command.  Note that the
+previous values <em>are not</em> rolled back.  May be abbreviated to <code class="docutils literal notranslate"><span class="pre">cu</span></code>.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cheatundo</span></code></dt><dd><p>Restore cheat candidates filtered out by the most recent
+<a class="reference internal" href="#debugger-command-cheatnext"><span class="std std-ref">cheatnext</span></a> or
+<a class="reference internal" href="#debugger-command-cheatnextf"><span class="std std-ref">cheatnextf</span></a> command.</p>
+</dd>
+</dl>
+<p>Back to <a class="reference internal" href="#debugger-cheats-list"><span class="std std-ref">Cheat Debugger Commands</span></a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

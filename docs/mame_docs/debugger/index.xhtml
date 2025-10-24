@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MAME Debugger</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="mame-debugger">
+<span id="debugger"></span><h1>MAME Debugger</h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#introduction" id="id1">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#debugger-commands" id="id2">Debugger commands</a></p></li>
+<li><p><a class="reference internal" href="#specifying-devices-and-address-spaces" id="id3">Specifying devices and address spaces</a></p></li>
+<li><p><a class="reference internal" href="#debugger-expression-syntax" id="id4">Debugger expression syntax</a></p>
+<ul>
+<li><p><a class="reference internal" href="#numbers" id="id5">Numbers</a></p></li>
+<li><p><a class="reference internal" href="#boolean-values" id="id6">Boolean values</a></p></li>
+<li><p><a class="reference internal" href="#memory-accesses" id="id7">Memory accesses</a></p></li>
+<li><p><a class="reference internal" href="#functions" id="id8">Functions</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="introduction">
+<span id="debugger-intro"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Introduction</a></h2>
+<p>MAME includes an interactive low-level debugger that targets the
+emulated system.  This can be a useful tool for diagnosing emulation
+issues, developing software to run on vintage systems, creating cheats,
+ROM hacking, or just investigating how software works.</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">-debug</span></code> command line option to start MAME with the debugger
+activated.  By default, pressing the backtick/tilde (<strong>~</strong>) during
+emulation breaks into the debugger (this can be changed by reassigning
+the <strong>Break in Debugger</strong> input).</p>
+<p>The exact appearance of the debugger depends on your operating system
+and the options MAME was built with.  All variants of the debugger
+provide a multi-window interface for viewing the contents of memory and
+disassembled code.</p>
+<p>The debugger console window is a special window that shows the contents
+of CPU registers and disassembled code around the current program
+counter address, and provides a command-line interface to most of the
+debugging functionality.</p>
+</section>
+<section id="debugger-commands">
+<span id="debugger-sections-list"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Debugger commands</a></h2>
+<p>Debugger commands are described in the sections below.  You can also
+type <strong>help &lt;topic&gt;</strong> in the debugger console, where <strong>&lt;topic&gt;</strong> is the
+name of a command, to see documentation directly in MAME.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="general.xhtml">General Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory.xhtml">Memory Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="execution.xhtml">Execution Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="breakpoint.xhtml">Breakpoint Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="watchpoint.xhtml">Watchpoint Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registerpoints.xhtml">Registerpoint Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exceptionpoint.xhtml">Exceptionpoint Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="annotation.xhtml">Code Annotation Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cheats.xhtml">Cheat Debugger Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image.xhtml">Media Image Debugger Commands</a></li>
+</ul>
+</div>
+</section>
+<section id="specifying-devices-and-address-spaces">
+<span id="debugger-devicespec"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Specifying devices and address spaces</a></h2>
+<p>Many debugger commands accept parameters specifying which device to
+operate on.  If a device is not specified explicitly, the CPU currently
+visible in the debugger is used.  Devices can be specified by tag, or by
+CPU number:</p>
+<ul class="simple">
+<li><p>Tags are the colon-separated paths that MAME uses to identify devices
+within a system.  You see them in options for configuring slot
+devices, in debugger disassembly and memory viewer source lists, and
+various other places within MAME’s UI.</p></li>
+<li><p>CPU numbers are monotonically incrementing numbers that the debugger
+assigns to CPU-like devices within a system, starting at zero.  The
+<strong>cpunum</strong> symbol holds the CPU number for the currently visible CPU
+in the debugger (you can see it by entering the command
+<strong>print cpunum</strong> in the debugger console).</p></li>
+</ul>
+<p>If a tag starts with a caret (<strong>^</strong>) or dot (<strong>.</strong>), it is interpreted
+relative to the CPU currently visible in the debugger, otherwise it is
+interpreted relative to the root machine device.  If a device argument
+is ambiguously valid as both a tag and a CPU number, it will be
+interpreted as a tag.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">maincpu</span></code></dt><dd><p>The device with the absolute tag <code class="docutils literal notranslate"><span class="pre">:maincpu</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">^melodypsg</span></code></dt><dd><p>The sibling device of the visible CPU with the tag <code class="docutils literal notranslate"><span class="pre">melodypsg</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">.:adc</span></code></dt><dd><p>The child device of the visible CPU with the tag <code class="docutils literal notranslate"><span class="pre">adc</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">2</span></code></dt><dd><p>The third CPU-like device in the system (zero-based index).</p>
+</dd>
+</dl>
+<p>Commands that operate on memory extend this by allowing the device tag
+or CPU number to be optionally followed by an address space identifier.
+Address space identifiers are tag-like strings.  You can see them in
+debugger memory viewer source lists.  If the address space identifier is
+omitted, a default address space will be used.  Usually, this is the
+address space that appears first for the device.  Many commands have
+variants with <strong>d</strong>, <strong>i</strong> and <strong>o</strong> (data, I/O and opcodes) suffixes
+that default to the address spaces at indices 1, 2 and 3, respectively,
+as these have special significance for CPU-like devices.</p>
+<p>In ambiguous cases, the default address space of a child device will be
+used rather than a specific address space.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">ram</span></code></dt><dd><p>The default address space of the device with the absolute tag
+<code class="docutils literal notranslate"><span class="pre">:ram</span></code>, or the <code class="docutils literal notranslate"><span class="pre">ram</span></code> space of the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">.:io</span></code></dt><dd><p>The default address space of the child device of the visible CPU
+with the tag <code class="docutils literal notranslate"><span class="pre">io</span></code>, or the <code class="docutils literal notranslate"><span class="pre">io</span></code> space of the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">:program</span></code></dt><dd><p>The default address space of the device with the absolute tag
+<code class="docutils literal notranslate"><span class="pre">:program</span></code>, or the <code class="docutils literal notranslate"><span class="pre">program</span></code> space of the root machine device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">^vdp</span></code></dt><dd><p>The default address space of the sibling device of the visible CPU
+with the tag <code class="docutils literal notranslate"><span class="pre">vdp</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">^:data</span></code></dt><dd><p>The default address space of the sibling device of the visible CPU
+with the tag <code class="docutils literal notranslate"><span class="pre">data</span></code>, or the <code class="docutils literal notranslate"><span class="pre">data</span></code> space of the parent device
+of the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">1:rom</span></code></dt><dd><p>The default address space of the child device of the second CPU in
+the system (zero-based index) with the tag <code class="docutils literal notranslate"><span class="pre">rom</span></code>, or the <code class="docutils literal notranslate"><span class="pre">rom</span></code>
+space of the second CPU in the system.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">2</span></code></dt><dd><p>The default address space of the third CPU-like device in the system
+(zero-based index).</p>
+</dd>
+</dl>
+<p>If a command takes an emulated memory address as a parameter, the
+address may optionally be followed by an address space specification, as
+described above.</p>
+<p>Examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">0220</span></code></dt><dd><p>Address 0220 in the default address space for the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">0378:io</span></code></dt><dd><p>Address 0378 in the default address space of the device with the
+absolute tag <code class="docutils literal notranslate"><span class="pre">:io</span></code>, or the <code class="docutils literal notranslate"><span class="pre">io</span></code> space of the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">1234:.:rom</span></code></dt><dd><p>Address 1234 in the default address space of the child device of the
+visible CPU with the tag <code class="docutils literal notranslate"><span class="pre">:rom</span></code>, or the <code class="docutils literal notranslate"><span class="pre">rom</span></code> space of the
+visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">1260:^vdp</span></code></dt><dd><p>Address 1260 in the default address space of the sibling device of
+the visible CPU with the tag <code class="docutils literal notranslate"><span class="pre">vdp</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">8008:^:data</span></code></dt><dd><p>Address 8008 in the default address space of the sibling device of
+the visible CPU with the tag <code class="docutils literal notranslate"><span class="pre">data</span></code>, or the <code class="docutils literal notranslate"><span class="pre">data</span></code> space of the
+parent device of the visible CPU.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">9660::ram</span></code></dt><dd><p>Address 9660 in the default address space of the device with the
+absolute tag <code class="docutils literal notranslate"><span class="pre">:ram</span></code>, or the <code class="docutils literal notranslate"><span class="pre">ram</span></code> space of the root machine
+device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">1883:vram.m</span></code></dt><dd><p>Address 1883 in the memory region with the absolute tag <code class="docutils literal notranslate"><span class="pre">:vram</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">1923:sprites.s</span></code></dt><dd><p>Address 1923 in the memory share with the absolute tag <code class="docutils literal notranslate"><span class="pre">:sprites</span></code>.</p>
+</dd>
+</dl>
+<p>The examples here include a lot of corner cases, but in general the
+debugger should take the most likely meaning for a device or address
+space specification.</p>
+</section>
+<section id="debugger-expression-syntax">
+<span id="debugger-express"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink">Debugger expression syntax</a></h2>
+<p>Expressions can be used anywhere a numeric or Boolean parameter is
+expected.  The syntax for expressions is similar to a subset of C-style
+expression syntax, with full operator precedence and parentheses.  There
+are a few operators missing (notably the ternary conditional operator),
+and a few new ones (memory accessors).</p>
+<p>The table below lists all the operators, ordered from highest to lowest
+precedence:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">(</span></code> <code class="docutils literal notranslate"><span class="pre">)</span></code></dt><dd><p>Standard parentheses</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">++</span></code> <code class="docutils literal notranslate"><span class="pre">--</span></code></dt><dd><p>Postfix increment/decrement</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">++</span></code> <code class="docutils literal notranslate"><span class="pre">--</span></code> <code class="docutils literal notranslate"><span class="pre">~</span></code> <code class="docutils literal notranslate"><span class="pre">!</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code> <code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">b&#64;</span></code> <code class="docutils literal notranslate"><span class="pre">w&#64;</span></code> <code class="docutils literal notranslate"><span class="pre">d&#64;</span></code> <code class="docutils literal notranslate"><span class="pre">q&#64;</span></code> <code class="docutils literal notranslate"><span class="pre">b!</span></code> <code class="docutils literal notranslate"><span class="pre">w!</span></code> <code class="docutils literal notranslate"><span class="pre">d!</span></code> <code class="docutils literal notranslate"><span class="pre">q!</span></code></dt><dd><p>Prefix increment/decrement, binary complement, logical complement,
+unary identity/negation, memory access</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">*</span></code> <code class="docutils literal notranslate"><span class="pre">/</span></code> <code class="docutils literal notranslate"><span class="pre">%</span></code></dt><dd><p>Multiplication, division, modulo</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code></dt><dd><p>Addition, subtraction</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;&lt;</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code></dt><dd><p>Bitwise left/right shift</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code></dt><dd><p>Less than, less than or equal, greater than, greater than or equal</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">==</span></code> <code class="docutils literal notranslate"><span class="pre">!=</span></code></dt><dd><p>Equal, not equal</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&amp;</span></code></dt><dd><p>Bitwise intersection (and)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">^</span></code></dt><dd><p>Bitwise exclusive or</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">|</span></code></dt><dd><p>Bitwise union (or)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code></dt><dd><p>Logical conjunction (and)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">||</span></code></dt><dd><p>Logical disjunction (or)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">=</span></code> <code class="docutils literal notranslate"><span class="pre">*=</span></code> <code class="docutils literal notranslate"><span class="pre">/=</span></code> <code class="docutils literal notranslate"><span class="pre">%=</span></code> <code class="docutils literal notranslate"><span class="pre">+=</span></code> <code class="docutils literal notranslate"><span class="pre">-=</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;&lt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;&gt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&amp;=</span></code> <code class="docutils literal notranslate"><span class="pre">|=</span></code> <code class="docutils literal notranslate"><span class="pre">^=</span></code></dt><dd><p>Assignment and modifying assignment</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">,</span></code></dt><dd><p>Separate terms, function parameters</p>
+</dd>
+</dl>
+<p>Major differences from C expression semantics:</p>
+<ul class="simple">
+<li><p>All numbers are unsigned 64-bit values.  In particular, this means
+negative numbers are not possible.</p></li>
+<li><p>The logical conjunction and disjunction operators <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code> and <code class="docutils literal notranslate"><span class="pre">||</span></code> do
+not have short-circuit properties – both sides of the expression are
+always evaluated.</p></li>
+</ul>
+<section id="numbers">
+<span id="debugger-express-num"></span><h3><a class="toc-backref" href="#id5" role="doc-backlink">Numbers</a></h3>
+<p>Literal numbers are prefixed according to their bases:</p>
+<ul class="simple">
+<li><p>Hexadecimal (base-16) with <code class="docutils literal notranslate"><span class="pre">$</span></code> or <code class="docutils literal notranslate"><span class="pre">0x</span></code></p></li>
+<li><p>Decimal (base-10) with <code class="docutils literal notranslate"><span class="pre">#</span></code></p></li>
+<li><p>Octal (base-8) with <code class="docutils literal notranslate"><span class="pre">0o</span></code></p></li>
+<li><p>Binary (base-2) with <code class="docutils literal notranslate"><span class="pre">0b</span></code></p></li>
+<li><p>Unprefixed numbers are hexadecimal (base-16).</p></li>
+</ul>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">123</span></code> is 123 hexadecimal (291 decimal)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$123</span></code> is 123 hexadecimal (291 decimal)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0x123</span></code> is 123 hexadecimal (291 decimal)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#123</span></code> is 123 decimal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0o123</span></code> is 123 octal (83 decimal)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0b1001</span></code> is 1001 binary (9 decimal)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0b123</span></code> is invalid</p></li>
+</ul>
+</section>
+<section id="boolean-values">
+<span id="debugger-express-bool"></span><h3><a class="toc-backref" href="#id6" role="doc-backlink">Boolean values</a></h3>
+<p>Any expression that evaluates to a number can be used where a Boolean
+value is required.  Zero is treated as false, and all non-zero values
+are treated as true.  Additionally, the string <code class="docutils literal notranslate"><span class="pre">true</span></code> is treated as
+true, and the string <code class="docutils literal notranslate"><span class="pre">false</span></code> is treated as false.</p>
+<p>An empty string may be supplied as an argument for Boolean parameters to
+debugger commands to use the default value, even when subsequent
+parameters are specified.</p>
+</section>
+<section id="memory-accesses">
+<span id="debugger-express-mem"></span><h3><a class="toc-backref" href="#id7" role="doc-backlink">Memory accesses</a></h3>
+<p>The memory access prefix operators allow reading from and writing to
+emulated address spaces.  The memory prefix operators specify the
+access size and whether side effects are disabled, and may optionally be
+preceded by an address space specification.  The supported access sizes
+and side effect modes are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">b</span></code> specifies an 8-bit access (byte)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">w</span></code> specifies a 16-bit access (word)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">d</span></code> specifies a 32-bit access (double word)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">q</span></code> specifies a 64-bit access (quadruple word)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;</span></code> suppress side effects</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">!</span></code> do not suppress side effects</p></li>
+</ul>
+<p>Suppressing side effects of a read access yields the value reading from
+address would, with no further effects.  For example reading a mailbox
+with side effects disabled will not clear the pending flag, and reading
+a FIFO with side effects disabled will not remove an item.</p>
+<p>For write accesses, suppressing side effects doesn’t change behaviour in
+most cases – you want to see the effects of writing to a location.
+However, there are some exceptions where it is useful to separate
+multiple effects of a write access.  For example:</p>
+<ul class="simple">
+<li><p>Some registers need to be written in sequence to avoid race
+conditions.  The debugger can issue multiple writes at the same point
+in emulated time, so these race conditions can be avoided trivially.
+For example writing to the MC68HC05 output compare register high byte
+(OCRH) inhibits compare until the output compare register low byte
+(OCRL) is written to prevent race conditions.  Since the debugger can
+write to both locations at the same instant from the emulated
+machine’s point of view, the race condition is not usually relevant.
+It’s more error-prone if you can accidentally set hidden state when
+all you really want to do is change the value, so writing to OCRH with
+side effects suppressed does not inhibit compare, it just changes the
+value in the output compare register.</p></li>
+<li><p>Writing to some registers has multiple effects that may be useful to
+separate for debugging purposes.  Using the MC68HC05 as an example
+again, writing to OCRL changes the value in the output compare
+register, and also clears the output compare flag (OCF) and enables
+compare if it was previously inhibited by writing to OCRH.  Writing to
+OCRL with side effects disabled just changes the value in the register
+without clearing OCF or enabling compare, since it’s useful for
+debugging purposes.  Writing to OCRL with side effects enabled has the
+additional effects.</p></li>
+</ul>
+<p>The size may optionally be preceded by an access type specification:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code> or <code class="docutils literal notranslate"><span class="pre">lp</span></code> specifies a logical address defaulting to space 0
+(program)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">d</span></code> or <code class="docutils literal notranslate"><span class="pre">ld</span></code> specifies a logical address defaulting to space 1
+(data)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code> or <code class="docutils literal notranslate"><span class="pre">li</span></code> specifies a logical address defaulting to space 2
+(I/O)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">3</span></code> or <code class="docutils literal notranslate"><span class="pre">l3</span></code> specifies a logical address defaulting to space 3
+(opcodes)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pp</span></code> specifies a physical address defaulting to space 0 (program)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pd</span></code> specifies a physical address defaulting to space 1 (data)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pi</span></code> specifies a physical address defaulting to space 2 (I/O)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p3</span></code> specifies a physical address defaulting to space 3 (opcodes)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code> specifies direct read/write pointer access defaulting to space 0
+(program)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">o</span></code> specifies direct read/write pointer access defaulting to space 3
+(opcodes)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">m</span></code> specifies a memory region</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">s</span></code> specifies a memory share</p></li>
+</ul>
+<p>Finally, this may be preceded by a tag and/or address space name
+followed by a dot (<code class="docutils literal notranslate"><span class="pre">.</span></code>).</p>
+<p>That may seem like a lot to digest, so let’s look at the simplest
+examples:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">b&#64;&lt;addr&gt;</span></code></dt><dd><p>Refers to the byte at <strong>&lt;addr&gt;</strong> in the program space of the current
+CPU while suppressing side effects</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">b!&lt;addr&gt;</span></code></dt><dd><p>Refers to the byte at <strong>&lt;addr&gt;</strong> in the program space of the current
+CPU, <em>not</em> suppressing side effects such as reading a mailbox
+clearing the pending flag, or reading a FIFO removing an item</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">w&#64;&lt;addr&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">w!&lt;addr&gt;</span></code></dt><dd><p>Refer to the word at <strong>&lt;addr&gt;</strong> in the program space of the current
+CPU, suppressing or not suppressing side effects, respectively.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">d&#64;&lt;addr&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">d!&lt;addr&gt;</span></code></dt><dd><p>Refer to the double word at <strong>&lt;addr&gt;</strong> in the program space of the
+current CPU, suppressing or not suppressing side effects,
+respectively.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">q&#64;&lt;addr&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">q!&lt;addr&gt;</span></code></dt><dd><p>Refer to the quadruple word at <strong>&lt;addr&gt;</strong> in the program space of
+the current CPU, suppressing or not suppressing side effects,
+respectively.</p>
+</dd>
+</dl>
+<p>Adding access types gives additional possibilities:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">dw&#64;300</span></code></dt><dd><p>Refers to the word at 300 in the data space of the current CPU while
+suppressing side effects</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">id&#64;400</span></code></dt><dd><p>Refers to the double word at 400 in the I/O space of the current CPU
+while suppressing side effects</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ppd!&lt;addr&gt;</span></code></dt><dd><p>Refers to the double word at physical address <strong>&lt;addr&gt;</strong> in the
+program space of the current CPU while not suppressing side effects</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">rw&#64;&lt;addr&gt;</span></code></dt><dd><p>Refers to the word at address <strong>&lt;addr&gt;</strong> in the program space of the
+current CPU using direct read/write pointer access</p>
+</dd>
+</dl>
+<p>If we want to access an address space of a device other than the current
+CPU, an address space beyond the first four indices, or a memory region,
+we need to include a tag or name:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">ramport.b&#64;&lt;addr&gt;</span></code></dt><dd><p>Refers to the byte at address <strong>&lt;addr&gt;</strong> in the <code class="docutils literal notranslate"><span class="pre">ramport</span></code> space of
+the current CPU</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">audiocpu.dw&#64;&lt;addr&gt;</span></code></dt><dd><p>Refers to the word at address <strong>&lt;addr&gt;</strong> in the data space of the
+CPU with absolute tag <code class="docutils literal notranslate"><span class="pre">:audiocpu</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maincpu:status.b&#64;&lt;addr&gt;</span></code></dt><dd><p>Refers to the byte at address <strong>&lt;addr&gt;</strong> in the <code class="docutils literal notranslate"><span class="pre">status</span></code> space of
+the CPU with the absolute tag <code class="docutils literal notranslate"><span class="pre">:maincpu</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">monitor.mb&#64;78</span></code></dt><dd><p>Refers to the byte at 78 in the memory region with the absolute tag
+<code class="docutils literal notranslate"><span class="pre">:monitor</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">..md&#64;202</span></code></dt><dd><p>Refers to the double word at address 202 in the memory region with
+the same tag path as the current CPU.</p>
+</dd>
+</dl>
+<p>Some combinations are not useful.  For example physical and logical
+addresses are equivalent for some CPUs, and direct read/write pointer
+accesses never have side effects.  Accessing a memory region (<code class="docutils literal notranslate"><span class="pre">m</span></code>
+access type) requires a tag to be specified.</p>
+<p>Memory accesses can be used as both lvalues and rvalues, so you can write
+<code class="docutils literal notranslate"><span class="pre">b&#64;100</span> <span class="pre">=</span> <span class="pre">ff</span></code> to store a byte in memory.</p>
+</section>
+<section id="functions">
+<span id="debugger-express-func"></span><h3><a class="toc-backref" href="#id8" role="doc-backlink">Functions</a></h3>
+<p>The debugger supports a number of useful utility functions in expressions.</p>
+<dl class="simple">
+<dt>min(&lt;a&gt;, &lt;b&gt;)</dt><dd><p>Returns the lesser of the two arguments.</p>
+</dd>
+<dt>max(&lt;a&gt;, &lt;b&gt;)</dt><dd><p>Returns the greater of the two arguments.</p>
+</dd>
+<dt>if(&lt;cond&gt;, &lt;trueval&gt;, &lt;falseval&gt;)</dt><dd><p>Returns <strong>&lt;trueval&gt;</strong> if <strong>&lt;cond&gt;</strong> is true (non-zero), or
+<strong>&lt;falseval&gt;</strong> otherwise.  Note that the expressions for
+<strong>&lt;trueval&gt;</strong> and <strong>&lt;falseval&gt;</strong> are both evaluated irrespective of
+whether <strong>&lt;cond&gt;</strong> is true or false.</p>
+</dd>
+<dt>abs(&lt;x&gt;)</dt><dd><p>Reinterprets the argument as a 64-bit signed integer and returns the
+absolute value.</p>
+</dd>
+<dt>bit(&lt;x&gt;, &lt;n&gt;[, &lt;w&gt;])</dt><dd><p>Extracts and right-aligns a bit field <strong>&lt;w&gt;</strong> bits wide from <strong>&lt;x&gt;</strong>
+with least significant bit position <strong>&lt;n&gt;</strong>, counting from the
+least significant bit.  If <strong>&lt;w&gt;</strong> is omitted, a single bit is
+extracted.</p>
+</dd>
+<dt>s8(&lt;x&gt;)</dt><dd><p>Sign-extends the argument from 8 bits to 64 bits (overwrites bits 8
+through 63, inclusive, with the value of bit 7, counting from the
+least significant bit).</p>
+</dd>
+<dt>s16(&lt;x&gt;)</dt><dd><p>Sign-extends the argument from 16 bits to 64 bits (overwrites bits
+16 through 63, inclusive, with the value of bit 15, counting from
+the least significant bit).</p>
+</dd>
+<dt>s32(&lt;x&gt;)</dt><dd><p>Sign-extends the argument from 32 bits to 64 bits (overwrites bits
+32 through 63, inclusive, with the value of bit 31, counting from
+the least significant bit).</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

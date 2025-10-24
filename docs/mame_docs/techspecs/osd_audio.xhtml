@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>OSD audio support</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="osd-audio-support">
+<h1>OSD audio support</h1>
+<section id="introduction">
+<h2>Introduction</h2>
+<p>The audio support in Mame tries to allow the user to freely map
+between the emulated system audio outputs (called speakers) and the
+host system audio.  A part of it is the OSD support, where a
+host-specific module ensures the interface between Mame and the host.
+This is the documentation for that module.</p>
+<p>Note: this is currently output-only, but input should follow.</p>
+</section>
+<section id="capabilities">
+<h2>Capabilities</h2>
+<p>The OSD interface is designed to allow three levels of support,
+depending on what the API allows and the amount of effort to expend.
+Those are:</p>
+<ul class="simple">
+<li><p>Level 1: One or more audio targets, only one stream allowed per target
+(aka exclusive mode)</p></li>
+<li><p>Level 2: One or more audio targets, multiple streams per target</p></li>
+<li><p>Level 3: One or more audio targets, multiple streams per target, user-visible
+per-stream-channel volume control</p></li>
+</ul>
+<p>In any case we support having the user use an external interface to
+change the target of a stream and, in level 3, change the volumes.  By
+support we mean storing the information in the per-game configuration
+and keeping the internal UI in sync.</p>
+</section>
+<section id="terminology">
+<h2>Terminology</h2>
+<p>For this module, we use the terms:</p>
+<ul class="simple">
+<li><p>node: some object we can send audio to.  Can be physical, like speakers,
+or virtual, like an effect system.  It should have a unique, user-presentable
+name for the UI.</p></li>
+<li><p>port: a channel of a node, has a name (non-unique, like &quot;front left&quot;) and a
+3D position</p></li>
+<li><p>stream: a connection to a node with allows to send audio to it</p></li>
+</ul>
+</section>
+<section id="reference-documentation">
+<h2>Reference documentation</h2>
+<section id="adding-a-module">
+<h3>Adding a module</h3>
+<p>Adding a module is done by adding a cpp file to src/osd/modules/sound
+which follows this structure,</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// License/copyright</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;sound_module.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;modules/osdmodules.h&quot;</span>
+
+<span class="cp">#ifdef MODULE_SUPPORT_KEY</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;modules/lib/osdobj_common.h&quot;</span>
+
+<span class="c1">// [...]</span>
+<span class="k">namespace</span><span class="w"> </span><span class="nn">osd</span><span class="w"> </span><span class="p">{</span>
+<span class="k">namespace</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">sound_module_class</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">osd_module</span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">sound_module</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="n">sound_module_class</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">osd_module</span><span class="p">(</span><span class="n">OSD_SOUND_PROVIDER</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;module_name&quot;</span><span class="p">),</span>
+<span class="w">                          </span><span class="n">sound_module</span><span class="p">()</span>
+<span class="w">   </span><span class="c1">// ...</span>
+<span class="p">};</span>
+
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="cp">#else</span>
+<span class="k">namespace</span><span class="w"> </span><span class="nn">osd</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">MODULE_NOT_SUPPORTED</span><span class="p">(</span><span class="n">sound_module_class</span><span class="p">,</span><span class="w"> </span><span class="n">OSD_SOUND_PROVIDER</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;module_name&quot;</span><span class="p">)</span>
+<span class="p">}}</span>
+<span class="cp">#endif</span>
+
+<span class="n">MODULE_DEFINITION</span><span class="p">(</span><span class="n">SOUND_MODULE_KEY</span><span class="p">,</span><span class="w"> </span><span class="n">osd</span><span class="o">::</span><span class="n">sound_module_class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In that code, four names must be chosen:</p>
+<ul class="simple">
+<li><p>MODULE_SUPPORT_KEY some #define coming from the genie scripts to tell that
+this particular module can be compiled (like NO_USE_PIPEWIRE or SDLMAME_MACOSX)</p></li>
+<li><p>sound_module_class is the name of the class which makes up the module
+(like sound_coreaudio)</p></li>
+<li><p>module_name is the name to be used in -sound &lt;xxx&gt; to select that particular
+module (like coreaudio)</p></li>
+<li><p>SOUND_MODULE_KEY is a symbol that represents the module internally (like
+SOUND_COREAUDIO)</p></li>
+</ul>
+<p>The file path needs to be added to scripts/src/osd/modules.lua in
+osdmodulesbuild() and the module reference to
+src/osd/modules/lib/osdobj_common.cpp in
+osd_common_t::register_options with the line:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="n">REGISTER_MODULE</span><span class="p">(</span><span class="n">m_mod_man</span><span class="p">,</span><span class="w"> </span><span class="n">SOUND_MODULE_KEY</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This should ensure that the module is reachable through -sound &lt;xxx&gt;
+on the appropriate hosts.</p>
+</section>
+<section id="interface">
+<h3>Interface</h3>
+<p>The full interface is:</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">virtual</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">split_streams_per_source</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">external_per_channel_volume</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="k">virtual</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">osd_interface</span><span class="w"> </span><span class="o">&amp;</span><span class="n">osd</span><span class="p">,</span><span class="w"> </span><span class="n">osd_options</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">options</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">exit</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="k">virtual</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">get_generation</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="n">osd</span><span class="o">::</span><span class="n">audio_info</span><span class="w"> </span><span class="nf">get_information</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">stream_sink_open</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rate</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">stream_source_open</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rate</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_set_volumes</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">db</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_close</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_sink_update</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int16_t</span><span class="w"> </span><span class="o">*</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samples_this_frame</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_source_update</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="kt">int16_t</span><span class="w"> </span><span class="o">*</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samples_this_frame</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The class sound_module provides defaults for minimum capabilities: one
+stereo target and stream at default sample rate.  To support that,
+only <em>init</em>, <em>exit</em> and <em>stream_update</em> need to be implemented.
+<em>init</em> is called at startup and <em>exit</em> when quitting and can do
+whatever they need to do.  <em>stream_sink_update</em> will be called on a
+regular basis with a buffer of sample_this_frame * 2 * int16_t with the
+audio to play.  From this point in the documentation we'll assume more
+than a single stereo channel is wanted.</p>
+</section>
+<section id="id1">
+<h3>Capabilities</h3>
+<p>Two methods are used by the module to indicate the level of capability
+of the module:</p>
+<ul class="simple">
+<li><p>split_streams_per_source() should return true when having multiple streams
+for one target is expected (e.g. Level 2 or 3)</p></li>
+<li><p>external_per_channel_volume() should return true when the streams have
+per-channel volume control that can be externally controlled (e.g. Level 3)</p></li>
+</ul>
+</section>
+<section id="hardware-information-and-generations">
+<h3>Hardware information and generations</h3>
+<p>The core runs on the assumption that the host hardware capabilities
+can change at any time (bluetooth devices coming and going, usb
+hot-plugging...) and that the module has some way to keep tabs on what
+is happening, possibly using multi-threading.  To keep it
+lightweight-ish, we use the concept of a <em>generation</em> which is a
+32-bit number that is incremented by the module every time something
+changes.  The core checks the current generation value at least once
+every update (once per frame, usually) and if it changed asks for the
+new state and detects and handles the differences.  <em>generation</em>
+should be &quot;eventually stable&quot;, e.g. it eventually stops changing when
+the user stops changing things all the time.  A systematic increment
+every frame would be a bad idea.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">virtual</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">get_generation</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>That method returns the current generation number.  It's called at a
+minimum once per update, which usually means per frame.  It should be
+reasonably lightweight when nothing special happens.</p>
+<p>This method must provide all the information about the current state
+of the host and the module.  This state is:</p>
+<ul class="simple">
+<li><p>m_generation:  The current generation number</p></li>
+<li><p>m_nodes: The vector available nodes (<em>node_info</em>)</p>
+<ul>
+<li><p>m_name: The name of the node to be used in non-user-visible configurations (can be a uuid or equivalent)</p></li>
+<li><p>m_display_name: The name of the node to be used in the user interfaces (should be readable)</p></li>
+<li><p>m_id: The numeric ID of the node</p></li>
+<li><p>m_rate: The minimum, maximum and preferred sample rate for the node</p></li>
+<li><p>m_port_names: The vector of port names</p></li>
+<li><p>m_port_positions: The vector of 3D position of the ports.  Refer to
+src/emu/speaker.h for the &quot;standard&quot; positions</p></li>
+<li><p>m_sinks: Number of sinks (inputs)</p></li>
+<li><p>m_sources: Number of sources (outputs)</p></li>
+</ul>
+</li>
+<li><p>m_default_sink: ID of the node that is the current &quot;system default&quot; for
+audio output, 0 if there's no such concept</p></li>
+<li><p>m_default_source: same for audio input (currently unused)</p></li>
+<li><p>m_streams: The vector of active streams (<em>stream_info</em>)</p>
+<ul>
+<li><p>m_id: The numeric ID of the stream</p></li>
+<li><p>m_node: The target node of the stream</p></li>
+<li><p>m_volumes: empty if <em>external_per_channel_volume</em> is false, current volume
+value per-channel otherwise</p></li>
+</ul>
+</li>
+</ul>
+<p>IDs, for nodes and streams, are (independent) 32-bit unsigned non-zero
+values associated to respectively nodes and streams.  IDs should not
+be reused.  A node that goes away then comes back should get a new ID.
+A stream closing does not allow reuse of its ID.</p>
+<p>If a node has both sources and sinks, the sources are <em>monitors</em> of
+the sinks, e.g. they're loopbacks.  They should have the same count in
+such a case.</p>
+<p>Nodes must be independent.  It must be possible to open streams to two
+different nodes at the same time.  Be careful of multi-api libraries
+that collide between apis.  In addition, with monitoring streams
+(input on an output), it must be possible to open different streams
+for input and output.  If it's not the case, do not publish the
+monitoring inputs.</p>
+<p>When external control exists, a module should change the value of
+<em>stream_info::m_node</em> when the user changes it, and same for
+<em>stream_info::m_volumes</em>.  Generation number should be incremented
+when this happens, so that the core knows to look for changes.</p>
+<p>Volumes are floats in dB, where 0 means 100% and -96 means no sound.
+audio.h provides osd::db_to_linear and osd::linear_to_db if such a
+conversion is needed.</p>
+<p>Positions have two special values: unknown() means the position of the
+speaker or microphone is unknown, but it should be used anyway.  The
+used position will be centered.  map_on_request_only() means the input
+or output should not be used on full mappings but only when explicitly
+requested with a channel mapping.</p>
+<p>There is an inherent race condition with this system, because things
+can change at any point after returning for the method.  The idea is
+that the information returned must be internally consistent (a stream
+should not point to a node ID that does not exist in the structure,
+same for default sink) and that any external change from that state
+should increment the generation number, but that's it.  Through the
+generation system the core will eventually be in sync with reality.</p>
+</section>
+<section id="input-and-output-streams">
+<h3>Input and output streams</h3>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">virtual</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">stream_sink_open</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rate</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">stream_source_open</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rate</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_set_volumes</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">db</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_close</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_sink_update</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int16_t</span><span class="w"> </span><span class="o">*</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samples_this_frame</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">stream_source_update</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="kt">int16_t</span><span class="w"> </span><span class="o">*</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samples_this_frame</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Streams are the concept used to send or receive audio from/to the host
+audio system.  A stream is first opened through <em>stream_sink_open</em> for
+speakers and <em>stream_source_open</em> for microphones and targets a
+specific node at a specific sample rate.  It is given a name for use
+by the host sound services for user UI purposes (currently the game
+name if split_streams_per_source is false, the
+speaker_device/microphone_device tag if true).  The returned ID must
+be a non-zero, never-used-before for streams value in case of success.
+Failures, like when the node went away between the <em>get_information</em>
+call and the open one, should be silent and return zero.</p>
+<p><em>stream_set_volumes</em> is used only when <em>external_per_channel_volume</em>
+is true and is used by the core to set the per-channel volume.  The
+call should just be ignored if the stream ID does not exist (or is
+zero).  Do not try to apply volumes in the module if the host API
+doesn't provide for it, let the core handle it.</p>
+<p><em>stream_close</em> closes a stream, The call should just be ignored if the
+stream ID does not exist (or is zero).</p>
+<p>Opening a stream, closing a stream or changing the volume does not
+need to touch the generation number.</p>
+<p><em>stream_sink_update</em> is the method used to send data to the node
+through a given stream.  It provides a buffer of <em>samples_this_frame</em>
+* <em>node channel count</em> channel-interleaved int16_t values.  The
+lifetime of the data in the buffer or the buffer pointer itself is
+undefined after return from the method call.  The call should just be
+ignored if the stream ID does not exist (or is zero).</p>
+<p><em>stream_source_update</em> is the equivalent to retrieve data from a node,
+writing to the buffer instead of reading from it.  The constraints are
+identical.</p>
+<p>When a stream goes away because the target node is lost it should just
+be removed from the information, and the core will pick up the node
+departure and close the stream.</p>
+<p>Given the assumed raceness of the interface, all the methods should be
+tolerant of obsolete or zero IDs being used by the core, and that is
+why ID reuse must be avoided.  Also the update methods and the
+open/close/volume ones may be called at the same time in different
+threads.</p>
+</section>
+<section id="helper-class-abuffer">
+<h3>Helper class <em>abuffer</em></h3>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">abuffer</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">abuffer</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">channels</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="kt">int16_t</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">samples</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">push</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">int16_t</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">samples</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">channels</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The class <em>abuffer</em> is a helper provided by <em>sound_module</em> to buffer
+audio input or output.  It automatically drops data when there is
+an overflow and duplicates the last sample on underflow.  It must
+first be initialized with the number of channels, which can be
+retrieved with <em>channels()</em> if needed.  <em>push</em> sends
+<em>samples</em> * <em>channels</em> 16-bit samples in the buffer.  <em>get</em> retrieves
+<em>samples</em> * <em>channels</em> 16-bit samples from the buffer, on a FIFO basis.</p>
+<p>It is not protected against multithreading, but uses no class
+variables.  So just don't read and write from one specific abuffer
+instance at the same time.  The system sound interface mandated
+locking should be enough to ensure that.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

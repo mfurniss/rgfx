@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Windows-Specific Command-line Options</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="windows-specific-command-line-options">
+<h1>Windows-Specific Command-line Options</h1>
+<p>This section contains configuration options that are specific to the native
+(non-SDL) Windows version of MAME.</p>
+<section id="performance-options">
+<h2>Performance options</h2>
+<p id="mame-wcommandline-priority"><strong>-priority</strong> <em>&lt;priority&gt;</em></p>
+<blockquote>
+<div><p>Sets the thread priority for the MAME threads. By default the priority is
+left alone to guarantee proper cooperation with other applications. The
+valid range is -15 to 1, with 1 being the highest priority. The default is
+<em>0</em> (<em>NORMAL priority</em>).</p>
+</div></blockquote>
+<p id="mame-wcommandline-profile"><strong>-profile</strong> <em>[n]</em></p>
+<blockquote>
+<div><p>Enables profiling, specifying the stack depth of <em>[n]</em> to track.</p>
+</div></blockquote>
+</section>
+<section id="full-screen-options">
+<h2>Full screen options</h2>
+<p id="mame-wcommandline-triplebuffer"><strong>-[no]triplebuffer</strong> / <strong>-[no]tb</strong></p>
+<blockquote>
+<div><p>Enables or disables “triple buffering”.  Normally, MAME just draws directly
+to the screen, without any fancy buffering.  But with this option enabled,
+MAME creates three buffers to draw to, and cycles between them in order.  It
+attempts to keep things flowing such that one buffer is currently displayed,
+the second buffer is waiting to be displayed, and the third buffer is being
+drawn to. <strong>-triplebuffer</strong> will override <strong>-waitvsync</strong>, if the buffer is
+successfully created.  This option does not work with <strong>-video gdi</strong>. The
+default is OFF (<strong>-notriplebuffer</strong>).</p>
+</div></blockquote>
+<p id="mame-wcommandline-fullscreenbrightness"><strong>-full_screen_brightness</strong> <em>&lt;value&gt;</em> / <strong>-fsb</strong> <em>&lt;value&gt;</em></p>
+<blockquote>
+<div><p>Controls the brightness, or black level, of the entire display.  The
+standard value is 1.0.  Lower values (down to 0.1) will produce a darkened
+display, while higher values (up to 2.0) will give a brighter display.  Note
+that not all video cards have hardware to support this option.  This option
+does not work with <strong>-video gdi</strong>.  The default is <em>1.0</em>.</p>
+</div></blockquote>
+<p id="mame-wcommandline-fullscreencontrast"><strong>-full_screen_contrast</strong> <em>&lt;value&gt;</em> / <strong>-fsc</strong> <em>&lt;value&gt;</em></p>
+<blockquote>
+<div><p>Controls the contrast, or white level, of the entire display.  The standard
+value is 1.0.  Lower values (down to 0.1) will produce a dimmer display,
+while higher values (up to 2.0) will give a more saturated display.  Note
+that not all video cards have hardware to support this option.  This option
+does not work with <strong>-video gdi</strong>.  The default is <em>1.0</em>.</p>
+</div></blockquote>
+<p id="mame-wcommandline-fullscreengamma"><strong>-full_screen_gamma</strong> <em>&lt;value&gt;</em> / <strong>-fsg</strong> <em>&lt;value&gt;</em></p>
+<blockquote>
+<div><p>Controls the gamma, which produces a potentially nonlinear black to white
+ramp, for the entire display.  The standard value is 1.0, which gives a
+linear ramp from black to white.  Lower values (down to 0.1) will increase
+the nonlinearity toward black, while higher values (up to 3.0) will push the
+nonlinearity toward white.  Note that not all video cards have hardware to
+support this option.  This option does not work with <strong>-video gdi</strong>.  The
+default is <em>1.0</em>.</p>
+</div></blockquote>
+</section>
+<section id="input-device-options">
+<h2>Input device options</h2>
+<p id="mame-wcommandline-duallightgun"><strong>-[no]dual_lightgun</strong> / <strong>-[no]dual</strong></p>
+<blockquote>
+<div><p>Controls whether or not MAME attempts to track two lightguns that appear as
+a single mouse.  This option requires the <a class="reference internal" href="commandline-all.xhtml#mame-commandline-nolightgun"><span class="std std-ref">lightgun option</span></a> to be on and the <a class="reference internal" href="commandline-all.xhtml#mame-commandline-lightgunprovider"><span class="std std-ref">lightgunprovider
+option</span></a> to be set to <em>win32</em>.</p>
+<p>This option supports certain older dual lightgun setups that work by setting
+the mouse pointer location at the moment a lightgun trigger is activated.
+The primary and secondary triggers on the first lightgun correspond to the
+first and second mouse buttons, and the primary and secondary triggers on
+the second lightgun correspond to the third and fourth mouse buttons.</p>
+<p>If you have multiple lightguns connected, you will probably just need to
+enable the <a class="reference internal" href="commandline-all.xhtml#mame-commandline-nolightgun"><span class="std std-ref">lightgun option</span></a>, use the
+default <a class="reference internal" href="commandline-all.xhtml#mame-commandline-lightgunprovider"><span class="std std-ref">lightgunprovider option</span></a>
+of <em>rawinput</em>, and configure each lightgun individually.</p>
+<p>The default is OFF (<strong>-nodual_lightgun</strong>).</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

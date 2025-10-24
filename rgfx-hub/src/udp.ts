@@ -13,15 +13,10 @@ export class Udp {
     log.info(`UDP configured for ${this.ip}:${this.port}`);
   }
 
-  send() {
-    const message = JSON.stringify({ effect: 'pulse', color: '0xFF0000' });
-    this.socket.send(message, this.port, this.ip, (err) => {
-      if (err) {
-        log.error('UDP send error:', err);
-      } else {
-        log.info(`UDP sent - ${message}`);
-      }
-    });
+  send(effect: string, color: string) {
+    const message = JSON.stringify({ effect, color });
+    // Send without callback for minimal latency (fire and forget)
+    this.socket.send(message, this.port, this.ip);
   }
 
   stop() {

@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Lua Render System Classes</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="lua-render-system-classes">
+<span id="luascript-ref-render"></span><h1>Lua Render System Classes</h1>
+<p>The render system is responsible for drawing what you see in MAME’s windows,
+including emulated screens, artwork, and UI elements.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#render-bounds" id="id35">Render bounds</a></p></li>
+<li><p><a class="reference internal" href="#render-colour" id="id36">Render colour</a></p></li>
+<li><p><a class="reference internal" href="#palette" id="id37">Palette</a></p></li>
+<li><p><a class="reference internal" href="#bitmap" id="id38">Bitmap</a></p></li>
+<li><p><a class="reference internal" href="#render-texture" id="id39">Render texture</a></p></li>
+<li><p><a class="reference internal" href="#render-manager" id="id40">Render manager</a></p></li>
+<li><p><a class="reference internal" href="#render-target" id="id41">Render target</a></p></li>
+<li><p><a class="reference internal" href="#render-container" id="id42">Render container</a></p></li>
+<li><p><a class="reference internal" href="#container-user-settings" id="id43">Container user settings</a></p></li>
+<li><p><a class="reference internal" href="#layout-file" id="id44">Layout file</a></p></li>
+<li><p><a class="reference internal" href="#layout-view" id="id45">Layout view</a></p></li>
+<li><p><a class="reference internal" href="#layout-view-item" id="id46">Layout view item</a></p></li>
+<li><p><a class="reference internal" href="#layout-element" id="id47">Layout element</a></p></li>
+</ul>
+</nav>
+<section id="render-bounds">
+<span id="luascript-ref-renderbounds"></span><h2><a class="toc-backref" href="#id35" role="doc-backlink">Render bounds</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">render_bounds</span></code> class, which represents a rectangle using
+floating-point coordinates.</p>
+<section id="instantiation">
+<h3>Instantiation</h3>
+<dl>
+<dt>emu.render_bounds()</dt><dd><p>Creates a render bounds object representing a unit square, with top left
+corner at (0, 0) and bottom right corner at (1, 1).  Note that render
+target coordinates don’t necessarily have equal X and Y scales, so this may
+not represent a square in the final output.</p>
+</dd>
+<dt>emu.render_bounds(left, top, right, bottom)</dt><dd><p>Creates a render bounds object representing a rectangle with top left
+corner at (x0, y0) and bottom right corner at (x1, y1).</p>
+<p>The arguments must all be floating-point numbers.</p>
+</dd>
+</dl>
+</section>
+<section id="methods">
+<h3>Methods</h3>
+<dl>
+<dt>bounds:includes(x, y)</dt><dd><p>Returns a Boolean indicating whether the specified point falls within the
+rectangle.  The rectangle must be normalised for this to work (right greater
+than left and bottom greater than top).</p>
+<p>The arguments must both be floating-point numbers.</p>
+</dd>
+<dt>bounds:set_xy(left, top, right, bottom)</dt><dd><p>Set the rectangle’s position and size in terms of the positions of the
+edges.</p>
+<p>The arguments must all be floating-point numbers.</p>
+</dd>
+<dt>bounds:set_wh(left, top, width, height)</dt><dd><p>Set the rectangle’s position and size in terms of the top left corner
+position, and the width and height.</p>
+<p>The arguments must all be floating-point numbers.</p>
+</dd>
+</dl>
+</section>
+<section id="properties">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>bounds.x0 (read/write)</dt><dd><p>The leftmost coordinate in the rectangle (i.e. the X coordinate of the left
+edge or the top left corner).</p>
+</dd>
+<dt>bounds.x1 (read/write)</dt><dd><p>The rightmost coordinate in the rectangle (i.e. the X coordinate of the
+right edge or the bottom right corner).</p>
+</dd>
+<dt>bounds.y0 (read/write)</dt><dd><p>The topmost coordinate in the rectangle (i.e. the Y coordinate of the top
+edge or the top left corner).</p>
+</dd>
+<dt>bounds.y1 (read/write)</dt><dd><p>The bottommost coordinate in the rectangle (i.e. the Y coordinate of the
+bottom edge or the bottom right corner).</p>
+</dd>
+<dt>bounds.width (read/write)</dt><dd><p>The width of the rectangle.  Setting this property changes the position of
+the rightmost edge.</p>
+</dd>
+<dt>bounds.height (read/write)</dt><dd><p>The height of the rectangle.  Setting this property changes the position of
+the bottommost edge.</p>
+</dd>
+<dt>bounds.aspect (read-only)</dt><dd><p>The width-to-height aspect ratio of the rectangle.  Note that this is often
+in render target coordinates which don’t necessarily have equal X and Y
+scales.  A rectangle representing a square in the final output doesn’t
+necessarily have an aspect ratio of 1.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="render-colour">
+<span id="luascript-ref-rendercolor"></span><h2><a class="toc-backref" href="#id36" role="doc-backlink">Render colour</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">render_color</span></code> class, which represents an ARGB (alpha, red,
+green, blue) format colour.  Channels are floating-point values ranging from
+zero (0, transparent alpha or colour off) to one (1, opaque or full colour
+intensity).  Colour channel values are not pre-multiplied by the alpha channel
+value.</p>
+<section id="id1">
+<h3>Instantiation</h3>
+<dl>
+<dt>emu.render_color()</dt><dd><p>Creates a render colour object representing opaque white (all channels set
+to 1).  This is the identity value – ARGB multiplication by this value will
+not change a colour.</p>
+</dd>
+<dt>emu.render_color(a, r, g, b)</dt><dd><p>Creates a render colour object with the specified alpha, red, green and
+blue channel values.</p>
+<p>The arguments must all be floating-point numbers in the range from zero (0)
+to one (1), inclusive.</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h3>Methods</h3>
+<dl>
+<dt>color:set(a, r, g, b)</dt><dd><p>Sets the colour object’s alpha, red, green and blue channel values.</p>
+<p>The arguments must all be floating-point numbers in the range from zero (0)
+to one (1), inclusive.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>color.a (read/write)</dt><dd><p>Alpha value, in the range of zero (0, transparent) to one (1, opaque).</p>
+</dd>
+<dt>color.r (read/write)</dt><dd><p>Red channel value, in the range of zero (0, off) to one (1, full intensity).</p>
+</dd>
+<dt>color.g (read/write)</dt><dd><p>Green channel value, in the range of zero (0, off) to one (1, full
+intensity).</p>
+</dd>
+<dt>color.b (read/write)</dt><dd><p>Blue channel value, in the range of zero (0, off) to one (1, full
+intensity).</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="palette">
+<span id="luascript-ref-palette"></span><h2><a class="toc-backref" href="#id37" role="doc-backlink">Palette</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">palette_t</span></code> class, which represents a table of colours that can
+be looked up by zero-based index.  Palettes always contain additional special
+entries for black and white.</p>
+<p>Each colour has an associated contrast adjustment value.  Each adjustment group
+has associated brightness and contrast adjustment values.  The palette also has
+overall brightness, contrast and gamma adjustment values.</p>
+<p>Colours are represented in alpha/red/green/blue (ARGB) format.  Channel values
+range from 0 (transparent or off) to 255 (opaque or full intensity), inclusive.
+Colour channel values are not pre-multiplied by the alpha value.  Channel values
+are packed into the bytes of 32-bit unsigned integers, in the order alpha, red,
+green, blue from most-significant to least-significant byte.</p>
+<section id="id4">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>emu.palette(colors, [groups])</dt><dd><p>Creates a palette with the specified number of colours and
+brightness/contrast adjustment groups.  The number of colour groups defaults
+to one if not specified.  Colours are initialised to black, brightness
+adjustment is initialised to 0.0, contrast adjustment initialised to 1.0,
+and gamma adjustment is initialised to 1.0.</p>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h3>Methods</h3>
+<dl>
+<dt>palette:entry_color(index)</dt><dd><p>Gets the colour at the specified zero-based index.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Returns black if the index is greater than or equal to the number of
+colours in the palette.</p>
+</dd>
+<dt>palette:entry_contrast(index)</dt><dd><p>Gets the contrast adjustment for the colour at the specified zero-based
+index.  This is a floating-point number.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Returns 1.0 if the index is greater than or equal to the number of
+colours in the palette.</p>
+</dd>
+<dt>palette:entry_adjusted_color(index, [group])</dt><dd><p>Gets a colour with brightness, contrast and gamma adjustments applied.</p>
+<p>If the group is specified, colour index values range from zero to the number
+of colours in the palette minus one, and group values range from zero to the
+number of adjustment groups in the palette minus one.</p>
+<p>If the group is not specified, index values range from zero to the number of
+colours multiplied by the number of adjustment groups plus one.  Index
+values may be calculated by multiplying the zero-based group index by the
+number of colours in the palette, and adding the zero-based colour index.
+The last two index values correspond to the special entries for black and
+white, respectively.</p>
+<p>Returns black if the specified combination of index and adjustment group is
+invalid.</p>
+</dd>
+<dt>palette:entry_set_color(index, color)</dt><dd><p>Sets the colour at the specified zero-based index.  The colour may be
+specified as a single packed 32-bit value; or as individual red, green and
+blue channel values, in that order.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Raises an error if the index value is invalid.</p>
+</dd>
+<dt>palette:entry_set_red_level(index, level)</dt><dd><p>Sets the red channel value of the colour at the specified zero-based index.
+Other channel values are not affected.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Raises an error if the index value is invalid.</p>
+</dd>
+<dt>palette:entry_set_green_level(index, level)</dt><dd><p>Sets the green channel value of the colour at the specified zero-based
+index.  Other channel values are not affected.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Raises an error if the index value is invalid.</p>
+</dd>
+<dt>palette:entry_set_blue_level(index, level)</dt><dd><p>Sets the blue channel value of the colour at the specified zero-based index.
+Other channel values are not affected.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Raises an error if the index value is invalid.</p>
+</dd>
+<dt>palette:entry_set_contrast(index, level)</dt><dd><p>Sets the contrast adjustment value for the colour at the specified
+zero-based index.  This must be a floating-point number.</p>
+<p>Index values range from zero to the number of colours in the palette minus
+one.  Raises an error if the index value is invalid.</p>
+</dd>
+<dt>palette:group_set_brightness(group, brightness)</dt><dd><p>Sets the brightness adjustment value for the adjustment group at the
+specified zero-based index.  This must be a floating-point number.</p>
+<p>Group values range from zero to the number of adjustment groups in the
+palette minus one.  Raises an error if the index value is invalid.</p>
+</dd>
+<dt>palette:group_set_contrast(group, contrast)</dt><dd><p>Sets the contrast adjustment value for the adjustment group at the specified
+zero-based index.  This must be a floating-point number.</p>
+<p>Group values range from zero to the number of adjustment groups in the
+palette minus one.  Raises an error if the index value is invalid.</p>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>palette.colors (read-only)</dt><dd><p>The number of colour entries in each group of colours in the palette.</p>
+</dd>
+<dt>palette.groups (read-only)</dt><dd><p>The number of groups of colours in the palette.</p>
+</dd>
+<dt>palette.max_index (read-only)</dt><dd><p>The number of valid colour indices in the palette.</p>
+</dd>
+<dt>palette.black_entry (read-only)</dt><dd><p>The index of the special entry for the colour black.</p>
+</dd>
+<dt>palette.white_entry (read-only)</dt><dd><p>The index of the special entry for the colour white.</p>
+</dd>
+<dt>palette.brightness (write-only)</dt><dd><p>The overall brightness adjustment for the palette.  This is a floating-point
+number.</p>
+</dd>
+<dt>palette.contrast (write-only)</dt><dd><p>The overall contrast adjustment for the palette.  This is a floating-point
+number.</p>
+</dd>
+<dt>palette.gamma (write-only)</dt><dd><p>The overall gamma adjustment for the palette.  This is a floating-point
+number.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="bitmap">
+<span id="luascript-ref-bitmap"></span><h2><a class="toc-backref" href="#id38" role="doc-backlink">Bitmap</a></h2>
+<p>Wraps implementations of MAME’s <code class="docutils literal notranslate"><span class="pre">bitmap_t</span></code> and <code class="docutils literal notranslate"><span class="pre">bitmap_specific</span></code> classes,
+which represent two-dimensional bitmaps stored in row-major order.  Pixel
+coordinates are zero-based, increasing to the right and down.  Several pixel
+formats are supported.</p>
+<section id="id7">
+<h3>Instantiation</h3>
+<dl>
+<dt>emu.bitmap_ind8(palette, [width, height], [xslop, yslop])</dt><dd><p>Creates an 8-bit indexed bitmap.  Each pixel is a zero-based, unsigned 8-bit
+index into a <a class="reference internal" href="#luascript-ref-palette"><span class="std std-ref">palette</span></a>.</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_ind16(palette, [width, height], [xslop, yslop])</dt><dd><p>Creates a 16-bit indexed bitmap.  Each pixel is a zero-based, unsigned
+16-bit index into a <a class="reference internal" href="#luascript-ref-palette"><span class="std std-ref">palette</span></a>.</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_ind32(palette, [width, height], [xslop, yslop])</dt><dd><p>Creates a 32-bit indexed bitmap.  Each pixel is a zero-based, unsigned
+32-bit index into a <a class="reference internal" href="#luascript-ref-palette"><span class="std std-ref">palette</span></a>.</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_ind64(palette, [width, height], [xslop, yslop])</dt><dd><p>Creates a 64-bit indexed bitmap.  Each pixel is a zero-based, unsigned
+64-bit index into a <a class="reference internal" href="#luascript-ref-palette"><span class="std std-ref">palette</span></a>.</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_yuy16([width, height], [xslop], yslop])</dt><dd><p>Creates a Y'CbCr format bitmap with 4:2:2 chroma subsampling (horizontal
+pairs of pixels have individual luma values but share chroma values).  Each
+pixel is a 16-bit integer value.  The most significant byte of the pixel
+value is the unsigned 8-bit Y' (luma) component of the pixel colour.  For
+each horizontal pair of pixels, the least significant byte of the first
+pixel (even zero-based X coordinate) value is the signed 8-bit Cb value for
+the pair of pixels, and the least significant byte of the second pixel (odd
+zero-based X coordinate) value is the signed 8-bit Cr value for the pair of
+pixels.</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_rgb32([width, height], [xslop, yslop])</dt><dd><p>Creates an RGB format bitmap with no alpha (transparency) channel.  Each
+pixel is represented by a 32-bit integer value.  The most significant byte
+of the pixel value is ignored.  The remaining three bytes, from most
+significant to least significant, are the unsigned 8-bit unsigned red, green
+and blue channel values (larger values correspond to higher intensities).</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_argb32([width, height], [xslop, yslop])</dt><dd><p>Creates an ARGB format bitmap.  Each pixel is represented by a 32-bit
+integer value.  The most significant byte of the pixel is the 8-bit unsigned
+alpha (transparency) channel value (smaller values are more transparent).
+The remaining three bytes, from most significant to least significant, are
+the unsigned 8-bit unsigned red, green and blue channel values (larger
+values correspond to higher intensities).  Colour channel values are not
+pre-multiplied by the alpha channel value.</p>
+<p>If no width and height are specified, they are assumed to be zero.  If the
+width is specified, the height must also be specified.  The X and Y slop
+values set the amount of extra storage in pixels to reserve at the
+left/right of each row and top/bottom of each column, respectively.  If an X
+slop value is specified, a Y slop value must be specified as well.  If no X
+and Y slop values are specified, they are assumed to be zero (the storage
+will be sized to fit the bitmap content).  If the width and/or height is
+less than or equal to zero, no storage will be allocated, irrespective of
+the X and Y slop values, and the width and height of the bitmap will both be
+set to zero.</p>
+<p>The initial clipping rectangle is set to the entirety of the bitmap.</p>
+</dd>
+<dt>emu.bitmap_ind8(source, [x0, y0, x1, y1])</dt><dd><p>Creates an 8-bit indexed bitmap representing a view of a portion of an
+existing bitmap.  The initial clipping rectangle is set to the bounds of the
+view.  The source bitmap will be locked, preventing resizing and
+reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the 8-bit
+indexed format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_ind16(source, [x0, y0, x1, y1])</dt><dd><p>Creates a 16-bit indexed bitmap representing a view of a portion of an
+existing bitmap.  The initial clipping rectangle is set to the bounds of the
+view.  The source bitmap will be locked, preventing resizing and
+reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the 16-bit
+indexed format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_ind32(source, [x0, y0, x1, y1])</dt><dd><p>Creates a 32-bit indexed bitmap representing a view of a portion of an
+existing bitmap.  The initial clipping rectangle is set to the bounds of the
+view.  The source bitmap will be locked, preventing resizing and
+reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the 32-bit
+indexed format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_ind64(source, [x0, y0, x1, y1])</dt><dd><p>Creates a 64-bit indexed bitmap representing a view of a portion of an
+existing bitmap.  The initial clipping rectangle is set to the bounds of the
+view.  The source bitmap will be locked, preventing resizing and
+reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the 64-bit
+indexed format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_yuy16(source, [x0, y0, x1, y1])</dt><dd><p>Creates a Y'CbCr format bitmap with 4:2:2 chroma subsampling representing a
+view of a portion of an existing bitmap.  The initial clipping rectangle is
+set to the bounds of the view.  The source bitmap will be locked, preventing
+resizing and reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the Y'CbCr
+format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_rgb32(source, [x0, y0, x1, y1])</dt><dd><p>Creates an RGB format bitmap representing a view of a portion of an existing
+bitmap.  The initial clipping rectangle is set to the bounds of the view.
+The source bitmap will be locked, preventing resizing and reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the RGB
+format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_argb32(source, [x0, y0, x1, y1])</dt><dd><p>Creates an ARGB format bitmap representing a view of a portion of an
+existing bitmap.  The initial clipping rectangle is set to the bounds of the
+view.  The source bitmap will be locked, preventing resizing and
+reallocation.</p>
+<p>If no coordinates are specified, the new bitmap will represent a view of the
+source bitmap’s current clipping rectangle.  If coordinates are specified,
+the new bitmap will represent a view of the rectangle with top left corner
+at (x0, y0) and bottom right corner at (x1, y1) in the source bitmap.
+Coordinates are in units of pixels.  The bottom right coordinates are
+inclusive.</p>
+<p>The source bitmap must be owned by the Lua script and must use the ARGB
+format.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the source bitmap’s clipping rectangle.</p>
+</dd>
+<dt>emu.bitmap_argb32.load(data)</dt><dd><p>Creates an ARGB format bitmap from data in PNG, JPEG (JFIF/EXIF) or
+Microsoft DIB (BMP) format.  Raises an error if the data invalid or not a
+supported format.</p>
+</dd>
+</dl>
+</section>
+<section id="id8">
+<h3>Methods</h3>
+<dl>
+<dt>bitmap:cliprect()</dt><dd><p>Returns the left, top, right and bottom coordinates of the bitmap’s clipping
+rectangle.  Coordinates are in units of pixels; the bottom and right
+coordinates are inclusive.</p>
+</dd>
+<dt>bitmap:reset()</dt><dd><p>Sets the width and height to zero, and frees the pixel storage if the bitmap
+owns its own storage, or releases the source bitmap if the it represents a
+view of another bitmap.</p>
+<p>The bitmap must be owned by the Lua script.  Raises an error if the bitmap’s
+storage is referenced by another bitmap or a <a class="reference internal" href="#luascript-ref-rendertexture"><span class="std std-ref">texture</span></a>.</p>
+</dd>
+<dt>bitmap:allocate(width, height, [xslop, yslop])</dt><dd><p>Reallocates storage for the bitmap, sets its width and height, and sets the
+clipping rectangle to the entirety of the bitmap.  If the bitmap already
+owns allocated storage, it will always be freed and reallocated; if the
+bitmap represents a view of another bitmap, the source bitmap will be
+released.  The storage will be filled with pixel value zero.</p>
+<p>The X and Y slop values set the amount of extra storage in pixels to reserve
+at the left/right of each row and top/bottom of each column, respectively.
+If an X slop value is specified, a Y slop value must be specified as well.
+If no X and Y slop values are specified, they are assumed to be zero (the
+storage will be sized to fit the bitmap content).  If the width and/or
+height is less than or equal to zero, no storage will be allocated,
+irrespective of the X and Y slop values, and the width and height of the
+bitmap will both be set to zero.</p>
+<p>The bitmap must be owned by the Lua script.  Raises an error if the bitmap’s
+storage is referenced by another bitmap or a <a class="reference internal" href="#luascript-ref-rendertexture"><span class="std std-ref">texture</span></a>.</p>
+</dd>
+<dt>bitmap:resize(width, height, [xslop, yslop])</dt><dd><p>Changes the width and height, and sets the clipping rectangle to the
+entirety of the bitmap.</p>
+<p>The X and Y slop values set the amount of extra storage in pixels to reserve
+at the left/right of each row and top/bottom of each column, respectively.
+If an X slop value is specified, a Y slop value must be specified as well.
+If no X and Y slop values are specified, they are assumed to be zero (rows
+will be stored contiguously, and the top row will be placed at the beginning
+of the bitmap’s storage).</p>
+<p>If the bitmap already owns allocated storage and it is large enough for the
+updated size, it will be used without being freed; if it is too small for
+the updated size, it will always be freed and reallocated.  If the bitmap
+represents a view of another bitmap, the source bitmap will be released.  If
+storage is allocated, it will be filled with pixel value zero (if existing
+storage is used, its contents will not be changed).</p>
+<p>Raises an error if the bitmap’s storage is referenced by another bitmap or a
+<a class="reference internal" href="#luascript-ref-rendertexture"><span class="std std-ref">texture</span></a>.</p>
+</dd>
+<dt>bitmap:wrap(source, [x0, y0, x1, y1])</dt><dd><p>Makes the bitmap represent a view of a portion of another bitmap and sets
+the clipping rectangle to the bounds of the view.</p>
+<p>If no coordinates are specified, the target bitmap will represent a view of
+the source bitmap’s current clipping rectangle.  If coordinates are
+specified, the target bitmap will represent a view of the rectangle with top
+left corner at (x0, y0) and bottom right corner at (x1, y1) in the source
+bitmap.  Coordinates are in units of pixels.  The bottom right coordinates
+are inclusive.</p>
+<p>The source bitmap will be locked, preventing resizing and reallocation.  If
+the target bitmap owns allocated storage, it will be freed; if it represents
+a view of another bitmap, the current source bitmap will be released.</p>
+<p>The source and target bitmaps must both be owned by the Lua script and must
+use the same pixel format.  Raises an error if coordinates are specified
+representing a rectangle not fully contained within the source bitmap’s
+clipping rectangle; if the bitmap’s storage is referenced by another bitmap
+or a <a class="reference internal" href="#luascript-ref-rendertexture"><span class="std std-ref">texture</span></a>; or if the source and
+target are the same bitmap.</p>
+</dd>
+<dt>bitmap:pix(x, y)</dt><dd><p>Returns the colour value of the pixel at the specified location.
+Coordinates are zero-based in units of pixels.</p>
+</dd>
+<dt>bitmap:pixels([x0, y0, x1, y1])</dt><dd><p>Returns the pixels, width and height of the portion of the bitmap with top
+left corner at (x0, y0) and bottom right corner at (x1, y1).  Coordinates
+are in units of pixels.  The bottom right coordinates are inclusive.  If
+coordinates are not specified, the bitmap’s clipping rectangle is used.</p>
+<p>Pixels are returned packed into a binary string in host Endian order.
+Pixels are organised in row-major order, from left to right then top to
+bottom.  The size and format of the pixel values depends on the format of
+the bitmap.  Raises an error if coordinates are specified representing a
+rectangle not fully contained within the bitmap’s clipping rectangle.</p>
+</dd>
+<dt>bitmap:fill(color, [x0, y0, x1, y1])</dt><dd><p>Fills a portion of the bitmap with the specified colour value.  If
+coordinates are not specified, the clipping rectangle is filled; if
+coordinates are specified, the intersection of the clipping rectangle and
+the rectangle with top left corner at (x0, y0) and bottom right corner at
+(x1, y1) is filled.  Coordinates are in units of pixels.  The bottom right
+coordinates are inclusive.</p>
+</dd>
+<dt>bitmap:plot(x, y, color)</dt><dd><p>Sets the colour value of the pixel at the specified location if it is within
+the clipping rectangle.  Coordinates are zero-based in units of pixels.</p>
+</dd>
+<dt>bitmap:plot_box(x, y, width, height, color)</dt><dd><p>Fills the intersection of the clipping rectangle and the rectangle with top
+left (x, y) and the specified height and width with the specified colour
+value.  Coordinates and dimensions are in units of pixels.</p>
+</dd>
+<dt>bitmap:resample(dest, [color])</dt><dd><p>Copies the bitmap into the destination bitmap, scaling to fill the
+destination bitmap and using a re-sampling filter.  Only ARGB format source
+and destination bitmaps are supported.  The source pixel values will be
+multiplied by the colour if it is supplied.  It must be a
+<a class="reference internal" href="#luascript-ref-rendercolor"><span class="std std-ref">render colour</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="id9">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>bitmap.palette (read/write)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-palette"><span class="std std-ref">palette</span></a> used to translate pixel
+values to colours.  Only applicable for bitmaps that use indexed pixel
+formats.</p>
+</dd>
+<dt>bitmap.width (read-only)</dt><dd><p>Width of the bitmap in pixels.</p>
+</dd>
+<dt>bitmap.height (read-only)</dt><dd><p>Height of the bitmap in pixels.</p>
+</dd>
+<dt>bitmap.rowpixels (read-only)</dt><dd><p>Row stride of the bitmap’s storage in pixels.  That is, the difference in
+pixel offsets of the pixels at the same horizontal location in consecutive
+rows.  May be greater than the width.</p>
+</dd>
+<dt>bitmap.rowbytes (read-only)</dt><dd><p>Row stride of the bitmap’s storage in bytes.  That is, the difference in
+byte addresses of the pixels at the same horizontal location in consecutive
+rows.</p>
+</dd>
+<dt>bitmap.bpp (read-only)</dt><dd><p>Size of the type used to represent pixels in the bitmap in bits (may be
+larger than the number of significant bits).</p>
+</dd>
+<dt>bitmap.valid (read-only)</dt><dd><p>A Boolean indicating whether the bitmap has storage available (may be false
+for empty bitmaps).</p>
+</dd>
+<dt>bitmap.locked (read-only)</dt><dd><p>A Boolean indicating whether the bitmap’s storage is referenced by another
+bitmap or a <a class="reference internal" href="#luascript-ref-rendertexture"><span class="std std-ref">texture</span></a>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="render-texture">
+<span id="luascript-ref-rendertexture"></span><h2><a class="toc-backref" href="#id39" role="doc-backlink">Render texture</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">render_texture</span></code> class, representing a texture that cam be drawn
+in a <a class="reference internal" href="#luascript-ref-rendercontainer"><span class="std std-ref">render container</span></a>.  Render textures
+must be freed before the emulation session ends.</p>
+<section id="id10">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>manager.machine.render:texture_alloc(bitmap)</dt><dd><p>Creates a render texture based on a <a class="reference internal" href="#luascript-ref-bitmap"><span class="std std-ref">bitmap</span></a>.  The bitmap must be owned by the Lua script, and
+must use the Y'CbCr, RGB or ARGB format.  The bitmap’s storage will be
+locked, preventing resizing and reallocation.</p>
+</dd>
+</dl>
+</section>
+<section id="id11">
+<h3>Methods</h3>
+<dl class="simple">
+<dt>texture:free()</dt><dd><p>Frees the texture.  The storage of the underlying bitmap will be released.</p>
+</dd>
+</dl>
+</section>
+<section id="id12">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>texture.valid (read-only)</dt><dd><p>A Boolean indicating whether the texture is valid (false if the texture has
+been freed).</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="render-manager">
+<span id="luascript-ref-renderman"></span><h2><a class="toc-backref" href="#id40" role="doc-backlink">Render manager</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">render_manager</span></code> class, responsible for managing render targets
+and textures.</p>
+<section id="id13">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>manager.machine.render</dt><dd><p>Gets the global render manager instance for the emulation session.</p>
+</dd>
+</dl>
+</section>
+<section id="id14">
+<h3>Methods</h3>
+<dl class="simple">
+<dt>render:texture_alloc(bitmap)</dt><dd><p>Creates a <a class="reference internal" href="#luascript-ref-rendertexture"><span class="std std-ref">render texture</span></a> based on a
+<a class="reference internal" href="#luascript-ref-bitmap"><span class="std std-ref">bitmap</span></a>.  The bitmap must be owned by the Lua
+script, and must use the Y'CbCr, RGB or ARGB pixel format.  The bitmap’s
+storage will be locked, preventing resizing and reallocation.  Render
+textures must be freed before the emulation session ends.</p>
+</dd>
+</dl>
+</section>
+<section id="id15">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>render.max_update_rate (read-only)</dt><dd><p>The maximum update rate in Hertz.  This is a floating-point number.</p>
+</dd>
+<dt>render.ui_target (read-only)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-rendertarget"><span class="std std-ref">render target</span></a> used to draw the user
+interface (including menus, sliders and pop-up messages).  This is usually
+the first host window or screen.</p>
+</dd>
+<dt>render.ui_container (read-only)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-rendercontainer"><span class="std std-ref">render container</span></a> used for drawing
+the user interface.</p>
+</dd>
+<dt>render.targets[] (read-only)</dt><dd><p>The list of render targets, including output windows and screens, as well as
+hidden render targets used for things like rendering screenshots.  Uses
+1-based integer indices.  The index operator and the <code class="docutils literal notranslate"><span class="pre">at</span></code> method have O(n)
+complexity.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="render-target">
+<span id="luascript-ref-rendertarget"></span><h2><a class="toc-backref" href="#id41" role="doc-backlink">Render target</a></h2>
+<p>Wrap’s MAME’s <code class="docutils literal notranslate"><span class="pre">render_target</span></code> class, which represents a video output channel.
+This could be a host window or screen, or a hidden target used for rendering
+screenshots.</p>
+<section id="id16">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>manager.machine.render.targets[index]</dt><dd><p>Gets a render target by index.</p>
+</dd>
+<dt>manager.machine.render.ui_target</dt><dd><p>Gets the render target used to display the user interface (including menus,
+sliders and pop-up messages).  This is usually the first host window or
+screen.</p>
+</dd>
+<dt>manager.machine.video.snapshot_target</dt><dd><p>Gets the render target used to produce snapshots and video recordings.</p>
+</dd>
+</dl>
+</section>
+<section id="id17">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>target.ui_container (read-only)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-rendercontainer"><span class="std std-ref">render container</span></a> for drawing user
+interface elements over this render target, or <code class="docutils literal notranslate"><span class="pre">nil</span></code> for hidden render
+targets (targets that are not shown to the user directly).</p>
+</dd>
+<dt>target.index (read-only)</dt><dd><p>The 1-based index of the render target.  This has O(n) complexity.</p>
+</dd>
+<dt>target.width (read-only)</dt><dd><p>The width of the render target in output pixels.  This is an integer.</p>
+</dd>
+<dt>target.height (read-only)</dt><dd><p>The height of the render target in output pixels.  This is an integer.</p>
+</dd>
+<dt>target.pixel_aspect (read-only)</dt><dd><p>The width-to-height aspect ratio of the render target’s pixels.  This is a
+floating-point number.</p>
+</dd>
+<dt>target.hidden (read-only)</dt><dd><p>A Boolean indicating whether this is an internal render target that is not
+displayed to the user directly (e.g. the render target used to draw
+screenshots).</p>
+</dd>
+<dt>target.is_ui_target (read-only)</dt><dd><p>A Boolean indicating whether this is the render target used to display the
+user interface.</p>
+</dd>
+<dt>target.max_update_rate (read/write)</dt><dd><p>The maximum update rate for the render target in Hertz.</p>
+</dd>
+<dt>target.orientation (read/write)</dt><dd><p>The target orientation flags.  This is an integer bit mask, where bit 0
+(0x01) is set to mirror horizontally, bit 1 (0x02) is set to mirror
+vertically, and bit 2 (0x04) is set to mirror along the top left-bottom
+right diagonal.</p>
+</dd>
+<dt>target.view_names[]</dt><dd><p>The names of the available views for this render target.  Uses 1-based
+integer indices.  The <code class="docutils literal notranslate"><span class="pre">find</span></code> and <code class="docutils literal notranslate"><span class="pre">index_of</span></code> methods have O(n)
+complexity; all other supported operations have O(1) complexity.</p>
+</dd>
+<dt>target.current_view (read-only)</dt><dd><p>The currently selected view for the render target.  This is a
+<a class="reference internal" href="#luascript-ref-renderlayview"><span class="std std-ref">layout view</span></a> object.</p>
+</dd>
+<dt>target.view_index (read/write)</dt><dd><p>The 1-based index of the selected view for this render target.</p>
+</dd>
+<dt>target.visibility_mask (read-only)</dt><dd><p>An integer bit mask indicating which item collections are currently visible
+for the current view.</p>
+</dd>
+<dt>target.screen_overlay (read/write)</dt><dd><p>A Boolean indicating whether screen overlays are enabled.</p>
+</dd>
+<dt>target.zoom_to_screen (read/write)</dt><dd><p>A Boolean indicating whether the render target is configured to scale so
+that the emulated screen(s) fill as much of the output window/screen as
+possible.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="render-container">
+<span id="luascript-ref-rendercontainer"></span><h2><a class="toc-backref" href="#id42" role="doc-backlink">Render container</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">render_container</span></code> class.</p>
+<section id="id18">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>manager.machine.render.ui_container</dt><dd><p>Gets the render container used to draw the user interface, including menus,
+sliders and pop-up messages.</p>
+</dd>
+<dt>manager.machine.render.targets[index].ui_container</dt><dd><p>Gets the render container used to draw user interface elements over a
+particular render target.</p>
+</dd>
+<dt>manager.machine.screens[tag].container</dt><dd><p>Gets the render container used to draw a given screen.</p>
+</dd>
+</dl>
+</section>
+<section id="id19">
+<h3>Methods</h3>
+<dl>
+<dt>container:draw_box(left, top, right, bottom, [line], [fill])</dt><dd><p>Draws an outlined rectangle with edges at the specified positions.</p>
+<p>Coordinates are floating-point numbers in the range of 0 (zero) to 1 (one),
+with (0, 0) at the top left and (1, 1) at the bottom right of the window or
+the screen that shows the user interface.  Note that the aspect ratio is
+usually not square.  Coordinates are limited to the window or screen area.</p>
+<p>The fill and line colours are in alpha/red/green/blue (ARGB) format.
+Channel values are in the range 0 (transparent or off) to 255 (opaque or
+full intensity), inclusive.  Colour channel values are not pre-multiplied by
+the alpha value.  The channel values must be packed into the bytes of a
+32-bit unsigned integer, in the order alpha, red, green, blue from
+most-significant to least-significant byte.  If the line colour is not
+provided, the UI text colour is used; if the fill colour is not provided,
+the UI background colour is used.</p>
+</dd>
+<dt>container:draw_line(x0, y0, x1, y1, [color])</dt><dd><p>Draws a line from (x0, y0) to (x1, y1).</p>
+<p>Coordinates are floating-point numbers in the range of 0 (zero) to 1 (one),
+with (0, 0) at the top left and (1, 1) at the bottom right of the window or
+the screen that shows the user interface.  Note that the aspect ratio is
+usually not square.  Coordinates are limited to the window or screen area.</p>
+<p>The line colour is in alpha/red/green/blue (ARGB) format.  Channel values
+are in the range 0 (transparent or off) to 255 (opaque or full intensity),
+inclusive.  Colour channel values are not pre-multiplied by the alpha value.
+The channel values must be packed into the bytes of a 32-bit unsigned
+integer, in the order alpha, red, green, blue from most-significant to
+least-significant byte.  If the line colour is not provided, the UI text
+colour is used.</p>
+</dd>
+<dt>container:draw_quad(texture, x0, y0, x1, y1, [color])</dt><dd><p>Draws a textured rectangle with top left corner at (x0, y0) and bottom right
+corner at (x1, y1).  If a colour is specified, the ARGB channel values of
+the texture’s pixels are multiplied by the corresponding values of the
+specified colour.</p>
+<p>Coordinates are floating-point numbers in the range of 0 (zero) to 1 (one),
+with (0, 0) at the top left and (1, 1) at the bottom right of the window or
+the screen that shows the user interface.  Note that the aspect ratio is
+usually not square.  If the rectangle extends beyond the container’s bounds,
+it will be cropped.</p>
+<p>The colour is in alpha/red/green/blue (ARGB) format.  Channel values are in
+the range 0 (transparent or off) to 255 (opaque or full intensity),
+inclusive.  Colour channel values are not pre-multiplied by the alpha value.
+The channel values must be packed into the bytes of a 32-bit unsigned
+integer, in the order alpha, red, green, blue from most-significant to
+least-significant byte.</p>
+</dd>
+<dt>container:draw_text(x|justify, y, text, [foreground], [background])</dt><dd><p>Draws text at the specified position.  If the screen is rotated the text
+will be rotated.</p>
+<p>If the first argument is a number, the text will be left-aligned at this X
+coordinate.  If the first argument is a string, it must be <code class="docutils literal notranslate"><span class="pre">&quot;left&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;center&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;right&quot;</span></code> to draw the text left-aligned at the
+left edge of the window or screen, horizontally centred in the window or
+screen, or right-aligned at the right edge of the window or screen,
+respectively.  The second argument specifies the Y coordinate of the maximum
+ascent of the text.</p>
+<p>Coordinates are floating-point numbers in the range of 0 (zero) to 1 (one),
+with (0, 0) at the top left and (1, 1) at the bottom right of the window or
+the screen that shows the user interface.  Note that the aspect ratio is
+usually not square.  Coordinates are limited to the window or screen area.</p>
+<p>The foreground and background colours are in alpha/red/green/blue (ARGB)
+format.  Channel values are in the range 0 (transparent or off) to 255
+(opaque or full intensity), inclusive.  Colour channel values are not
+pre-multiplied by the alpha value.  The channel values must be packed into
+the bytes of a 32-bit unsigned integer, in the order alpha, red, green, blue
+from most-significant to least-significant byte.  If the foreground colour
+is not provided, the UI text colour is used; if the background colour is not
+provided, it is fully transparent.</p>
+</dd>
+</dl>
+</section>
+<section id="id20">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>container.user_settings (read/write)</dt><dd><p>The container’s <a class="reference internal" href="#luascript-ref-rendercntnrsettings"><span class="std std-ref">user settings</span></a>.
+This can be used to control a number of image adjustments.</p>
+</dd>
+<dt>container.orientation (read/write)</dt><dd><p>The container orientation flags.  This is an integer bit mask, where bit 0
+(0x01) is set to mirror horizontally, bit 1 (0x02) is set to mirror
+vertically, and bit 2 (0x04) is set to mirror along the top left-bottom
+right diagonal.</p>
+</dd>
+<dt>container.xscale (read/write)</dt><dd><p>The container’s X scale factor.  This is a floating-point number.</p>
+</dd>
+<dt>container.yscale (read/write)</dt><dd><p>The container’s Y scale factor.  This is a floating-point number.</p>
+</dd>
+<dt>container.xoffset (read/write)</dt><dd><p>The container’s X offset.  This is a floating-point number where one (1)
+corresponds to the X size of the container.</p>
+</dd>
+<dt>container.yoffset (read/write)</dt><dd><p>The container’s Y offset.  This is a floating-point number where one (1)
+corresponds to the Y size of the container.</p>
+</dd>
+<dt>container.is_empty (read-only)</dt><dd><p>A Boolean indicating whether the container has no items.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="container-user-settings">
+<span id="luascript-ref-rendercntnrsettings"></span><h2><a class="toc-backref" href="#id43" role="doc-backlink">Container user settings</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">render_container::user_settings</span></code> class, representing image
+adjustments applied to a
+<a class="reference internal" href="#luascript-ref-rendercontainer"><span class="std std-ref">render container</span></a>.</p>
+<section id="id21">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>manager.machine.screens[tag].container</dt><dd><p>Gets the current render container user settings for a given emulated screen.</p>
+</dd>
+</dl>
+</section>
+<section id="id22">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>settings.orientation (read/write)</dt><dd><p>The container orientation flags.  This is an integer bit mask, where bit 0
+(0x01) is set to mirror horizontally, bit 1 (0x02) is set to mirror
+vertically, and bit 2 (0x04) is set to mirror along the top left-bottom
+right diagonal.</p>
+</dd>
+<dt>settings.brightness (read/write)</dt><dd><p>The brightness adjustment applied to the container.  This is a
+floating-point number.</p>
+</dd>
+<dt>settings.contrast (read/write)</dt><dd><p>The contrast adjustment applied to the container.  This is a floating-point
+number.</p>
+</dd>
+<dt>settings.gamma (read/write)</dt><dd><p>The gamma adjustment applied to the container.  This is a floating-point
+number.</p>
+</dd>
+<dt>settings.xscale (read/write)</dt><dd><p>The container’s X scale factor.  This is a floating-point number.</p>
+</dd>
+<dt>settings.yscale (read/write)</dt><dd><p>The container’s Y scale factor.  This is a floating-point number.</p>
+</dd>
+<dt>settings.xoffset (read/write)</dt><dd><p>The container’s X offset.  This is a floating-point number where one (1)
+represents the X size of the container.</p>
+</dd>
+<dt>settings.yoffset (read/write)</dt><dd><p>The container’s Y offset.  This is a floating-point number where one (1)
+represents the Y size of the container.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="layout-file">
+<span id="luascript-ref-renderlayfile"></span><h2><a class="toc-backref" href="#id44" role="doc-backlink">Layout file</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">layout_file</span></code> class, representing the views loaded from a layout
+file for use by a render target.  Note that layout file callbacks are not run as
+coroutines.</p>
+<section id="id23">
+<h3>Instantiation</h3>
+<p>A layout file object is supplied to its layout script in the <code class="docutils literal notranslate"><span class="pre">file</span></code> variable.
+Layout file objects are not instantiated directly from Lua scripts.</p>
+</section>
+<section id="id24">
+<h3>Methods</h3>
+<dl>
+<dt>layout:set_resolve_tags_callback(cb)</dt><dd><p>Set a function to perform additional tasks after the emulated machine has
+finished starting, tags in the layout views have been resolved, and the
+default view item handlers have been set up.  The function must accept no
+arguments.</p>
+<p>Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove the callback.</p>
+</dd>
+</dl>
+</section>
+<section id="id25">
+<h3>Properties</h3>
+<dl>
+<dt>layout.device (read-only)</dt><dd><p>The device that caused the layout file to be loaded.  Usually the root
+machine device for external layouts.</p>
+</dd>
+<dt>layout.elements[] (read-only)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-renderlayelem"><span class="std std-ref">elements</span></a> created from the layout
+file.  Elements are indexed by name (i.e. the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code>
+attribute).  The index get method has O(1) complexity, and the <code class="docutils literal notranslate"><span class="pre">at</span></code> and
+<code class="docutils literal notranslate"><span class="pre">index_of</span></code> methods have O(n) complexity.</p>
+</dd>
+<dt>layout.views[] (read-only)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-renderlayview"><span class="std std-ref">views</span></a> created from the layout file.
+Views are indexed by unqualified name (i.e. the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code>
+attribute).  Views are ordered how they appear in the layout file when
+iterating or using the <code class="docutils literal notranslate"><span class="pre">at</span></code> method.  The index get, <code class="docutils literal notranslate"><span class="pre">at</span></code> and
+<code class="docutils literal notranslate"><span class="pre">index_of</span></code> methods have O(n) complexity.</p>
+<p>Note that some views in the XML file may not be created.  For example views
+that reference screens provided by slot card devices will not be created if
+said slot card devices are not present in the emulated system.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="layout-view">
+<span id="luascript-ref-renderlayview"></span><h2><a class="toc-backref" href="#id45" role="doc-backlink">Layout view</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">layout_view</span></code> class, representing a view that can be displayed in
+a render target.  Views are created from XML layout files, which may be loaded
+from external artwork, internal to MAME, or automatically generated based on the
+screens in the emulated system.  Note that layout view callbacks are not run as
+coroutines.</p>
+<section id="id26">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>manager.machine.render.targets[index].current_view</dt><dd><p>Gets the currently selected view for a given render target.</p>
+</dd>
+<dt>file.views[name]</dt><dd><p>Gets the view with the specified name from a
+<a class="reference internal" href="#luascript-ref-renderlayfile"><span class="std std-ref">layout file</span></a>.  This is how layout
+scripts generally obtain views.</p>
+</dd>
+</dl>
+</section>
+<section id="id27">
+<h3>Methods</h3>
+<dl>
+<dt>view:has_screen(screen)</dt><dd><p>Returns a Boolean indicating whether the screen is present in the view.
+This is true for screens that are present but not visible because the user
+has hidden the item collection they belong to.</p>
+</dd>
+<dt>view:set_prepare_items_callback(cb)</dt><dd><p>Set a function to perform additional tasks before the view items are added
+to the render target in preparation for drawing a video frame.  The function
+must accept no arguments.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove the callback.</p>
+</dd>
+<dt>view:set_preload_callback(cb)</dt><dd><p>Set a function to perform additional tasks after preloading visible view
+items.  The function must accept no arguments.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove
+the callback.</p>
+<p>This function may be called when the user selects a view or makes an item
+collection visible.  It may be called multiple times for a view, so avoid
+repeating expensive tasks.</p>
+</dd>
+<dt>view:set_recomputed_callback(cb)</dt><dd><p>Set a function to perform additional tasks after the view’s dimensions are
+recomputed.  The function must accept no arguments.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to
+remove the callback.</p>
+<p>View coordinates are recomputed in various events, including the window
+being resized, entering or leaving full-screen mode, and changing the zoom
+to screen area setting.</p>
+</dd>
+<dt>view:set_pointer_updated_callback(cb)</dt><dd><p>Set a function to receive notifications when a pointer enters, moves or
+changes button states over the view.  The function must accept nine
+arguments:</p>
+<ul class="simple">
+<li><p>The pointer type (<code class="docutils literal notranslate"><span class="pre">mouse</span></code>, <code class="docutils literal notranslate"><span class="pre">pen</span></code>, <code class="docutils literal notranslate"><span class="pre">touch</span></code> or <code class="docutils literal notranslate"><span class="pre">unknown</span></code>).</p></li>
+<li><p>The pointer ID (a non-negative integer that will not change for the
+lifetime of a pointer).</p></li>
+<li><p>The device ID for grouping pointers to recognise multi-touch gestures
+(non-negative integer).</p></li>
+<li><p>Horizontal position in layout coordinates.</p></li>
+<li><p>Vertical position in layout coordinates.</p></li>
+<li><p>A bit mask representing the currently pressed buttons.</p></li>
+<li><p>A bit mask representing the buttons that were pressed in this update.</p></li>
+<li><p>A bit mask representing the buttons that were released in this update.</p></li>
+<li><p>The click count (positive for multi-click actions, or negative if a click
+is turned into a hold or drag).</p></li>
+</ul>
+<p>Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove the callback.</p>
+</dd>
+<dt>view:set_pointer_left_callback(cb)</dt><dd><p>Set a function to receive notifications when a pointer leaves the view
+normally.  The function must accept seven arguments:</p>
+<ul class="simple">
+<li><p>The pointer type (<code class="docutils literal notranslate"><span class="pre">mouse</span></code>, <code class="docutils literal notranslate"><span class="pre">pen</span></code>, <code class="docutils literal notranslate"><span class="pre">touch</span></code> or <code class="docutils literal notranslate"><span class="pre">unknown</span></code>).</p></li>
+<li><p>The pointer ID (a non-negative integer that will not change for the
+lifetime of a pointer).  The ID may be reused for a new pointer after
+receiving this notification.</p></li>
+<li><p>The device ID for grouping pointers to recognise multi-touch gestures
+(non-negative integer).</p></li>
+<li><p>Horizontal position in layout coordinates.</p></li>
+<li><p>Vertical position in layout coordinates.</p></li>
+<li><p>A bit mask representing the buttons that were released in this update.</p></li>
+<li><p>The click count (positive for multi-click actions, or negative if a click
+is turned into a hold or drag).</p></li>
+</ul>
+<p>Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove the callback.</p>
+</dd>
+<dt>view:set_pointer_aborted_callback(cb)</dt><dd><p>Set a function to receive notifications when a pointer leaves the view
+abnormally.  The function must accept seven arguments:</p>
+<ul class="simple">
+<li><p>The pointer type (<code class="docutils literal notranslate"><span class="pre">mouse</span></code>, <code class="docutils literal notranslate"><span class="pre">pen</span></code>, <code class="docutils literal notranslate"><span class="pre">touch</span></code> or <code class="docutils literal notranslate"><span class="pre">unknown</span></code>).</p></li>
+<li><p>The pointer ID (a non-negative integer that will not change for the
+lifetime of a pointer).  The ID may be reused for a new pointer after
+receiving this notification.</p></li>
+<li><p>The device ID for grouping pointers to recognise multi-touch gestures
+(non-negative integer).</p></li>
+<li><p>Horizontal position in layout coordinates.</p></li>
+<li><p>Vertical position in layout coordinates.</p></li>
+<li><p>A bit mask representing the buttons that were released in this update.</p></li>
+<li><p>The click count (positive for multi-click actions, or negative if a click
+is turned into a hold or drag).</p></li>
+</ul>
+<p>Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove the callback.</p>
+</dd>
+<dt>view:set_forget_pointers_callback(cb)</dt><dd><p>Set a function to receive notifications when the view should stop processing
+pointer input.  The function must accept no arguments.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to
+remove the callback.</p>
+<p>This can happen in a number of situations, including the view configuration
+changing or a menu taking over input handling.</p>
+</dd>
+</dl>
+</section>
+<section id="id28">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>view.items[] (read-only)</dt><dd><p>The screen and layout element <a class="reference internal" href="#luascript-ref-renderlayitem"><span class="std std-ref">items</span></a> in
+the view.  This container does not support iteration by key using <code class="docutils literal notranslate"><span class="pre">pairs</span></code>;
+only iteration by index using <code class="docutils literal notranslate"><span class="pre">ipairs</span></code> is supported.  The key is the value
+of the <code class="docutils literal notranslate"><span class="pre">id</span></code> attribute if present.  Only items with <code class="docutils literal notranslate"><span class="pre">id</span></code> attributes can
+be looked up by key.  The index get method has O(1) complexity, and the
+<code class="docutils literal notranslate"><span class="pre">at</span></code> and <code class="docutils literal notranslate"><span class="pre">index_of</span></code> methods have O(n) complexity.</p>
+</dd>
+<dt>view.name (read-only)</dt><dd><p>The display name for the view.  This may be qualified to indicate the device
+that caused the layout file to be loaded when it isn’t the root machine
+device.</p>
+</dd>
+<dt>view.unqualified_name (read-only)</dt><dd><p>The unqualified name of the view, exactly as it appears in the <code class="docutils literal notranslate"><span class="pre">name</span></code>
+attribute in the XML layout file.</p>
+</dd>
+<dt>view.visible_screen_count (read-only)</dt><dd><p>The number of screens items currently enabled in the view.</p>
+</dd>
+<dt>view.effective_aspect (read-only)</dt><dd><p>The effective width-to-height aspect ratio of the view in its current
+configuration.</p>
+</dd>
+<dt>view.bounds (read-only)</dt><dd><p>A <a class="reference internal" href="#luascript-ref-renderbounds"><span class="std std-ref">render bounds</span></a> object representing the
+effective bounds of the view in its current configuration.  The coordinates
+are in view units, which are arbitrary but assumed to have square aspect
+ratio.</p>
+</dd>
+<dt>view.has_art (read-only)</dt><dd><p>A Boolean indicating whether the view has any non-screen items, including
+items that are not visible because the user has hidden the item collection
+that they belong to.</p>
+</dd>
+<dt>view.show_pointers (read/write)</dt><dd><p>A Boolean that sets whether mouse and pen pointers should be displayed for
+the view.</p>
+</dd>
+<dt>view.hide_inactive_pointers (read/write)</dt><dd><p>A Boolean that sets whether mouse pointers for the view should be hidden
+after a period of inactivity.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="layout-view-item">
+<span id="luascript-ref-renderlayitem"></span><h2><a class="toc-backref" href="#id46" role="doc-backlink">Layout view item</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">layout_view_item</span></code> class, representing an item in a <a class="reference internal" href="#luascript-ref-renderlayview"><span class="std std-ref">layout
+view</span></a>.  An item is drawn as a rectangular textured
+surface.  The texture is supplied by an emulated screen or a layout element.
+Note that layout view item callbacks are not run as coroutines.</p>
+<section id="id29">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>layout.views[name].items[id]</dt><dd><p>Get a view item by ID.  The item must have an <code class="docutils literal notranslate"><span class="pre">id</span></code> attribute in the XML
+layout file to be looked up by ID.</p>
+</dd>
+</dl>
+</section>
+<section id="id30">
+<h3>Methods</h3>
+<dl>
+<dt>item:set_state(state)</dt><dd><p>Set the value used as the element state and animation state in the absence
+of bindings.  The argument must be an integer.</p>
+</dd>
+<dt>item:set_element_state_callback(cb)</dt><dd><p>Set a function to call to obtain the element state for the item.  The
+function must accept no arguments and return an integer.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code>
+to restore the default element state callback (based on bindings in the XML
+layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">element_state</span></code>
+property, as this will result in infinite recursion.</p>
+<p>This callback will not be used to obtain the animation state for the item,
+even if the item lacks explicit animation state bindings in the XML layout
+file.</p>
+</dd>
+<dt>item:set_animation_state_callback(cb)</dt><dd><p>Set a function to call to obtain the animation state for the item.  The
+function must accept no arguments and return an integer.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code>
+to restore the default animation state callback (based on bindings in the
+XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">animation_state</span></code>
+property, as this will result in infinite recursion.</p>
+</dd>
+<dt>item:set_bounds_callback(cb)</dt><dd><p>Set a function to call to obtain the bounds for the item.  The function must
+accept no arguments and return a
+<a class="reference internal" href="#luascript-ref-renderbounds"><span class="std std-ref">render bounds</span></a> object in render target
+coordinates.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to restore the default bounds callback
+(based on the item’s animation state and <code class="docutils literal notranslate"><span class="pre">bounds</span></code> child elements in the
+XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">bounds</span></code> property, as
+this will result in infinite recursion.</p>
+</dd>
+<dt>item:set_color_callback(cb)</dt><dd><p>Set a function to call to obtain the multiplier colour for the item.  The
+function must accept no arguments and return a
+<a class="reference internal" href="#luascript-ref-rendercolor"><span class="std std-ref">render colour</span></a> object.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code>
+to restore the default colour callback (based on the item’s animation state
+and <code class="docutils literal notranslate"><span class="pre">color</span></code> child elements in the XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">color</span></code> property, as
+this will result in infinite recursion.</p>
+</dd>
+<dt>item:set_scroll_size_x_callback(cb)</dt><dd><p>Set a function to call to obtain the size of the horizontal scroll window as
+a proportion of the associated element’s width.  The function must accept no
+arguments and return a floating-point value.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to restore
+the default horizontal scroll window size callback (based on the <code class="docutils literal notranslate"><span class="pre">xscroll</span></code>
+child element in the XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">scroll_size_x</span></code>
+property, as this will result in infinite recursion.</p>
+</dd>
+<dt>item:set_scroll_size_y_callback(cb)</dt><dd><p>Set a function to call to obtain the size of the vertical scroll window as a
+proportion of the associated element’s height.  The function must accept no
+arguments and return a floating-point value.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to restore
+the default vertical scroll window size callback (based on the <code class="docutils literal notranslate"><span class="pre">yscroll</span></code>
+child element in the XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">scroll_size_y</span></code>
+property, as this will result in infinite recursion.</p>
+</dd>
+<dt>item:set_scroll_pos_x_callback(cb)</dt><dd><p>Set a function to call to obtain the horizontal scroll position.  A value of
+zero places the horizontal scroll window at the left edge of the associated
+element.  If the item does not wrap horizontally, a value of 1.0 places the
+horizontal scroll window at the right edge of the associated element; if the
+item wraps horizontally, a value of 1.0 corresponds to wrapping back to the
+left edge of the associated element.  The function must accept no arguments
+and return a floating-point value.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to restore the default
+horizontal scroll position callback (based on bindings in the <code class="docutils literal notranslate"><span class="pre">xscroll</span></code>
+child element in the XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">scroll_pos_x</span></code> property,
+as this will result in infinite recursion.</p>
+</dd>
+<dt>item:set_scroll_pos_y_callback(cb)</dt><dd><p>Set a function to call to obtain the vertical scroll position.  A value of
+zero places the vertical scroll window at the top edge of the associated
+element.  If the item does not wrap vertically, a value of 1.0 places the
+vertical scroll window at the bottom edge of the associated element; if the
+item wraps vertically, a value of 1.0 corresponds to wrapping back to the
+left edge of the associated element.  The function must accept no arguments
+and return a floating-point value.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to restore the default
+vertical scroll position callback (based on bindings in the <code class="docutils literal notranslate"><span class="pre">yscroll</span></code>
+child element in the XML layout file).</p>
+<p>Note that the function must not access the item’s <code class="docutils literal notranslate"><span class="pre">scroll_pos_y</span></code> property,
+as this will result in infinite recursion.</p>
+</dd>
+</dl>
+</section>
+<section id="id31">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>item.id (read-only)</dt><dd><p>Get the optional item identifier.  This is the value of the <code class="docutils literal notranslate"><span class="pre">id</span></code> attribute
+in the XML layout file if present, or <code class="docutils literal notranslate"><span class="pre">nil</span></code>.</p>
+</dd>
+<dt>item.element (read-only)</dt><dd><p>The <a class="reference internal" href="#luascript-ref-renderlayelem"><span class="std std-ref">element</span></a> used to draw the item, or
+<code class="docutils literal notranslate"><span class="pre">nil</span></code> for screen items.</p>
+</dd>
+<dt>item.bounds_animated (read-only)</dt><dd><p>A Boolean indicating whether the item’s bounds depend on its animation
+state.</p>
+</dd>
+<dt>item.color_animated (read-only)</dt><dd><p>A Boolean indicating whether the item’s colour depends on its animation
+state.</p>
+</dd>
+<dt>item.bounds (read-only)</dt><dd><p>The item’s bounds for the current state.  This is a
+<a class="reference internal" href="#luascript-ref-renderbounds"><span class="std std-ref">render bounds</span></a> object in render target
+coordinates.</p>
+</dd>
+<dt>item.color (read-only)</dt><dd><p>The item’s colour for the current state.  The colour of the screen or
+element texture is multiplied by this colour.  This is a
+<a class="reference internal" href="#luascript-ref-rendercolor"><span class="std std-ref">render colour</span></a> object.</p>
+</dd>
+<dt>item.scroll_wrap_x (read-only)</dt><dd><p>A Boolean indicating whether the item wraps horizontally.</p>
+</dd>
+<dt>item.scroll_wrap_y (read-only)</dt><dd><p>A Boolean indicating whether the item wraps vertically.</p>
+</dd>
+<dt>item.scroll_size_x (read/write)</dt><dd><p>Get the item’s horizontal scroll window size for the current state, or set
+the horizontal scroll window size to use in the absence of bindings.  This
+is a floating-point value representing a proportion of the associated
+element’s width.</p>
+</dd>
+<dt>item.scroll_size_y (read/write)</dt><dd><p>Get the item’s vertical scroll window size for the current state, or set the
+vertical scroll window size to use in the absence of bindings.  This is a
+floating-point value representing a proportion of the associated element’s
+height.</p>
+</dd>
+<dt>item.scroll_pos_x (read/write)</dt><dd><p>Get the item’s horizontal scroll position for the current state, or set the
+horizontal scroll position size to use in the absence of bindings.  This is
+a floating-point value.</p>
+</dd>
+<dt>item.scroll_pos_y (read/write)</dt><dd><p>Get the item’s vertical scroll position for the current state, or set the
+vertical position size to use in the absence of bindings.  This is a
+floating-point value.</p>
+</dd>
+<dt>item.blend_mode (read-only)</dt><dd><p>Get the item’s blend mode.  This is an integer value, where 0 means no
+blending, 1 means alpha blending, 2 means RGB multiplication, 3 means
+additive blending, and -1 allows the items within a container to specify
+their own blending modes.</p>
+</dd>
+<dt>item.orientation (read-only)</dt><dd><p>Get the item orientation flags.  This is an integer bit mask, where bit 0
+(0x01) is set to mirror horizontally, bit 1 (0x02) is set to mirror
+vertically, and bit 2 (0x04) is set to mirror along the top left-bottom
+right diagonal.</p>
+</dd>
+<dt>item.element_state (read-only)</dt><dd><p>Get the current element state.  This will call the element state callback
+function to handle bindings.</p>
+</dd>
+<dt>item.animation_state (read-only)</dt><dd><p>Get the current animation state.  This will call the animation state
+callback function to handle bindings.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="layout-element">
+<span id="luascript-ref-renderlayelem"></span><h2><a class="toc-backref" href="#id47" role="doc-backlink">Layout element</a></h2>
+<p>Wraps MAME’s <code class="docutils literal notranslate"><span class="pre">layout_element</span></code> class, representing a visual element that can be
+drawn in a <a class="reference internal" href="#luascript-ref-renderlayview"><span class="std std-ref">layout view</span></a>.  Elements are
+created from XML layout files, which may be loaded from external artwork or
+internal to MAME.  Note that layout element callbacks are not run as coroutines.</p>
+<section id="id32">
+<h3>Instantiation</h3>
+<dl class="simple">
+<dt>layout.elements[name]</dt><dd><p>Gets a layout element by name.</p>
+</dd>
+<dt>layout.views[name].items[id].element</dt><dd><p>Gets the layout element used to draw a
+<a class="reference internal" href="#luascript-ref-renderlayitem"><span class="std std-ref">view item</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="id33">
+<h3>Methods</h3>
+<dl class="simple">
+<dt>element:invalidate()</dt><dd><p>Invalidate all cached textures for the element, ensuring it will be redrawn
+when the next video frame is drawn.</p>
+</dd>
+<dt>element.set_draw_callback(cb)</dt><dd><p>Set a function to call the perform additional drawing after the element’s
+components have been drawn.  The function is passed two arguments: the
+element state (an integer) and the 32-bit ARGB
+<a class="reference internal" href="#luascript-ref-bitmap"><span class="std std-ref">bitmap</span></a> at the required size.  The function
+must not attempt to resize the bitmap.  Call with <code class="docutils literal notranslate"><span class="pre">nil</span></code> to remove the
+callback.</p>
+</dd>
+</dl>
+</section>
+<section id="id34">
+<h3>Properties</h3>
+<dl class="simple">
+<dt>element.default_state (read-only)</dt><dd><p>The integer default state for the element if set or <code class="docutils literal notranslate"><span class="pre">nil</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

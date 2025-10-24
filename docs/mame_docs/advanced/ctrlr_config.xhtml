@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Controller Configuration Files</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="controller-configuration-files">
+<span id="ctrlrcfg"></span><h1>Controller Configuration Files</h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#introduction" id="id1">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#basic-structure" id="id2">Basic structure</a></p></li>
+<li><p><a class="reference internal" href="#substituting-default-controls" id="id3">Substituting default controls</a></p></li>
+<li><p><a class="reference internal" href="#overriding-defaults-by-input-type" id="id4">Overriding defaults by input type</a></p></li>
+<li><p><a class="reference internal" href="#overriding-defaults-for-specific-inputs" id="id5">Overriding defaults for specific inputs</a></p></li>
+<li><p><a class="reference internal" href="#assigning-input-device-numbers" id="id6">Assigning input device numbers</a></p></li>
+<li><p><a class="reference internal" href="#setting-pointer-input-options" id="id7">Setting pointer input options</a></p></li>
+</ul>
+</nav>
+<section id="introduction">
+<span id="ctrlrcfg-intro"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Introduction</a></h2>
+<p>Controller configuration files can be used to modify MAME’s default input
+settings.  Controller configuration files may be supplied with an input device
+to provide more suitable defaults, or used as profiles that can be selected for
+different situations.  MAME includes a few sample controller configuration files
+in the <strong>ctrlr</strong> folder, designed to provide useful defaults for certain
+arcade-style controllers.</p>
+<p>Controller configuration files are an XML application, using the <code class="docutils literal notranslate"><span class="pre">.cfg</span></code>
+filename extension.  MAME searches for controller configuration files in the
+directories specified using the <a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-ctrlrpath"><span class="std std-ref">ctrlrpath</span></a>
+option.  A controller configuration file is selected by setting the <code class="docutils literal notranslate"><span class="pre">ctrlr</span></code>
+option to its filename, excluding the <code class="docutils literal notranslate"><span class="pre">.cfg</span></code> extension (e.g. set the <code class="docutils literal notranslate"><span class="pre">ctrlr</span></code>
+option to <code class="docutils literal notranslate"><span class="pre">scorpionxg</span></code> to use <strong>scorpionxg.cfg</strong>).  It is an error if the
+specified controller configuration file does not exist, or if it contains no
+sections applicable to the emulated system.</p>
+<p>Controller configuration files use implementation-dependent input tokens.  The
+values available and their precise meanings depend on the exact version of MAME
+used, the input devices connected, the selected input provider modules
+(<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-keyboardprovider"><span class="std std-ref">keyboardprovider</span></a>,
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-mouseprovider"><span class="std std-ref">mouseprovider</span></a>, <a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-lightgunprovider"><span class="std std-ref">lightgunprovider</span></a> and <a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-joystickprovider"><span class="std std-ref">joystickprovider</span></a> options), and possibly other settings.</p>
+</section>
+<section id="basic-structure">
+<span id="ctrlrcfg-structure"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Basic structure</a></h2>
+<p>Controller configuration files follow a similar format to the system
+configuration files that MAME uses to save things like input settings and
+bookkeeping data (created in the folder specified using the
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-cfgdirectory"><span class="std std-ref">cfg_directory option</span></a>).  This example
+shows the overall structure of a controller configuration file:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
+<span class="nt">&lt;mameconfig</span><span class="w"> </span><span class="na">version=</span><span class="s">&quot;10&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;default&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;input&gt;</span>
+<span class="w">            </span><span class="cm">&lt;!-- settings affecting all emulated systems go here --&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/input&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/system&gt;</span>
+<span class="w">    </span><span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;neogeo&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;input&gt;</span>
+<span class="w">            </span><span class="cm">&lt;!-- settings affecting neogeo and clones go here --&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/input&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/system&gt;</span>
+<span class="w">    </span><span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;intellec4.cpp&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;input&gt;</span>
+<span class="w">            </span><span class="cm">&lt;!-- settings affecting all systems defined in intellec4.cpp go here --&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/input&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/system&gt;</span>
+<span class="nt">&lt;/mameconfig&gt;</span>
+</pre></div>
+</div>
+<p>The root of a controller configuration file must be a <code class="docutils literal notranslate"><span class="pre">mameconfig</span></code> element,
+with a <code class="docutils literal notranslate"><span class="pre">version</span></code> attribute specifying the configuration format version
+(currently <code class="docutils literal notranslate"><span class="pre">10</span></code> – MAME will not load a file using a different version).  The
+<code class="docutils literal notranslate"><span class="pre">mameconfig</span></code> element contains one or more <code class="docutils literal notranslate"><span class="pre">system</span></code> elements, each of which
+has a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute specifying the system(s) it applies to.  Each
+<code class="docutils literal notranslate"><span class="pre">system</span></code> element may contain an <code class="docutils literal notranslate"><span class="pre">input</span></code> element which holds the actual
+<code class="docutils literal notranslate"><span class="pre">remap</span></code> and <code class="docutils literal notranslate"><span class="pre">port</span></code> configuration elements, which will be described later.
+Each <code class="docutils literal notranslate"><span class="pre">system</span></code> element may also contain a <code class="docutils literal notranslate"><span class="pre">pointer_input</span></code> element to set
+pointer input options for systems with interactive artwork.</p>
+<p>When launching an emulated system, MAME will apply configuration from <code class="docutils literal notranslate"><span class="pre">system</span></code>
+elements where the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute meets one of the following
+criteria:</p>
+<ul class="simple">
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute has the value <code class="docutils literal notranslate"><span class="pre">default</span></code>, it will always be applied
+(including for the system/software selection menus).</p></li>
+<li><p>If the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute matches the system’s short name, the
+short name of its parent system, or the short name of its BIOS system (if
+applicable).</p></li>
+<li><p>If the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute matches the name of the source file
+where the system is defined.</p></li>
+</ul>
+<p>For example, for the game “DaeJeon! SanJeon SuJeon (AJTUE 990412 V1.000)”,
+<code class="docutils literal notranslate"><span class="pre">system</span></code> elements will be applied if their <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute has the value
+<code class="docutils literal notranslate"><span class="pre">default</span></code> (applies to all systems), <code class="docutils literal notranslate"><span class="pre">sanjeon</span></code> (short name of the system
+itself), <code class="docutils literal notranslate"><span class="pre">sasissu</span></code> (short name of the parent system), <code class="docutils literal notranslate"><span class="pre">stvbios</span></code> (short
+name of the BIOS system), or <code class="docutils literal notranslate"><span class="pre">stv.cpp</span></code> (source file where the system is
+defined).</p>
+<p>As another example, a <code class="docutils literal notranslate"><span class="pre">system</span></code> element whose <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute has the value
+<code class="docutils literal notranslate"><span class="pre">zac2650.cpp</span></code> will be applied for the systems “The Invaders”, “Super Invader
+Attack (bootleg of The Invaders)”, and “Dodgem”.</p>
+<p>Applicable <code class="docutils literal notranslate"><span class="pre">system</span></code> elements are applied in the order they appear in the
+controller configuration file.  Settings from elements that appear later in the
+file may modify or override settings from elements that appear earlier.  Within
+a <code class="docutils literal notranslate"><span class="pre">system</span></code> element, <code class="docutils literal notranslate"><span class="pre">remap</span></code> elements are applied before <code class="docutils literal notranslate"><span class="pre">port</span></code> elements.</p>
+</section>
+<section id="substituting-default-controls">
+<span id="ctrlrcfg-substitute"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Substituting default controls</a></h2>
+<p>You can use a <code class="docutils literal notranslate"><span class="pre">remap</span></code> element to substitute one host input for another in
+MAME’s default input configuration.  For example, this substitutes keys on the
+numeric keypad for the cursor direction keys:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;input&gt;</span>
+<span class="w">    </span><span class="nt">&lt;remap</span><span class="w"> </span><span class="na">origcode=</span><span class="s">&quot;KEYCODE_UP&quot;</span><span class="w"> </span><span class="na">newcode=</span><span class="s">&quot;KEYCODE_8PAD&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;remap</span><span class="w"> </span><span class="na">origcode=</span><span class="s">&quot;KEYCODE_DOWN&quot;</span><span class="w"> </span><span class="na">newcode=</span><span class="s">&quot;KEYCODE_2PAD&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;remap</span><span class="w"> </span><span class="na">origcode=</span><span class="s">&quot;KEYCODE_LEFT&quot;</span><span class="w"> </span><span class="na">newcode=</span><span class="s">&quot;KEYCODE_4PAD&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;remap</span><span class="w"> </span><span class="na">origcode=</span><span class="s">&quot;KEYCODE_RIGHT&quot;</span><span class="w"> </span><span class="na">newcode=</span><span class="s">&quot;KEYCODE_6PAD&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/input&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">origcode</span></code> attribute specifies the token for the host input to be
+substituted, and the <code class="docutils literal notranslate"><span class="pre">newcode</span></code> attribute specifies the token for the
+replacement host input.  In this case, assignments using the cursor up, down,
+left and right arrows will be replaced with the numeric 8, 2, 4 and 6 keys on
+the numeric keypad, respectively.</p>
+<p>Note that substitutions specified using <code class="docutils literal notranslate"><span class="pre">remap</span></code> elements only apply to inputs
+that use MAME’s default assignment for the input type.  That is, they only apply
+to default assignments for control types set in the “Input Assignments
+(general)” menus.  They <em>do not</em> apply to default control assignments set in
+driver/device I/O port definitions (using the <code class="docutils literal notranslate"><span class="pre">PORT_CODE</span></code> macro).</p>
+<p>MAME applies <code class="docutils literal notranslate"><span class="pre">remap</span></code> elements found inside any applicable <code class="docutils literal notranslate"><span class="pre">system</span></code> element.</p>
+</section>
+<section id="overriding-defaults-by-input-type">
+<span id="ctrlrcfg-typeoverride"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink">Overriding defaults by input type</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">port</span></code> elements with <code class="docutils literal notranslate"><span class="pre">type</span></code> attributes but without <code class="docutils literal notranslate"><span class="pre">tag</span></code> attributes to
+override the default control assignments for emulated inputs by type:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;input&gt;</span>
+<span class="w">    </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;UI_MENU&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;standard&quot;</span><span class="nt">&gt;</span>KEYCODE_TAB<span class="w"> </span>OR<span class="w"> </span>KEYCODE_1<span class="w"> </span>KEYCODE_5<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/port&gt;</span>
+<span class="w">    </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;UI_CANCEL&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;standard&quot;</span><span class="nt">&gt;</span>KEYCODE_ESC<span class="w"> </span>OR<span class="w"> </span>KEYCODE_2<span class="w"> </span>KEYCODE_6<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/port&gt;</span>
+
+<span class="w">    </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;P1_BUTTON1&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;standard&quot;</span><span class="nt">&gt;</span>KEYCODE_C<span class="w"> </span>OR<span class="w"> </span>JOYCODE_1_BUTTON1<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/port&gt;</span>
+<span class="w">    </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;P1_BUTTON2&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;standard&quot;</span><span class="nt">&gt;</span>KEYCODE_LSHIFT<span class="w"> </span>OR<span class="w"> </span>JOYCODE_1_BUTTON2<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/port&gt;</span>
+<span class="w">    </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;P1_BUTTON3&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;standard&quot;</span><span class="nt">&gt;</span>KEYCODE_Z<span class="w"> </span>OR<span class="w"> </span>JOYCODE_1_BUTTON3<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/port&gt;</span>
+<span class="w">    </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;P1_BUTTON4&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;standard&quot;</span><span class="nt">&gt;</span>KEYCODE_X<span class="w"> </span>OR<span class="w"> </span>JOYCODE_1_BUTTON4<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/port&gt;</span>
+<span class="nt">&lt;/input&gt;</span>
+</pre></div>
+</div>
+<p>This sets the following default input assignments:</p>
+<dl class="simple">
+<dt>Show/Hide Menu (User Interface)</dt><dd><p>Tab key, or 1 and 2 keys pressed simultaneously</p>
+</dd>
+<dt>UI Cancel (User Interface)</dt><dd><p>Escape key, or 2 and 6 keys pressed simultaneously</p>
+</dd>
+<dt>P1 Button 1 (Player 1 Controls)</dt><dd><p>C key, or joystick 1 button 1</p>
+</dd>
+<dt>P1 Button 2 (Player 1 Controls)</dt><dd><p>Left Shift key, or joystick 1 button 2</p>
+</dd>
+<dt>P1 Button 3 (Player 1 Controls)</dt><dd><p>Z key, or joystick 1 button 3</p>
+</dd>
+<dt>P1 Button 4 (Player 1 Controls)</dt><dd><p>X key, or joystick 1 button 4</p>
+</dd>
+</dl>
+<p>Note that this will only apply for inputs that use MAME’s default assignment for
+the input type.  That is, <code class="docutils literal notranslate"><span class="pre">port</span></code> elements without <code class="docutils literal notranslate"><span class="pre">tag</span></code> attributes only
+override default assignments for control types set in the “Input Assignments
+(general)” menus.  They <em>do not</em> override default control assignments set in
+driver/device I/O port definitions (using the <code class="docutils literal notranslate"><span class="pre">PORT_CODE</span></code> macro).</p>
+<p>MAME applies <code class="docutils literal notranslate"><span class="pre">port</span></code> elements without <code class="docutils literal notranslate"><span class="pre">tag</span></code> attributes found inside any
+applicable <code class="docutils literal notranslate"><span class="pre">system</span></code> element.</p>
+</section>
+<section id="overriding-defaults-for-specific-inputs">
+<span id="ctrlrcfg-ctrloverride"></span><h2><a class="toc-backref" href="#id5" role="doc-backlink">Overriding defaults for specific inputs</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">port</span></code> elements with <code class="docutils literal notranslate"><span class="pre">tag</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">mask</span></code> and <code class="docutils literal notranslate"><span class="pre">defvalue</span></code>
+attributes to override defaults for specific inputs.  These <code class="docutils literal notranslate"><span class="pre">port</span></code> elements
+should only occur inside <code class="docutils literal notranslate"><span class="pre">system</span></code> elements that apply to particular systems or
+source files (i.e. they should not occur inside <code class="docutils literal notranslate"><span class="pre">system</span></code> elements where the
+<code class="docutils literal notranslate"><span class="pre">name</span></code> attribute has the value <code class="docutils literal notranslate"><span class="pre">default</span></code>).  The default control assignments
+can be overridden, as well as the toggle setting for digital inputs.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">tag</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">mask</span></code> and <code class="docutils literal notranslate"><span class="pre">defvalue</span></code> are used to identify the
+affected input.  You can find out the values to use for a particular input by
+changing its control assignment, exiting MAME, and checking the values in the
+system configuration file (created in the folder specified using the
+<a class="reference internal" href="../commandline/commandline-all.xhtml#mame-commandline-cfgdirectory"><span class="std std-ref">cfg_directory option</span></a>).  Note that these
+values are not guaranteed to be stable, and may change between MAME versions.</p>
+<p>Here’s an example that overrides defaults for 280-ZZZAP:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;280zzzap&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;input&gt;</span>
+<span class="w">        </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">tag=</span><span class="s">&quot;:IN0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;P1_BUTTON2&quot;</span><span class="w"> </span><span class="na">mask=</span><span class="s">&quot;16&quot;</span><span class="w"> </span><span class="na">defvalue=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="na">toggle=</span><span class="s">&quot;no&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;port</span><span class="w"> </span><span class="na">tag=</span><span class="s">&quot;:IN1&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;P1_PADDLE&quot;</span><span class="w"> </span><span class="na">mask=</span><span class="s">&quot;255&quot;</span><span class="w"> </span><span class="na">defvalue=</span><span class="s">&quot;127&quot;</span><span class="nt">&gt;</span>
+<span class="w">            </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;increment&quot;</span><span class="nt">&gt;</span>KEYCODE_K<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">            </span><span class="nt">&lt;newseq</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;decrement&quot;</span><span class="nt">&gt;</span>KEYCODE_J<span class="nt">&lt;/newseq&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/port&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/input&gt;</span>
+<span class="nt">&lt;/system&gt;</span>
+</pre></div>
+</div>
+<p>This sets the controls to steer left and right to the K and J keys,
+respectively, and disables the toggle setting for the gear shift input.</p>
+</section>
+<section id="assigning-input-device-numbers">
+<span id="ctrlrcfg-mapdevice"></span><h2><a class="toc-backref" href="#id6" role="doc-backlink">Assigning input device numbers</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">mapdevice</span></code> elements with <code class="docutils literal notranslate"><span class="pre">device</span></code> and <code class="docutils literal notranslate"><span class="pre">controller</span></code> attributes to
+assign stable numbers to input devices.  Note that all devices explicitly
+configured in this way must be connected when MAME starts for this to work as
+expected.</p>
+<p>Set the <code class="docutils literal notranslate"><span class="pre">device</span></code> attribute to the device ID of the input device, and set the
+<code class="docutils literal notranslate"><span class="pre">controller</span></code> attribute to the desired input device token (device type and
+number).</p>
+<p>Here’s an example numbering two light guns and two XInput game controllers:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;default&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;input&gt;</span>
+<span class="w">        </span><span class="nt">&lt;mapdevice</span><span class="w"> </span><span class="na">device=</span><span class="s">&quot;VID_D209&amp;amp;PID_1601&quot;</span><span class="w"> </span><span class="na">controller=</span><span class="s">&quot;GUNCODE_1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;mapdevice</span><span class="w"> </span><span class="na">device=</span><span class="s">&quot;VID_D209&amp;amp;PID_1602&quot;</span><span class="w"> </span><span class="na">controller=</span><span class="s">&quot;GUNCODE_2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;mapdevice</span><span class="w"> </span><span class="na">device=</span><span class="s">&quot;XInput Player 1&quot;</span><span class="w"> </span><span class="na">controller=</span><span class="s">&quot;JOYCODE_1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;mapdevice</span><span class="w"> </span><span class="na">device=</span><span class="s">&quot;XInput Player 2&quot;</span><span class="w"> </span><span class="na">controller=</span><span class="s">&quot;JOYCODE_2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/input&gt;</span>
+<span class="nt">&lt;/system&gt;</span>
+</pre></div>
+</div>
+<p>MAME applies <code class="docutils literal notranslate"><span class="pre">mapdevice</span></code> elements found inside the first applicable <code class="docutils literal notranslate"><span class="pre">system</span></code>
+element only.  To avoid confusion, it’s simplest to place the <code class="docutils literal notranslate"><span class="pre">system</span></code> element
+applying to all systems (<code class="docutils literal notranslate"><span class="pre">name</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">default</span></code>) first in the
+file, and use it to assign input device numbers.</p>
+</section>
+<section id="setting-pointer-input-options">
+<span id="ctrlrcfg-pointers"></span><h2><a class="toc-backref" href="#id7" role="doc-backlink">Setting pointer input options</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">pointer_input</span></code> element may contain <code class="docutils literal notranslate"><span class="pre">target</span></code> elements to set pointer input
+options for each output screen or window.  Each <code class="docutils literal notranslate"><span class="pre">target</span></code> element must have an
+<code class="docutils literal notranslate"><span class="pre">index</span></code> attribute containing the zero-based index of the screen to which it
+applies.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">target</span></code> element may have an <code class="docutils literal notranslate"><span class="pre">activity_timeout</span></code> attribute to set the
+time after which a mouse pointer that has not moved and has no buttons pressed
+will be considered inactive.  The value is specified in seconds, and must be in
+the range of 0.1 seconds to 10 seconds, inclusive.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">target</span></code> element may have a <code class="docutils literal notranslate"><span class="pre">hide_inactive</span></code> element to set whether
+inactive pointers may be hidden.  If the value is <code class="docutils literal notranslate"><span class="pre">0</span></code> (zero), inactive
+pointers will not be hidden.  If the value is <code class="docutils literal notranslate"><span class="pre">1</span></code>, inactive pointers may be
+hidden, but layout views can still specify that inactive pointers should not be
+hidden.</p>
+<p>Here’s an example demonstrating the use of this feature:</p>
+<div class="highlight-XML notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;default&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pointer_input&gt;</span>
+<span class="w">        </span><span class="nt">&lt;target</span><span class="w"> </span><span class="na">index=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="na">activity_timeout=</span><span class="s">&quot;1.5&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/pointer_input&gt;</span>
+<span class="nt">&lt;/system&gt;</span>
+<span class="nt">&lt;system</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;intellec4.cpp&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pointer_input&gt;</span>
+<span class="w">        </span><span class="nt">&lt;target</span><span class="w"> </span><span class="na">index=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="na">hide_inactive=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/pointer_input&gt;</span>
+<span class="nt">&lt;/system&gt;</span>
+</pre></div>
+</div>
+<p>For all systems, pointers over the first output screen or window will be
+considered inactive after not moving for 1.5 seconds with no buttons pressed.
+For systems defined in <code class="docutils literal notranslate"><span class="pre">intellec4.cpp</span></code>, inactive pointers over the first
+window will not be hidden.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

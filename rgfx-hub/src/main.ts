@@ -29,10 +29,28 @@ mqtt.subscribe('rgfx/system/driver/connect', (_topic, payload) => {
   log.info(`Driver connected: ${payload}`);
 });
 
-// Start reading events and send UDP for each event
+// Map game events to LED effects
+function handleGameEvent(topic: string, message: string) {
+  // Power pill state change
+  if (topic === 'player/pill/state') {
+    const state = parseInt(message);
+    if (state > 0) {
+      // Power pill active - blue pulse
+      udp.send('pulse', '0x0000FF');
+    } else {
+      // Power pill ended - return to normal
+      udp.send('pulse', '0xFF0000');
+    }
+  }
+  // Score changes - quick flash
+  else if (topic.startsWith('player/score/')) {
+    udp.send('pulse', '0xFFFF00');
+  }
+}
+
+// Start reading events and send UDP for each event (minimal logging for low latency)
 eventReader.start((topic, message) => {
-  log.info(`Event: ${topic} = ${message}`);
-  udp.send();
+  handleGameEvent(topic, message);
 });
 
 const createWindow = () => {

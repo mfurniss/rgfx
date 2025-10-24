@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MAME Naming Conventions</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="mame-naming-conventions">
+<span id="naming"></span><h1>MAME Naming Conventions</h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#introduction" id="id1">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#transliteration" id="id2">Transliteration</a></p></li>
+<li><p><a class="reference internal" href="#titles-and-descriptions" id="id3">Titles and descriptions</a></p></li>
+<li><p><a class="reference internal" href="#c-naming-conventions" id="id4">C++ naming conventions</a></p></li>
+</ul>
+</nav>
+<section id="introduction">
+<span id="naming-intro"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Introduction</a></h2>
+<p>To promote consistency and readability in MAME source code, we have some
+naming conventions for various elements.</p>
+</section>
+<section id="transliteration">
+<span id="naming-transliteration"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Transliteration</a></h2>
+<p>For better or worse, the most broadly recognised script in the world is
+English Latin.  Conveniently, it’s also included in almost all character
+encodings.  To make MAME more globally accessible, we require Latin
+transliterations of titles and other metadata from other scripts.  Do
+not use translations in metadata – translations are inherently
+subjective and error-prone.  Translations may be included in comments if
+they may be helpful.</p>
+<p>If general, if an official Latin script name is known, it should be used
+in favour of a naïve transliteration.  For titles containing foreign
+loanwords, the conventional Latin spelling should be used for the
+loanwords (the most obvious example of this is the use of “Mahjong” in
+Japanese titles rather than “Maajan”).</p>
+<dl class="simple">
+<dt>Chinese</dt><dd><p>Where the primary audience was Mandarin-speaking, Hanyu Pinyin
+should be used.  In contexts where diacritics are not permitted
+(e.g. when limited to ASCII), tone numbers should be omitted.  When
+tones are being indicated using diacritics, tone sandhi rules should
+be applied.  Where the primary audience was Cantonese-speaking
+(primarily Hong Kong and Guandong), Jyutping should be used with
+tone numbers omitted.  If in doubt, use Hanyu Pinyin.</p>
+</dd>
+<dt>Greek</dt><dd><p>Use ISO 843:1997 type 2 (TR) rules.  Do not use traditional English
+spellings for Greek names (people or places).</p>
+</dd>
+<dt>Japanese</dt><dd><p>Modified Hepburn rules should generally be used.  Use an apostrophe
+between syllabic N and a following vowel (including iotised vowels).
+Do not use hyphens to transliterate prolonged vowels.</p>
+</dd>
+<dt>Korean</dt><dd><p>Use Revised Romanisation of Korean (RR) rules with traditional
+English spelling for Korean surnames.  Do not use ALA-LC rules for
+word division and use of hyphens.</p>
+</dd>
+<dt>Vietnamese</dt><dd><p>When diacritics can’t be used, omit the tones and replace the vowels
+with single English vowels – do not use VIQR or TELEX conventions
+(“an chuot nuong” rather than “a(n chuo^.t nu*o*'ng” or “awn chuootj
+nuowngs”).</p>
+</dd>
+</dl>
+</section>
+<section id="titles-and-descriptions">
+<span id="naming-titles"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Titles and descriptions</a></h2>
+<p>Try to reproduce the original title faithfully where possible.  Try to
+preserve the case convention used by the manufacturer/publisher.  If no
+official English Latin title is known, use a standard transliteration.
+For software list entries where a transliteration is used for the
+<code class="docutils literal notranslate"><span class="pre">description</span></code> element, put the title in an <code class="docutils literal notranslate"><span class="pre">info</span></code> element with a
+<code class="docutils literal notranslate"><span class="pre">name=&quot;alt_title&quot;</span></code> attribute.</p>
+<p>For software items that have multiple titles (for example different
+regional titles with the same installation media), use the most
+widespread English Latin title for the <code class="docutils literal notranslate"><span class="pre">description</span></code> element, and put
+the other titles in <code class="docutils literal notranslate"><span class="pre">info</span></code> elements with <code class="docutils literal notranslate"><span class="pre">name=&quot;alt_title&quot;</span></code>
+attributes.</p>
+<p>If disambiguation is needed, try to be descriptive as possible.  For
+example, use the manufacturer’s version number, regional licensee’s
+name, or terse description of hardware differences in preference to
+arbitrary set numbers.  Surround the disambiguation text with
+parentheses, preserve original case for names and version text, but
+use lowercase for anything else besides proper nouns and initialisms.</p>
+</section>
+<section id="c-naming-conventions">
+<span id="naming-cplusplus"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink">C++ naming conventions</a></h2>
+<p>For C++ naming conventions, see the relevant section in the C++
+Coding Guidelines: <a class="reference internal" href="../contributing/cxx.xhtml#contributing-cxx-naming"><span class="std std-ref">Naming conventions</span></a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

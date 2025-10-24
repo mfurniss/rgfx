@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="en"
+ unique-identifier="unknown"
+ prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
+  <metadata xmlns:opf="http://www.idpf.org/2007/opf"
+        xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:language>en</dc:language>
+    <dc:title>MAME Documentation</dc:title>
+    <dc:description>unknown</dc:description>
+    <dc:creator>Author name not set</dc:creator>
+    <dc:contributor>unknown</dc:contributor>
+    <dc:publisher>Author name not set</dc:publisher>
+    <dc:rights>1997-2025, MAMEdev and contributors</dc:rights>
+    <dc:identifier id="unknown">unknown</dc:identifier>
+    <dc:date>2025-10-15T00:40:18Z</dc:date>
+    <meta property="dcterms:modified">2025-10-15T00:40:18Z</meta>
+    <meta property="ibooks:version">0.282</meta>
+    <meta property="ibooks:specified-fonts">true</meta>
+    <meta property="ibooks:binding">true</meta>
+    <meta property="ibooks:scroll-axis">vertical</meta>
+  </metadata>
+  <manifest>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+    <item id="epub-0" href="genindex.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-1" href="healthwarning.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-2" href="index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-3" href="license.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-4" href="security.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-5" href="whatis.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-6" href="_images/MAMElogo.svg" media-type="image/svg+xml" />
+    <item id="epub-7" href="_images/mahjongpanel.svg" media-type="image/svg+xml" />
+    <item id="epub-8" href="_static/basic.css" media-type="text/css" />
+    <item id="epub-9" href="_static/epub.css" media-type="text/css" />
+    <item id="epub-10" href="_static/file.png" media-type="image/png" />
+    <item id="epub-11" href="_static/minus.png" media-type="image/png" />
+    <item id="epub-12" href="_static/plus.png" media-type="image/png" />
+    <item id="epub-13" href="_static/pygments.css" media-type="text/css" />
+    <item id="epub-14" href="advanced/bgfx.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-15" href="advanced/ctrlr_config.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-16" href="advanced/devicemap.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-17" href="advanced/glsl.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-18" href="advanced/hlsl.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-19" href="advanced/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-20" href="advanced/linux-lightguns.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-21" href="advanced/multiconfig.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-22" href="advanced/paths.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-23" href="advanced/shiftertoggle.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-24" href="commandline/commandline-all.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-25" href="commandline/commandline-index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-26" href="commandline/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-27" href="commandline/sdlconfig.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-28" href="commandline/windowsconfig.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-29" href="contributing/cxx.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-30" href="contributing/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-31" href="contributing/softlist.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-32" href="debugger/annotation.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-33" href="debugger/breakpoint.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-34" href="debugger/cheats.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-35" href="debugger/exceptionpoint.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-36" href="debugger/execution.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-37" href="debugger/general.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-38" href="debugger/image.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-39" href="debugger/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-40" href="debugger/memory.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-41" href="debugger/registerpoints.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-42" href="debugger/watchpoint.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-43" href="initialsetup/compilingmame.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-44" href="initialsetup/configuringmame.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-45" href="initialsetup/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-46" href="initialsetup/installingmame.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-47" href="initialsetup/mameintro.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-48" href="luascript/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-49" href="luascript/ref-common.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-50" href="luascript/ref-core.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-51" href="luascript/ref-debugger.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-52" href="luascript/ref-devices.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-53" href="luascript/ref-input.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-54" href="luascript/ref-mem.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-55" href="luascript/ref-render.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-56" href="plugins/autofire.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-57" href="plugins/console.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-58" href="plugins/data.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-59" href="plugins/discord.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-60" href="plugins/dummy.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-61" href="plugins/gdbstub.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-62" href="plugins/hiscore.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-63" href="plugins/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-64" href="plugins/inputmacro.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-65" href="plugins/layout.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-66" href="plugins/timecode.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-67" href="plugins/timer.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-68" href="techspecs/audio_effects.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-69" href="techspecs/cpu_device.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-70" href="techspecs/device_disasm_interface.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-71" href="techspecs/device_memory_interface.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-72" href="techspecs/device_rom_interface.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-73" href="techspecs/device_sound_interface.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-74" href="techspecs/floppy.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-75" href="techspecs/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-76" href="techspecs/inputsystem.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-77" href="techspecs/layout_files.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-78" href="techspecs/layout_script.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-79" href="techspecs/m6502.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-80" href="techspecs/memory.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-81" href="techspecs/naming.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-82" href="techspecs/nscsi.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-83" href="techspecs/object_finders.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-84" href="techspecs/osd_audio.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-85" href="techspecs/poly_manager.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-86" href="techspecs/uml_instructions.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-87" href="tools/castool.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-88" href="tools/chdman.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-89" href="tools/floptool.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-90" href="tools/imgtool.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-91" href="tools/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-92" href="tools/othertools.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-93" href="usingmame/aboutromsets.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-94" href="usingmame/assetsearch.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-95" href="usingmame/commonissues.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-96" href="usingmame/defaultkeys.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-97" href="usingmame/frontends.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-98" href="usingmame/index.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-99" href="usingmame/mamemenus.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-100" href="usingmame/ui.xhtml" media-type="application/xhtml+xml" />
+    <item id="epub-101" href="usingmame/usingmame.xhtml" media-type="application/xhtml+xml" />
+  </manifest>
+  <spine toc="ncx" page-progression-direction="ltr">
+    <itemref idref="epub-2" />
+    <itemref idref="epub-5" />
+    <itemref idref="epub-1" />
+    <itemref idref="epub-45" />
+    <itemref idref="epub-47" />
+    <itemref idref="epub-46" />
+    <itemref idref="epub-43" />
+    <itemref idref="epub-44" />
+    <itemref idref="epub-98" />
+    <itemref idref="epub-101" />
+    <itemref idref="epub-100" />
+    <itemref idref="epub-96" />
+    <itemref idref="epub-99" />
+    <itemref idref="epub-94" />
+    <itemref idref="epub-97" />
+    <itemref idref="epub-93" />
+    <itemref idref="epub-95" />
+    <itemref idref="epub-26" />
+    <itemref idref="epub-24" />
+    <itemref idref="epub-28" />
+    <itemref idref="epub-27" />
+    <itemref idref="epub-25" />
+    <itemref idref="epub-63" />
+    <itemref idref="epub-56" />
+    <itemref idref="epub-57" />
+    <itemref idref="epub-58" />
+    <itemref idref="epub-59" />
+    <itemref idref="epub-60" />
+    <itemref idref="epub-61" />
+    <itemref idref="epub-62" />
+    <itemref idref="epub-64" />
+    <itemref idref="epub-65" />
+    <itemref idref="epub-66" />
+    <itemref idref="epub-67" />
+    <itemref idref="epub-19" />
+    <itemref idref="epub-21" />
+    <itemref idref="epub-22" />
+    <itemref idref="epub-23" />
+    <itemref idref="epub-14" />
+    <itemref idref="epub-18" />
+    <itemref idref="epub-17" />
+    <itemref idref="epub-15" />
+    <itemref idref="epub-16" />
+    <itemref idref="epub-20" />
+    <itemref idref="epub-39" />
+    <itemref idref="epub-37" />
+    <itemref idref="epub-40" />
+    <itemref idref="epub-36" />
+    <itemref idref="epub-33" />
+    <itemref idref="epub-42" />
+    <itemref idref="epub-41" />
+    <itemref idref="epub-35" />
+    <itemref idref="epub-32" />
+    <itemref idref="epub-34" />
+    <itemref idref="epub-38" />
+    <itemref idref="epub-48" />
+    <itemref idref="epub-49" />
+    <itemref idref="epub-50" />
+    <itemref idref="epub-52" />
+    <itemref idref="epub-54" />
+    <itemref idref="epub-53" />
+    <itemref idref="epub-55" />
+    <itemref idref="epub-51" />
+    <itemref idref="epub-91" />
+    <itemref idref="epub-88" />
+    <itemref idref="epub-90" />
+    <itemref idref="epub-87" />
+    <itemref idref="epub-89" />
+    <itemref idref="epub-92" />
+    <itemref idref="epub-30" />
+    <itemref idref="epub-29" />
+    <itemref idref="epub-31" />
+    <itemref idref="epub-75" />
+    <itemref idref="epub-81" />
+    <itemref idref="epub-77" />
+    <itemref idref="epub-78" />
+    <itemref idref="epub-83" />
+    <itemref idref="epub-76" />
+    <itemref idref="epub-71" />
+    <itemref idref="epub-72" />
+    <itemref idref="epub-70" />
+    <itemref idref="epub-73" />
+    <itemref idref="epub-80" />
+    <itemref idref="epub-69" />
+    <itemref idref="epub-74" />
+    <itemref idref="epub-82" />
+    <itemref idref="epub-79" />
+    <itemref idref="epub-86" />
+    <itemref idref="epub-85" />
+    <itemref idref="epub-68" />
+    <itemref idref="epub-84" />
+    <itemref idref="epub-4" />
+    <itemref idref="epub-3" />
+    <itemref idref="epub-0" />
+  </spine>
+  <guide>
+    <reference type="toc" title="Table of Contents" href="index.xhtml" />
+  </guide>
+</package>

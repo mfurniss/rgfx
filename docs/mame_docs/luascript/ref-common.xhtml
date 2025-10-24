@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Lua Common Types and Globals</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/epub.css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="lua-common-types-and-globals">
+<span id="luascript-ref-common"></span><h1>Lua Common Types and Globals</h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#containers" id="id1">Containers</a></p></li>
+<li><p><a class="reference internal" href="#emulator-interface" id="id2">Emulator interface</a></p></li>
+</ul>
+</nav>
+<section id="containers">
+<span id="luascript-ref-containers"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Containers</a></h2>
+<p>Many properties yield container wrappers.  Container wrappers are cheap to
+create, and provide an interface that is similar to a read-only table.  The
+complexity of operations may vary.  Container wrappers usually provide most of
+these operations:</p>
+<dl class="simple">
+<dt>#c</dt><dd><p>Get the number of items in the container.</p>
+</dd>
+<dt>c[k]</dt><dd><p>Returns the item corresponding to the key <code class="docutils literal notranslate"><span class="pre">k</span></code>, or <code class="docutils literal notranslate"><span class="pre">nil</span></code> if the key is
+not present.</p>
+</dd>
+<dt>pairs(c)</dt><dd><p>Iterate over container by key and value.  The key is what you would pass to
+the index operator or the <code class="docutils literal notranslate"><span class="pre">get</span></code> method to get the value.</p>
+</dd>
+<dt>ipairs(c)</dt><dd><p>Iterate over container by index and value.  The index is what you would pass
+to the <code class="docutils literal notranslate"><span class="pre">at</span></code> method to get the value (this may be the same as the key for
+some containers).</p>
+</dd>
+<dt>c:empty()</dt><dd><p>Returns a Boolean indicating whether there are no items in the container.</p>
+</dd>
+<dt>c:get(k)</dt><dd><p>Returns the item corresponding to the key <code class="docutils literal notranslate"><span class="pre">k</span></code>, or <code class="docutils literal notranslate"><span class="pre">nil</span></code> if the key is
+not present.  Usually equivalent to the index operator.</p>
+</dd>
+<dt>c:at(i)</dt><dd><p>Returns the value at the 1-based index <code class="docutils literal notranslate"><span class="pre">i</span></code>, or <code class="docutils literal notranslate"><span class="pre">nil</span></code> if it is out of
+range.</p>
+</dd>
+<dt>c:find(v)</dt><dd><p>Returns the key for item <code class="docutils literal notranslate"><span class="pre">v</span></code>, or <code class="docutils literal notranslate"><span class="pre">nil</span></code> if it is not in the container.
+The key is what you would pass to the index operator to get the value.</p>
+</dd>
+<dt>c:index_of(v)</dt><dd><p>Returns the 1-based index for item <code class="docutils literal notranslate"><span class="pre">v</span></code>, or <code class="docutils literal notranslate"><span class="pre">nil</span></code> if it is not in the
+container.  The index is what you would pass to the <code class="docutils literal notranslate"><span class="pre">at</span></code> method to get the
+value.</p>
+</dd>
+</dl>
+</section>
+<section id="emulator-interface">
+<span id="luascript-ref-emu"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Emulator interface</a></h2>
+<p>The emulator interface <code class="docutils literal notranslate"><span class="pre">emu</span></code> provides access to core functionality.  Many
+classes are also available as properties of the emulator interface.</p>
+<section id="methods">
+<h3>Methods</h3>
+<dl>
+<dt>emu.wait(duration, …)</dt><dd><p>Yields for the specified duration in terms of emulated time.  The duration
+may be specified as an <a class="reference internal" href="ref-core.xhtml#luascript-ref-attotime"><span class="std std-ref">attotime</span></a> or a number
+in seconds.  Any additional arguments are returned from the coroutine.
+Returns a Boolean indicating whether the duration expired normally.</p>
+<p>All outstanding calls to <code class="docutils literal notranslate"><span class="pre">emu.wait</span></code> will return <code class="docutils literal notranslate"><span class="pre">false</span></code> immediately if a
+saved state is loaded or the emulation session ends.  Calling this function
+from callbacks that are not run as coroutines will raise an error.</p>
+</dd>
+<dt>emu.wait_next_update(…)</dt><dd><p>Yields until the next video/UI update.  Any arguments are returned from the
+coroutine.  Calling this function from callbacks that are not run as coroutines
+will raise an error.</p>
+</dd>
+<dt>emu.wait_next_frame(…)</dt><dd><p>Yields until the next emulated frame completes.  Any arguments are returned
+from the coroutine.  Calling this function from callbacks that are not run as
+coroutines will raise an error.</p>
+</dd>
+<dt>emu.add_machine_reset_notifier(callback)</dt><dd><p>Add a callback to receive notifications when the emulated system is reset.
+Returns a <a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.add_machine_stop_notifier(callback)</dt><dd><p>Add a callback to receive notifications when the emulated system is stopped.
+Returns a <a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.add_machine_pause_notifier(callback)</dt><dd><p>Add a callback to receive notifications when the emulated system is paused.
+Returns a <a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.add_machine_resume_notifier(callback)</dt><dd><p>Add a callback to receive notifications when the emulated system is resumed
+after being paused.  Returns a
+<a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.add_machine_frame_notifier(callback)</dt><dd><p>Add a callback to receive notifications when an emulated frame completes.
+Returns a <a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.add_machine_pre_save_notifier(callback)</dt><dd><p>Add a callback to receive notification before the emulated system state is
+saved.  Returns a
+<a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.add_machine_post_load_notifier(callback)</dt><dd><p>Add a callback to receive notification after the emulated system is restored
+to a previously saved state.  Returns a
+<a class="reference internal" href="ref-core.xhtml#luascript-ref-notifiersub"><span class="std std-ref">notifier subscription</span></a>.</p>
+</dd>
+<dt>emu.register_sound_update(callback)</dt><dd><p>Add a callback to receive new samples that have been created.  The samples
+are coming from the sound devices for which the hook property has been set
+to true.  The callback gets one parameter which is a hash with device tag
+as key and a (channel-sized) vector of (buffer-sized) vector of samples
+in the -1..1 range.</p>
+</dd>
+<dt>emu.print_error(message)</dt><dd><p>Print an error message.</p>
+</dd>
+<dt>emu.print_warning(message)</dt><dd><p>Print a warning message.</p>
+</dd>
+<dt>emu.print_info(message)</dt><dd><p>Print an informational message.</p>
+</dd>
+<dt>emu.print_verbose(message)</dt><dd><p>Print a verbose diagnostic message (disabled by default).</p>
+</dd>
+<dt>emu.print_debug(message)</dt><dd><p>Print a debug message (only enabled for debug builds by default).</p>
+</dd>
+<dt>emu.lang_translate([context], message)</dt><dd><p>Look up a message with optional context in the current localised message
+catalog.  Returns the message unchanged if no corresponding localised
+message is found.</p>
+</dd>
+<dt>emu.subst_env(string)</dt><dd><p>Substitute environment variables in a string.  The syntax is dependent on
+the host operating system.</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
