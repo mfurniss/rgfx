@@ -16,9 +16,7 @@ export class Udp {
     // Listen for socket-level errors (DNS, binding, network interface errors)
     this.socket.on("error", (err) => {
       log.error(`UDP socket error: ${err.message}`);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(err);
-      }
+      this.onErrorCallback?.(err);
     });
 
     log.info(`UDP configured for ${this.ip}:${this.port}`);
@@ -38,14 +36,10 @@ export class Udp {
     this.socket.send(message, this.port, this.ip, (err) => {
       if (err) {
         log.error(`UDP send failed: ${err.message}`);
-        if (this.onErrorCallback) {
-          this.onErrorCallback(err);
-        }
+        this.onErrorCallback?.(err);
       } else {
         // Sent (not necessarily received due to UDP nature)
-        if (this.onSuccessCallback) {
-          this.onSuccessCallback();
-        }
+        this.onSuccessCallback?.();
       }
     });
   }

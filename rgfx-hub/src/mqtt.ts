@@ -40,9 +40,7 @@ export class Mqtt {
 
         // Check if we have a subscription handler for this topic
         const handler = this.subscriptions.get(packet.topic);
-        if (handler) {
-          handler(packet.topic, packet.payload.toString());
-        }
+        handler?.(packet.topic, packet.payload.toString());
       }
     });
   }
