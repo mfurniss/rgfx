@@ -1,11 +1,15 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'node:path';
-import started from 'electron-squirrel-startup';
-import log from 'electron-log/main';
-import { Mqtt } from './mqtt';
-import { Udp } from './udp';
-import { EventFileReader } from './EventFileReader';
-import type { Device, SystemStatus } from './types';
+import { app, BrowserWindow } from "electron";
+import path from "node:path";
+import started from "electron-squirrel-startup";
+import log from "electron-log/main";
+import { Mqtt } from "./mqtt";
+import { Udp } from "./udp";
+import { EventFileReader } from "./EventFileReader";
+import type { Device, SystemStatus } from "./types";
+
+// Vite environment variables injected by Electron Forge
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
+declare const MAIN_WINDOW_VITE_NAME: string;
 
 // Initialize electron-log
 log.initialize();
@@ -15,7 +19,7 @@ if (started) {
   app.quit();
 }
 
-log.info('RGFX Hub starting...');
+log.info("RGFX Hub starting...");
 
 // Device registry
 const devices = new Map<string, Device>();
@@ -23,7 +27,7 @@ let mainWindow: BrowserWindow | null = null;
 
 // Initialize MQTT broker and UDP sender
 const mqtt = new Mqtt(1883);
-const udp = new Udp('192.168.10.86', 1234);
+const udp = new Udp("192.168.10.86", 1234);
 const eventReader = new EventFileReader();
 
 // Track if we're already checking connection after UDP failure
@@ -45,16 +49,20 @@ function trackUdpSend(success: boolean) {
   if (device) {
     if (success) {
       device.stats.udpMessagesSent++;
-      log.info(`UDP sent to ${device.name}: ${device.stats.udpMessagesSent} total`);
+      log.info(
+        `UDP sent to ${device.name}: ${device.stats.udpMessagesSent} total`,
+      );
     } else {
       device.stats.udpMessagesFailed++;
-      log.info(`UDP failed to ${device.name}: ${device.stats.udpMessagesFailed} total`);
+      log.info(
+        `UDP failed to ${device.name}: ${device.stats.udpMessagesFailed} total`,
+      );
     }
     devices.set(device.id, device);
 
     // Send updated device to renderer
     if (mainWindow) {
-      mainWindow.webContents.send('device:connected', device);
+      mainWindow.webContents.send("device:connected", device);
     }
   } else {
     log.warn(`trackUdpSend: No device found with IP ${udp.ip}`);
@@ -75,7 +83,7 @@ udp.setErrorCallback((err) => {
   // Only trigger one MQTT check at a time
   if (!checkingConnectionAfterUdpFailure) {
     checkingConnectionAfterUdpFailure = true;
-    log.info('First UDP failure - triggering immediate MQTT connection check');
+    log.info("First UDP failure - triggering immediate MQTT connection check");
 
     // Send discovery request immediately
     sendDiscoveryRequest();
@@ -113,8 +121,8 @@ function startDiscovery() {
 }
 
 function sendDiscoveryRequest() {
-  log.info('Sending driver discovery request...');
-  mqtt.publish('rgfx/system/discover', 'ping');
+  log.info("Sending driver discovery request...");
+  mqtt.publish("rgfx/system/discover", "ping");
 }
 
 function checkDeviceTimeouts() {
@@ -125,10 +133,14 @@ function checkDeviceTimeouts() {
 
   devices.forEach((device, deviceId) => {
     const timeSinceLastSeen = now - device.lastSeen;
-    log.info(`Device ${device.name}: connected=${device.connected}, lastSeen=${timeSinceLastSeen}ms ago, threshold=${DEVICE_TIMEOUT_MS}ms`);
+    log.info(
+      `Device ${device.name}: connected=${device.connected}, lastSeen=${timeSinceLastSeen}ms ago, threshold=${DEVICE_TIMEOUT_MS}ms`,
+    );
 
     if (device.connected && timeSinceLastSeen > DEVICE_TIMEOUT_MS) {
-      log.info(`Device ${device.name} (${deviceId}) timed out - marking as disconnected`);
+      log.info(
+        `Device ${device.name} (${deviceId}) timed out - marking as disconnected`,
+      );
 
       // Mark as disconnected
       device.connected = false;
@@ -136,7 +148,7 @@ function checkDeviceTimeouts() {
 
       // Notify renderer with updated device object
       if (mainWindow) {
-        mainWindow.webContents.send('device:disconnected', device);
+        mainWindow.webContents.send("device:disconnected", device);
         log.info(`Sent device:disconnected event to renderer`);
         disconnectedCount++;
       }
@@ -151,18 +163,18 @@ function checkDeviceTimeouts() {
 
 // Helper to get Hub's local IP address
 function getLocalIpAddress(): string {
-  const { networkInterfaces } = require('os');
+  const { networkInterfaces } = require("os");
   const nets = networkInterfaces();
 
   for (const name of Object.keys(nets)) {
     for (const net of nets[name]) {
       // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
-      if (net.family === 'IPv4' && !net.internal) {
+      if (net.family === "IPv4" && !net.internal) {
         return net.address;
       }
     }
   }
-  return 'Unknown';
+  return "Unknown";
 }
 
 // Helper to send system status to renderer
@@ -178,39 +190,40 @@ function sendSystemStatus() {
   });
 
   const status: SystemStatus = {
-    mqttBroker: 'running',
-    udpServer: 'active',
-    eventReader: 'monitoring',
+    mqttBroker: "running",
+    udpServer: "active",
+    eventReader: "monitoring",
     devicesConnected: connectedCount,
     hubIp: getLocalIpAddress(),
   };
 
-  mainWindow.webContents.send('system:status', status);
+  mainWindow.webContents.send("system:status", status);
 }
 
 // Subscribe to driver connect messages (also used for discovery responses)
-mqtt.subscribe('rgfx/system/driver/connect', (_topic, payload) => {
+mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
   log.info(`Driver response received`);
 
   try {
     // Parse JSON payload from driver
     const sysInfo = JSON.parse(payload);
 
-    const deviceId = sysInfo.mac || sysInfo.ip || 'unknown';
+    const deviceId = sysInfo.mac || sysInfo.ip || "unknown";
     const existingDevice = devices.get(deviceId);
     const now = Date.now();
 
     const device: Device = {
       id: deviceId,
-      name: sysInfo.hostname || sysInfo.ip || 'Driver',
-      type: 'driver',
+      name: sysInfo.hostname || sysInfo.ip || "Driver",
+      type: "driver",
       connected: true,
       lastSeen: now,
       firstSeen: existingDevice?.firstSeen || now,
       ip: sysInfo.ip,
       sysInfo: sysInfo,
       stats: {
-        mqttMessagesReceived: (existingDevice?.stats.mqttMessagesReceived || 0) + 1,
+        mqttMessagesReceived:
+          (existingDevice?.stats.mqttMessagesReceived || 0) + 1,
         mqttMessagesFailed: existingDevice?.stats.mqttMessagesFailed || 0,
         udpMessagesSent: existingDevice?.stats.udpMessagesSent || 0,
         udpMessagesFailed: existingDevice?.stats.udpMessagesFailed || 0,
@@ -223,7 +236,7 @@ mqtt.subscribe('rgfx/system/driver/connect', (_topic, payload) => {
     if (!existingDevice || !existingDevice.connected) {
       log.info(`New device connected: ${device.name} (${deviceId})`);
       if (mainWindow) {
-        mainWindow.webContents.send('device:connected', device);
+        mainWindow.webContents.send("device:connected", device);
         sendSystemStatus();
       }
     } else {
@@ -241,19 +254,19 @@ mqtt.subscribe('rgfx/system/driver/connect', (_topic, payload) => {
 // Map game events to LED effects
 function handleGameEvent(topic: string, message: string) {
   // Power pill state change
-  if (topic === 'player/pill/state') {
+  if (topic === "player/pill/state") {
     const state = parseInt(message);
     if (state > 0) {
       // Power pill active - blue pulse
-      udp.send('pulse', '0x0000FF');
+      udp.send("pulse", "0x0000FF");
     } else {
       // Power pill ended - return to normal
-      udp.send('pulse', '0xFF0000');
+      udp.send("pulse", "0xFF0000");
     }
   }
   // Score changes - quick flash
-  else if (topic.startsWith('player/score/')) {
-    udp.send('pulse', '0xFFFF00');
+  else if (topic.startsWith("player/score/")) {
+    udp.send("pulse", "0xFFFF00");
   }
 }
 
@@ -268,33 +281,37 @@ const createWindow = () => {
     width: 1000,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  // and load the index.html of the app.
-  // if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-  //   mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  // } else {
-  //   mainWindow.loadFile(
-  //     path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-  //   );
-  // }
+  // Load the index.html of the app
+  // In development, MAIN_WINDOW_VITE_DEV_SERVER_URL will be set by Electron Forge
+  // In production, we load the built HTML file
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    log.info(`Loading dev server: ${MAIN_WINDOW_VITE_DEV_SERVER_URL}`);
+    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    log.info(`Loading production build from: ${MAIN_WINDOW_VITE_NAME}`);
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    );
+  }
 
-  mainWindow.loadURL('http://localhost:5173');
-
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Open the DevTools in development mode only
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    mainWindow.webContents.openDevTools();
+  }
 
   // Send initial system status once window is ready
-  mainWindow.webContents.on('did-finish-load', () => {
+  mainWindow.webContents.on("did-finish-load", () => {
     // Small delay to ensure renderer IPC listeners are set up
     setTimeout(() => {
       // Send all devices (both connected and disconnected)
       devices.forEach((device) => {
-        mainWindow?.webContents.send('device:connected', device);
+        mainWindow?.webContents.send("device:connected", device);
       });
       // Send system status
       sendSystemStatus();
@@ -307,7 +324,7 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
+app.on("ready", () => {
   createWindow();
 
   // Start periodic driver discovery
@@ -317,15 +334,15 @@ app.on('ready', () => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
 // Cleanup on app quit
-app.on('before-quit', async () => {
-  log.info('Shutting down...');
+app.on("before-quit", async () => {
+  log.info("Shutting down...");
 
   // Stop intervals
   if (discoveryInterval) {
@@ -339,7 +356,7 @@ app.on('before-quit', async () => {
   await mqtt.stop();
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {

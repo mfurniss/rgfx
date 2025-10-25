@@ -1,5 +1,5 @@
-import dgram from 'node:dgram';
-import log from 'electron-log/main';
+import dgram from "node:dgram";
+import log from "electron-log/main";
 
 export class Udp {
   private socket: dgram.Socket;
@@ -11,10 +11,10 @@ export class Udp {
   constructor(ip: string, port: number) {
     this.ip = ip;
     this.port = port;
-    this.socket = dgram.createSocket('udp4');
+    this.socket = dgram.createSocket("udp4");
 
     // Listen for socket-level errors (DNS, binding, network interface errors)
-    this.socket.on('error', (err) => {
+    this.socket.on("error", (err) => {
       log.error(`UDP socket error: ${err.message}`);
       if (this.onErrorCallback) {
         this.onErrorCallback(err);
@@ -52,6 +52,6 @@ export class Udp {
 
   stop() {
     this.socket.close();
-    log.info('UDP stopped');
+    log.info("UDP stopped");
   }
 }

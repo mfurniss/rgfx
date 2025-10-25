@@ -31,6 +31,11 @@
       "esp32-installer": true,
       "rgfx.io": true,
       "rgfx-hub": true
+    },
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
     }
   }
 }

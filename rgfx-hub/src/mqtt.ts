@@ -1,13 +1,14 @@
-import Aedes from 'aedes';
-import { createServer, Server } from 'node:net';
-import log from 'electron-log/main';
-import Bonjour from 'bonjour-service';
+import Aedes from "aedes";
+import { createServer, Server } from "node:net";
+import log from "electron-log/main";
+import Bonjour from "bonjour-service";
 
 export class Mqtt {
   private aedes: Aedes;
   private server: Server;
   private port: number;
-  private subscriptions: Map<string, (topic: string, payload: string) => void> = new Map();
+  private subscriptions: Map<string, (topic: string, payload: string) => void> =
+    new Map();
   private bonjour?: Bonjour;
   private mdnsService?: any;
 
@@ -19,21 +20,23 @@ export class Mqtt {
   }
 
   private setupEventHandlers() {
-    this.server.on('error', (err) => {
-      log.error('MQTT server error:', err);
+    this.server.on("error", (err) => {
+      log.error("MQTT server error:", err);
     });
 
-    this.aedes.on('client', (client) => {
+    this.aedes.on("client", (client) => {
       log.info(`MQTT client connected: ${client.id}`);
     });
 
-    this.aedes.on('clientDisconnect', (client) => {
+    this.aedes.on("clientDisconnect", (client) => {
       log.info(`MQTT client disconnected: ${client.id}`);
     });
 
-    this.aedes.on('publish', (packet, client) => {
+    this.aedes.on("publish", (packet, client) => {
       if (client) {
-        log.info(`MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`);
+        log.info(
+          `MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`,
+        );
 
         // Check if we have a subscription handler for this topic
         const handler = this.subscriptions.get(packet.topic);
@@ -52,7 +55,7 @@ export class Mqtt {
   publish(topic: string, payload: string) {
     this.aedes.publish(
       {
-        cmd: 'publish',
+        cmd: "publish",
         qos: 0,
         dup: false,
         topic,
@@ -65,7 +68,7 @@ export class Mqtt {
         } else {
           log.info(`Published to ${topic}: ${payload}`);
         }
-      }
+      },
     );
   }
 
@@ -76,15 +79,17 @@ export class Mqtt {
       // Announce MQTT broker via mDNS
       this.bonjour = new Bonjour();
       this.mdnsService = this.bonjour.publish({
-        name: 'RGFX Hub',
-        type: 'mqtt',
+        name: "RGFX Hub",
+        type: "mqtt",
         port: this.port,
-        host: 'rgfx-hub.local',  // Explicitly set hostname to avoid conflicts with macOS system hostname
+        host: "rgfx-hub.local", // Explicitly set hostname to avoid conflicts with macOS system hostname
         txt: {
-          version: '1.0'
-        }
+          version: "1.0",
+        },
       });
-      log.info('MQTT broker announced via mDNS as "RGFX Hub._mqtt._tcp" at rgfx-hub.local');
+      log.info(
+        'MQTT broker announced via mDNS as "RGFX Hub._mqtt._tcp" at rgfx-hub.local',
+      );
     });
   }
 
@@ -100,7 +105,7 @@ export class Mqtt {
 
       this.aedes.close(() => {
         this.server.close(() => {
-          log.info('MQTT broker stopped');
+          log.info("MQTT broker stopped");
           resolve();
         });
       });

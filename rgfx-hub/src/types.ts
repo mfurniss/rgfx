@@ -49,7 +49,7 @@ export interface DeviceStats {
 export interface Device {
   id: string;
   name: string;
-  type: 'driver' | 'controller';
+  type: "driver" | "controller";
   connected: boolean;
   lastSeen: number;
   firstSeen: number;
@@ -59,9 +59,9 @@ export interface Device {
 }
 
 export interface SystemStatus {
-  mqttBroker: 'running' | 'stopped' | 'error';
-  udpServer: 'active' | 'inactive' | 'error';
-  eventReader: 'monitoring' | 'stopped' | 'error';
+  mqttBroker: "running" | "stopped" | "error";
+  udpServer: "active" | "inactive" | "error";
+  eventReader: "monitoring" | "stopped" | "error";
   devicesConnected: number;
   hubIp: string;
 }
