@@ -1,6 +1,6 @@
 // Shared types for IPC communication between main and renderer processes
 
-export interface DeviceSystemInfo {
+export interface DriverSystemInfo {
   // Network information
   ip: string;
   mac: string;
@@ -39,14 +39,14 @@ export interface DeviceSystemInfo {
   ledColorOrder: string;
 }
 
-export interface DeviceStats {
+export interface DriverStats {
   mqttMessagesReceived: number;
   mqttMessagesFailed: number;
   udpMessagesSent: number;
   udpMessagesFailed: number;
 }
 
-export interface Device {
+export interface Driver {
   id: string;
   name: string;
   type: "driver" | "controller";
@@ -54,21 +54,21 @@ export interface Device {
   lastSeen: number;
   firstSeen: number;
   ip?: string;
-  sysInfo?: DeviceSystemInfo;
-  stats: DeviceStats;
+  sysInfo?: DriverSystemInfo;
+  stats: DriverStats;
 }
 
 export interface SystemStatus {
   mqttBroker: "running" | "stopped" | "error";
   udpServer: "active" | "inactive" | "error";
   eventReader: "monitoring" | "stopped" | "error";
-  devicesConnected: number;
+  driversConnected: number;
   hubIp: string;
 }
 
 export interface IpcApi {
-  onDeviceConnected: (callback: (device: Device) => void) => void;
-  onDeviceDisconnected: (callback: (device: Device) => void) => void;
+  onDriverConnected: (callback: (driver: Driver) => void) => void;
+  onDriverDisconnected: (callback: (driver: Driver) => void) => void;
   onSystemStatus: (callback: (status: SystemStatus) => void) => void;
 }
 

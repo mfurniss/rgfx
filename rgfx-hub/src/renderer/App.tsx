@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   CssBaseline,
   ThemeProvider,
@@ -12,48 +12,29 @@ import {
   Grid,
   Chip,
 } from '@mui/material';
-import type { Device, SystemStatus as SystemStatusType } from '../types';
-import DeviceCard from './DeviceCard';
+import DriverCard from './DriverCard';
 import SystemStatus from './components/SystemStatus';
+import { useDriverStore } from './store/driverStore';
 
 // Create Material UI theme (default theme)
 const theme = createTheme();
 
 const App: React.FC = () => {
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [systemStatus, setSystemStatus] = useState<SystemStatusType>({
-    mqttBroker: 'stopped',
-    udpServer: 'inactive',
-    eventReader: 'stopped',
-    devicesConnected: 0,
-    hubIp: 'Unknown',
-  });
+  // Get state from Zustand store
+  const drivers = useDriverStore(state => state.drivers);
+  const systemStatus = useDriverStore(state => state.systemStatus);
+
+  // Get actions from Zustand store
+  const driverConnected = useDriverStore(state => state.driverConnected);
+  const driverDisconnected = useDriverStore(state => state.driverDisconnected);
+  const updateSystemStatus = useDriverStore(state => state.updateSystemStatus);
 
   useEffect(() => {
-    // Set up IPC listeners
-    window.rgfx.onDeviceConnected((device: Device) => {
-      setDevices((prev) => {
-        // Check if device already exists
-        const exists = prev.find((d) => d.id === device.id);
-        if (exists) {
-          // Update existing device
-          return prev.map((d) => (d.id === device.id ? device : d));
-        }
-        // Add new device
-        return [...prev, device];
-      });
-    });
-
-    window.rgfx.onDeviceDisconnected((device: Device) => {
-      setDevices((prev) =>
-        prev.map((d) => (d.id === device.id ? device : d))
-      );
-    });
-
-    window.rgfx.onSystemStatus((status: SystemStatusType) => {
-      setSystemStatus(status);
-    });
-  }, []);
+    // Wire IPC listeners directly to Zustand actions
+    window.rgfx.onDriverConnected(driverConnected);
+    window.rgfx.onDriverDisconnected(driverDisconnected);
+    window.rgfx.onSystemStatus(updateSystemStatus);
+  }, [driverConnected, driverDisconnected, updateSystemStatus]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -86,19 +67,19 @@ const App: React.FC = () => {
               <SystemStatus status={systemStatus} />
             </Grid>
 
-            {/* Devices Section */}
-            {devices.length === 0 ? (
+            {/* Drivers Section */}
+            {drivers.length === 0 ? (
               <Grid size={12}>
                 <Paper sx={{ p: 3, textAlign: 'center' }}>
                   <Typography color="text.secondary">
-                    No devices discovered yet. Waiting for drivers to connect...
+                    No drivers discovered yet. Waiting for drivers to connect...
                   </Typography>
                 </Paper>
               </Grid>
             ) : (
-              devices.map((device) => (
-                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={device.id}>
-                  <DeviceCard device={device} />
+              drivers.map((driver) => (
+                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={driver.id}>
+                  <DriverCard driver={driver} />
                 </Grid>
               ))
             )}

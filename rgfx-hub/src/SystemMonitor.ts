@@ -19,7 +19,7 @@ export class SystemMonitor {
       mqttBroker: "running",
       udpServer: "active",
       eventReader: "monitoring",
-      devicesConnected: connectedDriverCount,
+      driversConnected: connectedDriverCount,
       hubIp: this.getLocalIpAddress(),
     };
   }

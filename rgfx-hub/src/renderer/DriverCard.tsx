@@ -7,16 +7,16 @@ import {
   Speed as SpeedIcon,
   QueryStats as QueryStatsIcon,
 } from "@mui/icons-material";
-import type { Device } from "../types";
+import type { Driver } from "../types";
 import InfoSection, { type InfoRowData } from "./components/InfoSection";
 import { formatBytes, formatUptime, formatTimestamp } from "./utils/formatters";
 
-interface DeviceCardProps {
-  device: Device;
+interface DriverCardProps {
+  driver: Driver;
 }
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
-  const { sysInfo } = device;
+const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
+  const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
 
   // Update every second for live timestamps and uptime
@@ -33,19 +33,19 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
   if (!sysInfo) {
     return (
       <Paper sx={{ p: 2 }}>
-        <Typography variant="h6">{device.name}</Typography>
+        <Typography variant="h6">{driver.name}</Typography>
         <Typography color="text.secondary">No system info available</Typography>
       </Paper>
     );
   }
 
-  // Calculate current uptime based on initial uptimeMs from device
-  const deviceUptimeAtSnapshot = sysInfo.uptimeMs;
-  const timeOfSnapshot = device.lastSeen;
+  // Calculate current uptime based on initial uptimeMs from driver
+  const driverUptimeAtSnapshot = sysInfo.uptimeMs;
+  const timeOfSnapshot = driver.lastSeen;
   const timeSinceSnapshot = now - timeOfSnapshot;
-  const currentUptime = device.connected
-    ? deviceUptimeAtSnapshot + timeSinceSnapshot
-    : deviceUptimeAtSnapshot;
+  const currentUptime = driver.connected
+    ? driverUptimeAtSnapshot + timeSinceSnapshot
+    : driverUptimeAtSnapshot;
 
   // Prepare data arrays for InfoSection components
   const networkRows: InfoRowData[] = [
@@ -101,13 +101,13 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
   ];
 
   const statsRows: InfoRowData[] = [
-    { label: "Device Uptime", value: formatUptime(currentUptime) },
-    { label: "Hub First Seen", value: formatTimestamp(device.firstSeen, now) },
-    { label: "Hub Last Seen", value: formatTimestamp(device.lastSeen, now) },
-    { label: "MQTT Messages", value: device.stats.mqttMessagesReceived },
-    { label: "MQTT Errors", value: device.stats.mqttMessagesFailed },
-    { label: "UDP Packets Sent", value: device.stats.udpMessagesSent },
-    { label: "UDP Send Errors", value: device.stats.udpMessagesFailed },
+    { label: "Driver Uptime", value: formatUptime(currentUptime) },
+    { label: "Hub First Seen", value: formatTimestamp(driver.firstSeen, now) },
+    { label: "Hub Last Seen", value: formatTimestamp(driver.lastSeen, now) },
+    { label: "MQTT Messages", value: driver.stats.mqttMessagesReceived },
+    { label: "MQTT Errors", value: driver.stats.mqttMessagesFailed },
+    { label: "UDP Packets Sent", value: driver.stats.udpMessagesSent },
+    { label: "UDP Send Errors", value: driver.stats.udpMessagesFailed },
   ];
 
   return (
@@ -121,15 +121,15 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
           mb: 2,
         }}
       >
-        <Typography variant="h6">{device.name}</Typography>
+        <Typography variant="h6">{driver.name}</Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Chip
-            label={device.connected ? "Connected" : "Disconnected"}
-            color={device.connected ? "success" : "error"}
+            label={driver.connected ? "Connected" : "Disconnected"}
+            color={driver.connected ? "success" : "error"}
             size="small"
           />
           <Chip
-            label={device.type}
+            label={driver.type}
             size="small"
             color="primary"
             variant="outlined"
@@ -175,4 +175,4 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
   );
 };
 
-export default DeviceCard;
+export default DriverCard;

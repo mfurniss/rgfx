@@ -9,14 +9,14 @@ interface SystemStatusProps {
 
 /**
  * Displays the overall system status including MQTT broker, UDP server,
- * event reader, and connected devices count
+ * event reader, and connected drivers count
  */
 const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
   const statusItems = [
     { name: 'MQTT Broker', value: status.mqttBroker },
     { name: 'UDP Server', value: status.udpServer },
     { name: 'Event Reader', value: status.eventReader },
-    { name: 'Devices Connected', value: status.devicesConnected },
+    { name: 'Drivers Connected', value: status.driversConnected },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, session } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import log from "electron-log/main";
@@ -9,7 +9,7 @@ import { DriverRegistry } from "./DriverRegistry";
 import { SystemMonitor } from "./SystemMonitor";
 import { DiscoveryService } from "./DiscoveryService";
 import { GameEventMapper } from "./GameEventMapper";
-import type { DeviceSystemInfo } from "./types";
+import type { DriverSystemInfo } from "./types";
 
 // Vite environment variables injected by Electron Forge
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -48,17 +48,17 @@ function sendSystemStatus() {
 }
 
 // Set up driver registry callbacks
-driverRegistry.onDriverConnected((device) => {
+driverRegistry.onDriverConnected((driver) => {
   if (mainWindow) {
-    mainWindow.webContents.send("device:connected", device);
+    mainWindow.webContents.send("driver:connected", driver);
     sendSystemStatus();
   }
 });
 
-driverRegistry.onDriverDisconnected((device) => {
+driverRegistry.onDriverDisconnected((driver) => {
   if (mainWindow) {
-    mainWindow.webContents.send("device:disconnected", device);
-    log.info(`Sent device:disconnected event to renderer`);
+    mainWindow.webContents.send("driver:disconnected", driver);
+    log.info(`Sent driver:disconnected event to renderer`);
     sendSystemStatus();
   }
 });
@@ -100,7 +100,7 @@ mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
   try {
     // Type assertion via unknown - JSON.parse returns any, which we assert to our expected type
     const parsed = JSON.parse(payload) as unknown;
-    const sysInfo = parsed as DeviceSystemInfo;
+    const sysInfo = parsed as DriverSystemInfo;
     driverRegistry.registerDriver(sysInfo);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -148,8 +148,8 @@ const createWindow = () => {
     // Small delay to ensure renderer IPC listeners are set up
     setTimeout(() => {
       // Send all drivers (both connected and disconnected)
-      driverRegistry.getAllDrivers().forEach((device) => {
-        mainWindow?.webContents.send("device:connected", device);
+      driverRegistry.getAllDrivers().forEach((driver) => {
+        mainWindow?.webContents.send("driver:connected", driver);
       });
       // Send system status
       sendSystemStatus();
@@ -163,6 +163,26 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
+  // Load Redux DevTools extension in development mode
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    const extensionPath = path.join(
+      app.getPath('userData'),
+      'extensions',
+      'lmhkpmbekcpmknklioeibfkpmmfibljd'
+    );
+
+    session.defaultSession.extensions.loadExtension(extensionPath, {
+      allowFileAccess: true
+    })
+      .then(() => {
+        log.info('Loaded Redux DevTools extension');
+      })
+      .catch((err: unknown) => {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        log.warn(`Redux DevTools not available: ${errorMessage}`);
+      });
+  }
+
   createWindow();
 
   // Start periodic driver discovery

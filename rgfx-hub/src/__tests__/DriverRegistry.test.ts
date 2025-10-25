@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { DriverRegistry } from "../DriverRegistry";
-import type { DeviceSystemInfo } from "../types";
+import type { DriverSystemInfo } from "../types";
 
 describe("DriverRegistry", () => {
   let registry: DriverRegistry;
@@ -10,8 +10,8 @@ describe("DriverRegistry", () => {
   });
 
   const createMockSysInfo = (
-    overrides: Partial<DeviceSystemInfo> = {}
-  ): DeviceSystemInfo => ({
+    overrides: Partial<DriverSystemInfo> = {}
+  ): DriverSystemInfo => ({
     // Network information
     ip: "192.168.1.100",
     mac: "AA:BB:CC:DD:EE:FF",

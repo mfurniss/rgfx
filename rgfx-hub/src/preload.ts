@@ -1,16 +1,16 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from "electron";
-import type { Device, SystemStatus } from "./types";
+import type { Driver, SystemStatus } from "./types";
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld("rgfx", {
-  onDeviceConnected: (callback: (device: Device) => void) => {
-    ipcRenderer.on("device:connected", (_event, device: Device) => { callback(device); });
+  onDriverConnected: (callback: (driver: Driver) => void) => {
+    ipcRenderer.on("driver:connected", (_event, driver: Driver) => { callback(driver); });
   },
 
-  onDeviceDisconnected: (callback: (device: Device) => void) => {
-    ipcRenderer.on("device:disconnected", (_event, device: Device) => { callback(device); });
+  onDriverDisconnected: (callback: (driver: Driver) => void) => {
+    ipcRenderer.on("driver:disconnected", (_event, driver: Driver) => { callback(driver); });
   },
 
   onSystemStatus: (callback: (status: SystemStatus) => void) => {
