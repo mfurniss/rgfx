@@ -12,7 +12,7 @@ export class Mqtt {
   private bonjour?: Bonjour;
   private mdnsService?: any;
 
-  constructor(port: number = 1883) {
+  constructor(port = 1883) {
     this.port = port;
     this.aedes = new Aedes();
     this.server = createServer(this.aedes.handle);

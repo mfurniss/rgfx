@@ -3,13 +3,11 @@ import {
   Paper,
   Typography,
   Box,
-  Grid,
   Chip,
   Divider,
   Stack,
 } from '@mui/material';
 import {
-  Circle as CircleIcon,
   Memory as MemoryIcon,
   Router as RouterIcon,
   Lightbulb as LightbulbIcon,

@@ -12,6 +12,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }

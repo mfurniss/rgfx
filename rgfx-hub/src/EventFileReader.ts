@@ -5,7 +5,7 @@ import log from "electron-log/main";
 
 export class EventFileReader {
   private filePath: string;
-  private filePosition: number = 0;
+  private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
 
   constructor() {
@@ -64,9 +64,11 @@ export class EventFileReader {
           .split("\n")
           .filter((line) => line.trim().length > 0);
         for (const line of lines) {
-          const parts = line.split(" ", 2);
-          if (parts.length >= 2) {
-            const [topic, message] = parts;
+          // Split only on the FIRST space to preserve spaces in the message
+          const firstSpaceIndex = line.indexOf(" ");
+          if (firstSpaceIndex > 0) {
+            const topic = line.substring(0, firstSpaceIndex);
+            const message = line.substring(firstSpaceIndex + 1);
             onEvent(topic, message);
           }
         }
