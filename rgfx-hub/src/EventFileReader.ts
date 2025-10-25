@@ -28,7 +28,9 @@ export class EventFileReader {
       this.watchFile();
     } else {
       // File doesn't exist yet - watch the directory for file creation
-      log.info("Event file doesn't exist yet. Waiting for MAME to create it...");
+      log.info(
+        "Event file doesn't exist yet. Waiting for MAME to create it...",
+      );
       this.watchDirectory();
     }
   }

@@ -7,10 +7,12 @@ export class Mqtt {
   private aedes: Aedes;
   private server: Server;
   private port: number;
-  private subscriptions =
-    new Map<string, (topic: string, payload: string) => void>();
+  private subscriptions = new Map<
+    string,
+    (topic: string, payload: string) => void
+  >();
   private bonjour?: Bonjour;
-  private mdnsService?: ReturnType<Bonjour['publish']>;
+  private mdnsService?: ReturnType<Bonjour["publish"]>;
 
   constructor(port = 1883) {
     this.port = port;

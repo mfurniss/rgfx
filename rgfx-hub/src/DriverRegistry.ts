@@ -59,9 +59,7 @@ export class DriverRegistry {
 
   // Find driver by IP address
   findByIp(ip: string): Device | undefined {
-    return Array.from(this.drivers.values()).find(
-      (device) => device.ip === ip
-    );
+    return Array.from(this.drivers.values()).find((device) => device.ip === ip);
   }
 
   // Track UDP message sent to driver
@@ -131,7 +129,7 @@ export class DriverRegistry {
   getConnectedCount(): number {
     return Array.from(this.drivers.values()).reduce(
       (count, device) => count + (device.connected ? 1 : 0),
-      0
+      0,
     );
   }
 

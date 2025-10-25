@@ -12,15 +12,16 @@ import {
   Grid,
   Chip,
 } from '@mui/material';
-import type { Device, SystemStatus } from '../types';
+import type { Device, SystemStatus as SystemStatusType } from '../types';
 import DeviceCard from './DeviceCard';
+import SystemStatus from './components/SystemStatus';
 
 // Create Material UI theme (default theme)
 const theme = createTheme();
 
 const App: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
-  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
+  const [systemStatus, setSystemStatus] = useState<SystemStatusType>({
     mqttBroker: 'stopped',
     udpServer: 'inactive',
     eventReader: 'stopped',
@@ -49,7 +50,7 @@ const App: React.FC = () => {
       );
     });
 
-    window.rgfx.onSystemStatus((status: SystemStatus) => {
+    window.rgfx.onSystemStatus((status: SystemStatusType) => {
       setSystemStatus(status);
     });
   }, []);
@@ -82,43 +83,7 @@ const App: React.FC = () => {
           <Grid container spacing={3}>
             {/* System Status Section */}
             <Grid size={12}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  System Status
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      MQTT Broker
-                    </Typography>
-                    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
-                      {systemStatus.mqttBroker}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      UDP Server
-                    </Typography>
-                    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
-                      {systemStatus.udpServer}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Event Reader
-                    </Typography>
-                    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
-                      {systemStatus.eventReader}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Devices Connected
-                    </Typography>
-                    <Typography variant="h6">{systemStatus.devicesConnected}</Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
+              <SystemStatus status={systemStatus} />
             </Grid>
 
             {/* Devices Section */}
