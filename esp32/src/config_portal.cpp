@@ -1,15 +1,16 @@
 #include "config_portal.h"
 #include "config_leds.h"
+#include "config_nvs.h"
 #include "log.h"
 #include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
 #include <IotWebConfParameter.h>
-#include <EEPROM.h>
 
-// External functions to get LED config storage pointers
-extern char* getLedBrightnessValuePtr();
-extern char* getLedDataPinValuePtr();
+// Local char buffers for IotWebConf parameters
+// These bridge IotWebConf's string-based API with ConfigNVS's type-safe storage
+static char ledBrightnessValue[4] = "64";  // Temporary buffer for web form
+static char ledDataPinValue[3] = "16";     // Temporary buffer for web form
 
 // IotWebConf configuration
 #define CONFIG_VERSION "rgfx2"
@@ -25,11 +26,11 @@ static IotWebConf* iotWebConf = nullptr;
 
 // LED configuration parameters
 static IotWebConfNumberParameter ledBrightnessParam = IotWebConfNumberParameter(
-      "LED Brightness", "ledBrightness", getLedBrightnessValuePtr(), 4,
+      "LED Brightness", "ledBrightness", ledBrightnessValue, 4,
       "64", "1-255", "min='1' max='255' step='1'"
     );
 static IotWebConfNumberParameter ledDataPinParam = IotWebConfNumberParameter(
-      "LED Data Pin", "ledDataPin", getLedDataPinValuePtr(), 3,
+      "LED Data Pin", "ledDataPin", ledDataPinValue, 3,
       "16", "GPIO 0-33", "min='0' max='33' step='1'"
     );
 
@@ -57,6 +58,14 @@ String stateToString(uint8_t state) {
 // Callback when config is saved
 void configSaved() {
 	log("Configuration saved");
+
+	// Parse LED parameters from char buffers and save to NVS
+	uint8_t brightness = (uint8_t)atoi(ledBrightnessValue);
+	uint8_t dataPin = (uint8_t)atoi(ledDataPinValue);
+
+	ConfigNVS::setLedBrightness(brightness);
+	ConfigNVS::setLedDataPin(dataPin);
+
 	// Apply brightness changes immediately (no reboot required)
 	ConfigLeds::applyBrightness();
 }
@@ -70,6 +79,14 @@ void wifiConnected() {
 
 void ConfigPortal::begin() {
 	log("Initializing config portal...");
+
+	// Load current LED configuration from NVS into char buffers for web form
+	snprintf(ledBrightnessValue, sizeof(ledBrightnessValue), "%d", ConfigNVS::getLedBrightness());
+	snprintf(ledDataPinValue, sizeof(ledDataPinValue), "%d", ConfigNVS::getLedDataPin());
+
+	log("Loaded LED config from NVS:");
+	log("  Brightness: " + String(ledBrightnessValue));
+	log("  Data Pin: " + String(ledDataPinValue));
 
 	// Get unique device name (same as MQTT client ID)
 	String apName = Utils::getDeviceName();
@@ -192,13 +209,15 @@ uint8_t ConfigPortal::getLedDataPin() {
 
 void ConfigPortal::resetSettings() {
 	log("Factory reset: Erasing all configuration...");
-	if (iotWebConf) {
-		// Invalidate config by writing incorrect version to EEPROM
-		// This forces full reinitialization on next boot
-		EEPROM.begin(512);
-		EEPROM.write(0, 0xFF);  // Corrupt the config signature
-		EEPROM.commit();
-		EEPROM.end();
-		log("Configuration erased - restarting...");
-	}
+
+	// Clear NVS configuration (LED settings)
+	ConfigNVS::factoryReset();
+
+	// Note: WiFi credentials are still managed by IotWebConf's EEPROM storage
+	// To fully reset WiFi as well, the device would need to be re-flashed or
+	// IotWebConf would need to be reset separately
+
+	log("NVS configuration erased - restarting...");
+	delay(1000);
+	ESP.restart();
 }

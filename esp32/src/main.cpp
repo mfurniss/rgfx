@@ -14,6 +14,7 @@
 #include "effects/pulse.h"
 #include "config_portal.h"
 #include "config_leds.h"
+#include "config_nvs.h"
 #include "udp.h"
 #include "mqtt.h"
 #include "log.h"
@@ -36,11 +37,14 @@ void setup() {
 	delay(200);
 	log("\n\nRGFX Driver starting...");
 
-	// Start config portal first to load configuration
+	// Initialize NVS configuration first (performs EEPROM migration if needed)
+	ConfigNVS::begin();
+
+	// Start config portal to handle WiFi connection
 	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
 	ConfigPortal::begin();
 
-	// Initialize LEDs with configured parameters
+	// Initialize LEDs with configured parameters (reads from NVS)
 	ConfigLeds::initLeds(matrix);
 
 	// Show BLUE while connecting to WiFi / in config portal
