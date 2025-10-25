@@ -7,10 +7,10 @@ export class Mqtt {
   private aedes: Aedes;
   private server: Server;
   private port: number;
-  private subscriptions: Map<string, (topic: string, payload: string) => void> =
-    new Map();
+  private subscriptions =
+    new Map<string, (topic: string, payload: string) => void>();
   private bonjour?: Bonjour;
-  private mdnsService?: any;
+  private mdnsService?: ReturnType<Bonjour['publish']>;
 
   constructor(port = 1883) {
     this.port = port;
@@ -95,7 +95,7 @@ export class Mqtt {
     return new Promise<void>((resolve) => {
       // Unpublish mDNS service
       if (this.mdnsService) {
-        this.mdnsService.stop();
+        this.mdnsService.stop?.();
       }
       if (this.bonjour) {
         this.bonjour.destroy();

@@ -7,10 +7,10 @@ export class SystemMonitor {
     const nets = networkInterfaces();
 
     const ipv4Address = Object.values(nets)
-      .flatMap((interfaces) => interfaces || [])
+      .flatMap((interfaces) => interfaces ?? [])
       .find((net) => net.family === "IPv4" && !net.internal);
 
-    return ipv4Address?.address || "Unknown";
+    return ipv4Address?.address ?? "Unknown";
   }
 
   // Generate system status object

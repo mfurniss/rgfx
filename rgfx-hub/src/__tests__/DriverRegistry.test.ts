@@ -133,7 +133,7 @@ describe("DriverRegistry", () => {
       expect(callback).toHaveBeenCalledTimes(1);
 
       // Manually mark as disconnected (simulating timeout)
-      const device = registry.findByIp(sysInfo.ip!);
+      const device = registry.findByIp(sysInfo.ip);
       if (device) {
         device.connected = false;
       }
@@ -230,7 +230,7 @@ describe("DriverRegistry", () => {
       expect(disconnectedCount).toBe(1);
       expect(callback).toHaveBeenCalled();
 
-      const device = registry.findByIp(sysInfo.ip!);
+      const device = registry.findByIp(sysInfo.ip);
       expect(device?.connected).toBe(false);
 
       vi.useRealTimers();
@@ -253,7 +253,7 @@ describe("DriverRegistry", () => {
       expect(disconnectedCount).toBe(0);
       expect(callback).not.toHaveBeenCalled();
 
-      const device = registry.findByIp(sysInfo.ip!);
+      const device = registry.findByIp(sysInfo.ip);
       expect(device?.connected).toBe(true);
 
       vi.useRealTimers();

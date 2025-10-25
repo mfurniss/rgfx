@@ -52,9 +52,9 @@ describe("Mqtt", () => {
     };
 
     // Setup mocks
-    vi.mocked(Aedes).mockReturnValue(mockAedes as any);
-    vi.mocked(createServer).mockReturnValue(mockServer as any);
-    vi.mocked(Bonjour).mockReturnValue(mockBonjour as any);
+    vi.mocked(Aedes).mockReturnValue(mockAedes);
+    vi.mocked(createServer).mockReturnValue(mockServer);
+    vi.mocked(Bonjour).mockReturnValue(mockBonjour);
 
     mqtt = new Mqtt(1883);
   });

@@ -21,7 +21,7 @@ describe("Udp", () => {
     };
 
     // Mock dgram.createSocket to return our mock socket
-    vi.mocked(dgram.createSocket).mockReturnValue(mockSocket as any);
+    vi.mocked(dgram.createSocket).mockReturnValue(mockSocket);
 
     udp = new Udp("192.168.1.100", 8888);
   });
@@ -73,8 +73,8 @@ describe("Udp", () => {
 
       // Mock socket.send to simulate error
       const testError = new Error("Network error");
-      mockSocket.send.mockImplementation((msg: string, port: number, ip: string, callback: (err: Error | null) => void) => {
-        if (callback) callback(testError);
+      mockSocket.send.mockImplementation((msg: string, port: number, ip: string, callback?: (err: Error | null) => void) => {
+        callback?.(testError);
       });
 
       udp.send("pulse", "0x00FF00");

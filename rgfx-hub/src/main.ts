@@ -9,6 +9,7 @@ import { DriverRegistry } from "./DriverRegistry";
 import { SystemMonitor } from "./SystemMonitor";
 import { DiscoveryService } from "./DiscoveryService";
 import { GameEventMapper } from "./GameEventMapper";
+import type { DeviceSystemInfo } from "./types";
 
 // Vite environment variables injected by Electron Forge
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -97,10 +98,13 @@ mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
   log.info(`Driver response received`);
 
   try {
-    const sysInfo = JSON.parse(payload);
+    // Type assertion via unknown - JSON.parse returns any, which we assert to our expected type
+    const parsed = JSON.parse(payload) as unknown;
+    const sysInfo = parsed as DeviceSystemInfo;
     driverRegistry.registerDriver(sysInfo);
   } catch (err) {
-    log.error(`Failed to parse driver connect message: ${err}`);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    log.error(`Failed to parse driver connect message: ${errorMessage}`);
   }
 });
 
@@ -126,10 +130,10 @@ const createWindow = () => {
   // In production, we load the built HTML file
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     log.info(`Loading dev server: ${MAIN_WINDOW_VITE_DEV_SERVER_URL}`);
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    void mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     log.info(`Loading production build from: ${MAIN_WINDOW_VITE_NAME}`);
-    mainWindow.loadFile(
+    void mainWindow.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
@@ -175,13 +179,13 @@ app.on("window-all-closed", () => {
 });
 
 // Cleanup on app quit
-app.on("before-quit", async () => {
+app.on("before-quit", () => {
   log.info("Shutting down...");
 
   // Stop services
   discoveryService.stop();
   udp.stop();
-  await mqtt.stop();
+  void mqtt.stop();
 });
 
 app.on("activate", () => {

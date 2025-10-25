@@ -31,22 +31,22 @@ export class DriverRegistry {
       type: "driver",
       connected: true,
       lastSeen: now,
-      firstSeen: existingDevice?.firstSeen || now,
+      firstSeen: existingDevice?.firstSeen ?? now,
       ip: sysInfo.ip,
       sysInfo: sysInfo,
       stats: {
         mqttMessagesReceived:
-          (existingDevice?.stats.mqttMessagesReceived || 0) + 1,
-        mqttMessagesFailed: existingDevice?.stats.mqttMessagesFailed || 0,
-        udpMessagesSent: existingDevice?.stats.udpMessagesSent || 0,
-        udpMessagesFailed: existingDevice?.stats.udpMessagesFailed || 0,
+          (existingDevice?.stats.mqttMessagesReceived ?? 0) + 1,
+        mqttMessagesFailed: existingDevice?.stats.mqttMessagesFailed ?? 0,
+        udpMessagesSent: existingDevice?.stats.udpMessagesSent ?? 0,
+        udpMessagesFailed: existingDevice?.stats.udpMessagesFailed ?? 0,
       },
     };
 
     this.drivers.set(device.id, device);
 
     // Notify if this is a new device or was previously disconnected
-    if (!existingDevice || !existingDevice.connected) {
+    if (!existingDevice?.connected) {
       log.info(`Driver connected: ${device.name} (${deviceId})`);
       this.onDriverConnectedCallback?.(device);
     } else {

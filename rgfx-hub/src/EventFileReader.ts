@@ -1,12 +1,13 @@
-import { watch, readFileSync, statSync } from "node:fs";
+import { watch, readFileSync, statSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import log from "electron-log/main";
 
 export class EventFileReader {
   private filePath: string;
   private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
+  private onEventCallback?: (topic: string, message: string) => void;
 
   constructor() {
     // Default to platform-specific temp directory
@@ -16,26 +17,56 @@ export class EventFileReader {
 
   start(onEvent: (topic: string, message: string) => void) {
     log.info("Starting event file reader...");
+    this.onEventCallback = onEvent;
 
-    // Read initial position (seek to end)
-    try {
+    // Check if file exists
+    if (existsSync(this.filePath)) {
+      // File exists - start at the end and watch for changes
       const stats = statSync(this.filePath);
       this.filePosition = stats.size;
       log.info(`Event file exists. Starting at position: ${this.filePosition}`);
-
-      // Start watching the file
-      this.watcher = watch(this.filePath, (eventType) => {
-        if (eventType === "change") {
-          this.readNewLines(onEvent);
-        }
-      });
-
-      this.watcher.on("error", (err) => {
-        log.error("Watch error:", err);
-      });
-    } catch (err) {
-      log.error(`Event file not found: ${this.filePath}`, err);
+      this.watchFile();
+    } else {
+      // File doesn't exist yet - watch the directory for file creation
+      log.info("Event file doesn't exist yet. Waiting for MAME to create it...");
+      this.watchDirectory();
     }
+  }
+
+  private watchFile() {
+    // Watch the file for changes
+    this.watcher = watch(this.filePath, (eventType) => {
+      if (eventType === "change" && this.onEventCallback) {
+        this.readNewLines(this.onEventCallback);
+      }
+    });
+
+    this.watcher.on("error", (err) => {
+      log.error("Watch error:", err);
+    });
+  }
+
+  private watchDirectory() {
+    // Watch the temp directory for the file to be created
+    const dirPath = dirname(this.filePath);
+    this.watcher = watch(dirPath, (eventType, filename) => {
+      if (filename === "rgfx_events.log" && existsSync(this.filePath)) {
+        log.info("Event file created. Starting to watch...");
+
+        // Stop watching the directory
+        if (this.watcher) {
+          this.watcher.close();
+        }
+
+        // Reset position and start watching the file
+        this.filePosition = 0;
+        this.watchFile();
+      }
+    });
+
+    this.watcher.on("error", (err) => {
+      log.error("Directory watch error:", err);
+    });
   }
 
   private readNewLines(onEvent: (topic: string, message: string) => void) {
