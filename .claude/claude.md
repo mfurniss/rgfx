@@ -138,8 +138,9 @@ Each sub-project follows its ecosystem's file naming conventions. **Consistency 
 **MUST FIX IMMEDIATELY:**
 1. **ALWAYS fix TypeScript errors** - Run `npm run typecheck` and fix all errors before completing any task
 2. **ALWAYS fix ESLint errors** - Run `npm run lint` and fix all errors/warnings before completing any task
-3. **Use npm scripts, not npx** - TypeScript is installed locally, use `npm run typecheck` (efficient) not `npx tsc` (inefficient)
-4. **Zero tolerance** - Never leave code in a state with TypeScript or lint errors
+3. **After updating TypeScript files** - ALWAYS run `npm run lint -- --fix` to auto-fix formatting issues
+4. **Use npm scripts, not npx** - TypeScript is installed locally, use `npm run typecheck` (efficient) not `npx tsc` (inefficient)
+5. **Zero tolerance** - Never leave code in a state with TypeScript or lint errors
 
 ### Testing Standards
 

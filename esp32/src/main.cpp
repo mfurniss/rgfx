@@ -202,5 +202,5 @@ void loop() {
 	}
 
 	// Yield to task scheduler (prevents watchdog timer issues)
-	delay(1);
+	yield();
 }

@@ -11,7 +11,6 @@ export class GameEventMapper {
 
   // Handle incoming game event and map to LED effect
   handleEvent(topic: string, message: string) {
-    log.info(`Event received: ${topic} = ${message}`);
     // Pac-Man: Power pill state change
     if (topic === "player/pill/state") {
       const state = parseInt(message);
@@ -43,5 +42,7 @@ export class GameEventMapper {
     else if (topic === "player/fireball") {
       this.udp.send("pulse", "0xFF8000"); // Orange pulse
     }
+
+    log.info(`Event received: ${topic} = ${message}`);
   }
 }

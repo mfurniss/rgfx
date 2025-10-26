@@ -13,6 +13,17 @@ export class Udp {
     this.port = port;
     this.socket = dgram.createSocket("udp4");
 
+    // Optimize socket buffers for low latency
+    // Reduce send buffer to minimize kernel buffering delays
+    try {
+      this.socket.setSendBufferSize(8192); // Smaller buffer = lower latency
+      this.socket.setRecvBufferSize(8192);
+    } catch (err) {
+      log.warn(
+        `Failed to set socket buffer size: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
     // Listen for socket-level errors (DNS, binding, network interface errors)
     this.socket.on("error", (err) => {
       log.error(`UDP socket error: ${err.message}`);
