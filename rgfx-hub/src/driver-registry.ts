@@ -1,5 +1,6 @@
 import log from "electron-log/main";
 import type { Driver, DriverSystemInfo } from "./types";
+import type { DriverPersistence } from "./driver-persistence";
 
 // Driver timeout threshold (35 seconds = 30s poll + 5s grace)
 const DRIVER_TIMEOUT_MS = 35000;
@@ -8,6 +9,35 @@ export class DriverRegistry {
   private drivers = new Map<string, Driver>();
   private onDriverConnectedCallback?: (driver: Driver) => void;
   private onDriverDisconnectedCallback?: (driver: Driver) => void;
+  private persistence?: DriverPersistence;
+
+  constructor(persistence?: DriverPersistence) {
+    this.persistence = persistence;
+
+    // Load all known drivers from persistence (all start as disconnected)
+    if (persistence) {
+      const persistedDrivers = persistence.getAllDrivers();
+      for (const pd of persistedDrivers) {
+        const driver: Driver = {
+          id: pd.id,
+          name: pd.name,
+          type: pd.type,
+          connected: false,
+          lastSeen: 0,
+          firstSeen: pd.firstSeen,
+          ledConfig: pd.ledConfig,
+          stats: {
+            mqttMessagesReceived: 0,
+            mqttMessagesFailed: 0,
+            udpMessagesSent: 0,
+            udpMessagesFailed: 0,
+          },
+        };
+        this.drivers.set(driver.id, driver);
+      }
+      log.info(`Loaded ${persistedDrivers.length} known drivers from persistence`);
+    }
+  }
 
   // Set callback for when a driver connects (new or reconnecting)
   onDriverConnected(callback: (driver: Driver) => void) {
@@ -24,6 +54,22 @@ export class DriverRegistry {
     const driverId = sysInfo.mac || sysInfo.ip || "unknown";
     const existingDriver = this.drivers.get(driverId);
     const now = Date.now();
+    const isNewDriver = !existingDriver;
+
+    // Determine firstSeen timestamp (immutable once set)
+    let firstSeen = existingDriver?.firstSeen;
+
+    // If this is a new driver, persist it with the current timestamp
+    if (isNewDriver && this.persistence) {
+      const name = sysInfo.hostname || sysInfo.ip || "Driver";
+      this.persistence.addDriver(driverId, name, "driver");
+      // Get the firstSeen from the persisted driver to ensure consistency
+      const persistedDriver = this.persistence.getDriver(driverId);
+      firstSeen ??= persistedDriver?.firstSeen ?? now;
+    }
+
+    // Fallback for drivers without persistence or missing firstSeen
+    firstSeen ??= now;
 
     const driver: Driver = {
       id: driverId,
@@ -31,9 +77,10 @@ export class DriverRegistry {
       type: "driver",
       connected: true,
       lastSeen: now,
-      firstSeen: existingDriver?.firstSeen ?? now,
+      firstSeen: firstSeen,
       ip: sysInfo.ip,
       sysInfo: sysInfo,
+      ledConfig: existingDriver?.ledConfig, // Preserve LED config from persistence
       stats: {
         mqttMessagesReceived:
           (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,

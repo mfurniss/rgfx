@@ -14,6 +14,7 @@ interface DriverState {
 
   // Selectors
   connectedDrivers: () => Driver[];
+  getDriverById: (id: string) => Driver | undefined;
 }
 
 export const useDriverStore = create<DriverState>()(
@@ -51,6 +52,7 @@ export const useDriverStore = create<DriverState>()(
 
         // Selectors
         connectedDrivers: () => get().drivers.filter(d => d.connected),
+        getDriverById: (id) => get().drivers.find(d => d.id === id),
       }),
       { name: 'rgfx-driver-storage' }
     ),

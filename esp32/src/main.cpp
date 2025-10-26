@@ -151,7 +151,7 @@ void loop() {
 	static bool inApMode = false;
 	static unsigned long apModeStartTime = 0;
 	static unsigned long lastCountdownUpdate = 0;
-	const uint16_t AP_TIMEOUT_SECONDS = 30;  // IotWebConf default AP timeout
+	const uint16_t AP_TIMEOUT_SECONDS = 10;  // AP timeout before falling back to saved WiFi
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {
@@ -210,8 +210,8 @@ void loop() {
 			delay(500);
 
 			// Setup OTA updates (must be done after WiFi is connected)
-			// NOTE: For multiple devices, customize hostname per device (e.g., "rgfx-driver-1", "rgfx-driver-2")
-			ArduinoOTA.setHostname("rgfx-driver");
+			// Use unique device name for OTA hostname (e.g., "rgfx-driver-f89a58")
+			ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
 			ArduinoOTA.onStart([]() {
 				log("OTA Update starting...");
 				fill_solid(matrix.leds, matrix.size, CRGB::Orange);
@@ -240,9 +240,9 @@ void loop() {
 			log("OTA Ready");
 			otaSetupDone = true;
 
-			// Initialize mDNS for service discovery
-			if (MDNS.begin("rgfx-driver")) {
-				log("mDNS responder started");
+			// Initialize mDNS for service discovery with unique device name
+			if (MDNS.begin(Utils::getDeviceName().c_str())) {
+				log("mDNS responder started as " + Utils::getDeviceName());
 			} else {
 				log("Error starting mDNS responder");
 			}
@@ -254,9 +254,9 @@ void loop() {
 			setupUDP();
 			udpSetupDone = true;
 
-			// Update display to show connected status
+			// Update display to show connected status with actual MQTT status
 			if (Display::isAvailable()) {
-				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), false);
+				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected());
 			}
 
 			// Go dark for normal operation

@@ -403,6 +403,50 @@ This ensures code quality and catches errors early in development.
 - **You handle upload and monitoring** - Use VSCode tasks or manual commands
 - **NEVER try to automate serial port access** - It causes blocking and port locking issues
 
+### Over-The-Air (OTA) Firmware Updates
+
+**OTA updates are fully configured and working!** You can update firmware wirelessly on any ESP32 driver connected to WiFi.
+
+**How OTA Works:**
+- Each driver advertises itself on the network with a unique hostname: `rgfx-driver-<device-id>` (e.g., `rgfx-driver-f89a58`)
+- ArduinoOTA service runs on each driver, listening for firmware updates
+- Updates happen on Core 0 (network core) without blocking LED operations
+
+**To upload firmware via OTA:**
+
+1. **Discover available devices:**
+   ```bash
+   # List all OTA-enabled devices on network
+   dns-sd -B _arduino._tcp local.
+   ```
+
+2. **Upload to a specific device:**
+   ```bash
+   # Using hostname (recommended - works even if IP changes)
+   pio run -e rgfx-driver-ota -t upload --upload-port rgfx-driver-f89a58.local
+
+   # Or using IP address
+   pio run -e rgfx-driver-ota -t upload --upload-port 192.168.10.62
+   ```
+
+3. **OTA Upload Process:**
+   - Driver LEDs turn **ORANGE** when update starts
+   - Progress logged every 10%
+   - LEDs turn **GREEN** when update completes
+   - LEDs turn **RED** if update fails
+   - Driver automatically restarts after successful update
+
+**When to use OTA vs Serial:**
+- **Use OTA**: For drivers that are installed/mounted and hard to access physically
+- **Use Serial**: For initial firmware upload, debugging, or if WiFi is not working
+- **Pro tip**: Keep one driver on serial for development/debugging, update the rest via OTA
+
+**OTA Configuration:**
+- Defined in `esp32/platformio.ini` under `[env:rgfx-driver-ota]`
+- Uses `espota` upload protocol
+- Automatically discovers devices via mDNS
+- No password required (can be added if needed)
+
 ## Documentation
 
 ### Local Documentation Protocol

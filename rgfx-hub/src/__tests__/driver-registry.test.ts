@@ -1,12 +1,40 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { DriverRegistry } from "../driver-registry";
+import { DriverPersistence } from "../driver-persistence";
 import type { DriverSystemInfo } from "../types";
+
+// Mock electron-log
+vi.mock('electron-log/main', () => ({
+  default: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+// Mock fs to prevent actual file operations
+vi.mock('fs', () => ({
+  default: {
+    existsSync: vi.fn(() => false),
+    mkdirSync: vi.fn(),
+    readFileSync: vi.fn(),
+    writeFileSync: vi.fn(),
+  },
+  existsSync: vi.fn(() => false),
+  mkdirSync: vi.fn(),
+  readFileSync: vi.fn(),
+  writeFileSync: vi.fn(),
+}));
 
 describe("DriverRegistry", () => {
   let registry: DriverRegistry;
+  let persistence: DriverPersistence;
 
   beforeEach(() => {
-    registry = new DriverRegistry();
+    vi.clearAllMocks();
+    // Initialize with a test persistence instance (will not actually write to disk due to mocks)
+    persistence = new DriverPersistence('test-config');
+    registry = new DriverRegistry(persistence);
   });
 
   const createMockSysInfo = (
@@ -35,15 +63,9 @@ describe("DriverRegistry", () => {
     sketchSize: 1000000,
     freeSketchSpace: 2000000,
     uptimeMs: 60000,
-    // LED configuration
-    ledCount: 64,
-    matrixWidth: 8,
-    matrixHeight: 8,
-    ledDataPin: 5,
-    ledBrightness: 128,
-    ledMaxBrightness: 255,
-    ledChipset: "WS2812B",
-    ledColorOrder: "GRB",
+    // Display information
+    hasDisplay: false,
+    // Note: LED configuration removed - now managed by Hub
     ...overrides,
   });
 

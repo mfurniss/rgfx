@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import {
   CssBaseline,
   ThemeProvider,
@@ -8,12 +9,11 @@ import {
   Toolbar,
   Typography,
   Box,
-  Paper,
-  Grid,
   Chip,
 } from '@mui/material';
-import DriverCard from './driver-card';
 import SystemStatus from './components/system-status';
+import DriverListPage from './pages/driver-list-page';
+import DriverDetailPage from './pages/driver-detail-page';
 import { useDriverStore } from './store/driver-store';
 
 // Create Material UI theme (default theme)
@@ -21,7 +21,6 @@ const theme = createTheme();
 
 const App: React.FC = () => {
   // Get state from Zustand store
-  const drivers = useDriverStore(state => state.drivers);
   const systemStatus = useDriverStore(state => state.systemStatus);
 
   // Get actions from Zustand store
@@ -39,54 +38,42 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        {/* App Bar */}
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              RGFX Hub
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                {systemStatus.hubIp}
+      <BrowserRouter>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+          {/* App Bar */}
+          <AppBar position="static">
+            <Toolbar>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                RGFX Hub
               </Typography>
-              <Chip
-                label={systemStatus.mqttBroker === 'running' ? 'Hub Connected' : 'Hub Disconnected'}
-                color={systemStatus.mqttBroker === 'running' ? 'success' : 'error'}
-                size="small"
-              />
-            </Box>
-          </Toolbar>
-        </AppBar>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                  {systemStatus.hubIp}
+                </Typography>
+                <Chip
+                  label={systemStatus.mqttBroker === 'running' ? 'Hub Connected' : 'Hub Disconnected'}
+                  color={systemStatus.mqttBroker === 'running' ? 'success' : 'error'}
+                  size="small"
+                />
+              </Box>
+            </Toolbar>
+          </AppBar>
 
-        {/* Main Content */}
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flex: 1, overflow: 'auto' }}>
-          <Grid container spacing={3}>
-            {/* System Status Section */}
-            <Grid size={12}>
+          {/* Main Content */}
+          <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flex: 1, overflow: 'auto' }}>
+            {/* System Status Section - visible on all pages */}
+            <Box sx={{ mb: 3 }}>
               <SystemStatus status={systemStatus} />
-            </Grid>
+            </Box>
 
-            {/* Drivers Section */}
-            {drivers.length === 0 ? (
-              <Grid size={12}>
-                <Paper sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography color="text.secondary">
-                    No drivers discovered yet. Waiting for drivers to connect...
-                  </Typography>
-                </Paper>
-              </Grid>
-            ) : (
-              drivers.map((driver) => (
-                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={driver.id}>
-                  <DriverCard driver={driver} />
-                </Grid>
-              ))
-            )}
-
-          </Grid>
-        </Container>
-      </Box>
+            {/* Routes */}
+            <Routes>
+              <Route path="/" element={<DriverListPage />} />
+              <Route path="/driver/:id" element={<DriverDetailPage />} />
+            </Routes>
+          </Container>
+        </Box>
+      </BrowserRouter>
     </ThemeProvider>
   );
 };

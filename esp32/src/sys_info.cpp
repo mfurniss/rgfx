@@ -1,6 +1,7 @@
 #include "sys_info.h"
 #include "config_leds.h"
 #include "utils.h"
+#include "display.h"
 #include <WiFi.h>
 #include <ESP.h>
 
@@ -34,15 +35,11 @@ JsonDocument SysInfo::getSysInfo(Matrix& matrix) {
 	doc["freeSketchSpace"] = ESP.getFreeSketchSpace();
 	doc["uptimeMs"] = millis();
 
-	// LED configuration
-	doc["ledCount"] = matrix.size;
-	doc["matrixWidth"] = matrix.width;
-	doc["matrixHeight"] = matrix.height;
-	doc["ledDataPin"] = ConfigLeds::getDataPin();
-	doc["ledBrightness"] = ConfigLeds::getBrightness();
-	doc["ledMaxBrightness"] = 255;
-	doc["ledChipset"] = "WS2812B";
-	doc["ledColorOrder"] = "GRB";
+	// Display information
+	doc["hasDisplay"] = Display::isAvailable();
+
+	// Note: LED configuration is managed by the Hub and pushed to drivers via MQTT
+	// Drivers do not report LED config - they only receive and apply it
 
 	return doc;
 }

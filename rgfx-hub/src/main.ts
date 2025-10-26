@@ -10,6 +10,7 @@ import { SystemMonitor } from "./system-monitor";
 import { DiscoveryService } from "./discovery-service";
 import { GameEventMapper } from "./game-event-mapper";
 import { DriverConfigManager } from "./driver-config-manager";
+import { DriverPersistence } from "./driver-persistence";
 import type { DriverSystemInfo } from "./types";
 
 // Vite environment variables injected by Electron Forge
@@ -29,11 +30,12 @@ log.info("RGFX Hub starting...");
 // Window reference
 let mainWindow: BrowserWindow | null = null;
 
-// Initialize services
+// Initialize services (persistence first, then registry)
+const driverPersistence = new DriverPersistence();
 const mqtt = new Mqtt(1883);
 const udp = new Udp("192.168.10.86", 1234);
 const eventReader = new EventFileReader();
-const driverRegistry = new DriverRegistry();
+const driverRegistry = new DriverRegistry(driverPersistence);
 const systemMonitor = new SystemMonitor();
 const discoveryService = new DiscoveryService(mqtt);
 const gameEventMapper = new GameEventMapper(udp);
@@ -42,9 +44,14 @@ const driverConfigManager = new DriverConfigManager();
 // Track if we're already checking connection after UDP failure
 let checkingConnectionAfterUdpFailure = false;
 
+// Helper to safely check if window is available and not destroyed
+function isWindowAvailable(): boolean {
+  return mainWindow !== null && !mainWindow.isDestroyed();
+}
+
 // Helper to send system status to renderer
 function sendSystemStatus() {
-  if (!mainWindow) return;
+  if (!isWindowAvailable() || !mainWindow) return;
   const status = systemMonitor.getSystemStatus(driverRegistry.getConnectedCount());
   mainWindow.webContents.send("system:status", status);
 }
@@ -52,20 +59,24 @@ function sendSystemStatus() {
 // Helper to push driver configuration via MQTT
 function pushConfigToDriver(driverId: string): boolean {
   try {
-    // Get configuration for this driver (returns null if not configured)
-    const config = driverConfigManager.getConfig(driverId);
+    // Get LED configuration from persistence (new unified system)
+    const config = driverPersistence.getDriverLEDConfig(driverId);
 
-    if (!config) {
-      log.warn(`Driver ${driverId} connected but has no configuration - user must configure before use`);
+    // Fall back to old config manager for migration period
+    const legacyConfig = driverConfigManager.getConfig(driverId);
+    const finalConfig = config ?? legacyConfig;
+
+    if (!finalConfig) {
+      log.warn(`Driver ${driverId} connected but has no LED configuration - user must configure before use`);
       return false;
     }
 
     // Publish to driver-specific topic
     const topic = `rgfx/driver/${driverId}/config`;
-    const payload = JSON.stringify(config);
+    const payload = JSON.stringify(finalConfig);
 
     mqtt.publish(topic, payload);
-    log.info(`Pushed configuration to driver ${driverId} (${config.friendly_name ?? 'unnamed'})`);
+    log.info(`Pushed LED configuration to driver ${driverId} (${finalConfig.friendly_name ?? 'unnamed'})`);
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -76,7 +87,7 @@ function pushConfigToDriver(driverId: string): boolean {
 
 // Set up driver registry callbacks
 driverRegistry.onDriverConnected((driver) => {
-  if (mainWindow) {
+  if (isWindowAvailable() && mainWindow) {
     mainWindow.webContents.send("driver:connected", driver);
     sendSystemStatus();
   }
@@ -86,7 +97,7 @@ driverRegistry.onDriverConnected((driver) => {
 });
 
 driverRegistry.onDriverDisconnected((driver) => {
-  if (mainWindow) {
+  if (isWindowAvailable() && mainWindow) {
     mainWindow.webContents.send("driver:disconnected", driver);
     log.info(`Sent driver:disconnected event to renderer`);
     sendSystemStatus();
@@ -196,9 +207,13 @@ const createWindow = () => {
   mainWindow.webContents.on("did-finish-load", () => {
     // Small delay to ensure renderer IPC listeners are set up
     setTimeout(() => {
+      if (!isWindowAvailable() || !mainWindow) return;
+
       // Send all drivers (both connected and disconnected)
       driverRegistry.getAllDrivers().forEach((driver) => {
-        mainWindow?.webContents.send("driver:connected", driver);
+        if (isWindowAvailable() && mainWindow) {
+          mainWindow.webContents.send("driver:connected", driver);
+        }
       });
       // Send system status
       sendSystemStatus();

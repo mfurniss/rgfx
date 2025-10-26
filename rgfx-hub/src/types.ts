@@ -1,5 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
+import type { DriverConfig } from './types/driver-config';
+
 export interface DriverSystemInfo {
   // Network information
   ip: string;
@@ -28,15 +30,11 @@ export interface DriverSystemInfo {
   freeSketchSpace: number;
   uptimeMs: number;
 
-  // LED configuration
-  ledCount: number;
-  matrixWidth: number;
-  matrixHeight: number;
-  ledDataPin: number;
-  ledBrightness: number;
-  ledMaxBrightness: number;
-  ledChipset: string;
-  ledColorOrder: string;
+  // Display information
+  hasDisplay: boolean;
+
+  // Note: LED configuration is managed by Hub (in Driver.ledConfig)
+  // and pushed to drivers via MQTT - not reported in sysInfo
 }
 
 export interface DriverStats {
@@ -56,6 +54,7 @@ export interface Driver {
   ip?: string;
   sysInfo?: DriverSystemInfo;
   stats: DriverStats;
+  ledConfig?: DriverConfig;
 }
 
 export interface SystemStatus {
