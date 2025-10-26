@@ -4,6 +4,7 @@
 #include "log.h"
 #include "utils.h"
 #include "driver_config.h"
+#include "display.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
@@ -106,17 +107,20 @@ void reconnectMQTT() {
 	}
 
 	// Check if we've had too many consecutive failures - if so, clear cached IP and rediscover
+	// This handles case where broker IP changed or broker went down
 	if (consecutiveFailures >= MAX_FAILURES_BEFORE_REDISCOVERY && !MQTT_SERVER.isEmpty()) {
 		log("Too many consecutive failures (" + String(consecutiveFailures) + "), clearing cached broker IP and rediscovering...");
 		MQTT_SERVER = "";  // Clear cached IP to force rediscovery
 		consecutiveFailures = 0;  // Reset counter for rediscovery attempt
 	}
 
-	// Discover broker via mDNS (retry on each connection attempt)
+	// Discover broker via mDNS if we don't have one or it's invalid
+	// This continuously retries discovery until a broker is found
 	if (MQTT_SERVER.isEmpty() || MQTT_SERVER == "0.0.0.0") {
 		if (!discoverMQTTBroker()) {
-			// Discovery failed - will retry on next call
-			consecutiveFailures++;
+			// Discovery failed - broker not available yet
+			// Don't increment consecutive failures since we haven't tried connecting yet
+			// This allows continuous discovery attempts without triggering rediscovery logic
 			return;
 		}
 
@@ -159,6 +163,11 @@ void reconnectMQTT() {
 		log("  - rgfx/system/discover");
 		log("  - " + configTopic);
 
+		// Update display to show MQTT connected
+		if (Display::isAvailable()) {
+			Display::updateMQTTStatus(true);
+		}
+
 		// Turn LEDs dark when MQTT connects
 		log("MQTT connected - LEDs going DARK");
 		fill_solid(matrix.leds, matrix.size, CRGB::Black);
@@ -170,6 +179,11 @@ void reconnectMQTT() {
 		log("failed, rc=" + String(mqttClient.returnCode()) + " - will retry in loop");
 		consecutiveFailures++;
 		log("Consecutive failures: " + String(consecutiveFailures) + "/" + String(MAX_FAILURES_BEFORE_REDISCOVERY));
+
+		// Update display to show MQTT disconnected
+		if (Display::isAvailable()) {
+			Display::updateMQTTStatus(false);
+		}
 	}
 }
 
@@ -180,9 +194,11 @@ void mqttLoop() {
 		if (!mqttClient.connected()) {
 			// Only retry every 5 seconds to avoid spam
 			static unsigned long lastAttempt = 0;
-			if (millis() - lastAttempt > 5000) {
+			unsigned long now = millis();
+
+			if (now - lastAttempt > MQTT_RECONNECT_INTERVAL_MS) {
 				reconnectMQTT();
-				lastAttempt = millis();
+				lastAttempt = now;
 			}
 		} else {
 			mqttClient.loop();

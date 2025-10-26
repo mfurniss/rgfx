@@ -156,10 +156,23 @@ cd mame/lua && stylua . && luacheck .
 **NEVER GUESS OR ASSUME:**
 1. **Research first** - Use WebSearch and WebFetch to find current, authoritative documentation before implementing
 2. **Check local docs** - Always check local documentation (see Documentation section below) before web search
-3. **Verify recency** - DO NOT use information from the web that is over 2 years old
-4. **No assumptions** - If uncertain about API usage, library features, or best practices, RESEARCH or ASK
-5. **Best practices** - Follow industry best practices for the technologies in use (TypeScript, React, Electron, etc.)
-6. **When stuck** - ASK the senior developer rather than guessing or using outdated approaches
+3. **Check library examples** - When working with unfamiliar libraries, ALWAYS read the example code in the library's examples folder first
+4. **Verify recency** - DO NOT use information from the web that is over 2 years old
+5. **No assumptions** - If uncertain about API usage, library features, or best practices, RESEARCH or ASK
+6. **Best practices** - Follow industry best practices for the technologies in use (TypeScript, React, Electron, etc.)
+7. **When stuck** - ASK the senior developer rather than guessing or using outdated approaches
+
+**CRITICAL - Avoid Guessing Rabbit Holes:**
+- If you try 2-3 approaches and they all fail, STOP and research
+- Look for library documentation, examples, or similar code in the project
+- Do NOT continue trying random solutions - this wastes time
+- When debugging library integration issues, read the library's example code FIRST
+
+**CRITICAL - Never Promise to "Remember" Without Documentation:**
+- NEVER say "I'll make a note" or "I'll remember" without actually updating CLAUDE.md
+- If something is important enough to mention remembering, it's important enough to document
+- Update CLAUDE.md immediately when establishing new patterns or lessons learned
+- The user should not have to remind you to document what you claim to remember
 
 ### TypeScript and Lint Errors
 
@@ -357,6 +370,23 @@ Material UI provides all necessary components out of the box.
 
 ## ESP32 Development
 
+**CRITICAL - DUAL-CORE ARCHITECTURE:**
+
+The ESP32 Driver firmware uses a **dual-core architecture** for maximum performance:
+
+- **Core 0 (Protocol Core)**: Network tasks - MQTT, WiFi, web server, OTA updates, OLED display updates
+  - Runs as FreeRTOS task: `networkTask()`
+  - 10ms cycle time
+  - Handles all I2C, WiFi, and network operations
+
+- **Core 1 (Application Core)**: LED effects and UDP processing
+  - Runs in main `loop()`
+  - Dedicated to time-critical LED rendering
+  - FastLED.show() calls happen here
+  - Low-latency UDP game event processing
+
+**IMPORTANT**: Display updates run on Core 0 and have **ZERO impact** on LED performance (Core 1). You can update the OLED display as frequently as needed without affecting LED effects.
+
 **CRITICAL - ALWAYS COMPILE AFTER CHANGES:**
 
 When modifying any ESP32 code in the `esp32/` directory:
@@ -366,6 +396,12 @@ When modifying any ESP32 code in the `esp32/` directory:
 3. **Never leave code in a non-compiling state**
 
 This ensures code quality and catches errors early in development.
+
+**CRITICAL - Upload and Monitor Workflow:**
+
+- **I will only compile** - Use `pio run --project-dir /Users/matt/Workspace/rgfx/esp32`
+- **You handle upload and monitoring** - Use VSCode tasks or manual commands
+- **NEVER try to automate serial port access** - It causes blocking and port locking issues
 
 ## Documentation
 

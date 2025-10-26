@@ -31,6 +31,10 @@ public:
 
 	// Erase saved WiFi credentials (factory reset)
 	static void resetSettings();
+
+	// Set WiFi credentials via serial (bypasses web portal)
+	// Returns true if credentials were set successfully
+	static bool setWiFiCredentials(const String& ssid, const String& password);
 };
 
 #endif

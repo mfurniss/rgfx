@@ -61,12 +61,14 @@ void ConfigPortal::begin() {
 	String apName = Utils::getDeviceName();
 	log("AP name: " + apName);
 
-	// Initialize IotWebConf with NO password (empty string = open AP)
+	// Initialize IotWebConf with a default AP password
+	// IotWebConf REQUIRES an AP password to be set before it will connect to WiFi
+	const char* defaultApPassword = "rgfx1234";  // Default password for AP mode
 	iotWebConf = new IotWebConf(
 	  apName.c_str(),           // Thing name (AP SSID)
 	  &dnsServer,                // DNS server
 	  &server,                   // Web server
-	  "",                        // Empty password = open AP
+	  defaultApPassword,         // Default AP password (required!)
 	  CONFIG_VERSION             // Config version
 	);
 
@@ -74,11 +76,14 @@ void ConfigPortal::begin() {
 	iotWebConf->setConfigSavedCallback(&configSaved);
 	iotWebConf->setWifiConnectionCallback(&wifiConnected);
 
-	// Skip AP mode if we have saved credentials (go straight to connecting)
-	iotWebConf->skipApStartup();
-
 	// Set WiFi connection timeout to 10 seconds (faster than 30s default)
 	iotWebConf->setWifiConnectionTimeoutMs(WIFI_CONNECTION_TIMEOUT_MS);
+
+	// Disable status pin (used for reset detection)
+	iotWebConf->setStatusPin(-1);
+
+	// Disable the config button check by setting it to an unused pin
+	iotWebConf->setConfigPin(-1);
 
 	// Note: No LED config parameters added - config is managed by Hub
 
@@ -94,7 +99,6 @@ void ConfigPortal::begin() {
 		log("Connect to SSID: " + apName);
 		log("AP Password: " + String(iotWebConf->getApPasswordParameter()->valueBuffer));
 		log("Navigate to: http://" + String(AP_IP_ADDRESS));
-		log("IMPORTANT: Set an AP password in the web interface!");
 	}
 
 	// Set up web server handlers
@@ -234,4 +238,50 @@ void ConfigPortal::resetSettings() {
 	log("NVS configuration erased - restarting...");
 	delay(1000);
 	ESP.restart();
+}
+
+bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password) {
+	if (!iotWebConf) {
+		log("ERROR: IotWebConf not initialized");
+		return false;
+	}
+
+	log("Setting WiFi credentials via serial...");
+	log("SSID: " + ssid);
+	log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
+
+	// Get the WiFi SSID and password parameters from IotWebConf
+	iotwebconf::TextParameter* ssidParam =
+		(iotwebconf::TextParameter*)iotWebConf->getWifiSsidParameter();
+	iotwebconf::PasswordParameter* wifiPassParam =
+		(iotwebconf::PasswordParameter*)iotWebConf->getWifiPasswordParameter();
+	iotwebconf::PasswordParameter* apPassParam =
+		(iotwebconf::PasswordParameter*)iotWebConf->getApPasswordParameter();
+
+	if (!ssidParam || !wifiPassParam || !apPassParam) {
+		log("ERROR: Could not get parameter objects");
+		return false;
+	}
+
+	// Update WiFi SSID and password
+	strncpy(ssidParam->valueBuffer, ssid.c_str(), ssidParam->getLength());
+	ssidParam->valueBuffer[ssidParam->getLength() - 1] = '\0';  // Ensure null termination
+
+	strncpy(wifiPassParam->valueBuffer, password.c_str(), wifiPassParam->getLength());
+	wifiPassParam->valueBuffer[wifiPassParam->getLength() - 1] = '\0';  // Ensure null termination
+
+	// Set AP password to the default (required for IotWebConf to connect to WiFi)
+	const char* defaultApPassword = "rgfx1234";
+	strncpy(apPassParam->valueBuffer, defaultApPassword, apPassParam->getLength());
+	apPassParam->valueBuffer[apPassParam->getLength() - 1] = '\0';  // Ensure null termination
+
+	log("Also setting AP password to: rgfx1234");
+
+	// Save configuration to EEPROM
+	iotWebConf->saveConfig();
+
+	log("WiFi credentials saved successfully");
+	log("Restart device to connect to WiFi");
+
+	return true;
 }
