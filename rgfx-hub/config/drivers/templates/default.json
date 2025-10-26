@@ -1,0 +1,29 @@
+{
+  "driver_id": "TEMPLATE",
+  "friendly_name": "New Driver",
+  "description": "Default configuration template for new RGFX drivers",
+  "version": "1.0",
+  "led_devices": [
+    {
+      "id": "strip1",
+      "name": "LED Strip 1",
+      "pin": 16,
+      "type": "strip",
+      "count": 100,
+      "offset": 0,
+      "chipset": "WS2812B",
+      "color_order": "GRB",
+      "max_brightness": 255,
+      "color_correction": "TypicalLEDStrip",
+      "color_temperature": "UncorrectedTemperature"
+    }
+  ],
+  "settings": {
+    "global_brightness_limit": 255,
+    "gamma_correction": 2.2,
+    "dithering": true,
+    "update_rate": 60,
+    "power_supply_volts": 5,
+    "max_power_milliamps": 2000
+  }
+}

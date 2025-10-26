@@ -37,7 +37,7 @@ void setup() {
 	delay(200);
 	log("\n\nRGFX Driver starting...");
 
-	// Initialize NVS configuration first (performs EEPROM migration if needed)
+	// Initialize NVS configuration
 	ConfigNVS::begin();
 
 	// Start config portal to handle WiFi connection

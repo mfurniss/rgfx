@@ -5,37 +5,23 @@
 #include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
-#include <IotWebConfParameter.h>
-
-// Local char buffers for IotWebConf parameters
-// These bridge IotWebConf's string-based API with ConfigNVS's type-safe storage
-static char ledBrightnessValue[4] = "64";  // Temporary buffer for web form
-static char ledDataPinValue[3] = "16";     // Temporary buffer for web form
 
 // IotWebConf configuration
-#define CONFIG_VERSION "rgfx2"
+#define CONFIG_VERSION "rgfx3"  // Incremented version to force config update
+
+// Network configuration
+static constexpr uint16_t WEB_SERVER_PORT = 80;
+static constexpr uint32_t WIFI_CONNECTION_TIMEOUT_MS = 10000;  // 10 seconds
+static const char* AP_IP_ADDRESS = "192.168.4.1";
 
 // DNS server for captive portal
 DNSServer dnsServer;
 
 // Web server on port 80
-WebServer server(80);
+WebServer server(WEB_SERVER_PORT);
 
 // IotWebConf instance
 static IotWebConf* iotWebConf = nullptr;
-
-// LED configuration parameters
-static IotWebConfNumberParameter ledBrightnessParam = IotWebConfNumberParameter(
-      "LED Brightness", "ledBrightness", ledBrightnessValue, 4,
-      "64", "1-255", "min='1' max='255' step='1'"
-    );
-static IotWebConfNumberParameter ledDataPinParam = IotWebConfNumberParameter(
-      "LED Data Pin", "ledDataPin", ledDataPinValue, 3,
-      "16", "GPIO 0-33", "min='0' max='33' step='1'"
-    );
-
-// LED settings parameter group
-static IotWebConfParameterGroup ledGroup = IotWebConfParameterGroup("ledSettings", "LED Settings");
 
 // State name lookup table
 static const char* STATE_NAMES[] = {
@@ -57,17 +43,8 @@ String stateToString(uint8_t state) {
 
 // Callback when config is saved
 void configSaved() {
-	log("Configuration saved");
-
-	// Parse LED parameters from char buffers and save to NVS
-	uint8_t brightness = (uint8_t)atoi(ledBrightnessValue);
-	uint8_t dataPin = (uint8_t)atoi(ledDataPinValue);
-
-	ConfigNVS::setLedBrightness(brightness);
-	ConfigNVS::setLedDataPin(dataPin);
-
-	// Apply brightness changes immediately (no reboot required)
-	ConfigLeds::applyBrightness();
+	log("Configuration saved (WiFi settings only)");
+	// Note: LED config is now managed by Hub, not saved locally
 }
 
 // Callback when WiFi connects
@@ -79,14 +56,6 @@ void wifiConnected() {
 
 void ConfigPortal::begin() {
 	log("Initializing config portal...");
-
-	// Load current LED configuration from NVS into char buffers for web form
-	snprintf(ledBrightnessValue, sizeof(ledBrightnessValue), "%d", ConfigNVS::getLedBrightness());
-	snprintf(ledDataPinValue, sizeof(ledDataPinValue), "%d", ConfigNVS::getLedDataPin());
-
-	log("Loaded LED config from NVS:");
-	log("  Brightness: " + String(ledBrightnessValue));
-	log("  Data Pin: " + String(ledDataPinValue));
 
 	// Get unique device name (same as MQTT client ID)
 	String apName = Utils::getDeviceName();
@@ -109,12 +78,9 @@ void ConfigPortal::begin() {
 	iotWebConf->skipApStartup();
 
 	// Set WiFi connection timeout to 10 seconds (faster than 30s default)
-	iotWebConf->setWifiConnectionTimeoutMs(10000);
+	iotWebConf->setWifiConnectionTimeoutMs(WIFI_CONNECTION_TIMEOUT_MS);
 
-	// Add LED configuration parameters
-	ledGroup.addItem(&ledBrightnessParam);
-	ledGroup.addItem(&ledDataPinParam);
-	iotWebConf->addParameterGroup(&ledGroup);
+	// Note: No LED config parameters added - config is managed by Hub
 
 	// Initialize - this will connect to WiFi or start AP mode
 	log("Starting IotWebConf...");
@@ -127,7 +93,7 @@ void ConfigPortal::begin() {
 		log("No valid configuration - starting in AP mode");
 		log("Connect to SSID: " + apName);
 		log("AP Password: " + String(iotWebConf->getApPasswordParameter()->valueBuffer));
-		log("Navigate to: http://192.168.4.1");
+		log("Navigate to: http://" + String(AP_IP_ADDRESS));
 		log("IMPORTANT: Set an AP password in the web interface!");
 	}
 
@@ -138,16 +104,64 @@ void ConfigPortal::begin() {
 		}
 		String page = "<!DOCTYPE html><html><head><meta charset='utf-8'>";
 		page += "<title>RGFX Driver</title>";
-		page += "<style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;}</style>";
+		page += "<style>";
+		page += "body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px;}";
+		page += "h1{color:#333;}";
+		page += "table{border-collapse:collapse;width:100%;margin:20px 0;}";
+		page += "th,td{border:1px solid #ddd;padding:12px;text-align:left;}";
+		page += "th{background-color:#f2f2f2;font-weight:bold;}";
+		page += ".notice{background:#fff3cd;border:1px solid #ffc107;padding:15px;margin:20px 0;border-radius:4px;}";
+		page += "a{color:#007bff;text-decoration:none;}";
+		page += "a:hover{text-decoration:underline;}";
+		page += "</style>";
 		page += "</head><body>";
-		page += "<h1>RGFX Driver</h1>";
-		page += "<p>Go to <a href='/config'>configuration page</a> to set up WiFi.</p>";
+		page += "<h1>RGFX Driver Status</h1>";
+
+		page += "<div class='notice'>";
+		page += "<strong>Note:</strong> LED hardware configuration is managed by the RGFX Hub. ";
+		page += "This interface is for WiFi settings and diagnostics only.";
+		page += "</div>";
+
+		page += "<h2>System Information</h2>";
+		page += "<table>";
+		page += "<tr><th>Property</th><th>Value</th></tr>";
+		page += "<tr><td>Device Name</td><td>" + Utils::getDeviceName() + "</td></tr>";
+		page += "<tr><td>MAC Address</td><td>" + WiFi.macAddress() + "</td></tr>";
+		page += "<tr><td>Firmware Version</td><td>RGFX v1.0</td></tr>";
+		page += "<tr><td>Uptime</td><td>" + String(millis() / 1000) + " seconds</td></tr>";
+		page += "</table>";
+
+		page += "<h2>Network Status</h2>";
+		page += "<table>";
+		page += "<tr><th>Property</th><th>Value</th></tr>";
+		if (WiFi.status() == WL_CONNECTED) {
+			page += "<tr><td>WiFi Status</td><td>Connected</td></tr>";
+			page += "<tr><td>SSID</td><td>" + WiFi.SSID() + "</td></tr>";
+			page += "<tr><td>IP Address</td><td>" + WiFi.localIP().toString() + "</td></tr>";
+			page += "<tr><td>Signal Strength</td><td>" + String(WiFi.RSSI()) + " dBm</td></tr>";
+		} else {
+			page += "<tr><td>WiFi Status</td><td>Not Connected (AP Mode)</td></tr>";
+			page += "<tr><td>AP IP</td><td>" + String(AP_IP_ADDRESS) + "</td></tr>";
+		}
+		page += "</table>";
+
+		page += "<h2>LED Configuration (Read-Only)</h2>";
+		page += "<table>";
+		page += "<tr><th>Property</th><th>Value</th></tr>";
+		page += "<tr><td>Brightness</td><td>" + String(ConfigLeds::getBrightness()) + "</td></tr>";
+		page += "<tr><td>Data Pin</td><td>GPIO " + String(ConfigLeds::getDataPin()) + "</td></tr>";
+		page += "<tr><td>Config Source</td><td>RGFX Hub (via MQTT)</td></tr>";
+		page += "</table>";
+
+		page += "<p><a href='/config'>WiFi Configuration</a></p>";
 		page += "</body></html>";
 		server.send(200, "text/html", page);
 	});
+
 	server.on("/config", []() {
 		iotWebConf->handleConfig();
 	});
+
 	server.onNotFound([]() {
 		iotWebConf->handleNotFound();
 	});
@@ -210,7 +224,7 @@ uint8_t ConfigPortal::getLedDataPin() {
 void ConfigPortal::resetSettings() {
 	log("Factory reset: Erasing all configuration...");
 
-	// Clear NVS configuration (LED settings)
+	// Clear NVS configuration
 	ConfigNVS::factoryReset();
 
 	// Note: WiFi credentials are still managed by IotWebConf's EEPROM storage

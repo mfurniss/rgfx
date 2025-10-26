@@ -181,13 +181,13 @@ describe("Mqtt", () => {
   });
 
   describe("publish", () => {
-    it("should publish message to topic", () => {
+    it("should publish message to topic with QoS 2", () => {
       mqtt.publish("test/topic", "test payload");
 
       expect(mockAedes.publish).toHaveBeenCalledWith(
         {
           cmd: "publish",
-          qos: 0,
+          qos: 2,
           dup: false,
           topic: "test/topic",
           payload: Buffer.from("test payload"),

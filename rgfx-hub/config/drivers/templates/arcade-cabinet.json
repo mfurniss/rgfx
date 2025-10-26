@@ -1,0 +1,71 @@
+{
+  "driver_id": "TEMPLATE",
+  "friendly_name": "Arcade Cabinet",
+  "description": "Full arcade cabinet with marquee, coin slot matrix, and button strips",
+  "version": "1.0",
+  "led_devices": [
+    {
+      "id": "marquee",
+      "name": "Marquee",
+      "pin": 16,
+      "type": "strip",
+      "count": 100,
+      "offset": 0,
+      "chipset": "WS2812B",
+      "color_order": "GRB",
+      "max_brightness": 200,
+      "color_correction": "TypicalLEDStrip",
+      "color_temperature": "UncorrectedTemperature"
+    },
+    {
+      "id": "coin_slot",
+      "name": "Coin Slot",
+      "pin": 16,
+      "type": "matrix",
+      "count": 64,
+      "offset": 100,
+      "width": 8,
+      "height": 8,
+      "serpentine": true,
+      "chipset": "WS2812B",
+      "color_order": "GRB",
+      "max_brightness": 128,
+      "color_correction": "TypicalLEDStrip",
+      "color_temperature": "UncorrectedTemperature"
+    },
+    {
+      "id": "p1_buttons",
+      "name": "Player 1 Buttons",
+      "pin": 17,
+      "type": "strip",
+      "count": 20,
+      "offset": 0,
+      "chipset": "WS2812B",
+      "color_order": "GRB",
+      "max_brightness": 255,
+      "color_correction": "TypicalLEDStrip",
+      "color_temperature": "UncorrectedTemperature"
+    },
+    {
+      "id": "p2_buttons",
+      "name": "Player 2 Buttons",
+      "pin": 18,
+      "type": "strip",
+      "count": 20,
+      "offset": 0,
+      "chipset": "WS2812B",
+      "color_order": "GRB",
+      "max_brightness": 255,
+      "color_correction": "TypicalLEDStrip",
+      "color_temperature": "UncorrectedTemperature"
+    }
+  ],
+  "settings": {
+    "global_brightness_limit": 200,
+    "gamma_correction": 2.2,
+    "dithering": true,
+    "update_rate": 60,
+    "power_supply_volts": 5,
+    "max_power_milliamps": 5000
+  }
+}

@@ -3,6 +3,7 @@
 #include "sys_info.h"
 #include "log.h"
 #include "utils.h"
+#include "driver_config.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
@@ -18,9 +19,13 @@ const char* MQTT_PASSWORD = "";  // Leave empty if no authentication
 const char* MQTT_TOPIC_TEST = "rgfx/test";
 const char* MQTT_TOPIC_STATUS = "led/status";
 
+// MQTT client configuration
+static constexpr uint16_t MQTT_BUFFER_SIZE = 1024;  // Buffer size for large JSON payloads
+static constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000;  // Retry connection every 5 seconds
+
 // MQTT client
 WiFiClient espClient;
-MQTTClient mqttClient(1024);  // Set buffer size (1024 bytes for large payloads)
+MQTTClient mqttClient(MQTT_BUFFER_SIZE);
 bool mqttClientInitialized = false;  // Track if client has been initialized
 
 // Connection retry tracking
@@ -34,14 +39,23 @@ extern Matrix matrix;
 bool ledsOn = false;
 
 
+// Forward declaration for config handling
+void handleDriverConfig(const String &payload);
+
 // MQTT callback function - called when a message is received
 void mqttCallback(String &topic, String &payload) {
-	log("MQTT RX: " + topic + " = " + payload);
+	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
-	// Respond to discovery requests from Hub
+	// Respond to discovery requests from Hub with heartbeat
 	if (topic == "rgfx/system/discover") {
-		log("Received discovery request - sending driver info");
-		sendDriverConnect();
+		log("Received discovery request - sending heartbeat");
+		sendDriverHeartbeat();
+	}
+
+	// Handle driver configuration
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/config")) {
+		log("Received driver configuration from Hub");
+		handleDriverConfig(payload);
 	}
 }
 
@@ -134,9 +148,16 @@ void reconnectMQTT() {
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
 		mqttClient.subscribe("rgfx/system/discover", 2);
 
+		// Subscribe to driver-specific config topic
+		String driverId = WiFi.macAddress();
+		driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
+		String configTopic = "rgfx/driver/" + driverId + "/config";
+		mqttClient.subscribe(configTopic.c_str(), 2);
+
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - rgfx/system/discover");
+		log("  - " + configTopic);
 
 		// Turn LEDs dark when MQTT connects
 		log("MQTT connected - LEDs going DARK");
@@ -169,7 +190,7 @@ void mqttLoop() {
 	}
 }
 
-// Send driver connect message with device info
+// Send driver connect message with full system info (initial connection only)
 void sendDriverConnect() {
 	if (!mqttClient.connected()) {
 		log("Can't send driver connect - MQTT not connected");
@@ -216,3 +237,19 @@ void sendDriverConnect() {
 	}
 }
 
+// Send simple heartbeat message (periodic keepalive)
+void sendDriverHeartbeat() {
+	if (!mqttClient.connected()) {
+		return; // Silently skip if not connected
+	}
+
+	// Create minimal heartbeat payload - just MAC address
+	JsonDocument doc;
+	doc["mac"] = WiFi.macAddress();
+
+	String payload;
+	serializeJson(doc, payload);
+
+	// Publish to rgfx/system/driver/heartbeat with QoS 2
+	mqttClient.publish("rgfx/system/driver/heartbeat", payload.c_str(), false, 2);
+}

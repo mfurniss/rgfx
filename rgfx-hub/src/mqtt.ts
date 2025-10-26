@@ -53,10 +53,12 @@ export class Mqtt {
   }
 
   publish(topic: string, payload: string) {
+    // Always use QoS 2 (exactly once delivery) for critical MQTT events
+    // Use UDP for non-critical high-frequency data
     this.aedes.publish(
       {
         cmd: "publish",
-        qos: 0,
+        qos: 2,
         dup: false,
         topic,
         payload: Buffer.from(payload),
@@ -66,7 +68,7 @@ export class Mqtt {
         if (err) {
           log.error(`Failed to publish to ${topic}:`, err);
         } else {
-          log.info(`Published to ${topic}: ${payload}`);
+          log.info(`Published to ${topic} (QoS 2): ${payload}`);
         }
       },
     );

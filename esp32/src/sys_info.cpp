@@ -1,5 +1,6 @@
 #include "sys_info.h"
 #include "config_leds.h"
+#include "utils.h"
 #include <WiFi.h>
 #include <ESP.h>
 
@@ -9,7 +10,7 @@ JsonDocument SysInfo::getSysInfo(Matrix& matrix) {
 	// Network information
 	doc["ip"] = WiFi.localIP().toString();
 	doc["mac"] = WiFi.macAddress();
-	doc["hostname"] = WiFi.getHostname();
+	doc["hostname"] = Utils::getDeviceName();
 	doc["rssi"] = WiFi.RSSI();
 	doc["ssid"] = WiFi.SSID();
 

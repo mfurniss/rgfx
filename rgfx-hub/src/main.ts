@@ -9,6 +9,7 @@ import { DriverRegistry } from "./DriverRegistry";
 import { SystemMonitor } from "./SystemMonitor";
 import { DiscoveryService } from "./DiscoveryService";
 import { GameEventMapper } from "./GameEventMapper";
+import { DriverConfigManager } from "./DriverConfigManager";
 import type { DriverSystemInfo } from "./types";
 
 // Vite environment variables injected by Electron Forge
@@ -36,6 +37,7 @@ const driverRegistry = new DriverRegistry();
 const systemMonitor = new SystemMonitor();
 const discoveryService = new DiscoveryService(mqtt);
 const gameEventMapper = new GameEventMapper(udp);
+const driverConfigManager = new DriverConfigManager();
 
 // Track if we're already checking connection after UDP failure
 let checkingConnectionAfterUdpFailure = false;
@@ -47,12 +49,40 @@ function sendSystemStatus() {
   mainWindow.webContents.send("system:status", status);
 }
 
+// Helper to push driver configuration via MQTT
+function pushConfigToDriver(driverId: string): boolean {
+  try {
+    // Get configuration for this driver (returns null if not configured)
+    const config = driverConfigManager.getConfig(driverId);
+
+    if (!config) {
+      log.warn(`Driver ${driverId} connected but has no configuration - user must configure before use`);
+      return false;
+    }
+
+    // Publish to driver-specific topic
+    const topic = `rgfx/driver/${driverId}/config`;
+    const payload = JSON.stringify(config);
+
+    mqtt.publish(topic, payload);
+    log.info(`Pushed configuration to driver ${driverId} (${config.friendly_name ?? 'unnamed'})`);
+    return true;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.error(`Failed to push config to driver ${driverId}: ${errorMessage}`);
+    return false;
+  }
+}
+
 // Set up driver registry callbacks
 driverRegistry.onDriverConnected((driver) => {
   if (mainWindow) {
     mainWindow.webContents.send("driver:connected", driver);
     sendSystemStatus();
   }
+
+  // Push configuration to driver when it connects
+  pushConfigToDriver(driver.id);
 });
 
 driverRegistry.onDriverDisconnected((driver) => {
@@ -93,9 +123,9 @@ discoveryService.onTimeoutCheck(() => {
   driverRegistry.checkTimeouts();
 });
 
-// Subscribe to driver connect messages (also used for discovery responses)
+// Subscribe to driver connect messages (initial connection with system info)
 mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
-  log.info(`Driver response received`);
+  log.info(`Driver connect message received`);
 
   try {
     // Type assertion via unknown - JSON.parse returns any, which we assert to our expected type
@@ -105,6 +135,25 @@ mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     log.error(`Failed to parse driver connect message: ${errorMessage}`);
+  }
+});
+
+// Subscribe to driver heartbeat messages (simple keepalive)
+mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
+  try {
+    // Heartbeat payload is just {"mac": "AA:BB:CC:DD:EE:FF"}
+    const parsed = JSON.parse(payload) as { mac: string };
+    const driverId = parsed.mac;
+
+    if (!driverId) {
+      log.error("Heartbeat message missing 'mac' field");
+      return;
+    }
+
+    driverRegistry.updateHeartbeat(driverId);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    log.error(`Failed to parse driver heartbeat message: ${errorMessage}`);
   }
 });
 

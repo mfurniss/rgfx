@@ -50,10 +50,33 @@ export class DriverRegistry {
       log.info(`Driver connected: ${driver.name} (${driverId})`);
       this.onDriverConnectedCallback?.(driver);
     } else {
-      // Just update lastSeen for existing connected driver (heartbeat)
-      log.info(`Heartbeat from ${driver.name} (${driverId})`);
+      // Existing connected driver - shouldn't happen if using heartbeat properly
+      log.warn(`Driver ${driver.name} (${driverId}) sent connect message while already connected - should use heartbeat instead`);
     }
 
+    return driver;
+  }
+
+  // Update driver heartbeat (simple keepalive, no config republish)
+  updateHeartbeat(driverId: string): Driver | undefined {
+    const driver = this.drivers.get(driverId);
+
+    if (!driver) {
+      log.warn(`Heartbeat from unknown driver: ${driverId} - driver should connect first`);
+      return undefined;
+    }
+
+    const now = Date.now();
+    driver.lastSeen = now;
+
+    // If driver was previously disconnected, mark as reconnected
+    if (!driver.connected) {
+      log.info(`Driver reconnected via heartbeat: ${driver.name} (${driverId})`);
+      driver.connected = true;
+      this.onDriverConnectedCallback?.(driver);
+    }
+
+    this.drivers.set(driverId, driver);
     return driver;
   }
 
