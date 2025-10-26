@@ -12,9 +12,9 @@ import {
   Grid,
   Chip,
 } from '@mui/material';
-import DriverCard from './DriverCard';
-import SystemStatus from './components/SystemStatus';
-import { useDriverStore } from './store/driverStore';
+import DriverCard from './driver-card';
+import SystemStatus from './components/system-status';
+import { useDriverStore } from './store/driver-store';
 
 // Create Material UI theme (default theme)
 const theme = createTheme();

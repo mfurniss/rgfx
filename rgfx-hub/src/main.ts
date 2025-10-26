@@ -4,12 +4,12 @@ import started from "electron-squirrel-startup";
 import log from "electron-log/main";
 import { Mqtt } from "./mqtt";
 import { Udp } from "./udp";
-import { EventFileReader } from "./EventFileReader";
-import { DriverRegistry } from "./DriverRegistry";
-import { SystemMonitor } from "./SystemMonitor";
-import { DiscoveryService } from "./DiscoveryService";
-import { GameEventMapper } from "./GameEventMapper";
-import { DriverConfigManager } from "./DriverConfigManager";
+import { EventFileReader } from "./event-file-reader";
+import { DriverRegistry } from "./driver-registry";
+import { SystemMonitor } from "./system-monitor";
+import { DiscoveryService } from "./discovery-service";
+import { GameEventMapper } from "./game-event-mapper";
+import { DriverConfigManager } from "./driver-config-manager";
 import type { DriverSystemInfo } from "./types";
 
 // Vite environment variables injected by Electron Forge

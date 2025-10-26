@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { DriverRegistry } from "../DriverRegistry";
+import { DriverRegistry } from "../driver-registry";
 import type { DriverSystemInfo } from "../types";
 
 describe("DriverRegistry", () => {

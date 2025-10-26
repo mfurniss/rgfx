@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { DriverConfig, ValidationResult } from './types/DriverConfig';
+import type { DriverConfig, ValidationResult } from './types/driver-config';
 import log from 'electron-log/main';
 
 /**

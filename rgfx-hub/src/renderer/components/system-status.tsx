@@ -1,7 +1,7 @@
 import React from 'react';
 import { Paper, Typography, Grid } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '../../types';
-import SystemStatusItem from './SystemStatusItem';
+import SystemStatusItem from './system-status-item';
 
 interface SystemStatusProps {
   status: SystemStatusType;

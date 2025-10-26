@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Divider, Stack } from '@mui/material';
-import InfoRow from './InfoRow';
+import InfoRow from './info-row';
 
 export interface InfoRowData {
   label: string;

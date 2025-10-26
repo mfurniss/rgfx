@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { GameEventMapper } from "../GameEventMapper";
+import { GameEventMapper } from "../game-event-mapper";
 import type { Udp } from "../udp";
 
 describe("GameEventMapper", () => {

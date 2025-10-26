@@ -8,7 +8,7 @@ import {
   QueryStats as QueryStatsIcon,
 } from "@mui/icons-material";
 import type { Driver } from "../types";
-import InfoSection, { type InfoRowData } from "./components/InfoSection";
+import InfoSection, { type InfoRowData } from "./components/info-section";
 import { formatBytes, formatUptime, formatTimestamp } from "./utils/formatters";
 
 interface DriverCardProps {
