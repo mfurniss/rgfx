@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Usage: ./launch.sh <system_or_rom> [additional_args...]
+# Examples:
+#   ./launch.sh pacman
+#   ./launch.sh galaga
+#   ./launch.sh nes -cart roms/smb.nes
+
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

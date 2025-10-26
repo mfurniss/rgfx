@@ -13,9 +13,9 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Device logging - on device logs, via network and web interface
 [ ] Rearch other emulators
 [X] Hub unit and integration tests
-[ ] Virtual LED arrays with down sampling
+[ ] Virtual LED arrays with down-sampling
 [X] Store basic LED and WiFi config on ESP32 devices
-[ ] Implement test LEDs into config
+[ ] Implement test LEDs into config interface
 [ ] Advanced LED config for matrices
 [ ] Research "improv" browser-based Wi-Fi provisioning
 [X] Implement resilient Hub <-> Driver connections
@@ -29,4 +29,4 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Documentation for end users
 [ ] rgfx.io website
 [ ] Implement all FastLED config options
-
+[ ] Mame Lua mapping file for same game with different ROM files
