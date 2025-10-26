@@ -23,13 +23,13 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Add local docs for external packages
 [ ] GitLab CI/CD
 [X] Implement Zustand state management
-[ ] Driver config stored on Hub
+[X] Driver config stored on Hub
 [ ] Driver unit and integration tests
 [ ] E2E tests
 [ ] Documentation for end users
 [ ] rgfx.io website
 [ ] Implement all FastLED config options
-[ ] Mame Lua mapping file for same game with different ROM files
+[X] Mame Lua mapping file for same game with different ROM files
 [ ] Event prioritization in the hub - game events can optionally be sent as MQTT
 [X] Lua linting and formatting
-[ ] ESP32 dual-core processing
+[X] ESP32 dual-core processing
