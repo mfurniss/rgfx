@@ -3,7 +3,7 @@ local exports = {}
 local size_config = {
 	[1] = { method = "read_u8", hex_format = "0x%02X" },
 	[2] = { method = "read_u16", hex_format = "0x%04X" },
-	[4] = { method = "read_u32", hex_format = "0x%08X" }
+	[4] = { method = "read_u32", hex_format = "0x%08X" },
 }
 
 -- options:
@@ -37,7 +37,15 @@ function exports.install_ram_monitor(options)
 	local hex_format = config.hex_format
 
 	if name then
-		print(string.format("Installing RAM monitor '%s' (size=%d): 0x%04X - 0x%04X", name, size, start_addr, end_addr))
+		print(
+			string.format(
+				"Installing RAM monitor '%s' (size=%d): 0x%04X - 0x%04X",
+				name,
+				size,
+				start_addr,
+				end_addr
+			)
+		)
 	end
 
 	local prev_values = {}

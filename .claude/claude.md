@@ -20,6 +20,17 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 
 **Platform:** macOS only - all development is done on Mac. Use Mac-specific commands and shortcuts (Cmd instead of Ctrl, etc.)
 
+**CRITICAL - MAME on macOS:**
+- **ALWAYS launch MAME in windowed mode** using `-window` flag
+- **NEVER use fullscreen mode** - there is a bug that can crash MAME on macOS
+- The `launch.sh` script already includes `-window -nomaximize` flags
+
+**CRITICAL - Testing MAME with Claude:**
+- **NEVER try to capture MAME output with background processes, timeouts, or redirects** - buffering causes output to be lost
+- **ALWAYS ask the user to run the command and paste the console output** rather than trying to automate it
+- The user can see the output correctly; trust their reports
+- Do NOT use `./mame ... > /tmp/file.txt &` patterns - they don't work
+
 ## Documentation - READ FIRST
 
 **CRITICAL - START EVERY NEW CHAT SESSION BY REVIEWING LOCAL DOCS:**
@@ -106,6 +117,23 @@ Each sub-project follows its ecosystem's file naming conventions. **Consistency 
 
 - Examples: `rgfx.lua`, `event.lua`, `pacman_rgfx.lua`
 - Already consistent - no changes needed
+
+**Lua Code Formatting and Linting:**
+- **Formatter**: StyLua (`brew install stylua`)
+  - Config: `mame/lua/.stylua.toml`
+  - Run: `cd mame/lua && stylua .`
+  - Check: `cd mame/lua && stylua --check .`
+
+- **Linter**: luacheck (`brew install luacheck`)
+  - Config: `mame/lua/.luacheckrc`
+  - Run: `cd mame/lua && luacheck .`
+  - Supports Lua 5.4 including bitwise operators (`>>`, `&`)
+  - Version: 1.2.0 from lunarmodules (actively maintained)
+
+**CRITICAL - ALWAYS format and lint Lua files after editing:**
+```bash
+cd mame/lua && stylua . && luacheck .
+```
 
 ### Summary
 
@@ -197,6 +225,19 @@ Each sub-project follows its ecosystem's file naming conventions. **Consistency 
 ## Project Overview
 
 RGFX intercepts memory changes in MAME-emulated arcade games and publishes game events (score changes, entity states, power-ups, etc.) via an embedded MQTT broker in the Hub for consumption by LED Drivers and other clients.
+
+## MAME ROMs Location
+
+**Path:** `/Users/matt/Workspace/mame0281-arm64/roms`
+
+You can always check available ROMs with:
+```bash
+ls /Users/matt/Workspace/mame0281-arm64/roms
+```
+
+**Current ROMs:**
+- **Arcade**: `pacman.zip`, `mspacman.zip`, `galaga.zip`
+- **NES**: `smb.nes` (Super Mario Bros USA), `smw.nes` (Super Mario Bros World edition), `castlevania_3.nes`
 
 ## Project Structure
 

@@ -28,7 +28,7 @@ export class GameEventMapper {
     }
     // Super Mario Bros: Jump
     else if (topic === "player/jump") {
-      this.udp.send("pulse", "0x00FF00"); // Green pulse
+      this.udp.send("pulse", "0xFF0000"); // Red pulse
     }
     // Super Mario Bros: Coin pickup
     else if (topic === "player/coin") {

@@ -10,7 +10,9 @@ local function get_temp_dir()
 	end
 end
 
-local event_file_path = get_temp_dir() .. (package.config:sub(1, 1) == "\\" and "\\" or "/") .. "rgfx_events.log"
+local event_file_path = get_temp_dir()
+	.. (package.config:sub(1, 1) == "\\" and "\\" or "/")
+	.. "rgfx_events.log"
 
 event_file = io.open(event_file_path, "w")
 if event_file then

@@ -1,0 +1,56 @@
+-- Super Mario World (SNES) RAM Map
+-- Reference: https://datacrystal.tcrf.net/wiki/Super_Mario_World:RAM_map
+--
+-- TODO: Research and implement RAM monitoring for Super Mario World
+-- Potential events to track:
+-- - Player score
+-- - Coins collected
+-- - Lives remaining
+-- - Power-up state (Small Mario, Super Mario, Cape Mario, Fire Mario)
+-- - Level/World progression
+-- - Dragon coins collected
+-- - Yoshi state
+-- - Star/invincibility timer
+
+print("Super Mario World (SNES) interceptor loaded - RAM monitoring not yet implemented")
+print("TODO: Add RAM map research and event monitoring")
+
+-- Placeholder for future RAM monitoring implementation
+-- When implementing, add the following and fill in RAM addresses:
+--
+-- package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
+-- local ram = require("ram")
+-- local cpu = manager.machine.devices[":maincpu"]
+--
+-- local map = {
+--   score = {
+--     addr_start = 0x?????,
+--     size = 3,
+--     callback = function(_, current, _)
+--       _G.event("player/score", current)
+--     end,
+--   },
+--   coins = {
+--     addr_start = 0x?????,
+--     callback = function(_, current, _)
+--       _G.event("player/coins", current)
+--     end,
+--   },
+--   powerup = {
+--     addr_start = 0x?????,
+--     callback = function(_, current, _)
+--       _G.event("player/powerup", current)
+--     end,
+--   },
+-- }
+--
+-- for name, config in pairs(map) do
+--   ram.install_ram_monitor({
+--     mem = cpu.spaces["program"],
+--     start_addr = config.addr_start,
+--     end_addr = config.addr_end,
+--     name = name,
+--     callback = config.callback,
+--     size = config.size,
+--   })
+-- end

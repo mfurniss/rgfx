@@ -1,0 +1,48 @@
+-- Castlevania III: Dracula's Curse (NES) RAM Map
+-- Reference: https://datacrystal.tcrf.net/wiki/Castlevania_III:_Dracula%27s_Curse:RAM_map
+--
+-- TODO: Research and implement RAM monitoring for Castlevania III
+-- Potential events to track:
+-- - Player score
+-- - Health/Hearts
+-- - Lives remaining
+-- - Stage/Level progression
+-- - Power-ups/Sub-weapons
+-- - Boss encounters
+
+print("Castlevania III interceptor loaded - RAM monitoring not yet implemented")
+print("TODO: Add RAM map research and event monitoring")
+
+-- Placeholder for future RAM monitoring implementation
+-- When implementing, add the following and fill in RAM addresses:
+--
+-- package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
+-- local ram = require("ram")
+-- local cpu = manager.machine.devices[":maincpu"]
+--
+-- local map = {
+--   score = {
+--     addr_start = 0x?????,
+--     size = 3,
+--     callback = function(_, current, _)
+--       _G.event("player/score", current)
+--     end,
+--   },
+--   health = {
+--     addr_start = 0x?????,
+--     callback = function(_, current, _)
+--       _G.event("player/health", current)
+--     end,
+--   },
+-- }
+--
+-- for name, config in pairs(map) do
+--   ram.install_ram_monitor({
+--     mem = cpu.spaces["program"],
+--     start_addr = config.addr_start,
+--     end_addr = config.addr_end,
+--     name = name,
+--     callback = config.callback,
+--     size = config.size,
+--   })
+-- end
