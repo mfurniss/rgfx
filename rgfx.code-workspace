@@ -11,9 +11,6 @@
       "path": "esp32"
     },
     {
-      "path": "py-bridge"
-    },
-    {
       "path": "esp32-installer"
     },
     {
@@ -27,7 +24,6 @@
     "files.exclude": {
       "mame": true,
       "esp32": true,
-      "py-bridge": true,
       "esp32-installer": true,
       "rgfx.io": true,
       "rgfx-hub": true

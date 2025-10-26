@@ -31,8 +31,7 @@ RGFX is a distributed system for monitoring retro arcade game state and translat
 
 ### RGFX Hub (Central Controller)
 
-**Current:** Python application with terminal UI
-**Future:** Electron/TypeScript application with graphical UI
+**Implementation:** Electron/TypeScript application with React + Material UI
 
 **Responsibilities:**
 - Monitor game events from emulator events file
@@ -329,8 +328,8 @@ Targets:
 - Single-device UDP mode supported during development
 
 **Technology Evolution:**
-- Python bridge → Electron/TypeScript app (incremental migration)
-- Current terminal UI → Graphical UI
+- ✅ Python bridge → Electron/TypeScript app (completed)
+- ✅ Terminal UI → React + Material UI (completed)
 - Community game scripts bundled with releases
 
 ---
@@ -338,9 +337,12 @@ Targets:
 ## Technology Stack
 
 ### RGFX Hub
-- **Current:** Python 3, paho-mqtt, curses (terminal UI)
-- **Future:** Electron, TypeScript, React/Vue, Aedes MQTT broker
-- **Common:** mDNS/Bonjour, UDP sockets, JSON configuration
+- **Platform:** Electron, TypeScript, React + Material UI
+- **MQTT:** Aedes (embedded broker)
+- **Discovery:** bonjour-service (mDNS)
+- **Build:** Electron Forge + Vite
+- **State:** Zustand + Redux DevTools
+- **Network:** UDP sockets, JSON configuration
 
 ### RGFX Drivers (ESP32)
 - **Platform:** ESP32 (espressif32)
@@ -399,7 +401,7 @@ Targets:
 ### RGFX Hub
 - **Platform:** macOS (current development), future cross-platform (Windows, Linux)
 - **Network:** WiFi or Ethernet on same network as Drivers
-- **MQTT Broker:** mosquitto or embedded Aedes (future)
+- **MQTT Broker:** Embedded Aedes (built into Hub)
 
 ### RGFX Drivers
 - **Microcontroller:** ESP32 (espressif32 platform)
@@ -421,10 +423,16 @@ Targets:
 rgfx/
 ├── docs/                       # Documentation
 │   └── architecture.md         # This file
-├── py-bridge/                  # Python Hub implementation
-│   ├── bridge.py              # Main bridge application
-│   ├── ui.py                  # Terminal UI
-│   └── config_example.json    # Configuration template
+├── rgfx-hub/                   # Electron Hub application
+│   ├── src/                   # Source code
+│   │   ├── main.ts           # Main process
+│   │   ├── mqtt.ts           # Embedded Aedes broker
+│   │   ├── udp.ts            # UDP communication
+│   │   ├── event-file-reader.ts  # MAME events monitor
+│   │   ├── renderer.tsx      # React UI entry point
+│   │   └── components/       # React components
+│   ├── package.json          # Dependencies and scripts
+│   └── forge.config.ts       # Electron Forge config
 ├── esp32/                      # ESP32 Driver firmware
 │   ├── src/                   # Source code
 │   │   ├── main.cpp          # Main application
