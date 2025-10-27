@@ -12,26 +12,26 @@
 
 // MQTT broker settings
 const int MQTT_PORT = 1883;
-String MQTT_SERVER = "";  // Will be discovered via mDNS
-const char* MQTT_USER = "";  // Leave empty if no authentication
-const char* MQTT_PASSWORD = "";  // Leave empty if no authentication
+String MQTT_SERVER = "";        // Will be discovered via mDNS
+const char* MQTT_USER = "";     // Leave empty if no authentication
+const char* MQTT_PASSWORD = ""; // Leave empty if no authentication
 
 // MQTT topics
 const char* MQTT_TOPIC_TEST = "rgfx/test";
 const char* MQTT_TOPIC_STATUS = "led/status";
 
 // MQTT client configuration
-static constexpr uint16_t MQTT_BUFFER_SIZE = 1024;  // Buffer size for large JSON payloads
-static constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000;  // Retry connection every 5 seconds
+static constexpr uint16_t MQTT_BUFFER_SIZE = 1024;           // Buffer size for large JSON payloads
+static constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000; // Retry connection every 5 seconds
 
 // MQTT client
 WiFiClient espClient;
 MQTTClient mqttClient(MQTT_BUFFER_SIZE);
-bool mqttClientInitialized = false;  // Track if client has been initialized
+bool mqttClientInitialized = false; // Track if client has been initialized
 
 // Connection retry tracking
 static int consecutiveFailures = 0;
-const int MAX_FAILURES_BEFORE_REDISCOVERY = 3;  // Rediscover after 3 failed attempts (15 seconds)
+const int MAX_FAILURES_BEFORE_REDISCOVERY = 3; // Rediscover after 3 failed attempts (15 seconds)
 
 // Forward declaration for LED access
 extern Matrix matrix;
@@ -39,12 +39,11 @@ extern Matrix matrix;
 // Toggle state
 bool ledsOn = false;
 
-
 // Forward declaration for config handling
-void handleDriverConfig(const String &payload);
+void handleDriverConfig(const String& payload);
 
 // MQTT callback function - called when a message is received
-void mqttCallback(String &topic, String &payload) {
+void mqttCallback(String& topic, String& payload) {
 	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
 	// Respond to discovery requests from Hub with heartbeat
@@ -59,7 +58,6 @@ void mqttCallback(String &topic, String &payload) {
 		handleDriverConfig(payload);
 	}
 }
-
 
 // Discover MQTT broker via mDNS
 bool discoverMQTTBroker() {
@@ -99,7 +97,6 @@ void setupMQTT() {
 	}
 }
 
-
 // Connect/reconnect to MQTT broker (non-blocking, single attempt)
 void reconnectMQTT() {
 	if (mqttClient.connected()) {
@@ -109,9 +106,10 @@ void reconnectMQTT() {
 	// Check if we've had too many consecutive failures - if so, clear cached IP and rediscover
 	// This handles case where broker IP changed or broker went down
 	if (consecutiveFailures >= MAX_FAILURES_BEFORE_REDISCOVERY && !MQTT_SERVER.isEmpty()) {
-		log("Too many consecutive failures (" + String(consecutiveFailures) + "), clearing cached broker IP and rediscovering...");
-		MQTT_SERVER = "";  // Clear cached IP to force rediscovery
-		consecutiveFailures = 0;  // Reset counter for rediscovery attempt
+		log("Too many consecutive failures (" + String(consecutiveFailures) +
+		    "), clearing cached broker IP and rediscovering...");
+		MQTT_SERVER = "";        // Clear cached IP to force rediscovery
+		consecutiveFailures = 0; // Reset counter for rediscovery attempt
 	}
 
 	// Discover broker via mDNS if we don't have one or it's invalid
@@ -154,7 +152,7 @@ void reconnectMQTT() {
 
 		// Subscribe to driver-specific config topic
 		String driverId = WiFi.macAddress();
-		driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
+		driverId.replace(":", "-"); // Format MAC as AB-CD-EF-12-34-56
 		String configTopic = "rgfx/driver/" + driverId + "/config";
 		mqttClient.subscribe(configTopic.c_str(), 2);
 
@@ -178,7 +176,8 @@ void reconnectMQTT() {
 	} else {
 		log("failed, rc=" + String(mqttClient.returnCode()) + " - will retry in loop");
 		consecutiveFailures++;
-		log("Consecutive failures: " + String(consecutiveFailures) + "/" + String(MAX_FAILURES_BEFORE_REDISCOVERY));
+		log("Consecutive failures: " + String(consecutiveFailures) + "/" +
+		    String(MAX_FAILURES_BEFORE_REDISCOVERY));
 
 		// Update display to show MQTT disconnected
 		if (Display::isAvailable()) {

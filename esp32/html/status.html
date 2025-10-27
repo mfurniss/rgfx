@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>RGFX Driver</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 20px 0;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      .notice {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>RGFX Driver Status</h1>
+
+    <div class='notice'>
+      <strong>Note:</strong> LED hardware configuration is managed by the RGFX Hub.
+      This interface is for WiFi settings and diagnostics only.
+    </div>
+
+    <h2>System Information</h2>
+    <table>
+      <tr><th>Property</th><th>Value</th></tr>
+      <tr><td>Device Name</td><td>{{DEVICE_NAME}}</td></tr>
+      <tr><td>MAC Address</td><td>{{MAC_ADDRESS}}</td></tr>
+      <tr><td>Firmware Version</td><td>RGFX v1.0</td></tr>
+      <tr><td>Uptime</td><td>{{UPTIME}}</td></tr>
+    </table>
+
+    <h2>Network Status</h2>
+    <table>
+      <tr><th>Property</th><th>Value</th></tr>
+      {{NETWORK_STATUS}}
+    </table>
+
+    <h2>LED Configuration (Read-Only)</h2>
+    <table>
+      <tr><th>Property</th><th>Value</th></tr>
+      <tr><td>Brightness</td><td>{{LED_BRIGHTNESS}}</td></tr>
+      <tr><td>Data Pin</td><td>GPIO {{LED_DATA_PIN}}</td></tr>
+      <tr><td>Config Source</td><td>RGFX Hub (via MQTT)</td></tr>
+    </table>
+
+    <p><a href='/config'>WiFi Configuration</a></p>
+  </body>
+</html>

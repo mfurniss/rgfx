@@ -6,7 +6,7 @@
 
 // System information utilities
 class SysInfo {
-public:
+  public:
 	// Get complete system information as JSON document
 	// Returns populated JsonDocument with device info, network, chip, memory, LED config, etc.
 	static JsonDocument getSysInfo(Matrix& matrix);

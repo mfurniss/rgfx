@@ -6,7 +6,7 @@
 
 // LED configuration and initialization
 class ConfigLeds {
-public:
+  public:
 	// Get configured LED brightness (1-255)
 	static uint8_t getBrightness();
 
@@ -16,9 +16,6 @@ public:
 	// Initialize FastLED with configured parameters
 	// Must be called after ConfigPortal::begin()
 	static void initLeds(Matrix& matrix);
-
-	// Apply brightness changes (call after config is saved)
-	static void applyBrightness();
 };
 
 #endif

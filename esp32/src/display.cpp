@@ -12,10 +12,10 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_I2C_ADDRESS 0x3C
-#define OLED_RESET -1  // No reset pin (sharing ESP32 reset)
+#define OLED_RESET -1 // No reset pin (sharing ESP32 reset)
 #define I2C_SDA 21
 #define I2C_SCL 22
-#define I2C_CLOCK_SPEED 400000  // 400kHz (fast mode) for quicker updates
+#define I2C_CLOCK_SPEED 400000 // 400kHz (fast mode) for quicker updates
 
 // Display instance (allocated on heap to save stack space)
 static Adafruit_SSD1306* display = nullptr;
@@ -34,7 +34,7 @@ bool begin() {
 
 	// Initialize I2C with custom pins and standard clock speed for detection
 	Wire.begin(I2C_SDA, I2C_SCL);
-	Wire.setClock(100000);  // Start with standard 100kHz for reliable detection
+	Wire.setClock(100000); // Start with standard 100kHz for reliable detection
 
 	// Give display time to power up
 	delay(50);
@@ -73,7 +73,7 @@ bool begin() {
 	// Configure display defaults
 	display->setTextColor(SSD1306_WHITE);
 	display->setTextWrap(false);
-	display->cp437(true);  // Use full 256 char 'Code Page 437' font
+	display->cp437(true); // Use full 256 char 'Code Page 437' font
 
 	// Clear and show initial blank screen
 	display->clearDisplay();
@@ -88,7 +88,8 @@ bool isAvailable() {
 }
 
 void showBoot(const String& deviceName) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	display->clearDisplay();
 
@@ -109,7 +110,8 @@ void showBoot(const String& deviceName) {
 }
 
 void showConnecting(const String& ssid) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	display->clearDisplay();
 
@@ -138,7 +140,8 @@ void showConnecting(const String& ssid) {
 }
 
 void showAPMode(const String& apName) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	display->clearDisplay();
 
@@ -174,7 +177,8 @@ void showAPMode(const String& apName) {
 }
 
 void updateAPModeCountdown(uint16_t secondsRemaining) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	// Clear countdown area (right side, next to "SETUP MODE")
 	display->fillRect(80, 16, SCREEN_WIDTH - 80, 32, SSD1306_BLACK);
@@ -200,7 +204,8 @@ void updateAPModeCountdown(uint16_t secondsRemaining) {
 }
 
 void showConnected(const String& ssid, const String& ip, bool mqttConnected) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	// Cache values for later updates
 	cachedSSID = ssid;
@@ -245,10 +250,12 @@ void showConnected(const String& ssid, const String& ip, bool mqttConnected) {
 }
 
 void updateMQTTStatus(bool connected) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	// Only update if status actually changed
-	if (connected == cachedMQTTStatus) return;
+	if (connected == cachedMQTTStatus)
+		return;
 
 	cachedMQTTStatus = connected;
 
@@ -267,10 +274,12 @@ void updateMQTTStatus(bool connected) {
 }
 
 void updateUptime(unsigned long uptimeSeconds) {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	// Only update every second to avoid excessive I2C traffic
-	if (uptimeSeconds == lastUptimeUpdate) return;
+	if (uptimeSeconds == lastUptimeUpdate)
+		return;
 	lastUptimeUpdate = uptimeSeconds;
 
 	// Format uptime as HH:MM:SS
@@ -282,11 +291,10 @@ void updateUptime(unsigned long uptimeSeconds) {
 	if (hours > 99) {
 		// If over 99 hours, show days instead
 		unsigned long days = hours / 24;
-		snprintf(uptimeStr, sizeof(uptimeStr), "%lud %02lu:%02lu:%02lu",
-		         days, hours % 24, minutes, seconds);
+		snprintf(uptimeStr, sizeof(uptimeStr), "%lud %02lu:%02lu:%02lu", days, hours % 24, minutes,
+		         seconds);
 	} else {
-		snprintf(uptimeStr, sizeof(uptimeStr), "%02lu:%02lu:%02lu",
-		         hours, minutes, seconds);
+		snprintf(uptimeStr, sizeof(uptimeStr), "%02lu:%02lu:%02lu", hours, minutes, seconds);
 	}
 
 	// Clear uptime area and redraw
@@ -301,7 +309,8 @@ void updateUptime(unsigned long uptimeSeconds) {
 }
 
 void clear() {
-	if (!displayAvailable) return;
+	if (!displayAvailable)
+		return;
 
 	display->clearDisplay();
 	display->display();

@@ -29,7 +29,7 @@ void processUDP() {
 		char buffer[UDP_BUFFER_SIZE];
 		int len = udp.read(buffer, UDP_BUFFER_SIZE - 1);
 		if (len > 0) {
-			buffer[len] = '\0';  // Null terminate
+			buffer[len] = '\0'; // Null terminate
 
 			// Parse JSON
 			JsonDocument doc;
@@ -38,7 +38,7 @@ void processUDP() {
 			if (!error) {
 				pendingMessage.effect = doc["effect"].as<String>();
 				const char* colorHex = doc["color"];
-				pendingMessage.color = (uint32_t) strtol(colorHex, NULL, 16);
+				pendingMessage.color = (uint32_t)strtol(colorHex, NULL, 16);
 				newMessageAvailable = true;
 				log("UDP RX: " + String(buffer));
 			} else {

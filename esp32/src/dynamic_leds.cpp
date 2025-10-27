@@ -12,9 +12,9 @@ static uint8_t activePins = 0;
 // Device mapping
 struct DeviceMapping {
 	String id;
-	uint8_t pinIndex;   // Index into ledBuffers array
-	uint16_t offset;    // Offset within pin's LED buffer
-	uint16_t count;     // Number of LEDs
+	uint8_t pinIndex; // Index into ledBuffers array
+	uint16_t offset;  // Offset within pin's LED buffer
+	uint16_t count;   // Number of LEDs
 };
 
 static std::vector<DeviceMapping> deviceMappings;
@@ -86,7 +86,8 @@ bool initializeDynamicLEDs() {
 
 	// Check pin count limit
 	if (pinLEDCounts.size() > MAX_PINS) {
-		log("ERROR: Too many pins configured (" + String(pinLEDCounts.size()) + " > " + String(MAX_PINS) + ")");
+		log("ERROR: Too many pins configured (" + String(pinLEDCounts.size()) + " > " +
+		    String(MAX_PINS) + ")");
 		return false;
 	}
 
@@ -99,7 +100,8 @@ bool initializeDynamicLEDs() {
 		uint16_t count = pair.second;
 
 		if (count > MAX_LEDS_PER_PIN) {
-			log("ERROR: Too many LEDs on pin " + String(pin) + " (" + String(count) + " > " + String(MAX_LEDS_PER_PIN) + ")");
+			log("ERROR: Too many LEDs on pin " + String(pin) + " (" + String(count) + " > " +
+			    String(MAX_LEDS_PER_PIN) + ")");
 			return false;
 		}
 
@@ -118,13 +120,13 @@ bool initializeDynamicLEDs() {
 		// Initialize LEDs to black
 		fill_solid(ledBuffers[pinIndex], count, CRGB::Black);
 
-		// Add to FastLED - template requires compile-time pin specification
-		// Using macro to eliminate code duplication while maintaining template requirements
-		#define ADD_FASTLED_FOR_PIN(PIN_NUM) \
-			case PIN_NUM: \
-				FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count); \
-				log("Added FastLED for GPIO" #PIN_NUM); \
-				break;
+// Add to FastLED - template requires compile-time pin specification
+// Using macro to eliminate code duplication while maintaining template requirements
+#define ADD_FASTLED_FOR_PIN(PIN_NUM)                                                               \
+	case PIN_NUM:                                                                                  \
+		FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count);                       \
+		log("Added FastLED for GPIO" #PIN_NUM);                                                    \
+		break;
 
 		switch (pin) {
 			ADD_FASTLED_FOR_PIN(16)
@@ -142,7 +144,7 @@ bool initializeDynamicLEDs() {
 				return false;
 		}
 
-		#undef ADD_FASTLED_FOR_PIN
+#undef ADD_FASTLED_FOR_PIN
 
 		pinIndex++;
 	}
@@ -166,13 +168,14 @@ bool initializeDynamicLEDs() {
 		deviceMappings.push_back(mapping);
 
 		log("Mapped device: " + dev.name + " (" + dev.id + ")");
-		log("  -> Pin " + String(dev.pin) + " [" + String(dev.offset) + ".." + String(dev.offset + dev.count - 1) + "]");
+		log("  -> Pin " + String(dev.pin) + " [" + String(dev.offset) + ".." +
+		    String(dev.offset + dev.count - 1) + "]");
 	}
 
 	// Apply global settings
 	uint8_t brightness = min((int)g_driverConfig.globalBrightnessLimit, 255);
 	FastLED.setBrightness(brightness);
-	FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);  // Conservative power limit
+	FastLED.setMaxPowerInVoltsAndMilliamps(5, 500); // Conservative power limit
 
 	log("FastLED initialized successfully");
 	log("Active pins: " + String(activePins));

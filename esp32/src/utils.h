@@ -5,7 +5,7 @@
 
 // Shared utility functions
 class Utils {
-public:
+  public:
 	// Get stable 6-character device ID from MAC address (last 3 bytes)
 	// Returns lowercase hex string like "ddeeff"
 	static String getDeviceId();

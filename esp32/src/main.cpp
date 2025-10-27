@@ -21,7 +21,7 @@
 #include "display.h"
 #include "utils.h"
 
-#define FLASH_DURATION_MS  10  // MQTT message flash duration
+#define FLASH_DURATION_MS 10 // MQTT message flash duration
 
 Matrix matrix(WIDTH, HEIGHT);
 
@@ -54,7 +54,7 @@ void networkTask(void* parameter) {
 	if (hasDisplay) {
 		log("OLED display available - status display enabled");
 		Display::showBoot(Utils::getDeviceName());
-		delay(2000);  // Show boot screen for 2 seconds
+		delay(2000); // Show boot screen for 2 seconds
 	} else {
 		log("Running without OLED display");
 	}
@@ -64,7 +64,8 @@ void networkTask(void* parameter) {
 
 	// Track last uptime update for periodic display refresh
 	unsigned long lastUptimeUpdate = 0;
-	const unsigned long UPTIME_UPDATE_INTERVAL = 1000;  // Update every 1 second (runs on Core 0, no LED impact)
+	const unsigned long UPTIME_UPDATE_INTERVAL =
+		1000; // Update every 1 second (runs on Core 0, no LED impact)
 
 	// Main network task loop
 	while (true) {
@@ -92,7 +93,7 @@ void networkTask(void* parameter) {
 		}
 
 		// Yield to other tasks and prevent watchdog timeout
-		vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms delay
+		vTaskDelay(10 / portTICK_PERIOD_MS); // 10ms delay
 	}
 }
 
@@ -127,14 +128,13 @@ void setup() {
 
 	// Create network task on Core 0
 	// Priority 1 (same as loop), 8KB stack
-	xTaskCreatePinnedToCore(
-	  networkTask,          // Task function
-	  "NetworkTask",        // Task name
-	  8192,                 // Stack size (bytes)
-	  NULL,                 // Parameters
-	  1,                    // Priority (1 = same as loop)
-	  &networkTaskHandle,   // Task handle
-	  0                     // Core 0 (protocol core)
+	xTaskCreatePinnedToCore(networkTask,        // Task function
+	                        "NetworkTask",      // Task name
+	                        8192,               // Stack size (bytes)
+	                        NULL,               // Parameters
+	                        1,                  // Priority (1 = same as loop)
+	                        &networkTaskHandle, // Task handle
+	                        0                   // Core 0 (protocol core)
 	);
 
 	log("Network task created on Core 0");
@@ -151,7 +151,7 @@ void loop() {
 	static bool inApMode = false;
 	static unsigned long apModeStartTime = 0;
 	static unsigned long lastCountdownUpdate = 0;
-	const uint16_t AP_TIMEOUT_SECONDS = 10;  // AP timeout before falling back to saved WiFi
+	const uint16_t AP_TIMEOUT_SECONDS = 10; // AP timeout before falling back to saved WiFi
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {
@@ -176,7 +176,8 @@ void loop() {
 		unsigned long now = millis();
 		if (now - lastCountdownUpdate >= 1000) {
 			uint16_t elapsed = (now - apModeStartTime) / 1000;
-			uint16_t remaining = (elapsed < AP_TIMEOUT_SECONDS) ? (AP_TIMEOUT_SECONDS - elapsed) : 0;
+			uint16_t remaining =
+				(elapsed < AP_TIMEOUT_SECONDS) ? (AP_TIMEOUT_SECONDS - elapsed) : 0;
 			Display::updateAPModeCountdown(remaining);
 			lastCountdownUpdate = now;
 		}
@@ -236,7 +237,7 @@ void loop() {
 				FastLED.show();
 			});
 			ArduinoOTA.begin();
-			delay(100);  // Give OTA time to initialize
+			delay(100); // Give OTA time to initialize
 			log("OTA Ready");
 			otaSetupDone = true;
 
@@ -256,7 +257,8 @@ void loop() {
 
 			// Update display to show connected status with actual MQTT status
 			if (Display::isAvailable()) {
-				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected());
+				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
+				                       mqttClient.connected());
 			}
 
 			// Go dark for normal operation
@@ -289,12 +291,11 @@ void loop() {
 			ConfigPortal::resetSettings();
 			delay(1000);
 			ESP.restart();
-		}
-		else if (cmd.startsWith("wifi ")) {
+		} else if (cmd.startsWith("wifi ")) {
 			// Format: wifi SSID PASSWORD
 			// Example: wifi MyNetwork MyPassword123
 			// Example: wifi "My Network" "My Password 123"
-			String params = cmd.substring(5);  // Remove "wifi " prefix
+			String params = cmd.substring(5); // Remove "wifi " prefix
 			params.trim();
 
 			// Parse SSID and password (supports quoted strings with spaces)
@@ -349,8 +350,7 @@ void loop() {
 				log("Example: wifi MyNetwork MyPassword123");
 				log("Example: wifi \"My Network\" \"My Password 123\"");
 			}
-		}
-		else if (cmd == "help") {
+		} else if (cmd == "help") {
 			log("\n=== RGFX Driver Serial Commands ===");
 			log("wifi SSID PASSWORD   - Set WiFi credentials and restart");
 			log("                       Supports quoted strings for SSIDs/passwords with spaces");

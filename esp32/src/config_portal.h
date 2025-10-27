@@ -6,7 +6,7 @@
 // Configuration portal manager using IotWebConf
 // Handles WiFi connection and persistent web-based configuration portal
 class ConfigPortal {
-public:
+  public:
 	// Initialize config portal and connect to WiFi
 	// Portal remains accessible on local network IP after connection
 	static void begin();

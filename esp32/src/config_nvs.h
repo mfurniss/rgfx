@@ -20,7 +20,7 @@
  * It is managed centrally by the Hub and pushed to drivers via MQTT.
  */
 class ConfigNVS {
-public:
+  public:
 	/**
 	 * Initialize NVS
 	 *
@@ -36,7 +36,7 @@ public:
 	 */
 	static void factoryReset();
 
-private:
+  private:
 	// NVS namespace name (max 15 characters)
 	static constexpr const char* NAMESPACE = "rgfx";
 };

@@ -1,0 +1,18 @@
+{
+  // Treat .h files as C++ (not C) for proper syntax highlighting
+  "files.associations": {
+    "*.h": "cpp"
+  },
+
+  // Exclude generated files from search
+  "files.exclude": {
+    "**/.pio": true,
+    "**/src/generated": true
+  },
+
+  // Exclude generated files from watcher (performance)
+  "files.watcherExclude": {
+    "**/.pio/**": true,
+    "**/src/generated/**": true
+  }
+}

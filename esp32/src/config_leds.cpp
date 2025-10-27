@@ -36,10 +36,3 @@ void ConfigLeds::initLeds(Matrix& matrix) {
 	FastLED.setBrightness(brightness);
 	FastLED.setCorrection(TypicalPixelString);
 }
-
-void ConfigLeds::applyBrightness() {
-	uint8_t brightness = getBrightness();
-
-	log("Applying brightness: " + String(brightness));
-	FastLED.setBrightness(brightness);
-}

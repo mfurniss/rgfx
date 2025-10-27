@@ -5,13 +5,14 @@
 #include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
+#include "generated/html_status.h"
 
 // IotWebConf configuration
-#define CONFIG_VERSION "rgfx3"  // Incremented version to force config update
+#define CONFIG_VERSION "rgfx3" // Incremented version to force config update
 
 // Network configuration
 static constexpr uint16_t WEB_SERVER_PORT = 80;
-static constexpr uint32_t WIFI_CONNECTION_TIMEOUT_MS = 10000;  // 10 seconds
+static constexpr uint32_t WIFI_CONNECTION_TIMEOUT_MS = 10000; // 10 seconds
 static const char* AP_IP_ADDRESS = "192.168.4.1";
 
 // DNS server for captive portal
@@ -25,12 +26,12 @@ static IotWebConf* iotWebConf = nullptr;
 
 // State name lookup table
 static const char* STATE_NAMES[] = {
-	"Boot",           // 0
-	"NotConfigured",  // 1
-	"ApMode",         // 2
-	"Connecting",     // 3
-	"OnLine",         // 4
-	"OffLine"         // 5
+	"Boot",          // 0
+	"NotConfigured", // 1
+	"ApMode",        // 2
+	"Connecting",    // 3
+	"OnLine",        // 4
+	"OffLine"        // 5
 };
 
 // Helper to convert state enum to human-readable string
@@ -39,6 +40,21 @@ String stateToString(uint8_t state) {
 		return STATE_NAMES[state];
 	}
 	return "Unknown(" + String(state) + ")";
+}
+
+// Helper to replace template variables in HTML stored in PROGMEM
+String replaceTemplate(const char* htmlTemplate, const String& key, const String& value) {
+	String html = String(htmlTemplate);
+	String placeholder = "{{" + key + "}}";
+	html.replace(placeholder, value);
+	return html;
+}
+
+// Helper to generate HTML table row
+// Usage: tableRow("Property", "Value")
+// Returns: "<tr><td>Property</td><td>Value</td></tr>"
+inline String tableRow(const String& label, const String& value) {
+	return "<tr><td>" + label + "</td><td>" + value + "</td></tr>";
 }
 
 // Callback when config is saved
@@ -63,13 +79,12 @@ void ConfigPortal::begin() {
 
 	// Initialize IotWebConf with a default AP password
 	// IotWebConf REQUIRES an AP password to be set before it will connect to WiFi
-	const char* defaultApPassword = "rgfx1234";  // Default password for AP mode
-	iotWebConf = new IotWebConf(
-	  apName.c_str(),           // Thing name (AP SSID)
-	  &dnsServer,                // DNS server
-	  &server,                   // Web server
-	  defaultApPassword,         // Default AP password (required!)
-	  CONFIG_VERSION             // Config version
+	const char* defaultApPassword = "rgfx1234";    // Default password for AP mode
+	iotWebConf = new IotWebConf(apName.c_str(),    // Thing name (AP SSID)
+	                            &dnsServer,        // DNS server
+	                            &server,           // Web server
+	                            defaultApPassword, // Default AP password (required!)
+	                            CONFIG_VERSION     // Config version
 	);
 
 	// Set callbacks
@@ -106,69 +121,36 @@ void ConfigPortal::begin() {
 		if (iotWebConf->handleCaptivePortal()) {
 			return;
 		}
-		String page = "<!DOCTYPE html><html><head><meta charset='utf-8'>";
-		page += "<title>RGFX Driver</title>";
-		page += "<style>";
-		page += "body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px;}";
-		page += "h1{color:#333;}";
-		page += "table{border-collapse:collapse;width:100%;margin:20px 0;}";
-		page += "th,td{border:1px solid #ddd;padding:12px;text-align:left;}";
-		page += "th{background-color:#f2f2f2;font-weight:bold;}";
-		page += ".notice{background:#fff3cd;border:1px solid #ffc107;padding:15px;margin:20px 0;border-radius:4px;}";
-		page += "a{color:#007bff;text-decoration:none;}";
-		page += "a:hover{text-decoration:underline;}";
-		page += "</style>";
-		page += "</head><body>";
-		page += "<h1>RGFX Driver Status</h1>";
 
-		page += "<div class='notice'>";
-		page += "<strong>Note:</strong> LED hardware configuration is managed by the RGFX Hub. ";
-		page += "This interface is for WiFi settings and diagnostics only.";
-		page += "</div>";
+		// Load HTML template from PROGMEM
+		String page = String(HTML_STATUS);
 
-		page += "<h2>System Information</h2>";
-		page += "<table>";
-		page += "<tr><th>Property</th><th>Value</th></tr>";
-		page += "<tr><td>Device Name</td><td>" + Utils::getDeviceName() + "</td></tr>";
-		page += "<tr><td>MAC Address</td><td>" + WiFi.macAddress() + "</td></tr>";
-		page += "<tr><td>Firmware Version</td><td>RGFX v1.0</td></tr>";
-		page += "<tr><td>Uptime</td><td>" + String(millis() / 1000) + " seconds</td></tr>";
-		page += "</table>";
+		// Replace template variables
+		page = replaceTemplate(page.c_str(), "DEVICE_NAME", Utils::getDeviceName());
+		page = replaceTemplate(page.c_str(), "MAC_ADDRESS", WiFi.macAddress());
+		page = replaceTemplate(page.c_str(), "UPTIME", String(millis() / 1000) + " seconds");
+		page = replaceTemplate(page.c_str(), "LED_BRIGHTNESS", String(ConfigLeds::getBrightness()));
+		page = replaceTemplate(page.c_str(), "LED_DATA_PIN", String(ConfigLeds::getDataPin()));
 
-		page += "<h2>Network Status</h2>";
-		page += "<table>";
-		page += "<tr><th>Property</th><th>Value</th></tr>";
+		// Build network status rows dynamically
+		String networkStatus;
 		if (WiFi.status() == WL_CONNECTED) {
-			page += "<tr><td>WiFi Status</td><td>Connected</td></tr>";
-			page += "<tr><td>SSID</td><td>" + WiFi.SSID() + "</td></tr>";
-			page += "<tr><td>IP Address</td><td>" + WiFi.localIP().toString() + "</td></tr>";
-			page += "<tr><td>Signal Strength</td><td>" + String(WiFi.RSSI()) + " dBm</td></tr>";
+			networkStatus += tableRow("WiFi Status", "Connected");
+			networkStatus += tableRow("SSID", WiFi.SSID());
+			networkStatus += tableRow("IP Address", WiFi.localIP().toString());
+			networkStatus += tableRow("Signal Strength", String(WiFi.RSSI()) + " dBm");
 		} else {
-			page += "<tr><td>WiFi Status</td><td>Not Connected (AP Mode)</td></tr>";
-			page += "<tr><td>AP IP</td><td>" + String(AP_IP_ADDRESS) + "</td></tr>";
+			networkStatus += tableRow("WiFi Status", "Not Connected (AP Mode)");
+			networkStatus += tableRow("AP IP", String(AP_IP_ADDRESS));
 		}
-		page += "</table>";
+		page = replaceTemplate(page.c_str(), "NETWORK_STATUS", networkStatus);
 
-		page += "<h2>LED Configuration (Read-Only)</h2>";
-		page += "<table>";
-		page += "<tr><th>Property</th><th>Value</th></tr>";
-		page += "<tr><td>Brightness</td><td>" + String(ConfigLeds::getBrightness()) + "</td></tr>";
-		page += "<tr><td>Data Pin</td><td>GPIO " + String(ConfigLeds::getDataPin()) + "</td></tr>";
-		page += "<tr><td>Config Source</td><td>RGFX Hub (via MQTT)</td></tr>";
-		page += "</table>";
-
-		page += "<p><a href='/config'>WiFi Configuration</a></p>";
-		page += "</body></html>";
 		server.send(200, "text/html", page);
 	});
 
-	server.on("/config", []() {
-		iotWebConf->handleConfig();
-	});
+	server.on("/config", []() { iotWebConf->handleConfig(); });
 
-	server.onNotFound([]() {
-		iotWebConf->handleNotFound();
-	});
+	server.onNotFound([]() { iotWebConf->handleNotFound(); });
 
 	// Disable WiFi power saving for low latency
 	WiFi.setSleep(WIFI_PS_NONE);
@@ -199,7 +181,8 @@ void ConfigPortal::process() {
 
 bool ConfigPortal::isWiFiConnected() {
 	// Only consider connected if we have a valid IP (not AP mode)
-	return WiFi.status() == WL_CONNECTED && iotWebConf->getState() == iotwebconf::NetworkState::OnLine;
+	return WiFi.status() == WL_CONNECTED &&
+	       iotWebConf->getState() == iotwebconf::NetworkState::OnLine;
 }
 
 String ConfigPortal::getWiFiStatus() {
@@ -265,15 +248,15 @@ bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password
 
 	// Update WiFi SSID and password
 	strncpy(ssidParam->valueBuffer, ssid.c_str(), ssidParam->getLength());
-	ssidParam->valueBuffer[ssidParam->getLength() - 1] = '\0';  // Ensure null termination
+	ssidParam->valueBuffer[ssidParam->getLength() - 1] = '\0'; // Ensure null termination
 
 	strncpy(wifiPassParam->valueBuffer, password.c_str(), wifiPassParam->getLength());
-	wifiPassParam->valueBuffer[wifiPassParam->getLength() - 1] = '\0';  // Ensure null termination
+	wifiPassParam->valueBuffer[wifiPassParam->getLength() - 1] = '\0'; // Ensure null termination
 
 	// Set AP password to the default (required for IotWebConf to connect to WiFi)
 	const char* defaultApPassword = "rgfx1234";
 	strncpy(apPassParam->valueBuffer, defaultApPassword, apPassParam->getLength());
-	apPassParam->valueBuffer[apPassParam->getLength() - 1] = '\0';  // Ensure null termination
+	apPassParam->valueBuffer[apPassParam->getLength() - 1] = '\0'; // Ensure null termination
 
 	log("Also setting AP password to: rgfx1234");
 

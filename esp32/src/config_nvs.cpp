@@ -14,8 +14,8 @@ void ConfigNVS::begin() {
 void ConfigNVS::factoryReset() {
 	log("Factory reset: Clearing NVS configuration...");
 
-	prefs.begin(NAMESPACE, false);  // Read-write mode
-	prefs.clear();  // Remove all keys in namespace
+	prefs.begin(NAMESPACE, false); // Read-write mode
+	prefs.clear();                 // Remove all keys in namespace
 	prefs.end();
 
 	log("NVS configuration cleared");

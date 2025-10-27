@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 // Handle driver configuration received from Hub
-void handleDriverConfig(const String &payload) {
+void handleDriverConfig(const String& payload) {
 	log("Processing driver configuration...");
 
 	// Parse JSON configuration
