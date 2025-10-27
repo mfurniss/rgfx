@@ -31,6 +31,12 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 - The user can see the output correctly; trust their reports
 - Do NOT use `./mame ... > /tmp/file.txt &` patterns - they don't work
 
+**CRITICAL - Cleanup Temporary Files:**
+- **ALWAYS cleanup temporary files and directories** created during debugging or testing
+- Common locations: `/tmp/`, `/private/tmp/`, test clone directories
+- Before finishing a task, verify and remove any temporary artifacts created
+- Use `rm -rf` to remove temporary test directories when done
+
 ## Scripting Language Preference
 
 **CRITICAL - ALWAYS USE NODE.JS FOR SCRIPTS:**
