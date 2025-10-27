@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "display.h"
 #include <WiFi.h>
-#include <ESP.h>
+#include <Arduino.h>
 
 JsonDocument SysInfo::getSysInfo(Matrix& matrix) {
 	JsonDocument doc;
