@@ -88,10 +88,10 @@ build:driver:
 
     # Generate HTML headers (pre-build script)
     - echo "Running html_to_progmem.py..."
-    - python3 esp32/html_to_progmem.py || (echo "ERROR: html_to_progmem.py failed" && exit 1)
+    - python3 esp32/html_to_progmem.py
     - echo "Verifying generated files..."
-    - ls -laR esp32/src/generated/ || echo "generated/ directory does not exist"
-    - test -f esp32/src/generated/html_status.h || (echo "ERROR: html_status.h not generated" && exit 1)
+    - ls -laR esp32/src/generated/
+    - test -f esp32/src/generated/html_status.h
 
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
