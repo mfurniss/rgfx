@@ -87,8 +87,8 @@ test:driver:
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
 
-    # Run PlatformIO tests - any failure = FAIL
-    - pio test --project-dir esp32
+    # Note: PlatformIO tests require hardware, skipped in CI
+    # Hardware tests must be run locally before release
 
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -171,8 +171,8 @@ build:driver:
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
 
-    # Run PlatformIO tests - any failure = FAIL
-    - pio test --project-dir esp32
+    # Note: PlatformIO tests require hardware, skipped in CI
+    # Run locally before release: pio test --project-dir esp32
 
     # Copy firmware to installer directory (uses Python script - PlatformIO requirement)
     - python3 esp32/copy_firmware.py
