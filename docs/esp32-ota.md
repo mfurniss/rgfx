@@ -13,11 +13,13 @@ Comprehensive documentation for OTA firmware updates on ESP32 devices, including
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [ArduinoOTA Library](#arduinoota-library)
-3. [espota.py Protocol](#espotapy-protocol)
-4. [ESP32 OTA Architecture](#esp32-ota-architecture)
-5. [Security](#security)
-6. [Troubleshooting](#troubleshooting)
+2. [RGFX Implementation Plan](#rgfx-implementation-plan)
+3. [ArduinoOTA Library](#arduinoota-library)
+4. [espota.py Protocol](#espotapy-protocol)
+5. [ESP32 OTA Architecture](#esp32-ota-architecture)
+6. [WiFi Provisioning](#wifi-provisioning)
+7. [Security](#security)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -36,6 +38,133 @@ OTA (Over-The-Air) updates enable ESP32 devices to receive firmware updates wire
 - Sufficient flash memory for dual firmware storage (current + new)
 - OTA-capable firmware running on device
 - Network connectivity between updater and device
+
+---
+
+## RGFX Implementation Plan
+
+### Executive Summary
+
+RGFX Hub will orchestrate OTA firmware updates for all Drivers AND automate WiFi provisioning during initial device setup.
+
+**Key Features:**
+1. **One-time WiFi setup** - Enter credentials once, use for all devices
+2. **Automated provisioning** - Plug in ESP32 → Flash → Online in 30 seconds
+3. **OTA updates** - Check GitLab releases, show release notes, update all Drivers
+4. **Zero ESP32 code changes** - Uses existing ArduinoOTA and serial command support
+
+### User Workflow: First Device Setup
+
+**Step 1: Hub Asks for WiFi Credentials (First Time Only)**
+- User enters SSID and password in Hub UI
+- Credentials encrypted and cached using OS keychain (Electron safeStorage)
+- Optional: "Don't save" for privacy-conscious users
+
+**Step 2: Connect ESP32 via USB**
+- Hub detects serial port
+- Shows "Flash with Saved WiFi" button
+
+**Step 3: Automated Flash + Provision (30 seconds)**
+1. Hub flashes firmware via esptool.py
+2. Hub waits for device to boot (2-3 seconds)
+3. Hub sends WiFi credentials via serial command: `wifi "SSID" "password"`
+4. Device saves credentials to NVS and reboots
+5. Device connects to WiFi automatically
+6. Hub discovers device via mDNS
+
+**Step 4: Configure LEDs**
+- User opens Hub UI
+- Configures LED devices on Driver
+- Ready to use!
+
+**Additional devices:** Just plug in → Click "Flash with Saved WiFi" → Done!
+
+### OTA Update Workflow
+
+**Step 1: Update Check**
+- Hub checks GitLab releases API on startup (or manual check)
+- Compares versions (Hub + all Drivers)
+- Shows notification if updates available
+
+**Step 2: Release Notes Display**
+- User clicks "View Release Notes"
+- Hub displays markdown-formatted release notes
+- Link to full notes on GitLab
+- User decision: Install / Skip / Remind Later
+
+**Step 3: Update Installation**
+- Hub downloads firmware binaries to temp directory
+- Hub self-update (if needed) using Electron autoUpdater
+- Hub updates each Driver sequentially using espota.py
+- Real-time progress display per Driver
+- Error handling with retry logic
+
+**Step 4: Complete**
+- All Drivers updated and online
+- Hub prompts to restart (if self-updated)
+- User resumes using RGFX
+
+### Technical Implementation
+
+**WiFi Provisioning:**
+- Uses existing serial command support in ESP32 firmware ([main.cpp:295-340](../esp32/src/main.cpp#L295-L340))
+- No ESP32 code changes needed
+- Credentials sent as plain text over USB (physical security sufficient for home use)
+- Hub suppresses credentials from logs
+
+**OTA Updates:**
+- Uses existing ArduinoOTA on ESP32 ([main.cpp:216-242](../esp32/src/main.cpp#L216-L242))
+- Hub spawns espota.py (same tool PlatformIO uses)
+- No ESP32 code changes needed
+- Sequential updates to avoid network congestion
+
+**Security Model (Home Users):**
+- Hub storage: Encrypted with OS keychain (safeStorage)
+- USB transit: Plain text (physical security)
+- ESP32 storage: NVS partition (isolated)
+- Logging: Credentials suppressed
+- Future: Encrypted serial for commercial deployments
+
+### Implementation Tasks
+
+**Phase 1: WiFi Provisioning**
+1. WiFiCredentialStore (encryption, save/load/clear)
+2. WiFiSetupDialog UI component
+3. SerialProvisioner class (send credentials via serial)
+4. USB device detection
+5. Firmware flash integration (esptool.py)
+6. DeviceFlashWizard UI component
+
+**Phase 2: OTA Updates**
+7. GitLab Releases API client
+8. UpdateChecker service
+9. ReleaseNotesViewer UI component
+10. OTAOrchestrator (sequential driver updates)
+11. ProgressMonitor UI component
+12. Version tracking in Driver registry
+13. Hub self-update (Electron autoUpdater)
+
+**Phase 3: Documentation & Polish**
+14. User documentation
+15. Troubleshooting guide
+16. Testing with multiple devices
+17. Beta release
+
+### Benefits
+
+**For Users:**
+- One-time WiFi entry for all devices
+- 30-second setup per device (fully automated)
+- Informed updates (release notes before install)
+- Zero-touch OTA updates
+- Scalable (easy to add 10+ Drivers)
+
+**For Development:**
+- No ESP32 code changes required
+- Uses proven protocols (espota.py)
+- Secure by default (OS keychain)
+- Simple architecture
+- Future-proof (can add encryption later)
 
 ---
 
@@ -330,6 +459,187 @@ config.http_config.buffer_caps = MALLOC_CAP_INTERNAL;  // Use internal RAM
 
 ---
 
+## WiFi Provisioning
+
+### Overview
+
+ESP32 devices require WiFi credentials to connect to the network. RGFX supports automated WiFi provisioning during initial device setup.
+
+### Provisioning Methods
+
+**1. Serial Command (RGFX Method - Recommended)**
+
+After flashing firmware via USB, send WiFi credentials via serial command:
+
+```cpp
+// ESP32 receives via serial (UART)
+wifi "MySSID" "MyPassword123"
+```
+
+**Advantages:**
+- Simple implementation
+- Works with existing RGFX firmware (no code changes)
+- Physical security (USB cable)
+- Fast provisioning (~30 seconds total)
+
+**How it works:**
+1. Flash firmware via esptool.py
+2. Wait for device to boot (2-3 seconds)
+3. Send `wifi "SSID" "password"` command via serial
+4. Device saves to NVS via IotWebConf
+5. Device reboots and connects to WiFi
+
+**Implementation in RGFX Hub:**
+
+```typescript
+import { SerialPort } from 'serialport';
+import { ReadlineParser } from '@serialport/parser-readline';
+
+async function provisionWiFi(port: string, ssid: string, password: string) {
+  const serial = new SerialPort({ path: port, baudRate: 115200 });
+  const parser = serial.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+
+  // Wait for boot message
+  await waitForMessage(parser, 'RGFX Driver starting', 5000);
+
+  // Send credentials (properly escape quotes)
+  const command = `wifi "${ssid}" "${password}"\n`;
+  serial.write(command);
+
+  // Wait for confirmation
+  await waitForMessage(parser, 'WiFi credentials saved', 3000);
+
+  serial.close();
+}
+```
+
+**2. Access Point (AP) Mode (Manual Method)**
+
+Device creates its own WiFi network for configuration:
+
+1. ESP32 boots without WiFi credentials
+2. Creates AP: `rgfx-driver-XXXXXX` (password: `rgfx1234`)
+3. User connects to AP
+4. Captive portal opens at `192.168.4.1`
+5. User enters WiFi credentials
+6. Device saves to NVS and connects
+
+**Advantages:**
+- No USB connection required
+- Works for hard-to-reach devices
+- Standard IoT provisioning method
+
+**Disadvantages:**
+- Requires manual steps from user
+- Slower than serial method
+- User must switch WiFi networks temporarily
+
+**3. NVS Partition Pre-Flash (Manufacturing Method)**
+
+Pre-generate NVS partition with WiFi credentials and flash together with firmware:
+
+```bash
+# Create CSV with credentials
+echo 'key,type,encoding,value' > wifi.csv
+echo 'wifi,namespace,,' >> wifi.csv
+echo 'ssid,data,string,MySSID' >> wifi.csv
+echo 'password,data,string,MyPassword123' >> wifi.csv
+
+# Generate NVS partition binary
+python3 nvs_partition_gen.py generate wifi.csv wifi.bin 0x3000
+
+# Flash firmware + NVS partition
+esptool.py -p /dev/ttyUSB0 write_flash \
+  0x1000 bootloader.bin \
+  0x8000 partitions.bin \
+  0x9000 wifi.bin \
+  0x10000 firmware.bin
+```
+
+**Advantages:**
+- Single flash operation
+- No post-flash configuration needed
+- Good for manufacturing/batch provisioning
+
+**Disadvantages:**
+- More complex implementation
+- Credentials visible in binary
+- Less flexible (credentials baked into image)
+
+### RGFX WiFi Credential Security
+
+**Hub Storage (Encrypted):**
+```typescript
+import { safeStorage } from 'electron';
+
+// Save credentials
+const encrypted = {
+  ssid: ssid,  // SSID not sensitive
+  password: safeStorage.encryptString(password).toString('base64')
+};
+fs.writeFileSync('wifi-config.json', JSON.stringify(encrypted));
+
+// Load credentials
+const data = JSON.parse(fs.readFileSync('wifi-config.json'));
+const password = safeStorage.decryptString(Buffer.from(data.password, 'base64'));
+```
+
+**Transit (Plain Text over USB):**
+- Credentials sent as plain text over USB serial
+- Physical security: Requires physical access to USB cable
+- Risk level: **LOW** for home use
+- Acceptable for home/maker deployments
+
+**ESP32 Storage (NVS):**
+- Credentials stored in NVS partition
+- Isolated from application code
+- Optionally encrypted with ESP32 flash encryption
+- Survives firmware updates (OTA)
+
+### Credential Logging Protection
+
+**Hub Side:**
+```typescript
+// DON'T log credentials
+if (!command.startsWith('wifi ')) {
+  console.log(`Sent: ${command}`);
+} else {
+  console.log('Sent: WiFi credentials (hidden)');
+}
+```
+
+**ESP32 Side:**
+```cpp
+if (cmd.startsWith("wifi ")) {
+  log("Received WiFi configuration command");  // Don't log actual creds
+  // ... process credentials ...
+}
+```
+
+### Troubleshooting WiFi Provisioning
+
+**Device doesn't connect after provisioning:**
+- Verify WiFi password is correct
+- Check WiFi network is 2.4GHz (ESP32 doesn't support 5GHz)
+- Ensure network SSID is broadcasting (not hidden)
+- Try rebooting device manually
+- Check router firewall settings
+
+**Serial command not working:**
+- Verify baud rate is 115200
+- Check USB cable supports data (not just power)
+- Wait for device to fully boot before sending command
+- Try sending command multiple times
+- Check serial port permissions (Linux/macOS)
+
+**Credentials not persisting:**
+- NVS partition may be corrupted - try erasing flash
+- Verify partition table includes NVS partition
+- Check NVS namespace hasn't changed
+- Try factory reset: send `factory_reset` via serial
+
+---
+
 ## Security
 
 ### Digest Authentication
@@ -566,6 +876,64 @@ dns-sd -B _arduino._tcp local.
 3. **Network Isolation:** Use separate network for updates
 4. **Access Control:** Restrict who can trigger updates
 5. **Audit Logs:** Log all update attempts and outcomes
+
+---
+
+## Security for Home vs Commercial Deployments
+
+### Home Users (Current RGFX Target)
+
+Plain text serial provisioning is **acceptable** for home/maker deployments:
+
+**Rationale:**
+- Physical security (USB cable access) is sufficient
+- Comparable to other home IoT devices:
+  - Philips Hue: Plain text app provisioning
+  - Sonoff devices: Serial or AP mode (no encryption)
+  - ESPHome: Plain text YAML files
+  - Tasmota: Serial commands or web interface
+- Credentials encrypted at rest (Hub and ESP32)
+- Credentials suppressed from logs
+- Attack requires physical access during 30-second provisioning window
+
+**Security Measures:**
+- Hub storage: Encrypted with OS keychain (Electron safeStorage)
+- Transit: Plain text over USB (physical security)
+- ESP32 storage: NVS partition (optionally encrypted)
+- Logging: Credentials suppressed from console/logs
+- User control: Can clear cached credentials anytime
+
+### Commercial Deployments (Future Enhancement)
+
+When commercial use cases emerge, implement encrypted serial provisioning:
+
+**Challenge-Response Authentication:**
+```cpp
+// ESP32 side
+void provisionWiFiEncrypted() {
+  // 1. Generate random nonce
+  uint8_t nonce[32];
+  esp_fill_random(nonce, sizeof(nonce));
+  Serial.println("NONCE:" + base64_encode(nonce));
+
+  // 2. Receive encrypted credentials
+  String encryptedCreds = Serial.readStringUntil('\n');
+
+  // 3. Decrypt with session key derived from nonce
+  String credentials = aes_decrypt(encryptedCreds, deriveKey(nonce));
+
+  // 4. Parse and save
+  parseAndSaveCredentials(credentials);
+}
+```
+
+**Additional Commercial Security:**
+- Certificate-based authentication
+- WPA2-Enterprise / 802.1X support
+- Audit logging of all provisioning attempts
+- Rate limiting to prevent brute force
+- VPN tunneling for remote provisioning
+- Secure element (ATECC608) integration
 
 ---
 

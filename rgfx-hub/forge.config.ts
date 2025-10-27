@@ -1,6 +1,6 @@
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
-import { MakerZIP } from "@electron-forge/maker-zip";
+import { MakerDMG } from "@electron-forge/maker-dmg";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { VitePlugin } from "@electron-forge/plugin-vite";
@@ -41,7 +41,11 @@ const config: ForgeConfig = {
 
   makers: [
     new MakerSquirrel({}),
-    new MakerZIP({}, ["darwin"]),
+    new MakerDMG({
+      format: "ULFO", // Compressed DMG
+      icon: undefined, // Optional: path to .icns file
+      background: undefined, // Optional: path to background image
+    }, ["darwin"]),
     new MakerRpm({}),
     new MakerDeb({}),
   ],
