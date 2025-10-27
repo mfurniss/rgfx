@@ -86,6 +86,9 @@ build:driver:
     # Inject version from git tag
     - node scripts/inject-version-driver.js
 
+    # Generate HTML headers (pre-build script)
+    - python3 esp32/html_to_progmem.py
+
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
 
