@@ -1,3 +1,9 @@
+-- This Source Code Form is subject to the terms of the Mozilla Public
+-- License, v. 2.0. If a copy of the MPL was not distributed with this
+-- file, You can obtain one at http://mozilla.org/MPL/2.0/.
+--
+-- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+
 package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
 local ram = require("ram")
 
@@ -33,30 +39,6 @@ local map = {
 			_G.event("player/pill/state", current)
 		end,
 	},
-	-- power_pill_flash_counter = {
-	-- 	addr_start = 0x4DCF,
-	-- 	addr_end = 0x4DCF,
-	-- 	callback = function(_, current, _)
-	-- 		_G.event("power_pill/counter", current)
-	-- 	end,
-	-- 	size = 1,
-	-- },
-	-- blue_ghost_counter = {
-	-- 	addr_start = 0x4DCB,
-	-- 	addr_end = 0x4DCB,
-	-- 	callback = function(_, current, _)
-	-- 		print("Blue ghost counter:", current)
-	-- 	end,
-	-- 	size = 2,
-	-- },
-	-- ghost_states = {
-	-- 	addr_start = 0x4DA7,
-	-- 	addr_end = 0x4DA7,
-	-- 	callback = function(_, current, _)
-	-- 		print("GHOST STATES", string.format("0x%08X", current))
-	-- 	end,
-	-- 	size = 4,
-	-- },
 	-- GHOST STATES
 	-- 0x01 = red (normal)
 	-- 0x03 = pink (normal)

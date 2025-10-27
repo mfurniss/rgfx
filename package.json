@@ -1,0 +1,39 @@
+{
+  "name": "rgfx",
+  "version": "0.0.1",
+  "description": "Retro Game Effects - A MAME Lua scripting framework for monitoring retro arcade game state and publishing events via MQTT to control LED hardware",
+  "private": true,
+  "workspaces": [
+    "rgfx-hub"
+  ],
+  "keywords": [
+    "mame",
+    "arcade",
+    "retro-gaming",
+    "mqtt",
+    "led",
+    "esp32",
+    "fastled",
+    "game-events",
+    "lua"
+  ],
+  "author": {
+    "name": "Matt Furniss",
+    "email": "furniss@gmail.com"
+  },
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/furniss/rgfx.git"
+  },
+  "homepage": "https://gitlab.com/furniss/rgfx",
+  "bugs": {
+    "url": "https://gitlab.com/furniss/rgfx/-/issues"
+  },
+  "scripts": {
+    "postinstall": "echo 'RGFX workspace initialized. See README.md for setup instructions.'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
