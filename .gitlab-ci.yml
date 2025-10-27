@@ -1,29 +1,100 @@
 # GitLab CI/CD for RGFX Project
-# Builds Hub (Electron) and Driver (ESP32) on semantic version tags
+# Multi-stage pipeline: test → build → deploy → release
 #
 # Workflow:
-# 1. Push tag: git tag v1.0.0 && git push origin v1.0.0
-# 2. CI builds Hub and Driver automatically
-# 3. CI deploys ESP32 installer to GitLab Pages (https://rgfx.io)
-# 4. CI waits for manual approval to create release
-# 5. You click "Play" button to approve release creation
-# 6. Release is created with all artifacts attached
+# 1. Feature branch: Push changes → CI runs tests
+# 2. Merge request: CI runs tests → Must pass to merge
+# 3. Merge to main: CI runs tests + builds artifacts
+# 4. Create tag: git tag v1.0.0 && git push origin v1.0.0
+# 5. CI runs full pipeline → Deploys to Pages → Manual approval for release
+#
+# Stage breakdown:
+# - test: Runs on ALL branches/MRs (fast feedback, no artifacts)
+# - build: Runs on main + tags (creates artifacts for releases)
+# - deploy: Runs on tags only (deploys to GitLab Pages)
+# - release: Runs on tags only (creates GitHub-style release with manual approval)
 
 variables:
   NODE_VERSION: "20"
   GIT_DEPTH: 0  # Full git history for version extraction
 
-# Only run on semantic version tags (v1.0.0, v2.1.3, etc.)
+# Run on all branches, MRs, and tags
 workflow:
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # Run on MRs
+    - if: $CI_COMMIT_BRANCH                              # Run on all branch pushes
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/          # Run on version tags
 
 stages:
+  - test
   - build
   - deploy
   - release
 
-# ===== HUB BUILD (Electron macOS) =====
+# ===== TEST STAGE =====
+# Runs on ALL branches and MRs for fast feedback
+# No artifacts created - just validation
+
+test:hub:
+  stage: test
+  image: node:${NODE_VERSION}
+
+  cache:
+    key:
+      files:
+        - rgfx-hub/package-lock.json
+    paths:
+      - rgfx-hub/node_modules/
+
+  before_script:
+    - cd rgfx-hub
+    - npm ci
+
+  script:
+    # Run all checks - ANY failure stops pipeline
+    - npm run typecheck  # TypeScript errors = FAIL
+    - npm run lint       # ESLint errors AND warnings = FAIL
+    - npm test           # Any test failure = FAIL
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+test:driver:
+  stage: test
+  image: python:3.11
+
+  cache:
+    key:
+      files:
+        - esp32/platformio.ini
+    paths:
+      - .platformio/
+      - esp32/.pio/
+
+  before_script:
+    - apt-get update && apt-get install -y nodejs npm
+    - pip install platformio
+
+  script:
+    # Generate HTML headers
+    - python3 esp32/html_to_progmem.py
+    - test -f esp32/src/generated/html_status.h
+
+    # Build firmware - compile errors = FAIL
+    - pio run --project-dir esp32
+
+    # Run PlatformIO tests - any failure = FAIL
+    - pio test --project-dir esp32
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# ===== BUILD STAGE =====
+# Runs on main branch and tags only
+# Creates artifacts for releases
+
 build:hub:
   stage: build
   image: node:${NODE_VERSION}
@@ -53,12 +124,13 @@ build:hub:
     - npm run make
 
   artifacts:
-    name: "rgfx-hub-${CI_COMMIT_TAG}"
+    name: "rgfx-hub-${CI_COMMIT_REF_SLUG}"
     paths:
       - rgfx-hub/out/make/**/*.dmg
     expire_in: 1 month
 
   rules:
+    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
 # ===== DRIVER BUILD (ESP32) =====
@@ -103,7 +175,7 @@ build:driver:
     - python3 esp32/copy_firmware.py
 
   artifacts:
-    name: "rgfx-driver-${CI_COMMIT_TAG}"
+    name: "rgfx-driver-${CI_COMMIT_REF_SLUG}"
     paths:
       - esp32-installer/*.bin
       - esp32-installer/manifest.json
@@ -111,6 +183,7 @@ build:driver:
     expire_in: 1 month
 
   rules:
+    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
 # ===== DEPLOY TO GITLAB PAGES =====
