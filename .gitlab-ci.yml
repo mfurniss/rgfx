@@ -77,6 +77,9 @@ test:driver:
     - pip install platformio
 
   script:
+    # Inject version (required for compilation)
+    - node scripts/inject-version-driver.js
+
     # Generate HTML headers
     - python3 esp32/html_to_progmem.py
     - test -f esp32/src/generated/html_status.h
