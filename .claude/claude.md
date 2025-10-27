@@ -37,6 +37,19 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 - Before finishing a task, verify and remove any temporary artifacts created
 - Use `rm -rf` to remove temporary test directories when done
 
+**Automated Backups to Google Drive:**
+- **Automatic daily backups** are configured via launchd agent
+- **Runs daily at 2:00 AM** - creates Git bundle backup to Google Drive
+- **Script location**: `scripts/backup-to-gdrive.js`
+- **Backup location**: `~/Google Drive/My Drive/Backups/rgfx/`
+- **Retention**: Keeps last 30 daily backups, auto-deletes older ones
+- **Manual backup**: Run `node scripts/backup-to-gdrive.js` anytime
+- **View logs**: `tail -f ~/Library/Logs/rgfx-backup.log`
+- **Manage service**:
+  - Stop: `launchctl unload ~/Library/LaunchAgents/com.rgfx.backup.plist`
+  - Start: `launchctl load ~/Library/LaunchAgents/com.rgfx.backup.plist`
+  - Status: `launchctl list | grep rgfx`
+
 ## Scripting Language Preference
 
 **CRITICAL - ALWAYS USE NODE.JS FOR SCRIPTS:**
