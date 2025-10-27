@@ -15,6 +15,7 @@
 #include "config_portal.h"
 #include "config_leds.h"
 #include "config_nvs.h"
+#include "config_timeout.h"
 #include "udp.h"
 #include "mqtt.h"
 #include "log.h"
@@ -152,7 +153,7 @@ void loop() {
 	static bool inApMode = false;
 	static unsigned long apModeStartTime = 0;
 	static unsigned long lastCountdownUpdate = 0;
-	const uint16_t AP_TIMEOUT_SECONDS = 10; // AP timeout before falling back to saved WiFi
+	const uint16_t AP_TIMEOUT_SECONDS = AP_TIMEOUT_MS / 1000; // Derived from config_timeout.h
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {

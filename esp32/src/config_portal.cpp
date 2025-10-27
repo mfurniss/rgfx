@@ -1,6 +1,7 @@
 #include "config_portal.h"
 #include "config_leds.h"
 #include "config_nvs.h"
+#include "config_timeout.h"
 #include "log.h"
 #include "utils.h"
 #include <IotWebConf.h>
@@ -12,7 +13,7 @@
 
 // Network configuration
 static constexpr uint16_t WEB_SERVER_PORT = 80;
-static constexpr uint32_t WIFI_CONNECTION_TIMEOUT_MS = 10000; // 10 seconds
+// AP/WiFi timeout is defined in config_timeout.h (AP_TIMEOUT_MS)
 static const char* AP_IP_ADDRESS = "192.168.4.1";
 
 // DNS server for captive portal
@@ -91,8 +92,8 @@ void ConfigPortal::begin() {
 	iotWebConf->setConfigSavedCallback(&configSaved);
 	iotWebConf->setWifiConnectionCallback(&wifiConnected);
 
-	// Set WiFi connection timeout to 10 seconds (faster than 30s default)
-	iotWebConf->setWifiConnectionTimeoutMs(WIFI_CONNECTION_TIMEOUT_MS);
+	// Set WiFi connection timeout BEFORE init (this controls how long to attempt WiFi connection)
+	iotWebConf->setWifiConnectionTimeoutMs(AP_TIMEOUT_MS);
 
 	// Disable status pin (used for reset detection)
 	iotWebConf->setStatusPin(-1);
@@ -106,6 +107,12 @@ void ConfigPortal::begin() {
 	log("Starting IotWebConf...");
 
 	boolean validConfig = iotWebConf->init();
+
+	// CRITICAL: Set AP timeout AFTER init()
+	// IotWebConf::init() resets _apTimeoutMs from _apTimeoutStr, so we must set it after
+	// This controls how long device stays in AP mode before falling back to saved WiFi
+	iotWebConf->setApTimeoutMs(AP_TIMEOUT_MS);
+	log("AP timeout set to " + String(AP_TIMEOUT_MS) + "ms");
 
 	if (validConfig) {
 		log("Valid configuration loaded");
