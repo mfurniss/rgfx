@@ -87,7 +87,11 @@ build:driver:
     - node scripts/inject-version-driver.js
 
     # Generate HTML headers (pre-build script)
-    - python3 esp32/html_to_progmem.py
+    - echo "Running html_to_progmem.py..."
+    - python3 esp32/html_to_progmem.py || (echo "ERROR: html_to_progmem.py failed" && exit 1)
+    - echo "Verifying generated files..."
+    - ls -laR esp32/src/generated/ || echo "generated/ directory does not exist"
+    - test -f esp32/src/generated/html_status.h || (echo "ERROR: html_status.h not generated" && exit 1)
 
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
