@@ -50,6 +50,67 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
   - Start: `launchctl load ~/Library/LaunchAgents/com.rgfx.backup.plist`
   - Status: `launchctl list | grep rgfx`
 
+## Development Workflow
+
+**CRITICAL - FEATURE BRANCH WORKFLOW:**
+
+This project uses a **feature branch workflow** with CI/CD testing and merge request approvals. The `main` branch is **protected** - you cannot push directly to it.
+
+### Workflow Steps:
+
+**1. Create a feature branch:**
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/my-new-feature
+# Make changes...
+git commit -m "Add new feature"
+git push origin feature/my-new-feature
+```
+
+**2. CI runs automatically:**
+- **Test stage** runs on your feature branch
+- TypeScript checks, ESLint, unit tests, ESP32 compilation
+- Fast feedback (~5-10 minutes)
+- Must pass before you can merge
+
+**3. Create a merge request:**
+- Go to GitLab → Create merge request
+- Or use CLI: `git push -o merge_request.create`
+- CI runs again on the MR
+- Review your changes
+- Click "Merge" when CI passes
+
+**4. Main branch updated:**
+- **Test + Build stages** run on main
+- Artifacts (DMG, firmware) created
+- Main is always in releasable state
+
+**5. Create a release (when ready):**
+```bash
+git checkout main
+git pull origin main
+git tag v1.0.0  # Only tag main when it's stable!
+git push origin v1.0.0
+```
+- **Full pipeline runs**: test → build → deploy → release
+- GitLab Pages updated
+- Manual approval required for release creation
+
+### Key Rules:
+
+- ❌ **Cannot push directly to main** - protected branch
+- ✅ **All changes via merge requests**
+- ✅ **CI must pass before merge**
+- ✅ **Tags are immutable** - never delete/recreate
+- ✅ **Main always passes CI** - only merged code that passed tests
+
+### GitLab Protected Branch Settings:
+
+- **Allowed to merge**: Maintainers
+- **Allowed to push and merge**: No one (forces MRs)
+- **Allowed to force push**: Disabled
+
 ## Scripting Language Preference
 
 **CRITICAL - ALWAYS USE NODE.JS FOR SCRIPTS:**
