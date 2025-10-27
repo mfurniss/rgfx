@@ -20,6 +20,7 @@
 #include "log.h"
 #include "display.h"
 #include "utils.h"
+#include "version.h"
 
 #define FLASH_DURATION_MS 10 // MQTT message flash duration
 
@@ -100,7 +101,7 @@ void networkTask(void* parameter) {
 void setup() {
 	Serial.begin(115200);
 	delay(200);
-	log("\n\nRGFX Driver starting...");
+	log("\n\nRGFX Driver v" + String(RGFX_VERSION) + " starting...");
 	log("Core 0: Protocol/Network core (WiFi, MQTT, Web, Display)");
 	log("Core 1: Application core (LEDs, UDP effects)");
 

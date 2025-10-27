@@ -1,7 +1,7 @@
 {
   "name": "rgfx-hub",
   "productName": "rgfx-hub",
-  "version": "1.0.0",
+  "version": "0.0.1-test",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {

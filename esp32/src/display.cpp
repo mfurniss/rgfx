@@ -4,6 +4,7 @@
 
 #include "display.h"
 #include "log.h"
+#include "version.h"
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -99,9 +100,14 @@ void showBoot(const String& deviceName) {
 	display->println("RGFX");
 	display->println("  Driver");
 
-	// Device name
+	// Version
 	display->setTextSize(1);
-	display->setCursor(0, 44);
+	display->setCursor(0, 36);
+	display->print("v");
+	display->println(RGFX_VERSION);
+
+	// Device name
+	display->setCursor(0, 48);
 	display->println(deviceName);
 
 	display->display();

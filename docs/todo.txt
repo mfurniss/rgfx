@@ -24,7 +24,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] GitLab CI/CD
 [X] Implement Zustand state management
 [X] Driver config stored on Hub
-[ ] Driver unit and integration tests
+[X] Driver unit and integration tests
 [ ] E2E tests
 [ ] Documentation for end users
 [ ] rgfx.io website
@@ -33,3 +33,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Event prioritization in the hub - game events can optionally be sent as MQTT
 [X] Lua linting and formatting
 [X] ESP32 dual-core processing
+[ ] Auto update hub when newly availble online
+[ ] Hub to download new firmware and flash connected drivers

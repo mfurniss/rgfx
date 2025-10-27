@@ -6,3 +6,9 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# ESP32 firmware binaries (built by CI/local builds)
+esp32-installer/*.bin
+
+# Auto-generated version files
+esp32/src/version.h

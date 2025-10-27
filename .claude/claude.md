@@ -31,6 +31,30 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 - The user can see the output correctly; trust their reports
 - Do NOT use `./mame ... > /tmp/file.txt &` patterns - they don't work
 
+## Scripting Language Preference
+
+**CRITICAL - ALWAYS USE NODE.JS FOR SCRIPTS:**
+
+- **Preferred**: Node.js/JavaScript for ALL custom scripts
+- **Avoid**: Python scripts unless absolutely necessary and impossible with Node.js
+- **Rationale**:
+  - Consistent tooling across the entire project
+  - Better IDE support and debugging
+  - Leverages existing Node.js ecosystem
+  - Easier maintenance with single language
+
+**When writing build scripts, utilities, or automation:**
+1. **FIRST**: Attempt to implement in Node.js
+2. **ONLY IF**: Node.js is definitively not possible, then consider alternatives
+3. **Examples of Node.js use cases**:
+   - File operations (Node.js `fs` module)
+   - Build scripts (PlatformIO pre/post scripts)
+   - CI/CD helper scripts
+   - Code generation
+   - Version management
+
+**Note**: Some tools (like PlatformIO) use Python internally, but that's transparent. Our custom scripts should be Node.js.
+
 ## Documentation - READ FIRST
 
 **CRITICAL - START EVERY NEW CHAT SESSION BY REVIEWING LOCAL DOCS:**
@@ -238,6 +262,43 @@ cd mame/lua && stylua . && luacheck .
 ## Project Overview
 
 RGFX intercepts memory changes in MAME-emulated arcade games and publishes game events (score changes, entity states, power-ups, etc.) via an embedded MQTT broker in the Hub for consumption by LED Drivers and other clients.
+
+## Release Management
+
+**For creating releases and version management, see [docs/release-workflow.md](../docs/release-workflow.md)**
+
+Key points:
+- **Git tags are the source of truth** for versions (e.g., `v1.0.0`)
+- **Semantic versioning** (MAJOR.MINOR.PATCH)
+- **CI/CD builds only on tags** - not on every commit
+- **Manual release approval** - Click "Play" button in GitLab to approve release creation
+- **ALL tests must pass** - TypeScript, ESLint (warnings = error), unit tests, PlatformIO tests
+- **macOS builds only** for now
+- **Python scripts kept** for PlatformIO (required by PlatformIO's extra_scripts system)
+- **Version management** via Node.js scripts in `scripts/` directory
+
+### Version Injection
+
+Version is automatically injected into all artifacts from git tags:
+
+```bash
+# Generate version files before building
+node scripts/inject-version-hub.js     # Updates rgfx-hub/package.json
+node scripts/inject-version-driver.js  # Generates esp32/src/version.h
+```
+
+**In CI/CD**: Version injection happens automatically before builds.
+
+**Locally**: Run version scripts manually or they'll use development version (0.0.1-dev+<commit>).
+
+Quick release:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+# CI builds automatically
+# Navigate to CI/CD > Pipelines in GitLab
+# Click "Play" on create:release job to approve
+```
 
 ## MAME ROMs Location
 

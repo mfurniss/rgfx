@@ -1,13 +1,167 @@
-image: alpine:latest
+# GitLab CI/CD for RGFX Project
+# Builds Hub (Electron) and Driver (ESP32) on semantic version tags
+#
+# Workflow:
+# 1. Push tag: git tag v1.0.0 && git push origin v1.0.0
+# 2. CI builds Hub and Driver automatically
+# 3. CI deploys ESP32 installer to GitLab Pages (https://rgfx.io)
+# 4. CI waits for manual approval to create release
+# 5. You click "Play" button to approve release creation
+# 6. Release is created with all artifacts attached
 
+variables:
+  NODE_VERSION: "20"
+  GIT_DEPTH: 0  # Full git history for version extraction
+
+# Only run on semantic version tags (v1.0.0, v2.1.3, etc.)
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+stages:
+  - build
+  - deploy
+  - release
+
+# ===== HUB BUILD (Electron macOS) =====
+build:hub:
+  stage: build
+  image: node:${NODE_VERSION}
+
+  # Cache node_modules based on package-lock.json
+  cache:
+    key:
+      files:
+        - rgfx-hub/package-lock.json
+    paths:
+      - rgfx-hub/node_modules/
+
+  before_script:
+    - cd rgfx-hub
+    - npm ci
+
+  script:
+    # Inject version from git tag
+    - cd .. && node scripts/inject-version-hub.js && cd rgfx-hub
+
+    # Run all checks - ANY failure stops build
+    - npm run typecheck  # TypeScript errors = FAIL
+    - npm run lint       # ESLint errors AND warnings = FAIL
+    - npm test           # Any test failure = FAIL
+
+    # Build only if all tests pass
+    - npm run make
+
+  artifacts:
+    name: "rgfx-hub-${CI_COMMIT_TAG}"
+    paths:
+      - rgfx-hub/out/make/**/*.zip
+    expire_in: 1 month
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+# ===== DRIVER BUILD (ESP32) =====
+build:driver:
+  stage: build
+  image: python:3.11
+
+  # Cache PlatformIO packages
+  cache:
+    key:
+      files:
+        - esp32/platformio.ini
+    paths:
+      - .platformio/
+      - esp32/.pio/
+
+  before_script:
+    # Install Node.js for version injection script
+    - apt-get update && apt-get install -y nodejs npm
+
+    # Install PlatformIO
+    - pip install platformio
+
+  script:
+    # Inject version from git tag
+    - node scripts/inject-version-driver.js
+
+    # Build firmware - compile errors = FAIL
+    - pio run --project-dir esp32
+
+    # Run PlatformIO tests - any failure = FAIL
+    - pio test --project-dir esp32
+
+    # Copy firmware to installer directory (uses Python script - PlatformIO requirement)
+    - python3 esp32/copy_firmware.py
+
+  artifacts:
+    name: "rgfx-driver-${CI_COMMIT_TAG}"
+    paths:
+      - esp32-installer/*.bin
+      - esp32-installer/manifest.json
+      - esp32-installer/index.html
+    expire_in: 1 month
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+# ===== DEPLOY TO GITLAB PAGES =====
 pages:
   stage: deploy
+  dependencies:
+    - build:driver
+
   script:
-    - mkdir .public
-    - cp -r esp32-installer/* .public/
-    - mv .public public
+    - mkdir -p public
+    - cp -r esp32-installer/* public/
+
   artifacts:
     paths:
       - public
-  only:
-    - main
+
+  environment:
+    name: production
+    url: https://rgfx.io
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+# ===== CREATE RELEASE (MANUAL TRIGGER) =====
+# This job waits for manual approval before creating the release
+# Click the "Play" button in GitLab UI to approve and create release
+create:release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  dependencies:
+    - build:hub
+    - build:driver
+
+  script:
+    # Generate release notes from commits since last tag
+    - |
+      PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${CI_COMMIT_TAG}^ 2>/dev/null || echo "")
+      if [ -n "$PREVIOUS_TAG" ]; then
+        echo "Generating release notes from ${PREVIOUS_TAG} to ${CI_COMMIT_TAG}"
+        NOTES=$(git log ${PREVIOUS_TAG}..${CI_COMMIT_TAG} --pretty=format:"- %s" --reverse)
+      else
+        echo "First release - no previous tag found"
+        NOTES="First release"
+      fi
+
+      echo "Release notes:"
+      echo "$NOTES"
+
+    # Create release with artifacts using glab CLI
+    - |
+      glab release create "${CI_COMMIT_TAG}" \
+        --name "RGFX ${CI_COMMIT_TAG}" \
+        --notes "${NOTES}" \
+        rgfx-hub/out/make/**/*.zip \
+        esp32-installer/*.bin
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+      when: manual  # *** MANUAL TRIGGER - YOU APPROVE RELEASE ***
+
+  allow_failure: false

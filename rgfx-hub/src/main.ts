@@ -12,6 +12,7 @@ import { GameEventMapper } from "./game-event-mapper";
 import { DriverConfigManager } from "./driver-config-manager";
 import { DriverPersistence } from "./driver-persistence";
 import type { DriverSystemInfo } from "./types";
+import pkg from "../package.json";
 
 // Vite environment variables injected by Electron Forge
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -25,7 +26,7 @@ if (started) {
   app.quit();
 }
 
-log.info("RGFX Hub starting...");
+log.info(`RGFX Hub v${pkg.version} starting...`);
 
 // Window reference
 let mainWindow: BrowserWindow | null = null;
@@ -178,6 +179,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 600,
+    title: `RGFX Hub v${pkg.version}`,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
