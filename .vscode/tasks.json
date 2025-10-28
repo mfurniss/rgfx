@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "PlatformIO: Upload to ESP32 #1",
+      "type": "shell",
+      "command": "pio",
+      "args": [
+        "run",
+        "--project-dir",
+        "${workspaceFolder:esp32}",
+        "-e",
+        "rgfx-driver",
+        "-t",
+        "upload",
+        "--upload-port",
+        "/dev/cu.usbserial-0001"
+      ],
+      "problemMatcher": ["$platformio"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "upload"
+      }
+    },
+    {
+      "label": "PlatformIO: Upload to ESP32 #2",
+      "type": "shell",
+      "command": "pio",
+      "args": [
+        "run",
+        "--project-dir",
+        "${workspaceFolder:esp32}",
+        "-e",
+        "rgfx-driver",
+        "-t",
+        "upload",
+        "--upload-port",
+        "/dev/cu.usbserial-6"
+      ],
+      "problemMatcher": ["$platformio"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "upload"
+      }
+    },
+    {
+      "label": "PlatformIO: Upload to Both ESP32s (Parallel)",
+      "dependsOn": [
+        "PlatformIO: Upload to ESP32 #1",
+        "PlatformIO: Upload to ESP32 #2"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    }
+  ]
+}

@@ -5,15 +5,41 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import type { Udp } from "./udp";
+import type { DriverRegistry } from "./driver-registry";
+import { Udp } from "./udp";
 import log from "electron-log/main";
 
-// Maps game events to LED effects
+// Maps game events to LED effects and broadcasts to all connected drivers
 export class GameEventMapper {
-  private udp: Udp;
+  private driverRegistry: DriverRegistry;
 
-  constructor(udp: Udp) {
-    this.udp = udp;
+  constructor(driverRegistry: DriverRegistry) {
+    this.driverRegistry = driverRegistry;
+  }
+
+  // Broadcast effect to all connected drivers
+  private broadcastEffect(effect: string, color: string) {
+    const connectedDrivers = this.driverRegistry
+      .getAllDrivers()
+      .filter((driver) => driver.connected && driver.ip);
+
+    if (connectedDrivers.length === 0) {
+      log.warn("No connected drivers to send effect to");
+      return;
+    }
+
+    // Send to each driver
+    connectedDrivers.forEach((driver) => {
+      if (!driver.ip) return;
+
+      const udp = new Udp(driver.ip, 1234);
+      udp.send(effect, color);
+      // Note: UDP socket will be garbage collected after send completes
+    });
+
+    log.info(
+      `Broadcasted effect "${effect}" with color ${color} to ${connectedDrivers.length} driver(s)`,
+    );
   }
 
   // Handle incoming game event and map to LED effect
@@ -23,31 +49,31 @@ export class GameEventMapper {
       const state = parseInt(message);
       // Power pill active - blue pulse, otherwise red pulse
       const color = state > 0 ? "0x0000FF" : "0xFF0000";
-      this.udp.send("pulse", color);
+      this.broadcastEffect("pulse", color);
     }
     // Pac-Man: Score changes (with /p1 or /p2 suffix)
     else if (topic.startsWith("player/score/")) {
-      this.udp.send("pulse", "0xFFFF00");
+      this.broadcastEffect("pulse", "0xFFFF00");
     }
     // Super Mario Bros: Score changes (no suffix)
     else if (topic === "player/score") {
-      this.udp.send("pulse", "0xFFFF00");
+      this.broadcastEffect("pulse", "0xFFFF00");
     }
     // Super Mario Bros: Jump
     else if (topic === "player/jump") {
-      this.udp.send("pulse", "0xFF0000"); // Red pulse
+      this.broadcastEffect("pulse", "0xFF0000"); // Red pulse
     }
     // Super Mario Bros: Coin pickup
     else if (topic === "player/coin") {
-      this.udp.send("pulse", "0xFFFF00"); // Yellow pulse
+      this.broadcastEffect("pulse", "0xFFFF00"); // Yellow pulse
     }
     // Super Mario Bros: Music track change
     else if (topic === "game/music") {
-      this.udp.send("pulse", "0xFF00FF"); // Purple pulse
+      this.broadcastEffect("pulse", "0xFF00FF"); // Purple pulse
     }
     // Super Mario Bros: Fireball shot
     else if (topic === "player/fireball") {
-      this.udp.send("pulse", "0xFF8000"); // Orange pulse
+      this.broadcastEffect("pulse", "0xFF8000"); // Orange pulse
     }
 
     log.info(`Event received: ${topic} = ${message}`);

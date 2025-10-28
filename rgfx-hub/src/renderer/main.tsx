@@ -21,3 +21,6 @@ root.render(
     <App />
   </React.StrictMode>,
 );
+
+// Remove splash screen after React has rendered
+document.getElementById("splash")?.remove();
