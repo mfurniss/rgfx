@@ -39,15 +39,8 @@ test:hub:
   stage: test
   image: node:${NODE_VERSION}
 
-  variables:
-    GIT_STRATEGY: clone  # Force fresh clone to avoid cache corruption
-
-  cache:
-    key:
-      files:
-        - rgfx-hub/package-lock.json
-    paths:
-      - rgfx-hub/node_modules/
+  # No cache for test job - prevents cache corruption and keeps tests reliable
+  # npm ci without cache takes ~1-2 minutes, acceptable for test feedback
 
   before_script:
     - cd rgfx-hub
@@ -67,16 +60,8 @@ test:driver:
   stage: test
   image: python:3.11
 
-  variables:
-    GIT_STRATEGY: clone  # Force fresh clone to avoid cache corruption
-
-  cache:
-    key:
-      files:
-        - esp32/platformio.ini
-    paths:
-      - .platformio/
-      - esp32/.pio/
+  # No cache for test job - prevents cache corruption and keeps tests reliable
+  # PlatformIO downloads without cache take ~2-3 minutes, acceptable for test feedback
 
   before_script:
     - apt-get update && apt-get install -y nodejs npm
