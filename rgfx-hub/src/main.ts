@@ -41,16 +41,12 @@ let mainWindow: BrowserWindow | null = null;
 // Initialize services (persistence first, then registry)
 const driverPersistence = new DriverPersistence();
 const mqtt = new Mqtt(1883);
-const udp = new Udp("192.168.10.86", 1234);
 const eventReader = new EventFileReader();
 const driverRegistry = new DriverRegistry(driverPersistence);
 const systemMonitor = new SystemMonitor();
 const discoveryService = new DiscoveryService(mqtt);
-const gameEventMapper = new GameEventMapper(udp);
+const gameEventMapper = new GameEventMapper(driverRegistry);
 const driverConfigManager = new DriverConfigManager();
-
-// Track if we're already checking connection after UDP failure
-let checkingConnectionAfterUdpFailure = false;
 
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
@@ -100,6 +96,16 @@ driverRegistry.onDriverConnected((driver) => {
     sendSystemStatus();
   }
 
+  // Send white pulse for known drivers reconnecting (not brand new drivers)
+  // If firstSeen and lastSeen are close (within 5 seconds), it's a new driver
+  const isNewDriver = (driver.lastSeen - driver.firstSeen) < 5000;
+
+  if (!isNewDriver && driver.ip) {
+    const udp = new Udp(driver.ip, 1234);
+    udp.send("pulse", "0xFFFFFF"); // White pulse
+    log.info(`Sent white pulse to reconnected driver ${driver.name} (${driver.ip})`);
+  }
+
   // Push configuration to driver when it connects
   pushConfigToDriver(driver.id);
 });
@@ -109,28 +115,6 @@ driverRegistry.onDriverDisconnected((driver) => {
     mainWindow.webContents.send("driver:disconnected", driver);
     log.info(`Sent driver:disconnected event to renderer`);
     sendSystemStatus();
-  }
-});
-
-// Set up UDP callbacks
-udp.setSentCallback(() => {
-  driverRegistry.trackUdpSent(udp.ip, true);
-});
-
-udp.setErrorCallback((err) => {
-  log.error(`UDP error detected: ${err.message}`);
-  driverRegistry.trackUdpSent(udp.ip, false);
-
-  // Only trigger one MQTT check at a time
-  if (!checkingConnectionAfterUdpFailure) {
-    checkingConnectionAfterUdpFailure = true;
-    log.info("First UDP failure - triggering immediate MQTT connection check");
-    discoveryService.triggerImmediateDiscovery();
-
-    // Reset flag after 5 seconds (timeout period)
-    setTimeout(() => {
-      checkingConnectionAfterUdpFailure = false;
-    }, 5000);
   }
 });
 
@@ -277,7 +261,6 @@ app.on("before-quit", () => {
 
   // Stop services
   discoveryService.stop();
-  udp.stop();
   void mqtt.stop();
 });
 

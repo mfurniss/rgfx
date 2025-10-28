@@ -17,6 +17,7 @@
 variables:
   NODE_VERSION: "20"
   GIT_DEPTH: 0  # Full git history for version extraction
+  npm_config_cache: "$CI_PROJECT_DIR/rgfx-hub/.npm"  # Use project-local npm cache
 
 # Run on all branches, MRs, and tags
 workflow:
@@ -39,16 +40,20 @@ test:hub:
   stage: test
   image: node:${NODE_VERSION}
 
-  cache:
-    key:
-      files:
-        - rgfx-hub/package-lock.json
-    paths:
-      - rgfx-hub/node_modules/
+  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
+
+  variables:
+    GIT_STRATEGY: clone  # Force fresh clone
 
   before_script:
+    # Workaround: Regenerate package-lock.json in CI with npm 10.8.2
+    # Local dev uses npm 11.5.2 which creates incompatible lock file metadata
     - cd rgfx-hub
-    - npm ci
+    - node --version
+    - npm --version
+    - rm -f package-lock.json
+    - npm install --package-lock-only
+    - npm ci --cache .npm --prefer-offline
 
   script:
     # Run all checks - ANY failure stops pipeline
@@ -64,13 +69,10 @@ test:driver:
   stage: test
   image: python:3.11
 
-  cache:
-    key:
-      files:
-        - esp32/platformio.ini
-    paths:
-      - .platformio/
-      - esp32/.pio/
+  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
+
+  variables:
+    GIT_STRATEGY: clone  # Force fresh clone
 
   before_script:
     - apt-get update && apt-get install -y nodejs npm
@@ -102,17 +104,18 @@ build:hub:
   stage: build
   image: node:${NODE_VERSION}
 
-  # Cache node_modules based on package-lock.json
+  # Cache npm's cache directory (best practice per 2024 GitLab CI docs)
   cache:
     key:
       files:
         - rgfx-hub/package-lock.json
     paths:
-      - rgfx-hub/node_modules/
+      - rgfx-hub/.npm/
+    policy: pull-push  # This job updates the cache
 
   before_script:
     - cd rgfx-hub
-    - npm ci
+    - npm ci --cache .npm --prefer-offline
 
   script:
     # Inject version from git tag
