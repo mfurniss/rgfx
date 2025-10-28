@@ -1,10 +1,10 @@
 # RGFX - Retro Game Effects
 
-A distributed system for monitoring retro arcade game state in MAME and translating game events into synchronized LED effects across multiple ESP32-based hardware controllers.
+A distributed system for monitoring retro arcade and console game state in MAME and translating game events into synchronized LED effects across multiple ESP32-based hardware controllers.
 
 ## Overview
 
-RGFX bridges the gap between classic arcade games running in MAME and modern LED lighting systems. It monitors game state changes (score updates, ghost behavior, power-ups, etc.) and broadcasts events that trigger coordinated LED effects on physical hardware.
+RGFX bridges the gap between classic retro games running in MAME and modern LED lighting systems. It monitors game state changes (score updates, ghost behavior, power-ups, etc.) and broadcasts events that trigger coordinated LED effects on physical hardware.
 
 ### Key Features
 
