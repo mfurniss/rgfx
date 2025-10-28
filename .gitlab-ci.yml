@@ -45,9 +45,22 @@ test:hub:
     GIT_STRATEGY: clone  # Force fresh clone
 
   before_script:
-    # Workaround: Force restore package-lock.json from git if mysteriously missing
-    - test -f rgfx-hub/package-lock.json || git checkout HEAD -- rgfx-hub/package-lock.json
+    # === DIAGNOSTIC: Debug package-lock.json visibility ===
+    - echo "=== Before cd - checking from repo root ==="
+    - ls -la rgfx-hub/package*.json
+    - file rgfx-hub/package-lock.json
+    - wc -l rgfx-hub/package-lock.json
+
+    - echo "=== Changing to rgfx-hub directory ==="
     - cd rgfx-hub
+
+    - echo "=== After cd - checking from rgfx-hub ==="
+    - pwd
+    - ls -la package*.json
+    - file package-lock.json
+    - head -5 package-lock.json
+
+    - echo "=== Running npm ci ==="
     - npm ci
 
   script:
