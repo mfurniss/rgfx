@@ -39,10 +39,14 @@ test:hub:
   stage: test
   image: node:${NODE_VERSION}
 
-  # No cache for test job - prevents cache corruption and keeps tests reliable
-  # npm ci without cache takes ~1-2 minutes, acceptable for test feedback
+  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
+
+  variables:
+    GIT_STRATEGY: clone  # Force fresh clone
 
   before_script:
+    # Workaround: Force restore package-lock.json from git if mysteriously missing
+    - test -f rgfx-hub/package-lock.json || git checkout HEAD -- rgfx-hub/package-lock.json
     - cd rgfx-hub
     - npm ci
 
@@ -60,8 +64,10 @@ test:driver:
   stage: test
   image: python:3.11
 
-  # No cache for test job - prevents cache corruption and keeps tests reliable
-  # PlatformIO downloads without cache take ~2-3 minutes, acceptable for test feedback
+  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
+
+  variables:
+    GIT_STRATEGY: clone  # Force fresh clone
 
   before_script:
     - apt-get update && apt-get install -y nodejs npm
