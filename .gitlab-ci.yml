@@ -39,6 +39,9 @@ test:hub:
   stage: test
   image: node:${NODE_VERSION}
 
+  variables:
+    GIT_STRATEGY: clone  # Force fresh clone to avoid cache corruption
+
   cache:
     key:
       files:
@@ -63,6 +66,9 @@ test:hub:
 test:driver:
   stage: test
   image: python:3.11
+
+  variables:
+    GIT_STRATEGY: clone  # Force fresh clone to avoid cache corruption
 
   cache:
     key:
