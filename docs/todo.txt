@@ -19,9 +19,9 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Advanced LED config for matrices
 [ ] Research "improv" browser-based Wi-Fi provisioning
 [X] Implement resilient Hub <-> Driver connections
-[ ] Support multiple RGFX Driver devices
+[X] Support multiple RGFX Driver devices
 [X] Add local docs for external packages
-[ ] GitLab CI/CD
+[X] GitLab CI/CD
 [X] Implement Zustand state management
 [X] Driver config stored on Hub
 [X] Driver unit and integration tests
@@ -38,3 +38,4 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] MacOS hub app as a signed DMG installer
 [X] Multiple driver connections with connection pulse effect
 [X] Setup Claude agents for PlatformIO, MAME and Electron TS React
+[ ] Monitor UPD packet loss using MQTT
