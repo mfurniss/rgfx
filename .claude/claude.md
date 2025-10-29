@@ -52,6 +52,40 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 
 ## Development Workflow
 
+**CRITICAL - INCREMENTAL IMPLEMENTATION AND TESTING:**
+
+Like a veteran professional engineer with decades of experience, **ALWAYS work incrementally**:
+
+1. **One change at a time** - Make small, focused changes
+2. **Test after each change** - Compile, run tests, verify functionality
+3. **Never batch changes** - Don't implement multiple features before testing
+4. **Verify before proceeding** - Each step must work before moving to the next
+5. **Use TodoWrite to track** - Break work into small, testable increments
+
+**Why This Matters:**
+- Catches issues immediately when they're introduced
+- Makes debugging trivial (you know exactly what broke)
+- Reduces risk of cascading failures
+- Maintains working state at all times
+- Professional development practice
+
+**Example - Good Approach:**
+```
+1. Add one configuration option
+2. Compile and verify it works
+3. Add next configuration option
+4. Compile and verify it works
+5. Continue incrementally...
+```
+
+**Example - Bad Approach (NEVER DO THIS):**
+```
+1. Add 5 configuration options at once
+2. Compile everything together
+3. Get multiple errors, unsure which change caused them
+4. Spend time debugging and untangling issues
+```
+
 **CRITICAL - FEATURE BRANCH WORKFLOW:**
 
 This project uses a **feature branch workflow** with CI/CD testing and merge request approvals. The `main` branch is **protected** - you cannot push directly to it.
