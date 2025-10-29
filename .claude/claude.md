@@ -130,6 +130,35 @@ Like a veteran professional engineer with decades of experience, **ALWAYS work i
 4. Spend time debugging and untangling issues
 ```
 
+**CRITICAL - PRE-COMMIT CHECKS:**
+
+This project uses a **pre-commit hook** to enforce code quality. The hook automatically runs before every commit:
+
+1. **TypeScript type checking** (`npm run typecheck`)
+2. **ESLint with auto-fix** (`npm run lint -- --fix`)
+3. **Unit tests** (`npm test`)
+
+**All checks must pass** before the commit is allowed. This ensures CI will pass and prevents pushing broken code.
+
+**Installation:**
+```bash
+# After cloning the repository, run:
+./scripts/install-git-hooks.sh
+```
+
+The hook is stored in `scripts/git-hooks/pre-commit` and installed to `.git/hooks/pre-commit`.
+
+**CRITICAL - ALWAYS LINT AFTER EDITING:**
+
+Before committing ANY code changes, the pre-commit hook will automatically run lint, prettier, and tests. However, you should still manually run these checks during development:
+
+```bash
+cd rgfx-hub
+npm run lint -- --fix  # Auto-fix formatting and lint issues
+npm run typecheck      # Check TypeScript errors
+npm test               # Run unit tests
+```
+
 **CRITICAL - FEATURE BRANCH WORKFLOW:**
 
 This project uses a **feature branch workflow** with CI/CD testing and merge request approvals. The `main` branch is **protected** - you cannot push directly to it.
@@ -142,6 +171,7 @@ git checkout main
 git pull origin main
 git checkout -b feature/my-new-feature
 # Make changes...
+# Pre-commit hook runs automatically: typecheck, lint, tests
 git commit -m "Add new feature"
 git push origin feature/my-new-feature
 ```
