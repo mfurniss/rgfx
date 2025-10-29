@@ -75,6 +75,10 @@ export class GameEventMapper {
     else if (topic === "player/fireball") {
       this.broadcastEffect("pulse", "0xFF8000"); // Orange pulse
     }
+    // Catch-all: Any other game event (Galaga, etc.)
+    else {
+      this.broadcastEffect("pulse", "0x0000FF"); // Blue pulse
+    }
 
     log.info(`Event received: ${topic} = ${message}`);
   }

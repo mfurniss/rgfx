@@ -125,23 +125,26 @@ describe("GameEventMapper", () => {
     });
   });
 
-  describe("unhandled events", () => {
-    it("should not send UDP message for unrecognized topic", () => {
+  describe("catch-all handler", () => {
+    it("should send blue pulse for unrecognized topic", () => {
       mapper.handleEvent("unknown/topic", "value");
 
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledWith("pulse", "0x0000FF");
+      expect(mockSend).toHaveBeenCalledTimes(2); // Once per driver
     });
 
-    it("should not send UDP message for game topic", () => {
+    it("should send blue pulse for game topic", () => {
       mapper.handleEvent("game", "pacman");
 
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledWith("pulse", "0x0000FF");
+      expect(mockSend).toHaveBeenCalledTimes(2); // Once per driver
     });
 
-    it("should not send UDP message for empty topic", () => {
+    it("should send blue pulse for empty topic", () => {
       mapper.handleEvent("", "value");
 
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledWith("pulse", "0x0000FF");
+      expect(mockSend).toHaveBeenCalledTimes(2); // Once per driver
     });
   });
 
