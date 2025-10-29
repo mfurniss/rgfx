@@ -6,8 +6,9 @@
  */
 
 import log from "electron-log/main";
-import type { Driver, DriverSystemInfo } from "./types";
+import type { Driver, DriverSystemInfo, DriverConfig } from "./types";
 import type { DriverPersistence } from "./driver-persistence";
+import type { LEDConfigManager } from "./led-config-manager";
 
 // Driver timeout threshold (35 seconds = 30s poll + 5s grace)
 const DRIVER_TIMEOUT_MS = 35000;
@@ -17,22 +18,37 @@ export class DriverRegistry {
   private onDriverConnectedCallback?: (driver: Driver) => void;
   private onDriverDisconnectedCallback?: (driver: Driver) => void;
   private persistence?: DriverPersistence;
+  private ledConfigManager?: LEDConfigManager;
 
-  constructor(persistence?: DriverPersistence) {
+  constructor(persistence?: DriverPersistence, ledConfigManager?: LEDConfigManager) {
     this.persistence = persistence;
+    this.ledConfigManager = ledConfigManager;
 
     // Load all known drivers from persistence (all start as disconnected)
-    if (persistence) {
+    if (persistence && ledConfigManager) {
       const persistedDrivers = persistence.getAllDrivers();
       for (const pd of persistedDrivers) {
+        // Resolve LED config if reference exists
+        let resolvedConfig: DriverConfig | undefined = undefined;
+        if (pd.ledConfigRef) {
+          const config = ledConfigManager.loadConfig(pd.ledConfigRef);
+          if (config) {
+            resolvedConfig = config;
+          } else {
+            log.warn(`Failed to resolve LED config for driver ${pd.id}: ${pd.ledConfigRef}`);
+          }
+        }
+
         const driver: Driver = {
           id: pd.id,
           name: pd.name,
+          description: pd.description,
           type: pd.type,
           connected: false,
           lastSeen: 0,
           firstSeen: pd.firstSeen,
-          ledConfig: pd.ledConfig,
+          ledConfig: resolvedConfig,
+          ledConfigRef: pd.ledConfigRef,
           stats: {
             mqttMessagesReceived: 0,
             mqttMessagesFailed: 0,
@@ -81,13 +97,15 @@ export class DriverRegistry {
     const driver: Driver = {
       id: driverId,
       name: sysInfo.hostname || sysInfo.ip || "Driver",
+      description: existingDriver?.description, // Preserve description from persistence
       type: "driver",
       connected: true,
       lastSeen: now,
       firstSeen: firstSeen,
       ip: sysInfo.ip,
       sysInfo: sysInfo,
-      ledConfig: existingDriver?.ledConfig, // Preserve LED config from persistence
+      ledConfig: existingDriver?.ledConfig, // Preserve resolved LED config
+      ledConfigRef: existingDriver?.ledConfigRef, // Preserve config reference for UI
       stats: {
         mqttMessagesReceived:
           (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,

@@ -23,6 +23,9 @@
 #include "utils.h"
 #include "version.h"
 
+// Forward declaration for config handling
+void handleDriverConfig(const String& payload);
+
 #define FLASH_DURATION_MS 10 // MQTT message flash duration
 
 Matrix matrix(WIDTH, HEIGHT);
@@ -67,7 +70,7 @@ void networkTask(void* parameter) {
 	// Track last uptime update for periodic display refresh
 	unsigned long lastUptimeUpdate = 0;
 	const unsigned long UPTIME_UPDATE_INTERVAL =
-		1000; // Update every 1 second (runs on Core 0, no LED impact)
+		5000; // Update every 5 seconds (reduced frequency to prevent I2C issues)
 
 	// Main network task loop
 	while (true) {
@@ -248,6 +251,18 @@ void loop() {
 				log("mDNS responder started as " + Utils::getDeviceName());
 			} else {
 				log("Error starting mDNS responder");
+			}
+
+			// Load saved LED configuration from NVS (if available)
+			if (ConfigNVS::hasLEDConfig()) {
+				log("Loading saved LED configuration from NVS...");
+				String savedConfig = ConfigNVS::loadLEDConfig();
+				if (savedConfig.length() > 0) {
+					// Process saved config using same handler as MQTT
+					handleDriverConfig(savedConfig);
+				}
+			} else {
+				log("No saved LED config - will wait for Hub");
 			}
 
 			// Setup MQTT (will use mDNS to discover broker)

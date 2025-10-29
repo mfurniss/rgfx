@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DriverPersistence } from './driver-persistence';
-import type { DriverConfig } from './types/driver-config';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -166,71 +165,53 @@ describe('DriverPersistence', () => {
     });
   });
 
-  describe('LED Config Management', () => {
-    const sampleLEDConfig: DriverConfig = {
-      driver_id: 'aa:bb:cc:dd:ee:ff',
-      version: '1.0',
-      friendly_name: 'Test LED Config',
-      led_devices: [
-        {
-          id: 'strip1',
-          name: 'LED Strip 1',
-          pin: 16,
-          type: 'strip',
-          count: 100,
-          chipset: 'WS2812B',
-          color_order: 'GRB',
-        },
-      ],
-      settings: {
-        global_brightness_limit: 200,
-      },
-    };
+  describe('LED Config Reference Management', () => {
+    const sampleConfigRef = 'led-configs/test-config.json';
 
-    it('should set LED config for driver', () => {
+    it('should set LED config reference for driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
       persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
 
-      const result = persistence.setDriverLEDConfig('aa:bb:cc:dd:ee:ff', sampleLEDConfig);
+      const result = persistence.setLEDConfigRef('aa:bb:cc:dd:ee:ff', sampleConfigRef);
 
       expect(result).toBe(true);
-      const config = persistence.getDriverLEDConfig('aa:bb:cc:dd:ee:ff');
-      expect(config).toEqual(sampleLEDConfig);
+      const configRef = persistence.getLEDConfigRef('aa:bb:cc:dd:ee:ff');
+      expect(configRef).toEqual(sampleConfigRef);
     });
 
-    it('should persist LED config to disk', () => {
+    it('should persist LED config reference to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
       persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
 
-      persistence.setDriverLEDConfig('aa:bb:cc:dd:ee:ff', sampleLEDConfig);
+      persistence.setLEDConfigRef('aa:bb:cc:dd:ee:ff', sampleConfigRef);
 
       const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
-      expect(data.drivers[0].ledConfig).toEqual(sampleLEDConfig);
+      expect(data.drivers[0].ledConfigRef).toEqual(sampleConfigRef);
     });
 
-    it('should return false when setting LED config for non-existent driver', () => {
+    it('should return false when setting LED config ref for non-existent driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const result = persistence.setDriverLEDConfig('nonexistent', sampleLEDConfig);
+      const result = persistence.setLEDConfigRef('nonexistent', sampleConfigRef);
 
       expect(result).toBe(false);
     });
 
-    it('should return undefined for non-existent driver LED config', () => {
+    it('should return undefined for non-existent driver LED config ref', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const config = persistence.getDriverLEDConfig('nonexistent');
+      const configRef = persistence.getLEDConfigRef('nonexistent');
 
-      expect(config).toBeUndefined();
+      expect(configRef).toBeUndefined();
     });
 
-    it('should return undefined when driver has no LED config', () => {
+    it('should return undefined when driver has no LED config ref', () => {
       const persistence = new DriverPersistence(testConfigDir);
       persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
 
-      const config = persistence.getDriverLEDConfig('aa:bb:cc:dd:ee:ff');
+      const configRef = persistence.getLEDConfigRef('aa:bb:cc:dd:ee:ff');
 
-      expect(config).toBeUndefined();
+      expect(configRef).toBeUndefined();
     });
   });
 

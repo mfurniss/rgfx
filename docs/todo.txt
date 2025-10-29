@@ -36,4 +36,4 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Auto update hub when newly availble online
 [ ] Hub to download new firmware and flash connected drivers
 [ ] MacOS hub app as a signed DMG installer
-[ ] Multiple driver connections with connection pulse effect
+[X] Multiple driver connections with connection pulse effect

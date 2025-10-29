@@ -4,46 +4,18 @@
     {
       "id": "44:1D:64:F8:CF:68",
       "name": "rgfx-driver-f8cf68",
+      "description": "ESP32 driver board",
       "type": "driver",
-      "firstSeen": 1761512408332
+      "firstSeen": 1761512408332,
+      "ledConfigRef": "led-configs/8x8-matrix.json"
     },
     {
       "id": "44:1D:64:F8:9A:58",
       "name": "rgfx-driver-f89a58",
+      "description": "Primary development board with 8x8 LED matrix",
       "type": "driver",
       "firstSeen": 1761512509975,
-      "ledConfig": {
-        "driver_id": "44:1D:64:F8:9A:58",
-        "friendly_name": "Dev Board 8x8 Matrix",
-        "description": "Development board with 8x8 WS2812B serpentine matrix",
-        "version": "1.0",
-        "led_devices": [
-          {
-            "id": "matrix1",
-            "name": "8x8 Matrix",
-            "pin": 16,
-            "type": "matrix",
-            "count": 64,
-            "offset": 0,
-            "chipset": "WS2812B",
-            "color_order": "GRB",
-            "max_brightness": 64,
-            "width": 8,
-            "height": 8,
-            "serpentine": true,
-            "color_correction": "Typical8mmPixel",
-            "color_temperature": "UncorrectedTemperature"
-          }
-        ],
-        "settings": {
-          "global_brightness_limit": 64,
-          "gamma_correction": 2.2,
-          "dithering": true,
-          "update_rate": 60,
-          "power_supply_volts": 5,
-          "max_power_milliamps": 300
-        }
-      }
+      "ledConfigRef": "led-configs/8x8-matrix.json"
     }
   ]
 }

@@ -16,8 +16,8 @@ import { DriverRegistry } from "./driver-registry";
 import { SystemMonitor } from "./system-monitor";
 import { DiscoveryService } from "./discovery-service";
 import { GameEventMapper } from "./game-event-mapper";
-import { DriverConfigManager } from "./driver-config-manager";
 import { DriverPersistence } from "./driver-persistence";
+import { LEDConfigManager } from "./led-config-manager";
 import type { DriverSystemInfo } from "./types";
 import pkg from "../package.json";
 
@@ -40,13 +40,13 @@ let mainWindow: BrowserWindow | null = null;
 
 // Initialize services (persistence first, then registry)
 const driverPersistence = new DriverPersistence();
+const ledConfigManager = new LEDConfigManager();
 const mqtt = new Mqtt(1883);
 const eventReader = new EventFileReader();
-const driverRegistry = new DriverRegistry(driverPersistence);
+const driverRegistry = new DriverRegistry(driverPersistence, ledConfigManager);
 const systemMonitor = new SystemMonitor();
 const discoveryService = new DiscoveryService(mqtt);
 const gameEventMapper = new GameEventMapper(driverRegistry);
-const driverConfigManager = new DriverConfigManager();
 
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
@@ -63,24 +63,29 @@ function sendSystemStatus() {
 // Helper to push driver configuration via MQTT
 function pushConfigToDriver(driverId: string): boolean {
   try {
-    // Get LED configuration from persistence (new unified system)
-    const config = driverPersistence.getDriverLEDConfig(driverId);
+    // Get LED config reference from persistence
+    const configRef = driverPersistence.getLEDConfigRef(driverId);
 
-    // Fall back to old config manager for migration period
-    const legacyConfig = driverConfigManager.getConfig(driverId);
-    const finalConfig = config ?? legacyConfig;
-
-    if (!finalConfig) {
-      log.warn(`Driver ${driverId} connected but has no LED configuration - user must configure before use`);
+    if (!configRef) {
+      log.warn(`Driver ${driverId} connected but has no LED config reference - user must configure before use`);
       return false;
     }
 
-    // Publish to driver-specific topic
-    const topic = `rgfx/driver/${driverId}/config`;
-    const payload = JSON.stringify(finalConfig);
+    // Resolve the config by loading the file
+    const config = ledConfigManager.loadConfig(configRef);
+
+    if (!config) {
+      log.error(`Failed to load LED config for driver ${driverId}: ${configRef}`);
+      return false;
+    }
+
+    // Publish resolved config to driver-specific topic
+    // Note: Driver expects MAC with dashes, not colons (e.g., 44-1D-64-F8-CF-68)
+    const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/config`;
+    const payload = JSON.stringify(config);
 
     mqtt.publish(topic, payload);
-    log.info(`Pushed LED configuration to driver ${driverId} (${finalConfig.friendly_name ?? 'unnamed'})`);
+    log.info(`Pushed LED configuration to driver ${driverId}: ${config.name}`);
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -96,15 +101,8 @@ driverRegistry.onDriverConnected((driver) => {
     sendSystemStatus();
   }
 
-  // Send white pulse for known drivers reconnecting (not brand new drivers)
-  // If firstSeen and lastSeen are close (within 5 seconds), it's a new driver
-  const isNewDriver = (driver.lastSeen - driver.firstSeen) < 5000;
-
-  if (!isNewDriver && driver.ip) {
-    const udp = new Udp(driver.ip, 1234);
-    udp.send("pulse", "0xFFFFFF"); // White pulse
-    log.info(`Sent white pulse to reconnected driver ${driver.name} (${driver.ip})`);
-  }
+  // Note: Removed white pulse visual indicator - it was annoying during normal operation
+  // Drivers remain dark unless actively showing game events
 
   // Push configuration to driver when it connects
   pushConfigToDriver(driver.id);
