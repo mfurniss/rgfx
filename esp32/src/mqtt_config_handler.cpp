@@ -2,8 +2,12 @@
 #include "dynamic_leds.h"
 #include "config_nvs.h"
 #include "log.h"
+#include "matrix.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
+
+// External matrix used by game loop
+extern Matrix matrix;
 
 // Handle driver configuration received from Hub
 void handleDriverConfig(const String& payload) {
@@ -110,6 +114,18 @@ void handleDriverConfig(const String& payload) {
 	log("Applying LED configuration...");
 	if (initializeDynamicLEDs()) {
 		log("LED configuration applied successfully!");
+
+		// Update matrix to use the first device's LED buffer
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				matrix.leds = leds;
+				matrix.size = getLEDCountForDevice(firstDevice.id);
+				log("Matrix updated to use dynamic LED buffer");
+			}
+		}
+
 		log("LEDs are now ready for use");
 
 		// Show a brief white flash to indicate success

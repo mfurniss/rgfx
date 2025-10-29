@@ -50,7 +50,85 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
   - Start: `launchctl load ~/Library/LaunchAgents/com.rgfx.backup.plist`
   - Status: `launchctl list | grep rgfx`
 
+## Claude Specialized Agents
+
+**CRITICAL - USE SPECIALIZED AGENTS FOR EXPERTISE:**
+
+This project has specialized Claude agents available for specific domains. **ALWAYS use these agents** when working with their respective technologies instead of trying to handle everything directly.
+
+### Available Agents
+
+**gitlab-expert**
+- **Use for**: GitLab CI/CD pipelines, GitLab Pages, jobs, runners, merge requests, branch protection, tags, releases, glab CLI
+- **Also use for**: Debugging pipeline failures, configuring `.gitlab-ci.yml`, troubleshooting build artifacts, understanding GitLab's browser UI
+- **Examples**:
+  - "The build pipeline is failing on the test stage"
+  - "How do I set up GitLab Pages?"
+  - "What's the glab command to create a merge request?"
+  - Configuring CI/CD jobs and understanding pipeline syntax
+
+**platformio-esp32-expert**
+- **Use for**: PlatformIO development for ESP32 microcontrollers
+- **Topics include**:
+  - Setting up or configuring PlatformIO projects for ESP32
+  - Understanding `platformio.ini` configuration options and environments
+  - Troubleshooting ESP32 compilation, upload, or runtime issues
+  - Integrating PlatformIO with VSCode (tasks, debugging, IntelliSense)
+  - ESP32-specific features (dual-core, WiFi, Bluetooth, peripherals)
+  - Build flags, library dependencies, and board configurations
+  - OTA updates, serial monitoring, and debugging workflows
+  - Memory management, SPIFFS/LittleFS, and NVS storage on ESP32
+
+### When to Use Agents
+
+**DO use specialized agents:**
+- Whenever you need information about their domains
+- Before attempting complex configurations
+- When debugging issues in their areas of expertise
+- For researching best practices and current documentation
+
+**DO NOT:**
+- Try to handle specialized topics directly when an agent is available
+- Guess about GitLab CI syntax - use gitlab-expert
+- Guess about PlatformIO/ESP32 configuration - use platformio-esp32-expert
+
+**Remember**: These agents have specialized knowledge and access to current documentation for their domains. Use them proactively to ensure accurate, up-to-date solutions.
+
 ## Development Workflow
+
+**CRITICAL - INCREMENTAL IMPLEMENTATION AND TESTING:**
+
+Like a veteran professional engineer with decades of experience, **ALWAYS work incrementally**:
+
+1. **One change at a time** - Make small, focused changes
+2. **Test after each change** - Compile, run tests, verify functionality
+3. **Never batch changes** - Don't implement multiple features before testing
+4. **Verify before proceeding** - Each step must work before moving to the next
+5. **Use TodoWrite to track** - Break work into small, testable increments
+
+**Why This Matters:**
+- Catches issues immediately when they're introduced
+- Makes debugging trivial (you know exactly what broke)
+- Reduces risk of cascading failures
+- Maintains working state at all times
+- Professional development practice
+
+**Example - Good Approach:**
+```
+1. Add one configuration option
+2. Compile and verify it works
+3. Add next configuration option
+4. Compile and verify it works
+5. Continue incrementally...
+```
+
+**Example - Bad Approach (NEVER DO THIS):**
+```
+1. Add 5 configuration options at once
+2. Compile everything together
+3. Get multiple errors, unsure which change caused them
+4. Spend time debugging and untangling issues
+```
 
 **CRITICAL - FEATURE BRANCH WORKFLOW:**
 
@@ -75,11 +153,63 @@ git push origin feature/my-new-feature
 - Must pass before you can merge
 
 **3. Create a merge request:**
-- Go to GitLab → Create merge request
-- Or use CLI: `git push -o merge_request.create`
+
+**Using glab CLI (Recommended):**
+```bash
+glab mr create --fill --yes
+```
+This automatically creates a merge request using the commit title/description.
+
+**Alternative methods:**
+- Git push option: `git push -o merge_request.create` (when pushing new branch)
+- Web UI: Go to GitLab → Create merge request
+
+**After MR creation:**
 - CI runs again on the MR
 - Review your changes
 - Click "Merge" when CI passes
+
+**CRITICAL - ALWAYS MONITOR CI PIPELINES:**
+
+After pushing a feature branch or creating a merge request, **ALWAYS start background monitoring** of the CI pipeline:
+
+```bash
+# Start background monitoring (non-blocking)
+glab ci status --live -b <branch-name> &
+```
+
+**Required workflow:**
+1. After `git push` or `glab mr create`, immediately start background monitoring:
+   - Use Bash tool with `run_in_background: true`
+   - Command: `glab ci status --live -b <branch-name> &`
+   - Save the bash_id returned
+2. **Inform the user immediately**:
+   - "Pipeline started and monitoring in background. Jobs: test:hub, test:driver (~5 min typical duration)"
+   - Provide pipeline URL for manual monitoring
+3. **Continue working** on other tasks - monitoring runs in background
+4. **Periodically check** the background task using BashOutput tool
+5. **When pipeline completes**, notify the user:
+   - ✅ **Success**: "Pipeline passed! All tests successful. ✅"
+   - ❌ **Failure**: "Pipeline failed! Job '<job-name>' failed. Let me get the logs..." then run `glab ci trace <job-name>`
+6. If failed, automatically fetch and analyze error logs
+
+**Implementation:**
+```bash
+# Start monitoring (in Bash tool with run_in_background: true)
+glab ci status --live -b feature/my-branch &
+
+# Later, check status (using BashOutput tool)
+# Use the bash_id returned from the background command
+
+# If failure detected, get logs
+glab ci trace <failed-job-name>
+```
+
+**Why this matters:**
+- Non-blocking: Can continue working while monitoring
+- Automatic notifications when pipeline completes
+- Instant error log retrieval on failures
+- Professional workflow - parallel task execution
 
 **4. Main branch updated:**
 - **Test + Build stages** run on main
@@ -104,6 +234,28 @@ git push origin v1.0.0
 - ✅ **CI must pass before merge**
 - ✅ **Tags are immutable** - never delete/recreate
 - ✅ **Main always passes CI** - only merged code that passed tests
+
+### GitLab CLI (glab)
+
+**Installation:**
+```bash
+brew install glab
+```
+
+**First-time authentication:**
+```bash
+glab auth login
+```
+Follow the browser authentication flow (recommended).
+
+**Common glab commands:**
+```bash
+glab mr create --fill --yes        # Create MR from current branch
+glab mr list                       # List merge requests
+glab mr view                       # View current MR
+glab mr merge                      # Merge approved MR
+glab mr close                      # Close MR
+```
 
 ### GitLab Protected Branch Settings:
 

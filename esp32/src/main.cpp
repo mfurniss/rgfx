@@ -391,6 +391,7 @@ void loop() {
 			auto it = effectMap.find(message.effect);
 			if (it != effectMap.end()) {
 				it->second(matrix, message.color);
+				FastLED.show();  // Display the effect immediately
 			}
 		}
 
