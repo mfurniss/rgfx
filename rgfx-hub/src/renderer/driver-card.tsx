@@ -93,7 +93,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const ledDevice = driver.ledConfig?.led_devices[0]; // Show first device for now
   const ledRows: InfoRowData[] = driver.ledConfig
     ? [
-        { label: "Friendly Name", value: driver.ledConfig.friendly_name ?? "Not set" },
+        { label: "Config Name", value: driver.ledConfig.name },
         { label: "Description", value: driver.ledConfig.description ?? "Not set" },
         ...(ledDevice
           ? [

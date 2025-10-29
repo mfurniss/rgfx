@@ -8,7 +8,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
-import type { DriverConfig } from './types/driver-config';
 
 /**
  * Persisted driver data structure
@@ -21,14 +20,17 @@ export interface PersistedDriver {
   /** User-editable device name */
   name: string;
 
+  /** Optional user-editable description */
+  description?: string;
+
   /** Device type */
   type: 'driver' | 'controller';
 
   /** Unix timestamp of first discovery */
   firstSeen: number;
 
-  /** LED hardware configuration (nested) */
-  ledConfig?: DriverConfig;
+  /** Reference to LED config file (e.g., "led-configs/8x8-matrix.json") */
+  ledConfigRef?: string;
 }
 
 /**
@@ -160,10 +162,10 @@ export class DriverPersistence {
   }
 
   /**
-   * Update driver metadata (name, type)
+   * Update driver metadata (name, type, description)
    * Does not update ledConfig - use setDriverLEDConfig for that
    */
-  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'name' | 'type'>>): boolean {
+  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'name' | 'type' | 'description'>>): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
       log.warn(`Cannot update non-existent driver: ${id}`);
@@ -178,26 +180,26 @@ export class DriverPersistence {
   }
 
   /**
-   * Get LED configuration for a specific driver
+   * Get LED config reference for a specific driver
    */
-  getDriverLEDConfig(id: string): DriverConfig | undefined {
-    return this.drivers.get(id)?.ledConfig;
+  getLEDConfigRef(id: string): string | undefined {
+    return this.drivers.get(id)?.ledConfigRef;
   }
 
   /**
-   * Set LED configuration for a specific driver
+   * Set LED config reference for a specific driver
    */
-  setDriverLEDConfig(id: string, config: DriverConfig): boolean {
+  setLEDConfigRef(id: string, configRef: string): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
-      log.warn(`Cannot set LED config for non-existent driver: ${id}`);
+      log.warn(`Cannot set LED config ref for non-existent driver: ${id}`);
       return false;
     }
 
-    driver.ledConfig = config;
+    driver.ledConfigRef = configRef;
     this.drivers.set(id, driver);
     this.saveConfig();
-    log.info(`Updated LED config for driver ${id}`);
+    log.info(`Set LED config ref for driver ${id}: ${configRef}`);
     return true;
   }
 

@@ -1,5 +1,6 @@
 #include "driver_config.h"
 #include "dynamic_leds.h"
+#include "config_nvs.h"
 #include "log.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
@@ -18,26 +19,18 @@ void handleDriverConfig(const String& payload) {
 		return;
 	}
 
-	// Validate driver ID matches this device
-	String configDriverId = doc["driver_id"] | "";
-	String thisMacAddress = WiFi.macAddress();
-	thisMacAddress.replace(":", "-");
-
-	if (configDriverId != thisMacAddress) {
-		log("WARNING: Config driver_id mismatch!");
-		log("  Config for: " + configDriverId);
-		log("  This device: " + thisMacAddress);
-		// Still apply config - Hub might know better
-	}
-
 	// Clear existing configuration
 	g_driverConfig.devices.clear();
 
 	// Extract basic info
-	g_driverConfig.driverId = configDriverId;
-	g_driverConfig.friendlyName = doc["friendly_name"] | "Unknown";
+	g_driverConfig.name = doc["name"] | "Unknown";
+	g_driverConfig.description = doc["description"] | "";
+	g_driverConfig.version = doc["version"] | "1.0";
 
-	log("Config for: " + g_driverConfig.friendlyName + " (" + configDriverId + ")");
+	log("Config: " + g_driverConfig.name);
+	if (g_driverConfig.description.length() > 0) {
+		log("Description: " + g_driverConfig.description);
+	}
 
 	// Extract LED devices
 	JsonArray ledDevices = doc["led_devices"];
@@ -105,6 +98,13 @@ void handleDriverConfig(const String& payload) {
 	g_configReceived = true;
 
 	log("Driver configuration stored successfully");
+
+	// Save configuration to NVS for persistence
+	if (ConfigNVS::saveLEDConfig(payload)) {
+		log("Configuration saved to NVS");
+	} else {
+		log("WARNING: Failed to save configuration to NVS");
+	}
 
 	// Apply configuration immediately
 	log("Applying LED configuration...");

@@ -283,9 +283,11 @@ cd mame/lua && stylua . && luacheck .
 **MUST FIX IMMEDIATELY:**
 1. **ALWAYS fix TypeScript errors** - Run `npm run typecheck` and fix all errors before completing any task
 2. **ALWAYS fix ESLint errors** - Run `npm run lint` and fix all errors/warnings before completing any task
-3. **After updating TypeScript files** - ALWAYS run `npm run lint -- --fix` to auto-fix formatting issues
-4. **Use npm scripts, not npx** - TypeScript is installed locally, use `npm run typecheck` (efficient) not `npx tsc` (inefficient)
-5. **Zero tolerance** - Never leave code in a state with TypeScript or lint errors
+3. **CRITICAL: ALWAYS LINT AFTER EVERY CODE CHANGE** - Run `npm run lint` immediately after editing any TypeScript/JavaScript file
+4. **After updating TypeScript files** - ALWAYS run `npm run lint -- --fix` to auto-fix formatting issues
+5. **Use npm scripts, not npx** - TypeScript is installed locally, use `npm run typecheck` (efficient) not `npx tsc` (inefficient)
+6. **Zero tolerance** - Never leave code in a state with TypeScript or lint errors
+7. **Before committing** - ALWAYS run both `npm run typecheck` and `npm run lint` to ensure CI will pass
 
 ### Testing Standards
 
@@ -416,6 +418,43 @@ This is a VSCode multi-root workspace with sub-projects:
 - Publishes events via embedded MQTT broker and UDP
 - React + Material UI interface
 - Built with Electron Forge + Vite
+
+#### Driver Configuration
+
+**Configuration File:** `rgfx-hub/config/drivers.json`
+
+The Hub uses a **single unified configuration file** managed by `DriverPersistence` to store:
+- Driver discovery metadata (id, name, type, firstSeen)
+- LED hardware configurations (inline `ledConfig` for each driver)
+
+**Structure:**
+```json
+{
+  "version": "1.0",
+  "drivers": [
+    {
+      "id": "44:1D:64:F8:9A:58",
+      "name": "rgfx-driver-f89a58",
+      "type": "driver",
+      "firstSeen": 1761512509975,
+      "ledConfig": {
+        "driver_id": "44:1D:64:F8:9A:58",
+        "friendly_name": "Dev Board 8x8 Matrix",
+        "version": "1.0",
+        "led_devices": [ /* LED device configs */ ],
+        "settings": { /* driver settings */ }
+      }
+    }
+  ]
+}
+```
+
+**Key Points:**
+- **One file** contains all driver metadata and LED configurations
+- `ledConfig` is stored inline within each driver entry (not in separate files)
+- Managed by `DriverPersistence` class ([driver-persistence.ts](rgfx-hub/src/driver-persistence.ts))
+- Types defined in [types.ts](rgfx-hub/src/types.ts) (`DriverConfig`, `LEDDevice`, `DriverSettings`)
+- Configuration is pushed to drivers via MQTT when they connect
 
 ### ESP32 Drivers (`esp32/`)
 - PlatformIO firmware for ESP32 devices

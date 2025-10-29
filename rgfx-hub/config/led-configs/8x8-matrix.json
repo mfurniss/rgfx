@@ -1,7 +1,6 @@
 {
-  "driver_id": "44:1D:64:F8:9A:58",
-  "friendly_name": "Dev Board 8x8 Matrix",
-  "description": "Development board with 8x8 WS2812B serpentine matrix",
+  "name": "8x8 Matrix",
+  "description": "8x8 WS2812B serpentine matrix on GPIO16",
   "version": "1.0",
   "led_devices": [
     {

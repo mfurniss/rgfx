@@ -38,8 +38,9 @@ struct LEDDeviceConfig {
  * It includes all LED devices and global settings.
  */
 struct DriverConfigData {
-	String driverId;                      // MAC address
-	String friendlyName;                  // Human-readable name
+	String name;                          // Config name (e.g., "8x8 Matrix")
+	String description;                   // Config description
+	String version;                       // Config version
 	std::vector<LEDDeviceConfig> devices; // All LED devices
 
 	// Global settings
