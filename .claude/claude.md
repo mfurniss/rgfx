@@ -171,45 +171,46 @@ This automatically creates a merge request using the commit title/description.
 
 **CRITICAL - ALWAYS MONITOR CI PIPELINES:**
 
-After pushing a feature branch or creating a merge request, **ALWAYS start background monitoring** of the CI pipeline:
-
-```bash
-# Start background monitoring (non-blocking)
-glab ci status --live -b <branch-name> &
-```
+After pushing a feature branch or creating a merge request, **ALWAYS actively monitor the CI pipeline** until completion.
 
 **Required workflow:**
-1. After `git push` or `glab mr create`, immediately start background monitoring:
-   - Use Bash tool with `run_in_background: true`
-   - Command: `glab ci status --live -b <branch-name> &`
-   - Save the bash_id returned
+1. After `git push` or `glab mr create`, immediately check initial status:
+   ```bash
+   glab ci status -b <branch-name>
+   ```
 2. **Inform the user immediately**:
-   - "Pipeline started and monitoring in background. Jobs: test:hub, test:driver (~5 min typical duration)"
+   - "Pipeline started. Jobs: test:hub, test:driver (~5 min typical duration)"
    - Provide pipeline URL for manual monitoring
-3. **Continue working** on other tasks - monitoring runs in background
-4. **Periodically check** the background task using BashOutput tool
-5. **When pipeline completes**, notify the user:
-   - ✅ **Success**: "Pipeline passed! All tests successful. ✅"
-   - ❌ **Failure**: "Pipeline failed! Job '<job-name>' failed. Let me get the logs..." then run `glab ci trace <job-name>`
-6. If failed, automatically fetch and analyze error logs
+   - State: "I will actively monitor and notify you when it completes"
+3. **Set up active polling loop:**
+   - Every 60 seconds (1 minute), run: `glab ci status -b <branch-name>`
+   - Parse the output to detect state changes
+   - Look for "Pipeline state: running" vs "Pipeline state: success/failed"
+4. **When pipeline completes**, notify the user IMMEDIATELY with a clear message:
+   - ✅ **Success**: "🎉 PIPELINE PASSED! All tests successful (test:hub: 2m 48s, test:driver: 4m 27s)"
+   - ❌ **Failure**: "❌ PIPELINE FAILED! Job '<job-name>' failed. Fetching logs..." then run `glab ci trace <job-name>`
+5. If failed, automatically fetch and analyze error logs
 
-**Implementation:**
+**Implementation - Active Polling Pattern:**
 ```bash
-# Start monitoring (in Bash tool with run_in_background: true)
-glab ci status --live -b feature/my-branch &
+# Initial check
+glab ci status -b feature/my-branch
 
-# Later, check status (using BashOutput tool)
-# Use the bash_id returned from the background command
+# Poll every 60 seconds (1 minute) until completion detected
+# In practice: Use multiple sequential Bash calls with status parsing
+# When "Pipeline state: success" or "Pipeline state: failed" detected, alert user
 
-# If failure detected, get logs
+# If failure detected, get logs immediately
 glab ci trace <failed-job-name>
 ```
 
-**Why this matters:**
-- Non-blocking: Can continue working while monitoring
-- Automatic notifications when pipeline completes
-- Instant error log retrieval on failures
-- Professional workflow - parallel task execution
+**Why active polling instead of --live background:**
+- Background `--live` processes exit unpredictably and don't trigger notifications
+- Active polling ensures reliable state change detection
+- Direct control over when to check and when to notify
+- Can parse output reliably and trigger immediate user alerts
+
+**DO NOT use `--live` with `run_in_background`** - it doesn't work for reliable monitoring
 
 **4. Main branch updated:**
 - **Test + Build stages** run on main

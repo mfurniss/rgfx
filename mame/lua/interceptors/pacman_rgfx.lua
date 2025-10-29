@@ -7,6 +7,9 @@
 package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
 local ram = require("ram")
 
+-- Set boot delay to skip RAM test phase (6 seconds)
+ram.set_boot_delay(6)
+
 local cpu = manager.machine.devices[":maincpu"]
 
 local function get_player_score(dword)
