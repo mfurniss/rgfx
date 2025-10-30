@@ -12,7 +12,7 @@ describe("Udp", () => {
   beforeEach(() => {
     // Create mock socket with proper event handling
     mockSocket = {
-      send: vi.fn((msg, port, ip, callback) => {
+      send: vi.fn((buffer, offset, length, port, ip, callback) => {
         // Simulate successful send by default
         if (callback) callback(null);
       }),
@@ -43,7 +43,7 @@ describe("Udp", () => {
 
   describe("send", () => {
     it("should send UDP message with correct format", () => {
-      udp.send("pulse", "0xFF0000");
+      udp.send({ effect: "pulse", color: "0xFF0000" });
 
       const expectedMessage = JSON.stringify({
         effect: "pulse",
@@ -51,7 +51,9 @@ describe("Udp", () => {
       });
 
       expect(mockSocket.send).toHaveBeenCalledWith(
-        expectedMessage,
+        Buffer.from(expectedMessage),
+        0,
+        Buffer.from(expectedMessage).length,
         8888,
         "192.168.1.100",
         expect.any(Function)
@@ -62,7 +64,7 @@ describe("Udp", () => {
       const successCallback = vi.fn();
       udp.setSentCallback(successCallback);
 
-      udp.send("pulse", "0x0000FF");
+      udp.send({ effect: "pulse", color: "0x0000FF" });
 
       expect(successCallback).toHaveBeenCalled();
     });
@@ -73,25 +75,25 @@ describe("Udp", () => {
 
       // Mock socket.send to simulate error
       const testError = new Error("Network error");
-      mockSocket.send.mockImplementation((msg: string, port: number, ip: string, callback?: (err: Error | null) => void) => {
+      mockSocket.send.mockImplementation((buffer: Buffer, offset: number, length: number, port: number, ip: string, callback?: (err: Error | null) => void) => {
         callback?.(testError);
       });
 
-      udp.send("pulse", "0x00FF00");
+      udp.send({ effect: "pulse", color: "0x00FF00" });
 
       expect(errorCallback).toHaveBeenCalledWith(testError);
     });
 
     it("should not throw if no callbacks are set", () => {
       expect(() => {
-        udp.send("pulse", "0xFFFF00");
+        udp.send({ effect: "pulse", color: "0xFFFF00" });
       }).not.toThrow();
     });
 
     it("should send multiple messages sequentially", () => {
-      udp.send("pulse", "0xFF0000");
-      udp.send("fade", "0x00FF00");
-      udp.send("solid", "0x0000FF");
+      udp.send({ effect: "pulse", color: "0xFF0000" });
+      udp.send({ effect: "fade", color: "0x00FF00" });
+      udp.send({ effect: "solid", color: "0x0000FF" });
 
       expect(mockSocket.send).toHaveBeenCalledTimes(3);
     });
@@ -121,7 +123,7 @@ describe("Udp", () => {
       const sentCallback = vi.fn();
       udp.setSentCallback(sentCallback);
 
-      udp.send("pulse", "0xFF0000");
+      udp.send({ effect: "pulse", color: "0xFF0000" });
 
       expect(sentCallback).toHaveBeenCalled();
     });
@@ -131,13 +133,13 @@ describe("Udp", () => {
       const secondCallback = vi.fn();
 
       udp.setSentCallback(firstCallback);
-      udp.send("pulse", "0xFF0000");
+      udp.send({ effect: "pulse", color: "0xFF0000" });
 
       expect(firstCallback).toHaveBeenCalledTimes(1);
       expect(secondCallback).toHaveBeenCalledTimes(0);
 
       udp.setSentCallback(secondCallback);
-      udp.send("pulse", "0x00FF00");
+      udp.send({ effect: "pulse", color: "0x00FF00" });
 
       expect(firstCallback).toHaveBeenCalledTimes(1);
       expect(secondCallback).toHaveBeenCalledTimes(1);
@@ -157,7 +159,7 @@ describe("Udp", () => {
       const effects = ["pulse", "fade", "solid", "rainbow", "chase"];
 
       effects.forEach((effect) => {
-        udp.send(effect, "0xFFFFFF");
+        udp.send({ effect, color: "0xFFFFFF" });
 
         const expectedMessage = JSON.stringify({
           effect,
@@ -165,7 +167,9 @@ describe("Udp", () => {
         });
 
         expect(mockSocket.send).toHaveBeenCalledWith(
-          expectedMessage,
+          Buffer.from(expectedMessage),
+          0,
+          Buffer.from(expectedMessage).length,
           8888,
           "192.168.1.100",
           expect.any(Function)
@@ -183,7 +187,7 @@ describe("Udp", () => {
       ];
 
       colors.forEach((color) => {
-        udp.send("pulse", color);
+        udp.send({ effect: "pulse", color });
 
         const expectedMessage = JSON.stringify({
           effect: "pulse",
@@ -191,7 +195,9 @@ describe("Udp", () => {
         });
 
         expect(mockSocket.send).toHaveBeenCalledWith(
-          expectedMessage,
+          Buffer.from(expectedMessage),
+          0,
+          Buffer.from(expectedMessage).length,
           8888,
           "192.168.1.100",
           expect.any(Function)

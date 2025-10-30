@@ -33,13 +33,13 @@ local map = {
 		size = 4,
 		callback = function(_, current, _)
 			local current_score = get_player_score(current)
-			_G.event("player/score/p1", current_score)
+			_G.event("pacman/player/score/p1", current_score)
 		end,
 	},
 	power_pill = {
 		addr_start = 0x4DA6,
 		callback = function(_, current, _)
-			_G.event("player/pill/state", current)
+			_G.event("pacman/player/pill/state", current)
 		end,
 	},
 	-- GHOST STATES
@@ -55,25 +55,25 @@ local map = {
 	red_ghost_state = {
 		addr_start = 0x4C03,
 		callback = function(_, current, _)
-			_G.event("ghost/red/state", current)
+			_G.event("pacman/ghost/red/state", current)
 		end,
 	},
 	pink_ghost_state = {
 		addr_start = 0x4C05,
 		callback = function(_, current, _)
-			_G.event("ghost/pink/state", current)
+			_G.event("pacman/ghost/pink/state", current)
 		end,
 	},
 	cyan_ghost_state = {
 		addr_start = 0x4C07,
 		callback = function(_, current, _)
-			_G.event("ghost/cyan/state", current)
+			_G.event("pacman/ghost/cyan/state", current)
 		end,
 	},
 	orange_ghost_state = {
 		addr_start = 0x4C09,
 		callback = function(_, current, _)
-			_G.event("ghost/orange/state", current)
+			_G.event("pacman/ghost/orange/state", current)
 		end,
 	},
 }

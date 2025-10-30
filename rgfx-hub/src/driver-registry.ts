@@ -152,6 +152,11 @@ export class DriverRegistry {
     return driver;
   }
 
+  // Get driver by ID
+  getDriver(driverId: string): Driver | undefined {
+    return this.drivers.get(driverId);
+  }
+
   // Find driver by IP address
   findByIp(ip: string): Driver | undefined {
     return Array.from(this.drivers.values()).find((driver) => driver.ip === ip);

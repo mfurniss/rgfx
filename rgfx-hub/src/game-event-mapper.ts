@@ -33,7 +33,7 @@ export class GameEventMapper {
       if (!driver.ip) return;
 
       const udp = new Udp(driver.ip, 1234);
-      udp.send(effect, color);
+      udp.send({ effect, color }); // Temporary: using new EffectPayload format
       // Note: UDP socket will be garbage collected after send completes
     });
 

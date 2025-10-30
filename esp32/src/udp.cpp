@@ -36,13 +36,31 @@ void processUDP() {
 			DeserializationError error = deserializeJson(doc, buffer);
 
 			if (!error) {
-				pendingMessage.effect = doc["effect"].as<String>();
-				const char* colorHex = doc["color"];
-				pendingMessage.color = (uint32_t)strtol(colorHex, NULL, 16);
+				// Extract effect
+				if (doc["effect"]) {
+					pendingMessage.effect = doc["effect"].as<String>();
+				}
+
+				// Extract color from props object
+				const char* colorHex = nullptr;
+				if (doc["props"]["color"]) {
+					colorHex = doc["props"]["color"];
+				}
+
+				// Parse color hex (strip # prefix if present)
+				if (colorHex) {
+					if (colorHex[0] == '#') {
+						colorHex++; // Skip # prefix
+					}
+					pendingMessage.color = (uint32_t)strtol(colorHex, NULL, 16);
+				} else {
+					pendingMessage.color = 0xFFFFFF; // Default white
+				}
+
 				newMessageAvailable = true;
-				log("UDP RX: " + String(buffer));
+				log("UDP RX: effect=" + pendingMessage.effect + " color=0x" + String(pendingMessage.color, HEX));
 			} else {
-				log("UPD RX: JSON parse error: " + String(error.c_str()));
+				log("UDP RX: JSON parse error: " + String(error.c_str()));
 			}
 		}
 	}

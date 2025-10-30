@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <WiFiUdp.h>
 
-#define UDP_PORT 1234 // Port to listen on for UDP messages
+#define UDP_PORT 8888 // Port to listen on for UDP messages
 #define UDP_BUFFER_SIZE 256
 
 struct UDPMessage {
