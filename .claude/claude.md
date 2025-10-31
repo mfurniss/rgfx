@@ -163,6 +163,16 @@ npm test               # Run unit tests
 
 This project uses a **feature branch workflow** with CI/CD testing and merge request approvals. The `main` branch is **protected** - you cannot push directly to it.
 
+**IMPORTANT:** If you attempt to push to main, you will get this error:
+```
+remote: GitLab: You are not allowed to push code to protected branches on this project.
+To gitlab.com:mfurniss/rgfx.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'gitlab.com:mfurniss/rgfx.git'
+```
+
+**ALL changes must go through feature branches and merge requests.** No exceptions.
+
 ### Workflow Steps:
 
 **1. Create a feature branch:**
