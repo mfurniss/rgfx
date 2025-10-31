@@ -127,26 +127,6 @@ void handleDriverConfig(const String& payload) {
 		}
 
 		log("LEDs are now ready for use");
-
-		// Show a brief white flash to indicate success
-		clearAllLEDs();
-		showAllLEDs();
-		delay(100);
-
-		// Flash white
-		for (uint8_t i = 0; i < g_driverConfig.devices.size(); i++) {
-			const auto& dev = g_driverConfig.devices[i];
-			CRGB* leds = getLEDsForDevice(dev.id);
-			uint16_t count = getLEDCountForDevice(dev.id);
-			if (leds) {
-				fill_solid(leds, count, CRGB::White);
-			}
-		}
-		showAllLEDs();
-		delay(200);
-
-		// Back to black
-		clearAllLEDs();
 	} else {
 		log("ERROR: Failed to apply LED configuration");
 		log("LEDs will use fallback behavior");
