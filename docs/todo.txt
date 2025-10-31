@@ -39,3 +39,4 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Multiple driver connections with connection pulse effect
 [X] Setup Claude agents for PlatformIO, MAME and Electron TS React
 [ ] Monitor UPD packet loss using MQTT
+[X] Fix white flash connection bug
