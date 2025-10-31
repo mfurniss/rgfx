@@ -94,6 +94,14 @@ This project has specialized Claude agents available for specific domains. **ALW
 
 **Remember**: These agents have specialized knowledge and access to current documentation for their domains. Use them proactively to ensure accurate, up-to-date solutions.
 
+## Planning and Documentation Preferences
+
+**CRITICAL - NO TIMELINES IN PLANS:**
+- **NEVER include time estimates, day counts, or schedules** in implementation plans
+- User does NOT want to see "Day 1:", "3-5 days", "Estimated timeline", etc.
+- **Focus on logical phases and implementation steps** without time projections
+- Plans should describe WHAT needs to be done, not WHEN or HOW LONG
+
 ## Development Workflow
 
 **CRITICAL - INCREMENTAL IMPLEMENTATION AND TESTING:**

@@ -11,7 +11,7 @@ import log from "electron-log/main";
 import Bonjour from "bonjour-service";
 
 export class Mqtt {
-  private aedes: Aedes;
+  public aedes: Aedes; // Make public for MqttClientWrapper access
   private server: Server;
   private port: number;
   private subscriptions = new Map<

@@ -117,6 +117,7 @@ export default tseslint.config(
       'eslint.config.js',
       'eslint.config.mjs',
       '*.config.ts',
+      'config/**/*.js', // User-editable mapper files (JavaScript, not TypeScript)
     ],
   }
 );

@@ -7,6 +7,7 @@
 
 import dgram from "node:dgram";
 import log from "electron-log/main";
+import type { EffectPayload } from "./types/mapping-types";
 
 export class Udp {
   private socket: dgram.Socket;
@@ -37,10 +38,15 @@ export class Udp {
     this.onSuccessCallback = callback;
   }
 
-  send(effect: string, color: string) {
-    const message = JSON.stringify({ effect, color });
+  /**
+   * Send effect payload to driver via UDP
+   * @param payload Effect payload with semantic effect name and optional hints
+   */
+  send(payload: EffectPayload) {
+    const message = JSON.stringify(payload);
+    const buffer = Buffer.from(message);
     // Send with callback to detect errors and successes
-    this.socket.send(message, this.port, this.ip, (err) => {
+    this.socket.send(buffer, 0, buffer.length, this.port, this.ip, (err) => {
       if (err) {
         log.error(`UDP send failed: ${err.message}`);
         this.onErrorCallback?.(err);

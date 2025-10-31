@@ -14,9 +14,14 @@ import { EventFileReader } from "./event-file-reader";
 import { DriverRegistry } from "./driver-registry";
 import { SystemMonitor } from "./system-monitor";
 import { DiscoveryService } from "./discovery-service";
-import { GameEventMapper } from "./game-event-mapper";
 import { DriverPersistence } from "./driver-persistence";
 import { LEDConfigManager } from "./led-config-manager";
+import { MappingEngine } from "./mapping-engine";
+import { UdpClientImpl } from "./mapping/udp-client";
+import { MqttClientWrapper } from "./mapping/mqtt-client-wrapper";
+import { StateStoreImpl } from "./mapping/state-store";
+import { LoggerWrapper } from "./mapping/logger-wrapper";
+import { installDefaultMappers } from "./mapper-installer";
 import type { DriverSystemInfo } from "./types";
 import pkg from "../package.json";
 
@@ -45,7 +50,31 @@ const eventReader = new EventFileReader();
 const driverRegistry = new DriverRegistry(driverPersistence, ledConfigManager);
 const systemMonitor = new SystemMonitor();
 const discoveryService = new DiscoveryService(mqtt);
-const gameEventMapper = new GameEventMapper(driverRegistry);
+
+// Initialize mapping engine with context services
+const udpClient = new UdpClientImpl(driverRegistry);
+const mqttClient = new MqttClientWrapper(mqtt);
+const stateStore = new StateStoreImpl();
+const logger = new LoggerWrapper(log);
+
+const mappingEngine = new MappingEngine({
+  // Flatten UDP methods for convenience (most common operations)
+  broadcast: udpClient.broadcast.bind(udpClient),
+  send: udpClient.send.bind(udpClient),
+  sendToDrivers: udpClient.sendToDrivers.bind(udpClient),
+  // Keep full service objects for advanced use
+  udp: udpClient,
+  mqtt: mqttClient,
+  http: {
+    get: () => Promise.resolve(new Response()),
+    post: () => Promise.resolve(new Response()),
+    put: () => Promise.resolve(new Response()),
+    delete: () => Promise.resolve(new Response()),
+  },
+  state: stateStore,
+  log: logger,
+  drivers: driverRegistry,
+});
 
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
@@ -118,6 +147,14 @@ driverRegistry.onDriverDisconnected((driver) => {
 // Start MQTT broker
 mqtt.start();
 
+// Install default mappers to user data directory (async)
+void installDefaultMappers().then(() => {
+  // Load mapping engine handlers after installing defaults
+  void mappingEngine.loadMappings();
+}).catch((error: unknown) => {
+  log.error("Failed to install default mappers:", error);
+});
+
 // Set up discovery service to check timeouts
 discoveryService.onTimeoutCheck(() => {
   driverRegistry.checkTimeouts();
@@ -157,9 +194,9 @@ mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
   }
 });
 
-// Start reading events and send UDP for each event (minimal logging for low latency)
+// Start reading events and send to mapping engine for processing
 eventReader.start((topic, message) => {
-  gameEventMapper.handleEvent(topic, message);
+  void mappingEngine.handleEvent(topic, message);
 });
 
 const createWindow = () => {

@@ -43,13 +43,13 @@ local map = {
 		addr_end = 0x83FD,
 		callback = function(_, _, _)
 			local score = get_galaga_score(0x83F8)
-			_G.event("player/score/p1", score)
+			_G.event("galaga/player/score/p1", score)
 		end,
 	},
 	player_ship_x = {
 		addr_start = 0x9362,
 		callback = function(_, current, _)
-			_G.event("player/ship/x", current)
+			_G.event("galaga/player/ship/x", current)
 		end,
 	},
 	player_fired = {
@@ -58,7 +58,7 @@ local map = {
 		callback = function(_, current, previous)
 			-- Shot counter increments when player fires
 			if current > previous then
-				_G.event("player/fired", current)
+				_G.event("galaga/player/fired", current)
 			end
 		end,
 	},
@@ -67,7 +67,7 @@ local map = {
 		callback = function(_, current, previous)
 			-- Hit counter increments when enemy is destroyed
 			if current > previous then
-				_G.event("enemy/destroyed", current)
+				_G.event("galaga/enemy/destroyed", current)
 			end
 		end,
 	},

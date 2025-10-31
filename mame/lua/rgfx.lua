@@ -70,6 +70,8 @@ local load_interceptor = function()
 		local status = pcall(require, game_script)
 		if status then
 			print("Successfully loaded: " .. interceptors_dir .. "/" .. game_script .. ".lua")
+			-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
+			event(rom_name .. "/init", rom_name)
 		else
 			print("ERROR: Failed to load interceptor: " .. game_script .. ".lua")
 		end
@@ -84,9 +86,6 @@ local load_interceptor = function()
 		print("Refresh rate (Hz):", screen.refresh)
 		break
 	end
-
-	-- Publish game event
-	event("game", rom_name)
 end
 
 local stop_cb = function()
