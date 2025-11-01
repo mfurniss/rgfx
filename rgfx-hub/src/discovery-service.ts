@@ -63,7 +63,9 @@ export class DiscoveryService {
   // Send discovery request to find drivers
   private sendDiscoveryRequest() {
     log.info("Sending driver discovery request...");
-    this.mqtt.publish("rgfx/system/discover", "ping");
+    void this.mqtt.publish("rgfx/system/discover", "ping").catch((error: unknown) => {
+      log.error("Failed to send discovery request:", error);
+    });
   }
 
   // Trigger immediate discovery (e.g., after UDP failure)

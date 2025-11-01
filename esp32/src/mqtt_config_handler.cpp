@@ -1,5 +1,5 @@
 #include "driver_config.h"
-#include "dynamic_leds.h"
+#include "config_leds.h"
 #include "config_nvs.h"
 #include "log.h"
 #include "matrix.h"
@@ -110,7 +110,7 @@ void handleDriverConfig(const String& payload) {
 
 	// Apply configuration immediately
 	log("Applying LED configuration...");
-	if (initializeDynamicLEDs()) {
+	if (configLEDs()) {
 		log("LED configuration applied successfully!");
 
 		// Update matrix to use the first device's LED buffer and layout

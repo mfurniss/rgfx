@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { app, BrowserWindow, session } from "electron";
+import { app, BrowserWindow, ipcMain, session } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import log from "electron-log/main";
@@ -89,68 +89,59 @@ function sendSystemStatus() {
 }
 
 // Helper to push driver configuration via MQTT
-function pushConfigToDriver(driverId: string): boolean {
-  try {
-    // Get LED config (hardware ref + settings) from persistence
-    const ledConfig = driverPersistence.getLEDConfig(driverId);
+async function pushConfigToDriver(driverId: string): Promise<void> {
+  // Get LED config (hardware ref + settings) from persistence
+  const ledConfig = driverPersistence.getLEDConfig(driverId);
 
-    if (!ledConfig) {
-      log.warn(`Driver ${driverId} connected but has no LED configuration - user must configure before use`);
-      return false;
-    }
-
-    // Load the hardware definition
-    const hardware = ledHardwareManager.loadHardware(ledConfig.hardwareRef);
-
-    if (!hardware) {
-      log.error(`Failed to load LED hardware for driver ${driverId}: ${ledConfig.hardwareRef}`);
-      return false;
-    }
-
-    // Combine hardware definition with driver-specific config (pin, offset) and settings
-    const completeConfig = {
-      name: hardware.name,
-      description: hardware.description,
-      version: '1.0',
-      ledDevices: [
-        {
-          id: 'device1',
-          name: hardware.name,
-          pin: ledConfig.pin,
-          layout: hardware.layout,
-          count: hardware.count,
-          offset: ledConfig.offset ?? 0,
-          chipset: hardware.chipset,
-          colorOrder: hardware.colorOrder,
-          maxBrightness: ledConfig.maxBrightness,
-          colorCorrection: hardware.colorCorrection,
-          colorTemperature: hardware.colorTemperature,
-          width: hardware.width,
-          height: hardware.height,
-        },
-      ],
-      settings: {
-        globalBrightnessLimit: ledConfig.globalBrightnessLimit,
-        gammaCorrection: ledConfig.gammaCorrection,
-        dithering: ledConfig.dithering,
-        powerSupplyVolts: ledConfig.powerSupplyVolts,
-        maxPowerMilliamps: ledConfig.maxPowerMilliamps,
-      },
-    };
-
-    // Publish complete config to driver-specific topic
-    // Note: Driver expects MAC with dashes, not colons (e.g., 44-1D-64-F8-CF-68)
-    const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/config`;
-    const payload = JSON.stringify(completeConfig);
-
-    mqtt.publish(topic, payload);
-    log.info(`Pushed LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
-    return true;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    log.error(`Failed to push config to driver ${driverId}: ${errorMessage}`);
-    return false;
+  if (!ledConfig) {
+    throw new Error(`Driver ${driverId} has no LED configuration`);
   }
+
+  // Load the hardware definition
+  const hardware = ledHardwareManager.loadHardware(ledConfig.hardwareRef);
+
+  if (!hardware) {
+    throw new Error(`Failed to load LED hardware: ${ledConfig.hardwareRef}`);
+  }
+
+  // Combine hardware definition with driver-specific config (pin, offset) and settings
+  const completeConfig = {
+    name: hardware.name,
+    description: hardware.description,
+    version: '1.0',
+    led_devices: [
+      {
+        id: 'device1',
+        name: hardware.name,
+        pin: ledConfig.pin,
+        layout: hardware.layout,
+        count: hardware.count,
+        offset: ledConfig.offset ?? 0,
+        chipset: hardware.chipset,
+        color_order: hardware.colorOrder,
+        max_brightness: ledConfig.maxBrightness,
+        color_correction: hardware.colorCorrection,
+        color_temperature: hardware.colorTemperature,
+        width: hardware.width,
+        height: hardware.height,
+      },
+    ],
+    settings: {
+      global_brightness_limit: ledConfig.globalBrightnessLimit,
+      gamma_correction: ledConfig.gammaCorrection,
+      dithering: ledConfig.dithering,
+      power_supply_volts: ledConfig.powerSupplyVolts,
+      max_power_milliamps: ledConfig.maxPowerMilliamps,
+    },
+  };
+
+  // Publish complete config to driver-specific topic
+  // Note: Driver expects MAC with dashes, not colons (e.g., 44-1D-64-F8-CF-68)
+  const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/config`;
+  const payload = JSON.stringify(completeConfig);
+
+  await mqtt.publish(topic, payload);
+  log.info(`Pushed LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
 }
 
 // Set up driver registry callbacks
@@ -164,7 +155,9 @@ driverRegistry.onDriverConnected((driver) => {
   // Drivers remain dark unless actively showing game events
 
   // Push configuration to driver when it connects
-  pushConfigToDriver(driver.id);
+  void pushConfigToDriver(driver.id).catch((error: unknown) => {
+    log.error(`Failed to push config to driver ${driver.id}:`, error);
+  });
 });
 
 driverRegistry.onDriverDisconnected((driver) => {
@@ -230,6 +223,24 @@ eventReader.start((topic, message) => {
   void mappingEngine.handleEvent(topic, message);
 });
 
+// IPC handler for LED test command
+ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boolean) => {
+  log.info(`LED test ${enabled ? "ON" : "OFF"} requested for driver ${driverId}`);
+
+  const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/test`;
+
+  if (enabled) {
+    // Push config first, wait for MQTT confirmation, then send test command
+    log.info(`Pushing LED configuration to driver ${driverId} before test...`);
+    await pushConfigToDriver(driverId);
+    await mqtt.publish(topic, "on");
+    log.info(`Test mode enabled for driver ${driverId}`);
+  } else {
+    await mqtt.publish(topic, "off");
+    log.info(`Test mode disabled for driver ${driverId}`);
+  }
+});
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -261,21 +272,18 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools();
   }
 
-  // Send initial system status once window is ready
-  mainWindow.webContents.on("did-finish-load", () => {
-    // Small delay to ensure renderer IPC listeners are set up
-    setTimeout(() => {
-      if (!isWindowAvailable() || !mainWindow) return;
+  // Wait for renderer to signal it's ready before sending initial state
+  ipcMain.once("renderer:ready", () => {
+    if (!isWindowAvailable() || !mainWindow) return;
 
-      // Send all drivers (both connected and disconnected)
-      driverRegistry.getAllDrivers().forEach((driver) => {
-        if (isWindowAvailable() && mainWindow) {
-          mainWindow.webContents.send("driver:connected", driver);
-        }
-      });
-      // Send system status
-      sendSystemStatus();
-    }, 100);
+    // Send all drivers (both connected and disconnected)
+    driverRegistry.getAllDrivers().forEach((driver) => {
+      if (isWindowAvailable() && mainWindow) {
+        mainWindow.webContents.send("driver:connected", driver);
+      }
+    });
+    // Send system status
+    sendSystemStatus();
   });
 
   return mainWindow;

@@ -12,8 +12,8 @@
 #include "effects/wave.h"
 #include "effects/sparkle.h"
 #include "effects/pulse.h"
+#include "effects/test.h"
 #include "config_portal.h"
-#include "config_leds.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
 #include "udp.h"
@@ -45,7 +45,8 @@ typedef void (*EffectFunction)(Matrix&, uint32_t);
 
 // Effect lookup table
 std::map<String, EffectFunction> effectMap = {
-	{"pulse", pulse}
+	{"pulse", pulse},
+	{"test", test}
 	// Add more effects here
 };
 
@@ -123,8 +124,10 @@ void setup() {
 	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
 	ConfigPortal::begin();
 
-	// Initialize LEDs with configured parameters (reads from NVS)
-	ConfigLeds::initLeds(matrix);
+	// Note: LEDs will be initialized by configLEDs() when Hub config is received
+	// For now, just initialize FastLED with default 8x8 matrix for connection status display
+	FastLED.addLeds<WS2812B, 16, GRB>(matrix.leds, matrix.size);
+	FastLED.setBrightness(64);
 
 	// Show BLUE while connecting to WiFi / in config portal
 	log("Connecting to WiFi...");
@@ -395,9 +398,11 @@ void loop() {
 			}
 		}
 
-		// Fade to black for flash effect
-		fadeToBlackBy(matrix.leds, matrix.size, 50);
-		FastLED.show();
+		// Fade to black for flash effect (skip if test mode is active)
+		if (!testModeActive) {
+			fadeToBlackBy(matrix.leds, matrix.size, 50);
+			FastLED.show();
+		}
 	}
 
 	// Yield to task scheduler (prevents watchdog timer issues)
