@@ -7,6 +7,17 @@ export type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
 export type ColorOrder = 'RGB' | 'GRB' | 'BGR' | 'RBG' | 'GBR' | 'BRG';
 export type DeviceType = 'strip' | 'matrix';
 
+export type LEDLayoutType =
+  | 'strip'
+  | 'matrix-tl-h' | 'matrix-tl-h-snake'
+  | 'matrix-tr-h' | 'matrix-tr-h-snake'
+  | 'matrix-bl-h' | 'matrix-bl-h-snake'
+  | 'matrix-br-h' | 'matrix-br-h-snake'
+  | 'matrix-tl-v' | 'matrix-tl-v-snake'
+  | 'matrix-tr-v' | 'matrix-tr-v-snake'
+  | 'matrix-bl-v' | 'matrix-bl-v-snake'
+  | 'matrix-br-v' | 'matrix-br-v-snake';
+
 export type ColorCorrection =
   | 'TypicalLEDStrip'
   | 'Typical8mmPixel'
@@ -70,16 +81,14 @@ export interface LEDHardware {
   description?: string;
   sku: string | null;
   asin?: string | null;
-  type: DeviceType;
+  layout: LEDLayoutType;
   count: number;
   chipset?: LEDChipset;
   colorOrder?: ColorOrder;
   colorCorrection?: ColorCorrection;
   colorTemperature?: ColorTemperature;
-  dataRateMhz?: number;
   width?: number;
   height?: number;
-  serpentine?: boolean;
 }
 
 /**

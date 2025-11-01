@@ -20,7 +20,7 @@ local event_file_path = get_temp_dir()
 	.. (package.config:sub(1, 1) == "\\" and "\\" or "/")
 	.. "rgfx_events.log"
 
-event_file = io.open(event_file_path, "w")
+local event_file = io.open(event_file_path, "w")
 if event_file then
 	event_file:setvbuf("no") -- flush immediately
 	print("Event file opened at: " .. event_file_path)

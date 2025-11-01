@@ -98,11 +98,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         { label: "Description", value: hardware.description ?? "Not set" },
         { label: "SKU", value: hardware.sku ?? "Not set" },
         ...(hardware.asin ? [{ label: "ASIN", value: hardware.asin }] : []),
-        { label: "Type", value: hardware.type },
+        { label: "Layout", value: hardware.layout },
         { label: "LED Count", value: hardware.count },
         {
           label: "Matrix Size",
-          value: hardware.type === "matrix"
+          value: hardware.layout !== "strip"
             ? `${hardware.width ?? 0} × ${hardware.height ?? 0}`
             : "N/A",
         },
