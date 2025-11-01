@@ -661,6 +661,46 @@ cd mame/lua && stylua . && luacheck .
 - Use clear, descriptive names for functions, variables, and classes
 - Avoid deep nesting - extract complex logic into named functions
 
+### Asynchronous Code Patterns
+
+**CRITICAL - AVOID FRAGILE setTimeout() CALLS:**
+
+1. **setTimeout is FRAGILE** - Never assume how long operations will take
+2. **Use async/await** - Wait for actual completion, not arbitrary time delays
+3. **Use Promises** - Return and await Promises for asynchronous operations
+4. **Event-driven patterns** - Use events and callbacks instead of time-based delays
+
+**Bad Practice:**
+```typescript
+// FRAGILE - What if it takes longer than 100ms?
+setTimeout(() => {
+  doSomething();
+}, 100);
+```
+
+**Good Practice:**
+```typescript
+// Robust - waits for actual completion
+async function doSomethingAsync() {
+  await operationThatReturnsPromise();
+  // Now we KNOW the operation is complete
+}
+```
+
+**Real-world examples from RGFX:**
+- ❌ Bad: `setTimeout(() => sendInitialState(), 100)` - assumes renderer is ready
+- ✅ Good: `ipcMain.once("renderer:ready", () => sendInitialState())` - event-driven
+
+- ❌ Bad: `setTimeout(() => pushConfig(), 500); mqtt.publish("on")` - assumes config pushed
+- ✅ Good: `await pushConfig(); await mqtt.publish("on")` - guaranteed order
+
+**When setTimeout IS acceptable:**
+- In tests: Simulating async delays for test scenarios (still prefer explicit Promise control)
+- Debouncing/throttling: User input handling with libraries like lodash
+- Animation timing: When actual wall-clock time is the requirement
+
+**Key principle:** If you're using setTimeout to "wait for something to finish", you're doing it wrong. Wait for the actual completion signal instead.
+
 ### Development Dependencies
 
 **ALWAYS use --save-dev for development tools:**
