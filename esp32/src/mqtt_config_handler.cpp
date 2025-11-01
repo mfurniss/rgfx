@@ -53,7 +53,7 @@ void handleDriverConfig(const String& payload) {
 		devCfg.id = device["id"] | "";
 		devCfg.name = device["name"] | "";
 		devCfg.pin = device["pin"] | 0;
-		devCfg.type = device["type"] | "";
+		devCfg.layout = device["layout"] | "strip";
 		devCfg.count = device["count"] | 0;
 		devCfg.offset = device["offset"] | 0;
 		devCfg.chipset = device["chipset"] | "WS2812B";
@@ -61,19 +61,17 @@ void handleDriverConfig(const String& payload) {
 		devCfg.maxBrightness = device["max_brightness"] | 255;
 
 		// Matrix-specific fields
-		if (devCfg.type == "matrix") {
+		if (devCfg.layout.startsWith("matrix-")) {
 			devCfg.width = device["width"] | 0;
 			devCfg.height = device["height"] | 0;
-			devCfg.serpentine = device["serpentine"] | false;
 
 			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
-			log("  Pin: GPIO" + String(devCfg.pin) + ", Type: " + devCfg.type);
+			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 			log("  Matrix: " + String(devCfg.width) + "x" + String(devCfg.height));
 			log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
-			log("  Serpentine: " + String(devCfg.serpentine ? "yes" : "no"));
 		} else {
 			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
-			log("  Pin: GPIO" + String(devCfg.pin) + ", Type: " + devCfg.type);
+			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 			log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
 		}
 		log("  Chipset: " + devCfg.chipset + ", Color: " + devCfg.colorOrder);
@@ -115,13 +113,27 @@ void handleDriverConfig(const String& payload) {
 	if (initializeDynamicLEDs()) {
 		log("LED configuration applied successfully!");
 
-		// Update matrix to use the first device's LED buffer
+		// Update matrix to use the first device's LED buffer and layout
 		if (!g_driverConfig.devices.empty()) {
 			const auto& firstDevice = g_driverConfig.devices[0];
 			CRGB* leds = getLEDsForDevice(firstDevice.id);
 			if (leds) {
 				matrix.leds = leds;
 				matrix.size = getLEDCountForDevice(firstDevice.id);
+
+				// Update matrix dimensions and layout if it's a matrix layout
+				if (firstDevice.layout.startsWith("matrix-")) {
+					matrix.width = firstDevice.width;
+					matrix.height = firstDevice.height;
+					matrix.updateLayout(firstDevice.layout);
+					log("Matrix updated: " + String(matrix.width) + "x" + String(matrix.height) +
+					    " with layout " + firstDevice.layout);
+				} else {
+					// Strip layout - treat as 1D
+					matrix.updateLayout(firstDevice.layout);
+					log("Matrix updated to use layout: " + firstDevice.layout);
+				}
+
 				log("Matrix updated to use dynamic LED buffer");
 			}
 		}

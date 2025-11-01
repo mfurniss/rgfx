@@ -1,5 +1,6 @@
 #pragma once
 #include <FastLED.h>
+#include "coordinate_transforms.h"
 
 #define WIDTH 8
 #define HEIGHT 8
@@ -10,8 +11,11 @@ class Matrix {
 	uint16_t height;
 	uint32_t size;
 	CRGB* leds;
-	Matrix(uint16_t w, uint16_t h);
+	uint16_t* coordinateMap;
+	String layout;
+	Matrix(uint16_t w, uint16_t h, const String& layoutPattern = "matrix-br-v-snake");
 	~Matrix();
+	void updateLayout(const String& newLayout);
 	uint16_t xy(uint16_t x, uint16_t y);
 	CRGB& led(uint16_t x, uint16_t y);
 };

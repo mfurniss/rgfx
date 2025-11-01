@@ -14,7 +14,7 @@ struct LEDDeviceConfig {
 	String id;             // Device ID (e.g., "marquee", "coin_slot")
 	String name;           // Display name
 	uint8_t pin;           // GPIO pin number
-	String type;           // "strip" or "matrix"
+	String layout;         // "strip" or "matrix-tl-h-snake", etc.
 	uint16_t count;        // Number of LEDs
 	uint16_t offset;       // Offset on pin (for multiple devices per pin)
 	String chipset;        // "WS2812B", "WS2811", etc.
@@ -22,13 +22,12 @@ struct LEDDeviceConfig {
 	uint8_t maxBrightness; // 0-255 brightness limit
 
 	// Matrix-specific fields
-	uint8_t width;   // Matrix width (0 if not a matrix)
-	uint8_t height;  // Matrix height (0 if not a matrix)
-	bool serpentine; // Serpentine wiring pattern
+	uint8_t width;  // Matrix width (0 if not a matrix)
+	uint8_t height; // Matrix height (0 if not a matrix)
 
 	// Constructor with defaults
 	LEDDeviceConfig()
-		: pin(0), count(0), offset(0), maxBrightness(255), width(0), height(0), serpentine(false) {}
+		: pin(0), count(0), offset(0), maxBrightness(255), width(0), height(0) {}
 };
 
 /**
