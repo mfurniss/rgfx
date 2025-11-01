@@ -1,0 +1,10 @@
+{
+  "name": "BTF-LIGHTING 1m Strip 144px/m IP65",
+  "description": "3.3ft (1m) WS2812B LED strip, 144 pixels/m, waterproof (IP65)",
+  "sku": null,
+  "asin": "B088B9J5JZ",
+  "type": "strip",
+  "count": 144,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}

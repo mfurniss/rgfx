@@ -10,9 +10,15 @@ local ram = require("ram")
 -- Super Mario Bros (NES) RAM Map
 -- Reference: https://datacrystal.tcrf.net/wiki/Super_Mario_Bros.:RAM_map
 -- Disassembly: https://6502disassembly.com/nes-smb/
+--
+-- This interceptor is shared by multiple SMB variants (smb, smw)
+-- The game prefix is passed via _G.game_name
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
+
+-- Get the game name from global (set by rgfx.lua before loading interceptor)
+local game_name = _G.game_name or "smb"
 
 -- Helper function to read BCD score (6 digits)
 -- Score layout: 0x07DD-0x07DF stores 6 BCD digits as nibbles (100000s, 10000s, 1000s, 100s, 10s, 1s)
@@ -36,7 +42,7 @@ local map = {
 		addr_end = 0x07DF,
 		callback = function(_, _, _)
 			local score = get_score()
-			_G.event("player/score", score)
+			_G.event(game_name .. "/player/score", score)
 		end,
 	},
 
@@ -47,7 +53,7 @@ local map = {
 			-- Trigger event only when transitioning from grounded (0x00) to jumping (0x01)
 			-- Ignore landing transitions (0x01->0x00) and other state changes
 			if (previous == 0x00 or previous == nil) and current == 0x01 then
-				_G.event("player/jump", "1")
+				_G.event(game_name .. "/player/jump", "1")
 			end
 		end,
 	},
@@ -57,7 +63,7 @@ local map = {
 		addr_start = 0x00FE,
 		callback = function(_, current, _)
 			if current == 0x01 then
-				_G.event("player/coin", "1")
+				_G.event(game_name .. "/player/coins", "1")
 			end
 		end,
 	},
@@ -73,7 +79,7 @@ local map = {
 				-- Filter out reset signals (0x00) and silent/stop signals (0x80)
 				-- Only publish when music actually changes to a new valid track
 				if current ~= 0x00 and current ~= 0x80 and current ~= last_music then
-					_G.event("game/music/area", current)
+					_G.event(game_name .. "/game/music/area", current)
 					last_music = current
 				end
 			end,
@@ -90,7 +96,7 @@ local map = {
 				-- Filter out reset signals (0x00) and silent/stop signals (0x80)
 				-- Only publish when event music actually changes to a new event
 				if current ~= 0x00 and current ~= 0x80 and current ~= last_event then
-					_G.event("game/music/event", current)
+					_G.event(game_name .. "/game/music/event", current)
 					last_event = current
 				end
 			end,
@@ -103,11 +109,15 @@ local map = {
 		callback = function(_, current, previous)
 			-- Trigger event when counter increments (fireball shot)
 			if previous and current > previous then
-				_G.event("player/fireball", "1")
+				_G.event(game_name .. "/player/fireball", "1")
 			end
 		end,
 	},
 }
+
+-- Send initialization event to inform Hub which game is running
+-- This allows Hub to load the correct game-specific mapper
+_G.event(game_name .. "/init", "1")
 
 -- Install all RAM monitors
 for name, config in pairs(map) do

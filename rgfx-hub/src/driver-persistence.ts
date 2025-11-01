@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
+import type { DriverLEDConfig } from './types';
 
 /**
  * Persisted driver data structure
@@ -29,8 +30,8 @@ export interface PersistedDriver {
   /** Unix timestamp of first discovery */
   firstSeen: number;
 
-  /** Reference to LED config file (e.g., "led-configs/8x8-matrix.json") */
-  ledConfigRef?: string;
+  /** LED configuration (hardware reference + settings) */
+  ledConfig?: DriverLEDConfig;
 }
 
 /**
@@ -180,26 +181,26 @@ export class DriverPersistence {
   }
 
   /**
-   * Get LED config reference for a specific driver
+   * Get LED configuration for a specific driver
    */
-  getLEDConfigRef(id: string): string | undefined {
-    return this.drivers.get(id)?.ledConfigRef;
+  getLEDConfig(id: string): DriverLEDConfig | undefined {
+    return this.drivers.get(id)?.ledConfig;
   }
 
   /**
-   * Set LED config reference for a specific driver
+   * Set LED configuration for a specific driver
    */
-  setLEDConfigRef(id: string, configRef: string): boolean {
+  setLEDConfig(id: string, ledConfig: DriverLEDConfig): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
-      log.warn(`Cannot set LED config ref for non-existent driver: ${id}`);
+      log.warn(`Cannot set LED config for non-existent driver: ${id}`);
       return false;
     }
 
-    driver.ledConfigRef = configRef;
+    driver.ledConfig = ledConfig;
     this.drivers.set(id, driver);
     this.saveConfig();
-    log.info(`Set LED config ref for driver ${id}: ${configRef}`);
+    log.info(`Set LED config for driver ${id}: ${ledConfig.hardwareRef}`);
     return true;
   }
 

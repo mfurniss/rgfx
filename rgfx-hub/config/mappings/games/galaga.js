@@ -16,4 +16,12 @@ export function handle(topic, _payload, { broadcast }) {
       props: { color: "#00FF00" },
     });
   }
+
+  // Player ship movement - blue pulse
+  if (subject === "player" && property === "ship") {
+    return broadcast({
+      effect: "pulse",
+      props: { color: "#0000FF" },
+    });
+  }
 }

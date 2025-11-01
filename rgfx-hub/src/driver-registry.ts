@@ -6,9 +6,9 @@
  */
 
 import log from "electron-log/main";
-import type { Driver, DriverSystemInfo, DriverConfig } from "./types";
+import type { Driver, DriverSystemInfo, LEDHardware } from "./types";
 import type { DriverPersistence } from "./driver-persistence";
-import type { LEDConfigManager } from "./led-config-manager";
+import type { LEDHardwareManager } from "./led-hardware-manager";
 
 // Driver timeout threshold (35 seconds = 30s poll + 5s grace)
 const DRIVER_TIMEOUT_MS = 35000;
@@ -18,24 +18,24 @@ export class DriverRegistry {
   private onDriverConnectedCallback?: (driver: Driver) => void;
   private onDriverDisconnectedCallback?: (driver: Driver) => void;
   private persistence?: DriverPersistence;
-  private ledConfigManager?: LEDConfigManager;
+  private ledHardwareManager?: LEDHardwareManager;
 
-  constructor(persistence?: DriverPersistence, ledConfigManager?: LEDConfigManager) {
+  constructor(persistence?: DriverPersistence, ledHardwareManager?: LEDHardwareManager) {
     this.persistence = persistence;
-    this.ledConfigManager = ledConfigManager;
+    this.ledHardwareManager = ledHardwareManager;
 
     // Load all known drivers from persistence (all start as disconnected)
-    if (persistence && ledConfigManager) {
+    if (persistence && ledHardwareManager) {
       const persistedDrivers = persistence.getAllDrivers();
       for (const pd of persistedDrivers) {
-        // Resolve LED config if reference exists
-        let resolvedConfig: DriverConfig | undefined = undefined;
-        if (pd.ledConfigRef) {
-          const config = ledConfigManager.loadConfig(pd.ledConfigRef);
-          if (config) {
-            resolvedConfig = config;
+        // Resolve LED hardware if config exists
+        let resolvedHardware: LEDHardware | undefined = undefined;
+        if (pd.ledConfig?.hardwareRef) {
+          const hardware = ledHardwareManager.loadHardware(pd.ledConfig.hardwareRef);
+          if (hardware) {
+            resolvedHardware = hardware;
           } else {
-            log.warn(`Failed to resolve LED config for driver ${pd.id}: ${pd.ledConfigRef}`);
+            log.warn(`Failed to resolve LED hardware for driver ${pd.id}: ${pd.ledConfig.hardwareRef}`);
           }
         }
 
@@ -47,8 +47,8 @@ export class DriverRegistry {
           connected: false,
           lastSeen: 0,
           firstSeen: pd.firstSeen,
-          ledConfig: resolvedConfig,
-          ledConfigRef: pd.ledConfigRef,
+          ledConfig: pd.ledConfig,
+          resolvedHardware: resolvedHardware,
           stats: {
             mqttMessagesReceived: 0,
             mqttMessagesFailed: 0,
@@ -104,8 +104,8 @@ export class DriverRegistry {
       firstSeen: firstSeen,
       ip: sysInfo.ip,
       sysInfo: sysInfo,
-      ledConfig: existingDriver?.ledConfig, // Preserve resolved LED config
-      ledConfigRef: existingDriver?.ledConfigRef, // Preserve config reference for UI
+      ledConfig: existingDriver?.ledConfig, // Preserve LED config (hardware ref + settings)
+      resolvedHardware: existingDriver?.resolvedHardware, // Preserve resolved hardware
       stats: {
         mqttMessagesReceived:
           (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,

@@ -20,6 +20,16 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 
 **Platform:** macOS only - all development is done on Mac. Use Mac-specific commands and shortcuts (Cmd instead of Ctrl, etc.)
 
+**CRITICAL - READ ESLINT CONFIG AT SESSION START:**
+- **ALWAYS read and understand** `rgfx-hub/eslint.config.mjs` at the start of each new session
+- This ensures familiarity with the project's strict linting rules
+- Key points from ESLint config:
+  - Uses TypeScript strict type checking (`strictTypeChecked` + `stylisticTypeChecked`)
+  - React + React Hooks rules enforced
+  - Prefer nullish coalescing (`??`) over logical OR (`||`) for safer operations
+  - Test files have relaxed rules (allow `any`, unsafe operations, etc.)
+  - All ESLint warnings are treated as errors in CI
+
 **CRITICAL - MAME on macOS:**
 - **ALWAYS launch MAME in windowed mode** using `-window` flag
 - **NEVER use fullscreen mode** - there is a bug that can crash MAME on macOS
@@ -382,26 +392,139 @@ Each sub-project follows its ecosystem's file naming conventions. **Consistency 
 
 ### rgfx-hub/ (TypeScript/React/Electron)
 
-**Standard: kebab-case for all files**
+**Standard: kebab-case for all files, established code naming conventions**
 
-- **Files**: Use kebab-case (lowercase with hyphens)
-  - Examples: `driver-registry.ts`, `event-file-reader.ts`, `game-event-mapper.ts`
-  - React components: `driver-card.tsx`, `system-status.tsx`, `info-section.tsx`
-  - Test files: `driver-registry.test.ts`, `mqtt.test.ts`
-  - Store files: `driver-store.ts`
-  - Type definitions: `driver-config.ts`
+#### File Naming
 
-- **Code naming** (inside files):
-  - Variables/functions: `camelCase` (e.g., `driverRegistry`, `registerDriver`)
-  - Classes/interfaces/types: `PascalCase` (e.g., `DriverRegistry`, `DriverConfig`)
-  - React components: `PascalCase` (e.g., `DriverCard`, `SystemStatus`) - **required by React**
-  - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`, `DEFAULT_PORT`)
+**ALL files use kebab-case** (lowercase with hyphens) - no exceptions:
 
-**Rationale:**
-- Most popular modern convention for TypeScript/JavaScript projects
-- Works well with URLs and case-insensitive file systems
-- Clear visual separation from PascalCase component/class names in code
-- Consistent with Electron's own documentation and ecosystem
+- TypeScript modules: `driver-registry.ts`, `event-file-reader.ts`, `game-event-mapper.ts`
+- React components: `driver-card.tsx`, `system-status.tsx`, `info-section.tsx`
+- Test files: `driver-registry.test.ts`, `mqtt.test.ts`
+- Store files: `driver-store.ts`
+- Type definitions: `driver-config.ts`
+- Utilities: `string-utils.ts`, `date-formatter.ts`
+
+**Import pattern** (file name won't match class name):
+```typescript
+// File: user-profile.tsx
+import { UserProfile } from './user-profile';  // kebab-case file, PascalCase class
+import { ApiClient } from './api-client';      // kebab-case file, PascalCase class
+```
+
+#### Code Naming (Inside Files)
+
+**Classes, Interfaces, Types, Enums:** `PascalCase`
+```typescript
+class DriverRegistry { }
+interface UserProfile { }
+type Status = 'active' | 'inactive';
+enum Direction { Up, Down, Left, Right }
+```
+
+**Functions, Methods, Variables, Properties:** `camelCase`
+```typescript
+function getUserId() { }
+const driverRegistry = new DriverRegistry();
+let isActive = true;
+class User {
+  firstName: string;
+  getFullName() { }
+}
+```
+
+**Constants:** `UPPER_SNAKE_CASE`
+```typescript
+const MAX_RETRIES = 3;
+const API_BASE_URL = 'https://api.example.com';
+const DEFAULT_TIMEOUT = 5000;
+```
+
+**React Components:** `PascalCase` (required by React)
+```typescript
+// File: driver-card.tsx
+export function DriverCard() { }
+
+// File: system-status.tsx
+export function SystemStatus() { }
+```
+
+**Boolean variables/props:** Use `is`, `has`, `should` prefixes
+```typescript
+const isLoading = false;
+const hasError = true;
+const shouldRetry = false;
+```
+
+**Type parameters:** Single uppercase letter or `PascalCase`
+```typescript
+function identity<T>(arg: T): T { }
+function process<ResponseType>(data: ResponseType) { }
+```
+
+#### Prohibited Patterns
+
+❌ **NO `I` prefix for interfaces:**
+```typescript
+// Wrong
+interface IUser { }
+
+// Correct
+interface User { }
+```
+
+❌ **NO `_` prefix for private members** (use TypeScript `private` keyword):
+```typescript
+// Wrong
+class User {
+  _id: string;
+}
+
+// Correct
+class User {
+  private id: string;
+}
+```
+
+❌ **NO Hungarian notation** (type prefixes):
+```typescript
+// Wrong
+const strName = 'John';
+const bIsActive = true;
+
+// Correct
+const name = 'John';
+const isActive = true;
+```
+
+❌ **NO mixing file naming conventions:**
+```typescript
+// Wrong - inconsistent file naming
+UserProfile.tsx      // PascalCase
+api-client.ts        // kebab-case
+stringUtils.ts       // camelCase
+
+// Correct - consistent kebab-case
+user-profile.tsx
+api-client.ts
+string-utils.ts
+```
+
+#### Rationale
+
+**Why kebab-case for files:**
+1. **Cross-platform safety** - Works identically on case-insensitive (macOS, Windows) and case-sensitive (Linux) filesystems
+2. **Modern ecosystem alignment** - Next.js routing, file-based routing frameworks prefer kebab-case
+3. **URL-friendly** - `user-profile` naturally maps to `/user-profile` routes
+4. **Visual clarity** - Clear separation between file names (kebab-case) and code identifiers (PascalCase/camelCase)
+5. **No decision fatigue** - Every file gets kebab-case, no "is this a component or utility?" questions
+6. **Consistency** - One convention for all files eliminates cognitive overhead
+
+**Why PascalCase/camelCase/UPPER_SNAKE_CASE for code:**
+- Universal agreement across Microsoft, Google, Airbnb, and the entire TypeScript/JavaScript ecosystem
+- TypeScript's type system carries semantic information, so names shouldn't duplicate type info
+- React requires PascalCase component names
+- Clear visual distinction between different identifier types
 
 ### esp32/ (C++/Arduino/PlatformIO)
 
@@ -478,6 +601,13 @@ cd mame/lua && stylua . && luacheck .
 - If something is important enough to mention remembering, it's important enough to document
 - Update CLAUDE.md immediately when establishing new patterns or lessons learned
 - The user should not have to remind you to document what you claim to remember
+
+**CRITICAL - When User Says "ALL", They Mean ALL:**
+- When asked to check "ALL" files, do NOT use narrow search patterns (e.g., only `.ts` files)
+- Use comprehensive searches that include ALL file types in the specified directories
+- Example: `find /path/to/dir -type f` NOT `find /path/to/dir -name "*.ts"`
+- Read instructions carefully - "all files in src and config" means every single file, not just source code
+- Do NOT jump to conclusions without verifying the complete scope first
 
 ### TypeScript and Lint Errors
 
@@ -841,6 +971,7 @@ Before using WebSearch or WebFetch, check if documentation exists locally:
 3. **Aedes MQTT broker** - `docs/aedes.md` (Node.js MQTT broker)
 4. **Zustand state management** - `docs/zustand.md` (React state management for Hub UI)
 5. **ESP32 Preferences library** - `docs/esp32-preferences.md` (NVS storage for ESP32)
+6. **Vitest testing framework** - `docs/vitest.md` (Test utilities, mocking, vi API reference)
 
 **Documentation lookup priority:**
 1. **FIRST**: Read local documentation files
@@ -890,3 +1021,69 @@ The embedded Lua environment is **Lua 5.4** with Sol3 bindings. Key global objec
 - Location: `docs/aedes.md`
 - Library: moscajs/aedes for Node.js
 - Key info: QoS 0/1/2 support, persistence options, event handlers, clustering support
+
+**Vitest (Testing Framework):**
+- Location: `docs/vitest.md`
+- Complete vi API reference including `vi.waitFor`, `vi.waitUntil`, mocking, timers
+- **CRITICAL**: ALWAYS use Vitest built-in APIs before writing custom test helpers
+- Check local docs before implementing any test utility - Vitest likely has it built-in
+
+## Node.js fs.watch Known Issues
+
+### macOS Initialization Delay
+
+**Problem:** On macOS, `fs.watch()` does **not** start monitoring immediately. There is an indeterminate delay between calling `fs.watch()` and when the watcher actually begins detecting changes. This is a known issue ([nodejs/node#52601](https://github.com/nodejs/node/issues/52601)) at the libuv level.
+
+**Impact:**
+- File changes occurring during initialization window are missed
+- No way to know when watcher is ready (no "ready" event)
+- Unlike Windows/Linux where watching starts synchronously
+
+**Solutions:**
+
+1. **For Production Code** - Consider using `chokidar`:
+   - Provides `.on('ready')` event when watcher is initialized
+   - Cross-platform consistent behavior
+   - v4 (2024) has minimal dependencies (down from 13 to 1)
+   - Mature, well-maintained library used by webpack, vite, etc.
+
+2. **For Tests with Native fs.watch** - Use probe event approach (RGFX solution):
+   - See [rgfx-hub/src/__tests__/test-utils.ts](../rgfx-hub/src/__tests__/test-utils.ts) - `waitForFileWatcherReady()` utility
+   - Based on Node.js test patterns ([nodejs/node#9303](https://github.com/nodejs/node/pull/9303))
+   - **Strategy:**
+     1. Write probe events ("rgfx/test ready\n") in a loop until watcher responds
+     2. Once detected, watcher is ready - write actual test data
+     3. Wait for all callbacks (probe count + expected data count)
+     4. Tests filter out probe events and verify only actual data
+
+**How the Solution Works:**
+```typescript
+// Phase 1: Probe with test events until watcher is ready
+for (let i = 0; i < maxRetries && !watcherReady; i++) {
+  writeFileSync(filePath, 'rgfx/test ready\n', { flag: 'a' });
+  await delay(50ms);
+  if (callbackCount > previousCount) watcherReady = true;
+}
+
+// Phase 2: Write actual test data once (watcher is now ready)
+writeFileSync(filePath, testData, { flag: 'a' });
+
+// Phase 3: Wait for all callbacks (probe + data)
+await waitForCallbacks(probeCount + expectedDataCount);
+
+// In tests: Filter out probe events
+const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+expect(dataEvents).toHaveLength(expectedCount);
+```
+
+**Key Points:**
+- Probe events use valid "topic message" format so they trigger callbacks
+- Multiple probes may be written before watcher initializes (all will be processed)
+- Tests filter probe events and verify only actual data
+- Robust across different timing environments (local, CI)
+- No arbitrary timeouts - detection is callback-based
+
+**Decision for RGFX:**
+- `EventFileReader` uses native `fs.watch` - acceptable for this use case
+- Tests use `waitForFileWatcherReady()` utility - robust, no flaky timing
+- If fs.watch becomes problematic in production, migrate to chokidar

@@ -7,7 +7,16 @@
       "description": "ESP32 driver board",
       "type": "driver",
       "firstSeen": 1761512408332,
-      "ledConfigRef": "led-configs/8x8-matrix.json"
+      "ledConfig": {
+        "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
+        "pin": 16,
+        "offset": 0,
+        "globalBrightnessLimit": 64,
+        "gammaCorrection": 2.2,
+        "dithering": true,
+        "powerSupplyVolts": 5,
+        "maxPowerMilliamps": 300
+      }
     },
     {
       "id": "44:1D:64:F8:9A:58",
@@ -15,7 +24,16 @@
       "description": "Primary development board with 8x8 LED matrix",
       "type": "driver",
       "firstSeen": 1761512509975,
-      "ledConfigRef": "led-configs/8x8-matrix.json"
+      "ledConfig": {
+        "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
+        "pin": 16,
+        "offset": 0,
+        "globalBrightnessLimit": 64,
+        "gammaCorrection": 2.2,
+        "dithering": true,
+        "powerSupplyVolts": 5,
+        "maxPowerMilliamps": 300
+      }
     }
   ]
 }
