@@ -866,11 +866,75 @@ The Hub uses a **single unified configuration file** managed by `DriverPersisten
 - Types defined in [types.ts](rgfx-hub/src/types.ts) (`DriverConfig`, `LEDDevice`, `DriverSettings`)
 - Configuration is pushed to drivers via MQTT when they connect
 
+**MQTT Configuration Payload:**
+
+When pushing config to drivers, Hub sends snake_case JSON via MQTT topic `rgfx/driver/<mac-with-dashes>/config`:
+
+```json
+{
+  "name": "8x8 WS2812B Matrix",
+  "description": "Standard 8x8 matrix...",
+  "version": "1.0",
+  "led_devices": [
+    {
+      "id": "device1",
+      "name": "8x8 WS2812B Matrix",
+      "pin": 13,
+      "layout": "matrix-zigzag",
+      "count": 64,
+      "offset": 0,
+      "chipset": "WS2812B",
+      "color_order": "GRB",
+      "max_brightness": 255,
+      "color_correction": "TypicalLEDStrip",
+      "color_temperature": "UncorrectedTemperature",
+      "width": 8,
+      "height": 8
+    }
+  ],
+  "settings": {
+    "global_brightness_limit": 128,
+    "gamma_correction": 2.2,
+    "dithering": true,
+    "power_supply_volts": 5,
+    "max_power_milliamps": 2000,
+    "update_rate": 60
+  }
+}
+```
+
+**CRITICAL:** Hub sends snake_case property names (`led_devices`, `color_order`, `max_brightness`, etc.) to match ESP32 expectations. The Hub's internal TypeScript uses camelCase, but converts to snake_case when publishing to MQTT.
+
 ### ESP32 Drivers (`esp32/`)
 - PlatformIO firmware for ESP32 devices
 - Controls LED hardware via FastLED
 - Receives commands via MQTT and UDP
 - mDNS device discovery
+
+#### LED Test Mode
+
+**Purpose:** Validate LED hardware, wiring, and coordinate mapping (especially serpentine layouts).
+
+**How to use:**
+1. In Hub UI, click "Test" button on driver card
+2. Hub pushes config to driver, then sends `rgfx/driver/<mac-with-dashes>/test` with "on" payload
+3. Driver displays test pattern using the "test" effect
+
+**Test Patterns:**
+- **Strip layouts** (height === 1 OR width === 1): 25% segments in Red, Green, Blue, Yellow
+- **Matrix layouts**: 4 quadrants - Top-Left: Red, Top-Right: Green, Bottom-Left: Blue, Bottom-Right: Yellow
+
+**Implementation:**
+- Effect: `esp32/src/effects/test.cpp` - Uses `matrix.led(x, y)` to validate coordinate transforms
+- Hub: Test button in `driver-card.tsx`, IPC handler in `main.ts`
+- MQTT topics:
+  - Config: `rgfx/driver/<mac-with-dashes>/config` (pushed before test)
+  - Test control: `rgfx/driver/<mac-with-dashes>/test` with "on"/"off" payload
+
+**Why test effect validates coordinates:**
+- Uses `matrix.led(x, y)` function which applies serpentine/zigzag transforms
+- Color pattern makes it obvious if coordinates are wrong (e.g., quadrant colors in wrong positions)
+- Strip segments validate proper 1D indexing
 
 ## Event Format
 
