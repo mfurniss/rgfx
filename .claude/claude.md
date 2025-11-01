@@ -661,6 +661,45 @@ cd mame/lua && stylua . && luacheck .
 - Use clear, descriptive names for functions, variables, and classes
 - Avoid deep nesting - extract complex logic into named functions
 
+**Data-Driven Code:**
+- **Prefer lookup tables over long if/else chains or switch statements**
+- When you have repeated conditional logic, use maps, objects, or arrays instead
+- Data structures are easier to read, maintain, and extend than branching logic
+
+**Bad Practice:**
+```typescript
+// Long if/else chain
+if (segment === 0) {
+  color = CRGB::Red;
+} else if (segment === 1) {
+  color = CRGB::Green;
+} else if (segment === 2) {
+  color = CRGB::Blue;
+} else if (segment === 3) {
+  color = CRGB::Yellow;
+}
+```
+
+**Good Practice:**
+```cpp
+// Lookup table - cleaner and more maintainable
+CRGB colors[] = {CRGB::Red, CRGB::Green, CRGB::Blue, CRGB::Yellow};
+color = colors[segment];
+```
+
+**Real-world example from RGFX:**
+```cpp
+// Good: test.cpp uses lookup table for test pattern colors
+CRGB colors[] = {CRGB::Red, CRGB::Green, CRGB::Blue, CRGB::Yellow};
+matrix.led(x, 0) = colors[segment];
+```
+
+**When lookup tables apply:**
+- Mapping values to values (enums to strings, IDs to objects, etc.)
+- Repeated conditional logic with similar structure
+- Configuration-driven behavior
+- Color palettes, effect mappings, state transitions
+
 ### Asynchronous Code Patterns
 
 **CRITICAL - AVOID FRAGILE setTimeout() CALLS:**
