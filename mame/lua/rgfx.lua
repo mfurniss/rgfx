@@ -67,11 +67,14 @@ local load_interceptor = function()
 
 	if game_script then
 		print("Loading interceptor: " .. game_script .. ".lua")
+		-- Set game name in global scope so interceptor can use it for event prefixes
+		_G.game_name = lookup_key
 		local status = pcall(require, game_script)
 		if status then
 			print("Successfully loaded: " .. interceptors_dir .. "/" .. game_script .. ".lua")
 			-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
-			event(rom_name .. "/init", rom_name)
+			-- Use lookup_key (cart_name for consoles, rom_name for arcade) to match event prefixes
+			event(lookup_key .. "/init", lookup_key)
 		else
 			print("ERROR: Failed to load interceptor: " .. game_script .. ".lua")
 		end

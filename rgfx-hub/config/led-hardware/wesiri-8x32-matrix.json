@@ -1,0 +1,13 @@
+{
+  "name": "WESIRI 8x32 Matrix",
+  "description": "8x32 WS2812B serpentine matrix with 256 individually addressable pixels",
+  "sku": null,
+  "asin": "B07P5TSKX8",
+  "type": "matrix",
+  "count": 256,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB",
+  "width": 32,
+  "height": 8,
+  "serpentine": true
+}

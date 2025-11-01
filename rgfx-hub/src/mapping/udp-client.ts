@@ -5,6 +5,7 @@
  * Uses DriverRegistry to discover connected drivers and their IP addresses.
  */
 
+import log from 'electron-log/main';
 import type { UdpClient, EffectPayload } from '../types/mapping-types';
 import type { DriverRegistry } from '../driver-registry';
 import { Udp } from '../udp';
@@ -29,6 +30,8 @@ export class UdpClientImpl implements UdpClient {
     const drivers = this.driverRegistry
       .getAllDrivers()
       .filter((d) => d.connected && d.ip);
+
+    log.info(`Broadcasting effect: ${JSON.stringify(payload)} to ${drivers.length} driver(s)`);
 
     for (const driver of drivers) {
       this.send(driver.id, payload);

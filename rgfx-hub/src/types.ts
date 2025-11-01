@@ -42,31 +42,61 @@ export interface LEDDevice {
   count: number;
   offset?: number;
   chipset?: LEDChipset;
-  color_order?: ColorOrder;
-  max_brightness?: number;
-  color_correction?: ColorCorrection;
-  color_temperature?: ColorTemperature;
-  data_rate_mhz?: number;
+  colorOrder?: ColorOrder;
+  maxBrightness?: number;
+  colorCorrection?: ColorCorrection;
+  colorTemperature?: ColorTemperature;
+  dataRateMhz?: number;
   width?: number;
   height?: number;
   serpentine?: boolean;
 }
 
 export interface DriverSettings {
-  global_brightness_limit?: number;
-  gamma_correction?: number;
+  globalBrightnessLimit?: number;
+  gammaCorrection?: number;
   dithering?: boolean;
-  update_rate?: number;
-  power_supply_volts?: number;
-  max_power_milliamps?: number;
+  powerSupplyVolts?: number;
+  maxPowerMilliamps?: number;
 }
 
-export interface DriverConfig {
+/**
+ * LED Hardware definition - describes physical LED hardware only
+ * Stored in led-hardware/ directory and shared across all users
+ * This is a flat object containing only hardware specs, no user-configurable data
+ */
+export interface LEDHardware {
   name: string;
   description?: string;
-  version: string;
-  led_devices: LEDDevice[];
-  settings?: DriverSettings;
+  sku: string | null;
+  asin?: string | null;
+  type: DeviceType;
+  count: number;
+  chipset?: LEDChipset;
+  colorOrder?: ColorOrder;
+  colorCorrection?: ColorCorrection;
+  colorTemperature?: ColorTemperature;
+  dataRateMhz?: number;
+  width?: number;
+  height?: number;
+  serpentine?: boolean;
+}
+
+/**
+ * Driver LED Configuration - combines hardware reference with driver-specific settings
+ * Stored per-driver in drivers.json
+ * Settings are flattened directly into this object (no nested settings object)
+ */
+export interface DriverLEDConfig {
+  hardwareRef: string;
+  pin: number;
+  offset?: number;
+  maxBrightness?: number;
+  globalBrightnessLimit?: number;
+  gammaCorrection?: number;
+  dithering?: boolean;
+  powerSupplyVolts?: number;
+  maxPowerMilliamps?: number;
 }
 
 export interface DriverSystemInfo {
@@ -122,8 +152,8 @@ export interface Driver {
   ip?: string;
   sysInfo?: DriverSystemInfo;
   stats: DriverStats;
-  ledConfig?: DriverConfig;
-  ledConfigRef?: string;
+  ledConfig?: DriverLEDConfig;
+  resolvedHardware?: LEDHardware;
 }
 
 export interface SystemStatus {

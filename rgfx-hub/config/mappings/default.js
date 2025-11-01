@@ -4,6 +4,6 @@ export function handle(_topic, _payload, { broadcast, log }) {
 
   return broadcast({
     effect: 'pulse',
-    props: { color: '#FFFFFF' },
+    props: { color: '#0000FF' }, // Blue for unmatched events
   });
 }

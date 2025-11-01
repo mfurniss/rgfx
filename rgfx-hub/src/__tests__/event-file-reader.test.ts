@@ -3,6 +3,7 @@ import { EventFileReader } from "../event-file-reader";
 import { writeFileSync, unlinkSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { waitForFileWatcherReady } from "./test-utils";
 
 describe("EventFileReader", () => {
   let testFilePath: string;
@@ -30,147 +31,167 @@ describe("EventFileReader", () => {
   });
 
   it("should parse single event line correctly", async () => {
-    // Create test file with initial content
-    writeFileSync(testFilePath, "");
+    // Create test file with initial content (will be ignored by watcher)
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
 
-    // Start watching
+    // Start watching (starts at end of file)
     reader.start(mockCallback);
 
-    // Wait a bit for watcher to initialize
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Write and retry until watcher detects the change
+    // This solves the fs.watch initialization race condition on macOS
+    await waitForFileWatcherReady(
+      testFilePath,
+      "game pacman\n",
+      1,
+      () => mockCallback.mock.calls.length,
+    );
 
-    // Write a test event
-    writeFileSync(testFilePath, "game pacman\n", { flag: "a" });
-
-    // Wait for file watcher to detect change
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    expect(mockCallback).toHaveBeenCalledWith("game", "pacman");
+    // Verify data event (ignore probe events)
+    const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+    expect(dataEvents).toHaveLength(1);
+    expect(dataEvents[0]).toEqual(["game", "pacman"]);
   });
 
   it("should parse multiple event lines correctly", async () => {
-    writeFileSync(testFilePath, "");
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Write multiple events
-    writeFileSync(
+    await waitForFileWatcherReady(
       testFilePath,
       "game pacman\nplayer/score/p1 100\nplayer/pill/state 1\n",
-      { flag: "a" }
+      3,
+      () => mockCallback.mock.calls.length,
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Should have received probe events + 3 data events
+    // We verify the data, regardless of how many probes were needed
+    const calls = mockCallback.mock.calls;
+    const dataEvents = calls.filter(([topic]) => topic !== "rgfx/test");
 
-    expect(mockCallback).toHaveBeenCalledTimes(3);
-    expect(mockCallback).toHaveBeenNthCalledWith(1, "game", "pacman");
-    expect(mockCallback).toHaveBeenNthCalledWith(2, "player/score/p1", "100");
-    expect(mockCallback).toHaveBeenNthCalledWith(3, "player/pill/state", "1");
+    expect(dataEvents).toHaveLength(3);
+    expect(dataEvents[0]).toEqual(["game", "pacman"]);
+    expect(dataEvents[1]).toEqual(["player/score/p1", "100"]);
+    expect(dataEvents[2]).toEqual(["player/pill/state", "1"]);
   });
 
   it("should handle messages with spaces in the payload", async () => {
-    writeFileSync(testFilePath, "");
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await waitForFileWatcherReady(
+      testFilePath,
+      "status game in progress\n",
+      1,
+      () => mockCallback.mock.calls.length,
+    );
 
-    writeFileSync(testFilePath, "status game in progress\n", { flag: "a" });
-
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    expect(mockCallback).toHaveBeenCalledWith("status", "game in progress");
+    // Verify data event (ignore probe events)
+    const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+    expect(dataEvents).toHaveLength(1);
+    expect(dataEvents[0]).toEqual(["status", "game in progress"]);
   });
 
   it("should skip empty lines", async () => {
-    writeFileSync(testFilePath, "");
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await waitForFileWatcherReady(
+      testFilePath,
+      "game pacman\n\n\nplayer/score/p1 100\n",
+      2,
+      () => mockCallback.mock.calls.length,
+    );
 
-    writeFileSync(testFilePath, "game pacman\n\n\nplayer/score/p1 100\n", {
-      flag: "a",
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    // Should only call for the two valid lines
-    expect(mockCallback).toHaveBeenCalledTimes(2);
+    // Should only call for two valid lines (ignore empty lines and probe events)
+    const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+    expect(dataEvents).toHaveLength(2);
   });
 
   it("should skip malformed lines without topic and message", async () => {
-    writeFileSync(testFilePath, "");
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await waitForFileWatcherReady(
+      testFilePath,
+      "game pacman\ninvalidline\nplayer/score/p1 100\n",
+      2,
+      () => mockCallback.mock.calls.length,
+    );
 
-    writeFileSync(testFilePath, "game pacman\ninvalidline\nplayer/score/p1 100\n", {
-      flag: "a",
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    // Should only call for the two valid lines (skip "invalidline")
-    expect(mockCallback).toHaveBeenCalledTimes(2);
-    expect(mockCallback).toHaveBeenNthCalledWith(1, "game", "pacman");
-    expect(mockCallback).toHaveBeenNthCalledWith(2, "player/score/p1", "100");
+    // Should only call for two valid lines (skip "invalidline" and probe events)
+    const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+    expect(dataEvents).toHaveLength(2);
+    expect(dataEvents[0]).toEqual(["game", "pacman"]);
+    expect(dataEvents[1]).toEqual(["player/score/p1", "100"]);
   });
 
   it("should handle file truncation by resetting position", async () => {
-    writeFileSync(testFilePath, "");
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     // Write initial data
-    writeFileSync(testFilePath, "game pacman\n", { flag: "a" });
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await waitForFileWatcherReady(
+      testFilePath,
+      "game pacman\n",
+      1,
+      () => mockCallback.mock.calls.length,
+    );
 
     // Truncate file (simulate log rotation or reset)
     writeFileSync(testFilePath, "");
-    await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Write new data
-    writeFileSync(testFilePath, "game galaga\n", { flag: "a" });
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Write new data (file watcher will detect size change and reset position)
+    await waitForFileWatcherReady(
+      testFilePath,
+      "game galaga\n",
+      1,
+      () => mockCallback.mock.calls.length,
+    );
 
-    // Should have received both events
-    expect(mockCallback).toHaveBeenCalledWith("game", "pacman");
-    expect(mockCallback).toHaveBeenCalledWith("game", "galaga");
+    // Should have received both events (ignore probe events)
+    const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+    expect(dataEvents).toHaveLength(2);
+    expect(dataEvents[0]).toEqual(["game", "pacman"]);
+    expect(dataEvents[1]).toEqual(["game", "galaga"]);
   });
 
   it("should stop watching when stop() is called", async () => {
-    writeFileSync(testFilePath, "");
+    writeFileSync(testFilePath, "initial data\n");
 
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     // Write event before stopping
-    writeFileSync(testFilePath, "game pacman\n", { flag: "a" });
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await waitForFileWatcherReady(
+      testFilePath,
+      "game pacman\n",
+      1,
+      () => mockCallback.mock.calls.length,
+    );
 
     reader.stop();
 
     // Write event after stopping
     writeFileSync(testFilePath, "player/score/p1 100\n", { flag: "a" });
-    await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Should only have received the first event
-    expect(mockCallback).toHaveBeenCalledTimes(1);
-    expect(mockCallback).toHaveBeenCalledWith("game", "pacman");
+    // Wait a bit to ensure no further callbacks
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Should only have received first event (ignore probe events, not the event after stop)
+    const dataEvents = mockCallback.mock.calls.filter(([topic]) => topic !== "rgfx/test");
+    expect(dataEvents).toHaveLength(1);
+    expect(dataEvents[0]).toEqual(["game", "pacman"]);
   });
 });

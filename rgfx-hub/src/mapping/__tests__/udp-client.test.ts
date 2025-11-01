@@ -8,14 +8,20 @@ import type { DriverRegistry } from '../../driver-registry';
 import type { Driver } from '../../types';
 import type { EffectPayload } from '../../types/mapping-types';
 
+// Create mock functions at module scope
+const mockUdpSend = vi.fn();
+const mockUdpStop = vi.fn();
+const mockUdpSetSentCallback = vi.fn();
+const mockUdpSetErrorCallback = vi.fn();
+
 // Mock the Udp class
 vi.mock('../../udp', () => {
   return {
     Udp: vi.fn().mockImplementation(() => ({
-      send: vi.fn(),
-      stop: vi.fn(),
-      setSentCallback: vi.fn(),
-      setErrorCallback: vi.fn(),
+      send: mockUdpSend,
+      stop: mockUdpStop,
+      setSentCallback: mockUdpSetSentCallback,
+      setErrorCallback: mockUdpSetErrorCallback,
     })),
   };
 });
@@ -70,8 +76,11 @@ describe('UdpClientImpl', () => {
 
     udpClient = new UdpClientImpl(mockDriverRegistry);
 
-    // Clear all mocks
-    vi.clearAllMocks();
+    // Clear mock call history after creating udpClient (clears construction calls)
+    mockUdpSend.mockClear();
+    mockUdpStop.mockClear();
+    mockUdpSetSentCallback.mockClear();
+    mockUdpSetErrorCallback.mockClear();
   });
 
   describe('broadcast', () => {

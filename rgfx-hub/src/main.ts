@@ -15,7 +15,7 @@ import { DriverRegistry } from "./driver-registry";
 import { SystemMonitor } from "./system-monitor";
 import { DiscoveryService } from "./discovery-service";
 import { DriverPersistence } from "./driver-persistence";
-import { LEDConfigManager } from "./led-config-manager";
+import { LEDHardwareManager } from "./led-hardware-manager";
 import { MappingEngine } from "./mapping-engine";
 import { UdpClientImpl } from "./mapping/udp-client";
 import { MqttClientWrapper } from "./mapping/mqtt-client-wrapper";
@@ -44,10 +44,10 @@ let mainWindow: BrowserWindow | null = null;
 
 // Initialize services (persistence first, then registry)
 const driverPersistence = new DriverPersistence();
-const ledConfigManager = new LEDConfigManager();
+const ledHardwareManager = new LEDHardwareManager();
 const mqtt = new Mqtt(1883);
 const eventReader = new EventFileReader();
-const driverRegistry = new DriverRegistry(driverPersistence, ledConfigManager);
+const driverRegistry = new DriverRegistry(driverPersistence, ledHardwareManager);
 const systemMonitor = new SystemMonitor();
 const discoveryService = new DiscoveryService(mqtt);
 
@@ -91,29 +91,62 @@ function sendSystemStatus() {
 // Helper to push driver configuration via MQTT
 function pushConfigToDriver(driverId: string): boolean {
   try {
-    // Get LED config reference from persistence
-    const configRef = driverPersistence.getLEDConfigRef(driverId);
+    // Get LED config (hardware ref + settings) from persistence
+    const ledConfig = driverPersistence.getLEDConfig(driverId);
 
-    if (!configRef) {
-      log.warn(`Driver ${driverId} connected but has no LED config reference - user must configure before use`);
+    if (!ledConfig) {
+      log.warn(`Driver ${driverId} connected but has no LED configuration - user must configure before use`);
       return false;
     }
 
-    // Resolve the config by loading the file
-    const config = ledConfigManager.loadConfig(configRef);
+    // Load the hardware definition
+    const hardware = ledHardwareManager.loadHardware(ledConfig.hardwareRef);
 
-    if (!config) {
-      log.error(`Failed to load LED config for driver ${driverId}: ${configRef}`);
+    if (!hardware) {
+      log.error(`Failed to load LED hardware for driver ${driverId}: ${ledConfig.hardwareRef}`);
       return false;
     }
 
-    // Publish resolved config to driver-specific topic
+    // Combine hardware definition with driver-specific config (pin, offset) and settings
+    const completeConfig = {
+      name: hardware.name,
+      description: hardware.description,
+      version: '1.0',
+      ledDevices: [
+        {
+          id: 'device1',
+          name: hardware.name,
+          pin: ledConfig.pin,
+          type: hardware.type,
+          count: hardware.count,
+          offset: ledConfig.offset ?? 0,
+          chipset: hardware.chipset,
+          colorOrder: hardware.colorOrder,
+          maxBrightness: ledConfig.maxBrightness,
+          colorCorrection: hardware.colorCorrection,
+          colorTemperature: hardware.colorTemperature,
+          dataRateMhz: hardware.dataRateMhz,
+          width: hardware.width,
+          height: hardware.height,
+          serpentine: hardware.serpentine,
+        },
+      ],
+      settings: {
+        globalBrightnessLimit: ledConfig.globalBrightnessLimit,
+        gammaCorrection: ledConfig.gammaCorrection,
+        dithering: ledConfig.dithering,
+        powerSupplyVolts: ledConfig.powerSupplyVolts,
+        maxPowerMilliamps: ledConfig.maxPowerMilliamps,
+      },
+    };
+
+    // Publish complete config to driver-specific topic
     // Note: Driver expects MAC with dashes, not colons (e.g., 44-1D-64-F8-CF-68)
     const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/config`;
-    const payload = JSON.stringify(config);
+    const payload = JSON.stringify(completeConfig);
 
     mqtt.publish(topic, payload);
-    log.info(`Pushed LED configuration to driver ${driverId}: ${config.name}`);
+    log.info(`Pushed LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

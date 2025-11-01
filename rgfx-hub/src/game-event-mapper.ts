@@ -28,17 +28,20 @@ export class GameEventMapper {
       return;
     }
 
+    // Convert 0xRRGGBB to #RRGGBB format for ESP32
+    const hexColor = color.replace("0x", "#");
+
     // Send to each driver
     connectedDrivers.forEach((driver) => {
       if (!driver.ip) return;
 
       const udp = new Udp(driver.ip, 1234);
-      udp.send({ effect, color }); // Temporary: using new EffectPayload format
+      udp.send({ effect, props: { color: hexColor } });
       // Note: UDP socket will be garbage collected after send completes
     });
 
     log.info(
-      `Broadcasted effect "${effect}" with color ${color} to ${connectedDrivers.length} driver(s)`,
+      `Broadcasted effect "${effect}" with color ${hexColor} to ${connectedDrivers.length} driver(s)`,
     );
   }
 

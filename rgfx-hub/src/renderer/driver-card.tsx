@@ -89,30 +89,41 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     { label: "SDK Version", value: sysInfo.sdkVersion },
   ];
 
-  // LED configuration from Hub's config (not from driver sysInfo)
-  const ledDevice = driver.ledConfig?.led_devices[0]; // Show first device for now
-  const ledRows: InfoRowData[] = driver.ledConfig
+  // LED configuration from Hub's resolved hardware + driver settings
+  const hardware = driver.resolvedHardware;
+  const ledConfig = driver.ledConfig;
+  const ledRows: InfoRowData[] = hardware
     ? [
-        { label: "Config Name", value: driver.ledConfig.name },
-        { label: "Description", value: driver.ledConfig.description ?? "Not set" },
-        ...(ledDevice
+        { label: "Hardware", value: hardware.name },
+        { label: "Description", value: hardware.description ?? "Not set" },
+        { label: "SKU", value: hardware.sku ?? "Not set" },
+        ...(hardware.asin ? [{ label: "ASIN", value: hardware.asin }] : []),
+        { label: "Type", value: hardware.type },
+        { label: "LED Count", value: hardware.count },
+        {
+          label: "Matrix Size",
+          value: hardware.type === "matrix"
+            ? `${hardware.width ?? 0} × ${hardware.height ?? 0}`
+            : "N/A",
+        },
+        ...(ledConfig ? [{ label: "Data Pin", value: ledConfig.pin }] : []),
+        { label: "Chipset", value: hardware.chipset ?? "Unknown" },
+        { label: "Color Order", value: hardware.colorOrder ?? "Unknown" },
+        ...(ledConfig
           ? [
-              { label: "Device Name", value: ledDevice.name },
-              { label: "Type", value: ledDevice.type },
-              { label: "LED Count", value: ledDevice.count },
-              {
-                label: "Matrix Size",
-                value: ledDevice.type === "matrix"
-                  ? `${ledDevice.width ?? 0} × ${ledDevice.height ?? 0}`
-                  : "N/A",
-              },
-              { label: "Data Pin", value: ledDevice.pin },
-              { label: "Chipset", value: ledDevice.chipset ?? "Unknown" },
-              { label: "Color Order", value: ledDevice.color_order ?? "Unknown" },
               {
                 label: "Max Brightness",
-                value: ledDevice.max_brightness ?? "Not set",
+                value: ledConfig.maxBrightness ?? "Not set",
               },
+              {
+                label: "Brightness Limit",
+                value: ledConfig.globalBrightnessLimit ?? "Not set",
+              },
+              {
+                label: "Gamma Correction",
+                value: ledConfig.gammaCorrection ?? "Not set",
+              },
+              { label: "Dithering", value: ledConfig.dithering ? "Yes" : "No" },
             ]
           : []),
       ]
@@ -176,7 +187,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         showDivider
       />
 
-      {driver.ledConfig && ledRows.length > 0 && (
+      {driver.resolvedHardware && ledRows.length > 0 && (
         <InfoSection
           title="LED Configuration"
           icon={<LightbulbIcon fontSize="small" color="action" />}

@@ -15,7 +15,8 @@
     "baseUrl": ".",
     "outDir": "dist",
     "resolveJsonModule": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "node"]
   },
-  "include": ["src/**/*", "src/**/*.test.ts", "src/**/*.spec.ts", "config/**/*", "forge.env.d.ts"]
+  "include": ["src/**/*", "src/**/*.test.ts", "src/**/*.spec.ts", "config/**/*", "forge.env.d.ts"],
+  "exclude": ["node_modules", "dist", ".vite", "out", "vitest.config.ts"]
 }

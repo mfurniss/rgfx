@@ -2,14 +2,19 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { GameEventMapper } from "../game-event-mapper";
 import type { DriverRegistry } from "../driver-registry";
 import type { Driver } from "../types";
-import { Udp } from "../udp";
 
-// Mock the Udp class to track send calls
+// Use vi.hoisted to define mock functions that persist across tests
 const mockSend = vi.fn();
+const mockStop = vi.fn();
+const mockSetSentCallback = vi.fn();
+const mockSetErrorCallback = vi.fn();
+
 vi.mock("../udp", () => ({
   Udp: vi.fn().mockImplementation(() => ({
     send: mockSend,
-    stop: vi.fn(),
+    stop: mockStop,
+    setSentCallback: mockSetSentCallback,
+    setErrorCallback: mockSetErrorCallback,
   })),
 }));
 
@@ -18,9 +23,11 @@ describe("GameEventMapper", () => {
   let mapper: GameEventMapper;
 
   beforeEach(() => {
-    // Reset all mocks
+    // Clear mock call history between tests
     mockSend.mockClear();
-    vi.mocked(Udp).mockClear();
+    mockStop.mockClear();
+    mockSetSentCallback.mockClear();
+    mockSetErrorCallback.mockClear();
 
     // Create mock drivers
     const mockDriver1: Driver = {
@@ -77,28 +84,28 @@ describe("GameEventMapper", () => {
 
       // Should send to both drivers (2 calls)
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0x0000FF" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#0000FF" } });
     });
 
     it("should send blue pulse for any positive state value", () => {
       mapper.handleEvent("player/pill/state", "42");
 
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0x0000FF" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#0000FF" } });
     });
 
     it("should send red pulse when power pill is inactive", () => {
       mapper.handleEvent("player/pill/state", "0");
 
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0xFF0000" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#FF0000" } });
     });
 
     it("should send red pulse for negative state values", () => {
       mapper.handleEvent("player/pill/state", "-1");
 
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0xFF0000" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#FF0000" } });
     });
   });
 
@@ -107,21 +114,21 @@ describe("GameEventMapper", () => {
       mapper.handleEvent("player/score/p1", "100");
 
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0xFFFF00" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#FFFF00" } });
     });
 
     it("should send yellow pulse for player 2 score change", () => {
       mapper.handleEvent("player/score/p2", "200");
 
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0xFFFF00" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#FFFF00" } });
     });
 
     it("should send yellow pulse for any score topic", () => {
       mapper.handleEvent("player/score/p3", "300");
 
       expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0xFFFF00" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#FFFF00" } });
     });
   });
 
@@ -129,21 +136,21 @@ describe("GameEventMapper", () => {
     it("should send blue pulse for unrecognized topic", () => {
       mapper.handleEvent("unknown/topic", "value");
 
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0x0000FF" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#0000FF" } });
       expect(mockSend).toHaveBeenCalledTimes(2); // Once per driver
     });
 
     it("should send blue pulse for game topic", () => {
       mapper.handleEvent("game", "pacman");
 
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0x0000FF" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#0000FF" } });
       expect(mockSend).toHaveBeenCalledTimes(2); // Once per driver
     });
 
     it("should send blue pulse for empty topic", () => {
       mapper.handleEvent("", "value");
 
-      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", color: "0x0000FF" });
+      expect(mockSend).toHaveBeenCalledWith({ effect: "pulse", props: { color: "#0000FF" } });
       expect(mockSend).toHaveBeenCalledTimes(2); // Once per driver
     });
   });
@@ -157,14 +164,14 @@ describe("GameEventMapper", () => {
       // Each event broadcasts to 2 drivers = 6 total calls
       expect(mockSend).toHaveBeenCalledTimes(6);
       // First two calls for first event (blue pulse to both drivers)
-      expect(mockSend).toHaveBeenNthCalledWith(1, { effect: "pulse", color: "0x0000FF" });
-      expect(mockSend).toHaveBeenNthCalledWith(2, { effect: "pulse", color: "0x0000FF" });
+      expect(mockSend).toHaveBeenNthCalledWith(1, { effect: "pulse", props: { color: "#0000FF" } });
+      expect(mockSend).toHaveBeenNthCalledWith(2, { effect: "pulse", props: { color: "#0000FF" } });
       // Next two calls for second event (yellow pulse to both drivers)
-      expect(mockSend).toHaveBeenNthCalledWith(3, { effect: "pulse", color: "0xFFFF00" });
-      expect(mockSend).toHaveBeenNthCalledWith(4, { effect: "pulse", color: "0xFFFF00" });
+      expect(mockSend).toHaveBeenNthCalledWith(3, { effect: "pulse", props: { color: "#FFFF00" } });
+      expect(mockSend).toHaveBeenNthCalledWith(4, { effect: "pulse", props: { color: "#FFFF00" } });
       // Last two calls for third event (red pulse to both drivers)
-      expect(mockSend).toHaveBeenNthCalledWith(5, { effect: "pulse", color: "0xFF0000" });
-      expect(mockSend).toHaveBeenNthCalledWith(6, { effect: "pulse", color: "0xFF0000" });
+      expect(mockSend).toHaveBeenNthCalledWith(5, { effect: "pulse", props: { color: "#FF0000" } });
+      expect(mockSend).toHaveBeenNthCalledWith(6, { effect: "pulse", props: { color: "#FF0000" } });
     });
   });
 });
