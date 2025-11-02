@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Paper, Typography, Box, Chip } from "@mui/material";
+import { Paper, Typography, Box, Chip, Button } from "@mui/material";
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
   Lightbulb as LightbulbIcon,
   Speed as SpeedIcon,
   QueryStats as QueryStatsIcon,
+  Science as ScienceIcon,
 } from "@mui/icons-material";
 import type { Driver } from "../types";
 import InfoSection, { type InfoRowData } from "./components/info-section";
@@ -18,6 +19,7 @@ interface DriverCardProps {
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
+  const [testMode, setTestMode] = useState(false);
 
   // Update every second for live timestamps and uptime
   useEffect(() => {
@@ -29,6 +31,12 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       clearInterval(interval);
     };
   }, []);
+
+  const handleTestToggle = () => {
+    const newTestMode = !testMode;
+    setTestMode(newTestMode);
+    void window.rgfx.testDriverLEDs(driver.id, newTestMode);
+  };
 
   if (!sysInfo) {
     return (
@@ -151,7 +159,17 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         }}
       >
         <Typography variant="h6">{driver.name}</Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <Button
+            variant={testMode ? "contained" : "outlined"}
+            color={testMode ? "warning" : "primary"}
+            size="small"
+            startIcon={<ScienceIcon />}
+            onClick={handleTestToggle}
+            disabled={!driver.connected}
+          >
+            Test {testMode ? "ON" : "OFF"}
+          </Button>
           <Chip
             label={driver.connected ? "Connected" : "Disconnected"}
             color={driver.connected ? "success" : "error"}

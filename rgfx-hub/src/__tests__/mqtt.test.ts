@@ -197,16 +197,14 @@ describe("Mqtt", () => {
       );
     });
 
-    it("should handle publish errors", () => {
+    it("should handle publish errors", async () => {
       const testError = new Error("Publish failed");
       mockAedes.publish.mockImplementation((packet: any, callback: any) => {
         if (callback) callback(testError);
       });
 
-      // Should not throw
-      expect(() => {
-        mqtt.publish("test/topic", "payload");
-      }).not.toThrow();
+      // Should reject with the error
+      await expect(mqtt.publish("test/topic", "payload")).rejects.toThrow("Publish failed");
     });
 
     it("should publish multiple messages", () => {

@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "driver_config.h"
 #include "display.h"
+#include "udp.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
@@ -39,8 +40,14 @@ extern Matrix matrix;
 // Toggle state
 bool ledsOn = false;
 
-// Forward declaration for config handling
+// Test mode state (accessible from main loop)
+bool testModeActive = false;
+
+// Forward declarations
 void handleDriverConfig(const String& payload);
+extern Matrix matrix;
+extern UDPMessage pendingMessage;
+extern volatile bool newMessageAvailable;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String& topic, String& payload) {
@@ -56,6 +63,25 @@ void mqttCallback(String& topic, String& payload) {
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/config")) {
 		log("Received driver configuration from Hub");
 		handleDriverConfig(payload);
+	}
+
+	// Handle LED test mode toggle
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/test")) {
+		log("LED test mode: " + payload);
+		if (payload == "on") {
+			// Enable test mode and trigger test effect
+			testModeActive = true;
+			pendingMessage.effect = "test";
+			pendingMessage.color = 0; // Ignored by test effect
+			newMessageAvailable = true;
+			log("Test mode ENABLED");
+		} else if (payload == "off") {
+			// Disable test mode and clear LEDs
+			testModeActive = false;
+			fill_solid(matrix.leds, matrix.size, CRGB::Black);
+			FastLED.show();
+			log("Test mode DISABLED");
+		}
 	}
 }
 
@@ -150,16 +176,19 @@ void reconnectMQTT() {
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
 		mqttClient.subscribe("rgfx/system/discover", 2);
 
-		// Subscribe to driver-specific config topic
+		// Subscribe to driver-specific topics
 		String driverId = WiFi.macAddress();
 		driverId.replace(":", "-"); // Format MAC as AB-CD-EF-12-34-56
 		String configTopic = "rgfx/driver/" + driverId + "/config";
+		String testTopic = "rgfx/driver/" + driverId + "/test";
 		mqttClient.subscribe(configTopic.c_str(), 2);
+		mqttClient.subscribe(testTopic.c_str(), 2);
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - rgfx/system/discover");
 		log("  - " + configTopic);
+		log("  - " + testTopic);
 
 		// Update display to show MQTT connected
 		if (Display::isAvailable()) {

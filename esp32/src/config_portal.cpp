@@ -1,5 +1,4 @@
 #include "config_portal.h"
-#include "config_leds.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
 #include "log.h"
@@ -136,8 +135,9 @@ void ConfigPortal::begin() {
 		page = replaceTemplate(page.c_str(), "DEVICE_NAME", Utils::getDeviceName());
 		page = replaceTemplate(page.c_str(), "MAC_ADDRESS", WiFi.macAddress());
 		page = replaceTemplate(page.c_str(), "UPTIME", String(millis() / 1000) + " seconds");
-		page = replaceTemplate(page.c_str(), "LED_BRIGHTNESS", String(ConfigLeds::getBrightness()));
-		page = replaceTemplate(page.c_str(), "LED_DATA_PIN", String(ConfigLeds::getDataPin()));
+		// LED config now managed by Hub - these values are placeholders
+		page = replaceTemplate(page.c_str(), "LED_BRIGHTNESS", "Hub Managed");
+		page = replaceTemplate(page.c_str(), "LED_DATA_PIN", "Hub Managed");
 
 		// Build network status rows dynamically
 		String networkStatus;
@@ -208,11 +208,13 @@ String ConfigPortal::getStateName() {
 }
 
 uint8_t ConfigPortal::getLedBrightness() {
-	return ConfigLeds::getBrightness();
+	// LED config now managed by Hub
+	return 64; // Default value for status display
 }
 
 uint8_t ConfigPortal::getLedDataPin() {
-	return ConfigLeds::getDataPin();
+	// LED config now managed by Hub
+	return 16; // Default value for status display
 }
 
 void ConfigPortal::resetSettings() {

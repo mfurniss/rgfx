@@ -16,4 +16,12 @@ contextBridge.exposeInMainWorld("rgfx", {
   onSystemStatus: (callback: (status: SystemStatus) => void) => {
     ipcRenderer.on("system:status", (_event, status: SystemStatus) => { callback(status); });
   },
+
+  testDriverLEDs: (driverId: string, enabled: boolean): Promise<void> => {
+    return ipcRenderer.invoke("driver:test-leds", driverId, enabled);
+  },
+
+  rendererReady: (): void => {
+    ipcRenderer.send("renderer:ready");
+  },
 });

@@ -59,26 +59,30 @@ export class Mqtt {
     log.info(`Subscribed to MQTT topic: ${topic}`);
   }
 
-  publish(topic: string, payload: string) {
-    // Always use QoS 2 (exactly once delivery) for critical MQTT events
-    // Use UDP for non-critical high-frequency data
-    this.aedes.publish(
-      {
-        cmd: "publish",
-        qos: 2,
-        dup: false,
-        topic,
-        payload: Buffer.from(payload),
-        retain: false,
-      },
-      (err) => {
-        if (err) {
-          log.error(`Failed to publish to ${topic}:`, err);
-        } else {
-          log.info(`Published to ${topic} (QoS 2): ${payload}`);
-        }
-      },
-    );
+  publish(topic: string, payload: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Always use QoS 2 (exactly once delivery) for critical MQTT events
+      // Use UDP for non-critical high-frequency data
+      this.aedes.publish(
+        {
+          cmd: "publish",
+          qos: 2,
+          dup: false,
+          topic,
+          payload: Buffer.from(payload),
+          retain: false,
+        },
+        (err) => {
+          if (err) {
+            log.error(`Failed to publish to ${topic}:`, err);
+            reject(err);
+          } else {
+            log.info(`Published to ${topic} (QoS 2): ${payload}`);
+            resolve();
+          }
+        },
+      );
+    });
   }
 
   start() {

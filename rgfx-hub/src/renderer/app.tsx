@@ -33,6 +33,9 @@ const App: React.FC = () => {
     window.rgfx.onDriverConnected(driverConnected);
     window.rgfx.onDriverDisconnected(driverDisconnected);
     window.rgfx.onSystemStatus(updateSystemStatus);
+
+    // Signal to main process that renderer is ready to receive initial state
+    window.rgfx.rendererReady();
   }, [driverConnected, driverDisconnected, updateSystemStatus]);
 
   return (

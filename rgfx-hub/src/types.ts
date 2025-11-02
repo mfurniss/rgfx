@@ -177,6 +177,8 @@ export interface IpcApi {
   onDriverConnected: (callback: (driver: Driver) => void) => void;
   onDriverDisconnected: (callback: (driver: Driver) => void) => void;
   onSystemStatus: (callback: (status: SystemStatus) => void) => void;
+  testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
+  rendererReady: () => void;
 }
 
 // Extend Window interface for TypeScript

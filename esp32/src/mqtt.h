@@ -18,6 +18,9 @@ extern const char* MQTT_TOPIC_STATUS;
 // MQTT client
 extern MQTTClient mqttClient;
 
+// Test mode state
+extern bool testModeActive;
+
 // Function declarations
 void setupMQTT();
 void reconnectMQTT();

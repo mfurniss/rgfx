@@ -1,5 +1,4 @@
 #include "sys_info.h"
-#include "config_leds.h"
 #include "utils.h"
 #include "display.h"
 #include <WiFi.h>
