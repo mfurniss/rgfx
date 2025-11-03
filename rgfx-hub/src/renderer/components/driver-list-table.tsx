@@ -55,6 +55,15 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [, setCurrentTime] = useState(Date.now());
 
+  // DEBUG: Log when drivers prop changes
+  useEffect(() => {
+    const renderTime = Date.now();
+    console.log(`[DEBUG] DriverListTable re-rendered at ${renderTime}, drivers count=${drivers.length}`);
+    drivers.forEach(d => {
+      console.log(`[DEBUG] Driver ${d.id}: connected=${d.connected}, lastSeen=${d.lastSeen}`);
+    });
+  }, [drivers]);
+
   // Update current time every second for live relative timestamps
   useEffect(() => {
     const interval = setInterval(() => {
@@ -192,8 +201,20 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>{driver.ip ?? 'Unknown'}</TableCell>
               <TableCell>
                 <Chip
-                  label={driver.connected ? 'Connected' : 'Disconnected'}
-                  color={driver.connected ? 'success' : 'error'}
+                  label={
+                    driver.connected
+                      ? driver.failedHeartbeats > 0
+                        ? `Connected (${driver.failedHeartbeats} missed)`
+                        : 'Connected'
+                      : 'Disconnected'
+                  }
+                  color={
+                    driver.connected
+                      ? driver.failedHeartbeats > 0
+                        ? 'warning'
+                        : 'success'
+                      : 'error'
+                  }
                   size="small"
                 />
               </TableCell>

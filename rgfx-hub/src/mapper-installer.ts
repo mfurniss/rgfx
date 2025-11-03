@@ -9,13 +9,8 @@ import { app } from 'electron';
 import { promises as fs } from 'node:fs';
 import { join, relative } from 'node:path';
 import log from 'electron-log/main';
-
-/**
- * Development flag: Load mappers directly from source (config/mappings) instead of user data directory
- * Set to true during development to avoid stale mapper files in user data directory
- */
-// eslint-disable-next-line prefer-const
-let USE_SOURCE_MAPPERS = true;
+// USE_SOURCE_MAPPERS is defined in './config/constants' but currently always true
+// TODO: Import and use when it becomes configurable
 
 /**
  * Get the bundled mappers directory (config/mappings in development, Resources/config/mappings in production)
@@ -33,14 +28,18 @@ function getBundledMappingsDir(): string {
 
 /**
  * Get the mappers directory
- * If USE_SOURCE_MAPPERS is true, loads directly from bundled source (config/mappings)
- * Otherwise, loads from user data directory (~/Library/Application Support/rgfx-hub/mappings)
+ * Currently always returns bundled source directory since USE_SOURCE_MAPPERS is true.
+ * TODO: When USE_SOURCE_MAPPERS becomes configurable, add conditional logic to
+ * return user data directory (~/Library/Application Support/rgfx-hub/mappings) when false.
  */
 export function getMappingsDir(): string {
-  if (USE_SOURCE_MAPPERS) {
-    return getBundledMappingsDir();
-  }
-  return join(app.getPath('userData'), 'mappings');
+  // Always use source mappers in development (USE_SOURCE_MAPPERS is currently always true)
+  return getBundledMappingsDir();
+
+  // Future implementation when USE_SOURCE_MAPPERS becomes configurable:
+  // return USE_SOURCE_MAPPERS
+  //   ? getBundledMappingsDir()
+  //   : join(app.getPath('userData'), 'mappings');
 }
 
 /**

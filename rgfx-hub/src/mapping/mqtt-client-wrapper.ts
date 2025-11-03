@@ -7,6 +7,7 @@
 
 import type { MqttClient } from '../types/mapping-types';
 import type { Mqtt } from '../mqtt';
+import { MQTT_QOS_LEVEL } from '../config/constants';
 
 /**
  * MQTT client wrapper implementation
@@ -21,12 +22,12 @@ export class MqttClientWrapper implements MqttClient {
    * Publish message to MQTT topic
    * @param topic MQTT topic path
    * @param payload Any JSON-serializable payload
-   * @param qos Quality of Service level (0, 1, or 2) - defaults to 2
+   * @param qos Quality of Service level (0, 1, or 2) - defaults to MQTT_QOS_LEVEL
    */
   async publish(
     topic: string,
     payload: unknown,
-    qos: 0 | 1 | 2 = 2,
+    qos: 0 | 1 | 2 = MQTT_QOS_LEVEL as 0 | 1 | 2,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       try {

@@ -456,6 +456,32 @@ const hasError = true;
 const shouldRetry = false;
 ```
 
+**Callback functions:** Prefix with `on` to distinguish from state
+```typescript
+// State (data)
+const drivers: Driver[] = [];
+const connected: boolean = true;
+
+// Callbacks/Actions (functions)
+const onDriverConnected = (driver: Driver) => { /* ... */ };
+const onDriverDisconnected = (driver: Driver) => { /* ... */ };
+const onSystemStatusUpdate = (status: SystemStatus) => { /* ... */ };
+
+// Zustand store example
+interface DriverState {
+  // State
+  drivers: Driver[];
+  systemStatus: SystemStatus;
+
+  // Actions (callbacks prefixed with 'on')
+  onDriverConnected: (driver: Driver) => void;
+  onDriverDisconnected: (driver: Driver) => void;
+  onSystemStatusUpdate: (status: SystemStatus) => void;
+}
+```
+
+**Why this matters:** Without the `on` prefix, `driverConnected` looks like boolean state, not a callback function. The `on` prefix makes the distinction immediately clear.
+
 **Type parameters:** Single uppercase letter or `PascalCase`
 ```typescript
 function identity<T>(arg: T): T { }
@@ -595,6 +621,9 @@ cd mame/lua && stylua . && luacheck .
 - Look for library documentation, examples, or similar code in the project
 - Do NOT continue trying random solutions - this wastes time
 - When debugging library integration issues, read the library's example code FIRST
+- **NEVER get stuck in a guessing loop** - After a couple of attempts, ALWAYS look online for solutions
+- Search for similar projects, official examples, or Stack Overflow answers
+- Find real working code from popular open source projects with similar tech stacks
 
 **CRITICAL - Never Promise to "Remember" Without Documentation:**
 - NEVER say "I'll make a note" or "I'll remember" without actually updating CLAUDE.md
@@ -653,6 +682,26 @@ cd mame/lua && stylua . && luacheck .
 5. **NO spaghetti code** - Avoid tangled, hard-to-follow logic with excessive coupling
 6. **NO Rube Goldberg machines** - Avoid overly complex solutions with unnecessary indirection
 7. **KISS principle** - Keep it simple and straightforward - the simplest solution that works is best
+
+**Comment Guidelines:**
+- **NEVER add comments about your own thought process** - Other engineers don't care why you made a decision during implementation
+- **NEVER add obvious comments** - Don't describe "what" the code does if it's already clear from reading it
+- **DO add comments for "why"** - Explain business logic, edge cases, workarounds, or non-obvious decisions
+- **Comments must be clear and unambiguous** - Any engineer seeing this code for the first time should understand it
+
+**Bad comments:**
+```typescript
+testDriverLEDs: vi.fn(), // Add missing method (your thought process - useless)
+const drivers = []; // Empty drivers array for testing (obvious - useless)
+i++; // Increment i (obvious - useless)
+```
+
+**Good comments:**
+```typescript
+// Workaround for macOS fs.watch() initialization delay - see nodejs/node#52601
+// Timeout check runs every 5 seconds to detect stale connections
+// QoS 2 required for exactly-once delivery of critical config updates
+```
 
 **Code Organization:**
 - Functions should do ONE thing well

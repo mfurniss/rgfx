@@ -8,9 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   test: {
     globals: true,
-    environment: "node",
+    environment: "happy-dom",
     setupFiles: ["./src/__tests__/setup.ts"],
-    include: ["src/**/*.{test,spec}.{js,ts}", "config/**/*.{test,spec}.{js,ts}"],
+    include: ["src/**/*.{test,spec}.{js,ts,tsx}", "config/**/*.{test,spec}.{js,ts}"],
     exclude: ["node_modules", "dist", ".vite", "out"],
     coverage: {
       provider: "v8",

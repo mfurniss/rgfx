@@ -1,4 +1,9 @@
 import { afterEach, vi } from "vitest";
+import React from "react";
+
+// Make React globally available for JSX transform
+ 
+(globalThis as any).React = React;
 
 // Global cleanup to prevent timer leaks between tests
 afterEach(() => {

@@ -37,6 +37,7 @@ describe("GameEventMapper", () => {
       connected: true,
       lastSeen: Date.now(),
       firstSeen: Date.now(),
+      failedHeartbeats: 0,
       ip: "192.168.1.100",
       stats: {
         mqttMessagesReceived: 0,
@@ -53,6 +54,7 @@ describe("GameEventMapper", () => {
       connected: true,
       lastSeen: Date.now(),
       firstSeen: Date.now(),
+      failedHeartbeats: 0,
       ip: "192.168.1.101",
       stats: {
         mqttMessagesReceived: 0,
