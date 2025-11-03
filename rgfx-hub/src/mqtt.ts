@@ -9,6 +9,7 @@ import Aedes from "aedes";
 import { createServer, Server } from "node:net";
 import log from "electron-log/main";
 import Bonjour from "bonjour-service";
+import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL, MDNS_SERVICE_NAME, MDNS_SERVICE_TYPE, MDNS_HOSTNAME } from "./config/constants";
 
 export class Mqtt {
   public aedes: Aedes; // Make public for MqttClientWrapper access
@@ -21,7 +22,7 @@ export class Mqtt {
   private bonjour?: Bonjour;
   private mdnsService?: ReturnType<Bonjour["publish"]>;
 
-  constructor(port = 1883) {
+  constructor(port = MQTT_DEFAULT_PORT) {
     this.port = port;
     this.aedes = new Aedes();
     this.server = createServer(this.aedes.handle);
@@ -66,7 +67,7 @@ export class Mqtt {
       this.aedes.publish(
         {
           cmd: "publish",
-          qos: 2,
+          qos: MQTT_QOS_LEVEL,
           dup: false,
           topic,
           payload: Buffer.from(payload),
@@ -77,7 +78,7 @@ export class Mqtt {
             log.error(`Failed to publish to ${topic}:`, err);
             reject(err);
           } else {
-            log.info(`Published to ${topic} (QoS 2): ${payload}`);
+            log.info(`Published to ${topic} (QoS ${MQTT_QOS_LEVEL}): ${payload}`);
             resolve();
           }
         },
@@ -92,16 +93,16 @@ export class Mqtt {
       // Announce MQTT broker via mDNS
       this.bonjour = new Bonjour();
       this.mdnsService = this.bonjour.publish({
-        name: "RGFX Hub",
-        type: "mqtt",
+        name: MDNS_SERVICE_NAME,
+        type: MDNS_SERVICE_TYPE,
         port: this.port,
-        host: "rgfx-hub.local", // Explicitly set hostname to avoid conflicts with macOS system hostname
+        host: MDNS_HOSTNAME, // Explicitly set hostname to avoid conflicts with macOS system hostname
         txt: {
           version: "1.0",
         },
       });
       log.info(
-        'MQTT broker announced via mDNS as "RGFX Hub._mqtt._tcp" at rgfx-hub.local',
+        `MQTT broker announced via mDNS as "${MDNS_SERVICE_NAME}._${MDNS_SERVICE_TYPE}._tcp" at ${MDNS_HOSTNAME}`,
       );
     });
   }

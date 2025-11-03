@@ -23,6 +23,7 @@ import { StateStoreImpl } from "./mapping/state-store";
 import { LoggerWrapper } from "./mapping/logger-wrapper";
 import { installDefaultMappers } from "./mapper-installer";
 import type { DriverSystemInfo } from "./types";
+import { MQTT_DEFAULT_PORT, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT } from "./config/constants";
 import pkg from "../package.json";
 
 // Vite environment variables injected by Electron Forge
@@ -45,7 +46,7 @@ let mainWindow: BrowserWindow | null = null;
 // Initialize services (persistence first, then registry)
 const driverPersistence = new DriverPersistence();
 const ledHardwareManager = new LEDHardwareManager();
-const mqtt = new Mqtt(1883);
+const mqtt = new Mqtt(MQTT_DEFAULT_PORT);
 const eventReader = new EventFileReader();
 const driverRegistry = new DriverRegistry(driverPersistence, ledHardwareManager);
 const systemMonitor = new SystemMonitor();
@@ -146,8 +147,14 @@ async function pushConfigToDriver(driverId: string): Promise<void> {
 
 // Set up driver registry callbacks
 driverRegistry.onDriverConnected((driver) => {
+  const callbackTime = Date.now();
+  log.info(`[DEBUG] onDriverConnected callback triggered for ${driver.id} at ${callbackTime}`);
+
   if (isWindowAvailable() && mainWindow) {
     mainWindow.webContents.send("driver:connected", driver);
+    log.info(
+      `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`,
+    );
     sendSystemStatus();
   }
 
@@ -179,20 +186,27 @@ void installDefaultMappers().then(() => {
   log.error("Failed to install default mappers:", error);
 });
 
-// Set up discovery service to check timeouts
-discoveryService.onTimeoutCheck(() => {
-  driverRegistry.checkTimeouts();
+// Set up discovery service to process heartbeat cycles
+discoveryService.onHeartbeatCycleComplete((respondedDriverIds) => {
+  driverRegistry.processHeartbeatFailures(respondedDriverIds);
 });
 
 // Subscribe to driver connect messages (initial connection with system info)
 mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
-  log.info(`Driver connect message received`);
+  const mqttReceiveTime = Date.now();
+  log.info(`[DEBUG] Driver connect MQTT received at ${mqttReceiveTime}`);
 
   try {
     // Type assertion via unknown - JSON.parse returns any, which we assert to our expected type
     const parsed = JSON.parse(payload) as unknown;
     const sysInfo = parsed as DriverSystemInfo;
+    log.info(
+      `[DEBUG] Driver connect parsed, calling registerDriver for ${sysInfo.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+    );
     driverRegistry.registerDriver(sysInfo);
+    log.info(
+      `[DEBUG] registerDriver completed for ${sysInfo.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+    );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     log.error(`Failed to parse driver connect message: ${errorMessage}`);
@@ -212,6 +226,7 @@ mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
     }
 
     driverRegistry.updateHeartbeat(driverId);
+    discoveryService.trackHeartbeatResponse(driverId);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     log.error(`Failed to parse driver heartbeat message: ${errorMessage}`);
@@ -244,8 +259,8 @@ ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boo
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 600,
+    width: MAIN_WINDOW_WIDTH,
+    height: MAIN_WINDOW_HEIGHT,
     title: `RGFX Hub v${pkg.version}`,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),

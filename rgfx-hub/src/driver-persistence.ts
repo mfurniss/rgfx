@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
 import type { DriverLEDConfig } from './types';
+import { CONFIG_VERSION, CONFIG_DIRECTORY } from './config/constants';
 
 /**
  * Persisted driver data structure
@@ -57,9 +58,9 @@ interface DriversConfigFile {
 export class DriverPersistence {
   private configFile: string;
   private drivers = new Map<string, PersistedDriver>();
-  private readonly version = '1.0';
+  private readonly version = CONFIG_VERSION;
 
-  constructor(baseDir = 'config') {
+  constructor(baseDir = CONFIG_DIRECTORY) {
     this.configFile = path.resolve(baseDir, 'drivers.json');
 
     // Ensure config directory exists

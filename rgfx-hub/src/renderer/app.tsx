@@ -24,19 +24,42 @@ const App: React.FC = () => {
   const systemStatus = useDriverStore(state => state.systemStatus);
 
   // Get actions from Zustand store
-  const driverConnected = useDriverStore(state => state.driverConnected);
-  const driverDisconnected = useDriverStore(state => state.driverDisconnected);
-  const updateSystemStatus = useDriverStore(state => state.updateSystemStatus);
+  const onDriverConnected = useDriverStore(state => state.onDriverConnected);
+  const onDriverDisconnected = useDriverStore(state => state.onDriverDisconnected);
+  const onSystemStatusUpdate = useDriverStore(state => state.onSystemStatusUpdate);
 
   useEffect(() => {
-    // Wire IPC listeners directly to Zustand actions
-    window.rgfx.onDriverConnected(driverConnected);
-    window.rgfx.onDriverDisconnected(driverDisconnected);
-    window.rgfx.onSystemStatus(updateSystemStatus);
+    console.log('[APP] Registering IPC listeners');
+
+    // Wire IPC listeners directly to Zustand actions with debug logging
+    const unsubConnected = window.rgfx.onDriverConnected((driver) => {
+      const ipcReceiveTime = Date.now();
+      console.log(`[DEBUG] IPC driver:connected received in renderer for ${driver.id} at ${ipcReceiveTime}`);
+      onDriverConnected(driver);
+      console.log(`[DEBUG] onDriverConnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`);
+    });
+
+    const unsubDisconnected = window.rgfx.onDriverDisconnected((driver) => {
+      const ipcReceiveTime = Date.now();
+      console.log(`[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`);
+      onDriverDisconnected(driver);
+      console.log(`[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`);
+    });
+
+    const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
 
     // Signal to main process that renderer is ready to receive initial state
     window.rgfx.rendererReady();
-  }, [driverConnected, driverDisconnected, updateSystemStatus]);
+
+    // Cleanup function to remove listeners
+    return () => {
+      console.log('[APP] Cleaning up IPC listeners');
+      unsubConnected();
+      unsubDisconnected();
+      unsubSystemStatus();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount, Zustand actions are stable enough
 
   return (
     <ThemeProvider theme={theme}>

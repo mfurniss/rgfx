@@ -7,26 +7,27 @@
 
 import log from "electron-log/main";
 import type { Mqtt } from "./mqtt";
-
-// Discovery interval (30 seconds between pings)
-const DISCOVERY_INTERVAL_MS = 30000;
-
-// Timeout check interval (check every 5 seconds)
-const TIMEOUT_CHECK_INTERVAL_MS = 5000;
+import { DISCOVERY_INTERVAL_MS } from "./config/constants";
 
 export class DiscoveryService {
   private mqtt: Mqtt;
   private discoveryInterval?: NodeJS.Timeout;
-  private timeoutCheckInterval?: NodeJS.Timeout;
-  private onTimeoutCheckCallback?: () => void;
+  private respondedDrivers = new Set<string>();
+  private onHeartbeatCycleCompleteCallback?: (respondedDriverIds: Set<string>) => void;
 
   constructor(mqtt: Mqtt) {
     this.mqtt = mqtt;
   }
 
-  // Set callback for periodic timeout checks
-  onTimeoutCheck(callback: () => void) {
-    this.onTimeoutCheckCallback = callback;
+  // Set callback for when heartbeat cycle completes
+  onHeartbeatCycleComplete(callback: (respondedDriverIds: Set<string>) => void) {
+    this.onHeartbeatCycleCompleteCallback = callback;
+  }
+
+  // Track a driver heartbeat response
+  trackHeartbeatResponse(driverId: string) {
+    this.respondedDrivers.add(driverId);
+    log.debug(`Tracked heartbeat response from driver ${driverId}`);
   }
 
   // Start periodic driver discovery
@@ -34,15 +35,10 @@ export class DiscoveryService {
     // Send discovery request immediately on startup
     this.sendDiscoveryRequest();
 
-    // Then send every 30 seconds
+    // Then send every 10 seconds
     this.discoveryInterval = setInterval(() => {
       this.sendDiscoveryRequest();
     }, DISCOVERY_INTERVAL_MS);
-
-    // Check for timed-out devices every 5 seconds
-    this.timeoutCheckInterval = setInterval(() => {
-      this.onTimeoutCheckCallback?.();
-    }, TIMEOUT_CHECK_INTERVAL_MS);
 
     log.info("Discovery service started");
   }
@@ -53,15 +49,20 @@ export class DiscoveryService {
       clearInterval(this.discoveryInterval);
       this.discoveryInterval = undefined;
     }
-    if (this.timeoutCheckInterval) {
-      clearInterval(this.timeoutCheckInterval);
-      this.timeoutCheckInterval = undefined;
-    }
     log.info("Discovery service stopped");
   }
 
   // Send discovery request to find drivers
   private sendDiscoveryRequest() {
+    // Process the previous cycle's responses before starting a new cycle
+    if (this.respondedDrivers.size > 0 || this.onHeartbeatCycleCompleteCallback) {
+      log.info(`Processing heartbeat cycle: ${this.respondedDrivers.size} drivers responded`);
+      this.onHeartbeatCycleCompleteCallback?.(this.respondedDrivers);
+
+      // Clear for next cycle
+      this.respondedDrivers.clear();
+    }
+
     log.info("Sending driver discovery request...");
     void this.mqtt.publish("rgfx/system/discover", "ping").catch((error: unknown) => {
       log.error("Failed to send discovery request:", error);

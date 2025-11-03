@@ -9,9 +9,7 @@ import log from "electron-log/main";
 import type { Driver, DriverSystemInfo, LEDHardware } from "./types";
 import type { DriverPersistence } from "./driver-persistence";
 import type { LEDHardwareManager } from "./led-hardware-manager";
-
-// Driver timeout threshold (35 seconds = 30s poll + 5s grace)
-const DRIVER_TIMEOUT_MS = 35000;
+import { HEARTBEAT_FAILURE_THRESHOLD } from "./config/constants";
 
 export class DriverRegistry {
   private drivers = new Map<string, Driver>();
@@ -20,7 +18,10 @@ export class DriverRegistry {
   private persistence?: DriverPersistence;
   private ledHardwareManager?: LEDHardwareManager;
 
-  constructor(persistence?: DriverPersistence, ledHardwareManager?: LEDHardwareManager) {
+  constructor(
+    persistence?: DriverPersistence,
+    ledHardwareManager?: LEDHardwareManager,
+  ) {
     this.persistence = persistence;
     this.ledHardwareManager = ledHardwareManager;
 
@@ -31,11 +32,15 @@ export class DriverRegistry {
         // Resolve LED hardware if config exists
         let resolvedHardware: LEDHardware | undefined = undefined;
         if (pd.ledConfig?.hardwareRef) {
-          const hardware = ledHardwareManager.loadHardware(pd.ledConfig.hardwareRef);
+          const hardware = ledHardwareManager.loadHardware(
+            pd.ledConfig.hardwareRef,
+          );
           if (hardware) {
             resolvedHardware = hardware;
           } else {
-            log.warn(`Failed to resolve LED hardware for driver ${pd.id}: ${pd.ledConfig.hardwareRef}`);
+            log.warn(
+              `Failed to resolve LED hardware for driver ${pd.id}: ${pd.ledConfig.hardwareRef}`,
+            );
           }
         }
 
@@ -47,6 +52,7 @@ export class DriverRegistry {
           connected: false,
           lastSeen: 0,
           firstSeen: pd.firstSeen,
+          failedHeartbeats: 0,
           ledConfig: pd.ledConfig,
           resolvedHardware: resolvedHardware,
           stats: {
@@ -58,7 +64,9 @@ export class DriverRegistry {
         };
         this.drivers.set(driver.id, driver);
       }
-      log.info(`Loaded ${persistedDrivers.length} known drivers from persistence`);
+      log.info(
+        `Loaded ${persistedDrivers.length} known drivers from persistence`,
+      );
     }
   }
 
@@ -74,7 +82,11 @@ export class DriverRegistry {
 
   // Register or update a driver from MQTT connect message
   registerDriver(sysInfo: DriverSystemInfo): Driver {
+    const registerStartTime = Date.now();
     const driverId = sysInfo.mac || sysInfo.ip || "unknown";
+    log.info(
+      `[DEBUG] registerDriver called for ${driverId} at ${registerStartTime}`,
+    );
     const existingDriver = this.drivers.get(driverId);
     const now = Date.now();
     const isNewDriver = !existingDriver;
@@ -102,6 +114,7 @@ export class DriverRegistry {
       connected: true,
       lastSeen: now,
       firstSeen: firstSeen,
+      failedHeartbeats: 0, // Reset on connect
       ip: sysInfo.ip,
       sysInfo: sysInfo,
       ledConfig: existingDriver?.ledConfig, // Preserve LED config (hardware ref + settings)
@@ -116,14 +129,23 @@ export class DriverRegistry {
     };
 
     this.drivers.set(driver.id, driver);
+    log.info(
+      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
+    );
 
     // Notify if this is a new driver or was previously disconnected
     if (!existingDriver?.connected) {
       log.info(`Driver connected: ${driver.name} (${driverId})`);
+      log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
       this.onDriverConnectedCallback?.(driver);
+      log.info(
+        `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
+      );
     } else {
       // Existing connected driver - shouldn't happen if using heartbeat properly
-      log.warn(`Driver ${driver.name} (${driverId}) sent connect message while already connected - should use heartbeat instead`);
+      log.warn(
+        `Driver ${driver.name} (${driverId}) sent connect message while already connected - should use heartbeat instead`,
+      );
     }
 
     return driver;
@@ -134,16 +156,21 @@ export class DriverRegistry {
     const driver = this.drivers.get(driverId);
 
     if (!driver) {
-      log.warn(`Heartbeat from unknown driver: ${driverId} - driver should connect first`);
+      log.warn(
+        `Heartbeat from unknown driver: ${driverId} - driver should connect first`,
+      );
       return undefined;
     }
 
     const now = Date.now();
     driver.lastSeen = now;
+    driver.failedHeartbeats = 0; // Reset failure counter on successful heartbeat
 
     // If driver was previously disconnected, mark as reconnected
     if (!driver.connected) {
-      log.info(`Driver reconnected via heartbeat: ${driver.name} (${driverId})`);
+      log.info(
+        `Driver reconnected via heartbeat: ${driver.name} (${driverId})`,
+      );
       driver.connected = true;
       this.onDriverConnectedCallback?.(driver);
     }
@@ -191,33 +218,49 @@ export class DriverRegistry {
     return driver;
   }
 
-  // Check for timed-out drivers and mark them as disconnected
-  checkTimeouts(): number {
-    const now = Date.now();
+  // Process heartbeat failures for drivers that didn't respond to discovery ping
+  processHeartbeatFailures(respondedDriverIds: Set<string>): number {
     let disconnectedCount = 0;
 
-    log.info(`Checking driver timeouts for ${this.drivers.size} drivers...`);
+    log.info(
+      `Processing heartbeat failures. ${respondedDriverIds.size} drivers responded out of ${this.drivers.size} total`,
+    );
 
     this.drivers.forEach((driver, driverId) => {
-      const timeSinceLastSeen = now - driver.lastSeen;
-      log.info(
-        `Driver ${driver.name}: connected=${driver.connected}, lastSeen=${timeSinceLastSeen}ms ago, threshold=${DRIVER_TIMEOUT_MS}ms`,
-      );
+      // Skip already disconnected drivers
+      if (!driver.connected) {
+        return;
+      }
 
-      if (driver.connected && timeSinceLastSeen > DRIVER_TIMEOUT_MS) {
+      if (respondedDriverIds.has(driverId)) {
+        // Driver responded - already handled in updateHeartbeat (resets failedHeartbeats)
+        log.debug(`Driver ${driver.name} responded to heartbeat`);
+      } else {
+        // Driver did not respond - increment failure counter
+        driver.failedHeartbeats++;
         log.info(
-          `Driver ${driver.name} (${driverId}) timed out - marking as disconnected`,
+          `Driver ${driver.name} missed heartbeat. Failed attempts: ${driver.failedHeartbeats}/${HEARTBEAT_FAILURE_THRESHOLD}`,
         );
 
-        // Mark as disconnected
-        driver.connected = false;
-        this.drivers.set(driverId, driver);
+        // Check if driver should be disconnected
+        if (driver.failedHeartbeats >= HEARTBEAT_FAILURE_THRESHOLD) {
+          log.info(
+            `Driver ${driver.name} (${driverId}) exceeded failure threshold - marking as disconnected`,
+          );
 
-        // Notify callback
-        if (this.onDriverDisconnectedCallback) {
-          this.onDriverDisconnectedCallback(driver);
-          log.info(`Sent driver:disconnected event`);
-          disconnectedCount++;
+          // Mark as disconnected
+          driver.connected = false;
+          this.drivers.set(driverId, driver);
+
+          // Notify callback
+          if (this.onDriverDisconnectedCallback) {
+            this.onDriverDisconnectedCallback(driver);
+            log.info(`Sent driver:disconnected event`);
+            disconnectedCount++;
+          }
+        } else {
+          // Update driver with incremented failure count
+          this.drivers.set(driverId, driver);
         }
       }
     });

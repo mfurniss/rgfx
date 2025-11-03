@@ -158,6 +158,7 @@ export interface Driver {
   connected: boolean;
   lastSeen: number;
   firstSeen: number;
+  failedHeartbeats: number;
   ip?: string;
   sysInfo?: DriverSystemInfo;
   stats: DriverStats;
@@ -174,9 +175,9 @@ export interface SystemStatus {
 }
 
 export interface IpcApi {
-  onDriverConnected: (callback: (driver: Driver) => void) => void;
-  onDriverDisconnected: (callback: (driver: Driver) => void) => void;
-  onSystemStatus: (callback: (status: SystemStatus) => void) => void;
+  onDriverConnected: (callback: (driver: Driver) => void) => () => void;
+  onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
+  onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
   testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
   rendererReady: () => void;
 }

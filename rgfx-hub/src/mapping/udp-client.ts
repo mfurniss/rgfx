@@ -9,6 +9,7 @@ import log from 'electron-log/main';
 import type { UdpClient, EffectPayload } from '../types/mapping-types';
 import type { DriverRegistry } from '../driver-registry';
 import { Udp } from '../udp';
+import { UDP_PORT } from '../config/constants';
 
 /**
  * UDP client implementation for broadcasting effects to drivers
@@ -17,7 +18,6 @@ import { Udp } from '../udp';
  * semantic effect payloads as JSON.
  */
 export class UdpClientImpl implements UdpClient {
-  private readonly UDP_PORT = 8888; // Default UDP port for drivers
 
   constructor(private driverRegistry: DriverRegistry) {}
 
@@ -53,7 +53,7 @@ export class UdpClientImpl implements UdpClient {
     }
 
     // Create UDP socket and send
-    const udp = new Udp(driver.ip, this.UDP_PORT);
+    const udp = new Udp(driver.ip, UDP_PORT);
 
     // Set callback to close socket after send completes
     udp.setSentCallback(() => {

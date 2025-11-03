@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
 import type { LEDHardware } from './types';
+import { CONFIG_DIRECTORY } from './config/constants';
 
 /**
  * Manages LED hardware definition files
@@ -23,7 +24,7 @@ export class LEDHardwareManager {
   private configDir: string;
   private cache = new Map<string, LEDHardware>();
 
-  constructor(baseDir = 'config') {
+  constructor(baseDir = CONFIG_DIRECTORY) {
     this.configDir = path.resolve(baseDir);
   }
 

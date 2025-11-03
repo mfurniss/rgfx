@@ -23,6 +23,9 @@ export default tseslint.config(
         allowNumber: true,
         allowBoolean: true,
       }],
+      // Disable unified-signatures rule - it has a bug that causes crashes with certain TypeScript patterns
+      // See: https://github.com/typescript-eslint/typescript-eslint/issues
+      '@typescript-eslint/unified-signatures': 'off',
     },
   },
 
@@ -92,7 +95,7 @@ export default tseslint.config(
 
   // Test file overrides - relax strict rules for tests
   {
-    files: ['**/__tests__/**/*.ts', '**/*.test.ts', '**/*.spec.ts'],
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
