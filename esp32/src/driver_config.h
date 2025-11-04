@@ -50,7 +50,7 @@ struct DriverConfigData {
 
 	// Constructor with defaults
 	DriverConfigData()
-		: globalBrightnessLimit(255), gammaCorrection(2.2), dithering(true), updateRate(60) {}
+		: globalBrightnessLimit(255), gammaCorrection(2.2), dithering(true), updateRate(120) {}
 };
 
 /**

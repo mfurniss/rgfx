@@ -16,6 +16,7 @@
 #include "config_portal.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
+#include "driver_config.h"
 #include "udp.h"
 #include "mqtt.h"
 #include "log.h"
@@ -151,6 +152,26 @@ void setup() {
 // Main loop - runs on Core 1 (application core)
 // Focused on time-critical LED effects and low-latency UDP processing
 void loop() {
+	// Frame rate limiting (VRR with configurable soft cap)
+	// Calculate minimum frame time based on configured update rate (default 120 FPS)
+	static uint32_t lastFrameTime = 0;
+	uint32_t now = millis();
+	uint32_t minFrameTimeMs = 1000 / g_driverConfig.updateRate; // e.g., 8ms @ 120 FPS
+
+	// Early return if not enough time has elapsed (non-blocking time-based gating)
+	if (now - lastFrameTime < minFrameTimeMs) {
+		yield(); // Give time to other tasks
+		return;
+	}
+
+	// Calculate actual delta-time for hardware-independent animation speeds
+	float deltaTime = (now - lastFrameTime) / 1000.0f; // Seconds elapsed
+	lastFrameTime = now;
+
+	// Note: deltaTime is available for future effects system
+	// Effects can use it for movement calculations: position += velocity * deltaTime
+	(void)deltaTime; // Suppress unused variable warning until effects system uses it
+
 	// Check WiFi connection state and update LEDs accordingly
 	bool isConnected = ConfigPortal::isWiFiConnected();
 	String state = ConfigPortal::getStateName();

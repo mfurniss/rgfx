@@ -44,4 +44,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Linear lookup table for matrix coordinate transforms
 [ ] Remove hardware config default from driver - could be dangerous
 [X] LED test mode
-[ ] Optimize driver reconnection system
+[X] Optimize driver reconnection system
+[X] LED effect variable frame rate
