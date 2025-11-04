@@ -3,6 +3,7 @@
 
 #include <FastLED.h>
 #include "driver_config.h"
+#include "config/constants.h"
 
 /**
  * FastLED Configuration Manager
@@ -11,16 +12,14 @@
  * Supports multiple pins, multiple devices per pin, strips and matrices.
  *
  * Limitations:
- * - Maximum 4 GPIO pins supported
+ * - Maximum 4 GPIO pins supported (MAX_PINS in constants.h)
  * - All LEDs must use same chipset type (WS2812B)
  * - Color order can vary per device
  */
 
-// Maximum supported pins
-#define MAX_PINS 4
-
-// Maximum LEDs per pin
-#define MAX_LEDS_PER_PIN 300
+// Hardware limits defined in config/constants.h:
+// - MAX_PINS: Maximum supported GPIO pins
+// - MAX_LEDS_PER_PIN: Maximum LEDs per pin
 
 /**
  * Initialize FastLED based on g_driverConfig

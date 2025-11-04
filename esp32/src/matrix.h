@@ -1,9 +1,14 @@
 #pragma once
 #include <FastLED.h>
 #include "coordinate_transforms.h"
+#include "config/constants.h"
 
-#define WIDTH 8
-#define HEIGHT 8
+// Default matrix dimensions defined in config/constants.h:
+// - DEFAULT_MATRIX_WIDTH
+// - DEFAULT_MATRIX_HEIGHT
+// Legacy defines kept for backward compatibility:
+#define WIDTH DEFAULT_MATRIX_WIDTH
+#define HEIGHT DEFAULT_MATRIX_HEIGHT
 
 class Matrix {
   public:

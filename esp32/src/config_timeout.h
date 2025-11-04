@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include "config/constants.h"
 
-// AP mode timeout in milliseconds
-// Controls how long device stays in AP mode before falling back to saved WiFi
-// Also used for UI countdown display in main.cpp
-static constexpr uint32_t AP_TIMEOUT_MS = 10000; // 10 seconds
+// All timing constants now centralized in config/constants.h
+// This header kept for backward compatibility

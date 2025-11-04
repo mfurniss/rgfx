@@ -3,9 +3,11 @@
 
 #include <Arduino.h>
 #include <WiFiUdp.h>
+#include "config/constants.h"
 
-#define UDP_PORT 8888 // Port to listen on for UDP messages
-#define UDP_BUFFER_SIZE 256
+// Network constants defined in config/constants.h:
+// - UDP_PORT: Port to listen on for UDP messages
+// - UDP_BUFFER_SIZE: Buffer size for incoming messages
 
 struct UDPMessage {
 	String effect;

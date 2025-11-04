@@ -16,6 +16,7 @@
 #include "config_portal.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
+#include "config/constants.h"
 #include "driver_config.h"
 #include "udp.h"
 #include "mqtt.h"
@@ -27,7 +28,10 @@
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
 
-#define FLASH_DURATION_MS 10 // MQTT message flash duration
+// Timing constants defined in config/constants.h:
+// - FLASH_DURATION_MS: MQTT message flash duration
+// - UPTIME_UPDATE_INTERVAL: OLED display refresh interval
+// - AP_TIMEOUT_MS: WiFi AP mode timeout
 
 Matrix matrix(WIDTH, HEIGHT);
 
@@ -71,8 +75,6 @@ void networkTask(void* parameter) {
 
 	// Track last uptime update for periodic display refresh
 	unsigned long lastUptimeUpdate = 0;
-	const unsigned long UPTIME_UPDATE_INTERVAL =
-		5000; // Update every 5 seconds (reduced frequency to prevent I2C issues)
 
 	// Main network task loop
 	while (true) {
