@@ -167,7 +167,10 @@ void ConfigPortal::begin() {
 	}
 
 	if (validConfig) {
-		log("Valid configuration loaded");
+		// Skip AP mode entirely when WiFi credentials are already configured
+		// This prevents the 10-second AP mode delay on subsequent boots
+		iotWebConf->skipApStartup();
+		log("Valid configuration loaded - skipping AP mode");
 	} else {
 		log("No valid configuration - starting in AP mode");
 		log("Connect to SSID: " + apName);

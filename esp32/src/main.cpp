@@ -11,8 +11,9 @@
 #include "effects/fire.h"
 #include "effects/wave.h"
 #include "effects/sparkle.h"
-#include "effects/pulse.h"
 #include "effects/test.h"
+#include "effect-processor.h"
+#include "network-init.h"
 #include "config_portal.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
@@ -36,14 +37,17 @@ void handleDriverConfig(const String& payload);
 
 Matrix matrix(WIDTH, HEIGHT);
 
+// Global effect processor (initialized after driver comes online)
+EffectProcessor* effectProcessor = nullptr;
+
 // FreeRTOS task handle for network task on Core 0
 TaskHandle_t networkTaskHandle = NULL;
 
 // Track WiFi/MQTT/OTA connection state (shared between cores)
 static bool wasConnected = false;
-static bool mqttSetupDone = false;
-static bool udpSetupDone = false;
-static bool otaSetupDone = false;
+bool mqttSetupDone = false;  // Extern in network-init.h
+bool udpSetupDone = false;   // Extern in network-init.h
+bool otaSetupDone = false;   // Extern in network-init.h
 static bool initialConnectionAttemptDone = false;
 
 // Effect function pointer type
@@ -51,7 +55,7 @@ typedef void (*EffectFunction)(Matrix&, uint32_t);
 
 // Effect lookup table
 std::map<String, EffectFunction> effectMap = {
-	{"pulse", pulse}, {"test", test}
+	{"test", test}
 	// Add more effects here
 };
 
@@ -233,98 +237,9 @@ void loop() {
 		initialConnectionAttemptDone = true;
 
 		if (isConnected) {
-			// Just connected - setup OTA, MQTT, UDP and show GREEN briefly
-			log("WiFi connected - setting up OTA, MQTT and UDP");
-			fill_solid(matrix.leds, matrix.size, CRGB::Green);
-			FastLED.show();
-
-			// Update display to show connecting
-			if (Display::isAvailable()) {
-				Display::showConnecting(WiFi.SSID());
-			}
-
-			delay(500);
-
-			// Setup OTA updates (must be done after WiFi is connected)
-			// Use unique device name for OTA hostname (e.g., "rgfx-driver-f89a58")
-			ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
-			ArduinoOTA.onStart([]() {
-				log("OTA Update starting...");
-				fill_solid(matrix.leds, matrix.size, CRGB::Orange);
-				FastLED.show();
-			});
-			ArduinoOTA.onEnd([]() {
-				log("OTA Update complete!");
-				fill_solid(matrix.leds, matrix.size, CRGB::Green);
-				FastLED.show();
-			});
-			ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-				static unsigned int lastPercent = 0;
-				unsigned int percent = (progress / (total / 100));
-				if (percent != lastPercent && percent % 10 == 0) {
-					log("OTA Progress: " + String(percent) + "%");
-					lastPercent = percent;
-				}
-			});
-			ArduinoOTA.onError([](ota_error_t error) {
-				log("OTA Error: " + String(error));
-				fill_solid(matrix.leds, matrix.size, CRGB::Red);
-				FastLED.show();
-			});
-			ArduinoOTA.begin();
-			delay(100);  // Give OTA time to initialize
-			log("OTA Ready");
-			otaSetupDone = true;
-
-			// Initialize mDNS for service discovery with unique device name
-			if (MDNS.begin(Utils::getDeviceName().c_str())) {
-				log("mDNS responder started as " + Utils::getDeviceName());
-			} else {
-				log("Error starting mDNS responder");
-			}
-
-			// Load saved LED configuration from NVS (if available)
-			if (ConfigNVS::hasLEDConfig()) {
-				log("Loading saved LED configuration from NVS...");
-				String savedConfig = ConfigNVS::loadLEDConfig();
-				if (savedConfig.length() > 0) {
-					// Process saved config using same handler as MQTT
-					handleDriverConfig(savedConfig);
-				}
-			} else {
-				log("No saved LED config - will wait for Hub");
-			}
-
-			// Setup MQTT (will use mDNS to discover broker)
-			setupMQTT();
-			mqttSetupDone = true;
-
-			setupUDP();
-			udpSetupDone = true;
-
-			// Update display to show connected status with actual MQTT status
-			if (Display::isAvailable()) {
-				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
-				                       mqttClient.connected());
-			}
-
-			// Go dark for normal operation
-			fill_solid(matrix.leds, matrix.size, CRGB::Black);
-			FastLED.show();
+			setupNetworkServices(matrix);
 		} else {
-			// Disconnected or failed to connect - show PURPLE (AP mode)
-			log("WiFi not connected - entering AP mode");
-			fill_solid(matrix.leds, matrix.size, CRGB::Purple);
-			FastLED.show();
-
-			// Update display to show AP mode
-			if (Display::isAvailable()) {
-				Display::showAPMode(Utils::getDeviceName());
-			}
-
-			mqttSetupDone = false;
-			udpSetupDone = false;
-			otaSetupDone = false;
+			cleanupNetworkServices(matrix);
 		}
 	}
 
@@ -337,21 +252,29 @@ void loop() {
 		// Process incoming UDP packets (low-latency game events)
 		processUDP();
 
+		// Initialize effect processor on first run
+		if (effectProcessor == nullptr) {
+			effectProcessor = new EffectProcessor(matrix);
+		}
+
 		// Check for UDP message updates
 		UDPMessage message;
 		if (checkUDPMessage(&message)) {
-			// Look up effect in map and call it
-			auto it = effectMap.find(message.effect);
-			if (it != effectMap.end()) {
-				it->second(matrix, message.color);
-				FastLED.show();  // Display the effect immediately
+			// Handle pulse effect specially
+			if (message.effect == "pulse") {
+				effectProcessor->triggerPulse(message.color, 150);
+			} else {
+				// Look up other effects in map
+				auto it = effectMap.find(message.effect);
+				if (it != effectMap.end()) {
+					it->second(matrix, message.color);
+				}
 			}
 		}
 
-		// Fade to black for flash effect (skip if test mode is active)
+		// Update and render continuous effects (skip if test mode is active)
 		if (!testModeActive) {
-			fadeToBlackBy(matrix.leds, matrix.size, 50);
-			FastLED.show();
+			effectProcessor->update();
 		}
 	}
 
