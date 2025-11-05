@@ -147,6 +147,10 @@ git push origin feature/my-new-feature
 glab mr create --fill --yes
 ```
 
+**CRITICAL - MR OVERVIEW MUST SUMMARIZE ALL COMMITS:**
+
+When creating the MR overview/description, **ALWAYS summarize ALL commits** in the merge request, not just the first one. The overview should provide a comprehensive summary of the entire branch's changes.
+
 **CRITICAL - ALWAYS MONITOR CI PIPELINES:**
 
 After pushing a feature branch or creating a merge request, **ALWAYS actively monitor the CI pipeline** until completion.
