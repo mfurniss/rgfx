@@ -51,8 +51,7 @@ typedef void (*EffectFunction)(Matrix&, uint32_t);
 
 // Effect lookup table
 std::map<String, EffectFunction> effectMap = {
-	{"pulse", pulse},
-	{"test", test}
+	{"pulse", pulse}, {"test", test}
 	// Add more effects here
 };
 
@@ -66,7 +65,7 @@ void networkTask(void* parameter) {
 	if (hasDisplay) {
 		log("OLED display available - status display enabled");
 		Display::showBoot(Utils::getDeviceName());
-		delay(2000); // Show boot screen for 2 seconds
+		delay(2000);  // Show boot screen for 2 seconds
 	} else {
 		log("Running without OLED display");
 	}
@@ -103,7 +102,7 @@ void networkTask(void* parameter) {
 		}
 
 		// Yield to other tasks and prevent watchdog timeout
-		vTaskDelay(10 / portTICK_PERIOD_MS); // 10ms delay
+		vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms delay
 	}
 }
 
@@ -144,13 +143,13 @@ void setup() {
 
 	// Create network task on Core 0
 	// Priority 1 (same as loop), 8KB stack
-	xTaskCreatePinnedToCore(networkTask,        // Task function
-	                        "NetworkTask",      // Task name
-	                        8192,               // Stack size (bytes)
-	                        NULL,               // Parameters
-	                        1,                  // Priority (1 = same as loop)
-	                        &networkTaskHandle, // Task handle
-	                        0                   // Core 0 (protocol core)
+	xTaskCreatePinnedToCore(networkTask,         // Task function
+	                        "NetworkTask",       // Task name
+	                        8192,                // Stack size (bytes)
+	                        NULL,                // Parameters
+	                        1,                   // Priority (1 = same as loop)
+	                        &networkTaskHandle,  // Task handle
+	                        0                    // Core 0 (protocol core)
 	);
 
 	log("Network task created on Core 0");
@@ -163,21 +162,21 @@ void loop() {
 	// Calculate minimum frame time based on configured update rate (default 120 FPS)
 	static uint32_t lastFrameTime = 0;
 	uint32_t now = millis();
-	uint32_t minFrameTimeMs = 1000 / g_driverConfig.updateRate; // e.g., 8ms @ 120 FPS
+	uint32_t minFrameTimeMs = 1000 / g_driverConfig.updateRate;  // e.g., 8ms @ 120 FPS
 
 	// Early return if not enough time has elapsed (non-blocking time-based gating)
 	if (now - lastFrameTime < minFrameTimeMs) {
-		yield(); // Give time to other tasks
+		yield();  // Give time to other tasks
 		return;
 	}
 
 	// Calculate actual delta-time for hardware-independent animation speeds
-	float deltaTime = (now - lastFrameTime) / 1000.0f; // Seconds elapsed
+	float deltaTime = (now - lastFrameTime) / 1000.0f;  // Seconds elapsed
 	lastFrameTime = now;
 
 	// Note: deltaTime is available for future effects system
 	// Effects can use it for movement calculations: position += velocity * deltaTime
-	(void)deltaTime; // Suppress unused variable warning until effects system uses it
+	(void)deltaTime;  // Suppress unused variable warning until effects system uses it
 
 	// Check WiFi connection state and update LEDs accordingly
 	bool isConnected = ConfigPortal::isWiFiConnected();
@@ -187,7 +186,7 @@ void loop() {
 	static bool inApMode = false;
 	static unsigned long apModeStartTime = 0;
 	static unsigned long lastCountdownUpdate = 0;
-	const uint16_t AP_TIMEOUT_SECONDS = AP_TIMEOUT_MS / 1000; // Derived from config_timeout.h
+	const uint16_t AP_TIMEOUT_SECONDS = AP_TIMEOUT_MS / 1000;  // Derived from config_timeout.h
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {
@@ -273,7 +272,7 @@ void loop() {
 				FastLED.show();
 			});
 			ArduinoOTA.begin();
-			delay(100); // Give OTA time to initialize
+			delay(100);  // Give OTA time to initialize
 			log("OTA Ready");
 			otaSetupDone = true;
 

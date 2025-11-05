@@ -29,7 +29,7 @@ void processUDP() {
 		char buffer[UDP_BUFFER_SIZE];
 		int len = udp.read(buffer, UDP_BUFFER_SIZE - 1);
 		if (len > 0) {
-			buffer[len] = '\0'; // Null terminate
+			buffer[len] = '\0';  // Null terminate
 
 			// Parse JSON
 			JsonDocument doc;
@@ -50,15 +50,16 @@ void processUDP() {
 				// Parse color hex (strip # prefix if present)
 				if (colorHex) {
 					if (colorHex[0] == '#') {
-						colorHex++; // Skip # prefix
+						colorHex++;  // Skip # prefix
 					}
 					pendingMessage.color = (uint32_t)strtol(colorHex, NULL, 16);
 				} else {
-					pendingMessage.color = 0xFFFFFF; // Default white
+					pendingMessage.color = 0xFFFFFF;  // Default white
 				}
 
 				newMessageAvailable = true;
-				log("UDP RX: effect=" + pendingMessage.effect + " color=0x" + String(pendingMessage.color, HEX));
+				log("UDP RX: effect=" + pendingMessage.effect + " color=0x" +
+				    String(pendingMessage.color, HEX));
 			} else {
 				log("UDP RX: JSON parse error: " + String(error.c_str()));
 			}

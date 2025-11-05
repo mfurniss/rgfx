@@ -12,69 +12,69 @@
 
 namespace Commands {
 
-void wifi(const String& args) {
-	// Format: SSID PASSWORD
-	// Example: MyNetwork MyPassword123
-	// Example: "My Network" "My Password 123"
+	void wifi(const String& args) {
+		// Format: SSID PASSWORD
+		// Example: MyNetwork MyPassword123
+		// Example: "My Network" "My Password 123"
 
-	String params = args;
-	params.trim();
+		String params = args;
+		params.trim();
 
-	// Parse SSID and password (supports quoted strings with spaces)
-	String ssid = "";
-	String password = "";
+		// Parse SSID and password (supports quoted strings with spaces)
+		String ssid = "";
+		String password = "";
 
-	int firstQuote = params.indexOf('"');
-	if (firstQuote == 0) {
-		// Quoted SSID
-		int secondQuote = params.indexOf('"', 1);
-		if (secondQuote > 0) {
-			ssid = params.substring(1, secondQuote);
-			String remainder = params.substring(secondQuote + 1);
-			remainder.trim();
+		int firstQuote = params.indexOf('"');
+		if (firstQuote == 0) {
+			// Quoted SSID
+			int secondQuote = params.indexOf('"', 1);
+			if (secondQuote > 0) {
+				ssid = params.substring(1, secondQuote);
+				String remainder = params.substring(secondQuote + 1);
+				remainder.trim();
 
-			// Check for quoted password
-			if (remainder.length() > 0 && remainder.charAt(0) == '"') {
-				int thirdQuote = remainder.indexOf('"', 1);
-				if (thirdQuote > 0) {
-					password = remainder.substring(1, thirdQuote);
+				// Check for quoted password
+				if (remainder.length() > 0 && remainder.charAt(0) == '"') {
+					int thirdQuote = remainder.indexOf('"', 1);
+					if (thirdQuote > 0) {
+						password = remainder.substring(1, thirdQuote);
+					}
+				} else {
+					// Unquoted password
+					password = remainder;
 				}
+			}
+		} else {
+			// Unquoted SSID and password (space-separated)
+			int spacePos = params.indexOf(' ');
+			if (spacePos > 0) {
+				ssid = params.substring(0, spacePos);
+				password = params.substring(spacePos + 1);
+				password.trim();
 			} else {
-				// Unquoted password
-				password = remainder;
+				// SSID only, no password
+				ssid = params;
 			}
 		}
-	} else {
-		// Unquoted SSID and password (space-separated)
-		int spacePos = params.indexOf(' ');
-		if (spacePos > 0) {
-			ssid = params.substring(0, spacePos);
-			password = params.substring(spacePos + 1);
-			password.trim();
+
+		if (ssid.length() > 0) {
+			SerialCommand::log("Setting WiFi credentials from serial command...");
+			SerialCommand::log("SSID: " + ssid);
+			SerialCommand::log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
+
+			if (ConfigPortal::setWiFiCredentials(ssid, password)) {
+				SerialCommand::log("WiFi credentials saved! Restarting in 2 seconds...");
+				delay(2000);
+				ESP.restart();
+			} else {
+				SerialCommand::log("ERROR: Failed to set WiFi credentials");
+			}
 		} else {
-			// SSID only, no password
-			ssid = params;
+			SerialCommand::log("ERROR: Invalid wifi command format");
+			SerialCommand::log("Usage: wifi SSID PASSWORD");
+			SerialCommand::log("Example: wifi MyNetwork MyPassword123");
+			SerialCommand::log("Example: wifi \"My Network\" \"My Password 123\"");
 		}
 	}
 
-	if (ssid.length() > 0) {
-		SerialCommand::log("Setting WiFi credentials from serial command...");
-		SerialCommand::log("SSID: " + ssid);
-		SerialCommand::log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
-
-		if (ConfigPortal::setWiFiCredentials(ssid, password)) {
-			SerialCommand::log("WiFi credentials saved! Restarting in 2 seconds...");
-			delay(2000);
-			ESP.restart();
-		} else {
-			SerialCommand::log("ERROR: Failed to set WiFi credentials");
-		}
-	} else {
-		SerialCommand::log("ERROR: Invalid wifi command format");
-		SerialCommand::log("Usage: wifi SSID PASSWORD");
-		SerialCommand::log("Example: wifi MyNetwork MyPassword123");
-		SerialCommand::log("Example: wifi \"My Network\" \"My Password 123\"");
-	}
-}
-
-} // namespace Commands
+}  // namespace Commands

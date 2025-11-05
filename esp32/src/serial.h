@@ -24,29 +24,29 @@
  */
 namespace SerialCommand {
 
-/**
- * Initialize serial command system.
- * Creates mutex for thread-safe Serial access.
- * Call once in setup().
- */
-void begin();
+	/**
+	 * Initialize serial command system.
+	 * Creates mutex for thread-safe Serial access.
+	 * Call once in setup().
+	 */
+	void begin();
 
-/**
- * Process incoming serial commands.
- * Reads characters, buffers input, and processes complete lines.
- * Call regularly in loop().
- */
-void process();
+	/**
+	 * Process incoming serial commands.
+	 * Reads characters, buffers input, and processes complete lines.
+	 * Call regularly in loop().
+	 */
+	void process();
 
-/**
- * Thread-safe logging wrapper.
- * Acquires mutex before writing to Serial to prevent corruption.
- * Use this instead of Serial.println() when logging from any core.
- *
- * @param message - String to print to Serial
- */
-void log(const String& message);
+	/**
+	 * Thread-safe logging wrapper.
+	 * Acquires mutex before writing to Serial to prevent corruption.
+	 * Use this instead of Serial.println() when logging from any core.
+	 *
+	 * @param message - String to print to Serial
+	 */
+	void log(const String& message);
 
-} // namespace SerialCommand
+}  // namespace SerialCommand
 
 #endif

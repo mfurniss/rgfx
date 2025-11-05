@@ -84,13 +84,13 @@ constexpr unsigned long AP_TIMEOUT_MS = 3000;
  * OLED display uptime update interval (milliseconds).
  * How frequently the uptime display refreshes on the OLED screen.
  */
-constexpr unsigned long UPTIME_UPDATE_INTERVAL = 5000; // 5 seconds
+constexpr unsigned long UPTIME_UPDATE_INTERVAL = 5000;  // 5 seconds
 
 /**
  * MQTT message flash duration (milliseconds).
  * How long to display MQTT message indicator on OLED.
  */
-constexpr unsigned long FLASH_DURATION_MS = 10; // 10 milliseconds
+constexpr unsigned long FLASH_DURATION_MS = 10;  // 10 milliseconds
 
 // ============================================================================
 // Hardware Limits Configuration
@@ -117,6 +117,6 @@ constexpr int DEFAULT_MATRIX_HEIGHT = 8;
  * Note: Actual value is stored in driver_config.h DriverConfigData.updateRate
  * This constant documents the default but isn't used at runtime.
  */
-constexpr int DEFAULT_UPDATE_RATE = 120; // 120 FPS
+constexpr int DEFAULT_UPDATE_RATE = 120;  // 120 FPS
 
-#endif // RGFX_CONFIG_CONSTANTS_H
+#endif  // RGFX_CONFIG_CONSTANTS_H

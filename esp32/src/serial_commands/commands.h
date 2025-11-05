@@ -18,31 +18,37 @@
  */
 namespace Commands {
 
-/**
- * Command handler function signature.
- * @param args - Arguments string after the command name
- */
-typedef void (*CommandHandler)(const String& args);
+	/**
+	 * Command handler function signature.
+	 * @param args - Arguments string after the command name
+	 */
+	typedef void (*CommandHandler)(const String& args);
 
-/**
- * WiFi configuration command.
- * Format: wifi SSID PASSWORD
- * Supports quoted strings for SSIDs/passwords with spaces.
- */
-void wifi(const String& args);
+	/**
+	 * WiFi configuration command.
+	 * Format: wifi SSID PASSWORD
+	 * Supports quoted strings for SSIDs/passwords with spaces.
+	 */
+	void wifi(const String& args);
 
-/**
- * Factory reset command.
- * Erases all WiFi credentials and restarts device.
- */
-void factoryReset(const String& args);
+	/**
+	 * Factory reset command.
+	 * Erases all WiFi credentials and restarts device.
+	 */
+	void factoryReset(const String& args);
 
-/**
- * Help command.
- * Displays list of available commands and usage.
- */
-void help(const String& args);
+	/**
+	 * Help command.
+	 * Displays list of available commands and usage.
+	 */
+	void help(const String& args);
 
-} // namespace Commands
+	/**
+	 * System information command.
+	 * Displays device information including network, chip, memory, and uptime.
+	 */
+	void sysInfo(const String& args);
+
+}  // namespace Commands
 
 #endif

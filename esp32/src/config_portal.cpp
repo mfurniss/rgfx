@@ -21,12 +21,12 @@ static IotWebConf* iotWebConf = nullptr;
 
 // State name lookup table
 static const char* STATE_NAMES[] = {
-	"Boot",          // 0
-	"NotConfigured", // 1
-	"ApMode",        // 2
-	"Connecting",    // 3
-	"OnLine",        // 4
-	"OffLine"        // 5
+	"Boot",           // 0
+	"NotConfigured",  // 1
+	"ApMode",         // 2
+	"Connecting",     // 3
+	"OnLine",         // 4
+	"OffLine"         // 5
 };
 
 // Helper to convert state enum to human-readable string
@@ -81,7 +81,7 @@ bool ConfigPortal::isValidConfigString(const char* str, size_t maxLen) {
 	// Check each character is printable ASCII (space through tilde: 0x20-0x7E)
 	for (size_t i = 0; i < len; i++) {
 		if (!isprint((unsigned char)str[i])) {
-			return false; // Non-printable character = corruption
+			return false;  // Non-printable character = corruption
 		}
 	}
 
@@ -97,12 +97,12 @@ void ConfigPortal::begin() {
 
 	// Initialize IotWebConf with a default AP password
 	// IotWebConf REQUIRES an AP password to be set before it will connect to WiFi
-	const char* defaultApPassword = "rgfx1234";    // Default password for AP mode
-	iotWebConf = new IotWebConf(apName.c_str(),    // Thing name (AP SSID)
-	                            &dnsServer,        // DNS server
-	                            &server,           // Web server
-	                            defaultApPassword, // Default AP password (required!)
-	                            CONFIG_VERSION     // Config version
+	const char* defaultApPassword = "rgfx1234";     // Default password for AP mode
+	iotWebConf = new IotWebConf(apName.c_str(),     // Thing name (AP SSID)
+	                            &dnsServer,         // DNS server
+	                            &server,            // Web server
+	                            defaultApPassword,  // Default AP password (required!)
+	                            CONFIG_VERSION      // Config version
 	);
 
 	// Set callbacks
@@ -154,7 +154,7 @@ void ConfigPortal::begin() {
 
 		// Invalidate IotWebConf's EEPROM configuration by zeroing the config version
 		// This forces IotWebConf to start with clean defaults on next init()
-		EEPROM.begin(512); // Initialize EEPROM with 512 bytes
+		EEPROM.begin(512);  // Initialize EEPROM with 512 bytes
 		for (byte t = 0; t < IOTWEBCONF_CONFIG_VERSION_LENGTH; t++) {
 			EEPROM.write(IOTWEBCONF_CONFIG_START + t, 0);
 		}
@@ -262,12 +262,12 @@ String ConfigPortal::getStateName() {
 
 uint8_t ConfigPortal::getLedBrightness() {
 	// LED config now managed by Hub
-	return 64; // Default value for status display
+	return 64;  // Default value for status display
 }
 
 uint8_t ConfigPortal::getLedDataPin() {
 	// LED config now managed by Hub
-	return 16; // Default value for status display
+	return 16;  // Default value for status display
 }
 
 void ConfigPortal::resetSettings() {
@@ -316,15 +316,15 @@ bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password
 
 	// Update WiFi SSID and password
 	strncpy(ssidParam->valueBuffer, ssid.c_str(), ssidParam->getLength());
-	ssidParam->valueBuffer[ssidParam->getLength() - 1] = '\0'; // Ensure null termination
+	ssidParam->valueBuffer[ssidParam->getLength() - 1] = '\0';  // Ensure null termination
 
 	strncpy(wifiPassParam->valueBuffer, password.c_str(), wifiPassParam->getLength());
-	wifiPassParam->valueBuffer[wifiPassParam->getLength() - 1] = '\0'; // Ensure null termination
+	wifiPassParam->valueBuffer[wifiPassParam->getLength() - 1] = '\0';  // Ensure null termination
 
 	// Set AP password to the default (required for IotWebConf to connect to WiFi)
 	const char* defaultApPassword = "rgfx1234";
 	strncpy(apPassParam->valueBuffer, defaultApPassword, apPassParam->getLength());
-	apPassParam->valueBuffer[apPassParam->getLength() - 1] = '\0'; // Ensure null termination
+	apPassParam->valueBuffer[apPassParam->getLength() - 1] = '\0';  // Ensure null termination
 
 	log("Also setting AP password to: rgfx1234");
 

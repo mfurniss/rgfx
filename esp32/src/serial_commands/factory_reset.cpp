@@ -12,11 +12,11 @@
 
 namespace Commands {
 
-void factoryReset(const String& args) {
-	SerialCommand::log("Factory reset: Erasing WiFi credentials and rebooting...");
-	ConfigPortal::resetSettings();
-	delay(1000);
-	ESP.restart();
-}
+	void factoryReset(const String& args) {
+		SerialCommand::log("Factory reset: Erasing WiFi credentials and rebooting...");
+		ConfigPortal::resetSettings();
+		delay(1000);
+		ESP.restart();
+	}
 
-} // namespace Commands
+}  // namespace Commands
