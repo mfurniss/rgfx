@@ -88,7 +88,6 @@ describe('App IPC Listener Registration', () => {
     const mockDriver: Driver = {
       id: '44:1D:64:F8:9A:58',
       name: 'test-driver',
-      type: 'driver',
       connected: true,
       lastSeen: Date.now(),
       firstSeen: Date.now(),

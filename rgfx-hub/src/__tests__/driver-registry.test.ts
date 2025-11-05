@@ -80,7 +80,6 @@ describe("DriverRegistry", () => {
       expect(device.name).toBe(sysInfo.hostname);
       expect(device.ip).toBe(sysInfo.ip);
       expect(device.connected).toBe(true);
-      expect(device.type).toBe("driver");
       expect(device.failedHeartbeats).toBe(0);
     });
 

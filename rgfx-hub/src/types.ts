@@ -154,7 +154,6 @@ export interface Driver {
   id: string;
   name: string;
   description?: string;
-  type: "driver" | "controller";
   connected: boolean;
   lastSeen: number;
   firstSeen: number;
@@ -162,6 +161,7 @@ export interface Driver {
   ip?: string;
   sysInfo?: DriverSystemInfo;
   stats: DriverStats;
+  updateRate?: number;
   ledConfig?: DriverLEDConfig;
   resolvedHardware?: LEDHardware;
 }

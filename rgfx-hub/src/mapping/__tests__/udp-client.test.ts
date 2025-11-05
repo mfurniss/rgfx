@@ -37,7 +37,6 @@ describe('UdpClientImpl', () => {
       {
         id: 'aa:bb:cc:dd:ee:01',
         name: 'driver-1',
-        type: 'driver',
         connected: true,
         ip: '192.168.1.101',
         lastSeen: Date.now(),
@@ -45,7 +44,6 @@ describe('UdpClientImpl', () => {
       {
         id: 'aa:bb:cc:dd:ee:02',
         name: 'driver-2',
-        type: 'driver',
         connected: true,
         ip: '192.168.1.102',
         lastSeen: Date.now(),
@@ -53,7 +51,6 @@ describe('UdpClientImpl', () => {
       {
         id: 'aa:bb:cc:dd:ee:03',
         name: 'driver-3',
-        type: 'driver',
         connected: false, // Not connected
         ip: '192.168.1.103',
         lastSeen: Date.now(),
@@ -61,7 +58,6 @@ describe('UdpClientImpl', () => {
       {
         id: 'aa:bb:cc:dd:ee:04',
         name: 'driver-4',
-        type: 'driver',
         connected: true,
         ip: undefined, // No IP
         lastSeen: Date.now(),

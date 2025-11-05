@@ -5,7 +5,6 @@
       "id": "44:1D:64:F8:CF:68",
       "name": "rgfx-driver-f8cf68",
       "description": "ESP32 driver board",
-      "type": "driver",
       "firstSeen": 1761512408332,
       "ledConfig": {
         "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
@@ -22,7 +21,6 @@
       "id": "44:1D:64:F8:9A:58",
       "name": "rgfx-driver-f89a58",
       "description": "Primary development board with 8x8 LED matrix",
-      "type": "driver",
       "firstSeen": 1761512509975,
       "ledConfig": {
         "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",

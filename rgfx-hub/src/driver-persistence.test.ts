@@ -46,13 +46,11 @@ describe('DriverPersistence', () => {
           {
             id: 'aa:bb:cc:dd:ee:ff',
             name: 'Test Driver 1',
-            type: 'driver' as const,
             firstSeen: 1234567890,
           },
           {
             id: '11:22:33:44:55:66',
             name: 'Test Driver 2',
-            type: 'controller' as const,
             firstSeen: 9876543210,
           },
         ],
@@ -88,7 +86,7 @@ describe('DriverPersistence', () => {
     it('should add a new driver and persist to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const added = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      const added = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       expect(added).toBe(true);
       expect(persistence.hasDriver('aa:bb:cc:dd:ee:ff')).toBe(true);
@@ -103,8 +101,8 @@ describe('DriverPersistence', () => {
     it('should not add duplicate driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const firstAdd = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
-      const secondAdd = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Duplicate', 'driver');
+      const firstAdd = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      const secondAdd = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Duplicate');
 
       expect(firstAdd).toBe(true);
       expect(secondAdd).toBe(false);
@@ -115,7 +113,7 @@ describe('DriverPersistence', () => {
       const now = Date.now();
       const persistence = new DriverPersistence(testConfigDir);
 
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
       expect(driver).toBeDefined();
@@ -127,23 +125,13 @@ describe('DriverPersistence', () => {
   describe('updateDriver', () => {
     it('should update driver name', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Old Name', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Old Name');
 
       const updated = persistence.updateDriver('aa:bb:cc:dd:ee:ff', { name: 'New Name' });
 
       expect(updated).toBe(true);
       const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
       expect(driver!.name).toBe('New Name');
-    });
-
-    it('should update driver type', () => {
-      const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
-
-      persistence.updateDriver('aa:bb:cc:dd:ee:ff', { type: 'controller' });
-
-      const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
-      expect(driver!.type).toBe('controller');
     });
 
     it('should return false for non-existent driver', () => {
@@ -156,7 +144,7 @@ describe('DriverPersistence', () => {
 
     it('should persist updates to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Old Name', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Old Name');
 
       persistence.updateDriver('aa:bb:cc:dd:ee:ff', { name: 'New Name' });
 
@@ -179,7 +167,7 @@ describe('DriverPersistence', () => {
 
     it('should set LED config for driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       const result = persistence.setLEDConfig('aa:bb:cc:dd:ee:ff', sampleLEDConfig);
 
@@ -190,7 +178,7 @@ describe('DriverPersistence', () => {
 
     it('should persist LED config to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       persistence.setLEDConfig('aa:bb:cc:dd:ee:ff', sampleLEDConfig);
 
@@ -216,7 +204,7 @@ describe('DriverPersistence', () => {
 
     it('should return undefined when driver has no LED config', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       const ledConfig = persistence.getLEDConfig('aa:bb:cc:dd:ee:ff');
 
@@ -227,7 +215,7 @@ describe('DriverPersistence', () => {
   describe('getDriver', () => {
     it('should return driver by id', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
 
@@ -248,7 +236,7 @@ describe('DriverPersistence', () => {
   describe('hasDriver', () => {
     it('should return true for existing driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       expect(persistence.hasDriver('aa:bb:cc:dd:ee:ff')).toBe(true);
     });
@@ -263,7 +251,7 @@ describe('DriverPersistence', () => {
   describe('deleteDriver', () => {
     it('should delete driver and persist to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver', 'driver');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       const deleted = persistence.deleteDriver('aa:bb:cc:dd:ee:ff');
 
@@ -286,8 +274,8 @@ describe('DriverPersistence', () => {
   describe('getAllDrivers', () => {
     it('should return all drivers', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Driver 1', 'driver');
-      persistence.addDriver('11:22:33:44:55:66', 'Driver 2', 'controller');
+      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Driver 1');
+      persistence.addDriver('11:22:33:44:55:66', 'Driver 2');
 
       const drivers = persistence.getAllDrivers();
 

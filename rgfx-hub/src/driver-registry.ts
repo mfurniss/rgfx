@@ -48,7 +48,6 @@ export class DriverRegistry {
           id: pd.id,
           name: pd.name,
           description: pd.description,
-          type: pd.type,
           connected: false,
           lastSeen: 0,
           firstSeen: pd.firstSeen,
@@ -97,7 +96,7 @@ export class DriverRegistry {
     // If this is a new driver, persist it with the current timestamp
     if (isNewDriver && this.persistence) {
       const name = sysInfo.hostname || sysInfo.ip || "Driver";
-      this.persistence.addDriver(driverId, name, "driver");
+      this.persistence.addDriver(driverId, name);
       // Get the firstSeen from the persisted driver to ensure consistency
       const persistedDriver = this.persistence.getDriver(driverId);
       firstSeen ??= persistedDriver?.firstSeen ?? now;
@@ -110,7 +109,6 @@ export class DriverRegistry {
       id: driverId,
       name: sysInfo.hostname || sysInfo.ip || "Driver",
       description: existingDriver?.description, // Preserve description from persistence
-      type: "driver",
       connected: true,
       lastSeen: now,
       firstSeen: firstSeen,

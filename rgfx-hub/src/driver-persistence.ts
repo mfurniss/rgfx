@@ -25,9 +25,6 @@ export interface PersistedDriver {
   /** Optional user-editable description */
   description?: string;
 
-  /** Device type */
-  type: 'driver' | 'controller';
-
   /** Unix timestamp of first discovery */
   firstSeen: number;
 
@@ -145,7 +142,7 @@ export class DriverPersistence {
    * Add a newly discovered driver
    * Returns true if driver was added, false if it already exists
    */
-  addDriver(id: string, name: string, type: 'driver' | 'controller' = 'driver'): boolean {
+  addDriver(id: string, name: string): boolean {
     if (this.drivers.has(id)) {
       return false; // Driver already exists
     }
@@ -153,7 +150,6 @@ export class DriverPersistence {
     const driver: PersistedDriver = {
       id,
       name,
-      type,
       firstSeen: Date.now(),
     };
 
@@ -164,10 +160,10 @@ export class DriverPersistence {
   }
 
   /**
-   * Update driver metadata (name, type, description)
+   * Update driver metadata (name, description)
    * Does not update ledConfig - use setDriverLEDConfig for that
    */
-  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'name' | 'type' | 'description'>>): boolean {
+  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'name' | 'description'>>): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
       log.warn(`Cannot update non-existent driver: ${id}`);
