@@ -128,8 +128,16 @@ build:hub:
     - npm run lint       # ESLint errors AND warnings = FAIL
     - npm test           # Any test failure = FAIL
 
-    # Build only if all tests pass
-    - npm run make
+    # Build DMG artifacts only for tags (releases), not for main branch commits
+    # Main branch: Tests pass, no artifacts created (Linux CI can't build macOS DMG)
+    # Tags: Tests pass + DMG created (requires macOS runner - not yet configured)
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        echo "Tag detected: Building DMG artifact..."
+        npm run make
+      else
+        echo "Branch commit: Skipping DMG build (tests passed, no artifacts needed)"
+      fi
 
   artifacts:
     name: "rgfx-hub-${CI_COMMIT_REF_SLUG}"
