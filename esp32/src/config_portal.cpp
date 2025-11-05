@@ -1,19 +1,14 @@
 #include "config_portal.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
+#include "config/constants.h"
 #include "log.h"
 #include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
+#include <IotWebConfSettings.h>
+#include <EEPROM.h>
 #include "generated/html_status.h"
-
-// IotWebConf configuration
-#define CONFIG_VERSION "rgfx3" // Incremented version to force config update
-
-// Network configuration
-static constexpr uint16_t WEB_SERVER_PORT = 80;
-// AP/WiFi timeout is defined in config_timeout.h (AP_TIMEOUT_MS)
-static const char* AP_IP_ADDRESS = "192.168.4.1";
 
 // DNS server for captive portal
 DNSServer dnsServer;
@@ -70,6 +65,29 @@ void wifiConnected() {
 	log("Config portal available at: http://" + WiFi.localIP().toString());
 }
 
+// Validate that a configuration string contains only printable characters
+bool ConfigPortal::isValidConfigString(const char* str, size_t maxLen) {
+	if (!str) {
+		return false;
+	}
+
+	size_t len = strlen(str);
+
+	// Empty strings or strings exceeding max length are invalid
+	if (len == 0 || len > maxLen) {
+		return false;
+	}
+
+	// Check each character is printable ASCII (space through tilde: 0x20-0x7E)
+	for (size_t i = 0; i < len; i++) {
+		if (!isprint((unsigned char)str[i])) {
+			return false; // Non-printable character = corruption
+		}
+	}
+
+	return true;
+}
+
 void ConfigPortal::begin() {
 	log("Initializing config portal...");
 
@@ -91,14 +109,15 @@ void ConfigPortal::begin() {
 	iotWebConf->setConfigSavedCallback(&configSaved);
 	iotWebConf->setWifiConnectionCallback(&wifiConnected);
 
-	// Set WiFi connection timeout BEFORE init (this controls how long to attempt WiFi connection)
-	iotWebConf->setWifiConnectionTimeoutMs(AP_TIMEOUT_MS);
-
 	// Disable status pin (used for reset detection)
 	iotWebConf->setStatusPin(-1);
 
 	// Disable the config button check by setting it to an unused pin
 	iotWebConf->setConfigPin(-1);
+
+	// Skip AP mode on startup if WiFi credentials are configured
+	// This allows immediate WiFi connection instead of waiting 30 seconds in AP mode
+	iotWebConf->skipApStartup();
 
 	// Note: No LED config parameters added - config is managed by Hub
 
@@ -107,11 +126,45 @@ void ConfigPortal::begin() {
 
 	boolean validConfig = iotWebConf->init();
 
-	// CRITICAL: Set AP timeout AFTER init()
-	// IotWebConf::init() resets _apTimeoutMs from _apTimeoutStr, so we must set it after
-	// This controls how long device stays in AP mode before falling back to saved WiFi
-	iotWebConf->setApTimeoutMs(AP_TIMEOUT_MS);
-	log("AP timeout set to " + String(AP_TIMEOUT_MS) + "ms");
+	// Check for corrupted configuration data
+	// IotWebConf loads values from EEPROM but doesn't validate them
+	// Corrupted EEPROM can cause WiFi.softAP() to fail and trigger boot loop
+	const char* thingName = iotWebConf->getThingName();
+	const char* ssid =
+		iotWebConf->getWifiSsidParameter() ? iotWebConf->getWifiSsidParameter()->valueBuffer : "";
+
+	// Thing name must be valid (non-empty, printable characters)
+	bool thingNameValid = isValidConfigString(thingName, 32);
+
+	// SSID can be empty (default state before WiFi config) but if non-empty must be valid
+	size_t ssidLen = strlen(ssid);
+	bool ssidValid = (ssidLen == 0) || isValidConfigString(ssid, 32);
+
+	if (!thingNameValid || !ssidValid) {
+		log("ERROR: Corrupted configuration detected!");
+		if (!thingNameValid) {
+			log("  Thing name contains invalid characters (length: " + String(strlen(thingName)) +
+			    ")");
+		}
+		if (!ssidValid) {
+			log("  WiFi SSID contains invalid characters (length: " + String(ssidLen) + ")");
+		}
+
+		log("Performing automatic factory reset to clear corrupted EEPROM...");
+
+		// Invalidate IotWebConf's EEPROM configuration by zeroing the config version
+		// This forces IotWebConf to start with clean defaults on next init()
+		EEPROM.begin(512); // Initialize EEPROM with 512 bytes
+		for (byte t = 0; t < IOTWEBCONF_CONFIG_VERSION_LENGTH; t++) {
+			EEPROM.write(IOTWEBCONF_CONFIG_START + t, 0);
+		}
+		EEPROM.commit();
+		EEPROM.end();
+
+		log("EEPROM config version cleared. Restarting device...");
+		delay(2000);
+		ESP.restart();
+	}
 
 	if (validConfig) {
 		log("Valid configuration loaded");
@@ -220,14 +273,20 @@ uint8_t ConfigPortal::getLedDataPin() {
 void ConfigPortal::resetSettings() {
 	log("Factory reset: Erasing all configuration...");
 
-	// Clear NVS configuration
+	// Clear NVS configuration (LED config, etc.)
 	ConfigNVS::factoryReset();
 
-	// Note: WiFi credentials are still managed by IotWebConf's EEPROM storage
-	// To fully reset WiFi as well, the device would need to be re-flashed or
-	// IotWebConf would need to be reset separately
+	// Clear IotWebConf EEPROM storage (WiFi credentials, AP settings)
+	// Invalidate the config version to force clean initialization
+	log("Clearing IotWebConf EEPROM storage...");
+	EEPROM.begin(512);
+	for (byte t = 0; t < IOTWEBCONF_CONFIG_VERSION_LENGTH; t++) {
+		EEPROM.write(IOTWEBCONF_CONFIG_START + t, 0);
+	}
+	EEPROM.commit();
+	EEPROM.end();
 
-	log("NVS configuration erased - restarting...");
+	log("All configuration erased (NVS + EEPROM) - restarting...");
 	delay(1000);
 	ESP.restart();
 }

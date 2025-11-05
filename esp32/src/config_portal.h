@@ -35,6 +35,11 @@ class ConfigPortal {
 	// Set WiFi credentials via serial (bypasses web portal)
 	// Returns true if credentials were set successfully
 	static bool setWiFiCredentials(const String& ssid, const String& password);
+
+  private:
+	// Validate that a configuration string contains only printable characters
+	// Returns false if string is empty, too long, or contains non-printable chars
+	static bool isValidConfigString(const char* str, size_t maxLen);
 };
 
 #endif

@@ -20,24 +20,6 @@ struct DeviceMapping {
 static std::vector<DeviceMapping> deviceMappings;
 
 /**
- * Helper: Calculate total LEDs needed for a pin
- */
-static uint16_t calculatePinLEDCount(uint8_t pin) {
-	uint16_t maxIndex = 0;
-
-	for (const auto& dev : g_driverConfig.devices) {
-		if (dev.pin == pin) {
-			uint16_t endIndex = dev.offset + dev.count;
-			if (endIndex > maxIndex) {
-				maxIndex = endIndex;
-			}
-		}
-	}
-
-	return maxIndex;
-}
-
-/**
  * Helper: Find pin index for a GPIO pin number
  */
 static int8_t findPinIndex(uint8_t pin) {

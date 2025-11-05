@@ -6,24 +6,14 @@
 #include "driver_config.h"
 #include "display.h"
 #include "udp.h"
+#include "config/constants.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <ESPmDNS.h>
 
-// MQTT broker settings
-const int MQTT_PORT = 1883;
-String MQTT_SERVER = "";        // Will be discovered via mDNS
-const char* MQTT_USER = "";     // Leave empty if no authentication
-const char* MQTT_PASSWORD = ""; // Leave empty if no authentication
-
-// MQTT topics
-const char* MQTT_TOPIC_TEST = "rgfx/test";
-const char* MQTT_TOPIC_STATUS = "led/status";
-
-// MQTT client configuration
-static constexpr uint16_t MQTT_BUFFER_SIZE = 1024;           // Buffer size for large JSON payloads
-static constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000; // Retry connection every 5 seconds
+// MQTT broker server (discovered via mDNS)
+String MQTT_SERVER = "";
 
 // MQTT client
 WiFiClient espClient;
@@ -32,7 +22,6 @@ bool mqttClientInitialized = false; // Track if client has been initialized
 
 // Connection retry tracking
 static int consecutiveFailures = 0;
-const int MAX_FAILURES_BEFORE_REDISCOVERY = 3; // Rediscover after 3 failed attempts (15 seconds)
 
 // Forward declaration for LED access
 extern Matrix matrix;
