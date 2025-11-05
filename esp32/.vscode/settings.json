@@ -4,6 +4,9 @@
     "*.h": "cpp"
   },
 
+  // Enable C++ semantic highlighting (required for colorization)
+  "C_Cpp.enhancedColorization": "enabled",
+
   // Exclude generated files from search
   "files.exclude": {
     "**/.pio": true,
