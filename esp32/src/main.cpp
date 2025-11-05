@@ -24,6 +24,7 @@
 #include "display.h"
 #include "utils.h"
 #include "version.h"
+#include "serial.h"
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
@@ -109,6 +110,10 @@ void networkTask(void* parameter) {
 void setup() {
 	Serial.begin(115200);
 	delay(200);
+
+	// Initialize serial command system (must be done before any log() calls)
+	SerialCommand::begin();
+
 	log("\n\nRGFX Driver v" + String(RGFX_VERSION) + " starting...");
 	log("Core 0: Protocol/Network core (WiFi, MQTT, Web, Display)");
 	log("Core 1: Application core (LEDs, UDP effects)");
@@ -324,85 +329,8 @@ void loop() {
 		}
 	}
 
-	// Check for serial commands (for debugging)
-	if (Serial.available()) {
-		String cmd = Serial.readStringUntil('\n');
-		cmd.trim();
-
-		if (cmd == "factory_reset") {
-			log("Factory reset: Erasing WiFi credentials and rebooting...");
-			ConfigPortal::resetSettings();
-			delay(1000);
-			ESP.restart();
-		} else if (cmd.startsWith("wifi ")) {
-			// Format: wifi SSID PASSWORD
-			// Example: wifi MyNetwork MyPassword123
-			// Example: wifi "My Network" "My Password 123"
-			String params = cmd.substring(5); // Remove "wifi " prefix
-			params.trim();
-
-			// Parse SSID and password (supports quoted strings with spaces)
-			String ssid = "";
-			String password = "";
-
-			int firstQuote = params.indexOf('"');
-			if (firstQuote == 0) {
-				// Quoted SSID
-				int secondQuote = params.indexOf('"', 1);
-				if (secondQuote > 0) {
-					ssid = params.substring(1, secondQuote);
-					String remainder = params.substring(secondQuote + 1);
-					remainder.trim();
-
-					// Check for quoted password
-					if (remainder.length() > 0 && remainder.charAt(0) == '"') {
-						int thirdQuote = remainder.indexOf('"', 1);
-						if (thirdQuote > 0) {
-							password = remainder.substring(1, thirdQuote);
-						}
-					} else {
-						// Unquoted password
-						password = remainder;
-					}
-				}
-			} else {
-				// Unquoted SSID and password (space-separated)
-				int spacePos = params.indexOf(' ');
-				if (spacePos > 0) {
-					ssid = params.substring(0, spacePos);
-					password = params.substring(spacePos + 1);
-					password.trim();
-				} else {
-					// SSID only, no password
-					ssid = params;
-				}
-			}
-
-			if (ssid.length() > 0) {
-				log("Setting WiFi credentials from serial command...");
-				if (ConfigPortal::setWiFiCredentials(ssid, password)) {
-					log("WiFi credentials saved! Restarting in 2 seconds...");
-					delay(2000);
-					ESP.restart();
-				} else {
-					log("ERROR: Failed to set WiFi credentials");
-				}
-			} else {
-				log("ERROR: Invalid wifi command format");
-				log("Usage: wifi SSID PASSWORD");
-				log("Example: wifi MyNetwork MyPassword123");
-				log("Example: wifi \"My Network\" \"My Password 123\"");
-			}
-		} else if (cmd == "help") {
-			log("\n=== RGFX Driver Serial Commands ===");
-			log("wifi SSID PASSWORD   - Set WiFi credentials and restart");
-			log("                       Supports quoted strings for SSIDs/passwords with spaces");
-			log("                       Example: wifi MyNetwork MyPassword123");
-			log("                       Example: wifi \"My Network\" \"My Password 123\"");
-			log("factory_reset        - Erase WiFi credentials and restart");
-			log("help                 - Show this help message");
-		}
-	}
+	// Process serial commands (thread-safe, buffered input)
+	SerialCommand::process();
 
 	// Core 1: Only process UDP and LED effects (time-critical tasks)
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
