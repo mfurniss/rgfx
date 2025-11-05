@@ -4,8 +4,15 @@
 EffectProcessor::EffectProcessor(Matrix& matrix) : matrix(matrix), lastFrameTime(0) {}
 
 void EffectProcessor::update() {
-	// Calculate delta time
 	unsigned long now = millis();
+
+	// First frame: initialize timing, skip rendering
+	if (lastFrameTime == 0) {
+		lastFrameTime = now;
+		return;
+	}
+
+	// Calculate delta time for subsequent frames
 	float deltaTime = (now - lastFrameTime) / 1000.0f;
 	lastFrameTime = now;
 

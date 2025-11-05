@@ -80,6 +80,17 @@ export class EventFileReader {
 
   private readNewLines(onEvent: (topic: string, message: string) => void) {
     try {
+      // Check if file still exists before attempting to stat
+      if (!existsSync(this.filePath)) {
+        log.info("Event file deleted, switching to directory watch");
+        if (this.watcher) {
+          this.watcher.close();
+        }
+        this.filePosition = 0;
+        this.watchDirectory();
+        return;
+      }
+
       const stats = statSync(this.filePath);
       const currentSize = stats.size;
 

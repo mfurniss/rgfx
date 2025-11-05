@@ -2,9 +2,10 @@
 
 #include <FastLED.h>
 #include <vector>
+#include "effect.h"
 #include "matrix.h"
 
-class PulseEffect {
+class PulseEffect : public IEffect {
   private:
 	struct Pulse {
 		CRGB color;        // RGB color
@@ -17,6 +18,7 @@ class PulseEffect {
   public:
 	PulseEffect();
 	void addPulse(CRGB color, uint32_t duration);
-	void update(float deltaTime); // Update all pulses, remove completed ones (deltaTime in seconds)
-	void render(Matrix& matrix);  // Render all pulses to virtual display
+	void update(float deltaTime) override; // Update all pulses, remove completed ones (deltaTime in seconds)
+	void render(Matrix& matrix) override;  // Render all pulses to virtual display
+	void reset() override;                 // Remove all active pulses
 };

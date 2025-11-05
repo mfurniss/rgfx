@@ -45,3 +45,7 @@ void PulseEffect::render(Matrix& matrix) {
 		}
 	}
 }
+
+void PulseEffect::reset() {
+	pulses.clear();
+}
