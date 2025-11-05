@@ -33,7 +33,6 @@ describe("GameEventMapper", () => {
     const mockDriver1: Driver = {
       id: "AA:BB:CC:DD:EE:01",
       name: "Driver 1",
-      type: "driver",
       connected: true,
       lastSeen: Date.now(),
       firstSeen: Date.now(),
@@ -50,7 +49,6 @@ describe("GameEventMapper", () => {
     const mockDriver2: Driver = {
       id: "AA:BB:CC:DD:EE:02",
       name: "Driver 2",
-      type: "driver",
       connected: true,
       lastSeen: Date.now(),
       firstSeen: Date.now(),

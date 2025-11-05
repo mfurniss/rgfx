@@ -20,7 +20,7 @@
  *   String config = ConfigNVS::loadLEDConfig();  // Load on boot
  */
 class ConfigNVS {
-  public:
+   public:
 	/**
 	 * Initialize NVS
 	 *
@@ -65,7 +65,7 @@ class ConfigNVS {
 	 */
 	static void clearLEDConfig();
 
-  private:
+   private:
 	// NVS namespace name (max 15 characters)
 	static constexpr const char* NAMESPACE = "rgfx";
 

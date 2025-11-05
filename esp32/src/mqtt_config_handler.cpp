@@ -82,7 +82,7 @@ void handleDriverConfig(const String& payload) {
 	}
 
 	// Extract global settings
-	if (doc.containsKey("settings")) {
+	if (doc["settings"].is<JsonObject>()) {
 		JsonObject settings = doc["settings"];
 		g_driverConfig.globalBrightnessLimit = settings["global_brightness_limit"] | 255;
 		g_driverConfig.gammaCorrection = settings["gamma_correction"] | 2.2;

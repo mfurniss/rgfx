@@ -4,7 +4,7 @@
 #include <WiFi.h>
 #include <Arduino.h>
 
-JsonDocument SysInfo::getSysInfo(Matrix& matrix) {
+JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool configReceived) {
 	JsonDocument doc;
 
 	// Network information
@@ -37,8 +37,37 @@ JsonDocument SysInfo::getSysInfo(Matrix& matrix) {
 	// Display information
 	doc["hasDisplay"] = Display::isAvailable();
 
-	// Note: LED configuration is managed by the Hub and pushed to drivers via MQTT
-	// Drivers do not report LED config - they only receive and apply it
+	// LED Configuration (if received from Hub)
+	doc["configReceived"] = configReceived;
+	if (configReceived) {
+		JsonObject ledConfig = doc["ledConfig"].to<JsonObject>();
+		ledConfig["name"] = driverConfig.name;
+		ledConfig["description"] = driverConfig.description;
+		ledConfig["version"] = driverConfig.version;
+		ledConfig["globalBrightnessLimit"] = driverConfig.globalBrightnessLimit;
+		ledConfig["gammaCorrection"] = driverConfig.gammaCorrection;
+		ledConfig["dithering"] = driverConfig.dithering;
+		ledConfig["updateRate"] = driverConfig.updateRate;
+
+		// LED devices array
+		JsonArray devices = ledConfig["devices"].to<JsonArray>();
+		for (const auto& device : driverConfig.devices) {
+			JsonObject dev = devices.add<JsonObject>();
+			dev["id"] = device.id;
+			dev["name"] = device.name;
+			dev["pin"] = device.pin;
+			dev["layout"] = device.layout;
+			dev["count"] = device.count;
+			dev["offset"] = device.offset;
+			dev["chipset"] = device.chipset;
+			dev["colorOrder"] = device.colorOrder;
+			dev["maxBrightness"] = device.maxBrightness;
+			if (device.width > 0 && device.height > 0) {
+				dev["width"] = device.width;
+				dev["height"] = device.height;
+			}
+		}
+	}
 
 	return doc;
 }

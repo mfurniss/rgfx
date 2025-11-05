@@ -3,7 +3,7 @@
 #include <FastLED.h>
 
 #define SPARKLE_DENSITY 350
-static int i = 0; // random16(SPARKLE_DENSITY);
+static int i = 0;  // random16(SPARKLE_DENSITY);
 
 void sparkle(Matrix& matrix) {
 	fadeToBlackBy(matrix.leds, matrix.size, 100);

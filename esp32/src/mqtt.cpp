@@ -6,33 +6,22 @@
 #include "driver_config.h"
 #include "display.h"
 #include "udp.h"
+#include "config/constants.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <ESPmDNS.h>
 
-// MQTT broker settings
-const int MQTT_PORT = 1883;
-String MQTT_SERVER = "";        // Will be discovered via mDNS
-const char* MQTT_USER = "";     // Leave empty if no authentication
-const char* MQTT_PASSWORD = ""; // Leave empty if no authentication
-
-// MQTT topics
-const char* MQTT_TOPIC_TEST = "rgfx/test";
-const char* MQTT_TOPIC_STATUS = "led/status";
-
-// MQTT client configuration
-static constexpr uint16_t MQTT_BUFFER_SIZE = 1024;           // Buffer size for large JSON payloads
-static constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000; // Retry connection every 5 seconds
+// MQTT broker server (discovered via mDNS)
+String MQTT_SERVER = "";
 
 // MQTT client
 WiFiClient espClient;
 MQTTClient mqttClient(MQTT_BUFFER_SIZE);
-bool mqttClientInitialized = false; // Track if client has been initialized
+bool mqttClientInitialized = false;  // Track if client has been initialized
 
 // Connection retry tracking
 static int consecutiveFailures = 0;
-const int MAX_FAILURES_BEFORE_REDISCOVERY = 3; // Rediscover after 3 failed attempts (15 seconds)
 
 // Forward declaration for LED access
 extern Matrix matrix;
@@ -72,7 +61,7 @@ void mqttCallback(String& topic, String& payload) {
 			// Enable test mode and trigger test effect
 			testModeActive = true;
 			pendingMessage.effect = "test";
-			pendingMessage.color = 0; // Ignored by test effect
+			pendingMessage.color = 0;  // Ignored by test effect
 			newMessageAvailable = true;
 			log("Test mode ENABLED");
 		} else if (payload == "off") {
@@ -126,7 +115,7 @@ void setupMQTT() {
 // Connect/reconnect to MQTT broker (non-blocking, single attempt)
 void reconnectMQTT() {
 	if (mqttClient.connected()) {
-		return; // Already connected
+		return;  // Already connected
 	}
 
 	// Check if we've had too many consecutive failures - if so, clear cached IP and rediscover
@@ -134,8 +123,8 @@ void reconnectMQTT() {
 	if (consecutiveFailures >= MAX_FAILURES_BEFORE_REDISCOVERY && !MQTT_SERVER.isEmpty()) {
 		log("Too many consecutive failures (" + String(consecutiveFailures) +
 		    "), clearing cached broker IP and rediscovering...");
-		MQTT_SERVER = "";        // Clear cached IP to force rediscovery
-		consecutiveFailures = 0; // Reset counter for rediscovery attempt
+		MQTT_SERVER = "";         // Clear cached IP to force rediscovery
+		consecutiveFailures = 0;  // Reset counter for rediscovery attempt
 	}
 
 	// Discover broker via mDNS if we don't have one or it's invalid
@@ -178,7 +167,7 @@ void reconnectMQTT() {
 
 		// Subscribe to driver-specific topics
 		String driverId = WiFi.macAddress();
-		driverId.replace(":", "-"); // Format MAC as AB-CD-EF-12-34-56
+		driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
 		String configTopic = "rgfx/driver/" + driverId + "/config";
 		String testTopic = "rgfx/driver/" + driverId + "/test";
 		mqttClient.subscribe(configTopic.c_str(), 2);
@@ -241,8 +230,8 @@ void sendDriverConnect() {
 		return;
 	}
 
-	// Get system information
-	JsonDocument doc = SysInfo::getSysInfo(matrix);
+	// Get system information (including LED config)
+	JsonDocument doc = SysInfo::getSysInfo(g_driverConfig, g_configReceived);
 
 	// Serialize to string
 	String payload;
@@ -284,7 +273,7 @@ void sendDriverConnect() {
 // Send simple heartbeat message (periodic keepalive)
 void sendDriverHeartbeat() {
 	if (!mqttClient.connected()) {
-		return; // Silently skip if not connected
+		return;  // Silently skip if not connected
 	}
 
 	// Create minimal heartbeat payload - just MAC address

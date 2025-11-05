@@ -16,17 +16,23 @@
 #include "config_portal.h"
 #include "config_nvs.h"
 #include "config_timeout.h"
+#include "config/constants.h"
+#include "driver_config.h"
 #include "udp.h"
 #include "mqtt.h"
 #include "log.h"
 #include "display.h"
 #include "utils.h"
 #include "version.h"
+#include "serial.h"
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
 
-#define FLASH_DURATION_MS 10 // MQTT message flash duration
+// Timing constants defined in config/constants.h:
+// - FLASH_DURATION_MS: MQTT message flash duration
+// - UPTIME_UPDATE_INTERVAL: OLED display refresh interval
+// - AP_TIMEOUT_MS: WiFi AP mode timeout
 
 Matrix matrix(WIDTH, HEIGHT);
 
@@ -45,8 +51,7 @@ typedef void (*EffectFunction)(Matrix&, uint32_t);
 
 // Effect lookup table
 std::map<String, EffectFunction> effectMap = {
-	{"pulse", pulse},
-	{"test", test}
+	{"pulse", pulse}, {"test", test}
 	// Add more effects here
 };
 
@@ -60,7 +65,7 @@ void networkTask(void* parameter) {
 	if (hasDisplay) {
 		log("OLED display available - status display enabled");
 		Display::showBoot(Utils::getDeviceName());
-		delay(2000); // Show boot screen for 2 seconds
+		delay(2000);  // Show boot screen for 2 seconds
 	} else {
 		log("Running without OLED display");
 	}
@@ -70,8 +75,6 @@ void networkTask(void* parameter) {
 
 	// Track last uptime update for periodic display refresh
 	unsigned long lastUptimeUpdate = 0;
-	const unsigned long UPTIME_UPDATE_INTERVAL =
-		5000; // Update every 5 seconds (reduced frequency to prevent I2C issues)
 
 	// Main network task loop
 	while (true) {
@@ -99,13 +102,17 @@ void networkTask(void* parameter) {
 		}
 
 		// Yield to other tasks and prevent watchdog timeout
-		vTaskDelay(10 / portTICK_PERIOD_MS); // 10ms delay
+		vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms delay
 	}
 }
 
 void setup() {
 	Serial.begin(115200);
 	delay(200);
+
+	// Initialize serial command system (must be done before any log() calls)
+	SerialCommand::begin();
+
 	log("\n\nRGFX Driver v" + String(RGFX_VERSION) + " starting...");
 	log("Core 0: Protocol/Network core (WiFi, MQTT, Web, Display)");
 	log("Core 1: Application core (LEDs, UDP effects)");
@@ -136,13 +143,13 @@ void setup() {
 
 	// Create network task on Core 0
 	// Priority 1 (same as loop), 8KB stack
-	xTaskCreatePinnedToCore(networkTask,        // Task function
-	                        "NetworkTask",      // Task name
-	                        8192,               // Stack size (bytes)
-	                        NULL,               // Parameters
-	                        1,                  // Priority (1 = same as loop)
-	                        &networkTaskHandle, // Task handle
-	                        0                   // Core 0 (protocol core)
+	xTaskCreatePinnedToCore(networkTask,         // Task function
+	                        "NetworkTask",       // Task name
+	                        8192,                // Stack size (bytes)
+	                        NULL,                // Parameters
+	                        1,                   // Priority (1 = same as loop)
+	                        &networkTaskHandle,  // Task handle
+	                        0                    // Core 0 (protocol core)
 	);
 
 	log("Network task created on Core 0");
@@ -151,6 +158,26 @@ void setup() {
 // Main loop - runs on Core 1 (application core)
 // Focused on time-critical LED effects and low-latency UDP processing
 void loop() {
+	// Frame rate limiting (VRR with configurable soft cap)
+	// Calculate minimum frame time based on configured update rate (default 120 FPS)
+	static uint32_t lastFrameTime = 0;
+	uint32_t now = millis();
+	uint32_t minFrameTimeMs = 1000 / g_driverConfig.updateRate;  // e.g., 8ms @ 120 FPS
+
+	// Early return if not enough time has elapsed (non-blocking time-based gating)
+	if (now - lastFrameTime < minFrameTimeMs) {
+		yield();  // Give time to other tasks
+		return;
+	}
+
+	// Calculate actual delta-time for hardware-independent animation speeds
+	float deltaTime = (now - lastFrameTime) / 1000.0f;  // Seconds elapsed
+	lastFrameTime = now;
+
+	// Note: deltaTime is available for future effects system
+	// Effects can use it for movement calculations: position += velocity * deltaTime
+	(void)deltaTime;  // Suppress unused variable warning until effects system uses it
+
 	// Check WiFi connection state and update LEDs accordingly
 	bool isConnected = ConfigPortal::isWiFiConnected();
 	String state = ConfigPortal::getStateName();
@@ -159,7 +186,7 @@ void loop() {
 	static bool inApMode = false;
 	static unsigned long apModeStartTime = 0;
 	static unsigned long lastCountdownUpdate = 0;
-	const uint16_t AP_TIMEOUT_SECONDS = AP_TIMEOUT_MS / 1000; // Derived from config_timeout.h
+	const uint16_t AP_TIMEOUT_SECONDS = AP_TIMEOUT_MS / 1000;  // Derived from config_timeout.h
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {
@@ -245,7 +272,7 @@ void loop() {
 				FastLED.show();
 			});
 			ArduinoOTA.begin();
-			delay(100); // Give OTA time to initialize
+			delay(100);  // Give OTA time to initialize
 			log("OTA Ready");
 			otaSetupDone = true;
 
@@ -301,85 +328,8 @@ void loop() {
 		}
 	}
 
-	// Check for serial commands (for debugging)
-	if (Serial.available()) {
-		String cmd = Serial.readStringUntil('\n');
-		cmd.trim();
-
-		if (cmd == "factory_reset") {
-			log("Factory reset: Erasing WiFi credentials and rebooting...");
-			ConfigPortal::resetSettings();
-			delay(1000);
-			ESP.restart();
-		} else if (cmd.startsWith("wifi ")) {
-			// Format: wifi SSID PASSWORD
-			// Example: wifi MyNetwork MyPassword123
-			// Example: wifi "My Network" "My Password 123"
-			String params = cmd.substring(5); // Remove "wifi " prefix
-			params.trim();
-
-			// Parse SSID and password (supports quoted strings with spaces)
-			String ssid = "";
-			String password = "";
-
-			int firstQuote = params.indexOf('"');
-			if (firstQuote == 0) {
-				// Quoted SSID
-				int secondQuote = params.indexOf('"', 1);
-				if (secondQuote > 0) {
-					ssid = params.substring(1, secondQuote);
-					String remainder = params.substring(secondQuote + 1);
-					remainder.trim();
-
-					// Check for quoted password
-					if (remainder.length() > 0 && remainder.charAt(0) == '"') {
-						int thirdQuote = remainder.indexOf('"', 1);
-						if (thirdQuote > 0) {
-							password = remainder.substring(1, thirdQuote);
-						}
-					} else {
-						// Unquoted password
-						password = remainder;
-					}
-				}
-			} else {
-				// Unquoted SSID and password (space-separated)
-				int spacePos = params.indexOf(' ');
-				if (spacePos > 0) {
-					ssid = params.substring(0, spacePos);
-					password = params.substring(spacePos + 1);
-					password.trim();
-				} else {
-					// SSID only, no password
-					ssid = params;
-				}
-			}
-
-			if (ssid.length() > 0) {
-				log("Setting WiFi credentials from serial command...");
-				if (ConfigPortal::setWiFiCredentials(ssid, password)) {
-					log("WiFi credentials saved! Restarting in 2 seconds...");
-					delay(2000);
-					ESP.restart();
-				} else {
-					log("ERROR: Failed to set WiFi credentials");
-				}
-			} else {
-				log("ERROR: Invalid wifi command format");
-				log("Usage: wifi SSID PASSWORD");
-				log("Example: wifi MyNetwork MyPassword123");
-				log("Example: wifi \"My Network\" \"My Password 123\"");
-			}
-		} else if (cmd == "help") {
-			log("\n=== RGFX Driver Serial Commands ===");
-			log("wifi SSID PASSWORD   - Set WiFi credentials and restart");
-			log("                       Supports quoted strings for SSIDs/passwords with spaces");
-			log("                       Example: wifi MyNetwork MyPassword123");
-			log("                       Example: wifi \"My Network\" \"My Password 123\"");
-			log("factory_reset        - Erase WiFi credentials and restart");
-			log("help                 - Show this help message");
-		}
-	}
+	// Process serial commands (thread-safe, buffered input)
+	SerialCommand::process();
 
 	// Core 1: Only process UDP and LED effects (time-critical tasks)
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask

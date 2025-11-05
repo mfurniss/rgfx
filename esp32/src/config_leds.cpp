@@ -12,30 +12,12 @@ static uint8_t activePins = 0;
 // Device mapping
 struct DeviceMapping {
 	String id;
-	uint8_t pinIndex; // Index into ledBuffers array
-	uint16_t offset;  // Offset within pin's LED buffer
-	uint16_t count;   // Number of LEDs
+	uint8_t pinIndex;  // Index into ledBuffers array
+	uint16_t offset;   // Offset within pin's LED buffer
+	uint16_t count;    // Number of LEDs
 };
 
 static std::vector<DeviceMapping> deviceMappings;
-
-/**
- * Helper: Calculate total LEDs needed for a pin
- */
-static uint16_t calculatePinLEDCount(uint8_t pin) {
-	uint16_t maxIndex = 0;
-
-	for (const auto& dev : g_driverConfig.devices) {
-		if (dev.pin == pin) {
-			uint16_t endIndex = dev.offset + dev.count;
-			if (endIndex > maxIndex) {
-				maxIndex = endIndex;
-			}
-		}
-	}
-
-	return maxIndex;
-}
 
 /**
  * Helper: Find pin index for a GPIO pin number
@@ -122,11 +104,11 @@ bool configLEDs() {
 
 // Add to FastLED - template requires compile-time pin specification
 // Using macro to eliminate code duplication while maintaining template requirements
-#define ADD_FASTLED_FOR_PIN(PIN_NUM)                                                               \
-  case PIN_NUM:                                                                                  \
-    FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count);                       \
-    log("Added FastLED for GPIO" #PIN_NUM);                                                    \
-    break;
+#define ADD_FASTLED_FOR_PIN(PIN_NUM)                                         \
+	case PIN_NUM:                                                            \
+		FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count); \
+		log("Added FastLED for GPIO" #PIN_NUM);                              \
+		break;
 
 		switch (pin) {
 			ADD_FASTLED_FOR_PIN(16)
@@ -136,12 +118,12 @@ bool configLEDs() {
 			ADD_FASTLED_FOR_PIN(21)
 			ADD_FASTLED_FOR_PIN(22)
 			ADD_FASTLED_FOR_PIN(23)
-		default:
-			log("ERROR: Unsupported GPIO pin: " + String(pin));
-			log("Supported pins: 16, 17, 18, 19, 21, 22, 23");
-			delete[] ledBuffers[pinIndex];
-			ledBuffers[pinIndex] = nullptr;
-			return false;
+			default:
+				log("ERROR: Unsupported GPIO pin: " + String(pin));
+				log("Supported pins: 16, 17, 18, 19, 21, 22, 23");
+				delete[] ledBuffers[pinIndex];
+				ledBuffers[pinIndex] = nullptr;
+				return false;
 		}
 
 #undef ADD_FASTLED_FOR_PIN
@@ -175,7 +157,7 @@ bool configLEDs() {
 	// Apply global settings
 	uint8_t brightness = min((int)g_driverConfig.globalBrightnessLimit, 255);
 	FastLED.setBrightness(brightness);
-	FastLED.setMaxPowerInVoltsAndMilliamps(5, 500); // Conservative power limit
+	FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);  // Conservative power limit
 
 	// Apply dithering setting
 	FastLED.setDither(g_driverConfig.dithering ? 1 : 0);

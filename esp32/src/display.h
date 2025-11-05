@@ -28,101 +28,101 @@
 
 namespace Display {
 
-/**
- * Initialize OLED display
- *
- * Probes I2C bus for display at address 0x3C and initializes if found.
- * Sets I2C clock to 400kHz (fast mode) for quicker updates.
- *
- * @return true if display detected and initialized, false otherwise
- */
-bool begin();
+	/**
+	 * Initialize OLED display
+	 *
+	 * Probes I2C bus for display at address 0x3C and initializes if found.
+	 * Sets I2C clock to 400kHz (fast mode) for quicker updates.
+	 *
+	 * @return true if display detected and initialized, false otherwise
+	 */
+	bool begin();
 
-/**
- * Check if display is available
- *
- * @return true if display was successfully initialized and is available
- */
-bool isAvailable();
+	/**
+	 * Check if display is available
+	 *
+	 * @return true if display was successfully initialized and is available
+	 */
+	bool isAvailable();
 
-/**
- * Show boot screen
- *
- * Displays "RGFX Driver" title and device name.
- * Call once during setup().
- */
-void showBoot(const String& deviceName);
+	/**
+	 * Show boot screen
+	 *
+	 * Displays "RGFX Driver" title and device name.
+	 * Call once during setup().
+	 */
+	void showBoot(const String& deviceName);
 
-/**
- * Show WiFi connecting screen
- *
- * Displays "Connecting..." message with target SSID.
- * Call when WiFi connection attempt begins.
- *
- * @param ssid WiFi network name being connected to
- */
-void showConnecting(const String& ssid);
+	/**
+	 * Show WiFi connecting screen
+	 *
+	 * Displays "Connecting..." message with target SSID.
+	 * Call when WiFi connection attempt begins.
+	 *
+	 * @param ssid WiFi network name being connected to
+	 */
+	void showConnecting(const String& ssid);
 
-/**
- * Show AP mode screen
- *
- * Displays "Setup Mode" message with AP SSID and IP address (192.168.4.1).
- * Call when entering AP mode for configuration.
- *
- * @param apName Access point SSID
- */
-void showAPMode(const String& apName);
+	/**
+	 * Show AP mode screen
+	 *
+	 * Displays "Setup Mode" message with AP SSID and IP address (192.168.4.1).
+	 * Call when entering AP mode for configuration.
+	 *
+	 * @param apName Access point SSID
+	 */
+	void showAPMode(const String& apName);
 
-/**
- * Update AP mode countdown timer
- *
- * Updates the countdown timer shown in AP mode (top right corner).
- * Shows seconds remaining before auto-connect to WiFi.
- * Call periodically (e.g., every second) while in AP mode.
- *
- * @param secondsRemaining Seconds until auto-connect (0 = no timeout)
- */
-void updateAPModeCountdown(uint16_t secondsRemaining);
+	/**
+	 * Update AP mode countdown timer
+	 *
+	 * Updates the countdown timer shown in AP mode (top right corner).
+	 * Shows seconds remaining before auto-connect to WiFi.
+	 * Call periodically (e.g., every second) while in AP mode.
+	 *
+	 * @param secondsRemaining Seconds until auto-connect (0 = no timeout)
+	 */
+	void updateAPModeCountdown(uint16_t secondsRemaining);
 
-/**
- * Show connected screen
- *
- * Displays WiFi connection details: SSID, IP address, and MQTT status.
- * Call when WiFi successfully connects.
- *
- * @param ssid WiFi network name
- * @param ip IP address assigned to device
- * @param mqttConnected MQTT broker connection status
- */
-void showConnected(const String& ssid, const String& ip, bool mqttConnected);
+	/**
+	 * Show connected screen
+	 *
+	 * Displays WiFi connection details: SSID, IP address, and MQTT status.
+	 * Call when WiFi successfully connects.
+	 *
+	 * @param ssid WiFi network name
+	 * @param ip IP address assigned to device
+	 * @param mqttConnected MQTT broker connection status
+	 */
+	void showConnected(const String& ssid, const String& ip, bool mqttConnected);
 
-/**
- * Update MQTT connection status
- *
- * Updates just the MQTT status line on the display.
- * Call when MQTT connection state changes.
- *
- * @param connected true if MQTT broker is connected
- */
-void updateMQTTStatus(bool connected);
+	/**
+	 * Update MQTT connection status
+	 *
+	 * Updates just the MQTT status line on the display.
+	 * Call when MQTT connection state changes.
+	 *
+	 * @param connected true if MQTT broker is connected
+	 */
+	void updateMQTTStatus(bool connected);
 
-/**
- * Update uptime display
- *
- * Updates the uptime counter on the display.
- * Call periodically (e.g., every 10 seconds) from Core 0 network task.
- *
- * @param uptimeSeconds System uptime in seconds
- */
-void updateUptime(unsigned long uptimeSeconds);
+	/**
+	 * Update uptime display
+	 *
+	 * Updates the uptime counter on the display.
+	 * Call periodically (e.g., every 10 seconds) from Core 0 network task.
+	 *
+	 * @param uptimeSeconds System uptime in seconds
+	 */
+	void updateUptime(unsigned long uptimeSeconds);
 
-/**
- * Clear display
- *
- * Clears the entire display (turns all pixels off).
- */
-void clear();
+	/**
+	 * Clear display
+	 *
+	 * Clears the entire display (turns all pixels off).
+	 */
+	void clear();
 
-} // namespace Display
+}  // namespace Display
 
-#endif // DISPLAY_H
+#endif  // DISPLAY_H

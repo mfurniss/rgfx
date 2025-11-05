@@ -19,8 +19,8 @@ void ConfigNVS::begin() {
 void ConfigNVS::factoryReset() {
 	log("Factory reset: Clearing NVS configuration...");
 
-	prefs.begin(NAMESPACE, false); // Read-write mode
-	prefs.clear();                 // Remove all keys in namespace
+	prefs.begin(NAMESPACE, false);  // Read-write mode
+	prefs.clear();                  // Remove all keys in namespace
 	prefs.end();
 
 	log("NVS configuration cleared");
@@ -33,7 +33,7 @@ bool ConfigNVS::saveLEDConfig(const String& configJson) {
 		return false;
 	}
 
-	prefs.begin(NAMESPACE, false); // Read-write mode
+	prefs.begin(NAMESPACE, false);  // Read-write mode
 
 	// NVS strings have a max length of ~4000 bytes
 	// Check if config is too large
@@ -57,7 +57,7 @@ bool ConfigNVS::saveLEDConfig(const String& configJson) {
 }
 
 String ConfigNVS::loadLEDConfig() {
-	prefs.begin(NAMESPACE, true); // Read-only mode
+	prefs.begin(NAMESPACE, true);  // Read-only mode
 
 	String config = prefs.getString(KEY_LED_CONFIG, "");
 	prefs.end();
@@ -72,7 +72,7 @@ String ConfigNVS::loadLEDConfig() {
 }
 
 bool ConfigNVS::hasLEDConfig() {
-	prefs.begin(NAMESPACE, true); // Read-only mode
+	prefs.begin(NAMESPACE, true);  // Read-only mode
 	bool exists = prefs.isKey(KEY_LED_CONFIG);
 	prefs.end();
 	return exists;
@@ -81,7 +81,7 @@ bool ConfigNVS::hasLEDConfig() {
 void ConfigNVS::clearLEDConfig() {
 	log("Clearing LED config from NVS...");
 
-	prefs.begin(NAMESPACE, false); // Read-write mode
+	prefs.begin(NAMESPACE, false);  // Read-write mode
 	prefs.remove(KEY_LED_CONFIG);
 	prefs.end();
 

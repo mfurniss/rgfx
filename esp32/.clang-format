@@ -1,7 +1,7 @@
 # RGFX ESP32 Driver - clang-format Configuration
-# Based on LLVM style with customizations for embedded C++
+# Based on Google style with customizations for embedded C++
 
-BasedOnStyle: LLVM
+BasedOnStyle: Google
 
 # Language and standard
 Language: Cpp
@@ -56,4 +56,4 @@ BinPackArguments: true
 BinPackParameters: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
-NamespaceIndentation: None
+NamespaceIndentation: All

@@ -133,7 +133,7 @@ uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout
 	};
 
 	// Find matching transform function
-	CoordinateTransform transform = coordinateStrip; // Default fallback
+	CoordinateTransform transform = coordinateStrip;  // Default fallback
 	for (const auto& entry : lookupTable) {
 		if (strcmp(layout, entry.layout) == 0) {
 			transform = entry.transform;

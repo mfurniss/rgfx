@@ -5,15 +5,8 @@
 #include <WiFi.h>
 #include <MQTTClient.h>
 
-// MQTT broker settings
+// MQTT broker server (discovered via mDNS)
 extern String MQTT_SERVER;
-extern const int MQTT_PORT;
-extern const char* MQTT_USER;
-extern const char* MQTT_PASSWORD;
-
-// MQTT topics
-extern const char* MQTT_TOPIC_TEST;
-extern const char* MQTT_TOPIC_STATUS;
 
 // MQTT client
 extern MQTTClient mqttClient;

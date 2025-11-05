@@ -175,12 +175,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             color={driver.connected ? "success" : "error"}
             size="small"
           />
-          <Chip
-            label={driver.type}
-            size="small"
-            color="primary"
-            variant="outlined"
-          />
         </Box>
       </Box>
 

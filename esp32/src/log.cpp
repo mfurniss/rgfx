@@ -1,10 +1,11 @@
 #include "log.h"
+#include "serial.h"
 #include <Arduino.h>
 
 void log(const char* message) {
-	Serial.println(message);
+	SerialCommand::log(String(message));
 }
 
 void log(const String& message) {
-	Serial.println(message);
+	SerialCommand::log(message);
 }
