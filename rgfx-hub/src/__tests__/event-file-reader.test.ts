@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { EventFileReader } from "../event-file-reader";
 import { writeFileSync, unlinkSync, existsSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { waitForFileWatcherReady } from "./test-utils";
 
@@ -10,7 +10,7 @@ describe("EventFileReader", () => {
   let reader: EventFileReader;
 
   beforeEach(() => {
-    testFilePath = join(tmpdir(), "rgfx_events.log");
+    testFilePath = join(homedir(), ".rgfx", "mame_events.log");
     // Clean up any existing test file
     if (existsSync(testFilePath)) {
       unlinkSync(testFilePath);

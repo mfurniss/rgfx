@@ -7,18 +7,24 @@
 -- Event logging module
 -- Writes events to a log file for MQTT bridge consumption
 
-local function get_temp_dir()
+local function get_event_file_path()
 	local os_name = package.config:sub(1, 1) == "\\" and "windows" or "unix"
-	if os_name == "windows" then
-		return os.getenv("TEMP") or os.getenv("TMP") or "C:\\Temp"
-	else
-		return os.getenv("TMPDIR") or "/tmp"
+	local home = os.getenv("HOME") or os.getenv("USERPROFILE")
+	local separator = os_name == "windows" and "\\" or "/"
+
+	if not home then
+		error("Could not determine home directory")
 	end
+
+	local rgfx_dir = home .. separator .. ".rgfx"
+
+	-- Create .rgfx directory if it doesn't exist
+	os.execute((os_name == "windows" and "mkdir " or "mkdir -p ") .. rgfx_dir)
+
+	return rgfx_dir .. separator .. "mame_events.log"
 end
 
-local event_file_path = get_temp_dir()
-	.. (package.config:sub(1, 1) == "\\" and "\\" or "/")
-	.. "rgfx_events.log"
+local event_file_path = get_event_file_path()
 
 local event_file = io.open(event_file_path, "w")
 if event_file then

@@ -22,58 +22,63 @@ const GHOST_STATE = {
 };
 
 const GHOST_COLORS = {
-  red: '#FF0000',
-  pink: '#FFB8FF',
-  cyan: '#00FFFF',
-  orange: '#FFB852',
+  red: "#FF0000",
+  pink: "#FFB8FF",
+  cyan: "#00FFFF",
+  orange: "#FFB852",
 };
 
 // Lookup table for ghost state colors
 const GHOST_STATE_COLORS = {
-  [GHOST_STATE.VULNERABLE]: '#0000FF',
-  [GHOST_STATE.FLASHING]: '#FFFFFF',
-  [GHOST_STATE.EATEN]: '#FFFFFF',
-  [GHOST_STATE.EYES]: '#FFFFFF',
+  [GHOST_STATE.VULNERABLE]: "#0000FF",
+  [GHOST_STATE.FLASHING]: "#FFFFFF",
+  [GHOST_STATE.EATEN]: "#FFFFFF",
+  [GHOST_STATE.EYES]: "#FFFFFF",
 };
 
 export function handle(topic, payload, { broadcast }) {
-  const [, subject, property] = topic.split('/');
+  const parts = topic.split("/");
+  const [, subject, property] = parts;
 
   // Player score - yellow pulse
-  if (subject === 'player' && property === 'score') {
+  if (subject === "player" && property === "score") {
     return broadcast({
-      effect: 'pulse',
+      effect: "pulse",
       props: {
-        color: '#FFFF00', // Yellow
+        color: "#FFFF00",
       },
     });
   }
 
   // Power pill state - blue when active, red when inactive
-  if (subject === 'player' && property === 'pill') {
+  if (subject === "player" && property === "pill") {
     const state = parseInt(payload);
     const isActive = state > 0;
 
     return broadcast({
-      effect: 'pulse',
+      effect: "pulse",
       props: {
-        color: isActive ? '#0000FF' : '#FF0000',
+        color: isActive ? "#0000FF" : "#FF0000",
       },
     });
   }
 
   // Ghost state changes - color-coded effects
-  if (subject === 'ghost' && property) {
-    const ghostColor = property;
+  // Topic format: pacman/ghost/{color}/state
+  if (subject === "ghost" && parts.length === 4) {
+    const ghostColor = parts[2]; // Get color from correct position
     const state = parseInt(payload);
 
     // Look up color by state, or use ghost's normal color
-    const color = GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || '#FFFFFF';
+    const color =
+      GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || "#FFFFFF";
 
     return broadcast({
-      effect: 'pulse',
+      effect: "pulse",
       props: {
         color,
+        duration: 500,
+        fade: false,
       },
     });
   }

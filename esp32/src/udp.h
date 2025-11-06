@@ -12,6 +12,8 @@
 struct UDPMessage {
 	String effect;
 	uint32_t color;
+	uint32_t duration;  // Pulse duration in milliseconds (default: 150)
+	bool fade;          // Whether pulse should fade (default: true)
 };
 
 // Function declarations

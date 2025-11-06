@@ -262,7 +262,7 @@ void loop() {
 		if (checkUDPMessage(&message)) {
 			// Handle pulse effect specially
 			if (message.effect == "pulse") {
-				effectProcessor->triggerPulse(message.color, 150);
+				effectProcessor->triggerPulse(message.color, message.duration, message.fade);
 			} else {
 				// Look up other effects in map
 				auto it = effectMap.find(message.effect);

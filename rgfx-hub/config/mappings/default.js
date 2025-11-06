@@ -4,6 +4,10 @@ export function handle(_topic, _payload, { broadcast, log }) {
 
   return broadcast({
     effect: 'pulse',
-    props: { color: '#0000FF' }, // Blue for unmatched events
+    props: {
+      color: '#0000FF', // Blue for unmatched events
+      duration: 300, // 300ms pulse
+      fade: true, // Fade out over duration
+    },
   });
 }
