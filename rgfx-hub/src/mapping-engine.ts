@@ -26,13 +26,12 @@ export class MappingEngine {
   private subjectHandlers = new Map<string, MappingHandler>();
   private patternHandlers: MappingHandler[] = [];
   private defaultHandler?: MappingHandler;
-  private currentGame?: string;
 
   constructor(private context: MappingContext) {}
 
   /**
    * Load default mapping files from user data directory
-   * Game-specific mappers are loaded dynamically when game/init event is received
+   * Game-specific mappers are loaded dynamically when any game event is received
    */
   async loadMappings(): Promise<void> {
     const mappingsDir = getMappingsDir();
@@ -70,12 +69,13 @@ export class MappingEngine {
       this.parsePayload(payload);
       const [game, subject] = topic.split('/');
 
-      // Check for game initialization event
-      if (subject === 'init' && game) {
+      // Auto-load game mapper if not already loaded
+      // This handles race condition where Hub starts after MAME
+      if (game && !this.gameHandlers.has(game)) {
         await this.loadGameMapper(game);
-        this.currentGame = game;
-        this.context.log.info(`Game initialized: ${game}`);
-        return; // Don't cascade init events
+        if (this.gameHandlers.has(game)) {
+          this.context.log.info(`Auto-loaded game mapper: ${game}`);
+        }
       }
 
       // 1. Try game-specific handler (highest priority)
@@ -156,20 +156,23 @@ export class MappingEngine {
 
   /**
    * Load a specific game mapper dynamically
-   * Called when {game}/init event is received
+   * Called automatically when any event from a new game is received
    *
-   * Note: Only one game-specific mapper is kept in memory at a time.
+   * Note: Supports multiple concurrent game mappers.
    * Unknown games fall through to subject/pattern/default handlers.
    */
   private async loadGameMapper(gameName: string): Promise<void> {
-    // Clear any existing game handler (only one game at a time)
-    this.gameHandlers.clear();
-
-    const mappingsDir = getMappingsDir();
-    const filePath = join(mappingsDir, 'games', `${gameName}.js`);
+    // Skip if already loaded
+    if (this.gameHandlers.has(gameName)) {
+      this.context.log.debug(`Game mapper ${gameName} already loaded`);
+      return;
+    }
 
     try {
-      // Add cache-busting query parameter to force reload
+      const mappingsDir = getMappingsDir();
+      const filePath = join(mappingsDir, 'games', `${gameName}.js`);
+
+      // Dynamically import the game mapper with cache-busting
       const module = (await import(
         `${filePath}?t=${Date.now()}`
       )) as Record<string, unknown>;
@@ -183,14 +186,16 @@ export class MappingEngine {
           `Game mapper ${gameName}.js has no valid handler function`,
         );
       }
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        this.context.log.info(
-          `No custom mapper for ${gameName}, using generic handlers`,
-        );
-      } else {
-        this.context.log.error(`Failed to load game mapper ${gameName}:`, error);
-      }
+    } catch {
+      // Silently handle all errors during mapper loading
+      // This includes:
+      // - File not found (ENOENT, ERR_MODULE_NOT_FOUND)
+      // - Electron app not initialized (in tests)
+      // - Invalid JavaScript syntax
+      // Game will fall through to generic handlers
+      this.context.log.debug(
+        `Could not load game mapper for ${gameName}, will use generic handlers`,
+      );
     }
   }
 

@@ -5,8 +5,8 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, statSync, existsSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { watch, readFileSync, statSync, existsSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import log from "electron-log/main";
 
@@ -17,8 +17,17 @@ export class EventFileReader {
   private onEventCallback?: (topic: string, message: string) => void;
 
   constructor() {
-    // Default to platform-specific temp directory
-    this.filePath = join(tmpdir(), "rgfx_events.log");
+    // Use stable ~/.rgfx directory
+    const rgfxDir = join(homedir(), ".rgfx");
+
+    // Ensure directory exists
+    try {
+      mkdirSync(rgfxDir, { recursive: true });
+    } catch (err) {
+      log.error("Failed to create .rgfx directory:", err);
+    }
+
+    this.filePath = join(rgfxDir, "mame_events.log");
     log.info(`Event file path: ${this.filePath}`);
   }
 

@@ -6,19 +6,29 @@
 #include "matrix.h"
 
 class PulseEffect : public IEffect {
-  private:
+   private:
 	struct Pulse {
-		CRGB color;        // RGB color
-		float alpha;       // Alpha channel: 1.0 (full) → 0.0 (transparent)
-		uint32_t duration; // Total duration in milliseconds
+		CRGB color;            // RGB color (3 bytes)
+		uint8_t alpha;         // Alpha channel: 255 (full) → 0 (transparent)
+		uint32_t duration;     // Total duration in milliseconds
+		uint32_t elapsedTime;  // Elapsed time in milliseconds (only used for non-fading pulses)
+		bool fade;             // Whether to fade out (true) or stay full brightness (false)
+
+		// Calculate remaining duration
+		uint32_t remaining() const {
+			return fade ?
+				((static_cast<uint32_t>(alpha) * duration) / 255) :
+				(duration - elapsedTime);
+		}
 	};
 
-	std::vector<Pulse> pulses; // Dynamic array of active pulses
+	std::vector<Pulse> pulses;  // Dynamic array of active pulses
 
-  public:
+   public:
 	PulseEffect();
-	void addPulse(CRGB color, uint32_t duration);
-	void update(float deltaTime) override; // Update all pulses, remove completed ones (deltaTime in seconds)
+	void addPulse(CRGB color, uint32_t duration, bool fade = true);
+	void update(float deltaTime)
+		override;  // Update all pulses, remove completed ones (deltaTime in seconds)
 	void render(Matrix& matrix) override;  // Render all pulses to virtual display
 	void reset() override;                 // Remove all active pulses
 };

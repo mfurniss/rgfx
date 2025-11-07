@@ -26,6 +26,8 @@ export interface EffectPayload {
     color?: string;
     /** Duration in milliseconds */
     duration?: number;
+    /** Whether the effect should fade (default: true) */
+    fade?: boolean;
     /** Additional effect properties */
     [key: string]: unknown;
   };

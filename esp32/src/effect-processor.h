@@ -18,5 +18,5 @@ class EffectProcessor {
   public:
 	EffectProcessor(Matrix& matrix);
 	void update();
-	void triggerPulse(uint32_t color, uint32_t duration);
+	void triggerPulse(uint32_t color, uint32_t duration, bool fade = true);
 };

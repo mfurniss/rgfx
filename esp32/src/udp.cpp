@@ -57,6 +57,20 @@ void processUDP() {
 					pendingMessage.color = 0xFFFFFF;  // Default white
 				}
 
+				// Extract duration from props (default: 150ms)
+				if (doc["props"]["duration"]) {
+					pendingMessage.duration = doc["props"]["duration"].as<uint32_t>();
+				} else {
+					pendingMessage.duration = 150;
+				}
+
+				// Extract fade from props (default: true)
+				if (doc["props"]["fade"].is<bool>()) {
+					pendingMessage.fade = doc["props"]["fade"].as<bool>();
+				} else {
+					pendingMessage.fade = true;
+				}
+
 				newMessageAvailable = true;
 				log("UDP RX: effect=" + pendingMessage.effect + " color=0x" +
 				    String(pendingMessage.color, HEX));

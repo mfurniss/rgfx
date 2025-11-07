@@ -27,6 +27,6 @@ void EffectProcessor::update() {
 	FastLED.show();
 }
 
-void EffectProcessor::triggerPulse(uint32_t color, uint32_t duration) {
-	pulseEffect.addPulse(CRGB(color), duration);
+void EffectProcessor::triggerPulse(uint32_t color, uint32_t duration, bool fade) {
+	pulseEffect.addPulse(CRGB(color), duration, fade);
 }
