@@ -11,6 +11,7 @@ import {
 import type { Driver } from "../types";
 import InfoSection, { type InfoRowData } from "./components/info-section";
 import { formatBytes, formatUptime, formatTimestamp } from "./utils/formatters";
+import { useDriverStore } from "./store/driver-store";
 
 interface DriverCardProps {
   driver: Driver;
@@ -34,6 +35,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const handleTestToggle = () => {
     // Toggle based on current state - if undefined, default to false (turning on)
     const newTestMode = !(driver.testActive ?? false);
+
+    // Optimistic update - update UI immediately for instant feedback
+    useDriverStore.getState().onDriverUpdated({
+      ...driver,
+      testActive: newTestMode
+    });
+
+    // Send command - actual state will reconcile when driver responds
     void window.rgfx.testDriverLEDs(driver.id, newTestMode);
   };
 
