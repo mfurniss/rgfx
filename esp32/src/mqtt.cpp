@@ -8,6 +8,7 @@
 #include "udp.h"
 #include "config/constants.h"
 #include "effects/test.h"
+#include "effect-processor.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
@@ -38,6 +39,7 @@ void handleDriverConfig(const String& payload);
 extern Matrix matrix;
 extern UDPMessage pendingMessage;
 extern volatile bool newMessageAvailable;
+extern EffectProcessor* effectProcessor;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String& topic, String& payload) {
@@ -70,6 +72,12 @@ void mqttCallback(String& topic, String& payload) {
 			testModeActive = false;
 			fill_solid(matrix.leds, matrix.size, CRGB::Black);
 			FastLED.show();
+
+			// Clear any active effects to prevent them from re-rendering
+			if (effectProcessor != nullptr) {
+				effectProcessor->clearEffects();
+			}
+
 			log("Test mode DISABLED");
 			publishTestState("off");
 		}

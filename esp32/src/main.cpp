@@ -137,10 +137,8 @@ void setup() {
 	FastLED.addLeds<WS2812B, 16, GRB>(matrix.leds, matrix.size);
 	FastLED.setBrightness(64);
 
-	// Show BLUE while connecting to WiFi / in config portal
+	// WiFi connection happens asynchronously
 	log("Connecting to WiFi...");
-	fill_solid(matrix.leds, matrix.size, CRGB::Blue);
-	FastLED.show();
 
 	// Create network task on Core 0
 	// Priority 1 (same as loop), 8KB stack
@@ -191,10 +189,12 @@ void loop() {
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {
-		// Just entered AP mode - show PURPLE immediately
-		log("Entering AP mode - LEDs PURPLE");
-		fill_solid(matrix.leds, matrix.size, CRGB::Purple);
-		FastLED.show();
+		// Just entered AP mode - show PURPLE immediately (unless in test mode)
+		if (!testModeActive) {
+			log("Entering AP mode - LEDs PURPLE");
+			fill_solid(matrix.leds, matrix.size, CRGB::Purple);
+			FastLED.show();
+		}
 		inApMode = true;
 		initialConnectionAttemptDone = true;
 		apModeStartTime = millis();

@@ -22,4 +22,5 @@ class EffectProcessor {
 	void update();
 	void triggerPulse(uint32_t color, uint32_t duration, bool fade = true);
 	void triggerWipe(uint32_t color, uint32_t duration, bool fade = true);
+	void clearEffects();
 };

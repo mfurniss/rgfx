@@ -38,3 +38,8 @@ void EffectProcessor::triggerPulse(uint32_t color, uint32_t duration, bool fade)
 void EffectProcessor::triggerWipe(uint32_t color, uint32_t duration, bool fade) {
 	wipeEffect.addWipe(CRGB(color), duration, fade);
 }
+
+void EffectProcessor::clearEffects() {
+	pulseEffect.reset();
+	wipeEffect.reset();
+}

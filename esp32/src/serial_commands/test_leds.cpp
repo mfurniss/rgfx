@@ -9,12 +9,14 @@
 #include "../log.h"
 #include "../matrix.h"
 #include "../effects/test.h"
+#include "../effect-processor.h"
 #include "../mqtt.h"
 #include <FastLED.h>
 #include <WiFi.h>
 
 extern Matrix matrix;
 extern bool testModeActive;
+extern EffectProcessor* effectProcessor;
 
 namespace Commands {
 
@@ -37,6 +39,12 @@ namespace Commands {
 			testModeActive = false;
 			fill_solid(matrix.leds, matrix.size, CRGB::Black);
 			FastLED.show();
+
+			// Clear any active effects to prevent them from re-rendering
+			if (effectProcessor != nullptr) {
+				effectProcessor->clearEffects();
+			}
+
 			log("Test mode DISABLED - LEDs cleared");
 
 			// Notify Hub of test state change
