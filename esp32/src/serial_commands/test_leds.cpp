@@ -6,7 +6,7 @@
  */
 
 #include "commands.h"
-#include "../serial.h"
+#include "../log.h"
 #include "../matrix.h"
 #include "../effects/test.h"
 #include "../mqtt.h"
@@ -28,7 +28,7 @@ namespace Commands {
 			testModeActive = true;
 			test(matrix, 0);
 			FastLED.show();
-			SerialCommand::log("Test mode ENABLED - LEDs showing test pattern");
+			log("Test mode ENABLED - LEDs showing test pattern");
 
 			// Notify Hub of test state change
 			publishTestState("on");
@@ -37,12 +37,12 @@ namespace Commands {
 			testModeActive = false;
 			fill_solid(matrix.leds, matrix.size, CRGB::Black);
 			FastLED.show();
-			SerialCommand::log("Test mode DISABLED - LEDs cleared");
+			log("Test mode DISABLED - LEDs cleared");
 
 			// Notify Hub of test state change
 			publishTestState("off");
 		} else {
-			SerialCommand::log("Usage: test_leds on|off");
+			log("Usage: test_leds on|off");
 		}
 	}
 

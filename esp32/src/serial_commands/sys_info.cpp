@@ -6,7 +6,7 @@
  */
 
 #include "commands.h"
-#include "../serial.h"
+#include "../log.h"
 #include "../sys_info.h"
 #include "../driver_config.h"
 #include <Arduino.h>
@@ -19,9 +19,9 @@ namespace Commands {
 		JsonDocument doc = SysInfo::getSysInfo(g_driverConfig, g_configReceived);
 
 		// Output formatted JSON to serial
-		SerialCommand::log("\n=== System Information ===");
+		log("\n=== System Information ===");
 		serializeJsonPretty(doc, Serial);
-		SerialCommand::log("");  // Newline after JSON
+		log("");  // Newline after JSON
 	}
 
 }  // namespace Commands

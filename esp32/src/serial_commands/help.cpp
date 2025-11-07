@@ -6,23 +6,21 @@
  */
 
 #include "commands.h"
-#include "../serial.h"
+#include "../log.h"
 #include <Arduino.h>
 
 namespace Commands {
 
 	void help(const String& args) {
-		SerialCommand::log("\n=== RGFX Driver Serial Commands ===");
-		SerialCommand::log("wifi SSID PASSWORD   - Set WiFi credentials and restart");
-		SerialCommand::log(
-			"                       Supports quoted strings for SSIDs/passwords with spaces");
-		SerialCommand::log("                       Example: wifi MyNetwork MyPassword123");
-		SerialCommand::log(
-			"                       Example: wifi \"My Network\" \"My Password 123\"");
-		SerialCommand::log("factory_reset        - Erase WiFi credentials and restart");
-		SerialCommand::log("sys_info             - Display system information (JSON)");
-		SerialCommand::log("test_leds on|off     - Enable/disable LED test pattern");
-		SerialCommand::log("help                 - Show this help message");
+		log("\n=== RGFX Driver Serial Commands ===");
+		log("wifi SSID PASSWORD   - Set WiFi credentials and restart");
+		log("                       Supports quoted strings for SSIDs/passwords with spaces");
+		log("                       Example: wifi MyNetwork MyPassword123");
+		log("                       Example: wifi \"My Network\" \"My Password 123\"");
+		log("factory_reset        - Erase WiFi credentials and restart");
+		log("sys_info             - Display system information (JSON)");
+		log("test_leds on|off     - Enable/disable LED test pattern");
+		log("help                 - Show this help message");
 	}
 
 }  // namespace Commands
