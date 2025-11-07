@@ -78,7 +78,6 @@ test:driver:
       files:
         - esp32/platformio.ini
     paths:
-      - .platformio/
       - esp32/.pio/
 
   before_script:
@@ -170,7 +169,6 @@ build:driver:
       files:
         - esp32/platformio.ini
     paths:
-      - .platformio/
       - esp32/.pio/
 
   before_script:
