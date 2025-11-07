@@ -4,6 +4,9 @@
 #include <WiFi.h>
 #include <Arduino.h>
 
+// External test mode state
+extern volatile bool testModeActive;
+
 JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool configReceived) {
 	JsonDocument doc;
 
@@ -36,6 +39,9 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 
 	// Display information
 	doc["hasDisplay"] = Display::isAvailable();
+
+	// Test mode state
+	doc["testActive"] = testModeActive;
 
 	// LED Configuration (if received from Hub)
 	doc["configReceived"] = configReceived;

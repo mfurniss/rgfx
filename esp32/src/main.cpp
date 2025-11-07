@@ -8,9 +8,6 @@
 #include <ESPmDNS.h>
 #include <map>
 #include "matrix.h"
-#include "effects/fire.h"
-#include "effects/wave.h"
-#include "effects/sparkle.h"
 #include "effects/test.h"
 #include "effect-processor.h"
 #include "network-init.h"

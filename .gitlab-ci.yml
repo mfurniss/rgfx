@@ -40,10 +40,13 @@ test:hub:
   stage: test
   image: node:${NODE_VERSION}
 
-  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
-
-  variables:
-    GIT_STRATEGY: clone  # Force fresh clone
+  # Cache npm packages to speed up subsequent runs
+  cache:
+    key:
+      files:
+        - rgfx-hub/package-lock.json
+    paths:
+      - rgfx-hub/.npm/
 
   before_script:
     # Workaround: Regenerate package-lock.json in CI with npm 10.8.2
@@ -69,10 +72,14 @@ test:driver:
   stage: test
   image: python:3.11
 
-  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
-
-  variables:
-    GIT_STRATEGY: clone  # Force fresh clone
+  # Cache PlatformIO packages and pip installs to speed up subsequent runs
+  cache:
+    key:
+      files:
+        - esp32/platformio.ini
+    paths:
+      - .platformio/
+      - esp32/.pio/
 
   before_script:
     - apt-get update && apt-get install -y nodejs npm
@@ -104,10 +111,13 @@ build:hub:
   stage: build
   image: node:${NODE_VERSION}
 
-  cache: {}  # Explicitly disable cache (prevents inheritance and old cache restoration)
-
-  variables:
-    GIT_STRATEGY: clone  # Force fresh clone
+  # Cache npm packages to speed up subsequent runs
+  cache:
+    key:
+      files:
+        - rgfx-hub/package-lock.json
+    paths:
+      - rgfx-hub/.npm/
 
   before_script:
     # Workaround: Regenerate package-lock.json in CI with npm 10.8.2

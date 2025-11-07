@@ -23,10 +23,18 @@ void EffectProcessor::update() {
 	pulseEffect.update(deltaTime);
 	pulseEffect.render(matrix);
 
+	// Update and render wipe effect
+	wipeEffect.update(deltaTime);
+	wipeEffect.render(matrix);
+
 	// Display the frame
 	FastLED.show();
 }
 
 void EffectProcessor::triggerPulse(uint32_t color, uint32_t duration, bool fade) {
 	pulseEffect.addPulse(CRGB(color), duration, fade);
+}
+
+void EffectProcessor::triggerWipe(uint32_t color, uint32_t duration, bool fade) {
+	wipeEffect.addWipe(CRGB(color), duration, fade);
 }

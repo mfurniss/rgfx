@@ -21,6 +21,7 @@ namespace Commands {
 			"                       Example: wifi \"My Network\" \"My Password 123\"");
 		SerialCommand::log("factory_reset        - Erase WiFi credentials and restart");
 		SerialCommand::log("sys_info             - Display system information (JSON)");
+		SerialCommand::log("test_leds on|off     - Enable/disable LED test pattern");
 		SerialCommand::log("help                 - Show this help message");
 	}
 

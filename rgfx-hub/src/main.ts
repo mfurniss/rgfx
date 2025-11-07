@@ -178,6 +178,14 @@ driverRegistry.onDriverDisconnected((driver) => {
 // Start MQTT broker
 mqtt.start();
 
+// After broker starts, send discovery request to query all connected drivers
+// Drivers will respond with connect messages containing current state
+// Use setTimeout to ensure broker is fully initialized
+setTimeout(() => {
+  log.info("Sending discovery request to all drivers...");
+  void mqtt.publish("rgfx/system/discover", "");
+}, 1000);
+
 // Install default mappers to user data directory (async)
 void installDefaultMappers().then(() => {
   // Load mapping engine handlers after installing defaults
@@ -230,6 +238,67 @@ mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     log.error(`Failed to parse driver heartbeat message: ${errorMessage}`);
+  }
+});
+
+// Subscribe to driver status changes (online/offline via LWT)
+mqtt.subscribe("rgfx/driver/+/status", (topic, payload) => {
+  log.info(`Driver status change: ${topic} = ${payload}`);
+
+  // Extract driver MAC from topic: rgfx/driver/{mac}/status
+  const match = /^rgfx\/driver\/(.+)\/status$/.exec(topic);
+  if (!match) {
+    log.error(`Invalid status topic format: ${topic}`);
+    return;
+  }
+
+  const driverId = match[1].replace(/-/g, ':'); // Convert AB-CD-EF to AB:CD:EF
+  const driver = driverRegistry.getDriver(driverId);
+
+  if (!driver) {
+    log.warn(`Status change from unknown driver: ${driverId}`);
+    return;
+  }
+
+  // Update driver connection state based on status
+  const wasConnected = driver.connected;
+  driver.connected = payload === "online";
+
+  // If driver went offline, notify UI
+  if (wasConnected && !driver.connected) {
+    log.warn(`Driver ${driverId} went offline (LWT triggered)`);
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send("driver:disconnected", driver);
+    }
+    sendSystemStatus();
+  }
+});
+
+// Subscribe to driver test state changes (using wildcard for all drivers)
+mqtt.subscribe("rgfx/driver/+/test/state", (topic, payload) => {
+  log.info(`Test state change: ${topic} = ${payload}`);
+
+  // Extract driver MAC from topic: rgfx/driver/{mac}/test/state
+  const match = /^rgfx\/driver\/(.+)\/test\/state$/.exec(topic);
+  if (!match) {
+    log.error(`Invalid test state topic format: ${topic}`);
+    return;
+  }
+
+  const driverId = match[1].replace(/-/g, ':'); // Convert AB-CD-EF to AB:CD:EF
+  const driver = driverRegistry.getDriver(driverId);
+
+  if (!driver) {
+    log.warn(`Test state change from unknown driver: ${driverId}`);
+    return;
+  }
+
+  // Update driver test state in memory
+  driver.testActive = payload === "on";
+
+  // Notify renderer to update UI
+  if (isWindowAvailable() && mainWindow) {
+    mainWindow.webContents.send("driver:updated", driver);
   }
 });
 

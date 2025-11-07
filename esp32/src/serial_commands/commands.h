@@ -49,6 +49,13 @@ namespace Commands {
 	 */
 	void sysInfo(const String& args);
 
+	/**
+	 * LED test command.
+	 * Format: test_leds on|off
+	 * Enables/disables LED test pattern.
+	 */
+	void testLeds(const String& args);
+
 }  // namespace Commands
 
 #endif

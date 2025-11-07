@@ -115,6 +115,7 @@ export class DriverRegistry {
       failedHeartbeats: 0, // Reset on connect
       ip: sysInfo.ip,
       sysInfo: sysInfo,
+      testActive: sysInfo.testActive, // Use driver's reported test state
       ledConfig: existingDriver?.ledConfig, // Preserve LED config (hardware ref + settings)
       resolvedHardware: existingDriver?.resolvedHardware, // Preserve resolved hardware
       stats: {

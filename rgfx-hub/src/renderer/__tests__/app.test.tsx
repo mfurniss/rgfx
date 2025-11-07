@@ -32,6 +32,7 @@ vi.mock('../store/driver-store', () => ({
 describe('App IPC Listener Registration', () => {
   let mockIpcOnDriverConnected: ReturnType<typeof vi.fn>;
   let mockIpcOnDriverDisconnected: ReturnType<typeof vi.fn>;
+  let mockIpcOnDriverUpdated: ReturnType<typeof vi.fn>;
   let mockIpcOnSystemStatus: ReturnType<typeof vi.fn>;
   let mockRendererReady: ReturnType<typeof vi.fn>;
 
@@ -41,12 +42,14 @@ describe('App IPC Listener Registration', () => {
     // Mock window.rgfx IPC bridge - functions now return cleanup functions
     mockIpcOnDriverConnected = vi.fn(() => vi.fn());
     mockIpcOnDriverDisconnected = vi.fn(() => vi.fn());
+    mockIpcOnDriverUpdated = vi.fn(() => vi.fn());
     mockIpcOnSystemStatus = vi.fn(() => vi.fn());
     mockRendererReady = vi.fn();
 
     (window as Window & { rgfx: unknown }).rgfx = {
       onDriverConnected: mockIpcOnDriverConnected,
       onDriverDisconnected: mockIpcOnDriverDisconnected,
+      onDriverUpdated: mockIpcOnDriverUpdated,
       onSystemStatus: mockIpcOnSystemStatus,
       rendererReady: mockRendererReady,
       testDriverLEDs: vi.fn(),

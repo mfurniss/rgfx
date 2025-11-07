@@ -19,7 +19,6 @@ interface DriverCardProps {
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
-  const [testMode, setTestMode] = useState(false);
 
   // Update every second for live timestamps and uptime
   useEffect(() => {
@@ -33,8 +32,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   }, []);
 
   const handleTestToggle = () => {
-    const newTestMode = !testMode;
-    setTestMode(newTestMode);
+    // Toggle based on current state - if undefined, default to false (turning on)
+    const newTestMode = !(driver.testActive ?? false);
     void window.rgfx.testDriverLEDs(driver.id, newTestMode);
   };
 
@@ -161,14 +160,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         <Typography variant="h6">{driver.name}</Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <Button
-            variant={testMode ? "contained" : "outlined"}
-            color={testMode ? "warning" : "primary"}
+            variant={driver.testActive ? "contained" : "outlined"}
+            color={driver.testActive ? "warning" : "primary"}
             size="small"
             startIcon={<ScienceIcon />}
             onClick={handleTestToggle}
             disabled={!driver.connected}
           >
-            Test {testMode ? "ON" : "OFF"}
+            Test LEDs {driver.testActive ? "ON" : "OFF"}
           </Button>
           <Chip
             label={driver.connected ? "Connected" : "Disconnected"}

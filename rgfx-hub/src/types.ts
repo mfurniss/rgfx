@@ -139,6 +139,9 @@ export interface DriverSystemInfo {
   // Display information
   hasDisplay: boolean;
 
+  // Runtime state
+  testActive?: boolean;
+
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
   // and pushed to drivers via MQTT - not reported in sysInfo
 }
@@ -164,6 +167,7 @@ export interface Driver {
   updateRate?: number;
   ledConfig?: DriverLEDConfig;
   resolvedHardware?: LEDHardware;
+  testActive?: boolean;
 }
 
 export interface SystemStatus {
@@ -177,6 +181,7 @@ export interface SystemStatus {
 export interface IpcApi {
   onDriverConnected: (callback: (driver: Driver) => void) => () => void;
   onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
+  onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
   onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
   testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
   rendererReady: () => void;

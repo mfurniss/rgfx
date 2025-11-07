@@ -14,7 +14,9 @@ export class EventFileReader {
   private filePath: string;
   private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
+  private pollingInterval?: ReturnType<typeof setInterval>;
   private onEventCallback?: (topic: string, message: string) => void;
+  private lastPollTime = 0;
 
   constructor() {
     // Use stable ~/.rgfx directory
@@ -49,6 +51,9 @@ export class EventFileReader {
       );
       this.watchDirectory();
     }
+
+    // Start polling backup (every 500ms) to catch events if fs.watch() fails
+    this.startPolling();
   }
 
   private watchFile() {
@@ -60,15 +65,31 @@ export class EventFileReader {
     });
 
     this.watcher.on("error", (err) => {
-      log.error("Watch error:", err);
+      log.error("Watch error - polling will continue:", err);
+      // Don't stop - polling will keep working
     });
   }
 
+  private startPolling() {
+    // Poll every 500ms as backup to fs.watch()
+    this.pollingInterval = setInterval(() => {
+      if (this.onEventCallback && existsSync(this.filePath)) {
+        const now = Date.now();
+        // Only log every 60 seconds to avoid spam
+        if (now - this.lastPollTime > 60000) {
+          log.debug("Polling for new events...");
+          this.lastPollTime = now;
+        }
+        this.readNewLines(this.onEventCallback);
+      }
+    }, 500);
+  }
+
   private watchDirectory() {
-    // Watch the temp directory for the file to be created
+    // Watch the directory for the file to be created
     const dirPath = dirname(this.filePath);
     this.watcher = watch(dirPath, (eventType, filename) => {
-      if (filename === "rgfx_events.log" && existsSync(this.filePath)) {
+      if (filename === "mame_events.log" && existsSync(this.filePath)) {
         log.info("Event file created. Starting to watch...");
 
         // Stop watching the directory
@@ -83,7 +104,8 @@ export class EventFileReader {
     });
 
     this.watcher.on("error", (err) => {
-      log.error("Directory watch error:", err);
+      log.error("Directory watch error - polling will continue:", err);
+      // Don't stop - polling will keep working
     });
   }
 
@@ -142,7 +164,11 @@ export class EventFileReader {
     if (this.watcher) {
       this.watcher.close();
       this.watcher = undefined;
-      log.info("Event file reader stopped");
     }
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = undefined;
+    }
+    log.info("Event file reader stopped");
   }
 }

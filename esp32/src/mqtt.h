@@ -21,5 +21,6 @@ void mqttLoop();
 void updateLEDs();
 void sendDriverConnect();
 void sendDriverHeartbeat();
+void publishTestState(const String& state);
 
 #endif

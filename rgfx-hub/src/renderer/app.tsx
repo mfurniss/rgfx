@@ -26,6 +26,7 @@ const App: React.FC = () => {
   // Get actions from Zustand store
   const onDriverConnected = useDriverStore(state => state.onDriverConnected);
   const onDriverDisconnected = useDriverStore(state => state.onDriverDisconnected);
+  const onDriverUpdated = useDriverStore(state => state.onDriverUpdated);
   const onSystemStatusUpdate = useDriverStore(state => state.onSystemStatusUpdate);
 
   useEffect(() => {
@@ -46,6 +47,11 @@ const App: React.FC = () => {
       console.log(`[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`);
     });
 
+    const unsubUpdated = window.rgfx.onDriverUpdated((driver) => {
+      console.log(`[DEBUG] IPC driver:updated received in renderer for ${driver.id}`);
+      onDriverUpdated(driver);
+    });
+
     const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
 
     // Signal to main process that renderer is ready to receive initial state
@@ -56,6 +62,7 @@ const App: React.FC = () => {
       console.log('[APP] Cleaning up IPC listeners');
       unsubConnected();
       unsubDisconnected();
+      unsubUpdated();
       unsubSystemStatus();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
