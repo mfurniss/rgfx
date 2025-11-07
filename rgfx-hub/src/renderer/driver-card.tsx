@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Paper, Typography, Box, Chip, Button } from "@mui/material";
+import { Paper, Typography, Box, Chip, Button, Tooltip } from "@mui/material";
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -155,6 +155,19 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     { label: "UDP Send Errors", value: driver.stats.udpMessagesFailed },
   ];
 
+  // Generate tooltip text based on layout type
+  const getTestTooltip = () => {
+    if (!hardware) {
+      return "Displays a test pattern to validate LED hardware and wiring";
+    }
+
+    if (hardware.layout === "strip") {
+      return "Strip: 4 segments in Red, Green, Blue, Yellow (25% each)";
+    } else {
+      return "Matrix: 4 quadrants - Top-Left: Red, Top-Right: Green, Bottom-Left: Blue, Bottom-Right: Yellow";
+    }
+  };
+
   return (
     <Paper sx={{ p: 2 }}>
       {/* Header */}
@@ -168,16 +181,20 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       >
         <Typography variant="h6">{driver.name}</Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Button
-            variant={driver.testActive ? "contained" : "outlined"}
-            color={driver.testActive ? "warning" : "primary"}
-            size="small"
-            startIcon={<ScienceIcon />}
-            onClick={handleTestToggle}
-            disabled={!driver.connected}
-          >
-            Test LEDs {driver.testActive ? "ON" : "OFF"}
-          </Button>
+          <Tooltip title={getTestTooltip()} arrow>
+            <span>
+              <Button
+                variant={driver.testActive ? "contained" : "outlined"}
+                color={driver.testActive ? "warning" : "primary"}
+                size="small"
+                startIcon={<ScienceIcon />}
+                onClick={handleTestToggle}
+                disabled={!driver.connected}
+              >
+                Test LEDs {driver.testActive ? "ON" : "OFF"}
+              </Button>
+            </span>
+          </Tooltip>
           <Chip
             label={driver.connected ? "Connected" : "Disconnected"}
             color={driver.connected ? "success" : "error"}
