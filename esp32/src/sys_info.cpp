@@ -1,6 +1,6 @@
 #include "sys_info.h"
 #include "utils.h"
-#include "display.h"
+#include "oled/oled_display.h"
 #include <WiFi.h>
 #include <Arduino.h>
 

@@ -10,7 +10,7 @@
  * Effect Processor
  *
  * Manages continuous effect updates and rendering.
- * Handles frame timing and effect triggering.
+ * Handles frame timing and adding effects.
  */
 class EffectProcessor {
    private:
@@ -29,6 +29,6 @@ class EffectProcessor {
    public:
 	EffectProcessor(Matrix& matrix);
 	void update();
-	void trigger(const String& effectName, JsonDocument& props);
+	void addEffect(const String& effectName, JsonDocument& props);
 	void clearEffects();
 };

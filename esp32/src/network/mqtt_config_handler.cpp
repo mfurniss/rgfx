@@ -1,6 +1,6 @@
 #include "driver_config.h"
-#include "config_leds.h"
-#include "config_nvs.h"
+#include "config/config_leds.h"
+#include "config/config_nvs.h"
 #include "log.h"
 #include "matrix.h"
 #include <WiFi.h>

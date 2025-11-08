@@ -9,8 +9,8 @@
 #include "../log.h"
 #include "../matrix.h"
 #include "../test.h"
-#include "../effect-processor.h"
-#include "../mqtt.h"
+#include "../effects/effect_processor.h"
+#include "../network/mqtt.h"
 #include <FastLED.h>
 #include <WiFi.h>
 
