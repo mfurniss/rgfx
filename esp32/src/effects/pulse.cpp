@@ -1,17 +1,26 @@
 #include "pulse.h"
 #include "matrix.h"
+#include "effect_utils.h"
 #include <FastLED.h>
 #include <algorithm>
 
+static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
+static const uint32_t DEFAULT_DURATION = 1000;
+static const bool DEFAULT_FADE = true;
+
 PulseEffect::PulseEffect() {}
 
-void PulseEffect::addPulse(CRGB color, uint32_t duration, bool fade) {
+void PulseEffect::add(JsonDocument& props) {
+	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
+	uint32_t duration = props["duration"] | DEFAULT_DURATION;
+	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : DEFAULT_FADE;
+
 	Pulse newPulse;
-	newPulse.color = color;
+	newPulse.color = CRGB(color);
 	newPulse.alpha = 255;
 	newPulse.duration = duration;
 	newPulse.fade = fade;
-	newPulse.elapsedTime = fade ? 0 : 0;  // Only meaningful for non-fading pulses
+	newPulse.elapsedTime = 0;
 	pulses.push_back(newPulse);
 }
 

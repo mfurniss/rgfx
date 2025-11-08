@@ -8,7 +8,7 @@
 #include <ESPmDNS.h>
 #include <map>
 #include "matrix.h"
-#include "effects/test.h"
+#include "test.h"
 #include "effect-processor.h"
 #include "network-init.h"
 #include "config_portal.h"
@@ -257,16 +257,7 @@ void loop() {
 		// Check for UDP message updates
 		UDPMessage message;
 		if (checkUDPMessage(&message)) {
-			// Handle pulse effect specially
-			if (message.effect == "pulse") {
-				effectProcessor->triggerPulse(message.color, message.duration, message.fade);
-			} else {
-				// Look up other effects in map
-				auto it = effectMap.find(message.effect);
-				if (it != effectMap.end()) {
-					it->second(matrix, message.color);
-				}
-			}
+			effectProcessor->trigger(message.effect, message.props);
 		}
 
 		// Update and render continuous effects (skip if test mode is active)

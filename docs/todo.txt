@@ -8,10 +8,10 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] MQTT broker discovery
 [X] OTA updater
 [ ] Per-device LED config
-[ ] Game event to network message mapping using per-game JS scripts
+[X] Game event to network message mapping using per-game JS scripts
 [X] Research Electron app and Aedes pure JS MQTT
 [ ] Device logging - on device logs, via network and web interface
-[ ] Research other emulators
+[X] Research other emulators
 [X] Hub unit and integration tests
 [ ] Virtual LED arrays with down-sampling
 [X] Store basic LED and WiFi config on ESP32 devices
@@ -47,3 +47,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Optimize driver reconnection system
 [X] LED effect variable frame rate
 [ ] Disable drivers from hub
+[X] Optimize build pipeline
+[X] Wipe effect

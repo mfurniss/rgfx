@@ -7,7 +7,7 @@
 #include "display.h"
 #include "udp.h"
 #include "config/constants.h"
-#include "effects/test.h"
+#include "test.h"
 #include "effect-processor.h"
 #include <FastLED.h>
 #include <WiFi.h>

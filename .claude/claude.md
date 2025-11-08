@@ -43,6 +43,13 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 - **ALWAYS cleanup temporary files and directories** created during debugging or testing
 - Common locations: `/tmp/`, `/private/tmp/`, test clone directories
 
+**CRITICAL - Analyzing User-Provided Logs:**
+- **ALWAYS read the ENTIRE log output** when the user pastes logs
+- **NEVER make assumptions** based only on the beginning or partial sections of logs
+- Look for patterns and events across the **full timeline** of the log
+- The beginning of logs may show initialization before the actual events occur
+- **NEVER conclude something isn't working** based only on incomplete log analysis
+
 **Automated Backups to Google Drive:**
 - **Automatic daily backups** are configured via launchd agent
 - **Runs daily at 2:00 AM** - creates Git bundle backup to Google Drive
@@ -353,6 +360,47 @@ cd mame/lua && stylua . && luacheck .
 
 ## Code Quality Standards
 
+**CRITICAL - SEPARATION OF CONCERNS IS PARAMOUNT:**
+
+Each layer in the architecture should have a SINGLE, WELL-DEFINED responsibility. NEVER let responsibilities bleed between layers.
+
+**ESP32 Effect System Architecture:**
+- **main.cpp**: ONLY knows about UDP. Receives UDP messages and passes to effect processor.
+- **udp.cpp**: ONLY parses JSON into effect name + props object. NO defaults, NO interpretation.
+- **effect-processor.cpp**: ONLY routes effect names to the correct effect via lookup table. Passes props through untouched.
+- **Individual effects (pulse.cpp, wipe.cpp, etc.)**: ONLY place where props are parsed and defaults are defined.
+
+**NEVER:**
+- Parse props in main.cpp
+- Set defaults in UDP parser
+- Extract specific props in effect processor
+- Mix concerns between layers
+
+**Example of WRONG approach:**
+```cpp
+// UDP parser setting defaults - WRONG!
+pendingMessage.duration = props["duration"] | 500;
+
+// main.cpp parsing color - WRONG!
+uint32_t color = parseColor(message.props["color"]);
+effectProcessor->trigger(message.effect, color);
+```
+
+**Example of CORRECT approach:**
+```cpp
+// UDP: Just parse and pass through
+pendingMessage.props = doc["props"];
+
+// main.cpp: Just route
+effectProcessor->trigger(message.effect, message.props);
+
+// Effect processor: Just lookup and delegate
+wipeEffect.trigger(props);
+
+// Individual effect: Parse with defaults
+uint32_t duration = props["duration"] | 2000;  // ✅ Default lives here
+```
+
 **CRITICAL - ALWAYS ENFORCE:**
 
 ### Research and Documentation
@@ -413,8 +461,30 @@ cd mame/lua && stylua . && luacheck .
 
 **Comment Guidelines:**
 - **NEVER add comments about your thought process** - Other engineers don't care
-- **NEVER add obvious comments** - Don't describe "what" if it's clear
-- **DO add comments for "why"** - Business logic, edge cases, workarounds
+- **NEVER add obvious comments** - Don't describe "what" if it's clear from the code
+- **NO "what" comments** - Never comment what the code is doing if it's self-explanatory
+- **DO add comments for "why"** - Business logic, edge cases, workarounds, non-obvious decisions
+
+**Examples of BAD comments:**
+```cpp
+// Parse color
+uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
+
+// Parse duration
+uint32_t duration = props["duration"] | DEFAULT_DURATION;
+
+// Add the wipe
+Wipe newWipe;
+```
+
+**Examples of GOOD comments:**
+```cpp
+// Use alpha blending to avoid flickering when multiple pulses overlap
+matrix.leds[i] = blend(matrix.leds[i], pulseColor, pulse.alpha);
+
+// Cache deltaTime to avoid redundant float→int conversions in tight loop
+uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
+```
 
 **Data-Driven Code:**
 - **Prefer lookup tables over long if/else chains**

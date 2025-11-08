@@ -1,7 +1,8 @@
 #include "effect-processor.h"
 #include <FastLED.h>
 
-EffectProcessor::EffectProcessor(Matrix& matrix) : matrix(matrix), lastFrameTime(0) {}
+EffectProcessor::EffectProcessor(Matrix& matrix)
+	: matrix(matrix), lastFrameTime(0), effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}} {}
 
 void EffectProcessor::update() {
 	unsigned long now = millis();
@@ -19,24 +20,23 @@ void EffectProcessor::update() {
 	// Clear matrix before rendering effects
 	fill_solid(matrix.leds, matrix.size, CRGB::Black);
 
-	// Update and render pulse effect
-	pulseEffect.update(deltaTime);
-	pulseEffect.render(matrix);
-
-	// Update and render wipe effect
-	wipeEffect.update(deltaTime);
-	wipeEffect.render(matrix);
+	// Update and render all effects
+	for (const auto& entry : effectMap) {
+		entry.effect->update(deltaTime);
+		entry.effect->render(matrix);
+	}
 
 	// Display the frame
 	FastLED.show();
 }
 
-void EffectProcessor::triggerPulse(uint32_t color, uint32_t duration, bool fade) {
-	pulseEffect.addPulse(CRGB(color), duration, fade);
-}
-
-void EffectProcessor::triggerWipe(uint32_t color, uint32_t duration, bool fade) {
-	wipeEffect.addWipe(CRGB(color), duration, fade);
+void EffectProcessor::trigger(const String& effectName, JsonDocument& props) {
+	for (const auto& entry : effectMap) {
+		if (effectName == entry.name) {
+			entry.effect->add(props);
+			return;
+		}
+	}
 }
 
 void EffectProcessor::clearEffects() {

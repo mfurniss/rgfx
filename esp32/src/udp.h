@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <WiFiUdp.h>
+#include <ArduinoJson.h>
 #include "config/constants.h"
 
 // Network constants defined in config/constants.h:
@@ -11,9 +12,7 @@
 
 struct UDPMessage {
 	String effect;
-	uint32_t color;
-	uint32_t duration;  // Pulse duration in milliseconds (default: 150)
-	bool fade;          // Whether pulse should fade (default: true)
+	JsonDocument props;
 };
 
 // Function declarations

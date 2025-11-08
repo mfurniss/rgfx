@@ -8,7 +8,7 @@
 #include "commands.h"
 #include "../log.h"
 #include "../matrix.h"
-#include "../effects/test.h"
+#include "../test.h"
 #include "../effect-processor.h"
 #include "../mqtt.h"
 #include <FastLED.h>

@@ -2,6 +2,7 @@
 
 #include <FastLED.h>
 #include <vector>
+#include <ArduinoJson.h>
 #include "effect.h"
 #include "matrix.h"
 
@@ -26,9 +27,8 @@ class PulseEffect : public IEffect {
 
    public:
 	PulseEffect();
-	void addPulse(CRGB color, uint32_t duration, bool fade = true);
-	void update(float deltaTime)
-		override;  // Update all pulses, remove completed ones (deltaTime in seconds)
-	void render(Matrix& matrix) override;  // Render all pulses to virtual display
-	void reset() override;                 // Remove all active pulses
+	void add(JsonDocument& props) override;
+	void update(float deltaTime) override;
+	void render(Matrix& matrix) override;
+	void reset() override;
 };
