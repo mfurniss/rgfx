@@ -73,6 +73,7 @@
     "zustand": "^5.0.8"
   },
   "optionalDependencies": {
-    "@esbuild/darwin-arm64": "^0.25.12"
+    "@esbuild/darwin-arm64": "^0.25.12",
+    "@rollup/rollup-darwin-arm64": "^4.53.1"
   }
 }
