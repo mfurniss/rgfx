@@ -1,17 +1,21 @@
 #include "wipe.h"
 #include "matrix.h"
+#include "effect_utils.h"
 #include <FastLED.h>
-#include <algorithm>
+
+static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
+static const uint32_t DEFAULT_DURATION = 100;
 
 WipeEffect::WipeEffect() {}
 
-void WipeEffect::addWipe(CRGB color, uint32_t duration, bool fade) {
+void WipeEffect::add(JsonDocument& props) {
+	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
+	uint32_t duration = props["duration"] | DEFAULT_DURATION;
+
 	Wipe newWipe;
-	newWipe.color = color;
-	newWipe.alpha = 255;
+	newWipe.color = CRGB(color);
 	newWipe.duration = duration;
-	newWipe.fade = fade;
-	newWipe.elapsedTime = fade ? 0 : 0;  // Only meaningful for non-fading wipes
+	newWipe.elapsedTime = 0;
 	wipes.push_back(newWipe);
 }
 
@@ -19,46 +23,26 @@ void WipeEffect::update(float deltaTime) {
 	// Cache deltaTime in milliseconds to avoid redundant calculations
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 
-	// Iterate through all wipes and update their alpha values
+	// Iterate through all wipes and update elapsed time
 	for (auto it = wipes.begin(); it != wipes.end();) {
-		if (it->fade) {
-			// Fading wipe: calculate fade delta based on uint8_t alpha (0-255)
-			// fadeDelta = (deltaTime in ms / duration in ms) * 255
-			float fadeDelta = (deltaTimeMs * 255.0f) / it->duration;
-
-			// Decrement alpha (uint8_t will clamp at 0)
-			if (fadeDelta >= it->alpha) {
-				it = wipes.erase(it);
-			} else {
-				it->alpha -= static_cast<uint8_t>(fadeDelta);
-				++it;
-			}
+		it->elapsedTime += deltaTimeMs;
+		if (it->elapsedTime >= it->duration) {
+			it = wipes.erase(it);
 		} else {
-			// Non-fading wipe: keep alpha at 255, remove when duration expires
-			it->elapsedTime += deltaTimeMs;
-			if (it->elapsedTime >= it->duration) {
-				it = wipes.erase(it);
-			} else {
-				++it;
-			}
+			++it;
 		}
 	}
 }
 
 void WipeEffect::render(Matrix& matrix) {
-	// Sort wipes by remaining duration (lowest first, highest rendered last)
-	std::sort(wipes.begin(), wipes.end(),
-		[](const Wipe& a, const Wipe& b) {
-			return a.remaining() < b.remaining();
-		});
-
-	// Render in sorted order - last wipe overwrites
 	for (const auto& wipe : wipes) {
-		CRGB wipeColor = wipe.color;
-		wipeColor.nscale8_video(wipe.alpha);
+		uint16_t column = wipe.currentColumn(matrix.width);
 
-		for (uint32_t i = 0; i < matrix.size; i++) {
-			matrix.leds[i] = blend(matrix.leds[i], wipeColor, wipe.alpha);
+		// Render single column (vertical line) moving left to right
+		for (uint16_t y = 0; y < matrix.height; y++) {
+			if (column < matrix.width) {
+				matrix.led(column, y) = wipe.color;
+			}
 		}
 	}
 }

@@ -3,6 +3,8 @@
 #include "matrix.h"
 #include "effects/pulse.h"
 #include "effects/wipe.h"
+#include "effects/effect.h"
+#include <ArduinoJson.h>
 
 /**
  * Effect Processor
@@ -11,16 +13,22 @@
  * Handles frame timing and effect triggering.
  */
 class EffectProcessor {
-  private:
+   private:
+	struct EffectEntry {
+		const char* name;
+		IEffect* effect;
+	};
+
 	Matrix& matrix;
 	PulseEffect pulseEffect;
 	WipeEffect wipeEffect;
 	unsigned long lastFrameTime;
 
-  public:
+	EffectEntry effectMap[2];
+
+   public:
 	EffectProcessor(Matrix& matrix);
 	void update();
-	void triggerPulse(uint32_t color, uint32_t duration, bool fade = true);
-	void triggerWipe(uint32_t color, uint32_t duration, bool fade = true);
+	void trigger(const String& effectName, JsonDocument& props);
 	void clearEffects();
 };

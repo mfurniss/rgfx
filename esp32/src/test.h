@@ -1,5 +1,5 @@
 #pragma once
-#include "../matrix.h"
+#include "matrix.h"
 
 /**
  * LED Test Effect

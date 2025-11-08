@@ -36,44 +36,16 @@ void processUDP() {
 			DeserializationError error = deserializeJson(doc, buffer);
 
 			if (!error) {
-				// Extract effect
+				// Extract effect name
 				if (doc["effect"]) {
 					pendingMessage.effect = doc["effect"].as<String>();
 				}
 
-				// Extract color from props object
-				const char* colorHex = nullptr;
-				if (doc["props"]["color"]) {
-					colorHex = doc["props"]["color"];
-				}
-
-				// Parse color hex (strip # prefix if present)
-				if (colorHex) {
-					if (colorHex[0] == '#') {
-						colorHex++;  // Skip # prefix
-					}
-					pendingMessage.color = (uint32_t)strtol(colorHex, NULL, 16);
-				} else {
-					pendingMessage.color = 0xFFFFFF;  // Default white
-				}
-
-				// Extract duration from props (default: 150ms)
-				if (doc["props"]["duration"]) {
-					pendingMessage.duration = doc["props"]["duration"].as<uint32_t>();
-				} else {
-					pendingMessage.duration = 150;
-				}
-
-				// Extract fade from props (default: true)
-				if (doc["props"]["fade"].is<bool>()) {
-					pendingMessage.fade = doc["props"]["fade"].as<bool>();
-				} else {
-					pendingMessage.fade = true;
-				}
+				// Copy entire props object
+				pendingMessage.props = doc["props"];
 
 				newMessageAvailable = true;
-				log("UDP RX: effect=" + pendingMessage.effect + " color=0x" +
-				    String(pendingMessage.color, HEX));
+				log("UDP RX: effect=" + pendingMessage.effect);
 			} else {
 				log("UDP RX: JSON parse error: " + String(error.c_str()));
 			}

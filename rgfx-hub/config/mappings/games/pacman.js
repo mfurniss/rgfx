@@ -12,6 +12,8 @@
  * @returns {boolean} - True if event was handled, false otherwise
  */
 
+import { random } from 'lodash-es';
+
 const GHOST_STATE = {
   NORMAL: [0x01, 0x03, 0x05, 0x07], // Red, pink, cyan, orange (normal)
   VULNERABLE: 0x11, // Blue (power pill active)
@@ -40,12 +42,16 @@ export function handle(topic, payload, { broadcast }) {
   const parts = topic.split("/");
   const [, subject, property] = parts;
 
-  // Player score - yellow pulse
+  // Player score - random colored wipe with random duration
   if (subject === "player" && property === "score") {
+    const randomColor = `#${random(0, 16777215).toString(16).padStart(6, '0')}`;
+    const randomDuration = random(200, 800);
+
     return broadcast({
-      effect: "pulse",
+      effect: "wipe",
       props: {
-        color: "#FFFF00",
+        color: randomColor,
+        duration: randomDuration,
       },
     });
   }

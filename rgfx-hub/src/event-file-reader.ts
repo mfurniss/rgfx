@@ -9,6 +9,7 @@ import { watch, readFileSync, statSync, existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import log from "electron-log/main";
+import { EVENT_FILE_POLL_INTERVAL } from "./config/constants";
 
 export class EventFileReader {
   private filePath: string;
@@ -60,6 +61,7 @@ export class EventFileReader {
     // Watch the file for changes
     this.watcher = watch(this.filePath, (eventType) => {
       if (eventType === "change" && this.onEventCallback) {
+        log.debug("fs.watch detected change");
         this.readNewLines(this.onEventCallback);
       }
     });
@@ -71,7 +73,7 @@ export class EventFileReader {
   }
 
   private startPolling() {
-    // Poll every 500ms as backup to fs.watch()
+    // Poll as backup to fs.watch()
     this.pollingInterval = setInterval(() => {
       if (this.onEventCallback && existsSync(this.filePath)) {
         const now = Date.now();
@@ -82,7 +84,7 @@ export class EventFileReader {
         }
         this.readNewLines(this.onEventCallback);
       }
-    }, 500);
+    }, EVENT_FILE_POLL_INTERVAL);
   }
 
   private watchDirectory() {
@@ -145,6 +147,11 @@ export class EventFileReader {
         const lines = newData
           .split("\n")
           .filter((line) => line.trim().length > 0);
+
+        if (lines.length > 0) {
+          log.debug(`Processing ${lines.length} event(s)`);
+        }
+
         for (const line of lines) {
           // Split only on the FIRST space to preserve spaces in the message
           const firstSpaceIndex = line.indexOf(" ");

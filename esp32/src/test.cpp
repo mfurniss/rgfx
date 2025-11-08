@@ -1,5 +1,5 @@
 #include "test.h"
-#include "../matrix.h"
+#include "matrix.h"
 #include <FastLED.h>
 
 void test(Matrix& matrix, uint32_t color) {
