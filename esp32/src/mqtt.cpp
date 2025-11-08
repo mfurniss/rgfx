@@ -7,6 +7,8 @@
 #include "display.h"
 #include "udp.h"
 #include "config/constants.h"
+#include "effects/test.h"
+#include "effect-processor.h"
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
@@ -37,6 +39,7 @@ void handleDriverConfig(const String& payload);
 extern Matrix matrix;
 extern UDPMessage pendingMessage;
 extern volatile bool newMessageAvailable;
+extern EffectProcessor* effectProcessor;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String& topic, String& payload) {
@@ -58,18 +61,25 @@ void mqttCallback(String& topic, String& payload) {
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/test")) {
 		log("LED test mode: " + payload);
 		if (payload == "on") {
-			// Enable test mode and trigger test effect
+			// Enable test mode and immediately show test pattern
 			testModeActive = true;
-			pendingMessage.effect = "test";
-			pendingMessage.color = 0;  // Ignored by test effect
-			newMessageAvailable = true;
+			test(matrix, 0);  // Call test effect directly
+			FastLED.show();   // Show the test pattern
 			log("Test mode ENABLED");
+			publishTestState("on");
 		} else if (payload == "off") {
 			// Disable test mode and clear LEDs
 			testModeActive = false;
 			fill_solid(matrix.leds, matrix.size, CRGB::Black);
 			FastLED.show();
+
+			// Clear any active effects to prevent them from re-rendering
+			if (effectProcessor != nullptr) {
+				effectProcessor->clearEffects();
+			}
+
 			log("Test mode DISABLED");
+			publishTestState("off");
 		}
 	}
 }
@@ -147,6 +157,15 @@ void reconnectMQTT() {
 	// Create unique client ID based on MAC address (stable across reboots)
 	String clientId = Utils::getDeviceName();
 
+	// Build status topic for LWT: rgfx/driver/{mac}/status
+	String driverId = WiFi.macAddress();
+	driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
+	String statusTopic = "rgfx/driver/" + driverId + "/status";
+
+	// Set Last Will and Testament (LWT) - broker publishes this if connection drops
+	// Retained flag ensures Hub receives offline status even if it subscribes late
+	mqttClient.setWill(statusTopic.c_str(), "offline", true, 2);
+
 	// Connect to broker
 	bool connected;
 	if (strlen(MQTT_USER) > 0) {
@@ -184,13 +203,16 @@ void reconnectMQTT() {
 			Display::updateMQTTStatus(true);
 		}
 
-		// Turn LEDs dark when MQTT connects
-		log("MQTT connected - LEDs going DARK");
-		fill_solid(matrix.leds, matrix.size, CRGB::Black);
-		FastLED.show();
+		// Publish "online" status (retained) - overrides LWT offline message
+		mqttClient.publish(statusTopic.c_str(), "online", true, 2);
+		log("Published status: online to " + statusTopic);
 
 		// Send driver connect message
 		sendDriverConnect();
+
+		// Publish current test state immediately to sync with Hub
+		// This prevents Hub from pushing stale state and overriding local changes
+		publishTestState(testModeActive ? "on" : "off");
 	} else {
 		log("failed, rc=" + String(mqttClient.returnCode()) + " - will retry in loop");
 		consecutiveFailures++;
@@ -263,6 +285,9 @@ void sendDriverConnect() {
 	if (result) {
 		log("Driver connect message sent (QoS 2)");
 		log(payload);
+
+		// Publish current test state so Hub knows if test mode is active
+		publishTestState(testModeActive ? "on" : "off");
 	} else {
 		log("Failed to send driver connect message");
 		log("Payload size: " + String(payload.length()) + " bytes");
@@ -285,4 +310,27 @@ void sendDriverHeartbeat() {
 
 	// Publish to rgfx/system/driver/heartbeat with QoS 2
 	mqttClient.publish("rgfx/system/driver/heartbeat", payload.c_str(), false, 2);
+}
+
+// Publish test state change to Hub
+void publishTestState(const String& state) {
+	if (!mqttClient.connected()) {
+		log("Can't publish test state - MQTT not connected");
+		return;
+	}
+
+	// Build topic: rgfx/driver/{mac}/test/state
+	String driverId = WiFi.macAddress();
+	driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
+	String topic = "rgfx/driver/" + driverId + "/test/state";
+
+	// Publish state with RETAIN flag and QoS 2
+	// Retained messages ensure Hub receives state even if it subscribes late
+	bool result = mqttClient.publish(topic.c_str(), state.c_str(), true, 2);
+
+	if (result) {
+		log("Published test state: " + state + " to " + topic);
+	} else {
+		log("Failed to publish test state");
+	}
 }

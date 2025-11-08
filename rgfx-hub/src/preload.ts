@@ -31,6 +31,19 @@ export const rgfxAPI = {
     };
   },
 
+  onDriverUpdated: (callback: (driver: Driver) => void): (() => void) => {
+    console.log("[PRELOAD] Registering listener for driver:updated");
+    const handler = (_event: Electron.IpcRendererEvent, driver: Driver) => {
+      console.log(`[PRELOAD] IPC event received: driver:updated for ${driver.id}`);
+      callback(driver);
+    };
+    ipcRenderer.on("driver:updated", handler);
+    return () => {
+      console.log("[PRELOAD] Removing listener for driver:updated");
+      ipcRenderer.removeListener("driver:updated", handler);
+    };
+  },
+
   onSystemStatus: (callback: (status: SystemStatus) => void): (() => void) => {
     console.log("[PRELOAD] Registering listener for system:status");
     const handler = (_event: Electron.IpcRendererEvent, status: SystemStatus) => {

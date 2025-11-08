@@ -48,11 +48,51 @@ export class Mqtt {
           `MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`,
         );
 
-        // Check if we have a subscription handler for this topic
-        const handler = this.subscriptions.get(packet.topic);
-        handler?.(packet.topic, packet.payload.toString());
+        // Match topic against all subscription patterns (including wildcards)
+        for (const [pattern, handler] of this.subscriptions) {
+          if (this.topicMatches(pattern, packet.topic)) {
+            handler(packet.topic, packet.payload.toString());
+          }
+        }
       }
     });
+  }
+
+  /**
+   * Match an MQTT topic against a subscription pattern with wildcards.
+   * Supports MQTT wildcards: + (single level) and # (multi level).
+   */
+  private topicMatches(pattern: string, topic: string): boolean {
+    const patternParts = pattern.split("/");
+    const topicParts = topic.split("/");
+
+    // # must be last segment and matches everything after
+    if (patternParts[patternParts.length - 1] === "#") {
+      const prefixParts = patternParts.slice(0, -1);
+      if (topicParts.length < prefixParts.length) {
+        return false;
+      }
+      for (let i = 0; i < prefixParts.length; i++) {
+        if (prefixParts[i] !== "+" && prefixParts[i] !== topicParts[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Without #, exact segment count match required
+    if (patternParts.length !== topicParts.length) {
+      return false;
+    }
+
+    // Match each segment (+ matches any single segment)
+    for (let i = 0; i < patternParts.length; i++) {
+      if (patternParts[i] !== "+" && patternParts[i] !== topicParts[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   subscribe(topic: string, callback: (topic: string, payload: string) => void) {

@@ -95,7 +95,7 @@ describe("Mqtt", () => {
   });
 
   describe("subscribe", () => {
-    it("should register subscription callback", () => {
+    it("should register subscription callback for exact match", () => {
       const callback = vi.fn();
       mqtt.subscribe("test/topic", callback);
 
@@ -115,6 +115,135 @@ describe("Mqtt", () => {
       }
 
       expect(callback).toHaveBeenCalledWith("test/topic", "test-payload");
+    });
+
+    it("should match single-level wildcard (+)", () => {
+      const callback = vi.fn();
+      mqtt.subscribe("rgfx/driver/+/test/state", callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === "publish"
+      )?.[1];
+
+      const mockClient = { id: "test-client" };
+
+      // Should match with any value in the + position
+      if (publishHandler) {
+        publishHandler(
+          {
+            topic: "rgfx/driver/AA-BB-CC-DD-EE-FF/test/state",
+            payload: Buffer.from("on"),
+          },
+          mockClient
+        );
+      }
+
+      expect(callback).toHaveBeenCalledWith(
+        "rgfx/driver/AA-BB-CC-DD-EE-FF/test/state",
+        "on"
+      );
+    });
+
+    it("should match multiple single-level wildcards", () => {
+      const callback = vi.fn();
+      mqtt.subscribe("rgfx/+/+/test", callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === "publish"
+      )?.[1];
+
+      if (publishHandler) {
+        publishHandler(
+          {
+            topic: "rgfx/driver/device-id/test",
+            payload: Buffer.from("data"),
+          },
+          { id: "client" }
+        );
+      }
+
+      expect(callback).toHaveBeenCalledWith("rgfx/driver/device-id/test", "data");
+    });
+
+    it("should match multi-level wildcard (#)", () => {
+      const callback = vi.fn();
+      mqtt.subscribe("rgfx/driver/#", callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === "publish"
+      )?.[1];
+
+      if (publishHandler) {
+        publishHandler(
+          {
+            topic: "rgfx/driver/device-id/test/state",
+            payload: Buffer.from("on"),
+          },
+          { id: "client" }
+        );
+
+        publishHandler(
+          {
+            topic: "rgfx/driver/config",
+            payload: Buffer.from("{}"),
+          },
+          { id: "client" }
+        );
+      }
+
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not match if segment count differs (without #)", () => {
+      const callback = vi.fn();
+      mqtt.subscribe("rgfx/driver/+/test", callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === "publish"
+      )?.[1];
+
+      if (publishHandler) {
+        // Too many segments
+        publishHandler(
+          {
+            topic: "rgfx/driver/device-id/test/extra",
+            payload: Buffer.from("data"),
+          },
+          { id: "client" }
+        );
+
+        // Too few segments
+        publishHandler(
+          {
+            topic: "rgfx/driver/test",
+            payload: Buffer.from("data"),
+          },
+          { id: "client" }
+        );
+      }
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("should not match if non-wildcard segments differ", () => {
+      const callback = vi.fn();
+      mqtt.subscribe("rgfx/driver/+/test", callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === "publish"
+      )?.[1];
+
+      if (publishHandler) {
+        publishHandler(
+          {
+            topic: "rgfx/sensor/device-id/test",
+            payload: Buffer.from("data"),
+          },
+          { id: "client" }
+        );
+      }
+
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it("should handle multiple subscriptions", () => {

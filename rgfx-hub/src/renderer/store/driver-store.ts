@@ -10,6 +10,7 @@ interface DriverState {
   // Actions (callbacks prefixed with 'on')
   onDriverConnected: (driver: Driver) => void;
   onDriverDisconnected: (driver: Driver) => void;
+  onDriverUpdated: (driver: Driver) => void;
   onSystemStatusUpdate: (status: SystemStatus) => void;
 
   // Selectors
@@ -32,24 +33,26 @@ export const useDriverStore = create<DriverState>()(
         },
 
         // Actions (callbacks prefixed with 'on')
-        onDriverConnected: (driver) => {
-          const actionStartTime = Date.now();
-          console.log(`[DEBUG] onDriverConnected action called for ${driver.id} at ${actionStartTime}`);
+        onDriverConnected: (driver) =>
           set((state) => {
             const exists = state.drivers.find(d => d.id === driver.id);
-            console.log(`[DEBUG] onDriverConnected set() executing for ${driver.id}, exists=${!!exists} (elapsed: ${Date.now() - actionStartTime}ms)`);
             return {
               drivers: exists
                 ? state.drivers.map(d => d.id === driver.id ? driver : d)
                 : [...state.drivers, driver]
             };
-          });
-          console.log(`[DEBUG] onDriverConnected action completed for ${driver.id} (total elapsed: ${Date.now() - actionStartTime}ms)`);
-        },
+          }),
 
         onDriverDisconnected: (driver) =>
           set((state) => ({
             drivers: state.drivers.map(d => d.id === driver.id ? driver : d)
+          })),
+
+        onDriverUpdated: (driver) =>
+          set((state) => ({
+            drivers: state.drivers.map(d =>
+              d.id === driver.id ? { ...driver } : d
+            )
           })),
 
         onSystemStatusUpdate: (status) =>

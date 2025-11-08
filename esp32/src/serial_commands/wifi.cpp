@@ -7,7 +7,7 @@
 
 #include "commands.h"
 #include "../config_portal.h"
-#include "../serial.h"
+#include "../log.h"
 #include <Arduino.h>
 
 namespace Commands {
@@ -58,22 +58,22 @@ namespace Commands {
 		}
 
 		if (ssid.length() > 0) {
-			SerialCommand::log("Setting WiFi credentials from serial command...");
-			SerialCommand::log("SSID: " + ssid);
-			SerialCommand::log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
+			log("Setting WiFi credentials from serial command...");
+			log("SSID: " + ssid);
+			log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
 
 			if (ConfigPortal::setWiFiCredentials(ssid, password)) {
-				SerialCommand::log("WiFi credentials saved! Restarting in 2 seconds...");
+				log("WiFi credentials saved! Restarting in 2 seconds...");
 				delay(2000);
 				ESP.restart();
 			} else {
-				SerialCommand::log("ERROR: Failed to set WiFi credentials");
+				log("ERROR: Failed to set WiFi credentials");
 			}
 		} else {
-			SerialCommand::log("ERROR: Invalid wifi command format");
-			SerialCommand::log("Usage: wifi SSID PASSWORD");
-			SerialCommand::log("Example: wifi MyNetwork MyPassword123");
-			SerialCommand::log("Example: wifi \"My Network\" \"My Password 123\"");
+			log("ERROR: Invalid wifi command format");
+			log("Usage: wifi SSID PASSWORD");
+			log("Example: wifi MyNetwork MyPassword123");
+			log("Example: wifi \"My Network\" \"My Password 123\"");
 		}
 	}
 

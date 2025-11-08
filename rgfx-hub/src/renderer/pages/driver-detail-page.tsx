@@ -11,7 +11,11 @@ import { useDriverStore } from '../store/driver-store';
 const DriverDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const getDriverById = useDriverStore(state => state.getDriverById);
+
+  // Use reactive selector that subscribes to specific driver changes
+  const driver = useDriverStore(state =>
+    state.drivers.find(d => d.id === id)
+  );
 
   if (!id) {
     return (
@@ -20,8 +24,6 @@ const DriverDetailPage: React.FC = () => {
       </Paper>
     );
   }
-
-  const driver = getDriverById(id);
 
   if (!driver) {
     return (

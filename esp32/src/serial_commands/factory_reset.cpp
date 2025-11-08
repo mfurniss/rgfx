@@ -7,13 +7,13 @@
 
 #include "commands.h"
 #include "../config_portal.h"
-#include "../serial.h"
+#include "../log.h"
 #include <Arduino.h>
 
 namespace Commands {
 
 	void factoryReset(const String& args) {
-		SerialCommand::log("Factory reset: Erasing WiFi credentials and rebooting...");
+		log("Factory reset: Erasing WiFi credentials and rebooting...");
 		ConfigPortal::resetSettings();
 		delay(1000);
 		ESP.restart();

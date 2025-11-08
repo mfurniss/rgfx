@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Paper, Typography, Box, Chip, Button } from "@mui/material";
+import { Paper, Typography, Box, Chip, Button, Tooltip } from "@mui/material";
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -11,6 +11,7 @@ import {
 import type { Driver } from "../types";
 import InfoSection, { type InfoRowData } from "./components/info-section";
 import { formatBytes, formatUptime, formatTimestamp } from "./utils/formatters";
+import { useDriverStore } from "./store/driver-store";
 
 interface DriverCardProps {
   driver: Driver;
@@ -19,7 +20,6 @@ interface DriverCardProps {
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
-  const [testMode, setTestMode] = useState(false);
 
   // Update every second for live timestamps and uptime
   useEffect(() => {
@@ -33,8 +33,16 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   }, []);
 
   const handleTestToggle = () => {
-    const newTestMode = !testMode;
-    setTestMode(newTestMode);
+    // Toggle based on current state - if undefined, default to false (turning on)
+    const newTestMode = !(driver.testActive ?? false);
+
+    // Optimistic update - update UI immediately for instant feedback
+    useDriverStore.getState().onDriverUpdated({
+      ...driver,
+      testActive: newTestMode
+    });
+
+    // Send command - actual state will reconcile when driver responds
     void window.rgfx.testDriverLEDs(driver.id, newTestMode);
   };
 
@@ -147,6 +155,19 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     { label: "UDP Send Errors", value: driver.stats.udpMessagesFailed },
   ];
 
+  // Generate tooltip text based on layout type
+  const getTestTooltip = () => {
+    if (!hardware) {
+      return "Displays a test pattern to validate LED hardware and wiring";
+    }
+
+    if (hardware.layout === "strip") {
+      return "Strip: 4 segments in Red, Green, Blue, Yellow (25% each)";
+    } else {
+      return "Matrix: 4 quadrants - Top-Left: Red, Top-Right: Green, Bottom-Left: Blue, Bottom-Right: Yellow";
+    }
+  };
+
   return (
     <Paper sx={{ p: 2 }}>
       {/* Header */}
@@ -160,16 +181,20 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       >
         <Typography variant="h6">{driver.name}</Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Button
-            variant={testMode ? "contained" : "outlined"}
-            color={testMode ? "warning" : "primary"}
-            size="small"
-            startIcon={<ScienceIcon />}
-            onClick={handleTestToggle}
-            disabled={!driver.connected}
-          >
-            Test {testMode ? "ON" : "OFF"}
-          </Button>
+          <Tooltip title={getTestTooltip()} arrow>
+            <span>
+              <Button
+                variant={driver.testActive ? "contained" : "outlined"}
+                color={driver.testActive ? "warning" : "primary"}
+                size="small"
+                startIcon={<ScienceIcon />}
+                onClick={handleTestToggle}
+                disabled={!driver.connected}
+              >
+                Test LEDs {driver.testActive ? "ON" : "OFF"}
+              </Button>
+            </span>
+          </Tooltip>
           <Chip
             label={driver.connected ? "Connected" : "Disconnected"}
             color={driver.connected ? "success" : "error"}

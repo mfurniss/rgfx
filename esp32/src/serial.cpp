@@ -29,6 +29,7 @@ namespace SerialCommand {
 		{"factory_reset", Commands::factoryReset},
 		{"help", Commands::help},
 		{"sys_info", Commands::sysInfo},
+		{"test_leds", Commands::testLeds},
 	};
 
 	void begin() {
