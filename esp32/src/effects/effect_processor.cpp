@@ -2,7 +2,11 @@
 #include <FastLED.h>
 
 EffectProcessor::EffectProcessor(Matrix& matrix)
-	: matrix(matrix), lastFrameTime(0), effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}} {}
+	: matrix(matrix),
+	  pulseEffect(matrix),
+	  wipeEffect(matrix),
+	  lastFrameTime(0),
+	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}} {}
 
 void EffectProcessor::update() {
 	unsigned long now = millis();
@@ -23,7 +27,7 @@ void EffectProcessor::update() {
 	// Update and render all effects
 	for (const auto& entry : effectMap) {
 		entry.effect->update(deltaTime);
-		entry.effect->render(matrix);
+		entry.effect->render();
 	}
 
 	// Display the frame

@@ -24,11 +24,12 @@ class WipeEffect : public IEffect {
 	};
 
 	std::vector<Wipe> wipes;  // Dynamic array of active wipes
+	Matrix& matrix;
 
    public:
-	WipeEffect();
+	WipeEffect(Matrix& matrix);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
-	void render(Matrix& matrix) override;
+	void render() override;
 	void reset() override;
 };

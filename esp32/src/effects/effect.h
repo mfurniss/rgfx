@@ -10,6 +10,6 @@ class IEffect {
 
 	virtual void add(JsonDocument& props) = 0;
 	virtual void update(float deltaTime) = 0;
-	virtual void render(Matrix& matrix) = 0;
+	virtual void render() = 0;
 	virtual void reset() = 0;
 };

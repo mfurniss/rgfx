@@ -8,7 +8,7 @@ static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 1000;
 static const bool DEFAULT_FADE = true;
 
-PulseEffect::PulseEffect() {}
+PulseEffect::PulseEffect(Matrix& m) : matrix(m) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -54,7 +54,7 @@ void PulseEffect::update(float deltaTime) {
 	}
 }
 
-void PulseEffect::render(Matrix& matrix) {
+void PulseEffect::render() {
 	// Sort pulses by remaining duration (lowest first, highest rendered last)
 	std::sort(pulses.begin(), pulses.end(),
 		[](const Pulse& a, const Pulse& b) {

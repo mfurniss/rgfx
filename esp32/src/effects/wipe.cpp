@@ -6,7 +6,7 @@
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 100;
 
-WipeEffect::WipeEffect() {}
+WipeEffect::WipeEffect(Matrix& m) : matrix(m) {}
 
 void WipeEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -34,7 +34,7 @@ void WipeEffect::update(float deltaTime) {
 	}
 }
 
-void WipeEffect::render(Matrix& matrix) {
+void WipeEffect::render() {
 	for (const auto& wipe : wipes) {
 		uint16_t column = wipe.currentColumn(matrix.width);
 
