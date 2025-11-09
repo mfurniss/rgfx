@@ -44,6 +44,7 @@ void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
 }
 
 void EffectProcessor::clearEffects() {
-	pulseEffect.reset();
-	wipeEffect.reset();
+	for (const auto& entry : effectMap) {
+		entry.effect->reset();
+	}
 }
