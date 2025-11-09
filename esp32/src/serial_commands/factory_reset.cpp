@@ -6,8 +6,8 @@
  */
 
 #include "commands.h"
-#include "../config/config_portal.h"
-#include "../log.h"
+#include "config/config_portal.h"
+#include "log.h"
 #include <Arduino.h>
 
 namespace Commands {

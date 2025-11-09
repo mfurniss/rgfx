@@ -2,8 +2,8 @@
 #include "config_nvs.h"
 #include "config_timeout.h"
 #include "constants.h"
-#include "../log.h"
-#include "../utils.h"
+#include "log.h"
+#include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
 #include <IotWebConfSettings.h>

@@ -6,11 +6,11 @@
  */
 
 #include "commands.h"
-#include "../log.h"
-#include "../matrix.h"
-#include "../test.h"
-#include "../effects/effect_processor.h"
-#include "../network/mqtt.h"
+#include "log.h"
+#include "matrix.h"
+#include "test.h"
+#include "effects/effect_processor.h"
+#include "network/mqtt.h"
 #include <FastLED.h>
 #include <WiFi.h>
 

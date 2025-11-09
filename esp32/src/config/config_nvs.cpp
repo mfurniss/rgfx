@@ -1,5 +1,5 @@
 #include "config_nvs.h"
-#include "../log.h"
+#include "log.h"
 #include <Preferences.h>
 
 // Static Preferences instance for NVS operations

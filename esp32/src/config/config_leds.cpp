@@ -1,6 +1,6 @@
 #include "config_leds.h"
-#include "../driver_config.h"
-#include "../log.h"
+#include "driver_config.h"
+#include "log.h"
 #include <map>
 
 // LED buffers for each pin

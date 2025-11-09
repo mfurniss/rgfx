@@ -4,15 +4,13 @@
 
 #include <unity.h>
 
-// Mock Arduino functions and types for native testing
 #ifdef UNIT_TEST
 
 #	include <string>
 #	include <algorithm>
 
-// Mock String class for native testing
 class String {
-  public:
+   public:
 	std::string data;
 
 	String() = default;
@@ -48,13 +46,9 @@ class String {
 	String operator+(const String& other) const { return String(data + other.data); }
 };
 
-// Mock WiFi class
 class WiFiClass {
-  public:
-	static String macAddress() {
-		// Return a mock MAC address for testing
-		return String("AA:BB:CC:DD:EE:FF");
-	}
+   public:
+	static String macAddress() { return String("AA:BB:CC:DD:EE:FF"); }
 };
 
 static WiFiClass WiFi;
@@ -63,9 +57,8 @@ static WiFiClass WiFi;
 #	include <WiFi.h>
 #endif
 
-// Include the Utils class implementation
 class Utils {
-  public:
+   public:
 	static String getDeviceId() {
 		String mac = WiFi.macAddress();
 		mac.replace(":", "");
@@ -77,16 +70,10 @@ class Utils {
 	static String getDeviceName() { return String("rgfx-driver-") + getDeviceId(); }
 };
 
-// Test setup and teardown
-void setUp(void) {
-	// Called before each test
-}
+void setUp(void) {}
 
-void tearDown(void) {
-	// Called after each test
-}
+void tearDown(void) {}
 
-// Test cases
 void test_getDeviceId_returns_6_characters(void) {
 	String deviceId = Utils::getDeviceId();
 	TEST_ASSERT_EQUAL(6, deviceId.length());
@@ -94,7 +81,6 @@ void test_getDeviceId_returns_6_characters(void) {
 
 void test_getDeviceId_is_lowercase(void) {
 	String deviceId = Utils::getDeviceId();
-	// Check that all characters are lowercase hex digits
 	for (size_t i = 0; i < deviceId.length(); i++) {
 		char c = deviceId.c_str()[i];
 		bool isLowerHex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
@@ -103,41 +89,34 @@ void test_getDeviceId_is_lowercase(void) {
 }
 
 void test_getDeviceId_uses_last_3_bytes(void) {
-	// With mock MAC "AA:BB:CC:DD:EE:FF", last 3 bytes are "DD:EE:FF" -> "ddeeff"
 	String deviceId = Utils::getDeviceId();
 	TEST_ASSERT_EQUAL_STRING("ddeeff", deviceId.c_str());
 }
 
 void test_getDeviceName_has_correct_prefix(void) {
 	String deviceName = Utils::getDeviceName();
-	// Should start with "rgfx-driver-"
 	const char* prefix = "rgfx-driver-";
-	size_t prefixLen = 12; // strlen("rgfx-driver-")
+	size_t prefixLen = 12;
 
 	TEST_ASSERT_EQUAL(prefixLen + 6, deviceName.length());
 
-	// Check prefix matches
 	for (size_t i = 0; i < prefixLen; i++) {
-		TEST_ASSERT_EQUAL_CHAR(prefix[i], deviceName.c_str()[i]);
+		TEST_ASSERT_EQUAL(prefix[i], deviceName.c_str()[i]);
 	}
 }
 
 void test_getDeviceName_ends_with_device_id(void) {
 	String deviceName = Utils::getDeviceName();
 	String deviceId = Utils::getDeviceId();
-
-	// Device name should be "rgfx-driver-" + deviceId
 	String expected = String("rgfx-driver-") + deviceId;
 	TEST_ASSERT_TRUE(deviceName == expected);
 }
 
 void test_getDeviceName_format(void) {
 	String deviceName = Utils::getDeviceName();
-	// Should be exactly "rgfx-driver-ddeeff" with mock MAC
 	TEST_ASSERT_EQUAL_STRING("rgfx-driver-ddeeff", deviceName.c_str());
 }
 
-// Main test runner
 int main(int argc, char** argv) {
 	UNITY_BEGIN();
 

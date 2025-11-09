@@ -6,9 +6,9 @@
  */
 
 #include "commands.h"
-#include "../log.h"
-#include "../sys_info.h"
-#include "../driver_config.h"
+#include "log.h"
+#include "sys_info.h"
+#include "driver_config.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
