@@ -1,4 +1,4 @@
-#include "effect-processor.h"
+#include "effect_processor.h"
 #include <FastLED.h>
 
 EffectProcessor::EffectProcessor(Matrix& matrix)
@@ -30,7 +30,7 @@ void EffectProcessor::update() {
 	FastLED.show();
 }
 
-void EffectProcessor::trigger(const String& effectName, JsonDocument& props) {
+void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
 	for (const auto& entry : effectMap) {
 		if (effectName == entry.name) {
 			entry.effect->add(props);

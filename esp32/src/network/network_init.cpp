@@ -1,14 +1,14 @@
-#include "network-init.h"
+#include "network/network_init.h"
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
 #include <FastLED.h>
-#include "mqtt.h"
-#include "udp.h"
-#include "display.h"
+#include "network/mqtt.h"
+#include "network/udp.h"
+#include "oled/oled_display.h"
 #include "utils.h"
 #include "log.h"
-#include "config_nvs.h"
+#include "config/config_nvs.h"
 
 // Forward declaration from main.cpp
 void handleDriverConfig(const String& payload);

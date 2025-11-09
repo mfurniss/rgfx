@@ -1,6 +1,6 @@
 #include "sys_info.h"
 #include "utils.h"
-#include "display.h"
+#include "oled/oled_display.h"
 #include <WiFi.h>
 #include <Arduino.h>
 
@@ -45,8 +45,10 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 
 	// LED Configuration (if received from Hub)
 	doc["configReceived"] = configReceived;
+
 	if (configReceived) {
 		JsonObject ledConfig = doc["ledConfig"].to<JsonObject>();
+
 		ledConfig["name"] = driverConfig.name;
 		ledConfig["description"] = driverConfig.description;
 		ledConfig["version"] = driverConfig.version;
@@ -57,6 +59,7 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 
 		// LED devices array
 		JsonArray devices = ledConfig["devices"].to<JsonArray>();
+
 		for (const auto& device : driverConfig.devices) {
 			JsonObject dev = devices.add<JsonObject>();
 			dev["id"] = device.id;
@@ -68,6 +71,7 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 			dev["chipset"] = device.chipset;
 			dev["colorOrder"] = device.colorOrder;
 			dev["maxBrightness"] = device.maxBrightness;
+
 			if (device.width > 0 && device.height > 0) {
 				dev["width"] = device.width;
 				dev["height"] = device.height;

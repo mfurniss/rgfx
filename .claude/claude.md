@@ -475,6 +475,18 @@ uint32_t duration = props["duration"] | DEFAULT_DURATION;
 
 // Add the wipe
 Wipe newWipe;
+
+// Device name should be "rgfx-driver-" + deviceId
+String expected = String("rgfx-driver-") + deviceId;
+
+// Check prefix matches
+for (size_t i = 0; i < prefixLen; i++) {
+
+// Mock String class for native testing
+class String {
+
+// Called before each test
+void setUp(void) {
 ```
 
 **Examples of GOOD comments:**

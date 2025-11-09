@@ -6,7 +6,7 @@
  */
 
 #include "commands.h"
-#include "../log.h"
+#include "log.h"
 #include <Arduino.h>
 
 namespace Commands {

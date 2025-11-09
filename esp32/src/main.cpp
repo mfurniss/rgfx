@@ -9,17 +9,17 @@
 #include <map>
 #include "matrix.h"
 #include "test.h"
-#include "effect-processor.h"
-#include "network-init.h"
-#include "config_portal.h"
-#include "config_nvs.h"
-#include "config_timeout.h"
+#include "effects/effect_processor.h"
+#include "network/network_init.h"
+#include "config/config_portal.h"
+#include "config/config_nvs.h"
+#include "config/config_timeout.h"
 #include "config/constants.h"
 #include "driver_config.h"
-#include "udp.h"
-#include "mqtt.h"
+#include "network/udp.h"
+#include "network/mqtt.h"
 #include "log.h"
-#include "display.h"
+#include "oled/oled_display.h"
 #include "utils.h"
 #include "version.h"
 #include "serial.h"
@@ -257,7 +257,7 @@ void loop() {
 		// Check for UDP message updates
 		UDPMessage message;
 		if (checkUDPMessage(&message)) {
-			effectProcessor->trigger(message.effect, message.props);
+			effectProcessor->addEffect(message.effect, message.props);
 		}
 
 		// Update and render continuous effects (skip if test mode is active)
