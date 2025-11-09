@@ -95,8 +95,10 @@ test:driver:
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
 
-    # Note: PlatformIO tests require hardware, skipped in CI
-    # Hardware tests must be run locally before release
+    # Run native tests (hardware-independent)
+    - pio test -e native --project-dir esp32
+
+    # Note: Native tests run in CI. Embedded tests require hardware and must be run locally.
 
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -192,7 +194,7 @@ build:driver:
     # Build firmware - compile errors = FAIL
     - pio run --project-dir esp32
 
-    # Note: PlatformIO tests require hardware, skipped in CI
+    # Note: Native tests run in test stage. Embedded tests require hardware.
     # Run locally before release: pio test --project-dir esp32
 
     # Copy firmware to installer directory (uses Python script - PlatformIO requirement)
