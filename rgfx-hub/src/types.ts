@@ -23,27 +23,6 @@ export type ColorCorrection =
   | 'Typical8mmPixel'
   | 'UncorrectedColor';
 
-export type ColorTemperature =
-  | 'Candle'
-  | 'Tungsten40W'
-  | 'Tungsten100W'
-  | 'Halogen'
-  | 'CarbonArc'
-  | 'HighNoonSun'
-  | 'DirectSunlight'
-  | 'OvercastSky'
-  | 'ClearBlueSky'
-  | 'WarmFluorescent'
-  | 'StandardFluorescent'
-  | 'CoolWhiteFluorescent'
-  | 'FullSpectrumFluorescent'
-  | 'GrowLightFluorescent'
-  | 'BlackLightFluorescent'
-  | 'MercuryVapor'
-  | 'SodiumVapor'
-  | 'MetalHalide'
-  | 'HighPressureSodium'
-  | 'UncorrectedTemperature';
 
 export interface LEDDevice {
   id: string;
@@ -56,7 +35,6 @@ export interface LEDDevice {
   colorOrder?: ColorOrder;
   maxBrightness?: number;
   colorCorrection?: ColorCorrection;
-  colorTemperature?: ColorTemperature;
   dataRateMhz?: number;
   width?: number;
   height?: number;
@@ -65,7 +43,6 @@ export interface LEDDevice {
 
 export interface DriverSettings {
   globalBrightnessLimit?: number;
-  gammaCorrection?: number;
   dithering?: boolean;
   powerSupplyVolts?: number;
   maxPowerMilliamps?: number;
@@ -86,7 +63,6 @@ export interface LEDHardware {
   chipset?: LEDChipset;
   colorOrder?: ColorOrder;
   colorCorrection?: ColorCorrection;
-  colorTemperature?: ColorTemperature;
   width?: number;
   height?: number;
 }
@@ -102,7 +78,6 @@ export interface DriverLEDConfig {
   offset?: number;
   maxBrightness?: number;
   globalBrightnessLimit?: number;
-  gammaCorrection?: number;
   dithering?: boolean;
   powerSupplyVolts?: number;
   maxPowerMilliamps?: number;

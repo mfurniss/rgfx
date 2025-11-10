@@ -122,14 +122,12 @@ async function pushConfigToDriver(driverId: string): Promise<void> {
         color_order: hardware.colorOrder,
         max_brightness: ledConfig.maxBrightness,
         color_correction: hardware.colorCorrection,
-        color_temperature: hardware.colorTemperature,
         width: hardware.width,
         height: hardware.height,
       },
     ],
     settings: {
       global_brightness_limit: ledConfig.globalBrightnessLimit,
-      gamma_correction: ledConfig.gammaCorrection,
       dithering: ledConfig.dithering,
       power_supply_volts: ledConfig.powerSupplyVolts,
       max_power_milliamps: ledConfig.maxPowerMilliamps,
@@ -184,6 +182,15 @@ mqtt.start();
 setTimeout(() => {
   log.info("Sending discovery request to all drivers...");
   void mqtt.publish("rgfx/system/discover", "");
+
+  // Push configuration to all known drivers on startup
+  // This ensures drivers get latest config even if they were already connected
+  log.info("Pushing configuration to all known drivers...");
+  driverRegistry.getAllDrivers().forEach((driver) => {
+    void pushConfigToDriver(driver.id).catch((error: unknown) => {
+      log.error(`Failed to push config to driver ${driver.id} on startup:`, error);
+    });
+  });
 }, 1000);
 
 // Install default mappers to user data directory (async)

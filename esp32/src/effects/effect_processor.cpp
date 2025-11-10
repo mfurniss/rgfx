@@ -1,4 +1,6 @@
 #include "effect_processor.h"
+#include "downsample_to_matrix.h"
+#include "driver_config.h"
 #include <FastLED.h>
 
 EffectProcessor::EffectProcessor(Matrix& matrix)
@@ -21,16 +23,17 @@ void EffectProcessor::update() {
 	float deltaTime = (now - lastFrameTime) / 1000.0f;
 	lastFrameTime = now;
 
-	// Clear matrix before rendering effects
-	fill_solid(matrix.leds, matrix.size, CRGB::Black);
-
-	// Update and render all effects
+	// Update and render all effects to their canvases
 	for (const auto& entry : effectMap) {
 		entry.effect->update(deltaTime);
 		entry.effect->render();
 	}
 
+	// Composite all effect canvases and downsample to matrix
+	downsampleToMatrix(effectMap, &matrix);
+
 	// Display the frame
+	// Note: FastLED.show() applies color correction, temperature, and gamma internally
 	FastLED.show();
 }
 

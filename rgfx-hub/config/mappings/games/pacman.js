@@ -12,7 +12,8 @@
  * @returns {boolean} - True if event was handled, false otherwise
  */
 
-import { random } from 'lodash-es';
+import { random } from "lodash-es";
+import { colord } from "colord";
 
 const GHOST_STATE = {
   NORMAL: [0x01, 0x03, 0x05, 0x07], // Red, pink, cyan, orange (normal)
@@ -34,7 +35,7 @@ const GHOST_COLORS = {
 const GHOST_STATE_COLORS = {
   [GHOST_STATE.VULNERABLE]: "#0000FF",
   [GHOST_STATE.FLASHING]: "#FFFFFF",
-  [GHOST_STATE.EATEN]: "#FFFFFF",
+  [GHOST_STATE.EATEN]: "#00FFFF",
   [GHOST_STATE.EYES]: "#FFFFFF",
 };
 
@@ -42,16 +43,12 @@ export function handle(topic, payload, { broadcast }) {
   const parts = topic.split("/");
   const [, subject, property] = parts;
 
-  // Player score - random colored wipe with random duration
   if (subject === "player" && property === "score") {
-    const randomColor = `#${random(0, 16777215).toString(16).padStart(6, '0')}`;
-    const randomDuration = random(200, 800);
-
     return broadcast({
       effect: "wipe",
       props: {
-        color: randomColor,
-        duration: randomDuration,
+        color: "#705014",
+        duration: 300,
       },
     });
   }

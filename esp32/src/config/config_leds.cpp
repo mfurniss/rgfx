@@ -32,6 +32,19 @@ static int8_t findPinIndex(uint8_t pin) {
 }
 
 /**
+ * Helper: Convert color correction string to FastLED constant
+ */
+static uint32_t getColorCorrection(const String& correction) {
+	if (correction == "Typical8mmPixel") {
+		return Typical8mmPixel;
+	} else if (correction == "UncorrectedColor") {
+		return UncorrectedColor;
+	}
+	// Default to TypicalLEDStrip
+	return TypicalLEDStrip;
+}
+
+/**
  * Initialize FastLED based on configuration
  */
 bool configLEDs() {
@@ -53,12 +66,15 @@ bool configLEDs() {
 	activePins = 0;
 
 	// Group devices by pin and calculate buffer sizes
+	// Also store the first device's color correction for each pin
 	std::map<uint8_t, uint16_t> pinLEDCounts;
+	std::map<uint8_t, String> pinColorCorrection;
 
 	for (const auto& dev : g_driverConfig.devices) {
 		uint16_t needed = dev.offset + dev.count;
 		if (pinLEDCounts.find(dev.pin) == pinLEDCounts.end()) {
 			pinLEDCounts[dev.pin] = needed;
+			pinColorCorrection[dev.pin] = dev.colorCorrection;
 		} else {
 			if (needed > pinLEDCounts[dev.pin]) {
 				pinLEDCounts[dev.pin] = needed;
@@ -102,12 +118,17 @@ bool configLEDs() {
 		// Initialize LEDs to black
 		fill_solid(ledBuffers[pinIndex], count, CRGB::Black);
 
+		// Get color correction for this pin
+		uint32_t correction = getColorCorrection(pinColorCorrection[pin]);
+
 // Add to FastLED - template requires compile-time pin specification
 // Using macro to eliminate code duplication while maintaining template requirements
-#define ADD_FASTLED_FOR_PIN(PIN_NUM)                                         \
-	case PIN_NUM:                                                            \
-		FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count); \
-		log("Added FastLED for GPIO" #PIN_NUM);                              \
+#define ADD_FASTLED_FOR_PIN(PIN_NUM)                                                            \
+	case PIN_NUM:                                                                               \
+		FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count)                    \
+		    .setCorrection(correction);                                                         \
+		log("Added FastLED for GPIO" #PIN_NUM " with " + pinColorCorrection[pin] +             \
+		    " color correction");                                                               \
 		break;
 
 		switch (pin) {
@@ -157,7 +178,8 @@ bool configLEDs() {
 	// Apply global settings
 	uint8_t brightness = min((int)g_driverConfig.globalBrightnessLimit, 255);
 	FastLED.setBrightness(brightness);
-	FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);  // Conservative power limit
+	FastLED.setMaxPowerInVoltsAndMilliamps(g_driverConfig.powerSupplyVolts,
+	                                       g_driverConfig.maxPowerMilliamps);
 
 	// Apply dithering setting
 	FastLED.setDither(g_driverConfig.dithering ? 1 : 0);
@@ -166,6 +188,8 @@ bool configLEDs() {
 	log("Active pins: " + String(activePins));
 	log("Device mappings: " + String(deviceMappings.size()));
 	log("Global brightness: " + String(brightness));
+	log("Power limit: " + String(g_driverConfig.powerSupplyVolts) + "V @ " +
+	    String(g_driverConfig.maxPowerMilliamps) + "mA");
 	log("Dithering: " + String(g_driverConfig.dithering ? "enabled" : "disabled"));
 
 	return true;
