@@ -53,7 +53,6 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 		ledConfig["description"] = driverConfig.description;
 		ledConfig["version"] = driverConfig.version;
 		ledConfig["globalBrightnessLimit"] = driverConfig.globalBrightnessLimit;
-		ledConfig["gammaCorrection"] = driverConfig.gammaCorrection;
 		ledConfig["dithering"] = driverConfig.dithering;
 		ledConfig["updateRate"] = driverConfig.updateRate;
 
@@ -71,6 +70,7 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 			dev["chipset"] = device.chipset;
 			dev["colorOrder"] = device.colorOrder;
 			dev["maxBrightness"] = device.maxBrightness;
+			dev["colorCorrection"] = device.colorCorrection;
 
 			if (device.width > 0 && device.height > 0) {
 				dev["width"] = device.width;

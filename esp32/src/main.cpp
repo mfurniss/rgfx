@@ -133,9 +133,8 @@ void setup() {
 	ConfigPortal::begin();
 
 	// Note: LEDs will be initialized by configLEDs() when Hub config is received
-	// For now, just initialize FastLED with default 8x8 matrix for connection status display
-	FastLED.addLeds<WS2812B, 16, GRB>(matrix.leds, matrix.size);
-	FastLED.setBrightness(64);
+	// Fallback initialization removed - was causing brightness issues by creating
+	// duplicate controllers on the same pin
 
 	// WiFi connection happens asynchronously
 	log("Connecting to WiFi...");

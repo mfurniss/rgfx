@@ -10,11 +10,10 @@
         "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
         "pin": 16,
         "offset": 0,
-        "globalBrightnessLimit": 64,
-        "gammaCorrection": 2.2,
+        "globalBrightnessLimit": 150,
         "dithering": true,
         "powerSupplyVolts": 5,
-        "maxPowerMilliamps": 300
+        "maxPowerMilliamps": 500
       }
     },
     {
@@ -26,11 +25,10 @@
         "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
         "pin": 16,
         "offset": 0,
-        "globalBrightnessLimit": 64,
-        "gammaCorrection": 2.2,
+        "globalBrightnessLimit": 150,
         "dithering": true,
         "powerSupplyVolts": 5,
-        "maxPowerMilliamps": 300
+        "maxPowerMilliamps": 500
       }
     }
   ]

@@ -1,22 +1,21 @@
 #pragma once
 
-#include <FastLED.h>
 #include <vector>
 #include <ArduinoJson.h>
 #include "effect.h"
-#include "matrix.h"
+#include "canvas.h"
 
 class WipeEffect : public IEffect {
    private:
 	struct Wipe {
-		CRGB color;            // RGB color (3 bytes)
+		uint8_t r, g, b;       // RGB color
 		uint32_t duration;     // Total duration in milliseconds
 		uint32_t elapsedTime;  // Elapsed time in milliseconds
 
 		// Calculate current column position based on elapsed time
-		uint16_t currentColumn(uint16_t matrixWidth) const {
+		uint16_t currentColumn(uint16_t canvasWidth) const {
 			float progress = static_cast<float>(elapsedTime) / duration;
-			return static_cast<uint16_t>(progress * matrixWidth);
+			return static_cast<uint16_t>(progress * canvasWidth);
 		}
 
 		// Calculate remaining duration
@@ -24,11 +23,13 @@ class WipeEffect : public IEffect {
 	};
 
 	std::vector<Wipe> wipes;  // Dynamic array of active wipes
+	Canvas canvas;
 
    public:
-	WipeEffect();
+	WipeEffect(const Matrix& matrix);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
-	void render(Matrix& matrix) override;
+	void render() override;
 	void reset() override;
+	Canvas& getCanvas() override;
 };

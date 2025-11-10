@@ -7,8 +7,8 @@
  * The first matching handler wins and stops the cascade.
  */
 
-import { promises as fs } from 'node:fs';
-import { join } from 'node:path';
+import { promises as fs, watch } from 'node:fs';
+import { join, basename } from 'node:path';
 import type {
   MappingContext,
   MappingHandler,
@@ -26,6 +26,7 @@ export class MappingEngine {
   private subjectHandlers = new Map<string, MappingHandler>();
   private patternHandlers: MappingHandler[] = [];
   private defaultHandler?: MappingHandler;
+  private watcher?: ReturnType<typeof watch>;
 
   constructor(private context: MappingContext) {}
 
@@ -52,9 +53,91 @@ export class MappingEngine {
           `${this.patternHandlers.length} patterns, ` +
           `${this.defaultHandler ? '1' : '0'} default`,
       );
+
+      // Start watching for file changes
+      this.startFileWatcher(mappingsDir);
     } catch (error) {
       this.context.log.error('Failed to load mappings:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Start watching mapper files for changes and reload on save
+   */
+  private startFileWatcher(mappingsDir: string): void {
+    try {
+      this.watcher = watch(
+        mappingsDir,
+        { recursive: true },
+        (eventType, filename) => {
+          if (!filename?.endsWith('.js')) return;
+
+          this.context.log.info(`Mapper file changed: ${filename}`);
+          void this.reloadMapper(mappingsDir, filename);
+        },
+      );
+
+      this.context.log.info('File watcher started for mapper hot-reload');
+    } catch (error) {
+      this.context.log.warn('Could not start file watcher:', error);
+    }
+  }
+
+  /**
+   * Reload a specific mapper file
+   */
+  private async reloadMapper(
+    mappingsDir: string,
+    filename: string,
+  ): Promise<void> {
+    try {
+      const filePath = join(mappingsDir, filename);
+
+      // Check if this is in games/ subdirectory
+      if (filename.startsWith('games/') || filename.startsWith('games\\')) {
+        const gameName = basename(filename, '.js');
+        this.gameHandlers.delete(gameName);
+        await this.loadGameMapper(gameName);
+        this.context.log.info(`Reloaded game mapper: ${gameName}`);
+      }
+      // Check if this is in subjects/ subdirectory
+      else if (filename.startsWith('subjects/') || filename.startsWith('subjects\\')) {
+        const subjectName = basename(filename, '.js');
+        this.subjectHandlers.delete(subjectName);
+        const module = (await import(
+          `${filePath}?t=${Date.now()}`
+        )) as Record<string, unknown>;
+        const handler = this.extractHandler(module);
+        if (handler) {
+          this.subjectHandlers.set(subjectName, handler);
+          this.context.log.info(`Reloaded subject mapper: ${subjectName}`);
+        }
+      }
+      // Check if this is in patterns/ subdirectory
+      else if (filename.startsWith('patterns/') || filename.startsWith('patterns\\')) {
+        this.patternHandlers = [];
+        await this.loadPatternMappers(join(mappingsDir, 'patterns'));
+        this.context.log.info(`Reloaded pattern mappers`);
+      }
+      // Check if this is default.js in root
+      else if (filename === 'default.js') {
+        this.defaultHandler = undefined;
+        await this.loadDefaultMapper(filePath);
+        this.context.log.info(`Reloaded default mapper`);
+      }
+    } catch (error) {
+      this.context.log.error(`Failed to reload mapper ${filename}:`, error);
+    }
+  }
+
+  /**
+   * Stop the file watcher (cleanup)
+   */
+  dispose(): void {
+    if (this.watcher) {
+      this.watcher.close();
+      this.context.log.info('File watcher stopped');
     }
   }
 
@@ -69,13 +152,9 @@ export class MappingEngine {
       this.parsePayload(payload);
       const [game, subject] = topic.split('/');
 
-      // Auto-load game mapper if not already loaded
-      // This handles race condition where Hub starts after MAME
+      // Auto-load game mapper on first event from game
       if (game && !this.gameHandlers.has(game)) {
         await this.loadGameMapper(game);
-        if (this.gameHandlers.has(game)) {
-          this.context.log.info(`Auto-loaded game mapper: ${game}`);
-        }
       }
 
       // 1. Try game-specific handler (highest priority)
@@ -162,12 +241,6 @@ export class MappingEngine {
    * Unknown games fall through to subject/pattern/default handlers.
    */
   private async loadGameMapper(gameName: string): Promise<void> {
-    // Skip if already loaded
-    if (this.gameHandlers.has(gameName)) {
-      this.context.log.debug(`Game mapper ${gameName} already loaded`);
-      return;
-    }
-
     try {
       const mappingsDir = getMappingsDir();
       const filePath = join(mappingsDir, 'games', `${gameName}.js`);

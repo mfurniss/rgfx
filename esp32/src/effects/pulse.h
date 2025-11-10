@@ -1,15 +1,14 @@
 #pragma once
 
-#include <FastLED.h>
 #include <vector>
 #include <ArduinoJson.h>
 #include "effect.h"
-#include "matrix.h"
+#include "canvas.h"
 
 class PulseEffect : public IEffect {
    private:
 	struct Pulse {
-		CRGB color;            // RGB color (3 bytes)
+		uint8_t r, g, b;       // RGB color
 		uint8_t alpha;         // Alpha channel: 255 (full) → 0 (transparent)
 		uint32_t duration;     // Total duration in milliseconds
 		uint32_t elapsedTime;  // Elapsed time in milliseconds (only used for non-fading pulses)
@@ -24,11 +23,13 @@ class PulseEffect : public IEffect {
 	};
 
 	std::vector<Pulse> pulses;  // Dynamic array of active pulses
+	Canvas canvas;
 
    public:
-	PulseEffect();
+	PulseEffect(const Matrix& matrix);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
-	void render(Matrix& matrix) override;
+	void render() override;
 	void reset() override;
+	Canvas& getCanvas() override;
 };

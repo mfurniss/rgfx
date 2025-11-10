@@ -135,10 +135,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
                 label: "Brightness Limit",
                 value: ledConfig.globalBrightnessLimit ?? "Not set",
               },
-              {
-                label: "Gamma Correction",
-                value: ledConfig.gammaCorrection ?? "Not set",
-              },
               { label: "Dithering", value: ledConfig.dithering ? "Yes" : "No" },
             ]
           : []),

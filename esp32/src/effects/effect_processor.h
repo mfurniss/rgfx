@@ -13,12 +13,13 @@
  * Handles frame timing and adding effects.
  */
 class EffectProcessor {
-   private:
+   public:
 	struct EffectEntry {
 		const char* name;
 		IEffect* effect;
 	};
 
+   private:
 	Matrix& matrix;
 	PulseEffect pulseEffect;
 	WipeEffect wipeEffect;

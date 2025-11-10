@@ -59,6 +59,7 @@ void handleDriverConfig(const String& payload) {
 		devCfg.chipset = device["chipset"] | "WS2812B";
 		devCfg.colorOrder = device["color_order"] | "GRB";
 		devCfg.maxBrightness = device["max_brightness"] | 255;
+		devCfg.colorCorrection = device["color_correction"] | "TypicalLEDStrip";
 
 		// Matrix-specific fields
 		if (devCfg.layout.startsWith("matrix-")) {
@@ -84,16 +85,19 @@ void handleDriverConfig(const String& payload) {
 	// Extract global settings
 	if (doc["settings"].is<JsonObject>()) {
 		JsonObject settings = doc["settings"];
-		g_driverConfig.globalBrightnessLimit = settings["global_brightness_limit"] | 255;
-		g_driverConfig.gammaCorrection = settings["gamma_correction"] | 2.2;
+		uint32_t brightness = settings["global_brightness_limit"] | 255;
+		g_driverConfig.globalBrightnessLimit = min(brightness, 255u);
 		g_driverConfig.dithering = settings["dithering"] | true;
 		g_driverConfig.updateRate = settings["update_rate"] | 60;
+		g_driverConfig.powerSupplyVolts = settings["power_supply_volts"] | 5;
+		g_driverConfig.maxPowerMilliamps = settings["max_power_milliamps"] | 2000;
 
 		log("Global settings:");
 		log("  Brightness limit: " + String(g_driverConfig.globalBrightnessLimit));
-		log("  Gamma: " + String(g_driverConfig.gammaCorrection));
 		log("  Dithering: " + String(g_driverConfig.dithering ? "enabled" : "disabled"));
 		log("  Update rate: " + String(g_driverConfig.updateRate) + " Hz");
+		log("  Power supply: " + String(g_driverConfig.powerSupplyVolts) + "V @ " +
+		    String(g_driverConfig.maxPowerMilliamps) + "mA");
 	}
 
 	// Mark configuration as received

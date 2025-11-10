@@ -17,9 +17,10 @@ struct LEDDeviceConfig {
 	String layout;          // "strip" or "matrix-tl-h-snake", etc.
 	uint16_t count;         // Number of LEDs
 	uint16_t offset;        // Offset on pin (for multiple devices per pin)
-	String chipset;         // "WS2812B", "WS2811", etc.
-	String colorOrder;      // "GRB", "RGB", etc.
-	uint8_t maxBrightness;  // 0-255 brightness limit
+	String chipset;          // "WS2812B", "WS2811", etc.
+	String colorOrder;       // "GRB", "RGB", etc.
+	uint8_t maxBrightness;   // 0-255 brightness limit
+	String colorCorrection;  // "TypicalLEDStrip", "Typical8mmPixel", "UncorrectedColor"
 
 	// Matrix-specific fields
 	uint8_t width;   // Matrix width (0 if not a matrix)
@@ -43,13 +44,15 @@ struct DriverConfigData {
 
 	// Global settings
 	uint8_t globalBrightnessLimit;  // Global brightness cap
-	float gammaCorrection;          // Gamma value
 	bool dithering;                 // Enable dithering
 	uint8_t updateRate;             // Refresh rate in Hz
+	uint8_t powerSupplyVolts;       // Power supply voltage
+	uint16_t maxPowerMilliamps;     // Maximum power draw in milliamps
 
 	// Constructor with defaults
 	DriverConfigData()
-		: globalBrightnessLimit(255), gammaCorrection(2.2), dithering(true), updateRate(120) {}
+		: globalBrightnessLimit(255), dithering(true), updateRate(120),
+		  powerSupplyVolts(5), maxPowerMilliamps(2000) {}
 };
 
 /**
