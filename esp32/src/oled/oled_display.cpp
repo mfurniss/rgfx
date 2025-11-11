@@ -30,6 +30,23 @@ static unsigned long lastUptimeUpdate = 0;
 
 namespace Display {
 
+	static String formatDeviceId(const String& deviceName) {
+		int lastDashPos = deviceName.lastIndexOf('-');
+		if (lastDashPos == -1) {
+			return "";
+		}
+
+		String deviceId = deviceName.substring(lastDashPos + 1);
+		deviceId.toUpperCase();
+
+		if (deviceId.length() != 6) {
+			return deviceId;
+		}
+
+		return deviceId.substring(0, 2) + ":" + deviceId.substring(2, 4) + ":" +
+		       deviceId.substring(4, 6);
+	}
+
 	bool begin() {
 		log("Initializing OLED display...");
 
@@ -89,16 +106,16 @@ namespace Display {
 	}
 
 	void showBoot(const String& deviceName) {
-		if (!displayAvailable)
-			return;
-
 		display->clearDisplay();
 
-		// Title
+		String formattedId = formatDeviceId(deviceName);
+
+		// Title with device ID
 		display->setTextSize(2);
-		display->setCursor(4, 8);
-		display->println("RGFX");
-		display->println("  Driver");
+		display->setCursor(0, 8);
+		display->print("RGFX ");
+		display->setTextSize(1);
+		display->println(formattedId);
 
 		// Version
 		display->setTextSize(1);
@@ -106,7 +123,7 @@ namespace Display {
 		display->print("v");
 		display->println(RGFX_VERSION);
 
-		// Device name
+		// Full device name
 		display->setCursor(0, 48);
 		display->println(deviceName);
 
@@ -115,16 +132,16 @@ namespace Display {
 		log("Display: Boot screen shown");
 	}
 
-	void showConnecting(const String& ssid) {
-		if (!displayAvailable)
-			return;
-
+	void showConnecting(const String& ssid, const String& deviceName) {
 		display->clearDisplay();
+
+		String formattedId = formatDeviceId(deviceName);
 
 		// Header
 		display->setTextSize(1);
 		display->setCursor(0, 0);
-		display->println("RGFX Driver");
+		display->print("RGFX ");
+		display->println(formattedId);
 		display->println();
 
 		// Status message
@@ -146,15 +163,15 @@ namespace Display {
 	}
 
 	void showAPMode(const String& apName) {
-		if (!displayAvailable)
-			return;
-
 		display->clearDisplay();
+
+		String formattedId = formatDeviceId(apName);
 
 		// Header
 		display->setTextSize(1);
 		display->setCursor(0, 0);
-		display->println("RGFX Driver");
+		display->print("RGFX ");
+		display->println(formattedId);
 		display->drawLine(0, 10, SCREEN_WIDTH - 1, 10, SSD1306_WHITE);
 
 		// Setup mode message (left side)
@@ -183,9 +200,6 @@ namespace Display {
 	}
 
 	void updateAPModeCountdown(uint16_t secondsRemaining) {
-		if (!displayAvailable)
-			return;
-
 		// Clear countdown area (right side, next to "SETUP MODE")
 		display->fillRect(80, 16, SCREEN_WIDTH - 80, 32, SSD1306_BLACK);
 
@@ -209,10 +223,8 @@ namespace Display {
 		display->display();
 	}
 
-	void showConnected(const String& ssid, const String& ip, bool mqttConnected) {
-		if (!displayAvailable)
-			return;
-
+	void showConnected(const String& ssid, const String& ip, bool mqttConnected,
+	                   const String& deviceName) {
 		// Cache values for later updates
 		cachedSSID = ssid;
 		cachedIP = ip;
@@ -220,10 +232,13 @@ namespace Display {
 
 		display->clearDisplay();
 
+		String formattedId = formatDeviceId(deviceName);
+
 		// Header
 		display->setTextSize(1);
 		display->setCursor(0, 0);
-		display->println("RGFX Driver");
+		display->print("RGFX ");
+		display->println(formattedId);
 		display->drawLine(0, 10, SCREEN_WIDTH - 1, 10, SSD1306_WHITE);
 
 		// WiFi SSID
@@ -256,9 +271,6 @@ namespace Display {
 	}
 
 	void updateMQTTStatus(bool connected) {
-		if (!displayAvailable)
-			return;
-
 		// Only update if status actually changed
 		if (connected == cachedMQTTStatus)
 			return;
@@ -280,9 +292,6 @@ namespace Display {
 	}
 
 	void updateUptime(unsigned long uptimeSeconds) {
-		if (!displayAvailable)
-			return;
-
 		// Only update every second to avoid excessive I2C traffic
 		if (uptimeSeconds == lastUptimeUpdate)
 			return;
@@ -315,9 +324,6 @@ namespace Display {
 	}
 
 	void clear() {
-		if (!displayAvailable)
-			return;
-
 		display->clearDisplay();
 		display->display();
 

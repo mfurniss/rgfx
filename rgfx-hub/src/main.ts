@@ -178,19 +178,11 @@ mqtt.start();
 
 // After broker starts, send discovery request to query all connected drivers
 // Drivers will respond with connect messages containing current state
+// The onDriverConnected callback will handle pushing config to each driver
 // Use setTimeout to ensure broker is fully initialized
 setTimeout(() => {
   log.info("Sending discovery request to all drivers...");
   void mqtt.publish("rgfx/system/discover", "");
-
-  // Push configuration to all known drivers on startup
-  // This ensures drivers get latest config even if they were already connected
-  log.info("Pushing configuration to all known drivers...");
-  driverRegistry.getAllDrivers().forEach((driver) => {
-    void pushConfigToDriver(driver.id).catch((error: unknown) => {
-      log.error(`Failed to push config to driver ${driver.id} on startup:`, error);
-    });
-  });
 }, 1000);
 
 // Install default mappers to user data directory (async)

@@ -7,9 +7,10 @@
 
 import Aedes from "aedes";
 import { createServer, Server } from "node:net";
+import { networkInterfaces } from "node:os";
 import log from "electron-log/main";
-import Bonjour from "bonjour-service";
-import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL, MDNS_SERVICE_NAME, MDNS_SERVICE_TYPE, MDNS_HOSTNAME } from "./config/constants";
+import { Server as SSDPServer } from "node-ssdp";
+import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL } from "./config/constants";
 
 export class Mqtt {
   public aedes: Aedes; // Make public for MqttClientWrapper access
@@ -19,8 +20,7 @@ export class Mqtt {
     string,
     (topic: string, payload: string) => void
   >();
-  private bonjour?: Bonjour;
-  private mdnsService?: ReturnType<Bonjour["publish"]>;
+  private ssdpServer?: SSDPServer;
 
   constructor(port = MQTT_DEFAULT_PORT) {
     this.port = port;
@@ -100,6 +100,25 @@ export class Mqtt {
     log.info(`Subscribed to MQTT topic: ${topic}`);
   }
 
+  /**
+   * Get the local IP address (IPv4, non-loopback, non-internal)
+   */
+  private getLocalIP(): string {
+    const nets = networkInterfaces();
+    for (const name of Object.keys(nets)) {
+      const netInterfaces = nets[name];
+      if (!netInterfaces) continue;
+
+      for (const net of netInterfaces) {
+        // Skip loopback, internal, and IPv6 addresses
+        if (net.family === "IPv4" && !net.internal) {
+          return net.address;
+        }
+      }
+    }
+    return "127.0.0.1"; // Fallback
+  }
+
   publish(topic: string, payload: string): Promise<void> {
     return new Promise((resolve, reject) => {
       // Always use QoS 2 (exactly once delivery) for critical MQTT events
@@ -130,31 +149,35 @@ export class Mqtt {
     this.server.listen(this.port, () => {
       log.info(`Aedes MQTT Broker listening on port ${this.port}`);
 
-      // Announce MQTT broker via mDNS
-      this.bonjour = new Bonjour();
-      this.mdnsService = this.bonjour.publish({
-        name: MDNS_SERVICE_NAME,
-        type: MDNS_SERVICE_TYPE,
-        port: this.port,
-        host: MDNS_HOSTNAME, // Explicitly set hostname to avoid conflicts with macOS system hostname
-        txt: {
-          version: "1.0",
-        },
+      // Announce MQTT broker via SSDP
+      const localIP = this.getLocalIP();
+      const location = `http://${localIP}:${this.port}`;
+
+      this.ssdpServer = new SSDPServer({
+        location,
+        // @ts-expect-error - sourcePort is required for M-SEARCH response but not in @types/node-ssdp
+        sourcePort: 1900,
       });
-      log.info(
-        `MQTT broker announced via mDNS as "${MDNS_SERVICE_NAME}._${MDNS_SERVICE_TYPE}._tcp" at ${MDNS_HOSTNAME}`,
-      );
+
+      this.ssdpServer.addUSN("urn:rgfx:service:mqtt:1");
+
+      try {
+        void this.ssdpServer.start();
+        log.info(`SSDP server started on port 1900`);
+      } catch (err: unknown) {
+        log.error(`Failed to start SSDP server:`, err);
+      }
+
+      log.info(`MQTT broker announced via SSDP at ${location}`);
+      log.info(`SSDP USN: urn:rgfx:service:mqtt:1`);
     });
   }
 
   stop() {
     return new Promise<void>((resolve) => {
-      // Unpublish mDNS service
-      if (this.mdnsService) {
-        this.mdnsService.stop?.();
-      }
-      if (this.bonjour) {
-        this.bonjour.destroy();
+      // Stop SSDP server
+      if (this.ssdpServer) {
+        this.ssdpServer.stop();
       }
 
       this.aedes.close(() => {

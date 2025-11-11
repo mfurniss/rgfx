@@ -20,7 +20,7 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
-		Display::showConnecting(WiFi.SSID());
+		Display::showConnecting(WiFi.SSID(), Utils::getDeviceName());
 	}
 
 	delay(500);
@@ -80,7 +80,7 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connected status with actual MQTT status
 	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected());
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceName());
 	}
 
 	// Go dark for normal operation

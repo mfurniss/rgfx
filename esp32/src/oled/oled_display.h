@@ -60,8 +60,9 @@ namespace Display {
 	 * Call when WiFi connection attempt begins.
 	 *
 	 * @param ssid WiFi network name being connected to
+	 * @param deviceName Device name (e.g., "rgfx-driver-f89a58")
 	 */
-	void showConnecting(const String& ssid);
+	void showConnecting(const String& ssid, const String& deviceName);
 
 	/**
 	 * Show AP mode screen
@@ -93,8 +94,9 @@ namespace Display {
 	 * @param ssid WiFi network name
 	 * @param ip IP address assigned to device
 	 * @param mqttConnected MQTT broker connection status
+	 * @param deviceName Device name (e.g., "rgfx-driver-f89a58")
 	 */
-	void showConnected(const String& ssid, const String& ip, bool mqttConnected);
+	void showConnected(const String& ssid, const String& ip, bool mqttConnected, const String& deviceName);
 
 	/**
 	 * Update MQTT connection status
