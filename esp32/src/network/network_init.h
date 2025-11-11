@@ -16,6 +16,8 @@ extern bool otaSetupDone;
 
 // Initialize all network services when WiFi connects
 void setupNetworkServices(Matrix& matrix);
+void setupNetworkServices();  // Overload without Matrix for when it's not ready
 
 // Cleanup network services when WiFi disconnects
 void cleanupNetworkServices(Matrix& matrix);
+void cleanupNetworkServices();  // Overload without Matrix for when it's not ready

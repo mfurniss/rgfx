@@ -7,9 +7,7 @@
 #include "oled/oled_display.h"
 #include "network/udp.h"
 #include "config/constants.h"
-#include "test.h"
 #include "effects/effect_processor.h"
-#include <FastLED.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
@@ -26,7 +24,7 @@ bool mqttClientInitialized = false;  // Track if client has been initialized
 static int consecutiveFailures = 0;
 
 // Forward declaration for LED access
-extern Matrix matrix;
+extern Matrix* matrix;
 
 // Toggle state
 bool ledsOn = false;
@@ -36,7 +34,7 @@ bool testModeActive = false;
 
 // Forward declarations
 void handleDriverConfig(const String& payload);
-extern Matrix matrix;
+extern Matrix* matrix;
 extern UDPMessage pendingMessage;
 extern volatile bool newMessageAvailable;
 extern EffectProcessor* effectProcessor;
@@ -61,19 +59,15 @@ void mqttCallback(String& topic, String& payload) {
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/test")) {
 		log("LED test mode: " + payload);
 		if (payload == "on") {
-			// Enable test mode and immediately show test pattern
+			// Enable test mode
 			testModeActive = true;
-			test(matrix, 0);  // Call test effect directly
-			FastLED.show();   // Show the test pattern
 			log("Test mode ENABLED");
 			publishTestState("on");
 		} else if (payload == "off") {
-			// Disable test mode and clear LEDs
+			// Disable test mode
 			testModeActive = false;
-			fill_solid(matrix.leds, matrix.size, CRGB::Black);
-			FastLED.show();
 
-			// Clear any active effects to prevent them from re-rendering
+			// Clear LEDs when turning off test mode
 			if (effectProcessor != nullptr) {
 				effectProcessor->clearEffects();
 			}

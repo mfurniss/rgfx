@@ -6,9 +6,7 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
-#include <map>
 #include "matrix.h"
-#include "test.h"
 #include "effects/effect_processor.h"
 #include "network/network_init.h"
 #include "config/config_portal.h"
@@ -32,7 +30,8 @@ void handleDriverConfig(const String& payload);
 // - UPTIME_UPDATE_INTERVAL: OLED display refresh interval
 // - AP_TIMEOUT_MS: WiFi AP mode timeout
 
-Matrix matrix(WIDTH, HEIGHT);
+// Global matrix pointer - initialized only after LED configuration is received
+Matrix* matrix = nullptr;
 
 // Global effect processor (initialized after driver comes online)
 EffectProcessor* effectProcessor = nullptr;
@@ -46,15 +45,6 @@ bool mqttSetupDone = false;  // Extern in network-init.h
 bool udpSetupDone = false;   // Extern in network-init.h
 bool otaSetupDone = false;   // Extern in network-init.h
 static bool initialConnectionAttemptDone = false;
-
-// Effect function pointer type
-typedef void (*EffectFunction)(Matrix&, uint32_t);
-
-// Effect lookup table
-std::map<String, EffectFunction> effectMap = {
-	{"test", test}
-	// Add more effects here
-};
 
 // Network Task - runs on Core 0 (protocol core)
 // Handles MQTT, web server, OTA, and OLED display updates
@@ -189,9 +179,9 @@ void loop() {
 
 	if (nowInApMode && !inApMode) {
 		// Just entered AP mode - show PURPLE immediately (unless in test mode)
-		if (!testModeActive) {
+		if (!testModeActive && matrix != nullptr) {
 			log("Entering AP mode - LEDs PURPLE");
-			fill_solid(matrix.leds, matrix.size, CRGB::Purple);
+			fill_solid(matrix->leds, matrix->size, CRGB::Purple);
 			FastLED.show();
 		}
 		inApMode = true;
@@ -233,9 +223,19 @@ void loop() {
 		initialConnectionAttemptDone = true;
 
 		if (isConnected) {
-			setupNetworkServices(matrix);
+			if (matrix != nullptr) {
+				setupNetworkServices(*matrix);
+			} else {
+				// Matrix not ready yet, just setup network without LED feedback
+				setupNetworkServices();
+			}
 		} else {
-			cleanupNetworkServices(matrix);
+			if (matrix != nullptr) {
+				cleanupNetworkServices(*matrix);
+			} else {
+				// Matrix not ready, just cleanup without LED feedback
+				cleanupNetworkServices();
+			}
 		}
 	}
 
@@ -248,19 +248,19 @@ void loop() {
 		// Process incoming UDP packets (low-latency game events)
 		processUDP();
 
-		// Initialize effect processor on first run
-		if (effectProcessor == nullptr) {
-			effectProcessor = new EffectProcessor(matrix);
+		// Initialize effect processor on first run (only if matrix is ready)
+		if (effectProcessor == nullptr && matrix != nullptr) {
+			effectProcessor = new EffectProcessor(*matrix);
 		}
 
 		// Check for UDP message updates
 		UDPMessage message;
-		if (checkUDPMessage(&message)) {
+		if (checkUDPMessage(&message) && effectProcessor != nullptr) {
 			effectProcessor->addEffect(message.effect, message.props);
 		}
 
-		// Update and render continuous effects (skip if test mode is active)
-		if (!testModeActive) {
+		// Update and render continuous effects
+		if (effectProcessor != nullptr) {
 			effectProcessor->update();
 		}
 	}

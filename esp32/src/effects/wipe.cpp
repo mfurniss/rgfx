@@ -46,7 +46,7 @@ void WipeEffect::render() {
 		uint32_t rgba = RGBA(wipe.r, wipe.g, wipe.b, 255);
 
 		// Draw 4-pixel-wide column for 4x resolution
-		for (uint16_t x = column; x < column + 4 && x < width; x++) {
+		for (uint16_t x = column; x <= column + (width * 0.1); x++) {
 			for (uint16_t y = 0; y < height; y++) {
 				canvas.setPixel(x, y, rgba);
 			}
