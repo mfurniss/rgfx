@@ -7,8 +7,9 @@ EffectProcessor::EffectProcessor(Matrix& matrix)
 	: matrix(matrix),
 	  pulseEffect(matrix),
 	  wipeEffect(matrix),
+	  testLedsEffect(matrix),
 	  lastFrameTime(0),
-	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}} {}
+	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}, {"test_leds", &testLedsEffect}} {}
 
 void EffectProcessor::update() {
 	unsigned long now = millis();
@@ -19,14 +20,28 @@ void EffectProcessor::update() {
 		return;
 	}
 
-	// Calculate delta time for subsequent frames
+	// Check if in test mode FIRST
+	extern bool testModeActive;
+	if (testModeActive) {
+		// Test mode: just render test pattern
+		testLedsEffect.render();
+		// Downsample and display test effect
+		EffectEntry testEntry[1] = {{"test_leds", &testLedsEffect}};
+		downsampleToMatrix(testEntry, &matrix);
+		FastLED.show();
+		return;
+	}
+
+	// Normal mode: calculate delta time and update effects
 	float deltaTime = (now - lastFrameTime) / 1000.0f;
 	lastFrameTime = now;
 
-	// Update and render all effects to their canvases
+	// Update and render normal effects
 	for (const auto& entry : effectMap) {
-		entry.effect->update(deltaTime);
-		entry.effect->render();
+		if (strcmp(entry.name, "test_leds") != 0) {
+			entry.effect->update(deltaTime);
+			entry.effect->render();
+		}
 	}
 
 	// Composite all effect canvases and downsample to matrix
@@ -50,4 +65,8 @@ void EffectProcessor::clearEffects() {
 	for (const auto& entry : effectMap) {
 		entry.effect->reset();
 	}
+
+	// Clear the matrix to black
+	fill_solid(matrix.leds, matrix.size, CRGB::Black);
+	FastLED.show();
 }

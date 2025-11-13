@@ -4,10 +4,10 @@
     {
       "id": "44:1D:64:F8:CF:68",
       "name": "rgfx-driver-f8cf68",
-      "description": "ESP32 driver board",
+      "description": "ESP32 with BTF-LIGHTING WS2812B 144px LED strip",
       "firstSeen": 1761512408332,
       "ledConfig": {
-        "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
+        "hardwareRef": "led-hardware/btf-strip-144px-ip65.json",
         "pin": 16,
         "offset": 0,
         "globalBrightnessLimit": 150,
@@ -19,10 +19,10 @@
     {
       "id": "44:1D:64:F8:9A:58",
       "name": "rgfx-driver-f89a58",
-      "description": "Primary development board with 8x8 LED matrix",
+      "description": "Primary development board with 8x32 LED matrix",
       "firstSeen": 1761512509975,
       "ledConfig": {
-        "hardwareRef": "led-hardware/hjhx-8x8-matrix.json",
+        "hardwareRef": "led-hardware/wesiri-8x32-matrix.json",
         "pin": 16,
         "offset": 0,
         "globalBrightnessLimit": 150,

@@ -5,7 +5,7 @@
 #include <WiFi.h>
 #include <MQTTClient.h>
 
-// MQTT broker server (discovered via mDNS)
+// MQTT broker server (discovered via SSDP)
 extern String MQTT_SERVER;
 
 // MQTT client

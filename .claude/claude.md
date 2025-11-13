@@ -9,7 +9,7 @@ A MAME Lua scripting framework for monitoring retro arcade game state and publis
 For comprehensive understanding of the RGFX system design, consult [docs/architecture.md](../docs/architecture.md). This document covers:
 
 - Multi-device distributed architecture (Hub + Drivers)
-- Communication protocols (MQTT QoS 2, UDP, mDNS)
+- Communication protocols (MQTT QoS 2, UDP, SSDP for broker discovery, mDNS for OTA)
 - LED device configuration and event mapping system
 - Implementation priorities and roadmap
 - Technology stack and hardware requirements
@@ -596,7 +596,8 @@ Single unified configuration file managed by `DriverPersistence`:
 - PlatformIO firmware for ESP32 devices
 - Controls LED hardware via FastLED
 - Receives commands via MQTT and UDP
-- mDNS device discovery
+- SSDP broker discovery (finds Hub's MQTT broker automatically)
+- mDNS hostname registration for OTA updates (e.g., `rgfx-driver-f89a58.local`)
 
 #### LED Test Mode
 
@@ -660,8 +661,7 @@ The `rgfx-hub/` directory contains an Electron app configured with:
 - **Electron Forge** with Vite plugin
 - **TypeScript** for type safety
 - **Vite** for fast bundling and hot module reload
-- **Aedes** MQTT broker (embedded)
-- **bonjour-service** for mDNS device discovery
+- **Aedes** MQTT broker (embedded) with SSDP announcement via `node-ssdp`
 - **React + Material UI** (default theme, no customization needed)
 
 ## ESP32 Development

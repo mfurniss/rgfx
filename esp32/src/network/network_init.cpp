@@ -20,7 +20,7 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
-		Display::showConnecting(WiFi.SSID());
+		Display::showConnecting(WiFi.SSID(), Utils::getDeviceName());
 	}
 
 	delay(500);
@@ -80,7 +80,7 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connected status with actual MQTT status
 	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected());
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceName());
 	}
 
 	// Go dark for normal operation
@@ -92,6 +92,85 @@ void cleanupNetworkServices(Matrix& matrix) {
 	log("WiFi not connected - entering AP mode");
 	fill_solid(matrix.leds, matrix.size, CRGB::Purple);
 	FastLED.show();
+
+	// Update display to show AP mode
+	if (Display::isAvailable()) {
+		Display::showAPMode(Utils::getDeviceName());
+	}
+
+	mqttSetupDone = false;
+	udpSetupDone = false;
+	otaSetupDone = false;
+}
+
+// Overload without Matrix for when it's not ready
+void setupNetworkServices() {
+	log("WiFi connected - setting up OTA, MQTT and UDP (no LED feedback yet)");
+
+	// Update display to show connecting
+	if (Display::isAvailable()) {
+		Display::showConnecting(WiFi.SSID(), Utils::getDeviceName());
+	}
+
+	delay(500);
+
+	// Setup OTA updates (must be done after WiFi is connected)
+	ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
+	ArduinoOTA.onStart([]() {
+		log("OTA Update starting...");
+	});
+	ArduinoOTA.onEnd([]() {
+		log("OTA Update complete!");
+	});
+	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+		static unsigned int lastPercent = 0;
+		unsigned int percent = (progress / (total / 100));
+		if (percent != lastPercent && percent % 10 == 0) {
+			log("OTA Progress: " + String(percent) + "%");
+			lastPercent = percent;
+		}
+	});
+	ArduinoOTA.onError([](ota_error_t error) {
+		log("OTA Error: " + String(error));
+	});
+	ArduinoOTA.begin();
+	delay(100);
+	log("OTA Ready");
+	otaSetupDone = true;
+
+	// Initialize mDNS
+	if (MDNS.begin(Utils::getDeviceName().c_str())) {
+		log("mDNS responder started as " + Utils::getDeviceName());
+	} else {
+		log("Error starting mDNS responder");
+	}
+
+	// Load saved LED configuration from NVS (if available)
+	if (ConfigNVS::hasLEDConfig()) {
+		log("Loading saved LED configuration from NVS...");
+		String savedConfig = ConfigNVS::loadLEDConfig();
+		if (savedConfig.length() > 0) {
+			handleDriverConfig(savedConfig);
+		}
+	} else {
+		log("No saved LED config - will wait for Hub");
+	}
+
+	// Setup MQTT
+	setupMQTT();
+	mqttSetupDone = true;
+
+	setupUDP();
+	udpSetupDone = true;
+
+	// Update display
+	if (Display::isAvailable()) {
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceName());
+	}
+}
+
+void cleanupNetworkServices() {
+	log("WiFi not connected - entering AP mode (no LED feedback yet)");
 
 	// Update display to show AP mode
 	if (Display::isAvailable()) {

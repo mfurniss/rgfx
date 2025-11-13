@@ -48,7 +48,7 @@ export function handle(topic, payload, { broadcast }) {
       effect: "wipe",
       props: {
         color: "#705014",
-        duration: 300,
+        duration: 500,
       },
     });
   }

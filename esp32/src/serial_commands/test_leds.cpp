@@ -8,13 +8,11 @@
 #include "commands.h"
 #include "log.h"
 #include "matrix.h"
-#include "test.h"
 #include "effects/effect_processor.h"
 #include "network/mqtt.h"
-#include <FastLED.h>
-#include <WiFi.h>
+#include <ArduinoJson.h>
 
-extern Matrix matrix;
+extern Matrix* matrix;
 extern bool testModeActive;
 extern EffectProcessor* effectProcessor;
 
@@ -26,21 +24,17 @@ namespace Commands {
 		arg.toLowerCase();
 
 		if (arg == "on") {
-			// Enable test mode and show test pattern
+			// Enable test mode
 			testModeActive = true;
-			test(matrix, 0);
-			FastLED.show();
-			log("Test mode ENABLED - LEDs showing test pattern");
+			log("Test mode ENABLED - showing test pattern");
 
 			// Notify Hub of test state change
 			publishTestState("on");
 		} else if (arg == "off") {
-			// Disable test mode and clear LEDs
+			// Disable test mode
 			testModeActive = false;
-			fill_solid(matrix.leds, matrix.size, CRGB::Black);
-			FastLED.show();
 
-			// Clear any active effects to prevent them from re-rendering
+			// Clear LEDs when turning off test mode
 			if (effectProcessor != nullptr) {
 				effectProcessor->clearEffects();
 			}

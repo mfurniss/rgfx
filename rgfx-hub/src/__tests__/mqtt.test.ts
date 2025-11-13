@@ -2,19 +2,18 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Mqtt } from "../mqtt";
 import Aedes from "aedes";
 import { createServer } from "node:net";
-import Bonjour from "bonjour-service";
+import { Server as SSDPServer } from "node-ssdp";
 
 // Mock dependencies
 vi.mock("aedes");
 vi.mock("node:net");
-vi.mock("bonjour-service");
+vi.mock("node-ssdp");
 
 describe("Mqtt", () => {
   let mqtt: Mqtt;
   let mockAedes: any;
   let mockServer: any;
-  let mockBonjour: any;
-  let mockMdnsService: any;
+  let mockSSDPServer: any;
 
   beforeEach(() => {
     // Mock Aedes instance
@@ -40,21 +39,17 @@ describe("Mqtt", () => {
       }),
     };
 
-    // Mock mDNS service
-    mockMdnsService = {
+    // Mock SSDP server
+    mockSSDPServer = {
+      addUSN: vi.fn(),
+      start: vi.fn().mockResolvedValue(undefined),
       stop: vi.fn(),
-    };
-
-    // Mock Bonjour instance
-    mockBonjour = {
-      publish: vi.fn(() => mockMdnsService),
-      destroy: vi.fn(),
     };
 
     // Setup mocks
     vi.mocked(Aedes).mockReturnValue(mockAedes);
     vi.mocked(createServer).mockReturnValue(mockServer);
-    vi.mocked(Bonjour).mockReturnValue(mockBonjour);
+    vi.mocked(SSDPServer).mockReturnValue(mockSSDPServer);
 
     mqtt = new Mqtt(1883);
   });
@@ -352,29 +347,24 @@ describe("Mqtt", () => {
       expect(mockServer.listen).toHaveBeenCalledWith(1883, expect.any(Function));
     });
 
-    it("should announce via mDNS", () => {
+    it("should announce via SSDP", () => {
       mqtt.start();
 
-      expect(Bonjour).toHaveBeenCalled();
-      expect(mockBonjour.publish).toHaveBeenCalledWith({
-        name: "RGFX Hub",
-        type: "mqtt",
-        port: 1883,
-        host: "rgfx-hub.local",
-        txt: {
-          version: "1.0",
-        },
+      expect(SSDPServer).toHaveBeenCalledWith({
+        location: expect.stringMatching(/^http:\/\/\d+\.\d+\.\d+\.\d+:1883$/),
+        sourcePort: 1900,
       });
+      expect(mockSSDPServer.addUSN).toHaveBeenCalledWith("urn:rgfx:service:mqtt:1");
+      expect(mockSSDPServer.start).toHaveBeenCalled();
     });
   });
 
   describe("stop", () => {
-    it("should stop mDNS service", async () => {
+    it("should stop SSDP server", async () => {
       mqtt.start();
       await mqtt.stop();
 
-      expect(mockMdnsService.stop).toHaveBeenCalled();
-      expect(mockBonjour.destroy).toHaveBeenCalled();
+      expect(mockSSDPServer.stop).toHaveBeenCalled();
     });
 
     it("should close Aedes and server", async () => {

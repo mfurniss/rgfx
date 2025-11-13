@@ -13,14 +13,15 @@ RGFX is a distributed system for monitoring retro arcade game state and translat
 
 ### Communication Protocols
 
-- **MQTT (QoS 2)** - Critical operations requiring reliability (discovery, provisioning, configuration, logging, OTA updates)
+- **MQTT (QoS 2)** - Critical operations requiring reliability (driver connection, provisioning, configuration, logging, OTA updates)
 - **UDP** - Low-latency game event delivery for real-time effects
-- **mDNS** - Zero-configuration device discovery (no manual IP management)
+- **SSDP** - MQTT broker discovery (drivers find Hub's embedded broker automatically)
+- **mDNS** - ArduinoOTA hostname registration (enables OTA uploads via `.local` hostnames)
 
 ### Design Principles
 
 1. **Emulator Agnostic** - Events file abstraction supports MAME and future emulators
-2. **Zero Configuration** - Automatic device discovery via mDNS
+2. **Zero Configuration** - Automatic MQTT broker discovery via SSDP, OTA via mDNS hostnames
 3. **Graceful Sequencing** - System handles any startup order (Hub first, Drivers first, or mixed)
 4. **Community-Driven** - Open-source game scripts bundled with installer
 5. **Scalable** - Support for multiple Drivers, multiple LED devices per Driver
@@ -44,7 +45,7 @@ RGFX is a distributed system for monitoring retro arcade game state and translat
 - Provide configuration and testing UI
 
 **Key Features:**
-- Background mDNS scanning for device discovery
+- Embedded MQTT broker with SSDP announcement for driver discovery
 - Device registry with state tracking (discovered, provisioning, configured, online, offline)
 - Event mapping table (game events → Driver + LED device + effect)
 - Virtual LED arrays with down-sampling for smooth animations
@@ -59,10 +60,11 @@ RGFX is a distributed system for monitoring retro arcade game state and translat
 **Responsibilities:**
 - Control physical LED hardware (strips, matrices)
 - Receive effect commands via UDP
-- Announce presence via mDNS
+- Discover Hub's MQTT broker via SSDP
 - Accept configuration via MQTT
 - Report status and logs to Hub
 - Execute LED effects in real-time
+- Register mDNS hostname for OTA updates
 
 **Capabilities:**
 - Multiple data pins (GPIO 16, 17, 18, etc.)

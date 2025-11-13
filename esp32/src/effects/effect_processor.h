@@ -3,6 +3,7 @@
 #include "matrix.h"
 #include "effects/pulse.h"
 #include "effects/wipe.h"
+#include "effects/test_leds.h"
 #include "effects/effect.h"
 #include <ArduinoJson.h>
 
@@ -23,9 +24,10 @@ class EffectProcessor {
 	Matrix& matrix;
 	PulseEffect pulseEffect;
 	WipeEffect wipeEffect;
+	TestLedsEffect testLedsEffect;
 	unsigned long lastFrameTime;
 
-	EffectEntry effectMap[2];
+	EffectEntry effectMap[3];
 
    public:
 	EffectProcessor(Matrix& matrix);

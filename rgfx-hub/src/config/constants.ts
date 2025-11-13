@@ -71,16 +71,3 @@ export const USE_SOURCE_MAPPERS = true;
 
 /** Event file polling interval in milliseconds (backup to fs.watch) */
 export const EVENT_FILE_POLL_INTERVAL = 500;
-
-// ============================================================================
-// mDNS Configuration
-// ============================================================================
-
-/** mDNS service name for MQTT broker discovery */
-export const MDNS_SERVICE_NAME = "RGFX Hub";
-
-/** mDNS service type */
-export const MDNS_SERVICE_TYPE = "mqtt";
-
-/** mDNS hostname for the Hub */
-export const MDNS_HOSTNAME = "rgfx-hub.local";

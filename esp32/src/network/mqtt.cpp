@@ -7,14 +7,12 @@
 #include "oled/oled_display.h"
 #include "network/udp.h"
 #include "config/constants.h"
-#include "test.h"
 #include "effects/effect_processor.h"
-#include <FastLED.h>
 #include <WiFi.h>
+#include <WiFiUdp.h>
 #include <ArduinoJson.h>
-#include <ESPmDNS.h>
 
-// MQTT broker server (discovered via mDNS)
+// MQTT broker server (discovered via SSDP)
 String MQTT_SERVER = "";
 
 // MQTT client
@@ -26,7 +24,7 @@ bool mqttClientInitialized = false;  // Track if client has been initialized
 static int consecutiveFailures = 0;
 
 // Forward declaration for LED access
-extern Matrix matrix;
+extern Matrix* matrix;
 
 // Toggle state
 bool ledsOn = false;
@@ -36,7 +34,7 @@ bool testModeActive = false;
 
 // Forward declarations
 void handleDriverConfig(const String& payload);
-extern Matrix matrix;
+extern Matrix* matrix;
 extern UDPMessage pendingMessage;
 extern volatile bool newMessageAvailable;
 extern EffectProcessor* effectProcessor;
@@ -61,19 +59,15 @@ void mqttCallback(String& topic, String& payload) {
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/test")) {
 		log("LED test mode: " + payload);
 		if (payload == "on") {
-			// Enable test mode and immediately show test pattern
+			// Enable test mode
 			testModeActive = true;
-			test(matrix, 0);  // Call test effect directly
-			FastLED.show();   // Show the test pattern
 			log("Test mode ENABLED");
 			publishTestState("on");
 		} else if (payload == "off") {
-			// Disable test mode and clear LEDs
+			// Disable test mode
 			testModeActive = false;
-			fill_solid(matrix.leds, matrix.size, CRGB::Black);
-			FastLED.show();
 
-			// Clear any active effects to prevent them from re-rendering
+			// Clear LEDs when turning off test mode
 			if (effectProcessor != nullptr) {
 				effectProcessor->clearEffects();
 			}
@@ -84,24 +78,101 @@ void mqttCallback(String& topic, String& payload) {
 	}
 }
 
-// Discover MQTT broker via mDNS
+// Discover MQTT broker via SSDP (Simple Service Discovery Protocol)
 bool discoverMQTTBroker() {
-	log("Discovering MQTT broker via mDNS...");
+	log("Discovering MQTT broker via SSDP...");
 
-	int n = MDNS.queryService("mqtt", "tcp");
-	if (n == 0) {
-		log("No MQTT brokers found via mDNS");
-		return false;
+	IPAddress ourIP = WiFi.localIP();
+	IPAddress ourSubnet = WiFi.subnetMask();
+	log("ESP32 IP: " + ourIP.toString() + ", Subnet: " + ourSubnet.toString());
+
+	WiFiUDP udp;
+	IPAddress ssdpMulticast(239, 255, 255, 250);
+	const uint16_t ssdpPort = 1900;
+
+	// SSDP M-SEARCH query for RGFX MQTT service
+	String msearch = "M-SEARCH * HTTP/1.1\r\n"
+	                 "HOST: 239.255.255.250:1900\r\n"
+	                 "MAN: \"ssdp:discover\"\r\n"
+	                 "MX: 3\r\n"
+	                 "ST: urn:rgfx:service:mqtt:1\r\n"
+	                 "\r\n";
+
+	// Retry loop: allow time for network propagation
+	for (int attempt = 0; attempt < 3; attempt++) {
+		if (attempt > 0) {
+			log("Retry attempt " + String(attempt + 1) + "/3");
+			delay(250);
+		}
+
+		// Bind UDP socket BEFORE sending to receive responses
+		udp.begin(ssdpPort);
+
+		// Send M-SEARCH query
+		udp.beginPacket(ssdpMulticast, ssdpPort);
+		udp.write((const uint8_t*)msearch.c_str(), msearch.length());
+		udp.endPacket();
+
+		log("Sent SSDP M-SEARCH query");
+
+		// Listen for responses (wait up to 3 seconds)
+		unsigned long startTime = millis();
+		while (millis() - startTime < 3000) {
+			int packetSize = udp.parsePacket();
+			if (packetSize > 0) {
+				char response[512];
+				int len = udp.read(response, sizeof(response) - 1);
+				response[len] = '\0';
+
+				String responseStr = String(response);
+				log("SSDP response received (" + String(len) + " bytes)");
+
+				// Parse LOCATION header to extract IP and port
+				int locIdx = responseStr.indexOf("LOCATION:");
+				if (locIdx == -1) {
+					locIdx = responseStr.indexOf("Location:");
+				}
+
+				if (locIdx != -1) {
+					int lineEnd = responseStr.indexOf("\r\n", locIdx);
+					String location = responseStr.substring(locIdx + 9, lineEnd);
+					location.trim();
+
+					log("  Location: " + location);
+
+					// Extract IP from location (format: http://IP:PORT)
+					int ipStart = location.indexOf("//") + 2;
+					int ipEnd = location.indexOf(":", ipStart);
+					String ipStr = location.substring(ipStart, ipEnd);
+
+					IPAddress brokerIP;
+					if (brokerIP.fromString(ipStr)) {
+						// Check if on same subnet
+						bool sameSubnet = true;
+						for (int j = 0; j < 4; j++) {
+							if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
+								sameSubnet = false;
+								log("    Rejected (different subnet)");
+								break;
+							}
+						}
+
+						if (sameSubnet) {
+							MQTT_SERVER = ipStr;
+							log("  ✓ Selected broker: " + MQTT_SERVER);
+							udp.stop();
+							return true;
+						}
+					}
+				}
+			}
+			delay(10);
+		}
+		udp.stop();
 	}
 
-	log("Found " + String(n) + " MQTT broker(s)");
-
-	// Use the first broker found
-	MQTT_SERVER = MDNS.IP(0).toString();
-	log("Discovered broker: " + MQTT_SERVER + ":" + String(MQTT_PORT));
-	log("Service name: " + String(MDNS.hostname(0)));
-
-	return true;
+	log("No MQTT broker found via SSDP after 3 attempts");
+	return false;
 }
 
 // Setup MQTT client
