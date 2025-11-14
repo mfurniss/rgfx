@@ -142,14 +142,40 @@ Fixed CI cache warning by removing non-existent .platformio/ path from cache con
 
 ---
 
-**Total Development Time:** 28 days (October 11 - November 7, 2025)
-**Total Commits:** 162
+## November 8, 2025
+
+Major refactoring of ESP32 effect system to use data-driven lookup tables, eliminating long if/else chains for better maintainability. Reorganized ESP32 source code into logical directories (effects/, display/, network/, config/) for improved project structure. Modernized C++ include paths and expanded native test coverage. Added native C++ tests to CI pipeline, ensuring both Hub and Driver code quality is maintained through automated testing.
+
+---
+
+## November 9, 2025
+
+Refactored effect rendering architecture by injecting matrix reference at effect construction time rather than passing it at render time, improving performance and API clarity. Implemented dynamic color correction configuration for LED drivers, allowing runtime adjustment of gamma and brightness settings for optimal visual output across different LED hardware types.
+
+---
+
+## November 11, 2025
+
+Implemented SSDP (Simple Service Discovery Protocol) broker discovery, replacing mDNS for more reliable Hub discovery by ESP32 drivers. This change simplifies network configuration and improves connection reliability. Converted LED test mode into a proper effect within the EffectProcessor framework, maintaining consistency with other effects and eliminating special-case handling. Updated driver definitions to support the new discovery mechanism.
+
+---
+
+## November 12, 2025
+
+Merged driver-hardware branch completing the transition to SSDP-based discovery and the refactored effect system architecture.
+
+---
+
+**Total Development Time:** 32 days (October 11 - November 12, 2025)
+**Total Commits:** 178
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
 - Electron Hub application with MQTT broker
-- CI/CD pipeline with automated testing
-- Event mapping and LED effect system
-- Multi-driver support with mDNS discovery
+- CI/CD pipeline with automated testing including native C++ tests
+- Event mapping and LED effect system with data-driven architecture
+- Multi-driver support with SSDP discovery (replaced mDNS)
 - OTA firmware updates
-- LED test mode for hardware validation
+- LED test mode integrated as proper effect
+- Dynamic color correction configuration
+- Modular ESP32 source organization

@@ -458,6 +458,7 @@ uint32_t duration = props["duration"] | 2000;  // ✅ Default lives here
 3. **Modular design** - Small, single-responsibility functions and classes
 4. **Technology agnostic** - Loosely coupled code
 5. **KISS principle** - Simplest solution that works is best
+6. **Use optional chaining** - For checking array/object properties (e.g., `if (targetDrivers?.length)` instead of `if (targetDrivers && targetDrivers.length > 0)`)
 
 **Comment Guidelines:**
 - **NEVER add comments about your thought process** - Other engineers don't care
