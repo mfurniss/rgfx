@@ -31,6 +31,14 @@ export interface EffectPayload {
     /** Additional effect properties */
     [key: string]: unknown;
   };
+
+  /**
+   * Optional array of driver IDs to target.
+   * Driver IDs are the last 3 bytes of the MAC address (e.g., "F8:9A:58").
+   * If undefined, broadcasts to all connected drivers.
+   * If defined, only sends to drivers with matching IDs.
+   */
+  drivers?: string[];
 }
 
 /**
@@ -46,7 +54,7 @@ export interface UdpClient {
 
   /**
    * Send effect to a specific driver by ID
-   * @param driverId Driver MAC address or ID
+   * @param driverId Driver ID (last 3 bytes of MAC, e.g., "F8:9A:58")
    * @param payload Effect payload
    * @returns true (for mapper return convenience)
    */
@@ -186,7 +194,7 @@ export interface MappingContext {
   /** Broadcast effect to all connected drivers (returns true for mapper convenience) */
   broadcast(payload: EffectPayload): boolean;
 
-  /** Send effect to specific driver (returns true for mapper convenience) */
+  /** Send effect to specific driver by ID (last 3 bytes of MAC, e.g., "F8:9A:58") */
   send(driverId: string, payload: EffectPayload): boolean;
 
   /** Send effect to multiple drivers (returns true for mapper convenience) */
