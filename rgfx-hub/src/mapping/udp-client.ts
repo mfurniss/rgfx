@@ -37,26 +37,13 @@ export class UdpClientImpl implements UdpClient {
 
     // Apply selective routing if specified
     if (targetDriverIds?.length) {
-      // Debug: Log all driver IDs and target IDs for comparison
-      log.info(`[SELECTIVE ROUTING DEBUG] ========================================`);
-      log.info(`[SELECTIVE ROUTING] Available drivers (${drivers.length}):`);
-      drivers.forEach(d => {
-        log.info(`  - ID: "${d.id}" (length: ${d.id.length}, IP: ${d.ip})`);
-      });
-      log.info(`[SELECTIVE ROUTING] Target driver IDs requested (${targetDriverIds.length}):`);
-      targetDriverIds.forEach(id => {
-        log.info(`  - Target: "${id}" (length: ${id.length})`);
-      });
-
       // Filter drivers - support both full MAC and last 3 bytes formats
-      const beforeCount = drivers.length;
       drivers = drivers.filter(d => {
         // Check if driver matches any target ID
         // Support both full MAC (44:1D:64:F8:9A:58) and short form (F8:9A:58)
-        const matches = targetDriverIds.some(targetId => {
+        return targetDriverIds.some(targetId => {
           // Direct match (full MAC)
           if (d.id === targetId) {
-            log.info(`  - Driver "${d.id}" MATCHES target "${targetId}" (exact match)`);
             return true;
           }
 
@@ -64,29 +51,16 @@ export class UdpClientImpl implements UdpClient {
           const targetUpper = targetId.toUpperCase();
           const driverUpper = d.id.toUpperCase();
           if (driverUpper.endsWith(targetUpper) && targetId.includes(':')) {
-            log.info(`  - Driver "${d.id}" MATCHES target "${targetId}" (short form match)`);
             return true;
           }
 
           return false;
         });
-
-        if (!matches) {
-          log.info(`  - Driver "${d.id}" does NOT match any target`);
-        }
-        return matches;
       });
 
-      log.info(`[SELECTIVE ROUTING] Result: ${drivers.length} of ${beforeCount} drivers matched`);
-      log.info(`[SELECTIVE ROUTING] Effect being sent: ${JSON.stringify(effectData)}`);
-
       if (drivers.length === 0) {
-        log.warn(`[SELECTIVE ROUTING WARNING] No drivers matched! Double-check ID format and case.`);
-        log.warn(`[SELECTIVE ROUTING] Expected format: Full MAC like "AA:BB:CC:DD:EE:FF" or last 3 bytes like "DD:EE:FF"`);
+        log.warn(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
       }
-      log.info(`[SELECTIVE ROUTING DEBUG] ========================================`);
-    } else {
-      log.info(`Broadcasting effect to all ${drivers.length} connected driver(s): ${JSON.stringify(effectData)}`);
     }
 
     for (const driver of drivers) {

@@ -68,6 +68,3 @@ export const CONFIG_DIRECTORY = "config";
  * Set to false in production to use installed mappers from user data.
  */
 export const USE_SOURCE_MAPPERS = true;
-
-/** Event file polling interval in milliseconds (backup to fs.watch) */
-export const EVENT_FILE_POLL_INTERVAL = 500;

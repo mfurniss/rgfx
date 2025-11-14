@@ -61,7 +61,7 @@ export function handle(topic, payload, { broadcast }) {
         duration: 500,
       },
       // Example: Target specific drivers only (uncomment and add your driver IDs)
-      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
+      drivers: ["F8:CF:68"], // Last 3 bytes of MAC address
     });
   }
 
@@ -75,7 +75,7 @@ export function handle(topic, payload, { broadcast }) {
       props: {
         color: isActive ? "#0000FF" : "#FF0000",
       },
-      drivers: ["F8:CF:68"], // Last 3 bytes of MAC address
+      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
     });
   }
 
@@ -91,7 +91,7 @@ export function handle(topic, payload, { broadcast }) {
 
     return broadcast({
       effect: "pulse",
-      drivers: ["F8:CF:68"], // Last 3 bytes of MAC address
+      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
       props: {
         color,
         duration: 500,

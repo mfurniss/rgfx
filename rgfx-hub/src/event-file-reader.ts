@@ -9,15 +9,12 @@ import { watch, readFileSync, statSync, existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import log from "electron-log/main";
-import { EVENT_FILE_POLL_INTERVAL } from "./config/constants";
 
 export class EventFileReader {
   private filePath: string;
   private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
-  private pollingInterval?: ReturnType<typeof setInterval>;
   private onEventCallback?: (topic: string, message: string) => void;
-  private lastPollTime = 0;
 
   constructor() {
     // Use stable ~/.rgfx directory
@@ -52,9 +49,6 @@ export class EventFileReader {
       );
       this.watchDirectory();
     }
-
-    // Start polling backup (every 500ms) to catch events if fs.watch() fails
-    this.startPolling();
   }
 
   private watchFile() {
@@ -67,24 +61,8 @@ export class EventFileReader {
     });
 
     this.watcher.on("error", (err) => {
-      log.error("Watch error - polling will continue:", err);
-      // Don't stop - polling will keep working
+      log.error("Watch error:", err);
     });
-  }
-
-  private startPolling() {
-    // Poll as backup to fs.watch()
-    this.pollingInterval = setInterval(() => {
-      if (this.onEventCallback && existsSync(this.filePath)) {
-        const now = Date.now();
-        // Only log every 60 seconds to avoid spam
-        if (now - this.lastPollTime > 60000) {
-          log.debug("Polling for new events...");
-          this.lastPollTime = now;
-        }
-        this.readNewLines(this.onEventCallback);
-      }
-    }, EVENT_FILE_POLL_INTERVAL);
   }
 
   private watchDirectory() {
@@ -106,8 +84,7 @@ export class EventFileReader {
     });
 
     this.watcher.on("error", (err) => {
-      log.error("Directory watch error - polling will continue:", err);
-      // Don't stop - polling will keep working
+      log.error("Directory watch error:", err);
     });
   }
 
@@ -171,10 +148,6 @@ export class EventFileReader {
     if (this.watcher) {
       this.watcher.close();
       this.watcher = undefined;
-    }
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
-      this.pollingInterval = undefined;
     }
     log.info("Event file reader stopped");
   }

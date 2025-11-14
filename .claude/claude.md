@@ -621,6 +621,17 @@ Examples:
 - `game pacman`
 - `player/score/p1 1000`
 
+## Event Processing
+
+**CRITICAL - NO DEBOUNCE OR ARTIFICIAL DELAYS:**
+
+- Events must be broadcast **as fast as possible** for lowest latency
+- **NO debouncing** - each event triggers immediately
+- **NO batching delays** - events are processed the moment they're detected
+- `EventFileReader` uses `fs.watch()` only (no polling backup)
+- If `fs.watch()` misses an event due to OS limitations, that's acceptable
+- Latency is prioritized over reliability - LED effects must be instant
+
 ## Running
 
 ```bash
