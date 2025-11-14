@@ -2,63 +2,55 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "PlatformIO: Upload to ESP32 #1",
+      "label": "Upload via Serial (USB)",
       "type": "shell",
-      "command": "pio",
-      "args": [
-        "run",
-        "--project-dir",
-        "${workspaceFolder:esp32}",
-        "-e",
-        "rgfx-driver",
-        "-t",
-        "upload",
-        "--upload-port",
-        "/dev/cu.usbserial-0001"
-      ],
+      "command": "${workspaceFolder:esp32}/upload-all-serial.sh",
       "problemMatcher": ["$platformio"],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "group": "upload"
-      }
-    },
-    {
-      "label": "PlatformIO: Upload to ESP32 #2",
-      "type": "shell",
-      "command": "pio",
-      "args": [
-        "run",
-        "--project-dir",
-        "${workspaceFolder:esp32}",
-        "-e",
-        "rgfx-driver",
-        "-t",
-        "upload",
-        "--upload-port",
-        "/dev/cu.usbserial-6"
-      ],
-      "problemMatcher": ["$platformio"],
-      "group": "build",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "group": "upload"
-      }
-    },
-    {
-      "label": "PlatformIO: Upload to Both ESP32s (Parallel)",
-      "dependsOn": [
-        "PlatformIO: Upload to ESP32 #1",
-        "PlatformIO: Upload to ESP32 #2"
-      ],
-      "dependsOrder": "parallel",
-      "problemMatcher": [],
       "group": {
         "kind": "build",
-        "isDefault": false
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
       }
+    },
+    {
+      "label": "Upload via OTA (WiFi)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "if [ \"${input:otaDevice}\" = \"all\" ]; then ${workspaceFolder:esp32}/upload-all-ota.sh; else cd ${workspaceFolder:esp32} && pio run -t upload --upload-port ${input:otaDevice}; fi"
+      ],
+      "problemMatcher": ["$platformio"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "otaDevice",
+      "type": "pickString",
+      "description": "Select device for OTA upload",
+      "options": [
+        {
+          "label": "All Devices",
+          "value": "all"
+        },
+        {
+          "label": "Device F8:9A:58",
+          "value": "rgfx-driver-f89a58.local"
+        },
+        {
+          "label": "Device F8:CF:68",
+          "value": "rgfx-driver-f8cf68.local"
+        }
+      ],
+      "default": "all"
     }
   ]
 }
