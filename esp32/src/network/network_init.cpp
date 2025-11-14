@@ -25,9 +25,19 @@ void setupNetworkServices(Matrix& matrix) {
 
 	delay(500);
 
-	// Setup OTA updates (must be done after WiFi is connected)
+	// Initialize mDNS FIRST (before ArduinoOTA)
+	// ArduinoOTA.begin() also calls MDNS.begin(), which can cause conflicts
+	// So we initialize mDNS once here, then let ArduinoOTA add its service
+	if (MDNS.begin(Utils::getDeviceName().c_str())) {
+		log("mDNS responder started as " + Utils::getDeviceName());
+	} else {
+		log("Error starting mDNS responder");
+	}
+
+	// Setup OTA updates (must be done after WiFi and mDNS are initialized)
 	// Use unique device name for OTA hostname (e.g., "rgfx-driver-f89a58")
 	ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
+	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
 	ArduinoOTA.onStart([]() {
 		log("OTA Update starting...");
 		// Note: Cannot access matrix here - would need to be passed differently
@@ -48,16 +58,13 @@ void setupNetworkServices(Matrix& matrix) {
 		log("OTA Error: " + String(error));
 	});
 	ArduinoOTA.begin();
-	delay(100); // Give OTA time to initialize
-	log("OTA Ready");
-	otaSetupDone = true;
 
-	// Initialize mDNS for service discovery with unique device name
-	if (MDNS.begin(Utils::getDeviceName().c_str())) {
-		log("mDNS responder started as " + Utils::getDeviceName());
-	} else {
-		log("Error starting mDNS responder");
-	}
+	// Manually advertise the Arduino OTA service since we disabled ArduinoOTA's internal mDNS
+	MDNS.enableArduino(3232, false);  // Port 3232, no password
+
+	delay(100);
+	log("OTA Ready (advertising _arduino._tcp service on port 3232)");
+	otaSetupDone = true;
 
 	// Load saved LED configuration from NVS (if available)
 	if (ConfigNVS::hasLEDConfig()) {
@@ -114,8 +121,16 @@ void setupNetworkServices() {
 
 	delay(500);
 
-	// Setup OTA updates (must be done after WiFi is connected)
+	// Initialize mDNS FIRST (before ArduinoOTA)
+	if (MDNS.begin(Utils::getDeviceName().c_str())) {
+		log("mDNS responder started as " + Utils::getDeviceName());
+	} else {
+		log("Error starting mDNS responder");
+	}
+
+	// Setup OTA updates (must be done after WiFi and mDNS are initialized)
 	ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
+	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
 	ArduinoOTA.onStart([]() {
 		log("OTA Update starting...");
 	});
@@ -134,16 +149,13 @@ void setupNetworkServices() {
 		log("OTA Error: " + String(error));
 	});
 	ArduinoOTA.begin();
-	delay(100);
-	log("OTA Ready");
-	otaSetupDone = true;
 
-	// Initialize mDNS
-	if (MDNS.begin(Utils::getDeviceName().c_str())) {
-		log("mDNS responder started as " + Utils::getDeviceName());
-	} else {
-		log("Error starting mDNS responder");
-	}
+	// Manually advertise the Arduino OTA service since we disabled ArduinoOTA's internal mDNS
+	MDNS.enableArduino(3232, false);  // Port 3232, no password
+
+	delay(100);
+	log("OTA Ready (advertising _arduino._tcp service on port 3232)");
+	otaSetupDone = true;
 
 	// Load saved LED configuration from NVS (if available)
 	if (ConfigNVS::hasLEDConfig()) {

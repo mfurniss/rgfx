@@ -458,6 +458,7 @@ uint32_t duration = props["duration"] | 2000;  // ✅ Default lives here
 3. **Modular design** - Small, single-responsibility functions and classes
 4. **Technology agnostic** - Loosely coupled code
 5. **KISS principle** - Simplest solution that works is best
+6. **Use optional chaining** - For checking array/object properties (e.g., `if (targetDrivers?.length)` instead of `if (targetDrivers && targetDrivers.length > 0)`)
 
 **Comment Guidelines:**
 - **NEVER add comments about your thought process** - Other engineers don't care
@@ -619,6 +620,17 @@ Events are written as: `topic value`
 Examples:
 - `game pacman`
 - `player/score/p1 1000`
+
+## Event Processing
+
+**CRITICAL - NO DEBOUNCE OR ARTIFICIAL DELAYS:**
+
+- Events must be broadcast **as fast as possible** for lowest latency
+- **NO debouncing** - each event triggers immediately
+- **NO batching delays** - events are processed the moment they're detected
+- `EventFileReader` uses `fs.watch()` only (no polling backup)
+- If `fs.watch()` misses an event due to OS limitations, that's acceptable
+- Latency is prioritized over reliability - LED effects must be instant
 
 ## Running
 

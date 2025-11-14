@@ -34,10 +34,60 @@ else
 	print("Failed to open event file at: " .. event_file_path)
 end
 
+local write_error_count = 0
+local MAX_WRITE_ERRORS = 3
+local event_count = 0
+
 -- Global event function for use in game scripts
 function _G.event(topic, message)
-	if event_file then
-		event_file:write(string.format("%s %s\n", topic, message))
+	if not event_file then
+		-- Attempt to reopen file
+		event_file = io.open(event_file_path, "a") -- Append mode
+		if not event_file then
+			print("ERROR: Cannot reopen event file")
+			return
+		end
+		event_file:setvbuf("no")
+		print("Event file reopened after closure")
+		write_error_count = 0
+	end
+
+	event_count = event_count + 1
+
+	local success, err = event_file:write(string.format("%s %s\n", topic, message))
+
+	if not success then
+		write_error_count = write_error_count + 1
+		print(
+			string.format(
+				"ERROR writing event [%d]: %s (attempt %d/%d)",
+				event_count,
+				err,
+				write_error_count,
+				MAX_WRITE_ERRORS
+			)
+		)
+
+		if write_error_count >= MAX_WRITE_ERRORS then
+			print("Max write errors reached, attempting to recover...")
+			pcall(function()
+				event_file:close()
+			end)
+			event_file = io.open(event_file_path, "a")
+			if event_file then
+				event_file:setvbuf("no")
+				write_error_count = 0
+				print("Event file recovered successfully")
+			else
+				event_file = nil
+				print("FATAL: Cannot recover event file")
+			end
+		end
+	else
+		write_error_count = 0 -- Reset on success
+		if event_count % 500 == 0 then
+			print(string.format("Events written: %d", event_count))
+		end
 	end
 end
 

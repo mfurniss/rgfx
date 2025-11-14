@@ -7,15 +7,15 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Initial setup + WiFi config
 [X] MQTT broker discovery
 [X] OTA updater
-[ ] Per-device LED config
+[X] Per-driver LED config
 [X] Game event to network message mapping using per-game JS scripts
 [X] Research Electron app and Aedes pure JS MQTT
 [ ] Device logging - on device logs, via network and web interface
 [X] Research other emulators
 [X] Hub unit and integration tests
-[ ] Virtual LED arrays with down-sampling
+[X] Virtual LED arrays with down-sampling
 [X] Store basic LED and WiFi config on ESP32 devices
-[ ] Implement test LEDs into config interface
+[X] Implement test LEDs into config interface
 [ ] Advanced LED config for matrices
 [ ] Research "improv" browser-based Wi-Fi provisioning
 [X] Implement resilient Hub <-> Driver connections
@@ -42,7 +42,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Fix white flash connection bug
 [X] Improve hub drivers.json and led-configs json files
 [X] Linear lookup table for matrix coordinate transforms
-[ ] Remove hardware config default from driver - could be dangerous
+[X] Remove hardware config default from driver - could be dangerous
 [X] LED test mode
 [X] Optimize driver reconnection system
 [X] LED effect variable frame rate
@@ -51,3 +51,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Wipe effect
 [X] C++ native unit and integration tests
 [ ] ESP32 embedded unit and integration tests
+[X] Selective driver event routing
+[ ] Driver config UI

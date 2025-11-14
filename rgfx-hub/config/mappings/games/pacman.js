@@ -6,6 +6,16 @@
  * - pacman/player/pill/state - Power pill state (blue when active, red when inactive)
  * - pacman/ghost/{color}/state - Individual ghost states with color-coded effects
  *
+ * Selective Driver Routing:
+ * You can optionally target specific drivers by adding a "drivers" array to the broadcast payload:
+ *   broadcast({
+ *     effect: "pulse",
+ *     props: { color: "#FF0000" },
+ *     drivers: ["F8:9A:58", "C4:D2:A1"]  // Only these drivers (last 3 bytes of MAC)
+ *   })
+ *
+ * If no "drivers" array is provided, the effect broadcasts to all connected drivers.
+ *
  * @param {string} topic - Event topic (e.g., "pacman/player/score/p1")
  * @param {string} payload - Event payload (e.g., "100")
  * @param {import('../../../src/types/mapping-types').MappingContext} context - Mapping context with services
@@ -50,6 +60,8 @@ export function handle(topic, payload, { broadcast }) {
         color: "#705014",
         duration: 500,
       },
+      // Example: Target specific drivers only (uncomment and add your driver IDs)
+      drivers: ["F8:CF:68"], // Last 3 bytes of MAC address
     });
   }
 
@@ -63,6 +75,7 @@ export function handle(topic, payload, { broadcast }) {
       props: {
         color: isActive ? "#0000FF" : "#FF0000",
       },
+      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
     });
   }
 
@@ -78,6 +91,7 @@ export function handle(topic, payload, { broadcast }) {
 
     return broadcast({
       effect: "pulse",
+      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
       props: {
         color,
         duration: 500,
