@@ -44,36 +44,40 @@ describe('formatUptime', () => {
   });
 
   it('formats minutes and seconds', () => {
-    expect(formatUptime(60000)).toBe('1m');
-    expect(formatUptime(90000)).toBe('1m');
-    expect(formatUptime(300000)).toBe('5m');
-    expect(formatUptime(3599000)).toBe('59m');
+    expect(formatUptime(60000)).toBe('1m 0s');
+    expect(formatUptime(90000)).toBe('1m 30s');
+    expect(formatUptime(300000)).toBe('5m 0s');
+    expect(formatUptime(3599000)).toBe('59m 59s');
   });
 
-  it('formats hours and minutes', () => {
-    expect(formatUptime(3600000)).toBe('1h');
-    expect(formatUptime(3660000)).toBe('1h 1m');
-    expect(formatUptime(7200000)).toBe('2h');
-    expect(formatUptime(9000000)).toBe('2h 30m');
+  it('formats hours, minutes, and seconds', () => {
+    expect(formatUptime(3600000)).toBe('1h 0m 0s');
+    expect(formatUptime(3660000)).toBe('1h 1m 0s');
+    expect(formatUptime(3665000)).toBe('1h 1m 5s');
+    expect(formatUptime(7200000)).toBe('2h 0m 0s');
+    expect(formatUptime(9000000)).toBe('2h 30m 0s');
+    expect(formatUptime(9045000)).toBe('2h 30m 45s');
   });
 
-  it('formats days, hours, and minutes', () => {
-    expect(formatUptime(86400000)).toBe('1d');
-    expect(formatUptime(90000000)).toBe('1d 1h');
-    expect(formatUptime(93600000)).toBe('1d 2h');
-    expect(formatUptime(176400000)).toBe('2d 1h');
-    expect(formatUptime(180000000)).toBe('2d 2h');
+  it('formats days, hours, minutes, and seconds', () => {
+    expect(formatUptime(86400000)).toBe('1d 0h 0m 0s');
+    expect(formatUptime(90000000)).toBe('1d 1h 0m 0s');
+    expect(formatUptime(93600000)).toBe('1d 2h 0m 0s');
+    expect(formatUptime(176400000)).toBe('2d 1h 0m 0s');
+    expect(formatUptime(180000000)).toBe('2d 2h 0m 0s');
+    expect(formatUptime(90065000)).toBe('1d 1h 1m 5s');
   });
 
-  it('omits zero values except for very short durations', () => {
-    expect(formatUptime(86400000)).toBe('1d'); // 1 day exactly - no hours/minutes
-    expect(formatUptime(3600000)).toBe('1h'); // 1 hour exactly - no minutes
+  it('always includes seconds', () => {
+    expect(formatUptime(60000)).toBe('1m 0s');
+    expect(formatUptime(3600000)).toBe('1h 0m 0s');
+    expect(formatUptime(86400000)).toBe('1d 0h 0m 0s');
   });
 
-  it('formats complex durations', () => {
-    // 2 days, 5 hours, 30 minutes
-    const ms = 2 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000 + 30 * 60 * 1000;
-    expect(formatUptime(ms)).toBe('2d 5h 30m');
+  it('formats complex durations with all components', () => {
+    // 2 days, 5 hours, 30 minutes, 15 seconds
+    const ms = 2 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000 + 30 * 60 * 1000 + 15 * 1000;
+    expect(formatUptime(ms)).toBe('2d 5h 30m 15s');
   });
 });
 

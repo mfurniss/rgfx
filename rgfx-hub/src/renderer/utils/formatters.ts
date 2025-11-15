@@ -47,21 +47,18 @@ export const formatBytes = (bytes: number): string => {
 };
 
 /**
- * Format milliseconds into human-readable uptime (e.g., "2d 5h 30m", "45s")
+ * Format milliseconds into human-readable uptime (e.g., "2d 5h 30m 15s", "45s")
  * Uses date-fns intervalToDuration for consistent duration calculations
+ * Always includes seconds for real-time display
  */
 export const formatUptime = (ms: number): string => {
   const duration = intervalToDuration({ start: 0, end: ms });
 
   const parts: string[] = [];
   if (duration.days) parts.push(`${duration.days}d`);
-  if (duration.hours) parts.push(`${duration.hours}h`);
-  if (duration.minutes) parts.push(`${duration.minutes}m`);
-
-  // Show seconds only if less than 1 minute
-  if (parts.length === 0) {
-    parts.push(`${duration.seconds ?? 0}s`);
-  }
+  if (duration.hours || duration.days) parts.push(`${duration.hours ?? 0}h`);
+  if (duration.minutes || duration.hours || duration.days) parts.push(`${duration.minutes ?? 0}m`);
+  parts.push(`${duration.seconds ?? 0}s`);
 
   return parts.join(' ');
 };
