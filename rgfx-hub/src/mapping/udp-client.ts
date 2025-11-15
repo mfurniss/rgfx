@@ -41,7 +41,7 @@ export class UdpClientImpl implements UdpClient {
       drivers = drivers.filter(d => targetDriverIds.includes(d.id));
 
       if (drivers.length === 0) {
-        log.warn(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
+        log.debug(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
       }
     }
 
