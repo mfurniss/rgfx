@@ -279,6 +279,16 @@ The embedded Lua environment is **Lua 5.4** with Sol3 bindings.
 - IPC channels: `driver:connected`, `driver:disconnected`
 - Components: `DriverCard`, `DriverList`
 
+**Driver IDs:**
+- **Format**: Sequential numbering: `rgfx-driver-0001`, `rgfx-driver-0002`, etc.
+- **Max length**: 32 characters (alphanumeric + hyphens)
+- **Storage**: Drivers store custom ID in NVS, Hub stores in `config/drivers.json`
+- **User-editable**: Edit `drivers.json` directly (UI coming later)
+- **MAC address**: Preserved in `macAddress` field for MQTT communication
+- **OLED display**: Shows `RGFX 0001` (extracts ID part)
+- **mDNS hostname**: `rgfx-driver-0001.local` (used for OTA updates)
+- **Migration**: Hub automatically sends set-id command to drivers on first connection
+
 ## File Naming Conventions
 
 **CRITICAL - ALWAYS FOLLOW THESE STANDARDS:**
@@ -598,7 +608,7 @@ Single unified configuration file managed by `DriverPersistence`:
 - Controls LED hardware via FastLED
 - Receives commands via MQTT and UDP
 - SSDP broker discovery (finds Hub's MQTT broker automatically)
-- mDNS hostname registration for OTA updates (e.g., `rgfx-driver-f89a58.local`)
+- mDNS hostname registration for OTA updates (e.g., `rgfx-driver-0001.local`)
 
 #### LED Test Mode
 
@@ -713,7 +723,7 @@ When modifying ESP32 code:
 dns-sd -B _arduino._tcp local.
 
 # Upload to specific device
-pio run -e rgfx-driver-ota -t upload --upload-port rgfx-driver-f89a58.local
+pio run -e rgfx-driver-ota -t upload --upload-port rgfx-driver-0001.local
 ```
 
 **OTA Upload Process:**

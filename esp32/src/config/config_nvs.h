@@ -65,12 +65,35 @@ class ConfigNVS {
 	 */
 	static void clearLEDConfig();
 
+	/**
+	 * Save device ID to NVS
+	 *
+	 * @param deviceId - Custom device ID (max 32 characters)
+	 * @return true if saved successfully, false on error
+	 */
+	static bool saveDeviceId(const String& deviceId);
+
+	/**
+	 * Load device ID from NVS
+	 *
+	 * @return Device ID string, or empty string if not found
+	 */
+	static String loadDeviceId();
+
+	/**
+	 * Check if device ID exists in NVS
+	 *
+	 * @return true if device ID exists, false otherwise
+	 */
+	static bool hasDeviceId();
+
    private:
 	// NVS namespace name (max 15 characters)
 	static constexpr const char* NAMESPACE = "rgfx";
 
 	// NVS keys
 	static constexpr const char* KEY_LED_CONFIG = "led_config";
+	static constexpr const char* KEY_DEVICE_ID = "device_id";
 };
 
 #endif

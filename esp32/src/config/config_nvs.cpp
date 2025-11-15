@@ -87,3 +87,46 @@ void ConfigNVS::clearLEDConfig() {
 
 	log("LED config cleared from NVS");
 }
+
+bool ConfigNVS::saveDeviceId(const String& deviceId) {
+	if (deviceId.length() == 0) {
+		log("ERROR: Cannot save empty device ID");
+		return false;
+	}
+
+	if (deviceId.length() > 32) {
+		log("ERROR: Device ID too long (max 32 characters)");
+		return false;
+	}
+
+	prefs.begin(NAMESPACE, false);  // Read-write mode
+	size_t bytesWritten = prefs.putString(KEY_DEVICE_ID, deviceId);
+	prefs.end();
+
+	if (bytesWritten == 0) {
+		log("ERROR: Failed to save device ID to NVS");
+		return false;
+	}
+
+	log("Device ID saved to NVS: " + deviceId);
+	return true;
+}
+
+String ConfigNVS::loadDeviceId() {
+	prefs.begin(NAMESPACE, true);  // Read-only mode
+	String deviceId = prefs.getString(KEY_DEVICE_ID, "");
+	prefs.end();
+
+	if (deviceId.length() == 0) {
+		return "";
+	}
+
+	return deviceId;
+}
+
+bool ConfigNVS::hasDeviceId() {
+	prefs.begin(NAMESPACE, true);  // Read-only mode
+	bool exists = prefs.isKey(KEY_DEVICE_ID);
+	prefs.end();
+	return exists;
+}

@@ -37,26 +37,8 @@ export class UdpClientImpl implements UdpClient {
 
     // Apply selective routing if specified
     if (targetDriverIds?.length) {
-      // Filter drivers - support both full MAC and last 3 bytes formats
-      drivers = drivers.filter(d => {
-        // Check if driver matches any target ID
-        // Support both full MAC (44:1D:64:F8:9A:58) and short form (F8:9A:58)
-        return targetDriverIds.some(targetId => {
-          // Direct match (full MAC)
-          if (d.id === targetId) {
-            return true;
-          }
-
-          // Check if target is short form (last 3 bytes) matching end of full MAC
-          const targetUpper = targetId.toUpperCase();
-          const driverUpper = d.id.toUpperCase();
-          if (driverUpper.endsWith(targetUpper) && targetId.includes(':')) {
-            return true;
-          }
-
-          return false;
-        });
-      });
+      // Filter drivers by sequential ID (e.g., "rgfx-driver-0001")
+      drivers = drivers.filter(d => targetDriverIds.includes(d.id));
 
       if (drivers.length === 0) {
         log.warn(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);

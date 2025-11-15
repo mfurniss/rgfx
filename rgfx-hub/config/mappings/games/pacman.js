@@ -11,7 +11,7 @@
  *   broadcast({
  *     effect: "pulse",
  *     props: { color: "#FF0000" },
- *     drivers: ["F8:9A:58", "C4:D2:A1"]  // Only these drivers (last 3 bytes of MAC)
+ *     drivers: ["rgfx-driver-0001", "rgfx-driver-0002"]  // Driver IDs
  *   })
  *
  * If no "drivers" array is provided, the effect broadcasts to all connected drivers.
@@ -60,8 +60,7 @@ export function handle(topic, payload, { broadcast }) {
         color: "#705014",
         duration: 500,
       },
-      // Example: Target specific drivers only (uncomment and add your driver IDs)
-      drivers: ["F8:CF:68"], // Last 3 bytes of MAC address
+      drivers: ["rgfx-driver-0001"], // LED Strip
     });
   }
 
@@ -75,7 +74,7 @@ export function handle(topic, payload, { broadcast }) {
       props: {
         color: isActive ? "#0000FF" : "#FF0000",
       },
-      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
+      drivers: ["rgfx-driver-0002"], // LED Matrix
     });
   }
 
@@ -91,7 +90,7 @@ export function handle(topic, payload, { broadcast }) {
 
     return broadcast({
       effect: "pulse",
-      drivers: ["F8:9A:58"], // Last 3 bytes of MAC address
+      drivers: ["rgfx-driver-0002"], // LED Matrix
       props: {
         color,
         duration: 500,

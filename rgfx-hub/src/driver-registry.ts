@@ -7,7 +7,10 @@
 
 import log from "electron-log/main";
 import type { Driver, DriverSystemInfo, LEDHardware } from "./types";
-import type { DriverPersistence } from "./driver-persistence";
+import type {
+  DriverPersistence,
+  PersistedDriver,
+} from "./driver-persistence";
 import type { LEDHardwareManager } from "./led-hardware-manager";
 import { HEARTBEAT_FAILURE_THRESHOLD } from "./config/constants";
 
@@ -82,28 +85,66 @@ export class DriverRegistry {
   // Register or update a driver from MQTT connect message
   registerDriver(sysInfo: DriverSystemInfo): Driver {
     const registerStartTime = Date.now();
-    const driverId = sysInfo.mac || sysInfo.ip || "unknown";
+    const macAddress = sysInfo.mac || "unknown";
     log.info(
-      `[DEBUG] registerDriver called for ${driverId} at ${registerStartTime}`,
+      `[DEBUG] registerDriver called for MAC ${macAddress} at ${registerStartTime}`,
     );
-    const existingDriver = this.drivers.get(driverId);
+
+    // Try to find existing driver by MAC address in persistence
+    let persistedDriver: PersistedDriver | undefined;
+    if (this.persistence) {
+      persistedDriver = this.persistence.getDriverByMac(macAddress);
+    }
+    const driverId: string = persistedDriver?.id ?? macAddress;
+
+    log.info(
+      `[DEBUG] Using driver ID: ${driverId} (MAC: ${macAddress})`,
+    );
+
+    // Look for existing driver in registry (could be under old ID or new ID)
+    let existingDriver = this.drivers.get(driverId);
+
+    // If not found by new ID, search all drivers by MAC to find old entry
+    if (!existingDriver) {
+      for (const driver of this.drivers.values()) {
+        if (driver.sysInfo?.mac === macAddress) {
+          existingDriver = driver;
+          log.info(
+            `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${driverId})`,
+          );
+          break;
+        }
+      }
+    }
+
     const now = Date.now();
     const isNewDriver = !existingDriver;
 
     // Determine firstSeen timestamp (immutable once set)
     let firstSeen = existingDriver?.firstSeen;
 
-    // If this is a new driver, persist it with the current timestamp
-    if (isNewDriver && this.persistence) {
-      const name = sysInfo.hostname || sysInfo.ip || "Driver";
-      this.persistence.addDriver(driverId, name);
-      // Get the firstSeen from the persisted driver to ensure consistency
-      const persistedDriver = this.persistence.getDriver(driverId);
-      firstSeen ??= persistedDriver?.firstSeen ?? now;
+    // If this is a completely new driver (not in persistence), create it
+    if (isNewDriver && this.persistence && !persistedDriver) {
+      const newId = this.persistence.generateNextDriverId();
+      const name = `Driver ${newId.split('-')[2]}`; // Extract number for name
+      this.persistence.addDriver(newId, macAddress, name);
+      persistedDriver = this.persistence.getDriver(newId);
+      firstSeen = persistedDriver?.firstSeen ?? now;
+      log.info(`[DEBUG] Created new driver: ${newId} (MAC: ${macAddress})`);
+    } else if (persistedDriver) {
+      firstSeen = persistedDriver.firstSeen;
     }
 
     // Fallback for drivers without persistence or missing firstSeen
     firstSeen ??= now;
+
+    // If driver ID changed (MAC → custom ID), remove old registry entry
+    if (existingDriver && existingDriver.id !== driverId) {
+      log.info(
+        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${driverId}. Removing old registry entry.`,
+      );
+      this.drivers.delete(existingDriver.id);
+    }
 
     const driver: Driver = {
       id: driverId,

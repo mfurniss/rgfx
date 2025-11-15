@@ -83,11 +83,11 @@ describe("DriverRegistry", () => {
       expect(device.failedHeartbeats).toBe(0);
     });
 
-    it("should use IP as ID when MAC is not available", () => {
+    it("should use 'unknown' as ID when MAC is not available", () => {
       const sysInfo = createMockSysInfo({ mac: undefined });
       const device = registry.registerDriver(sysInfo);
 
-      expect(device.id).toBe(sysInfo.ip);
+      expect(device.id).toBe('unknown');
     });
 
     it("should use IP as name when hostname is not available", () => {

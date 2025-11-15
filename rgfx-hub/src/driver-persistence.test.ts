@@ -86,23 +86,24 @@ describe('DriverPersistence', () => {
     it('should add a new driver and persist to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const added = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      const added = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       expect(added).toBe(true);
-      expect(persistence.hasDriver('aa:bb:cc:dd:ee:ff')).toBe(true);
+      expect(persistence.hasDriver('rgfx-driver-0001')).toBe(true);
 
       // Verify persisted to disk
       const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
       expect(data.drivers).toHaveLength(1);
-      expect(data.drivers[0].id).toBe('aa:bb:cc:dd:ee:ff');
+      expect(data.drivers[0].id).toBe('rgfx-driver-0001');
+      expect(data.drivers[0].macAddress).toBe('aa:bb:cc:dd:ee:ff');
       expect(data.drivers[0].name).toBe('Test Driver');
     });
 
     it('should not add duplicate driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const firstAdd = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
-      const secondAdd = persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Duplicate');
+      const firstAdd = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
+      const secondAdd = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Duplicate');
 
       expect(firstAdd).toBe(true);
       expect(secondAdd).toBe(false);
@@ -113,9 +114,9 @@ describe('DriverPersistence', () => {
       const now = Date.now();
       const persistence = new DriverPersistence(testConfigDir);
 
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
-      const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
+      const driver = persistence.getDriver('rgfx-driver-0001');
       expect(driver).toBeDefined();
       expect(driver!.firstSeen).toBeGreaterThanOrEqual(now);
       expect(driver!.firstSeen).toBeLessThanOrEqual(Date.now());
@@ -125,12 +126,12 @@ describe('DriverPersistence', () => {
   describe('updateDriver', () => {
     it('should update driver name', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Old Name');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Old Name');
 
-      const updated = persistence.updateDriver('aa:bb:cc:dd:ee:ff', { name: 'New Name' });
+      const updated = persistence.updateDriver('rgfx-driver-0001', { name: 'New Name' });
 
       expect(updated).toBe(true);
-      const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
+      const driver = persistence.getDriver('rgfx-driver-0001');
       expect(driver!.name).toBe('New Name');
     });
 
@@ -144,9 +145,9 @@ describe('DriverPersistence', () => {
 
     it('should persist updates to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Old Name');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Old Name');
 
-      persistence.updateDriver('aa:bb:cc:dd:ee:ff', { name: 'New Name' });
+      persistence.updateDriver('rgfx-driver-0001', { name: 'New Name' });
 
       const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
       expect(data.drivers[0].name).toBe('New Name');
@@ -167,20 +168,20 @@ describe('DriverPersistence', () => {
 
     it('should set LED config for driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
-      const result = persistence.setLEDConfig('aa:bb:cc:dd:ee:ff', sampleLEDConfig);
+      const result = persistence.setLEDConfig('rgfx-driver-0001', sampleLEDConfig);
 
       expect(result).toBe(true);
-      const ledConfig = persistence.getLEDConfig('aa:bb:cc:dd:ee:ff');
+      const ledConfig = persistence.getLEDConfig('rgfx-driver-0001');
       expect(ledConfig).toEqual(sampleLEDConfig);
     });
 
     it('should persist LED config to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
-      persistence.setLEDConfig('aa:bb:cc:dd:ee:ff', sampleLEDConfig);
+      persistence.setLEDConfig('rgfx-driver-0001', sampleLEDConfig);
 
       const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
       expect(data.drivers[0].ledConfig).toEqual(sampleLEDConfig);
@@ -204,7 +205,7 @@ describe('DriverPersistence', () => {
 
     it('should return undefined when driver has no LED config', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
       const ledConfig = persistence.getLEDConfig('aa:bb:cc:dd:ee:ff');
 
@@ -215,12 +216,12 @@ describe('DriverPersistence', () => {
   describe('getDriver', () => {
     it('should return driver by id', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
-      const driver = persistence.getDriver('aa:bb:cc:dd:ee:ff');
+      const driver = persistence.getDriver('rgfx-driver-0001');
 
       expect(driver).toBeDefined();
-      expect(driver!.id).toBe('aa:bb:cc:dd:ee:ff');
+      expect(driver!.id).toBe('rgfx-driver-0001');
       expect(driver!.name).toBe('Test Driver');
     });
 
@@ -236,9 +237,9 @@ describe('DriverPersistence', () => {
   describe('hasDriver', () => {
     it('should return true for existing driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
-      expect(persistence.hasDriver('aa:bb:cc:dd:ee:ff')).toBe(true);
+      expect(persistence.hasDriver('rgfx-driver-0001')).toBe(true);
     });
 
     it('should return false for non-existent driver', () => {
@@ -251,12 +252,12 @@ describe('DriverPersistence', () => {
   describe('deleteDriver', () => {
     it('should delete driver and persist to disk', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Test Driver');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
 
-      const deleted = persistence.deleteDriver('aa:bb:cc:dd:ee:ff');
+      const deleted = persistence.deleteDriver('rgfx-driver-0001');
 
       expect(deleted).toBe(true);
-      expect(persistence.hasDriver('aa:bb:cc:dd:ee:ff')).toBe(false);
+      expect(persistence.hasDriver('rgfx-driver-0001')).toBe(false);
 
       const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
       expect(data.drivers).toHaveLength(0);
@@ -274,14 +275,14 @@ describe('DriverPersistence', () => {
   describe('getAllDrivers', () => {
     it('should return all drivers', () => {
       const persistence = new DriverPersistence(testConfigDir);
-      persistence.addDriver('aa:bb:cc:dd:ee:ff', 'Driver 1');
-      persistence.addDriver('11:22:33:44:55:66', 'Driver 2');
+      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Driver 1');
+      persistence.addDriver('rgfx-driver-0002', '11:22:33:44:55:66', 'Driver 2');
 
       const drivers = persistence.getAllDrivers();
 
       expect(drivers).toHaveLength(2);
-      expect(drivers.map(d => d.id)).toContain('aa:bb:cc:dd:ee:ff');
-      expect(drivers.map(d => d.id)).toContain('11:22:33:44:55:66');
+      expect(drivers.map(d => d.id)).toContain('rgfx-driver-0001');
+      expect(drivers.map(d => d.id)).toContain('rgfx-driver-0002');
     });
 
     it('should return empty array when no drivers exist', () => {

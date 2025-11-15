@@ -138,17 +138,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
             </TableCell>
             <TableCell>
               <TableSortLabel
-                active={sortField === 'name'}
-                direction={sortField === 'name' ? sortOrder : 'asc'}
-                onClick={() => {
-                  handleSort('name');
-                }}
-              >
-                Name
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
                 active={sortField === 'ip'}
                 direction={sortField === 'ip' ? sortOrder : 'asc'}
                 onClick={() => {
@@ -192,12 +181,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                 opacity: driver.connected ? 1 : 0.6,
               }}
             >
-              <TableCell>
-                <Tooltip title={driver.id}>
-                  <span>{driver.id.slice(-8)}</span>
-                </Tooltip>
-              </TableCell>
-              <TableCell>{driver.name}</TableCell>
+              <TableCell>{driver.id}</TableCell>
               <TableCell>{driver.ip ?? 'Unknown'}</TableCell>
               <TableCell>
                 <Chip
