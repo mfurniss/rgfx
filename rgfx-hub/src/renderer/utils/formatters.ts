@@ -11,7 +11,7 @@ import { enUS } from 'date-fns/locale';
  */
 const shortLocale: Locale = {
   ...enUS,
-  formatDistance: (token, count) => {
+  formatDistance: (token, count, options) => {
     const formats: Record<string, string> = {
       lessThanXSeconds: `${count}s`,
       xSeconds: `${count}s`,
@@ -30,7 +30,8 @@ const shortLocale: Locale = {
       overXYears: `${count}y`,
       almostXYears: `${count}y`,
     };
-    return formats[token] ?? token;
+    const formatted = formats[token] ?? token;
+    return options?.addSuffix ? `${formatted} ago` : formatted;
   },
 };
 
@@ -46,13 +47,12 @@ export const formatBytes = (bytes: number): string => {
 };
 
 /**
- * Format milliseconds into human-readable uptime (days, hours, minutes, seconds)
- * Uses date-fns for consistent, locale-aware formatting
+ * Format milliseconds into human-readable uptime (e.g., "2d 5h 30m", "45s")
+ * Uses date-fns intervalToDuration for consistent duration calculations
  */
 export const formatUptime = (ms: number): string => {
   const duration = intervalToDuration({ start: 0, end: ms });
 
-  // Custom short format to maintain existing UI style: "2d 5h 30m"
   const parts: string[] = [];
   if (duration.days) parts.push(`${duration.days}d`);
   if (duration.hours) parts.push(`${duration.hours}h`);
