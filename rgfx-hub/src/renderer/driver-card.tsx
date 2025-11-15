@@ -8,9 +8,10 @@ import {
   QueryStats as QueryStatsIcon,
   Science as ScienceIcon,
 } from "@mui/icons-material";
-import type { Driver } from "../types";
+import type { Driver } from "~/src/types";
 import InfoSection, { type InfoRowData } from "./components/info-section";
 import { formatBytes, formatUptime, formatTimestamp } from "./utils/formatters";
+import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from "~/src/config/constants";
 
 interface DriverCardProps {
   driver: Driver;
@@ -25,7 +26,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 1000);
+    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
 
     return () => {
       clearInterval(interval);

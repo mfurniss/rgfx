@@ -12,7 +12,7 @@ describe("Udp", () => {
   beforeEach(() => {
     // Create mock socket with proper event handling
     mockSocket = {
-      send: vi.fn((buffer, offset, length, port, ip, callback) => {
+      send: vi.fn((_buffer, _offset, _length, _port, _ip, callback) => {
         // Simulate successful send by default
         if (callback) callback(null);
       }),
@@ -75,7 +75,7 @@ describe("Udp", () => {
 
       // Mock socket.send to simulate error
       const testError = new Error("Network error");
-      mockSocket.send.mockImplementation((buffer: Buffer, offset: number, length: number, port: number, ip: string, callback?: (err: Error | null) => void) => {
+      mockSocket.send.mockImplementation((_buffer: Buffer, _offset: number, _length: number, _port: number, _ip: string, callback?: (err: Error | null) => void) => {
         callback?.(testError);
       });
 

@@ -10,7 +10,12 @@ import { createServer, Server } from "node:net";
 import { networkInterfaces } from "node:os";
 import log from "electron-log/main";
 import { Server as SSDPServer } from "node-ssdp";
-import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL } from "./config/constants";
+import {
+  MQTT_DEFAULT_PORT,
+  MQTT_QOS_LEVEL,
+  SSDP_PORT,
+  SSDP_SERVICE_URN,
+} from "./config/constants";
 
 export class Mqtt {
   public aedes: Aedes; // Make public for MqttClientWrapper access
@@ -156,20 +161,20 @@ export class Mqtt {
       this.ssdpServer = new SSDPServer({
         location,
         // @ts-expect-error - sourcePort is required for M-SEARCH response but not in @types/node-ssdp
-        sourcePort: 1900,
+        sourcePort: SSDP_PORT,
       });
 
-      this.ssdpServer.addUSN("urn:rgfx:service:mqtt:1");
+      this.ssdpServer.addUSN(SSDP_SERVICE_URN);
 
       try {
         void this.ssdpServer.start();
-        log.info(`SSDP server started on port 1900`);
+        log.info(`SSDP server started on port ${SSDP_PORT}`);
       } catch (err: unknown) {
         log.error(`Failed to start SSDP server:`, err);
       }
 
       log.info(`MQTT broker announced via SSDP at ${location}`);
-      log.info(`SSDP USN: urn:rgfx:service:mqtt:1`);
+      log.info(`SSDP USN: ${SSDP_SERVICE_URN}`);
     });
   }
 

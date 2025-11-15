@@ -14,7 +14,8 @@ import {
   Tooltip,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
-import type { Driver } from '../../types';
+import type { Driver } from '~/src/types';
+import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
 interface DriverListTableProps {
   drivers: Driver[];
@@ -68,7 +69,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000);
+    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
 
     return () => {
       clearInterval(interval);
@@ -84,7 +85,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
     }
   };
 
-  const sortedDrivers = [...drivers].sort((a, b) => {
+  const sortedDrivers = [...drivers].sort((a: Driver, b: Driver) => {
     let compareValue = 0;
 
     switch (sortField) {
@@ -173,7 +174,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortedDrivers.map((driver) => (
+          {sortedDrivers.map((driver: Driver) => (
             <TableRow
               key={driver.id}
               sx={{

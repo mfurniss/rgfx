@@ -23,7 +23,13 @@ import { StateStoreImpl } from "./mapping/state-store";
 import { LoggerWrapper } from "./mapping/logger-wrapper";
 import { installDefaultMappers } from "./mapper-installer";
 import type { DriverSystemInfo } from "./types";
-import { MQTT_DEFAULT_PORT, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT } from "./config/constants";
+import {
+  MQTT_DEFAULT_PORT,
+  MAIN_WINDOW_WIDTH,
+  MAIN_WINDOW_HEIGHT,
+  MQTT_TOPIC_DISCOVERY,
+  MQTT_BROKER_INIT_DELAY_MS,
+} from "./config/constants";
 import { validateDriverId } from "./driver-id-validator";
 import pkg from "../package.json";
 
@@ -216,8 +222,8 @@ mqtt.start();
 // Use setTimeout to ensure broker is fully initialized
 setTimeout(() => {
   log.info("Sending discovery request to all drivers...");
-  void mqtt.publish("rgfx/system/discover", "");
-}, 1000);
+  void mqtt.publish(MQTT_TOPIC_DISCOVERY, "");
+}, MQTT_BROKER_INIT_DELAY_MS);
 
 // Install default mappers to user data directory (async)
 void installDefaultMappers().then(() => {

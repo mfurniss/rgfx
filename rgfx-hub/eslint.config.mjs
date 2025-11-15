@@ -26,6 +26,11 @@ export default tseslint.config(
       // Disable unified-signatures rule - it has a bug that causes crashes with certain TypeScript patterns
       // See: https://github.com/typescript-eslint/typescript-eslint/issues
       '@typescript-eslint/unified-signatures': 'off',
+      // Detect unused variables and parameters (allow _ prefix for intentionally unused)
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
     },
   },
 

@@ -19,14 +19,12 @@ export class DriverRegistry {
   private onDriverConnectedCallback?: (driver: Driver) => void;
   private onDriverDisconnectedCallback?: (driver: Driver) => void;
   private persistence?: DriverPersistence;
-  private ledHardwareManager?: LEDHardwareManager;
 
   constructor(
     persistence?: DriverPersistence,
     ledHardwareManager?: LEDHardwareManager,
   ) {
     this.persistence = persistence;
-    this.ledHardwareManager = ledHardwareManager;
 
     // Load all known drivers from persistence (all start as disconnected)
     if (persistence && ledHardwareManager) {

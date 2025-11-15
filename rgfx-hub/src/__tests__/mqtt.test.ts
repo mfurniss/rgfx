@@ -20,7 +20,7 @@ describe("Mqtt", () => {
     mockAedes = {
       handle: vi.fn(),
       on: vi.fn(),
-      publish: vi.fn((packet, callback) => {
+      publish: vi.fn((_packet, callback) => {
         if (callback) callback(null);
       }),
       close: vi.fn((callback) => {
@@ -31,7 +31,7 @@ describe("Mqtt", () => {
     // Mock server instance
     mockServer = {
       on: vi.fn(),
-      listen: vi.fn((port, callback) => {
+      listen: vi.fn((_port, callback) => {
         if (callback) callback();
       }),
       close: vi.fn((callback) => {
@@ -323,7 +323,7 @@ describe("Mqtt", () => {
 
     it("should handle publish errors", async () => {
       const testError = new Error("Publish failed");
-      mockAedes.publish.mockImplementation((packet: any, callback: any) => {
+      mockAedes.publish.mockImplementation((_packet: any, callback: any) => {
         if (callback) callback(testError);
       });
 

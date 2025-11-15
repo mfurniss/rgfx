@@ -70,7 +70,7 @@ export class MappingEngine {
       this.watcher = watch(
         mappingsDir,
         { recursive: true },
-        (eventType, filename) => {
+        (_eventType, filename) => {
           if (!filename?.endsWith('.js')) return;
 
           this.context.log.info(`Mapper file changed: ${filename}`);

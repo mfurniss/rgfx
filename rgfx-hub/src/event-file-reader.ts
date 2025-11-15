@@ -5,7 +5,14 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, writeFileSync, statSync, existsSync, mkdirSync } from "node:fs";
+import {
+  watch,
+  readFileSync,
+  writeFileSync,
+  statSync,
+  existsSync,
+  mkdirSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import log from "electron-log/main";
@@ -14,6 +21,8 @@ import {
   EVENT_FILE_MAX_WATCHER_RESTARTS,
   EVENT_FILE_MAX_READ_RETRIES,
   EVENT_FILE_RETRY_DELAY_MS,
+  EVENT_FILE_WATCHER_RESTART_DELAY_MS,
+  EVENT_LOG_FILENAME,
 } from "./config/constants";
 
 export class EventFileReader {
@@ -22,7 +31,6 @@ export class EventFileReader {
   private watcher?: ReturnType<typeof watch>;
   private onEventCallback?: (topic: string, message: string) => void;
   private healthCheckInterval?: NodeJS.Timeout;
-  private lastReadTime = 0;
   private isWatchingFile = false;
   private watcherRestartCount = 0;
 
@@ -37,7 +45,7 @@ export class EventFileReader {
       log.error("Failed to create .rgfx directory:", err);
     }
 
-    this.filePath = join(rgfxDir, "mame_events.log");
+    this.filePath = join(rgfxDir, EVENT_LOG_FILENAME);
     log.info(`Event file path: ${this.filePath}`);
   }
 
@@ -69,8 +77,8 @@ export class EventFileReader {
 
     try {
       // Watch the file for changes
-      this.watcher = watch(this.filePath, (eventType) => {
-        if (eventType === "change" && this.onEventCallback) {
+      this.watcher = watch(this.filePath, (_eventType) => {
+        if (_eventType === "change" && this.onEventCallback) {
           this.readNewLines(this.onEventCallback);
         }
       });
@@ -101,8 +109,8 @@ export class EventFileReader {
     try {
       // Watch the directory for the file to be created
       const dirPath = dirname(this.filePath);
-      this.watcher = watch(dirPath, (eventType, filename) => {
-        if (filename === "mame_events.log" && existsSync(this.filePath)) {
+      this.watcher = watch(dirPath, (_eventType, filename) => {
+        if (filename === EVENT_LOG_FILENAME && existsSync(this.filePath)) {
           log.info("Event file created. Starting to watch...");
 
           // Stop watching the directory
@@ -133,7 +141,6 @@ export class EventFileReader {
     onEvent: (topic: string, message: string) => void,
     retryCount = 0,
   ) {
-
     try {
       // Check if file still exists before attempting to stat
       if (!existsSync(this.filePath)) {
@@ -164,7 +171,6 @@ export class EventFileReader {
           currentSize,
         );
         this.filePosition = currentSize;
-        this.lastReadTime = Date.now(); // Track successful read
 
         // Parse lines
         const lines = newData
@@ -245,7 +251,7 @@ export class EventFileReader {
         log.info("File doesn't exist, restarting directory watcher...");
         this.watchDirectory();
       }
-    }, 1000);
+    }, EVENT_FILE_WATCHER_RESTART_DELAY_MS);
   }
 
   private startHealthCheck() {

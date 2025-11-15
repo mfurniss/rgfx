@@ -7,7 +7,7 @@
 
 import log from "electron-log/main";
 import type { Mqtt } from "./mqtt";
-import { DISCOVERY_INTERVAL_MS } from "./config/constants";
+import { DISCOVERY_INTERVAL_MS, MQTT_TOPIC_DISCOVERY } from "./config/constants";
 
 export class DiscoveryService {
   private mqtt: Mqtt;
@@ -64,7 +64,7 @@ export class DiscoveryService {
     }
 
     log.info("Sending driver discovery request...");
-    void this.mqtt.publish("rgfx/system/discover", "ping").catch((error: unknown) => {
+    void this.mqtt.publish(MQTT_TOPIC_DISCOVERY, "ping").catch((error: unknown) => {
       log.error("Failed to send discovery request:", error);
     });
   }

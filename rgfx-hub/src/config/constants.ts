@@ -23,6 +23,15 @@ export const MQTT_QOS_LEVEL = 2;
 /** UDP port for sending LED effects to drivers */
 export const UDP_PORT = 8888;
 
+/** SSDP multicast port for service discovery */
+export const SSDP_PORT = 1900;
+
+/** SSDP service URN for MQTT broker discovery */
+export const SSDP_SERVICE_URN = "urn:rgfx:service:mqtt:1";
+
+/** Delay after MQTT broker initialization before sending discovery ping (milliseconds) */
+export const MQTT_BROKER_INIT_DELAY_MS = 1000;
+
 // ============================================================================
 // Discovery & Heartbeat Configuration
 // ============================================================================
@@ -42,6 +51,9 @@ export const DISCOVERY_INTERVAL_MS = 10000; // 10 seconds
  * Disconnection time = HEARTBEAT_FAILURE_THRESHOLD × (DISCOVERY_INTERVAL_MS / 1000) seconds
  */
 export const HEARTBEAT_FAILURE_THRESHOLD = 2;
+
+/** MQTT topic for system-wide discovery messages */
+export const MQTT_TOPIC_DISCOVERY = "rgfx/system/discover";
 
 // ============================================================================
 // Application Window Configuration
@@ -74,6 +86,12 @@ export const USE_SOURCE_MAPPERS = true;
 // ============================================================================
 
 /**
+ * Filename for MAME event log file.
+ * MAME Lua scripts write events to this file in ~/.rgfx/ directory.
+ */
+export const EVENT_LOG_FILENAME = "mame_events.log";
+
+/**
  * Interval for health check polling of event file watcher (milliseconds).
  * The EventFileReader performs a health check every 5 seconds to ensure:
  * - File watcher is still active
@@ -99,6 +117,12 @@ export const EVENT_FILE_MAX_READ_RETRIES = 3;
  * Subsequent retries use exponential backoff (delay × 2^retry_count).
  */
 export const EVENT_FILE_RETRY_DELAY_MS = 100;
+
+/**
+ * Delay before restarting event file watcher after failure (milliseconds).
+ * Gives the file system time to stabilize before attempting to watch again.
+ */
+export const EVENT_FILE_WATCHER_RESTART_DELAY_MS = 1000;
 
 // ============================================================================
 // Driver ID Validation Configuration
@@ -143,3 +167,30 @@ export const RESERVED_DRIVER_IDS = [
   "admin",
   "root",
 ] as const;
+
+// ============================================================================
+// UI Refresh Configuration
+// ============================================================================
+
+/**
+ * Interval for updating UI timestamps in driver cards and tables (milliseconds).
+ * Updates "X seconds ago" displays every second for live feedback.
+ */
+export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
+
+// ============================================================================
+// Test Configuration
+// ============================================================================
+
+/**
+ * Retry delay for file watcher readiness checks in tests (milliseconds).
+ * Tests poll with this delay to detect when fs.watch is initialized.
+ */
+export const TEST_FILE_WATCHER_RETRY_DELAY_MS = 50;
+
+/**
+ * Maximum retry attempts for file watcher readiness checks in tests.
+ * Total wait time = TEST_FILE_WATCHER_RETRY_DELAY_MS × TEST_FILE_WATCHER_MAX_RETRIES
+ * Default: 50ms × 40 = 2000ms (2 seconds)
+ */
+export const TEST_FILE_WATCHER_MAX_RETRIES = 40;
