@@ -24,6 +24,7 @@ import { LoggerWrapper } from "./mapping/logger-wrapper";
 import { installDefaultMappers } from "./mapper-installer";
 import type { DriverSystemInfo } from "./types";
 import { MQTT_DEFAULT_PORT, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT } from "./config/constants";
+import { validateDriverId } from "./driver-id-validator";
 import pkg from "../package.json";
 
 // Vite environment variables injected by Electron Forge
@@ -134,9 +135,8 @@ async function pushConfigToDriver(driverId: string): Promise<void> {
     },
   };
 
-  // Publish complete config to driver-specific topic
-  // Note: Driver expects MAC with dashes, not colons (e.g., 44-1D-64-F8-CF-68)
-  const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/config`;
+  // Publish complete config to driver-specific topic using driver ID
+  const topic = `rgfx/driver/${driverId}/config`;
   const payload = JSON.stringify(completeConfig);
 
   await mqtt.publish(topic, payload);
@@ -158,6 +158,34 @@ driverRegistry.onDriverConnected((driver) => {
 
   // Note: Removed white pulse visual indicator - it was annoying during normal operation
   // Drivers remain dark unless actively showing game events
+
+  // Auto-assign driver ID if needed (after factory reset, driver has no ID in NVS)
+  // Driver sends empty ID in hostname, Hub looks up persisted ID and sends set-id command
+  if (driver.sysInfo?.mac && driver.sysInfo.hostname) {
+    const macAddress = driver.sysInfo.mac;
+    const actualHostname = driver.sysInfo.hostname;
+
+    // Check if driver sent empty ID (hostname ends with just "rgfx-driver-")
+    if (actualHostname === "rgfx-driver-" || actualHostname.endsWith("rgfx-driver-")) {
+      const persistedDriver = driverPersistence.getDriverByMac(macAddress);
+      if (persistedDriver) {
+        const correctFullId = persistedDriver.id; // e.g., "rgfx-driver-0002"
+        // Extract just the numeric/alphanumeric ID part (e.g., "0002")
+        const idPart = correctFullId.replace(/^rgfx-driver-/, '');
+        log.info(`Auto-assigning driver ID: ${macAddress} → ${idPart} (driver sent empty ID)`);
+
+        // Send set-id command using MAC address (driver hasn't been assigned ID yet)
+        const macWithDashes = macAddress.replace(/:/g, '-');
+        const setIdTopic = `rgfx/driver/${macWithDashes}/set-id`;
+        const setIdPayload = JSON.stringify({ id: idPart });
+        void mqtt.publish(setIdTopic, setIdPayload).then(() => {
+          log.info(`Sent set-id command, driver will reconnect with ID: ${idPart}`);
+        }).catch((error: unknown) => {
+          log.error(`Failed to send set-id command:`, error);
+        });
+      }
+    }
+  }
 
   // Push configuration to driver when it connects
   void pushConfigToDriver(driver.id).catch((error: unknown) => {
@@ -248,14 +276,14 @@ mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
 mqtt.subscribe("rgfx/driver/+/status", (topic, payload) => {
   log.info(`Driver status change: ${topic} = ${payload}`);
 
-  // Extract driver MAC from topic: rgfx/driver/{mac}/status
+  // Extract driver ID from topic: rgfx/driver/{driver-id}/status
   const match = /^rgfx\/driver\/(.+)\/status$/.exec(topic);
   if (!match) {
     log.error(`Invalid status topic format: ${topic}`);
     return;
   }
 
-  const driverId = match[1].replace(/-/g, ':'); // Convert AB-CD-EF to AB:CD:EF
+  const driverId = match[1];
   const driver = driverRegistry.getDriver(driverId);
 
   if (!driver) {
@@ -281,14 +309,14 @@ mqtt.subscribe("rgfx/driver/+/status", (topic, payload) => {
 mqtt.subscribe("rgfx/driver/+/test/state", (topic, payload) => {
   log.info(`Test state change: ${topic} = ${payload}`);
 
-  // Extract driver MAC from topic: rgfx/driver/{mac}/test/state
+  // Extract driver ID from topic: rgfx/driver/{driver-id}/test/state
   const match = /^rgfx\/driver\/(.+)\/test\/state$/.exec(topic);
   if (!match) {
     log.error(`Invalid test state topic format: ${topic}`);
     return;
   }
 
-  const driverId = match[1].replace(/-/g, ':'); // Convert AB-CD-EF to AB:CD:EF
+  const driverId = match[1];
   const driver = driverRegistry.getDriver(driverId);
 
   if (!driver) {
@@ -314,7 +342,7 @@ eventReader.start((topic, message) => {
 ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boolean) => {
   log.info(`LED test ${enabled ? "ON" : "OFF"} requested for driver ${driverId}`);
 
-  const topic = `rgfx/driver/${driverId.replace(/:/g, '-')}/test`;
+  const topic = `rgfx/driver/${driverId}/test`;
 
   if (enabled) {
     // Push config first, wait for MQTT confirmation, then send test command
@@ -331,25 +359,20 @@ ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boo
 // IPC handler for setting driver ID (for future UI use)
 ipcMain.handle("driver:set-id", async (_event, driverId: string, newId: string) => {
   try {
-    // Validate new ID
-    if (newId.length > 32) {
-      throw new Error('ID too long (max 32 characters)');
-    }
-    if (!/^[a-z0-9-]+$/i.test(newId)) {
-      throw new Error('ID must be alphanumeric with hyphens only');
+    // Validate new ID using centralized validator
+    const validation = validateDriverId(newId);
+    if (!validation.valid) {
+      throw new Error(validation.error ?? 'Invalid driver ID');
     }
 
-    // Get driver's MAC address from persistence
+    // Get driver from persistence
     const driver = driverPersistence.getDriver(driverId);
     if (!driver) {
       throw new Error('Driver not found');
     }
 
-    const macAddress = driver.macAddress;
-    const macWithDashes = macAddress.replace(/:/g, '-');
-
-    // Send set-id command via MQTT
-    const topic = `rgfx/driver/${macWithDashes}/set-id`;
+    // Send set-id command via MQTT using driver ID
+    const topic = `rgfx/driver/${driverId}/set-id`;
     const payload = JSON.stringify({ id: newId });
 
     await mqtt.publish(topic, payload);

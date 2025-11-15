@@ -6,6 +6,7 @@
  */
 
 #include "commands.h"
+#include "config/config_nvs.h"
 #include "config/config_portal.h"
 #include "log.h"
 #include <Arduino.h>
@@ -13,8 +14,14 @@
 namespace Commands {
 
 	void factoryReset(const String& args) {
-		log("Factory reset: Erasing WiFi credentials and rebooting...");
+		log("Factory reset: Erasing all configuration and rebooting...");
+
+		// Clear NVS configuration (device ID, LED config)
+		ConfigNVS::factoryReset();
+
+		// Clear WiFi credentials (IotWebConf)
 		ConfigPortal::resetSettings();
+
 		delay(1000);
 		ESP.restart();
 	}

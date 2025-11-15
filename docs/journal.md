@@ -166,8 +166,14 @@ Merged driver-hardware branch completing the transition to SSDP-based discovery 
 
 ---
 
-**Total Development Time:** 32 days (October 11 - November 12, 2025)
-**Total Commits:** 178
+## November 14, 2025
+
+Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`) replacing unreliable MAC-based fallback IDs. Created centralized driver ID validation with pattern matching and reserved word checking. Implemented automatic driver ID assignment on first connection - Hub looks up persisted driver by MAC address and sends set-id command via MQTT. Fixed driver ID auto-assignment by detecting empty hostnames and using MAC-based set-id topic subscription for drivers without IDs. Removed all MAC-based fallback logic from ESP32 firmware, requiring explicit ID assignment. Updated factory_reset command to clear both NVS and WiFi credentials. Made event logging and file reading extremely robust by removing fs.watch polling backup and relying entirely on native file watching for lowest latency. Implemented auto-incrementing firmware version system using `git describe` for development builds. The version format `<tag>-dev.<commits>+<hash>[-dirty]` provides automatic build numbering where the commit count increments with each commit, eliminating manual version management. Added firmware version to driver sysInfo payload and displayed it in the Hub UI driver card Hardware section. Updated OTA upload script to use proper driver IDs instead of MAC-based hostnames.
+
+---
+
+**Total Development Time:** 34 days (October 11 - November 14, 2025)
+**Total Commits:** 180
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
@@ -179,3 +185,4 @@ Merged driver-hardware branch completing the transition to SSDP-based discovery 
 - LED test mode integrated as proper effect
 - Dynamic color correction configuration
 - Modular ESP32 source organization
+- Auto-incrementing firmware version system with git describe

@@ -99,3 +99,47 @@ export const EVENT_FILE_MAX_READ_RETRIES = 3;
  * Subsequent retries use exponential backoff (delay × 2^retry_count).
  */
 export const EVENT_FILE_RETRY_DELAY_MS = 100;
+
+// ============================================================================
+// Driver ID Validation Configuration
+// ============================================================================
+
+/**
+ * Regular expression pattern for valid driver IDs.
+ * - Must start and end with alphanumeric character (a-z, 0-9)
+ * - Can contain hyphens in the middle
+ * - All lowercase only
+ * - Examples: "bedroom-leds", "cab-1", "player1", "rgfx-driver-0001"
+ */
+export const DRIVER_ID_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+
+/**
+ * Minimum length for driver IDs (inclusive).
+ */
+export const MIN_DRIVER_ID_LENGTH = 3;
+
+/**
+ * Maximum length for driver IDs (inclusive).
+ * Ensures compatibility with MQTT topics and NVS storage.
+ */
+export const MAX_DRIVER_ID_LENGTH = 32;
+
+/**
+ * Reserved driver IDs that cannot be used by drivers.
+ * These prevent collisions with system topics and reserved words.
+ */
+export const RESERVED_DRIVER_IDS = [
+  "system",
+  "discovery",
+  "discover",
+  "broadcast",
+  "all",
+  "config",
+  "test",
+  "status",
+  "info",
+  "debug",
+  "error",
+  "admin",
+  "root",
+] as const;

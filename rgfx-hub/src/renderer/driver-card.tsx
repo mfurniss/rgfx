@@ -83,6 +83,9 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       label: "Display Connected",
       value: sysInfo.hasDisplay ? "Yes (OLED)" : "No",
     },
+    ...(sysInfo.firmwareVersion
+      ? [{ label: "Firmware Version", value: sysInfo.firmwareVersion }]
+      : []),
   ];
 
   const memoryRows: InfoRowData[] = [

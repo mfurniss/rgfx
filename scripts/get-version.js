@@ -1,32 +1,48 @@
 #!/usr/bin/env node
 /**
- * Get version from git tag or return development version
+ * Get version from git using git describe
  *
- * If on a tag: v1.0.0 → 1.0.0
- * If not on tag: 0.0.1-dev+abc1234 (base version + commit hash)
+ * On exact tag match: v1.0.0 → 1.0.0
+ * Development builds: v0.0.2-104-g6976fba → 0.0.2-dev.104+6976fba
+ * Dirty working tree: v0.0.2-104-g6976fba-dirty → 0.0.2-dev.104+6976fba-dirty
+ * No tags: gabc1234 → 0.0.0-dev.0+abc1234
  */
 
 const { execSync } = require('child_process');
 
 try {
-  // Try to get exact tag for current commit
-  const tag = execSync('git describe --exact-match --tags HEAD 2>/dev/null', {
-    encoding: 'utf-8',
-    stdio: ['pipe', 'pipe', 'pipe']
+  const describe = execSync('git describe --long --tags --dirty --always', {
+    encoding: 'utf-8'
   }).trim();
 
-  // Remove 'v' prefix if present
-  const version = tag.replace(/^v/, '');
-  console.log(version);
-} catch (error) {
-  // Not on a tag - generate development version
-  try {
-    const hash = execSync('git rev-parse --short HEAD', {
-      encoding: 'utf-8'
-    }).trim();
-    console.log(`0.0.1-dev+${hash}`);
-  } catch (gitError) {
-    // Fallback if git is not available
-    console.log('0.0.1-dev+unknown');
+  // Check if on exact tag (format: v1.0.0-0-ghash or just hash if no tags)
+  const exactTagMatch = describe.match(/^v?(\d+\.\d+\.\d+)-0-g[a-f0-9]+$/);
+  if (exactTagMatch) {
+    console.log(exactTagMatch[1]);
+    process.exit(0);
   }
+
+  // Parse git describe output: v0.0.2-104-g6976fba or v0.0.2-104-g6976fba-dirty
+  const match = describe.match(/^v?(\d+\.\d+\.\d+)-(\d+)-g([a-f0-9]+)(-dirty)?$/);
+  if (match) {
+    const [, version, commits, hash, dirty] = match;
+    const suffix = dirty ? '-dirty' : '';
+    console.log(`${version}-dev.${commits}+${hash}${suffix}`);
+    process.exit(0);
+  }
+
+  // No tags exist - just a commit hash (possibly with -dirty)
+  const hashMatch = describe.match(/^([a-f0-9]+)(-dirty)?$/);
+  if (hashMatch) {
+    const [, hash, dirty] = hashMatch;
+    const suffix = dirty ? '-dirty' : '';
+    console.log(`0.0.0-dev.0+${hash}${suffix}`);
+    process.exit(0);
+  }
+
+  // Fallback
+  console.log('0.0.0-dev.0+unknown');
+} catch (error) {
+  // Fallback if git is not available
+  console.log('0.0.0-dev.0+unknown');
 }

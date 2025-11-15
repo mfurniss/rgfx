@@ -1,6 +1,7 @@
 #include "sys_info.h"
 #include "utils.h"
 #include "oled/oled_display.h"
+#include "version.h"
 #include <WiFi.h>
 #include <Arduino.h>
 
@@ -32,6 +33,7 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 	doc["freePsram"] = ESP.getFreePsram();
 
 	// Software information
+	doc["firmwareVersion"] = RGFX_VERSION;
 	doc["sdkVersion"] = ESP.getSdkVersion();
 	doc["sketchSize"] = ESP.getSketchSize();
 	doc["freeSketchSpace"] = ESP.getFreeSketchSpace();

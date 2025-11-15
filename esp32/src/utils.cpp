@@ -3,20 +3,17 @@
 #include <WiFi.h>
 
 String Utils::getDeviceId() {
-	// Priority 1: Load custom ID from NVS if exists
+	// Load ID from NVS - this MUST exist
 	if (ConfigNVS::hasDeviceId()) {
-		String customId = ConfigNVS::loadDeviceId();
-		if (customId.length() > 0) {
-			return customId;
+		String deviceId = ConfigNVS::loadDeviceId();
+		if (deviceId.length() > 0) {
+			return deviceId;
 		}
 	}
 
-	// Priority 2: Fall back to MAC-based ID (last 6 hex chars)
-	String mac = WiFi.macAddress();
-	mac.replace(":", "");
-	mac = mac.substring(mac.length() - 6);
-	mac.toLowerCase();
-	return mac;
+	// NO FALLBACK - driver must have ID set via set-id command
+	// Return empty string to signal error
+	return "";
 }
 
 String Utils::getDeviceName() {
