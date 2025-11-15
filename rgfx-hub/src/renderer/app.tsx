@@ -1,16 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import {
-  CssBaseline,
-  ThemeProvider,
-  createTheme,
-  Container,
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Chip,
-} from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, Container, Box } from '@mui/material';
 import SystemStatus from './components/system-status';
 import DriverListPage from './pages/driver-list-page';
 import DriverDetailPage from './pages/driver-detail-page';
@@ -81,27 +71,6 @@ const App: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-          {/* App Bar */}
-          <AppBar position="static">
-            <Toolbar>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                RGFX Hub
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  {systemStatus.hubIp}
-                </Typography>
-                <Chip
-                  label={
-                    systemStatus.mqttBroker === 'running' ? 'Hub Connected' : 'Hub Disconnected'
-                  }
-                  color={systemStatus.mqttBroker === 'running' ? 'success' : 'error'}
-                  size="small"
-                />
-              </Box>
-            </Toolbar>
-          </AppBar>
-
           {/* Main Content */}
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flex: 1, overflow: 'auto' }}>
             {/* System Status Section - visible on all pages */}

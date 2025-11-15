@@ -235,7 +235,7 @@ describe('DriverRegistry', () => {
     });
   });
 
-  describe('processHeartbeatFailures', () => {
+  describe('processHeartbeatCycle', () => {
     it('should mark driver as disconnected after reaching failure threshold', () => {
       const callback = vi.fn();
       registry.onDriverDisconnected(callback);
@@ -245,7 +245,7 @@ describe('DriverRegistry', () => {
 
       // First heartbeat cycle - driver didn't respond
       const respondedDrivers1 = new Set<string>();
-      registry.processHeartbeatFailures(respondedDrivers1);
+      registry.processHeartbeatCycle(respondedDrivers1);
 
       // Driver should still be connected (threshold is 2)
       expect(driver.failedHeartbeats).toBe(1);
@@ -254,7 +254,7 @@ describe('DriverRegistry', () => {
 
       // Second heartbeat cycle - driver didn't respond again
       const respondedDrivers2 = new Set<string>();
-      const disconnectedCount = registry.processHeartbeatFailures(respondedDrivers2);
+      const disconnectedCount = registry.processHeartbeatCycle(respondedDrivers2);
 
       // Now driver should be disconnected (reached threshold of 2)
       expect(disconnectedCount).toBe(1);
@@ -274,14 +274,14 @@ describe('DriverRegistry', () => {
 
       // First heartbeat cycle - driver didn't respond
       const respondedDrivers1 = new Set<string>();
-      registry.processHeartbeatFailures(respondedDrivers1);
+      registry.processHeartbeatCycle(respondedDrivers1);
 
       expect(driver.failedHeartbeats).toBe(1);
 
       // Second heartbeat cycle - driver responded
       const respondedDrivers2 = new Set<string>([driver.id]);
       registry.updateHeartbeat(driver.id); // This resets failedHeartbeats
-      const disconnectedCount = registry.processHeartbeatFailures(respondedDrivers2);
+      const disconnectedCount = registry.processHeartbeatCycle(respondedDrivers2);
 
       expect(disconnectedCount).toBe(0);
       expect(callback).not.toHaveBeenCalled();
@@ -300,13 +300,13 @@ describe('DriverRegistry', () => {
 
       // Simulate two failed heartbeats to disconnect
       const emptySet = new Set<string>();
-      registry.processHeartbeatFailures(emptySet);
-      registry.processHeartbeatFailures(emptySet);
+      registry.processHeartbeatCycle(emptySet);
+      registry.processHeartbeatCycle(emptySet);
 
       expect(callback).toHaveBeenCalledTimes(1);
 
       // Another heartbeat cycle - should not call callback again
-      registry.processHeartbeatFailures(emptySet);
+      registry.processHeartbeatCycle(emptySet);
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
@@ -331,8 +331,8 @@ describe('DriverRegistry', () => {
 
       // Simulate both drivers not responding to heartbeats
       const emptySet = new Set<string>();
-      registry.processHeartbeatFailures(emptySet); // First missed heartbeat
-      registry.processHeartbeatFailures(emptySet); // Second missed heartbeat - disconnected
+      registry.processHeartbeatCycle(emptySet); // First missed heartbeat
+      registry.processHeartbeatCycle(emptySet); // Second missed heartbeat - disconnected
 
       expect(registry.getConnectedCount()).toBe(0);
     });
@@ -357,8 +357,8 @@ describe('DriverRegistry', () => {
 
       // Disconnect drivers via heartbeat failures
       const emptySet = new Set<string>();
-      registry.processHeartbeatFailures(emptySet); // First missed heartbeat
-      registry.processHeartbeatFailures(emptySet); // Second missed heartbeat - disconnected
+      registry.processHeartbeatCycle(emptySet); // First missed heartbeat
+      registry.processHeartbeatCycle(emptySet); // Second missed heartbeat - disconnected
 
       // Should still return all drivers, even if disconnected
       expect(registry.getAllDrivers()).toHaveLength(2);

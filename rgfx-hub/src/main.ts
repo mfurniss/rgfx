@@ -246,7 +246,7 @@ void installDefaultMappers()
 
 // Set up discovery service to process heartbeat cycles
 discoveryService.onHeartbeatCycleComplete((respondedDriverIds) => {
-  driverRegistry.processHeartbeatFailures(respondedDriverIds);
+  driverRegistry.processHeartbeatCycle(respondedDriverIds);
 });
 
 // Subscribe to driver connect messages (initial connection with system info)

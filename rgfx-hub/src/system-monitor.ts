@@ -9,6 +9,12 @@ import { networkInterfaces } from 'node:os';
 import type { SystemStatus } from './types';
 
 export class SystemMonitor {
+  private readonly hubStartTime: number;
+
+  constructor() {
+    this.hubStartTime = Date.now();
+  }
+
   // Get Hub's local IP address (first non-internal IPv4 address)
   getLocalIpAddress(): string {
     const nets = networkInterfaces();
@@ -21,7 +27,7 @@ export class SystemMonitor {
   }
 
   // Generate system status object
-  getSystemStatus(connectedDriverCount: number, eventsProcessed?: number): SystemStatus {
+  getSystemStatus(connectedDriverCount: number, eventsProcessed: number): SystemStatus {
     return {
       mqttBroker: 'running',
       udpServer: 'active',
@@ -29,6 +35,7 @@ export class SystemMonitor {
       driversConnected: connectedDriverCount,
       hubIp: this.getLocalIpAddress(),
       eventsProcessed,
+      hubStartTime: this.hubStartTime,
     };
   }
 }

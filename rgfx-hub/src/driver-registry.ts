@@ -235,13 +235,17 @@ export class DriverRegistry {
     return driver;
   }
 
-  // Process heartbeat failures for drivers that didn't respond to discovery ping
-  processHeartbeatFailures(respondedDriverIds: Set<string>): number {
+  // Process heartbeat cycle - check for drivers that didn't respond to discovery ping
+  processHeartbeatCycle(respondedDriverIds: Set<string>): number {
     let disconnectedCount = 0;
 
-    log.info(
-      `Processing heartbeat failures. ${respondedDriverIds.size} drivers responded out of ${this.drivers.size} total`
-    );
+    if (respondedDriverIds.size === this.drivers.size) {
+      log.debug(`Heartbeat check: all ${this.drivers.size} drivers responded`);
+    } else {
+      log.info(
+        `Heartbeat check: ${respondedDriverIds.size}/${this.drivers.size} drivers responded - checking for failures`
+      );
+    }
 
     this.drivers.forEach((driver, driverId) => {
       // Skip already disconnected drivers

@@ -9,10 +9,7 @@ import { watch, readFileSync, statSync, existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import log from 'electron-log/main';
-import {
-  EVENT_LOG_FILENAME,
-  EVENT_FILE_POLL_INTERVAL_MS,
-} from './config/constants';
+import { EVENT_LOG_FILENAME, EVENT_FILE_POLL_INTERVAL_MS } from './config/constants';
 
 export class EventFileReader {
   private filePath: string;
@@ -160,6 +157,7 @@ export class EventFileReader {
           if (firstSpaceIndex > 0) {
             const topic = line.substring(0, firstSpaceIndex);
             const message = line.substring(firstSpaceIndex + 1);
+            log.debug(`Event read: ${topic} = ${message}`);
             this.onEventCallback(topic, message);
           }
         }

@@ -156,7 +156,8 @@ export interface SystemStatus {
   eventReader: 'monitoring' | 'stopped' | 'error';
   driversConnected: number;
   hubIp: string;
-  eventsProcessed?: number;
+  eventsProcessed: number;
+  hubStartTime: number;
 }
 
 export interface IpcApi {
