@@ -38,7 +38,7 @@ export const formatUptime = (ms: number): string => {
 
 /**
  * Format timestamp as relative time (e.g., "5m ago", "2h ago")
- * Uses date-fns formatDistanceToNow with custom short format
+ * Uses manual calculation to maintain short format style
  */
 export const formatTimestamp = (timestamp: number, currentTime: number): string => {
   const diff = currentTime - timestamp;
