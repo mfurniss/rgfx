@@ -91,7 +91,9 @@ describe('StateStoreImpl', () => {
     });
 
     it('should not throw when deleting non-existent keys', () => {
-      expect(() => { store.delete('nonexistent'); }).not.toThrow();
+      expect(() => {
+        store.delete('nonexistent');
+      }).not.toThrow();
     });
 
     it('should make deleted keys return undefined', () => {
@@ -128,7 +130,9 @@ describe('StateStoreImpl', () => {
     });
 
     it('should not throw when clearing empty store', () => {
-      expect(() => { store.clear(); }).not.toThrow();
+      expect(() => {
+        store.clear();
+      }).not.toThrow();
     });
   });
 

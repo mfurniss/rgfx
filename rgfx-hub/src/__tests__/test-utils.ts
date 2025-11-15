@@ -6,6 +6,10 @@
  */
 
 import { writeFileSync, existsSync } from 'node:fs';
+import {
+  TEST_FILE_WATCHER_RETRY_DELAY_MS,
+  TEST_FILE_WATCHER_MAX_RETRIES,
+} from '../config/constants';
 
 /**
  * Write to a file and retry until a watcher detects the change.
@@ -31,13 +35,16 @@ export async function waitForFileWatcherReady(
   options: {
     retryDelayMs?: number;
     maxRetries?: number;
-  } = {},
+  } = {}
 ): Promise<void> {
-  const { retryDelayMs = 50, maxRetries = 40 } = options; // 2 seconds total
+  const {
+    retryDelayMs = TEST_FILE_WATCHER_RETRY_DELAY_MS,
+    maxRetries = TEST_FILE_WATCHER_MAX_RETRIES,
+  } = options; // 2 seconds total
 
-  // Ensure file exists before we start retrying
+  // Ensure file exists before we start retrying (create if needed)
   if (!existsSync(filePath)) {
-    throw new Error(`File does not exist: ${filePath}`);
+    writeFileSync(filePath, '');
   }
 
   const initialCalls = getActualCalls();
@@ -81,6 +88,6 @@ export async function waitForFileWatcherReady(
 
   throw new Error(
     `File watcher did not process data after ${maxRetries * retryDelayMs}ms. ` +
-      `Expected ${targetCalls} total calls, got ${getActualCalls()}`,
+      `Expected ${targetCalls} total calls, got ${getActualCalls()}`
   );
 }

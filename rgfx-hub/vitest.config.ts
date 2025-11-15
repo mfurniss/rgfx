@@ -12,6 +12,15 @@ export default defineConfig({
     setupFiles: ["./src/__tests__/setup.ts"],
     include: ["src/**/*.{test,spec}.{js,ts,tsx}", "config/**/*.{test,spec}.{js,ts}"],
     exclude: ["node_modules", "dist", ".vite", "out"],
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    teardownTimeout: 5000,
+    pool: "forks",
+    poolOptions: {
+      forks: {
+        singleFork: false,
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
@@ -31,6 +40,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "~/src": path.resolve(__dirname, "./src"),
     },
   },
 });

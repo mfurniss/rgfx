@@ -5,29 +5,37 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { networkInterfaces } from "node:os";
-import type { SystemStatus } from "./types";
+import { networkInterfaces } from 'node:os';
+import type { SystemStatus } from './types';
 
 export class SystemMonitor {
+  private readonly hubStartTime: number;
+
+  constructor() {
+    this.hubStartTime = Date.now();
+  }
+
   // Get Hub's local IP address (first non-internal IPv4 address)
   getLocalIpAddress(): string {
     const nets = networkInterfaces();
 
     const ipv4Address = Object.values(nets)
       .flatMap((interfaces) => interfaces ?? [])
-      .find((net) => net.family === "IPv4" && !net.internal);
+      .find((net) => net.family === 'IPv4' && !net.internal);
 
-    return ipv4Address?.address ?? "Unknown";
+    return ipv4Address?.address ?? 'Unknown';
   }
 
   // Generate system status object
-  getSystemStatus(connectedDriverCount: number): SystemStatus {
+  getSystemStatus(connectedDriverCount: number, eventsProcessed: number): SystemStatus {
     return {
-      mqttBroker: "running",
-      udpServer: "active",
-      eventReader: "monitoring",
+      mqttBroker: 'running',
+      udpServer: 'active',
+      eventReader: 'monitoring',
       driversConnected: connectedDriverCount,
       hubIp: this.getLocalIpAddress(),
+      eventsProcessed,
+      hubStartTime: this.hubStartTime,
     };
   }
 }

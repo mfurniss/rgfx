@@ -1,5 +1,5 @@
-import React from "react";
-import { Box, Typography } from "@mui/material";
+import React from 'react';
+import { Box, Typography } from '@mui/material';
 
 interface InfoRowProps {
   label: string;
@@ -11,7 +11,7 @@ interface InfoRowProps {
  * Used for displaying device information in a consistent format
  */
 const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
-  <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
+  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
     <Typography variant="body2" color="text.secondary">
       {label}:
     </Typography>

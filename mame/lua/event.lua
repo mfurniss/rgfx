@@ -37,9 +37,45 @@ end
 local write_error_count = 0
 local MAX_WRITE_ERRORS = 3
 local event_count = 0
+local last_file_check = os.time()
+local FILE_CHECK_INTERVAL = 5 -- Check every 5 seconds
+
+-- Check if file exists on disk
+local function file_exists(path)
+	local f = io.open(path, "r")
+	if f then
+		f:close()
+		return true
+	end
+	return false
+end
 
 -- Global event function for use in game scripts
 function _G.event(topic, message)
+	-- Periodically verify file still exists on disk
+	local now = os.time()
+	if now - last_file_check >= FILE_CHECK_INTERVAL then
+		last_file_check = now
+		if not file_exists(event_file_path) then
+			print("WARNING: Event file disappeared from disk. Recreating...")
+			-- Close stale handle
+			pcall(function()
+				if event_file then
+					event_file:close()
+				end
+			end)
+			-- Recreate file
+			event_file = io.open(event_file_path, "w")
+			if event_file then
+				event_file:setvbuf("no")
+				write_error_count = 0
+				print("Event file recreated successfully")
+			else
+				event_file = nil
+				print("ERROR: Failed to recreate event file")
+			end
+		end
+	end
 	if not event_file then
 		-- Attempt to reopen file
 		event_file = io.open(event_file_path, "a") -- Append mode

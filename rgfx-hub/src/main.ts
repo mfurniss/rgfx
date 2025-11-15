@@ -5,27 +5,33 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { app, BrowserWindow, ipcMain, session } from "electron";
-import path from "node:path";
-import started from "electron-squirrel-startup";
-import log from "electron-log/main";
-import { Mqtt } from "./mqtt";
-import { EventFileReader } from "./event-file-reader";
-import { DriverRegistry } from "./driver-registry";
-import { SystemMonitor } from "./system-monitor";
-import { DiscoveryService } from "./discovery-service";
-import { DriverPersistence } from "./driver-persistence";
-import { LEDHardwareManager } from "./led-hardware-manager";
-import { MappingEngine } from "./mapping-engine";
-import { UdpClientImpl } from "./mapping/udp-client";
-import { MqttClientWrapper } from "./mapping/mqtt-client-wrapper";
-import { StateStoreImpl } from "./mapping/state-store";
-import { LoggerWrapper } from "./mapping/logger-wrapper";
-import { installDefaultMappers } from "./mapper-installer";
-import type { DriverSystemInfo } from "./types";
-import { MQTT_DEFAULT_PORT, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT } from "./config/constants";
-import { validateDriverId } from "./driver-id-validator";
-import pkg from "../package.json";
+import { app, BrowserWindow, ipcMain, session } from 'electron';
+import path from 'node:path';
+import started from 'electron-squirrel-startup';
+import log from 'electron-log/main';
+import { Mqtt } from './mqtt';
+import { EventFileReader } from './event-file-reader';
+import { DriverRegistry } from './driver-registry';
+import { SystemMonitor } from './system-monitor';
+import { DiscoveryService } from './discovery-service';
+import { DriverPersistence } from './driver-persistence';
+import { LEDHardwareManager } from './led-hardware-manager';
+import { MappingEngine } from './mapping-engine';
+import { UdpClientImpl } from './mapping/udp-client';
+import { MqttClientWrapper } from './mapping/mqtt-client-wrapper';
+import { StateStoreImpl } from './mapping/state-store';
+import { LoggerWrapper } from './mapping/logger-wrapper';
+import { installDefaultMappers } from './mapper-installer';
+import type { DriverSystemInfo } from './types';
+import {
+  MQTT_DEFAULT_PORT,
+  MAIN_WINDOW_WIDTH,
+  MAIN_WINDOW_HEIGHT,
+  MQTT_TOPIC_DISCOVERY,
+  MQTT_BROKER_INIT_DELAY_MS,
+} from './config/constants';
+import { validateDriverId } from './driver-id-validator';
+import pkg from '../package.json';
 
 // Vite environment variables injected by Electron Forge
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -84,6 +90,9 @@ const mappingEngine = new MappingEngine({
   drivers: driverRegistry,
 });
 
+// Event statistics tracking
+let eventsProcessed = 0;
+
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
   return mainWindow !== null && !mainWindow.isDestroyed();
@@ -92,8 +101,11 @@ function isWindowAvailable(): boolean {
 // Helper to send system status to renderer
 function sendSystemStatus() {
   if (!isWindowAvailable() || !mainWindow) return;
-  const status = systemMonitor.getSystemStatus(driverRegistry.getConnectedCount());
-  mainWindow.webContents.send("system:status", status);
+  const status = systemMonitor.getSystemStatus(
+    driverRegistry.getConnectedCount(),
+    eventsProcessed
+  );
+  mainWindow.webContents.send('system:status', status);
 }
 
 // Helper to push driver configuration via MQTT
@@ -155,9 +167,9 @@ driverRegistry.onDriverConnected((driver) => {
   log.info(`[DEBUG] onDriverConnected callback triggered for ${driver.id} at ${callbackTime}`);
 
   if (isWindowAvailable() && mainWindow) {
-    mainWindow.webContents.send("driver:connected", driver);
+    mainWindow.webContents.send('driver:connected', driver);
     log.info(
-      `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`,
+      `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`
     );
     sendSystemStatus();
   }
@@ -172,7 +184,7 @@ driverRegistry.onDriverConnected((driver) => {
     const actualHostname = driver.sysInfo.hostname;
 
     // Check if driver sent empty ID (hostname ends with just "rgfx-driver-")
-    if (actualHostname === "rgfx-driver-" || actualHostname.endsWith("rgfx-driver-")) {
+    if (actualHostname === 'rgfx-driver-' || actualHostname.endsWith('rgfx-driver-')) {
       const persistedDriver = driverPersistence.getDriverByMac(macAddress);
       if (persistedDriver) {
         const correctFullId = persistedDriver.id; // e.g., "rgfx-driver-0002"
@@ -184,11 +196,14 @@ driverRegistry.onDriverConnected((driver) => {
         const macWithDashes = macAddress.replace(/:/g, '-');
         const setIdTopic = `rgfx/driver/${macWithDashes}/set-id`;
         const setIdPayload = JSON.stringify({ id: idPart });
-        void mqtt.publish(setIdTopic, setIdPayload).then(() => {
-          log.info(`Sent set-id command, driver will reconnect with ID: ${idPart}`);
-        }).catch((error: unknown) => {
-          log.error(`Failed to send set-id command:`, error);
-        });
+        void mqtt
+          .publish(setIdTopic, setIdPayload)
+          .then(() => {
+            log.info(`Sent set-id command, driver will reconnect with ID: ${idPart}`);
+          })
+          .catch((error: unknown) => {
+            log.error(`Failed to send set-id command:`, error);
+          });
       }
     }
   }
@@ -201,7 +216,7 @@ driverRegistry.onDriverConnected((driver) => {
 
 driverRegistry.onDriverDisconnected((driver) => {
   if (isWindowAvailable() && mainWindow) {
-    mainWindow.webContents.send("driver:disconnected", driver);
+    mainWindow.webContents.send('driver:disconnected', driver);
     log.info(`Sent driver:disconnected event to renderer`);
     sendSystemStatus();
   }
@@ -215,25 +230,27 @@ mqtt.start();
 // The onDriverConnected callback will handle pushing config to each driver
 // Use setTimeout to ensure broker is fully initialized
 setTimeout(() => {
-  log.info("Sending discovery request to all drivers...");
-  void mqtt.publish("rgfx/system/discover", "");
-}, 1000);
+  log.info('Sending discovery request to all drivers...');
+  void mqtt.publish(MQTT_TOPIC_DISCOVERY, '');
+}, MQTT_BROKER_INIT_DELAY_MS);
 
 // Install default mappers to user data directory (async)
-void installDefaultMappers().then(() => {
-  // Load mapping engine handlers after installing defaults
-  void mappingEngine.loadMappings();
-}).catch((error: unknown) => {
-  log.error("Failed to install default mappers:", error);
-});
+void installDefaultMappers()
+  .then(() => {
+    // Load mapping engine handlers after installing defaults
+    void mappingEngine.loadMappings();
+  })
+  .catch((error: unknown) => {
+    log.error('Failed to install default mappers:', error);
+  });
 
 // Set up discovery service to process heartbeat cycles
 discoveryService.onHeartbeatCycleComplete((respondedDriverIds) => {
-  driverRegistry.processHeartbeatFailures(respondedDriverIds);
+  driverRegistry.processHeartbeatCycle(respondedDriverIds);
 });
 
 // Subscribe to driver connect messages (initial connection with system info)
-mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
+mqtt.subscribe('rgfx/system/driver/connect', (_topic, payload) => {
   const mqttReceiveTime = Date.now();
   log.info(`[DEBUG] Driver connect MQTT received at ${mqttReceiveTime}`);
 
@@ -242,11 +259,11 @@ mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
     const parsed = JSON.parse(payload) as unknown;
     const sysInfo = parsed as DriverSystemInfo;
     log.info(
-      `[DEBUG] Driver connect parsed, calling registerDriver for ${sysInfo.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+      `[DEBUG] Driver connect parsed, calling registerDriver for ${sysInfo.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
     );
     driverRegistry.registerDriver(sysInfo);
     log.info(
-      `[DEBUG] registerDriver completed for ${sysInfo.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+      `[DEBUG] registerDriver completed for ${sysInfo.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -255,7 +272,7 @@ mqtt.subscribe("rgfx/system/driver/connect", (_topic, payload) => {
 });
 
 // Subscribe to driver heartbeat messages (simple keepalive)
-mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
+mqtt.subscribe('rgfx/system/driver/heartbeat', (_topic, payload) => {
   try {
     // Heartbeat payload is just {"mac": "AA:BB:CC:DD:EE:FF"}
     const parsed = JSON.parse(payload) as { mac: string };
@@ -279,7 +296,7 @@ mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
 });
 
 // Subscribe to driver status changes (online/offline via LWT)
-mqtt.subscribe("rgfx/driver/+/status", (topic, payload) => {
+mqtt.subscribe('rgfx/driver/+/status', (topic, payload) => {
   log.info(`Driver status change: ${topic} = ${payload}`);
 
   // Extract driver ID from topic: rgfx/driver/{driver-id}/status
@@ -299,20 +316,20 @@ mqtt.subscribe("rgfx/driver/+/status", (topic, payload) => {
 
   // Update driver connection state based on status
   const wasConnected = driver.connected;
-  driver.connected = payload === "online";
+  driver.connected = payload === 'online';
 
   // If driver went offline, notify UI
   if (wasConnected && !driver.connected) {
     log.warn(`Driver ${driverId} went offline (LWT triggered)`);
     if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send("driver:disconnected", driver);
+      mainWindow.webContents.send('driver:disconnected', driver);
     }
     sendSystemStatus();
   }
 });
 
 // Subscribe to driver test state changes (using wildcard for all drivers)
-mqtt.subscribe("rgfx/driver/+/test/state", (topic, payload) => {
+mqtt.subscribe('rgfx/driver/+/test/state', (topic, payload) => {
   log.info(`Test state change: ${topic} = ${payload}`);
 
   // Extract driver ID from topic: rgfx/driver/{driver-id}/test/state
@@ -331,22 +348,24 @@ mqtt.subscribe("rgfx/driver/+/test/state", (topic, payload) => {
   }
 
   // Update driver test state in memory
-  driver.testActive = payload === "on";
+  driver.testActive = payload === 'on';
 
   // Notify renderer to update UI
   if (isWindowAvailable() && mainWindow) {
-    mainWindow.webContents.send("driver:updated", driver);
+    mainWindow.webContents.send('driver:updated', driver);
   }
 });
 
 // Start reading events and send to mapping engine for processing
 eventReader.start((topic, message) => {
+  eventsProcessed++;
   void mappingEngine.handleEvent(topic, message);
+  sendSystemStatus();
 });
 
 // IPC handler for LED test command
-ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boolean) => {
-  log.info(`LED test ${enabled ? "ON" : "OFF"} requested for driver ${driverId}`);
+ipcMain.handle('driver:test-leds', async (_event, driverId: string, enabled: boolean) => {
+  log.info(`LED test ${enabled ? 'ON' : 'OFF'} requested for driver ${driverId}`);
 
   const topic = `rgfx/driver/${driverId}/test`;
 
@@ -354,16 +373,16 @@ ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boo
     // Push config first, wait for MQTT confirmation, then send test command
     log.info(`Pushing LED configuration to driver ${driverId} before test...`);
     await pushConfigToDriver(driverId);
-    await mqtt.publish(topic, "on");
+    await mqtt.publish(topic, 'on');
     log.info(`Test mode enabled for driver ${driverId}`);
   } else {
-    await mqtt.publish(topic, "off");
+    await mqtt.publish(topic, 'off');
     log.info(`Test mode disabled for driver ${driverId}`);
   }
 });
 
 // IPC handler for setting driver ID (for future UI use)
-ipcMain.handle("driver:set-id", async (_event, driverId: string, newId: string) => {
+ipcMain.handle('driver:set-id', async (_event, driverId: string, newId: string) => {
   try {
     // Validate new ID using centralized validator
     const validation = validateDriverId(newId);
@@ -401,7 +420,7 @@ const createWindow = () => {
     height: MAIN_WINDOW_HEIGHT,
     title: `RGFX Hub v${pkg.version}`,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -416,7 +435,7 @@ const createWindow = () => {
   } else {
     log.info(`Loading production build from: ${MAIN_WINDOW_VITE_NAME}`);
     void mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
 
@@ -426,13 +445,13 @@ const createWindow = () => {
   }
 
   // Wait for renderer to signal it's ready before sending initial state
-  ipcMain.once("renderer:ready", () => {
+  ipcMain.once('renderer:ready', () => {
     if (!isWindowAvailable() || !mainWindow) return;
 
     // Send all drivers (both connected and disconnected)
     driverRegistry.getAllDrivers().forEach((driver) => {
       if (isWindowAvailable() && mainWindow) {
-        mainWindow.webContents.send("driver:connected", driver);
+        mainWindow.webContents.send('driver:connected', driver);
       }
     });
     // Send system status
@@ -445,7 +464,7 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", () => {
+app.on('ready', () => {
   // Load Redux DevTools extension in development mode
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     const extensionPath = path.join(
@@ -454,9 +473,10 @@ app.on("ready", () => {
       'lmhkpmbekcpmknklioeibfkpmmfibljd'
     );
 
-    session.defaultSession.extensions.loadExtension(extensionPath, {
-      allowFileAccess: true
-    })
+    session.defaultSession.extensions
+      .loadExtension(extensionPath, {
+        allowFileAccess: true,
+      })
       .then(() => {
         log.info('Loaded Redux DevTools extension');
       })
@@ -475,22 +495,23 @@ app.on("ready", () => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 // Cleanup on app quit
-app.on("before-quit", () => {
-  log.info("Shutting down...");
+app.on('before-quit', () => {
+  log.info('Shutting down...');
 
   // Stop services
+  eventReader.stop();
   discoveryService.stop();
   void mqtt.stop();
 });
 
-app.on("activate", () => {
+app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {

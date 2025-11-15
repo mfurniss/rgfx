@@ -9,10 +9,7 @@
 
 import { promises as fs, watch } from 'node:fs';
 import { join, basename } from 'node:path';
-import type {
-  MappingContext,
-  MappingHandler,
-} from './types/mapping-types';
+import type { MappingContext, MappingHandler } from './types/mapping-types';
 import { getMappingsDir } from './mapper-installer';
 
 /**
@@ -51,7 +48,7 @@ export class MappingEngine {
         `Loaded default mappings: ` +
           `${this.subjectHandlers.size} subjects, ` +
           `${this.patternHandlers.length} patterns, ` +
-          `${this.defaultHandler ? '1' : '0'} default`,
+          `${this.defaultHandler ? '1' : '0'} default`
       );
 
       // Start watching for file changes
@@ -67,16 +64,12 @@ export class MappingEngine {
    */
   private startFileWatcher(mappingsDir: string): void {
     try {
-      this.watcher = watch(
-        mappingsDir,
-        { recursive: true },
-        (eventType, filename) => {
-          if (!filename?.endsWith('.js')) return;
+      this.watcher = watch(mappingsDir, { recursive: true }, (_eventType, filename) => {
+        if (!filename?.endsWith('.js')) return;
 
-          this.context.log.info(`Mapper file changed: ${filename}`);
-          void this.reloadMapper(mappingsDir, filename);
-        },
-      );
+        this.context.log.info(`Mapper file changed: ${filename}`);
+        void this.reloadMapper(mappingsDir, filename);
+      });
 
       this.context.log.info('File watcher started for mapper hot-reload');
     } catch (error) {
@@ -87,10 +80,7 @@ export class MappingEngine {
   /**
    * Reload a specific mapper file
    */
-  private async reloadMapper(
-    mappingsDir: string,
-    filename: string,
-  ): Promise<void> {
+  private async reloadMapper(mappingsDir: string, filename: string): Promise<void> {
     try {
       const filePath = join(mappingsDir, filename);
 
@@ -105,9 +95,7 @@ export class MappingEngine {
       else if (filename.startsWith('subjects/') || filename.startsWith('subjects\\')) {
         const subjectName = basename(filename, '.js');
         this.subjectHandlers.delete(subjectName);
-        const module = (await import(
-          `${filePath}?t=${Date.now()}`
-        )) as Record<string, unknown>;
+        const module = (await import(`${filePath}?t=${Date.now()}`)) as Record<string, unknown>;
         const handler = this.extractHandler(module);
         if (handler) {
           this.subjectHandlers.set(subjectName, handler);
@@ -162,10 +150,9 @@ export class MappingEngine {
         const handler = this.gameHandlers.get(game);
         if (!handler) return;
         const handled = await handler(topic, payload, this.context);
-        if (handled) { // Truthy values (true, non-zero, etc.) mean handled
-          this.context.log.debug(
-            `Event handled by game mapper: ${game} - ${topic}`,
-          );
+        if (handled) {
+          // Truthy values (true, non-zero, etc.) mean handled
+          this.context.log.debug(`Event handled by game mapper: ${game} - ${topic}`);
           return;
         }
       }
@@ -175,10 +162,9 @@ export class MappingEngine {
         const handler = this.subjectHandlers.get(subject);
         if (!handler) return;
         const handled = await handler(topic, payload, this.context);
-        if (handled) { // Truthy values (true, non-zero, etc.) mean handled
-          this.context.log.debug(
-            `Event handled by subject mapper: ${subject} - ${topic}`,
-          );
+        if (handled) {
+          // Truthy values (true, non-zero, etc.) mean handled
+          this.context.log.debug(`Event handled by subject mapper: ${subject} - ${topic}`);
           return;
         }
       }
@@ -186,10 +172,9 @@ export class MappingEngine {
       // 3. Try pattern handlers (lower priority)
       for (const handler of this.patternHandlers) {
         const handled = await handler(topic, payload, this.context);
-        if (handled) { // Truthy values (true, non-zero, etc.) mean handled
-          this.context.log.debug(
-            `Event handled by pattern mapper: ${topic}`,
-          );
+        if (handled) {
+          // Truthy values (true, non-zero, etc.) mean handled
+          this.context.log.debug(`Event handled by pattern mapper: ${topic}`);
           return;
         }
       }
@@ -246,18 +231,14 @@ export class MappingEngine {
       const filePath = join(mappingsDir, 'games', `${gameName}.js`);
 
       // Dynamically import the game mapper with cache-busting
-      const module = (await import(
-        `${filePath}?t=${Date.now()}`
-      )) as Record<string, unknown>;
+      const module = (await import(`${filePath}?t=${Date.now()}`)) as Record<string, unknown>;
       const handler = this.extractHandler(module);
 
       if (handler) {
         this.gameHandlers.set(gameName, handler);
         this.context.log.debug(`Loaded game mapper: ${gameName}`);
       } else {
-        this.context.log.warn(
-          `Game mapper ${gameName}.js has no valid handler function`,
-        );
+        this.context.log.warn(`Game mapper ${gameName}.js has no valid handler function`);
       }
     } catch {
       // Silently handle all errors during mapper loading
@@ -267,7 +248,7 @@ export class MappingEngine {
       // - Invalid JavaScript syntax
       // Game will fall through to generic handlers
       this.context.log.debug(
-        `Could not load game mapper for ${gameName}, will use generic handlers`,
+        `Could not load game mapper for ${gameName}, will use generic handlers`
       );
     }
   }
@@ -293,10 +274,7 @@ export class MappingEngine {
             this.subjectHandlers.set(subjectName, handler);
           }
         } catch (error) {
-          this.context.log.error(
-            `Failed to load subject mapper ${file}:`,
-            error,
-          );
+          this.context.log.error(`Failed to load subject mapper ${file}:`, error);
         }
       }
     } catch (error) {
@@ -326,10 +304,7 @@ export class MappingEngine {
             this.patternHandlers.push(handler);
           }
         } catch (error) {
-          this.context.log.error(
-            `Failed to load pattern mapper ${file}:`,
-            error,
-          );
+          this.context.log.error(`Failed to load pattern mapper ${file}:`, error);
         }
       }
     } catch (error) {
@@ -361,9 +336,7 @@ export class MappingEngine {
    * Extract handler function from mapper module
    * Supports both named export and default export patterns
    */
-  private extractHandler(
-    module: Record<string, unknown>,
-  ): MappingHandler | null {
+  private extractHandler(module: Record<string, unknown>): MappingHandler | null {
     // Try named export 'handle'
     if (typeof module.handle === 'function') {
       return module.handle as MappingHandler;

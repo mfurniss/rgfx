@@ -5,21 +5,18 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import Aedes from "aedes";
-import { createServer, Server } from "node:net";
-import { networkInterfaces } from "node:os";
-import log from "electron-log/main";
-import { Server as SSDPServer } from "node-ssdp";
-import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL } from "./config/constants";
+import Aedes from 'aedes';
+import { createServer, Server } from 'node:net';
+import { networkInterfaces } from 'node:os';
+import log from 'electron-log/main';
+import { Server as SSDPServer } from 'node-ssdp';
+import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL, SSDP_PORT, SSDP_SERVICE_URN } from './config/constants';
 
 export class Mqtt {
   public aedes: Aedes; // Make public for MqttClientWrapper access
   private server: Server;
   private port: number;
-  private subscriptions = new Map<
-    string,
-    (topic: string, payload: string) => void
-  >();
+  private subscriptions = new Map<string, (topic: string, payload: string) => void>();
   private ssdpServer?: SSDPServer;
 
   constructor(port = MQTT_DEFAULT_PORT) {
@@ -30,23 +27,21 @@ export class Mqtt {
   }
 
   private setupEventHandlers() {
-    this.server.on("error", (err) => {
-      log.error("MQTT server error:", err);
+    this.server.on('error', (err) => {
+      log.error('MQTT server error:', err);
     });
 
-    this.aedes.on("client", (client) => {
+    this.aedes.on('client', (client) => {
       log.info(`MQTT client connected: ${client.id}`);
     });
 
-    this.aedes.on("clientDisconnect", (client) => {
+    this.aedes.on('clientDisconnect', (client) => {
       log.info(`MQTT client disconnected: ${client.id}`);
     });
 
-    this.aedes.on("publish", (packet, client) => {
+    this.aedes.on('publish', (packet, client) => {
       if (client) {
-        log.info(
-          `MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`,
-        );
+        log.info(`MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`);
 
         // Match topic against all subscription patterns (including wildcards)
         for (const [pattern, handler] of this.subscriptions) {
@@ -63,17 +58,17 @@ export class Mqtt {
    * Supports MQTT wildcards: + (single level) and # (multi level).
    */
   private topicMatches(pattern: string, topic: string): boolean {
-    const patternParts = pattern.split("/");
-    const topicParts = topic.split("/");
+    const patternParts = pattern.split('/');
+    const topicParts = topic.split('/');
 
     // # must be last segment and matches everything after
-    if (patternParts[patternParts.length - 1] === "#") {
+    if (patternParts[patternParts.length - 1] === '#') {
       const prefixParts = patternParts.slice(0, -1);
       if (topicParts.length < prefixParts.length) {
         return false;
       }
       for (let i = 0; i < prefixParts.length; i++) {
-        if (prefixParts[i] !== "+" && prefixParts[i] !== topicParts[i]) {
+        if (prefixParts[i] !== '+' && prefixParts[i] !== topicParts[i]) {
           return false;
         }
       }
@@ -87,7 +82,7 @@ export class Mqtt {
 
     // Match each segment (+ matches any single segment)
     for (let i = 0; i < patternParts.length; i++) {
-      if (patternParts[i] !== "+" && patternParts[i] !== topicParts[i]) {
+      if (patternParts[i] !== '+' && patternParts[i] !== topicParts[i]) {
         return false;
       }
     }
@@ -111,12 +106,12 @@ export class Mqtt {
 
       for (const net of netInterfaces) {
         // Skip loopback, internal, and IPv6 addresses
-        if (net.family === "IPv4" && !net.internal) {
+        if (net.family === 'IPv4' && !net.internal) {
           return net.address;
         }
       }
     }
-    return "127.0.0.1"; // Fallback
+    return '127.0.0.1'; // Fallback
   }
 
   publish(topic: string, payload: string): Promise<void> {
@@ -125,7 +120,7 @@ export class Mqtt {
       // Use UDP for non-critical high-frequency data
       this.aedes.publish(
         {
-          cmd: "publish",
+          cmd: 'publish',
           qos: MQTT_QOS_LEVEL,
           dup: false,
           topic,
@@ -140,7 +135,7 @@ export class Mqtt {
             log.info(`Published to ${topic} (QoS ${MQTT_QOS_LEVEL}): ${payload}`);
             resolve();
           }
-        },
+        }
       );
     });
   }
@@ -156,20 +151,20 @@ export class Mqtt {
       this.ssdpServer = new SSDPServer({
         location,
         // @ts-expect-error - sourcePort is required for M-SEARCH response but not in @types/node-ssdp
-        sourcePort: 1900,
+        sourcePort: SSDP_PORT,
       });
 
-      this.ssdpServer.addUSN("urn:rgfx:service:mqtt:1");
+      this.ssdpServer.addUSN(SSDP_SERVICE_URN);
 
       try {
         void this.ssdpServer.start();
-        log.info(`SSDP server started on port 1900`);
+        log.info(`SSDP server started on port ${SSDP_PORT}`);
       } catch (err: unknown) {
         log.error(`Failed to start SSDP server:`, err);
       }
 
       log.info(`MQTT broker announced via SSDP at ${location}`);
-      log.info(`SSDP USN: urn:rgfx:service:mqtt:1`);
+      log.info(`SSDP USN: ${SSDP_SERVICE_URN}`);
     });
   }
 
@@ -182,7 +177,7 @@ export class Mqtt {
 
       this.aedes.close(() => {
         this.server.close(() => {
-          log.info("MQTT broker stopped");
+          log.info('MQTT broker stopped');
           resolve();
         });
       });

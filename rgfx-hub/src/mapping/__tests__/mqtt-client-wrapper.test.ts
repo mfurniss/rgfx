@@ -14,7 +14,7 @@ describe('MqttClientWrapper', () => {
   beforeEach(() => {
     // Mock Aedes publish method
     mockAedes = {
-      publish: vi.fn((packet, callback) => {
+      publish: vi.fn((_packet, callback) => {
         // Simulate successful publish
         callback(null);
       }),
@@ -106,13 +106,11 @@ describe('MqttClientWrapper', () => {
   describe('error handling', () => {
     it('should reject on publish error', async () => {
       const error = new Error('Network error');
-      mockAedes.publish = vi.fn((packet, callback) => {
+      mockAedes.publish = vi.fn((_packet, callback) => {
         callback(error);
       });
 
-      await expect(
-        mqttClient.publish('test/topic', 'message'),
-      ).rejects.toThrow('Network error');
+      await expect(mqttClient.publish('test/topic', 'message')).rejects.toThrow('Network error');
     });
 
     it('should reject on JSON serialization error', async () => {
@@ -120,19 +118,15 @@ describe('MqttClientWrapper', () => {
       const circular: any = { a: 1 };
       circular.self = circular;
 
-      await expect(
-        mqttClient.publish('test/topic', circular),
-      ).rejects.toThrow();
+      await expect(mqttClient.publish('test/topic', circular)).rejects.toThrow();
     });
 
     it('should handle null callback error', async () => {
-      mockAedes.publish = vi.fn((packet, callback) => {
+      mockAedes.publish = vi.fn((_packet, callback) => {
         callback(null);
       });
 
-      await expect(
-        mqttClient.publish('test/topic', 'message'),
-      ).resolves.toBeUndefined();
+      await expect(mqttClient.publish('test/topic', 'message')).resolves.toBeUndefined();
     });
   });
 

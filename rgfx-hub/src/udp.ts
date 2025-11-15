@@ -5,9 +5,9 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import dgram from "node:dgram";
-import log from "electron-log/main";
-import type { EffectPayload } from "./types/mapping-types";
+import dgram from 'node:dgram';
+import log from 'electron-log/main';
+import type { EffectPayload } from './types/mapping-types';
 
 export class Udp {
   private socket: dgram.Socket;
@@ -19,10 +19,10 @@ export class Udp {
   constructor(ip: string, port: number) {
     this.ip = ip;
     this.port = port;
-    this.socket = dgram.createSocket("udp4");
+    this.socket = dgram.createSocket('udp4');
 
     // Listen for socket-level errors (DNS, binding, network interface errors)
-    this.socket.on("error", (err) => {
+    this.socket.on('error', (err) => {
       log.error(`UDP socket error: ${err.message}`);
       this.onErrorCallback?.(err);
     });
@@ -59,6 +59,6 @@ export class Udp {
 
   stop() {
     this.socket.close();
-    log.debug("UDP stopped");
+    log.debug('UDP stopped');
   }
 }

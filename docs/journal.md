@@ -172,8 +172,14 @@ Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`)
 
 ---
 
-**Total Development Time:** 34 days (October 11 - November 14, 2025)
-**Total Commits:** 180
+## November 15, 2025
+
+Centralized Hub constants into single configuration file, eliminating scattered magic numbers across the codebase. Fixed Vite path alias resolution for tilde imports. Enabled prefer-const ESLint rule for better code quality. Added Prettier configuration with single quotes for consistent code formatting. Replaced manual time formatting with date-fns library for robust timestamp handling. Implemented custom locale for short-format relative times (e.g., "5m ago" instead of "5 minutes ago"). Added comprehensive tests for formatting utilities. Fixed file descriptor leak by properly stopping EventFileReader on app quit. Updated event-file-reader tests to use temporary directories for isolation. Simplified event file handling and added Lua file check. Implemented real-time events processed counter with instant updates on each event. Added locale-aware number formatting throughout Hub UI using toLocaleString() for proper thousands separators. Updated formatUptime() to always display seconds for real-time accuracy (e.g., "1m 30s", "1h 5m 30s"). Implemented Hub uptime display with 1-second refresh interval. Removed RGFX header AppBar - moved Hub IP to System Status section. Applied consistent locale formatting to all numeric displays across System Status and Driver Card components.
+
+---
+
+**Total Development Time:** 35 days (October 11 - November 15, 2025)
+**Total Commits:** 196
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
@@ -186,3 +192,5 @@ Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`)
 - Dynamic color correction configuration
 - Modular ESP32 source organization
 - Auto-incrementing firmware version system with git describe
+- Centralized constants configuration
+- Real-time Hub metrics with locale-aware formatting

@@ -29,37 +29,41 @@ export const useDriverStore = create<DriverState>()(
         eventReader: 'stopped',
         driversConnected: 0,
         hubIp: 'Unknown',
+        eventsProcessed: 0,
+        hubStartTime: 0,
       },
 
       // Actions (callbacks prefixed with 'on')
-      onDriverConnected: (driver) =>
-        { set((state) => {
-          const exists = state.drivers.find(d => d.id === driver.id);
+      onDriverConnected: (driver) => {
+        set((state) => {
+          const exists = state.drivers.find((d) => d.id === driver.id);
           return {
             drivers: exists
-              ? state.drivers.map(d => d.id === driver.id ? driver : d)
-              : [...state.drivers, driver]
+              ? state.drivers.map((d) => (d.id === driver.id ? driver : d))
+              : [...state.drivers, driver],
           };
-        }); },
+        });
+      },
 
-      onDriverDisconnected: (driver) =>
-        { set((state) => ({
-          drivers: state.drivers.map(d => d.id === driver.id ? driver : d)
-        })); },
+      onDriverDisconnected: (driver) => {
+        set((state) => ({
+          drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
+        }));
+      },
 
-      onDriverUpdated: (driver) =>
-        { set((state) => ({
-          drivers: state.drivers.map(d =>
-            d.id === driver.id ? { ...driver } : d
-          )
-        })); },
+      onDriverUpdated: (driver) => {
+        set((state) => ({
+          drivers: state.drivers.map((d) => (d.id === driver.id ? { ...driver } : d)),
+        }));
+      },
 
-      onSystemStatusUpdate: (status) =>
-        { set({ systemStatus: status }); },
+      onSystemStatusUpdate: (status) => {
+        set({ systemStatus: status });
+      },
 
       // Selectors
-      connectedDrivers: () => get().drivers.filter(d => d.connected),
-      getDriverById: (id) => get().drivers.find(d => d.id === id),
+      connectedDrivers: () => get().drivers.filter((d) => d.connected),
+      getDriverById: (id) => get().drivers.find((d) => d.id === id),
     }),
     { name: 'RGFX Driver Store' }
   )

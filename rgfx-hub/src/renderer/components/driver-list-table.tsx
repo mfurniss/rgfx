@@ -14,7 +14,9 @@ import {
   Tooltip,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
-import type { Driver } from '../../types';
+import { formatDistanceToNow, format } from 'date-fns';
+import type { Driver } from '~/src/types';
+import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
 interface DriverListTableProps {
   drivers: Driver[];
@@ -22,29 +24,6 @@ interface DriverListTableProps {
 
 type SortField = 'id' | 'name' | 'ip' | 'status' | 'firstSeen';
 type SortOrder = 'asc' | 'desc';
-
-/**
- * Formats a timestamp as relative time (e.g., "2 minutes ago")
- */
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) {
-    return `${days} day${days > 1 ? 's' : ''} ago`;
-  }
-  if (hours > 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  }
-  if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  }
-  return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-}
 
 /**
  * Driver list table component with sortable columns
@@ -58,8 +37,10 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   // DEBUG: Log when drivers prop changes
   useEffect(() => {
     const renderTime = Date.now();
-    console.log(`[DEBUG] DriverListTable re-rendered at ${renderTime}, drivers count=${drivers.length}`);
-    drivers.forEach(d => {
+    console.log(
+      `[DEBUG] DriverListTable re-rendered at ${renderTime}, drivers count=${drivers.length}`
+    );
+    drivers.forEach((d) => {
       console.log(`[DEBUG] Driver ${d.id}: connected=${d.connected}, lastSeen=${d.lastSeen}`);
     });
   }, [drivers]);
@@ -68,7 +49,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000);
+    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
 
     return () => {
       clearInterval(interval);
@@ -84,7 +65,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
     }
   };
 
-  const sortedDrivers = [...drivers].sort((a, b) => {
+  const sortedDrivers = [...drivers].sort((a: Driver, b: Driver) => {
     let compareValue = 0;
 
     switch (sortField) {
@@ -173,7 +154,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortedDrivers.map((driver) => (
+          {sortedDrivers.map((driver: Driver) => (
             <TableRow
               key={driver.id}
               sx={{
@@ -203,8 +184,8 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                 />
               </TableCell>
               <TableCell>
-                <Tooltip title={new Date(driver.firstSeen).toLocaleString()}>
-                  <span>{formatRelativeTime(driver.firstSeen)}</span>
+                <Tooltip title={format(driver.firstSeen, 'PPpp')}>
+                  <span>{formatDistanceToNow(driver.firstSeen, { addSuffix: true })}</span>
                 </Tooltip>
               </TableCell>
               <TableCell align="right">

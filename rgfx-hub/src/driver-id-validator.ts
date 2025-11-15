@@ -10,7 +10,7 @@ import {
   MIN_DRIVER_ID_LENGTH,
   MAX_DRIVER_ID_LENGTH,
   RESERVED_DRIVER_IDS,
-} from "./config/constants";
+} from './config/constants';
 
 export interface DriverIdValidationResult {
   valid: boolean;
@@ -34,7 +34,7 @@ export function validateDriverId(id: string): DriverIdValidationResult {
   if (!id || id.trim().length === 0) {
     return {
       valid: false,
-      error: "Driver ID cannot be empty",
+      error: 'Driver ID cannot be empty',
     };
   }
 
@@ -61,7 +61,7 @@ export function validateDriverId(id: string): DriverIdValidationResult {
     return {
       valid: false,
       error:
-        "Driver ID can only contain lowercase letters (a-z), numbers (0-9), and hyphens (-). Must start and end with a letter or number.",
+        'Driver ID can only contain lowercase letters (a-z), numbers (0-9), and hyphens (-). Must start and end with a letter or number.',
     };
   }
 

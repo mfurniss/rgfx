@@ -5,312 +5,173 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, writeFileSync, statSync, existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
-import { join, dirname } from "node:path";
-import log from "electron-log/main";
-import {
-  EVENT_FILE_HEALTH_CHECK_INTERVAL_MS,
-  EVENT_FILE_MAX_WATCHER_RESTARTS,
-  EVENT_FILE_MAX_READ_RETRIES,
-  EVENT_FILE_RETRY_DELAY_MS,
-} from "./config/constants";
+import { watch, readFileSync, statSync, existsSync, mkdirSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import log from 'electron-log/main';
+import { EVENT_LOG_FILENAME, EVENT_FILE_POLL_INTERVAL_MS } from './config/constants';
 
 export class EventFileReader {
   private filePath: string;
   private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
+  private pollInterval?: NodeJS.Timeout;
   private onEventCallback?: (topic: string, message: string) => void;
-  private healthCheckInterval?: NodeJS.Timeout;
-  private lastReadTime = 0;
-  private isWatchingFile = false;
-  private watcherRestartCount = 0;
 
-  constructor() {
-    // Use stable ~/.rgfx directory
-    const rgfxDir = join(homedir(), ".rgfx");
-
-    // Ensure directory exists
-    try {
-      mkdirSync(rgfxDir, { recursive: true });
-    } catch (err) {
-      log.error("Failed to create .rgfx directory:", err);
+  constructor(customFilePath?: string) {
+    if (customFilePath) {
+      this.filePath = customFilePath;
+    } else {
+      const rgfxDir = join(homedir(), '.rgfx');
+      try {
+        mkdirSync(rgfxDir, { recursive: true });
+      } catch (err) {
+        log.error('Failed to create .rgfx directory:', err);
+      }
+      this.filePath = join(rgfxDir, EVENT_LOG_FILENAME);
     }
-
-    this.filePath = join(rgfxDir, "mame_events.log");
     log.info(`Event file path: ${this.filePath}`);
   }
 
   start(onEvent: (topic: string, message: string) => void) {
-    log.info("Starting event file reader...");
+    log.info('Starting event file reader...');
     this.onEventCallback = onEvent;
+    this.checkForFile();
+  }
 
-    // Check if file exists
+  private checkForFile() {
+    if (!this.onEventCallback) return;
+
     if (existsSync(this.filePath)) {
-      // File exists - truncate it to clear stale events from previous sessions
-      writeFileSync(this.filePath, "");
-      this.filePosition = 0;
-      log.info("Event file truncated. Waiting for fresh events from MAME...");
-      this.watchFile();
+      // [A] File exists - set position to end and start watching
+      try {
+        const stats = statSync(this.filePath);
+        this.filePosition = stats.size;
+        log.info(`Event file found. Starting from position ${this.filePosition}`);
+        this.startWatching();
+      } catch (err) {
+        log.error('Error checking file size:', err);
+        this.startPolling();
+      }
     } else {
-      // File doesn't exist yet - watch the directory for file creation
-      log.info(
-        "Event file doesn't exist yet. Waiting for MAME to create it...",
-      );
-      this.watchDirectory();
+      // [B] File doesn't exist - poll every 5 seconds
+      log.info("Event file doesn't exist yet. Polling...");
+      this.startPolling();
     }
-
-    // Start health check - periodically verify watching is working
-    this.startHealthCheck();
   }
 
-  private watchFile() {
-    this.isWatchingFile = true;
+  private startWatching() {
+    // Stop polling if active
+    this.stopPolling();
 
     try {
-      // Watch the file for changes
       this.watcher = watch(this.filePath, (eventType) => {
-        if (eventType === "change" && this.onEventCallback) {
-          this.readNewLines(this.onEventCallback);
+        if (eventType === 'change' && this.onEventCallback) {
+          this.readNewLines();
         }
       });
 
-      this.watcher.on("error", (err) => {
-        log.error("Watch error:", err);
-        this.handleWatcherFailure();
+      this.watcher.on('error', (err) => {
+        log.error('Watch error:', err);
+        this.handleError();
       });
 
-      this.watcher.on("close", () => {
-        log.warn("Watcher closed unexpectedly");
-        if (this.onEventCallback) {
-          // Watcher died - attempt to restart
-          this.handleWatcherFailure();
-        }
-      });
-
-      log.info("File watcher started successfully");
+      log.info('File watcher started');
     } catch (err) {
-      log.error("Failed to start file watcher:", err);
-      this.handleWatcherFailure();
+      log.error('Failed to start watcher:', err);
+      this.handleError();
     }
   }
 
-  private watchDirectory() {
-    this.isWatchingFile = false;
+  private startPolling() {
+    this.stopWatching();
 
-    try {
-      // Watch the directory for the file to be created
-      const dirPath = dirname(this.filePath);
-      this.watcher = watch(dirPath, (eventType, filename) => {
-        if (filename === "mame_events.log" && existsSync(this.filePath)) {
-          log.info("Event file created. Starting to watch...");
-
-          // Stop watching the directory
-          if (this.watcher) {
-            this.watcher.close();
-          }
-
-          // Reset position and start watching the file
-          this.filePosition = 0;
-          this.watcherRestartCount = 0; // Reset restart count on successful transition
-          this.watchFile();
+    if (!this.pollInterval) {
+      this.pollInterval = setInterval(() => {
+        if (existsSync(this.filePath)) {
+          log.info('Event file appeared');
+          this.checkForFile();
         }
-      });
-
-      this.watcher.on("error", (err) => {
-        log.error("Directory watch error:", err);
-        this.handleWatcherFailure();
-      });
-
-      log.info("Directory watcher started successfully");
-    } catch (err) {
-      log.error("Failed to start directory watcher:", err);
-      this.handleWatcherFailure();
+      }, EVENT_FILE_POLL_INTERVAL_MS);
+      log.info(`Polling for file every ${EVENT_FILE_POLL_INTERVAL_MS}ms`);
     }
   }
 
-  private readNewLines(
-    onEvent: (topic: string, message: string) => void,
-    retryCount = 0,
-  ) {
+  private stopWatching() {
+    if (this.watcher) {
+      this.watcher.close();
+      this.watcher = undefined;
+      log.debug('File watcher stopped');
+    }
+  }
+
+  private stopPolling() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = undefined;
+      log.debug('Polling stopped');
+    }
+  }
+
+  private handleError() {
+    // [C] Read error - stop watching and start polling
+    log.warn('Error occurred, switching to polling mode');
+    this.stopWatching();
+    this.filePosition = 0;
+    this.startPolling();
+  }
+
+  private readNewLines() {
+    if (!this.onEventCallback) return;
 
     try {
-      // Check if file still exists before attempting to stat
       if (!existsSync(this.filePath)) {
-        log.info("Event file deleted, switching to directory watch");
-        if (this.watcher) {
-          this.watcher.close();
-        }
-        this.filePosition = 0;
-        this.watchDirectory();
+        log.info('Event file disappeared');
+        this.handleError();
         return;
       }
 
       const stats = statSync(this.filePath);
       const currentSize = stats.size;
 
-      // Check for file truncation
+      // File was truncated - skip to end
       if (currentSize < this.filePosition) {
-        log.info("File truncated, resetting position");
-        this.filePosition = 0;
+        log.info('File truncated, skipping to end');
+        this.filePosition = currentSize;
       }
 
       // Read new data
       if (currentSize > this.filePosition) {
         const buffer = readFileSync(this.filePath);
-        const newData = buffer.toString(
-          "utf-8",
-          this.filePosition,
-          currentSize,
-        );
+        const newData = buffer.toString('utf-8', this.filePosition, currentSize);
         this.filePosition = currentSize;
-        this.lastReadTime = Date.now(); // Track successful read
 
-        // Parse lines
-        const lines = newData
-          .split("\n")
-          .filter((line) => line.trim().length > 0);
+        const lines = newData.split('\n').filter((line) => line.trim().length > 0);
 
         if (lines.length > 0) {
           log.debug(`Processing ${lines.length} event(s)`);
         }
 
         for (const line of lines) {
-          // Split only on the FIRST space to preserve spaces in the message
-          const firstSpaceIndex = line.indexOf(" ");
+          const firstSpaceIndex = line.indexOf(' ');
           if (firstSpaceIndex > 0) {
             const topic = line.substring(0, firstSpaceIndex);
             const message = line.substring(firstSpaceIndex + 1);
-            onEvent(topic, message);
+            log.debug(`Event read: ${topic} = ${message}`);
+            this.onEventCallback(topic, message);
           }
         }
       }
     } catch (err) {
-      log.error(
-        `Error reading event file (attempt ${retryCount + 1}/${EVENT_FILE_MAX_READ_RETRIES}):`,
-        err,
-      );
-
-      // Retry with exponential backoff
-      if (retryCount < EVENT_FILE_MAX_READ_RETRIES) {
-        const delay = EVENT_FILE_RETRY_DELAY_MS * Math.pow(2, retryCount);
-        log.info(`Retrying in ${delay}ms...`);
-        setTimeout(() => {
-          this.readNewLines(onEvent, retryCount + 1);
-        }, delay);
-      } else {
-        log.error(
-          "Max retries exceeded reading event file. Attempting to restart watcher...",
-        );
-        this.handleWatcherFailure();
-      }
+      log.error('Error reading event file:', err);
+      this.handleError();
     }
-  }
-
-  private handleWatcherFailure() {
-    if (this.watcherRestartCount >= EVENT_FILE_MAX_WATCHER_RESTARTS) {
-      log.error(
-        `Max watcher restarts (${EVENT_FILE_MAX_WATCHER_RESTARTS}) exceeded. Stopping event reader.`,
-      );
-      return;
-    }
-
-    this.watcherRestartCount++;
-    log.warn(
-      `Attempting to restart watcher (attempt ${this.watcherRestartCount}/${EVENT_FILE_MAX_WATCHER_RESTARTS})...`,
-    );
-
-    // Clean up existing watcher
-    if (this.watcher) {
-      try {
-        this.watcher.close();
-      } catch (err) {
-        log.error("Error closing watcher:", err);
-      }
-      this.watcher = undefined;
-    }
-
-    // Wait a bit before restarting
-    setTimeout(() => {
-      if (!this.onEventCallback) {
-        log.info("Event reader stopped, skipping watcher restart");
-        return;
-      }
-
-      // Check file existence and restart appropriate watcher
-      if (existsSync(this.filePath)) {
-        log.info("Restarting file watcher...");
-        this.watchFile();
-      } else {
-        log.info("File doesn't exist, restarting directory watcher...");
-        this.watchDirectory();
-      }
-    }, 1000);
-  }
-
-  private startHealthCheck() {
-    // Periodic check to ensure file watching is working
-    this.healthCheckInterval = setInterval(() => {
-      if (!this.onEventCallback) {
-        return; // Reader is stopped
-      }
-
-      // Check if file exists when we think we're watching it
-      if (this.isWatchingFile && !existsSync(this.filePath)) {
-        log.warn("Health check: File disappeared while watching");
-        this.handleWatcherFailure();
-        return;
-      }
-
-      // Check if file exists when we're watching directory
-      if (!this.isWatchingFile && existsSync(this.filePath)) {
-        log.warn(
-          "Health check: File exists but we're watching directory. Switching...",
-        );
-        if (this.watcher) {
-          this.watcher.close();
-        }
-        this.filePosition = 0;
-        this.watchFile();
-        return;
-      }
-
-      // If watching file, try to read to verify watcher is alive
-      if (this.isWatchingFile) {
-        try {
-          const stats = statSync(this.filePath);
-          if (stats.size > this.filePosition) {
-            log.debug("Health check: New data available, triggering read");
-            this.readNewLines(this.onEventCallback);
-          }
-        } catch (err) {
-          log.error("Health check: Error reading file stats:", err);
-          this.handleWatcherFailure();
-        }
-      }
-    }, EVENT_FILE_HEALTH_CHECK_INTERVAL_MS);
-
-    log.info(
-      `Health check started (interval: ${EVENT_FILE_HEALTH_CHECK_INTERVAL_MS}ms)`,
-    );
   }
 
   stop() {
-    // Clear health check
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = undefined;
-    }
-
-    // Clear callback to prevent restart attempts
     this.onEventCallback = undefined;
-
-    // Close watcher
-    if (this.watcher) {
-      this.watcher.close();
-      this.watcher = undefined;
-    }
-
-    log.info("Event file reader stopped");
+    this.stopWatching();
+    this.stopPolling();
+    log.info('Event file reader stopped');
   }
 }

@@ -102,7 +102,11 @@ describe('DriverPersistence', () => {
     it('should not add duplicate driver', () => {
       const persistence = new DriverPersistence(testConfigDir);
 
-      const firstAdd = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Test Driver');
+      const firstAdd = persistence.addDriver(
+        'rgfx-driver-0001',
+        'aa:bb:cc:dd:ee:ff',
+        'Test Driver'
+      );
       const secondAdd = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff', 'Duplicate');
 
       expect(firstAdd).toBe(true);
@@ -281,8 +285,8 @@ describe('DriverPersistence', () => {
       const drivers = persistence.getAllDrivers();
 
       expect(drivers).toHaveLength(2);
-      expect(drivers.map(d => d.id)).toContain('rgfx-driver-0001');
-      expect(drivers.map(d => d.id)).toContain('rgfx-driver-0002');
+      expect(drivers.map((d) => d.id)).toContain('rgfx-driver-0001');
+      expect(drivers.map((d) => d.id)).toContain('rgfx-driver-0002');
     });
 
     it('should return empty array when no drivers exist', () => {

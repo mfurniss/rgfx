@@ -18,12 +18,7 @@ interface InfoSectionProps {
  * Generic section component for displaying grouped information
  * Renders a title with icon, followed by a list of label-value pairs
  */
-const InfoSection: React.FC<InfoSectionProps> = ({
-  title,
-  icon,
-  rows,
-  showDivider = false,
-}) => (
+const InfoSection: React.FC<InfoSectionProps> = ({ title, icon, rows, showDivider = false }) => (
   <>
     {showDivider && <Divider sx={{ my: 2 }} />}
     <Box sx={{ mb: 2 }}>

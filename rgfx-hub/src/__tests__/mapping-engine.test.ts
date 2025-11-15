@@ -63,11 +63,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', '{"key": "value"}');
 
       // Handler receives original string, engine parses internally
-      expect(handler).toHaveBeenCalledWith(
-        'test/topic',
-        '{"key": "value"}',
-        mockContext,
-      );
+      expect(handler).toHaveBeenCalledWith('test/topic', '{"key": "value"}', mockContext);
     });
 
     it('should parse JSON arrays', async () => {
@@ -76,11 +72,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '[1, 2, 3]');
 
-      expect(handler).toHaveBeenCalledWith(
-        'test/topic',
-        '[1, 2, 3]',
-        mockContext,
-      );
+      expect(handler).toHaveBeenCalledWith('test/topic', '[1, 2, 3]', mockContext);
     });
 
     it('should parse numbers', async () => {
@@ -116,11 +108,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', 'hello world');
 
-      expect(handler).toHaveBeenCalledWith(
-        'test/topic',
-        'hello world',
-        mockContext,
-      );
+      expect(handler).toHaveBeenCalledWith('test/topic', 'hello world', mockContext);
     });
 
     it('should handle empty strings', async () => {
@@ -138,11 +126,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '{invalid json}');
 
-      expect(handler).toHaveBeenCalledWith(
-        'test/topic',
-        '{invalid json}',
-        mockContext,
-      );
+      expect(handler).toHaveBeenCalledWith('test/topic', '{invalid json}', mockContext);
     });
   });
 
@@ -276,7 +260,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('pacman/unknown', 'value');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        'No handler found for event: pacman/unknown',
+        'No handler found for event: pacman/unknown'
       );
     });
   });
@@ -290,28 +274,24 @@ describe('MappingEngine', () => {
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
         'Error handling event pacman/player/score:',
-        expect.any(Error),
+        expect.any(Error)
       );
     });
 
     it('should catch and log errors from subject handlers', async () => {
-      const subjectHandler = vi
-        .fn()
-        .mockRejectedValue(new Error('Test error'));
+      const subjectHandler = vi.fn().mockRejectedValue(new Error('Test error'));
       (engine as any).subjectHandlers.set('player', subjectHandler);
 
       await engine.handleEvent('game/player/score', '1000');
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
         'Error handling event game/player/score:',
-        expect.any(Error),
+        expect.any(Error)
       );
     });
 
     it('should catch and log errors from pattern handlers', async () => {
-      const patternHandler = vi
-        .fn()
-        .mockRejectedValue(new Error('Test error'));
+      const patternHandler = vi.fn().mockRejectedValue(new Error('Test error'));
       (engine as any).patternHandlers = [patternHandler];
 
       await engine.handleEvent('test/topic', 'value');
@@ -320,9 +300,7 @@ describe('MappingEngine', () => {
     });
 
     it('should catch and log errors from default handler', async () => {
-      const defaultHandler = vi
-        .fn()
-        .mockRejectedValue(new Error('Test error'));
+      const defaultHandler = vi.fn().mockRejectedValue(new Error('Test error'));
       (engine as any).defaultHandler = defaultHandler;
 
       await engine.handleEvent('test/topic', 'value');
@@ -336,9 +314,7 @@ describe('MappingEngine', () => {
       });
       (engine as any).gameHandlers.set('pacman', gameHandler);
 
-      await expect(
-        engine.handleEvent('pacman/test', 'value'),
-      ).resolves.not.toThrow();
+      await expect(engine.handleEvent('pacman/test', 'value')).resolves.not.toThrow();
 
       expect(mockContext.log.error).toHaveBeenCalled();
     });
@@ -403,7 +379,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('pacman/player/score', '1000');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by game mapper: pacman - pacman/player/score',
+        'Event handled by game mapper: pacman - pacman/player/score'
       );
     });
 
@@ -414,7 +390,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('game/player/score', '1000');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by subject mapper: player - game/player/score',
+        'Event handled by subject mapper: player - game/player/score'
       );
     });
 
@@ -425,7 +401,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by pattern mapper: test/topic',
+        'Event handled by pattern mapper: test/topic'
       );
     });
 
@@ -436,7 +412,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by default mapper: test/topic',
+        'Event handled by default mapper: test/topic'
       );
     });
   });

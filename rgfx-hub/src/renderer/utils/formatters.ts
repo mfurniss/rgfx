@@ -2,6 +2,39 @@
  * Formatting utility functions for displaying data in human-readable formats
  */
 
+import { intervalToDuration, formatDistanceToNow, type Locale } from 'date-fns';
+import { enUS } from 'date-fns/locale';
+
+/**
+ * Custom locale for short-format relative times
+ * Converts verbose output like "5 minutes" to "5m"
+ */
+const shortLocale: Locale = {
+  ...enUS,
+  formatDistance: (token, count, options) => {
+    const formats: Record<string, string> = {
+      lessThanXSeconds: `${count}s`,
+      xSeconds: `${count}s`,
+      halfAMinute: '30s',
+      lessThanXMinutes: `${count}m`,
+      xMinutes: `${count}m`,
+      aboutXHours: `${count}h`,
+      xHours: `${count}h`,
+      xDays: `${count}d`,
+      aboutXWeeks: `${count}w`,
+      xWeeks: `${count}w`,
+      aboutXMonths: `${count}mo`,
+      xMonths: `${count}mo`,
+      aboutXYears: `${count}y`,
+      xYears: `${count}y`,
+      overXYears: `${count}y`,
+      almostXYears: `${count}y`,
+    };
+    const formatted = formats[token] ?? token;
+    return options?.addSuffix ? `${formatted} ago` : formatted;
+  },
+};
+
 /**
  * Format bytes into human-readable sizes (B, KB, MB, GB)
  */
@@ -14,43 +47,37 @@ export const formatBytes = (bytes: number): string => {
 };
 
 /**
- * Format milliseconds into human-readable uptime (days, hours, minutes, seconds)
+ * Format milliseconds into human-readable uptime (e.g., "2d 5h 30m 15s", "45s")
+ * Uses date-fns intervalToDuration for consistent duration calculations
+ * Always includes seconds for real-time display
  */
 export const formatUptime = (ms: number): string => {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  const duration = intervalToDuration({ start: 0, end: ms });
 
-  if (days > 0) {
-    return `${days}d ${hours % 24}h ${minutes % 60}m`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
-  } else {
-    return `${seconds}s`;
-  }
+  const parts: string[] = [];
+  if (duration.days) parts.push(`${duration.days}d`);
+  if (duration.hours || duration.days) parts.push(`${duration.hours ?? 0}h`);
+  if (duration.minutes || duration.hours || duration.days) parts.push(`${duration.minutes ?? 0}m`);
+  parts.push(`${duration.seconds ?? 0}s`);
+
+  return parts.join(' ');
 };
 
 /**
  * Format timestamp as relative time (e.g., "5m ago", "2h ago")
+ * Uses date-fns with custom locale for short format
  */
-export const formatTimestamp = (timestamp: number, currentTime: number): string => {
-  const diff = currentTime - timestamp;
-  const seconds = Math.floor(diff / 1000);
+export const formatTimestamp = (timestamp: number): string => {
+  return formatDistanceToNow(timestamp, {
+    addSuffix: true,
+    locale: shortLocale,
+  });
+};
 
-  if (seconds < 60) {
-    return `${seconds}s ago`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+/**
+ * Format number with locale-appropriate thousands separators
+ * Uses the user's locale (e.g., "1,000" for en-US, "1.000" for de-DE)
+ */
+export const formatNumber = (value: number): string => {
+  return value.toLocaleString();
 };

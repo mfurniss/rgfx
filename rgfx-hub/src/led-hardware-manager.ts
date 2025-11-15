@@ -66,7 +66,9 @@ export class LEDHardwareManager {
       // Cache it
       this.cache.set(hardwareRef, hardware);
       const identifier = hardware.asin ?? hardware.sku ?? 'no SKU/ASIN';
-      log.info(`Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`);
+      log.info(
+        `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`
+      );
 
       return hardware;
     } catch (error) {
@@ -105,9 +107,10 @@ export class LEDHardwareManager {
     }
 
     try {
-      const files = fs.readdirSync(ledHardwareDir)
-        .filter(file => file.endsWith('.json'))
-        .map(file => `led-hardware/${file}`);
+      const files = fs
+        .readdirSync(ledHardwareDir)
+        .filter((file) => file.endsWith('.json'))
+        .map((file) => `led-hardware/${file}`);
 
       log.info(`Found ${files.length} LED hardware definition files`);
       return files;

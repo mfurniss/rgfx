@@ -14,6 +14,8 @@ const mockSystemStatus: SystemStatus = {
   eventReader: 'monitoring',
   driversConnected: 0,
   hubIp: '192.168.1.100',
+  eventsProcessed: 0,
+  hubStartTime: Date.now(),
 };
 
 vi.mock('../store/driver-store', () => ({
