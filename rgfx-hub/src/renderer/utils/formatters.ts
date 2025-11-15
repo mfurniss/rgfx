@@ -2,6 +2,8 @@
  * Formatting utility functions for displaying data in human-readable formats
  */
 
+import { intervalToDuration } from 'date-fns';
+
 /**
  * Format bytes into human-readable sizes (B, KB, MB, GB)
  */
@@ -15,31 +17,34 @@ export const formatBytes = (bytes: number): string => {
 
 /**
  * Format milliseconds into human-readable uptime (days, hours, minutes, seconds)
+ * Uses date-fns for consistent, locale-aware formatting
  */
 export const formatUptime = (ms: number): string => {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  const duration = intervalToDuration({ start: 0, end: ms });
 
-  if (days > 0) {
-    return `${days}d ${hours % 24}h ${minutes % 60}m`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
-  } else {
-    return `${seconds}s`;
+  // Custom short format to maintain existing UI style: "2d 5h 30m"
+  const parts: string[] = [];
+  if (duration.days) parts.push(`${duration.days}d`);
+  if (duration.hours) parts.push(`${duration.hours}h`);
+  if (duration.minutes) parts.push(`${duration.minutes}m`);
+
+  // Show seconds only if less than 1 minute
+  if (parts.length === 0) {
+    parts.push(`${duration.seconds ?? 0}s`);
   }
+
+  return parts.join(' ');
 };
 
 /**
  * Format timestamp as relative time (e.g., "5m ago", "2h ago")
+ * Uses date-fns formatDistanceToNow with custom short format
  */
 export const formatTimestamp = (timestamp: number, currentTime: number): string => {
   const diff = currentTime - timestamp;
   const seconds = Math.floor(diff / 1000);
 
+  // Use short format to match existing UI style
   if (seconds < 60) {
     return `${seconds}s ago`;
   }

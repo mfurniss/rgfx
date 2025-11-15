@@ -14,6 +14,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
+import { formatDistanceToNow, format } from 'date-fns';
 import type { Driver } from '~/src/types';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
@@ -23,29 +24,6 @@ interface DriverListTableProps {
 
 type SortField = 'id' | 'name' | 'ip' | 'status' | 'firstSeen';
 type SortOrder = 'asc' | 'desc';
-
-/**
- * Formats a timestamp as relative time (e.g., "2 minutes ago")
- */
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) {
-    return `${days} day${days > 1 ? 's' : ''} ago`;
-  }
-  if (hours > 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  }
-  if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  }
-  return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-}
 
 /**
  * Driver list table component with sortable columns
@@ -206,8 +184,8 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                 />
               </TableCell>
               <TableCell>
-                <Tooltip title={new Date(driver.firstSeen).toLocaleString()}>
-                  <span>{formatRelativeTime(driver.firstSeen)}</span>
+                <Tooltip title={format(driver.firstSeen, 'PPpp')}>
+                  <span>{formatDistanceToNow(driver.firstSeen, { addSuffix: true })}</span>
                 </Tooltip>
               </TableCell>
               <TableCell align="right">
