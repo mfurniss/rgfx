@@ -90,6 +90,9 @@ const mappingEngine = new MappingEngine({
   drivers: driverRegistry,
 });
 
+// Event statistics tracking
+let eventsProcessed = 0;
+
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
   return mainWindow !== null && !mainWindow.isDestroyed();
@@ -98,7 +101,10 @@ function isWindowAvailable(): boolean {
 // Helper to send system status to renderer
 function sendSystemStatus() {
   if (!isWindowAvailable() || !mainWindow) return;
-  const status = systemMonitor.getSystemStatus(driverRegistry.getConnectedCount());
+  const status = systemMonitor.getSystemStatus(
+    driverRegistry.getConnectedCount(),
+    eventsProcessed
+  );
   mainWindow.webContents.send('system:status', status);
 }
 
@@ -352,7 +358,9 @@ mqtt.subscribe('rgfx/driver/+/test/state', (topic, payload) => {
 
 // Start reading events and send to mapping engine for processing
 eventReader.start((topic, message) => {
+  eventsProcessed++;
   void mappingEngine.handleEvent(topic, message);
+  sendSystemStatus();
 });
 
 // IPC handler for LED test command

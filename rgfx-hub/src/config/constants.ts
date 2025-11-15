@@ -63,7 +63,7 @@ export const MQTT_TOPIC_DISCOVERY = 'rgfx/system/discover';
 export const MAIN_WINDOW_WIDTH = 1000;
 
 /** Main application window height in pixels */
-export const MAIN_WINDOW_HEIGHT = 600;
+export const MAIN_WINDOW_HEIGHT = 800;
 
 // ============================================================================
 // File System & Persistence Configuration
@@ -123,6 +123,12 @@ export const EVENT_FILE_RETRY_DELAY_MS = 100;
  * Gives the file system time to stabilize before attempting to watch again.
  */
 export const EVENT_FILE_WATCHER_RESTART_DELAY_MS = 1000;
+
+/**
+ * Interval for polling event file existence when file doesn't exist (milliseconds).
+ * When the event file is not present, EventFileReader checks for it every 5 seconds.
+ */
+export const EVENT_FILE_POLL_INTERVAL_MS = 5000;
 
 // ============================================================================
 // Driver ID Validation Configuration

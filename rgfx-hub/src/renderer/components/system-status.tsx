@@ -2,6 +2,7 @@ import React from 'react';
 import { Paper, Typography, Grid } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '../../types';
 import SystemStatusItem from './system-status-item';
+import { formatNumber } from '../utils/formatters';
 
 interface SystemStatusProps {
   status: SystemStatusType;
@@ -16,7 +17,8 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     { name: 'MQTT Broker', value: status.mqttBroker },
     { name: 'UDP Server', value: status.udpServer },
     { name: 'Event Reader', value: status.eventReader },
-    { name: 'Drivers Connected', value: status.driversConnected },
+    { name: 'Drivers Connected', value: formatNumber(status.driversConnected) },
+    { name: 'Events Processed', value: formatNumber(status.eventsProcessed ?? 0) },
   ];
 
   return (

@@ -10,7 +10,7 @@ import {
 } from '@mui/icons-material';
 import type { Driver } from '~/src/types';
 import InfoSection, { type InfoRowData } from './components/info-section';
-import { formatBytes, formatUptime, formatTimestamp } from './utils/formatters';
+import { formatBytes, formatUptime, formatTimestamp, formatNumber } from './utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
 interface DriverCardProps {
@@ -77,16 +77,16 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     { label: 'MAC Address', value: sysInfo.mac },
     { label: 'Hostname', value: sysInfo.hostname },
     { label: 'SSID', value: sysInfo.ssid },
-    { label: 'Signal (RSSI)', value: `${sysInfo.rssi} dBm` },
+    { label: 'Signal (RSSI)', value: `${formatNumber(sysInfo.rssi)} dBm` },
   ];
 
   const hardwareRows: InfoRowData[] = [
     { label: 'Chip Model', value: sysInfo.chipModel },
-    { label: 'Chip Revision', value: sysInfo.chipRevision },
-    { label: 'CPU Cores', value: sysInfo.chipCores },
-    { label: 'CPU Frequency', value: `${sysInfo.cpuFreqMHz} MHz` },
+    { label: 'Chip Revision', value: formatNumber(sysInfo.chipRevision) },
+    { label: 'CPU Cores', value: formatNumber(sysInfo.chipCores) },
+    { label: 'CPU Frequency', value: `${formatNumber(sysInfo.cpuFreqMHz)} MHz` },
     { label: 'Flash Size', value: formatBytes(sysInfo.flashSize) },
-    { label: 'Flash Speed', value: `${sysInfo.flashSpeed / 1000000} MHz` },
+    { label: 'Flash Speed', value: `${formatNumber(sysInfo.flashSpeed / 1000000)} MHz` },
     {
       label: 'Display Connected',
       value: sysInfo.hasDisplay ? 'Yes (OLED)' : 'No',
@@ -126,26 +126,32 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         { label: 'SKU', value: hardware.sku ?? 'Not set' },
         ...(hardware.asin ? [{ label: 'ASIN', value: hardware.asin }] : []),
         { label: 'Layout', value: hardware.layout },
-        { label: 'LED Count', value: hardware.count },
+        { label: 'LED Count', value: formatNumber(hardware.count) },
         {
           label: 'Matrix Size',
           value:
             hardware.layout !== 'strip'
-              ? `${hardware.width ?? 0} × ${hardware.height ?? 0}`
+              ? `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`
               : 'N/A',
         },
-        ...(ledConfig ? [{ label: 'Data Pin', value: ledConfig.pin }] : []),
+        ...(ledConfig ? [{ label: 'Data Pin', value: formatNumber(ledConfig.pin) }] : []),
         { label: 'Chipset', value: hardware.chipset ?? 'Unknown' },
         { label: 'Color Order', value: hardware.colorOrder ?? 'Unknown' },
         ...(ledConfig
           ? [
               {
                 label: 'Max Brightness',
-                value: ledConfig.maxBrightness ?? 'Not set',
+                value:
+                  ledConfig.maxBrightness !== undefined
+                    ? formatNumber(ledConfig.maxBrightness)
+                    : 'Not set',
               },
               {
                 label: 'Brightness Limit',
-                value: ledConfig.globalBrightnessLimit ?? 'Not set',
+                value:
+                  ledConfig.globalBrightnessLimit !== undefined
+                    ? formatNumber(ledConfig.globalBrightnessLimit)
+                    : 'Not set',
               },
               { label: 'Dithering', value: ledConfig.dithering ? 'Yes' : 'No' },
             ]
@@ -157,10 +163,10 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     { label: 'Driver Uptime', value: formatUptime(currentUptime) },
     { label: 'Hub First Seen', value: formatTimestamp(driver.firstSeen) },
     { label: 'Hub Last Seen', value: formatTimestamp(driver.lastSeen) },
-    { label: 'MQTT Messages', value: driver.stats.mqttMessagesReceived },
-    { label: 'MQTT Errors', value: driver.stats.mqttMessagesFailed },
-    { label: 'UDP Packets Sent', value: driver.stats.udpMessagesSent },
-    { label: 'UDP Send Errors', value: driver.stats.udpMessagesFailed },
+    { label: 'MQTT Messages', value: formatNumber(driver.stats.mqttMessagesReceived) },
+    { label: 'MQTT Errors', value: formatNumber(driver.stats.mqttMessagesFailed) },
+    { label: 'UDP Packets Sent', value: formatNumber(driver.stats.udpMessagesSent) },
+    { label: 'UDP Send Errors', value: formatNumber(driver.stats.udpMessagesFailed) },
   ];
 
   // Generate tooltip text based on layout type

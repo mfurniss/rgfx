@@ -29,6 +29,7 @@ export const useDriverStore = create<DriverState>()(
         eventReader: 'stopped',
         driversConnected: 0,
         hubIp: 'Unknown',
+        eventsProcessed: 0,
       },
 
       // Actions (callbacks prefixed with 'on')

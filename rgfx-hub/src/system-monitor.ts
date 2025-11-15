@@ -21,13 +21,14 @@ export class SystemMonitor {
   }
 
   // Generate system status object
-  getSystemStatus(connectedDriverCount: number): SystemStatus {
+  getSystemStatus(connectedDriverCount: number, eventsProcessed?: number): SystemStatus {
     return {
       mqttBroker: 'running',
       udpServer: 'active',
       eventReader: 'monitoring',
       driversConnected: connectedDriverCount,
       hubIp: this.getLocalIpAddress(),
+      eventsProcessed,
     };
   }
 }

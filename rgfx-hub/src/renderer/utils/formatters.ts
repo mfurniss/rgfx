@@ -76,3 +76,11 @@ export const formatTimestamp = (timestamp: number): string => {
     locale: shortLocale,
   });
 };
+
+/**
+ * Format number with locale-appropriate thousands separators
+ * Uses the user's locale (e.g., "1,000" for en-US, "1.000" for de-DE)
+ */
+export const formatNumber = (value: number): string => {
+  return value.toLocaleString();
+};

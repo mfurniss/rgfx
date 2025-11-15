@@ -9,9 +9,10 @@ import { watch, readFileSync, statSync, existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import log from 'electron-log/main';
-import { EVENT_LOG_FILENAME } from './config/constants';
-
-const FILE_POLL_INTERVAL_MS = 5000; // Check for file every 5 seconds
+import {
+  EVENT_LOG_FILENAME,
+  EVENT_FILE_POLL_INTERVAL_MS,
+} from './config/constants';
 
 export class EventFileReader {
   private filePath: string;
@@ -94,8 +95,8 @@ export class EventFileReader {
           log.info('Event file appeared');
           this.checkForFile();
         }
-      }, FILE_POLL_INTERVAL_MS);
-      log.info(`Polling for file every ${FILE_POLL_INTERVAL_MS}ms`);
+      }, EVENT_FILE_POLL_INTERVAL_MS);
+      log.info(`Polling for file every ${EVENT_FILE_POLL_INTERVAL_MS}ms`);
     }
   }
 
