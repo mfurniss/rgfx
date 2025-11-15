@@ -498,6 +498,7 @@ app.on('before-quit', () => {
   log.info('Shutting down...');
 
   // Stop services
+  eventReader.stop();
   discoveryService.stop();
   void mqtt.stop();
 });
