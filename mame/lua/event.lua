@@ -44,7 +44,7 @@ function _G.event(topic, message)
 		-- Attempt to reopen file
 		event_file = io.open(event_file_path, "a") -- Append mode
 		if not event_file then
-			print("ERROR: Cannot reopen event file")
+			print("ERROR: Cannot reopen event file at " .. event_file_path)
 			return
 		end
 		event_file:setvbuf("no")
@@ -54,25 +54,47 @@ function _G.event(topic, message)
 
 	event_count = event_count + 1
 
-	local success, err = event_file:write(string.format("%s %s\n", topic, message))
+	-- Wrap entire write operation in pcall for maximum robustness
+	local ok, result, err = pcall(function()
+		-- Lua's io.write() returns the file handle on success, nil + error on failure
+		local handle, write_err = event_file:write(string.format("%s %s\n", topic, message))
+		if not handle then
+			return nil, write_err
+		end
+		-- Explicitly flush to ensure data is written immediately
+		local flush_handle, flush_err = event_file:flush()
+		if not flush_handle then
+			return nil, flush_err or "flush failed"
+		end
+		return true
+	end)
 
-	if not success then
+	-- Check if pcall succeeded and write/flush succeeded
+	if not ok or not result then
 		write_error_count = write_error_count + 1
+		local error_msg = err or (result and result or "unknown error")
 		print(
 			string.format(
-				"ERROR writing event [%d]: %s (attempt %d/%d)",
+				"ERROR writing event #%d [%s %s]: %s (failure %d/%d)",
 				event_count,
-				err,
+				topic,
+				tostring(message),
+				error_msg,
 				write_error_count,
 				MAX_WRITE_ERRORS
 			)
 		)
 
 		if write_error_count >= MAX_WRITE_ERRORS then
-			print("Max write errors reached, attempting to recover...")
+			print("Max write errors reached, attempting recovery...")
+			-- Safely close existing handle
 			pcall(function()
-				event_file:close()
+				if event_file then
+					event_file:close()
+				end
 			end)
+
+			-- Attempt to reopen
 			event_file = io.open(event_file_path, "a")
 			if event_file then
 				event_file:setvbuf("no")
@@ -80,11 +102,12 @@ function _G.event(topic, message)
 				print("Event file recovered successfully")
 			else
 				event_file = nil
-				print("FATAL: Cannot recover event file")
+				print("FATAL: Cannot recover event file - all events will be lost!")
 			end
 		end
 	else
-		write_error_count = 0 -- Reset on success
+		-- Success - reset error counter
+		write_error_count = 0
 		if event_count % 500 == 0 then
 			print(string.format("Events written: %d", event_count))
 		end

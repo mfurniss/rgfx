@@ -76,6 +76,32 @@ void mqttCallback(String& topic, String& payload) {
 			publishTestState("off");
 		}
 	}
+
+	// Handle set-id command from Hub
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/set-id")) {
+		log("Received set-id command from Hub");
+
+		JsonDocument doc;
+		DeserializationError error = deserializeJson(doc, payload);
+		if (error) {
+			log("Failed to parse set-id payload: " + String(error.c_str()));
+			return;
+		}
+
+		String newId = doc["id"].as<String>();
+		if (newId.length() == 0 || newId.length() > 32) {
+			log("Invalid device ID length: " + String(newId.length()));
+			return;
+		}
+
+		log("Setting device ID to: " + newId);
+		Utils::setDeviceId(newId);
+
+		// Disconnect and reconnect with new ID
+		mqttClient.disconnect();
+		delay(1000);
+		setupMQTT();
+	}
 }
 
 // Discover MQTT broker via SSDP (Simple Service Discovery Protocol)
@@ -260,14 +286,17 @@ void reconnectMQTT() {
 		driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
 		String configTopic = "rgfx/driver/" + driverId + "/config";
 		String testTopic = "rgfx/driver/" + driverId + "/test";
+		String setIdTopic = "rgfx/driver/" + driverId + "/set-id";
 		mqttClient.subscribe(configTopic.c_str(), 2);
 		mqttClient.subscribe(testTopic.c_str(), 2);
+		mqttClient.subscribe(setIdTopic.c_str(), 2);
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - rgfx/system/discover");
 		log("  - " + configTopic);
 		log("  - " + testTopic);
+		log("  - " + setIdTopic);
 
 		// Update display to show MQTT connected
 		if (Display::isAvailable()) {

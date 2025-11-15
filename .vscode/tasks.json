@@ -42,12 +42,12 @@
           "value": "all"
         },
         {
-          "label": "Device F8:9A:58",
-          "value": "rgfx-driver-f89a58.local"
+          "label": "rgfx-driver-0001 (LED Strip)",
+          "value": "rgfx-driver-0001.local"
         },
         {
-          "label": "Device F8:CF:68",
-          "value": "rgfx-driver-f8cf68.local"
+          "label": "rgfx-driver-0002 (LED Matrix)",
+          "value": "rgfx-driver-0002.local"
         }
       ],
       "default": "all"

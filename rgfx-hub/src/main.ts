@@ -225,12 +225,16 @@ mqtt.subscribe("rgfx/system/driver/heartbeat", (_topic, payload) => {
   try {
     // Heartbeat payload is just {"mac": "AA:BB:CC:DD:EE:FF"}
     const parsed = JSON.parse(payload) as { mac: string };
-    const driverId = parsed.mac;
+    const macAddress = parsed.mac;
 
-    if (!driverId) {
+    if (!macAddress) {
       log.error("Heartbeat message missing 'mac' field");
       return;
     }
+
+    // Look up driver by MAC address to get the actual driver ID
+    const persistedDriver = driverPersistence.getDriverByMac(macAddress);
+    const driverId = persistedDriver?.id ?? macAddress;
 
     driverRegistry.updateHeartbeat(driverId);
     discoveryService.trackHeartbeatResponse(driverId);
@@ -321,6 +325,43 @@ ipcMain.handle("driver:test-leds", async (_event, driverId: string, enabled: boo
   } else {
     await mqtt.publish(topic, "off");
     log.info(`Test mode disabled for driver ${driverId}`);
+  }
+});
+
+// IPC handler for setting driver ID (for future UI use)
+ipcMain.handle("driver:set-id", async (_event, driverId: string, newId: string) => {
+  try {
+    // Validate new ID
+    if (newId.length > 32) {
+      throw new Error('ID too long (max 32 characters)');
+    }
+    if (!/^[a-z0-9-]+$/i.test(newId)) {
+      throw new Error('ID must be alphanumeric with hyphens only');
+    }
+
+    // Get driver's MAC address from persistence
+    const driver = driverPersistence.getDriver(driverId);
+    if (!driver) {
+      throw new Error('Driver not found');
+    }
+
+    const macAddress = driver.macAddress;
+    const macWithDashes = macAddress.replace(/:/g, '-');
+
+    // Send set-id command via MQTT
+    const topic = `rgfx/driver/${macWithDashes}/set-id`;
+    const payload = JSON.stringify({ id: newId });
+
+    await mqtt.publish(topic, payload);
+    log.info(`Sent set-id command to ${driverId}: ${newId}`);
+
+    // Update local config
+    // Note: Driver will reconnect with new ID, which will update the registry
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.error('Failed to set driver ID:', errorMessage);
+    return { success: false, error: errorMessage };
   }
 });
 

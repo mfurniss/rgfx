@@ -33,18 +33,29 @@ namespace Display {
 	static String formatDeviceId(const String& deviceName) {
 		int lastDashPos = deviceName.lastIndexOf('-');
 		if (lastDashPos == -1) {
-			return "";
+			return deviceName;
 		}
 
 		String deviceId = deviceName.substring(lastDashPos + 1);
-		deviceId.toUpperCase();
 
-		if (deviceId.length() != 6) {
-			return deviceId;
+		// Check if it's legacy MAC format (6 hex characters)
+		bool isHexFormat = (deviceId.length() == 6);
+		for (size_t i = 0; i < deviceId.length() && isHexFormat; i++) {
+			char c = deviceId.charAt(i);
+			if (!isxdigit(c)) {
+				isHexFormat = false;
+			}
 		}
 
-		return deviceId.substring(0, 2) + ":" + deviceId.substring(2, 4) + ":" +
-		       deviceId.substring(4, 6);
+		if (isHexFormat) {
+			// Legacy MAC format: "f8cf68" -> "F8:CF:68"
+			deviceId.toUpperCase();
+			return deviceId.substring(0, 2) + ":" + deviceId.substring(2, 4) + ":" +
+			       deviceId.substring(4, 6);
+		}
+
+		// New format: just return the ID part (e.g., "0001")
+		return deviceId;
 	}
 
 	bool begin() {

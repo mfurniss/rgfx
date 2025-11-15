@@ -16,8 +16,11 @@ import { CONFIG_VERSION, CONFIG_DIRECTORY } from './config/constants';
  * Stores static configuration and metadata, excludes runtime state
  */
 export interface PersistedDriver {
-  /** Unique driver ID (MAC address or short form) */
+  /** Unique driver ID (sequential format: rgfx-driver-0001) */
   id: string;
+
+  /** Original MAC address for reference and MQTT communication */
+  macAddress: string;
 
   /** User-editable device name */
   name: string;
@@ -139,23 +142,40 @@ export class DriverPersistence {
   }
 
   /**
+   * Validate driver ID format
+   * Max 32 characters, alphanumeric + hyphens only
+   */
+  private validateDriverId(id: string): boolean {
+    if (id.length === 0 || id.length > 32) {
+      return false;
+    }
+    return /^[a-z0-9-]+$/i.test(id);
+  }
+
+  /**
    * Add a newly discovered driver
    * Returns true if driver was added, false if it already exists
    */
-  addDriver(id: string, name: string): boolean {
+  addDriver(id: string, macAddress: string, name: string): boolean {
+    if (!this.validateDriverId(id)) {
+      log.error(`Invalid driver ID format: ${id}`);
+      return false;
+    }
+
     if (this.drivers.has(id)) {
       return false; // Driver already exists
     }
 
     const driver: PersistedDriver = {
       id,
+      macAddress,
       name,
       firstSeen: Date.now(),
     };
 
     this.drivers.set(id, driver);
     this.saveConfig();
-    log.info(`Added new driver: ${name} (${id})`);
+    log.info(`Added new driver: ${name} (${id}, MAC: ${macAddress})`);
     return true;
   }
 
@@ -220,6 +240,36 @@ export class DriverPersistence {
    */
   hasDriver(id: string): boolean {
     return this.drivers.has(id);
+  }
+
+  /**
+   * Get a driver by its MAC address
+   */
+  getDriverByMac(macAddress: string): PersistedDriver | undefined {
+    for (const driver of this.drivers.values()) {
+      if (driver.macAddress === macAddress) {
+        return driver;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Generate next sequential driver ID
+   * Checks ALL drivers (including offline) to find the highest number
+   */
+  generateNextDriverId(): string {
+    const allDrivers = this.getAllDrivers();
+
+    const existingNumbers = allDrivers
+      .map(d => (/^rgfx-driver-(\d+)$/.exec(d.id))?.[1])
+      .filter((n): n is string => n !== undefined)
+      .map(Number);
+
+    const maxNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
+    const nextNum = maxNum + 1;
+
+    return `rgfx-driver-${String(nextNum).padStart(4, '0')}`;
   }
 
   /**

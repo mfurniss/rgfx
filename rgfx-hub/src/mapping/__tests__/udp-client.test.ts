@@ -35,28 +35,28 @@ describe('UdpClientImpl', () => {
     // Create mock drivers
     mockDrivers = [
       {
-        id: 'aa:bb:cc:dd:ee:01',
+        id: 'rgfx-driver-0001',
         name: 'driver-1',
         connected: true,
         ip: '192.168.1.101',
         lastSeen: Date.now(),
       } as Driver,
       {
-        id: 'aa:bb:cc:dd:ee:02',
+        id: 'rgfx-driver-0002',
         name: 'driver-2',
         connected: true,
         ip: '192.168.1.102',
         lastSeen: Date.now(),
       } as Driver,
       {
-        id: 'aa:bb:cc:dd:ee:03',
+        id: 'rgfx-driver-0003',
         name: 'driver-3',
         connected: false, // Not connected
         ip: '192.168.1.103',
         lastSeen: Date.now(),
       } as Driver,
       {
-        id: 'aa:bb:cc:dd:ee:04',
+        id: 'rgfx-driver-0004',
         name: 'driver-4',
         connected: true,
         ip: undefined, // No IP
@@ -104,8 +104,8 @@ describe('UdpClientImpl', () => {
 
       expect(connectedDrivers).toHaveLength(2);
       expect(connectedDrivers.map((d) => d.id)).toEqual([
-        'aa:bb:cc:dd:ee:01',
-        'aa:bb:cc:dd:ee:02',
+        'rgfx-driver-0001',
+        'rgfx-driver-0002',
       ]);
     });
 
@@ -155,15 +155,15 @@ describe('UdpClientImpl', () => {
     it('should send only to specified drivers with full MAC addresses', () => {
       const payload: EffectPayload = {
         effect: 'score',
-        drivers: ['aa:bb:cc:dd:ee:01', 'aa:bb:cc:dd:ee:02'],
+        drivers: ['rgfx-driver-0001', 'rgfx-driver-0002'],
         hint: { visual: 'pulse', color: '#00FF00' },
       };
 
       udpClient.broadcast(payload);
 
       // Should call sendToDrivers with only the specified drivers
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('aa:bb:cc:dd:ee:01');
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('aa:bb:cc:dd:ee:02');
+      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
+      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0002');
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(2);
     });
 
@@ -199,7 +199,7 @@ describe('UdpClientImpl', () => {
       const payload: EffectPayload = {
         effect: 'test',
         drivers: [
-          'aa:bb:cc:dd:ee:01', // Full MAC
+          'rgfx-driver-0001', // Full MAC
           'F8:CF:68', // Short-form MAC
         ],
         hint: { visual: 'wipe' },
@@ -253,7 +253,7 @@ describe('UdpClientImpl', () => {
     it('should remove drivers property from UDP payload', () => {
       const payload: EffectPayload = {
         effect: 'test',
-        drivers: ['F8:9A:58'], // This should be removed from UDP packet
+        drivers: ['rgfx-driver-0001'], // This should be removed from UDP packet
         hint: { visual: 'pulse', color: '#00FF00' },
       };
 
@@ -304,10 +304,10 @@ describe('UdpClientImpl', () => {
         hint: { visual: 'fade', color: '#FF0000' },
       };
 
-      udpClient.send('aa:bb:cc:dd:ee:01', payload);
+      udpClient.send('rgfx-driver-0001', payload);
 
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith(
-        'aa:bb:cc:dd:ee:01',
+        'rgfx-driver-0001',
       );
     });
 
@@ -323,7 +323,7 @@ describe('UdpClientImpl', () => {
       const payload: EffectPayload = { effect: 'test' };
 
       expect(() =>
-        { udpClient.send('aa:bb:cc:dd:ee:04', payload); },
+        { udpClient.send('rgfx-driver-0004', payload); },
       ).not.toThrow();
     });
 
@@ -332,7 +332,7 @@ describe('UdpClientImpl', () => {
 
       // driver-3 is not connected
       expect(() =>
-        { udpClient.send('aa:bb:cc:dd:ee:03', payload); },
+        { udpClient.send('rgfx-driver-0003', payload); },
       ).not.toThrow();
     });
   });
@@ -344,15 +344,15 @@ describe('UdpClientImpl', () => {
         hint: { visual: 'sparkle', count: 10 },
       };
 
-      const driverIds = ['aa:bb:cc:dd:ee:01', 'aa:bb:cc:dd:ee:02'];
+      const driverIds = ['rgfx-driver-0001', 'rgfx-driver-0002'];
 
       udpClient.sendToDrivers(driverIds, payload);
 
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith(
-        'aa:bb:cc:dd:ee:01',
+        'rgfx-driver-0001',
       );
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith(
-        'aa:bb:cc:dd:ee:02',
+        'rgfx-driver-0002',
       );
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(2);
     });
@@ -367,9 +367,9 @@ describe('UdpClientImpl', () => {
     it('should continue on invalid driver IDs', () => {
       const payload: EffectPayload = { effect: 'test' };
       const driverIds = [
-        'aa:bb:cc:dd:ee:01',
+        'rgfx-driver-0001',
         'nonexistent',
-        'aa:bb:cc:dd:ee:02',
+        'rgfx-driver-0002',
       ];
 
       expect(() => { udpClient.sendToDrivers(driverIds, payload); }).not.toThrow();
@@ -381,7 +381,7 @@ describe('UdpClientImpl', () => {
     it('should handle simple effect payloads', () => {
       const payload: EffectPayload = { effect: 'generic' };
 
-      expect(() => { udpClient.send('aa:bb:cc:dd:ee:01', payload); }).not.toThrow();
+      expect(() => { udpClient.send('rgfx-driver-0001', payload); }).not.toThrow();
     });
 
     it('should handle complex effect payloads with hints', () => {
@@ -396,7 +396,7 @@ describe('UdpClientImpl', () => {
         },
       };
 
-      expect(() => { udpClient.send('aa:bb:cc:dd:ee:01', payload); }).not.toThrow();
+      expect(() => { udpClient.send('rgfx-driver-0001', payload); }).not.toThrow();
     });
 
     it('should handle payloads with additional properties', () => {
@@ -413,7 +413,7 @@ describe('UdpClientImpl', () => {
         },
       };
 
-      expect(() => { udpClient.send('aa:bb:cc:dd:ee:01', payload); }).not.toThrow();
+      expect(() => { udpClient.send('rgfx-driver-0001', payload); }).not.toThrow();
     });
   });
 });

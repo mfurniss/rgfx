@@ -38,7 +38,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] MacOS hub app as a signed DMG installer
 [X] Multiple driver connections with connection pulse effect
 [X] Setup Claude agents for PlatformIO, MAME and Electron TS React
-[ ] Monitor UPD packet loss using MQTT
+[ ] Monitor UDP packet loss using MQTT
 [X] Fix white flash connection bug
 [X] Improve hub drivers.json and led-configs json files
 [X] Linear lookup table for matrix coordinate transforms
@@ -53,3 +53,6 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] ESP32 embedded unit and integration tests
 [X] Selective driver event routing
 [ ] Driver config UI
+[X] New driver ID format
+[ ] Display driver firmware version in Hub
+[ ] Fix MAME Lua file writing bug - stops writing to file
