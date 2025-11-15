@@ -68,3 +68,34 @@ export const CONFIG_DIRECTORY = "config";
  * Set to false in production to use installed mappers from user data.
  */
 export const USE_SOURCE_MAPPERS = true;
+
+// ============================================================================
+// Event File Reader Configuration
+// ============================================================================
+
+/**
+ * Interval for health check polling of event file watcher (milliseconds).
+ * The EventFileReader performs a health check every 5 seconds to ensure:
+ * - File watcher is still active
+ * - File exists when expected
+ * - New events are detected even if fs.watch misses changes
+ */
+export const EVENT_FILE_HEALTH_CHECK_INTERVAL_MS = 5000;
+
+/**
+ * Maximum number of automatic watcher restarts before giving up.
+ * If the file watcher fails repeatedly, it will attempt to restart up to this many times.
+ */
+export const EVENT_FILE_MAX_WATCHER_RESTARTS = 10;
+
+/**
+ * Maximum number of retry attempts for reading event file data.
+ * If a read fails due to transient errors, it will retry up to this many times with exponential backoff.
+ */
+export const EVENT_FILE_MAX_READ_RETRIES = 3;
+
+/**
+ * Initial retry delay in milliseconds for event file read failures.
+ * Subsequent retries use exponential backoff (delay × 2^retry_count).
+ */
+export const EVENT_FILE_RETRY_DELAY_MS = 100;
