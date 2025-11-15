@@ -251,13 +251,11 @@ void reconnectMQTT() {
 
 	log("Attempting MQTT connection to " + MQTT_SERVER + "...");
 
-	// Create unique client ID based on MAC address (stable across reboots)
+	// Create unique client ID based on device name (rgfx-driver-XXXX)
 	String clientId = Utils::getDeviceName();
 
-	// Build status topic for LWT: rgfx/driver/{mac}/status
-	String driverId = WiFi.macAddress();
-	driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
-	String statusTopic = "rgfx/driver/" + driverId + "/status";
+	// Build status topic for LWT: rgfx/driver/{driver-id}/status
+	String statusTopic = "rgfx/driver/" + clientId + "/status";
 
 	// Set Last Will and Testament (LWT) - broker publishes this if connection drops
 	// Retained flag ensures Hub receives offline status even if it subscribes late
@@ -281,15 +279,25 @@ void reconnectMQTT() {
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
 		mqttClient.subscribe("rgfx/system/discover", 2);
 
-		// Subscribe to driver-specific topics
-		String driverId = WiFi.macAddress();
-		driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
-		String configTopic = "rgfx/driver/" + driverId + "/config";
-		String testTopic = "rgfx/driver/" + driverId + "/test";
-		String setIdTopic = "rgfx/driver/" + driverId + "/set-id";
+		// Subscribe to driver-specific topics using driver ID
+		String configTopic = "rgfx/driver/" + clientId + "/config";
+		String testTopic = "rgfx/driver/" + clientId + "/test";
+		String setIdTopic = "rgfx/driver/" + clientId + "/set-id";
 		mqttClient.subscribe(configTopic.c_str(), 2);
 		mqttClient.subscribe(testTopic.c_str(), 2);
 		mqttClient.subscribe(setIdTopic.c_str(), 2);
+
+		// If driver has no ID (empty), also subscribe to MAC-based set-id topic
+		// This allows Hub to send set-id command using MAC address
+		String deviceId = Utils::getDeviceId();
+		if (deviceId.length() == 0) {
+			String macAddress = WiFi.macAddress();
+			macAddress.replace(":", "-");
+			String macSetIdTopic = "rgfx/driver/" + macAddress + "/set-id";
+			mqttClient.subscribe(macSetIdTopic.c_str(), 2);
+			log("Driver has no ID - subscribing to MAC-based set-id topic:");
+			log("  - " + macSetIdTopic);
+		}
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
@@ -419,10 +427,9 @@ void publishTestState(const String& state) {
 		return;
 	}
 
-	// Build topic: rgfx/driver/{mac}/test/state
-	String driverId = WiFi.macAddress();
-	driverId.replace(":", "-");  // Format MAC as AB-CD-EF-12-34-56
-	String topic = "rgfx/driver/" + driverId + "/test/state";
+	// Build topic: rgfx/driver/{driver-id}/test/state
+	String deviceName = Utils::getDeviceName();
+	String topic = "rgfx/driver/" + deviceName + "/test/state";
 
 	// Publish state with RETAIN flag and QoS 2
 	// Retained messages ensure Hub receives state even if it subscribes late

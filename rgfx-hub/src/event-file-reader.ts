@@ -71,7 +71,6 @@ export class EventFileReader {
       // Watch the file for changes
       this.watcher = watch(this.filePath, (eventType) => {
         if (eventType === "change" && this.onEventCallback) {
-          log.debug("fs.watch detected change");
           this.readNewLines(this.onEventCallback);
         }
       });
