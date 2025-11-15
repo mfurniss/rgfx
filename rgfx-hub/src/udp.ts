@@ -27,7 +27,7 @@ export class Udp {
       this.onErrorCallback?.(err);
     });
 
-    log.info(`UDP configured for ${this.ip}:${this.port}`);
+    log.debug(`UDP configured for ${this.ip}:${this.port}`);
   }
 
   setErrorCallback(callback: (error: Error) => void) {
@@ -59,6 +59,6 @@ export class Udp {
 
   stop() {
     this.socket.close();
-    log.info("UDP stopped");
+    log.debug("UDP stopped");
   }
 }

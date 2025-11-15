@@ -11,7 +11,6 @@ import {
 import type { Driver } from "../types";
 import InfoSection, { type InfoRowData } from "./components/info-section";
 import { formatBytes, formatUptime, formatTimestamp } from "./utils/formatters";
-import { useDriverStore } from "./store/driver-store";
 
 interface DriverCardProps {
   driver: Driver;
@@ -20,6 +19,7 @@ interface DriverCardProps {
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
+  const [testRequestPending, setTestRequestPending] = useState(false);
 
   // Update every second for live timestamps and uptime
   useEffect(() => {
@@ -32,17 +32,24 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     };
   }, []);
 
+  // Clear pending state when driver's testActive state changes
+  useEffect(() => {
+    setTestRequestPending(false);
+  }, [driver.testActive]);
+
   const handleTestToggle = () => {
+    // Prevent rapid clicks while request is in flight
+    if (testRequestPending) {
+      return;
+    }
+
     // Toggle based on current state - if undefined, default to false (turning on)
     const newTestMode = !(driver.testActive ?? false);
 
-    // Optimistic update - update UI immediately for instant feedback
-    useDriverStore.getState().onDriverUpdated({
-      ...driver,
-      testActive: newTestMode
-    });
+    // Mark request as pending (UI will reconcile when driver confirms)
+    setTestRequestPending(true);
 
-    // Send command - actual state will reconcile when driver responds
+    // Send command - UI will update when driver publishes state change
     void window.rgfx.testDriverLEDs(driver.id, newTestMode);
   };
 
@@ -188,9 +195,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
                 size="small"
                 startIcon={<ScienceIcon />}
                 onClick={handleTestToggle}
-                disabled={!driver.connected}
+                disabled={!driver.connected || testRequestPending}
               >
-                Test LEDs {driver.testActive ? "ON" : "OFF"}
+                {testRequestPending
+                  ? "Processing..."
+                  : `Test LEDs ${driver.testActive ? "ON" : "OFF"}`}
               </Button>
             </span>
           </Tooltip>

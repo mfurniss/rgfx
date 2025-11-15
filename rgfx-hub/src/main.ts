@@ -34,6 +34,12 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 // Initialize electron-log
 log.initialize();
 
+// Configure log level - can be set via LOG_LEVEL env var
+// Levels: error, warn, info, debug (default: info)
+const logLevel = (process.env.LOG_LEVEL ?? 'info') as 'error' | 'warn' | 'info' | 'debug';
+log.transports.console.level = logLevel;
+log.transports.file.level = logLevel;
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();

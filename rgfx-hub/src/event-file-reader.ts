@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, statSync, existsSync, mkdirSync } from "node:fs";
+import { watch, readFileSync, writeFileSync, statSync, existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import log from "electron-log/main";
@@ -47,10 +47,10 @@ export class EventFileReader {
 
     // Check if file exists
     if (existsSync(this.filePath)) {
-      // File exists - start at the end and watch for changes
-      const stats = statSync(this.filePath);
-      this.filePosition = stats.size;
-      log.info(`Event file exists. Starting at position: ${this.filePosition}`);
+      // File exists - truncate it to clear stale events from previous sessions
+      writeFileSync(this.filePath, "");
+      this.filePosition = 0;
+      log.info("Event file truncated. Waiting for fresh events from MAME...");
       this.watchFile();
     } else {
       // File doesn't exist yet - watch the directory for file creation

@@ -253,7 +253,7 @@ export class MappingEngine {
 
       if (handler) {
         this.gameHandlers.set(gameName, handler);
-        this.context.log.info(`Loaded game mapper: ${gameName}`);
+        this.context.log.debug(`Loaded game mapper: ${gameName}`);
       } else {
         this.context.log.warn(
           `Game mapper ${gameName}.js has no valid handler function`,
