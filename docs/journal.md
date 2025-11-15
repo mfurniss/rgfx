@@ -166,8 +166,14 @@ Merged driver-hardware branch completing the transition to SSDP-based discovery 
 
 ---
 
-**Total Development Time:** 32 days (October 11 - November 12, 2025)
-**Total Commits:** 178
+## November 14, 2025
+
+Implemented auto-incrementing firmware version system using `git describe` for development builds. The version format `<tag>-dev.<commits>+<hash>[-dirty]` provides automatic build numbering where the commit count increments with each commit, eliminating manual version management. Added firmware version to driver sysInfo payload and displayed it in the Hub UI driver card Hardware section. Updated OTA upload script to use proper driver IDs instead of MAC-based hostnames, completing the driver ID migration started earlier.
+
+---
+
+**Total Development Time:** 34 days (October 11 - November 14, 2025)
+**Total Commits:** 180
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
@@ -179,3 +185,4 @@ Merged driver-hardware branch completing the transition to SSDP-based discovery 
 - LED test mode integrated as proper effect
 - Dynamic color correction configuration
 - Modular ESP32 source organization
+- Auto-incrementing firmware version system with git describe
