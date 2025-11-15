@@ -59,8 +59,10 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   // DEBUG: Log when drivers prop changes
   useEffect(() => {
     const renderTime = Date.now();
-    console.log(`[DEBUG] DriverListTable re-rendered at ${renderTime}, drivers count=${drivers.length}`);
-    drivers.forEach(d => {
+    console.log(
+      `[DEBUG] DriverListTable re-rendered at ${renderTime}, drivers count=${drivers.length}`
+    );
+    drivers.forEach((d) => {
       console.log(`[DEBUG] Driver ${d.id}: connected=${d.connected}, lastSeen=${d.lastSeen}`);
     });
   }, [drivers]);

@@ -31,11 +31,7 @@ describe('LoggerWrapper', () => {
     it('should forward additional arguments', () => {
       const obj = { foo: 'bar' };
       logger.debug('Debug with args', 123, obj);
-      expect(mockElectronLog.debug).toHaveBeenCalledWith(
-        'Debug with args',
-        123,
-        obj
-      );
+      expect(mockElectronLog.debug).toHaveBeenCalledWith('Debug with args', 123, obj);
     });
 
     it('should handle no additional arguments', () => {
@@ -62,11 +58,7 @@ describe('LoggerWrapper', () => {
     it('should forward additional arguments', () => {
       const arr = [1, 2, 3];
       logger.info('Info with args', 'string', arr);
-      expect(mockElectronLog.info).toHaveBeenCalledWith(
-        'Info with args',
-        'string',
-        arr
-      );
+      expect(mockElectronLog.info).toHaveBeenCalledWith('Info with args', 'string', arr);
     });
 
     it('should handle no additional arguments', () => {
@@ -93,10 +85,7 @@ describe('LoggerWrapper', () => {
     it('should forward additional arguments', () => {
       const error = new Error('Test error');
       logger.warn('Warning with error', error);
-      expect(mockElectronLog.warn).toHaveBeenCalledWith(
-        'Warning with error',
-        error
-      );
+      expect(mockElectronLog.warn).toHaveBeenCalledWith('Warning with error', error);
     });
 
     it('should handle no additional arguments', () => {
@@ -110,10 +99,7 @@ describe('LoggerWrapper', () => {
       logger.warn('Second warning');
       expect(mockElectronLog.warn).toHaveBeenCalledTimes(2);
       expect(mockElectronLog.warn).toHaveBeenNthCalledWith(1, 'First warning');
-      expect(mockElectronLog.warn).toHaveBeenNthCalledWith(
-        2,
-        'Second warning'
-      );
+      expect(mockElectronLog.warn).toHaveBeenNthCalledWith(2, 'Second warning');
     });
   });
 
@@ -127,11 +113,7 @@ describe('LoggerWrapper', () => {
       const error = new Error('Critical error');
       const context = { userId: 123, action: 'save' };
       logger.error('Error with context', error, context);
-      expect(mockElectronLog.error).toHaveBeenCalledWith(
-        'Error with context',
-        error,
-        context
-      );
+      expect(mockElectronLog.error).toHaveBeenCalledWith('Error with context', error, context);
     });
 
     it('should handle no additional arguments', () => {
@@ -151,10 +133,7 @@ describe('LoggerWrapper', () => {
     it('should handle Error objects', () => {
       const error = new Error('Test error');
       logger.error('Error occurred', error);
-      expect(mockElectronLog.error).toHaveBeenCalledWith(
-        'Error occurred',
-        error
-      );
+      expect(mockElectronLog.error).toHaveBeenCalledWith('Error occurred', error);
     });
   });
 
@@ -194,10 +173,7 @@ describe('LoggerWrapper', () => {
 
     it('should handle undefined values', () => {
       logger.info('Undefined value', undefined);
-      expect(mockElectronLog.info).toHaveBeenCalledWith(
-        'Undefined value',
-        undefined
-      );
+      expect(mockElectronLog.info).toHaveBeenCalledWith('Undefined value', undefined);
     });
 
     it('should handle empty strings', () => {
@@ -216,10 +192,7 @@ describe('LoggerWrapper', () => {
       };
 
       logger.info('Complex object', complex);
-      expect(mockElectronLog.info).toHaveBeenCalledWith(
-        'Complex object',
-        complex
-      );
+      expect(mockElectronLog.info).toHaveBeenCalledWith('Complex object', complex);
     });
   });
 

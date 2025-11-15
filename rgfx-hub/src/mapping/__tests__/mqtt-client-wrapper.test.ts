@@ -110,9 +110,7 @@ describe('MqttClientWrapper', () => {
         callback(error);
       });
 
-      await expect(
-        mqttClient.publish('test/topic', 'message'),
-      ).rejects.toThrow('Network error');
+      await expect(mqttClient.publish('test/topic', 'message')).rejects.toThrow('Network error');
     });
 
     it('should reject on JSON serialization error', async () => {
@@ -120,9 +118,7 @@ describe('MqttClientWrapper', () => {
       const circular: any = { a: 1 };
       circular.self = circular;
 
-      await expect(
-        mqttClient.publish('test/topic', circular),
-      ).rejects.toThrow();
+      await expect(mqttClient.publish('test/topic', circular)).rejects.toThrow();
     });
 
     it('should handle null callback error', async () => {
@@ -130,9 +126,7 @@ describe('MqttClientWrapper', () => {
         callback(null);
       });
 
-      await expect(
-        mqttClient.publish('test/topic', 'message'),
-      ).resolves.toBeUndefined();
+      await expect(mqttClient.publish('test/topic', 'message')).resolves.toBeUndefined();
     });
   });
 

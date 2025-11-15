@@ -13,9 +13,7 @@ const DriverDetailPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Use reactive selector that subscribes to specific driver changes
-  const driver = useDriverStore(state =>
-    state.drivers.find(d => d.id === id)
-  );
+  const driver = useDriverStore((state) => state.drivers.find((d) => d.id === id));
 
   if (!id) {
     return (
@@ -41,9 +39,7 @@ const DriverDetailPage: React.FC = () => {
           <Typography variant="h6" color="error" gutterBottom>
             Driver Not Found
           </Typography>
-          <Typography color="text.secondary">
-            No driver found with ID: {id}
-          </Typography>
+          <Typography color="text.secondary">No driver found with ID: {id}</Typography>
         </Paper>
       </Box>
     );

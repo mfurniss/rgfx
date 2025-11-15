@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { DriverRegistry } from "../driver-registry";
-import { DriverPersistence } from "../driver-persistence";
-import type { DriverSystemInfo } from "../types";
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { DriverRegistry } from '../driver-registry';
+import { DriverPersistence } from '../driver-persistence';
+import type { DriverSystemInfo } from '../types';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -27,7 +27,7 @@ vi.mock('fs', () => ({
   writeFileSync: vi.fn(),
 }));
 
-describe("DriverRegistry", () => {
+describe('DriverRegistry', () => {
   let registry: DriverRegistry;
   let persistence: DriverPersistence;
 
@@ -38,17 +38,15 @@ describe("DriverRegistry", () => {
     registry = new DriverRegistry(persistence);
   });
 
-  const createMockSysInfo = (
-    overrides: Partial<DriverSystemInfo> = {}
-  ): DriverSystemInfo => ({
+  const createMockSysInfo = (overrides: Partial<DriverSystemInfo> = {}): DriverSystemInfo => ({
     // Network information
-    ip: "192.168.1.100",
-    mac: "AA:BB:CC:DD:EE:FF",
-    hostname: "esp32-driver",
+    ip: '192.168.1.100',
+    mac: 'AA:BB:CC:DD:EE:FF',
+    hostname: 'esp32-driver',
     rssi: -50,
-    ssid: "TestNetwork",
+    ssid: 'TestNetwork',
     // Chip information
-    chipModel: "ESP32",
+    chipModel: 'ESP32',
     chipRevision: 1,
     chipCores: 2,
     cpuFreqMHz: 240,
@@ -60,7 +58,7 @@ describe("DriverRegistry", () => {
     psramSize: 0,
     freePsram: 0,
     // Software information
-    sdkVersion: "v4.4",
+    sdkVersion: 'v4.4',
     sketchSize: 1000000,
     freeSketchSpace: 2000000,
     uptimeMs: 60000,
@@ -70,8 +68,8 @@ describe("DriverRegistry", () => {
     ...overrides,
   });
 
-  describe("registerDriver", () => {
-    it("should register a new driver", () => {
+  describe('registerDriver', () => {
+    it('should register a new driver', () => {
       const sysInfo = createMockSysInfo();
       const device = registry.registerDriver(sysInfo);
 
@@ -90,14 +88,14 @@ describe("DriverRegistry", () => {
       expect(device.id).toBe('unknown');
     });
 
-    it("should use IP as name when hostname is not available", () => {
+    it('should use IP as name when hostname is not available', () => {
       const sysInfo = createMockSysInfo({ hostname: undefined });
       const device = registry.registerDriver(sysInfo);
 
       expect(device.name).toBe(sysInfo.ip);
     });
 
-    it("should initialize stats on first registration", () => {
+    it('should initialize stats on first registration', () => {
       const sysInfo = createMockSysInfo();
       const device = registry.registerDriver(sysInfo);
 
@@ -109,7 +107,7 @@ describe("DriverRegistry", () => {
       });
     });
 
-    it("should call onDriverConnected callback for new driver", () => {
+    it('should call onDriverConnected callback for new driver', () => {
       const callback = vi.fn();
       registry.onDriverConnected(callback);
 
@@ -119,7 +117,7 @@ describe("DriverRegistry", () => {
       expect(callback).toHaveBeenCalledWith(device);
     });
 
-    it("should increment message count on repeated registration", () => {
+    it('should increment message count on repeated registration', () => {
       const sysInfo = createMockSysInfo();
 
       const device1 = registry.registerDriver(sysInfo);
@@ -129,7 +127,7 @@ describe("DriverRegistry", () => {
       expect(device2.stats.mqttMessagesReceived).toBe(2);
     });
 
-    it("should update lastSeen timestamp on heartbeat", () => {
+    it('should update lastSeen timestamp on heartbeat', () => {
       const sysInfo = createMockSysInfo();
 
       const device1 = registry.registerDriver(sysInfo);
@@ -145,7 +143,7 @@ describe("DriverRegistry", () => {
       vi.useRealTimers();
     });
 
-    it("should call onDriverConnected when reconnecting disconnected driver", () => {
+    it('should call onDriverConnected when reconnecting disconnected driver', () => {
       const callback = vi.fn();
       registry.onDriverConnected(callback);
 
@@ -167,76 +165,78 @@ describe("DriverRegistry", () => {
     });
   });
 
-  describe("findByIp", () => {
-    it("should find driver by IP address", () => {
-      const sysInfo = createMockSysInfo({ ip: "192.168.1.100" });
+  describe('findByIp', () => {
+    it('should find driver by IP address', () => {
+      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
       registry.registerDriver(sysInfo);
 
-      const found = registry.findByIp("192.168.1.100");
+      const found = registry.findByIp('192.168.1.100');
       expect(found).toBeDefined();
-      expect(found?.ip).toBe("192.168.1.100");
+      expect(found?.ip).toBe('192.168.1.100');
     });
 
-    it("should return undefined for non-existent IP", () => {
-      const found = registry.findByIp("192.168.1.200");
+    it('should return undefined for non-existent IP', () => {
+      const found = registry.findByIp('192.168.1.200');
       expect(found).toBeUndefined();
     });
 
-    it("should find correct driver among multiple drivers", () => {
-      registry.registerDriver(createMockSysInfo({ ip: "192.168.1.100" }));
-      registry.registerDriver(createMockSysInfo({
-        ip: "192.168.1.101",
-        mac: "11:22:33:44:55:66"
-      }));
+    it('should find correct driver among multiple drivers', () => {
+      registry.registerDriver(createMockSysInfo({ ip: '192.168.1.100' }));
+      registry.registerDriver(
+        createMockSysInfo({
+          ip: '192.168.1.101',
+          mac: '11:22:33:44:55:66',
+        })
+      );
 
-      const found = registry.findByIp("192.168.1.101");
-      expect(found?.ip).toBe("192.168.1.101");
+      const found = registry.findByIp('192.168.1.101');
+      expect(found?.ip).toBe('192.168.1.101');
     });
   });
 
-  describe("trackUdpSent", () => {
-    it("should increment udpMessagesSent on success", () => {
-      const sysInfo = createMockSysInfo({ ip: "192.168.1.100" });
+  describe('trackUdpSent', () => {
+    it('should increment udpMessagesSent on success', () => {
+      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
       registry.registerDriver(sysInfo);
 
-      const device = registry.trackUdpSent("192.168.1.100", true);
+      const device = registry.trackUdpSent('192.168.1.100', true);
 
       expect(device?.stats.udpMessagesSent).toBe(1);
       expect(device?.stats.udpMessagesFailed).toBe(0);
     });
 
-    it("should increment udpMessagesFailed on failure", () => {
-      const sysInfo = createMockSysInfo({ ip: "192.168.1.100" });
+    it('should increment udpMessagesFailed on failure', () => {
+      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
       registry.registerDriver(sysInfo);
 
-      const device = registry.trackUdpSent("192.168.1.100", false);
+      const device = registry.trackUdpSent('192.168.1.100', false);
 
       expect(device?.stats.udpMessagesSent).toBe(0);
       expect(device?.stats.udpMessagesFailed).toBe(1);
     });
 
-    it("should return undefined for non-existent IP", () => {
-      const device = registry.trackUdpSent("192.168.1.200", true);
+    it('should return undefined for non-existent IP', () => {
+      const device = registry.trackUdpSent('192.168.1.200', true);
       expect(device).toBeUndefined();
     });
 
-    it("should call onDriverConnected callback after tracking", () => {
+    it('should call onDriverConnected callback after tracking', () => {
       const callback = vi.fn();
       registry.onDriverConnected(callback);
 
-      const sysInfo = createMockSysInfo({ ip: "192.168.1.100" });
+      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
       registry.registerDriver(sysInfo);
 
       // Reset mock to only count trackUdpSent callback
       callback.mockClear();
 
-      registry.trackUdpSent("192.168.1.100", true);
+      registry.trackUdpSent('192.168.1.100', true);
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe("processHeartbeatFailures", () => {
-    it("should mark driver as disconnected after reaching failure threshold", () => {
+  describe('processHeartbeatFailures', () => {
+    it('should mark driver as disconnected after reaching failure threshold', () => {
       const callback = vi.fn();
       registry.onDriverDisconnected(callback);
 
@@ -265,7 +265,7 @@ describe("DriverRegistry", () => {
       expect(device?.failedHeartbeats).toBe(2);
     });
 
-    it("should reset failure counter when driver responds", () => {
+    it('should reset failure counter when driver responds', () => {
       const callback = vi.fn();
       registry.onDriverDisconnected(callback);
 
@@ -291,7 +291,7 @@ describe("DriverRegistry", () => {
       expect(device?.failedHeartbeats).toBe(0);
     });
 
-    it("should not re-disconnect already disconnected driver", () => {
+    it('should not re-disconnect already disconnected driver', () => {
       const callback = vi.fn();
       registry.onDriverDisconnected(callback);
 
@@ -312,16 +312,16 @@ describe("DriverRegistry", () => {
     });
   });
 
-  describe("getConnectedCount", () => {
-    it("should return 0 for empty registry", () => {
+  describe('getConnectedCount', () => {
+    it('should return 0 for empty registry', () => {
       expect(registry.getConnectedCount()).toBe(0);
     });
 
-    it("should count only connected drivers", () => {
-      const sysInfo1 = createMockSysInfo({ ip: "192.168.1.100" });
+    it('should count only connected drivers', () => {
+      const sysInfo1 = createMockSysInfo({ ip: '192.168.1.100' });
       const sysInfo2 = createMockSysInfo({
-        ip: "192.168.1.101",
-        mac: "11:22:33:44:55:66"
+        ip: '192.168.1.101',
+        mac: '11:22:33:44:55:66',
       });
 
       registry.registerDriver(sysInfo1);
@@ -338,16 +338,16 @@ describe("DriverRegistry", () => {
     });
   });
 
-  describe("getAllDrivers", () => {
-    it("should return empty array for empty registry", () => {
+  describe('getAllDrivers', () => {
+    it('should return empty array for empty registry', () => {
       expect(registry.getAllDrivers()).toEqual([]);
     });
 
-    it("should return all drivers (connected and disconnected)", () => {
-      const sysInfo1 = createMockSysInfo({ ip: "192.168.1.100" });
+    it('should return all drivers (connected and disconnected)', () => {
+      const sysInfo1 = createMockSysInfo({ ip: '192.168.1.100' });
       const sysInfo2 = createMockSysInfo({
-        ip: "192.168.1.101",
-        mac: "11:22:33:44:55:66"
+        ip: '192.168.1.101',
+        mac: '11:22:33:44:55:66',
       });
 
       registry.registerDriver(sysInfo1);

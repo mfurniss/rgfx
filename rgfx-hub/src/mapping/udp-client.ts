@@ -18,7 +18,6 @@ import { UDP_PORT } from '../config/constants';
  * semantic effect payloads as JSON.
  */
 export class UdpClientImpl implements UdpClient {
-
   constructor(private driverRegistry: DriverRegistry) {}
 
   /**
@@ -31,14 +30,12 @@ export class UdpClientImpl implements UdpClient {
     const { drivers: targetDriverIds, ...effectData } = payload;
 
     // Get all connected drivers with IPs
-    let drivers = this.driverRegistry
-      .getAllDrivers()
-      .filter((d) => d.connected && d.ip);
+    let drivers = this.driverRegistry.getAllDrivers().filter((d) => d.connected && d.ip);
 
     // Apply selective routing if specified
     if (targetDriverIds?.length) {
       // Filter drivers by sequential ID (e.g., "rgfx-driver-0001")
-      drivers = drivers.filter(d => targetDriverIds.includes(d.id));
+      drivers = drivers.filter((d) => targetDriverIds.includes(d.id));
 
       if (drivers.length === 0) {
         log.debug(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);

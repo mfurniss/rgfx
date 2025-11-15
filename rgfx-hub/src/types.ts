@@ -9,20 +9,24 @@ export type DeviceType = 'strip' | 'matrix';
 
 export type LEDLayoutType =
   | 'strip'
-  | 'matrix-tl-h' | 'matrix-tl-h-snake'
-  | 'matrix-tr-h' | 'matrix-tr-h-snake'
-  | 'matrix-bl-h' | 'matrix-bl-h-snake'
-  | 'matrix-br-h' | 'matrix-br-h-snake'
-  | 'matrix-tl-v' | 'matrix-tl-v-snake'
-  | 'matrix-tr-v' | 'matrix-tr-v-snake'
-  | 'matrix-bl-v' | 'matrix-bl-v-snake'
-  | 'matrix-br-v' | 'matrix-br-v-snake';
+  | 'matrix-tl-h'
+  | 'matrix-tl-h-snake'
+  | 'matrix-tr-h'
+  | 'matrix-tr-h-snake'
+  | 'matrix-bl-h'
+  | 'matrix-bl-h-snake'
+  | 'matrix-br-h'
+  | 'matrix-br-h-snake'
+  | 'matrix-tl-v'
+  | 'matrix-tl-v-snake'
+  | 'matrix-tr-v'
+  | 'matrix-tr-v-snake'
+  | 'matrix-bl-v'
+  | 'matrix-bl-v-snake'
+  | 'matrix-br-v'
+  | 'matrix-br-v-snake';
 
-export type ColorCorrection =
-  | 'TypicalLEDStrip'
-  | 'Typical8mmPixel'
-  | 'UncorrectedColor';
-
+export type ColorCorrection = 'TypicalLEDStrip' | 'Typical8mmPixel' | 'UncorrectedColor';
 
 export interface LEDDevice {
   id: string;
@@ -147,9 +151,9 @@ export interface Driver {
 }
 
 export interface SystemStatus {
-  mqttBroker: "running" | "stopped" | "error";
-  udpServer: "active" | "inactive" | "error";
-  eventReader: "monitoring" | "stopped" | "error";
+  mqttBroker: 'running' | 'stopped' | 'error';
+  udpServer: 'active' | 'inactive' | 'error';
+  eventReader: 'monitoring' | 'stopped' | 'error';
   driversConnected: number;
   hubIp: string;
 }

@@ -183,7 +183,10 @@ export class DriverPersistence {
    * Update driver metadata (name, description)
    * Does not update ledConfig - use setDriverLEDConfig for that
    */
-  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'name' | 'description'>>): boolean {
+  updateDriver(
+    id: string,
+    updates: Partial<Pick<PersistedDriver, 'name' | 'description'>>
+  ): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
       log.warn(`Cannot update non-existent driver: ${id}`);
@@ -262,7 +265,7 @@ export class DriverPersistence {
     const allDrivers = this.getAllDrivers();
 
     const existingNumbers = allDrivers
-      .map(d => (/^rgfx-driver-(\d+)$/.exec(d.id))?.[1])
+      .map((d) => /^rgfx-driver-(\d+)$/.exec(d.id)?.[1])
       .filter((n): n is string => n !== undefined)
       .map(Number);
 

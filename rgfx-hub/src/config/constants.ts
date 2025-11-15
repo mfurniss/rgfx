@@ -27,7 +27,7 @@ export const UDP_PORT = 8888;
 export const SSDP_PORT = 1900;
 
 /** SSDP service URN for MQTT broker discovery */
-export const SSDP_SERVICE_URN = "urn:rgfx:service:mqtt:1";
+export const SSDP_SERVICE_URN = 'urn:rgfx:service:mqtt:1';
 
 /** Delay after MQTT broker initialization before sending discovery ping (milliseconds) */
 export const MQTT_BROKER_INIT_DELAY_MS = 1000;
@@ -53,7 +53,7 @@ export const DISCOVERY_INTERVAL_MS = 10000; // 10 seconds
 export const HEARTBEAT_FAILURE_THRESHOLD = 2;
 
 /** MQTT topic for system-wide discovery messages */
-export const MQTT_TOPIC_DISCOVERY = "rgfx/system/discover";
+export const MQTT_TOPIC_DISCOVERY = 'rgfx/system/discover';
 
 // ============================================================================
 // Application Window Configuration
@@ -70,10 +70,10 @@ export const MAIN_WINDOW_HEIGHT = 600;
 // ============================================================================
 
 /** Version identifier for configuration file format */
-export const CONFIG_VERSION = "1.0";
+export const CONFIG_VERSION = '1.0';
 
 /** Base directory for configuration files (relative to app data directory) */
-export const CONFIG_DIRECTORY = "config";
+export const CONFIG_DIRECTORY = 'config';
 
 /**
  * Development flag to load mappers from source instead of user data directory.
@@ -89,7 +89,7 @@ export const USE_SOURCE_MAPPERS = true;
  * Filename for MAME event log file.
  * MAME Lua scripts write events to this file in ~/.rgfx/ directory.
  */
-export const EVENT_LOG_FILENAME = "mame_events.log";
+export const EVENT_LOG_FILENAME = 'mame_events.log';
 
 /**
  * Interval for health check polling of event file watcher (milliseconds).
@@ -153,19 +153,19 @@ export const MAX_DRIVER_ID_LENGTH = 32;
  * These prevent collisions with system topics and reserved words.
  */
 export const RESERVED_DRIVER_IDS = [
-  "system",
-  "discovery",
-  "discover",
-  "broadcast",
-  "all",
-  "config",
-  "test",
-  "status",
-  "info",
-  "debug",
-  "error",
-  "admin",
-  "root",
+  'system',
+  'discovery',
+  'discover',
+  'broadcast',
+  'all',
+  'config',
+  'test',
+  'status',
+  'info',
+  'debug',
+  'error',
+  'admin',
+  'root',
 ] as const;
 
 // ============================================================================

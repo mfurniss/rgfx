@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,8 +7,8 @@ import {
   Button,
   Typography,
   Box,
-} from "@mui/material";
-import pkg from "../../../package.json";
+} from '@mui/material';
+import pkg from '../../../package.json';
 
 interface AboutDialogProps {
   open: boolean;
@@ -31,8 +31,7 @@ export function AboutDialog({ open, onClose }: AboutDialogProps) {
             Retro Game Effects - LED Control System
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Monitor retro arcade game state and control LED hardware in
-            real-time.
+            Monitor retro arcade game state and control LED hardware in real-time.
           </Typography>
         </Box>
       </DialogContent>

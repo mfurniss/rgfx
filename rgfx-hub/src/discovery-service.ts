@@ -5,9 +5,9 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import log from "electron-log/main";
-import type { Mqtt } from "./mqtt";
-import { DISCOVERY_INTERVAL_MS, MQTT_TOPIC_DISCOVERY } from "./config/constants";
+import log from 'electron-log/main';
+import type { Mqtt } from './mqtt';
+import { DISCOVERY_INTERVAL_MS, MQTT_TOPIC_DISCOVERY } from './config/constants';
 
 export class DiscoveryService {
   private mqtt: Mqtt;
@@ -40,7 +40,7 @@ export class DiscoveryService {
       this.sendDiscoveryRequest();
     }, DISCOVERY_INTERVAL_MS);
 
-    log.info("Discovery service started");
+    log.info('Discovery service started');
   }
 
   // Stop discovery service
@@ -49,7 +49,7 @@ export class DiscoveryService {
       clearInterval(this.discoveryInterval);
       this.discoveryInterval = undefined;
     }
-    log.info("Discovery service stopped");
+    log.info('Discovery service stopped');
   }
 
   // Send discovery request to find drivers
@@ -63,15 +63,15 @@ export class DiscoveryService {
       this.respondedDrivers.clear();
     }
 
-    log.info("Sending driver discovery request...");
-    void this.mqtt.publish(MQTT_TOPIC_DISCOVERY, "ping").catch((error: unknown) => {
-      log.error("Failed to send discovery request:", error);
+    log.info('Sending driver discovery request...');
+    void this.mqtt.publish(MQTT_TOPIC_DISCOVERY, 'ping').catch((error: unknown) => {
+      log.error('Failed to send discovery request:', error);
     });
   }
 
   // Trigger immediate discovery (e.g., after UDP failure)
   triggerImmediateDiscovery() {
-    log.info("Triggering immediate discovery request");
+    log.info('Triggering immediate discovery request');
     this.sendDiscoveryRequest();
   }
 }

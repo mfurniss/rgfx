@@ -21,13 +21,13 @@ const theme = createTheme();
 
 const App: React.FC = () => {
   // Get state from Zustand store
-  const systemStatus = useDriverStore(state => state.systemStatus);
+  const systemStatus = useDriverStore((state) => state.systemStatus);
 
   // Get actions from Zustand store
-  const onDriverConnected = useDriverStore(state => state.onDriverConnected);
-  const onDriverDisconnected = useDriverStore(state => state.onDriverDisconnected);
-  const onDriverUpdated = useDriverStore(state => state.onDriverUpdated);
-  const onSystemStatusUpdate = useDriverStore(state => state.onSystemStatusUpdate);
+  const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
+  const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
+  const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
+  const onSystemStatusUpdate = useDriverStore((state) => state.onSystemStatusUpdate);
 
   useEffect(() => {
     console.log('[APP] Registering IPC listeners');
@@ -35,16 +35,24 @@ const App: React.FC = () => {
     // Wire IPC listeners directly to Zustand actions with debug logging
     const unsubConnected = window.rgfx.onDriverConnected((driver) => {
       const ipcReceiveTime = Date.now();
-      console.log(`[DEBUG] IPC driver:connected received in renderer for ${driver.id} at ${ipcReceiveTime}`);
+      console.log(
+        `[DEBUG] IPC driver:connected received in renderer for ${driver.id} at ${ipcReceiveTime}`
+      );
       onDriverConnected(driver);
-      console.log(`[DEBUG] onDriverConnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`);
+      console.log(
+        `[DEBUG] onDriverConnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`
+      );
     });
 
     const unsubDisconnected = window.rgfx.onDriverDisconnected((driver) => {
       const ipcReceiveTime = Date.now();
-      console.log(`[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`);
+      console.log(
+        `[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`
+      );
       onDriverDisconnected(driver);
-      console.log(`[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`);
+      console.log(
+        `[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`
+      );
     });
 
     const unsubUpdated = window.rgfx.onDriverUpdated((driver) => {
@@ -84,7 +92,9 @@ const App: React.FC = () => {
                   {systemStatus.hubIp}
                 </Typography>
                 <Chip
-                  label={systemStatus.mqttBroker === 'running' ? 'Hub Connected' : 'Hub Disconnected'}
+                  label={
+                    systemStatus.mqttBroker === 'running' ? 'Hub Connected' : 'Hub Disconnected'
+                  }
                   color={systemStatus.mqttBroker === 'running' ? 'success' : 'error'}
                   size="small"
                 />
