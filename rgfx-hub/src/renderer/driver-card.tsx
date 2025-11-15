@@ -155,8 +155,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   const statsRows: InfoRowData[] = [
     { label: 'Driver Uptime', value: formatUptime(currentUptime) },
-    { label: 'Hub First Seen', value: formatTimestamp(driver.firstSeen, now) },
-    { label: 'Hub Last Seen', value: formatTimestamp(driver.lastSeen, now) },
+    { label: 'Hub First Seen', value: formatTimestamp(driver.firstSeen) },
+    { label: 'Hub Last Seen', value: formatTimestamp(driver.lastSeen) },
     { label: 'MQTT Messages', value: driver.stats.mqttMessagesReceived },
     { label: 'MQTT Errors', value: driver.stats.mqttMessagesFailed },
     { label: 'UDP Packets Sent', value: driver.stats.udpMessagesSent },

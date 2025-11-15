@@ -2,7 +2,37 @@
  * Formatting utility functions for displaying data in human-readable formats
  */
 
-import { intervalToDuration } from 'date-fns';
+import { intervalToDuration, formatDistanceToNow, type Locale } from 'date-fns';
+import { enUS } from 'date-fns/locale';
+
+/**
+ * Custom locale for short-format relative times
+ * Converts verbose output like "5 minutes" to "5m"
+ */
+const shortLocale: Locale = {
+  ...enUS,
+  formatDistance: (token, count) => {
+    const formats: Record<string, string> = {
+      lessThanXSeconds: `${count}s`,
+      xSeconds: `${count}s`,
+      halfAMinute: '30s',
+      lessThanXMinutes: `${count}m`,
+      xMinutes: `${count}m`,
+      aboutXHours: `${count}h`,
+      xHours: `${count}h`,
+      xDays: `${count}d`,
+      aboutXWeeks: `${count}w`,
+      xWeeks: `${count}w`,
+      aboutXMonths: `${count}mo`,
+      xMonths: `${count}mo`,
+      aboutXYears: `${count}y`,
+      xYears: `${count}y`,
+      overXYears: `${count}y`,
+      almostXYears: `${count}y`,
+    };
+    return formats[token] ?? token;
+  },
+};
 
 /**
  * Format bytes into human-readable sizes (B, KB, MB, GB)
@@ -38,24 +68,11 @@ export const formatUptime = (ms: number): string => {
 
 /**
  * Format timestamp as relative time (e.g., "5m ago", "2h ago")
- * Uses manual calculation to maintain short format style
+ * Uses date-fns with custom locale for short format
  */
-export const formatTimestamp = (timestamp: number, currentTime: number): string => {
-  const diff = currentTime - timestamp;
-  const seconds = Math.floor(diff / 1000);
-
-  // Use short format to match existing UI style
-  if (seconds < 60) {
-    return `${seconds}s ago`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+export const formatTimestamp = (timestamp: number): string => {
+  return formatDistanceToNow(timestamp, {
+    addSuffix: true,
+    locale: shortLocale,
+  });
 };
