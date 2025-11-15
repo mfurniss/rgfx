@@ -31,6 +31,8 @@ export default tseslint.config(
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
+      // Enforce const for variables that are never reassigned
+      'prefer-const': 'error',
     },
   },
 
