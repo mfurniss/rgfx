@@ -9,7 +9,6 @@ import {
   DRIVER_ID_PATTERN,
   MIN_DRIVER_ID_LENGTH,
   MAX_DRIVER_ID_LENGTH,
-  RESERVED_DRIVER_IDS,
 } from './config/constants';
 
 export interface DriverIdValidationResult {
@@ -24,7 +23,6 @@ export interface DriverIdValidationResult {
  * - Lowercase letters (a-z), numbers (0-9), hyphens (-) only
  * - Must start and end with alphanumeric character
  * - Length: 3-32 characters
- * - Cannot be a reserved word
  *
  * @param id The driver ID to validate
  * @returns Validation result with error message if invalid
@@ -62,14 +60,6 @@ export function validateDriverId(id: string): DriverIdValidationResult {
       valid: false,
       error:
         'Driver ID can only contain lowercase letters (a-z), numbers (0-9), and hyphens (-). Must start and end with a letter or number.',
-    };
-  }
-
-  // Check reserved words (case-insensitive)
-  if (RESERVED_DRIVER_IDS.includes(trimmedId.toLowerCase() as never)) {
-    return {
-      valid: false,
-      error: `"${trimmedId}" is a reserved word and cannot be used as a driver ID`,
     };
   }
 
