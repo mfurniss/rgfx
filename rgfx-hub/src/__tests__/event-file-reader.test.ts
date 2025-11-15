@@ -1,28 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventFileReader } from '../event-file-reader';
-import { writeFileSync, unlinkSync, existsSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { writeFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { waitForFileWatcherReady } from './test-utils';
 
 describe('EventFileReader', () => {
+  let testDir: string;
   let testFilePath: string;
   let reader: EventFileReader;
 
   beforeEach(() => {
-    testFilePath = join(homedir(), '.rgfx', 'mame_events.log');
-    // Clean up any existing test file
-    if (existsSync(testFilePath)) {
-      unlinkSync(testFilePath);
-    }
-    reader = new EventFileReader();
+    // Create unique temporary directory for each test
+    testDir = join(tmpdir(), `rgfx-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(testDir, { recursive: true });
+    testFilePath = join(testDir, 'mame_events.log');
+    reader = new EventFileReader(testFilePath);
   });
 
   afterEach(() => {
     reader.stop();
-    // Clean up test file
-    if (existsSync(testFilePath)) {
-      unlinkSync(testFilePath);
+    // Clean up test directory
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
     }
   });
 
@@ -31,14 +31,12 @@ describe('EventFileReader', () => {
   });
 
   it('should parse single event line correctly', async () => {
-    // Create test file with initial content (will be ignored by watcher)
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
 
-    // Start watching (starts at end of file)
+    // Start watching (watches directory since file doesn't exist yet)
     reader.start(mockCallback);
 
+    // Create file and write events - EventFileReader will detect file creation
     // Write and retry until watcher detects the change
     // This solves the fs.watch initialization race condition on macOS
     await waitForFileWatcherReady(
@@ -55,8 +53,6 @@ describe('EventFileReader', () => {
   });
 
   it('should parse multiple event lines correctly', async () => {
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
@@ -79,8 +75,6 @@ describe('EventFileReader', () => {
   });
 
   it('should handle messages with spaces in the payload', async () => {
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
@@ -98,8 +92,6 @@ describe('EventFileReader', () => {
   });
 
   it('should skip empty lines', async () => {
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
@@ -116,8 +108,6 @@ describe('EventFileReader', () => {
   });
 
   it('should skip malformed lines without topic and message', async () => {
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
@@ -136,8 +126,6 @@ describe('EventFileReader', () => {
   });
 
   it('should handle file truncation by resetting position', async () => {
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 
@@ -168,8 +156,6 @@ describe('EventFileReader', () => {
   });
 
   it('should stop watching when stop() is called', async () => {
-    writeFileSync(testFilePath, 'initial data\n');
-
     const mockCallback = vi.fn();
     reader.start(mockCallback);
 

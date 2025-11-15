@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, writeFileSync, statSync, existsSync, mkdirSync } from 'node:fs';
+import { watch, readFileSync, unlinkSync, statSync, existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, dirname } from 'node:path';
 import log from 'electron-log/main';
@@ -27,18 +27,23 @@ export class EventFileReader {
   private isWatchingFile = false;
   private watcherRestartCount = 0;
 
-  constructor() {
-    // Use stable ~/.rgfx directory
-    const rgfxDir = join(homedir(), '.rgfx');
+  constructor(customFilePath?: string) {
+    if (customFilePath) {
+      // Use custom file path (for testing)
+      this.filePath = customFilePath;
+    } else {
+      // Use stable ~/.rgfx directory
+      const rgfxDir = join(homedir(), '.rgfx');
 
-    // Ensure directory exists
-    try {
-      mkdirSync(rgfxDir, { recursive: true });
-    } catch (err) {
-      log.error('Failed to create .rgfx directory:', err);
+      // Ensure directory exists
+      try {
+        mkdirSync(rgfxDir, { recursive: true });
+      } catch (err) {
+        log.error('Failed to create .rgfx directory:', err);
+      }
+
+      this.filePath = join(rgfxDir, EVENT_LOG_FILENAME);
     }
-
-    this.filePath = join(rgfxDir, EVENT_LOG_FILENAME);
     log.info(`Event file path: ${this.filePath}`);
   }
 
@@ -48,11 +53,16 @@ export class EventFileReader {
 
     // Check if file exists
     if (existsSync(this.filePath)) {
-      // File exists - truncate it to clear stale events from previous sessions
-      writeFileSync(this.filePath, '');
-      this.filePosition = 0;
-      log.info('Event file truncated. Waiting for fresh events from MAME...');
-      this.watchFile();
+      // File exists from previous session - delete it completely
+      // This forces MAME to detect the deletion and recreate it with a fresh handle
+      try {
+        unlinkSync(this.filePath);
+        log.info('Deleted stale event file. Waiting for MAME to recreate it...');
+      } catch (err) {
+        log.error('Failed to delete stale event file:', err);
+      }
+      // Watch directory for MAME to recreate the file
+      this.watchDirectory();
     } else {
       // File doesn't exist yet - watch the directory for file creation
       log.info("Event file doesn't exist yet. Waiting for MAME to create it...");

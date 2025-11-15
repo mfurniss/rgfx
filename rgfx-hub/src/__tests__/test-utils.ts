@@ -42,9 +42,9 @@ export async function waitForFileWatcherReady(
     maxRetries = TEST_FILE_WATCHER_MAX_RETRIES,
   } = options; // 2 seconds total
 
-  // Ensure file exists before we start retrying
+  // Ensure file exists before we start retrying (create if needed)
   if (!existsSync(filePath)) {
-    throw new Error(`File does not exist: ${filePath}`);
+    writeFileSync(filePath, '');
   }
 
   const initialCalls = getActualCalls();
