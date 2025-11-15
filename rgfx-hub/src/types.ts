@@ -106,6 +106,7 @@ export interface DriverSystemInfo {
   freePsram: number;
 
   // Software information
+  firmwareVersion?: string;
   sdkVersion: string;
   sketchSize: number;
   freeSketchSpace: number;

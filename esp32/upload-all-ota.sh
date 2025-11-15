@@ -3,10 +3,10 @@ set -e
 
 cd "$(dirname "$0")"
 
-# Known devices (add more as needed)
+# Known devices (using driver IDs from config/drivers.json)
 DEVICES=(
-    "rgfx-driver-f89a58.local"
-    "rgfx-driver-f8cf68.local"
+    "rgfx-driver-0001.local"
+    "rgfx-driver-0002.local"
 )
 
 echo "Uploading firmware via OTA to ${#DEVICES[@]} device(s):"
