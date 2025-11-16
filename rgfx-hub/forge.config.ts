@@ -8,6 +8,10 @@ import fs from "fs";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    icon: "./assets/icons/icon",
+    extraResource: [
+      "./config"
+    ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [
       async (
@@ -38,9 +42,9 @@ const config: ForgeConfig = {
 
   makers: [
     new MakerDMG({
-      format: "ULFO", // Compressed DMG
-      icon: undefined, // Optional: path to .icns file
-      background: undefined, // Optional: path to background image
+      format: "ULFO",
+      icon: "./assets/icons/icon.icns",
+      background: undefined,
     }, ["darwin"]),
   ],
 

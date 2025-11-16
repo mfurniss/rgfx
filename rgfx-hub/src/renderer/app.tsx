@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Container, Box } from '@mui/material';
 import SystemStatus from './components/system-status';
 import DriverListPage from './pages/driver-list-page';
@@ -71,7 +71,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
+      <HashRouter>
         <Box
           className={styles.container}
           sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
@@ -90,7 +90,7 @@ const App: React.FC = () => {
             </Routes>
           </Container>
         </Box>
-      </BrowserRouter>
+      </HashRouter>
     </ThemeProvider>
   );
 };

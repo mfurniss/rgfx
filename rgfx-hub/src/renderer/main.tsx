@@ -2,8 +2,6 @@
  * This file will automatically be loaded by vite and run in the "renderer" context.
  */
 
-import '@fontsource/pixelify-sans/400.css';
-import '@fontsource/pixelify-sans/700.css';
 import '@fontsource/poppins/400.css';
 import '@fontsource/poppins/500.css';
 import '@fontsource/poppins/600.css';
