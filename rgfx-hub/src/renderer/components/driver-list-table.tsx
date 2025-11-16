@@ -9,11 +9,9 @@ import {
   TableRow,
   Paper,
   Chip,
-  IconButton,
   TableSortLabel,
   Tooltip,
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import { formatDistanceToNow, format } from 'date-fns';
 import type { Driver } from '~/src/types';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
@@ -78,7 +76,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
     return sortOrder === 'asc' ? compareValue : -compareValue;
   });
 
-  const handleMoreInfo = (driverId: string) => {
+  const handleRowClick = (driverId: string) => {
     void navigate(`/driver/${driverId}`);
   };
 
@@ -131,15 +129,17 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                 First Seen
               </TableSortLabel>
             </TableCell>
-            <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {sortedDrivers.map((driver: Driver) => (
             <TableRow
               key={driver.id}
+              onClick={() => {
+                handleRowClick(driver.id);
+              }}
               sx={{
-                '&:hover': { backgroundColor: 'action.hover' },
+                '&:hover': { backgroundColor: 'action.hover', cursor: 'pointer' },
                 opacity: driver.connected ? 1 : 0.6,
               }}
             >
@@ -173,19 +173,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>
                 <Tooltip title={format(driver.firstSeen, 'PPpp')}>
                   <span>{formatDistanceToNow(driver.firstSeen, { addSuffix: true })}</span>
-                </Tooltip>
-              </TableCell>
-              <TableCell align="right">
-                <Tooltip title="View Details">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      handleMoreInfo(driver.id);
-                    }}
-                    aria-label="more info"
-                  >
-                    <InfoIcon />
-                  </IconButton>
                 </Tooltip>
               </TableCell>
             </TableRow>

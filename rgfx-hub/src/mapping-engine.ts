@@ -13,6 +13,17 @@ import type { MappingContext, MappingHandler } from './types/mapping-types';
 import { getMappingsDir } from './mapper-installer';
 
 /**
+ * Options for MappingEngine constructor
+ */
+export interface MappingEngineOptions {
+  /**
+   * Custom module import function for testing
+   * Defaults to dynamic import with cache-busting in production
+   */
+  importModule?: (path: string) => Promise<Record<string, unknown>>;
+}
+
+/**
  * Mapping engine implementation
  *
  * Loads mapper files from filesystem and applies cascading precedence
@@ -24,8 +35,13 @@ export class MappingEngine {
   private patternHandlers: MappingHandler[] = [];
   private defaultHandler?: MappingHandler;
   private watcher?: ReturnType<typeof watch>;
+  private importModule: (path: string) => Promise<Record<string, unknown>>;
 
-  constructor(private context: MappingContext) {}
+  constructor(private context: MappingContext, options?: MappingEngineOptions) {
+    // Default: dynamic import with cache-busting for hot-reload
+    this.importModule =
+      options?.importModule ?? ((path: string) => import(`${path}?t=${Date.now()}`));
+  }
 
   /**
    * Load default mapping files from user data directory
@@ -95,7 +111,7 @@ export class MappingEngine {
       else if (filename.startsWith('subjects/') || filename.startsWith('subjects\\')) {
         const subjectName = basename(filename, '.js');
         this.subjectHandlers.delete(subjectName);
-        const module = (await import(`${filePath}?t=${Date.now()}`)) as Record<string, unknown>;
+        const module = await this.importModule(filePath);
         const handler = this.extractHandler(module);
         if (handler) {
           this.subjectHandlers.set(subjectName, handler);
@@ -230,8 +246,7 @@ export class MappingEngine {
       const mappingsDir = getMappingsDir();
       const filePath = join(mappingsDir, 'games', `${gameName}.js`);
 
-      // Dynamically import the game mapper with cache-busting
-      const module = (await import(`${filePath}?t=${Date.now()}`)) as Record<string, unknown>;
+      const module = await this.importModule(filePath);
       const handler = this.extractHandler(module);
 
       if (handler) {
@@ -267,7 +282,7 @@ export class MappingEngine {
         const filePath = join(subjectsDir, file);
 
         try {
-          const module = (await import(filePath)) as Record<string, unknown>;
+          const module = await this.importModule(filePath);
           const handler = this.extractHandler(module);
 
           if (handler) {
@@ -297,7 +312,7 @@ export class MappingEngine {
         const filePath = join(patternsDir, file);
 
         try {
-          const module = (await import(filePath)) as Record<string, unknown>;
+          const module = await this.importModule(filePath);
           const handler = this.extractHandler(module);
 
           if (handler) {
@@ -319,7 +334,7 @@ export class MappingEngine {
    */
   private async loadDefaultMapper(filePath: string): Promise<void> {
     try {
-      const module = (await import(filePath)) as Record<string, unknown>;
+      const module = await this.importModule(filePath);
       const handler = this.extractHandler(module);
 
       if (handler) {
