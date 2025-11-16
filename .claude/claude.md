@@ -702,6 +702,33 @@ The `rgfx-hub/` directory contains an Electron app configured with:
 - **Aedes** MQTT broker (embedded) with SSDP announcement via `node-ssdp`
 - **React + Material UI** (default theme, no customization needed)
 
+### Custom Application Icon
+
+**Icon assets location**: `rgfx-hub/assets/icons/`
+
+**Workflow for creating/updating app icon**:
+
+1. **Create source image**: Design an icon (recommended: 1024x1024 PNG)
+2. **Save as**: `rgfx-hub/assets/icons/source/app-icon.png`
+3. **Generate platform icons**: Run `node scripts/generate-icons.js` (from `rgfx-hub/` directory)
+4. **Build app**: Run `npm run package` to test
+
+**Generated files**:
+- `icon.icns` - macOS application icon
+- `icon.ico` - Windows application icon
+- `icons/` - Linux icon set (PNG)
+- Source image preserved for future regeneration
+
+**Configuration**:
+- `forge.config.ts` configured with `icon: "./assets/icons/icon"`
+- Electron Forge auto-detects platform and uses correct extension
+- DMG installer uses `.icns` file explicitly
+
+**Important notes**:
+- Icon only appears in packaged builds, NOT in `npm start` (development mode)
+- macOS icon cache may need refresh (restart Finder or log out/in)
+- Generator script uses `electron-icon-builder` (cross-platform, works on macOS/Linux/Windows)
+
 ## ESP32 Development
 
 **CRITICAL - DUAL-CORE ARCHITECTURE:**

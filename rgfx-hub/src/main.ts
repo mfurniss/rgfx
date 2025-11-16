@@ -57,8 +57,9 @@ log.info(`RGFX Hub v${pkg.version} starting...`);
 let mainWindow: BrowserWindow | null = null;
 
 // Initialize services (persistence first, then registry)
-const driverPersistence = new DriverPersistence();
-const ledHardwareManager = new LEDHardwareManager();
+const configPath = path.join(app.getPath('home'), '.rgfx');
+const driverPersistence = new DriverPersistence(configPath);
+const ledHardwareManager = new LEDHardwareManager(configPath);
 const mqtt = new Mqtt(MQTT_DEFAULT_PORT);
 const eventReader = new EventFileReader();
 const driverRegistry = new DriverRegistry(driverPersistence, ledHardwareManager);
@@ -317,6 +318,15 @@ mqtt.subscribe('rgfx/driver/+/status', (topic, payload) => {
   // Update driver connection state based on status
   const wasConnected = driver.connected;
   driver.connected = payload === 'online';
+
+  // If driver came online, notify UI
+  if (!wasConnected && driver.connected) {
+    log.info(`Driver ${driverId} came online (LWT status)`);
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('driver:connected', driver);
+    }
+    sendSystemStatus();
+  }
 
   // If driver went offline, notify UI
   if (wasConnected && !driver.connected) {
