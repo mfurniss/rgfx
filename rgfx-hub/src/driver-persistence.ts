@@ -32,7 +32,7 @@ export interface PersistedDriver {
   firstSeen: number;
 
   /** LED configuration (hardware reference + settings) */
-  ledConfig?: DriverLEDConfig;
+  ledConfig?: DriverLEDConfig | null;
 }
 
 /**
@@ -107,14 +107,26 @@ export class DriverPersistence {
         return;
       }
 
-      const driversConfig = parsed as DriversConfigFile;
-
-      // Load drivers into memory
-      for (const driver of driversConfig.drivers) {
-        this.drivers.set(driver.id, driver);
+      // Validate version
+      if (typeof config.version !== 'string' || config.version.length === 0) {
+        log.error('Invalid drivers config: missing or invalid version');
+        return;
       }
 
-      log.info(`Loaded ${this.drivers.size} drivers from ${this.configFile}`);
+      const driversConfig = parsed as DriversConfigFile;
+
+      // Validate each driver entry against schema
+      let validCount = 0;
+      for (const driver of driversConfig.drivers) {
+        if (this.validateDriverEntry(driver)) {
+          this.drivers.set(driver.id, driver);
+          validCount++;
+        } else {
+          log.error(`Skipping invalid driver entry: ${JSON.stringify(driver)}`);
+        }
+      }
+
+      log.info(`Loaded ${validCount} valid drivers from ${this.configFile} (${driversConfig.drivers.length - validCount} invalid entries skipped)`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log.error(`Failed to load drivers config: ${errorMessage}`);
@@ -153,12 +165,79 @@ export class DriverPersistence {
   }
 
   /**
+   * Validate driver name format
+   * Max 64 characters, printable characters only
+   */
+  private validateDriverName(name: string): boolean {
+    if (name.length === 0 || name.length > 64) {
+      return false;
+    }
+    // Allow alphanumeric, spaces, hyphens, underscores, and common punctuation
+    return /^[\w\s\-_.()]+$/i.test(name);
+  }
+
+  /**
+   * Validate a single driver entry against schema
+   */
+  private validateDriverEntry(driver: unknown): driver is PersistedDriver {
+    if (!driver || typeof driver !== 'object') {
+      return false;
+    }
+
+    const d = driver as Record<string, unknown>;
+
+    // Required fields
+    if (typeof d.id !== 'string' || !this.validateDriverId(d.id)) {
+      log.error(`Invalid driver ID: ${String(d.id)}`);
+      return false;
+    }
+
+    if (typeof d.macAddress !== 'string' || !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(d.macAddress)) {
+      log.error(`Invalid MAC address for driver ${d.id}: ${String(d.macAddress)}`);
+      return false;
+    }
+
+    if (typeof d.name !== 'string' || !this.validateDriverName(d.name)) {
+      log.error(`Invalid driver name for driver ${d.id}: ${String(d.name)}`);
+      return false;
+    }
+
+    if (typeof d.firstSeen !== 'number' || d.firstSeen <= 0) {
+      log.error(`Invalid firstSeen timestamp for driver ${d.id}: ${String(d.firstSeen)}`);
+      return false;
+    }
+
+    // Optional fields
+    if (d.description !== undefined && typeof d.description !== 'string') {
+      log.error(`Invalid description for driver ${d.id}: must be string`);
+      return false;
+    }
+
+    if (d.ledConfig !== undefined && d.ledConfig !== null && typeof d.ledConfig !== 'object') {
+      log.error(`Invalid ledConfig for driver ${d.id}: must be object or null`);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Add a newly discovered driver
    * Returns true if driver was added, false if it already exists
    */
   addDriver(id: string, macAddress: string, name: string): boolean {
     if (!this.validateDriverId(id)) {
       log.error(`Invalid driver ID format: ${id}`);
+      return false;
+    }
+
+    if (!this.validateDriverName(name)) {
+      log.error(`Invalid driver name format: ${name}`);
+      return false;
+    }
+
+    if (!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(macAddress)) {
+      log.error(`Invalid MAC address format: ${macAddress}`);
       return false;
     }
 
@@ -171,6 +250,7 @@ export class DriverPersistence {
       macAddress,
       name,
       firstSeen: Date.now(),
+      ledConfig: null,
     };
 
     this.drivers.set(id, driver);
@@ -193,6 +273,12 @@ export class DriverPersistence {
       return false;
     }
 
+    // Validate name if it's being updated
+    if (updates.name !== undefined && !this.validateDriverName(updates.name)) {
+      log.error(`Invalid driver name format: ${updates.name}`);
+      return false;
+    }
+
     const updated = { ...driver, ...updates };
     this.drivers.set(id, updated);
     this.saveConfig();
@@ -203,7 +289,7 @@ export class DriverPersistence {
   /**
    * Get LED configuration for a specific driver
    */
-  getLEDConfig(id: string): DriverLEDConfig | undefined {
+  getLEDConfig(id: string): DriverLEDConfig | null | undefined {
     return this.drivers.get(id)?.ledConfig;
   }
 

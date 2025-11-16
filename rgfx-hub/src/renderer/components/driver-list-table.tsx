@@ -146,23 +146,29 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>{driver.id}</TableCell>
               <TableCell>{driver.ip ?? 'Unknown'}</TableCell>
               <TableCell>
-                <Chip
-                  label={
-                    driver.connected
-                      ? driver.failedHeartbeats > 0
-                        ? `Connected (${driver.failedHeartbeats} missed)`
-                        : 'Connected'
-                      : 'Disconnected'
-                  }
-                  color={
-                    driver.connected
-                      ? driver.failedHeartbeats > 0
-                        ? 'warning'
-                        : 'success'
-                      : 'error'
-                  }
-                  size="small"
-                />
+                {driver.connected && !driver.ledConfig ? (
+                  <Tooltip title="Needs LED configuration" arrow>
+                    <Chip label="Connected" color="warning" size="small" />
+                  </Tooltip>
+                ) : (
+                  <Chip
+                    label={
+                      driver.connected
+                        ? driver.failedHeartbeats > 0
+                          ? `Connected (${driver.failedHeartbeats} missed)`
+                          : 'Connected'
+                        : 'Disconnected'
+                    }
+                    color={
+                      driver.connected
+                        ? driver.failedHeartbeats > 0
+                          ? 'warning'
+                          : 'success'
+                        : 'error'
+                    }
+                    size="small"
+                  />
+                )}
               </TableCell>
               <TableCell>
                 <Tooltip title={format(driver.firstSeen, 'PPpp')}>

@@ -145,7 +145,7 @@ export interface Driver {
   sysInfo?: DriverSystemInfo;
   stats: DriverStats;
   updateRate?: number;
-  ledConfig?: DriverLEDConfig;
+  ledConfig?: DriverLEDConfig | null;
   resolvedHardware?: LEDHardware;
   testActive?: boolean;
 }

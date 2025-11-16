@@ -119,6 +119,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // LED configuration from Hub's resolved hardware + driver settings
   const hardware = driver.resolvedHardware;
   const ledConfig = driver.ledConfig;
+
+  // Always show LED Configuration section (with message if not configured)
   const ledRows: InfoRowData[] = hardware
     ? [
         { label: 'Hardware', value: hardware.name },
@@ -194,37 +196,65 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         }}
       >
         <Typography variant="h6">{driver.name}</Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Tooltip title={getTestTooltip()} arrow>
-            <span>
-              <Button
-                variant={driver.testActive ? 'contained' : 'outlined'}
-                color={driver.testActive ? 'warning' : 'primary'}
-                size="small"
-                startIcon={<ScienceIcon />}
-                onClick={handleTestToggle}
-                disabled={!driver.connected || testRequestPending}
-              >
-                {testRequestPending
-                  ? 'Processing...'
-                  : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
-              </Button>
-            </span>
+        {driver.connected && !driver.ledConfig ? (
+          <Tooltip title="Connected but needs LED configuration" arrow>
+            <Chip label="Connected" color="warning" size="small" />
           </Tooltip>
+        ) : (
           <Chip
             label={driver.connected ? 'Connected' : 'Disconnected'}
             color={driver.connected ? 'success' : 'error'}
             size="small"
           />
-        </Box>
+        )}
       </Box>
 
       {/* Information Sections */}
+      {/* LED Configuration Section - Always shown at top */}
+      <InfoSection
+        title="LED Configuration"
+        icon={<LightbulbIcon fontSize="small" color="action" />}
+        rows={ledRows}
+        titleAction={
+          driver.ledConfig ? (
+            <Tooltip title={getTestTooltip()} arrow>
+              <span>
+                <Button
+                  variant={driver.testActive ? 'contained' : 'outlined'}
+                  color={driver.testActive ? 'warning' : 'primary'}
+                  size="small"
+                  startIcon={<ScienceIcon />}
+                  onClick={handleTestToggle}
+                  disabled={!driver.connected || testRequestPending}
+                >
+                  {testRequestPending
+                    ? 'Processing...'
+                    : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
+                </Button>
+              </span>
+            </Tooltip>
+          ) : undefined
+        }
+      >
+        {!driver.ledConfig && (
+          <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
+            <Typography variant="body2" color="warning.dark">
+              This driver needs LED configuration. Edit{' '}
+              <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                ~/.rgfx/drivers.json
+              </Typography>{' '}
+              to configure LED hardware.
+            </Typography>
+          </Box>
+        )}
+      </InfoSection>
+
       {networkRows.length > 0 && (
         <InfoSection
           title="Network"
           icon={<RouterIcon fontSize="small" color="action" />}
           rows={networkRows}
+          showDivider
         />
       )}
 
@@ -233,7 +263,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           title="Hardware"
           icon={<SpeedIcon fontSize="small" color="action" />}
           rows={hardwareRows}
-          showDivider={networkRows.length > 0}
+          showDivider
         />
       )}
 
@@ -242,16 +272,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           title="Memory"
           icon={<MemoryIcon fontSize="small" color="action" />}
           rows={memoryRows}
-          showDivider={networkRows.length > 0 || hardwareRows.length > 0}
-        />
-      )}
-
-      {driver.resolvedHardware && ledRows.length > 0 && (
-        <InfoSection
-          title="LED Configuration"
-          icon={<LightbulbIcon fontSize="small" color="action" />}
-          rows={ledRows}
-          showDivider={networkRows.length > 0 || hardwareRows.length > 0 || memoryRows.length > 0}
+          showDivider
         />
       )}
 
@@ -259,12 +280,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         title="Statistics"
         icon={<QueryStatsIcon fontSize="small" color="action" />}
         rows={statsRows}
-        showDivider={
-          networkRows.length > 0 ||
-          hardwareRows.length > 0 ||
-          memoryRows.length > 0 ||
-          ledRows.length > 0
-        }
+        showDivider
       />
     </Paper>
   );

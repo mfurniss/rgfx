@@ -44,12 +44,14 @@ describe('DriverPersistence', () => {
         version: '1.0',
         drivers: [
           {
-            id: 'aa:bb:cc:dd:ee:ff',
+            id: 'rgfx-driver-0001',
+            macAddress: 'AA:BB:CC:DD:EE:FF',
             name: 'Test Driver 1',
             firstSeen: 1234567890,
           },
           {
-            id: '11:22:33:44:55:66',
+            id: 'rgfx-driver-0002',
+            macAddress: '11:22:33:44:55:66',
             name: 'Test Driver 2',
             firstSeen: 9876543210,
           },
@@ -61,9 +63,9 @@ describe('DriverPersistence', () => {
       const drivers = persistence.getAllDrivers();
 
       expect(drivers).toHaveLength(2);
-      expect(drivers[0].id).toBe('aa:bb:cc:dd:ee:ff');
+      expect(drivers[0].id).toBe('rgfx-driver-0001');
       expect(drivers[0].name).toBe('Test Driver 1');
-      expect(drivers[1].id).toBe('11:22:33:44:55:66');
+      expect(drivers[1].id).toBe('rgfx-driver-0002');
     });
 
     it('should handle missing config file gracefully', () => {
@@ -97,6 +99,7 @@ describe('DriverPersistence', () => {
       expect(data.drivers[0].id).toBe('rgfx-driver-0001');
       expect(data.drivers[0].macAddress).toBe('aa:bb:cc:dd:ee:ff');
       expect(data.drivers[0].name).toBe('Test Driver');
+      expect(data.drivers[0].ledConfig).toBe(null);
     });
 
     it('should not add duplicate driver', () => {
@@ -124,6 +127,73 @@ describe('DriverPersistence', () => {
       expect(driver).toBeDefined();
       expect(driver!.firstSeen).toBeGreaterThanOrEqual(now);
       expect(driver!.firstSeen).toBeLessThanOrEqual(Date.now());
+    });
+
+    it('should reject invalid driver ID', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+
+      const added = persistence.addDriver('AA:BB:CC:DD:EE:FF', 'AA:BB:CC:DD:EE:FF', 'Test Driver');
+
+      expect(added).toBe(false);
+      expect(persistence.getAllDrivers()).toHaveLength(0);
+    });
+
+    it('should reject invalid driver name - empty', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+
+      const added = persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', '');
+
+      expect(added).toBe(false);
+      expect(persistence.getAllDrivers()).toHaveLength(0);
+    });
+
+    it('should reject invalid driver name - too long', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+      const longName = 'A'.repeat(65); // Max is 64
+
+      const added = persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', longName);
+
+      expect(added).toBe(false);
+      expect(persistence.getAllDrivers()).toHaveLength(0);
+    });
+
+    it('should reject invalid driver name - special characters', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+
+      const added = persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', 'Test@Driver!');
+
+      expect(added).toBe(false);
+      expect(persistence.getAllDrivers()).toHaveLength(0);
+    });
+
+    it('should accept valid driver names with allowed characters', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+
+      const validNames = [
+        'Test Driver',
+        'RGFX Driver 0001',
+        'Driver_1',
+        'LED-Strip (Main)',
+        'Matrix_8x32',
+      ];
+
+      validNames.forEach((name, index) => {
+        const id = `rgfx-driver-${String(index + 1).padStart(4, '0')}`;
+        const mac = `AA:BB:CC:DD:EE:${String(index).padStart(2, '0')}`;
+        const added = persistence.addDriver(id, mac, name);
+        expect(added).toBe(true);
+      });
+
+      expect(persistence.getAllDrivers()).toHaveLength(validNames.length);
+    });
+
+    it('should reject invalid MAC address format', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+
+      const added = persistence.addDriver('rgfx-driver-0001', 'invalid-mac', 'Test Driver');
+
+      expect(added).toBe(false);
+      expect(persistence.getAllDrivers()).toHaveLength(0);
     });
   });
 
@@ -155,6 +225,39 @@ describe('DriverPersistence', () => {
 
       const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
       expect(data.drivers[0].name).toBe('New Name');
+    });
+
+    it('should reject invalid driver name on update', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', 'Valid Name');
+
+      const updated = persistence.updateDriver('rgfx-driver-0001', { name: 'Invalid@Name!' });
+
+      expect(updated).toBe(false);
+      const driver = persistence.getDriver('rgfx-driver-0001');
+      expect(driver!.name).toBe('Valid Name'); // Should remain unchanged
+    });
+
+    it('should reject empty driver name on update', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', 'Valid Name');
+
+      const updated = persistence.updateDriver('rgfx-driver-0001', { name: '' });
+
+      expect(updated).toBe(false);
+      const driver = persistence.getDriver('rgfx-driver-0001');
+      expect(driver!.name).toBe('Valid Name'); // Should remain unchanged
+    });
+
+    it('should accept valid driver name on update', () => {
+      const persistence = new DriverPersistence(testConfigDir);
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', 'Old Name');
+
+      const updated = persistence.updateDriver('rgfx-driver-0001', { name: 'LED Strip (Main)' });
+
+      expect(updated).toBe(true);
+      const driver = persistence.getDriver('rgfx-driver-0001');
+      expect(driver!.name).toBe('LED Strip (Main)');
     });
   });
 
@@ -295,6 +398,195 @@ describe('DriverPersistence', () => {
       const drivers = persistence.getAllDrivers();
 
       expect(drivers).toHaveLength(0);
+    });
+  });
+
+  describe('Schema Validation on Load', () => {
+    it('should skip drivers with invalid ID format', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
+          {
+            id: 'AA:BB:CC:DD:EE:FF', // Invalid format (MAC address)
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+            name: 'Invalid Driver',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0001',
+            macAddress: '11:22:33:44:55:66',
+            name: 'Valid Driver',
+            firstSeen: 1234567890,
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      const drivers = persistence.getAllDrivers();
+
+      expect(drivers).toHaveLength(1);
+      expect(drivers[0].id).toBe('rgfx-driver-0001');
+    });
+
+    it('should skip drivers with invalid MAC address format', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
+          {
+            id: 'rgfx-driver-0001',
+            macAddress: 'invalid-mac',
+            name: 'Invalid Driver',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0002',
+            macAddress: '11:22:33:44:55:66',
+            name: 'Valid Driver',
+            firstSeen: 1234567890,
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      const drivers = persistence.getAllDrivers();
+
+      expect(drivers).toHaveLength(1);
+      expect(drivers[0].id).toBe('rgfx-driver-0002');
+    });
+
+    it('should skip drivers with invalid name', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
+          {
+            id: 'rgfx-driver-0001',
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+            name: 'Invalid@Name!',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0002',
+            macAddress: '11:22:33:44:55:66',
+            name: 'Valid Driver',
+            firstSeen: 1234567890,
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      const drivers = persistence.getAllDrivers();
+
+      expect(drivers).toHaveLength(1);
+      expect(drivers[0].id).toBe('rgfx-driver-0002');
+    });
+
+    it('should skip drivers with invalid firstSeen timestamp', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
+          {
+            id: 'rgfx-driver-0001',
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+            name: 'Invalid Driver',
+            firstSeen: -1, // Invalid (negative)
+          },
+          {
+            id: 'rgfx-driver-0002',
+            macAddress: '11:22:33:44:55:66',
+            name: 'Valid Driver',
+            firstSeen: 1234567890,
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      const drivers = persistence.getAllDrivers();
+
+      expect(drivers).toHaveLength(1);
+      expect(drivers[0].id).toBe('rgfx-driver-0002');
+    });
+
+    it('should skip drivers missing required fields', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
+          {
+            // Missing id
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+            name: 'Missing ID',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0001',
+            // Missing macAddress
+            name: 'Missing MAC',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0002',
+            macAddress: '11:22:33:44:55:66',
+            name: 'Valid Driver',
+            firstSeen: 1234567890,
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      const drivers = persistence.getAllDrivers();
+
+      expect(drivers).toHaveLength(1);
+      expect(drivers[0].id).toBe('rgfx-driver-0002');
+    });
+
+    it('should load all valid drivers and skip all invalid ones', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
+          {
+            id: 'invalid-mac-format',
+            macAddress: 'not-a-mac',
+            name: 'Invalid MAC',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0001',
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+            name: 'Valid Driver 1',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0002',
+            macAddress: '11:22:33:44:55:66',
+            name: 'Invalid@Name!',
+            firstSeen: 1234567890,
+          },
+          {
+            id: 'rgfx-driver-0003',
+            macAddress: '22:33:44:55:66:77',
+            name: 'Valid Driver 2',
+            firstSeen: 1234567890,
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      const drivers = persistence.getAllDrivers();
+
+      expect(drivers).toHaveLength(2);
+      expect(drivers.map((d) => d.id)).toContain('rgfx-driver-0001');
+      expect(drivers.map((d) => d.id)).toContain('rgfx-driver-0003');
     });
   });
 });
