@@ -61,6 +61,8 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/pixelify-sans": "^5.2.7",
+    "@fontsource/poppins": "^5.2.7",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
     "aedes": "^0.51.3",

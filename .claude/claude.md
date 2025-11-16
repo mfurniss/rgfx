@@ -354,6 +354,22 @@ const onDriverDisconnected = (driver: Driver) => { /* ... */ };
 - Classes: `PascalCase`
 - Constants: `UPPER_SNAKE_CASE`
 
+### CSS Modules (TypeScript + Vite)
+
+**Standard: Global declaration file** ✅
+
+- **File**: `rgfx-hub/src/css-modules.d.ts` (global declaration for all `*.module.css` files)
+- **NO per-file `.d.ts` generation** - Avoids workspace clutter and git noise
+- **NO auto-generation plugins** - Simple, zero-dependency approach
+- **Gitignored**: `*.module.css.d.ts` files are gitignored (just in case)
+
+**Rationale:**
+- Global declaration is the official Next.js recommendation
+- Prevents auto-generated files from cluttering the workspace
+- Eliminates git noise from generated type definitions
+- Simple, maintainable, and aligns with modern best practices (2024-2025)
+- Trade-off: No autocomplete for specific class names (acceptable for small number of CSS modules)
+
 ### mame/lua/ (Lua)
 
 **Standard: snake_case for all files** ✅

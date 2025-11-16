@@ -43,7 +43,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         RGFX Hub System Status
       </Typography>
       <Grid container spacing={2}>

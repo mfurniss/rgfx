@@ -445,7 +445,8 @@ const createWindow = () => {
   }
 
   // Wait for renderer to signal it's ready before sending initial state
-  ipcMain.once('renderer:ready', () => {
+  // Use 'on' instead of 'once' to handle HMR reloads during development
+  ipcMain.on('renderer:ready', () => {
     if (!isWindowAvailable() || !mainWindow) return;
 
     // Send all drivers (both connected and disconnected)

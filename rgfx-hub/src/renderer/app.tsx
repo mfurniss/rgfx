@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, createTheme, Container, Box } from '@mui/material';
+import { CssBaseline, ThemeProvider, Container, Box } from '@mui/material';
 import SystemStatus from './components/system-status';
 import DriverListPage from './pages/driver-list-page';
 import DriverDetailPage from './pages/driver-detail-page';
 import { useDriverStore } from './store/driver-store';
-
-// Create Material UI theme (default theme)
-const theme = createTheme();
+import { theme } from './theme';
+import styles from './app.module.css';
 
 const App: React.FC = () => {
   // Get state from Zustand store
@@ -52,9 +51,6 @@ const App: React.FC = () => {
 
     const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
 
-    // Signal to main process that renderer is ready to receive initial state
-    window.rgfx.rendererReady();
-
     // Cleanup function to remove listeners
     return () => {
       console.log('[APP] Cleaning up IPC listeners');
@@ -66,13 +62,22 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - only run once on mount, Zustand actions are stable enough
 
+  // Signal renderer ready in separate effect that doesn't cleanup
+  useEffect(() => {
+    console.log('[APP] Signaling renderer ready');
+    window.rgfx.rendererReady();
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <Box
+          className={styles.container}
+          sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
+        >
           {/* Main Content */}
-          <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flex: 1, overflow: 'auto' }}>
+          <Container maxWidth="md" disableGutters sx={{ flex: 1, overflow: 'auto', p: 2 }}>
             {/* System Status Section - visible on all pages */}
             <Box sx={{ mb: 3 }}>
               <SystemStatus status={systemStatus} />

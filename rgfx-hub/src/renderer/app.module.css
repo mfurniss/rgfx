@@ -1,0 +1,16 @@
+@property --hue {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes hueRotate {
+  to {
+    --hue: 360;
+  }
+}
+
+.container {
+  animation: hueRotate 60s infinite linear;
+  background-color: hsl(var(--hue), 50%, 80%);
+}
