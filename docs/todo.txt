@@ -64,5 +64,6 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] ESLint enforce let / const
 [ ] Implement named pipes IPC and abstract event interfaces
 [ ] Custom app icon
-[ ] Research Bluetooth
+[X] Research Bluetooth - not feasible
 [ ] Create Hub app error message dialog
+[ ] Make Hub app fully quit via window close button

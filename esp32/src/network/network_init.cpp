@@ -18,6 +18,11 @@ void setupNetworkServices(Matrix& matrix) {
 	fill_solid(matrix.leds, matrix.size, CRGB::Green);
 	FastLED.show();
 
+	// Disable WiFi power saving for low latency UDP
+	WiFi.setSleep(WIFI_PS_NONE);
+	WiFi.setTxPower(WIFI_POWER_19_5dBm);
+	log("WiFi power saving disabled for low-latency operation");
+
 	// Update display to show connecting
 	if (Display::isAvailable()) {
 		Display::showConnecting(WiFi.SSID(), Utils::getDeviceName());
@@ -113,6 +118,11 @@ void cleanupNetworkServices(Matrix& matrix) {
 // Overload without Matrix for when it's not ready
 void setupNetworkServices() {
 	log("WiFi connected - setting up OTA, MQTT and UDP (no LED feedback yet)");
+
+	// Disable WiFi power saving for low latency UDP
+	WiFi.setSleep(WIFI_PS_NONE);
+	WiFi.setTxPower(WIFI_POWER_19_5dBm);
+	log("WiFi power saving disabled for low-latency operation");
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
