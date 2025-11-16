@@ -87,39 +87,14 @@ describe('Driver ID Validator', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('should reject reserved words', () => {
-      const reservedWords = [
-        'system',
-        'discovery',
-        'discover',
-        'broadcast',
-        'all',
-        'config',
-        'test',
-        'status',
-        'info',
-        'debug',
-        'error',
-        'admin',
-        'root',
-      ];
+    it('should allow previously reserved words (namespace refactor)', () => {
+      // After namespace refactor, these are now valid driver IDs
+      const previouslyReserved = ['system', 'discovery', 'discover', 'config', 'test', 'status'];
 
-      for (const word of reservedWords) {
+      for (const word of previouslyReserved) {
         const result = validateDriverId(word);
-        expect(result.valid).toBe(false);
-        expect(result.error).toContain('reserved word');
+        expect(result.valid).toBe(true);
       }
-    });
-
-    it('should reject reserved words regardless of case', () => {
-      const result = validateDriverId('system');
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain('reserved word');
-    });
-
-    it('should allow reserved words as part of longer IDs', () => {
-      const result = validateDriverId('my-system-driver');
-      expect(result.valid).toBe(true);
     });
 
     it('should trim whitespace before validation', () => {
@@ -137,7 +112,6 @@ describe('Driver ID Validator', () => {
     it('should return false for invalid IDs', () => {
       expect(isValidDriverId('')).toBe(false);
       expect(isValidDriverId('MyDriver')).toBe(false);
-      expect(isValidDriverId('system')).toBe(false);
     });
   });
 });

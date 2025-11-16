@@ -9,8 +9,8 @@ import {
   Science as ScienceIcon,
 } from '@mui/icons-material';
 import type { Driver } from '~/src/types';
-import InfoSection, { type InfoRowData } from './components/info-section';
-import { formatBytes, formatUptime, formatTimestamp, formatNumber } from './utils/formatters';
+import InfoSection, { type InfoRowData } from './info-section';
+import { formatBytes, formatUptime, formatTimestamp, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
 interface DriverCardProps {
@@ -54,67 +54,67 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     void window.rgfx.testDriverLEDs(driver.id, newTestMode);
   };
 
-  if (!sysInfo) {
-    return (
-      <Paper sx={{ p: 2 }}>
-        <Typography variant="h6">{driver.name}</Typography>
-        <Typography color="text.secondary">No system info available</Typography>
-      </Paper>
-    );
-  }
-
   // Calculate current uptime based on initial uptimeMs from driver
-  const driverUptimeAtSnapshot = sysInfo.uptimeMs;
+  // Only available when sysInfo is present
+  const driverUptimeAtSnapshot = sysInfo?.uptimeMs ?? 0;
   const timeOfSnapshot = driver.lastSeen;
   const timeSinceSnapshot = now - timeOfSnapshot;
-  const currentUptime = driver.connected
-    ? driverUptimeAtSnapshot + timeSinceSnapshot
-    : driverUptimeAtSnapshot;
+  const currentUptime =
+    driver.connected && sysInfo
+      ? driverUptimeAtSnapshot + timeSinceSnapshot
+      : driverUptimeAtSnapshot;
 
   // Prepare data arrays for InfoSection components
-  const networkRows: InfoRowData[] = [
-    { label: 'IP Address', value: sysInfo.ip },
-    { label: 'MAC Address', value: sysInfo.mac },
-    { label: 'Hostname', value: sysInfo.hostname },
-    { label: 'SSID', value: sysInfo.ssid },
-    { label: 'Signal (RSSI)', value: `${formatNumber(sysInfo.rssi)} dBm` },
-  ];
+  // Network info - only shown when sysInfo is available
+  const networkRows: InfoRowData[] = sysInfo
+    ? [
+        { label: 'IP Address', value: sysInfo.ip },
+        { label: 'MAC Address', value: sysInfo.mac },
+        { label: 'Hostname', value: sysInfo.hostname },
+        { label: 'SSID', value: sysInfo.ssid },
+        { label: 'Signal (RSSI)', value: `${formatNumber(sysInfo.rssi)} dBm` },
+      ]
+    : [];
 
-  const hardwareRows: InfoRowData[] = [
-    { label: 'Chip Model', value: sysInfo.chipModel },
-    { label: 'Chip Revision', value: formatNumber(sysInfo.chipRevision) },
-    { label: 'CPU Cores', value: formatNumber(sysInfo.chipCores) },
-    { label: 'CPU Frequency', value: `${formatNumber(sysInfo.cpuFreqMHz)} MHz` },
-    { label: 'Flash Size', value: formatBytes(sysInfo.flashSize) },
-    { label: 'Flash Speed', value: `${formatNumber(sysInfo.flashSpeed / 1000000)} MHz` },
-    {
-      label: 'Display Connected',
-      value: sysInfo.hasDisplay ? 'Yes (OLED)' : 'No',
-    },
-    ...(sysInfo.firmwareVersion
-      ? [{ label: 'Firmware Version', value: sysInfo.firmwareVersion }]
-      : []),
-  ];
+  const hardwareRows: InfoRowData[] = sysInfo
+    ? [
+        { label: 'Chip Model', value: sysInfo.chipModel },
+        { label: 'Chip Revision', value: formatNumber(sysInfo.chipRevision) },
+        { label: 'CPU Cores', value: formatNumber(sysInfo.chipCores) },
+        { label: 'CPU Frequency', value: `${formatNumber(sysInfo.cpuFreqMHz)} MHz` },
+        { label: 'Flash Size', value: formatBytes(sysInfo.flashSize) },
+        { label: 'Flash Speed', value: `${formatNumber(sysInfo.flashSpeed / 1000000)} MHz` },
+        {
+          label: 'Display Connected',
+          value: sysInfo.hasDisplay ? 'Yes (OLED)' : 'No',
+        },
+        ...(sysInfo.firmwareVersion
+          ? [{ label: 'Firmware Version', value: sysInfo.firmwareVersion }]
+          : []),
+      ]
+    : [];
 
-  const memoryRows: InfoRowData[] = [
-    {
-      label: 'Free Heap',
-      value: `${formatBytes(sysInfo.freeHeap)} / ${formatBytes(sysInfo.heapSize)}`,
-    },
-    ...(sysInfo.psramSize > 0
-      ? [
-          {
-            label: 'Free PSRAM',
-            value: `${formatBytes(sysInfo.freePsram)} / ${formatBytes(sysInfo.psramSize)}`,
-          },
-        ]
-      : []),
-    {
-      label: 'Free Sketch Space',
-      value: formatBytes(sysInfo.freeSketchSpace),
-    },
-    { label: 'SDK Version', value: sysInfo.sdkVersion },
-  ];
+  const memoryRows: InfoRowData[] = sysInfo
+    ? [
+        {
+          label: 'Free Heap',
+          value: `${formatBytes(sysInfo.freeHeap)} / ${formatBytes(sysInfo.heapSize)}`,
+        },
+        ...(sysInfo.psramSize > 0
+          ? [
+              {
+                label: 'Free PSRAM',
+                value: `${formatBytes(sysInfo.freePsram)} / ${formatBytes(sysInfo.psramSize)}`,
+              },
+            ]
+          : []),
+        {
+          label: 'Free Sketch Space',
+          value: formatBytes(sysInfo.freeSketchSpace),
+        },
+        { label: 'SDK Version', value: sysInfo.sdkVersion },
+      ]
+    : [];
 
   // LED configuration from Hub's resolved hardware + driver settings
   const hardware = driver.resolvedHardware;
@@ -160,7 +160,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     : [];
 
   const statsRows: InfoRowData[] = [
-    { label: 'Driver Uptime', value: formatUptime(currentUptime) },
+    ...(sysInfo ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
     { label: 'Hub First Seen', value: formatTimestamp(driver.firstSeen) },
     { label: 'Hub Last Seen', value: formatTimestamp(driver.lastSeen) },
     { label: 'MQTT Messages', value: formatNumber(driver.stats.mqttMessagesReceived) },
@@ -220,32 +220,38 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       </Box>
 
       {/* Information Sections */}
-      <InfoSection
-        title="Network"
-        icon={<RouterIcon fontSize="small" color="action" />}
-        rows={networkRows}
-      />
+      {networkRows.length > 0 && (
+        <InfoSection
+          title="Network"
+          icon={<RouterIcon fontSize="small" color="action" />}
+          rows={networkRows}
+        />
+      )}
 
-      <InfoSection
-        title="Hardware"
-        icon={<SpeedIcon fontSize="small" color="action" />}
-        rows={hardwareRows}
-        showDivider
-      />
+      {hardwareRows.length > 0 && (
+        <InfoSection
+          title="Hardware"
+          icon={<SpeedIcon fontSize="small" color="action" />}
+          rows={hardwareRows}
+          showDivider={networkRows.length > 0}
+        />
+      )}
 
-      <InfoSection
-        title="Memory"
-        icon={<MemoryIcon fontSize="small" color="action" />}
-        rows={memoryRows}
-        showDivider
-      />
+      {memoryRows.length > 0 && (
+        <InfoSection
+          title="Memory"
+          icon={<MemoryIcon fontSize="small" color="action" />}
+          rows={memoryRows}
+          showDivider={networkRows.length > 0 || hardwareRows.length > 0}
+        />
+      )}
 
       {driver.resolvedHardware && ledRows.length > 0 && (
         <InfoSection
           title="LED Configuration"
           icon={<LightbulbIcon fontSize="small" color="action" />}
           rows={ledRows}
-          showDivider
+          showDivider={networkRows.length > 0 || hardwareRows.length > 0 || memoryRows.length > 0}
         />
       )}
 
@@ -253,7 +259,12 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         title="Statistics"
         icon={<QueryStatsIcon fontSize="small" color="action" />}
         rows={statsRows}
-        showDivider
+        showDivider={
+          networkRows.length > 0 ||
+          hardwareRows.length > 0 ||
+          memoryRows.length > 0 ||
+          ledRows.length > 0
+        }
       />
     </Paper>
   );

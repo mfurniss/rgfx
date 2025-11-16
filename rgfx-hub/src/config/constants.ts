@@ -154,25 +154,6 @@ export const MIN_DRIVER_ID_LENGTH = 3;
  */
 export const MAX_DRIVER_ID_LENGTH = 32;
 
-/**
- * Reserved driver IDs that cannot be used by drivers.
- * These prevent collisions with system topics and reserved words.
- */
-export const RESERVED_DRIVER_IDS = [
-  'system',
-  'discovery',
-  'discover',
-  'broadcast',
-  'all',
-  'config',
-  'test',
-  'status',
-  'info',
-  'debug',
-  'error',
-  'admin',
-  'root',
-] as const;
 
 // ============================================================================
 // UI Refresh Configuration

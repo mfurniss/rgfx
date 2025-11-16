@@ -12,10 +12,10 @@ interface SystemStatusItemProps {
  */
 const SystemStatusItem: React.FC<SystemStatusItemProps> = ({ name, value }) => (
   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="h6" color="text.secondary">
       {name}
     </Typography>
-    <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
+    <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
       {value}
     </Typography>
   </Grid>
