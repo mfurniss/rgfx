@@ -81,7 +81,7 @@ export class DriverRegistry {
     if (this.persistence) {
       persistedDriver = this.persistence.getDriverByMac(macAddress);
     }
-    const driverId: string = persistedDriver?.id ?? macAddress;
+    let driverId: string = persistedDriver?.id ?? macAddress;
 
     log.info(`[DEBUG] Using driver ID: ${driverId} (MAC: ${macAddress})`);
 
@@ -110,9 +110,10 @@ export class DriverRegistry {
     // If this is a completely new driver (not in persistence), create it
     if (isNewDriver && this.persistence && !persistedDriver) {
       const newId = this.persistence.generateNextDriverId();
-      const name = `Driver ${newId.split('-')[2]}`; // Extract number for name
+      const name = `RGFX Driver ${newId.split('-')[2]}`; // Extract number for name
       this.persistence.addDriver(newId, macAddress, name);
       persistedDriver = this.persistence.getDriver(newId);
+      driverId = newId; // Update driverId to use the newly generated ID
       firstSeen = persistedDriver?.firstSeen ?? now;
       log.info(`[DEBUG] Created new driver: ${newId} (MAC: ${macAddress})`);
     } else if (persistedDriver) {
@@ -132,8 +133,8 @@ export class DriverRegistry {
 
     const driver: Driver = {
       id: driverId,
-      name: sysInfo.hostname || sysInfo.ip || 'Driver',
-      description: existingDriver?.description, // Preserve description from persistence
+      name: persistedDriver?.name ?? sysInfo.hostname,
+      description: persistedDriver?.description, // Preserve description from persistence
       connected: true,
       lastSeen: now,
       firstSeen: firstSeen,
@@ -141,7 +142,7 @@ export class DriverRegistry {
       ip: sysInfo.ip,
       sysInfo: sysInfo,
       testActive: sysInfo.testActive, // Use driver's reported test state
-      ledConfig: existingDriver?.ledConfig, // Preserve LED config (hardware ref + settings)
+      ledConfig: persistedDriver?.ledConfig, // Preserve LED config (hardware ref + settings)
       resolvedHardware: existingDriver?.resolvedHardware, // Preserve resolved hardware
       stats: {
         mqttMessagesReceived: (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,

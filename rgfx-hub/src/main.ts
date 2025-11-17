@@ -454,6 +454,12 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools();
   }
 
+  // Quit app when window is closed
+  mainWindow.on('close', () => {
+    log.info('Main window closing, quitting app...');
+    app.quit();
+  });
+
   // Wait for renderer to signal it's ready before sending initial state
   // Use 'on' instead of 'once' to handle HMR reloads during development
   ipcMain.on('renderer:ready', () => {

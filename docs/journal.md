@@ -178,8 +178,14 @@ Centralized Hub constants into single configuration file, eliminating scattered 
 
 ---
 
-**Total Development Time:** 35 days (October 11 - November 15, 2025)
-**Total Commits:** 196
+## November 16, 2025
+
+Implemented comprehensive test improvements for mapping-engine.ts, increasing coverage from 47.65% to 60.34%. Added dependency injection pattern via MappingEngineOptions interface with importModule function, enabling proper testing of dynamic imports with cache-busting. Created 6 new tests for module loading: game mapper loading, import failures, invalid handlers, default mapper loading, and error handling for both ENOENT and non-ENOENT errors. Fixed all TypeScript diagnostic errors in test file by correcting fs.watch callback signatures (using rest parameters) and adding .js extensions to dynamic imports for node16/nodenext module resolution. Improved driver list UX by making entire table rows clickable instead of requiring users to click the small info button, and removed the redundant Actions column. Added graceful shutdown when window close button is clicked, disabling WiFi power saving for low-latency UDP, and improved LED configuration UI with validation. All 322 tests pass with strict TypeScript checking and ESLint validation enforced via pre-commit hook.
+
+---
+
+**Total Development Time:** 36 days (October 11 - November 16, 2025)
+**Total Commits:** 200
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
@@ -194,3 +200,4 @@ Centralized Hub constants into single configuration file, eliminating scattered 
 - Auto-incrementing firmware version system with git describe
 - Centralized constants configuration
 - Real-time Hub metrics with locale-aware formatting
+- Comprehensive unit test coverage with dependency injection for testability

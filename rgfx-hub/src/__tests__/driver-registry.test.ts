@@ -69,30 +69,35 @@ describe('DriverRegistry', () => {
   });
 
   describe('registerDriver', () => {
-    it('should register a new driver', () => {
+    it('should register a new driver with generated ID', () => {
       const sysInfo = createMockSysInfo();
       const device = registry.registerDriver(sysInfo);
 
       expect(device).toBeDefined();
-      expect(device.id).toBe(sysInfo.mac);
-      expect(device.name).toBe(sysInfo.hostname);
+      expect(device.id).toBe('rgfx-driver-0001'); // Generated ID, not MAC
+      expect(device.name).toBe('RGFX Driver 0001'); // Generated name
       expect(device.ip).toBe(sysInfo.ip);
       expect(device.connected).toBe(true);
       expect(device.failedHeartbeats).toBe(0);
     });
 
-    it("should use 'unknown' as ID when MAC is not available", () => {
-      const sysInfo = createMockSysInfo({ mac: undefined });
-      const device = registry.registerDriver(sysInfo);
+    it('should generate sequential IDs for new drivers', () => {
+      const sysInfo1 = createMockSysInfo({ mac: 'AA:BB:CC:DD:EE:11' });
+      const sysInfo2 = createMockSysInfo({ mac: 'AA:BB:CC:DD:EE:22' });
 
-      expect(device.id).toBe('unknown');
+      const device1 = registry.registerDriver(sysInfo1);
+      const device2 = registry.registerDriver(sysInfo2);
+
+      expect(device1.id).toBe('rgfx-driver-0001');
+      expect(device2.id).toBe('rgfx-driver-0002');
     });
 
-    it('should use IP as name when hostname is not available', () => {
+    it('should use persisted name for new driver even without hostname', () => {
       const sysInfo = createMockSysInfo({ hostname: undefined });
       const device = registry.registerDriver(sysInfo);
 
-      expect(device.name).toBe(sysInfo.ip);
+      // Should use generated name from persistence, not IP
+      expect(device.name).toBe('RGFX Driver 0001');
     });
 
     it('should initialize stats on first registration', () => {

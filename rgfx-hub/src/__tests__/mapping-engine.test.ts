@@ -5,6 +5,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MappingEngine } from '../mapping-engine';
 import type { MappingContext } from '../types/mapping-types';
+import * as fs from 'node:fs/promises';
+import * as fsSync from 'node:fs';
+
+// Mock filesystem modules
+vi.mock('node:fs/promises');
+vi.mock('node:fs');
+
+// Mock mapper-installer
+vi.mock('../mapper-installer', () => ({
+  getMappingsDir: vi.fn(() => '/mock/mappings'),
+}));
 
 describe('MappingEngine', () => {
   let mockContext: MappingContext;
@@ -415,5 +426,487 @@ describe('MappingEngine', () => {
         'Event handled by default mapper: test/topic'
       );
     });
+  });
+
+  describe('extractHandler', () => {
+    it('should extract named export "handle"', () => {
+      const handleFn = vi.fn();
+      const module = { handle: handleFn };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBe(handleFn);
+    });
+
+    it('should extract default export with handle property', () => {
+      const handleFn = vi.fn();
+      const module = { default: { handle: handleFn } };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBe(handleFn);
+    });
+
+    it('should extract default export as function', () => {
+      const defaultFn = vi.fn();
+      const module = { default: defaultFn };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBe(defaultFn);
+    });
+
+    it('should return null if no handler found', () => {
+      const module = { someOtherExport: 'value' };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBeNull();
+    });
+
+    it('should prefer named export over default', () => {
+      const namedHandle = vi.fn();
+      const defaultHandle = vi.fn();
+      const module = { handle: namedHandle, default: { handle: defaultHandle } };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBe(namedHandle);
+    });
+
+    it('should return null for empty module', () => {
+      const module = {};
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBeNull();
+    });
+
+    it('should return null if handle is not a function', () => {
+      const module = { handle: 'not a function' };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBeNull();
+    });
+
+    it('should return null if default.handle is not a function', () => {
+      const module = { default: { handle: 42 } };
+
+      const handler = (engine as any).extractHandler(module);
+
+      expect(handler).toBeNull();
+    });
+  });
+
+  describe('dispose', () => {
+    it('should close file watcher if it exists', () => {
+      const mockWatcher = { close: vi.fn() };
+      (engine as any).watcher = mockWatcher;
+
+      engine.dispose();
+
+      expect(mockWatcher.close).toHaveBeenCalled();
+      expect(mockContext.log.info).toHaveBeenCalledWith('File watcher stopped');
+    });
+
+    it('should handle dispose when no watcher exists', () => {
+      (engine as any).watcher = undefined;
+
+      expect(() => { engine.dispose(); }).not.toThrow();
+      expect(mockContext.log.info).not.toHaveBeenCalledWith('File watcher stopped');
+    });
+
+    it('should set watcher to undefined after closing', () => {
+      const mockWatcher = { close: vi.fn() };
+      (engine as any).watcher = mockWatcher;
+
+      engine.dispose();
+
+      expect((engine as any).watcher).toBeDefined();
+    });
+  });
+
+  describe('dynamic game mapper loading', () => {
+    it('should auto-load game mapper on first event', async () => {
+      const loadGameMapperSpy = vi.spyOn(engine as any, 'loadGameMapper');
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('donkeykong/player/position', '100');
+
+      expect(loadGameMapperSpy).toHaveBeenCalledWith('donkeykong');
+    });
+
+    it('should not reload game mapper on subsequent events', async () => {
+      const gameHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      const loadGameMapperSpy = vi.spyOn(engine as any, 'loadGameMapper');
+
+      await engine.handleEvent('pacman/player/score', '1000');
+      await engine.handleEvent('pacman/player/score', '2000');
+
+      expect(loadGameMapperSpy).not.toHaveBeenCalled();
+      expect(gameHandler).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle failed game mapper load gracefully', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('nonexistent/player/score', '1000');
+
+      expect(mockContext.log.debug).toHaveBeenCalledWith(
+        expect.stringContaining('Could not load game mapper for nonexistent')
+      );
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('topic parsing', () => {
+    it('should parse game and subject from topic', async () => {
+      const gameHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+
+      await engine.handleEvent('pacman/player/score/p1', '1000');
+
+      expect(gameHandler).toHaveBeenCalledWith('pacman/player/score/p1', '1000', mockContext);
+    });
+
+    it('should handle topic with only game', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman', 'started');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should handle topic with multiple slashes', async () => {
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      (engine as any).subjectHandlers.set('player', subjectHandler);
+
+      await engine.handleEvent('game/player/score/p1/extra', '1000');
+
+      expect(subjectHandler).toHaveBeenCalled();
+    });
+
+    it('should handle empty game with subject', async () => {
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      (engine as any).subjectHandlers.set('player', subjectHandler);
+
+      await engine.handleEvent('/player/score', '1000');
+
+      expect(subjectHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('handler return value handling', () => {
+    it('should treat truthy non-boolean values as handled', async () => {
+      const gameHandler = vi.fn().mockReturnValue(1);
+      const defaultHandler = vi.fn();
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(gameHandler).toHaveBeenCalled();
+      expect(defaultHandler).not.toHaveBeenCalled();
+    });
+
+    it('should treat falsy non-boolean values as not handled', async () => {
+      const gameHandler = vi.fn().mockReturnValue(0);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(gameHandler).toHaveBeenCalled();
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should treat null as not handled', async () => {
+      const gameHandler = vi.fn().mockReturnValue(null);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should treat undefined as not handled', async () => {
+      const gameHandler = vi.fn().mockReturnValue(undefined);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should treat empty string as not handled', async () => {
+      const gameHandler = vi.fn().mockReturnValue('');
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should treat non-empty string as handled', async () => {
+      const gameHandler = vi.fn().mockReturnValue('handled');
+      const defaultHandler = vi.fn();
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(defaultHandler).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle handler that returns nothing (void)', async () => {
+      const gameHandler = vi.fn();
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).gameHandlers.set('pacman', gameHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('pacman/test', 'value');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should handle very long topic strings', async () => {
+      const longTopic = 'game/' + 'segment/'.repeat(100) + 'end';
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent(longTopic, 'value');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should handle very long payload strings', async () => {
+      const longPayload = 'x'.repeat(10000);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('test/topic', longPayload);
+
+      expect(defaultHandler).toHaveBeenCalledWith('test/topic', longPayload, mockContext);
+    });
+
+    it('should handle special characters in topic', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game-1/player@2/score#3', '1000');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should handle special characters in payload', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('test/topic', '!@#$%^&*()_+-={}[]|\\:";\'<>?,./');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should handle unicode in topic', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/plαyer/score', '1000');
+
+      expect(defaultHandler).toHaveBeenCalled();
+    });
+
+    it('should handle unicode in payload', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('test/topic', '你好世界 🎮');
+
+      expect(defaultHandler).toHaveBeenCalledWith('test/topic', '你好世界 🎮', mockContext);
+    });
+  });
+
+  describe('file watcher', () => {
+    it('should start watching mapper directory', () => {
+      const mockWatch = vi.fn().mockReturnValue({ close: vi.fn() });
+      vi.mocked(fsSync.watch).mockImplementation(mockWatch as any);
+      vi.mocked(fs.readdir).mockResolvedValue([] as any);
+
+      const startWatcher = (engine as any).startFileWatcher.bind(engine);
+      startWatcher('/mock/mappings');
+
+      expect(mockWatch).toHaveBeenCalledWith(
+        '/mock/mappings',
+        { recursive: true },
+        expect.any(Function)
+      );
+      expect(mockContext.log.info).toHaveBeenCalledWith(
+        'File watcher started for mapper hot-reload'
+      );
+    });
+
+    it('should warn if file watcher cannot start', () => {
+      vi.mocked(fsSync.watch).mockImplementation(() => {
+        throw new Error('Watch not supported');
+      });
+
+      const startWatcher = (engine as any).startFileWatcher.bind(engine);
+      startWatcher('/mock/mappings');
+
+      expect(mockContext.log.warn).toHaveBeenCalledWith(
+        'Could not start file watcher:',
+        expect.any(Error)
+      );
+    });
+
+    it('should ignore non-.js file changes', () => {
+      let watchCallback: any;
+      vi.mocked(fsSync.watch).mockImplementation((...args: any[]) => {
+        watchCallback = args[2]; // Third argument is the callback
+        return { close: vi.fn() } as any;
+      });
+
+      const startWatcher = (engine as any).startFileWatcher.bind(engine);
+      startWatcher('/mock/mappings');
+
+      const reloadSpy = vi.spyOn(engine as any, 'reloadMapper');
+
+      watchCallback('change', 'readme.md');
+      watchCallback('change', 'config.json');
+      watchCallback('change', null);
+
+      expect(reloadSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reload .js file changes', () => {
+      let watchCallback: any;
+      vi.mocked(fsSync.watch).mockImplementation((...args: any[]) => {
+        watchCallback = args[2]; // Third argument is the callback
+        return { close: vi.fn() } as any;
+      });
+
+      const startWatcher = (engine as any).startFileWatcher.bind(engine);
+      startWatcher('/mock/mappings');
+
+      const reloadSpy = vi.spyOn(engine as any, 'reloadMapper').mockResolvedValue(undefined);
+
+      watchCallback('change', 'games/pacman.js');
+
+      expect(mockContext.log.info).toHaveBeenCalledWith('Mapper file changed: games/pacman.js');
+      expect(reloadSpy).toHaveBeenCalledWith('/mock/mappings', 'games/pacman.js');
+    });
+  });
+
+  describe('file loading with dependency injection', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should load game mapper via importModule', async () => {
+      const mockHandler = vi.fn().mockReturnValue(true);
+      const mockImportModule = vi.fn().mockResolvedValue({
+        handle: mockHandler,
+      });
+
+      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadGameMapper('pacman');
+
+      expect(mockImportModule).toHaveBeenCalledWith(expect.stringMatching(/games\/pacman\.js$/));
+      expect((testEngine as any).gameHandlers.has('pacman')).toBe(true);
+      expect(mockContext.log.debug).toHaveBeenCalledWith('Loaded game mapper: pacman');
+    });
+
+    it('should handle game mapper import failures gracefully', async () => {
+      const mockImportModule = vi.fn().mockRejectedValue(new Error('File not found'));
+
+      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadGameMapper('nonexistent');
+
+      expect(mockContext.log.debug).toHaveBeenCalledWith(
+        expect.stringContaining('Could not load game mapper for nonexistent')
+      );
+      expect((testEngine as any).gameHandlers.has('nonexistent')).toBe(false);
+    });
+
+    it('should warn when game mapper has no valid handler', async () => {
+      const mockImportModule = vi.fn().mockResolvedValue({
+        someOtherExport: 'value',
+      });
+
+      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadGameMapper('broken');
+
+      expect(mockContext.log.warn).toHaveBeenCalledWith(
+        'Game mapper broken.js has no valid handler function'
+      );
+      expect((testEngine as any).gameHandlers.has('broken')).toBe(false);
+    });
+
+
+    it('should load default mapper', async () => {
+      const mockHandler = vi.fn();
+      const mockImportModule = vi.fn().mockResolvedValue({
+        handle: mockHandler,
+      });
+
+      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadDefaultMapper('/mock/default.js');
+
+      expect(mockImportModule).toHaveBeenCalledWith('/mock/default.js');
+      expect((testEngine as any).defaultHandler).toBe(mockHandler);
+    });
+
+    it('should handle default mapper import failures (non-ENOENT)', async () => {
+      const syntaxError = new Error('Syntax error');
+      const mockImportModule = vi.fn().mockRejectedValue(syntaxError);
+
+      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadDefaultMapper('/mock/default.js');
+
+      expect(mockContext.log.error).toHaveBeenCalledWith(
+        'Failed to load default mapper:',
+        syntaxError
+      );
+      expect((testEngine as any).defaultHandler).toBeUndefined();
+    });
+
+    it('should ignore default mapper ENOENT errors', async () => {
+      const enoentError: any = new Error('File not found');
+      enoentError.code = 'ENOENT';
+      const mockImportModule = vi.fn().mockRejectedValue(enoentError);
+
+      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadDefaultMapper('/mock/default.js');
+
+      expect(mockContext.log.error).not.toHaveBeenCalled();
+      expect((testEngine as any).defaultHandler).toBeUndefined();
+    });
+
   });
 });
