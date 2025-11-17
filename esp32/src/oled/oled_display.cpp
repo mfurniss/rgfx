@@ -30,33 +30,6 @@ static unsigned long lastUptimeUpdate = 0;
 
 namespace Display {
 
-	static String formatDeviceId(const String& deviceName) {
-		int lastDashPos = deviceName.lastIndexOf('-');
-		if (lastDashPos == -1) {
-			return deviceName;
-		}
-
-		String deviceId = deviceName.substring(lastDashPos + 1);
-
-		// Check if it's legacy MAC format (6 hex characters)
-		bool isHexFormat = (deviceId.length() == 6);
-		for (size_t i = 0; i < deviceId.length() && isHexFormat; i++) {
-			char c = deviceId.charAt(i);
-			if (!isxdigit(c)) {
-				isHexFormat = false;
-			}
-		}
-
-		if (isHexFormat) {
-			// Legacy MAC format: "f8cf68" -> "F8:CF:68"
-			deviceId.toUpperCase();
-			return deviceId.substring(0, 2) + ":" + deviceId.substring(2, 4) + ":" +
-			       deviceId.substring(4, 6);
-		}
-
-		// New format: just return the ID part (e.g., "0001")
-		return deviceId;
-	}
 
 	bool begin() {
 		log("Initializing OLED display...");
@@ -119,24 +92,16 @@ namespace Display {
 	void showBoot(const String& deviceName) {
 		display->clearDisplay();
 
-		String formattedId = formatDeviceId(deviceName);
-
 		// Title with device ID
-		display->setTextSize(2);
-		display->setCursor(0, 8);
-		display->print("RGFX ");
 		display->setTextSize(1);
-		display->println(formattedId);
+		display->setCursor(0, 8);
+		display->println(deviceName);
 
 		// Version
 		display->setTextSize(1);
-		display->setCursor(0, 36);
+		display->setCursor(0, 24);
 		display->print("v");
 		display->println(RGFX_VERSION);
-
-		// Full device name
-		display->setCursor(0, 48);
-		display->println(deviceName);
 
 		display->display();
 
@@ -146,13 +111,10 @@ namespace Display {
 	void showConnecting(const String& ssid, const String& deviceName) {
 		display->clearDisplay();
 
-		String formattedId = formatDeviceId(deviceName);
-
 		// Header
 		display->setTextSize(1);
 		display->setCursor(0, 0);
-		display->print("RGFX ");
-		display->println(formattedId);
+		display->println(deviceName);
 		display->println();
 
 		// Status message
@@ -176,13 +138,10 @@ namespace Display {
 	void showAPMode(const String& apName) {
 		display->clearDisplay();
 
-		String formattedId = formatDeviceId(apName);
-
 		// Header
 		display->setTextSize(1);
 		display->setCursor(0, 0);
-		display->print("RGFX ");
-		display->println(formattedId);
+		display->println(apName);
 		display->drawLine(0, 10, SCREEN_WIDTH - 1, 10, SSD1306_WHITE);
 
 		// Setup mode message (left side)
@@ -243,13 +202,10 @@ namespace Display {
 
 		display->clearDisplay();
 
-		String formattedId = formatDeviceId(deviceName);
-
 		// Header
 		display->setTextSize(1);
 		display->setCursor(0, 0);
-		display->print("RGFX ");
-		display->println(formattedId);
+		display->println(deviceName);
 		display->drawLine(0, 10, SCREEN_WIDTH - 1, 10, SSD1306_WHITE);
 
 		// WiFi SSID

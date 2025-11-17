@@ -53,6 +53,7 @@ describe('App IPC Listener Registration', () => {
       onDriverDisconnected: mockIpcOnDriverDisconnected,
       onDriverUpdated: mockIpcOnDriverUpdated,
       onSystemStatus: mockIpcOnSystemStatus,
+      onEventCount: vi.fn(() => vi.fn()),
       rendererReady: mockRendererReady,
       testDriverLEDs: vi.fn(),
     };
@@ -92,7 +93,6 @@ describe('App IPC Listener Registration', () => {
     // Simulate IPC event
     const mockDriver: Driver = {
       id: '44:1D:64:F8:9A:58',
-      name: 'test-driver',
       connected: true,
       lastSeen: Date.now(),
       firstSeen: Date.now(),

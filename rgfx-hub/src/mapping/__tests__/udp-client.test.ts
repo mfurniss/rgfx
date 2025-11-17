@@ -36,28 +36,24 @@ describe('UdpClientImpl', () => {
     mockDrivers = [
       {
         id: 'rgfx-driver-0001',
-        name: 'driver-1',
         connected: true,
         ip: '192.168.1.101',
         lastSeen: Date.now(),
       } as Driver,
       {
         id: 'rgfx-driver-0002',
-        name: 'driver-2',
         connected: true,
         ip: '192.168.1.102',
         lastSeen: Date.now(),
       } as Driver,
       {
         id: 'rgfx-driver-0003',
-        name: 'driver-3',
         connected: false, // Not connected
         ip: '192.168.1.103',
         lastSeen: Date.now(),
       } as Driver,
       {
         id: 'rgfx-driver-0004',
-        name: 'driver-4',
         connected: true,
         ip: undefined, // No IP
         lastSeen: Date.now(),
@@ -136,14 +132,12 @@ describe('UdpClientImpl', () => {
       mockDrivers.push(
         {
           id: '44:1D:64:F8:9A:58',
-          name: 'driver-f89a58',
           connected: true,
           ip: '192.168.1.105',
           lastSeen: Date.now(),
         } as Driver,
         {
           id: '44:1D:64:F8:CF:68',
-          name: 'driver-f8cf68',
           connected: true,
           ip: '192.168.1.106',
           lastSeen: Date.now(),

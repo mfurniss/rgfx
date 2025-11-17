@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Container, Box } from '@mui/material';
 import SystemStatus from './components/system-status';
@@ -8,7 +8,12 @@ import { useDriverStore } from './store/driver-store';
 import { theme } from './theme';
 import styles from './app.module.css';
 
+// Flag to ensure rendererReady is only called once per app lifecycle
+let rendererReadyCalled = false;
+
 const App: React.FC = () => {
+  const randomHue = useRef(Math.floor(Math.random() * 360)).current;
+
   // Get state from Zustand store
   const systemStatus = useDriverStore((state) => state.systemStatus);
 
@@ -62,10 +67,15 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - only run once on mount, Zustand actions are stable enough
 
-  // Signal renderer ready in separate effect that doesn't cleanup
+  // Signal renderer ready only once per app lifecycle (not per mount)
   useEffect(() => {
-    console.log('[APP] Signaling renderer ready');
-    window.rgfx.rendererReady();
+    if (!rendererReadyCalled) {
+      console.log('[APP] Signaling renderer ready');
+      window.rgfx.rendererReady();
+      rendererReadyCalled = true;
+    } else {
+      console.log('[APP] Skipping rendererReady - already called');
+    }
   }, []);
 
   return (
@@ -74,11 +84,11 @@ const App: React.FC = () => {
       <HashRouter>
         <Box
           className={styles.container}
+          style={{ '--hue': randomHue } as React.CSSProperties}
           sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
         >
           {/* Main Content */}
           <Container maxWidth="md" disableGutters sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-            {/* System Status Section - visible on all pages */}
             <Box sx={{ mb: 3 }}>
               <SystemStatus status={systemStatus} />
             </Box>

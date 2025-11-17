@@ -15,21 +15,20 @@ import {
 import { formatDistanceToNow, format } from 'date-fns';
 import type { Driver } from '~/src/types';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
+import { useUiStore, type SortField } from '../store/ui-store';
 
 interface DriverListTableProps {
   drivers: Driver[];
 }
-
-type SortField = 'id' | 'name' | 'ip' | 'status' | 'firstSeen';
-type SortOrder = 'asc' | 'desc';
 
 /**
  * Driver list table component with sortable columns
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const navigate = useNavigate();
-  const [sortField, setSortField] = useState<SortField>('firstSeen');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const sortField = useUiStore((state) => state.driverTableSortField);
+  const sortOrder = useUiStore((state) => state.driverTableSortOrder);
+  const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
   const [, setCurrentTime] = useState(Date.now());
 
   // Update current time every second for live relative timestamps
@@ -45,10 +44,9 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setDriverTableSort(field, sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortField(field);
-      setSortOrder('asc');
+      setDriverTableSort(field, 'asc');
     }
   };
 
@@ -58,9 +56,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
     switch (sortField) {
       case 'id':
         compareValue = a.id.localeCompare(b.id);
-        break;
-      case 'name':
-        compareValue = a.name.localeCompare(b.name);
         break;
       case 'ip':
         compareValue = (a.ip ?? '').localeCompare(b.ip ?? '');

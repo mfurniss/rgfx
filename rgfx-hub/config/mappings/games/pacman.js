@@ -22,8 +22,8 @@
  * @returns {boolean} - True if event was handled, false otherwise
  */
 
-import { random } from "lodash-es";
-import { colord } from "colord";
+import { random } from 'lodash-es';
+import { colord } from 'colord';
 
 const GHOST_STATE = {
   NORMAL: [0x01, 0x03, 0x05, 0x07], // Red, pink, cyan, orange (normal)
@@ -35,62 +35,61 @@ const GHOST_STATE = {
 };
 
 const GHOST_COLORS = {
-  red: "#FF0000",
-  pink: "#FFB8FF",
-  cyan: "#00FFFF",
-  orange: "#FFB852",
+  red: '#FF0000',
+  pink: '#FFB8FF',
+  cyan: '#00FFFF',
+  orange: '#FFB852',
 };
 
 // Lookup table for ghost state colors
 const GHOST_STATE_COLORS = {
-  [GHOST_STATE.VULNERABLE]: "#0000FF",
-  [GHOST_STATE.FLASHING]: "#FFFFFF",
-  [GHOST_STATE.EATEN]: "#00FFFF",
-  [GHOST_STATE.EYES]: "#FFFFFF",
+  [GHOST_STATE.VULNERABLE]: '#0000FF',
+  [GHOST_STATE.FLASHING]: '#FFFFFF',
+  [GHOST_STATE.EATEN]: '#00FFFF',
+  [GHOST_STATE.EYES]: '#FFFFFF',
 };
 
 export function handle(topic, payload, { broadcast }) {
-  const parts = topic.split("/");
+  const parts = topic.split('/');
   const [, subject, property] = parts;
 
-  if (subject === "player" && property === "score") {
+  if (subject === 'player' && property === 'score') {
     return broadcast({
-      effect: "wipe",
+      effect: 'wipe',
       props: {
-        color: "#705014",
+        color: '#705014',
         duration: 500,
       },
-      drivers: ["rgfx-driver-0001"], // LED Strip
+      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'], // LED Strip
     });
   }
 
   // Power pill state - blue when active, red when inactive
-  if (subject === "player" && property === "pill") {
+  if (subject === 'player' && property === 'pill') {
     const state = parseInt(payload);
     const isActive = state > 0;
 
     return broadcast({
-      effect: "pulse",
+      effect: 'pulse',
       props: {
-        color: isActive ? "#0000FF" : "#FF0000",
+        color: isActive ? '#0000FF' : '#FF0000',
       },
-      drivers: ["rgfx-driver-0002"], // LED Matrix
+      drivers: ['rgfx-driver-0002'], // LED Matrix
     });
   }
 
   // Ghost state changes - color-coded effects
   // Topic format: pacman/ghost/{color}/state
-  if (subject === "ghost" && parts.length === 4) {
+  if (subject === 'ghost' && parts.length === 4) {
     const ghostColor = parts[2]; // Get color from correct position
     const state = parseInt(payload);
 
     // Look up color by state, or use ghost's normal color
-    const color =
-      GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || "#FFFFFF";
+    const color = GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || '#FFFFFF';
 
     return broadcast({
-      effect: "pulse",
-      drivers: ["rgfx-driver-0002"], // LED Matrix
+      effect: 'pulse',
+      drivers: ['rgfx-driver-0002'], // LED Matrix
       props: {
         color,
         duration: 500,

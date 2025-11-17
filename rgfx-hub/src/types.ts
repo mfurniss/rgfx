@@ -135,7 +135,6 @@ export interface DriverStats {
 
 export interface Driver {
   id: string;
-  name: string;
   description?: string;
   connected: boolean;
   lastSeen: number;
@@ -165,6 +164,7 @@ export interface IpcApi {
   onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
   onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
   onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
+  onEventCount: (callback: (count: number) => void) => () => void;
   testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
   rendererReady: () => void;
 }

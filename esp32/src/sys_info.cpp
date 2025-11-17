@@ -14,7 +14,7 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 	// Network information
 	doc["ip"] = WiFi.localIP().toString();
 	doc["mac"] = WiFi.macAddress();
-	doc["hostname"] = Utils::getDeviceName();
+	doc["hostname"] = Utils::getDeviceId();
 	doc["rssi"] = WiFi.RSSI();
 	doc["ssid"] = WiFi.SSID();
 
