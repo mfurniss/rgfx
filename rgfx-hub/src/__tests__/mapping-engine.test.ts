@@ -4,9 +4,18 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MappingEngine } from '../mapping-engine';
-import type { MappingContext } from '../types/mapping-types';
+import type { MappingContext, RgfxTopic } from '../types/mapping-types';
 import * as fs from 'node:fs/promises';
 import * as fsSync from 'node:fs';
+
+/**
+ * Helper to create expected RgfxTopic object for test assertions
+ */
+function createTopic(raw: string): RgfxTopic {
+  const parts = raw.split('/');
+  const [namespace, subject, property, qualifier] = parts;
+  return { raw, namespace, subject, property, qualifier, parts };
+}
 
 // Mock filesystem modules
 vi.mock('node:fs/promises');
@@ -22,21 +31,12 @@ describe('MappingEngine', () => {
   let engine: MappingEngine;
 
   beforeEach(() => {
-    // Create mock context with flattened broadcast methods that return true
     const broadcastMock = vi.fn().mockReturnValue(true);
-    const sendMock = vi.fn().mockReturnValue(true);
-    const sendToDriversMock = vi.fn().mockReturnValue(true);
 
     mockContext = {
-      // Flattened UDP methods
       broadcast: broadcastMock,
-      send: sendMock,
-      sendToDrivers: sendToDriversMock,
-      // Full service objects
       udp: {
         broadcast: broadcastMock,
-        send: sendMock,
-        sendToDrivers: sendToDriversMock,
       },
       mqtt: {
         publish: vi.fn(),
@@ -73,8 +73,8 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '{"key": "value"}');
 
-      // Handler receives original string, engine parses internally
-      expect(handler).toHaveBeenCalledWith('test/topic', '{"key": "value"}', mockContext);
+      // Handler receives parsed topic object and original payload string
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '{"key": "value"}', mockContext);
     });
 
     it('should parse JSON arrays', async () => {
@@ -83,7 +83,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '[1, 2, 3]');
 
-      expect(handler).toHaveBeenCalledWith('test/topic', '[1, 2, 3]', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '[1, 2, 3]', mockContext);
     });
 
     it('should parse numbers', async () => {
@@ -119,7 +119,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', 'hello world');
 
-      expect(handler).toHaveBeenCalledWith('test/topic', 'hello world', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), 'hello world', mockContext);
     });
 
     it('should handle empty strings', async () => {
@@ -128,7 +128,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '');
 
-      expect(handler).toHaveBeenCalledWith('test/topic', '', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '', mockContext);
     });
 
     it('should handle invalid JSON gracefully', async () => {
@@ -137,7 +137,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '{invalid json}');
 
-      expect(handler).toHaveBeenCalledWith('test/topic', '{invalid json}', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '{invalid json}', mockContext);
     });
   });
 
@@ -570,7 +570,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('pacman/player/score/p1', '1000');
 
-      expect(gameHandler).toHaveBeenCalledWith('pacman/player/score/p1', '1000', mockContext);
+      expect(gameHandler).toHaveBeenCalledWith(createTopic('pacman/player/score/p1'), '1000', mockContext);
     });
 
     it('should handle topic with only game', async () => {
@@ -700,7 +700,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', longPayload);
 
-      expect(defaultHandler).toHaveBeenCalledWith('test/topic', longPayload, mockContext);
+      expect(defaultHandler).toHaveBeenCalledWith(createTopic('test/topic'), longPayload, mockContext);
     });
 
     it('should handle special characters in topic', async () => {
@@ -736,7 +736,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('test/topic', '你好世界 🎮');
 
-      expect(defaultHandler).toHaveBeenCalledWith('test/topic', '你好世界 🎮', mockContext);
+      expect(defaultHandler).toHaveBeenCalledWith(createTopic('test/topic'), '你好世界 🎮', mockContext);
     });
   });
 

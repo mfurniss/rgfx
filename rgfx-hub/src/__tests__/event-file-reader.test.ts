@@ -16,8 +16,12 @@ describe('EventFileReader', () => {
     reader = new EventFileReader(testFilePath);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     reader.stop();
+
+    // Wait for async cleanup to complete (file watchers, intervals)
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
     }

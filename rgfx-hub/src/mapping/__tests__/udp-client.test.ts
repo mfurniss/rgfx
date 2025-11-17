@@ -290,86 +290,12 @@ describe('UdpClientImpl', () => {
     });
   });
 
-  describe('send', () => {
-    it('should send to specific driver by ID', () => {
-      const payload: EffectPayload = {
-        effect: 'player_death',
-        hint: { visual: 'fade', color: '#FF0000' },
-      };
-
-      udpClient.send('rgfx-driver-0001', payload);
-
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
-    });
-
-    it('should not throw when driver not found', () => {
-      const payload: EffectPayload = { effect: 'test' };
-
-      expect(() => {
-        udpClient.send('nonexistent-id', payload);
-      }).not.toThrow();
-    });
-
-    it('should not throw when driver has no IP', () => {
-      const payload: EffectPayload = { effect: 'test' };
-
-      expect(() => {
-        udpClient.send('rgfx-driver-0004', payload);
-      }).not.toThrow();
-    });
-
-    it('should handle driver not connected', () => {
-      const payload: EffectPayload = { effect: 'test' };
-
-      // driver-3 is not connected
-      expect(() => {
-        udpClient.send('rgfx-driver-0003', payload);
-      }).not.toThrow();
-    });
-  });
-
-  describe('sendToDrivers', () => {
-    it('should send to multiple specific drivers', () => {
-      const payload: EffectPayload = {
-        effect: 'bonus_stage',
-        hint: { visual: 'sparkle', count: 10 },
-      };
-
-      const driverIds = ['rgfx-driver-0001', 'rgfx-driver-0002'];
-
-      udpClient.sendToDrivers(driverIds, payload);
-
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0002');
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle empty driver ID list', () => {
-      const payload: EffectPayload = { effect: 'test' };
-
-      expect(() => {
-        udpClient.sendToDrivers([], payload);
-      }).not.toThrow();
-      expect(mockDriverRegistry.getDriver).not.toHaveBeenCalled();
-    });
-
-    it('should continue on invalid driver IDs', () => {
-      const payload: EffectPayload = { effect: 'test' };
-      const driverIds = ['rgfx-driver-0001', 'nonexistent', 'rgfx-driver-0002'];
-
-      expect(() => {
-        udpClient.sendToDrivers(driverIds, payload);
-      }).not.toThrow();
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(3);
-    });
-  });
-
   describe('effect payload structure', () => {
     it('should handle simple effect payloads', () => {
       const payload: EffectPayload = { effect: 'generic' };
 
       expect(() => {
-        udpClient.send('rgfx-driver-0001', payload);
+        udpClient.broadcast(payload);
       }).not.toThrow();
     });
 
@@ -386,7 +312,7 @@ describe('UdpClientImpl', () => {
       };
 
       expect(() => {
-        udpClient.send('rgfx-driver-0001', payload);
+        udpClient.broadcast(payload);
       }).not.toThrow();
     });
 
@@ -405,7 +331,7 @@ describe('UdpClientImpl', () => {
       };
 
       expect(() => {
-        udpClient.send('rgfx-driver-0001', payload);
+        udpClient.broadcast(payload);
       }).not.toThrow();
     });
   });

@@ -9,7 +9,7 @@
 
 import { promises as fs, watch } from 'node:fs';
 import { join, basename } from 'node:path';
-import type { MappingContext, MappingHandler } from './types/mapping-types';
+import type { MappingContext, MappingHandler, RgfxTopic } from './types/mapping-types';
 import { getMappingsDir } from './mapper-installer';
 
 /**
@@ -146,6 +146,25 @@ export class MappingEngine {
   }
 
   /**
+   * Parse raw topic string into RgfxTopic structure
+   * @param raw Raw topic string (e.g., "pacman/player/score/p1")
+   * @returns Parsed topic with pre-split segments
+   */
+  private parseTopic(raw: string): RgfxTopic {
+    const parts = raw.split('/');
+    const [namespace, subject, property, qualifier] = parts;
+
+    return {
+      raw,
+      namespace,
+      subject,
+      property,
+      qualifier,
+      parts,
+    };
+  }
+
+  /**
    * Handle incoming event with cascading precedence
    * @param topic Event topic (e.g., "pacman/player/score/p1")
    * @param payload Event payload (e.g., "12450")
@@ -154,21 +173,24 @@ export class MappingEngine {
     try {
       // Parse payload for potential future use
       this.parsePayload(payload);
-      const [game, subject] = topic.split('/');
+
+      // Parse topic once into structured object
+      const topicObj = this.parseTopic(topic);
+      const { namespace, subject } = topicObj;
 
       // Auto-load game mapper on first event from game
-      if (game && !this.gameHandlers.has(game)) {
-        await this.loadGameMapper(game);
+      if (namespace && !this.gameHandlers.has(namespace)) {
+        await this.loadGameMapper(namespace);
       }
 
       // 1. Try game-specific handler (highest priority)
-      if (game && this.gameHandlers.has(game)) {
-        const handler = this.gameHandlers.get(game);
+      if (namespace && this.gameHandlers.has(namespace)) {
+        const handler = this.gameHandlers.get(namespace);
         if (!handler) return;
-        const handled = await handler(topic, payload, this.context);
+        const handled = await handler(topicObj, payload, this.context);
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
-          this.context.log.debug(`Event handled by game mapper: ${game} - ${topic}`);
+          this.context.log.debug(`Event handled by game mapper: ${namespace} - ${topic}`);
           return;
         }
       }
@@ -177,7 +199,7 @@ export class MappingEngine {
       if (subject && this.subjectHandlers.has(subject)) {
         const handler = this.subjectHandlers.get(subject);
         if (!handler) return;
-        const handled = await handler(topic, payload, this.context);
+        const handled = await handler(topicObj, payload, this.context);
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
           this.context.log.debug(`Event handled by subject mapper: ${subject} - ${topic}`);
@@ -187,7 +209,7 @@ export class MappingEngine {
 
       // 3. Try pattern handlers (lower priority)
       for (const handler of this.patternHandlers) {
-        const handled = await handler(topic, payload, this.context);
+        const handled = await handler(topicObj, payload, this.context);
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
           this.context.log.debug(`Event handled by pattern mapper: ${topic}`);
@@ -197,7 +219,7 @@ export class MappingEngine {
 
       // 4. Default handler (always handles)
       if (this.defaultHandler) {
-        await this.defaultHandler(topic, payload, this.context);
+        await this.defaultHandler(topicObj, payload, this.context);
         this.context.log.debug(`Event handled by default mapper: ${topic}`);
       } else {
         this.context.log.warn(`No handler found for event: ${topic}`);

@@ -73,11 +73,7 @@ const stateStore = new StateStoreImpl();
 const logger = new LoggerWrapper(log);
 
 const mappingEngine = new MappingEngine({
-  // Flatten UDP methods for convenience (most common operations)
   broadcast: udpClient.broadcast.bind(udpClient),
-  send: udpClient.send.bind(udpClient),
-  sendToDrivers: udpClient.sendToDrivers.bind(udpClient),
-  // Keep full service objects for advanced use
   udp: udpClient,
   mqtt: mqttClient,
   http: {

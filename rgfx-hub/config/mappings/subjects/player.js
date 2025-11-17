@@ -1,6 +1,5 @@
 // Generic player events
-export function handle(topic, _payload, { broadcast }) {
-  const [, subject, property] = topic.split('/');
+export function handle({ subject, property }, _payload, { broadcast }) {
   if (subject !== 'player') return false;
 
   if (property === 'score') {

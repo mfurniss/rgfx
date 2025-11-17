@@ -105,6 +105,7 @@ _G.event("pacman/ghost/state/red", state)
 
 ```typescript
 export interface MappingContext {
+  broadcast(payload: EffectPayload): boolean;
   udp: UdpClient;
   mqtt: MqttClient;
   http: HttpClient;
@@ -115,19 +116,12 @@ export interface MappingContext {
 
 export interface UdpClient {
   broadcast(payload: EffectPayload): void;
-  send(driverId: string, payload: EffectPayload): void;
-  sendToDrivers(driverIds: string[], payload: EffectPayload): void;
 }
 
-export interface EffectPayload {
-  effect: string;        // Semantic effect name
-  [key: string]: any;    // Effect-specific data
-  hint?: {               // Optional visual hints
-    visual?: string;
-    color?: string;
-    duration?: number;
-    [key: string]: any;
-  };
+export interface EffectPayload extends Record<string, unknown> {
+  effect: string;        // Semantic effect name (required)
+  drivers?: string[];    // Optional driver targeting (reserved property)
+  // All other properties are effect-specific and dynamic
 }
 
 export type MappingHandler = (

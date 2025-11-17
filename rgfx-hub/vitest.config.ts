@@ -18,7 +18,7 @@ export default defineConfig({
     pool: "forks",
     poolOptions: {
       forks: {
-        singleFork: false,
+        singleFork: true, // Single fork prevents orphaned worker processes
       },
     },
     coverage: {
