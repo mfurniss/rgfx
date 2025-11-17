@@ -1,11 +1,9 @@
 #include "network/mqtt.h"
-#include "matrix.h"
 #include "sys_info.h"
 #include "log.h"
 #include "utils.h"
 #include "driver_config.h"
 #include "oled/oled_display.h"
-#include "network/udp.h"
 #include "config/constants.h"
 #include "effects/effect_processor.h"
 #include <WiFi.h>
@@ -18,25 +16,15 @@ String MQTT_SERVER = "";
 // MQTT client
 WiFiClient espClient;
 MQTTClient mqttClient(MQTT_BUFFER_SIZE);
-bool mqttClientInitialized = false;  // Track if client has been initialized
 
 // Connection retry tracking
 static int consecutiveFailures = 0;
-
-// Forward declaration for LED access
-extern Matrix* matrix;
-
-// Toggle state
-bool ledsOn = false;
 
 // Test mode state (accessible from main loop)
 bool testModeActive = false;
 
 // Forward declarations
 void handleDriverConfig(const String& payload);
-extern Matrix* matrix;
-extern UDPMessage pendingMessage;
-extern volatile bool newMessageAvailable;
 extern EffectProcessor* effectProcessor;
 
 // MQTT callback function - called when a message is received
@@ -96,6 +84,12 @@ void mqttCallback(String& topic, String& payload) {
 
 		log("Setting device ID to: " + newId);
 		Utils::setDeviceId(newId);
+
+		// Update OLED display to show new device name
+		if (Display::isAvailable()) {
+			Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), false,
+			                       Utils::getDeviceName());
+		}
 
 		// Disconnect and reconnect with new ID
 		mqttClient.disconnect();
@@ -208,7 +202,6 @@ void setupMQTT() {
 		// Initialize MQTT client with dummy host (will be updated when broker is discovered)
 		mqttClient.begin("0.0.0.0", MQTT_PORT, espClient);
 		mqttClient.onMessage(mqttCallback);
-		mqttClientInitialized = true;
 
 		log("MQTT client initialized - will discover broker in background");
 

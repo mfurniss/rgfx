@@ -29,6 +29,27 @@
         "reveal": "always",
         "panel": "dedicated"
       }
+    },
+    {
+      "label": "ESP32: Test (Native)",
+      "type": "shell",
+      "command": "pio",
+      "args": [
+        "test",
+        "-e",
+        "native",
+        "--project-dir",
+        "${workspaceFolder:esp32}"
+      ],
+      "problemMatcher": ["$platformio"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     }
   ],
   "inputs": [

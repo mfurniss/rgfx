@@ -18,7 +18,6 @@ extern bool testModeActive;
 void setupMQTT();
 void reconnectMQTT();
 void mqttLoop();
-void updateLEDs();
 void sendDriverConnect();
 void sendDriverHeartbeat();
 void publishTestState(const String& state);

@@ -178,25 +178,31 @@ driverRegistry.onDriverConnected((driver) => {
   // Note: Removed white pulse visual indicator - it was annoying during normal operation
   // Drivers remain dark unless actively showing game events
 
-  // Auto-assign driver ID if needed (after factory reset, driver has no ID in NVS)
-  // Driver sends empty ID in hostname, Hub looks up persisted ID and sends set-id command
-  if (driver.sysInfo?.mac && driver.sysInfo.hostname) {
+  // Auto-sync driver ID with persisted configuration
+  // If driver's current ID doesn't match Hub's persisted ID, push the correct ID
+  if (driver.sysInfo?.mac) {
     const macAddress = driver.sysInfo.mac;
-    const actualHostname = driver.sysInfo.hostname;
+    const persistedDriver = driverPersistence.getDriverByMac(macAddress);
 
-    // Check if driver sent empty ID (hostname ends with just "rgfx-driver-")
-    if (actualHostname === 'rgfx-driver-' || actualHostname.endsWith('rgfx-driver-')) {
-      const persistedDriver = driverPersistence.getDriverByMac(macAddress);
-      if (persistedDriver) {
-        const correctFullId = persistedDriver.id; // e.g., "rgfx-driver-0002"
-        // Extract just the numeric/alphanumeric ID part (e.g., "0002")
+    if (persistedDriver) {
+      const correctFullId = persistedDriver.id; // e.g., "rgfx-driver-0002"
+      const driverCurrentId = driver.id; // What the driver is currently using
+
+      // Check if driver ID needs to be updated
+      if (driverCurrentId !== correctFullId) {
         const idPart = correctFullId.replace(/^rgfx-driver-/, '');
-        log.info(`Auto-assigning driver ID: ${macAddress} → ${idPart} (driver sent empty ID)`);
+        log.info(
+          `Driver ID mismatch - Driver: ${driverCurrentId}, Persisted: ${correctFullId}. Pushing correct ID: ${idPart}`
+        );
 
-        // Send set-id command using MAC address (driver hasn't been assigned ID yet)
-        const macWithDashes = macAddress.replace(/:/g, '-');
-        const setIdTopic = `rgfx/driver/${macWithDashes}/set-id`;
+        // Send set-id command to driver
+        // Use driver's current ID for topic (or MAC if empty)
+        const targetId = driverCurrentId.startsWith('rgfx-driver-')
+          ? driverCurrentId
+          : macAddress.replace(/:/g, '-');
+        const setIdTopic = `rgfx/driver/${targetId}/set-id`;
         const setIdPayload = JSON.stringify({ id: idPart });
+
         void mqtt
           .publish(setIdTopic, setIdPayload)
           .then(() => {

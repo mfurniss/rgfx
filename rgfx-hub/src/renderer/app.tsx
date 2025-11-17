@@ -9,6 +9,8 @@ import { theme } from './theme';
 import styles from './app.module.css';
 
 const App: React.FC = () => {
+  const randomHue = Math.floor(Math.random() * 360);
+
   // Get state from Zustand store
   const systemStatus = useDriverStore((state) => state.systemStatus);
 
@@ -74,6 +76,7 @@ const App: React.FC = () => {
       <HashRouter>
         <Box
           className={styles.container}
+          style={{ '--hue': randomHue } as React.CSSProperties}
           sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
         >
           {/* Main Content */}
