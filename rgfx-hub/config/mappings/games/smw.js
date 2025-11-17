@@ -9,15 +9,12 @@
  * - smb/game/music/area - Music track changes (different colors per area)
  * - smb/game/music/event - Event music (death, game over, level ending, etc.)
  *
- * @param {string} topic
+ * @param {import('../../../src/types/mapping-types').RgfxTopic} topic - Parsed topic with pre-split segments
  * @param {string} payload
  * @param {import('../../../src/types/mapping-types').MappingContext} context
  * @returns {boolean}
  */
-export function handle(topic, payload, { broadcast }) {
-  const parts = topic.split("/");
-  const subject = parts[1]; // 'player' or 'game'
-  const property = parts[2]; // 'score', 'coins', 'jump', 'fireball', 'music'
+export function handle({ subject, property, qualifier }, payload, { broadcast }) {
 
   // Player score - red pulse (Mario's signature color)
   if (subject === "player" && property === "score") {
@@ -61,7 +58,7 @@ export function handle(topic, payload, { broadcast }) {
 
   // Music track changes - different colors per area
   if (subject === "game" && property === "music") {
-    const musicType = parts[3]; // 'area' or 'event'
+    const musicType = qualifier; // 'area' or 'event'
 
     if (musicType === "area") {
       // Area music: 0x01 = Overworld, 0x02 = Underwater, 0x04 = Underground, 0x08 = Castle, 0x10 = Star

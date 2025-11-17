@@ -78,32 +78,4 @@ export class UdpClientImpl implements UdpClient {
     return true;
   }
 
-  /**
-   * Send effect to a specific driver by ID
-   * @param driverId Driver ID (last 3 bytes of MAC, e.g., "F8:9A:58")
-   * @param payload Effect payload
-   * @returns true (for mapper return convenience)
-   */
-  send(driverId: string, payload: EffectPayload): boolean {
-    // Remove drivers property before sending
-    const { drivers, ...effectData } = payload;
-    void drivers; // Acknowledge but don't use
-    return this.sendEffectToDriver(driverId, effectData);
-  }
-
-  /**
-   * Send effect to multiple specific drivers
-   * @param driverIds Array of driver IDs
-   * @param payload Effect payload
-   * @returns true (for mapper return convenience)
-   */
-  sendToDrivers(driverIds: string[], payload: EffectPayload): boolean {
-    // Remove drivers property before sending
-    const { drivers, ...effectData } = payload;
-    void drivers; // Acknowledge but don't use
-    for (const driverId of driverIds) {
-      this.sendEffectToDriver(driverId, effectData);
-    }
-    return true;
-  }
 }

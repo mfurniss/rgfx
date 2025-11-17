@@ -2,13 +2,51 @@ import { afterEach, vi } from 'vitest';
 import React from 'react';
 
 // Make React globally available for JSX transform
-
 (globalThis as any).React = React;
 
-// Global cleanup to prevent timer leaks between tests
-afterEach(() => {
+// Track resources for cleanup (prevents hung processes)
+const activeResources: { stop?: () => void | Promise<void>; close?: () => void | Promise<void>; dispose?: () => void | Promise<void> }[] = [];
+
+/**
+ * Track a resource that needs cleanup
+ * Resources should have stop(), close(), or dispose() methods
+ */
+export function trackResource(resource: any): void {
+  if (resource && (resource.stop || resource.close || resource.dispose)) {
+    activeResources.push(resource);
+  }
+}
+
+// Global cleanup to prevent timer leaks and hung processes
+afterEach(async () => {
   vi.clearAllTimers();
+
+  // Force cleanup of all tracked resources
+  for (const resource of activeResources) {
+    try {
+      await resource.stop?.();
+      await resource.close?.();
+      await resource.dispose?.();
+    } catch {
+      // Ignore cleanup errors in tests
+    }
+  }
+  activeResources.length = 0;
+
   // NOTE: restoreAllMocks() disabled because it breaks vi.mock() with vi.fn()
   // Tests that use vi.spyOn() should manually restore their spies
   // vi.restoreAllMocks();
 });
+
+// Emergency cleanup after all tests complete
+// NOTE: Commented out - Vitest doesn't like process.exit() in tests
+// If you experience hung processes, uncomment and run tests with NODE_OPTIONS="--trace-warnings"
+// afterAll(() => {
+//   if (process.env.VITEST) {
+//     const timeout = setTimeout(() => {
+//       console.warn('⚠️  Force exiting test process after 2 seconds - possible resource leak');
+//       process.exit(0);
+//     }, 2000);
+//     timeout.unref();
+//   }
+// });

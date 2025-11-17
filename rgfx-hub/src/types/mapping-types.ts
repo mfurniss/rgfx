@@ -10,30 +10,20 @@ import type { DriverRegistry } from '../driver-registry';
 /**
  * Effect payload sent to LED drivers via UDP
  *
- * Contains semantic effect name plus effect-specific data and optional hints
- * for visual rendering (color, duration, pattern, etc.)
+ * Flexible record structure with required effect name and arbitrary effect-specific properties.
+ * The `drivers` property is reserved for selective driver targeting.
+ *
+ * Examples:
+ * - { effect: 'pulse', color: '#FF0000', duration: 300 }
+ * - { effect: 'score', value: 12450, player: 'p1', drivers: ['rgfx-driver-0001'] }
+ * - { effect: 'wipe', direction: 'left', speed: 200 }
  */
-export interface EffectPayload {
+export interface EffectPayload extends Record<string, unknown> {
   /** Semantic effect name (e.g., "score", "player_death", "powerup") */
   effect: string;
 
-  /** Effect-specific data (flexible schema per effect type) */
-  [key: string]: unknown;
-
-  /** Optional properties for effect rendering */
-  props?: {
-    /** Color in hex format (e.g., "#FF0000") */
-    color?: string;
-    /** Duration in milliseconds */
-    duration?: number;
-    /** Whether the effect should fade (default: true) */
-    fade?: boolean;
-    /** Additional effect properties */
-    [key: string]: unknown;
-  };
-
   /**
-   * Optional array of driver IDs to target.
+   * Optional array of driver IDs to target (reserved property, not sent via UDP).
    * Driver IDs use sequential format (e.g., "rgfx-driver-0001", "rgfx-driver-0002").
    * If undefined, broadcasts to all connected drivers.
    * If defined, only sends to drivers with matching IDs.
@@ -42,31 +32,45 @@ export interface EffectPayload {
 }
 
 /**
+ * Parsed topic structure with pre-split parts
+ *
+ * Topics follow the format: namespace/subject/property/qualifier
+ *
+ * Examples:
+ * - "pacman/player/score/p1" → { namespace: "pacman", subject: "player", property: "score", qualifier: "p1" }
+ * - "galaga/enemy/destroyed" → { namespace: "galaga", subject: "enemy", property: "destroyed", qualifier: undefined }
+ * - "rgfx/driver/connected" → { namespace: "rgfx", subject: "driver", property: "connected", qualifier: undefined }
+ */
+export interface RgfxTopic {
+  /** Original raw topic string */
+  raw: string;
+
+  /** Namespace (first segment) - Either game name (pacman, galaga) or system namespace (rgfx) */
+  namespace?: string;
+
+  /** Subject (second segment) - The entity or concept (player, ghost, enemy, driver) */
+  subject?: string;
+
+  /** Property (third segment) - The attribute or state being tracked (score, state, position) */
+  property?: string;
+
+  /** Qualifier (fourth segment) - Optional additional context (p1, p2, color name) */
+  qualifier?: string;
+
+  /** All topic segments (for custom parsing or advanced use) */
+  parts: string[];
+}
+
+/**
  * UDP client interface for broadcasting effects to LED drivers
  */
 export interface UdpClient {
   /**
-   * Broadcast effect to all connected drivers
-   * @param payload Effect payload with semantic data
+   * Broadcast effect to all connected drivers or selective drivers if specified
+   * @param payload Effect payload with semantic data. Use payload.drivers to target specific drivers.
    * @returns true (for mapper return convenience)
    */
   broadcast(payload: EffectPayload): boolean;
-
-  /**
-   * Send effect to a specific driver by ID
-   * @param driverId Driver ID (e.g., "rgfx-driver-0001")
-   * @param payload Effect payload
-   * @returns true (for mapper return convenience)
-   */
-  send(driverId: string, payload: EffectPayload): boolean;
-
-  /**
-   * Send effect to multiple specific drivers
-   * @param driverIds Array of driver IDs
-   * @param payload Effect payload
-   * @returns true (for mapper return convenience)
-   */
-  sendToDrivers(driverIds: string[], payload: EffectPayload): boolean;
 }
 
 /**
@@ -187,20 +191,12 @@ export interface Logger {
  *
  * Contains all services and utilities mappers can use to interact with
  * the system (send effects, publish MQTT, store state, log messages)
- *
- * Note: UDP broadcast methods are flattened for convenience (most common operations)
  */
 export interface MappingContext {
-  /** Broadcast effect to all connected drivers (returns true for mapper convenience) */
+  /** Broadcast effect to all connected drivers or selective drivers via payload.drivers */
   broadcast(payload: EffectPayload): boolean;
 
-  /** Send effect to specific driver by ID (e.g., "rgfx-driver-0001") */
-  send(driverId: string, payload: EffectPayload): boolean;
-
-  /** Send effect to multiple drivers (returns true for mapper convenience) */
-  sendToDrivers(driverIds: string[], payload: EffectPayload): boolean;
-
-  /** UDP client for sending effects to LED drivers (still available for advanced use) */
+  /** UDP client for sending effects to LED drivers */
   udp: UdpClient;
 
   /** MQTT client for publishing to smart home or other clients */
@@ -222,13 +218,13 @@ export interface MappingContext {
 /**
  * Mapping handler function signature
  *
- * @param topic Event topic (e.g., "pacman/player/score/p1")
+ * @param topic Parsed topic with pre-split segments
  * @param payload Event payload (e.g., "12450" or JSON string)
  * @param context Mapping context with services
  * @returns true if event was handled (stops cascade), false to continue
  */
 export type MappingHandler = (
-  topic: string,
+  topic: RgfxTopic,
   payload: string,
   context: MappingContext
 ) => boolean | Promise<boolean>;

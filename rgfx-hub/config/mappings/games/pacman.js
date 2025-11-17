@@ -16,7 +16,7 @@
  *
  * If no "drivers" array is provided, the effect broadcasts to all connected drivers.
  *
- * @param {string} topic - Event topic (e.g., "pacman/player/score/p1")
+ * @param {import('../../../src/types/mapping-types').RgfxTopic} topic - Parsed topic with pre-split segments
  * @param {string} payload - Event payload (e.g., "100")
  * @param {import('../../../src/types/mapping-types').MappingContext} context - Mapping context with services
  * @returns {boolean} - True if event was handled, false otherwise
@@ -49,9 +49,7 @@ const GHOST_STATE_COLORS = {
   [GHOST_STATE.EYES]: '#FFFFFF',
 };
 
-export function handle(topic, payload, { broadcast }) {
-  const parts = topic.split('/');
-  const [, subject, property] = parts;
+export function handle({ subject, property, qualifier }, payload, { broadcast }) {
 
   if (subject === 'player' && property === 'score') {
     return broadcast({
@@ -80,8 +78,8 @@ export function handle(topic, payload, { broadcast }) {
 
   // Ghost state changes - color-coded effects
   // Topic format: pacman/ghost/{color}/state
-  if (subject === 'ghost' && parts.length === 4) {
-    const ghostColor = parts[2]; // Get color from correct position
+  if (subject === 'ghost' && qualifier) {
+    const ghostColor = property;
     const state = parseInt(payload);
 
     // Look up color by state, or use ghost's normal color
