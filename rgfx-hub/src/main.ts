@@ -297,26 +297,18 @@ mqtt.subscribe('rgfx/driver/+/status', (topic, payload) => {
     return;
   }
 
-  // Update driver connection state based on status
-  const wasConnected = driver.connected;
-  driver.connected = payload === 'online';
-
-  // If driver came online, notify UI
-  if (!wasConnected && driver.connected) {
-    log.info(`Driver ${driverId} came online (LWT status)`);
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:connected', driver);
-    }
-    sendSystemStatus();
-  }
-
-  // If driver went offline, notify UI
-  if (wasConnected && !driver.connected) {
+  // LWT status is informational only - actual connection state managed by registerDriver/heartbeat
+  // Only handle offline status to immediately mark driver as disconnected
+  if (payload === 'offline' && driver.connected) {
     log.warn(`Driver ${driverId} went offline (LWT triggered)`);
+    driver.connected = false;
     if (isWindowAvailable() && mainWindow) {
       mainWindow.webContents.send('driver:disconnected', driver);
     }
     sendSystemStatus();
+  } else if (payload === 'online') {
+    // Driver came online - don't set connected=true yet, wait for connect message
+    log.info(`Driver ${driverId} LWT status: online (waiting for connect message)`);
   }
 });
 

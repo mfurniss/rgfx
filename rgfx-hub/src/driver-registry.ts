@@ -156,6 +156,10 @@ export class DriverRegistry {
 
     // Only notify on initial connection - not for subsequent heartbeats/reconnects
     const wasConnected = existingDriver?.connected ?? false;
+    log.info(
+      `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
+        `wasConnected=${wasConnected}, callbackRegistered=${this.onDriverConnectedCallback !== undefined}`
+    );
     if (!wasConnected) {
       log.info(`Driver connected: ${driverId}`);
       log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
