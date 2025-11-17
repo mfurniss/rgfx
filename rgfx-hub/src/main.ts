@@ -337,14 +337,22 @@ mqtt.subscribe('rgfx/driver/+/test/state', (topic, payload) => {
   }
 });
 
+// Track event topics and their counts
+const eventTopicCounts = new Map<string, number>();
+
 // Start reading events and send to mapping engine for processing
 eventReader.start((topic, message) => {
   eventsProcessed++;
   void mappingEngine.handleEvent(topic, message);
 
+  // Track event topic count
+  const currentCount = eventTopicCounts.get(topic) ?? 0;
+  eventTopicCounts.set(topic, currentCount + 1);
+
   // Send event count to renderer in real-time (lightweight, just a number)
   if (isWindowAvailable() && mainWindow) {
     mainWindow.webContents.send('event:count', eventsProcessed);
+    mainWindow.webContents.send('event:topic', { topic, count: currentCount + 1 });
   }
 });
 

@@ -29,7 +29,7 @@ const DriverDetailPage: React.FC = () => {
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => {
-            void navigate('/');
+            void navigate('/drivers');
           }}
           sx={{ mb: 3 }}
         >
@@ -50,7 +50,7 @@ const DriverDetailPage: React.FC = () => {
       <Button
         startIcon={<ArrowBackIcon />}
         onClick={() => {
-          void navigate('/');
+          void navigate('/drivers');
         }}
         sx={{ mb: 3 }}
       >

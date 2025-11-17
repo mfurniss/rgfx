@@ -1,6 +1,6 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Driver, SystemStatus } from './types';
+import type { Driver, SystemStatus, EventTopicData } from './types';
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
@@ -64,6 +64,16 @@ export const rgfxAPI = {
     ipcRenderer.on('event:count', handler);
     return () => {
       ipcRenderer.removeListener('event:count', handler);
+    };
+  },
+
+  onEventTopic: (callback: (data: EventTopicData) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: EventTopicData) => {
+      callback(data);
+    };
+    ipcRenderer.on('event:topic', handler);
+    return () => {
+      ipcRenderer.removeListener('event:topic', handler);
     };
   },
 

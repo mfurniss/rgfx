@@ -1,0 +1,76 @@
+import React from "react";
+import { Typography, Box, Paper } from "@mui/material";
+
+const AboutPage: React.FC = () => {
+  const version = "0.0.1-Test";
+
+  return (
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        About RGFX
+      </Typography>
+
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Retro Game Effects
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          A MAME Lua scripting framework for monitoring retro arcade game state and publishing
+          events via MQTT to control LED hardware in real-time.
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Version {version}
+        </Typography>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          System Architecture
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          <strong>Hub:</strong> Main Electron application that monitors MAME game events and
+          publishes them via embedded MQTT broker
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          <strong>Drivers:</strong> ESP32 firmware units that receive events and control LED
+          hardware (strips, matrices, etc.)
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          <strong>Communication:</strong> MQTT (QoS 2) for reliable event delivery, UDP for
+          low-latency effects, SSDP for broker discovery
+        </Typography>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Technology Stack
+        </Typography>
+        <Box sx={{ pl: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            <strong>Hub:</strong> Electron, React, TypeScript, Material UI, Aedes MQTT Broker
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            <strong>Drivers:</strong> ESP32, PlatformIO, C++, FastLED, ArduinoMqtt
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            <strong>Game Integration:</strong> MAME Lua 5.4 scripting
+          </Typography>
+        </Box>
+      </Paper>
+
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          License & Source Code
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          RGFX is open source software.
+        </Typography>
+        <Typography variant="body2">
+          For documentation, source code, and support, visit the project repository.
+        </Typography>
+      </Paper>
+    </Box>
+  );
+};
+
+export default AboutPage;
