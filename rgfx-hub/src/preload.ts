@@ -57,6 +57,16 @@ export const rgfxAPI = {
     };
   },
 
+  onEventCount: (callback: (count: number) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, count: number) => {
+      callback(count);
+    };
+    ipcRenderer.on('event:count', handler);
+    return () => {
+      ipcRenderer.removeListener('event:count', handler);
+    };
+  },
+
   testDriverLEDs: (driverId: string, enabled: boolean): Promise<void> => {
     return ipcRenderer.invoke('driver:test-leds', driverId, enabled);
   },

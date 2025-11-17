@@ -2,26 +2,29 @@
   "folders": [
     {
       "name": "rgfx (Root)",
-      "path": "."
+      "path": ".",
     },
     {
-      "path": "mame"
+      "path": "mame",
     },
     {
-      "path": "esp32"
+      "path": "esp32",
     },
     {
-      "path": "esp32-installer"
+      "path": "esp32-installer",
     },
     {
-      "path": "rgfx.io"
+      "path": "rgfx.io",
     },
     {
-      "path": "rgfx-hub"
+      "path": "rgfx-hub",
     },
     {
-      "path": "../../Library/Application Support/rgfx-hub/mappings"
-    }
+      "path": "../../Library/Application Support/rgfx-hub/mappings",
+    },
+    {
+      "path": "../../.rgfx",
+    },
   ],
   "settings": {
     "files.exclude": {
@@ -29,13 +32,13 @@
       "esp32": true,
       "esp32-installer": true,
       "rgfx.io": true,
-      "rgfx-hub": true
+      "rgfx-hub": true,
     },
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "[typescript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
-    "stylua.targetReleaseVersion": "latest"
-  }
+    "stylua.targetReleaseVersion": "latest",
+  },
 }

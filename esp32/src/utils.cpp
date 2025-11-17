@@ -16,9 +16,6 @@ String Utils::getDeviceId() {
 	return "";
 }
 
-String Utils::getDeviceName() {
-	return "rgfx-driver-" + getDeviceId();
-}
 
 void Utils::setDeviceId(const String& deviceId) {
 	ConfigNVS::saveDeviceId(deviceId);

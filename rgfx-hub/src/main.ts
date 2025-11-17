@@ -110,7 +110,15 @@ function sendSystemStatus() {
 }
 
 // Helper to push driver configuration via MQTT
-async function pushConfigToDriver(driverId: string): Promise<void> {
+async function pushConfigToDriver(macAddress: string): Promise<void> {
+  // Look up driver by MAC address
+  const driver = driverRegistry.getDriverByMac(macAddress);
+  if (!driver) {
+    throw new Error(`No driver found with MAC ${macAddress}`);
+  }
+
+  const driverId = driver.id;
+
   // Get LED config (hardware ref + settings) from persistence
   const ledConfig = driverPersistence.getLEDConfig(driverId);
 
@@ -127,6 +135,7 @@ async function pushConfigToDriver(driverId: string): Promise<void> {
 
   // Combine hardware definition with driver-specific config (pin, offset) and settings
   const completeConfig = {
+    id: driverId, // Full device ID (e.g., "rgfx-driver-0001")
     name: hardware.name,
     description: hardware.description,
     version: '1.0',
@@ -154,8 +163,8 @@ async function pushConfigToDriver(driverId: string): Promise<void> {
     },
   };
 
-  // Publish complete config to driver-specific topic using driver ID
-  const topic = `rgfx/driver/${driverId}/config`;
+  // Publish complete config to MAC-based topic (stable, always reachable)
+  const topic = `rgfx/driver/${macAddress}/config`;
   const payload = JSON.stringify(completeConfig);
 
   await mqtt.publish(topic, payload);
@@ -178,47 +187,14 @@ driverRegistry.onDriverConnected((driver) => {
   // Note: Removed white pulse visual indicator - it was annoying during normal operation
   // Drivers remain dark unless actively showing game events
 
-  // Auto-sync driver ID with persisted configuration
-  // If driver's current ID doesn't match Hub's persisted ID, push the correct ID
+  // Push configuration to driver when it connects (includes device ID in payload)
   if (driver.sysInfo?.mac) {
-    const macAddress = driver.sysInfo.mac;
-    const persistedDriver = driverPersistence.getDriverByMac(macAddress);
-
-    if (persistedDriver) {
-      const correctFullId = persistedDriver.id; // e.g., "rgfx-driver-0002"
-      const driverCurrentId = driver.id; // What the driver is currently using
-
-      // Check if driver ID needs to be updated
-      if (driverCurrentId !== correctFullId) {
-        const idPart = correctFullId.replace(/^rgfx-driver-/, '');
-        log.info(
-          `Driver ID mismatch - Driver: ${driverCurrentId}, Persisted: ${correctFullId}. Pushing correct ID: ${idPart}`
-        );
-
-        // Send set-id command to driver
-        // Use driver's current ID for topic (or MAC if empty)
-        const targetId = driverCurrentId.startsWith('rgfx-driver-')
-          ? driverCurrentId
-          : macAddress.replace(/:/g, '-');
-        const setIdTopic = `rgfx/driver/${targetId}/set-id`;
-        const setIdPayload = JSON.stringify({ id: idPart });
-
-        void mqtt
-          .publish(setIdTopic, setIdPayload)
-          .then(() => {
-            log.info(`Sent set-id command, driver will reconnect with ID: ${idPart}`);
-          })
-          .catch((error: unknown) => {
-            log.error(`Failed to send set-id command:`, error);
-          });
-      }
-    }
+    void pushConfigToDriver(driver.sysInfo.mac).catch((error: unknown) => {
+      log.error(`Failed to push config to driver ${driver.id}:`, error);
+    });
+  } else {
+    log.warn(`Driver ${driver.id} connected without MAC address - cannot push config`);
   }
-
-  // Push configuration to driver when it connects
-  void pushConfigToDriver(driver.id).catch((error: unknown) => {
-    log.error(`Failed to push config to driver ${driver.id}:`, error);
-  });
 });
 
 driverRegistry.onDriverDisconnected((driver) => {
@@ -368,6 +344,7 @@ mqtt.subscribe('rgfx/driver/+/test/state', (topic, payload) => {
 
   // Notify renderer to update UI
   if (isWindowAvailable() && mainWindow) {
+    log.info(`Sending driver:updated to renderer for ${driverId}`);
     mainWindow.webContents.send('driver:updated', driver);
   }
 });
@@ -376,19 +353,33 @@ mqtt.subscribe('rgfx/driver/+/test/state', (topic, payload) => {
 eventReader.start((topic, message) => {
   eventsProcessed++;
   void mappingEngine.handleEvent(topic, message);
-  sendSystemStatus();
+
+  // Send event count to renderer in real-time (lightweight, just a number)
+  if (isWindowAvailable() && mainWindow) {
+    mainWindow.webContents.send('event:count', eventsProcessed);
+  }
 });
 
 // IPC handler for LED test command
 ipcMain.handle('driver:test-leds', async (_event, driverId: string, enabled: boolean) => {
   log.info(`LED test ${enabled ? 'ON' : 'OFF'} requested for driver ${driverId}`);
 
+  // Look up driver to get MAC address for config push
+  const driver = driverRegistry.getDriver(driverId);
+  if (!driver) {
+    throw new Error(`No driver found with ID ${driverId}`);
+  }
+
+  if (!driver.sysInfo?.mac) {
+    throw new Error(`Driver ${driverId} has no MAC address`);
+  }
+
   const topic = `rgfx/driver/${driverId}/test`;
 
   if (enabled) {
     // Push config first, wait for MQTT confirmation, then send test command
     log.info(`Pushing LED configuration to driver ${driverId} before test...`);
-    await pushConfigToDriver(driverId);
+    await pushConfigToDriver(driver.sysInfo.mac);
     await mqtt.publish(topic, 'on');
     log.info(`Test mode enabled for driver ${driverId}`);
   } else {

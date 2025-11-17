@@ -57,9 +57,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
       case 'id':
         compareValue = a.id.localeCompare(b.id);
         break;
-      case 'name':
-        compareValue = a.name.localeCompare(b.name);
-        break;
       case 'ip':
         compareValue = (a.ip ?? '').localeCompare(b.ip ?? '');
         break;

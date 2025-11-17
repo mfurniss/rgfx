@@ -25,7 +25,6 @@ describe('driver-store', () => {
     connected = true
   ): Driver => ({
     id,
-    name: `Driver ${id}`,
     connected,
     lastSeen: Date.now(),
     firstSeen: Date.now(),
@@ -75,7 +74,7 @@ describe('driver-store', () => {
       const driver1 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
       const driver2 = {
         ...createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF'),
-        name: 'Updated Driver',
+        failedHeartbeats: 1,
       };
 
       useDriverStore.getState().onDriverConnected(driver1);
@@ -83,7 +82,7 @@ describe('driver-store', () => {
 
       const drivers = useDriverStore.getState().drivers;
       expect(drivers).toHaveLength(1);
-      expect(drivers[0].name).toBe('Updated Driver');
+      expect(drivers[0].failedHeartbeats).toBe(1);
     });
 
     it('should replace old entry when MAC matches but ID changed (driver migration)', () => {

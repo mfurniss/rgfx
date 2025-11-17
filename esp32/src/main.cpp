@@ -55,7 +55,7 @@ void networkTask(void* parameter) {
 	bool hasDisplay = Display::begin();
 	if (hasDisplay) {
 		log("OLED display available - status display enabled");
-		Display::showBoot(Utils::getDeviceName());
+		Display::showBoot(Utils::getDeviceId());
 		delay(2000);  // Show boot screen for 2 seconds
 	} else {
 		log("Running without OLED display");
@@ -190,7 +190,7 @@ void loop() {
 
 		// Update display to show AP mode
 		if (Display::isAvailable()) {
-			Display::showAPMode(Utils::getDeviceName());
+			Display::showAPMode(Utils::getDeviceId());
 		}
 
 		return;

@@ -39,7 +39,6 @@ export class DriverRegistry {
 
         const driver: Driver = {
           id: pd.id,
-          name: pd.name,
           description: pd.description,
           connected: false,
           lastSeen: 0,
@@ -110,8 +109,7 @@ export class DriverRegistry {
     // If this is a completely new driver (not in persistence), create it
     if (isNewDriver && this.persistence && !persistedDriver) {
       const newId = this.persistence.generateNextDriverId();
-      const name = `RGFX Driver ${newId.split('-')[2]}`; // Extract number for name
-      this.persistence.addDriver(newId, macAddress, name);
+      this.persistence.addDriver(newId, macAddress);
       persistedDriver = this.persistence.getDriver(newId);
       driverId = newId; // Update driverId to use the newly generated ID
       firstSeen = persistedDriver?.firstSeen ?? now;
@@ -133,7 +131,6 @@ export class DriverRegistry {
 
     const driver: Driver = {
       id: driverId,
-      name: persistedDriver?.name ?? sysInfo.hostname,
       description: persistedDriver?.description, // Preserve description from persistence
       connected: true,
       lastSeen: now,
@@ -157,19 +154,17 @@ export class DriverRegistry {
       `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`
     );
 
-    // Notify if this is a new driver or was previously disconnected
-    if (!existingDriver?.connected) {
-      log.info(`Driver connected: ${driver.name} (${driverId})`);
+    // Only notify on initial connection - not for subsequent heartbeats/reconnects
+    const wasConnected = existingDriver?.connected ?? false;
+    if (!wasConnected) {
+      log.info(`Driver connected: ${driverId}`);
       log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
       this.onDriverConnectedCallback?.(driver);
       log.info(
         `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`
       );
     } else {
-      // Existing connected driver - shouldn't happen if using heartbeat properly
-      log.warn(
-        `Driver ${driver.name} (${driverId}) sent connect message while already connected - should use heartbeat instead`
-      );
+      log.debug(`Driver ${driverId} already connected - skipping onDriverConnectedCallback`);
     }
 
     return driver;
@@ -190,7 +185,7 @@ export class DriverRegistry {
 
     // If driver was previously disconnected, mark as reconnected
     if (!driver.connected) {
-      log.info(`Driver reconnected via heartbeat: ${driver.name} (${driverId})`);
+      log.info(`Driver reconnected via heartbeat: ${driverId}`);
       driver.connected = true;
       this.onDriverConnectedCallback?.(driver);
     }
@@ -202,6 +197,13 @@ export class DriverRegistry {
   // Get driver by ID
   getDriver(driverId: string): Driver | undefined {
     return this.drivers.get(driverId);
+  }
+
+  // Get driver by MAC address
+  getDriverByMac(macAddress: string): Driver | undefined {
+    return Array.from(this.drivers.values()).find(
+      (driver) => driver.sysInfo?.mac === macAddress
+    );
   }
 
   // Find driver by IP address
@@ -226,7 +228,7 @@ export class DriverRegistry {
 
     const statType = success ? 'sent' : 'failed';
     const statCount = success ? driver.stats.udpMessagesSent : driver.stats.udpMessagesFailed;
-    log.info(`UDP ${statType} to ${driver.name}: ${statCount} total`);
+    log.info(`UDP ${statType} to ${driver.id}: ${statCount} total`);
 
     this.drivers.set(driver.id, driver);
 
@@ -248,31 +250,31 @@ export class DriverRegistry {
       );
     }
 
-    this.drivers.forEach((driver, driverId) => {
+    this.drivers.forEach((driver) => {
       // Skip already disconnected drivers
       if (!driver.connected) {
         return;
       }
 
-      if (respondedDriverIds.has(driverId)) {
+      if (respondedDriverIds.has(driver.id)) {
         // Driver responded - already handled in updateHeartbeat (resets failedHeartbeats)
-        log.debug(`Driver ${driver.name} responded to heartbeat`);
+        log.debug(`Driver ${driver.id} responded to heartbeat`);
       } else {
         // Driver did not respond - increment failure counter
         driver.failedHeartbeats++;
         log.info(
-          `Driver ${driver.name} missed heartbeat. Failed attempts: ${driver.failedHeartbeats}/${HEARTBEAT_FAILURE_THRESHOLD}`
+          `Driver ${driver.id} missed heartbeat. Failed attempts: ${driver.failedHeartbeats}/${HEARTBEAT_FAILURE_THRESHOLD}`
         );
 
         // Check if driver should be disconnected
         if (driver.failedHeartbeats >= HEARTBEAT_FAILURE_THRESHOLD) {
           log.info(
-            `Driver ${driver.name} (${driverId}) exceeded failure threshold - marking as disconnected`
+            `Driver ${driver.id} exceeded failure threshold - marking as disconnected`
           );
 
           // Mark as disconnected
           driver.connected = false;
-          this.drivers.set(driverId, driver);
+          this.drivers.set(driver.id, driver);
 
           // Notify callback
           if (this.onDriverDisconnectedCallback) {
@@ -282,7 +284,7 @@ export class DriverRegistry {
           }
         } else {
           // Update driver with incremented failure count
-          this.drivers.set(driverId, driver);
+          this.drivers.set(driver.id, driver);
         }
       }
     });

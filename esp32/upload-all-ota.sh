@@ -3,13 +3,38 @@ set -e
 
 cd "$(dirname "$0")"
 
-# Known devices (using driver IDs from config/drivers.json)
-DEVICES=(
-    "rgfx-driver-0001.local"
-    "rgfx-driver-0002.local"
-)
+echo "Discovering RGFX drivers via mDNS..."
 
-echo "Uploading firmware via OTA to ${#DEVICES[@]} device(s):"
+# Use dns-sd to discover all Arduino OTA devices for 3 seconds
+# macOS doesn't have timeout, so use background process + sleep + kill
+TMPFILE=$(mktemp)
+dns-sd -B _arduino._tcp local. 2>/dev/null > "$TMPFILE" & DNSPID=$!
+
+sleep 3
+kill $DNSPID 2>/dev/null || true
+wait $DNSPID 2>/dev/null || true
+
+# Parse discovered devices from temp file
+DEVICES=()
+while IFS= read -r line; do
+    # Extract hostname from dns-sd output
+    # Format: "Timestamp A/R Flags if Domain Service Type Instance Name"
+    # We want lines with "Add" and instance name starting with "rgfx-driver-"
+    if [[ "$line" =~ [[:space:]]rgfx-driver-([0-9]+)$ ]]; then
+        hostname="rgfx-driver-${BASH_REMATCH[1]}.local"
+        DEVICES+=("$hostname")
+    fi
+done < "$TMPFILE"
+
+rm -f "$TMPFILE"
+
+if [ ${#DEVICES[@]} -eq 0 ]; then
+    echo "❌ No RGFX drivers found on network!"
+    echo "Make sure drivers are powered on and connected to WiFi."
+    exit 1
+fi
+
+echo "Found ${#DEVICES[@]} driver(s):"
 for device in "${DEVICES[@]}"; do
     echo "  - $device"
 done

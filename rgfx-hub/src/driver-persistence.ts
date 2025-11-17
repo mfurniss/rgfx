@@ -22,9 +22,6 @@ export interface PersistedDriver {
   /** Original MAC address for reference and MQTT communication */
   macAddress: string;
 
-  /** User-editable device name */
-  name: string;
-
   /** Optional user-editable description */
   description?: string;
 
@@ -48,11 +45,11 @@ interface DriversConfigFile {
  *
  * Responsibilities:
  * - Load/save all driver data from single JSON file
- * - Persist driver discovery (id, name, type, firstSeen)
+ * - Persist driver discovery (id, macAddress, description, firstSeen)
  * - Persist LED configurations (nested in each driver entry)
  * - Provide drivers to DriverRegistry for runtime tracking
  *
- * What gets persisted: id, name, type, firstSeen, ledConfig
+ * What gets persisted: id, macAddress, description, firstSeen, ledConfig
  * What is runtime-only: ip, lastSeen, connected, stats
  */
 export class DriverPersistence {
@@ -165,18 +162,6 @@ export class DriverPersistence {
   }
 
   /**
-   * Validate driver name format
-   * Max 64 characters, printable characters only
-   */
-  private validateDriverName(name: string): boolean {
-    if (name.length === 0 || name.length > 64) {
-      return false;
-    }
-    // Allow alphanumeric, spaces, hyphens, underscores, and common punctuation
-    return /^[\w\s\-_.()]+$/i.test(name);
-  }
-
-  /**
    * Validate a single driver entry against schema
    */
   private validateDriverEntry(driver: unknown): driver is PersistedDriver {
@@ -194,11 +179,6 @@ export class DriverPersistence {
 
     if (typeof d.macAddress !== 'string' || !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(d.macAddress)) {
       log.error(`Invalid MAC address for driver ${d.id}: ${String(d.macAddress)}`);
-      return false;
-    }
-
-    if (typeof d.name !== 'string' || !this.validateDriverName(d.name)) {
-      log.error(`Invalid driver name for driver ${d.id}: ${String(d.name)}`);
       return false;
     }
 
@@ -225,14 +205,9 @@ export class DriverPersistence {
    * Add a newly discovered driver
    * Returns true if driver was added, false if it already exists
    */
-  addDriver(id: string, macAddress: string, name: string): boolean {
+  addDriver(id: string, macAddress: string): boolean {
     if (!this.validateDriverId(id)) {
       log.error(`Invalid driver ID format: ${id}`);
-      return false;
-    }
-
-    if (!this.validateDriverName(name)) {
-      log.error(`Invalid driver name format: ${name}`);
       return false;
     }
 
@@ -248,34 +223,27 @@ export class DriverPersistence {
     const driver: PersistedDriver = {
       id,
       macAddress,
-      name,
       firstSeen: Date.now(),
       ledConfig: null,
     };
 
     this.drivers.set(id, driver);
     this.saveConfig();
-    log.info(`Added new driver: ${name} (${id}, MAC: ${macAddress})`);
+    log.info(`Added new driver: ${id} (MAC: ${macAddress})`);
     return true;
   }
 
   /**
-   * Update driver metadata (name, description)
+   * Update driver metadata (description)
    * Does not update ledConfig - use setDriverLEDConfig for that
    */
   updateDriver(
     id: string,
-    updates: Partial<Pick<PersistedDriver, 'name' | 'description'>>
+    updates: Partial<Pick<PersistedDriver, 'description'>>
   ): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
       log.warn(`Cannot update non-existent driver: ${id}`);
-      return false;
-    }
-
-    // Validate name if it's being updated
-    if (updates.name !== undefined && !this.validateDriverName(updates.name)) {
-      log.error(`Invalid driver name format: ${updates.name}`);
       return false;
     }
 

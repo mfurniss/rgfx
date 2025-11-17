@@ -195,7 +195,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           mb: 2,
         }}
       >
-        <Typography variant="h6">{driver.name}</Typography>
+        <Typography variant="h6">{driver.id}</Typography>
         {driver.connected && !driver.ledConfig ? (
           <Tooltip title="Connected but needs LED configuration" arrow>
             <Chip label="Connected" color="warning" size="small" />

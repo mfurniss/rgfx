@@ -4,6 +4,9 @@
 #include "log.h"
 #include "matrix.h"
 #include "effects/effect_processor.h"
+#include "utils.h"
+#include "oled/oled_display.h"
+#include "network/mqtt.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
 
@@ -22,6 +25,23 @@ void handleDriverConfig(const String& payload) {
 		log("ERROR: Failed to parse config JSON");
 		log("Error: " + String(error.c_str()));
 		return;
+	}
+
+	// Extract and update device ID if present
+	if (doc["id"].is<String>()) {
+		String deviceId = doc["id"].as<String>();
+
+		if (deviceId.length() > 0) {
+			log("Setting device ID: " + deviceId);
+			Utils::setDeviceId(deviceId);
+
+			// Update OLED display
+			extern MQTTClient mqttClient;
+			if (Display::isAvailable()) {
+				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
+				                       mqttClient.connected(), deviceId);
+			}
+		}
 	}
 
 	// Clear existing configuration

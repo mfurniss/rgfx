@@ -60,11 +60,10 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Explosion effect
 [X] Firmware version update with each build
 [X] Improve topic namespaces - see RESERVED_DRIVER_IDS 
-[ ] Driver firmware constants
+[X] Driver firmware constants
 [X] ESLint enforce let / const
-[ ] Implement named pipes IPC and abstract event interfaces
-[ ] Custom app icon
+[X] Custom app icon
 [X] Research Bluetooth - not feasible
 [ ] Create Hub app error message dialog
 [X] Make Hub app fully quit via window close button
-[ ] Move example 
+[X] Move example configs to assets

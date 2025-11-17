@@ -75,7 +75,6 @@ describe('DriverRegistry', () => {
 
       expect(device).toBeDefined();
       expect(device.id).toBe('rgfx-driver-0001'); // Generated ID, not MAC
-      expect(device.name).toBe('RGFX Driver 0001'); // Generated name
       expect(device.ip).toBe(sysInfo.ip);
       expect(device.connected).toBe(true);
       expect(device.failedHeartbeats).toBe(0);
@@ -92,13 +91,6 @@ describe('DriverRegistry', () => {
       expect(device2.id).toBe('rgfx-driver-0002');
     });
 
-    it('should use persisted name for new driver even without hostname', () => {
-      const sysInfo = createMockSysInfo({ hostname: undefined });
-      const device = registry.registerDriver(sysInfo);
-
-      // Should use generated name from persistence, not IP
-      expect(device.name).toBe('RGFX Driver 0001');
-    });
 
     it('should initialize stats on first registration', () => {
       const sysInfo = createMockSysInfo();

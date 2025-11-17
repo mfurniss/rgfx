@@ -25,7 +25,7 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
-		Display::showConnecting(WiFi.SSID(), Utils::getDeviceName());
+		Display::showConnecting(WiFi.SSID(), Utils::getDeviceId());
 	}
 
 	delay(500);
@@ -33,15 +33,15 @@ void setupNetworkServices(Matrix& matrix) {
 	// Initialize mDNS FIRST (before ArduinoOTA)
 	// ArduinoOTA.begin() also calls MDNS.begin(), which can cause conflicts
 	// So we initialize mDNS once here, then let ArduinoOTA add its service
-	if (MDNS.begin(Utils::getDeviceName().c_str())) {
-		log("mDNS responder started as " + Utils::getDeviceName());
+	if (MDNS.begin(Utils::getDeviceId().c_str())) {
+		log("mDNS responder started as " + Utils::getDeviceId());
 	} else {
 		log("Error starting mDNS responder");
 	}
 
 	// Setup OTA updates (must be done after WiFi and mDNS are initialized)
-	// Use unique device name for OTA hostname (e.g., "rgfx-driver-f89a58")
-	ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
+	// Use unique device ID for OTA hostname (e.g., "rgfx-driver-0001")
+	ArduinoOTA.setHostname(Utils::getDeviceId().c_str());
 	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
 	ArduinoOTA.onStart([]() {
 		log("OTA Update starting...");
@@ -92,7 +92,7 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connected status with actual MQTT status
 	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceName());
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceId());
 	}
 
 	// Go dark for normal operation
@@ -107,7 +107,7 @@ void cleanupNetworkServices(Matrix& matrix) {
 
 	// Update display to show AP mode
 	if (Display::isAvailable()) {
-		Display::showAPMode(Utils::getDeviceName());
+		Display::showAPMode(Utils::getDeviceId());
 	}
 
 	mqttSetupDone = false;
@@ -126,20 +126,20 @@ void setupNetworkServices() {
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
-		Display::showConnecting(WiFi.SSID(), Utils::getDeviceName());
+		Display::showConnecting(WiFi.SSID(), Utils::getDeviceId());
 	}
 
 	delay(500);
 
 	// Initialize mDNS FIRST (before ArduinoOTA)
-	if (MDNS.begin(Utils::getDeviceName().c_str())) {
-		log("mDNS responder started as " + Utils::getDeviceName());
+	if (MDNS.begin(Utils::getDeviceId().c_str())) {
+		log("mDNS responder started as " + Utils::getDeviceId());
 	} else {
 		log("Error starting mDNS responder");
 	}
 
 	// Setup OTA updates (must be done after WiFi and mDNS are initialized)
-	ArduinoOTA.setHostname(Utils::getDeviceName().c_str());
+	ArduinoOTA.setHostname(Utils::getDeviceId().c_str());
 	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
 	ArduinoOTA.onStart([]() {
 		log("OTA Update starting...");
@@ -187,7 +187,7 @@ void setupNetworkServices() {
 
 	// Update display
 	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceName());
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceId());
 	}
 }
 
@@ -196,7 +196,7 @@ void cleanupNetworkServices() {
 
 	// Update display to show AP mode
 	if (Display::isAvailable()) {
-		Display::showAPMode(Utils::getDeviceName());
+		Display::showAPMode(Utils::getDeviceId());
 	}
 
 	mqttSetupDone = false;

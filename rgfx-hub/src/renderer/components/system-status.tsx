@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Typography, Grid } from '@mui/material';
+import { Paper, Typography, Grid, Box } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '../../types';
 import SystemStatusItem from './system-status-item';
 import { formatNumber, formatUptime } from '../utils/formatters';
@@ -16,6 +16,7 @@ interface SystemStatusProps {
  */
 const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
   const [now, setNow] = useState(Date.now());
+  const [eventCount, setEventCount] = useState(status.eventsProcessed);
 
   // Update every second for live uptime
   useEffect(() => {
@@ -28,6 +29,15 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     };
   }, []);
 
+  // Listen for real-time event count updates
+  useEffect(() => {
+    const unsubscribe = window.rgfx.onEventCount((count) => {
+      setEventCount(count);
+    });
+
+    return unsubscribe;
+  }, []);
+
   const currentUptime = now - status.hubStartTime;
 
   const statusItems = [
@@ -38,20 +48,22 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     { name: 'UDP Server', value: status.udpServer },
     { name: 'Event Reader', value: status.eventReader },
     { name: 'Drivers Connected', value: formatNumber(status.driversConnected) },
-    { name: 'Events Processed', value: formatNumber(status.eventsProcessed) },
+    { name: 'Events Processed', value: formatNumber(eventCount) },
   ];
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box>
       <Typography variant="h5" gutterBottom>
-        RGFX Hub System Status
+        System Status
       </Typography>
-      <Grid container spacing={2}>
-        {statusItems.map((item) => (
-          <SystemStatusItem key={item.name} name={item.name} value={item.value} />
-        ))}
-      </Grid>
-    </Paper>
+      <Paper sx={{ p: 2 }}>
+        <Grid container spacing={2}>
+          {statusItems.map((item) => (
+            <SystemStatusItem key={item.name} name={item.name} value={item.value} />
+          ))}
+        </Grid>
+      </Paper>
+    </Box>
   );
 };
 

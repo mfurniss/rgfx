@@ -11,11 +11,8 @@ const DriverListPage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Drivers
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        All discovered drivers are listed below. Click "More Info" to view detailed information.
       </Typography>
       <DriverListTable drivers={drivers} />
     </Box>

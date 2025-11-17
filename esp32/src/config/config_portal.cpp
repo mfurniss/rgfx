@@ -91,8 +91,8 @@ bool ConfigPortal::isValidConfigString(const char* str, size_t maxLen) {
 void ConfigPortal::begin() {
 	log("Initializing config portal...");
 
-	// Get unique device name (same as MQTT client ID)
-	String apName = Utils::getDeviceName();
+	// Get unique device ID (same as MQTT client ID)
+	String apName = Utils::getDeviceId();
 	log("AP name: " + apName);
 
 	// Initialize IotWebConf with a default AP password
@@ -188,7 +188,7 @@ void ConfigPortal::begin() {
 		String page = String(HTML_STATUS);
 
 		// Replace template variables
-		page = replaceTemplate(page.c_str(), "DEVICE_NAME", Utils::getDeviceName());
+		page = replaceTemplate(page.c_str(), "DEVICE_NAME", Utils::getDeviceId());
 		page = replaceTemplate(page.c_str(), "MAC_ADDRESS", WiFi.macAddress());
 		page = replaceTemplate(page.c_str(), "UPTIME", String(millis() / 1000) + " seconds");
 		// LED config now managed by Hub - these values are placeholders
