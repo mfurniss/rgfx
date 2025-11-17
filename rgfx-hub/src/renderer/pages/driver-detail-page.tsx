@@ -1,7 +1,6 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, Paper } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useParams } from 'react-router-dom';
+import { Typography, Paper } from '@mui/material';
 import DriverCard from '../components/driver-card';
 import { useDriverStore } from '../store/driver-store';
 
@@ -10,7 +9,6 @@ import { useDriverStore } from '../store/driver-store';
  */
 const DriverDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   // Use reactive selector that subscribes to specific driver changes
   const driver = useDriverStore((state) => state.drivers.find((d) => d.id === id));
@@ -25,40 +23,16 @@ const DriverDetailPage: React.FC = () => {
 
   if (!driver) {
     return (
-      <Box>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => {
-            void navigate('/drivers');
-          }}
-          sx={{ mb: 3 }}
-        >
-          Back to Drivers
-        </Button>
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="h6" color="error" gutterBottom>
-            Driver Not Found
-          </Typography>
-          <Typography color="text.secondary">No driver found with ID: {id}</Typography>
-        </Paper>
-      </Box>
+      <Paper sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="h6" color="error" gutterBottom>
+          Driver Not Found
+        </Typography>
+        <Typography color="text.secondary">No driver found with ID: {id}</Typography>
+      </Paper>
     );
   }
 
-  return (
-    <Box>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => {
-          void navigate('/drivers');
-        }}
-        sx={{ mb: 3 }}
-      >
-        Back to Drivers
-      </Button>
-      <DriverCard driver={driver} />
-    </Box>
-  );
+  return <DriverCard driver={driver} />;
 };
 
 export default DriverDetailPage;

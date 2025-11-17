@@ -20,9 +20,6 @@
       "path": "rgfx-hub",
     },
     {
-      "path": "../../Library/Application Support/rgfx-hub/mappings",
-    },
-    {
       "path": "../../.rgfx",
     },
   ],

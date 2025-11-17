@@ -1,22 +1,18 @@
-import React from "react";
-import { Typography, Box, Paper } from "@mui/material";
+import React from 'react';
+import { Typography, Box, Paper } from '@mui/material';
 
 const AboutPage: React.FC = () => {
-  const version = "0.0.1-Test";
+  const version = '0.0.1-Test';
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        About RGFX
-      </Typography>
-
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           Retro Game Effects
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          A MAME Lua scripting framework for monitoring retro arcade game state and publishing
-          events via MQTT to control LED hardware in real-time.
+          An application and MAME Lua scripts for monitoring emulated game states and publishing
+          network events to control LED hardware",
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Version {version}
@@ -35,7 +31,7 @@ const AboutPage: React.FC = () => {
           <strong>Drivers:</strong> ESP32 firmware units that receive events and control LED
           hardware (strips, matrices, etc.)
         </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
+        <Typography variant="body2">
           <strong>Communication:</strong> MQTT (QoS 2) for reliable event delivery, UDP for
           low-latency effects, SSDP for broker discovery
         </Typography>
@@ -45,20 +41,18 @@ const AboutPage: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Technology Stack
         </Typography>
-        <Box sx={{ pl: 2 }}>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>Hub:</strong> Electron, React, TypeScript, Material UI, Aedes MQTT Broker
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>Drivers:</strong> ESP32, PlatformIO, C++, FastLED, ArduinoMqtt
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>Game Integration:</strong> MAME Lua 5.4 scripting
-          </Typography>
-        </Box>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          <strong>Hub:</strong> Electron, React, TypeScript, Material UI, Aedes MQTT Broker
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          <strong>Drivers:</strong> ESP32, PlatformIO, C++, FastLED, ArduinoMqtt
+        </Typography>
+        <Typography variant="body2">
+          <strong>Game Integration:</strong> MAME Lua 5.4 scripting
+        </Typography>
       </Paper>
 
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           License & Source Code
         </Typography>
@@ -67,6 +61,18 @@ const AboutPage: React.FC = () => {
         </Typography>
         <Typography variant="body2">
           For documentation, source code, and support, visit the project repository.
+        </Typography>
+      </Paper>
+
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Copyright & License
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          Copyright &copy; 2025 Matt Furniss
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
         </Typography>
       </Paper>
     </Box>

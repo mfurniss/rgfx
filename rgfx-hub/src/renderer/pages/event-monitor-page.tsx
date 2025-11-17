@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Typography,
   Box,
@@ -10,26 +10,26 @@ import {
   TableRow,
   TableSortLabel,
   Paper,
-} from "@mui/material";
-import { useEventStore } from "../store/event-store";
-import { formatNumber } from "../utils/formatters";
+} from '@mui/material';
+import { useEventStore } from '../store/event-store';
+import { formatNumber } from '../utils/formatters';
 
-type SortField = "topic" | "count";
-type SortOrder = "asc" | "desc";
+type SortField = 'topic' | 'count';
+type SortOrder = 'asc' | 'desc';
 
 const EventMonitorPage: React.FC = () => {
   const topics = useEventStore((state) => state.topics);
-  const [sortField, setSortField] = useState<SortField>("topic");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [sortField, setSortField] = useState<SortField>('topic');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   const topicsArray = Array.from(topics.values());
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortOrder("asc");
+      setSortOrder('asc');
     }
   };
 
@@ -37,7 +37,7 @@ const EventMonitorPage: React.FC = () => {
     const aValue = a[sortField];
     const bValue = b[sortField];
 
-    if (sortOrder === "asc") {
+    if (sortOrder === 'asc') {
       return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
     }
     return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
@@ -45,20 +45,16 @@ const EventMonitorPage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        Event Monitor
-      </Typography>
-
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>
                 <TableSortLabel
-                  active={sortField === "topic"}
-                  direction={sortField === "topic" ? sortOrder : "asc"}
+                  active={sortField === 'topic'}
+                  direction={sortField === 'topic' ? sortOrder : 'asc'}
                   onClick={() => {
-                    handleSort("topic");
+                    handleSort('topic');
                   }}
                 >
                   Event Topic
@@ -66,10 +62,10 @@ const EventMonitorPage: React.FC = () => {
               </TableCell>
               <TableCell align="right">
                 <TableSortLabel
-                  active={sortField === "count"}
-                  direction={sortField === "count" ? sortOrder : "asc"}
+                  active={sortField === 'count'}
+                  direction={sortField === 'count' ? sortOrder : 'asc'}
                   onClick={() => {
-                    handleSort("count");
+                    handleSort('count');
                   }}
                 >
                   Count
@@ -93,7 +89,7 @@ const EventMonitorPage: React.FC = () => {
                   <TableCell>{eventTopic.topic}</TableCell>
                   <TableCell align="right">{formatNumber(eventTopic.count)}</TableCell>
                   <TableCell align="right">
-                    {eventTopic.lastValue ? formatNumber(Number(eventTopic.lastValue)) : ""}
+                    {eventTopic.lastValue ? formatNumber(Number(eventTopic.lastValue)) : ''}
                   </TableCell>
                 </TableRow>
               ))
