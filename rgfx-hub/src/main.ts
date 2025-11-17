@@ -339,20 +339,26 @@ mqtt.subscribe('rgfx/driver/+/test/state', (topic, payload) => {
 
 // Track event topics and their counts
 const eventTopicCounts = new Map<string, number>();
+const eventTopicLastValues = new Map<string, string>();
 
 // Start reading events and send to mapping engine for processing
 eventReader.start((topic, message) => {
   eventsProcessed++;
   void mappingEngine.handleEvent(topic, message);
 
-  // Track event topic count
+  // Track event topic count and last value
   const currentCount = eventTopicCounts.get(topic) ?? 0;
   eventTopicCounts.set(topic, currentCount + 1);
+  eventTopicLastValues.set(topic, message);
 
   // Send event count to renderer in real-time (lightweight, just a number)
   if (isWindowAvailable() && mainWindow) {
     mainWindow.webContents.send('event:count', eventsProcessed);
-    mainWindow.webContents.send('event:topic', { topic, count: currentCount + 1 });
+    mainWindow.webContents.send('event:topic', {
+      topic,
+      count: currentCount + 1,
+      lastValue: message.length > 0 ? message : undefined,
+    });
   }
 });
 

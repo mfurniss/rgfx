@@ -103,19 +103,20 @@ describe('EventFileReader', () => {
     expect(events).toHaveLength(2);
   });
 
-  it('should skip malformed lines', async () => {
+  it('should handle events without payloads', async () => {
     const events: [string, string][] = [];
 
     writeFileSync(testFilePath, '');
     reader.start((topic, msg) => events.push([topic, msg]));
     await new Promise((r) => setTimeout(r, 50));
 
-    writeFileSync(testFilePath, 'game pacman\ninvalidline\nplayer/score/p1 100\n', { flag: 'a' });
+    writeFileSync(testFilePath, 'game pacman\neventWithoutPayload\nplayer/score/p1 100\n', { flag: 'a' });
     await new Promise((r) => setTimeout(r, 50));
 
-    expect(events).toHaveLength(2);
+    expect(events).toHaveLength(3);
     expect(events[0]).toEqual(['game', 'pacman']);
-    expect(events[1]).toEqual(['player/score/p1', '100']);
+    expect(events[1]).toEqual(['eventWithoutPayload', '']);
+    expect(events[2]).toEqual(['player/score/p1', '100']);
   });
 
   it('should skip to end when file is truncated', async () => {

@@ -59,7 +59,7 @@ const App: React.FC = () => {
     const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
 
     const unsubEventTopic = window.rgfx.onEventTopic((data) => {
-      onEventTopic(data.topic, data.count);
+      onEventTopic(data.topic, data.count, data.lastValue);
     });
 
     // Cleanup function to remove listeners

@@ -12,6 +12,7 @@ import {
   Paper,
 } from "@mui/material";
 import { useEventStore } from "../store/event-store";
+import { formatNumber } from "../utils/formatters";
 
 type SortField = "topic" | "count";
 type SortOrder = "asc" | "desc";
@@ -21,10 +22,7 @@ const EventMonitorPage: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("topic");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  const topicsArray = Array.from(topics.entries()).map(([topic, count]) => ({
-    topic,
-    count,
-  }));
+  const topicsArray = Array.from(topics.values());
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -52,7 +50,7 @@ const EventMonitorPage: React.FC = () => {
       </Typography>
 
       <TableContainer component={Paper}>
-        <Table>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>
@@ -77,12 +75,13 @@ const EventMonitorPage: React.FC = () => {
                   Count
                 </TableSortLabel>
               </TableCell>
+              <TableCell align="right">Last Value</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedTopics.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={2} align="center">
+                <TableCell colSpan={3} align="center">
                   <Typography variant="body2" color="text.secondary">
                     No events received yet
                   </Typography>
@@ -92,7 +91,10 @@ const EventMonitorPage: React.FC = () => {
               sortedTopics.map((eventTopic) => (
                 <TableRow key={eventTopic.topic}>
                   <TableCell>{eventTopic.topic}</TableCell>
-                  <TableCell align="right">{eventTopic.count}</TableCell>
+                  <TableCell align="right">{formatNumber(eventTopic.count)}</TableCell>
+                  <TableCell align="right">
+                    {eventTopic.lastValue ? formatNumber(Number(eventTopic.lastValue)) : ""}
+                  </TableCell>
                 </TableRow>
               ))
             )}

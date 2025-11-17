@@ -162,6 +162,7 @@ export interface SystemStatus {
 export interface EventTopicData {
   topic: string;
   count: number;
+  lastValue?: string;
 }
 
 export interface IpcApi {

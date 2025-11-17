@@ -4,33 +4,25 @@ import { devtools } from "zustand/middleware";
 interface EventTopic {
   topic: string;
   count: number;
+  lastValue?: string;
 }
 
 interface EventStore {
-  topics: Map<string, number>;
-  onEventTopic: (topic: string, count: number) => void;
-  getTopicsArray: () => EventTopic[];
+  topics: Map<string, EventTopic>;
+  onEventTopic: (topic: string, count: number, lastValue?: string) => void;
 }
 
 export const useEventStore = create<EventStore>()(
   devtools(
-    (set, get) => ({
-      topics: new Map<string, number>(),
+    (set) => ({
+      topics: new Map<string, EventTopic>(),
 
-      onEventTopic: (topic: string, count: number) => {
+      onEventTopic: (topic: string, count: number, lastValue?: string) => {
         set((state) => {
           const newTopics = new Map(state.topics);
-          newTopics.set(topic, count);
+          newTopics.set(topic, { topic, count, lastValue });
           return { topics: newTopics };
         });
-      },
-
-      getTopicsArray: () => {
-        const topics = get().topics;
-        return Array.from(topics.entries()).map(([topic, count]) => ({
-          topic,
-          count,
-        }));
       },
     }),
     { name: "event-store" }
