@@ -40,7 +40,9 @@ export function SidebarNav() {
   return (
     <List>
       {navItems.map((item) => {
-        const isActive = location.pathname === item.path;
+        const isActive =
+          location.pathname === item.path ||
+          (item.path === "/drivers" && location.pathname.startsWith("/driver/"));
 
         return (
           <ListItem key={item.path} disablePadding>

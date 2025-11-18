@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -25,7 +25,6 @@ interface DriverListTableProps {
  * Driver list table component with sortable columns
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
-  const navigate = useNavigate();
   const sortField = useUiStore((state) => state.driverTableSortField);
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
@@ -70,10 +69,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
 
     return sortOrder === 'asc' ? compareValue : -compareValue;
   });
-
-  const handleRowClick = (driverId: string) => {
-    void navigate(`/driver/${driverId}`);
-  };
 
   return (
     <TableContainer component={Paper}>
@@ -130,15 +125,23 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
           {sortedDrivers.map((driver: Driver) => (
             <TableRow
               key={driver.id}
-              onClick={() => {
-                handleRowClick(driver.id);
-              }}
               sx={{
-                '&:hover': { backgroundColor: 'action.hover', cursor: 'pointer' },
+                '&:hover': { backgroundColor: 'action.hover' },
                 opacity: driver.connected ? 1 : 0.6,
               }}
             >
-              <TableCell>{driver.id}</TableCell>
+              <TableCell>
+                <Link
+                  to={`/driver/${driver.id}`}
+                  style={{
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    display: 'block',
+                  }}
+                >
+                  {driver.id}
+                </Link>
+              </TableCell>
               <TableCell>{driver.ip ?? 'Unknown'}</TableCell>
               <TableCell>
                 {driver.connected && !driver.ledConfig ? (

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Typography, Box, Chip, Button, Tooltip } from '@mui/material';
+import { Paper, Typography, Box, Chip, Tooltip } from '@mui/material';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
   Lightbulb as LightbulbIcon,
   Speed as SpeedIcon,
   QueryStats as QueryStatsIcon,
-  Science as ScienceIcon,
 } from '@mui/icons-material';
 import type { Driver } from '~/src/types';
 import InfoSection, { type InfoRowData } from './info-section';
+import TestLedButton from './test-led-button';
 import { formatBytes, formatUptime, formatTimestamp, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
@@ -20,7 +20,6 @@ interface DriverCardProps {
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
-  const [testRequestPending, setTestRequestPending] = useState(false);
 
   // Update every second for live timestamps and uptime
   useEffect(() => {
@@ -32,27 +31,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       clearInterval(interval);
     };
   }, []);
-
-  // Clear pending state when driver's testActive state changes
-  useEffect(() => {
-    setTestRequestPending(false);
-  }, [driver.testActive]);
-
-  const handleTestToggle = () => {
-    // Prevent rapid clicks while request is in flight
-    if (testRequestPending) {
-      return;
-    }
-
-    // Toggle based on current state - if undefined, default to false (turning on)
-    const newTestMode = !(driver.testActive ?? false);
-
-    // Mark request as pending (UI will reconcile when driver confirms)
-    setTestRequestPending(true);
-
-    // Send command - UI will update when driver publishes state change
-    void window.rgfx.testDriverLEDs(driver.id, newTestMode);
-  };
 
   // Calculate current uptime based on initial uptimeMs from driver
   // Only available when sysInfo is present
@@ -171,18 +149,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     { label: 'UDP Send Errors', value: formatNumber(driver.stats.udpMessagesFailed) },
   ];
 
-  // Generate tooltip text based on layout type
-  const getTestTooltip = () => {
-    if (!hardware) {
-      return 'Displays a test pattern to validate LED hardware and wiring';
-    }
-
-    if (hardware.layout === 'strip') {
-      return 'Strip: 4 segments in Red, Green, Blue, Yellow (25% each)';
-    } else {
-      return 'Matrix: 4 quadrants - Top-Left: Red, Top-Right: Green, Bottom-Left: Blue, Bottom-Right: Yellow';
-    }
-  };
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -215,26 +181,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         title="LED Configuration"
         icon={<LightbulbIcon fontSize="small" color="action" />}
         rows={ledRows}
-        titleAction={
-          driver.ledConfig ? (
-            <Tooltip title={getTestTooltip()} arrow>
-              <span>
-                <Button
-                  variant={driver.testActive ? 'contained' : 'outlined'}
-                  color={driver.testActive ? 'warning' : 'primary'}
-                  size="small"
-                  startIcon={<ScienceIcon />}
-                  onClick={handleTestToggle}
-                  disabled={!driver.connected || testRequestPending}
-                >
-                  {testRequestPending
-                    ? 'Processing...'
-                    : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
-                </Button>
-              </span>
-            </Tooltip>
-          ) : undefined
-        }
+        titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
       >
         {!driver.ledConfig && (
           <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
