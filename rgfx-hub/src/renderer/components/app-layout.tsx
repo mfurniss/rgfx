@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Drawer, Toolbar, Typography } from "@mui/material";
 import { SidebarNav } from "./sidebar-nav";
+import { ThemeToggle } from "./theme-toggle";
 
 const DRAWER_WIDTH = 240;
 
@@ -23,9 +24,10 @@ export function AppLayout({ children }: AppLayoutProps) {
         }}
       >
         <Toolbar>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             RGFX
           </Typography>
+          <ThemeToggle />
         </Toolbar>
         <SidebarNav />
       </Drawer>

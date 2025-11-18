@@ -14,3 +14,7 @@
   animation: hueRotate 100s infinite linear;
   background-color: hsl(var(--hue), 50%, 80%);
 }
+
+[data-mui-color-scheme='dark'] .container {
+  background-color: hsl(var(--hue), 30%, 15%);
+}

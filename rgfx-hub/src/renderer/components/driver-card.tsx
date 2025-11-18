@@ -10,7 +10,7 @@ import {
 import type { Driver } from '~/src/types';
 import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
-import { formatBytes, formatUptime, formatTimestamp, formatNumber } from '../utils/formatters';
+import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
 interface DriverCardProps {
@@ -141,8 +141,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   const statsRows: InfoRowData[] = [
     ...(sysInfo ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
-    { label: 'Hub First Seen', value: formatTimestamp(driver.firstSeen) },
-    { label: 'Hub Last Seen', value: formatTimestamp(driver.lastSeen) },
     { label: 'MQTT Messages', value: formatNumber(driver.stats.mqttMessagesReceived) },
     { label: 'MQTT Errors', value: formatNumber(driver.stats.mqttMessagesFailed) },
     { label: 'UDP Packets Sent', value: formatNumber(driver.stats.udpMessagesSent) },

@@ -17,7 +17,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Store basic LED and WiFi config on ESP32 devices
 [X] Implement test LEDs into config interface
 [ ] Advanced LED config for matrices
-[ ] Research "improv" browser-based Wi-Fi provisioning
+[X] Research "improv" browser-based Wi-Fi provisioning
 [X] Implement resilient Hub <-> Driver connections
 [X] Support multiple RGFX Driver devices
 [X] Add local docs for external packages
@@ -33,7 +33,6 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Event prioritization in the hub - game events can optionally be sent as MQTT
 [X] Lua linting and formatting
 [X] ESP32 dual-core processing
-[ ] Auto update hub when newly availble online
 [ ] Hub to download new firmware and flash connected drivers
 [ ] MacOS hub app as a signed DMG installer
 [X] Multiple driver connections with connection pulse effect
@@ -70,3 +69,6 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Mappers for Tempest and Defender
 [X] Explore using sound effect latches to trigger effects
 [ ] Hub a11y
+[X] Hub dark / light mode
+[ ] Research ESP Web Tools for firmware updates
+[ ] Research Electron app auto updates
