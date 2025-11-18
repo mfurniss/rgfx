@@ -44,8 +44,17 @@ void EffectProcessor::update() {
 		}
 	}
 
-	// Composite all effect canvases and downsample to matrix
-	downsampleToMatrix(effectMap, &matrix);
+	// Build array of active effects (excluding test effect)
+	EffectEntry activeEffects[2];
+	int activeCount = 0;
+	for (const auto& entry : effectMap) {
+		if (strcmp(entry.name, "test_leds") != 0) {
+			activeEffects[activeCount++] = entry;
+		}
+	}
+
+	// Composite only active effect canvases and downsample to matrix
+	downsampleToMatrix(activeEffects, &matrix);
 
 	// Display the frame
 	// Note: FastLED.show() applies color correction, temperature, and gamma internally

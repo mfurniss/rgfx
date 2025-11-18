@@ -1,10 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, Container, Box } from '@mui/material';
-import SystemStatus from './components/system-status';
+import { CssBaseline, ThemeProvider, Box } from '@mui/material';
+import { AppLayout } from './components/app-layout';
+import SystemStatusPage from './pages/system-status-page';
 import DriverListPage from './pages/driver-list-page';
 import DriverDetailPage from './pages/driver-detail-page';
+import EventMonitorPage from './pages/event-monitor-page';
+import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
+import { useEventStore } from './store/event-store';
 import { theme } from './theme';
 import styles from './app.module.css';
 
@@ -14,14 +18,12 @@ let rendererReadyCalled = false;
 const App: React.FC = () => {
   const randomHue = useRef(Math.floor(Math.random() * 360)).current;
 
-  // Get state from Zustand store
-  const systemStatus = useDriverStore((state) => state.systemStatus);
-
-  // Get actions from Zustand store
+  // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
   const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
   const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
   const onSystemStatusUpdate = useDriverStore((state) => state.onSystemStatusUpdate);
+  const onEventTopic = useEventStore((state) => state.onEventTopic);
 
   useEffect(() => {
     console.log('[APP] Registering IPC listeners');
@@ -56,6 +58,10 @@ const App: React.FC = () => {
 
     const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
 
+    const unsubEventTopic = window.rgfx.onEventTopic((data) => {
+      onEventTopic(data.topic, data.count, data.lastValue);
+    });
+
     // Cleanup function to remove listeners
     return () => {
       console.log('[APP] Cleaning up IPC listeners');
@@ -63,6 +69,7 @@ const App: React.FC = () => {
       unsubDisconnected();
       unsubUpdated();
       unsubSystemStatus();
+      unsubEventTopic();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - only run once on mount, Zustand actions are stable enough
@@ -85,20 +92,17 @@ const App: React.FC = () => {
         <Box
           className={styles.container}
           style={{ '--hue': randomHue } as React.CSSProperties}
-          sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
+          sx={{ height: '100vh' }}
         >
-          {/* Main Content */}
-          <Container maxWidth="md" disableGutters sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-            <Box sx={{ mb: 3 }}>
-              <SystemStatus status={systemStatus} />
-            </Box>
-
-            {/* Routes */}
+          <AppLayout>
             <Routes>
-              <Route path="/" element={<DriverListPage />} />
+              <Route path="/" element={<SystemStatusPage />} />
+              <Route path="/drivers" element={<DriverListPage />} />
               <Route path="/driver/:id" element={<DriverDetailPage />} />
+              <Route path="/events" element={<EventMonitorPage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
-          </Container>
+          </AppLayout>
         </Box>
       </HashRouter>
     </ThemeProvider>

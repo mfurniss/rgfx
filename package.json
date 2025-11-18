@@ -1,7 +1,7 @@
 {
   "name": "rgfx",
   "version": "0.0.1",
-  "description": "Retro Game Effects - A MAME Lua scripting framework for monitoring retro arcade game state and publishing events via MQTT to control LED hardware",
+  "description": "RGFX - An application and MAME Lua scripts for monitoring emulated game states and publishing network events to control LED hardware",
   "private": true,
   "workspaces": [
     "rgfx-hub"

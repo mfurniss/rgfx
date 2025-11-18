@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Typography, Grid, Box } from '@mui/material';
+import { Paper, Grid } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '../../types';
 import SystemStatusItem from './system-status-item';
 import { formatNumber, formatUptime } from '../utils/formatters';
@@ -52,18 +52,13 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
   ];
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        System Status
-      </Typography>
-      <Paper sx={{ p: 2 }}>
-        <Grid container spacing={2}>
-          {statusItems.map((item) => (
-            <SystemStatusItem key={item.name} name={item.name} value={item.value} />
-          ))}
-        </Grid>
-      </Paper>
-    </Box>
+    <Paper sx={{ p: 2 }}>
+      <Grid container spacing={2}>
+        {statusItems.map((item) => (
+          <SystemStatusItem key={item.name} name={item.name} value={item.value} />
+        ))}
+      </Grid>
+    </Paper>
   );
 };
 

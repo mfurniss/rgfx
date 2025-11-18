@@ -54,6 +54,7 @@ describe('App IPC Listener Registration', () => {
       onDriverUpdated: mockIpcOnDriverUpdated,
       onSystemStatus: mockIpcOnSystemStatus,
       onEventCount: vi.fn(() => vi.fn()),
+      onEventTopic: vi.fn(() => vi.fn()),
       rendererReady: mockRendererReady,
       testDriverLEDs: vi.fn(),
     };

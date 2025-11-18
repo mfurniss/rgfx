@@ -159,6 +159,9 @@ export class EventFileReader {
             const message = line.substring(firstSpaceIndex + 1);
             log.debug(`Event read: ${topic} = ${message}`);
             this.onEventCallback(topic, message);
+          } else {
+            log.debug(`Event read: ${line} (no payload)`);
+            this.onEventCallback(line, '');
           }
         }
       }

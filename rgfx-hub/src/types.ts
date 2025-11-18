@@ -159,12 +159,19 @@ export interface SystemStatus {
   hubStartTime: number;
 }
 
+export interface EventTopicData {
+  topic: string;
+  count: number;
+  lastValue?: string;
+}
+
 export interface IpcApi {
   onDriverConnected: (callback: (driver: Driver) => void) => () => void;
   onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
   onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
   onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
   onEventCount: (callback: (count: number) => void) => () => void;
+  onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
   testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
   rendererReady: () => void;
 }
