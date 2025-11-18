@@ -184,8 +184,20 @@ Implemented comprehensive test improvements for mapping-engine.ts, increasing co
 
 ---
 
-**Total Development Time:** 36 days (October 11 - November 16, 2025)
-**Total Commits:** 200
+## November 17, 2025
+
+Fixed critical LED config push bug - Hub wasn't sending LED configurations to drivers on startup. Refactored driver identification and simplified MQTT communication by removing unused type field from driver definitions and payloads. Fixed driver ID sync issues and added comprehensive ESP32 unit tests. Improved UI styling across driver cards and system status components.
+
+---
+
+## November 18, 2025
+
+Implemented complete Hub UI redesign with new screen-based navigation system. Added sidebar navigation with dedicated screens for Home, Drivers, Events, Mappers, and System. Updated Event Monitor with lastValue tracking to show both current and last-known event values with improved formatting. Fixed test effect LED compositing bug where orange connection pulse was interfering with test patterns - effects now blend properly using alpha compositing. Simplified TransportLayer API by removing unused duration field from EffectPayload type. Implemented dark mode support with automatic system theme detection and manual toggle, refactored theme providers, and added Material UI dark theme palette. Improved driver card styling and system status components for better UX across both light and dark modes.
+
+---
+
+**Total Development Time:** 38 days (October 11 - November 18, 2025)
+**Total Commits:** 215
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
