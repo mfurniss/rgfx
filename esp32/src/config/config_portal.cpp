@@ -133,8 +133,9 @@ void ConfigPortal::begin() {
 	const char* ssid =
 		iotWebConf->getWifiSsidParameter() ? iotWebConf->getWifiSsidParameter()->valueBuffer : "";
 
-	// Thing name must be valid (non-empty, printable characters)
-	bool thingNameValid = isValidConfigString(thingName, 32);
+	// Thing name can be empty (default state after factory reset) but if non-empty must be valid
+	size_t thingNameLen = strlen(thingName);
+	bool thingNameValid = (thingNameLen == 0) || isValidConfigString(thingName, 32);
 
 	// SSID can be empty (default state before WiFi config) but if non-empty must be valid
 	size_t ssidLen = strlen(ssid);
