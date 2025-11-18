@@ -8,6 +8,9 @@ declare global {
       onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
       onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
       testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
+      flashOTA: (
+        driverId: string
+      ) => Promise<{ success: boolean; error?: string; output?: string }>;
       rendererReady: () => void;
     };
   }

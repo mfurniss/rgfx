@@ -15,7 +15,7 @@
     "baseUrl": ".",
     "outDir": "dist",
     "resolveJsonModule": true,
-    "types": ["vitest/globals", "node"],
+    "types": ["vitest/globals", "node", "w3c-web-serial"],
     "paths": {
       "~/src/*": ["src/*"]
     }
