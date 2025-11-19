@@ -423,6 +423,68 @@ ipcMain.handle('driver:set-id', async (_event, driverId: string, newId: string) 
   }
 });
 
+// IPC handler for OTA firmware flash
+ipcMain.handle('driver:flash-ota', async (_event, driverId: string) => {
+  try {
+    const driver = driverRegistry.getDriver(driverId);
+    if (!driver) {
+      throw new Error('Driver not found');
+    }
+
+    if (!driver.connected) {
+      throw new Error('Driver is not connected');
+    }
+
+    // Get driver IP address (required for esp-ota)
+    const ipAddress = driver.sysInfo?.ip;
+    if (!ipAddress) {
+      throw new Error('Driver IP address not available');
+    }
+
+    log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
+
+    // Get firmware binary path
+    const firmwarePath = app.isPackaged
+      ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
+      : path.join(app.getAppPath(), 'public', 'esp32', 'firmware', 'firmware.bin');
+
+    // Verify firmware file exists
+    const fs = await import('fs');
+    if (!fs.existsSync(firmwarePath)) {
+      throw new Error(`Firmware file not found: ${firmwarePath}`);
+    }
+
+    // Use esp-ota library for ArduinoOTA protocol
+    const EspOTA = (await import('esp-ota')).default;
+    const esp = new EspOTA();
+
+    // Log OTA state changes
+    esp.on('state', (state: string) => {
+      log.info(`OTA state: ${state}`);
+    });
+
+    // Log progress and track last reported percent to avoid duplicate logs
+    let lastPercent = -1;
+    esp.on('progress', (data: { sent: number; total: number }) => {
+      const percent = Math.round((data.sent / data.total) * 100);
+      if (percent !== lastPercent) {
+        log.info(`OTA progress: ${percent}%`);
+        lastPercent = percent;
+      }
+    });
+
+    // Upload firmware to ESP32 (port 3232 for ESP32)
+    await esp.uploadFile(firmwarePath, ipAddress, 3232, EspOTA.FLASH);
+
+    log.info(`OTA flash to ${driverId} completed successfully`);
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.error('OTA flash failed:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
+});
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
