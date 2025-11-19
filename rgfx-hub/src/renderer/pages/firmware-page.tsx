@@ -14,11 +14,7 @@ import FlashResultDialog from '../components/flash-result-dialog';
 import ConfirmFlashDialog from '../components/confirm-flash-dialog';
 import SerialPortSelector from '../components/serial-port-selector';
 import OtaDriverSelector from '../components/ota-driver-selector';
-import {
-  Upload as FlashIcon,
-  Usb as UsbIcon,
-  Wifi as WifiIcon,
-} from '@mui/icons-material';
+import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icons-material';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
@@ -324,8 +320,7 @@ const FirmwarePage: React.FC = () => {
   };
 
   const canFlash =
-    (flashMethod === 'usb' && getPort !== null) ||
-    (flashMethod === 'ota' && selectedDriver !== '');
+    (flashMethod === 'usb' && getPort !== null) || (flashMethod === 'ota' && selectedDriver !== '');
 
   return (
     <Box>
@@ -448,13 +443,17 @@ const FirmwarePage: React.FC = () => {
         open={resultModal.open}
         success={resultModal.success}
         message={resultModal.message}
-        onClose={() => { setResultModal({ ...resultModal, open: false }); }}
+        onClose={() => {
+          setResultModal({ ...resultModal, open: false });
+        }}
       />
 
       <ConfirmFlashDialog
         open={confirmModal}
         onConfirm={handleConfirmFlash}
-        onCancel={() => { setConfirmModal(false); }}
+        onCancel={() => {
+          setConfirmModal(false);
+        }}
       />
     </Box>
   );

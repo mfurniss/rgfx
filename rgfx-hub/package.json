@@ -73,6 +73,7 @@
     "colord": "^2.9.3",
     "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
+    "esp-ota": "^1.2.0",
     "esptool-js": "^0.5.7",
     "lodash-es": "^4.17.21",
     "node-ssdp": "^4.0.1",
