@@ -6,24 +6,14 @@ import {
   Button,
   LinearProgress,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
   ToggleButtonGroup,
   ToggleButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
-import {
-  CheckCircle as SuccessIcon,
-  Error as ErrorIcon,
-} from '@mui/icons-material';
+import LogDisplay from '../components/log-display';
+import FlashResultDialog from '../components/flash-result-dialog';
+import ConfirmFlashDialog from '../components/confirm-flash-dialog';
+import SerialPortSelector from '../components/serial-port-selector';
+import OtaDriverSelector from '../components/ota-driver-selector';
 import {
   Upload as FlashIcon,
   Usb as UsbIcon,
@@ -31,14 +21,9 @@ import {
 } from '@mui/icons-material';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
+import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 
 type FlashMethod = 'usb' | 'ota';
-
-interface PortInfo {
-  port: SerialPort;
-  info: SerialPortInfo;
-  displayName: string;
-}
 
 interface FirmwareManifest {
   version: string;
@@ -51,27 +36,9 @@ interface FirmwareManifest {
   }[];
 }
 
-// Convert ArrayBuffer to binary string (each byte becomes a char code)
-function arrayBufferToBinaryString(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
-  return binary;
-}
-
-// Calculate SHA-256 hash of binary data
-async function sha256(data: ArrayBuffer): Promise<string> {
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 const FirmwarePage: React.FC = () => {
   const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
-  const [availablePorts, setAvailablePorts] = useState<PortInfo[] | null>(null);
-  const [selectedPortIndex, setSelectedPortIndex] = useState<number | ''>('');
+  const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDriver, setSelectedDriver] = useState<string>('');
   const [isFlashing, setIsFlashing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -82,6 +49,7 @@ const FirmwarePage: React.FC = () => {
     success: boolean;
     message: string;
   }>({ open: false, success: false, message: '' });
+  const [confirmModal, setConfirmModal] = useState(false);
 
   const drivers = useDriverStore((state) => state.drivers);
 
@@ -89,104 +57,25 @@ const FirmwarePage: React.FC = () => {
     setLogMessages((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
   };
 
-  // Reset ports when switching to USB mode
+  // Reset port selection when switching methods
   useEffect(() => {
     if (flashMethod === 'usb') {
-      setAvailablePorts(null);
-      setSelectedPortIndex('');
+      setGetPort(null);
     }
-     
   }, [flashMethod]);
 
-  const getPortDisplayName = (info: SerialPortInfo): string => {
-    const vid = info.usbVendorId?.toString(16).padStart(4, '0') ?? 'unknown';
-    const pid = info.usbProductId?.toString(16).padStart(4, '0') ?? 'unknown';
-
-    let chipName = 'Unknown';
-    if (info.usbVendorId === 0x10c4 && info.usbProductId === 0xea60) chipName = 'CP2102';
-    else if (info.usbVendorId === 0x1a86 && info.usbProductId === 0x7523) chipName = 'CH340';
-    else if (info.usbVendorId === 0x0403 && info.usbProductId === 0x6001) chipName = 'FTDI';
-
-    return `${chipName} (VID=${vid} PID=${pid})`;
-  };
-
-  const refreshPorts = async (): Promise<number> => {
-    try {
-      setError(null);
-
-      if (!('serial' in navigator)) {
-        throw new Error('Web Serial API not supported in this browser');
-      }
-
-      const ports = await navigator.serial.getPorts();
-      const portsWithInfo: PortInfo[] = ports
-        .map((port) => {
-          const info = port.getInfo();
-          return {
-            port,
-            info,
-            displayName: getPortDisplayName(info),
-          };
-        })
-        .filter((portInfo) => {
-          // Filter out ports without valid USB vendor/product IDs
-          return (
-            portInfo.info.usbVendorId !== undefined && portInfo.info.usbProductId !== undefined
-          );
-        });
-
-      setAvailablePorts(portsWithInfo);
-      return portsWithInfo.length;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to scan ports: ${message}`);
-      return 0;
-    }
-  };
-
-  const requestNewPort = async () => {
-    try {
-      setError(null);
-      addLog('Requesting access to new USB port...');
-
-      if (!('serial' in navigator)) {
-        throw new Error('Web Serial API not supported in this browser');
-      }
-
-      const port = await navigator.serial.requestPort({
-        filters: [
-          { usbVendorId: 0x10c4, usbProductId: 0xea60 }, // CP2102
-          { usbVendorId: 0x1a86, usbProductId: 0x7523 }, // CH340
-          { usbVendorId: 0x0403, usbProductId: 0x6001 }, // FTDI
-          { usbVendorId: 0x303a }, // Espressif (ESP32-S2, S3, C3 native USB)
-        ],
-      });
-
-      const portInfo = port.getInfo();
-      addLog(`Port access granted: ${getPortDisplayName(portInfo)}`);
-
-      await refreshPorts();
-    } catch (err) {
-      // User cancelled the dialog - not an error
-      if (err instanceof DOMException && err.name === 'NotFoundError') {
-        addLog('Port selection cancelled');
-        return;
-      }
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to request port: ${message}`);
-      addLog(`Error: ${message}`);
-    }
+  const handlePortSelect = (portGetter: (() => Promise<SerialPort>) | null) => {
+    setGetPort(() => portGetter);
   };
 
   const flashViaUSB = async () => {
-    if (selectedPortIndex === '' || !availablePorts?.[selectedPortIndex]) {
+    if (!getPort) {
       setError('No port selected');
       return;
     }
 
-    // Get the port info to match against
-    const selectedPortInfo = availablePorts[selectedPortIndex].info;
-    let selectedPort: SerialPort | undefined;
+    let portToFlash: SerialPort | undefined;
+    let transport: Transport | null = null;
 
     try {
       setIsFlashing(true);
@@ -244,77 +133,18 @@ const FirmwarePage: React.FC = () => {
 
       addLog('All files verified successfully');
 
-      addLog('Getting fresh port reference...');
-      addLog(`Looking for port with VID=${selectedPortInfo.usbVendorId?.toString(16)} PID=${selectedPortInfo.usbProductId?.toString(16)}`);
-
-      // Get a fresh port reference from the browser
-      const allPorts = await navigator.serial.getPorts();
-      addLog(`Found ${allPorts.length} port(s) in browser`);
-
-      // Find all matching ports and log them
-      const matchingPorts = allPorts.filter(
-        (p) =>
-          p.getInfo().usbVendorId === selectedPortInfo.usbVendorId &&
-          p.getInfo().usbProductId === selectedPortInfo.usbProductId
+      // Find the largest file (app binary) for progress reporting
+      const largestFileIndex = fileArray.reduce(
+        (maxIdx, file, idx, arr) => (file.data.length > arr[maxIdx].data.length ? idx : maxIdx),
+        0
       );
-      addLog(`Found ${matchingPorts.length} matching port(s)`);
 
-      // If there are multiple matching ports, forget all but the first one
-      if (matchingPorts.length > 1) {
-        addLog('Multiple port references found, clearing extras...');
-        for (let i = 1; i < matchingPorts.length; i++) {
-          try {
-            await matchingPorts[i].forget();
-            addLog(`Forgot extra port reference ${i}`);
-          } catch {
-            addLog(`Failed to forget port reference ${i}`);
-          }
-        }
-      }
-
-      if (matchingPorts.length === 0) {
-        throw new Error('Could not find selected port');
-      }
-
-      selectedPort = matchingPorts[0];
-
-      // Log port state before opening
-      addLog(`Port state before open: readable=${selectedPort.readable !== null}, writable=${selectedPort.writable !== null}`);
-      if (selectedPort.readable) {
-        addLog(`  readable.locked=${selectedPort.readable.locked}`);
-      }
-      if (selectedPort.writable) {
-        addLog(`  writable.locked=${selectedPort.writable.locked}`);
-      }
-
-      // Ensure port is closed before passing to esptool-js (it will open it itself)
-      if (selectedPort.readable !== null || selectedPort.writable !== null) {
-        addLog('Port appears to be open, closing it first...');
-        try {
-          // Release locks on readable stream if it exists
-          if (selectedPort.readable?.locked) {
-            addLog('Releasing readable stream lock...');
-            const reader = selectedPort.readable.getReader();
-            reader.releaseLock();
-          }
-
-          // Release locks on writable stream if it exists
-          if (selectedPort.writable?.locked) {
-            addLog('Releasing writable stream lock...');
-            const writer = selectedPort.writable.getWriter();
-            writer.releaseLock();
-          }
-
-          await selectedPort.close();
-          addLog('Port closed');
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        } catch {
-          addLog('Warning: Failed to close port, continuing anyway...');
-        }
-      }
+      // Get fresh, clean port from selector
+      portToFlash = await getPort();
 
       addLog('Initializing ESP loader (will open port)...');
-      const transport = new Transport(selectedPort, true);
+      transport = new Transport(portToFlash, true);
+
       const loader = new ESPLoader({
         transport,
         baudrate: 115200,
@@ -363,9 +193,11 @@ const FirmwarePage: React.FC = () => {
         eraseAll: false,
         compress: true,
         reportProgress: (fileIndex, written, total) => {
-          const fileProgress = written / total;
-          const overallProgress = ((fileIndex + fileProgress) / fileArray.length) * 100;
-          setProgress(Math.round(overallProgress));
+          // Only report progress for the largest file (app binary)
+          if (fileIndex === largestFileIndex) {
+            const progressPct = (written / total) * 100;
+            setProgress(Math.round(progressPct));
+          }
           if (written === total) {
             addLog(`File ${fileIndex + 1}/${fileArray.length} complete`);
           }
@@ -392,9 +224,24 @@ const FirmwarePage: React.FC = () => {
         message: `Flash failed: ${message}`,
       });
     } finally {
+      // Clean up transport and port to release serial port lock
       try {
-        if (selectedPort?.readable) {
-          await selectedPort.close();
+        if (transport) {
+          addLog('Disconnecting transport...');
+          await transport.disconnect();
+        }
+      } catch {
+        // Ignore disconnect errors
+      }
+
+      try {
+        if (portToFlash) {
+          // Check if port is still open before closing
+          if (portToFlash.readable || portToFlash.writable) {
+            addLog('Closing serial port...');
+            await portToFlash.close();
+            addLog('Serial port closed');
+          }
         }
       } catch {
         // Ignore close errors
@@ -465,14 +312,19 @@ const FirmwarePage: React.FC = () => {
 
   const handleFlash = () => {
     if (flashMethod === 'usb') {
-      void flashViaUSB();
+      setConfirmModal(true);
     } else {
       void flashViaOTA();
     }
   };
 
+  const handleConfirmFlash = () => {
+    setConfirmModal(false);
+    void flashViaUSB();
+  };
+
   const canFlash =
-    (flashMethod === 'usb' && selectedPortIndex !== '' && Boolean(availablePorts?.[selectedPortIndex])) ||
+    (flashMethod === 'usb' && getPort !== null) ||
     (flashMethod === 'ota' && selectedDriver !== '');
 
   return (
@@ -518,40 +370,15 @@ const FirmwarePage: React.FC = () => {
               Connect a new ESP32 or existing driver via USB cable.
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-              <FormControl sx={{ flex: 1 }}>
-                <Select<number | ''>
-                  value={selectedPortIndex}
-                  onChange={(e) => {
-                    setSelectedPortIndex(e.target.value);
-                  }}
-                  onOpen={() => {
-                    void (async () => {
-                      addLog('Scanning for ports...');
-                      const count = await refreshPorts();
-                      addLog(`Found ${count} previously granted port(s)`);
-                      if (count === 0) {
-                        addLog('No granted ports - requesting access...');
-                        void requestNewPort();
-                      }
-                    })();
-                  }}
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+              <Box sx={{ flex: 1 }}>
+                <SerialPortSelector
                   disabled={isFlashing}
-                  displayEmpty
-                  renderValue={(value) => {
-                    if (value === '' || !availablePorts?.[value]) {
-                      return <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Select a port...</span>;
-                    }
-                    return availablePorts[value].displayName;
-                  }}
-                >
-                  {availablePorts?.map((portInfo, index) => (
-                    <MenuItem key={index} value={index}>
-                      {portInfo.displayName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  onPortSelect={handlePortSelect}
+                  onLog={addLog}
+                  onError={setError}
+                />
+              </Box>
 
               <Button
                 variant="contained"
@@ -565,12 +392,6 @@ const FirmwarePage: React.FC = () => {
                 {isFlashing ? 'Flashing...' : 'Flash via USB'}
               </Button>
             </Box>
-
-            {availablePorts !== null && availablePorts.length === 0 && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                No ports with granted access. Click the dropdown again and select your ESP32 device from the browser dialog.
-              </Alert>
-            )}
           </>
         )}
 
@@ -580,24 +401,15 @@ const FirmwarePage: React.FC = () => {
               Flash firmware to an already-configured driver over WiFi.
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-              <FormControl sx={{ flex: 1 }}>
-                <InputLabel>Select Driver</InputLabel>
-                <Select
-                  value={selectedDriver}
-                  label="Select Driver"
-                  onChange={(e) => {
-                    setSelectedDriver(e.target.value);
-                  }}
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+              <Box sx={{ flex: 1 }}>
+                <OtaDriverSelector
+                  drivers={drivers}
+                  selectedDriver={selectedDriver}
+                  onDriverSelect={setSelectedDriver}
                   disabled={isFlashing}
-                >
-                  {drivers.map((driver) => (
-                    <MenuItem key={driver.id} value={driver.id}>
-                      {driver.id} ({driver.sysInfo?.ip ?? 'no IP'})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                />
+              </Box>
 
               <Button
                 variant="contained"
@@ -611,13 +423,6 @@ const FirmwarePage: React.FC = () => {
                 {isFlashing ? 'Flashing...' : 'Flash via OTA'}
               </Button>
             </Box>
-
-            {drivers.length === 0 && (
-              <Alert severity="warning" sx={{ mb: 2 }}>
-                No drivers connected. Make sure your drivers are powered on and connected to the
-                network.
-              </Alert>
-            )}
           </>
         )}
 
@@ -637,74 +442,20 @@ const FirmwarePage: React.FC = () => {
         )}
       </Paper>
 
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Flash Log
-        </Typography>
-        <List dense sx={{ maxHeight: 300, overflow: 'auto', bgcolor: 'background.default', borderRadius: 1 }}>
-          {logMessages.length > 0 ? (
-            logMessages.map((msg, idx) => (
-              <ListItem key={idx}>
-                <ListItemText
-                  primary={msg}
-                  slotProps={{
-                    primary: {
-                      variant: 'body2',
-                      fontFamily: 'monospace',
-                      fontSize: '0.8rem',
-                    },
-                  }}
-                />
-              </ListItem>
-            ))
-          ) : (
-            <ListItem>
-              <ListItemText
-                primary="No log messages yet"
-                slotProps={{
-                  primary: {
-                    variant: 'body2',
-                    fontFamily: 'monospace',
-                    fontSize: '0.8rem',
-                    color: 'text.secondary',
-                  },
-                }}
-              />
-            </ListItem>
-          )}
-        </List>
-      </Paper>
+      <LogDisplay messages={logMessages} />
 
-      <Dialog
+      <FlashResultDialog
         open={resultModal.open}
+        success={resultModal.success}
+        message={resultModal.message}
         onClose={() => { setResultModal({ ...resultModal, open: false }); }}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            color: resultModal.success ? 'success.main' : 'error.main',
-          }}
-        >
-          {resultModal.success ? <SuccessIcon /> : <ErrorIcon />}
-          {resultModal.success ? 'Flash Complete' : 'Flash Failed'}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>{resultModal.message}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => { setResultModal({ ...resultModal, open: false }); }}
-            variant="contained"
-            autoFocus
-          >
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
+      />
+
+      <ConfirmFlashDialog
+        open={confirmModal}
+        onConfirm={handleConfirmFlash}
+        onCancel={() => { setConfirmModal(false); }}
+      />
     </Box>
   );
 };
