@@ -194,10 +194,14 @@ Fixed critical LED config push bug - Hub wasn't sending LED configurations to dr
 
 Implemented complete Hub UI redesign with new screen-based navigation system. Added sidebar navigation with dedicated screens for Home, Drivers, Events, Mappers, and System. Updated Event Monitor with lastValue tracking to show both current and last-known event values with improved formatting. Fixed test effect LED compositing bug where orange connection pulse was interfering with test patterns - effects now blend properly using alpha compositing. Simplified TransportLayer API by removing unused duration field from EffectPayload type. Implemented dark mode support with automatic system theme detection and manual toggle, refactored theme providers, and added Material UI dark theme palette. Improved driver card styling and system status components for better UX across both light and dark modes.
 
+Added Firmware management page with USB flashing support using Web Serial API and esptool-js. Implemented serial port auto-detection for ESP32 devices (CP2102, CH340, FTDI, Espressif native USB). Fixed ESP32 serial command processing issues where driver was auto-responding to partial commands. Fixed factory reset boot loop by properly validating WiFi credentials before entering portal mode. Added test topic resubscription when device ID changes to maintain MQTT communication. Implemented OTA firmware flashing support via esp-ota library for ArduinoOTA protocol updates to connected drivers.
+
+Major main.ts refactoring - extracted code into modular components reducing main.ts from ~663 to ~360 lines. Created src/ipc/ directory with individual IPC handler files (test-leds, set-id, flash-ota). Created src/mqtt-subscriptions/ directory with individual MQTT subscription files. Extracted driver callbacks, pushConfigToDriver function, and serial port configuration into separate modules for better code organization and maintainability.
+
 ---
 
 **Total Development Time:** 38 days (October 11 - November 18, 2025)
-**Total Commits:** 215
+**Total Commits:** 245
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
