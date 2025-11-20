@@ -11,6 +11,7 @@ import {
   Devices as DevicesIcon,
   Monitor as MonitorIcon,
   Memory as FirmwareIcon,
+  Science as ScienceIcon,
   Settings as SettingsIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { label: "Drivers", path: "/drivers", icon: <DevicesIcon /> },
   { label: "Event Monitor", path: "/events", icon: <MonitorIcon /> },
   { label: "Firmware", path: "/firmware", icon: <FirmwareIcon /> },
+  { label: "Test Effects", path: "/test-effects", icon: <ScienceIcon /> },
   { label: "Settings", path: "/settings", icon: <SettingsIcon /> },
   { label: "About", path: "/about", icon: <InfoIcon /> },
 ];

@@ -1,5 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
+import type { EffectPayload } from './types/mapping-types';
+
 /**
  * LED Configuration Types
  */
@@ -178,6 +180,7 @@ export interface IpcApi {
   ) => Promise<{ success: boolean; error?: string; output?: string }>;
   rendererReady: () => void;
   triggerDiscovery: () => Promise<void>;
+  triggerEffect: (payload: EffectPayload) => Promise<void>;
 }
 
 // Extend Window interface for TypeScript
