@@ -14,7 +14,8 @@ uint32_t parseColor(const char* colorHex) {
 	// Handle magic color word: "random"
 	if (strcmp(colorHex, "random") == 0) {
 		// Random hue at full saturation and value
-		uint8_t randomHue = random8();
+		// Use random16() which respects random16_set_seed(), not random8() which uses hardware RNG
+		uint8_t randomHue = random16() & 0xFF;
 		CHSV hsv(randomHue, 255, 255);
 		CRGB rgb = hsv;
 		return ((uint32_t)rgb.r << 16) | ((uint32_t)rgb.g << 8) | rgb.b;
