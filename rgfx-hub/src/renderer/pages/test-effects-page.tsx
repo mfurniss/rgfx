@@ -17,28 +17,23 @@ import {
 } from '@mui/material';
 import { Science as ScienceIcon } from '@mui/icons-material';
 import { useDriverStore } from '../store/driver-store';
+import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '~/src/types/mapping-types';
 
-const AVAILABLE_EFFECTS = ['pulse', 'wipe', 'explosion'];
-
-const DEFAULT_PROPS: Record<string, string> = {
-  pulse: JSON.stringify({ color: '#FF0000', duration: 1000, fade: true }, null, 2),
-  wipe: JSON.stringify({ color: '#00FF00', duration: 500 }, null, 2),
-  explosion: JSON.stringify(
-    {
-      centerX: 50,
-      centerY: 50,
-      color: 'random',
-      hueSpread: 0,
-      particleCount: 100,
-      particleSize: 2,
-      power: 60,
-      powerSpread: 1.6,
-      lifespan: 800,
-    },
-    null,
-    2
-  ),
+const EFFECTS: Record<string, Record<string, unknown>> = {
+  pulse: { color: '#FF0000', duration: 1000, fade: true },
+  wipe: { color: '#00FF00', duration: 500 },
+  explosion: {
+    centerX: 50,
+    centerY: 50,
+    color: 'random',
+    hueSpread: 0,
+    particleCount: 100,
+    particleSize: 2,
+    power: 60,
+    powerSpread: 1.6,
+    lifespan: 800,
+  },
 };
 
 export default function TestEffectsPage() {
@@ -54,21 +49,29 @@ export default function TestEffectsPage() {
   const drivers = useDriverStore((state) => state.drivers);
   const connectedDrivers = drivers.filter((d) => d.connected && d.ip);
 
-  const [selectedEffect, setSelectedEffect] = useState<string>('pulse');
-  const [propsJson, setPropsJson] = useState<string>(DEFAULT_PROPS.pulse);
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState<boolean>(false);
+  // Get state from Zustand store (persisted across navigation)
+  const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
+  const propsJson = useUiStore((state) => state.testEffectsPropsJson);
+  const storedSelectedDrivers = useUiStore((state) => state.testEffectsSelectedDrivers);
+  const selectAll = useUiStore((state) => state.testEffectsSelectAll);
+  const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
+
+  // Convert stored array back to Set for component logic
+  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
+    new Set(storedSelectedDrivers)
+  );
 
   // Initialize with all drivers selected when connected drivers change
   useEffect(() => {
     const driverIds = connectedDriverIds.split(',').filter(Boolean);
-    setSelectedDrivers(new Set(driverIds));
-    setSelectAll(driverIds.length > 0);
-  }, [connectedDriverIds]);
+    const newSelectedDrivers = new Set(driverIds);
+    setSelectedDrivers(newSelectedDrivers);
+    setTestEffectsState(selectedEffect, propsJson, newSelectedDrivers, driverIds.length > 0);
+  }, [connectedDriverIds, selectedEffect, propsJson, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
-    setSelectedEffect(effect);
-    setPropsJson(DEFAULT_PROPS[effect] ?? '{}');
+    const newPropsJson = JSON.stringify(EFFECTS[effect] ?? {}, null, 2);
+    setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
   };
 
   const handleDriverToggle = (driverId: string) => {
@@ -79,20 +82,23 @@ export default function TestEffectsPage() {
       newSelected.add(driverId);
     }
     setSelectedDrivers(newSelected);
-    setSelectAll(newSelected.size === connectedDrivers.length);
+    const newSelectAll = newSelected.size === connectedDrivers.length;
+    setTestEffectsState(selectedEffect, propsJson, newSelected, newSelectAll);
   };
 
   const handleSelectAll = () => {
     if (selectAll) {
-      setSelectedDrivers(new Set());
-      setSelectAll(false);
+      const emptySet = new Set<string>();
+      setSelectedDrivers(emptySet);
+      setTestEffectsState(selectedEffect, propsJson, emptySet, false);
     } else {
-      setSelectedDrivers(new Set(connectedDrivers.map((d) => d.id)));
-      setSelectAll(true);
+      const allSelected = new Set(connectedDrivers.map((d) => d.id));
+      setSelectedDrivers(allSelected);
+      setTestEffectsState(selectedEffect, propsJson, allSelected, true);
     }
   };
 
-  const handleFire = () => {
+  const handleTriggerEffect = () => {
     void (async () => {
       try {
         const props = JSON.parse(propsJson) as Record<string, unknown>;
@@ -133,7 +139,7 @@ export default function TestEffectsPage() {
                 handleEffectChange(e.target.value);
               }}
             >
-              {AVAILABLE_EFFECTS.map((effect) => (
+              {Object.keys(EFFECTS).map((effect) => (
                 <MenuItem key={effect} value={effect}>
                   {effect}
                 </MenuItem>
@@ -147,11 +153,10 @@ export default function TestEffectsPage() {
             rows={8}
             value={propsJson}
             onChange={(e) => {
-              setPropsJson(e.target.value);
+              const newPropsJson = e.target.value;
+              setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
             }}
             fullWidth
-            placeholder='{"color": "#FF0000", "duration": 1000}'
-            helperText="Enter effect-specific properties as JSON"
           />
 
           <Box>
@@ -197,11 +202,11 @@ export default function TestEffectsPage() {
             variant="contained"
             color="primary"
             size="large"
-            onClick={handleFire}
+            onClick={handleTriggerEffect}
             disabled={connectedDrivers.length === 0}
             startIcon={<ScienceIcon />}
           >
-            Fire Effect
+            Trigger Effect
           </Button>
         </Stack>
       </Paper>

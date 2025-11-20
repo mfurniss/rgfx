@@ -243,6 +243,14 @@ void reconnectMQTT() {
 		// Reset failure counter on successful connection
 		consecutiveFailures = 0;
 
+		// Seed random number generator with unique values per driver
+		// NOTE: ESP32's randomSeed() doesn't work - it's ignored by hardware RNG
+		// Use FastLED's random16_set_seed() instead, which properly supports seeding
+		IPAddress ip = WiFi.localIP();
+		uint16_t seed = (millis() & 0xFFFF) ^ (ip[2] << 8) ^ ip[3];
+		random16_set_seed(seed);
+		log("Random seed initialized: " + String(seed));
+
 		// Subscribe to topics with QoS 2 (exactly-once delivery)
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
 		mqttClient.subscribe("rgfx/system/discover", 2);
