@@ -7,6 +7,7 @@ import DriverListPage from './pages/driver-list-page';
 import DriverDetailPage from './pages/driver-detail-page';
 import EventMonitorPage from './pages/event-monitor-page';
 import FirmwarePage from './pages/firmware-page';
+import TestEffectsPage from './pages/test-effects-page';
 import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
@@ -104,6 +105,7 @@ const App: React.FC = () => {
               <Route path="/driver/:id" element={<DriverDetailPage />} />
               <Route path="/events" element={<EventMonitorPage />} />
               <Route path="/firmware" element={<FirmwarePage />} />
+              <Route path="/test-effects" element={<TestEffectsPage />} />
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </AppLayout>

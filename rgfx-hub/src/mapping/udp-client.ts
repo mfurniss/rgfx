@@ -61,6 +61,8 @@ export class UdpClientImpl implements UdpClient {
       return true; // Still return true for mapper convenience
     }
 
+    log.info(`Sending effect to driver ${driverId} (${driver.ip}):`, effectData);
+
     // Create UDP socket and send
     const udp = new Udp(driver.ip, UDP_PORT);
 

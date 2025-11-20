@@ -151,6 +151,7 @@ registerIpcHandlers({
   mqtt,
   pushConfigToDriver,
   discoveryService,
+  udpClient,
 });
 
 // Register MQTT subscriptions
