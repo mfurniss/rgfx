@@ -28,12 +28,13 @@ const DEFAULT_PROPS: Record<string, string> = {
     {
       centerX: 50,
       centerY: 50,
-      color: '#FFFFFF',
-      particleCount: 80,
+      color: 'random',
+      hueSpread: 0,
+      particleCount: 100,
       particleSize: 2,
-      power: 50,
-      powerSpread: 1.5,
-      lifespan: 1200,
+      power: 60,
+      powerSpread: 1.6,
+      lifespan: 800,
     },
     null,
     2
