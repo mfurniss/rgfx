@@ -19,11 +19,25 @@ import { Science as ScienceIcon } from '@mui/icons-material';
 import { useDriverStore } from '../store/driver-store';
 import type { EffectPayload } from '~/src/types/mapping-types';
 
-const AVAILABLE_EFFECTS = ['pulse', 'wipe'];
+const AVAILABLE_EFFECTS = ['pulse', 'wipe', 'explosion'];
 
 const DEFAULT_PROPS: Record<string, string> = {
   pulse: JSON.stringify({ color: '#FF0000', duration: 1000, fade: true }, null, 2),
   wipe: JSON.stringify({ color: '#00FF00', duration: 500 }, null, 2),
+  explosion: JSON.stringify(
+    {
+      centerX: 50,
+      centerY: 50,
+      color: '#FFFFFF',
+      particleCount: 80,
+      particleSize: 2,
+      power: 50,
+      powerSpread: 1.5,
+      lifespan: 1200,
+    },
+    null,
+    2
+  ),
 };
 
 export default function TestEffectsPage() {
