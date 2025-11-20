@@ -72,4 +72,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Hub dark / light mode
 [X] Research ESP Web Tools for firmware updates
 [ ] Research Electron app auto updates
-[ ] Implement esptool-js + node-serialport
+[X] Implement esptool-js + node-serialport
+[ ] Ensure Hub and firmware versions are syncronized

@@ -81,8 +81,18 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:test-leds', driverId, enabled);
   },
 
+  flashOTA: (
+    driverId: string
+  ): Promise<{ success: boolean; error?: string; output?: string }> => {
+    return ipcRenderer.invoke('driver:flash-ota', driverId);
+  },
+
   rendererReady: (): void => {
     ipcRenderer.send('renderer:ready');
+  },
+
+  triggerDiscovery: (): Promise<void> => {
+    return ipcRenderer.invoke('discovery:trigger-immediate');
   },
 };
 
