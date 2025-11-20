@@ -90,6 +90,10 @@ export const rgfxAPI = {
   rendererReady: (): void => {
     ipcRenderer.send('renderer:ready');
   },
+
+  triggerDiscovery: (): Promise<void> => {
+    return ipcRenderer.invoke('discovery:trigger-immediate');
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

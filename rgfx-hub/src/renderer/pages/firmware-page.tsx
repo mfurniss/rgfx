@@ -50,6 +50,7 @@ const FirmwarePage: React.FC = () => {
   const drivers = useDriverStore((state) => state.drivers);
 
   const addLog = (message: string) => {
+    console.log('>', message);
     setLogMessages((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
   };
 
@@ -143,7 +144,7 @@ const FirmwarePage: React.FC = () => {
 
       const loader = new ESPLoader({
         transport,
-        baudrate: 115200,
+        baudrate: 921600,
         romBaudrate: 115200,
         terminal: {
           clean() {
@@ -201,14 +202,23 @@ const FirmwarePage: React.FC = () => {
       });
 
       addLog('Flash complete! Resetting device...');
-      await loader.after('hard_reset', false);
 
+      // Manual hard reset with proper timing
+      // RTS is active-low and connected to EN via transistor circuit
+      // Setting RTS true (active) pulls EN low (chip in reset)
+      // Setting RTS false (inactive) releases EN high (chip boots)
+      await portToFlash.setSignals({ requestToSend: true });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await portToFlash.setSignals({ requestToSend: false });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      addLog('Device reset complete');
       addLog('Firmware flashed successfully via USB!');
       setProgress(100);
       setResultModal({
         open: true,
         success: true,
-        message: `Firmware v${firmwareVersion} flashed successfully! The device has been reset and is now running the new firmware.`,
+        message: `Firmware v${firmwareVersion} flashed successfully! The device has been reset.`,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';

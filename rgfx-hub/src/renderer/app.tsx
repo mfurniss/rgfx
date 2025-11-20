@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Box } from '@mui/material';
 import { AppLayout } from './components/app-layout';
@@ -16,8 +16,10 @@ import styles from './app.module.css';
 // Flag to ensure rendererReady is only called once per app lifecycle
 let rendererReadyCalled = false;
 
+// Random hue for gradient background - module scope ensures it persists across remounts
+const randomHue = Math.floor(Math.random() * 360);
+
 const App: React.FC = () => {
-  const randomHue = useRef(Math.floor(Math.random() * 360)).current;
 
   // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
