@@ -88,8 +88,7 @@ export class DriverPersistence {
 
     try {
       const data = fs.readFileSync(this.configFile, 'utf8');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const parsed = JSON.parse(data);
+      const parsed: unknown = JSON.parse(data);
 
       // Runtime validation of parsed JSON structure
       if (!parsed || typeof parsed !== 'object') {
@@ -123,7 +122,9 @@ export class DriverPersistence {
         }
       }
 
-      log.info(`Loaded ${validCount} valid drivers from ${this.configFile} (${driversConfig.drivers.length - validCount} invalid entries skipped)`);
+      log.info(
+        `Loaded ${validCount} valid drivers from ${this.configFile} (${driversConfig.drivers.length - validCount} invalid entries skipped)`
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log.error(`Failed to load drivers config: ${errorMessage}`);
@@ -237,10 +238,7 @@ export class DriverPersistence {
    * Update driver metadata (description)
    * Does not update ledConfig - use setDriverLEDConfig for that
    */
-  updateDriver(
-    id: string,
-    updates: Partial<Pick<PersistedDriver, 'description'>>
-  ): boolean {
+  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'description'>>): boolean {
     const driver = this.drivers.get(id);
     if (!driver) {
       log.warn(`Cannot update non-existent driver: ${id}`);
