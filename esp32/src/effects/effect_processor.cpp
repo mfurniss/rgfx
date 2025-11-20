@@ -7,9 +7,10 @@ EffectProcessor::EffectProcessor(Matrix& matrix)
 	: matrix(matrix),
 	  pulseEffect(matrix),
 	  wipeEffect(matrix),
+	  explosionEffect(matrix),
 	  testLedsEffect(matrix),
 	  lastFrameTime(0),
-	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}, {"test_leds", &testLedsEffect}} {}
+	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}, {"explosion", &explosionEffect}, {"test_leds", &testLedsEffect}} {}
 
 void EffectProcessor::update() {
 	unsigned long now = millis();
@@ -45,7 +46,7 @@ void EffectProcessor::update() {
 	}
 
 	// Build array of active effects (excluding test effect)
-	EffectEntry activeEffects[2];
+	EffectEntry activeEffects[3];
 	int activeCount = 0;
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0) {
