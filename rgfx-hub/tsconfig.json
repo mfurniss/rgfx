@@ -15,12 +15,11 @@
     "baseUrl": ".",
     "outDir": "dist",
     "resolveJsonModule": true,
-    "types": ["vitest/globals", "node"],
+    "types": ["vitest/globals", "node", "w3c-web-serial"],
     "paths": {
       "~/src/*": ["src/*"]
     }
   },
   "include": ["src/**/*", "src/**/*.test.ts", "src/**/*.spec.ts", "config/**/*", "forge.env.d.ts"],
-  "exclude": ["node_modules", "dist", ".vite", "out", "vitest.config.ts"],
-  "files": ["src/global.d.ts"]
+  "exclude": ["node_modules", "dist", ".vite", "out", "vitest.config.ts"]
 }

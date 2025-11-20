@@ -134,10 +134,18 @@ namespace SerialCommand {
 			else if (c == '\b' || c == 127) {
 				if (bufferIndex > 0) {
 					bufferIndex--;
-					// Echo backspace sequence to terminal
-					Serial.write('\b');
-					Serial.write(' ');
-					Serial.write('\b');
+					// Echo backspace sequence to terminal (with mutex)
+					if (serialMutex) {
+						xSemaphoreTake(serialMutex, portMAX_DELAY);
+						Serial.write('\b');
+						Serial.write(' ');
+						Serial.write('\b');
+						xSemaphoreGive(serialMutex);
+					} else {
+						Serial.write('\b');
+						Serial.write(' ');
+						Serial.write('\b');
+					}
 				}
 			}
 			// Handle printable characters
@@ -145,8 +153,14 @@ namespace SerialCommand {
 				// Add to buffer
 				inputBuffer[bufferIndex++] = c;
 
-				// Echo character back to user (visual confirmation)
-				Serial.write(c);
+				// Echo character back to user (with mutex to prevent log interleaving)
+				if (serialMutex) {
+					xSemaphoreTake(serialMutex, portMAX_DELAY);
+					Serial.write(c);
+					xSemaphoreGive(serialMutex);
+				} else {
+					Serial.write(c);
+				}
 			}
 		}
 	}

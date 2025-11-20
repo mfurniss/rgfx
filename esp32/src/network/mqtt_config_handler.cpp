@@ -29,17 +29,37 @@ void handleDriverConfig(const String& payload) {
 
 	// Extract and update device ID if present
 	if (doc["id"].is<String>()) {
-		String deviceId = doc["id"].as<String>();
+		String newDeviceId = doc["id"].as<String>();
 
-		if (deviceId.length() > 0) {
-			log("Setting device ID: " + deviceId);
-			Utils::setDeviceId(deviceId);
+		if (newDeviceId.length() > 0) {
+			String oldDeviceId = Utils::getDeviceId();
 
-			// Update OLED display
-			extern MQTTClient mqttClient;
-			if (Display::isAvailable()) {
-				Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
-				                       mqttClient.connected(), deviceId);
+			// Check if ID is changing
+			if (oldDeviceId != newDeviceId) {
+				log("Setting device ID: " + newDeviceId);
+				Utils::setDeviceId(newDeviceId);
+
+				// Resubscribe to test topic with new ID
+				extern MQTTClient mqttClient;
+				if (mqttClient.connected()) {
+					// Unsubscribe from old test topic if we had one
+					if (oldDeviceId.length() > 0) {
+						String oldTestTopic = "rgfx/driver/" + oldDeviceId + "/test";
+						mqttClient.unsubscribe(oldTestTopic.c_str());
+						log("Unsubscribed from old test topic: " + oldTestTopic);
+					}
+
+					// Subscribe to new test topic
+					String newTestTopic = "rgfx/driver/" + newDeviceId + "/test";
+					mqttClient.subscribe(newTestTopic.c_str(), 2);
+					log("Subscribed to new test topic: " + newTestTopic);
+				}
+
+				// Update OLED display
+				if (Display::isAvailable()) {
+					Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
+					                       mqttClient.connected(), newDeviceId);
+				}
 			}
 		}
 	}

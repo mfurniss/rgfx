@@ -210,6 +210,10 @@ void loop() {
 
 	inApMode = nowInApMode;
 
+	// Process serial commands ALWAYS (even during AP mode or connection attempts)
+	// This allows wifi credentials to be set via serial at any time
+	SerialCommand::process();
+
 	// If we haven't made initial connection attempt yet, keep LEDs BLUE (trying to connect)
 	if (!initialConnectionAttemptDone && !isConnected) {
 		// Still waiting for initial connection attempt to complete
@@ -238,9 +242,6 @@ void loop() {
 			}
 		}
 	}
-
-	// Process serial commands (thread-safe, buffered input)
-	SerialCommand::process();
 
 	// Core 1: Only process UDP and LED effects (time-critical tasks)
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
