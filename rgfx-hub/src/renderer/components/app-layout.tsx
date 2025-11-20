@@ -38,6 +38,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           p: 3,
           width: `calc(100% - ${DRAWER_WIDTH}px)`,
           overflow: "auto",
+          backgroundColor: "action.hover",
         }}
       >
         {children}

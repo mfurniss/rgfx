@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -27,6 +27,15 @@ const DEFAULT_PROPS: Record<string, string> = {
 };
 
 export default function TestEffectsPage() {
+  // Use a stable selector that only changes when connected driver IDs actually change
+  const connectedDriverIds = useDriverStore((state) =>
+    state.drivers
+      .filter((d) => d.connected && d.ip)
+      .map((d) => d.id)
+      .sort()
+      .join(',')
+  );
+
   const drivers = useDriverStore((state) => state.drivers);
   const connectedDrivers = drivers.filter((d) => d.connected && d.ip);
 
@@ -34,6 +43,13 @@ export default function TestEffectsPage() {
   const [propsJson, setPropsJson] = useState<string>(DEFAULT_PROPS.pulse);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState<boolean>(false);
+
+  // Initialize with all drivers selected when connected drivers change
+  useEffect(() => {
+    const driverIds = connectedDriverIds.split(',').filter(Boolean);
+    setSelectedDrivers(new Set(driverIds));
+    setSelectAll(driverIds.length > 0);
+  }, [connectedDriverIds]);
 
   const handleEffectChange = (effect: string) => {
     setSelectedEffect(effect);

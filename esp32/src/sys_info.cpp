@@ -28,6 +28,7 @@ JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool conf
 	doc["flashSize"] = ESP.getFlashChipSize();
 	doc["flashSpeed"] = ESP.getFlashChipSpeed();
 	doc["freeHeap"] = ESP.getFreeHeap();
+	doc["minFreeHeap"] = ESP.getMinFreeHeap();
 	doc["heapSize"] = ESP.getHeapSize();
 	doc["psramSize"] = ESP.getPsramSize();
 	doc["freePsram"] = ESP.getFreePsram();

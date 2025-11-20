@@ -107,6 +107,7 @@ export interface DriverSystemInfo {
   flashSize: number;
   flashSpeed: number;
   freeHeap: number;
+  minFreeHeap: number;
   heapSize: number;
   psramSize: number;
   freePsram: number;
@@ -149,6 +150,12 @@ export interface Driver {
   ledConfig?: DriverLEDConfig | null;
   resolvedHardware?: LEDHardware;
   testActive?: boolean;
+  // Telemetry from heartbeat messages
+  freeHeap?: number;
+  minFreeHeap?: number;
+  rssi?: number;
+  uptimeMs?: number;
+  lastHeartbeat?: number;
 }
 
 export interface SystemStatus {

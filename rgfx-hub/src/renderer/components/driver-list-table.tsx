@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -32,21 +32,31 @@ const SORT_COLUMNS: { field: SortField; label: string }[] = [
  * Driver list table component with sortable columns
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
+  const location = useLocation();
   const sortField = useUiStore((state) => state.driverTableSortField);
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
   const [, setCurrentTime] = useState(Date.now());
 
-  // Update current time every second for live relative timestamps
+  // Update current time every second for live relative timestamps - only when component is visible
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+    // Check if we're on the drivers list page (/drivers)
+    const isVisible = location.pathname === '/drivers';
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    if (isVisible) {
+      // Immediate update when page becomes visible
+      setCurrentTime(Date.now());
+
+      // Then start interval
+      const interval = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [location.pathname]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

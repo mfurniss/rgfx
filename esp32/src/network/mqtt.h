@@ -14,6 +14,9 @@ extern MQTTClient mqttClient;
 // Test mode state
 extern bool testModeActive;
 
+// MQTT message statistics
+extern uint32_t mqttMessagesReceived;
+
 // Function declarations
 void setupMQTT();
 void reconnectMQTT();
