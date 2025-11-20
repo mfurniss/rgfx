@@ -12,16 +12,11 @@ import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
 import { theme } from './theme';
-import styles from './app.module.css';
 
 // Flag to ensure rendererReady is only called once per app lifecycle
 let rendererReadyCalled = false;
 
-// Random hue for gradient background - module scope ensures it persists across remounts
-const randomHue = Math.floor(Math.random() * 360);
-
 const App: React.FC = () => {
-
   // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
   const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
@@ -93,11 +88,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <HashRouter>
-        <Box
-          className={styles.container}
-          style={{ '--hue': randomHue } as React.CSSProperties}
-          sx={{ height: '100vh' }}
-        >
+        <Box sx={{ height: '100vh' }}>
           <AppLayout>
             <Routes>
               <Route path="/" element={<SystemStatusPage />} />

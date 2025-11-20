@@ -175,7 +175,17 @@ export class DriverRegistry {
   }
 
   // Update driver heartbeat (simple keepalive, no config republish)
-  updateHeartbeat(driverId: string): Driver | undefined {
+  updateHeartbeat(
+    driverId: string,
+    telemetry?: {
+      freeHeap?: number;
+      minFreeHeap?: number;
+      rssi?: number;
+      uptimeMs?: number;
+      mqttMessagesReceived?: number;
+      udpMessagesReceived?: number;
+    }
+  ): Driver | undefined {
     const driver = this.drivers.get(driverId);
 
     if (!driver) {
@@ -186,6 +196,23 @@ export class DriverRegistry {
     const now = Date.now();
     driver.lastSeen = now;
     driver.failedHeartbeats = 0; // Reset failure counter on successful heartbeat
+
+    // Update telemetry if provided (including stats from driver)
+    if (telemetry) {
+      driver.freeHeap = telemetry.freeHeap;
+      driver.minFreeHeap = telemetry.minFreeHeap;
+      driver.rssi = telemetry.rssi;
+      driver.uptimeMs = telemetry.uptimeMs;
+      driver.lastHeartbeat = now;
+
+      // Update stats from driver-reported counters
+      if (telemetry.mqttMessagesReceived !== undefined) {
+        driver.stats.mqttMessagesReceived = telemetry.mqttMessagesReceived;
+      }
+      if (telemetry.udpMessagesReceived !== undefined) {
+        driver.stats.udpMessagesSent = telemetry.udpMessagesReceived;
+      }
+    }
 
     // If driver was previously disconnected, mark as reconnected
     if (!driver.connected) {

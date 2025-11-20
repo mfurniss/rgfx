@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Typography, Box, Chip, Tooltip } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Paper, Typography, Box, Chip, Tooltip, IconButton } from '@mui/material';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
   Lightbulb as LightbulbIcon,
   Speed as SpeedIcon,
-  QueryStats as QueryStatsIcon,
+  Sensors as SensorsIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import type { Driver } from '~/src/types';
 import InfoSection, { type InfoRowData } from './info-section';
@@ -18,19 +20,38 @@ interface DriverCardProps {
 }
 
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { sysInfo } = driver;
   const [now, setNow] = useState(Date.now());
 
-  // Update every second for live timestamps and uptime
+  // Update every second for live timestamps and uptime - only when component is visible
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(Date.now());
-    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+    // Check if we're on a driver detail page (/drivers/:id)
+    const isVisible = location.pathname.startsWith('/drivers/');
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    if (isVisible) {
+      // Immediate update when page becomes visible
+      setNow(Date.now());
+
+      // Then start interval
+      const interval = setInterval(() => {
+        setNow(Date.now());
+      }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [location.pathname]);
+
+  // Helper function to determine WiFi signal quality
+  const getSignalQuality = (rssi: number): string => {
+    if (rssi >= -50) return 'Excellent';
+    if (rssi >= -60) return 'Good';
+    if (rssi >= -70) return 'Fair';
+    return 'Poor';
+  };
 
   // Calculate current uptime based on initial uptimeMs from driver
   // Only available when sysInfo is present
@@ -53,6 +74,53 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         { label: 'Signal (RSSI)', value: `${formatNumber(sysInfo.rssi)} dBm` },
       ]
     : [];
+
+  // Driver telemetry from periodic heartbeats - always show if any data available
+  const telemetryRows: InfoRowData[] = [
+    // Driver Uptime from sysInfo
+    ...(sysInfo ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
+    // Memory from heartbeat telemetry
+    ...(driver.freeHeap !== undefined && driver.minFreeHeap !== undefined
+      ? [
+          {
+            label: 'Memory',
+            value: `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`,
+          },
+        ]
+      : []),
+    // WiFi Signal from heartbeat telemetry
+    ...(driver.rssi !== undefined
+      ? [
+          {
+            label: 'WiFi Signal',
+            value: `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`,
+          },
+        ]
+      : []),
+    // Uptime from heartbeat telemetry
+    ...(driver.uptimeMs !== undefined
+      ? [
+          {
+            label: 'Uptime',
+            value: formatUptime(driver.uptimeMs),
+          },
+        ]
+      : []),
+    // Message counters
+    { label: 'MQTT Messages Received', value: formatNumber(driver.stats.mqttMessagesReceived) },
+    { label: 'MQTT Errors', value: formatNumber(driver.stats.mqttMessagesFailed) },
+    { label: 'UDP Messages Received', value: formatNumber(driver.stats.udpMessagesSent) },
+    { label: 'UDP Send Errors', value: formatNumber(driver.stats.udpMessagesFailed) },
+    // Last updated timestamp
+    ...(driver.lastHeartbeat
+      ? [
+          {
+            label: 'Last Updated',
+            value: `${Math.floor((now - driver.lastHeartbeat) / 1000)}s ago`,
+          },
+        ]
+      : []),
+  ];
 
   const hardwareRows: InfoRowData[] = sysInfo
     ? [
@@ -139,41 +207,57 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ]
     : [];
 
-  const statsRows: InfoRowData[] = [
-    ...(sysInfo ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
-    { label: 'MQTT Messages', value: formatNumber(driver.stats.mqttMessagesReceived) },
-    { label: 'MQTT Errors', value: formatNumber(driver.stats.mqttMessagesFailed) },
-    { label: 'UDP Packets Sent', value: formatNumber(driver.stats.udpMessagesSent) },
-    { label: 'UDP Send Errors', value: formatNumber(driver.stats.udpMessagesFailed) },
-  ];
-
-
   return (
-    <Paper sx={{ p: 2 }}>
-      {/* Header */}
-      <Box
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Sticky Header */}
+      <Paper
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 2,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          p: 2,
+          borderRadius: 0,
+          borderBottom: 1,
+          borderColor: 'divider',
         }}
       >
-        <Typography variant="h6">{driver.id}</Typography>
-        {driver.connected && !driver.ledConfig ? (
-          <Tooltip title="Connected but needs LED configuration" arrow>
-            <Chip label="Connected" color="warning" size="small" />
-          </Tooltip>
-        ) : (
-          <Chip
-            label={driver.connected ? 'Connected' : 'Disconnected'}
-            color={driver.connected ? 'success' : 'error'}
-            size="small"
-          />
-        )}
-      </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton
+              onClick={() => {
+                void navigate('/drivers');
+              }}
+              size="small"
+              sx={{ mr: 1 }}
+              aria-label="Back to drivers"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6">{driver.id}</Typography>
+          </Box>
+          {driver.connected && !driver.ledConfig ? (
+            <Tooltip title="Connected but needs LED configuration" arrow>
+              <Chip label="Connected" color="warning" size="small" />
+            </Tooltip>
+          ) : (
+            <Chip
+              label={driver.connected ? 'Connected' : 'Disconnected'}
+              color={driver.connected ? 'success' : 'error'}
+              size="small"
+            />
+          )}
+        </Box>
+      </Paper>
 
-      {/* Information Sections */}
+      {/* Scrollable Content */}
+      <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+        {/* Information Sections */}
       {/* LED Configuration Section - Always shown at top */}
       <InfoSection
         title="LED Configuration"
@@ -203,6 +287,15 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         />
       )}
 
+      {telemetryRows.length > 0 && (
+        <InfoSection
+          title="Driver Telemetry"
+          icon={<SensorsIcon fontSize="small" color="action" />}
+          rows={telemetryRows}
+          showDivider
+        />
+      )}
+
       {hardwareRows.length > 0 && (
         <InfoSection
           title="Hardware"
@@ -220,14 +313,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           showDivider
         />
       )}
-
-      <InfoSection
-        title="Statistics"
-        icon={<QueryStatsIcon fontSize="small" color="action" />}
-        rows={statsRows}
-        showDivider
-      />
-    </Paper>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,4 +1,5 @@
 #include "network/mqtt.h"
+#include "network/udp.h"
 #include "sys_info.h"
 #include "log.h"
 #include "utils.h"
@@ -23,12 +24,16 @@ static int consecutiveFailures = 0;
 // Test mode state (accessible from main loop)
 bool testModeActive = false;
 
+// MQTT message statistics
+uint32_t mqttMessagesReceived = 0;
+
 // Forward declarations
 void handleDriverConfig(const String& payload);
 extern EffectProcessor* effectProcessor;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String& topic, String& payload) {
+	mqttMessagesReceived++;  // Increment counter for ALL MQTT messages
 	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
 	// Respond to discovery requests from Hub with heartbeat
@@ -354,15 +359,21 @@ void sendDriverConnect() {
 	}
 }
 
-// Send simple heartbeat message (periodic keepalive)
+// Send heartbeat message with telemetry (periodic keepalive)
 void sendDriverHeartbeat() {
 	if (!mqttClient.connected()) {
 		return;  // Silently skip if not connected
 	}
 
-	// Create minimal heartbeat payload - just MAC address
+	// Create heartbeat payload with telemetry
 	JsonDocument doc;
 	doc["mac"] = WiFi.macAddress();
+	doc["freeHeap"] = ESP.getFreeHeap();
+	doc["minFreeHeap"] = ESP.getMinFreeHeap();
+	doc["rssi"] = WiFi.RSSI();
+	doc["uptimeMs"] = millis();
+	doc["mqttMessagesReceived"] = mqttMessagesReceived;
+	doc["udpMessagesReceived"] = udpMessagesReceived;
 
 	String payload;
 	serializeJson(doc, payload);
