@@ -177,6 +177,7 @@ export interface IpcApi {
     driverId: string
   ) => Promise<{ success: boolean; error?: string; output?: string }>;
   rendererReady: () => void;
+  triggerDiscovery: () => Promise<void>;
 }
 
 // Extend Window interface for TypeScript

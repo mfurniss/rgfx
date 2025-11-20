@@ -58,6 +58,7 @@ describe('App IPC Listener Registration', () => {
       rendererReady: mockRendererReady,
       testDriverLEDs: vi.fn(),
       flashOTA: vi.fn(),
+      triggerDiscovery: vi.fn(),
     };
   });
 
