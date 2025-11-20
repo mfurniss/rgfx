@@ -70,8 +70,7 @@ const App: React.FC = () => {
       unsubSystemStatus();
       unsubEventTopic();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - only run once on mount, Zustand actions are stable enough
+  }, [onDriverConnected, onDriverDisconnected, onDriverUpdated, onSystemStatusUpdate, onEventTopic]);
 
   // Signal renderer ready only once per app lifecycle (not per mount)
   useEffect(() => {

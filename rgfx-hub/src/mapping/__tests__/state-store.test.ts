@@ -15,29 +15,29 @@ describe('StateStoreImpl', () => {
   describe('set and get', () => {
     it('should store and retrieve string values', () => {
       store.set('name', 'Pac-Man');
-      expect(store.get<string>('name')).toBe('Pac-Man');
+      expect(store.get('name') as string).toBe('Pac-Man');
     });
 
     it('should store and retrieve number values', () => {
       store.set('score', 12450);
-      expect(store.get<number>('score')).toBe(12450);
+      expect(store.get('score') as number).toBe(12450);
     });
 
     it('should store and retrieve boolean values', () => {
       store.set('powerup_active', true);
-      expect(store.get<boolean>('powerup_active')).toBe(true);
+      expect(store.get('powerup_active') as boolean).toBe(true);
     });
 
     it('should store and retrieve object values', () => {
       const gameState = { level: 3, lives: 2, score: 5000 };
       store.set('game_state', gameState);
-      expect(store.get<typeof gameState>('game_state')).toEqual(gameState);
+      expect(store.get('game_state')).toEqual(gameState);
     });
 
     it('should store and retrieve array values', () => {
       const ghosts = ['red', 'pink', 'cyan', 'orange'];
       store.set('ghosts', ghosts);
-      expect(store.get<string[]>('ghosts')).toEqual(ghosts);
+      expect(store.get('ghosts') as string[]).toEqual(ghosts);
     });
 
     it('should return undefined for non-existent keys', () => {
@@ -47,7 +47,7 @@ describe('StateStoreImpl', () => {
     it('should overwrite existing values', () => {
       store.set('score', 1000);
       store.set('score', 2000);
-      expect(store.get<number>('score')).toBe(2000);
+      expect(store.get('score') as number).toBe(2000);
     });
 
     it('should handle null values', () => {
@@ -126,7 +126,7 @@ describe('StateStoreImpl', () => {
 
       expect(store.has('before')).toBe(false);
       expect(store.has('after')).toBe(true);
-      expect(store.get<string>('after')).toBe('clear');
+      expect(store.get('after') as string).toBe('clear');
     });
 
     it('should not throw when clearing empty store', () => {
@@ -197,11 +197,11 @@ describe('StateStoreImpl', () => {
       };
 
       store.set('complex_state', complexState);
-      const retrieved = store.get<GameState>('complex_state');
+      const retrieved = store.get('complex_state') as GameState;
 
       expect(retrieved).toEqual(complexState);
-      expect(retrieved?.player.score).toBe(12450);
-      expect(retrieved?.enemies).toHaveLength(2);
+      expect(retrieved.player.score).toBe(12450);
+      expect(retrieved.enemies).toHaveLength(2);
     });
   });
 
