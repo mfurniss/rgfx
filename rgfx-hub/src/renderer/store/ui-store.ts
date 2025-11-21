@@ -34,7 +34,7 @@ export const useUiStore = create<UiState>()(
 
       // Test effects defaults
       testEffectsSelectedEffect: 'pulse',
-      testEffectsPropsJson: JSON.stringify({ color: '#FF0000', duration: 1000, fade: true }, null, 2),
+      testEffectsPropsJson: JSON.stringify({ color: 'random', duration: 1000, fade: true }, null, 2),
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
 
@@ -53,6 +53,11 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'rgfx-ui-preferences',
+      partialize: (state) => ({
+        driverTableSortField: state.driverTableSortField,
+        driverTableSortOrder: state.driverTableSortOrder,
+        // Exclude test effects state from persistence
+      }),
     }
   )
 );

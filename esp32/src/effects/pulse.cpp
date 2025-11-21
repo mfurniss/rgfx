@@ -71,20 +71,8 @@ void PulseEffect::render() {
 	for (const auto& pulse : pulses) {
 		for (uint16_t y = 0; y < height; y++) {
 			for (uint16_t x = 0; x < width; x++) {
-				uint32_t existing = canvas.getPixel(x, y);
-
-				// Alpha blend
-				uint8_t existingR = RGBA_RED(existing);
-				uint8_t existingG = RGBA_GREEN(existing);
-				uint8_t existingB = RGBA_BLUE(existing);
-				uint8_t existingA = RGBA_ALPHA(existing);
-
-				uint8_t newR = ((existingR * (255 - pulse.alpha)) + (pulse.r * pulse.alpha)) / 255;
-				uint8_t newG = ((existingG * (255 - pulse.alpha)) + (pulse.g * pulse.alpha)) / 255;
-				uint8_t newB = ((existingB * (255 - pulse.alpha)) + (pulse.b * pulse.alpha)) / 255;
-				uint8_t newA = existingA + pulse.alpha - ((existingA * pulse.alpha) / 255);
-
-				canvas.setPixel(x, y, RGBA(newR, newG, newB, newA));
+				canvas.setPixel(
+					x, y, RGBA(pulse.r, pulse.g, pulse.b, pulse.alpha), BlendMode::ALPHA);
 			}
 		}
 	}

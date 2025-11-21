@@ -7,14 +7,17 @@
 
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_PARTICLE_COUNT = 100;
-static const float DEFAULT_POWER = 60.0f;
+static const float DEFAULT_POWER = 50.0f;
 static const uint32_t DEFAULT_LIFESPAN = 800;
 static const float DEFAULT_POWER_SPREAD = 1.6f;
 static const uint32_t DEFAULT_PARTICLE_SIZE = 2;
-static const uint32_t DEFAULT_HUE_SPREAD = 0;
+static const uint32_t DEFAULT_HUE_SPREAD = 90;
+static const float DEFAULT_FRICTION = 2.0f;
+static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
-ExplosionEffect::ExplosionEffect(const Matrix& m) : canvas(m.width * 4, m.height * 4), nextExplosionId(0) {
+ExplosionEffect::ExplosionEffect(const Matrix& m)
+	: canvas(m.width * 4, m.height * 4), matrix(m), nextExplosionId(0) {
 	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
 }
 
@@ -27,14 +30,27 @@ void ExplosionEffect::add(JsonDocument& props) {
 	float powerSpread = props["powerSpread"] | DEFAULT_POWER_SPREAD;
 	uint32_t particleSize = props["particleSize"] | DEFAULT_PARTICLE_SIZE;
 	uint32_t hueSpread = min(static_cast<uint32_t>(props["hueSpread"] | DEFAULT_HUE_SPREAD), 359u);
+	float friction = props["friction"] | DEFAULT_FRICTION;
+	float lifespanSpread = props["lifespanSpread"] | DEFAULT_LIFESPAN_SPREAD;
+
+	bool isStrip = (matrix.layout == "strip");
+
+	// Scale power relative to largest matrix dimension (canvas is 4x matrix size)
+	uint16_t largestDimension = max(matrix.width, matrix.height);
+	float powerScale = static_cast<float>(largestDimension * 4) / 64.0f;
+	float scaledPower = power * powerScale;
 
 	// Parse center position as percentage (0-100), default to center (50%)
 	float centerXPercent = props["centerX"] | 50.0f;
-	float centerYPercent = props["centerY"] | 50.0f;
-
-	// Convert percentage to canvas coordinates
 	float centerX = (centerXPercent / 100.0f) * canvas.getWidth();
-	float centerY = (centerYPercent / 100.0f) * canvas.getHeight();
+
+	float centerY;
+	if (isStrip) {
+		centerY = canvas.getHeight() / 2.0f;
+	} else {
+		float centerYPercent = props["centerY"] | 50.0f;
+		centerY = (centerYPercent / 100.0f) * canvas.getHeight();
+	}
 
 	// Extract RGB components
 	uint8_t baseR = (color >> 16) & 0xFF;
@@ -47,6 +63,7 @@ void ExplosionEffect::add(JsonDocument& props) {
 	newExplosion.centerX = centerX;
 	newExplosion.centerY = centerY;
 	newExplosion.particleSize = particleSize;
+	newExplosion.friction = friction;
 
 	// FIFO eviction: if adding particleCount would exceed max, remove oldest particles first
 	if (particlePool.size() + particleCount > MAX_PARTICLE_POOL_SIZE) {
@@ -64,16 +81,23 @@ void ExplosionEffect::add(JsonDocument& props) {
 		p.y = centerY;
 		p.explosionId = newExplosion.id;
 
-		// Calculate angle for this particle (evenly distributed around 360°)
-		float angle = (static_cast<float>(i) / particleCount) * 2.0f * PI;
-
-		// Add random variation to angle for more natural spread
-		angle += (static_cast<float>(random(-100, 100)) / 100.0f) * 0.3f;
-
 		// Calculate velocity with power variation based on powerSpread
-		float powerVariation = power * (1.0f + (static_cast<float>(random(-100, 100)) / 100.0f) * (powerSpread - 1.0f));
-		p.vx = cos(angle) * powerVariation;
-		p.vy = sin(angle) * powerVariation;
+		float powerVariation =
+			scaledPower *
+			(1.0f + (static_cast<float>(random(-100, 100)) / 100.0f) * (powerSpread - 1.0f));
+
+		if (isStrip) {
+			// Strip: Only horizontal movement (half go left, half go right)
+			float direction = (i < particleCount / 2) ? -1.0f : 1.0f;
+			p.vx = direction * powerVariation;
+			p.vy = 0.0f;
+		} else {
+			// Matrix: Full 2D explosion with radial distribution
+			float angle = (static_cast<float>(i) / particleCount) * 2.0f * PI;
+			angle += (static_cast<float>(random(-100, 100)) / 100.0f) * 0.3f;
+			p.vx = cos(angle) * powerVariation;
+			p.vy = sin(angle) * powerVariation;
+		}
 
 		// Apply hue spread if non-zero
 		if (hueSpread > 0) {
@@ -104,8 +128,16 @@ void ExplosionEffect::add(JsonDocument& props) {
 		}
 
 		p.alpha = 255;
-		p.lifespan = lifespan;
 		p.age = 0;
+
+		// Apply lifespan variation
+		if (lifespanSpread < 0.01f) {
+			p.lifespan = lifespan;
+		} else {
+			float variation = 0.5f + (static_cast<float>(random(0, 100)) / 100.0f);
+			p.lifespan = static_cast<uint32_t>(lifespan * variation * lifespanSpread);
+		}
+		p.lifespanMultiplier = 1.0f;
 
 		particlePool.push_back(p);
 	}
@@ -120,26 +152,46 @@ void ExplosionEffect::update(float deltaTime) {
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
+	bool isStrip = (matrix.layout == "strip");
 
 	// Update all particles in the shared pool
-	for (auto partIt = particlePool.begin(); partIt != particlePool.end();) {
-		// Update position based on velocity
-		partIt->x += partIt->vx * deltaTime;
-		partIt->y += partIt->vy * deltaTime;
+	for (auto p = particlePool.begin(); p != particlePool.end();) {
+		// Find the explosion this particle belongs to (for friction)
+		float friction = DEFAULT_FRICTION;
+		for (const auto& exp : explosions) {
+			if (exp.id == p->explosionId) {
+				friction = exp.friction;
+				break;
+			}
+		}
+
+		// Update X position (always)
+		p->x += p->vx * deltaTime;
+		p->vx *= (1.0f - (friction * deltaTime));
+
+		// Update Y position (only for matrices)
+		if (!isStrip) {
+			p->y += p->vy * deltaTime;
+			p->vy *= (1.0f - (friction * deltaTime));
+		}
 
 		// Age the particle
-		partIt->age += deltaTimeMs;
+		p->age += deltaTimeMs;
 
 		// Remove particles that are dead or out of bounds
-		if (partIt->age >= partIt->lifespan ||
-		    partIt->x < 0 || partIt->x >= width ||
-		    partIt->y < 0 || partIt->y >= height) {
-			partIt = particlePool.erase(partIt);
+		bool outOfBounds;
+		if (isStrip) {
+			outOfBounds = (p->x < 0 || p->x >= width);
 		} else {
-			// Linear fade: alpha = 255 * (1 - age/lifespan)
-			float lifeProgress = static_cast<float>(partIt->age) / partIt->lifespan;
-			partIt->alpha = static_cast<uint8_t>(255.0f * (1.0f - lifeProgress));
-			++partIt;
+			outOfBounds = (p->x < 0 || p->x >= width || p->y < 0 || p->y >= height);
+		}
+
+		if (p->age >= p->lifespan || outOfBounds) {
+			p = particlePool.erase(p);
+		} else {
+			float lifeProgress = static_cast<float>(p->age) / p->lifespan;
+			p->alpha = static_cast<uint8_t>(255.0f * (1.0f - lifeProgress));
+			++p;
 		}
 	}
 
@@ -164,6 +216,7 @@ void ExplosionEffect::update(float deltaTime) {
 void ExplosionEffect::render() {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
+	bool isStrip = (matrix.layout == "strip");
 
 	// Render all particles from the shared pool
 	for (const auto& particle : particlePool) {
@@ -187,31 +240,36 @@ void ExplosionEffect::render() {
 		int16_t centerX = static_cast<int16_t>(particle.x);
 		int16_t centerY = static_cast<int16_t>(particle.y);
 
-		// Render particle as NxN block centered around position
-		for (uint32_t dy = 0; dy < size; dy++) {
+		if (isStrip) {
+			// Strip: Render full-height column for particle
 			for (uint32_t dx = 0; dx < size; dx++) {
 				int16_t x = centerX - halfSize + dx;
-				int16_t y = centerY - halfSize + dy;
 
-				// Bounds check
-				if (x < 0 || x >= width || y < 0 || y >= height) {
+				if (x < 0 || x >= width) {
 					continue;
 				}
 
-				uint32_t existing = canvas.getPixel(x, y);
+				// Render particle at this X position for all Y
+				for (uint16_t y = 0; y < height; y++) {
+					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                BlendMode::ALPHA);
+				}
+			}
+		} else {
+			// Matrix: Render NxN block centered around position
+			for (uint32_t dy = 0; dy < size; dy++) {
+				for (uint32_t dx = 0; dx < size; dx++) {
+					int16_t x = centerX - halfSize + dx;
+					int16_t y = centerY - halfSize + dy;
 
-				// Alpha blend particle onto canvas
-				uint8_t existingR = RGBA_RED(existing);
-				uint8_t existingG = RGBA_GREEN(existing);
-				uint8_t existingB = RGBA_BLUE(existing);
-				uint8_t existingA = RGBA_ALPHA(existing);
+					// Bounds check
+					if (x < 0 || x >= width || y < 0 || y >= height) {
+						continue;
+					}
 
-				uint8_t newR = ((existingR * (255 - particle.alpha)) + (particle.r * particle.alpha)) / 255;
-				uint8_t newG = ((existingG * (255 - particle.alpha)) + (particle.g * particle.alpha)) / 255;
-				uint8_t newB = ((existingB * (255 - particle.alpha)) + (particle.b * particle.alpha)) / 255;
-				uint8_t newA = existingA + particle.alpha - ((existingA * particle.alpha) / 255);
-
-				canvas.setPixel(x, y, RGBA(newR, newG, newB, newA));
+					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                BlendMode::ALPHA);
+				}
 			}
 		}
 	}
