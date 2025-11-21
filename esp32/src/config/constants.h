@@ -62,6 +62,9 @@ constexpr const char* MQTT_TOPIC_TEST = "rgfx/test";
 /** MQTT topic for status messages */
 constexpr const char* MQTT_TOPIC_STATUS = "led/status";
 
+/** MQTT telemetry broadcast interval (milliseconds) - periodic heartbeat */
+constexpr unsigned long TELEMETRY_INTERVAL_MS = 5000;  // 5 seconds
+
 // ============================================================================
 // Timing & Update Configuration
 // ============================================================================

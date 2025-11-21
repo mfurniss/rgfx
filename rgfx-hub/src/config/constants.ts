@@ -29,31 +29,16 @@ export const SSDP_PORT = 1900;
 /** SSDP service URN for MQTT broker discovery */
 export const SSDP_SERVICE_URN = 'urn:rgfx:service:mqtt:1';
 
-/** Delay after MQTT broker initialization before sending discovery ping (milliseconds) */
-export const MQTT_BROKER_INIT_DELAY_MS = 1000;
-
 // ============================================================================
-// Discovery & Heartbeat Configuration
+// Driver Connection Timeout Configuration
 // ============================================================================
 
 /**
- * Interval between driver discovery pings (milliseconds).
- * The Hub broadcasts a discovery ping every 10 seconds to find active drivers.
+ * Connection timeout for drivers (milliseconds).
+ * Drivers are considered connected if telemetry received within this window.
+ * Default: 15000ms (15 seconds) = 3× the 5s telemetry interval for tolerance.
  */
-export const DISCOVERY_INTERVAL_MS = 10000; // 10 seconds
-
-/**
- * Number of consecutive failed heartbeats before marking a driver as disconnected.
- * - 1 = aggressive (10s detection) - disconnects after first missed heartbeat
- * - 2 = balanced (20s detection) - allows 1 missed heartbeat [DEFAULT]
- * - 3+ = tolerant (30s+ detection) - allows 2+ missed heartbeats
- *
- * Disconnection time = HEARTBEAT_FAILURE_THRESHOLD × (DISCOVERY_INTERVAL_MS / 1000) seconds
- */
-export const HEARTBEAT_FAILURE_THRESHOLD = 2;
-
-/** MQTT topic for system-wide discovery messages */
-export const MQTT_TOPIC_DISCOVERY = 'rgfx/system/discover';
+export const DRIVER_CONNECTION_TIMEOUT_MS = 15000;
 
 // ============================================================================
 // Application Window Configuration

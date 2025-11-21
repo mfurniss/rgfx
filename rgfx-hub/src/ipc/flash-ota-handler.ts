@@ -28,7 +28,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         throw new Error('Driver is not connected');
       }
 
-      const ipAddress = driver.sysInfo?.ip;
+      const ipAddress = driver.ip;
       if (!ipAddress) {
         throw new Error('Driver IP address not available');
       }

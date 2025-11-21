@@ -36,12 +36,6 @@ void mqttCallback(String& topic, String& payload) {
 	mqttMessagesReceived++;  // Increment counter for ALL MQTT messages
 	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
-	// Respond to discovery requests from Hub with heartbeat
-	if (topic == "rgfx/system/discover") {
-		log("Received discovery request - sending heartbeat");
-		sendDriverHeartbeat();
-	}
-
 	// Handle driver configuration
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/config")) {
 		log("Received driver configuration from Hub");
@@ -253,7 +247,6 @@ void reconnectMQTT() {
 
 		// Subscribe to topics with QoS 2 (exactly-once delivery)
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
-		mqttClient.subscribe("rgfx/system/discover", 2);
 
 		// Subscribe to MAC-based config topic (Hub → Driver commands)
 		String macAddress = WiFi.macAddress();  // AA:BB:CC:DD:EE:FF (with colons)
@@ -266,7 +259,6 @@ void reconnectMQTT() {
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
-		log("  - rgfx/system/discover");
 		log("  - " + macConfigTopic + " (config via MAC)");
 		log("  - " + testTopic);
 
@@ -279,8 +271,8 @@ void reconnectMQTT() {
 		mqttClient.publish(statusTopic.c_str(), "online", true, 2);
 		log("Published status: online to " + statusTopic);
 
-		// Send driver connect message
-		sendDriverConnect();
+		// Send driver telemetry message (initial connection)
+		sendDriverTelemetry();
 
 		// Publish current test state immediately to sync with Hub
 		// This prevents Hub from pushing stale state and overriding local changes
@@ -317,14 +309,13 @@ void mqttLoop() {
 	}
 }
 
-// Send driver connect message with full system info (initial connection only)
-void sendDriverConnect() {
+// Send driver telemetry message (initial connection and periodic heartbeat)
+void sendDriverTelemetry() {
 	if (!mqttClient.connected()) {
-		log("Can't send driver connect - MQTT not connected");
-		return;
+		return;  // Silently skip if not connected
 	}
 
-	// Get system information (including LED config)
+	// Get full system information (including LED config)
 	JsonDocument doc = SysInfo::getSysInfo(g_driverConfig, g_configReceived);
 
 	// Serialize to string
@@ -333,7 +324,7 @@ void sendDriverConnect() {
 
 	// Check if payload exceeds MQTT buffer size (1024 bytes configured in constructor)
 	if (payload.length() > 1024) {
-		log("ERROR: System info payload too large for MQTT buffer");
+		log("ERROR: Telemetry payload too large for MQTT buffer");
 		log("Payload size: " + String(payload.length()) + " bytes");
 		log("Buffer size: 1024 bytes");
 
@@ -347,47 +338,20 @@ void sendDriverConnect() {
 
 		String errorPayload;
 		serializeJson(errorDoc, errorPayload);
-		mqttClient.publish("rgfx/system/driver/connect", errorPayload.c_str(), false, 2);
+		mqttClient.publish("rgfx/system/driver/telemetry", errorPayload.c_str(), false, 2);
 		return;
 	}
 
-	// Publish to rgfx/system/driver/connect with QoS 2 (exactly-once delivery)
-	bool result = mqttClient.publish("rgfx/system/driver/connect", payload.c_str(), false, 2);
+	// Publish to unified telemetry topic with QoS 2 (exactly-once delivery)
+	bool result = mqttClient.publish("rgfx/system/driver/telemetry", payload.c_str(), false, 2);
 
 	if (result) {
-		log("Driver connect message sent (QoS 2)");
-		log(payload);
-
-		// Publish current test state so Hub knows if test mode is active
-		publishTestState(testModeActive ? "on" : "off");
+		log("Driver telemetry sent (QoS 2)");
 	} else {
-		log("Failed to send driver connect message");
+		log("Failed to send driver telemetry");
 		log("Payload size: " + String(payload.length()) + " bytes");
 		log("Error: " + String(mqttClient.lastError()));
 	}
-}
-
-// Send heartbeat message with telemetry (periodic keepalive)
-void sendDriverHeartbeat() {
-	if (!mqttClient.connected()) {
-		return;  // Silently skip if not connected
-	}
-
-	// Create heartbeat payload with telemetry
-	JsonDocument doc;
-	doc["mac"] = WiFi.macAddress();
-	doc["freeHeap"] = ESP.getFreeHeap();
-	doc["minFreeHeap"] = ESP.getMinFreeHeap();
-	doc["rssi"] = WiFi.RSSI();
-	doc["uptimeMs"] = millis();
-	doc["mqttMessagesReceived"] = mqttMessagesReceived;
-	doc["udpMessagesReceived"] = udpMessagesReceived;
-
-	String payload;
-	serializeJson(doc, payload);
-
-	// Publish to rgfx/system/driver/heartbeat with QoS 2
-	mqttClient.publish("rgfx/system/driver/heartbeat", payload.c_str(), false, 2);
 }
 
 // Publish test state change to Hub

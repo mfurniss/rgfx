@@ -9,6 +9,7 @@ import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from './driver-registry';
 import type { SystemMonitor } from './system-monitor';
+import { serializeDriverForIPC } from './types';
 
 interface DriverCallbacksDeps {
   driverRegistry: DriverRegistry;
@@ -43,15 +44,15 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
 
     const mainWindow = getMainWindow();
     if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:connected', driver);
+      mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
       log.info(
         `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`
       );
       sendSystemStatus();
     }
 
-    if (driver.sysInfo?.mac) {
-      void pushConfigToDriver(driver.sysInfo.mac).catch((error: unknown) => {
+    if (driver.mac) {
+      void pushConfigToDriver(driver.mac).catch((error: unknown) => {
         log.error(`Failed to push config to driver ${driver.id}:`, error);
       });
     } else {
@@ -62,7 +63,7 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
   driverRegistry.onDriverDisconnected((driver) => {
     const mainWindow = getMainWindow();
     if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:disconnected', driver);
+      mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
       log.info(`Sent driver:disconnected event to renderer`);
       sendSystemStatus();
     }
