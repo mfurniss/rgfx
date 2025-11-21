@@ -9,6 +9,7 @@ import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { Mqtt } from '../mqtt';
 import type { DriverRegistry } from '../driver-registry';
+import { serializeDriverForIPC } from '../types';
 
 interface DriverTestStateDeps {
   mqtt: Mqtt;
@@ -41,7 +42,7 @@ export function subscribeDriverTestState(deps: DriverTestStateDeps): void {
     const mainWindow = getMainWindow();
     if (mainWindow !== null && !mainWindow.isDestroyed()) {
       log.info(`Sending driver:updated to renderer for ${driverId}`);
-      mainWindow.webContents.send('driver:updated', driver);
+      mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
     }
   });
 }

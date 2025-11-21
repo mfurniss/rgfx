@@ -10,6 +10,7 @@ import log from 'electron-log/main';
 import type { Mqtt } from '../mqtt';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
+import { serializeDriverForIPC } from '../types';
 
 interface DriverStatusDeps {
   mqtt: Mqtt;
@@ -43,9 +44,9 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
 
     if (payload === 'offline' && driver.connected) {
       log.warn(`Driver ${driverId} went offline (LWT triggered)`);
-      driver.connected = false;
+      driver.ip = undefined;
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('driver:disconnected', driver);
+        mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
         const status = systemMonitor.getSystemStatus(
           driverRegistry.getConnectedCount(),
           getEventsProcessed()

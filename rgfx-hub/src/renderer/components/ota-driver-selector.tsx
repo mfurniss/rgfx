@@ -30,7 +30,7 @@ const OtaDriverSelector: React.FC<OtaDriverSelectorProps> = ({
           >
             {drivers.map((driver) => (
               <MenuItem key={driver.id} value={driver.id} disabled={!driver.connected}>
-                {driver.id} ({driver.connected ? (driver.sysInfo?.ip ?? 'no IP') : 'offline'})
+                {driver.id} ({driver.connected ? driver.ip : 'offline'})
               </MenuItem>
             ))}
           </Select>

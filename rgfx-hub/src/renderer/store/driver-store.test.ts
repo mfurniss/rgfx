@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDriverStore } from './driver-store';
-import type { Driver } from '../../types';
+import { Driver, DriverTelemetry } from '../../types';
 
 describe('driver-store', () => {
   beforeEach(() => {
@@ -23,42 +23,46 @@ describe('driver-store', () => {
     id: string,
     mac: string,
     connected = true
-  ): Driver => ({
-    id,
-    connected,
-    lastSeen: Date.now(),
-    firstSeen: Date.now(),
-    failedHeartbeats: 0,
-    stats: {
-      mqttMessagesReceived: 0,
-      mqttMessagesFailed: 0,
-      udpMessagesSent: 0,
-      udpMessagesFailed: 0,
-    },
-    sysInfo: {
-      ip: '192.168.1.100',
-      mac,
-      hostname: id,
-      rssi: -50,
-      ssid: 'test-network',
+  ): Driver => {
+    const telemetry: DriverTelemetry = {
       chipModel: 'ESP32',
       chipRevision: 3,
       chipCores: 2,
       cpuFreqMHz: 240,
       flashSize: 4194304,
       flashSpeed: 40000000,
-      freeHeap: 200000,
-      minFreeHeap: 180000,
       heapSize: 327680,
       psramSize: 0,
       freePsram: 0,
       sdkVersion: 'v4.4.2',
       sketchSize: 1000000,
       freeSketchSpace: 2000000,
-      uptimeMs: 60000,
       hasDisplay: false,
-    },
-  });
+    };
+
+    return new Driver({
+      id,
+      lastSeen: Date.now(),
+      firstSeen: Date.now(),
+      failedHeartbeats: 0,
+      lastSeenAt: connected ? Date.now() : undefined,
+      ip: connected ? '192.168.1.100' : undefined,
+      mac,
+      hostname: connected ? id : undefined,
+      ssid: connected ? 'test-network' : undefined,
+      rssi: connected ? -50 : undefined,
+      freeHeap: connected ? 200000 : undefined,
+      minFreeHeap: connected ? 180000 : undefined,
+      uptimeMs: connected ? 60000 : undefined,
+      telemetry: connected ? telemetry : undefined,
+      stats: {
+        mqttMessagesReceived: 0,
+        mqttMessagesFailed: 0,
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
+      },
+    });
+  };
 
   describe('onDriverConnected', () => {
     it('should add a new driver when it does not exist', () => {
@@ -73,12 +77,13 @@ describe('driver-store', () => {
 
     it('should update existing driver when ID matches', () => {
       const driver1 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
-      const driver2 = {
-        ...createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF'),
-        failedHeartbeats: 1,
-      };
 
       useDriverStore.getState().onDriverConnected(driver1);
+
+      // Create driver with modified failedHeartbeats
+      const driver2 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      driver2.failedHeartbeats = 1;
+
       useDriverStore.getState().onDriverConnected(driver2);
 
       const drivers = useDriverStore.getState().drivers;
@@ -123,11 +128,21 @@ describe('driver-store', () => {
       expect(drivers).toHaveLength(2);
     });
 
-    it('should handle driver with no sysInfo', () => {
-      const driver = {
-        ...createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF'),
-        sysInfo: undefined,
-      };
+    it('should handle driver with no telemetry', () => {
+      const driver = new Driver({
+        id: 'rgfx-driver-0001',
+        mac: 'AA:BB:CC:DD:EE:FF',
+        lastSeen: Date.now(),
+        firstSeen: Date.now(),
+        failedHeartbeats: 0,
+        telemetry: undefined,
+        stats: {
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
 
       useDriverStore.getState().onDriverConnected(driver);
 
@@ -142,10 +157,9 @@ describe('driver-store', () => {
       const driver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
       useDriverStore.getState().onDriverConnected(driver);
 
-      const updatedDriver = {
-        ...driver,
-        failedHeartbeats: 5,
-      };
+      // Create updated driver with modified failedHeartbeats
+      const updatedDriver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      updatedDriver.failedHeartbeats = 5;
 
       useDriverStore.getState().onDriverUpdated(updatedDriver);
 
@@ -180,7 +194,8 @@ describe('driver-store', () => {
       const driver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', true);
       useDriverStore.getState().onDriverConnected(driver);
 
-      const disconnectedDriver = { ...driver, connected: false };
+      // Create disconnected driver by clearing IP
+      const disconnectedDriver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', false);
       useDriverStore.getState().onDriverDisconnected(disconnectedDriver);
 
       const drivers = useDriverStore.getState().drivers;

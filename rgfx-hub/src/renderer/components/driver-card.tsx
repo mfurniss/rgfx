@@ -22,7 +22,7 @@ interface DriverCardProps {
 const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sysInfo } = driver;
+  const { telemetry } = driver;
   const [now, setNow] = useState(Date.now());
 
   // Update every second for live timestamps and uptime - only when component is visible
@@ -54,31 +54,31 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   };
 
   // Calculate current uptime based on initial uptimeMs from driver
-  // Only available when sysInfo is present
-  const driverUptimeAtSnapshot = sysInfo?.uptimeMs ?? 0;
+  // Only available when telemetry is present
+  const driverUptimeAtSnapshot = driver.uptimeMs ?? 0;
   const timeOfSnapshot = driver.lastSeen;
   const timeSinceSnapshot = now - timeOfSnapshot;
   const currentUptime =
-    driver.connected && sysInfo
+    driver.connected && telemetry
       ? driverUptimeAtSnapshot + timeSinceSnapshot
       : driverUptimeAtSnapshot;
 
   // Prepare data arrays for InfoSection components
-  // Network info - only shown when sysInfo is available
-  const networkRows: InfoRowData[] = sysInfo
+  // Network info - only shown when telemetry is available
+  const networkRows: InfoRowData[] = telemetry
     ? [
-        { label: 'IP Address', value: sysInfo.ip },
-        { label: 'MAC Address', value: sysInfo.mac },
-        { label: 'Hostname', value: sysInfo.hostname },
-        { label: 'SSID', value: sysInfo.ssid },
-        { label: 'Signal (RSSI)', value: `${formatNumber(sysInfo.rssi)} dBm` },
+        { label: 'IP Address', value: driver.ip ?? '' },
+        { label: 'MAC Address', value: driver.mac ?? '' },
+        { label: 'Hostname', value: driver.hostname ?? '' },
+        { label: 'SSID', value: driver.ssid ?? '' },
+        { label: 'Signal (RSSI)', value: `${formatNumber(driver.rssi ?? 0)} dBm` },
       ]
     : [];
 
   // Driver telemetry from periodic heartbeats - always show if any data available
   const telemetryRows: InfoRowData[] = [
-    // Driver Uptime from sysInfo
-    ...(sysInfo ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
+    // Driver Uptime from telemetry
+    ...(telemetry ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
     // Memory from heartbeat telemetry
     ...(driver.freeHeap !== undefined && driver.minFreeHeap !== undefined
       ? [
@@ -122,43 +122,43 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       : []),
   ];
 
-  const hardwareRows: InfoRowData[] = sysInfo
+  const hardwareRows: InfoRowData[] = telemetry
     ? [
-        { label: 'Chip Model', value: sysInfo.chipModel },
-        { label: 'Chip Revision', value: formatNumber(sysInfo.chipRevision) },
-        { label: 'CPU Cores', value: formatNumber(sysInfo.chipCores) },
-        { label: 'CPU Frequency', value: `${formatNumber(sysInfo.cpuFreqMHz)} MHz` },
-        { label: 'Flash Size', value: formatBytes(sysInfo.flashSize) },
-        { label: 'Flash Speed', value: `${formatNumber(sysInfo.flashSpeed / 1000000)} MHz` },
+        { label: 'Chip Model', value: telemetry.chipModel },
+        { label: 'Chip Revision', value: formatNumber(telemetry.chipRevision) },
+        { label: 'CPU Cores', value: formatNumber(telemetry.chipCores) },
+        { label: 'CPU Frequency', value: `${formatNumber(telemetry.cpuFreqMHz)} MHz` },
+        { label: 'Flash Size', value: formatBytes(telemetry.flashSize) },
+        { label: 'Flash Speed', value: `${formatNumber(telemetry.flashSpeed / 1000000)} MHz` },
         {
           label: 'Display Connected',
-          value: sysInfo.hasDisplay ? 'Yes (OLED)' : 'No',
+          value: telemetry.hasDisplay ? 'Yes (OLED)' : 'No',
         },
-        ...(sysInfo.firmwareVersion
-          ? [{ label: 'Firmware Version', value: sysInfo.firmwareVersion }]
+        ...(telemetry.firmwareVersion
+          ? [{ label: 'Firmware Version', value: telemetry.firmwareVersion }]
           : []),
       ]
     : [];
 
-  const memoryRows: InfoRowData[] = sysInfo
+  const memoryRows: InfoRowData[] = telemetry
     ? [
         {
           label: 'Free Heap',
-          value: `${formatBytes(sysInfo.freeHeap)} / ${formatBytes(sysInfo.heapSize)}`,
+          value: `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`,
         },
-        ...(sysInfo.psramSize > 0
+        ...(telemetry.psramSize > 0
           ? [
               {
                 label: 'Free PSRAM',
-                value: `${formatBytes(sysInfo.freePsram)} / ${formatBytes(sysInfo.psramSize)}`,
+                value: `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`,
               },
             ]
           : []),
         {
           label: 'Free Sketch Space',
-          value: formatBytes(sysInfo.freeSketchSpace),
+          value: formatBytes(telemetry.freeSketchSpace),
         },
-        { label: 'SDK Version', value: sysInfo.sdkVersion },
+        { label: 'SDK Version', value: telemetry.sdkVersion },
       ]
     : [];
 
@@ -231,11 +231,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton
               onClick={() => {
-                void navigate('/drivers');
+                void navigate('/');
               }}
               size="small"
               sx={{ mr: 1 }}
-              aria-label="Back to drivers"
+              aria-label="Back to System Status"
             >
               <ArrowBackIcon />
             </IconButton>
@@ -258,61 +258,61 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       {/* Scrollable Content */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
         {/* Information Sections */}
-      {/* LED Configuration Section - Always shown at top */}
-      <InfoSection
-        title="LED Configuration"
-        icon={<LightbulbIcon fontSize="small" color="action" />}
-        rows={ledRows}
-        titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
-      >
-        {!driver.ledConfig && (
-          <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
-            <Typography variant="body2" color="warning.dark">
-              This driver needs LED configuration. Edit{' '}
-              <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                ~/.rgfx/drivers.json
-              </Typography>{' '}
-              to configure LED hardware.
-            </Typography>
-          </Box>
+        {/* LED Configuration Section - Always shown at top */}
+        <InfoSection
+          title="LED Configuration"
+          icon={<LightbulbIcon fontSize="small" color="action" />}
+          rows={ledRows}
+          titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
+        >
+          {!driver.ledConfig && (
+            <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
+              <Typography variant="body2" color="warning.dark">
+                This driver needs LED configuration. Edit{' '}
+                <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                  ~/.rgfx/drivers.json
+                </Typography>{' '}
+                to configure LED hardware.
+              </Typography>
+            </Box>
+          )}
+        </InfoSection>
+
+        {networkRows.length > 0 && (
+          <InfoSection
+            title="Network"
+            icon={<RouterIcon fontSize="small" color="action" />}
+            rows={networkRows}
+            showDivider
+          />
         )}
-      </InfoSection>
 
-      {networkRows.length > 0 && (
-        <InfoSection
-          title="Network"
-          icon={<RouterIcon fontSize="small" color="action" />}
-          rows={networkRows}
-          showDivider
-        />
-      )}
+        {telemetryRows.length > 0 && (
+          <InfoSection
+            title="Driver Telemetry"
+            icon={<SensorsIcon fontSize="small" color="action" />}
+            rows={telemetryRows}
+            showDivider
+          />
+        )}
 
-      {telemetryRows.length > 0 && (
-        <InfoSection
-          title="Driver Telemetry"
-          icon={<SensorsIcon fontSize="small" color="action" />}
-          rows={telemetryRows}
-          showDivider
-        />
-      )}
+        {hardwareRows.length > 0 && (
+          <InfoSection
+            title="Hardware"
+            icon={<SpeedIcon fontSize="small" color="action" />}
+            rows={hardwareRows}
+            showDivider
+          />
+        )}
 
-      {hardwareRows.length > 0 && (
-        <InfoSection
-          title="Hardware"
-          icon={<SpeedIcon fontSize="small" color="action" />}
-          rows={hardwareRows}
-          showDivider
-        />
-      )}
-
-      {memoryRows.length > 0 && (
-        <InfoSection
-          title="Memory"
-          icon={<MemoryIcon fontSize="small" color="action" />}
-          rows={memoryRows}
-          showDivider
-        />
-      )}
+        {memoryRows.length > 0 && (
+          <InfoSection
+            title="Memory"
+            icon={<MemoryIcon fontSize="small" color="action" />}
+            rows={memoryRows}
+            showDivider
+          />
+        )}
       </Box>
     </Box>
   );

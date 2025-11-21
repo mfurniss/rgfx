@@ -27,7 +27,7 @@ export function registerTestLedsHandler(deps: TestLedsHandlerDeps): void {
       throw new Error(`No driver found with ID ${driverId}`);
     }
 
-    if (!driver.sysInfo?.mac) {
+    if (!driver.mac) {
       throw new Error(`Driver ${driverId} has no MAC address`);
     }
 
@@ -35,7 +35,7 @@ export function registerTestLedsHandler(deps: TestLedsHandlerDeps): void {
 
     if (enabled) {
       log.info(`Pushing LED configuration to driver ${driverId} before test...`);
-      await pushConfigToDriver(driver.sysInfo.mac);
+      await pushConfigToDriver(driver.mac);
       await mqtt.publish(topic, 'on');
       log.info(`Test mode enabled for driver ${driverId}`);
     } else {
