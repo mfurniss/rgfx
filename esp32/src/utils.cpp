@@ -3,7 +3,7 @@
 #include <WiFi.h>
 
 String Utils::getDeviceId() {
-	// Load ID from NVS - this MUST exist
+	// Load ID from NVS if available
 	if (ConfigNVS::hasDeviceId()) {
 		String deviceId = ConfigNVS::loadDeviceId();
 		if (deviceId.length() > 0) {
@@ -11,9 +11,12 @@ String Utils::getDeviceId() {
 		}
 	}
 
-	// NO FALLBACK - driver must have ID set via set-id command
-	// Return empty string to signal error
-	return "";
+	// Fallback: use MAC address for temporary hostname until Hub assigns ID
+	// This ensures OTA works immediately after flashing via serial
+	String mac = WiFi.macAddress();
+	mac.replace(":", "");
+	mac.toLowerCase();
+	return "rgfx-driver-" + mac;
 }
 
 

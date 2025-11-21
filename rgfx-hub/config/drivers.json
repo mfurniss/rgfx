@@ -32,6 +32,22 @@
         "powerSupplyVolts": 5,
         "maxPowerMilliamps": 500
       }
+    },
+    {
+      "id": "rgfx-driver-0005",
+      "macAddress": "CC:DB:A7:29:BF:D0",
+      "name": "Driver 0005",
+      "description": "ESP32 development board",
+      "firstSeen": 1732132800000,
+      "ledConfig": {
+        "hardwareRef": "led-hardware/wesiri-8x32-matrix.json",
+        "pin": 16,
+        "offset": 0,
+        "globalBrightnessLimit": 150,
+        "dithering": true,
+        "powerSupplyVolts": 5,
+        "maxPowerMilliamps": 500
+      }
     }
   ]
 }

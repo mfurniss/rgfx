@@ -21,18 +21,20 @@ import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '~/src/types/mapping-types';
 
 const EFFECTS: Record<string, Record<string, unknown>> = {
-  pulse: { color: '#FF0000', duration: 1000, fade: true },
-  wipe: { color: '#00FF00', duration: 500 },
+  pulse: { color: 'random', duration: 1000, fade: true },
+  wipe: { color: 'random', duration: 1000 },
   explosion: {
     centerX: 50,
     centerY: 50,
     color: 'random',
-    hueSpread: 0,
+    hueSpread: 90,
     particleCount: 100,
     particleSize: 2,
-    power: 60,
+    power: 50,
     powerSpread: 1.6,
     lifespan: 800,
+    lifespanSpread: 1.3,
+    friction: 2,
   },
 };
 
@@ -70,8 +72,11 @@ export default function TestEffectsPage() {
   }, [connectedDriverIds, selectedEffect, propsJson, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
-    const newPropsJson = JSON.stringify(EFFECTS[effect] ?? {}, null, 2);
-    setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
+    // Only reset props if switching to a different effect
+    if (effect !== selectedEffect) {
+      const newPropsJson = JSON.stringify(EFFECTS[effect] ?? {}, null, 2);
+      setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
+    }
   };
 
   const handleDriverToggle = (driverId: string) => {
@@ -159,6 +164,17 @@ export default function TestEffectsPage() {
             fullWidth
           />
 
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={handleTriggerEffect}
+            disabled={connectedDrivers.length === 0}
+            startIcon={<ScienceIcon />}
+          >
+            Trigger Effect
+          </Button>
+
           <Box>
             <Typography variant="h6" gutterBottom>
               Target Drivers
@@ -197,17 +213,6 @@ export default function TestEffectsPage() {
               </FormGroup>
             )}
           </Box>
-
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleTriggerEffect}
-            disabled={connectedDrivers.length === 0}
-            startIcon={<ScienceIcon />}
-          >
-            Trigger Effect
-          </Button>
         </Stack>
       </Paper>
     </Box>

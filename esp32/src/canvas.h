@@ -12,6 +12,13 @@
 #define RGBA_BLUE(color)  (((color) >> 8) & 0xFF)
 #define RGBA_ALPHA(color) ((color) & 0xFF)
 
+enum class BlendMode {
+	REPLACE,   // Overwrite pixel (default)
+	ALPHA,     // Alpha compositing (standard over operator)
+	ADDITIVE,  // Add RGB values
+	AVERAGE    // Average RGB values
+};
+
 class Canvas {
   private:
     uint16_t width;
@@ -22,6 +29,10 @@ class Canvas {
     uint32_t index(uint16_t x, uint16_t y) const;
     bool inBounds(uint16_t x, uint16_t y) const;
 
+    void blendAlpha(uint32_t& existing, uint32_t incoming) const;
+    void blendAdditive(uint32_t& existing, uint32_t incoming) const;
+    void blendAverage(uint32_t& existing, uint32_t incoming) const;
+
   public:
     Canvas(uint16_t width, uint16_t height);
     ~Canvas();
@@ -30,7 +41,7 @@ class Canvas {
     uint16_t getHeight() const;
     uint32_t getSize() const;
 
-    void setPixel(uint16_t x, uint16_t y, uint32_t rgbaValue);
+    void setPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode = BlendMode::REPLACE);
     uint32_t getPixel(uint16_t x, uint16_t y) const;
     uint32_t* getPixels() const;
 

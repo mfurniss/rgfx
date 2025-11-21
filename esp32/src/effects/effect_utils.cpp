@@ -56,3 +56,24 @@ uint32_t parseColor(const char* colorHex) {
 	}
 	return (uint32_t)strtol(colorHex, NULL, 16);
 }
+
+uint32_t validateColor(JsonDocument& props, const char* propName, uint32_t defaultColor) {
+	if (!props[propName].is<const char*>()) {
+		if (!props[propName].isNull()) {
+			Serial.print("WARNING: '");
+			Serial.print(propName);
+			Serial.println("' prop wrong type (expected string), using default");
+		}
+		return defaultColor;
+	}
+
+	const char* colorStr = props[propName];
+	if (colorStr == nullptr) {
+		Serial.print("WARNING: '");
+		Serial.print(propName);
+		Serial.println("' prop is null, using default");
+		return defaultColor;
+	}
+
+	return parseColor(colorStr);
+}
