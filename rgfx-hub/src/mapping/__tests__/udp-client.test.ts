@@ -107,7 +107,7 @@ describe('UdpClientImpl', () => {
 
       udpClient.broadcast(payload);
 
-      // driver-4 has no IP, should be skipped
+      // driver-4 is disconnected, should be skipped
       const allDrivers = mockDriverRegistry.getAllDrivers();
       const validDrivers = allDrivers.filter((d) => d.connected && d.ip);
 

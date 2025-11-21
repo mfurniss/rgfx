@@ -94,8 +94,8 @@ describe('App IPC Listener Registration', () => {
     // Get the registered callback
     const registeredCallback = mockIpcOnDriverConnected.mock.calls[0][0];
 
-    // Simulate IPC event
-    const mockDriver: Driver = {
+    // Simulate IPC event (use 'as Driver' since this is a test mock)
+    const mockDriver = {
       id: '44:1D:64:F8:9A:58',
       connected: true,
       lastSeen: Date.now(),
@@ -108,7 +108,7 @@ describe('App IPC Listener Registration', () => {
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
       },
-    };
+    } as Driver;
     registeredCallback(mockDriver);
 
     // Zustand action should be called exactly once

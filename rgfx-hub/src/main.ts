@@ -13,7 +13,6 @@ import { Mqtt } from './mqtt';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';
-import { DiscoveryService } from './discovery-service';
 import { DriverPersistence } from './driver-persistence';
 import { LEDHardwareManager } from './led-hardware-manager';
 import { MappingEngine } from './mapping-engine';
@@ -27,8 +26,6 @@ import {
   MAIN_WINDOW_WIDTH,
   MAIN_WINDOW_HEIGHT,
   MAIN_WINDOW_ZOOM_FACTOR,
-  MQTT_TOPIC_DISCOVERY,
-  MQTT_BROKER_INIT_DELAY_MS,
   OPEN_DEVTOOLS_IN_DEV,
 } from './config/constants';
 import { registerIpcHandlers } from './ipc';
@@ -36,6 +33,7 @@ import { registerMqttSubscriptions } from './mqtt-subscriptions';
 import { createPushConfigToDriver } from './push-config-to-driver';
 import { configureSerialPort } from './serial-port-config';
 import { registerDriverCallbacks } from './driver-callbacks';
+import { serializeDriverForIPC } from './types';
 import pkg from '../package.json';
 
 // Vite environment variables injected by Electron Forge
@@ -69,7 +67,6 @@ const mqtt = new Mqtt(MQTT_DEFAULT_PORT);
 const eventReader = new EventFileReader();
 const driverRegistry = new DriverRegistry(driverPersistence, ledHardwareManager);
 const systemMonitor = new SystemMonitor();
-const discoveryService = new DiscoveryService(mqtt);
 
 // Create pushConfigToDriver function
 const pushConfigToDriver = createPushConfigToDriver({
@@ -127,15 +124,6 @@ registerDriverCallbacks({
 // Start MQTT broker
 mqtt.start();
 
-// After broker starts, send discovery request to query all connected drivers
-// Drivers will respond with connect messages containing current state
-// The onDriverConnected callback will handle pushing config to each driver
-// Use setTimeout to ensure broker is fully initialized
-setTimeout(() => {
-  log.info('Sending discovery request to all drivers...');
-  void mqtt.publish(MQTT_TOPIC_DISCOVERY, '');
-}, MQTT_BROKER_INIT_DELAY_MS);
-
 // Install default mappers to user data directory (async)
 void installDefaultMappers()
   .then(() => {
@@ -151,7 +139,6 @@ registerIpcHandlers({
   driverRegistry,
   mqtt,
   pushConfigToDriver,
-  discoveryService,
   udpClient,
 });
 
@@ -159,16 +146,9 @@ registerIpcHandlers({
 registerMqttSubscriptions({
   mqtt,
   driverRegistry,
-  driverPersistence,
-  discoveryService,
   systemMonitor,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
-});
-
-// Set up discovery service to process heartbeat cycles
-discoveryService.onHeartbeatCycleComplete((respondedDriverIds) => {
-  driverRegistry.processHeartbeatCycle(respondedDriverIds);
 });
 
 // Track event topics and their counts
@@ -249,7 +229,7 @@ const createWindow = () => {
     // Send all drivers (both connected and disconnected)
     driverRegistry.getAllDrivers().forEach((driver) => {
       if (isWindowAvailable() && mainWindow) {
-        mainWindow.webContents.send('driver:connected', driver);
+        mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
       }
     });
     // Send system status
@@ -288,9 +268,6 @@ app.on('ready', () => {
   configureSerialPort();
 
   createWindow();
-
-  // Start periodic driver discovery
-  discoveryService.start();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -308,7 +285,6 @@ app.on('before-quit', () => {
 
   // Stop services
   eventReader.stop();
-  discoveryService.stop();
   void mqtt.stop();
 });
 

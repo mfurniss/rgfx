@@ -3,7 +3,6 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Box } from '@mui/material';
 import { AppLayout } from './components/app-layout';
 import SystemStatusPage from './pages/system-status-page';
-import DriverListPage from './pages/driver-list-page';
 import DriverDetailPage from './pages/driver-detail-page';
 import EventMonitorPage from './pages/event-monitor-page';
 import FirmwarePage from './pages/firmware-page';
@@ -91,7 +90,6 @@ const App: React.FC = () => {
           <AppLayout>
             <Routes>
               <Route path="/" element={<SystemStatusPage />} />
-              <Route path="/drivers" element={<DriverListPage />} />
               <Route path="/driver/:id" element={<DriverDetailPage />} />
               <Route path="/events" element={<EventMonitorPage />} />
               <Route path="/firmware" element={<FirmwarePage />} />

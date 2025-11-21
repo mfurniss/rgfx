@@ -1,21 +1,14 @@
-import React from "react";
-import {
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
+import React from 'react';
+import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
-  Devices as DevicesIcon,
   Monitor as MonitorIcon,
   Memory as FirmwareIcon,
   Science as ScienceIcon,
   Settings as SettingsIcon,
   Info as InfoIcon,
-} from "@mui/icons-material";
-import { useLocation, useNavigate } from "react-router-dom";
+} from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface NavItem {
   label: string;
@@ -24,13 +17,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "System Status", path: "/", icon: <DashboardIcon /> },
-  { label: "Drivers", path: "/drivers", icon: <DevicesIcon /> },
-  { label: "Event Monitor", path: "/events", icon: <MonitorIcon /> },
-  { label: "Firmware", path: "/firmware", icon: <FirmwareIcon /> },
-  { label: "Test Effects", path: "/test-effects", icon: <ScienceIcon /> },
-  { label: "Settings", path: "/settings", icon: <SettingsIcon /> },
-  { label: "About", path: "/about", icon: <InfoIcon /> },
+  { label: 'System Status', path: '/', icon: <DashboardIcon /> },
+  { label: 'Event Monitor', path: '/events', icon: <MonitorIcon /> },
+  { label: 'Firmware', path: '/firmware', icon: <FirmwareIcon /> },
+  { label: 'Test Effects', path: '/test-effects', icon: <ScienceIcon /> },
+  { label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
+  { label: 'About', path: '/about', icon: <InfoIcon /> },
 ];
 
 export function SidebarNav() {
@@ -44,15 +36,15 @@ export function SidebarNav() {
   return (
     <List>
       {navItems.map((item) => {
-        const isActive =
-          location.pathname === item.path ||
-          (item.path === "/drivers" && location.pathname.startsWith("/driver/"));
+        const isActive = location.pathname === item.path;
 
         return (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               selected={isActive}
-              onClick={() => { handleNavigate(item.path); }}
+              onClick={() => {
+                handleNavigate(item.path);
+              }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />

@@ -6,10 +6,9 @@
  */
 
 import log from 'electron-log/main';
-import type { Driver, DriverSystemInfo, LEDHardware } from './types';
+import { Driver, type DriverTelemetry, type LEDHardware } from './types';
 import type { DriverPersistence, PersistedDriver } from './driver-persistence';
 import type { LEDHardwareManager } from './led-hardware-manager';
-import { HEARTBEAT_FAILURE_THRESHOLD } from './config/constants';
 
 export class DriverRegistry {
   private drivers = new Map<string, Driver>();
@@ -37,10 +36,9 @@ export class DriverRegistry {
           }
         }
 
-        const driver: Driver = {
+        const driver = new Driver({
           id: pd.id,
           description: pd.description,
-          connected: false,
           lastSeen: 0,
           firstSeen: pd.firstSeen,
           failedHeartbeats: 0,
@@ -52,7 +50,7 @@ export class DriverRegistry {
             udpMessagesSent: 0,
             udpMessagesFailed: 0,
           },
-        };
+        });
         this.drivers.set(driver.id, driver);
       }
       log.info(`Loaded ${persistedDrivers.length} known drivers from persistence`);
@@ -69,10 +67,28 @@ export class DriverRegistry {
     this.onDriverDisconnectedCallback = callback;
   }
 
-  // Register or update a driver from MQTT connect message
-  registerDriver(sysInfo: DriverSystemInfo): Driver {
+  // Register or update a driver from MQTT telemetry message
+  registerDriver(telemetryData: {
+    // Network info (reported by driver)
+    ip: string;
+    mac: string;
+    hostname: string;
+    ssid: string;
+    // Runtime metrics
+    rssi: number;
+    freeHeap: number;
+    minFreeHeap: number;
+    uptimeMs: number;
+    // Hardware/firmware telemetry
+    telemetry: DriverTelemetry;
+    // Runtime state
+    testActive?: boolean;
+    // Stats
+    mqttMessagesReceived?: number;
+    udpMessagesReceived?: number;
+  }): Driver {
     const registerStartTime = Date.now();
-    const macAddress = sysInfo.mac || 'unknown';
+    const macAddress = telemetryData.mac || 'unknown';
     log.info(`[DEBUG] registerDriver called for MAC ${macAddress} at ${registerStartTime}`);
 
     // Try to find existing driver by MAC address in persistence
@@ -90,7 +106,7 @@ export class DriverRegistry {
     // If not found by new ID, search all drivers by MAC to find old entry
     if (!existingDriver) {
       for (const driver of this.drivers.values()) {
-        if (driver.sysInfo?.mac === macAddress) {
+        if (driver.mac === macAddress) {
           existingDriver = driver;
           log.info(
             `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${driverId})`
@@ -129,32 +145,47 @@ export class DriverRegistry {
       this.drivers.delete(existingDriver.id);
     }
 
-    const driver: Driver = {
+    const driver = new Driver({
       id: driverId,
-      description: persistedDriver?.description, // Preserve description from persistence
-      connected: true,
+      description: persistedDriver?.description,
+      // Network information
+      ip: telemetryData.ip,
+      mac: telemetryData.mac,
+      hostname: telemetryData.hostname,
+      ssid: telemetryData.ssid,
+      // Runtime metrics
+      rssi: telemetryData.rssi,
+      freeHeap: telemetryData.freeHeap,
+      minFreeHeap: telemetryData.minFreeHeap,
+      uptimeMs: telemetryData.uptimeMs,
+      // Connection tracking
       lastSeen: now,
       firstSeen: firstSeen,
-      failedHeartbeats: 0, // Reset on connect
-      ip: sysInfo.ip,
-      sysInfo: sysInfo,
-      testActive: sysInfo.testActive, // Use driver's reported test state
-      ledConfig: persistedDriver?.ledConfig, // Preserve LED config (hardware ref + settings)
-      resolvedHardware: existingDriver?.resolvedHardware, // Preserve resolved hardware
+      failedHeartbeats: 0,
+      lastHeartbeat: now,
+      lastSeenAt: now, // Timestamp for connection detection
+      // Hardware/firmware telemetry
+      telemetry: telemetryData.telemetry,
+      // LED configuration
+      ledConfig: persistedDriver?.ledConfig,
+      resolvedHardware: existingDriver?.resolvedHardware,
+      // Statistics
       stats: {
-        mqttMessagesReceived: (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
+        mqttMessagesReceived: telemetryData.mqttMessagesReceived ?? (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
         mqttMessagesFailed: existingDriver?.stats.mqttMessagesFailed ?? 0,
-        udpMessagesSent: existingDriver?.stats.udpMessagesSent ?? 0,
+        udpMessagesSent: telemetryData.udpMessagesReceived ?? existingDriver?.stats.udpMessagesSent ?? 0,
         udpMessagesFailed: existingDriver?.stats.udpMessagesFailed ?? 0,
       },
-    };
+      // Runtime state
+      testActive: telemetryData.testActive,
+    });
 
     this.drivers.set(driver.id, driver);
     log.info(
       `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`
     );
 
-    // Only notify on initial connection - not for subsequent heartbeats/reconnects
+    // Only notify on initial connection - not for subsequent telemetry updates
     const wasConnected = existingDriver?.connected ?? false;
     log.info(
       `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
@@ -174,56 +205,6 @@ export class DriverRegistry {
     return driver;
   }
 
-  // Update driver heartbeat (simple keepalive, no config republish)
-  updateHeartbeat(
-    driverId: string,
-    telemetry?: {
-      freeHeap?: number;
-      minFreeHeap?: number;
-      rssi?: number;
-      uptimeMs?: number;
-      mqttMessagesReceived?: number;
-      udpMessagesReceived?: number;
-    }
-  ): Driver | undefined {
-    const driver = this.drivers.get(driverId);
-
-    if (!driver) {
-      log.warn(`Heartbeat from unknown driver: ${driverId} - driver should connect first`);
-      return undefined;
-    }
-
-    const now = Date.now();
-    driver.lastSeen = now;
-    driver.failedHeartbeats = 0; // Reset failure counter on successful heartbeat
-
-    // Update telemetry if provided (including stats from driver)
-    if (telemetry) {
-      driver.freeHeap = telemetry.freeHeap;
-      driver.minFreeHeap = telemetry.minFreeHeap;
-      driver.rssi = telemetry.rssi;
-      driver.uptimeMs = telemetry.uptimeMs;
-      driver.lastHeartbeat = now;
-
-      // Update stats from driver-reported counters
-      if (telemetry.mqttMessagesReceived !== undefined) {
-        driver.stats.mqttMessagesReceived = telemetry.mqttMessagesReceived;
-      }
-      if (telemetry.udpMessagesReceived !== undefined) {
-        driver.stats.udpMessagesSent = telemetry.udpMessagesReceived;
-      }
-    }
-
-    // If driver was previously disconnected, mark as reconnected
-    if (!driver.connected) {
-      log.info(`Driver reconnected via heartbeat: ${driverId}`);
-      driver.connected = true;
-      this.onDriverConnectedCallback?.(driver);
-    }
-
-    this.drivers.set(driverId, driver);
-    return driver;
-  }
 
   // Get driver by ID
   getDriver(driverId: string): Driver | undefined {
@@ -233,7 +214,7 @@ export class DriverRegistry {
   // Get driver by MAC address
   getDriverByMac(macAddress: string): Driver | undefined {
     return Array.from(this.drivers.values()).find(
-      (driver) => driver.sysInfo?.mac === macAddress
+      (driver) => driver.mac === macAddress
     );
   }
 
@@ -267,60 +248,6 @@ export class DriverRegistry {
     this.onDriverConnectedCallback?.(driver);
 
     return driver;
-  }
-
-  // Process heartbeat cycle - check for drivers that didn't respond to discovery ping
-  processHeartbeatCycle(respondedDriverIds: Set<string>): number {
-    let disconnectedCount = 0;
-
-    if (respondedDriverIds.size === this.drivers.size) {
-      log.debug(`Heartbeat check: all ${this.drivers.size} drivers responded`);
-    } else {
-      log.info(
-        `Heartbeat check: ${respondedDriverIds.size}/${this.drivers.size} drivers responded - checking for failures`
-      );
-    }
-
-    this.drivers.forEach((driver) => {
-      // Skip already disconnected drivers
-      if (!driver.connected) {
-        return;
-      }
-
-      if (respondedDriverIds.has(driver.id)) {
-        // Driver responded - already handled in updateHeartbeat (resets failedHeartbeats)
-        log.debug(`Driver ${driver.id} responded to heartbeat`);
-      } else {
-        // Driver did not respond - increment failure counter
-        driver.failedHeartbeats++;
-        log.info(
-          `Driver ${driver.id} missed heartbeat. Failed attempts: ${driver.failedHeartbeats}/${HEARTBEAT_FAILURE_THRESHOLD}`
-        );
-
-        // Check if driver should be disconnected
-        if (driver.failedHeartbeats >= HEARTBEAT_FAILURE_THRESHOLD) {
-          log.info(
-            `Driver ${driver.id} exceeded failure threshold - marking as disconnected`
-          );
-
-          // Mark as disconnected
-          driver.connected = false;
-          this.drivers.set(driver.id, driver);
-
-          // Notify callback
-          if (this.onDriverDisconnectedCallback) {
-            this.onDriverDisconnectedCallback(driver);
-            log.info(`Sent driver:disconnected event`);
-            disconnectedCount++;
-          }
-        } else {
-          // Update driver with incremented failure count
-          this.drivers.set(driver.id, driver);
-        }
-      }
-    });
-
-    return disconnectedCount;
   }
 
   // Get count of connected drivers only

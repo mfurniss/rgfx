@@ -2,43 +2,44 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import OtaDriverSelector from '../../renderer/components/ota-driver-selector';
-import { Driver } from '../../types';
+import { Driver, DriverTelemetry } from '../../types';
 
-const createMockDriver = (id: string, connected: boolean, ip?: string): Driver => ({
-  id,
-  connected,
-  lastSeen: Date.now(),
-  firstSeen: Date.now(),
-  failedHeartbeats: 0,
-  ip: connected ? ip : undefined,
-  sysInfo: connected && ip
-    ? {
-        ip,
-        mac: '00:00:00:00:00:00',
-        hostname: id,
-        rssi: -50,
-        ssid: 'TestNetwork',
-        chipModel: 'ESP32',
-        chipRevision: 1,
-        chipCores: 2,
-        cpuFreqMHz: 240,
-        flashSize: 4194304,
-        flashSpeed: 40000000,
-        heapSize: 327680,
-        freeHeap: 100000,
-        minFreeHeap: 90000,
-        psramSize: 0,
-        freePsram: 0,
-        sketchSize: 1000000,
-        freeSketchSpace: 3000000,
-        firmwareVersion: '1.0.0',
-        sdkVersion: '4.4.0',
-        uptimeMs: 1000,
-        hasDisplay: false,
-      }
-    : undefined,
-  stats: { mqttMessagesReceived: 0, mqttMessagesFailed: 0, udpMessagesSent: 0, udpMessagesFailed: 0 },
-});
+const createMockDriver = (id: string, connected: boolean, ip?: string): Driver => {
+  const telemetry: DriverTelemetry = {
+    chipModel: 'ESP32',
+    chipRevision: 1,
+    chipCores: 2,
+    cpuFreqMHz: 240,
+    flashSize: 4194304,
+    flashSpeed: 40000000,
+    heapSize: 327680,
+    psramSize: 0,
+    freePsram: 0,
+    sketchSize: 1000000,
+    freeSketchSpace: 3000000,
+    firmwareVersion: '1.0.0',
+    sdkVersion: '4.4.0',
+    hasDisplay: false,
+  };
+
+  return new Driver({
+    id,
+    lastSeen: Date.now(),
+    firstSeen: Date.now(),
+    failedHeartbeats: 0,
+    lastSeenAt: connected ? Date.now() : undefined,
+    ip: connected ? ip : undefined,
+    mac: connected ? '00:00:00:00:00:00' : undefined,
+    hostname: connected ? id : undefined,
+    ssid: connected ? 'TestNetwork' : undefined,
+    rssi: connected ? -50 : undefined,
+    freeHeap: connected ? 100000 : undefined,
+    minFreeHeap: connected ? 90000 : undefined,
+    uptimeMs: connected ? 1000 : undefined,
+    telemetry: connected ? telemetry : undefined,
+    stats: { mqttMessagesReceived: 0, mqttMessagesFailed: 0, udpMessagesSent: 0, udpMessagesFailed: 0 },
+  });
+};
 
 describe('OtaDriverSelector', () => {
   afterEach(() => {
