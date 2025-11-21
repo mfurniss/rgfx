@@ -179,8 +179,8 @@ export default function TestEffectsPage() {
             <Typography variant="h6" gutterBottom>
               Target Drivers
             </Typography>
-            {connectedDrivers.length === 0 ? (
-              <Alert severity="warning">No connected drivers available</Alert>
+            {drivers.length === 0 ? (
+              <Alert severity="warning">No drivers available</Alert>
             ) : (
               <FormGroup>
                 <FormControlLabel
@@ -191,25 +191,34 @@ export default function TestEffectsPage() {
                       indeterminate={
                         selectedDrivers.size > 0 && selectedDrivers.size < connectedDrivers.length
                       }
+                      disabled={connectedDrivers.length === 0}
                     />
                   }
                   label={`All Drivers (${connectedDrivers.length})`}
                 />
-                {connectedDrivers.map((driver) => (
-                  <FormControlLabel
-                    key={driver.id}
-                    control={
-                      <Checkbox
-                        checked={selectedDrivers.has(driver.id)}
-                        onChange={() => {
-                          handleDriverToggle(driver.id);
-                        }}
-                      />
-                    }
-                    label={`${driver.id} (${driver.ip ?? 'no IP'})`}
-                    sx={{ ml: 3 }}
-                  />
-                ))}
+                {drivers.map((driver) => {
+                  const isConnected = driver.connected && !!driver.ip;
+                  return (
+                    <FormControlLabel
+                      key={driver.id}
+                      control={
+                        <Checkbox
+                          checked={selectedDrivers.has(driver.id)}
+                          onChange={() => {
+                            handleDriverToggle(driver.id);
+                          }}
+                          disabled={!isConnected}
+                        />
+                      }
+                      label={`${driver.id} (${driver.ip ?? 'no IP'})`}
+                      sx={{
+                        ml: 3,
+                        opacity: isConnected ? 1 : 0.4,
+                        color: isConnected ? 'text.primary' : 'text.disabled',
+                      }}
+                    />
+                  );
+                })}
               </FormGroup>
             )}
           </Box>
