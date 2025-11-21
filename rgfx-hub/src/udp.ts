@@ -44,6 +44,7 @@ export class Udp {
    */
   send(payload: EffectPayload) {
     const message = JSON.stringify(payload);
+    log.info(`UDP sending to ${this.ip}:${this.port} - ${message}`);
     const buffer = Buffer.from(message);
     // Send with callback to detect errors and successes
     this.socket.send(buffer, 0, buffer.length, this.port, this.ip, (err) => {
@@ -51,6 +52,7 @@ export class Udp {
         log.error(`UDP send failed: ${err.message}`);
         this.onErrorCallback?.(err);
       } else {
+        log.info(`UDP sent successfully to ${this.ip}:${this.port}`);
         // Sent (not necessarily received due to UDP nature)
         this.onSuccessCallback?.();
       }

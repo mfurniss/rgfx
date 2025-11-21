@@ -26,6 +26,7 @@ import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
   MAIN_WINDOW_HEIGHT,
+  MAIN_WINDOW_ZOOM_FACTOR,
   MQTT_TOPIC_DISCOVERY,
   MQTT_BROKER_INIT_DELAY_MS,
   OPEN_DEVTOOLS_IN_DEV,
@@ -151,6 +152,7 @@ registerIpcHandlers({
   mqtt,
   pushConfigToDriver,
   discoveryService,
+  udpClient,
 });
 
 // Register MQTT subscriptions
@@ -219,6 +221,13 @@ const createWindow = () => {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
+
+  // Set zoom level after page finishes loading
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (mainWindow) {
+      mainWindow.webContents.setZoomFactor(MAIN_WINDOW_ZOOM_FACTOR);
+    }
+  });
 
   // Open the DevTools in development mode (if enabled via OPEN_DEVTOOLS_IN_DEV constant)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

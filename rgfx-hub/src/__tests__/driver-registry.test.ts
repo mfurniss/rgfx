@@ -54,6 +54,7 @@ describe('DriverRegistry', () => {
     flashSize: 4194304,
     flashSpeed: 40000000,
     freeHeap: 200000,
+    minFreeHeap: 180000,
     heapSize: 327680,
     psramSize: 0,
     freePsram: 0,

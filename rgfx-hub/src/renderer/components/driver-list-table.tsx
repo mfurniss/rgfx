@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -21,25 +21,42 @@ interface DriverListTableProps {
   drivers: Driver[];
 }
 
+const SORT_COLUMNS: { field: SortField; label: string }[] = [
+  { field: 'id', label: 'Device ID' },
+  { field: 'ip', label: 'IP Address' },
+  { field: 'status', label: 'Status' },
+  { field: 'firstSeen', label: 'First Seen' },
+];
+
 /**
  * Driver list table component with sortable columns
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
+  const location = useLocation();
   const sortField = useUiStore((state) => state.driverTableSortField);
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
   const [, setCurrentTime] = useState(Date.now());
 
-  // Update current time every second for live relative timestamps
+  // Update current time every second for live relative timestamps - only when component is visible
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+    // Check if we're on the drivers list page (/drivers)
+    const isVisible = location.pathname === '/drivers';
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    if (isVisible) {
+      // Immediate update when page becomes visible
+      setCurrentTime(Date.now());
+
+      // Then start interval
+      const interval = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [location.pathname]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -75,74 +92,34 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>
-              <TableSortLabel
-                active={sortField === 'id'}
-                direction={sortField === 'id' ? sortOrder : 'asc'}
-                onClick={() => {
-                  handleSort('id');
-                }}
-              >
-                Device ID
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={sortField === 'ip'}
-                direction={sortField === 'ip' ? sortOrder : 'asc'}
-                onClick={() => {
-                  handleSort('ip');
-                }}
-              >
-                IP Address
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={sortField === 'status'}
-                direction={sortField === 'status' ? sortOrder : 'asc'}
-                onClick={() => {
-                  handleSort('status');
-                }}
-              >
-                Status
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={sortField === 'firstSeen'}
-                direction={sortField === 'firstSeen' ? sortOrder : 'asc'}
-                onClick={() => {
-                  handleSort('firstSeen');
-                }}
-              >
-                First Seen
-              </TableSortLabel>
-            </TableCell>
+            {SORT_COLUMNS.map((column) => (
+              <TableCell key={column.field}>
+                <TableSortLabel
+                  active={sortField === column.field}
+                  direction={sortField === column.field ? sortOrder : 'asc'}
+                  onClick={() => {
+                    handleSort(column.field);
+                  }}
+                >
+                  {column.label}
+                </TableSortLabel>
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
           {sortedDrivers.map((driver: Driver) => (
             <TableRow
               key={driver.id}
+              component={Link}
+              to={`/driver/${driver.id}`}
               sx={{
                 '&:hover': { backgroundColor: 'action.hover' },
                 opacity: driver.connected ? 1 : 0.6,
               }}
             >
-              <TableCell>
-                <Link
-                  to={`/driver/${driver.id}`}
-                  style={{
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    display: 'block',
-                  }}
-                >
-                  {driver.id}
-                </Link>
-              </TableCell>
-              <TableCell>{driver.ip ?? 'Unknown'}</TableCell>
+              <TableCell>{driver.id}</TableCell>
+              <TableCell>{driver.ip ?? ''}</TableCell>
               <TableCell>
                 {driver.connected && !driver.ledConfig ? (
                   <Tooltip title="Needs LED configuration" arrow>

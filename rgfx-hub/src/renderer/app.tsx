@@ -7,20 +7,16 @@ import DriverListPage from './pages/driver-list-page';
 import DriverDetailPage from './pages/driver-detail-page';
 import EventMonitorPage from './pages/event-monitor-page';
 import FirmwarePage from './pages/firmware-page';
+import TestEffectsPage from './pages/test-effects-page';
 import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
 import { theme } from './theme';
-import styles from './app.module.css';
 
 // Flag to ensure rendererReady is only called once per app lifecycle
 let rendererReadyCalled = false;
 
-// Random hue for gradient background - module scope ensures it persists across remounts
-const randomHue = Math.floor(Math.random() * 360);
-
 const App: React.FC = () => {
-
   // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
   const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
@@ -74,8 +70,7 @@ const App: React.FC = () => {
       unsubSystemStatus();
       unsubEventTopic();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - only run once on mount, Zustand actions are stable enough
+  }, [onDriverConnected, onDriverDisconnected, onDriverUpdated, onSystemStatusUpdate, onEventTopic]);
 
   // Signal renderer ready only once per app lifecycle (not per mount)
   useEffect(() => {
@@ -92,11 +87,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <HashRouter>
-        <Box
-          className={styles.container}
-          style={{ '--hue': randomHue } as React.CSSProperties}
-          sx={{ height: '100vh' }}
-        >
+        <Box sx={{ height: '100vh' }}>
           <AppLayout>
             <Routes>
               <Route path="/" element={<SystemStatusPage />} />
@@ -104,6 +95,7 @@ const App: React.FC = () => {
               <Route path="/driver/:id" element={<DriverDetailPage />} />
               <Route path="/events" element={<EventMonitorPage />} />
               <Route path="/firmware" element={<FirmwarePage />} />
+              <Route path="/test-effects" element={<TestEffectsPage />} />
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </AppLayout>

@@ -9,21 +9,25 @@ import { ipcMain } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
 import type { Mqtt } from '../mqtt';
 import type { DiscoveryService } from '../discovery-service';
+import type { UdpClient } from '../types/mapping-types';
 import { registerTestLedsHandler } from './test-leds-handler';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';
+import { registerTriggerEffectHandler } from './trigger-effect-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
   mqtt: Mqtt;
   pushConfigToDriver: (macAddress: string) => Promise<void>;
   discoveryService: DiscoveryService;
+  udpClient: UdpClient;
 }
 
 export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerTestLedsHandler(deps);
   registerSetIdHandler(deps);
   registerFlashOtaHandler(deps);
+  registerTriggerEffectHandler(deps);
 
   // Trigger immediate discovery (used after firmware flash)
   ipcMain.handle('discovery:trigger-immediate', () => {

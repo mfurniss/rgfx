@@ -1,4 +1,5 @@
 #include "network/mqtt.h"
+#include "network/udp.h"
 #include "sys_info.h"
 #include "log.h"
 #include "utils.h"
@@ -23,12 +24,16 @@ static int consecutiveFailures = 0;
 // Test mode state (accessible from main loop)
 bool testModeActive = false;
 
+// MQTT message statistics
+uint32_t mqttMessagesReceived = 0;
+
 // Forward declarations
 void handleDriverConfig(const String& payload);
 extern EffectProcessor* effectProcessor;
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String& topic, String& payload) {
+	mqttMessagesReceived++;  // Increment counter for ALL MQTT messages
 	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
 	// Respond to discovery requests from Hub with heartbeat
@@ -238,6 +243,14 @@ void reconnectMQTT() {
 		// Reset failure counter on successful connection
 		consecutiveFailures = 0;
 
+		// Seed random number generator with unique values per driver
+		// NOTE: ESP32's randomSeed() doesn't work - it's ignored by hardware RNG
+		// Use FastLED's random16_set_seed() instead, which properly supports seeding
+		IPAddress ip = WiFi.localIP();
+		uint16_t seed = (millis() & 0xFFFF) ^ (ip[2] << 8) ^ ip[3];
+		random16_set_seed(seed);
+		log("Random seed initialized: " + String(seed));
+
 		// Subscribe to topics with QoS 2 (exactly-once delivery)
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
 		mqttClient.subscribe("rgfx/system/discover", 2);
@@ -354,15 +367,21 @@ void sendDriverConnect() {
 	}
 }
 
-// Send simple heartbeat message (periodic keepalive)
+// Send heartbeat message with telemetry (periodic keepalive)
 void sendDriverHeartbeat() {
 	if (!mqttClient.connected()) {
 		return;  // Silently skip if not connected
 	}
 
-	// Create minimal heartbeat payload - just MAC address
+	// Create heartbeat payload with telemetry
 	JsonDocument doc;
 	doc["mac"] = WiFi.macAddress();
+	doc["freeHeap"] = ESP.getFreeHeap();
+	doc["minFreeHeap"] = ESP.getMinFreeHeap();
+	doc["rssi"] = WiFi.RSSI();
+	doc["uptimeMs"] = millis();
+	doc["mqttMessagesReceived"] = mqttMessagesReceived;
+	doc["udpMessagesReceived"] = udpMessagesReceived;
 
 	String payload;
 	serializeJson(doc, payload);

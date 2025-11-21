@@ -15,6 +15,9 @@ struct UDPMessage {
 	JsonDocument props;
 };
 
+// UDP message statistics
+extern uint32_t udpMessagesReceived;
+
 // Function declarations
 void setupUDP();
 void processUDP();

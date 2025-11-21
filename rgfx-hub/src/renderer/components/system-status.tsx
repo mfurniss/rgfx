@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Paper, Grid } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '../../types';
 import SystemStatusItem from './system-status-item';
@@ -15,19 +16,29 @@ interface SystemStatusProps {
  * event reader, and connected drivers count
  */
 const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
+  const location = useLocation();
   const [now, setNow] = useState(Date.now());
   const [eventCount, setEventCount] = useState(status.eventsProcessed);
 
-  // Update every second for live uptime
+  // Update every second for live uptime - only when component is visible
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(Date.now());
-    }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+    // Check if we're on the status page (/status)
+    const isVisible = location.pathname === '/status';
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    if (isVisible) {
+      // Immediate update when page becomes visible
+      setNow(Date.now());
+
+      // Then start interval
+      const interval = setInterval(() => {
+        setNow(Date.now());
+      }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [location.pathname]);
 
   // Listen for real-time event count updates
   useEffect(() => {

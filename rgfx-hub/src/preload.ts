@@ -1,6 +1,7 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
 import type { Driver, SystemStatus, EventTopicData } from './types';
+import type { EffectPayload } from './types/mapping-types';
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
@@ -93,6 +94,10 @@ export const rgfxAPI = {
 
   triggerDiscovery: (): Promise<void> => {
     return ipcRenderer.invoke('discovery:trigger-immediate');
+  },
+
+  triggerEffect: (payload: EffectPayload): Promise<void> => {
+    return ipcRenderer.invoke('effect:trigger', payload);
   },
 };
 

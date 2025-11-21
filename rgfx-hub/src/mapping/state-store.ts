@@ -20,22 +20,20 @@ export class StateStoreImpl implements StateStore {
   private store = new Map<string, unknown>();
 
   /**
-   * Get value by key with type-safe return
+   * Get value by key
    * @param key Storage key
    * @returns Stored value or undefined if not found
    */
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  get<T>(key: string): T | undefined {
-    return this.store.get(key) as T | undefined;
+  get(key: string): unknown {
+    return this.store.get(key);
   }
 
   /**
    * Set value for key
    * @param key Storage key
-   * @param value Value to store (any type)
+   * @param value Value to store
    */
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  set<T>(key: string, value: T): void {
+  set(key: string, value: unknown): void {
     this.store.set(key, value);
   }
 

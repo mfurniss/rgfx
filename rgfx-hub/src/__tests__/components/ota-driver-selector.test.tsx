@@ -26,6 +26,7 @@ const createMockDriver = (id: string, connected: boolean, ip?: string): Driver =
         flashSpeed: 40000000,
         heapSize: 327680,
         freeHeap: 100000,
+        minFreeHeap: 90000,
         psramSize: 0,
         freePsram: 0,
         sketchSize: 1000000,

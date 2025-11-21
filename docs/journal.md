@@ -200,8 +200,22 @@ Major main.ts refactoring - extracted code into modular components reducing main
 
 ---
 
-**Total Development Time:** 38 days (October 11 - November 18, 2025)
-**Total Commits:** 245
+## November 19-20, 2025
+
+Implemented comprehensive effect testing infrastructure with new Test Effects page in Hub UI. Added manual effect triggering interface with real-time parameter controls for testing pulse, wipe, and explosion effects. Implemented state persistence for test page settings using localStorage. Fixed TypeScript strict type checking errors across the codebase ensuring all nullable types are properly handled.
+
+Optimized Electron renderer performance by migrating driver stats from polling to event-driven updates via IPC. Added driver telemetry tracking for packets received, bytes received, and last packet timestamp with automatic cleanup for disconnected drivers. Improved memory efficiency and reduced CPU usage in renderer process.
+
+Implemented particle-based explosion effect system with configurable parameters (duration, particle count, speed, colors). Created shared FIFO particle pool architecture with configurable pool sizes for memory-efficient particle management. Fixed synchronized random color generation ensuring consistent colors across multiple simultaneous explosions. Added particle velocity randomization and gravity simulation for realistic explosion physics.
+
+Added configurable window zoom factor (default 90%) to improve UI scaling and readability. Made various misc improvements to ESP32 effects system including better color blending and performance optimizations. Improved Hub UI with better layout and visual polish across all pages.
+
+Merged hub-firmware-updater branch completing the firmware management system with both USB (Web Serial) and OTA flashing capabilities.
+
+---
+
+**Total Development Time:** 40 days (October 11 - November 20, 2025)
+**Total Commits:** 255
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
@@ -217,3 +231,7 @@ Major main.ts refactoring - extracted code into modular components reducing main
 - Centralized constants configuration
 - Real-time Hub metrics with locale-aware formatting
 - Comprehensive unit test coverage with dependency injection for testability
+- Complete firmware management system (USB + OTA flashing)
+- Manual effect testing interface with real-time parameter controls
+- Event-driven telemetry for optimal renderer performance
+- Particle-based explosion effect with shared FIFO pool architecture
