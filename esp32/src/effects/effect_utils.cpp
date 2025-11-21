@@ -77,3 +77,10 @@ uint32_t validateColor(JsonDocument& props, const char* propName, uint32_t defau
 
 	return parseColor(colorStr);
 }
+
+uint32_t randomColor() {
+	uint8_t randomHue = random8();
+	CHSV hsv(randomHue, 255, 255);
+	CRGB rgb = hsv;
+	return ((uint32_t)rgb.r << 16) | ((uint32_t)rgb.g << 8) | rgb.b;
+}

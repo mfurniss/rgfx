@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
+// Default color is generated randomly per explosion (see add() method)
 static const uint32_t DEFAULT_PARTICLE_COUNT = 100;
 static const float DEFAULT_POWER = 50.0f;
 static const uint32_t DEFAULT_LIFESPAN = 800;
@@ -22,7 +22,7 @@ ExplosionEffect::ExplosionEffect(const Matrix& m)
 }
 
 void ExplosionEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
+	uint32_t color = props["color"] ? parseColor(props["color"]) : randomColor();
 	uint32_t particleCount = props["particleCount"] | DEFAULT_PARTICLE_COUNT;
 	particleCount = min(particleCount, MAX_PARTICLE_POOL_SIZE);
 	float power = props["power"] | DEFAULT_POWER;
