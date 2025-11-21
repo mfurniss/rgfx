@@ -67,6 +67,9 @@ void networkTask(void* parameter) {
 	// Track last uptime update for periodic display refresh
 	unsigned long lastUptimeUpdate = 0;
 
+	// Track last telemetry broadcast
+	unsigned long lastTelemetryBroadcast = 0;
+
 	// Main network task loop
 	while (true) {
 		// Process config portal web requests (MUST be called regularly)
@@ -76,6 +79,13 @@ void networkTask(void* parameter) {
 		bool isConnected = ConfigPortal::isWiFiConnected();
 		if (isConnected && mqttSetupDone) {
 			mqttLoop();
+
+			// Send periodic telemetry (heartbeat)
+			unsigned long now = millis();
+			if (now - lastTelemetryBroadcast >= TELEMETRY_INTERVAL_MS) {
+				sendDriverTelemetry();
+				lastTelemetryBroadcast = now;
+			}
 		}
 
 		// Only process OTA if WiFi is connected and setup is done

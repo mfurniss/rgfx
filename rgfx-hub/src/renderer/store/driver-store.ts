@@ -39,9 +39,9 @@ export const useDriverStore = create<DriverState>()(
           const existsById = state.drivers.find((d) => d.id === driver.id);
 
           // Check if driver exists by MAC (handles ID migration)
-          const existsByMac = driver.sysInfo?.mac
+          const existsByMac = driver.mac
             ? state.drivers.find(
-                (d) => d.sysInfo?.mac === driver.sysInfo?.mac && d.id !== driver.id
+                (d) => d.mac === driver.mac && d.id !== driver.id
               )
             : undefined;
 
@@ -50,7 +50,7 @@ export const useDriverStore = create<DriverState>()(
             // Remove old entry and add new one
             return {
               drivers: [
-                ...state.drivers.filter((d) => d.sysInfo?.mac !== driver.sysInfo?.mac),
+                ...state.drivers.filter((d) => d.mac !== driver.mac),
                 driver,
               ],
             };
@@ -76,10 +76,12 @@ export const useDriverStore = create<DriverState>()(
 
       onDriverUpdated: (driver) => {
         set((state) => {
+          const existsById = state.drivers.find((d) => d.id === driver.id);
+
           // Check if driver exists by MAC (handles ID migration during update)
-          const existsByMac = driver.sysInfo?.mac
+          const existsByMac = driver.mac
             ? state.drivers.find(
-                (d) => d.sysInfo?.mac === driver.sysInfo?.mac && d.id !== driver.id
+                (d) => d.mac === driver.mac && d.id !== driver.id
               )
             : undefined;
 
@@ -87,14 +89,19 @@ export const useDriverStore = create<DriverState>()(
             // Driver ID changed - remove old entry and add new one
             return {
               drivers: [
-                ...state.drivers.filter((d) => d.sysInfo?.mac !== driver.sysInfo?.mac),
+                ...state.drivers.filter((d) => d.mac !== driver.mac),
                 driver,
               ],
             };
-          } else {
+          } else if (existsById) {
             // Normal update by ID
             return {
-              drivers: state.drivers.map((d) => (d.id === driver.id ? { ...driver } : d)),
+              drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
+            };
+          } else {
+            // New driver - add it
+            return {
+              drivers: [...state.drivers, driver],
             };
           }
         });

@@ -42,14 +42,14 @@ export default function TestEffectsPage() {
   // Use a stable selector that only changes when connected driver IDs actually change
   const connectedDriverIds = useDriverStore((state) =>
     state.drivers
-      .filter((d) => d.connected && d.ip)
+      .filter((d) => d.connected)
       .map((d) => d.id)
       .sort()
       .join(',')
   );
 
   const drivers = useDriverStore((state) => state.drivers);
-  const connectedDrivers = drivers.filter((d) => d.connected && d.ip);
+  const connectedDrivers = drivers.filter((d) => d.connected);
 
   // Get state from Zustand store (persisted across navigation)
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
@@ -192,12 +192,18 @@ export default function TestEffectsPage() {
                         selectedDrivers.size > 0 && selectedDrivers.size < connectedDrivers.length
                       }
                       disabled={connectedDrivers.length === 0}
+                      sx={{ py: 0.5 }}
                     />
                   }
                   label={`All Drivers (${connectedDrivers.length})`}
+                  sx={{
+                    my: 0,
+                    '& .MuiFormControlLabel-label': {
+                      fontSize: '0.95rem',
+                    },
+                  }}
                 />
                 {drivers.map((driver) => {
-                  const isConnected = driver.connected && !!driver.ip;
                   return (
                     <FormControlLabel
                       key={driver.id}
@@ -207,14 +213,19 @@ export default function TestEffectsPage() {
                           onChange={() => {
                             handleDriverToggle(driver.id);
                           }}
-                          disabled={!isConnected}
+                          disabled={!driver.connected}
+                          sx={{ py: 0.5 }}
                         />
                       }
-                      label={`${driver.id} (${driver.ip ?? 'no IP'})`}
+                      label={`${driver.id} (${driver.ip ?? 'disconnected'})`}
                       sx={{
                         ml: 3,
-                        opacity: isConnected ? 1 : 0.4,
-                        color: isConnected ? 'text.primary' : 'text.disabled',
+                        my: 0,
+                        opacity: driver.connected ? 1 : 0.4,
+                        color: driver.connected ? 'text.primary' : 'text.disabled',
+                        '& .MuiFormControlLabel-label': {
+                          fontSize: '0.95rem',
+                        },
                       }}
                     />
                   );

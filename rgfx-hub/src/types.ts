@@ -1,6 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload } from './types/mapping-types';
+import { DRIVER_CONNECTION_TIMEOUT_MS } from './config/constants';
 
 /**
  * LED Configuration Types
@@ -89,44 +90,32 @@ export interface DriverLEDConfig {
   maxPowerMilliamps?: number;
 }
 
-export interface DriverSystemInfo {
-  // Network information
-  ip: string;
-  mac: string;
-  hostname: string;
-  rssi: number;
-  ssid: string;
-
-  // Chip information
+/**
+ * Driver telemetry - hardware and firmware information reported by driver
+ * Contains static/semi-static information that only the driver can know
+ * Sent periodically via rgfx/system/driver/telemetry topic
+ */
+export interface DriverTelemetry {
+  // Hardware information
   chipModel: string;
   chipRevision: number;
   chipCores: number;
   cpuFreqMHz: number;
-
-  // Memory information
   flashSize: number;
   flashSpeed: number;
-  freeHeap: number;
-  minFreeHeap: number;
   heapSize: number;
   psramSize: number;
   freePsram: number;
+  hasDisplay: boolean;
 
-  // Software information
+  // Firmware information
   firmwareVersion?: string;
   sdkVersion: string;
   sketchSize: number;
   freeSketchSpace: number;
-  uptimeMs: number;
-
-  // Display information
-  hasDisplay: boolean;
-
-  // Runtime state
-  testActive?: boolean;
 
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
-  // and pushed to drivers via MQTT - not reported in sysInfo
+  // and pushed to drivers via MQTT - not reported in telemetry
 }
 
 export interface DriverStats {
@@ -136,26 +125,129 @@ export interface DriverStats {
   udpMessagesFailed: number;
 }
 
-export interface Driver {
+export class Driver {
+  // Driver identity
   id: string;
   description?: string;
-  connected: boolean;
+
+  // Network information (hub-observable)
+  ip?: string;
+  mac?: string;
+  hostname?: string;
+  ssid?: string;
+
+  // Runtime metrics (updated via telemetry)
+  rssi?: number;
+  freeHeap?: number;
+  minFreeHeap?: number;
+  uptimeMs?: number;
+
+  // Connection tracking
   lastSeen: number;
   firstSeen: number;
   failedHeartbeats: number;
-  ip?: string;
-  sysInfo?: DriverSystemInfo;
-  stats: DriverStats;
-  updateRate?: number;
+  lastHeartbeat?: number;
+  lastSeenAt?: number; // Timestamp when last telemetry was received
+
+  // Hardware/firmware telemetry (static info from driver)
+  telemetry?: DriverTelemetry;
+
+  // LED configuration and hardware
   ledConfig?: DriverLEDConfig | null;
   resolvedHardware?: LEDHardware;
+
+  // Statistics
+  stats: DriverStats;
+  updateRate?: number;
+
+  // Runtime state
   testActive?: boolean;
-  // Telemetry from heartbeat messages
-  freeHeap?: number;
-  minFreeHeap?: number;
-  rssi?: number;
-  uptimeMs?: number;
-  lastHeartbeat?: number;
+
+  constructor(data: {
+    id: string;
+    description?: string;
+    ip?: string;
+    mac?: string;
+    hostname?: string;
+    ssid?: string;
+    rssi?: number;
+    freeHeap?: number;
+    minFreeHeap?: number;
+    uptimeMs?: number;
+    lastSeen: number;
+    firstSeen: number;
+    failedHeartbeats: number;
+    lastHeartbeat?: number;
+    lastSeenAt?: number;
+    telemetry?: DriverTelemetry;
+    ledConfig?: DriverLEDConfig | null;
+    resolvedHardware?: LEDHardware;
+    stats: DriverStats;
+    updateRate?: number;
+    testActive?: boolean;
+  }) {
+    this.id = data.id;
+    this.description = data.description;
+    this.ip = data.ip;
+    this.mac = data.mac;
+    this.hostname = data.hostname;
+    this.ssid = data.ssid;
+    this.rssi = data.rssi;
+    this.freeHeap = data.freeHeap;
+    this.minFreeHeap = data.minFreeHeap;
+    this.uptimeMs = data.uptimeMs;
+    this.lastSeen = data.lastSeen;
+    this.firstSeen = data.firstSeen;
+    this.failedHeartbeats = data.failedHeartbeats;
+    this.lastHeartbeat = data.lastHeartbeat;
+    this.lastSeenAt = data.lastSeenAt;
+    this.telemetry = data.telemetry;
+    this.ledConfig = data.ledConfig;
+    this.resolvedHardware = data.resolvedHardware;
+    this.stats = data.stats;
+    this.updateRate = data.updateRate;
+    this.testActive = data.testActive;
+  }
+
+  /**
+   * Connection status - derived from recent telemetry timestamp
+   * Driver is considered connected if telemetry received within last 15 seconds (3x the 5s interval)
+   */
+  get connected(): boolean {
+    if (!this.ip || !this.lastSeenAt) return false;
+    return Date.now() - this.lastSeenAt < DRIVER_CONNECTION_TIMEOUT_MS;
+  }
+}
+
+/**
+ * Serialize a Driver instance for IPC transmission to renderer process
+ * Computes `connected` property fresh at send-time to ensure accurate status
+ */
+export function serializeDriverForIPC(driver: Driver) {
+  return {
+    id: driver.id,
+    description: driver.description,
+    ip: driver.ip,
+    mac: driver.mac,
+    hostname: driver.hostname,
+    ssid: driver.ssid,
+    rssi: driver.rssi,
+    freeHeap: driver.freeHeap,
+    minFreeHeap: driver.minFreeHeap,
+    uptimeMs: driver.uptimeMs,
+    lastSeen: driver.lastSeen,
+    firstSeen: driver.firstSeen,
+    failedHeartbeats: driver.failedHeartbeats,
+    lastHeartbeat: driver.lastHeartbeat,
+    lastSeenAt: driver.lastSeenAt,
+    telemetry: driver.telemetry,
+    ledConfig: driver.ledConfig,
+    resolvedHardware: driver.resolvedHardware,
+    stats: driver.stats,
+    updateRate: driver.updateRate,
+    testActive: driver.testActive,
+    connected: driver.connected, // Computed fresh at send-time
+  };
 }
 
 export interface SystemStatus {

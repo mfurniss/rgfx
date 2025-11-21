@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
 import { DriverPersistence } from '../driver-persistence';
-import type { DriverSystemInfo } from '../types';
+import type { DriverTelemetry } from '../types';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -38,55 +38,65 @@ describe('DriverRegistry', () => {
     registry = new DriverRegistry(persistence);
   });
 
-  const createMockSysInfo = (overrides: Partial<DriverSystemInfo> = {}): DriverSystemInfo => ({
-    // Network information
-    ip: '192.168.1.100',
-    mac: 'AA:BB:CC:DD:EE:FF',
-    hostname: 'esp32-driver',
-    rssi: -50,
-    ssid: 'TestNetwork',
-    // Chip information
-    chipModel: 'ESP32',
-    chipRevision: 1,
-    chipCores: 2,
-    cpuFreqMHz: 240,
-    // Memory information
-    flashSize: 4194304,
-    flashSpeed: 40000000,
-    freeHeap: 200000,
-    minFreeHeap: 180000,
-    heapSize: 327680,
-    psramSize: 0,
-    freePsram: 0,
-    // Software information
-    sdkVersion: 'v4.4',
-    sketchSize: 1000000,
-    freeSketchSpace: 2000000,
-    uptimeMs: 60000,
-    // Display information
-    hasDisplay: false,
-    // Note: LED configuration removed - now managed by Hub
-    ...overrides,
-  });
+  const createMockTelemetryData = (overrides: {
+    mac?: string;
+    ip?: string;
+    hostname?: string;
+    ssid?: string;
+    rssi?: number;
+    freeHeap?: number;
+    minFreeHeap?: number;
+    uptimeMs?: number;
+    telemetryOverrides?: Partial<DriverTelemetry>;
+  } = {}) => {
+    const telemetry: DriverTelemetry = {
+      chipModel: 'ESP32',
+      chipRevision: 1,
+      chipCores: 2,
+      cpuFreqMHz: 240,
+      flashSize: 4194304,
+      flashSpeed: 40000000,
+      heapSize: 327680,
+      psramSize: 0,
+      freePsram: 0,
+      hasDisplay: false,
+      sdkVersion: 'v4.4',
+      sketchSize: 1000000,
+      freeSketchSpace: 2000000,
+      ...overrides.telemetryOverrides,
+    };
+
+    return {
+      ip: overrides.ip ?? '192.168.1.100',
+      mac: overrides.mac ?? 'AA:BB:CC:DD:EE:FF',
+      hostname: overrides.hostname ?? 'esp32-driver',
+      ssid: overrides.ssid ?? 'TestNetwork',
+      rssi: overrides.rssi ?? -50,
+      freeHeap: overrides.freeHeap ?? 200000,
+      minFreeHeap: overrides.minFreeHeap ?? 180000,
+      uptimeMs: overrides.uptimeMs ?? 60000,
+      telemetry,
+    };
+  };
 
   describe('registerDriver', () => {
     it('should register a new driver with generated ID', () => {
-      const sysInfo = createMockSysInfo();
-      const device = registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData();
+      const device = registry.registerDriver(telemetryData);
 
       expect(device).toBeDefined();
       expect(device.id).toBe('rgfx-driver-0001'); // Generated ID, not MAC
-      expect(device.ip).toBe(sysInfo.ip);
+      expect(device.ip).toBe(telemetryData.ip);
       expect(device.connected).toBe(true);
       expect(device.failedHeartbeats).toBe(0);
     });
 
     it('should generate sequential IDs for new drivers', () => {
-      const sysInfo1 = createMockSysInfo({ mac: 'AA:BB:CC:DD:EE:11' });
-      const sysInfo2 = createMockSysInfo({ mac: 'AA:BB:CC:DD:EE:22' });
+      const telemetryData1 = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      const telemetryData2 = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:22' });
 
-      const device1 = registry.registerDriver(sysInfo1);
-      const device2 = registry.registerDriver(sysInfo2);
+      const device1 = registry.registerDriver(telemetryData1);
+      const device2 = registry.registerDriver(telemetryData2);
 
       expect(device1.id).toBe('rgfx-driver-0001');
       expect(device2.id).toBe('rgfx-driver-0002');
@@ -94,8 +104,8 @@ describe('DriverRegistry', () => {
 
 
     it('should initialize stats on first registration', () => {
-      const sysInfo = createMockSysInfo();
-      const device = registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData();
+      const device = registry.registerDriver(telemetryData);
 
       expect(device.stats).toEqual({
         mqttMessagesReceived: 1,
@@ -109,33 +119,33 @@ describe('DriverRegistry', () => {
       const callback = vi.fn();
       registry.onDriverConnected(callback);
 
-      const sysInfo = createMockSysInfo();
-      const device = registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData();
+      const device = registry.registerDriver(telemetryData);
 
       expect(callback).toHaveBeenCalledWith(device);
     });
 
     it('should increment message count on repeated registration', () => {
-      const sysInfo = createMockSysInfo();
+      const telemetryData = createMockTelemetryData();
 
-      const device1 = registry.registerDriver(sysInfo);
+      const device1 = registry.registerDriver(telemetryData);
       expect(device1.stats.mqttMessagesReceived).toBe(1);
 
-      const device2 = registry.registerDriver(sysInfo);
+      const device2 = registry.registerDriver(telemetryData);
       expect(device2.stats.mqttMessagesReceived).toBe(2);
     });
 
-    it('should update lastSeen timestamp on heartbeat', () => {
-      const sysInfo = createMockSysInfo();
+    it('should update lastSeen timestamp on telemetry', () => {
+      const telemetryData = createMockTelemetryData();
 
-      const device1 = registry.registerDriver(sysInfo);
+      const device1 = registry.registerDriver(telemetryData);
       const firstSeen = device1.lastSeen;
 
       // Wait a bit
       const now = Date.now();
       vi.setSystemTime(now + 1000);
 
-      const device2 = registry.registerDriver(sysInfo);
+      const device2 = registry.registerDriver(telemetryData);
       expect(device2.lastSeen).toBeGreaterThan(firstSeen);
 
       vi.useRealTimers();
@@ -145,28 +155,28 @@ describe('DriverRegistry', () => {
       const callback = vi.fn();
       registry.onDriverConnected(callback);
 
-      const sysInfo = createMockSysInfo();
+      const telemetryData = createMockTelemetryData();
 
       // Register first time
-      registry.registerDriver(sysInfo);
+      registry.registerDriver(telemetryData);
       expect(callback).toHaveBeenCalledTimes(1);
 
-      // Manually mark as disconnected (simulating timeout)
-      const device = registry.findByIp(sysInfo.ip);
+      // Manually mark as disconnected (simulating timeout by clearing IP)
+      const device = registry.findByIp(telemetryData.ip);
       if (device) {
-        device.connected = false;
+        device.ip = undefined;
       }
 
       // Register again (reconnection)
-      registry.registerDriver(sysInfo);
+      registry.registerDriver(telemetryData);
       expect(callback).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('findByIp', () => {
     it('should find driver by IP address', () => {
-      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
-      registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+      registry.registerDriver(telemetryData);
 
       const found = registry.findByIp('192.168.1.100');
       expect(found).toBeDefined();
@@ -179,9 +189,9 @@ describe('DriverRegistry', () => {
     });
 
     it('should find correct driver among multiple drivers', () => {
-      registry.registerDriver(createMockSysInfo({ ip: '192.168.1.100' }));
+      registry.registerDriver(createMockTelemetryData({ ip: '192.168.1.100' }));
       registry.registerDriver(
-        createMockSysInfo({
+        createMockTelemetryData({
           ip: '192.168.1.101',
           mac: '11:22:33:44:55:66',
         })
@@ -194,8 +204,8 @@ describe('DriverRegistry', () => {
 
   describe('trackUdpSent', () => {
     it('should increment udpMessagesSent on success', () => {
-      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
-      registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+      registry.registerDriver(telemetryData);
 
       const device = registry.trackUdpSent('192.168.1.100', true);
 
@@ -204,8 +214,8 @@ describe('DriverRegistry', () => {
     });
 
     it('should increment udpMessagesFailed on failure', () => {
-      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
-      registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+      registry.registerDriver(telemetryData);
 
       const device = registry.trackUdpSent('192.168.1.100', false);
 
@@ -222,90 +232,13 @@ describe('DriverRegistry', () => {
       const callback = vi.fn();
       registry.onDriverConnected(callback);
 
-      const sysInfo = createMockSysInfo({ ip: '192.168.1.100' });
-      registry.registerDriver(sysInfo);
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+      registry.registerDriver(telemetryData);
 
       // Reset mock to only count trackUdpSent callback
       callback.mockClear();
 
       registry.trackUdpSent('192.168.1.100', true);
-      expect(callback).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('processHeartbeatCycle', () => {
-    it('should mark driver as disconnected after reaching failure threshold', () => {
-      const callback = vi.fn();
-      registry.onDriverDisconnected(callback);
-
-      const sysInfo = createMockSysInfo();
-      const driver = registry.registerDriver(sysInfo);
-
-      // First heartbeat cycle - driver didn't respond
-      const respondedDrivers1 = new Set<string>();
-      registry.processHeartbeatCycle(respondedDrivers1);
-
-      // Driver should still be connected (threshold is 2)
-      expect(driver.failedHeartbeats).toBe(1);
-      expect(driver.connected).toBe(true);
-      expect(callback).not.toHaveBeenCalled();
-
-      // Second heartbeat cycle - driver didn't respond again
-      const respondedDrivers2 = new Set<string>();
-      const disconnectedCount = registry.processHeartbeatCycle(respondedDrivers2);
-
-      // Now driver should be disconnected (reached threshold of 2)
-      expect(disconnectedCount).toBe(1);
-      expect(callback).toHaveBeenCalled();
-
-      const device = registry.findByIp(sysInfo.ip);
-      expect(device?.connected).toBe(false);
-      expect(device?.failedHeartbeats).toBe(2);
-    });
-
-    it('should reset failure counter when driver responds', () => {
-      const callback = vi.fn();
-      registry.onDriverDisconnected(callback);
-
-      const sysInfo = createMockSysInfo();
-      const driver = registry.registerDriver(sysInfo);
-
-      // First heartbeat cycle - driver didn't respond
-      const respondedDrivers1 = new Set<string>();
-      registry.processHeartbeatCycle(respondedDrivers1);
-
-      expect(driver.failedHeartbeats).toBe(1);
-
-      // Second heartbeat cycle - driver responded
-      const respondedDrivers2 = new Set<string>([driver.id]);
-      registry.updateHeartbeat(driver.id); // This resets failedHeartbeats
-      const disconnectedCount = registry.processHeartbeatCycle(respondedDrivers2);
-
-      expect(disconnectedCount).toBe(0);
-      expect(callback).not.toHaveBeenCalled();
-
-      const device = registry.findByIp(sysInfo.ip);
-      expect(device?.connected).toBe(true);
-      expect(device?.failedHeartbeats).toBe(0);
-    });
-
-    it('should not re-disconnect already disconnected driver', () => {
-      const callback = vi.fn();
-      registry.onDriverDisconnected(callback);
-
-      const sysInfo = createMockSysInfo();
-      registry.registerDriver(sysInfo);
-
-      // Simulate two failed heartbeats to disconnect
-      const emptySet = new Set<string>();
-      registry.processHeartbeatCycle(emptySet);
-      registry.processHeartbeatCycle(emptySet);
-
-      expect(callback).toHaveBeenCalledTimes(1);
-
-      // Another heartbeat cycle - should not call callback again
-      registry.processHeartbeatCycle(emptySet);
-
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
@@ -316,23 +249,16 @@ describe('DriverRegistry', () => {
     });
 
     it('should count only connected drivers', () => {
-      const sysInfo1 = createMockSysInfo({ ip: '192.168.1.100' });
-      const sysInfo2 = createMockSysInfo({
+      const telemetryData1 = createMockTelemetryData({ ip: '192.168.1.100' });
+      const telemetryData2 = createMockTelemetryData({
         ip: '192.168.1.101',
         mac: '11:22:33:44:55:66',
       });
 
-      registry.registerDriver(sysInfo1);
-      registry.registerDriver(sysInfo2);
+      registry.registerDriver(telemetryData1);
+      registry.registerDriver(telemetryData2);
 
       expect(registry.getConnectedCount()).toBe(2);
-
-      // Simulate both drivers not responding to heartbeats
-      const emptySet = new Set<string>();
-      registry.processHeartbeatCycle(emptySet); // First missed heartbeat
-      registry.processHeartbeatCycle(emptySet); // Second missed heartbeat - disconnected
-
-      expect(registry.getConnectedCount()).toBe(0);
     });
   });
 
@@ -342,23 +268,15 @@ describe('DriverRegistry', () => {
     });
 
     it('should return all drivers (connected and disconnected)', () => {
-      const sysInfo1 = createMockSysInfo({ ip: '192.168.1.100' });
-      const sysInfo2 = createMockSysInfo({
+      const telemetryData1 = createMockTelemetryData({ ip: '192.168.1.100' });
+      const telemetryData2 = createMockTelemetryData({
         ip: '192.168.1.101',
         mac: '11:22:33:44:55:66',
       });
 
-      registry.registerDriver(sysInfo1);
-      registry.registerDriver(sysInfo2);
+      registry.registerDriver(telemetryData1);
+      registry.registerDriver(telemetryData2);
 
-      expect(registry.getAllDrivers()).toHaveLength(2);
-
-      // Disconnect drivers via heartbeat failures
-      const emptySet = new Set<string>();
-      registry.processHeartbeatCycle(emptySet); // First missed heartbeat
-      registry.processHeartbeatCycle(emptySet); // Second missed heartbeat - disconnected
-
-      // Should still return all drivers, even if disconnected
       expect(registry.getAllDrivers()).toHaveLength(2);
     });
   });

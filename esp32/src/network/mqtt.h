@@ -21,8 +21,7 @@ extern uint32_t mqttMessagesReceived;
 void setupMQTT();
 void reconnectMQTT();
 void mqttLoop();
-void sendDriverConnect();
-void sendDriverHeartbeat();
+void sendDriverTelemetry();
 void publishTestState(const String& state);
 
 #endif

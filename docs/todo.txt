@@ -76,3 +76,4 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Ensure Hub and firmware versions are syncronized
 [ ] Global Event Bus instead of individual IPC handlers
 [X] Driver telemetry displayed in Hub
+[ ] Store WiFi creds in hub and auto set for newly flashed drivers
