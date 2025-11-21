@@ -231,11 +231,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton
               onClick={() => {
-                void navigate('/drivers');
+                void navigate('/');
               }}
               size="small"
               sx={{ mr: 1 }}
-              aria-label="Back to drivers"
+              aria-label="Back to System Status"
             >
               <ArrowBackIcon />
             </IconButton>
@@ -258,61 +258,61 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       {/* Scrollable Content */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
         {/* Information Sections */}
-      {/* LED Configuration Section - Always shown at top */}
-      <InfoSection
-        title="LED Configuration"
-        icon={<LightbulbIcon fontSize="small" color="action" />}
-        rows={ledRows}
-        titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
-      >
-        {!driver.ledConfig && (
-          <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
-            <Typography variant="body2" color="warning.dark">
-              This driver needs LED configuration. Edit{' '}
-              <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                ~/.rgfx/drivers.json
-              </Typography>{' '}
-              to configure LED hardware.
-            </Typography>
-          </Box>
+        {/* LED Configuration Section - Always shown at top */}
+        <InfoSection
+          title="LED Configuration"
+          icon={<LightbulbIcon fontSize="small" color="action" />}
+          rows={ledRows}
+          titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
+        >
+          {!driver.ledConfig && (
+            <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
+              <Typography variant="body2" color="warning.dark">
+                This driver needs LED configuration. Edit{' '}
+                <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                  ~/.rgfx/drivers.json
+                </Typography>{' '}
+                to configure LED hardware.
+              </Typography>
+            </Box>
+          )}
+        </InfoSection>
+
+        {networkRows.length > 0 && (
+          <InfoSection
+            title="Network"
+            icon={<RouterIcon fontSize="small" color="action" />}
+            rows={networkRows}
+            showDivider
+          />
         )}
-      </InfoSection>
 
-      {networkRows.length > 0 && (
-        <InfoSection
-          title="Network"
-          icon={<RouterIcon fontSize="small" color="action" />}
-          rows={networkRows}
-          showDivider
-        />
-      )}
+        {telemetryRows.length > 0 && (
+          <InfoSection
+            title="Driver Telemetry"
+            icon={<SensorsIcon fontSize="small" color="action" />}
+            rows={telemetryRows}
+            showDivider
+          />
+        )}
 
-      {telemetryRows.length > 0 && (
-        <InfoSection
-          title="Driver Telemetry"
-          icon={<SensorsIcon fontSize="small" color="action" />}
-          rows={telemetryRows}
-          showDivider
-        />
-      )}
+        {hardwareRows.length > 0 && (
+          <InfoSection
+            title="Hardware"
+            icon={<SpeedIcon fontSize="small" color="action" />}
+            rows={hardwareRows}
+            showDivider
+          />
+        )}
 
-      {hardwareRows.length > 0 && (
-        <InfoSection
-          title="Hardware"
-          icon={<SpeedIcon fontSize="small" color="action" />}
-          rows={hardwareRows}
-          showDivider
-        />
-      )}
-
-      {memoryRows.length > 0 && (
-        <InfoSection
-          title="Memory"
-          icon={<MemoryIcon fontSize="small" color="action" />}
-          rows={memoryRows}
-          showDivider
-        />
-      )}
+        {memoryRows.length > 0 && (
+          <InfoSection
+            title="Memory"
+            icon={<MemoryIcon fontSize="small" color="action" />}
+            rows={memoryRows}
+            showDivider
+          />
+        )}
       </Box>
     </Box>
   );
