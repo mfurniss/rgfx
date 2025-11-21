@@ -17,4 +17,23 @@ export const theme = createTheme({
       paddingBottom: '4pt',
     },
   },
+  components: {
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          textDecoration: 'none',
+          '&:hover': {
+            textDecoration: 'underline',
+          },
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          textDecoration: 'none',
+        },
+      },
+    },
+  },
 });

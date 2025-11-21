@@ -2,8 +2,17 @@
  * Pac-Man game-specific mapper
  *
  * Handles Pac-Man/Ms. Pac-Man specific events:
- * - pacman/player/score/p1 - Player score (yellow pulse, intensity based on score)
+ * - pacman/player/score/p1 - Player score (brown wipe effect)
  * - pacman/player/pill/state - Power pill state (blue when active, red when inactive)
+ * - pacman/player/insert-coin - Coin inserted (yellow pulse)
+ * - pacman/player/eat/power-pill - Power pill eaten (blue explosion)
+ * - pacman/player/eat/pill - Regular pill eaten, wakka sound (quick yellow pulse)
+ * - pacman/player/eat/bonus - Bonus fruit eaten (magenta pulse)
+ * - pacman/player/eat/ghost - Ghost eaten (cyan pulse)
+ * - pacman/player/die - Player death animation (red pulse, part 1 or 2)
+ * - pacman/player/ghost/eyes - Ghost eyes returning home (white pulse)
+ * - pacman/player/dots-remaining - Dots remaining (explosion when level complete)
+ * - pacman/game/mode - Game mode changes (demo/select/playing with different colors)
  * - pacman/ghost/{color}/state - Individual ghost states with color-coded effects
  *
  * Selective Driver Routing:
@@ -50,15 +59,18 @@ const GHOST_STATE_COLORS = {
 };
 
 export function handle({ subject, property, qualifier }, payload, { broadcast }) {
-
   if (subject === 'player' && property === 'score') {
-    return broadcast({
+    broadcast({
       effect: 'wipe',
       props: {
         color: '#705014',
         duration: 500,
       },
-      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'], // LED Strip
+      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
+    });
+    return broadcast({
+      effect: 'explosion',
+      drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
     });
   }
 
@@ -74,6 +86,117 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
       },
       drivers: ['rgfx-driver-0002'], // LED Matrix
     });
+  }
+
+  // Coin inserted
+  if (subject === 'player' && property === 'insert-coin') {
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#FFFF00',
+        duration: 300,
+      },
+    });
+  }
+
+  // Power pill eaten
+  if (subject === 'player' && property === 'eat' && qualifier === 'power-pill') {
+    return broadcast({
+      effect: 'explosion',
+      props: {
+        color: '#0000FF',
+        duration: 1000,
+      },
+    });
+  }
+
+  // Wakka wakka - eating regular pills
+  if (subject === 'player' && property === 'eat' && qualifier === 'pill') {
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#FFFF00',
+        duration: 100,
+      },
+    });
+  }
+
+  // Bonus fruit eaten
+  if (subject === 'player' && property === 'eat' && qualifier === 'bonus') {
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#FF00FF',
+        duration: 800,
+      },
+    });
+  }
+
+  // Ghost eaten
+  if (subject === 'player' && property === 'eat' && qualifier === 'ghost') {
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#00FFFF',
+        duration: 600,
+      },
+    });
+  }
+
+  // Player death (part 1 or 2)
+  if (subject === 'player' && property === 'die') {
+    const part = parseInt(payload);
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#FF0000',
+        duration: part === 1 ? 500 : 1000,
+      },
+    });
+  }
+
+  // Ghost eyes (after being eaten, returning to home)
+  if (subject === 'player' && property === 'ghost' && qualifier === 'eyes') {
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#FFFFFF',
+        duration: 400,
+      },
+    });
+  }
+
+  // Game mode changes (1=demo, 2=select game, 3=playing)
+  if (subject === 'game' && property === 'mode') {
+    const mode = parseInt(payload);
+    const colors = {
+      1: '#888888', // Demo - gray
+      2: '#00FF00', // Game select - green
+      3: '#FFFF00', // Playing - yellow
+    };
+
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: colors[mode] || '#FFFFFF',
+        duration: 500,
+      },
+    });
+  }
+
+  // Dots remaining counter
+  if (subject === 'player' && property === 'dots-remaining') {
+    const remaining = parseInt(payload);
+
+    if (remaining === 0) {
+      return broadcast({
+        effect: 'explosion',
+        props: {
+          color: '#FFFF00',
+          duration: 2000,
+        },
+      });
+    }
   }
 
   // Ghost state changes - color-coded effects

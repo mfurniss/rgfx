@@ -132,16 +132,14 @@ export interface StateStore {
    * @param key Storage key
    * @returns Stored value or undefined if not found
    */
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  get<T>(key: string): T | undefined;
+  get(key: string): unknown;
 
   /**
    * Set value for key
    * @param key Storage key
    * @param value Value to store
    */
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  set<T>(key: string, value: T): void;
+  set(key: string, value: unknown): void;
 
   /**
    * Check if key exists

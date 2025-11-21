@@ -20,8 +20,8 @@ while IFS= read -r line; do
     # Extract hostname from dns-sd output
     # Format: "Timestamp A/R Flags if Domain Service Type Instance Name"
     # We want lines with "Add" and instance name starting with "rgfx-driver-"
-    if [[ "$line" =~ [[:space:]]rgfx-driver-([0-9]+)$ ]]; then
-        hostname="rgfx-driver-${BASH_REMATCH[1]}.local"
+    if [[ "$line" =~ [[:space:]](rgfx-driver-.*)$ ]]; then
+        hostname="${BASH_REMATCH[1]}.local"
         DEVICES+=("$hostname")
     fi
 done < "$TMPFILE"

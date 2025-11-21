@@ -9,6 +9,9 @@ volatile bool newMessageAvailable = false;
 UDPMessage pendingMessage;
 static bool udpInitialized = false;
 
+// UDP message statistics
+uint32_t udpMessagesReceived = 0;
+
 void setupUDP() {
 	if (udp.begin(UDP_PORT)) {
 		log("UDP listener started on port " + String(UDP_PORT));
@@ -36,6 +39,8 @@ void processUDP() {
 			DeserializationError error = deserializeJson(doc, buffer);
 
 			if (!error) {
+				udpMessagesReceived++;  // Increment counter for valid UDP messages
+
 				// Extract effect name
 				if (doc["effect"]) {
 					pendingMessage.effect = doc["effect"].as<String>();
