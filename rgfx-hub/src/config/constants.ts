@@ -65,6 +65,9 @@ export const MAIN_WINDOW_WIDTH = 1000;
 /** Main application window height in pixels */
 export const MAIN_WINDOW_HEIGHT = 800;
 
+/** Main application window zoom factor (1.0 = 100%, 0.9 = 90%, etc.) */
+export const MAIN_WINDOW_ZOOM_FACTOR = 0.9;
+
 /** Whether to automatically open DevTools console in development mode */
 export const OPEN_DEVTOOLS_IN_DEV = false;
 
