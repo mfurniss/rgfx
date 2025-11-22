@@ -268,7 +268,7 @@ void ExplosionEffect::render() {
 					}
 
 					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                BlendMode::ALPHA);
+					                BlendMode::ADDITIVE);
 				}
 			}
 		}
