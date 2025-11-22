@@ -7,7 +7,7 @@ static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 1000;
 static const bool DEFAULT_FADE = true;
 
-PulseEffect::PulseEffect(const Matrix& m) : canvas(m.width * 4, m.height * 4) {}
+PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m.width * 4, m.height * 4) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -31,8 +31,11 @@ void PulseEffect::update(float deltaTime) {
 	// Cache deltaTime in milliseconds to avoid redundant calculations
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 
-	// Iterate through all pulses and update their alpha values
+	// Iterate through all pulses and update their elapsed time and alpha values
 	for (auto p = pulses.begin(); p != pulses.end();) {
+		// Update elapsed time for all pulses (needed for rendering)
+		p->elapsedTime += deltaTimeMs;
+
 		if (p->fade) {
 			// Fading pulse: calculate fade delta based on uint8_t alpha (0-255)
 			// fadeDelta = (deltaTime in ms / duration in ms) * 255
@@ -47,7 +50,6 @@ void PulseEffect::update(float deltaTime) {
 			}
 		} else {
 			// Non-fading pulse: keep alpha at 255, remove when duration expires
-			p->elapsedTime += deltaTimeMs;
 			if (p->elapsedTime >= p->duration) {
 				p = pulses.erase(p);
 			} else {
@@ -62,6 +64,7 @@ void PulseEffect::render() {
 
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
+	bool isStrip = (matrix.layout == "strip");
 
 	// Sort pulses by remaining duration (lowest first, highest rendered last)
 	std::sort(pulses.begin(), pulses.end(),
@@ -75,12 +78,29 @@ void PulseEffect::render() {
 		// Apply easing function
 		float easedT = p.easing(t);
 
-		// Map to row position
-		uint16_t row = static_cast<uint16_t>(easedT * (height - 1));
+		if (isStrip) {
+			// Strip: Contract from edges toward center horizontally
+			uint16_t shrink = static_cast<uint16_t>(easedT * (width / 2));
+			uint16_t startCol = shrink;
+			uint16_t endCol = width - 1 - shrink;
 
-		for (uint16_t y = row / 2; y <= height - (row / 2); y++) {
-			for (uint16_t x = 0; x < width; x++) {
-				canvas.setPixel(x, y, RGBA(p.r, p.g, p.b, p.alpha / 2), BlendMode::ALPHA);
+			// Render full-height columns in the visible range
+			for (uint16_t x = startCol; x <= endCol; x++) {
+				for (uint16_t y = 0; y < height; y++) {
+					canvas.setPixel(x, y, RGBA(p.r, p.g, p.b, p.alpha / 2), BlendMode::ALPHA);
+				}
+			}
+		} else {
+			// Matrix: Contract from top/bottom toward center vertically
+			uint16_t shrink = static_cast<uint16_t>(easedT * (height / 2));
+			uint16_t startRow = shrink;
+			uint16_t endRow = height - 1 - shrink;
+
+			// Render the visible band
+			for (uint16_t y = startRow; y <= endRow; y++) {
+				for (uint16_t x = 0; x < width; x++) {
+					canvas.setPixel(x, y, RGBA(p.r, p.g, p.b, p.alpha / 2), BlendMode::ALPHA);
+				}
 			}
 		}
 	}

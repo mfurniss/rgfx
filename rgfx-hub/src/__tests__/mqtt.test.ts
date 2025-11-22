@@ -3,17 +3,20 @@ import { Mqtt } from '../mqtt';
 import Aedes from 'aedes';
 import { createServer } from 'node:net';
 import { Server as SSDPServer } from 'node-ssdp';
+import { createSocket } from 'node:dgram';
 
 // Mock dependencies
 vi.mock('aedes');
 vi.mock('node:net');
 vi.mock('node-ssdp');
+vi.mock('node:dgram');
 
 describe('Mqtt', () => {
   let mqtt: Mqtt;
   let mockAedes: any;
   let mockServer: any;
   let mockSSDPServer: any;
+  let mockUDPSocket: any;
 
   beforeEach(() => {
     // Mock Aedes instance
@@ -42,14 +45,27 @@ describe('Mqtt', () => {
     // Mock SSDP server
     mockSSDPServer = {
       addUSN: vi.fn(),
+      advertise: vi.fn(),
       start: vi.fn().mockResolvedValue(undefined),
       stop: vi.fn(),
+    };
+
+    // Mock UDP socket
+    mockUDPSocket = {
+      on: vi.fn(),
+      bind: vi.fn((callback) => {
+        if (callback) callback();
+      }),
+      setBroadcast: vi.fn(),
+      send: vi.fn(),
+      close: vi.fn(),
     };
 
     // Setup mocks
     vi.mocked(Aedes).mockReturnValue(mockAedes);
     vi.mocked(createServer).mockReturnValue(mockServer);
     vi.mocked(SSDPServer).mockReturnValue(mockSSDPServer);
+    vi.mocked(createSocket).mockReturnValue(mockUDPSocket);
 
     mqtt = new Mqtt(1883);
   });
@@ -341,15 +357,21 @@ describe('Mqtt', () => {
       expect(mockServer.listen).toHaveBeenCalledWith(1883, expect.any(Function));
     });
 
-    it('should announce via SSDP', () => {
+    it('should announce via SSDP', async () => {
       mqtt.start();
+
+      // Wait for SSDP server start promise to resolve
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(SSDPServer).toHaveBeenCalledWith({
         location: expect.stringMatching(/^http:\/\/\d+\.\d+\.\d+\.\d+:1883$/),
         sourcePort: 1900,
+        adInterval: 10000,
+        ttl: 4,
       });
       expect(mockSSDPServer.addUSN).toHaveBeenCalledWith('urn:rgfx:service:mqtt:1');
       expect(mockSSDPServer.start).toHaveBeenCalled();
+      expect(mockSSDPServer.advertise).toHaveBeenCalled();
     });
   });
 
