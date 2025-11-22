@@ -1,6 +1,6 @@
 {
   "version": "0.0.2-dev.104+6976fba-dirty",
-  "generatedAt": "2025-11-22T18:32:12.313712+00:00",
+  "generatedAt": "2025-11-22T20:25:45.979770+00:00",
   "files": [
     {
       "name": "bootloader.bin",
@@ -17,8 +17,8 @@
     {
       "name": "firmware.bin",
       "address": 65536,
-      "size": 1029664,
-      "sha256": "7db49f00e9c33f4271c898fe66640c4fada14f72a179c2ce8f97f5345a4168b7"
+      "size": 1043856,
+      "sha256": "cabfddbe328f8a028493007c4ea559a14971746cede599d8e44b0cc6106e0d04"
     }
   ]
 }
