@@ -78,8 +78,12 @@ export const rgfxAPI = {
     };
   },
 
-  testDriverLEDs: (driverId: string, enabled: boolean): Promise<void> => {
-    return ipcRenderer.invoke('driver:test-leds', driverId, enabled);
+  sendDriverCommand: (driverId: string, command: string, payload?: string): Promise<void> => {
+    return ipcRenderer.invoke('driver:send-command', driverId, command, payload);
+  },
+
+  updateDriverConfig: (driverId: string): Promise<void> => {
+    return ipcRenderer.invoke('driver:update-config', driverId);
   },
 
   flashOTA: (

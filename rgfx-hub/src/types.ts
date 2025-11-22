@@ -265,7 +265,8 @@ export interface IpcApi {
   onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
   onEventCount: (callback: (count: number) => void) => () => void;
   onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
-  testDriverLEDs: (driverId: string, enabled: boolean) => Promise<void>;
+  sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
+  updateDriverConfig: (driverId: string) => Promise<void>;
   flashOTA: (
     driverId: string
   ) => Promise<{ success: boolean; error?: string; output?: string }>;

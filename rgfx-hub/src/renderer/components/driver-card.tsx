@@ -12,6 +12,7 @@ import {
 import type { Driver } from '~/src/types';
 import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
+import ResetDriverButton from './reset-driver-button';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 
@@ -116,7 +117,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ? [
           {
             label: 'Last Updated',
-            value: `${Math.floor((now - driver.lastHeartbeat) / 1000)}s ago`,
+            value: `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`,
           },
         ]
       : []),
@@ -263,7 +264,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           title="LED Configuration"
           icon={<LightbulbIcon fontSize="small" color="action" />}
           rows={ledRows}
-          titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
+          titleAction={
+            driver.ledConfig ? (
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TestLedButton driver={driver} />
+                <ResetDriverButton driver={driver} />
+              </Box>
+            ) : undefined
+          }
         >
           {!driver.ledConfig && (
             <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
