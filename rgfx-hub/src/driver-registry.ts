@@ -50,6 +50,7 @@ export class DriverRegistry {
             udpMessagesSent: 0,
             udpMessagesFailed: 0,
           },
+          connected: false, // Persisted drivers start as disconnected
         });
         this.drivers.set(driver.id, driver);
       }
@@ -178,6 +179,7 @@ export class DriverRegistry {
       },
       // Runtime state
       testActive: telemetryData.testActive,
+      connected: true, // Driver just sent telemetry, so it's connected
     });
 
     this.drivers.set(driver.id, driver);

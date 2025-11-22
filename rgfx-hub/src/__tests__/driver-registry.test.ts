@@ -161,10 +161,10 @@ describe('DriverRegistry', () => {
       registry.registerDriver(telemetryData);
       expect(callback).toHaveBeenCalledTimes(1);
 
-      // Manually mark as disconnected (simulating timeout by clearing IP)
+      // Manually mark as disconnected (simulating timeout)
       const device = registry.findByIp(telemetryData.ip);
       if (device) {
-        device.ip = undefined;
+        device.connected = false;
       }
 
       // Register again (reconnection)

@@ -38,6 +38,7 @@ const createMockDriver = (id: string, connected: boolean, ip?: string): Driver =
     uptimeMs: connected ? 1000 : undefined,
     telemetry: connected ? telemetry : undefined,
     stats: { mqttMessagesReceived: 0, mqttMessagesFailed: 0, udpMessagesSent: 0, udpMessagesFailed: 0 },
+    connected,
   });
 };
 
