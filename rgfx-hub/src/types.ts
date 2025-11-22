@@ -1,7 +1,6 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload } from './types/mapping-types';
-import { DRIVER_CONNECTION_TIMEOUT_MS } from './config/constants';
 
 /**
  * LED Configuration Types
@@ -162,6 +161,7 @@ export class Driver {
 
   // Runtime state
   testActive?: boolean;
+  connected: boolean;
 
   constructor(data: {
     id: string;
@@ -185,6 +185,7 @@ export class Driver {
     stats: DriverStats;
     updateRate?: number;
     testActive?: boolean;
+    connected: boolean;
   }) {
     this.id = data.id;
     this.description = data.description;
@@ -207,21 +208,12 @@ export class Driver {
     this.stats = data.stats;
     this.updateRate = data.updateRate;
     this.testActive = data.testActive;
-  }
-
-  /**
-   * Connection status - derived from recent telemetry timestamp
-   * Driver is considered connected if telemetry received within last 15 seconds (3x the 5s interval)
-   */
-  get connected(): boolean {
-    if (!this.ip || !this.lastSeenAt) return false;
-    return Date.now() - this.lastSeenAt < DRIVER_CONNECTION_TIMEOUT_MS;
+    this.connected = data.connected;
   }
 }
 
 /**
  * Serialize a Driver instance for IPC transmission to renderer process
- * Computes `connected` property fresh at send-time to ensure accurate status
  */
 export function serializeDriverForIPC(driver: Driver) {
   return {
@@ -246,7 +238,7 @@ export function serializeDriverForIPC(driver: Driver) {
     stats: driver.stats,
     updateRate: driver.updateRate,
     testActive: driver.testActive,
-    connected: driver.connected, // Computed fresh at send-time
+    connected: driver.connected,
   };
 }
 

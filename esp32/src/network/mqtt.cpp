@@ -18,8 +18,8 @@ String MQTT_SERVER = "";
 WiFiClient espClient;
 MQTTClient mqttClient(MQTT_BUFFER_SIZE);
 
-// Connection retry tracking
-static int consecutiveFailures = 0;
+// Discovery state tracking
+static bool brokerDiscovered = false;
 
 // Test mode state (accessible from main loop)
 bool testModeActive = false;
@@ -67,12 +67,10 @@ void mqttCallback(String& topic, String& payload) {
 }
 
 // Discover MQTT broker via SSDP (Simple Service Discovery Protocol)
+// Single attempt - called periodically from networkTask
 bool discoverMQTTBroker() {
-	log("Discovering MQTT broker via SSDP...");
-
 	IPAddress ourIP = WiFi.localIP();
 	IPAddress ourSubnet = WiFi.subnetMask();
-	log("ESP32 IP: " + ourIP.toString() + ", Subnet: " + ourSubnet.toString());
 
 	WiFiUDP udp;
 	IPAddress ssdpMulticast(239, 255, 255, 250);
@@ -86,80 +84,70 @@ bool discoverMQTTBroker() {
 	                 "ST: urn:rgfx:service:mqtt:1\r\n"
 	                 "\r\n";
 
-	// Retry loop: allow time for network propagation
-	for (int attempt = 0; attempt < 3; attempt++) {
-		if (attempt > 0) {
-			log("Retry attempt " + String(attempt + 1) + "/3");
-			delay(250);
-		}
+	// Bind UDP socket BEFORE sending to receive responses
+	udp.begin(ssdpPort);
 
-		// Bind UDP socket BEFORE sending to receive responses
-		udp.begin(ssdpPort);
+	// Send M-SEARCH query
+	udp.beginPacket(ssdpMulticast, ssdpPort);
+	udp.write((const uint8_t*)msearch.c_str(), msearch.length());
+	udp.endPacket();
 
-		// Send M-SEARCH query
-		udp.beginPacket(ssdpMulticast, ssdpPort);
-		udp.write((const uint8_t*)msearch.c_str(), msearch.length());
-		udp.endPacket();
+	// Listen for responses (wait up to 3 seconds)
+	unsigned long startTime = millis();
+	while (millis() - startTime < 3000) {
+		int packetSize = udp.parsePacket();
+		if (packetSize > 0) {
+			char response[512];
+			int len = udp.read(response, sizeof(response) - 1);
+			response[len] = '\0';
 
-		log("Sent SSDP M-SEARCH query");
+			String responseStr = String(response);
 
-		// Listen for responses (wait up to 3 seconds)
-		unsigned long startTime = millis();
-		while (millis() - startTime < 3000) {
-			int packetSize = udp.parsePacket();
-			if (packetSize > 0) {
-				char response[512];
-				int len = udp.read(response, sizeof(response) - 1);
-				response[len] = '\0';
+			// Parse LOCATION header to extract IP and port
+			int locIdx = responseStr.indexOf("LOCATION:");
+			if (locIdx == -1) {
+				locIdx = responseStr.indexOf("Location:");
+			}
 
-				String responseStr = String(response);
-				log("SSDP response received (" + String(len) + " bytes)");
+			if (locIdx != -1) {
+				int lineEnd = responseStr.indexOf("\r\n", locIdx);
+				String location = responseStr.substring(locIdx + 9, lineEnd);
+				location.trim();
 
-				// Parse LOCATION header to extract IP and port
-				int locIdx = responseStr.indexOf("LOCATION:");
-				if (locIdx == -1) {
-					locIdx = responseStr.indexOf("Location:");
-				}
+				// Extract IP from location (format: http://IP:PORT)
+				int ipStart = location.indexOf("//") + 2;
+				int ipEnd = location.indexOf(":", ipStart);
+				String ipStr = location.substring(ipStart, ipEnd);
 
-				if (locIdx != -1) {
-					int lineEnd = responseStr.indexOf("\r\n", locIdx);
-					String location = responseStr.substring(locIdx + 9, lineEnd);
-					location.trim();
-
-					log("  Location: " + location);
-
-					// Extract IP from location (format: http://IP:PORT)
-					int ipStart = location.indexOf("//") + 2;
-					int ipEnd = location.indexOf(":", ipStart);
-					String ipStr = location.substring(ipStart, ipEnd);
-
-					IPAddress brokerIP;
-					if (brokerIP.fromString(ipStr)) {
-						// Check if on same subnet
-						bool sameSubnet = true;
-						for (int j = 0; j < 4; j++) {
-							if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
-								sameSubnet = false;
-								log("    Rejected (different subnet)");
-								break;
-							}
+				IPAddress brokerIP;
+				if (brokerIP.fromString(ipStr)) {
+					// Check if on same subnet
+					bool sameSubnet = true;
+					for (int j = 0; j < 4; j++) {
+						if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
+							sameSubnet = false;
+							break;
 						}
+					}
 
-						if (sameSubnet) {
-							MQTT_SERVER = ipStr;
-							log("  ✓ Selected broker: " + MQTT_SERVER);
-							udp.stop();
-							return true;
-						}
+					if (sameSubnet) {
+						MQTT_SERVER = ipStr;
+						log("MQTT broker discovered: " + MQTT_SERVER);
+						brokerDiscovered = true;
+
+						// Update client with discovered broker address
+						mqttClient.setHost(MQTT_SERVER.c_str(), MQTT_PORT);
+
+						udp.stop();
+						return true;
 					}
 				}
 			}
-			delay(10);
 		}
-		udp.stop();
+		delay(10);
 	}
+	udp.stop();
 
-	log("No MQTT broker found via SSDP after 3 attempts");
 	return false;
 }
 
@@ -171,46 +159,23 @@ void setupMQTT() {
 		mqttClient.begin("0.0.0.0", MQTT_PORT, espClient);
 		mqttClient.onMessage(mqttCallback);
 
-		log("MQTT client initialized - will discover broker in background");
-
-		// Try initial connection (will retry in mqttLoop if it fails)
-		reconnectMQTT();
+		log("MQTT client initialized - will poll for broker every 3 seconds");
 	} else {
 		log("Skipping MQTT setup - no WiFi connection");
 	}
 }
 
-// Connect/reconnect to MQTT broker (non-blocking, single attempt)
+// Connect/reconnect to MQTT broker (assumes broker already discovered)
 void reconnectMQTT() {
 	if (mqttClient.connected()) {
 		return;  // Already connected
 	}
 
-	// Check if we've had too many consecutive failures - if so, clear cached IP and rediscover
-	// This handles case where broker IP changed or broker went down
-	if (consecutiveFailures >= MAX_FAILURES_BEFORE_REDISCOVERY && !MQTT_SERVER.isEmpty()) {
-		log("Too many consecutive failures (" + String(consecutiveFailures) +
-		    "), clearing cached broker IP and rediscovering...");
-		MQTT_SERVER = "";         // Clear cached IP to force rediscovery
-		consecutiveFailures = 0;  // Reset counter for rediscovery attempt
+	if (!brokerDiscovered) {
+		return;  // Can't connect without a broker
 	}
 
-	// Discover broker via mDNS if we don't have one or it's invalid
-	// This continuously retries discovery until a broker is found
-	if (MQTT_SERVER.isEmpty() || MQTT_SERVER == "0.0.0.0") {
-		if (!discoverMQTTBroker()) {
-			// Discovery failed - broker not available yet
-			// Don't increment consecutive failures since we haven't tried connecting yet
-			// This allows continuous discovery attempts without triggering rediscovery logic
-			return;
-		}
-
-		// Update client with discovered broker address
-		mqttClient.setHost(MQTT_SERVER.c_str(), MQTT_PORT);
-		log("MQTT broker discovered and configured");
-	}
-
-	log("Attempting MQTT connection to " + MQTT_SERVER + "...");
+	log("Connecting to MQTT broker at " + MQTT_SERVER + "...");
 
 	// Create unique client ID based on device ID
 	String deviceId = Utils::getDeviceId();
@@ -220,7 +185,6 @@ void reconnectMQTT() {
 	String statusTopic = "rgfx/driver/" + deviceId + "/status";
 
 	// Set Last Will and Testament (LWT) - broker publishes this if connection drops
-	// Retained flag ensures Hub receives offline status even if it subscribes late
 	mqttClient.setWill(statusTopic.c_str(), "offline", true, 2);
 
 	// Connect to broker
@@ -232,14 +196,9 @@ void reconnectMQTT() {
 	}
 
 	if (connected) {
-		log("connected!");
-
-		// Reset failure counter on successful connection
-		consecutiveFailures = 0;
+		log("MQTT connected!");
 
 		// Seed random number generator with unique values per driver
-		// NOTE: ESP32's randomSeed() doesn't work - it's ignored by hardware RNG
-		// Use FastLED's random16_set_seed() instead, which properly supports seeding
 		IPAddress ip = WiFi.localIP();
 		uint16_t seed = (millis() & 0xFFFF) ^ (ip[2] << 8) ^ ip[3];
 		random16_set_seed(seed);
@@ -249,7 +208,7 @@ void reconnectMQTT() {
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
 
 		// Subscribe to MAC-based config topic (Hub → Driver commands)
-		String macAddress = WiFi.macAddress();  // AA:BB:CC:DD:EE:FF (with colons)
+		String macAddress = WiFi.macAddress();
 		String macConfigTopic = "rgfx/driver/" + macAddress + "/config";
 		mqttClient.subscribe(macConfigTopic.c_str(), 2);
 
@@ -271,17 +230,13 @@ void reconnectMQTT() {
 		mqttClient.publish(statusTopic.c_str(), "online", true, 2);
 		log("Published status: online to " + statusTopic);
 
-		// Send driver telemetry message (initial connection)
+		// Send initial driver telemetry
 		sendDriverTelemetry();
 
 		// Publish current test state immediately to sync with Hub
-		// This prevents Hub from pushing stale state and overriding local changes
 		publishTestState(testModeActive ? "on" : "off");
 	} else {
-		log("failed, rc=" + String(mqttClient.returnCode()) + " - will retry in loop");
-		consecutiveFailures++;
-		log("Consecutive failures: " + String(consecutiveFailures) + "/" +
-		    String(MAX_FAILURES_BEFORE_REDISCOVERY));
+		log("MQTT connection failed, rc=" + String(mqttClient.returnCode()));
 
 		// Update display to show MQTT disconnected
 		if (Display::isAvailable()) {

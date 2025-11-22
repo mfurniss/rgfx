@@ -61,6 +61,7 @@ describe('driver-store', () => {
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
       },
+      connected,
     });
   };
 
@@ -142,6 +143,7 @@ describe('driver-store', () => {
           udpMessagesSent: 0,
           udpMessagesFailed: 0,
         },
+        connected: false,
       });
 
       useDriverStore.getState().onDriverConnected(driver);
