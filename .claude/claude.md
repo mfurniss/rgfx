@@ -85,6 +85,35 @@ This project has specialized Claude agents available for specific domains. **ALW
   - OTA updates, serial monitoring, and debugging workflows
   - Memory management, SPIFFS/LittleFS, and NVS storage on ESP32
 
+## SSDP Broker Discovery
+
+**CRITICAL - SSDP IMPLEMENTATION DETAILS:**
+
+The RGFX system uses SSDP (Simple Service Discovery Protocol) for ESP32 drivers to discover the Hub's MQTT broker.
+
+**Known Issue with node-ssdp Library:**
+- The `node-ssdp` library used by the Hub has a known bug (GitHub Issue #76)
+- **M-SEARCH queries do NOT work** - Hub cannot respond to M-SEARCH requests
+- **NOTIFY broadcasts DO work** - Hub successfully sends periodic advertisements
+
+**Current Implementation (Fixed):**
+- **Hub** (`rgfx-hub/src/mqtt.ts`): Uses `node-ssdp` with `advertise()` to send NOTIFY broadcasts every 10 seconds
+- **Driver** (`esp32/src/network/mqtt.cpp`): Passively listens for NOTIFY broadcasts using `WiFiUDP.beginMulticast()`
+- **URN**: `urn:rgfx:service:mqtt:1`
+- **Multicast Address**: `239.255.255.250:1900` (standard SSDP)
+- **Timeout**: Driver waits up to 12 seconds to catch at least one broadcast
+
+**NEVER:**
+- Attempt to use M-SEARCH queries with node-ssdp (they don't work)
+- Replace node-ssdp with another library without verifying NOTIFY broadcast support
+- Assume SSDP M-SEARCH/response pattern works by default
+
+**Historical Context:**
+- Previous implementation used mDNS (`MDNS.queryService("mqtt", "tcp")`) but had reliability issues
+- Switched to SSDP in commit eccc7fc
+- Initial SSDP implementation used M-SEARCH pattern (never worked due to node-ssdp bug)
+- Fixed to use NOTIFY broadcast pattern (working implementation)
+
 ## Planning and Documentation Preferences
 
 **CRITICAL - NO TIMELINES IN PLANS:**
