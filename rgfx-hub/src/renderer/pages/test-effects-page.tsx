@@ -21,7 +21,7 @@ import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '~/src/types/mapping-types';
 
 const EFFECTS: Record<string, Record<string, unknown>> = {
-  pulse: { color: 'random', duration: 1000, fade: true },
+  pulse: { color: 'random', duration: 400, fade: true },
   wipe: { color: 'random', duration: 1000 },
   explosion: {
     centerX: 50,
