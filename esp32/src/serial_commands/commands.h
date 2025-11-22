@@ -13,7 +13,7 @@
 /**
  * Serial command handlers.
  *
- * Each command is implemented in its own file (e.g., wifi.cpp, factory_reset.cpp).
+ * Each command is implemented in its own file (e.g., wifi.cpp, reset.cpp).
  * Commands are registered in a lookup table in serial.cpp.
  */
 namespace Commands {
@@ -35,7 +35,7 @@ namespace Commands {
 	 * Factory reset command.
 	 * Erases all WiFi credentials and restarts device.
 	 */
-	void factoryReset(const String& args);
+	void reset(const String& args);
 
 	/**
 	 * Help command.
@@ -44,10 +44,10 @@ namespace Commands {
 	void help(const String& args);
 
 	/**
-	 * System information command.
-	 * Displays device information including network, chip, memory, and uptime.
+	 * System telemetry command.
+	 * Displays device telemetry including network, chip, memory, and uptime.
 	 */
-	void sysInfo(const String& args);
+	void telemetry(const String& args);
 
 	/**
 	 * LED test command.

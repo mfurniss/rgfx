@@ -13,8 +13,8 @@
 
 namespace Commands {
 
-	void factoryReset(const String& args) {
-		log("Factory reset: Erasing all configuration and rebooting...");
+	void reset(const String& args) {
+		log("Reset: Erasing all configuration and rebooting...");
 
 		// Clear NVS configuration (device ID, LED config)
 		ConfigNVS::factoryReset();

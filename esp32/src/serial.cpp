@@ -26,9 +26,9 @@ namespace SerialCommand {
 	// Command lookup table (command name -> handler function)
 	static std::map<String, Commands::CommandHandler> commandRegistry = {
 		{"wifi", Commands::wifi},
-		{"factory_reset", Commands::factoryReset},
+		{"reset", Commands::reset},
 		{"help", Commands::help},
-		{"sys_info", Commands::sysInfo},
+		{"telemetry", Commands::telemetry},
 		{"test_leds", Commands::testLeds},
 	};
 

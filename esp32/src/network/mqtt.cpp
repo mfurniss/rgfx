@@ -1,12 +1,13 @@
 #include "network/mqtt.h"
 #include "network/udp.h"
-#include "sys_info.h"
+#include "telemetry.h"
 #include "log.h"
 #include "utils.h"
 #include "driver_config.h"
 #include "oled/oled_display.h"
 #include "config/constants.h"
 #include "effects/effect_processor.h"
+#include "serial_commands/commands.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
@@ -62,6 +63,12 @@ void mqttCallback(String& topic, String& payload) {
 			log("Test mode DISABLED");
 			publishTestState("off");
 		}
+	}
+
+	// Handle reset command
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reset")) {
+		log("Reset command received - initiating reset...");
+		Commands::reset("");
 	}
 
 }
@@ -216,10 +223,14 @@ void reconnectMQTT() {
 		String testTopic = "rgfx/driver/" + deviceId + "/test";
 		mqttClient.subscribe(testTopic.c_str(), 2);
 
+		String resetTopic = "rgfx/driver/" + deviceId + "/reset";
+		mqttClient.subscribe(resetTopic.c_str(), 2);
+
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - " + macConfigTopic + " (config via MAC)");
 		log("  - " + testTopic);
+		log("  - " + resetTopic);
 
 		// Update display to show MQTT connected
 		if (Display::isAvailable()) {
@@ -270,8 +281,8 @@ void sendDriverTelemetry() {
 		return;  // Silently skip if not connected
 	}
 
-	// Get full system information (including LED config)
-	JsonDocument doc = SysInfo::getSysInfo(g_driverConfig, g_configReceived);
+	// Get full system telemetry (including LED config)
+	JsonDocument doc = Telemetry::getTelemetry(g_driverConfig, g_configReceived);
 
 	// Serialize to string
 	String payload;

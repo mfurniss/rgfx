@@ -8,10 +8,11 @@
 import type { DriverRegistry } from '../driver-registry';
 import type { Mqtt } from '../mqtt';
 import type { UdpClient } from '../types/mapping-types';
-import { registerTestLedsHandler } from './test-leds-handler';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';
 import { registerTriggerEffectHandler } from './trigger-effect-handler';
+import { registerSendDriverCommandHandler } from './send-driver-command-handler';
+import { registerUpdateDriverConfigHandler } from './update-driver-config-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -21,8 +22,9 @@ interface IpcHandlersDeps {
 }
 
 export function registerIpcHandlers(deps: IpcHandlersDeps): void {
-  registerTestLedsHandler(deps);
   registerSetIdHandler(deps);
   registerFlashOtaHandler(deps);
   registerTriggerEffectHandler(deps);
+  registerSendDriverCommandHandler(deps);
+  registerUpdateDriverConfigHandler(deps);
 }
