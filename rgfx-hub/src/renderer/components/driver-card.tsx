@@ -117,7 +117,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ? [
           {
             label: 'Last Updated',
-            value: `${Math.floor((now - driver.lastHeartbeat) / 1000)}s ago`,
+            value: `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`,
           },
         ]
       : []),
