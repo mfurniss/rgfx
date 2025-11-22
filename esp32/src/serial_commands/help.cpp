@@ -17,8 +17,8 @@ namespace Commands {
 		log("                       Supports quoted strings for SSIDs/passwords with spaces");
 		log("                       Example: wifi MyNetwork MyPassword123");
 		log("                       Example: wifi \"My Network\" \"My Password 123\"");
-		log("factory_reset        - Erase WiFi credentials and restart");
-		log("sys_info             - Display system information (JSON)");
+		log("reset                - Erase WiFi credentials and restart");
+		log("telemetry            - Display system telemetry (JSON)");
 		log("test_leds on|off     - Enable/disable LED test pattern");
 		log("help                 - Show this help message");
 	}
