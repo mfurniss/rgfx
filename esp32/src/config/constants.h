@@ -50,11 +50,11 @@ constexpr const char* MQTT_PASSWORD = "";
 /** MQTT buffer size for large JSON payloads */
 constexpr uint16_t MQTT_BUFFER_SIZE = 1024;
 
+/** SSDP broker discovery poll interval (milliseconds) */
+constexpr uint16_t SSDP_POLL_INTERVAL_MS = 3000;  // 3 seconds
+
 /** MQTT reconnection retry interval (milliseconds) */
 constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000;
-
-/** Max consecutive MQTT failures before rediscovery (3 failures = 15 seconds) */
-constexpr int MAX_FAILURES_BEFORE_REDISCOVERY = 3;
 
 /** MQTT topic for test commands */
 constexpr const char* MQTT_TOPIC_TEST = "rgfx/test";
@@ -63,7 +63,7 @@ constexpr const char* MQTT_TOPIC_TEST = "rgfx/test";
 constexpr const char* MQTT_TOPIC_STATUS = "led/status";
 
 /** MQTT telemetry broadcast interval (milliseconds) - periodic heartbeat */
-constexpr unsigned long TELEMETRY_INTERVAL_MS = 5000;  // 5 seconds
+constexpr unsigned long TELEMETRY_INTERVAL_MS = 10000;  // 10 seconds
 
 // ============================================================================
 // Timing & Update Configuration

@@ -36,9 +36,9 @@ export const SSDP_SERVICE_URN = 'urn:rgfx:service:mqtt:1';
 /**
  * Connection timeout for drivers (milliseconds).
  * Drivers are considered connected if telemetry received within this window.
- * Default: 15000ms (15 seconds) = 3× the 5s telemetry interval for tolerance.
+ * Default: 30000ms (30 seconds) = 3× the 10s telemetry interval for tolerance.
  */
-export const DRIVER_CONNECTION_TIMEOUT_MS = 15000;
+export const DRIVER_CONNECTION_TIMEOUT_MS = 30000;
 
 // ============================================================================
 // Application Window Configuration

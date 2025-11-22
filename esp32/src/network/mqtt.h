@@ -19,6 +19,7 @@ extern uint32_t mqttMessagesReceived;
 
 // Function declarations
 void setupMQTT();
+bool discoverMQTTBroker();
 void reconnectMQTT();
 void mqttLoop();
 void sendDriverTelemetry();
