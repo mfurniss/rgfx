@@ -214,8 +214,20 @@ Merged hub-firmware-updater branch completing the firmware management system wit
 
 ---
 
-**Total Development Time:** 40 days (October 11 - November 20, 2025)
-**Total Commits:** 255
+---
+
+## November 21, 2025
+
+Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s for more efficient network usage. Removed consecutive failure tracking and rediscovery logic.
+
+Implemented driver disconnection detection with 30-second timeout (3× telemetry interval). Fixed critical bug where drivers weren't showing as disconnected in Hub UI when unplugged. Converted `Driver.connected` from computed getter to stored property enabling Zustand to properly detect state changes. Added interval timer in driver-store checking for stale connections every 5 seconds, only updating state when connection status actually changes to prevent unnecessary re-renders. Firmware size reduced by 1,456 bytes from removing retry logic.
+
+**Key insight:** Zustand only triggers re-renders on actual state property changes, not computed getters. The previous getter calculated `connected` on-access but never triggered updates when time passed without telemetry. The new approach explicitly updates the `connected` property when timeout is detected, enabling proper reactive updates throughout the UI.
+
+---
+
+**Total Development Time:** 41 days (October 11 - November 21, 2025)
+**Total Commits:** 257
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
@@ -235,3 +247,4 @@ Merged hub-firmware-updater branch completing the firmware management system wit
 - Manual effect testing interface with real-time parameter controls
 - Event-driven telemetry for optimal renderer performance
 - Particle-based explosion effect with shared FIFO pool architecture
+- Robust driver disconnection detection with timeout-based status tracking
