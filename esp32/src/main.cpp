@@ -67,6 +67,9 @@ void networkTask(void* parameter) {
 	// Track last uptime update for periodic display refresh
 	unsigned long lastUptimeUpdate = 0;
 
+	// Track last SSDP discovery poll
+	unsigned long lastSsdpPoll = 0;
+
 	// Track last telemetry broadcast
 	unsigned long lastTelemetryBroadcast = 0;
 
@@ -78,11 +81,19 @@ void networkTask(void* parameter) {
 		// Handle MQTT independently (only needs WiFi)
 		bool isConnected = ConfigPortal::isWiFiConnected();
 		if (isConnected && mqttSetupDone) {
+			unsigned long now = millis();
+
+			// Poll for MQTT broker via SSDP every 3 seconds (until found)
+			if (!mqttClient.connected() && (now - lastSsdpPoll >= SSDP_POLL_INTERVAL_MS)) {
+				discoverMQTTBroker();
+				lastSsdpPoll = now;
+			}
+
+			// Process MQTT connection and messages
 			mqttLoop();
 
-			// Send periodic telemetry (heartbeat)
-			unsigned long now = millis();
-			if (now - lastTelemetryBroadcast >= TELEMETRY_INTERVAL_MS) {
+			// Send periodic telemetry (only after MQTT connected)
+			if (mqttClient.connected() && (now - lastTelemetryBroadcast >= TELEMETRY_INTERVAL_MS)) {
 				sendDriverTelemetry();
 				lastTelemetryBroadcast = now;
 			}
