@@ -1,12 +1,13 @@
 #include "network/mqtt.h"
 #include "network/udp.h"
-#include "sys_info.h"
+#include "telemetry.h"
 #include "log.h"
 #include "utils.h"
 #include "driver_config.h"
 #include "oled/oled_display.h"
 #include "config/constants.h"
 #include "effects/effect_processor.h"
+#include "serial_commands/commands.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
@@ -64,90 +65,93 @@ void mqttCallback(String& topic, String& payload) {
 		}
 	}
 
+	// Handle reset command
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reset")) {
+		log("Reset command received - initiating reset...");
+		Commands::reset("");
+	}
+
 }
 
-// Discover MQTT broker via SSDP (Simple Service Discovery Protocol)
-// Single attempt - called periodically from networkTask
+// Discover MQTT broker via UDP broadcast
+// Listens for discovery announcements from Hub - single attempt called periodically from networkTask
 bool discoverMQTTBroker() {
 	IPAddress ourIP = WiFi.localIP();
 	IPAddress ourSubnet = WiFi.subnetMask();
 
 	WiFiUDP udp;
-	IPAddress ssdpMulticast(239, 255, 255, 250);
-	const uint16_t ssdpPort = 1900;
+	const uint16_t discoveryPort = 8889;
 
-	// SSDP M-SEARCH query for RGFX MQTT service
-	String msearch = "M-SEARCH * HTTP/1.1\r\n"
-	                 "HOST: 239.255.255.250:1900\r\n"
-	                 "MAN: \"ssdp:discover\"\r\n"
-	                 "MX: 3\r\n"
-	                 "ST: urn:rgfx:service:mqtt:1\r\n"
-	                 "\r\n";
+	// Bind to discovery port to receive broadcasts
+	if (!udp.begin(discoveryPort)) {
+		log("Failed to bind UDP discovery port " + String(discoveryPort));
+		return false;
+	}
 
-	// Bind UDP socket BEFORE sending to receive responses
-	udp.begin(ssdpPort);
+	log("Listening for broker discovery broadcasts on port " + String(discoveryPort) + "...");
 
-	// Send M-SEARCH query
-	udp.beginPacket(ssdpMulticast, ssdpPort);
-	udp.write((const uint8_t*)msearch.c_str(), msearch.length());
-	udp.endPacket();
-
-	// Listen for responses (wait up to 3 seconds)
+	// Listen for broadcasts (Hub sends every 5 seconds, so wait 6 seconds minimum)
 	unsigned long startTime = millis();
-	while (millis() - startTime < 3000) {
+	uint16_t packetsReceived = 0;
+	while (millis() - startTime < 6000) {
 		int packetSize = udp.parsePacket();
 		if (packetSize > 0) {
-			char response[512];
-			int len = udp.read(response, sizeof(response) - 1);
-			response[len] = '\0';
+			packetsReceived++;
+			log("Received discovery packet #" + String(packetsReceived) + " (" + String(packetSize) + " bytes) from " + udp.remoteIP().toString());
 
-			String responseStr = String(response);
+			char packet[512];
+			int len = udp.read(packet, sizeof(packet) - 1);
+			packet[len] = '\0';
 
-			// Parse LOCATION header to extract IP and port
-			int locIdx = responseStr.indexOf("LOCATION:");
-			if (locIdx == -1) {
-				locIdx = responseStr.indexOf("Location:");
+			// Parse JSON message: {"service":"rgfx-mqtt-broker","ip":"192.168.10.23","port":1883}
+			JsonDocument doc;
+			DeserializationError error = deserializeJson(doc, packet);
+
+			if (error) {
+				log("Failed to parse discovery message: " + String(error.c_str()));
+				continue;
 			}
 
-			if (locIdx != -1) {
-				int lineEnd = responseStr.indexOf("\r\n", locIdx);
-				String location = responseStr.substring(locIdx + 9, lineEnd);
-				location.trim();
+			// Check if this is an RGFX MQTT broker announcement
+			const char* service = doc["service"];
+			if (service && String(service) == "rgfx-mqtt-broker") {
+				const char* ipStr = doc["ip"];
+				int port = doc["port"] | 0;
 
-				// Extract IP from location (format: http://IP:PORT)
-				int ipStart = location.indexOf("//") + 2;
-				int ipEnd = location.indexOf(":", ipStart);
-				String ipStr = location.substring(ipStart, ipEnd);
-
-				IPAddress brokerIP;
-				if (brokerIP.fromString(ipStr)) {
-					// Check if on same subnet
-					bool sameSubnet = true;
-					for (int j = 0; j < 4; j++) {
-						if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
-							sameSubnet = false;
-							break;
+				if (ipStr && port > 0) {
+					IPAddress brokerIP;
+					if (brokerIP.fromString(ipStr)) {
+						// Check if on same subnet
+						bool sameSubnet = true;
+						for (int j = 0; j < 4; j++) {
+							if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
+								sameSubnet = false;
+								break;
+							}
 						}
-					}
 
-					if (sameSubnet) {
-						MQTT_SERVER = ipStr;
-						log("MQTT broker discovered: " + MQTT_SERVER);
-						brokerDiscovered = true;
+						if (sameSubnet) {
+							MQTT_SERVER = String(ipStr);
+							log("MQTT broker discovered via UDP broadcast: " + MQTT_SERVER + ":" + String(port));
+							brokerDiscovered = true;
 
-						// Update client with discovered broker address
-						mqttClient.setHost(MQTT_SERVER.c_str(), MQTT_PORT);
+							// Update client with discovered broker address
+							mqttClient.setHost(MQTT_SERVER.c_str(), port);
 
-						udp.stop();
-						return true;
+							udp.stop();
+							return true;
+						} else {
+							log("Broker on different subnet - ignoring");
+						}
 					}
 				}
 			}
 		}
 		delay(10);
 	}
-	udp.stop();
 
+	log("No broker discovery broadcasts received within timeout");
+	udp.stop();
 	return false;
 }
 
@@ -216,10 +220,14 @@ void reconnectMQTT() {
 		String testTopic = "rgfx/driver/" + deviceId + "/test";
 		mqttClient.subscribe(testTopic.c_str(), 2);
 
+		String resetTopic = "rgfx/driver/" + deviceId + "/reset";
+		mqttClient.subscribe(resetTopic.c_str(), 2);
+
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - " + macConfigTopic + " (config via MAC)");
 		log("  - " + testTopic);
+		log("  - " + resetTopic);
 
 		// Update display to show MQTT connected
 		if (Display::isAvailable()) {
@@ -270,8 +278,8 @@ void sendDriverTelemetry() {
 		return;  // Silently skip if not connected
 	}
 
-	// Get full system information (including LED config)
-	JsonDocument doc = SysInfo::getSysInfo(g_driverConfig, g_configReceived);
+	// Get full system telemetry (including LED config)
+	JsonDocument doc = Telemetry::getTelemetry(g_driverConfig, g_configReceived);
 
 	// Serialize to string
 	String payload;

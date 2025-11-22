@@ -115,9 +115,18 @@ void cleanupNetworkServices(Matrix& matrix) {
 	otaSetupDone = false;
 }
 
+// Forward declaration of global matrix from main.cpp
+extern Matrix* matrix;
+
 // Overload without Matrix for when it's not ready
 void setupNetworkServices() {
 	log("WiFi connected - setting up OTA, MQTT and UDP (no LED feedback yet)");
+
+	// Clear LEDs if matrix is available (e.g., after reset when purple LEDs remain lit)
+	if (matrix != nullptr) {
+		fill_solid(matrix->leds, matrix->size, CRGB::Black);
+		FastLED.show();
+	}
 
 	// Disable WiFi power saving for low latency UDP
 	WiFi.setSleep(WIFI_PS_NONE);

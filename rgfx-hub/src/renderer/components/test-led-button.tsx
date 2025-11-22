@@ -10,10 +10,10 @@ interface TestLedButtonProps {
 const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
   const [testRequestPending, setTestRequestPending] = useState(false);
 
-  // Clear pending state when driver's testActive state changes
+  // Clear pending state when driver's testActive state changes OR when driver connects/disconnects
   useEffect(() => {
     setTestRequestPending(false);
-  }, [driver.testActive]);
+  }, [driver.testActive, driver.connected]);
 
   const handleTestToggle = () => {
     if (testRequestPending) {
@@ -22,7 +22,18 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
 
     const newTestMode = !(driver.testActive ?? false);
     setTestRequestPending(true);
-    void window.rgfx.testDriverLEDs(driver.id, newTestMode);
+
+    void (async () => {
+      try {
+        if (newTestMode) {
+          await window.rgfx.updateDriverConfig(driver.id);
+        }
+        await window.rgfx.sendDriverCommand(driver.id, 'test', newTestMode ? 'on' : 'off');
+      } catch (error) {
+        console.error('Failed to toggle test mode:', error);
+        setTestRequestPending(false);
+      }
+    })();
   };
 
   const getTooltipText = () => {

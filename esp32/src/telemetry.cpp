@@ -1,4 +1,4 @@
-#include "sys_info.h"
+#include "telemetry.h"
 #include "utils.h"
 #include "oled/oled_display.h"
 #include "version.h"
@@ -8,7 +8,7 @@
 // External test mode state
 extern volatile bool testModeActive;
 
-JsonDocument SysInfo::getSysInfo(const DriverConfigData& driverConfig, bool configReceived) {
+JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool configReceived) {
 	JsonDocument doc;
 
 	// Network information
