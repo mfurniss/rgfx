@@ -25,6 +25,7 @@ class PulseEffect : public IEffect {
 	};
 
 	std::vector<Pulse> pulses;  // Dynamic array of active pulses
+	const Matrix& matrix;
 	Canvas canvas;
 
    public:
