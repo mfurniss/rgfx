@@ -41,7 +41,8 @@ class Canvas {
     uint16_t getHeight() const;
     uint32_t getSize() const;
 
-    void setPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode = BlendMode::REPLACE);
+    void drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode = BlendMode::REPLACE);
+    void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t rgbaValue, BlendMode mode = BlendMode::REPLACE);
     uint32_t getPixel(uint16_t x, uint16_t y) const;
     uint32_t* getPixels() const;
 

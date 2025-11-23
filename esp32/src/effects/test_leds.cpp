@@ -21,51 +21,20 @@ void TestLedsEffect::render() {
 	if (matrix.layout == "strip") {
 		uint16_t segmentWidth = canvasWidth / 4;
 
-		for (uint16_t y = 0; y < canvasHeight; y++) {
-			for (uint16_t x = 0; x < canvasWidth; x++) {
-				uint8_t segment = x / segmentWidth;
-				if (segment > 3)
-					segment = 3;
-
-				uint32_t color;
-				switch (segment) {
-					case 0:
-						color = RGBA(255, 0, 0, 255);
-						break;  // Red
-					case 1:
-						color = RGBA(0, 255, 0, 255);
-						break;  // Green
-					case 2:
-						color = RGBA(0, 0, 255, 255);
-						break;  // Blue
-					case 3:
-						color = RGBA(255, 255, 0, 255);
-						break;  // Yellow
-					default:
-						color = RGBA(255, 255, 0, 255);
-						break;
-				}
-
-				canvas.setPixel(x, y, color);
-			}
-		}
+		canvas.drawRectangle(0, 0, segmentWidth, canvasHeight, RGBA(255, 0, 0, 255));
+		canvas.drawRectangle(segmentWidth, 0, segmentWidth, canvasHeight, RGBA(0, 255, 0, 255));
+		canvas.drawRectangle(segmentWidth * 2, 0, segmentWidth, canvasHeight, RGBA(0, 0, 255, 255));
+		canvas.drawRectangle(segmentWidth * 3, 0, segmentWidth, canvasHeight, RGBA(255, 255, 0, 255));
 	}
 	// Matrix layout: 4 quadrants (TL=Red, TR=Green, BL=Blue, BR=Yellow)
 	else {
 		uint16_t midX = canvasWidth / 2;
 		uint16_t midY = canvasHeight / 2;
 
-		for (uint16_t y = 0; y < canvasHeight; y++) {
-			for (uint16_t x = 0; x < canvasWidth; x++) {
-				uint32_t color;
-				if (y < midY) {
-					color = (x < midX) ? RGBA(255, 0, 0, 255) : RGBA(0, 255, 0, 255);
-				} else {
-					color = (x < midX) ? RGBA(0, 0, 255, 255) : RGBA(255, 255, 0, 255);
-				}
-				canvas.setPixel(x, y, color);
-			}
-		}
+		canvas.drawRectangle(0, 0, midX, midY, RGBA(255, 0, 0, 255));          // Top-Left: Red
+		canvas.drawRectangle(midX, 0, midX, midY, RGBA(0, 255, 0, 255));       // Top-Right: Green
+		canvas.drawRectangle(0, midY, midX, midY, RGBA(0, 0, 255, 255));       // Bottom-Left: Blue
+		canvas.drawRectangle(midX, midY, midX, midY, RGBA(255, 255, 0, 255));  // Bottom-Right: Yellow
 	}
 }
 
