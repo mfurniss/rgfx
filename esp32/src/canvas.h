@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+class Matrix;
+
 // RGBA color format macros (0xRRGGBBAA)
 #define RGBA(r, g, b, a) \
     (((uint32_t)(r) << 24) | ((uint32_t)(g) << 16) | \
@@ -34,7 +36,7 @@ class Canvas {
     void blendAverage(uint32_t& existing, uint32_t incoming) const;
 
   public:
-    Canvas(uint16_t width, uint16_t height);
+    Canvas(const Matrix& matrix);
     ~Canvas();
 
     uint16_t getWidth() const;

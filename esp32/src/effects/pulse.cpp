@@ -7,7 +7,7 @@ static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 1000;
 static const bool DEFAULT_FADE = true;
 
-PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m.width * 4, m.height * 4) {}
+PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;

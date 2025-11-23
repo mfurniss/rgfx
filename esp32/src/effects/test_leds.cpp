@@ -1,7 +1,7 @@
 #include "test_leds.h"
 #include "canvas.h"
 
-TestLedsEffect::TestLedsEffect(const Matrix& m) : canvas(m.width * 4, m.height * 4), matrix(m) {}
+TestLedsEffect::TestLedsEffect(const Matrix& m) : canvas(m), matrix(m) {}
 
 void TestLedsEffect::add(JsonDocument& props) {
 	(void)props;

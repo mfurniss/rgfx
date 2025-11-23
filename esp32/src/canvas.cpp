@@ -1,8 +1,11 @@
 #include "canvas.h"
+#include "matrix.h"
 #include <cstring>
 
-Canvas::Canvas(uint16_t width, uint16_t height)
-    : width(width), height(height), size(width * height) {
+Canvas::Canvas(const Matrix& matrix)
+    : width(matrix.width * 4),
+      height((matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.height * 4),
+      size(width * height) {
     pixels = new uint32_t[size];
     clear();
 }
