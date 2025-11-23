@@ -15,6 +15,7 @@ import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
+import { useDriverStore } from '../store/driver-store';
 
 interface DriverCardProps {
   driver: Driver;
@@ -25,6 +26,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const location = useLocation();
   const { telemetry } = driver;
   const [now, setNow] = useState(Date.now());
+  const currentFirmwareVersion = useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
 
   // Update every second for live timestamps and uptime - only when component is visible
   useEffect(() => {
@@ -242,16 +244,21 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             </IconButton>
             <Typography variant="h6">{driver.id}</Typography>
           </Box>
-          {driver.connected && !driver.ledConfig ? (
+          {!driver.connected ? (
+            <Chip label="Disconnected" color="error" size="small" />
+          ) : currentFirmwareVersion && telemetry?.firmwareVersion !== currentFirmwareVersion ? (
+            <Tooltip
+              title={`Driver: ${telemetry?.firmwareVersion ?? 'unknown'}, Hub: ${currentFirmwareVersion}`}
+              arrow
+            >
+              <Chip label="Update Available" color="warning" size="small" />
+            </Tooltip>
+          ) : !driver.ledConfig ? (
             <Tooltip title="Connected but needs LED configuration" arrow>
-              <Chip label="Connected" color="warning" size="small" />
+              <Chip label="Needs Configuration" color="warning" size="small" />
             </Tooltip>
           ) : (
-            <Chip
-              label={driver.connected ? 'Connected' : 'Disconnected'}
-              color={driver.connected ? 'success' : 'error'}
-              size="small"
-            />
+            <Chip label="Connected" color="success" size="small" />
           )}
         </Box>
       </Paper>

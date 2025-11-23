@@ -68,6 +68,16 @@ def copy_to_hub_public(project_root, build_dir):
     manifest_path = hub_firmware_dir / 'manifest.json'
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
     print(f"  ✓ manifest.json")
+
+    # Write version.json (used by FirmwareVersionService in Hub)
+    version_json = {
+        'version': version,
+        'generatedAt': manifest['generatedAt']
+    }
+    version_path = hub_firmware_dir / 'version.json'
+    version_path.write_text(json.dumps(version_json, indent=2) + '\n')
+    print(f"  ✓ version.json")
+
     print(f"Firmware v{version} copied to Hub public folder\n")
 
 def copy_firmware_standalone():
@@ -136,8 +146,11 @@ def copy_firmware_pio(source, target, env):
         'firmware.bin': Path(firmware_source),
         'bootloader.bin': build_dir / 'bootloader.bin',
         'partitions.bin': build_dir / 'partitions.bin',
-        'boot_app0.bin': Path(env['FLASH_EXTRA_IMAGES'][2][1])  # boot_app0.bin from framework
     }
+
+    # boot_app0.bin is only available during serial uploads, not OTA
+    if 'FLASH_EXTRA_IMAGES' in env:
+        files_to_copy['boot_app0.bin'] = Path(env['FLASH_EXTRA_IMAGES'][2][1])
 
     print("\nCopying files to esp32-installer:")
     for dest_name, source_path in files_to_copy.items():
@@ -147,6 +160,11 @@ def copy_firmware_pio(source, target, env):
             print(f"  ✓ {dest_name}")
         else:
             print(f"  ✗ {dest_name} not found at {source_path}")
+
+    # Check if boot_app0.bin exists in installer dir (should be there from git)
+    boot_app0_path = installer_dir / 'boot_app0.bin'
+    if boot_app0_path.exists() and 'boot_app0.bin' not in files_to_copy:
+        print(f"  ✓ boot_app0.bin (already present)")
 
     print("All files copied successfully!\n")
 
@@ -162,3 +180,5 @@ else:
     Import("env")
     # Register the callback to run after build
     env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", copy_firmware_pio)
+    # Also run before upload to ensure version.json is always updated
+    env.AddPreAction("upload", copy_firmware_pio)
