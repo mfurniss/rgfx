@@ -7,6 +7,7 @@
 
 import { networkInterfaces } from 'node:os';
 import type { SystemStatus } from './types';
+import { firmwareVersionService } from './services/firmware-version-service';
 
 export class SystemMonitor {
   private readonly hubStartTime: number;
@@ -36,6 +37,7 @@ export class SystemMonitor {
       hubIp: this.getLocalIpAddress(),
       eventsProcessed,
       hubStartTime: this.hubStartTime,
+      currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
     };
   }
 }

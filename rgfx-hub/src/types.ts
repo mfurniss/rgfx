@@ -250,6 +250,7 @@ export interface SystemStatus {
   hubIp: string;
   eventsProcessed: number;
   hubStartTime: number;
+  currentFirmwareVersion?: string;
 }
 
 export interface EventTopicData {

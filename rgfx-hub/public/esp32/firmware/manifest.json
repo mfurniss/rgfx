@@ -1,24 +1,5 @@
 {
-  "version": "0.0.2-dev.104+6976fba-dirty",
-  "generatedAt": "2025-11-23T02:06:34.500637+00:00",
-  "files": [
-    {
-      "name": "bootloader.bin",
-      "address": 4096,
-      "size": 17536,
-      "sha256": "3d234a7471f67b013686dabd4dee7c1fa915c9928463616a94bc9297acf1abf8"
-    },
-    {
-      "name": "partitions.bin",
-      "address": 32768,
-      "size": 3072,
-      "sha256": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1"
-    },
-    {
-      "name": "firmware.bin",
-      "address": 65536,
-      "size": 1044480,
-      "sha256": "4ec3f6d88af1240982fec54316afb0c43716a6452ef3728f2bb25d71297750b9"
-    }
-  ]
+  "version": "0.0.2-dev.192+c0ec439-dirty.20251122190003",
+  "generatedAt": "2025-11-23T03:03:08.930621+00:00",
+  "files": []
 }

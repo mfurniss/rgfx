@@ -10,7 +10,8 @@ const config: ForgeConfig = {
     asar: true,
     icon: "./assets/icons/icon",
     extraResource: [
-      "./config"
+      "./config",
+      "./public/esp32/firmware"
     ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [
