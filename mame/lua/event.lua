@@ -93,14 +93,10 @@ function _G.event(topic, message)
 	-- Wrap entire write operation in pcall for maximum robustness
 	local ok, result, err = pcall(function()
 		-- Lua's io.write() returns the file handle on success, nil + error on failure
+		-- Note: setvbuf("no") already disables buffering, so flush() is redundant
 		local handle, write_err = event_file:write(string.format("%s %s\n", topic, message))
 		if not handle then
 			return nil, write_err
-		end
-		-- Explicitly flush to ensure data is written immediately
-		local flush_handle, flush_err = event_file:flush()
-		if not flush_handle then
-			return nil, flush_err or "flush failed"
 		end
 		return true
 	end)

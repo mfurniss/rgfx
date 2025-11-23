@@ -167,6 +167,13 @@ void setup() {
 // Main loop - runs on Core 1 (application core)
 // Focused on time-critical LED effects and low-latency UDP processing
 void loop() {
+	// Process UDP FIRST - outside frame rate gate for lowest latency
+	// This ensures UDP packets are processed immediately without waiting for frame timing
+	bool isConnected = ConfigPortal::isWiFiConnected();
+	if (isConnected && udpSetupDone) {
+		processUDP();
+	}
+
 	// Frame rate limiting (VRR with configurable soft cap)
 	// Calculate minimum frame time based on configured update rate (default 120 FPS)
 	static uint32_t lastFrameTime = 0;
@@ -174,6 +181,7 @@ void loop() {
 	uint32_t minFrameTimeMs = 1000 / g_driverConfig.updateRate;  // e.g., 8ms @ 120 FPS
 
 	// Early return if not enough time has elapsed (non-blocking time-based gating)
+	// Note: UDP processing above still happens every iteration for low latency
 	if (now - lastFrameTime < minFrameTimeMs) {
 		yield();  // Give time to other tasks
 		return;
@@ -188,7 +196,7 @@ void loop() {
 	(void)deltaTime;  // Suppress unused variable warning until effects system uses it
 
 	// Check WiFi connection state and update LEDs accordingly
-	bool isConnected = ConfigPortal::isWiFiConnected();
+	// Note: isConnected already declared at top of loop() for UDP processing
 	String state = ConfigPortal::getStateName();
 
 	// Check if in AP mode (NotConfigured or ApMode states)
@@ -264,12 +272,10 @@ void loop() {
 		}
 	}
 
-	// Core 1: Only process UDP and LED effects (time-critical tasks)
+	// Core 1: Process LED effects (time-critical tasks)
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
+	// UDP is processed at top of loop() for lowest latency
 	if (isConnected && udpSetupDone) {
-		// Process incoming UDP packets (low-latency game events)
-		processUDP();
-
 		// Initialize effect processor on first run (only if matrix is ready)
 		if (effectProcessor == nullptr && matrix != nullptr) {
 			effectProcessor = new EffectProcessor(*matrix);
