@@ -251,8 +251,8 @@ void ExplosionEffect::render() {
 
 				// Render particle at this X position for all Y
 				for (uint16_t y = 0; y < height; y++) {
-					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                BlendMode::ALPHA);
+					canvas.drawPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                 BlendMode::ALPHA);
 				}
 			}
 		} else {
@@ -267,8 +267,8 @@ void ExplosionEffect::render() {
 						continue;
 					}
 
-					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                BlendMode::ADDITIVE);
+					canvas.drawPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                 BlendMode::ADDITIVE);
 				}
 			}
 		}
