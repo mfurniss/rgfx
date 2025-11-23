@@ -1,4 +1,4 @@
-#include "explosion.h"
+#include "explode.h"
 #include "effect_utils.h"
 #include "canvas.h"
 #include <FastLED.h>
@@ -16,11 +16,11 @@ static const float DEFAULT_FRICTION = 2.0f;
 static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
-ExplosionEffect::ExplosionEffect(const Matrix& m) : canvas(m), matrix(m), nextExplosionId(0) {
+ExplodeEffect::ExplodeEffect(const Matrix& m) : canvas(m), matrix(m), nextExplosionId(0) {
 	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
 }
 
-void ExplosionEffect::add(JsonDocument& props) {
+void ExplodeEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : randomColor();
 	uint32_t particleCount = props["particleCount"] | DEFAULT_PARTICLE_COUNT;
 	particleCount = min(particleCount, MAX_PARTICLE_POOL_SIZE);
@@ -149,7 +149,7 @@ void ExplosionEffect::add(JsonDocument& props) {
 	explosions.push_back(newExplosion);
 }
 
-void ExplosionEffect::update(float deltaTime) {
+void ExplodeEffect::update(float deltaTime) {
 	canvas.clear();
 
 	// Cache deltaTime in milliseconds to avoid redundant calculations
@@ -217,7 +217,7 @@ void ExplosionEffect::update(float deltaTime) {
 	}
 }
 
-void ExplosionEffect::render() {
+void ExplodeEffect::render() {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
@@ -267,11 +267,11 @@ void ExplosionEffect::render() {
 	}
 }
 
-void ExplosionEffect::reset() {
+void ExplodeEffect::reset() {
 	particlePool.clear();
 	explosions.clear();
 }
 
-Canvas& ExplosionEffect::getCanvas() {
+Canvas& ExplodeEffect::getCanvas() {
 	return canvas;
 }
