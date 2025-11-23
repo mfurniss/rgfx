@@ -101,7 +101,11 @@ void ExplosionEffect::add(JsonDocument& props) {
 		// Apply hue spread if non-zero
 		if (hueSpread > 0) {
 			// Convert to HSV for hue manipulation
-			CRGB baseRgb(baseR, baseG, baseB);
+			// Use raw array to avoid GRB layout confusion
+			CRGB baseRgb;
+			baseRgb.raw[0] = baseG;
+			baseRgb.raw[1] = baseR;
+			baseRgb.raw[2] = baseB;
 			CHSV baseHsv = rgb2hsv_approximate(baseRgb);
 
 			// Convert hueSpread from degrees (0-360) to 8-bit (0-255) for FastLED
@@ -116,9 +120,10 @@ void ExplosionEffect::add(JsonDocument& props) {
 
 			// Convert back to RGB
 			CRGB particleRgb = particleHsv;
-			p.r = particleRgb.r;
-			p.g = particleRgb.g;
-			p.b = particleRgb.b;
+			// FastLED stores in GRB order internally, so read accordingly
+			p.g = particleRgb.raw[0];
+			p.r = particleRgb.raw[1];
+			p.b = particleRgb.raw[2];
 		} else {
 			// No hue spread - use original RGB color directly
 			p.r = baseR;
