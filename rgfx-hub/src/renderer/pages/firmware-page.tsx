@@ -54,6 +54,27 @@ const FirmwarePage: React.FC = () => {
     setLogMessages((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
   };
 
+  // Subscribe to OTA flash events
+  useEffect(() => {
+    const unsubscribeState = window.rgfx.onFlashOtaState((state: string): void => {
+      addLog(`OTA state: ${state}`);
+    });
+
+    const unsubscribeProgress = window.rgfx.onFlashOtaProgress(
+      (progressData: { sent: number; total: number; percent: number }): void => {
+        setProgress(progressData.percent);
+        addLog(
+          `OTA progress: ${progressData.percent}% (${progressData.sent}/${progressData.total} bytes)`
+        );
+      }
+    );
+
+    return (): void => {
+      unsubscribeState();
+      unsubscribeProgress();
+    };
+  }, []);
+
   // Reset port selection when switching methods
   useEffect(() => {
     if (flashMethod === 'usb') {

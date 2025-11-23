@@ -78,6 +78,31 @@ export const rgfxAPI = {
     };
   },
 
+  onFlashOtaState: (callback: (state: string) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: string): void => {
+      callback(state);
+    };
+    ipcRenderer.on('flash:ota:state', handler);
+    return () => {
+      ipcRenderer.removeListener('flash:ota:state', handler);
+    };
+  },
+
+  onFlashOtaProgress: (
+    callback: (progress: { sent: number; total: number; percent: number }) => void
+  ): (() => void) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      progress: { sent: number; total: number; percent: number }
+    ): void => {
+      callback(progress);
+    };
+    ipcRenderer.on('flash:ota:progress', handler);
+    return () => {
+      ipcRenderer.removeListener('flash:ota:progress', handler);
+    };
+  },
+
   sendDriverCommand: (driverId: string, command: string, payload?: string): Promise<void> => {
     return ipcRenderer.invoke('driver:send-command', driverId, command, payload);
   },

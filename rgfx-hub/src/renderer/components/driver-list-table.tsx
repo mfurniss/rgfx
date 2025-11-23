@@ -16,6 +16,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import type { Driver } from '~/src/types';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 import { useUiStore, type SortField } from '../store/ui-store';
+import { useDriverStore } from '../store/driver-store';
 
 interface DriverListTableProps {
   drivers: Driver[];
@@ -36,6 +37,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const sortField = useUiStore((state) => state.driverTableSortField);
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
+  const currentFirmwareVersion = useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
   const [, setCurrentTime] = useState(Date.now());
 
   // Update current time every second for live relative timestamps - only when component is visible
@@ -121,28 +123,28 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>{driver.id}</TableCell>
               <TableCell>{driver.ip ?? ''}</TableCell>
               <TableCell>
-                {driver.connected && !driver.ledConfig ? (
-                  <Tooltip title="Needs LED configuration" arrow>
-                    <Chip label="Connected" color="warning" size="small" />
+                {!driver.connected ? (
+                  <Chip label="Disconnected" color="error" size="small" />
+                ) : currentFirmwareVersion &&
+                  driver.telemetry?.firmwareVersion !== currentFirmwareVersion ? (
+                  <Tooltip
+                    title={`Driver: ${driver.telemetry?.firmwareVersion ?? 'unknown'}, Hub: ${currentFirmwareVersion}`}
+                    arrow
+                  >
+                    <Chip label="Update Available" color="warning" size="small" />
                   </Tooltip>
-                ) : (
+                ) : !driver.ledConfig ? (
+                  <Tooltip title="Needs LED configuration" arrow>
+                    <Chip label="Needs Configuration" color="warning" size="small" />
+                  </Tooltip>
+                ) : driver.failedHeartbeats > 0 ? (
                   <Chip
-                    label={
-                      driver.connected
-                        ? driver.failedHeartbeats > 0
-                          ? `Connected (${driver.failedHeartbeats} missed)`
-                          : 'Connected'
-                        : 'Disconnected'
-                    }
-                    color={
-                      driver.connected
-                        ? driver.failedHeartbeats > 0
-                          ? 'warning'
-                          : 'success'
-                        : 'error'
-                    }
+                    label={`Connected (${driver.failedHeartbeats} missed)`}
+                    color="warning"
                     size="small"
                   />
+                ) : (
+                  <Chip label="Connected" color="success" size="small" />
                 )}
               </TableCell>
               <TableCell>
