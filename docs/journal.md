@@ -226,8 +226,24 @@ Implemented driver disconnection detection with 30-second timeout (3× telemetry
 
 ---
 
-**Total Development Time:** 41 days (October 11 - November 21, 2025)
-**Total Commits:** 257
+## November 23, 2025
+
+Fixed critical firmware version system bug where version injection script (inject_version.py) wasn't running during PlatformIO builds. The script only executed in standalone mode due to `if __name__ == '__main__':` guard - PlatformIO imports scripts as modules which bypassed this block. Fixed by adding PlatformIO integration via Import("env") with dual-mode support: standalone mode uses `__file__` to locate project root, while PlatformIO mode uses `env.get("PROJECT_DIR")`. Script now runs automatically on every build.
+
+Eliminated timestamp drift between version injection and firmware file copy by changing copy_firmware.py to read version directly from generated version.h instead of re-running get-version.js. This ensures firmware filename exactly matches the compiled version baked into the binary.
+
+Simplified firmware version service to read version from firmware filename pattern (rgfx-firmware.{version}.bin) and removed hash-based comparison in driver-card UI, replacing with simple version string matching.
+
+Result: Firmware version is now consistent across version.h (generated pre-build), compiled firmware binary, firmware filename in Hub's public folder, and driver telemetry reported to Hub. The build pipeline now works correctly in all contexts: local development (pio run), serial uploads, OTA uploads, and CI/CD pipelines.
+
+Optimized ESP32 UDP processing for lowest possible latency by moving processUDP() call outside the frame rate limiter to the top of loop(). UDP packets now process immediately every iteration without artificial delays, while LED rendering still respects the configured 120 FPS update rate. This ensures time-critical game events from MAME trigger LED effects with minimal latency.
+
+Removed redundant flush() call from event.lua since setvbuf("no") already disables buffering.
+
+---
+
+**Total Development Time:** 43 days (October 11 - November 23, 2025)
+**Total Commits:** 259
 **Major Features Delivered:**
 - MAME Lua interceptor framework
 - ESP32 firmware with LED control
