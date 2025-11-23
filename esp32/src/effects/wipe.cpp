@@ -5,7 +5,7 @@
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 100;
 
-WipeEffect::WipeEffect(const Matrix& m) : canvas(m.width * 4, m.height * 4) {}
+WipeEffect::WipeEffect(const Matrix& m) : canvas(m) {}
 
 void WipeEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;

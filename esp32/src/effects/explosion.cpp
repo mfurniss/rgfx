@@ -16,8 +16,7 @@ static const float DEFAULT_FRICTION = 2.0f;
 static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
-ExplosionEffect::ExplosionEffect(const Matrix& m)
-	: canvas(m.width * 4, m.height * 4), matrix(m), nextExplosionId(0) {
+ExplosionEffect::ExplosionEffect(const Matrix& m) : canvas(m), matrix(m), nextExplosionId(0) {
 	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
 }
 
