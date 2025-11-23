@@ -5,6 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
+import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
 import type { Mqtt } from '../mqtt';
 import type { UdpClient } from '../types/mapping-types';
@@ -19,6 +20,7 @@ interface IpcHandlersDeps {
   mqtt: Mqtt;
   pushConfigToDriver: (macAddress: string) => Promise<void>;
   udpClient: UdpClient;
+  getMainWindow: () => BrowserWindow;
 }
 
 export function registerIpcHandlers(deps: IpcHandlersDeps): void {

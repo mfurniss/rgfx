@@ -266,6 +266,10 @@ export interface IpcApi {
   onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
   onEventCount: (callback: (count: number) => void) => () => void;
   onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
+  onFlashOtaState: (callback: (state: string) => void) => () => void;
+  onFlashOtaProgress: (
+    callback: (progress: { sent: number; total: number; percent: number }) => void
+  ) => () => void;
   sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
   updateDriverConfig: (driverId: string) => Promise<void>;
   flashOTA: (

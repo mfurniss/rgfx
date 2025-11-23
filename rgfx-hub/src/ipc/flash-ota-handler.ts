@@ -5,17 +5,18 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { ipcMain, app } from 'electron';
+import { ipcMain, app, type BrowserWindow } from 'electron';
 import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
+  getMainWindow: () => BrowserWindow;
 }
 
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
-  const { driverRegistry } = deps;
+  const { driverRegistry, getMainWindow } = deps;
 
   ipcMain.handle('driver:flash-ota', async (_event, driverId: string) => {
     try {
@@ -49,6 +50,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
+        getMainWindow().webContents.send('flash:ota:state', state);
       });
 
       let lastPercent = -1;
@@ -56,6 +58,11 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         const percent = Math.round((data.sent / data.total) * 100);
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
+          getMainWindow().webContents.send('flash:ota:progress', {
+            sent: data.sent,
+            total: data.total,
+            percent,
+          });
           lastPercent = percent;
         }
       });
