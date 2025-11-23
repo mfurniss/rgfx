@@ -10,6 +10,11 @@
 #define WIDTH DEFAULT_MATRIX_WIDTH
 #define HEIGHT DEFAULT_MATRIX_HEIGHT
 
+enum class LayoutType : uint8_t {
+	STRIP = 1,
+	MATRIX = 2
+};
+
 class Matrix {
    public:
 	uint16_t width;
@@ -18,6 +23,7 @@ class Matrix {
 	CRGB* leds;
 	uint16_t* coordinateMap;
 	String layout;
+	LayoutType layoutType;
 	Matrix(uint16_t w, uint16_t h, const String& layoutPattern = "matrix-br-v-snake");
 	~Matrix();
 	void updateLayout(const String& newLayout);

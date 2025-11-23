@@ -33,7 +33,7 @@ void ExplosionEffect::add(JsonDocument& props) {
 	float friction = props["friction"] | DEFAULT_FRICTION;
 	float lifespanSpread = props["lifespanSpread"] | DEFAULT_LIFESPAN_SPREAD;
 
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Scale power relative to largest matrix dimension (canvas is 4x matrix size)
 	uint16_t largestDimension = max(matrix.width, matrix.height);
@@ -152,7 +152,7 @@ void ExplosionEffect::update(float deltaTime) {
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Update all particles in the shared pool
 	for (auto p = particlePool.begin(); p != particlePool.end();) {
@@ -216,7 +216,7 @@ void ExplosionEffect::update(float deltaTime) {
 void ExplosionEffect::render() {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Render all particles from the shared pool
 	for (const auto& particle : particlePool) {

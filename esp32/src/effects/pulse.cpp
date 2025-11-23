@@ -64,7 +64,7 @@ void PulseEffect::render() {
 
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Sort pulses by remaining duration (lowest first, highest rendered last)
 	std::sort(pulses.begin(), pulses.end(),
