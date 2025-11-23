@@ -37,7 +37,7 @@ void downsample(const Canvas* source, Canvas* destination) {
             uint32_t b = bSum >> 4;
             uint32_t a = aSum >> 4;
 
-            destination->setPixel(dx, dy, RGBA(r, g, b, a));
+            destination->drawPixel(dx, dy, RGBA(r, g, b, a));
         }
     }
 }

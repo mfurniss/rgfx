@@ -5,7 +5,7 @@
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 100;
 
-WipeEffect::WipeEffect(const Matrix& m) : canvas(m.width * 4, m.height * 4) {}
+WipeEffect::WipeEffect(const Matrix& m) : canvas(m) {}
 
 void WipeEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -45,12 +45,8 @@ void WipeEffect::render() {
 		uint16_t column = wipe.currentColumn(width);
 		uint32_t rgba = RGBA(wipe.r, wipe.g, wipe.b, 255);
 
-		// Draw 4-pixel-wide column for 4x resolution
-		for (uint16_t x = column; x <= column + (width * 0.1); x++) {
-			for (uint16_t y = 0; y < height; y++) {
-				canvas.setPixel(x, y, rgba);
-			}
-		}
+		uint16_t columnWidth = width / 10;
+		canvas.drawRectangle(column, 0, columnWidth, height, rgba);
 	}
 }
 
