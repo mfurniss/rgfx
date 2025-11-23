@@ -10,12 +10,22 @@ import subprocess
 import os
 from pathlib import Path
 
-def main():
-    """Call Node.js version injection script"""
+def main(project_dir=None):
+    """Call Node.js version injection script
+
+    Args:
+        project_dir: ESP32 project directory (provided by PlatformIO or auto-detected)
+    """
     print("\n=== Injecting version from git tag ===")
 
     # Get project root (parent of esp32 directory)
-    script_dir = Path(__file__).parent
+    if project_dir:
+        # PlatformIO mode - use provided directory
+        script_dir = Path(project_dir)
+    else:
+        # Standalone mode - use __file__
+        script_dir = Path(__file__).parent
+
     project_root = script_dir.parent
     version_script = project_root / "scripts" / "inject-version-driver.js"
 
@@ -48,4 +58,11 @@ def main():
         return 1
 
 if __name__ == '__main__':
+    # Standalone mode - called directly from command line or CI
     exit(main())
+else:
+    # PlatformIO mode - called as extra script
+    # Get project directory from PlatformIO environment
+    Import("env")
+    project_dir = env.get("PROJECT_DIR")
+    main(project_dir)

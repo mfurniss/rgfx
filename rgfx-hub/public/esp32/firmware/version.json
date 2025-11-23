@@ -1,4 +1,5 @@
 {
-  "version": "0.0.2-dev.192+c0ec439-dirty.20251122190003",
-  "generatedAt": "2025-11-23T03:03:08.930621+00:00"
+  "version": "0.0.2-dev.200+81c783f-dirty.20251123103456",
+  "generatedAt": "2025-11-23T19:20:13.787393+00:00",
+  "firmwareBinarySha256": "d290b88ebe1d19699cb31b8fee5055ab1cc9fb73ee51ca68edcc506afef90389"
 }

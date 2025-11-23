@@ -26,7 +26,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const location = useLocation();
   const { telemetry } = driver;
   const [now, setNow] = useState(Date.now());
-  const currentFirmwareVersion = useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
+  const { currentFirmwareVersion } = useDriverStore((state) => state.systemStatus);
 
   // Update every second for live timestamps and uptime - only when component is visible
   useEffect(() => {
@@ -246,9 +246,10 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           </Box>
           {!driver.connected ? (
             <Chip label="Disconnected" color="error" size="small" />
-          ) : currentFirmwareVersion && telemetry?.firmwareVersion !== currentFirmwareVersion ? (
+          ) : currentFirmwareVersion && telemetry?.firmwareVersion &&
+            telemetry.firmwareVersion !== currentFirmwareVersion ? (
             <Tooltip
-              title={`Driver: ${telemetry?.firmwareVersion ?? 'unknown'}, Hub: ${currentFirmwareVersion}`}
+              title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
               arrow
             >
               <Chip label="Update Available" color="warning" size="small" />
