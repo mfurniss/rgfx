@@ -1,4 +1,5 @@
 #include "network/udp.h"
+#include "network/mqtt.h"
 #include "log.h"
 #include <ArduinoJson.h>
 
@@ -29,6 +30,25 @@ void processUDP() {
 	}
 	int packetSize = udp.parsePacket();
 	if (packetSize > 0) {
+		// Get source IP of the packet
+		IPAddress sourceIP = udp.remoteIP();
+
+		// Only accept packets from the Hub (MQTT broker IP)
+		// MQTT_SERVER is set during broker discovery (empty if not discovered yet)
+		if (MQTT_SERVER.length() > 0) {
+			IPAddress hubIP;
+			if (hubIP.fromString(MQTT_SERVER)) {
+				if (sourceIP != hubIP) {
+					log("UDP RX: Rejected packet from unauthorized source " + sourceIP.toString() + " (expected " + hubIP.toString() + ")");
+					return;
+				}
+			}
+		} else {
+			// Hub not discovered yet - reject all UDP packets for security
+			log("UDP RX: Rejected packet from " + sourceIP.toString() + " (Hub not discovered yet)");
+			return;
+		}
+
 		char buffer[UDP_BUFFER_SIZE];
 		int len = udp.read(buffer, UDP_BUFFER_SIZE - 1);
 		if (len > 0) {
@@ -50,7 +70,7 @@ void processUDP() {
 				pendingMessage.props = doc["props"];
 
 				newMessageAvailable = true;
-				log("UDP RX: effect=" + pendingMessage.effect);
+				log("UDP RX from Hub: effect=" + pendingMessage.effect);
 			} else {
 				log("UDP RX: JSON parse error: " + String(error.c_str()));
 			}
