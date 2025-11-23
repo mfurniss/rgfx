@@ -8,10 +8,10 @@ EffectProcessor::EffectProcessor(Matrix& matrix)
 	: matrix(matrix),
 	  pulseEffect(matrix),
 	  wipeEffect(matrix),
-	  explosionEffect(matrix),
+	  explodeEffect(matrix),
 	  testLedsEffect(matrix),
 	  lastFrameTime(0),
-	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}, {"explosion", &explosionEffect}, {"test_leds", &testLedsEffect}} {}
+	  effectMap{{"pulse", &pulseEffect}, {"wipe", &wipeEffect}, {"explode", &explodeEffect}, {"test_leds", &testLedsEffect}} {}
 
 void EffectProcessor::update() {
 	unsigned long now = millis();

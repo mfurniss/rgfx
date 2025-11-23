@@ -5,7 +5,7 @@
 #include "effect.h"
 #include "canvas.h"
 
-class ExplosionEffect : public IEffect {
+class ExplodeEffect : public IEffect {
    private:
 	struct Particle {
 		float x, y;              // Position (float for sub-pixel precision)
@@ -32,7 +32,7 @@ class ExplosionEffect : public IEffect {
 	uint32_t nextExplosionId;               // Counter for unique explosion IDs
 
    public:
-	ExplosionEffect(const Matrix& matrix);
+	ExplodeEffect(const Matrix& matrix);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;

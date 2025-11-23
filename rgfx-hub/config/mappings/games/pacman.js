@@ -69,7 +69,7 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
       drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
     });
     return broadcast({
-      effect: 'explosion',
+      effect: 'explode',
       drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
     });
   }
@@ -102,7 +102,7 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
   // Power pill eaten
   if (subject === 'player' && property === 'eat' && qualifier === 'power-pill') {
     return broadcast({
-      effect: 'explosion',
+      effect: 'explode',
       props: {
         color: '#0000FF',
         duration: 1000,
@@ -190,7 +190,7 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
 
     if (remaining === 0) {
       return broadcast({
-        effect: 'explosion',
+        effect: 'explode',
         props: {
           color: '#FFFF00',
           duration: 2000,

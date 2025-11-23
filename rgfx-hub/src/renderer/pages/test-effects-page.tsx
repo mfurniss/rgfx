@@ -22,12 +22,12 @@ import type { EffectPayload } from '~/src/types/mapping-types';
 
 const EFFECTS: Record<string, Record<string, unknown>> = {
   pulse: { color: 'random', duration: 400, fade: true },
-  wipe: { color: 'random', duration: 1000 },
-  explosion: {
+  wipe: { color: 'green', duration: 1000 },
+  explode: {
     centerX: 50,
     centerY: 50,
     color: 'random',
-    hueSpread: 90,
+    hueSpread: 40,
     particleCount: 100,
     particleSize: 2,
     power: 50,

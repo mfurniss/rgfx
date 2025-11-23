@@ -1,3 +1,5 @@
+import { duration } from '@mui/material';
+
 /**
  * Super Mario Bros game-specific mapper
  *
@@ -15,106 +17,103 @@
  * @returns {boolean}
  */
 export function handle({ subject, property, qualifier }, payload, { broadcast }) {
-
   // Player score - red pulse (Mario's signature color)
-  if (subject === "player" && property === "score") {
+  if (subject === 'player' && property === 'score') {
     return broadcast({
-      effect: "pulse",
-      props: {
-        color: "#0080FF",
-      },
+      effect: 'wipe',
     });
   }
 
   // Coin collection - yellow/gold pulse
-  if (subject === "player" && property === "coins") {
+  if (subject === 'player' && property === 'coins') {
     return broadcast({
-      effect: "pulse",
+      effect: 'pulse',
       props: {
-        color: "#FFD700",
+        color: '#FFD700',
       },
     });
   }
 
   // Jump
-  if (subject === "player" && property === "jump") {
+  if (subject === 'player' && property === 'jump') {
     return broadcast({
-      effect: "pulse",
+      effect: 'pulse',
       props: {
-        color: "#FF0000",
+        color: '#FF0000',
       },
     });
   }
 
   // Fireball shot - orange pulse (fire flower theme)
-  if (subject === "player" && property === "fireball") {
+  if (subject === 'player' && property === 'fireball') {
     return broadcast({
-      effect: "pulse",
+      effect: 'wipe',
       props: {
-        color: "#FFA500", // Orange
+        color: '#FF8000',
+        duration: 700,
       },
     });
   }
 
   // Music track changes - different colors per area
-  if (subject === "game" && property === "music") {
+  if (subject === 'game' && property === 'music') {
     const musicType = qualifier; // 'area' or 'event'
 
-    if (musicType === "area") {
+    if (musicType === 'area') {
       // Area music: 0x01 = Overworld, 0x02 = Underwater, 0x04 = Underground, 0x08 = Castle, 0x10 = Star
       const track = parseInt(payload, 10);
-      let color = "#0000FF"; // Default blue
+      let color = '#0000FF'; // Default blue
 
       switch (track) {
         case 0x01: // Overworld
         case 0x20: // Overworld (transition)
-          color = "#00FF00"; // Green (grass)
+          color = '#00FF00'; // Green (grass)
           break;
         case 0x02: // Underwater
-          color = "#0000FF"; // Blue
+          color = '#0000FF'; // Blue
           break;
         case 0x04: // Underground
-          color = "#A52A2A"; // Brown
+          color = '#A52A2A'; // Brown
           break;
         case 0x08: // Castle
-          color = "#808080"; // Gray
+          color = '#808080'; // Gray
           break;
         case 0x10: // Star power
-          color = "#FFFF00"; // Yellow
+          color = '#FFFF00'; // Yellow
           break;
       }
 
       return broadcast({
-        effect: "pulse",
+        effect: 'pulse',
         props: { color },
       });
     }
 
-    if (musicType === "event") {
+    if (musicType === 'event') {
       // Event music: 0x01 = Death, 0x02 = Game over, 0x04 = Ending, 0x08 = Castle ending, 0x20 = Level ending
       const event = parseInt(payload, 10);
-      let color = "#FFFFFF"; // Default white
+      let color = '#FFFFFF'; // Default white
 
       switch (event) {
         case 0x01: // Death
-          color = "#FF0000"; // Red
+          color = '#FF0000'; // Red
           break;
         case 0x02: // Game over
-          color = "#000000"; // Black (off)
+          color = '#000000'; // Black (off)
           break;
         case 0x04: // Ending theme
         case 0x08: // Castle ending
         case 0x20: // Level ending
-          color = "#00FF00"; // Green (success)
+          color = '#00FF00'; // Green (success)
           break;
         case 0x40: // Hurry up jingle
-          color = "#FFA500"; // Orange (warning)
+          color = '#FFA500'; // Orange (warning)
           break;
       }
 
       return broadcast({
-        effect: "pulse",
-        props: { color },
+        effect: 'pulse',
+        props: { color, duration: 5000 },
       });
     }
   }
