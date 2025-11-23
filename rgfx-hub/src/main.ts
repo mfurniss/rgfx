@@ -140,6 +140,12 @@ registerIpcHandlers({
   mqtt,
   pushConfigToDriver,
   udpClient,
+  getMainWindow: () => {
+    if (!mainWindow) {
+      throw new Error('Main window not initialized');
+    }
+    return mainWindow;
+  },
 });
 
 // Register MQTT subscriptions
