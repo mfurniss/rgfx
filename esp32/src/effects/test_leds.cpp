@@ -18,7 +18,7 @@ void TestLedsEffect::render() {
 	uint16_t canvasHeight = canvas.getHeight();
 
 	// Strip layout: 25% segments (Red, Green, Blue, Yellow)
-	if (matrix.layout == "strip") {
+	if (matrix.layoutType == LayoutType::STRIP) {
 		uint16_t segmentWidth = canvasWidth / 4;
 
 		canvas.drawRectangle(0, 0, segmentWidth, canvasHeight, RGBA(255, 0, 0, 255));
