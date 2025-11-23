@@ -61,14 +61,6 @@
         {
           "label": "All Devices",
           "value": "all"
-        },
-        {
-          "label": "rgfx-driver-0001 (LED Strip)",
-          "value": "rgfx-driver-0001.local"
-        },
-        {
-          "label": "rgfx-driver-0002 (LED Matrix)",
-          "value": "rgfx-driver-0002.local"
         }
       ],
       "default": "all"

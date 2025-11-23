@@ -245,32 +245,20 @@ void ExplosionEffect::render() {
 			for (uint32_t dx = 0; dx < size; dx++) {
 				int16_t x = centerX - halfSize + dx;
 
-				if (x < 0 || x >= width) {
-					continue;
-				}
-
-				// Render particle at this X position for all Y
-				for (uint16_t y = 0; y < height; y++) {
-					canvas.drawPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                 BlendMode::ALPHA);
+				if (x >= 0 && x < width) {
+					canvas.drawRectangle(x, 0, 1, height,
+					                     RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                     BlendMode::ADDITIVE);
 				}
 			}
 		} else {
 			// Matrix: Render NxN block centered around position
-			for (uint32_t dy = 0; dy < size; dy++) {
-				for (uint32_t dx = 0; dx < size; dx++) {
-					int16_t x = centerX - halfSize + dx;
-					int16_t y = centerY - halfSize + dy;
+			int16_t x = centerX - halfSize;
+			int16_t y = centerY - halfSize;
 
-					// Bounds check
-					if (x < 0 || x >= width || y < 0 || y >= height) {
-						continue;
-					}
-
-					canvas.drawPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                 BlendMode::ADDITIVE);
-				}
-			}
+			canvas.drawRectangle(x, y, size, size,
+			                     RGBA(particle.r, particle.g, particle.b, particle.alpha),
+			                     BlendMode::ADDITIVE);
 		}
 	}
 }
