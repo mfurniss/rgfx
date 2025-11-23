@@ -5,6 +5,7 @@ Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern) {
 	height = h;
 	size = width * height;
 	layout = layoutPattern;
+	layoutType = (layout == "strip") ? LayoutType::STRIP : LayoutType::MATRIX;
 	leds = new CRGB[size];
 	coordinateMap = buildCoordinateMap(width, height, layout.c_str());
 }
@@ -12,6 +13,7 @@ Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern) {
 void Matrix::updateLayout(const String& newLayout) {
 	if (newLayout != layout) {
 		layout = newLayout;
+		layoutType = (layout == "strip") ? LayoutType::STRIP : LayoutType::MATRIX;
 		// Rebuild coordinate map with new layout
 		delete[] coordinateMap;
 		coordinateMap = buildCoordinateMap(width, height, layout.c_str());

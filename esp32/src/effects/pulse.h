@@ -9,12 +9,12 @@
 class PulseEffect : public IEffect {
    private:
 	struct Pulse {
-		uint8_t r, g, b;       // RGB color
-		uint8_t alpha;         // Alpha channel: 255 (full) → 0 (transparent)
+		EasingFunction easing; // Easing function (maps 0-1 to 0-1)
 		uint32_t duration;     // Total duration in milliseconds
 		uint32_t elapsedTime;  // Elapsed time in milliseconds (only used for non-fading pulses)
+		uint8_t r, g, b;       // RGB color
+		uint8_t alpha;         // Alpha channel: 255 (full) → 0 (transparent)
 		bool fade;             // Whether to fade out (true) or stay full brightness (false)
-		EasingFunction easing; // Easing function (maps 0-1 to 0-1)
 
 		// Calculate remaining duration
 		uint32_t remaining() const {

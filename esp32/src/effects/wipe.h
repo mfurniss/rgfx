@@ -8,9 +8,9 @@
 class WipeEffect : public IEffect {
    private:
 	struct Wipe {
-		uint8_t r, g, b;       // RGB color
 		uint32_t duration;     // Total duration in milliseconds
 		uint32_t elapsedTime;  // Elapsed time in milliseconds
+		uint8_t r, g, b;       // RGB color
 
 		// Calculate current column position based on elapsed time
 		uint16_t currentColumn(uint16_t canvasWidth) const {

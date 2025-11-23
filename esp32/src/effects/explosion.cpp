@@ -16,8 +16,7 @@ static const float DEFAULT_FRICTION = 2.0f;
 static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
-ExplosionEffect::ExplosionEffect(const Matrix& m)
-	: canvas(m.width * 4, m.height * 4), matrix(m), nextExplosionId(0) {
+ExplosionEffect::ExplosionEffect(const Matrix& m) : canvas(m), matrix(m), nextExplosionId(0) {
 	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
 }
 
@@ -33,7 +32,7 @@ void ExplosionEffect::add(JsonDocument& props) {
 	float friction = props["friction"] | DEFAULT_FRICTION;
 	float lifespanSpread = props["lifespanSpread"] | DEFAULT_LIFESPAN_SPREAD;
 
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Scale power relative to largest matrix dimension (canvas is 4x matrix size)
 	uint16_t largestDimension = max(matrix.width, matrix.height);
@@ -152,7 +151,7 @@ void ExplosionEffect::update(float deltaTime) {
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Update all particles in the shared pool
 	for (auto p = particlePool.begin(); p != particlePool.end();) {
@@ -216,7 +215,7 @@ void ExplosionEffect::update(float deltaTime) {
 void ExplosionEffect::render() {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Render all particles from the shared pool
 	for (const auto& particle : particlePool) {
@@ -245,32 +244,20 @@ void ExplosionEffect::render() {
 			for (uint32_t dx = 0; dx < size; dx++) {
 				int16_t x = centerX - halfSize + dx;
 
-				if (x < 0 || x >= width) {
-					continue;
-				}
-
-				// Render particle at this X position for all Y
-				for (uint16_t y = 0; y < height; y++) {
-					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                BlendMode::ALPHA);
+				if (x >= 0 && x < width) {
+					canvas.drawRectangle(x, 0, 1, height,
+					                     RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                     BlendMode::ADDITIVE);
 				}
 			}
 		} else {
 			// Matrix: Render NxN block centered around position
-			for (uint32_t dy = 0; dy < size; dy++) {
-				for (uint32_t dx = 0; dx < size; dx++) {
-					int16_t x = centerX - halfSize + dx;
-					int16_t y = centerY - halfSize + dy;
+			int16_t x = centerX - halfSize;
+			int16_t y = centerY - halfSize;
 
-					// Bounds check
-					if (x < 0 || x >= width || y < 0 || y >= height) {
-						continue;
-					}
-
-					canvas.setPixel(x, y, RGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                BlendMode::ADDITIVE);
-				}
-			}
+			canvas.drawRectangle(x, y, size, size,
+			                     RGBA(particle.r, particle.g, particle.b, particle.alpha),
+			                     BlendMode::ADDITIVE);
 		}
 	}
 }

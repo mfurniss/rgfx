@@ -46,6 +46,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Optimize driver reconnection system
 [X] LED effect variable frame rate
 [ ] Disable drivers from hub
+[X] Reset drivers from hub
 [X] Optimize build pipeline
 [X] Wipe effect
 [X] C++ native unit and integration tests
@@ -55,8 +56,8 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] New driver ID format
 [X] Display driver firmware version in Hub
 [X] Fix MAME Lua file writing bug - stops writing to file
-[ ] Pulse effect color array
-[ ] Explosion effect
+[X] Pulse effect color array
+[X] Explosion effect
 [X] Firmware version update with each build
 [X] Improve topic namespaces - see RESERVED_DRIVER_IDS 
 [X] Driver firmware constants
@@ -77,3 +78,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Global Event Bus instead of individual IPC handlers
 [X] Driver telemetry displayed in Hub
 [ ] Store WiFi creds in hub and auto set for newly flashed drivers
+[X] Optimize canvas for 1D LED strips
+[ ] Fix flash via OTA "not progress bar" bug

@@ -7,7 +7,7 @@ static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const uint32_t DEFAULT_DURATION = 1000;
 static const bool DEFAULT_FADE = true;
 
-PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m.width * 4, m.height * 4) {}
+PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -64,7 +64,7 @@ void PulseEffect::render() {
 
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layout == "strip");
+	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Sort pulses by remaining duration (lowest first, highest rendered last)
 	std::sort(pulses.begin(), pulses.end(),
@@ -78,30 +78,22 @@ void PulseEffect::render() {
 		// Apply easing function
 		float easedT = p.easing(t);
 
+		uint32_t color = RGBA(p.r, p.g, p.b, p.alpha / 2);
+
 		if (isStrip) {
 			// Strip: Contract from edges toward center horizontally
 			uint16_t shrink = static_cast<uint16_t>(easedT * (width / 2));
 			uint16_t startCol = shrink;
-			uint16_t endCol = width - 1 - shrink;
+			uint16_t rectWidth = width - (shrink * 2);
 
-			// Render full-height columns in the visible range
-			for (uint16_t x = startCol; x <= endCol; x++) {
-				for (uint16_t y = 0; y < height; y++) {
-					canvas.setPixel(x, y, RGBA(p.r, p.g, p.b, p.alpha / 2), BlendMode::ALPHA);
-				}
-			}
+			canvas.drawRectangle(startCol, 0, rectWidth, height, color, BlendMode::ALPHA);
 		} else {
 			// Matrix: Contract from top/bottom toward center vertically
 			uint16_t shrink = static_cast<uint16_t>(easedT * (height / 2));
 			uint16_t startRow = shrink;
-			uint16_t endRow = height - 1 - shrink;
+			uint16_t rectHeight = height - (shrink * 2);
 
-			// Render the visible band
-			for (uint16_t y = startRow; y <= endRow; y++) {
-				for (uint16_t x = 0; x < width; x++) {
-					canvas.setPixel(x, y, RGBA(p.r, p.g, p.b, p.alpha / 2), BlendMode::ALPHA);
-				}
-			}
+			canvas.drawRectangle(0, startRow, width, rectHeight, color, BlendMode::ALPHA);
 		}
 	}
 }

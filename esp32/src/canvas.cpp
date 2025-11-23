@@ -1,8 +1,11 @@
 #include "canvas.h"
+#include "matrix.h"
 #include <cstring>
 
-Canvas::Canvas(uint16_t width, uint16_t height)
-    : width(width), height(height), size(width * height) {
+Canvas::Canvas(const Matrix& matrix)
+    : width(matrix.width * 4),
+      height((matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.height * 4),
+      size(width * height) {
     pixels = new uint32_t[size];
     clear();
 }
@@ -28,10 +31,10 @@ uint32_t Canvas::index(uint16_t x, uint16_t y) const {
 }
 
 bool Canvas::inBounds(uint16_t x, uint16_t y) const {
-    return x >= 0 && x < width && y >= 0 && y < height;
+    return x < width && y < height;
 }
 
-void Canvas::setPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode) {
+void Canvas::drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode) {
     if (!inBounds(x, y)) {
         return;
     }
@@ -54,6 +57,51 @@ void Canvas::setPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode
         case BlendMode::AVERAGE:
             blendAverage(pixels[idx], rgbaValue);
             break;
+    }
+}
+
+void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t rgbaValue, BlendMode mode) {
+    if (w == 0 || h == 0) {
+        return;
+    }
+
+    uint16_t x2 = x + w;
+    uint16_t y2 = y + h;
+
+    if (x >= width || y >= height) {
+        return;
+    }
+
+    if (x2 > width) x2 = width;
+    if (y2 > height) y2 = height;
+
+    if (mode == BlendMode::REPLACE) {
+        for (uint16_t row = y; row < y2; row++) {
+            uint32_t idx = index(x, row);
+            for (uint16_t col = x; col < x2; col++) {
+                pixels[idx++] = rgbaValue;
+            }
+        }
+    } else {
+        for (uint16_t row = y; row < y2; row++) {
+            uint32_t idx = index(x, row);
+            for (uint16_t col = x; col < x2; col++) {
+                switch (mode) {
+                    case BlendMode::ALPHA:
+                        blendAlpha(pixels[idx], rgbaValue);
+                        break;
+                    case BlendMode::ADDITIVE:
+                        blendAdditive(pixels[idx], rgbaValue);
+                        break;
+                    case BlendMode::AVERAGE:
+                        blendAverage(pixels[idx], rgbaValue);
+                        break;
+                    default:
+                        break;
+                }
+                idx++;
+            }
+        }
     }
 }
 
