@@ -74,9 +74,9 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Research ESP Web Tools for firmware updates
 [ ] Research Electron app auto updates
 [X] Implement esptool-js + node-serialport
-[ ] Ensure Hub and firmware versions are syncronized
+[X] Ensure Hub and firmware versions are syncronized
 [ ] Global Event Bus instead of individual IPC handlers
 [X] Driver telemetry displayed in Hub
 [ ] Store WiFi creds in hub and auto set for newly flashed drivers
 [X] Optimize canvas for 1D LED strips
-[ ] Fix flash via OTA "not progress bar" bug
+[ ] Fix flash via OTA "no progress bar" bug
