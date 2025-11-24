@@ -172,9 +172,12 @@ export class DriverRegistry {
       resolvedHardware: existingDriver?.resolvedHardware,
       // Statistics
       stats: {
-        mqttMessagesReceived: telemetryData.mqttMessagesReceived ?? (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
+        mqttMessagesReceived:
+          telemetryData.mqttMessagesReceived ??
+          (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
         mqttMessagesFailed: existingDriver?.stats.mqttMessagesFailed ?? 0,
-        udpMessagesSent: telemetryData.udpMessagesReceived ?? existingDriver?.stats.udpMessagesSent ?? 0,
+        udpMessagesSent:
+          telemetryData.udpMessagesReceived ?? existingDriver?.stats.udpMessagesSent ?? 0,
         udpMessagesFailed: existingDriver?.stats.udpMessagesFailed ?? 0,
       },
       // Runtime state
@@ -207,7 +210,6 @@ export class DriverRegistry {
     return driver;
   }
 
-
   // Get driver by ID
   getDriver(driverId: string): Driver | undefined {
     return this.drivers.get(driverId);
@@ -215,9 +217,7 @@ export class DriverRegistry {
 
   // Get driver by MAC address
   getDriverByMac(macAddress: string): Driver | undefined {
-    return Array.from(this.drivers.values()).find(
-      (driver) => driver.mac === macAddress
-    );
+    return Array.from(this.drivers.values()).find((driver) => driver.mac === macAddress);
   }
 
   // Find driver by IP address
@@ -262,6 +262,10 @@ export class DriverRegistry {
 
   // Get all drivers (connected and disconnected)
   getAllDrivers(): Driver[] {
-    return Array.from(this.drivers.values());
+    return [...this.drivers.values()];
+  }
+
+  getConnectedDrivers(): Driver[] {
+    return this.getAllDrivers().filter((d) => d.connected);
   }
 }
