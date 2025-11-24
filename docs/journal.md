@@ -2,61 +2,41 @@
 
 A day-by-day chronicle of the RGFX project development.
 
----
-
 ## October 11, 2025
 
 Initial project setup for RGFX, a MAME Lua scripting framework for monitoring retro arcade game state. The first working proof-of-concept successfully tracked Pac-Man scores in real-time using MAME's Lua API and memory monitoring, validating the core technical approach.
-
----
 
 ## October 12, 2025
 
 Expanded RAM monitoring utilities to be more robust and flexible. Added Galaga support as a second test game to prove the framework's multi-game capability. Restructured the code into an interceptor pattern for easier game-specific logic. Implemented MQTT message publishing for external event consumers and added comprehensive message logging for debugging.
 
----
-
 ## October 13, 2025
 
 Major refactoring focused on memory handling. Updated the RAM monitor to support word and dword reads, critical for correctly reading multi-byte values like scores. Created an MQTT bridge architecture for proper game event routing. Debugged and fixed score calculations with proper BCD (Binary-Coded Decimal) decoding.
-
----
 
 ## October 14, 2025
 
 Implemented Pac-Man ghost state tracking to monitor chase, scatter, and frightened modes, enabling future LED effects that respond to ghost AI behavior. Updated file paths and project structure. Completed comprehensive documentation updates including README improvements and CLAUDE.md development guidelines.
 
----
-
 ## October 15, 2025
 
 Merged the ESP32 firmware project into the repository, transforming RGFX into a multi-component system with both software (MAME Lua + Hub) and hardware (ESP32 drivers) in a unified monorepo. This established the foundation for the distributed architecture where game events drive physical LED hardware.
-
----
 
 ## October 16, 2025
 
 Updated VSCode workspace configuration for the new multi-project structure. Implemented UDP messaging alongside MQTT for low-latency event delivery in time-critical LED updates. Reorganized project folders and began implementing the LED effects system on the ESP32 side with multiple iterations to refine the patterns.
 
----
-
 ## October 18, 2025
 
 Added a comprehensive todo list to track feature development. Moved all MAME-related code into a dedicated `mame/` subfolder to maintain organization as more components were added to the repository.
-
----
 
 ## October 20, 2025
 
 Intensive ESP32 firmware development. Fixed bootloader issues preventing proper flashing. Implemented a complete WiFi configuration portal eliminating hardcoded credentials. Built a web-based LED hardware configuration interface and created an ESP32 web installer with proper manifest files for browser-based flashing. Added comprehensive architecture documentation explaining the distributed Hub+Driver system. Established MPL 2.0 licensing and created the rgfx.io landing page. Started building the Hub application with Electron.
 
----
-
 ## October 21, 2025
 
 Focused on Hub development and driver integration. Implemented Over-The-Air (OTA) firmware updates for ESP32 drivers, eliminating USB cable requirements. Established MQTT communication between Hub and Drivers with system information reporting (chip ID, MAC address, firmware version). Implemented mDNS device discovery for automatic driver detection on the network.
-
----
 
 ## October 24, 2025
 
@@ -210,15 +190,11 @@ Implemented comprehensive effect testing infrastructure with new Test Effects pa
 
 Implemented particle-based explosion effect system with FIFO particle pool architecture, configurable parameters, and realistic physics including velocity randomization and gravity simulation. Added configurable window zoom factor (default 90%) and merged hub-firmware-updater branch completing the firmware management system with both USB and OTA flashing capabilities.
 
----
-
 ## November 21, 2025
 
 Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s and removed consecutive failure tracking, reducing firmware size by 1,456 bytes.
 
 Implemented driver disconnection detection with 30-second timeout. Fixed critical bug where drivers weren't showing as disconnected in Hub UI by converting `Driver.connected` from computed getter to stored property, enabling Zustand to properly detect state changes. Added interval timer checking for stale connections every 5 seconds.
-
----
 
 ## November 23, 2025
 
@@ -226,27 +202,5 @@ Fixed critical firmware version system bug where inject_version.py wasn't runnin
 
 Optimized ESP32 UDP processing for lowest latency by moving processUDP() outside the frame rate limiter to process packets immediately every loop iteration. Removed redundant flush() call from event.lua. Customized Electron's native macOS About menu to display RGFX branding with custom icon, version, and copyright information.
 
----
-
 **Total Development Time:** 43 days (October 11 - November 23, 2025)
 **Total Commits:** 259
-**Major Features Delivered:**
-- MAME Lua interceptor framework
-- ESP32 firmware with LED control
-- Electron Hub application with MQTT broker
-- CI/CD pipeline with automated testing including native C++ tests
-- Event mapping and LED effect system with data-driven architecture
-- Multi-driver support with SSDP discovery (replaced mDNS)
-- OTA firmware updates
-- LED test mode integrated as proper effect
-- Dynamic color correction configuration
-- Modular ESP32 source organization
-- Auto-incrementing firmware version system with git describe
-- Centralized constants configuration
-- Real-time Hub metrics with locale-aware formatting
-- Comprehensive unit test coverage with dependency injection for testability
-- Complete firmware management system (USB + OTA flashing)
-- Manual effect testing interface with real-time parameter controls
-- Event-driven telemetry for optimal renderer performance
-- Particle-based explosion effect with shared FIFO pool architecture
-- Robust driver disconnection detection with timeout-based status tracking
