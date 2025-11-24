@@ -212,8 +212,6 @@ Implemented particle-based explosion effect system with FIFO particle pool archi
 
 ---
 
----
-
 ## November 21, 2025
 
 Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s and removed consecutive failure tracking, reducing firmware size by 1,456 bytes.
