@@ -38,6 +38,12 @@ namespace Commands {
 	void reset(const String& args);
 
 	/**
+	 * Reboot command.
+	 * Restarts the device without erasing configuration.
+	 */
+	void reboot(const String& args);
+
+	/**
 	 * Help command.
 	 * Displays list of available commands and usage.
 	 */
