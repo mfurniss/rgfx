@@ -240,6 +240,8 @@ Optimized ESP32 UDP processing for lowest possible latency by moving processUDP(
 
 Removed redundant flush() call from event.lua since setvbuf("no") already disables buffering.
 
+Customized Electron's native macOS About menu to display RGFX branding instead of default Electron information. Configured app.setAboutPanelOptions() with RGFX Hub name, current version, copyright notice, and Electron build information. Custom RGFX icon automatically displays via existing Electron Forge packaging configuration.
+
 ---
 
 **Total Development Time:** 43 days (October 11 - November 23, 2025)
