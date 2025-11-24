@@ -9,14 +9,13 @@
 #include "utils.h"
 #include "log.h"
 #include "config/config_nvs.h"
+#include "config/config_leds.h"
+#include "driver_config.h"
 
 // Forward declaration from main.cpp
 void handleDriverConfig(const String& payload);
 
 void setupNetworkServices(Matrix& matrix) {
-	// Store LED buffer for OTA callbacks
-	otaLEDs = matrix.leds;
-	otaLEDCount = matrix.size;
 	log("WiFi connected - setting up OTA, MQTT and UDP");
 	fill_solid(matrix.leds, matrix.size, CRGB::Green);
 	FastLED.show();
@@ -50,10 +49,14 @@ void setupNetworkServices(Matrix& matrix) {
 		log("OTA Update starting...");
 		otaInProgress = true;
 
-		// Clear all LEDs
-		if (otaLEDs && otaLEDCount > 0) {
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Black);
-			FastLED.show();
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
 		}
 	});
 	ArduinoOTA.onEnd([]() {
@@ -70,32 +73,41 @@ void setupNetworkServices(Matrix& matrix) {
 			lastPercent = percent;
 		}
 
-		// Visual progress bar: light single orange LED at percentage position
-		if (otaLEDs && otaLEDCount > 0) {
-			// Clear all LEDs
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Black);
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Clear all LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
 
-			// Calculate LED index from percentage (0-100% → 0 to size-1)
-			int ledIndex = (percent * (otaLEDCount - 1)) / 100;
+				// Calculate LED index from percentage (0-100% → 0 to size-1)
+				int ledIndex = (percent * (firstDevice.count - 1)) / 100;
 
-			// Light single orange LED at progress position
-			otaLEDs[ledIndex] = CRGB::Orange;
-			FastLED.show();
+				// Light single orange LED at progress position
+				leds[ledIndex] = CRGB::Orange;
+				FastLED.show();
+			}
 		}
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		log("OTA Error: " + String(error));
 		otaInProgress = false;
 
-		// Show error: all red for 5 seconds
-		if (otaLEDs && otaLEDCount > 0) {
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Red);
-			FastLED.show();
-			delay(5000);
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Show error: all red for 5 seconds
+				fill_solid(leds, firstDevice.count, CRGB::Red);
+				FastLED.show();
+				delay(5000);
 
-			// Clear LEDs
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Black);
-			FastLED.show();
+				// Clear LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
 		}
 	});
 	ArduinoOTA.begin();
@@ -194,10 +206,14 @@ void setupNetworkServices() {
 		log("OTA Update starting...");
 		otaInProgress = true;
 
-		// Clear all LEDs
-		if (otaLEDs && otaLEDCount > 0) {
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Black);
-			FastLED.show();
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
 		}
 	});
 	ArduinoOTA.onEnd([]() {
@@ -214,32 +230,41 @@ void setupNetworkServices() {
 			lastPercent = percent;
 		}
 
-		// Visual progress bar: light single orange LED at percentage position
-		if (otaLEDs && otaLEDCount > 0) {
-			// Clear all LEDs
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Black);
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Clear all LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
 
-			// Calculate LED index from percentage (0-100% → 0 to size-1)
-			int ledIndex = (percent * (otaLEDCount - 1)) / 100;
+				// Calculate LED index from percentage (0-100% → 0 to size-1)
+				int ledIndex = (percent * (firstDevice.count - 1)) / 100;
 
-			// Light single orange LED at progress position
-			otaLEDs[ledIndex] = CRGB::Orange;
-			FastLED.show();
+				// Light single orange LED at progress position
+				leds[ledIndex] = CRGB::Orange;
+				FastLED.show();
+			}
 		}
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		log("OTA Error: " + String(error));
 		otaInProgress = false;
 
-		// Show error: all red for 5 seconds
-		if (otaLEDs && otaLEDCount > 0) {
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Red);
-			FastLED.show();
-			delay(5000);
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Show error: all red for 5 seconds
+				fill_solid(leds, firstDevice.count, CRGB::Red);
+				FastLED.show();
+				delay(5000);
 
-			// Clear LEDs
-			fill_solid(otaLEDs, otaLEDCount, CRGB::Black);
-			FastLED.show();
+				// Clear LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
 		}
 	});
 	ArduinoOTA.begin();

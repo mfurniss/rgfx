@@ -11,6 +11,9 @@ Can also be run standalone for manual deployment.
 """
 
 import shutil
+import hashlib
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Files to copy for serial flashing (esp32-installer)
@@ -36,8 +39,70 @@ def get_version(project_root):
     raise RuntimeError(f"Could not find RGFX_VERSION in {version_h}")
 
 
+def sha256_file(filepath):
+    """Calculate SHA256 hash of a file"""
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
+
+def generate_manifest(hub_firmware_dir, version):
+    """Generate manifest.json for USB serial flashing"""
+    manifest_path = hub_firmware_dir / 'manifest.json'
+
+    # Files for serial flashing (Hub uses firmware.bin, bootloader.bin, partitions.bin)
+    files_info = []
+
+    # Define files with their flash addresses
+    flash_files = [
+        {'name': 'bootloader.bin', 'address': 4096},
+        {'name': 'partitions.bin', 'address': 32768},
+        {'name': 'firmware.bin', 'address': 65536},
+    ]
+
+    for file_info in flash_files:
+        file_path = hub_firmware_dir / file_info['name']
+
+        if not file_path.exists():
+            raise RuntimeError(f"Required file not found: {file_path}")
+
+        file_size = file_path.stat().st_size
+        file_sha256 = sha256_file(file_path)
+
+        files_info.append({
+            'name': file_info['name'],
+            'address': file_info['address'],
+            'size': file_size,
+            'sha256': file_sha256
+        })
+
+    # Get firmware binary SHA256 specifically
+    firmware_sha256 = next(f['sha256'] for f in files_info if f['name'] == 'firmware.bin')
+
+    manifest = {
+        'version': version,
+        'generatedAt': datetime.now(timezone.utc).isoformat(),
+        'firmwareBinarySha256': firmware_sha256,
+        'files': files_info
+    }
+
+    manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
+    print(f"  ✓ manifest.json generated (version {version})")
+
+
 def copy_to_hub_public(project_root, build_dir):
-    """Copy firmware files to Hub's public folder with versioned filename"""
+    """
+    Copy firmware files to Hub's public folder with versioned filename.
+
+    Creates two copies of firmware for different flash methods:
+    - firmware.bin: Used by USB serial flasher (referenced in manifest.json)
+    - rgfx-firmware.{version}.bin: Used by OTA flasher (detected by FirmwareVersionService)
+
+    Both files are IDENTICAL (same SHA256) to ensure consistency across flash methods.
+    The manifest.json is auto-generated with checksums to ensure integrity.
+    """
     hub_firmware_dir = project_root / 'rgfx-hub' / 'public' / 'esp32' / 'firmware'
     hub_firmware_dir.mkdir(parents=True, exist_ok=True)
 
@@ -50,19 +115,25 @@ def copy_to_hub_public(project_root, build_dir):
         old_file.unlink()
         print(f"  ✗ Deleted old firmware: {old_file.name}")
 
-    # Copy firmware.bin with version in filename
+    # Copy firmware.bin (required for USB serial flashing via manifest.json)
     firmware_bin_path = build_dir / 'firmware.bin'
     if firmware_bin_path.exists():
+        # Copy as firmware.bin for USB serial flashing
+        dest_firmware = hub_firmware_dir / 'firmware.bin'
+        dest_firmware.write_bytes(firmware_bin_path.read_bytes())
+        print(f"  ✓ firmware.bin ({dest_firmware.stat().st_size} bytes)")
+
+        # Also copy with version in filename for OTA updates
         versioned_firmware = hub_firmware_dir / f'rgfx-firmware.{version}.bin'
         versioned_firmware.write_bytes(firmware_bin_path.read_bytes())
         print(f"  ✓ {versioned_firmware.name} ({versioned_firmware.stat().st_size} bytes)")
     else:
         print(f"  ✗ firmware.bin not found at {firmware_bin_path}")
 
-    # Copy other required flash files (for OTA)
+    # Copy other required flash files
     for file_info in FIRMWARE_FILES:
         if file_info['name'] == 'firmware.bin':
-            continue  # Already handled above with versioned name
+            continue  # Already handled above
 
         source_path = build_dir / file_info['name']
         dest_path = hub_firmware_dir / file_info['name']
@@ -72,6 +143,9 @@ def copy_to_hub_public(project_root, build_dir):
             print(f"  ✓ {file_info['name']} ({dest_path.stat().st_size} bytes)")
         else:
             print(f"  ✗ {file_info['name']} not found at {source_path}")
+
+    # Generate manifest.json for USB serial flashing
+    generate_manifest(hub_firmware_dir, version)
 
     print(f"Firmware v{version} copied to Hub public folder\n")
 
