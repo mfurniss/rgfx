@@ -71,6 +71,12 @@ void mqttCallback(String& topic, String& payload) {
 		Commands::reset("");
 	}
 
+	// Handle reboot command
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reboot")) {
+		log("Reboot command received - initiating reboot...");
+		Commands::reboot("");
+	}
+
 }
 
 // Discover MQTT broker via UDP broadcast
@@ -223,11 +229,15 @@ void reconnectMQTT() {
 		String resetTopic = "rgfx/driver/" + deviceId + "/reset";
 		mqttClient.subscribe(resetTopic.c_str(), 2);
 
+		String rebootTopic = "rgfx/driver/" + deviceId + "/reboot";
+		mqttClient.subscribe(rebootTopic.c_str(), 2);
+
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - " + macConfigTopic + " (config via MAC)");
 		log("  - " + testTopic);
 		log("  - " + resetTopic);
+		log("  - " + rebootTopic);
 
 		// Update display to show MQTT connected
 		if (Display::isAvailable()) {
