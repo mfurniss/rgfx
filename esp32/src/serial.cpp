@@ -27,6 +27,7 @@ namespace SerialCommand {
 	static std::map<String, Commands::CommandHandler> commandRegistry = {
 		{"wifi", Commands::wifi},
 		{"reset", Commands::reset},
+		{"reboot", Commands::reboot},
 		{"help", Commands::help},
 		{"telemetry", Commands::telemetry},
 		{"test_leds", Commands::testLeds},
