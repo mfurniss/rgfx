@@ -211,7 +211,12 @@ void handleDriverConfig(const String& payload) {
 					delete[] matrix->leds;
 					matrix->leds = leds;
 
-					log("Matrix now using FastLED buffer directly");
+					// Update OTA LED buffer for progress bar
+					extern CRGB* otaLEDs;
+					extern uint16_t otaLEDCount;
+					otaLEDs = leds;
+					otaLEDCount = firstDevice.count;
+					log("Matrix now using FastLED buffer directly (OTA LEDs updated)");
 				} else {
 					// Matrix dimensions haven't changed, just update LED buffer pointer
 					matrix->leds = leds;
