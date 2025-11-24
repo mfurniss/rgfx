@@ -2,265 +2,159 @@
 
 A day-by-day chronicle of the RGFX project development.
 
----
-
 ## October 11, 2025
 
 Initial project setup for RGFX, a MAME Lua scripting framework for monitoring retro arcade game state. The first working proof-of-concept successfully tracked Pac-Man scores in real-time using MAME's Lua API and memory monitoring, validating the core technical approach.
-
----
 
 ## October 12, 2025
 
 Expanded RAM monitoring utilities to be more robust and flexible. Added Galaga support as a second test game to prove the framework's multi-game capability. Restructured the code into an interceptor pattern for easier game-specific logic. Implemented MQTT message publishing for external event consumers and added comprehensive message logging for debugging.
 
----
-
 ## October 13, 2025
 
 Major refactoring focused on memory handling. Updated the RAM monitor to support word and dword reads, critical for correctly reading multi-byte values like scores. Created an MQTT bridge architecture for proper game event routing. Debugged and fixed score calculations with proper BCD (Binary-Coded Decimal) decoding.
-
----
 
 ## October 14, 2025
 
 Implemented Pac-Man ghost state tracking to monitor chase, scatter, and frightened modes, enabling future LED effects that respond to ghost AI behavior. Updated file paths and project structure. Completed comprehensive documentation updates including README improvements and CLAUDE.md development guidelines.
 
----
-
 ## October 15, 2025
 
 Merged the ESP32 firmware project into the repository, transforming RGFX into a multi-component system with both software (MAME Lua + Hub) and hardware (ESP32 drivers) in a unified monorepo. This established the foundation for the distributed architecture where game events drive physical LED hardware.
-
----
 
 ## October 16, 2025
 
 Updated VSCode workspace configuration for the new multi-project structure. Implemented UDP messaging alongside MQTT for low-latency event delivery in time-critical LED updates. Reorganized project folders and began implementing the LED effects system on the ESP32 side with multiple iterations to refine the patterns.
 
----
-
 ## October 18, 2025
 
 Added a comprehensive todo list to track feature development. Moved all MAME-related code into a dedicated `mame/` subfolder to maintain organization as more components were added to the repository.
-
----
 
 ## October 20, 2025
 
 Intensive ESP32 firmware development. Fixed bootloader issues preventing proper flashing. Implemented a complete WiFi configuration portal eliminating hardcoded credentials. Built a web-based LED hardware configuration interface and created an ESP32 web installer with proper manifest files for browser-based flashing. Added comprehensive architecture documentation explaining the distributed Hub+Driver system. Established MPL 2.0 licensing and created the rgfx.io landing page. Started building the Hub application with Electron.
 
----
-
 ## October 21, 2025
 
 Focused on Hub development and driver integration. Implemented Over-The-Air (OTA) firmware updates for ESP32 drivers, eliminating USB cable requirements. Established MQTT communication between Hub and Drivers with system information reporting (chip ID, MAC address, firmware version). Implemented mDNS device discovery for automatic driver detection on the network.
-
----
 
 ## October 24, 2025
 
 Added local documentation for key libraries (MAME Lua API, arduino-mqtt, Aedes MQTT broker) to accelerate development. Improved driver MQTT protocol robustness and implemented driver reconnection logic for handling disconnect/reconnect scenarios. Added network traffic statistics tracking. Achieved a major breakthrough with working Electron packaging, enabling standalone app distribution. Updated Vite configuration, refactored React components, added comprehensive unit tests, and established strict ESLint and TypeScript checking for code quality enforcement.
 
----
-
 ## October 25, 2025
 
 Enforced strict linting and TypeScript checking project-wide. Completed major React refactoring following best practices. Implemented Zustand state management with Redux DevTools integration. Made a critical architectural change moving driver configuration from ESP32 NVS to Hub storage, centralizing config management for easier multi-driver setups. Standardized all files to kebab-case naming convention. Cleaned up unused code and added Super Mario Bros interceptor for NES game support.
-
----
 
 ## October 26, 2025
 
 Optimized UDP message handling for better performance. Implemented game mapping system with Lua formatting using StyLua. Added OLED status display to ESP32 drivers for on-device connection status and IP address visibility. Implemented support for multiple simultaneous drivers. Added C++ linting and formatting using clang-format. Major milestone: implemented complete GitLab CI/CD pipeline with automated testing, protected main branch, and feature branch workflow. Added DMG packaging for macOS distribution, fixed WiFi Access Point timeout issues, and set up automated Git bundle backups to Google Drive for disaster recovery.
 
----
-
 ## October 27, 2025
 
 CI/CD debugging and refinement. Fixed HTML generation issues in the pipeline and disabled problematic html_to_progmem.py pre-script. Fixed GitLab CI YAML syntax errors and ESP.h include path issues causing cross-platform build failures. Completed the automated Git bundle backup system with Google Drive integration. Implemented the complete feature branch CI/CD workflow with proper pre-merge testing. Fixed test:driver job by adding version.h generation and configured PlatformIO to skip hardware tests in CI. Added authorship information and established MPL-2.0 licensing consistently across the codebase.
-
----
 
 ## October 28, 2025
 
 Implemented multi-driver broadcast system for efficient simultaneous event delivery to all drivers. Added startup improvements with connection pulse splash screen effect. Fixed CI cache corruption issues by forcing fresh git clones and removed caching from test jobs after discovering intermittent failures. Discovered and worked around a GitLab CI bug where package-lock.json disappears during pipeline execution, eventually fixing the npm ci issue by regenerating the lock file with npm 10.8.2. Implemented abstracted LED configuration system with NVS persistence on ESP32 side, allowing drivers to store and recall their LED hardware configuration. Documented the critical lint-after-edit workflow.
 
----
-
 ## October 29, 2025
 
 Improved ESP32 PlatformIO configuration for better compilation and performance. Fixed a critical LED buffer disconnection bug and removed problematic build flags causing instability. Added incremental development workflow documentation and ESP32-specific guidelines. Enhanced Galaga support with improved RAM monitoring. Implemented pre-commit hook for automatic code quality enforcement running TypeScript checks, ESLint, and tests before every commit. Added comprehensive event mapping system architecture documentation and updated planning preferences to exclude timelines.
-
----
 
 ## October 30, 2025
 
 Optimized the event mapper system with simplified return patterns and single game mapper architecture. Removed the confusing white flash that occurred when drivers received configuration, providing cleaner visual feedback.
 
----
-
 ## October 31, 2025
 
 Fixed CI pipeline failures related to copy_firmware.py script and Electron Forge configuration. Implemented game initialization event system and source-based mapper loading, enabling dynamic mapper loading based on the active game. Completed major LED hardware refactor with improved coordinate transform system and better mapper integration.
-
----
 
 ## November 1, 2025
 
 Refactored LED coordinate transforms into a separate module for better code organization and reusability. Refactored LED configuration system and added LED test mode for hardware validation. Eliminated fragile setTimeout() calls in favor of proper async/await patterns. Documented async/await best practices, setTimeout pitfalls, and data-driven code guidelines preferring lookup tables over branching logic. Documented MQTT config payload format and LED test mode functionality.
 
----
-
 ## November 2, 2025
 
 Refactored codebase to consolidate global constants and improve the heartbeat mechanism between Hub and Drivers. Fixed CI issues by moving platform-specific dependencies to optionalDependencies, then removing Rollup platform-specific dependency to ensure CI pipeline success.
-
----
 
 ## November 4, 2025
 
 Added variable frame rate limiting to LED rendering for handling different refresh rates based on effect complexity. Created centralized constants file for ESP32 driver firmware to eliminate magic numbers. Refactored serial commands into a modular thread-safe system. Fixed critical ESP32 boot loop caused by corrupted EEPROM configuration with validation and fallback mechanisms. Added sys_info serial command for better debugging capabilities and improved C++ code formatting. Removed unused 'type' field from Driver interface. Implemented PulseEffect class with alpha-based fading and modular architecture as the first proper LED effect. Updated documentation and disabled MAME audio to reduce noise during gameplay. Added IEffect interface for extensibility. Fixed CI issues with package-lock.json workaround and DMG build failures on Linux by skipping DMG creation on non-tag commits.
 
----
-
 ## November 5, 2025
 
 Updated documentation across the project. Added pulse fade control and optimized rendering performance for smoother LED effects.
-
----
 
 ## November 6, 2025
 
 Implemented robust MQTT state synchronization architecture enabling Hub and Drivers to maintain consistent state through disconnections and reconnections. Standardized all logging to use the log() wrapper consistently throughout the codebase. Added optimistic UI updates for the test button to improve perceived responsiveness. Added tooltip to test button explaining the test pattern. Fixed LED test mode and matrix orientation issues ensuring test patterns display correctly on both strip and matrix layouts.
 
----
-
 ## November 7, 2025
 
 Fixed CI cache warning by removing non-existent .platformio/ path from cache configuration.
-
----
 
 ## November 8, 2025
 
 Major refactoring of ESP32 effect system to use data-driven lookup tables, eliminating long if/else chains for better maintainability. Reorganized ESP32 source code into logical directories (effects/, display/, network/, config/) for improved project structure. Modernized C++ include paths and expanded native test coverage. Added native C++ tests to CI pipeline, ensuring both Hub and Driver code quality is maintained through automated testing.
 
----
-
 ## November 9, 2025
 
 Refactored effect rendering architecture by injecting matrix reference at effect construction time rather than passing it at render time, improving performance and API clarity. Implemented dynamic color correction configuration for LED drivers, allowing runtime adjustment of gamma and brightness settings for optimal visual output across different LED hardware types.
-
----
 
 ## November 11, 2025
 
 Implemented SSDP (Simple Service Discovery Protocol) broker discovery, replacing mDNS for more reliable Hub discovery by ESP32 drivers. This change simplifies network configuration and improves connection reliability. Converted LED test mode into a proper effect within the EffectProcessor framework, maintaining consistency with other effects and eliminating special-case handling. Updated driver definitions to support the new discovery mechanism.
 
----
-
 ## November 12, 2025
 
 Merged driver-hardware branch completing the transition to SSDP-based discovery and the refactored effect system architecture.
 
----
-
 ## November 14, 2025
 
-Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`) replacing unreliable MAC-based fallback IDs. Created centralized driver ID validation with pattern matching and reserved word checking. Implemented automatic driver ID assignment on first connection - Hub looks up persisted driver by MAC address and sends set-id command via MQTT. Fixed driver ID auto-assignment by detecting empty hostnames and using MAC-based set-id topic subscription for drivers without IDs. Removed all MAC-based fallback logic from ESP32 firmware, requiring explicit ID assignment. Updated factory_reset command to clear both NVS and WiFi credentials. Made event logging and file reading extremely robust by removing fs.watch polling backup and relying entirely on native file watching for lowest latency. Implemented auto-incrementing firmware version system using `git describe` for development builds. The version format `<tag>-dev.<commits>+<hash>[-dirty]` provides automatic build numbering where the commit count increments with each commit, eliminating manual version management. Added firmware version to driver sysInfo payload and displayed it in the Hub UI driver card Hardware section. Updated OTA upload script to use proper driver IDs instead of MAC-based hostnames.
+Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`) with centralized validation and automatic assignment on first connection. Hub looks up persisted drivers by MAC address and sends set-id commands via MQTT, eliminating unreliable MAC-based fallback IDs. Updated factory_reset command to clear both NVS and WiFi credentials.
 
----
+Implemented auto-incrementing firmware version system using `git describe` with format `<tag>-dev.<commits>+<hash>[-dirty]` for automatic build numbering. Made event logging extremely robust by removing fs.watch polling backup and relying entirely on native file watching for lowest latency. Added firmware version to driver sysInfo payload, displayed it in Hub UI, and updated OTA upload script to use proper driver IDs.
 
 ## November 15, 2025
 
-Centralized Hub constants into single configuration file, eliminating scattered magic numbers across the codebase. Fixed Vite path alias resolution for tilde imports. Enabled prefer-const ESLint rule for better code quality. Added Prettier configuration with single quotes for consistent code formatting. Replaced manual time formatting with date-fns library for robust timestamp handling. Implemented custom locale for short-format relative times (e.g., "5m ago" instead of "5 minutes ago"). Added comprehensive tests for formatting utilities. Fixed file descriptor leak by properly stopping EventFileReader on app quit. Updated event-file-reader tests to use temporary directories for isolation. Simplified event file handling and added Lua file check. Implemented real-time events processed counter with instant updates on each event. Added locale-aware number formatting throughout Hub UI using toLocaleString() for proper thousands separators. Updated formatUptime() to always display seconds for real-time accuracy (e.g., "1m 30s", "1h 5m 30s"). Implemented Hub uptime display with 1-second refresh interval. Removed RGFX header AppBar - moved Hub IP to System Status section. Applied consistent locale formatting to all numeric displays across System Status and Driver Card components.
+Centralized Hub constants into single configuration file and enabled prefer-const ESLint rule with Prettier for consistent formatting. Replaced manual time formatting with date-fns library and implemented custom locale for short-format relative times. Fixed file descriptor leak by properly stopping EventFileReader on app quit and updated tests to use temporary directories.
 
----
+Implemented real-time events counter, Hub uptime display with 1-second refresh, and locale-aware number formatting throughout the UI using toLocaleString(). Simplified event file handling, added Lua file check, and removed RGFX header AppBar moving Hub IP to System Status section.
 
 ## November 16, 2025
 
-Implemented comprehensive test improvements for mapping-engine.ts, increasing coverage from 47.65% to 60.34%. Added dependency injection pattern via MappingEngineOptions interface with importModule function, enabling proper testing of dynamic imports with cache-busting. Created 6 new tests for module loading: game mapper loading, import failures, invalid handlers, default mapper loading, and error handling for both ENOENT and non-ENOENT errors. Fixed all TypeScript diagnostic errors in test file by correcting fs.watch callback signatures (using rest parameters) and adding .js extensions to dynamic imports for node16/nodenext module resolution. Improved driver list UX by making entire table rows clickable instead of requiring users to click the small info button, and removed the redundant Actions column. Added graceful shutdown when window close button is clicked, disabling WiFi power saving for low-latency UDP, and improved LED configuration UI with validation. All 322 tests pass with strict TypeScript checking and ESLint validation enforced via pre-commit hook.
+Implemented comprehensive test improvements for mapping-engine with dependency injection pattern enabling proper testing of dynamic imports. Added 6 new tests for module loading, import failures, and error handling. Fixed all TypeScript diagnostic errors by correcting fs.watch callback signatures and adding .js extensions to dynamic imports.
 
----
+Improved driver list UX by making entire table rows clickable, disabled WiFi power saving for low-latency UDP, and added LED configuration validation. Implemented graceful shutdown when window close button is clicked. All 322 tests pass with strict TypeScript checking and ESLint validation.
 
 ## November 17, 2025
 
 Fixed critical LED config push bug - Hub wasn't sending LED configurations to drivers on startup. Refactored driver identification and simplified MQTT communication by removing unused type field from driver definitions and payloads. Fixed driver ID sync issues and added comprehensive ESP32 unit tests. Improved UI styling across driver cards and system status components.
 
----
-
 ## November 18, 2025
 
-Implemented complete Hub UI redesign with new screen-based navigation system. Added sidebar navigation with dedicated screens for Home, Drivers, Events, Mappers, and System. Updated Event Monitor with lastValue tracking to show both current and last-known event values with improved formatting. Fixed test effect LED compositing bug where orange connection pulse was interfering with test patterns - effects now blend properly using alpha compositing. Simplified TransportLayer API by removing unused duration field from EffectPayload type. Implemented dark mode support with automatic system theme detection and manual toggle, refactored theme providers, and added Material UI dark theme palette. Improved driver card styling and system status components for better UX across both light and dark modes.
+Implemented complete Hub UI redesign with screen-based navigation system including sidebar and dedicated screens for Home, Drivers, Events, Mappers, and System. Updated Event Monitor with lastValue tracking, fixed test effect LED compositing bug with proper alpha blending, and simplified TransportLayer API. Implemented dark mode support with automatic system theme detection and manual toggle.
 
-Added Firmware management page with USB flashing support using Web Serial API and esptool-js. Implemented serial port auto-detection for ESP32 devices (CP2102, CH340, FTDI, Espressif native USB). Fixed ESP32 serial command processing issues where driver was auto-responding to partial commands. Fixed factory reset boot loop by properly validating WiFi credentials before entering portal mode. Added test topic resubscription when device ID changes to maintain MQTT communication. Implemented OTA firmware flashing support via esp-ota library for ArduinoOTA protocol updates to connected drivers.
-
-Major main.ts refactoring - extracted code into modular components reducing main.ts from ~663 to ~360 lines. Created src/ipc/ directory with individual IPC handler files (test-leds, set-id, flash-ota). Created src/mqtt-subscriptions/ directory with individual MQTT subscription files. Extracted driver callbacks, pushConfigToDriver function, and serial port configuration into separate modules for better code organization and maintainability.
-
----
+Added Firmware management page with USB flashing support using Web Serial API and esptool-js, plus OTA firmware flashing via esp-ota library. Fixed ESP32 serial command processing issues and factory reset boot loop. Major main.ts refactoring extracted code into modular components with dedicated IPC and MQTT subscription modules.
 
 ## November 19-20, 2025
 
-Implemented comprehensive effect testing infrastructure with new Test Effects page in Hub UI. Added manual effect triggering interface with real-time parameter controls for testing pulse, wipe, and explosion effects. Implemented state persistence for test page settings using localStorage. Fixed TypeScript strict type checking errors across the codebase ensuring all nullable types are properly handled.
+Implemented comprehensive effect testing infrastructure with new Test Effects page featuring manual effect triggering and real-time parameter controls. Optimized Electron renderer performance by migrating driver stats from polling to event-driven IPC updates with automatic telemetry cleanup for disconnected drivers.
 
-Optimized Electron renderer performance by migrating driver stats from polling to event-driven updates via IPC. Added driver telemetry tracking for packets received, bytes received, and last packet timestamp with automatic cleanup for disconnected drivers. Improved memory efficiency and reduced CPU usage in renderer process.
-
-Implemented particle-based explosion effect system with configurable parameters (duration, particle count, speed, colors). Created shared FIFO particle pool architecture with configurable pool sizes for memory-efficient particle management. Fixed synchronized random color generation ensuring consistent colors across multiple simultaneous explosions. Added particle velocity randomization and gravity simulation for realistic explosion physics.
-
-Added configurable window zoom factor (default 90%) to improve UI scaling and readability. Made various misc improvements to ESP32 effects system including better color blending and performance optimizations. Improved Hub UI with better layout and visual polish across all pages.
-
-Merged hub-firmware-updater branch completing the firmware management system with both USB (Web Serial) and OTA flashing capabilities.
-
----
-
----
+Implemented particle-based explosion effect system with FIFO particle pool architecture, configurable parameters, and realistic physics including velocity randomization and gravity simulation. Added configurable window zoom factor (default 90%) and merged hub-firmware-updater branch completing the firmware management system with both USB and OTA flashing capabilities.
 
 ## November 21, 2025
 
-Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s for more efficient network usage. Removed consecutive failure tracking and rediscovery logic.
+Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s and removed consecutive failure tracking, reducing firmware size by 1,456 bytes.
 
-Implemented driver disconnection detection with 30-second timeout (3× telemetry interval). Fixed critical bug where drivers weren't showing as disconnected in Hub UI when unplugged. Converted `Driver.connected` from computed getter to stored property enabling Zustand to properly detect state changes. Added interval timer in driver-store checking for stale connections every 5 seconds, only updating state when connection status actually changes to prevent unnecessary re-renders. Firmware size reduced by 1,456 bytes from removing retry logic.
-
-**Key insight:** Zustand only triggers re-renders on actual state property changes, not computed getters. The previous getter calculated `connected` on-access but never triggered updates when time passed without telemetry. The new approach explicitly updates the `connected` property when timeout is detected, enabling proper reactive updates throughout the UI.
-
----
+Implemented driver disconnection detection with 30-second timeout. Fixed critical bug where drivers weren't showing as disconnected in Hub UI by converting `Driver.connected` from computed getter to stored property, enabling Zustand to properly detect state changes. Added interval timer checking for stale connections every 5 seconds.
 
 ## November 23, 2025
 
-Fixed critical firmware version system bug where version injection script (inject_version.py) wasn't running during PlatformIO builds. The script only executed in standalone mode due to `if __name__ == '__main__':` guard - PlatformIO imports scripts as modules which bypassed this block. Fixed by adding PlatformIO integration via Import("env") with dual-mode support: standalone mode uses `__file__` to locate project root, while PlatformIO mode uses `env.get("PROJECT_DIR")`. Script now runs automatically on every build.
+Fixed critical firmware version system bug where inject_version.py wasn't running during PlatformIO builds. Added PlatformIO integration via Import("env") with dual-mode support for both standalone and PlatformIO execution. Eliminated timestamp drift by changing copy_firmware.py to read version directly from generated version.h, ensuring firmware filename exactly matches compiled version across all build contexts.
 
-Eliminated timestamp drift between version injection and firmware file copy by changing copy_firmware.py to read version directly from generated version.h instead of re-running get-version.js. This ensures firmware filename exactly matches the compiled version baked into the binary.
-
-Simplified firmware version service to read version from firmware filename pattern (rgfx-firmware.{version}.bin) and removed hash-based comparison in driver-card UI, replacing with simple version string matching.
-
-Result: Firmware version is now consistent across version.h (generated pre-build), compiled firmware binary, firmware filename in Hub's public folder, and driver telemetry reported to Hub. The build pipeline now works correctly in all contexts: local development (pio run), serial uploads, OTA uploads, and CI/CD pipelines.
-
-Optimized ESP32 UDP processing for lowest possible latency by moving processUDP() call outside the frame rate limiter to the top of loop(). UDP packets now process immediately every iteration without artificial delays, while LED rendering still respects the configured 120 FPS update rate. This ensures time-critical game events from MAME trigger LED effects with minimal latency.
-
-Removed redundant flush() call from event.lua since setvbuf("no") already disables buffering.
-
----
+Optimized ESP32 UDP processing for lowest latency by moving processUDP() outside the frame rate limiter to process packets immediately every loop iteration. Removed redundant flush() call from event.lua. Customized Electron's native macOS About menu to display RGFX branding with custom icon, version, and copyright information.
 
 **Total Development Time:** 43 days (October 11 - November 23, 2025)
 **Total Commits:** 259
-**Major Features Delivered:**
-- MAME Lua interceptor framework
-- ESP32 firmware with LED control
-- Electron Hub application with MQTT broker
-- CI/CD pipeline with automated testing including native C++ tests
-- Event mapping and LED effect system with data-driven architecture
-- Multi-driver support with SSDP discovery (replaced mDNS)
-- OTA firmware updates
-- LED test mode integrated as proper effect
-- Dynamic color correction configuration
-- Modular ESP32 source organization
-- Auto-incrementing firmware version system with git describe
-- Centralized constants configuration
-- Real-time Hub metrics with locale-aware formatting
-- Comprehensive unit test coverage with dependency injection for testability
-- Complete firmware management system (USB + OTA flashing)
-- Manual effect testing interface with real-time parameter controls
-- Event-driven telemetry for optimal renderer performance
-- Particle-based explosion effect with shared FIFO pool architecture
-- Robust driver disconnection detection with timeout-based status tracking

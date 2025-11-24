@@ -17,6 +17,22 @@ import { formatNumber } from '../utils/formatters';
 type SortField = 'topic' | 'count';
 type SortOrder = 'asc' | 'desc';
 
+const formatValue = (value: string | number | undefined): string => {
+  if (value === undefined) return '';
+
+  const numValue = Number(value);
+  if (isNaN(numValue)) {
+    return String(value);
+  }
+
+  if (numValue >= 0 && numValue <= 65535 && Number.isInteger(numValue)) {
+    const hex = `0x${numValue.toString(16).toUpperCase().padStart(4, '0')}`;
+    return `${formatNumber(numValue)} (${hex})`;
+  }
+
+  return formatNumber(numValue);
+};
+
 const EventMonitorPage: React.FC = () => {
   const topics = useEventStore((state) => state.topics);
   const [sortField, setSortField] = useState<SortField>('topic');
@@ -88,9 +104,7 @@ const EventMonitorPage: React.FC = () => {
                 <TableRow key={eventTopic.topic}>
                   <TableCell>{eventTopic.topic}</TableCell>
                   <TableCell align="right">{formatNumber(eventTopic.count)}</TableCell>
-                  <TableCell align="right">
-                    {eventTopic.lastValue ? formatNumber(Number(eventTopic.lastValue)) : ''}
-                  </TableCell>
+                  <TableCell align="right">{formatValue(eventTopic.lastValue)}</TableCell>
                 </TableRow>
               ))
             )}

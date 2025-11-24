@@ -249,6 +249,14 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+  // Set About panel options for macOS
+  app.setAboutPanelOptions({
+    applicationName: 'RGFX Hub',
+    applicationVersion: pkg.version,
+    copyright: 'Copyright © 2025 Matt Furniss',
+    version: `Built with Electron ${process.versions.electron}`,
+  });
+
   // Load Redux DevTools extension in development mode
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     const extensionPath = path.join(
