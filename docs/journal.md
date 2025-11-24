@@ -12,19 +12,19 @@ Expanded RAM monitoring utilities to be more robust and flexible. Added Galaga s
 
 ## October 13, 2025
 
-Major refactoring focused on memory handling. Updated the RAM monitor to support word and dword reads, critical for correctly reading multi-byte values like scores. Created an MQTT bridge architecture for proper game event routing. Debugged and fixed score calculations with proper BCD (Binary-Coded Decimal) decoding.
+Major refactoring focused on memory handling. Updated RAM monitor to support word and dword reads for multi-byte values. Created MQTT bridge architecture for game event routing with BCD score decoding.
 
 ## October 14, 2025
 
-Implemented Pac-Man ghost state tracking to monitor chase, scatter, and frightened modes, enabling future LED effects that respond to ghost AI behavior. Updated file paths and project structure. Completed comprehensive documentation updates including README improvements and CLAUDE.md development guidelines.
+Implemented Pac-Man ghost state tracking for chase, scatter, and frightened modes. Updated file paths and project structure. Completed documentation updates including README and CLAUDE.md development guidelines.
 
 ## October 15, 2025
 
-Merged the ESP32 firmware project into the repository, transforming RGFX into a multi-component system with both software (MAME Lua + Hub) and hardware (ESP32 drivers) in a unified monorepo. This established the foundation for the distributed architecture where game events drive physical LED hardware.
+Merged ESP32 firmware project into repository, establishing unified monorepo with MAME Lua, Hub, and ESP32 drivers for distributed game-to-LED architecture.
 
 ## October 16, 2025
 
-Updated VSCode workspace configuration for the new multi-project structure. Implemented UDP messaging alongside MQTT for low-latency event delivery in time-critical LED updates. Reorganized project folders and began implementing the LED effects system on the ESP32 side with multiple iterations to refine the patterns.
+Updated VSCode workspace for multi-project structure. Implemented UDP messaging alongside MQTT for low-latency LED updates. Reorganized folders and began LED effects system implementation.
 
 ## October 18, 2025
 
@@ -146,15 +146,15 @@ Implemented particle-based explosion effect system with FIFO particle pool archi
 
 ## November 21, 2025
 
-Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s and removed consecutive failure tracking, reducing firmware size by 1,456 bytes.
-
-Implemented driver disconnection detection with 30-second timeout. Fixed critical bug where drivers weren't showing as disconnected in Hub UI by converting `Driver.connected` from computed getter to stored property, enabling Zustand to properly detect state changes. Added interval timer checking for stale connections every 5 seconds.
+Simplified ESP32 MQTT broker discovery with periodic polling. Updated telemetry interval and removed failure tracking, reducing firmware size by 1,456 bytes. Implemented driver disconnection detection with 30-second timeout.
 
 ## November 23, 2025
 
-Fixed critical firmware version system bug where inject_version.py wasn't running during PlatformIO builds. Added PlatformIO integration via Import("env") with dual-mode support for both standalone and PlatformIO execution. Eliminated timestamp drift by changing copy_firmware.py to read version directly from generated version.h, ensuring firmware filename exactly matches compiled version across all build contexts.
+Fixed critical firmware version system bug from previous days affecting PlatformIO builds. Optimized ESP32 UDP processing for lowest latency. Customized Electron's native macOS About menu with RGFX branding.
 
-Optimized ESP32 UDP processing for lowest latency by moving processUDP() outside the frame rate limiter to process packets immediately every loop iteration. Removed redundant flush() call from event.lua. Customized Electron's native macOS About menu to display RGFX branding with custom icon, version, and copyright information.
+## November 24, 2025
 
-**Total Development Time:** 43 days (October 11 - November 23, 2025)
-**Total Commits:** 259
+Implemented LED progress indicator for OTA firmware updates showing orange LED moving across strip/matrix during upload. Enhanced firmware deployment pipeline with automatic manifest.json generation including SHA256 checksums for integrity validation. Improved Hub test suite by consolidating redundant tests.
+
+**Total Development Time:** 44 days (October 11 - November 24, 2025)
+**Total Commits:** 261
