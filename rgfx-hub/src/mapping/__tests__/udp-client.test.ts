@@ -68,7 +68,7 @@ describe('UdpClientImpl', () => {
     const driver3 = new Driver({
       id: 'rgfx-driver-0003',
       ip: '192.168.1.103',
-      connected: false, // Not connected
+      connected: false,
       lastSeen: Date.now(),
       firstSeen: Date.now(),
       failedHeartbeats: 0,
