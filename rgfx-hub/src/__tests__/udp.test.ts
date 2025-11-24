@@ -1,146 +1,139 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+/**
+ * Integration tests for Udp
+ *
+ * Uses real UDP sockets on localhost to verify actual packet transmission
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Udp } from '../udp';
 import dgram from 'node:dgram';
 
-// Mock dgram module
-vi.mock('node:dgram');
-
 describe('Udp', () => {
   let udp: Udp;
-  let mockSocket: any;
+  let receiver: dgram.Socket;
+  let receivedMessages: { payload: any; buffer: Buffer }[];
+  const TEST_PORT = 9999; // Use non-standard port for testing
+  const TEST_IP = '127.0.0.1';
 
-  beforeEach(() => {
-    // Create mock socket with proper event handling
-    mockSocket = {
-      send: vi.fn((_buffer, _offset, _length, _port, _ip, callback) => {
-        // Simulate successful send by default
-        if (callback) callback(null);
-      }),
-      close: vi.fn(),
-      on: vi.fn(),
-    };
+  beforeEach(async () => {
+    receivedMessages = [];
 
-    // Mock dgram.createSocket to return our mock socket
-    vi.mocked(dgram.createSocket).mockReturnValue(mockSocket);
+    // Create real UDP receiver socket
+    receiver = dgram.createSocket('udp4');
 
-    udp = new Udp('192.168.1.100', 8888);
+    // Bind receiver to test port
+    await new Promise<void>((resolve) => {
+      receiver.bind(TEST_PORT, TEST_IP, () => {
+        resolve();
+      });
+    });
+
+    // Capture received messages
+    receiver.on('message', (buffer) => {
+      try {
+        const payload = JSON.parse(buffer.toString());
+        receivedMessages.push({ payload, buffer });
+      } catch {
+        // Ignore non-JSON messages
+      }
+    });
+
+    // Create Udp instance pointing to our receiver
+    udp = new Udp(TEST_IP, TEST_PORT);
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('constructor', () => {
-    it('should create UDP instance with correct IP and port', () => {
-      expect(udp.ip).toBe('192.168.1.100');
-      expect(dgram.createSocket).toHaveBeenCalledWith('udp4');
-    });
-
-    it('should set up error event listener', () => {
-      expect(mockSocket.on).toHaveBeenCalledWith('error', expect.any(Function));
-    });
+    udp.stop();
+    receiver.close();
   });
 
   describe('send', () => {
-    it('should send UDP message with correct format', () => {
+    it('should send UDP message with correct JSON format', async () => {
       udp.send({ effect: 'pulse', color: '0xFF0000' });
 
-      const expectedMessage = JSON.stringify({
+      // Wait for UDP packet to arrive
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toEqual({
         effect: 'pulse',
         color: '0xFF0000',
       });
-
-      expect(mockSocket.send).toHaveBeenCalledWith(
-        Buffer.from(expectedMessage),
-        0,
-        Buffer.from(expectedMessage).length,
-        8888,
-        '192.168.1.100',
-        expect.any(Function)
-      );
     });
 
-    it('should call success callback on successful send', () => {
+    it('should call success callback on successful send', async () => {
       const successCallback = vi.fn();
       udp.setSentCallback(successCallback);
 
       udp.send({ effect: 'pulse', color: '0x0000FF' });
 
+      // Wait for send callback
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       expect(successCallback).toHaveBeenCalled();
     });
 
-    it('should call error callback on send failure', () => {
-      const errorCallback = vi.fn();
-      udp.setErrorCallback(errorCallback);
-
-      // Mock socket.send to simulate error
-      const testError = new Error('Network error');
-      mockSocket.send.mockImplementation(
-        (
-          _buffer: Buffer,
-          _offset: number,
-          _length: number,
-          _port: number,
-          _ip: string,
-          callback?: (err: Error | null) => void
-        ) => {
-          callback?.(testError);
-        }
-      );
-
-      udp.send({ effect: 'pulse', color: '0x00FF00' });
-
-      expect(errorCallback).toHaveBeenCalledWith(testError);
-    });
-
-    it('should not throw if no callbacks are set', () => {
-      expect(() => {
-        udp.send({ effect: 'pulse', color: '0xFFFF00' });
-      }).not.toThrow();
-    });
-
-    it('should send multiple messages sequentially', () => {
+    it('should send multiple messages sequentially', async () => {
       udp.send({ effect: 'pulse', color: '0xFF0000' });
       udp.send({ effect: 'fade', color: '0x00FF00' });
       udp.send({ effect: 'solid', color: '0x0000FF' });
 
-      expect(mockSocket.send).toHaveBeenCalledTimes(3);
+      // Wait for all packets
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(receivedMessages).toHaveLength(3);
+      expect(receivedMessages[0].payload.effect).toBe('pulse');
+      expect(receivedMessages[1].payload.effect).toBe('fade');
+      expect(receivedMessages[2].payload.effect).toBe('solid');
+    });
+
+    it('should handle complex payload objects', async () => {
+      const payload = {
+        effect: 'score',
+        value: 12450,
+        player: 'p1',
+        multiplier: 2,
+        combo: true,
+      };
+
+      udp.send(payload);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toEqual(payload);
     });
   });
 
   describe('setErrorCallback', () => {
-    it('should set error callback that gets called on socket error', () => {
+    it('should call error callback on send to invalid address', async () => {
       const errorCallback = vi.fn();
-      udp.setErrorCallback(errorCallback);
 
-      // Simulate socket error
-      const testError = new Error('Socket error');
-      const errorHandler = mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'error')?.[1];
+      // Create UDP instance with invalid IP (broadcast address without SO_BROADCAST)
+      const invalidUdp = new Udp('255.255.255.255', TEST_PORT);
+      invalidUdp.setErrorCallback(errorCallback);
 
-      if (errorHandler) {
-        errorHandler(testError);
-      }
+      invalidUdp.send({ effect: 'test' });
 
-      expect(errorCallback).toHaveBeenCalledWith(testError);
+      // Wait for error
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(errorCallback).toHaveBeenCalled();
+      expect(errorCallback.mock.calls[0][0]).toBeInstanceOf(Error);
+
+      invalidUdp.stop();
     });
   });
 
   describe('setSentCallback', () => {
-    it('should set sent callback', () => {
-      const sentCallback = vi.fn();
-      udp.setSentCallback(sentCallback);
-
-      udp.send({ effect: 'pulse', color: '0xFF0000' });
-
-      expect(sentCallback).toHaveBeenCalled();
-    });
-
-    it('should allow callback to be changed', () => {
+    it('should allow callback to be changed', async () => {
       const firstCallback = vi.fn();
       const secondCallback = vi.fn();
 
       udp.setSentCallback(firstCallback);
       udp.send({ effect: 'pulse', color: '0xFF0000' });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(firstCallback).toHaveBeenCalledTimes(1);
       expect(secondCallback).toHaveBeenCalledTimes(0);
@@ -148,61 +141,47 @@ describe('Udp', () => {
       udp.setSentCallback(secondCallback);
       udp.send({ effect: 'pulse', color: '0x00FF00' });
 
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       expect(firstCallback).toHaveBeenCalledTimes(1);
       expect(secondCallback).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('stop', () => {
-    it('should close the socket', () => {
-      udp.stop();
-
-      expect(mockSocket.close).toHaveBeenCalled();
-    });
-  });
-
-  describe('effect and color combinations', () => {
-    it('should handle different effect types', () => {
+  describe('effect and payload variations', () => {
+    it('should handle different effect types', async () => {
       const effects = ['pulse', 'fade', 'solid', 'rainbow', 'chase'];
 
-      effects.forEach((effect) => {
+      for (const effect of effects) {
         udp.send({ effect, color: '0xFFFFFF' });
+      }
 
-        const expectedMessage = JSON.stringify({
-          effect,
-          color: '0xFFFFFF',
-        });
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockSocket.send).toHaveBeenCalledWith(
-          Buffer.from(expectedMessage),
-          0,
-          Buffer.from(expectedMessage).length,
-          8888,
-          '192.168.1.100',
-          expect.any(Function)
-        );
+      expect(receivedMessages).toHaveLength(effects.length);
+      effects.forEach((effect, index) => {
+        expect(receivedMessages[index].payload.effect).toBe(effect);
       });
     });
 
-    it('should handle different color formats', () => {
-      const colors = ['0xFF0000', '0x00FF00', '0x0000FF', '0xFFFF00', '0xFF00FF'];
+    it('should handle payloads with additional properties', async () => {
+      udp.send({
+        effect: 'wipe',
+        color: '#FF0000',
+        direction: 'left',
+        speed: 200,
+        duration: 1000,
+      });
 
-      colors.forEach((color) => {
-        udp.send({ effect: 'pulse', color });
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-        const expectedMessage = JSON.stringify({
-          effect: 'pulse',
-          color,
-        });
-
-        expect(mockSocket.send).toHaveBeenCalledWith(
-          Buffer.from(expectedMessage),
-          0,
-          Buffer.from(expectedMessage).length,
-          8888,
-          '192.168.1.100',
-          expect.any(Function)
-        );
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toEqual({
+        effect: 'wipe',
+        color: '#FF0000',
+        direction: 'left',
+        speed: 200,
+        duration: 1000,
       });
     });
   });

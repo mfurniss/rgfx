@@ -4,8 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UdpClientImpl } from '../udp-client';
-import type { DriverRegistry } from '../../driver-registry';
-import type { Driver } from '../../types';
+import { DriverRegistry } from '../../driver-registry';
+import { Driver } from '../../types';
 import type { EffectPayload } from '../../types/mapping-types';
 
 // Create mock functions at module scope
@@ -27,48 +27,83 @@ vi.mock('../../udp', () => {
 });
 
 describe('UdpClientImpl', () => {
-  let mockDriverRegistry: DriverRegistry;
+  let driverRegistry: DriverRegistry;
   let udpClient: UdpClientImpl;
-  let mockDrivers: Driver[];
 
   beforeEach(() => {
-    // Create mock drivers
-    mockDrivers = [
-      {
-        id: 'rgfx-driver-0001',
-        connected: true,
-        ip: '192.168.1.101',
-        lastSeen: Date.now(),
-      } as Driver,
-      {
-        id: 'rgfx-driver-0002',
-        connected: true,
-        ip: '192.168.1.102',
-        lastSeen: Date.now(),
-      } as Driver,
-      {
-        id: 'rgfx-driver-0003',
-        connected: false, // Not connected
-        ip: '192.168.1.103',
-        lastSeen: Date.now(),
-      } as Driver,
-      {
-        id: 'rgfx-driver-0004',
-        connected: true,
-        ip: undefined, // No IP
-        lastSeen: Date.now(),
-      } as Driver,
-    ];
+    // Create real DriverRegistry (no persistence needed for tests)
+    driverRegistry = new DriverRegistry();
 
-    // Mock DriverRegistry
-    mockDriverRegistry = {
-      getAllDrivers: vi.fn().mockReturnValue(mockDrivers),
-      getDriver: vi.fn((id: string) => mockDrivers.find((d) => d.id === id)),
-    } as unknown as DriverRegistry;
+    // Register test drivers
+    const driver1 = new Driver({
+      id: 'rgfx-driver-0001',
+      ip: '192.168.1.101',
+      connected: true,
+      lastSeen: Date.now(),
+      firstSeen: Date.now(),
+      failedHeartbeats: 0,
+      stats: {
+        mqttMessagesReceived: 0,
+        mqttMessagesFailed: 0,
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
+      },
+    });
 
-    udpClient = new UdpClientImpl(mockDriverRegistry);
+    const driver2 = new Driver({
+      id: 'rgfx-driver-0002',
+      ip: '192.168.1.102',
+      connected: true,
+      lastSeen: Date.now(),
+      firstSeen: Date.now(),
+      failedHeartbeats: 0,
+      stats: {
+        mqttMessagesReceived: 0,
+        mqttMessagesFailed: 0,
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
+      },
+    });
 
-    // Clear mock call history after creating udpClient (clears construction calls)
+    const driver3 = new Driver({
+      id: 'rgfx-driver-0003',
+      ip: '192.168.1.103',
+      connected: false, // Not connected
+      lastSeen: Date.now(),
+      firstSeen: Date.now(),
+      failedHeartbeats: 0,
+      stats: {
+        mqttMessagesReceived: 0,
+        mqttMessagesFailed: 0,
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
+      },
+    });
+
+    const driver4 = new Driver({
+      id: 'rgfx-driver-0004',
+      ip: undefined, // No IP
+      connected: true,
+      lastSeen: Date.now(),
+      firstSeen: Date.now(),
+      failedHeartbeats: 0,
+      stats: {
+        mqttMessagesReceived: 0,
+        mqttMessagesFailed: 0,
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
+      },
+    });
+
+    // Manually add drivers to registry (bypass registerDriver which requires telemetry)
+    (driverRegistry as any).drivers.set(driver1.id, driver1);
+    (driverRegistry as any).drivers.set(driver2.id, driver2);
+    (driverRegistry as any).drivers.set(driver3.id, driver3);
+    (driverRegistry as any).drivers.set(driver4.id, driver4);
+
+    udpClient = new UdpClientImpl(driverRegistry);
+
+    // Clear mock call history after creating udpClient
     mockUdpSend.mockClear();
     mockUdpStop.mockClear();
     mockUdpSetSentCallback.mockClear();
@@ -80,13 +115,18 @@ describe('UdpClientImpl', () => {
       const payload: EffectPayload = {
         effect: 'score',
         value: 1000,
-        hint: { visual: 'pulse', color: '#00FF00' },
       };
 
       udpClient.broadcast(payload);
 
-      // Should only send to driver-1 and driver-2 (connected with IPs)
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
+      // Should send to driver-0001 and driver-0002 only (connected with IPs)
+      expect(mockUdpSend).toHaveBeenCalledTimes(2);
+      expect(mockUdpSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          effect: 'score',
+          value: 1000,
+        })
+      );
     });
 
     it('should skip disconnected drivers', () => {
@@ -94,12 +134,9 @@ describe('UdpClientImpl', () => {
 
       udpClient.broadcast(payload);
 
-      // driver-3 is disconnected, should be skipped
-      const allDrivers = mockDriverRegistry.getAllDrivers();
-      const connectedDrivers = allDrivers.filter((d) => d.connected && d.ip);
-
-      expect(connectedDrivers).toHaveLength(2);
-      expect(connectedDrivers.map((d) => d.id)).toEqual(['rgfx-driver-0001', 'rgfx-driver-0002']);
+      // driver-0003 is disconnected, should be skipped
+      // Only driver-0001 and driver-0002 should receive
+      expect(mockUdpSend).toHaveBeenCalledTimes(2);
     });
 
     it('should skip drivers without IP addresses', () => {
@@ -107,186 +144,134 @@ describe('UdpClientImpl', () => {
 
       udpClient.broadcast(payload);
 
-      // driver-4 is disconnected, should be skipped
-      const allDrivers = mockDriverRegistry.getAllDrivers();
-      const validDrivers = allDrivers.filter((d) => d.connected && d.ip);
-
-      expect(validDrivers).toHaveLength(2);
-      expect(validDrivers.every((d) => d.ip !== undefined)).toBe(true);
+      // driver-0004 has no IP, should be skipped
+      // Only driver-0001 and driver-0002 should receive
+      expect(mockUdpSend).toHaveBeenCalledTimes(2);
     });
 
     it('should handle empty driver list', () => {
-      (mockDriverRegistry.getAllDrivers as any).mockReturnValue([]);
+      // Create empty registry
+      const emptyRegistry = new DriverRegistry();
+      const emptyClient = new UdpClientImpl(emptyRegistry);
 
       const payload: EffectPayload = { effect: 'test' };
 
       expect(() => {
-        udpClient.broadcast(payload);
+        emptyClient.broadcast(payload);
       }).not.toThrow();
+
+      // No UDP sends should occur
+      expect(mockUdpSend).not.toHaveBeenCalled();
     });
   });
 
   describe('broadcast with selective routing', () => {
-    beforeEach(() => {
-      // Add more specific drivers for testing short-form MACs
-      mockDrivers.push(
-        {
-          id: '44:1D:64:F8:9A:58',
-          connected: true,
-          ip: '192.168.1.105',
-          lastSeen: Date.now(),
-        } as Driver,
-        {
-          id: '44:1D:64:F8:CF:68',
-          connected: true,
-          ip: '192.168.1.106',
-          lastSeen: Date.now(),
-        } as Driver
+    it('should send only to specified drivers', () => {
+      const payload: EffectPayload = {
+        effect: 'score',
+        drivers: ['rgfx-driver-0001'],
+      };
+
+      udpClient.broadcast(payload);
+
+      // Should only send to driver-0001
+      expect(mockUdpSend).toHaveBeenCalledTimes(1);
+      expect(mockUdpSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          effect: 'score',
+        })
       );
     });
 
-    it('should send only to specified drivers with full MAC addresses', () => {
-      const payload: EffectPayload = {
-        effect: 'score',
-        drivers: ['rgfx-driver-0001', 'rgfx-driver-0002'],
-        hint: { visual: 'pulse', color: '#00FF00' },
-      };
-
-      udpClient.broadcast(payload);
-
-      // Should call sendToDrivers with only the specified drivers
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0002');
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(2);
-    });
-
-    it('should send only to specified drivers with short-form MAC (last 3 bytes)', () => {
-      const payload: EffectPayload = {
-        effect: 'ghost_pulse',
-        drivers: ['F8:9A:58'], // Short-form MAC (last 3 bytes)
-        hint: { visual: 'pulse', color: '#FF0000' },
-      };
-
-      udpClient.broadcast(payload);
-
-      // Should match driver with ID '44:1D:64:F8:9A:58'
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
-      // Note: The actual sending logic would filter to matching drivers
-      // We need to verify the internal logic matches correctly
-    });
-
-    it('should handle case-insensitive short-form MAC matching', () => {
-      const payload: EffectPayload = {
-        effect: 'ghost_pulse',
-        drivers: ['f8:9a:58'], // Lowercase short-form MAC
-        hint: { visual: 'pulse', color: '#0000FF' },
-      };
-
-      udpClient.broadcast(payload);
-
-      // Should still match driver with ID '44:1D:64:F8:9A:58' (uppercase)
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
-    });
-
-    it('should handle mixed full and short-form MAC addresses', () => {
+    it('should send to multiple specified drivers', () => {
       const payload: EffectPayload = {
         effect: 'test',
-        drivers: [
-          'rgfx-driver-0001', // Full MAC
-          'F8:CF:68', // Short-form MAC
-        ],
-        hint: { visual: 'wipe' },
+        drivers: ['rgfx-driver-0001', 'rgfx-driver-0002'],
       };
 
       udpClient.broadcast(payload);
 
-      // Should match both types
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
+      // Should send to both driver-0001 and driver-0002
+      expect(mockUdpSend).toHaveBeenCalledTimes(2);
     });
 
     it('should send to all drivers when drivers array is empty', () => {
       const payload: EffectPayload = {
         effect: 'test',
         drivers: [], // Empty array should send to all
-        hint: { visual: 'pulse' },
       };
 
       udpClient.broadcast(payload);
 
-      // Should behave like normal broadcast
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
+      // Should send to all connected drivers with IPs
+      expect(mockUdpSend).toHaveBeenCalledTimes(2);
     });
 
     it('should send to all drivers when drivers property is undefined', () => {
       const payload: EffectPayload = {
         effect: 'test',
-        hint: { visual: 'pulse' },
         // No drivers property - should send to all
       };
 
       udpClient.broadcast(payload);
 
-      // Should behave like normal broadcast
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
+      // Should send to all connected drivers with IPs
+      expect(mockUdpSend).toHaveBeenCalledTimes(2);
     });
 
     it('should not send to any driver when no drivers match', () => {
       const payload: EffectPayload = {
         effect: 'test',
-        drivers: ['XX:YY:ZZ'], // Non-existent short-form
-        hint: { visual: 'pulse' },
+        drivers: ['rgfx-driver-9999'], // Non-existent driver
       };
 
       udpClient.broadcast(payload);
 
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
-      // No specific driver sends should happen
+      // No sends should occur
+      expect(mockUdpSend).not.toHaveBeenCalled();
     });
 
     it('should remove drivers property from UDP payload', () => {
       const payload: EffectPayload = {
         effect: 'test',
         drivers: ['rgfx-driver-0001'], // This should be removed from UDP packet
-        hint: { visual: 'pulse', color: '#00FF00' },
+        value: 100,
       };
 
-      // Spy on the UDP send method to verify drivers property is not sent
       udpClient.broadcast(payload);
 
-      // Verify mockUdpSend was called and check the payload
+      // Verify mockUdpSend was called
       expect(mockUdpSend).toHaveBeenCalled();
-      if (mockUdpSend.mock.calls.length > 0) {
-        const sentPayload = mockUdpSend.mock.calls[0][0];
-        expect(sentPayload).not.toHaveProperty('drivers');
-        expect(sentPayload).toHaveProperty('effect', 'test');
-      }
+
+      // Check that drivers property was removed
+      const sentPayload = mockUdpSend.mock.calls[0][0];
+      expect(sentPayload).not.toHaveProperty('drivers');
+      expect(sentPayload).toHaveProperty('effect', 'test');
+      expect(sentPayload).toHaveProperty('value', 100);
     });
 
-    it('should handle uppercase driver IDs in registry', () => {
-      // Ensure driver IDs are uppercase in registry (as they are in real system)
+    it('should skip disconnected drivers even when specified', () => {
       const payload: EffectPayload = {
         effect: 'test',
-        drivers: ['9a:58'], // Very short form (last 2 bytes)
-        hint: { visual: 'pulse' },
+        drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'], // 0003 is disconnected
       };
 
       udpClient.broadcast(payload);
 
-      // Should match '44:1D:64:F8:9A:58'
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
+      // Should only send to driver-0001 (0003 is disconnected)
+      expect(mockUdpSend).toHaveBeenCalledTimes(1);
     });
 
-    it('should match exactly when short-form has colons', () => {
+    it('should skip drivers without IP even when specified', () => {
       const payload: EffectPayload = {
         effect: 'test',
-        drivers: ['CF:68'], // Short-form with colon
-        hint: { visual: 'pulse' },
+        drivers: ['rgfx-driver-0001', 'rgfx-driver-0004'], // 0004 has no IP
       };
 
       udpClient.broadcast(payload);
 
-      // Should match '44:1D:64:F8:CF:68'
-      expect(mockDriverRegistry.getAllDrivers).toHaveBeenCalled();
+      // Should only send to driver-0001 (0004 has no IP)
+      expect(mockUdpSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -297,23 +282,36 @@ describe('UdpClientImpl', () => {
       expect(() => {
         udpClient.broadcast(payload);
       }).not.toThrow();
+
+      expect(mockUdpSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          effect: 'generic',
+        })
+      );
     });
 
-    it('should handle complex effect payloads with hints', () => {
+    it('should handle complex effect payloads', () => {
       const payload: EffectPayload = {
         effect: 'ghost_vulnerable',
         ghost: 'red',
-        hint: {
-          visual: 'pulse',
-          color: '#0000FF',
-          speed: 200,
-          duration: 5000,
-        },
+        color: '#0000FF',
+        speed: 200,
+        duration: 5000,
       };
 
       expect(() => {
         udpClient.broadcast(payload);
       }).not.toThrow();
+
+      expect(mockUdpSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          effect: 'ghost_vulnerable',
+          ghost: 'red',
+          color: '#0000FF',
+          speed: 200,
+          duration: 5000,
+        })
+      );
     });
 
     it('should handle payloads with additional properties', () => {
@@ -323,16 +321,21 @@ describe('UdpClientImpl', () => {
         player: 'p1',
         multiplier: 2,
         combo: true,
-        hint: {
-          visual: 'pulse',
-          color: '#FFFF00',
-          intensity: 255,
-        },
       };
 
       expect(() => {
         udpClient.broadcast(payload);
       }).not.toThrow();
+
+      expect(mockUdpSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          effect: 'score',
+          value: 12450,
+          player: 'p1',
+          multiplier: 2,
+          combo: true,
+        })
+      );
     });
   });
 });
