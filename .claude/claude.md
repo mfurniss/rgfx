@@ -789,16 +789,26 @@ The `rgfx-hub/` directory contains an Electron app configured with:
 
 **IMPORTANT**: Display updates run on Core 0 and have **ZERO impact** on LED performance (Core 1).
 
-**CRITICAL - ALWAYS COMPILE AFTER CHANGES:**
+**CRITICAL - BUILD AND DEPLOYMENT WORKFLOW:**
 
 When modifying ESP32 code:
-1. **ALWAYS compile**: `pio run --project-dir /Users/matt/Workspace/rgfx/esp32`
+1. **Build firmware**: `pio run --project-dir /Users/matt/Workspace/rgfx/esp32`
 2. **Check for compilation errors** and fix immediately
-3. **Never leave code in a non-compiling state**
+3. **Deploy to Hub** (when ready): `npm run esp32:copy-firmware` (from project root)
+   - This copies firmware from `esp32/.pio/build/` to `rgfx-hub/public/esp32/firmware/`
+   - Hub automatically detects the new firmware via file watcher
+   - Driver cards will show "Update Available" badges immediately
+4. **Never leave code in a non-compiling state**
+
+**Why separate build and deploy:**
+- Build compiles to `esp32/.pio/build/` directory
+- Deploy is explicit and atomic - no premature detection
+- Hub watches `rgfx-hub/public/esp32/firmware/` for completed firmware
+- File watcher triggers immediately on copy (no debounce, no guessing)
 
 **CRITICAL - Upload and Monitor Workflow:**
-- **I will only compile**
-- **You handle upload and monitoring** - Use VSCode tasks or manual commands
+- **Claude will only compile**
+- **User handles upload and monitoring** - Use VSCode tasks or manual commands
 - **NEVER try to automate serial port access** - Causes blocking and port locking
 
 ### Over-The-Air (OTA) Firmware Updates
