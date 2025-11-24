@@ -34,10 +34,6 @@ void handleDriverConfig(const String& payload);
 // Global matrix pointer - initialized only after LED configuration is received
 Matrix* matrix = nullptr;
 
-// Global OTA LED buffer (used by OTA callbacks for LED progress bar)
-CRGB* otaLEDs = nullptr;
-uint16_t otaLEDCount = 0;
-
 // Global effect processor (initialized after driver comes online)
 EffectProcessor* effectProcessor = nullptr;
 
