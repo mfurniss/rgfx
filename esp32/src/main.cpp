@@ -11,6 +11,7 @@
 #include "network/network_init.h"
 #include "config/config_portal.h"
 #include "config/config_nvs.h"
+#include "config/config_leds.h"
 #include "config/config_timeout.h"
 #include "config/constants.h"
 #include "driver_config.h"
@@ -33,6 +34,10 @@ void handleDriverConfig(const String& payload);
 // Global matrix pointer - initialized only after LED configuration is received
 Matrix* matrix = nullptr;
 
+// Global OTA LED buffer (used by OTA callbacks for LED progress bar)
+CRGB* otaLEDs = nullptr;
+uint16_t otaLEDCount = 0;
+
 // Global effect processor (initialized after driver comes online)
 EffectProcessor* effectProcessor = nullptr;
 
@@ -44,6 +49,7 @@ static bool wasConnected = false;
 bool mqttSetupDone = false;  // Extern in network-init.h
 bool udpSetupDone = false;   // Extern in network-init.h
 bool otaSetupDone = false;   // Extern in network-init.h
+bool otaInProgress = false;  // Extern in network-init.h - Track OTA upload state
 static bool initialConnectionAttemptDone = false;
 
 // Network Task - runs on Core 0 (protocol core)
@@ -80,7 +86,9 @@ void networkTask(void* parameter) {
 
 		// Handle MQTT independently (only needs WiFi)
 		bool isConnected = ConfigPortal::isWiFiConnected();
-		if (isConnected && mqttSetupDone) {
+
+		// Skip MQTT/UDP processing during OTA
+		if (isConnected && mqttSetupDone && !otaInProgress) {
 			unsigned long now = millis();
 
 			// Poll for MQTT broker via SSDP every 3 seconds (until found)
@@ -99,13 +107,13 @@ void networkTask(void* parameter) {
 			}
 		}
 
-		// Only process OTA if WiFi is connected and setup is done
+		// Always handle OTA when ready
 		if (isConnected && otaSetupDone) {
 			ArduinoOTA.handle();
 		}
 
-		// Update OLED display uptime periodically (if available and connected)
-		if (hasDisplay && isConnected) {
+		// Skip OLED updates during OTA
+		if (hasDisplay && isConnected && !otaInProgress) {
 			unsigned long now = millis();
 			if (now - lastUptimeUpdate >= UPTIME_UPDATE_INTERVAL) {
 				Display::updateUptime(now / 1000);
@@ -113,8 +121,8 @@ void networkTask(void* parameter) {
 			}
 		}
 
-		// Yield to other tasks and prevent watchdog timeout
-		vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms delay
+		// Longer delay during OTA to reduce Core 0 load
+		vTaskDelay((otaInProgress ? 50 : 10) / portTICK_PERIOD_MS);
 	}
 }
 
@@ -139,13 +147,29 @@ void setup() {
 	// Initialize NVS configuration
 	ConfigNVS::begin();
 
+	// Power-on LED test - light all LEDs green if config exists
+	if (ConfigNVS::hasLEDConfig()) {
+		log("Running power-on LED test...");
+		String savedConfig = ConfigNVS::loadLEDConfig();
+		if (savedConfig.length() > 0) {
+			// Parse and apply LED config
+			handleDriverConfig(savedConfig);
+
+			// Get first device and light all LEDs green
+			if (!g_driverConfig.devices.empty()) {
+				const auto& firstDevice = g_driverConfig.devices[0];
+				CRGB* leds = getLEDsForDevice(firstDevice.id);
+				if (leds) {
+					fill_solid(leds, firstDevice.count, CRGB::Green);
+					FastLED.show();
+				}
+			}
+		}
+	}
+
 	// Start config portal to handle WiFi connection
 	// Note: WiFi connection happens asynchronously in IotWebConf's doLoop()
 	ConfigPortal::begin();
-
-	// Note: LEDs will be initialized by configLEDs() when Hub config is received
-	// Fallback initialization removed - was causing brightness issues by creating
-	// duplicate controllers on the same pin
 
 	// WiFi connection happens asynchronously
 	log("Connecting to WiFi...");
@@ -169,8 +193,9 @@ void setup() {
 void loop() {
 	// Process UDP FIRST - outside frame rate gate for lowest latency
 	// This ensures UDP packets are processed immediately without waiting for frame timing
+	// Pause UDP effect processing during OTA
 	bool isConnected = ConfigPortal::isWiFiConnected();
-	if (isConnected && udpSetupDone) {
+	if (isConnected && udpSetupDone && !otaInProgress) {
 		processUDP();
 	}
 
