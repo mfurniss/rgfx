@@ -168,19 +168,25 @@ Merged driver-hardware branch completing the transition to SSDP-based discovery 
 
 ## November 14, 2025
 
-Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`) replacing unreliable MAC-based fallback IDs. Created centralized driver ID validation with pattern matching and reserved word checking. Implemented automatic driver ID assignment on first connection - Hub looks up persisted driver by MAC address and sends set-id command via MQTT. Fixed driver ID auto-assignment by detecting empty hostnames and using MAC-based set-id topic subscription for drivers without IDs. Removed all MAC-based fallback logic from ESP32 firmware, requiring explicit ID assignment. Updated factory_reset command to clear both NVS and WiFi credentials. Made event logging and file reading extremely robust by removing fs.watch polling backup and relying entirely on native file watching for lowest latency. Implemented auto-incrementing firmware version system using `git describe` for development builds. The version format `<tag>-dev.<commits>+<hash>[-dirty]` provides automatic build numbering where the commit count increments with each commit, eliminating manual version management. Added firmware version to driver sysInfo payload and displayed it in the Hub UI driver card Hardware section. Updated OTA upload script to use proper driver IDs instead of MAC-based hostnames.
+Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`) with centralized validation and automatic assignment on first connection. Hub looks up persisted drivers by MAC address and sends set-id commands via MQTT, eliminating unreliable MAC-based fallback IDs. Updated factory_reset command to clear both NVS and WiFi credentials.
+
+Implemented auto-incrementing firmware version system using `git describe` with format `<tag>-dev.<commits>+<hash>[-dirty]` for automatic build numbering. Made event logging extremely robust by removing fs.watch polling backup and relying entirely on native file watching for lowest latency. Added firmware version to driver sysInfo payload, displayed it in Hub UI, and updated OTA upload script to use proper driver IDs.
 
 ---
 
 ## November 15, 2025
 
-Centralized Hub constants into single configuration file, eliminating scattered magic numbers across the codebase. Fixed Vite path alias resolution for tilde imports. Enabled prefer-const ESLint rule for better code quality. Added Prettier configuration with single quotes for consistent code formatting. Replaced manual time formatting with date-fns library for robust timestamp handling. Implemented custom locale for short-format relative times (e.g., "5m ago" instead of "5 minutes ago"). Added comprehensive tests for formatting utilities. Fixed file descriptor leak by properly stopping EventFileReader on app quit. Updated event-file-reader tests to use temporary directories for isolation. Simplified event file handling and added Lua file check. Implemented real-time events processed counter with instant updates on each event. Added locale-aware number formatting throughout Hub UI using toLocaleString() for proper thousands separators. Updated formatUptime() to always display seconds for real-time accuracy (e.g., "1m 30s", "1h 5m 30s"). Implemented Hub uptime display with 1-second refresh interval. Removed RGFX header AppBar - moved Hub IP to System Status section. Applied consistent locale formatting to all numeric displays across System Status and Driver Card components.
+Centralized Hub constants into single configuration file and enabled prefer-const ESLint rule with Prettier for consistent formatting. Replaced manual time formatting with date-fns library and implemented custom locale for short-format relative times. Fixed file descriptor leak by properly stopping EventFileReader on app quit and updated tests to use temporary directories.
+
+Implemented real-time events counter, Hub uptime display with 1-second refresh, and locale-aware number formatting throughout the UI using toLocaleString(). Simplified event file handling, added Lua file check, and removed RGFX header AppBar moving Hub IP to System Status section.
 
 ---
 
 ## November 16, 2025
 
-Implemented comprehensive test improvements for mapping-engine.ts, increasing coverage from 47.65% to 60.34%. Added dependency injection pattern via MappingEngineOptions interface with importModule function, enabling proper testing of dynamic imports with cache-busting. Created 6 new tests for module loading: game mapper loading, import failures, invalid handlers, default mapper loading, and error handling for both ENOENT and non-ENOENT errors. Fixed all TypeScript diagnostic errors in test file by correcting fs.watch callback signatures (using rest parameters) and adding .js extensions to dynamic imports for node16/nodenext module resolution. Improved driver list UX by making entire table rows clickable instead of requiring users to click the small info button, and removed the redundant Actions column. Added graceful shutdown when window close button is clicked, disabling WiFi power saving for low-latency UDP, and improved LED configuration UI with validation. All 322 tests pass with strict TypeScript checking and ESLint validation enforced via pre-commit hook.
+Implemented comprehensive test improvements for mapping-engine with dependency injection pattern enabling proper testing of dynamic imports. Added 6 new tests for module loading, import failures, and error handling. Fixed all TypeScript diagnostic errors by correcting fs.watch callback signatures and adding .js extensions to dynamic imports.
+
+Improved driver list UX by making entire table rows clickable, disabled WiFi power saving for low-latency UDP, and added LED configuration validation. Implemented graceful shutdown when window close button is clicked. All 322 tests pass with strict TypeScript checking and ESLint validation.
 
 ---
 
@@ -192,25 +198,17 @@ Fixed critical LED config push bug - Hub wasn't sending LED configurations to dr
 
 ## November 18, 2025
 
-Implemented complete Hub UI redesign with new screen-based navigation system. Added sidebar navigation with dedicated screens for Home, Drivers, Events, Mappers, and System. Updated Event Monitor with lastValue tracking to show both current and last-known event values with improved formatting. Fixed test effect LED compositing bug where orange connection pulse was interfering with test patterns - effects now blend properly using alpha compositing. Simplified TransportLayer API by removing unused duration field from EffectPayload type. Implemented dark mode support with automatic system theme detection and manual toggle, refactored theme providers, and added Material UI dark theme palette. Improved driver card styling and system status components for better UX across both light and dark modes.
+Implemented complete Hub UI redesign with screen-based navigation system including sidebar and dedicated screens for Home, Drivers, Events, Mappers, and System. Updated Event Monitor with lastValue tracking, fixed test effect LED compositing bug with proper alpha blending, and simplified TransportLayer API. Implemented dark mode support with automatic system theme detection and manual toggle.
 
-Added Firmware management page with USB flashing support using Web Serial API and esptool-js. Implemented serial port auto-detection for ESP32 devices (CP2102, CH340, FTDI, Espressif native USB). Fixed ESP32 serial command processing issues where driver was auto-responding to partial commands. Fixed factory reset boot loop by properly validating WiFi credentials before entering portal mode. Added test topic resubscription when device ID changes to maintain MQTT communication. Implemented OTA firmware flashing support via esp-ota library for ArduinoOTA protocol updates to connected drivers.
-
-Major main.ts refactoring - extracted code into modular components reducing main.ts from ~663 to ~360 lines. Created src/ipc/ directory with individual IPC handler files (test-leds, set-id, flash-ota). Created src/mqtt-subscriptions/ directory with individual MQTT subscription files. Extracted driver callbacks, pushConfigToDriver function, and serial port configuration into separate modules for better code organization and maintainability.
+Added Firmware management page with USB flashing support using Web Serial API and esptool-js, plus OTA firmware flashing via esp-ota library. Fixed ESP32 serial command processing issues and factory reset boot loop. Major main.ts refactoring extracted code into modular components with dedicated IPC and MQTT subscription modules.
 
 ---
 
 ## November 19-20, 2025
 
-Implemented comprehensive effect testing infrastructure with new Test Effects page in Hub UI. Added manual effect triggering interface with real-time parameter controls for testing pulse, wipe, and explosion effects. Implemented state persistence for test page settings using localStorage. Fixed TypeScript strict type checking errors across the codebase ensuring all nullable types are properly handled.
+Implemented comprehensive effect testing infrastructure with new Test Effects page featuring manual effect triggering and real-time parameter controls. Optimized Electron renderer performance by migrating driver stats from polling to event-driven IPC updates with automatic telemetry cleanup for disconnected drivers.
 
-Optimized Electron renderer performance by migrating driver stats from polling to event-driven updates via IPC. Added driver telemetry tracking for packets received, bytes received, and last packet timestamp with automatic cleanup for disconnected drivers. Improved memory efficiency and reduced CPU usage in renderer process.
-
-Implemented particle-based explosion effect system with configurable parameters (duration, particle count, speed, colors). Created shared FIFO particle pool architecture with configurable pool sizes for memory-efficient particle management. Fixed synchronized random color generation ensuring consistent colors across multiple simultaneous explosions. Added particle velocity randomization and gravity simulation for realistic explosion physics.
-
-Added configurable window zoom factor (default 90%) to improve UI scaling and readability. Made various misc improvements to ESP32 effects system including better color blending and performance optimizations. Improved Hub UI with better layout and visual polish across all pages.
-
-Merged hub-firmware-updater branch completing the firmware management system with both USB (Web Serial) and OTA flashing capabilities.
+Implemented particle-based explosion effect system with FIFO particle pool architecture, configurable parameters, and realistic physics including velocity randomization and gravity simulation. Added configurable window zoom factor (default 90%) and merged hub-firmware-updater branch completing the firmware management system with both USB and OTA flashing capabilities.
 
 ---
 
@@ -218,29 +216,17 @@ Merged hub-firmware-updater branch completing the firmware management system wit
 
 ## November 21, 2025
 
-Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s for more efficient network usage. Removed consecutive failure tracking and rediscovery logic.
+Simplified ESP32 MQTT broker discovery by replacing retry loop with simple periodic polling every 3 seconds. Updated telemetry interval from 5s to 10s and removed consecutive failure tracking, reducing firmware size by 1,456 bytes.
 
-Implemented driver disconnection detection with 30-second timeout (3× telemetry interval). Fixed critical bug where drivers weren't showing as disconnected in Hub UI when unplugged. Converted `Driver.connected` from computed getter to stored property enabling Zustand to properly detect state changes. Added interval timer in driver-store checking for stale connections every 5 seconds, only updating state when connection status actually changes to prevent unnecessary re-renders. Firmware size reduced by 1,456 bytes from removing retry logic.
-
-**Key insight:** Zustand only triggers re-renders on actual state property changes, not computed getters. The previous getter calculated `connected` on-access but never triggered updates when time passed without telemetry. The new approach explicitly updates the `connected` property when timeout is detected, enabling proper reactive updates throughout the UI.
+Implemented driver disconnection detection with 30-second timeout. Fixed critical bug where drivers weren't showing as disconnected in Hub UI by converting `Driver.connected` from computed getter to stored property, enabling Zustand to properly detect state changes. Added interval timer checking for stale connections every 5 seconds.
 
 ---
 
 ## November 23, 2025
 
-Fixed critical firmware version system bug where version injection script (inject_version.py) wasn't running during PlatformIO builds. The script only executed in standalone mode due to `if __name__ == '__main__':` guard - PlatformIO imports scripts as modules which bypassed this block. Fixed by adding PlatformIO integration via Import("env") with dual-mode support: standalone mode uses `__file__` to locate project root, while PlatformIO mode uses `env.get("PROJECT_DIR")`. Script now runs automatically on every build.
+Fixed critical firmware version system bug where inject_version.py wasn't running during PlatformIO builds. Added PlatformIO integration via Import("env") with dual-mode support for both standalone and PlatformIO execution. Eliminated timestamp drift by changing copy_firmware.py to read version directly from generated version.h, ensuring firmware filename exactly matches compiled version across all build contexts.
 
-Eliminated timestamp drift between version injection and firmware file copy by changing copy_firmware.py to read version directly from generated version.h instead of re-running get-version.js. This ensures firmware filename exactly matches the compiled version baked into the binary.
-
-Simplified firmware version service to read version from firmware filename pattern (rgfx-firmware.{version}.bin) and removed hash-based comparison in driver-card UI, replacing with simple version string matching.
-
-Result: Firmware version is now consistent across version.h (generated pre-build), compiled firmware binary, firmware filename in Hub's public folder, and driver telemetry reported to Hub. The build pipeline now works correctly in all contexts: local development (pio run), serial uploads, OTA uploads, and CI/CD pipelines.
-
-Optimized ESP32 UDP processing for lowest possible latency by moving processUDP() call outside the frame rate limiter to the top of loop(). UDP packets now process immediately every iteration without artificial delays, while LED rendering still respects the configured 120 FPS update rate. This ensures time-critical game events from MAME trigger LED effects with minimal latency.
-
-Removed redundant flush() call from event.lua since setvbuf("no") already disables buffering.
-
-Customized Electron's native macOS About menu to display RGFX branding instead of default Electron information. Configured app.setAboutPanelOptions() with RGFX Hub name, current version, copyright notice, and Electron build information. Custom RGFX icon automatically displays via existing Electron Forge packaging configuration.
+Optimized ESP32 UDP processing for lowest latency by moving processUDP() outside the frame rate limiter to process packets immediately every loop iteration. Removed redundant flush() call from event.lua. Customized Electron's native macOS About menu to display RGFX branding with custom icon, version, and copyright information.
 
 ---
 
