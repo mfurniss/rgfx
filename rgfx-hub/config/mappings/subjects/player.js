@@ -5,7 +5,7 @@ export function handle({ subject, property }, _payload, { broadcast }) {
   if (property === 'score') {
     return broadcast({
       effect: 'pulse',
-      props: { color: '#00FF00' },
+      props: { color: 'random', duration: 100, fade: true },
     });
   }
 }
