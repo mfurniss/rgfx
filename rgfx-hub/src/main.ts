@@ -194,6 +194,7 @@ const createWindow = () => {
     width: MAIN_WINDOW_WIDTH,
     height: MAIN_WINDOW_HEIGHT,
     title: `RGFX Hub v${pkg.version}`,
+    backgroundColor: '#121212', // Material UI dark mode background
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

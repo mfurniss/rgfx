@@ -5,11 +5,10 @@ import type { EffectPayload } from './types/mapping-types';
 /**
  * LED Configuration Types
  */
-export type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
-export type ColorOrder = 'RGB' | 'GRB' | 'BGR' | 'RBG' | 'GBR' | 'BRG';
-export type DeviceType = 'strip' | 'matrix';
+type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
+type ColorOrder = 'RGB' | 'GRB' | 'BGR' | 'RBG' | 'GBR' | 'BRG';
 
-export type LEDLayoutType =
+type LEDLayoutType =
   | 'strip'
   | 'matrix-tl-h'
   | 'matrix-tl-h-snake'
@@ -28,31 +27,7 @@ export type LEDLayoutType =
   | 'matrix-br-v'
   | 'matrix-br-v-snake';
 
-export type ColorCorrection = 'TypicalLEDStrip' | 'Typical8mmPixel' | 'UncorrectedColor';
-
-export interface LEDDevice {
-  id: string;
-  name: string;
-  pin: number;
-  type: DeviceType;
-  count: number;
-  offset?: number;
-  chipset?: LEDChipset;
-  colorOrder?: ColorOrder;
-  maxBrightness?: number;
-  colorCorrection?: ColorCorrection;
-  dataRateMhz?: number;
-  width?: number;
-  height?: number;
-  serpentine?: boolean;
-}
-
-export interface DriverSettings {
-  globalBrightnessLimit?: number;
-  dithering?: boolean;
-  powerSupplyVolts?: number;
-  maxPowerMilliamps?: number;
-}
+type ColorCorrection = 'TypicalLEDStrip' | 'Typical8mmPixel' | 'UncorrectedColor';
 
 /**
  * LED Hardware definition - describes physical LED hardware only
@@ -117,7 +92,7 @@ export interface DriverTelemetry {
   // and pushed to drivers via MQTT - not reported in telemetry
 }
 
-export interface DriverStats {
+interface DriverStats {
   mqttMessagesReceived: number;
   mqttMessagesFailed: number;
   udpMessagesSent: number;
@@ -259,30 +234,28 @@ export interface EventTopicData {
   lastValue?: string;
 }
 
-export interface IpcApi {
-  onDriverConnected: (callback: (driver: Driver) => void) => () => void;
-  onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
-  onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
-  onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
-  onEventCount: (callback: (count: number) => void) => () => void;
-  onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
-  onFlashOtaState: (callback: (state: string) => void) => () => void;
-  onFlashOtaProgress: (
-    callback: (progress: { sent: number; total: number; percent: number }) => void
-  ) => () => void;
-  sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
-  updateDriverConfig: (driverId: string) => Promise<void>;
-  flashOTA: (
-    driverId: string
-  ) => Promise<{ success: boolean; error?: string; output?: string }>;
-  rendererReady: () => void;
-  triggerDiscovery: () => Promise<void>;
-  triggerEffect: (payload: EffectPayload) => Promise<void>;
-}
-
 // Extend Window interface for TypeScript
 declare global {
   interface Window {
-    rgfx: IpcApi;
+    rgfx: {
+      onDriverConnected: (callback: (driver: Driver) => void) => () => void;
+      onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
+      onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
+      onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
+      onEventCount: (callback: (count: number) => void) => () => void;
+      onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
+      onFlashOtaState: (callback: (state: string) => void) => () => void;
+      onFlashOtaProgress: (
+        callback: (progress: { sent: number; total: number; percent: number }) => void
+      ) => () => void;
+      sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
+      updateDriverConfig: (driverId: string) => Promise<void>;
+      flashOTA: (
+        driverId: string
+      ) => Promise<{ success: boolean; error?: string; output?: string }>;
+      rendererReady: () => void;
+      triggerDiscovery: () => Promise<void>;
+      triggerEffect: (payload: EffectPayload) => Promise<void>;
+    };
   }
 }

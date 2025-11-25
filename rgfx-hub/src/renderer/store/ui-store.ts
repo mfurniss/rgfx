@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type SortField = 'id' | 'name' | 'ip' | 'status' | 'firstSeen';
-export type SortOrder = 'asc' | 'desc';
+type SortOrder = 'asc' | 'desc';
 
 interface UiState {
   // Driver table sort preferences
