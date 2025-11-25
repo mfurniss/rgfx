@@ -143,6 +143,29 @@ The RGFX system uses **both UDP broadcast and SSDP** for ESP32 drivers to discov
 - User does NOT want to see "Day 1:", "3-5 days", "Estimated timeline", etc.
 - **Focus on logical phases and implementation steps** without time projections
 
+**CRITICAL - JOURNAL ENTRY STANDARDS:**
+
+Journal entries are **concise daily summaries**, not detailed bug reports. Each entry should capture what was accomplished in 2-3 sentences maximum.
+
+**Rules:**
+
+1. **Keep it high-level and concise** - Focus on what was built/improved, not implementation details
+2. **Scope to the entire day** - Summarize all work done that day in a few sentences
+3. **No detailed root cause analysis** - Don't explain why bugs happened or how they were fixed
+4. **No step-by-step details** - Don't break down the implementation process
+
+**Good example (concise daily summary):**
+```
+Implemented LED progress indicator for OTA firmware updates showing orange LED moving across strip/matrix during upload. Enhanced firmware deployment pipeline with automatic manifest.json generation including SHA256 checksums for integrity validation. Improved Hub test suite by consolidating redundant tests.
+```
+
+**Bad example (too detailed):**
+```
+Fixed critical OTA LED progress indicator bug where orange progress LEDs stopped displaying during firmware updates. Root cause was OTA callbacks using global pointer variables that referenced the Matrix's LED buffer, which became stale when Matrix was recreated during LED configuration changes. Refactored all OTA callbacks to access LED hardware directly via getLEDsForDevice() at runtime, completely decoupling OTA feedback from the Matrix system.
+
+Enhanced firmware deployment pipeline by adding automatic manifest.json generation with SHA256 checksums in copy_firmware.py. This ensures USB serial flashing from Hub correctly detects firmware versions and validates file integrity...
+```
+
 ## Development Workflow
 
 **CRITICAL - INCREMENTAL IMPLEMENTATION AND TESTING:**
