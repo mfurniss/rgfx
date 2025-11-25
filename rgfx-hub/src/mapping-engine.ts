@@ -187,7 +187,9 @@ export class MappingEngine {
       if (namespace && this.gameHandlers.has(namespace)) {
         const handler = this.gameHandlers.get(namespace);
         if (!handler) return;
+        this.context.log.info(`Calling game mapper for: ${topic}`);
         const handled = await handler(topicObj, payload, this.context);
+        this.context.log.info(`Game mapper returned: ${handled} for ${topic}`);
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
           this.context.log.debug(`Event handled by game mapper: ${namespace} - ${topic}`);
@@ -273,19 +275,15 @@ export class MappingEngine {
 
       if (handler) {
         this.gameHandlers.set(gameName, handler);
-        this.context.log.debug(`Loaded game mapper: ${gameName}`);
+        this.context.log.info(`Loaded game mapper: ${gameName}`);
       } else {
         this.context.log.warn(`Game mapper ${gameName}.js has no valid handler function`);
       }
-    } catch {
-      // Silently handle all errors during mapper loading
-      // This includes:
-      // - File not found (ENOENT, ERR_MODULE_NOT_FOUND)
-      // - Electron app not initialized (in tests)
-      // - Invalid JavaScript syntax
+    } catch (error) {
+      // Log error for debugging but don't crash
       // Game will fall through to generic handlers
-      this.context.log.debug(
-        `Could not load game mapper for ${gameName}, will use generic handlers`
+      this.context.log.warn(
+        `Could not load game mapper for ${gameName}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

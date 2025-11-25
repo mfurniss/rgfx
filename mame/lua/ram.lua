@@ -44,7 +44,8 @@ end
 --   start_addr (required): starting address
 --   end_addr (optional): ending address, defaults to start_addr
 --   name (optional): name for the monitor
---   callback (optional): callback(addr, current_value, previous_value)
+--   callback (optional): callback(addr, current_value, previous_value) - called on every change
+--   callback_changed (optional): callback_changed(current_value, previous_value) - simpler signature for single-address monitors
 --   size (optional): 1 (byte), 2 (word), or 4 (dword) - defaults to 1
 function exports.install_ram_monitor(options)
 	local mem = options.mem
@@ -52,6 +53,7 @@ function exports.install_ram_monitor(options)
 	local end_addr = options.end_addr or start_addr
 	local name = options.name
 	local callback = options.callback
+	local callback_changed = options.callback_changed
 	local size = options.size or 1
 
 	if not mem then
@@ -134,6 +136,9 @@ function exports.install_ram_monitor(options)
 				end
 				if callback then
 					callback(addr, current, prev_values[addr])
+				end
+				if callback_changed then
+					callback_changed(current, prev_values[addr])
 				end
 				prev_values[addr] = current
 			end

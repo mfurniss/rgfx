@@ -20,8 +20,8 @@
 /** UDP port for receiving LED effects from MAME */
 constexpr int UDP_PORT = 8888;
 
-/** UDP buffer size for incoming messages */
-constexpr int UDP_BUFFER_SIZE = 256;
+/** UDP buffer size for incoming messages (must accommodate bitmap image arrays) */
+constexpr int UDP_BUFFER_SIZE = 1024;
 
 /** Serial command buffer size for user input */
 constexpr int SERIAL_BUFFER_SIZE = 128;

@@ -31,8 +31,43 @@
  * @returns {boolean} - True if event was handled, false otherwise
  */
 
-import { random } from 'lodash-es';
-import { colord } from 'colord';
+const PACMAN_SPRITE_OPEN_MOUTH = [
+  '     XXXXXX     ',
+  '   XXXXXXXXXX   ',
+  '  XXXXXXXXXXXX  ',
+  ' XXXXXXXXXXX    ',
+  ' XXXXXXXXXX     ',
+  'XXXXXXXXX       ',
+  'XXXXXXXX        ',
+  'XXXXXXX         ',
+  'XXXXXXX         ',
+  'XXXXXXXX        ',
+  'XXXXXXXXX       ',
+  ' XXXXXXXXXX     ',
+  ' XXXXXXXXXXX    ',
+  '  XXXXXXXXXXXX  ',
+  '   XXXXXXXXXX   ',
+  '     XXXXXX     ',
+];
+
+const PACMAN_SPRITE_CLOSED_MOUTH = [
+  '     XXXXXX     ',
+  '   XXXXXXXXXX   ',
+  '  XXXXXXXXXXXX  ',
+  ' XXXXXXXXXXXXXX ',
+  ' XXXXXXXXXXXXXX ',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  ' XXXXXXXXXXXXXX ',
+  ' XXXXXXXXXXXXXX ',
+  '  XXXXXXXXXXXX  ',
+  '   XXXXXXXXXX   ',
+  '     XXXXXX     ',
+];
 
 const GHOST_STATE = {
   NORMAL: [0x01, 0x03, 0x05, 0x07], // Red, pink, cyan, orange (normal)
@@ -59,20 +94,21 @@ const GHOST_STATE_COLORS = {
 };
 
 export function handle({ subject, property, qualifier }, payload, { broadcast }) {
-  if (subject === 'player' && property === 'score') {
-    broadcast({
-      effect: 'wipe',
-      props: {
-        color: '#705014',
-        duration: 500,
-      },
-      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
-    });
-    return broadcast({
-      effect: 'explode',
-      drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
-    });
-  }
+  // Score changes - disabled for now to test bitmap effect
+  // if (subject === 'player' && property === 'score') {
+  //   broadcast({
+  //     effect: 'wipe',
+  //     props: {
+  //       color: '#705014',
+  //       duration: 500,
+  //     },
+  //     drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
+  //   });
+  //   return broadcast({
+  //     effect: 'explode',
+  //     drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
+  //   });
+  // }
 
   // Power pill state - blue when active, red when inactive
   if (subject === 'player' && property === 'pill') {
@@ -113,10 +149,11 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
   // Wakka wakka - eating regular pills
   if (subject === 'player' && property === 'eat' && qualifier === 'pill') {
     return broadcast({
-      effect: 'pulse',
+      effect: 'bitmap',
       props: {
-        color: '#FFFF00',
-        duration: 100,
+        color: 'yellow',
+        duration: 150,
+        image: payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
       },
     });
   }
