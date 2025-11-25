@@ -182,6 +182,12 @@ eventReader.start((topic, message) => {
   }
 });
 
+// Start firmware monitoring
+systemMonitor.startFirmwareMonitoring((_version: string | null) => {
+  log.info('[main] Firmware version updated, broadcasting new system status');
+  sendSystemStatus();
+});
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({

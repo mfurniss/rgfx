@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "log.h"
 #include "config/config_nvs.h"
+#include "config/config_leds.h"
+#include "driver_config.h"
 
 // Forward declaration from main.cpp
 void handleDriverConfig(const String& payload);
@@ -45,22 +47,68 @@ void setupNetworkServices(Matrix& matrix) {
 	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
 	ArduinoOTA.onStart([]() {
 		log("OTA Update starting...");
-		// Note: Cannot access matrix here - would need to be passed differently
-		// For now, OTA visual feedback is handled in the callback
+		otaInProgress = true;
+
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
+		}
 	});
 	ArduinoOTA.onEnd([]() {
 		log("OTA Update complete!");
+		// Device will reboot automatically
 	});
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
 		static unsigned int lastPercent = 0;
 		unsigned int percent = (progress / (total / 100));
+
+		// Log every 10%
 		if (percent != lastPercent && percent % 10 == 0) {
 			log("OTA Progress: " + String(percent) + "%");
 			lastPercent = percent;
 		}
+
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Clear all LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+
+				// Calculate LED index from percentage (0-100% → 0 to size-1)
+				int ledIndex = (percent * (firstDevice.count - 1)) / 100;
+
+				// Light single orange LED at progress position
+				leds[ledIndex] = CRGB::Orange;
+				FastLED.show();
+			}
+		}
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		log("OTA Error: " + String(error));
+		otaInProgress = false;
+
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Show error: all red for 5 seconds
+				fill_solid(leds, firstDevice.count, CRGB::Red);
+				FastLED.show();
+				delay(5000);
+
+				// Clear LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
+		}
 	});
 	ArduinoOTA.begin();
 
@@ -102,8 +150,12 @@ void setupNetworkServices(Matrix& matrix) {
 
 void cleanupNetworkServices(Matrix& matrix) {
 	log("WiFi not connected - entering AP mode");
-	fill_solid(matrix.leds, matrix.size, CRGB::Purple);
-	FastLED.show();
+
+	// Don't show purple LEDs if OTA is in progress (reset is imminent)
+	if (!otaInProgress) {
+		fill_solid(matrix.leds, matrix.size, CRGB::Purple);
+		FastLED.show();
+	}
 
 	// Update display to show AP mode
 	if (Display::isAvailable()) {
@@ -152,20 +204,68 @@ void setupNetworkServices() {
 	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
 	ArduinoOTA.onStart([]() {
 		log("OTA Update starting...");
+		otaInProgress = true;
+
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
+		}
 	});
 	ArduinoOTA.onEnd([]() {
 		log("OTA Update complete!");
+		// Device will reboot automatically
 	});
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
 		static unsigned int lastPercent = 0;
 		unsigned int percent = (progress / (total / 100));
+
+		// Log every 10%
 		if (percent != lastPercent && percent % 10 == 0) {
 			log("OTA Progress: " + String(percent) + "%");
 			lastPercent = percent;
 		}
+
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Clear all LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+
+				// Calculate LED index from percentage (0-100% → 0 to size-1)
+				int ledIndex = (percent * (firstDevice.count - 1)) / 100;
+
+				// Light single orange LED at progress position
+				leds[ledIndex] = CRGB::Orange;
+				FastLED.show();
+			}
+		}
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		log("OTA Error: " + String(error));
+		otaInProgress = false;
+
+		// Get current LED buffer from configuration
+		if (!g_driverConfig.devices.empty()) {
+			const auto& firstDevice = g_driverConfig.devices[0];
+			CRGB* leds = getLEDsForDevice(firstDevice.id);
+			if (leds) {
+				// Show error: all red for 5 seconds
+				fill_solid(leds, firstDevice.count, CRGB::Red);
+				FastLED.show();
+				delay(5000);
+
+				// Clear LEDs
+				fill_solid(leds, firstDevice.count, CRGB::Black);
+				FastLED.show();
+			}
+		}
 	});
 	ArduinoOTA.begin();
 
@@ -203,6 +303,7 @@ void setupNetworkServices() {
 void cleanupNetworkServices() {
 	log("WiFi not connected - entering AP mode (no LED feedback yet)");
 
+	// Don't clear LEDs if OTA is in progress (green success indicator should stay)
 	// Update display to show AP mode
 	if (Display::isAvailable()) {
 		Display::showAPMode(Utils::getDeviceId());

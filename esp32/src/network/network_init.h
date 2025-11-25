@@ -13,6 +13,7 @@
 extern bool mqttSetupDone;
 extern bool udpSetupDone;
 extern bool otaSetupDone;
+extern bool otaInProgress;  // Track OTA upload state
 
 // Initialize all network services when WiFi connects
 void setupNetworkServices(Matrix& matrix);
