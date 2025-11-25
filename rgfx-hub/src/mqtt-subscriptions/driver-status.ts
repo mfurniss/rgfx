@@ -7,13 +7,13 @@
 
 import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
-import type { Mqtt } from '../mqtt';
+import type { MqttBroker } from '../mqtt';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
 import { serializeDriverForIPC } from '../types';
 
 interface DriverStatusDeps {
-  mqtt: Mqtt;
+  mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
   getMainWindow: () => BrowserWindow | null;
   systemMonitor: SystemMonitor;

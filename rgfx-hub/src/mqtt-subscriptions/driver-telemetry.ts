@@ -7,52 +7,19 @@
 
 import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
-import type { Mqtt } from '../mqtt';
+import type { MqttBroker } from '../mqtt';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverTelemetry } from '../types';
 import { serializeDriverForIPC } from '../types';
+import {
+  TelemetryPayloadSchema,
+  DriverTelemetrySchema,
+  DriverRegistrationSchema,
+} from '../schemas';
 
 interface DriverTelemetryDeps {
-  mqtt: Mqtt;
+  mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
   getMainWindow: () => BrowserWindow | null;
-}
-
-/**
- * Telemetry payload sent by drivers
- * Serves as both initial connection message and periodic heartbeat
- */
-interface TelemetryPayload {
-  // Network information
-  ip: string;
-  mac: string;
-  hostname: string;
-  ssid: string;
-  // Runtime metrics
-  rssi: number;
-  freeHeap: number;
-  minFreeHeap: number;
-  uptimeMs: number;
-  // Hardware/firmware telemetry
-  chipModel: string;
-  chipRevision: number;
-  chipCores: number;
-  cpuFreqMHz: number;
-  flashSize: number;
-  flashSpeed: number;
-  heapSize: number;
-  psramSize: number;
-  freePsram: number;
-  hasDisplay: boolean;
-  firmwareVersion?: string;
-  sdkVersion: string;
-  sketchSize: number;
-  freeSketchSpace: number;
-  // Runtime state
-  testActive?: boolean;
-  // Statistics
-  mqttMessagesReceived?: number;
-  udpMessagesReceived?: number;
 }
 
 export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
@@ -63,51 +30,24 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
     log.info(`[DEBUG] Driver telemetry MQTT received at ${mqttReceiveTime}`);
 
     try {
-      const parsed = JSON.parse(payload) as TelemetryPayload;
-      const macAddress = parsed.mac;
-
-      if (!macAddress) {
-        log.error("Telemetry message missing 'mac' field");
+      const parseResult = TelemetryPayloadSchema.safeParse(JSON.parse(payload));
+      if (!parseResult.success) {
+        log.error(`Invalid telemetry payload: ${parseResult.error.message}`);
         return;
       }
+      const parsed = parseResult.data;
+      const macAddress = parsed.mac;
 
       log.info(
         `[DEBUG] Telemetry parsed, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
       );
 
-      // Extract hardware/firmware telemetry
-      const telemetry: DriverTelemetry = {
-        chipModel: parsed.chipModel,
-        chipRevision: parsed.chipRevision,
-        chipCores: parsed.chipCores,
-        cpuFreqMHz: parsed.cpuFreqMHz,
-        flashSize: parsed.flashSize,
-        flashSpeed: parsed.flashSpeed,
-        heapSize: parsed.heapSize,
-        psramSize: parsed.psramSize,
-        freePsram: parsed.freePsram,
-        hasDisplay: parsed.hasDisplay,
-        firmwareVersion: parsed.firmwareVersion,
-        sdkVersion: parsed.sdkVersion,
-        sketchSize: parsed.sketchSize,
-        freeSketchSpace: parsed.freeSketchSpace,
-      };
+      // Extract registration data using Zod schemas
+      const telemetry = DriverTelemetrySchema.parse(parsed);
+      const registrationData = DriverRegistrationSchema.parse({ ...parsed, telemetry });
 
-      // Register or update driver with full telemetry data
-      const driver = driverRegistry.registerDriver({
-        ip: parsed.ip,
-        mac: parsed.mac,
-        hostname: parsed.hostname,
-        ssid: parsed.ssid,
-        rssi: parsed.rssi,
-        freeHeap: parsed.freeHeap,
-        minFreeHeap: parsed.minFreeHeap,
-        uptimeMs: parsed.uptimeMs,
-        telemetry: telemetry,
-        testActive: parsed.testActive,
-        mqttMessagesReceived: parsed.mqttMessagesReceived,
-        udpMessagesReceived: parsed.udpMessagesReceived,
-      });
+      // Register or update driver
+      const driver = driverRegistry.registerDriver(registrationData);
 
       log.info(
         `[DEBUG] registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
