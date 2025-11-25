@@ -19,46 +19,38 @@ import { Science as ScienceIcon } from '@mui/icons-material';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '~/src/types/mapping-types';
+import { effectSchemas, safeValidateEffectProps, isEffectName } from '../../schemas';
 
-const EFFECTS: Record<string, Record<string, unknown>> = {
-  pulse: { color: 'random', duration: 400, fade: true },
-  bitmap: {
-    color: 'random',
-    duration: 400,
-    image: [
-      '     XXXXXX     ',
-      '   XXXXXXXXXX   ',
-      '  XXXXXXXXXXXX  ',
-      ' XXXXXXXXXXX    ',
-      ' XXXXXXXXXX     ',
-      'XXXXXXXXX       ',
-      'XXXXXXXX        ',
-      'XXXXXXX         ',
-      'XXXXXXX         ',
-      'XXXXXXXX        ',
-      'XXXXXXXXX       ',
-      ' XXXXXXXXXX     ',
-      ' XXXXXXXXXXX    ',
-      '  XXXXXXXXXXXX  ',
-      '   XXXXXXXXXX   ',
-      '     XXXXXX     ',
-    ],
-  },
-  wipe: { color: 'green', duration: 1000 },
-  explode: {
-    centerX: 50,
-    centerY: 50,
-    color: 'random',
-    hueSpread: 40,
-    particleCount: 100,
-    particleSize: 2,
-    power: 50,
-    powerSpread: 1.6,
-    lifespan: 800,
-    lifespanSpread: 1.3,
-    friction: 2,
-  },
-};
+/**
+ * Validate props JSON against the effect schema
+ * Returns null if valid, or an error message string if invalid
+ */
+function validateProps(effect: string, json: string): string | null {
+  // First check if it's valid JSON
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return 'Invalid JSON syntax';
+  }
+
+  // Then validate against the effect schema
+  if (!isEffectName(effect)) {
+    return `Unknown effect: ${effect}`;
+  }
+
+  const result = safeValidateEffectProps(effect, parsed);
+  if (!result.success) {
+    // Format Zod errors nicely
+    const issues = result.error.issues.map((issue) => {
+      const path = issue.path.length > 0 ? `${issue.path.join('.')}: ` : '';
+      return `${path}${issue.message}`;
+    });
+    return issues.join('; ');
+  }
+
+  return null;
+}
 
 export default function TestEffectsPage() {
   // Use a stable selector that only changes when connected driver IDs actually change
@@ -95,8 +87,9 @@ export default function TestEffectsPage() {
 
   const handleEffectChange = (effect: string) => {
     // Only reset props if switching to a different effect
-    if (effect !== selectedEffect) {
-      const newPropsJson = JSON.stringify(EFFECTS[effect] ?? {}, null, 2);
+    if (effect !== selectedEffect && isEffectName(effect)) {
+      const defaults = effectSchemas[effect].parse({});
+      const newPropsJson = JSON.stringify(defaults, null, 2);
       setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
     }
   };
@@ -156,107 +149,115 @@ export default function TestEffectsPage() {
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
-        <Stack spacing={3}>
-          <FormControl fullWidth>
-            <InputLabel>Effect</InputLabel>
-            <Select
-              value={selectedEffect}
-              label="Effect"
-              onChange={(e) => {
-                handleEffectChange(e.target.value);
-              }}
-            >
-              {Object.keys(EFFECTS).map((effect) => (
-                <MenuItem key={effect} value={effect}>
-                  {effect}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TextField
-            label="Props (JSON)"
-            multiline
-            rows={8}
-            value={propsJson}
-            onChange={(e) => {
-              const newPropsJson = e.target.value;
-              setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
-            }}
-            fullWidth
-            sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace' } }}
-          />
-
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleTriggerEffect}
-            disabled={connectedDrivers.length === 0}
-            startIcon={<ScienceIcon />}
-          >
-            Trigger Effect
-          </Button>
-
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Target Drivers
-            </Typography>
-            {drivers.length === 0 ? (
-              <Alert severity="warning">No drivers available</Alert>
-            ) : (
-              <FormGroup>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={selectAll}
-                      onChange={handleSelectAll}
-                      indeterminate={
-                        selectedDrivers.size > 0 && selectedDrivers.size < connectedDrivers.length
-                      }
-                      disabled={connectedDrivers.length === 0}
-                      sx={{ py: 0.5 }}
-                    />
-                  }
-                  label={`All Drivers (${connectedDrivers.length})`}
-                  sx={{
-                    my: 0,
-                    '& .MuiFormControlLabel-label': {
-                      fontSize: '0.95rem',
-                    },
+        {(() => {
+          const validationError = validateProps(selectedEffect, propsJson);
+          const isValid = validationError === null;
+          return (
+            <Stack spacing={3}>
+              <FormControl fullWidth>
+                <InputLabel>Effect</InputLabel>
+                <Select
+                  value={selectedEffect}
+                  label="Effect"
+                  onChange={(e) => {
+                    handleEffectChange(e.target.value);
                   }}
-                />
-                {drivers.map((driver) => {
-                  return (
+                >
+                  {Object.keys(effectSchemas).map((effect) => (
+                    <MenuItem key={effect} value={effect}>
+                      {effect}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="Props (JSON)"
+                multiline
+                rows={8}
+                value={propsJson}
+                onChange={(e) => {
+                  const newPropsJson = e.target.value;
+                  setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
+                }}
+                fullWidth
+                error={!isValid}
+                helperText={validationError}
+                sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace' } }}
+              />
+
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={handleTriggerEffect}
+                disabled={connectedDrivers.length === 0 || !isValid}
+                startIcon={<ScienceIcon />}
+              >
+                Trigger Effect
+              </Button>
+
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Target Drivers
+                </Typography>
+                {drivers.length === 0 ? (
+                  <Alert severity="warning">No drivers available</Alert>
+                ) : (
+                  <FormGroup>
                     <FormControlLabel
-                      key={driver.id}
                       control={
                         <Checkbox
-                          checked={selectedDrivers.has(driver.id)}
-                          onChange={() => {
-                            handleDriverToggle(driver.id);
-                          }}
-                          disabled={!driver.connected}
+                          checked={selectAll}
+                          onChange={handleSelectAll}
+                          indeterminate={
+                            selectedDrivers.size > 0 && selectedDrivers.size < connectedDrivers.length
+                          }
+                          disabled={connectedDrivers.length === 0}
                           sx={{ py: 0.5 }}
                         />
                       }
-                      label={`${driver.id} (${driver.ip ?? 'disconnected'})`}
+                      label={`All Drivers (${connectedDrivers.length})`}
                       sx={{
-                        ml: 3,
                         my: 0,
-                        opacity: driver.connected ? 1 : 0.4,
-                        color: driver.connected ? 'text.primary' : 'text.disabled',
                         '& .MuiFormControlLabel-label': {
                           fontSize: '0.95rem',
                         },
                       }}
                     />
-                  );
-                })}
-              </FormGroup>
-            )}
-          </Box>
-        </Stack>
+                    {drivers.map((driver) => {
+                      return (
+                        <FormControlLabel
+                          key={driver.id}
+                          control={
+                            <Checkbox
+                              checked={selectedDrivers.has(driver.id)}
+                              onChange={() => {
+                                handleDriverToggle(driver.id);
+                              }}
+                              disabled={!driver.connected}
+                              sx={{ py: 0.5 }}
+                            />
+                          }
+                          label={`${driver.id} (${driver.ip ?? 'disconnected'})`}
+                          sx={{
+                            ml: 3,
+                            my: 0,
+                            opacity: driver.connected ? 1 : 0.4,
+                            color: driver.connected ? 'text.primary' : 'text.disabled',
+                            '& .MuiFormControlLabel-label': {
+                              fontSize: '0.95rem',
+                            },
+                          }}
+                        />
+                      );
+                    })}
+                  </FormGroup>
+                )}
+              </Box>
+            </Stack>
+          );
+        })()}
       </Paper>
     </Box>
   );

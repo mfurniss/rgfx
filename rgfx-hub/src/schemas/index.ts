@@ -5,7 +5,36 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
+// Telemetry and driver registration schemas
 export { TelemetryPayloadSchema, type TelemetryPayload } from './telemetry-payload';
 export { DriverTelemetrySchema, type DriverTelemetryFromSchema } from './driver-telemetry';
 export { DriverRegistrationSchema, type DriverRegistration } from './driver-registration';
 export { LEDHardwareSchema, type LEDHardwareFromSchema } from './led-hardware';
+
+// Driver persistence schemas
+export {
+  DriverLEDConfigSchema,
+  type DriverLEDConfigFromSchema,
+  PersistedDriverSchema,
+  type PersistedDriverFromSchema,
+  DriversConfigFileRawSchema,
+  DriversConfigFileSchema,
+  type DriversConfigFile,
+} from './driver-persistence';
+
+// Firmware manifest schema
+export {
+  FirmwareFileSchema,
+  type FirmwareFile,
+  FirmwareManifestSchema,
+  type FirmwareManifest,
+} from './firmware-manifest';
+
+// Effect props schemas and validation
+export {
+  effectSchemas,
+  type EffectName,
+  validateEffectProps,
+  safeValidateEffectProps,
+  isEffectName,
+} from './effects';
