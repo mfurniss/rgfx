@@ -280,4 +280,203 @@ describe('DriverRegistry', () => {
       expect(registry.getAllDrivers()).toHaveLength(2);
     });
   });
+
+  // Tests for extracted private methods (tested indirectly through registerDriver)
+  describe('resolveDriverIdentity (via registerDriver)', () => {
+    it('should create new driver in persistence for unknown MAC', () => {
+      const telemetryData = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      const driver = registry.registerDriver(telemetryData);
+
+      expect(driver.id).toBe('rgfx-driver-0001');
+      expect(driver.mac).toBe('AA:BB:CC:DD:EE:11');
+    });
+
+    it('should use existing persisted driver ID for known MAC', () => {
+      const telemetryData1 = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      const driver1 = registry.registerDriver(telemetryData1);
+
+      // Register again with same MAC
+      const driver2 = registry.registerDriver(telemetryData1);
+
+      expect(driver1.id).toBe(driver2.id);
+      expect(driver2.id).toBe('rgfx-driver-0001');
+    });
+  });
+
+  describe('findExistingDriverByMac (via registerDriver)', () => {
+    it('should find driver by MAC even with different ID', () => {
+      const telemetryData = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      const driver1 = registry.registerDriver(telemetryData);
+
+      // Manually change driver ID in registry to simulate migration scenario
+      const originalId = driver1.id;
+       
+      const registryDrivers = (registry as any).drivers as Map<string, import('../types').Driver>;
+      registryDrivers.delete(originalId);
+      registryDrivers.set('custom-id', driver1);
+      driver1.id = 'custom-id';
+
+      // Register again with same MAC - should find by MAC and migrate
+      const driver2 = registry.registerDriver(telemetryData);
+
+      expect(driver2.mac).toBe('AA:BB:CC:DD:EE:11');
+      expect(registryDrivers.has('custom-id')).toBe(false); // Old ID removed
+    });
+  });
+
+  describe('calculateDriverStats (via registerDriver)', () => {
+    it('should initialize stats to 1 for first registration', () => {
+      const telemetryData = createMockTelemetryData();
+      const driver = registry.registerDriver(telemetryData);
+
+      expect(driver.stats.mqttMessagesReceived).toBe(1);
+      expect(driver.stats.mqttMessagesFailed).toBe(0);
+      expect(driver.stats.udpMessagesSent).toBe(0);
+      expect(driver.stats.udpMessagesFailed).toBe(0);
+    });
+
+    it('should increment mqttMessagesReceived on subsequent registrations', () => {
+      const telemetryData = createMockTelemetryData();
+
+      const driver1 = registry.registerDriver(telemetryData);
+      expect(driver1.stats.mqttMessagesReceived).toBe(1);
+
+      const driver2 = registry.registerDriver(telemetryData);
+      expect(driver2.stats.mqttMessagesReceived).toBe(2);
+
+      const driver3 = registry.registerDriver(telemetryData);
+      expect(driver3.stats.mqttMessagesReceived).toBe(3);
+    });
+
+    it('should preserve mqttMessagesFailed count across registrations', () => {
+      const telemetryData = createMockTelemetryData();
+      const driver1 = registry.registerDriver(telemetryData);
+
+      // Manually increment failed count
+      driver1.stats.mqttMessagesFailed = 5;
+
+      const driver2 = registry.registerDriver(telemetryData);
+      expect(driver2.stats.mqttMessagesFailed).toBe(5);
+    });
+  });
+
+  describe('constructDriver (via registerDriver)', () => {
+    it('should preserve firstSeen timestamp across registrations', () => {
+      const telemetryData = createMockTelemetryData();
+
+      const driver1 = registry.registerDriver(telemetryData);
+      const originalFirstSeen = driver1.firstSeen;
+
+      // Wait a bit
+      vi.useFakeTimers();
+      vi.advanceTimersByTime(5000);
+
+      const driver2 = registry.registerDriver(telemetryData);
+
+      expect(driver2.firstSeen).toBe(originalFirstSeen);
+      expect(driver2.lastSeen).toBeGreaterThan(originalFirstSeen);
+
+      vi.useRealTimers();
+    });
+
+    it('should set connected=true for new registration with valid IP', () => {
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+      const driver = registry.registerDriver(telemetryData);
+
+      expect(driver.connected).toBe(true);
+    });
+
+    it('should set connected=false when IP is empty string', () => {
+      const telemetryData = createMockTelemetryData({ ip: '' });
+      const driver = registry.registerDriver(telemetryData);
+
+      expect(driver.connected).toBe(false);
+    });
+
+    it('should set connected=false when IP is whitespace only', () => {
+      const telemetryData = createMockTelemetryData({ ip: '   ' });
+      const driver = registry.registerDriver(telemetryData);
+
+      expect(driver.connected).toBe(false);
+    });
+
+    it('should set connected=true when IP has leading/trailing whitespace but valid content', () => {
+      const telemetryData = createMockTelemetryData({ ip: '  192.168.1.100  ' });
+      const driver = registry.registerDriver(telemetryData);
+
+      // Note: IP validation happens, trim() ensures non-empty after whitespace removal
+      expect(driver.connected).toBe(true);
+    });
+  });
+
+  describe('handleIdMigration (via registerDriver)', () => {
+    it('should remove old registry entry when ID changes', () => {
+      const telemetryData = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      const driver1 = registry.registerDriver(telemetryData);
+      const oldId = driver1.id;
+
+      // Manually change driver ID in registry to simulate migration
+       
+      const registryDrivers = (registry as any).drivers as Map<string, import('../types').Driver>;
+      registryDrivers.delete(oldId);
+      registryDrivers.set('old-id', driver1);
+      driver1.id = 'old-id';
+
+      // Register again - should clean up old ID
+      const driver2 = registry.registerDriver(telemetryData);
+
+      expect(registryDrivers.has('old-id')).toBe(false);
+      expect(driver2.id).not.toBe('old-id');
+    });
+  });
+
+  describe('isNewConnection (via registerDriver)', () => {
+    it('should detect new connection for first registration', () => {
+      const callback = vi.fn();
+      registry.onDriverConnected(callback);
+
+      const telemetryData = createMockTelemetryData();
+      registry.registerDriver(telemetryData);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not trigger callback for already-connected driver', () => {
+      const callback = vi.fn();
+      registry.onDriverConnected(callback);
+
+      const telemetryData = createMockTelemetryData();
+
+      // First registration
+      registry.registerDriver(telemetryData);
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      callback.mockClear();
+
+      // Second registration (driver still connected)
+      registry.registerDriver(telemetryData);
+      expect(callback).toHaveBeenCalledTimes(0);
+    });
+
+    it('should detect reconnection after disconnect', () => {
+      const callback = vi.fn();
+      registry.onDriverConnected(callback);
+
+      const telemetryData = createMockTelemetryData();
+
+      // First registration
+      const driver1 = registry.registerDriver(telemetryData);
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      // Mark as disconnected
+      driver1.connected = false;
+
+      callback.mockClear();
+
+      // Reconnection
+      const driver2 = registry.registerDriver(telemetryData);
+      expect(driver2.connected).toBe(true);
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
 });

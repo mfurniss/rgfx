@@ -92,6 +92,51 @@ export class DriverRegistry {
     const macAddress = telemetryData.mac || 'unknown';
     log.info(`[DEBUG] registerDriver called for MAC ${macAddress} at ${registerStartTime}`);
 
+    // Phase 1: Identity resolution (creates driver in persistence if new)
+    const { driverId, persistedDriver } = this.resolveDriverIdentity(macAddress);
+
+    // Phase 2: Find existing in registry
+    const existingDriver = this.drivers.get(driverId) ?? this.findExistingDriverByMac(macAddress, driverId);
+
+    // Phase 3: Clean up old ID if migrated
+    this.handleIdMigration(existingDriver, driverId);
+
+    // Phase 4: Determine firstSeen (immutable)
+    const firstSeen = existingDriver?.firstSeen ?? persistedDriver?.firstSeen ?? Date.now();
+
+    // Phase 5: Calculate stats
+    const stats = this.calculateDriverStats(telemetryData, existingDriver);
+
+    // Phase 6: Construct and store driver
+    const driver = this.constructDriver(driverId, telemetryData, persistedDriver, existingDriver, firstSeen, stats);
+    this.drivers.set(driver.id, driver);
+    log.info(
+      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`
+    );
+
+    // Phase 7: Trigger callback if new connection
+    if (this.isNewConnection(existingDriver)) {
+      log.info(`Driver connected: ${driverId}`);
+      log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
+      this.onDriverConnectedCallback?.(driver);
+      log.info(
+        `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`
+      );
+    } else {
+      log.debug(`Driver ${driverId} already connected - skipping onDriverConnectedCallback`);
+    }
+
+    return driver;
+  }
+
+  /**
+   * Resolve driver identity and persistence
+   * Returns the driver ID and persisted data, creating new driver in persistence if needed
+   */
+  private resolveDriverIdentity(macAddress: string): {
+    driverId: string;
+    persistedDriver?: PersistedDriver;
+  } {
     // Try to find existing driver by MAC address in persistence
     let persistedDriver: PersistedDriver | undefined;
     if (this.persistence) {
@@ -101,52 +146,84 @@ export class DriverRegistry {
 
     log.info(`[DEBUG] Using driver ID: ${driverId} (MAC: ${macAddress})`);
 
-    // Look for existing driver in registry (could be under old ID or new ID)
-    let existingDriver = this.drivers.get(driverId);
-
-    // If not found by new ID, search all drivers by MAC to find old entry
-    if (!existingDriver) {
-      for (const driver of this.drivers.values()) {
-        if (driver.mac === macAddress) {
-          existingDriver = driver;
-          log.info(
-            `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${driverId})`
-          );
-          break;
-        }
-      }
-    }
-
-    const now = Date.now();
-    const isNewDriver = !existingDriver;
-
-    // Determine firstSeen timestamp (immutable once set)
-    let firstSeen = existingDriver?.firstSeen;
-
     // If this is a completely new driver (not in persistence), create it
-    if (isNewDriver && this.persistence && !persistedDriver) {
+    if (this.persistence && !persistedDriver) {
       const newId = this.persistence.generateNextDriverId();
       this.persistence.addDriver(newId, macAddress);
       persistedDriver = this.persistence.getDriver(newId);
       driverId = newId; // Update driverId to use the newly generated ID
-      firstSeen = persistedDriver?.firstSeen ?? now;
       log.info(`[DEBUG] Created new driver: ${newId} (MAC: ${macAddress})`);
-    } else if (persistedDriver) {
-      firstSeen = persistedDriver.firstSeen;
     }
 
-    // Fallback for drivers without persistence or missing firstSeen
-    firstSeen ??= now;
+    return { driverId, persistedDriver };
+  }
 
-    // If driver ID changed (MAC → custom ID), remove old registry entry
-    if (existingDriver && existingDriver.id !== driverId) {
-      log.info(
-        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${driverId}. Removing old registry entry.`
-      );
-      this.drivers.delete(existingDriver.id);
+  /**
+   * Find existing driver in registry by MAC (handles ID migration)
+   */
+  private findExistingDriverByMac(macAddress: string, currentId: string): Driver | undefined {
+    for (const driver of this.drivers.values()) {
+      if (driver.mac === macAddress && driver.id !== currentId) {
+        log.info(
+          `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`
+        );
+        return driver;
+      }
     }
+    return undefined;
+  }
 
-    const driver = new Driver({
+  /**
+   * Calculate driver statistics (initialize for new drivers, increment for existing)
+   */
+  private calculateDriverStats(
+    telemetryData: {
+      mqttMessagesReceived?: number;
+      udpMessagesReceived?: number;
+    },
+    existingDriver?: Driver
+  ) {
+    return {
+      mqttMessagesReceived:
+        telemetryData.mqttMessagesReceived ??
+        (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
+      mqttMessagesFailed: existingDriver?.stats.mqttMessagesFailed ?? 0,
+      udpMessagesSent:
+        telemetryData.udpMessagesReceived ?? existingDriver?.stats.udpMessagesSent ?? 0,
+      udpMessagesFailed: existingDriver?.stats.udpMessagesFailed ?? 0,
+    };
+  }
+
+  /**
+   * Build complete Driver object
+   */
+  private constructDriver(
+    driverId: string,
+    telemetryData: {
+      ip: string;
+      mac: string;
+      hostname: string;
+      ssid: string;
+      rssi: number;
+      freeHeap: number;
+      minFreeHeap: number;
+      uptimeMs: number;
+      telemetry: DriverTelemetry;
+      testActive?: boolean;
+    },
+    persistedDriver: PersistedDriver | undefined,
+    existingDriver: Driver | undefined,
+    firstSeen: number,
+    stats: {
+      mqttMessagesReceived: number;
+      mqttMessagesFailed: number;
+      udpMessagesSent: number;
+      udpMessagesFailed: number;
+    }
+  ): Driver {
+    const now = Date.now();
+
+    return new Driver({
       id: driverId,
       description: persistedDriver?.description,
       // Network information
@@ -171,43 +248,36 @@ export class DriverRegistry {
       ledConfig: persistedDriver?.ledConfig,
       resolvedHardware: existingDriver?.resolvedHardware,
       // Statistics
-      stats: {
-        mqttMessagesReceived:
-          telemetryData.mqttMessagesReceived ??
-          (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
-        mqttMessagesFailed: existingDriver?.stats.mqttMessagesFailed ?? 0,
-        udpMessagesSent:
-          telemetryData.udpMessagesReceived ?? existingDriver?.stats.udpMessagesSent ?? 0,
-        udpMessagesFailed: existingDriver?.stats.udpMessagesFailed ?? 0,
-      },
+      stats,
       // Runtime state
       testActive: telemetryData.testActive,
-      connected: true, // Driver just sent telemetry, so it's connected
+      // Driver is only connected if it has a valid IP address
+      connected: Boolean(telemetryData.ip && telemetryData.ip.trim().length > 0),
     });
+  }
 
-    this.drivers.set(driver.id, driver);
-    log.info(
-      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`
-    );
+  /**
+   * Handle ID migration cleanup (remove old registry entry if ID changed)
+   */
+  private handleIdMigration(existingDriver: Driver | undefined, newDriverId: string): void {
+    if (existingDriver && existingDriver.id !== newDriverId) {
+      log.info(
+        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`
+      );
+      this.drivers.delete(existingDriver.id);
+    }
+  }
 
-    // Only notify on initial connection - not for subsequent telemetry updates
+  /**
+   * Detect new connection (returns true if driver wasn't previously connected)
+   */
+  private isNewConnection(existingDriver?: Driver): boolean {
     const wasConnected = existingDriver?.connected ?? false;
     log.info(
       `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
         `wasConnected=${wasConnected}, callbackRegistered=${this.onDriverConnectedCallback !== undefined}`
     );
-    if (!wasConnected) {
-      log.info(`Driver connected: ${driverId}`);
-      log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
-      this.onDriverConnectedCallback?.(driver);
-      log.info(
-        `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`
-      );
-    } else {
-      log.debug(`Driver ${driverId} already connected - skipping onDriverConnectedCallback`);
-    }
-
-    return driver;
+    return !wasConnected;
   }
 
   // Get driver by ID
