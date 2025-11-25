@@ -2,6 +2,7 @@
 
 #include "matrix.h"
 #include "effects/pulse.h"
+#include "effects/bitmap.h"
 #include "effects/wipe.h"
 #include "effects/explode.h"
 #include "effects/test_leds.h"
@@ -24,12 +25,13 @@ class EffectProcessor {
    private:
 	Matrix& matrix;
 	PulseEffect pulseEffect;
+	BitmapEffect bitmapEffect;
 	WipeEffect wipeEffect;
 	ExplodeEffect explodeEffect;
 	TestLedsEffect testLedsEffect;
 	unsigned long lastFrameTime;
 
-	EffectEntry effectMap[4];
+	EffectEntry effectMap[5];
 
    public:
 	EffectProcessor(Matrix& matrix);

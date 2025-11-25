@@ -556,7 +556,7 @@ describe('MappingEngine', () => {
 
       await engine.handleEvent('nonexistent/player/score', '1000');
 
-      expect(mockContext.log.debug).toHaveBeenCalledWith(
+      expect(mockContext.log.warn).toHaveBeenCalledWith(
         expect.stringContaining('Could not load game mapper for nonexistent')
       );
       expect(defaultHandler).toHaveBeenCalled();
@@ -829,7 +829,7 @@ describe('MappingEngine', () => {
 
       expect(mockImportModule).toHaveBeenCalledWith(expect.stringMatching(/games\/pacman\.js$/));
       expect((testEngine as any).gameHandlers.has('pacman')).toBe(true);
-      expect(mockContext.log.debug).toHaveBeenCalledWith('Loaded game mapper: pacman');
+      expect(mockContext.log.info).toHaveBeenCalledWith('Loaded game mapper: pacman');
     });
 
     it('should handle game mapper import failures gracefully', async () => {
@@ -840,7 +840,7 @@ describe('MappingEngine', () => {
       });
       await (testEngine as any).loadGameMapper('nonexistent');
 
-      expect(mockContext.log.debug).toHaveBeenCalledWith(
+      expect(mockContext.log.warn).toHaveBeenCalledWith(
         expect.stringContaining('Could not load game mapper for nonexistent')
       );
       expect((testEngine as any).gameHandlers.has('nonexistent')).toBe(false);

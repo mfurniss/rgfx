@@ -22,6 +22,28 @@ import type { EffectPayload } from '~/src/types/mapping-types';
 
 const EFFECTS: Record<string, Record<string, unknown>> = {
   pulse: { color: 'random', duration: 400, fade: true },
+  bitmap: {
+    color: 'random',
+    duration: 400,
+    image: [
+      '     XXXXXX     ',
+      '   XXXXXXXXXX   ',
+      '  XXXXXXXXXXXX  ',
+      ' XXXXXXXXXXX    ',
+      ' XXXXXXXXXX     ',
+      'XXXXXXXXX       ',
+      'XXXXXXXX        ',
+      'XXXXXXX         ',
+      'XXXXXXX         ',
+      'XXXXXXXX        ',
+      'XXXXXXXXX       ',
+      ' XXXXXXXXXX     ',
+      ' XXXXXXXXXXX    ',
+      '  XXXXXXXXXXXX  ',
+      '   XXXXXXXXXX   ',
+      '     XXXXXX     ',
+    ],
+  },
   wipe: { color: 'green', duration: 1000 },
   explode: {
     centerX: 50,
@@ -162,6 +184,7 @@ export default function TestEffectsPage() {
               setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
             }}
             fullWidth
+            sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace' } }}
           />
 
           <Button
