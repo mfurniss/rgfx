@@ -6,14 +6,44 @@
  */
 
 import { networkInterfaces } from 'node:os';
+import log from 'electron-log/main';
 import type { SystemStatus } from './types';
 import { firmwareVersionService } from './services/firmware-version-service';
+import { FirmwareWatcher } from './services/firmware-watcher';
 
 export class SystemMonitor {
   private readonly hubStartTime: number;
+  private readonly firmwareWatcher: FirmwareWatcher;
+  private onFirmwareUpdatedCallback?: (version: string | null) => void;
 
   constructor() {
     this.hubStartTime = Date.now();
+    this.firmwareWatcher = new FirmwareWatcher();
+    this.setupFirmwareWatcher();
+  }
+
+  private setupFirmwareWatcher(): void {
+    this.firmwareWatcher.on('firmware-updated', (version: string | null) => {
+      log.info('[SystemMonitor] Firmware updated notification received:', version);
+
+      if (this.onFirmwareUpdatedCallback) {
+        log.info('[SystemMonitor] Calling firmware updated callback');
+        this.onFirmwareUpdatedCallback(version);
+      } else {
+        log.warn('[SystemMonitor] No firmware updated callback registered');
+      }
+    });
+  }
+
+  startFirmwareMonitoring(onFirmwareUpdated: (version: string | null) => void): void {
+    log.info('[SystemMonitor] Starting firmware monitoring with callback');
+    this.onFirmwareUpdatedCallback = onFirmwareUpdated;
+    this.firmwareWatcher.start();
+  }
+
+  stopFirmwareMonitoring(): void {
+    log.info('[SystemMonitor] Stopping firmware monitoring');
+    this.firmwareWatcher.stop();
   }
 
   // Get Hub's local IP address (first non-internal IPv4 address)

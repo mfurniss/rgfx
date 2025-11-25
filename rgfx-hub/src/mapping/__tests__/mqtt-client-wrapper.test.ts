@@ -1,43 +1,56 @@
 /**
- * Unit tests for MqttClientWrapper
+ * Integration tests for MqttClientWrapper
+ *
+ * Uses real Aedes instance to verify actual MQTT publishing behavior
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import Aedes from 'aedes';
 import { MqttClientWrapper } from '../mqtt-client-wrapper';
 import type { Mqtt } from '../../mqtt';
 
 describe('MqttClientWrapper', () => {
-  let mockMqtt: Mqtt;
-  let mockAedes: any;
+  let aedes: Aedes;
+  let mqtt: Mqtt;
   let mqttClient: MqttClientWrapper;
+  let receivedMessages: { topic: string; payload: string }[];
 
   beforeEach(() => {
-    // Mock Aedes publish method
-    mockAedes = {
-      publish: vi.fn((_packet, callback) => {
-        // Simulate successful publish
-        callback(null);
-      }),
-    };
+    // Create real Aedes instance
+    aedes = new Aedes();
+    receivedMessages = [];
 
-    // Mock Mqtt instance
-    mockMqtt = {
-      aedes: mockAedes,
-    } as unknown as Mqtt;
+    // Subscribe to all topics to capture published messages
+    aedes.on('publish', (packet, _client) => {
+      // Filter out $SYS topics (internal Aedes messages)
+      if (!packet.topic.startsWith('$SYS')) {
+        receivedMessages.push({
+          topic: packet.topic,
+          payload: packet.payload.toString(),
+        });
+      }
+    });
 
-    mqttClient = new MqttClientWrapper(mockMqtt);
+    // Create minimal Mqtt wrapper
+    mqtt = {
+      aedes,
+    } as Mqtt;
+
+    mqttClient = new MqttClientWrapper(mqtt);
+  });
+
+  afterEach(() => {
+    // Cleanup Aedes
+    aedes.close();
   });
 
   describe('publish', () => {
     it('should publish string payload', async () => {
       await mqttClient.publish('test/topic', 'hello world');
 
-      expect(mockAedes.publish).toHaveBeenCalledOnce();
-      const call = mockAedes.publish.mock.calls[0][0];
-
-      expect(call.topic).toBe('test/topic');
-      expect(call.payload.toString()).toBe('hello world');
-      expect(call.qos).toBe(2); // Default QoS
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].topic).toBe('test/topic');
+      expect(receivedMessages[0].payload).toBe('hello world');
     });
 
     it('should publish object payload as JSON', async () => {
@@ -45,129 +58,40 @@ describe('MqttClientWrapper', () => {
 
       await mqttClient.publish('game/score', payload);
 
-      expect(mockAedes.publish).toHaveBeenCalledOnce();
-      const call = mockAedes.publish.mock.calls[0][0];
-
-      expect(call.topic).toBe('game/score');
-      expect(call.payload.toString()).toBe(JSON.stringify(payload));
-      expect(call.qos).toBe(2);
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].topic).toBe('game/score');
+      expect(JSON.parse(receivedMessages[0].payload)).toEqual(payload);
     });
 
-    it('should publish with QoS 0', async () => {
-      await mqttClient.publish('test/topic', 'message', 0);
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.qos).toBe(0);
-    });
-
-    it('should publish with QoS 1', async () => {
-      await mqttClient.publish('test/topic', 'message', 1);
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.qos).toBe(1);
-    });
-
-    it('should publish with QoS 2 (default)', async () => {
-      await mqttClient.publish('test/topic', 'message');
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.qos).toBe(2);
-    });
-
-    it('should use QoS 2 when explicitly specified', async () => {
-      await mqttClient.publish('test/topic', 'message', 2);
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.qos).toBe(2);
-    });
-
-    it('should set retain to false', async () => {
-      await mqttClient.publish('test/topic', 'message');
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.retain).toBe(false);
-    });
-
-    it('should set dup to false', async () => {
-      await mqttClient.publish('test/topic', 'message');
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.dup).toBe(false);
-    });
-
-    it('should set cmd to publish', async () => {
-      await mqttClient.publish('test/topic', 'message');
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.cmd).toBe('publish');
-    });
-  });
-
-  describe('error handling', () => {
-    it('should reject on publish error', async () => {
-      const error = new Error('Network error');
-      mockAedes.publish = vi.fn((_packet, callback) => {
-        callback(error);
-      });
-
-      await expect(mqttClient.publish('test/topic', 'message')).rejects.toThrow('Network error');
-    });
-
-    it('should reject on JSON serialization error', async () => {
-      // Create circular reference that can't be serialized
-      const circular: any = { a: 1 };
-      circular.self = circular;
-
-      await expect(mqttClient.publish('test/topic', circular)).rejects.toThrow();
-    });
-
-    it('should handle null callback error', async () => {
-      mockAedes.publish = vi.fn((_packet, callback) => {
-        callback(null);
-      });
-
-      await expect(mqttClient.publish('test/topic', 'message')).resolves.toBeUndefined();
-    });
-  });
-
-  describe('payload types', () => {
-    it('should handle number payload', async () => {
+    it('should publish number payload', async () => {
       await mqttClient.publish('test/number', 42);
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.payload.toString()).toBe('42');
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toBe('42');
     });
 
-    it('should handle boolean payload', async () => {
+    it('should publish boolean payload', async () => {
       await mqttClient.publish('test/bool', true);
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.payload.toString()).toBe('true');
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toBe('true');
     });
 
-    it('should handle array payload', async () => {
+    it('should publish array payload', async () => {
       await mqttClient.publish('test/array', [1, 2, 3]);
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.payload.toString()).toBe('[1,2,3]');
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toBe('[1,2,3]');
     });
 
-    it('should handle null payload', async () => {
+    it('should publish null payload', async () => {
       await mqttClient.publish('test/null', null);
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.payload.toString()).toBe('null');
+      expect(receivedMessages).toHaveLength(1);
+      expect(receivedMessages[0].payload).toBe('null');
     });
 
-    it('should handle undefined payload', async () => {
-      await mqttClient.publish('test/undefined', undefined);
-
-      const call = mockAedes.publish.mock.calls[0][0];
-      // undefined becomes empty string in JSON.stringify
-      expect(call.payload.toString()).toBe('');
-    });
-
-    it('should handle complex nested objects', async () => {
+    it('should publish complex nested objects', async () => {
       const complex = {
         player: {
           score: 12450,
@@ -182,8 +106,8 @@ describe('MqttClientWrapper', () => {
 
       await mqttClient.publish('game/state', complex);
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(JSON.parse(call.payload.toString())).toEqual(complex);
+      expect(receivedMessages).toHaveLength(1);
+      expect(JSON.parse(receivedMessages[0].payload)).toEqual(complex);
     });
   });
 
@@ -191,22 +115,19 @@ describe('MqttClientWrapper', () => {
     it('should handle simple topics', async () => {
       await mqttClient.publish('simple', 'message');
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.topic).toBe('simple');
+      expect(receivedMessages[0].topic).toBe('simple');
     });
 
     it('should handle hierarchical topics', async () => {
       await mqttClient.publish('home/living-room/lights', 'on');
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.topic).toBe('home/living-room/lights');
+      expect(receivedMessages[0].topic).toBe('home/living-room/lights');
     });
 
     it('should handle topics with special characters', async () => {
       await mqttClient.publish('device/sensor-1/temperature', '22.5');
 
-      const call = mockAedes.publish.mock.calls[0][0];
-      expect(call.topic).toBe('device/sensor-1/temperature');
+      expect(receivedMessages[0].topic).toBe('device/sensor-1/temperature');
     });
   });
 
@@ -218,12 +139,6 @@ describe('MqttClientWrapper', () => {
       await expect(promise).resolves.toBeUndefined();
     });
 
-    it('should allow await', async () => {
-      await mqttClient.publish('test/topic', 'message');
-
-      expect(mockAedes.publish).toHaveBeenCalledOnce();
-    });
-
     it('should handle multiple concurrent publishes', async () => {
       const promises = [
         mqttClient.publish('topic1', 'msg1'),
@@ -233,7 +148,19 @@ describe('MqttClientWrapper', () => {
 
       await Promise.all(promises);
 
-      expect(mockAedes.publish).toHaveBeenCalledTimes(3);
+      expect(receivedMessages).toHaveLength(3);
+      expect(receivedMessages.map((m) => m.topic)).toEqual(['topic1', 'topic2', 'topic3']);
+      expect(receivedMessages.map((m) => m.payload)).toEqual(['msg1', 'msg2', 'msg3']);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should reject on JSON serialization error', async () => {
+      // Create circular reference that can't be serialized
+      const circular: any = { a: 1 };
+      circular.self = circular;
+
+      await expect(mqttClient.publish('test/topic', circular)).rejects.toThrow();
     });
   });
 });

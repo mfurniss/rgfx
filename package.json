@@ -31,7 +31,8 @@
     "url": "https://gitlab.com/furniss/rgfx/-/issues"
   },
   "scripts": {
-    "postinstall": "echo 'RGFX workspace initialized. See README.md for setup instructions.'"
+    "postinstall": "echo 'RGFX workspace initialized. See README.md for setup instructions.'",
+    "esp32:copy-firmware": "cd esp32 && python3 copy_firmware.py"
   },
   "engines": {
     "node": ">=18.0.0"
