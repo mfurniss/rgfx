@@ -8,7 +8,7 @@
 import { networkInterfaces } from 'node:os';
 import log from 'electron-log/main';
 
-export interface NetworkInterface {
+interface NetworkInterface {
   name: string;
   address: string;
 }

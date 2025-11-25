@@ -11,7 +11,7 @@ import {
   MAX_DRIVER_ID_LENGTH,
 } from './config/constants';
 
-export interface DriverIdValidationResult {
+interface DriverIdValidationResult {
   valid: boolean;
   error?: string;
 }

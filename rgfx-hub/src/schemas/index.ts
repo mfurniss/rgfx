@@ -6,15 +6,13 @@
  */
 
 // Telemetry and driver registration schemas
-export { TelemetryPayloadSchema, type TelemetryPayload } from './telemetry-payload';
-export { DriverTelemetrySchema, type DriverTelemetryFromSchema } from './driver-telemetry';
-export { DriverRegistrationSchema, type DriverRegistration } from './driver-registration';
-export { LEDHardwareSchema, type LEDHardwareFromSchema } from './led-hardware';
+export { TelemetryPayloadSchema } from './telemetry-payload';
+export { DriverTelemetrySchema } from './driver-telemetry';
+export { DriverRegistrationSchema } from './driver-registration';
+export { LEDHardwareSchema } from './led-hardware';
 
 // Driver persistence schemas
 export {
-  DriverLEDConfigSchema,
-  type DriverLEDConfigFromSchema,
   PersistedDriverSchema,
   type PersistedDriverFromSchema,
   DriversConfigFileRawSchema,
@@ -23,18 +21,7 @@ export {
 } from './driver-persistence';
 
 // Firmware manifest schema
-export {
-  FirmwareFileSchema,
-  type FirmwareFile,
-  FirmwareManifestSchema,
-  type FirmwareManifest,
-} from './firmware-manifest';
+export { FirmwareManifestSchema, type FirmwareManifest } from './firmware-manifest';
 
 // Effect props schemas and validation
-export {
-  effectSchemas,
-  type EffectName,
-  validateEffectProps,
-  safeValidateEffectProps,
-  isEffectName,
-} from './effects';
+export { effectSchemas, safeValidateEffectProps, isEffectName } from './effects';
