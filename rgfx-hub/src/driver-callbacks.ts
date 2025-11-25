@@ -16,11 +16,11 @@ interface DriverCallbacksDeps {
   systemMonitor: SystemMonitor;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
-  pushConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<void>;
 }
 
 export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
-  const { driverRegistry, systemMonitor, getMainWindow, getEventsProcessed, pushConfigToDriver } =
+  const { driverRegistry, systemMonitor, getMainWindow, getEventsProcessed, uploadConfigToDriver } =
     deps;
 
   function isWindowAvailable(): boolean {
@@ -52,11 +52,11 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
     }
 
     if (driver.mac) {
-      void pushConfigToDriver(driver.mac).catch((error: unknown) => {
-        log.error(`Failed to push config to driver ${driver.id}:`, error);
+      void uploadConfigToDriver(driver.mac).catch((error: unknown) => {
+        log.error(`Failed to upload config to driver ${driver.id}:`, error);
       });
     } else {
-      log.warn(`Driver ${driver.id} connected without MAC address - cannot push config`);
+      log.warn(`Driver ${driver.id} connected without MAC address - cannot upload config`);
     }
   });
 

@@ -10,6 +10,7 @@ import * as path from 'path';
 import log from 'electron-log/main';
 import type { LEDHardware } from './types';
 import { CONFIG_DIRECTORY } from './config/constants';
+import { LEDHardwareSchema } from './schemas';
 
 /**
  * Manages LED hardware definition files
@@ -50,18 +51,14 @@ export class LEDHardwareManager {
 
     try {
       const data = fs.readFileSync(hardwarePath, 'utf8');
-      const hardware = JSON.parse(data) as LEDHardware;
+      const parseResult = LEDHardwareSchema.safeParse(JSON.parse(data));
 
-      // Validate
-      if (!hardware.name) {
-        log.error(`Invalid LED hardware in ${hardwarePath}: missing name`);
+      if (!parseResult.success) {
+        log.error(`Invalid LED hardware in ${hardwarePath}: ${parseResult.error.message}`);
         return null;
       }
 
-      if (!hardware.count || hardware.count <= 0) {
-        log.error(`Invalid LED hardware in ${hardwarePath}: invalid count`);
-        return null;
-      }
+      const hardware = parseResult.data as LEDHardware;
 
       // Cache it
       this.cache.set(hardwareRef, hardware);

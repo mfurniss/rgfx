@@ -6,7 +6,7 @@
  */
 
 import type { MqttClient } from '../types/mapping-types';
-import type { Mqtt } from '../mqtt';
+import type { MqttBroker } from '../mqtt';
 import { MQTT_QOS_LEVEL } from '../config/constants';
 
 /**
@@ -16,7 +16,7 @@ import { MQTT_QOS_LEVEL } from '../config/constants';
  * JSON serialization for the mapping system.
  */
 export class MqttClientWrapper implements MqttClient {
-  constructor(private mqtt: Mqtt) {}
+  constructor(private mqtt: MqttBroker) {}
 
   /**
    * Publish message to MQTT topic

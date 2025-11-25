@@ -1,22 +1,29 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+ */
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Mqtt } from '../mqtt';
+import { MqttBroker } from '../mqtt-broker';
 import Aedes from 'aedes';
 import { createServer } from 'node:net';
-import { Server as SSDPServer } from 'node-ssdp';
-import { createSocket } from 'node:dgram';
+import type { DiscoveryService } from '../discovery-service';
 
 // Mock dependencies
 vi.mock('aedes');
 vi.mock('node:net');
-vi.mock('node-ssdp');
-vi.mock('node:dgram');
+vi.mock('../../network/network-utils', () => ({
+  getLocalIP: vi.fn().mockReturnValue('192.168.1.100'),
+  getBroadcastAddress: vi.fn().mockReturnValue('192.168.1.255'),
+}));
 
-describe('Mqtt', () => {
-  let mqtt: Mqtt;
+describe('MqttBroker', () => {
+  let mqtt: MqttBroker;
   let mockAedes: any;
   let mockServer: any;
-  let mockSSDPServer: any;
-  let mockUDPSocket: any;
+  let mockDiscoveryService: DiscoveryService;
 
   beforeEach(() => {
     // Mock Aedes instance
@@ -42,32 +49,18 @@ describe('Mqtt', () => {
       }),
     };
 
-    // Mock SSDP server
-    mockSSDPServer = {
-      addUSN: vi.fn(),
-      advertise: vi.fn(),
-      start: vi.fn().mockResolvedValue(undefined),
+    // Mock discovery service
+    mockDiscoveryService = {
+      start: vi.fn(),
       stop: vi.fn(),
-    };
-
-    // Mock UDP socket
-    mockUDPSocket = {
-      on: vi.fn(),
-      bind: vi.fn((callback) => {
-        if (callback) callback();
-      }),
-      setBroadcast: vi.fn(),
-      send: vi.fn(),
-      close: vi.fn(),
     };
 
     // Setup mocks
     vi.mocked(Aedes).mockReturnValue(mockAedes);
     vi.mocked(createServer).mockReturnValue(mockServer);
-    vi.mocked(SSDPServer).mockReturnValue(mockSSDPServer);
-    vi.mocked(createSocket).mockReturnValue(mockUDPSocket);
 
-    mqtt = new Mqtt(1883);
+    // Create broker with mock discovery service
+    mqtt = new MqttBroker(1883, [mockDiscoveryService]);
   });
 
   afterEach(async () => {
@@ -77,12 +70,12 @@ describe('Mqtt', () => {
 
   describe('constructor', () => {
     it('should create MQTT broker with default port', () => {
-      const mqttDefault = new Mqtt();
+      const mqttDefault = new MqttBroker(undefined, [mockDiscoveryService]);
       expect(mqttDefault).toBeDefined();
     });
 
     it('should create MQTT broker with custom port', () => {
-      const mqttCustom = new Mqtt(1884);
+      const mqttCustom = new MqttBroker(1884, [mockDiscoveryService]);
       expect(mqttCustom).toBeDefined();
     });
 
@@ -357,30 +350,22 @@ describe('Mqtt', () => {
       expect(mockServer.listen).toHaveBeenCalledWith(1883, expect.any(Function));
     });
 
-    it('should announce via SSDP', async () => {
+    it('should start discovery services', () => {
       mqtt.start();
 
-      // Wait for SSDP server start promise to resolve
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(SSDPServer).toHaveBeenCalledWith({
-        location: expect.stringMatching(/^http:\/\/\d+\.\d+\.\d+\.\d+:1883$/),
-        sourcePort: 1900,
-        adInterval: 10000,
-        ttl: 4,
+      expect(mockDiscoveryService.start).toHaveBeenCalledWith({
+        mqttPort: 1883,
+        localIP: '192.168.1.100',
       });
-      expect(mockSSDPServer.addUSN).toHaveBeenCalledWith('urn:rgfx:service:mqtt:1');
-      expect(mockSSDPServer.start).toHaveBeenCalled();
-      expect(mockSSDPServer.advertise).toHaveBeenCalled();
     });
   });
 
   describe('stop', () => {
-    it('should stop SSDP server', async () => {
+    it('should stop discovery services', async () => {
       mqtt.start();
       await mqtt.stop();
 
-      expect(mockSSDPServer.stop).toHaveBeenCalled();
+      expect(mockDiscoveryService.stop).toHaveBeenCalled();
     });
 
     it('should close Aedes and server', async () => {

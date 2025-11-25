@@ -9,19 +9,19 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from './driver-registry';
 import type { DriverPersistence } from './driver-persistence';
 import type { LEDHardwareManager } from './led-hardware-manager';
-import type { Mqtt } from './mqtt';
+import type { MqttBroker } from './mqtt';
 
-interface PushConfigDeps {
+interface UploadConfigDeps {
   driverRegistry: DriverRegistry;
   driverPersistence: DriverPersistence;
   ledHardwareManager: LEDHardwareManager;
-  mqtt: Mqtt;
+  mqtt: MqttBroker;
 }
 
-export function createPushConfigToDriver(deps: PushConfigDeps): (macAddress: string) => Promise<void> {
+export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress: string) => Promise<void> {
   const { driverRegistry, driverPersistence, ledHardwareManager, mqtt } = deps;
 
-  return async function pushConfigToDriver(macAddress: string): Promise<void> {
+  return async function uploadConfigToDriver(macAddress: string): Promise<void> {
     const driver = driverRegistry.getDriverByMac(macAddress);
     if (!driver) {
       throw new Error(`No driver found with MAC ${macAddress}`);
@@ -74,6 +74,6 @@ export function createPushConfigToDriver(deps: PushConfigDeps): (macAddress: str
     const payload = JSON.stringify(completeConfig);
 
     await mqtt.publish(topic, payload);
-    log.info(`Pushed LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
+    log.info(`Uploaded LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
   };
 }
