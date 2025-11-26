@@ -5,7 +5,7 @@
 #include "canvas.h"
 #include <FastLED.h>
 
-template<size_t N>
+template <size_t N>
 void downsampleToMatrix(EffectProcessor::EffectEntry (&effects)[N], Matrix* matrix) {
 	uint16_t width = matrix->width;
 	uint16_t height = matrix->height;

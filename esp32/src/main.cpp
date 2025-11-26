@@ -9,6 +9,7 @@
 #include "matrix.h"
 #include "effects/effect_processor.h"
 #include "network/network_init.h"
+#include "network/network_task.h"
 #include "config/config_portal.h"
 #include "config/config_nvs.h"
 #include "config/config_leds.h"
@@ -47,80 +48,6 @@ bool udpSetupDone = false;   // Extern in network-init.h
 bool otaSetupDone = false;   // Extern in network-init.h
 bool otaInProgress = false;  // Extern in network-init.h - Track OTA upload state
 static bool initialConnectionAttemptDone = false;
-
-// Network Task - runs on Core 0 (protocol core)
-// Handles MQTT, web server, OTA, and OLED display updates
-void networkTask(void* parameter) {
-	log("Network task started on Core " + String(xPortGetCoreID()));
-
-	// Initialize OLED display (optional - gracefully handles missing display)
-	bool hasDisplay = Display::begin();
-	if (hasDisplay) {
-		log("OLED display available - status display enabled");
-		Display::showBoot(Utils::getDeviceId());
-		delay(2000);  // Show boot screen for 2 seconds
-	} else {
-		log("Running without OLED display");
-	}
-
-	// Wait for setup to complete initialization
-	delay(500);
-
-	// Track last uptime update for periodic display refresh
-	unsigned long lastUptimeUpdate = 0;
-
-	// Track last SSDP discovery poll
-	unsigned long lastSsdpPoll = 0;
-
-	// Track last telemetry broadcast
-	unsigned long lastTelemetryBroadcast = 0;
-
-	// Main network task loop
-	while (true) {
-		// Process config portal web requests (MUST be called regularly)
-		ConfigPortal::process();
-
-		// Handle MQTT independently (only needs WiFi)
-		bool isConnected = ConfigPortal::isWiFiConnected();
-
-		// Skip MQTT/UDP processing during OTA
-		if (isConnected && mqttSetupDone && !otaInProgress) {
-			unsigned long now = millis();
-
-			// Poll for MQTT broker via SSDP every 3 seconds (until found)
-			if (!mqttClient.connected() && (now - lastSsdpPoll >= SSDP_POLL_INTERVAL_MS)) {
-				discoverMQTTBroker();
-				lastSsdpPoll = now;
-			}
-
-			// Process MQTT connection and messages
-			mqttLoop();
-
-			// Send periodic telemetry (only after MQTT connected)
-			if (mqttClient.connected() && (now - lastTelemetryBroadcast >= TELEMETRY_INTERVAL_MS)) {
-				sendDriverTelemetry();
-				lastTelemetryBroadcast = now;
-			}
-		}
-
-		// Always handle OTA when ready
-		if (isConnected && otaSetupDone) {
-			ArduinoOTA.handle();
-		}
-
-		// Skip OLED updates during OTA
-		if (hasDisplay && isConnected && !otaInProgress) {
-			unsigned long now = millis();
-			if (now - lastUptimeUpdate >= UPTIME_UPDATE_INTERVAL) {
-				Display::updateUptime(now / 1000);
-				lastUptimeUpdate = now;
-			}
-		}
-
-		// Longer delay during OTA to reduce Core 0 load
-		vTaskDelay((otaInProgress ? 50 : 10) / portTICK_PERIOD_MS);
-	}
-}
 
 void setup() {
 	Serial.begin(115200);
@@ -296,7 +223,8 @@ void loop() {
 	// Core 1: Process LED effects (time-critical tasks)
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
 	// UDP is processed at top of loop() for lowest latency
-	if (isConnected && udpSetupDone) {
+	// Skip effect processing during OTA to prevent clearing progress indicator
+	if (isConnected && udpSetupDone && !otaInProgress) {
 		// Initialize effect processor on first run (only if matrix is ready)
 		if (effectProcessor == nullptr && matrix != nullptr) {
 			effectProcessor = new EffectProcessor(*matrix);

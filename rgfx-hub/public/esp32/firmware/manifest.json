@@ -1,7 +1,7 @@
 {
-  "version": "0.0.2-dev.224+cfa44b6-dirty.20251125153530",
-  "generatedAt": "2025-11-25T23:35:39.189273+00:00",
-  "firmwareBinarySha256": "8face0deebaa7e2826e96298cae8f376b62e1b344dfaf1aefa9ce8f6441fa467",
+  "version": "0.0.2-dev.226+e5566d8-dirty.20251125183433",
+  "generatedAt": "2025-11-26T02:34:41.337874+00:00",
+  "firmwareBinarySha256": "32cea872c15356c64d79e1e87460c7afc9b378467d5fbf1f9a8bd706019aa2f3",
   "files": [
     {
       "name": "bootloader.bin",
@@ -18,8 +18,8 @@
     {
       "name": "firmware.bin",
       "address": 65536,
-      "size": 1058880,
-      "sha256": "8face0deebaa7e2826e96298cae8f376b62e1b344dfaf1aefa9ce8f6441fa467"
+      "size": 1058208,
+      "sha256": "32cea872c15356c64d79e1e87460c7afc9b378467d5fbf1f9a8bd706019aa2f3"
     }
   ]
 }

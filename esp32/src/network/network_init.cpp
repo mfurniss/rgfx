@@ -4,6 +4,7 @@
 #include <ESPmDNS.h>
 #include <FastLED.h>
 #include "network/mqtt.h"
+#include "network/ota_update.h"
 #include "network/udp.h"
 #include "oled/oled_display.h"
 #include "utils.h"
@@ -42,82 +43,7 @@ void setupNetworkServices(Matrix& matrix) {
 	}
 
 	// Setup OTA updates (must be done after WiFi and mDNS are initialized)
-	// Use unique device ID for OTA hostname (e.g., "rgfx-driver-0001")
-	ArduinoOTA.setHostname(Utils::getDeviceId().c_str());
-	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
-	ArduinoOTA.onStart([]() {
-		log("OTA Update starting...");
-		otaInProgress = true;
-
-		// Get current LED buffer from configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-				FastLED.show();
-			}
-		}
-	});
-	ArduinoOTA.onEnd([]() {
-		log("OTA Update complete!");
-		// Device will reboot automatically
-	});
-	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-		static unsigned int lastPercent = 0;
-		unsigned int percent = (progress / (total / 100));
-
-		// Log every 10%
-		if (percent != lastPercent && percent % 10 == 0) {
-			log("OTA Progress: " + String(percent) + "%");
-			lastPercent = percent;
-		}
-
-		// Get current LED buffer from configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				// Clear all LEDs
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-
-				// Calculate LED index from percentage (0-100% → 0 to size-1)
-				int ledIndex = (percent * (firstDevice.count - 1)) / 100;
-
-				// Light single orange LED at progress position
-				leds[ledIndex] = CRGB::Orange;
-				FastLED.show();
-			}
-		}
-	});
-	ArduinoOTA.onError([](ota_error_t error) {
-		log("OTA Error: " + String(error));
-		otaInProgress = false;
-
-		// Get current LED buffer from configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				// Show error: all red for 5 seconds
-				fill_solid(leds, firstDevice.count, CRGB::Red);
-				FastLED.show();
-				delay(5000);
-
-				// Clear LEDs
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-				FastLED.show();
-			}
-		}
-	});
-	ArduinoOTA.begin();
-
-	// Manually advertise the Arduino OTA service since we disabled ArduinoOTA's internal mDNS
-	MDNS.enableArduino(3232, false);  // Port 3232, no password
-
-	delay(100);
-	log("OTA Ready (advertising _arduino._tcp service on port 3232)");
-	otaSetupDone = true;
+	setupOTA();
 
 	// Load saved LED configuration from NVS (if available)
 	if (ConfigNVS::hasLEDConfig()) {
@@ -140,7 +66,8 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Update display to show connected status with actual MQTT status
 	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceId());
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(),
+		                       Utils::getDeviceId());
 	}
 
 	// Go dark for normal operation
@@ -200,81 +127,7 @@ void setupNetworkServices() {
 	}
 
 	// Setup OTA updates (must be done after WiFi and mDNS are initialized)
-	ArduinoOTA.setHostname(Utils::getDeviceId().c_str());
-	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - we already called it
-	ArduinoOTA.onStart([]() {
-		log("OTA Update starting...");
-		otaInProgress = true;
-
-		// Get current LED buffer from configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-				FastLED.show();
-			}
-		}
-	});
-	ArduinoOTA.onEnd([]() {
-		log("OTA Update complete!");
-		// Device will reboot automatically
-	});
-	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-		static unsigned int lastPercent = 0;
-		unsigned int percent = (progress / (total / 100));
-
-		// Log every 10%
-		if (percent != lastPercent && percent % 10 == 0) {
-			log("OTA Progress: " + String(percent) + "%");
-			lastPercent = percent;
-		}
-
-		// Get current LED buffer from configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				// Clear all LEDs
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-
-				// Calculate LED index from percentage (0-100% → 0 to size-1)
-				int ledIndex = (percent * (firstDevice.count - 1)) / 100;
-
-				// Light single orange LED at progress position
-				leds[ledIndex] = CRGB::Orange;
-				FastLED.show();
-			}
-		}
-	});
-	ArduinoOTA.onError([](ota_error_t error) {
-		log("OTA Error: " + String(error));
-		otaInProgress = false;
-
-		// Get current LED buffer from configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				// Show error: all red for 5 seconds
-				fill_solid(leds, firstDevice.count, CRGB::Red);
-				FastLED.show();
-				delay(5000);
-
-				// Clear LEDs
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-				FastLED.show();
-			}
-		}
-	});
-	ArduinoOTA.begin();
-
-	// Manually advertise the Arduino OTA service since we disabled ArduinoOTA's internal mDNS
-	MDNS.enableArduino(3232, false);  // Port 3232, no password
-
-	delay(100);
-	log("OTA Ready (advertising _arduino._tcp service on port 3232)");
-	otaSetupDone = true;
+	setupOTA();
 
 	// Load saved LED configuration from NVS (if available)
 	if (ConfigNVS::hasLEDConfig()) {
@@ -296,7 +149,8 @@ void setupNetworkServices() {
 
 	// Update display
 	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(), Utils::getDeviceId());
+		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(),
+		                       Utils::getDeviceId());
 	}
 }
 
