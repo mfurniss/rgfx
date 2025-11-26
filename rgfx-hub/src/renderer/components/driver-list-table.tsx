@@ -125,10 +125,17 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>
                 {!driver.connected ? (
                   <Chip label="Disconnected" color="error" size="small" />
-                ) : currentFirmwareVersion &&
-                  driver.telemetry?.firmwareVersion !== currentFirmwareVersion ? (
+                ) : !driver.telemetry?.firmwareVersion ? (
                   <Tooltip
-                    title={`Driver: ${driver.telemetry?.firmwareVersion ?? 'unknown'}, Hub: ${currentFirmwareVersion}`}
+                    title="Driver firmware version unknown - update required"
+                    arrow
+                  >
+                    <Chip label="Update Required" color="error" size="small" />
+                  </Tooltip>
+                ) : currentFirmwareVersion &&
+                  driver.telemetry.firmwareVersion !== currentFirmwareVersion ? (
+                  <Tooltip
+                    title={`Driver: ${driver.telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
                     arrow
                   >
                     <Chip label="Update Available" color="warning" size="small" />

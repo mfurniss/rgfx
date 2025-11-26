@@ -29,6 +29,12 @@ export const SSDP_PORT = 1900;
 /** SSDP service URN for MQTT broker discovery */
 export const SSDP_SERVICE_URN = 'urn:rgfx:service:mqtt:1';
 
+/** UDP port for broker discovery broadcasts (ESP32 listens on this port) */
+export const UDP_DISCOVERY_PORT = 8889;
+
+/** Interval for UDP broker discovery broadcasts (milliseconds) */
+export const UDP_DISCOVERY_INTERVAL_MS = 5000;
+
 // ============================================================================
 // Driver Connection Timeout Configuration
 // ============================================================================

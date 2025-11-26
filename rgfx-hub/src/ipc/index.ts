@@ -7,7 +7,7 @@
 
 import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
-import type { Mqtt } from '../mqtt';
+import type { MqttBroker } from '../mqtt';
 import type { UdpClient } from '../types/mapping-types';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';
@@ -17,8 +17,8 @@ import { registerUpdateDriverConfigHandler } from './update-driver-config-handle
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
-  mqtt: Mqtt;
-  pushConfigToDriver: (macAddress: string) => Promise<void>;
+  mqtt: MqttBroker;
+  uploadConfigToDriver: (macAddress: string) => Promise<void>;
   udpClient: UdpClient;
   getMainWindow: () => BrowserWindow;
 }

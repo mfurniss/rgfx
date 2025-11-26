@@ -6,7 +6,7 @@
  */
 
 import type { BrowserWindow } from 'electron';
-import type { Mqtt } from '../mqtt';
+import type { MqttBroker } from '../mqtt';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
 import { subscribeDriverTelemetry } from './driver-telemetry';
@@ -14,7 +14,7 @@ import { subscribeDriverStatus } from './driver-status';
 import { subscribeDriverTestState } from './driver-test-state';
 
 interface MqttSubscriptionsDeps {
-  mqtt: Mqtt;
+  mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
   systemMonitor: SystemMonitor;
   getMainWindow: () => BrowserWindow | null;

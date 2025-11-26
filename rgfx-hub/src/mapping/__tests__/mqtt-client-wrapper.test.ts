@@ -7,11 +7,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Aedes from 'aedes';
 import { MqttClientWrapper } from '../mqtt-client-wrapper';
-import type { Mqtt } from '../../mqtt';
+import type { MqttBroker } from '../../mqtt';
 
 describe('MqttClientWrapper', () => {
   let aedes: Aedes;
-  let mqtt: Mqtt;
+  let mqtt: MqttBroker;
   let mqttClient: MqttClientWrapper;
   let receivedMessages: { topic: string; payload: string }[];
 
@@ -31,10 +31,10 @@ describe('MqttClientWrapper', () => {
       }
     });
 
-    // Create minimal Mqtt wrapper
+    // Create minimal MqttBroker wrapper
     mqtt = {
       aedes,
-    } as Mqtt;
+    } as MqttBroker;
 
     mqttClient = new MqttClientWrapper(mqtt);
   });

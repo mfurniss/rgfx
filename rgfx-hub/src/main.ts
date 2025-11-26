@@ -9,7 +9,7 @@ import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
-import { Mqtt } from './mqtt';
+import { MqttBroker } from './mqtt';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';
@@ -30,7 +30,7 @@ import {
 } from './config/constants';
 import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
-import { createPushConfigToDriver } from './push-config-to-driver';
+import { createUploadConfigToDriver } from './upload-config-to-driver';
 import { configureSerialPort } from './serial-port-config';
 import { registerDriverCallbacks } from './driver-callbacks';
 import { serializeDriverForIPC } from './types';
@@ -63,13 +63,13 @@ let mainWindow: BrowserWindow | null = null;
 const configPath = path.join(app.getPath('home'), '.rgfx');
 const driverPersistence = new DriverPersistence(configPath);
 const ledHardwareManager = new LEDHardwareManager(configPath);
-const mqtt = new Mqtt(MQTT_DEFAULT_PORT);
+const mqtt = new MqttBroker(MQTT_DEFAULT_PORT);
 const eventReader = new EventFileReader();
 const driverRegistry = new DriverRegistry(driverPersistence, ledHardwareManager);
 const systemMonitor = new SystemMonitor();
 
-// Create pushConfigToDriver function
-const pushConfigToDriver = createPushConfigToDriver({
+// Create uploadConfigToDriver function
+const uploadConfigToDriver = createUploadConfigToDriver({
   driverRegistry,
   driverPersistence,
   ledHardwareManager,
@@ -118,7 +118,7 @@ registerDriverCallbacks({
   systemMonitor,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
-  pushConfigToDriver,
+  uploadConfigToDriver,
 });
 
 // Start MQTT broker
@@ -138,7 +138,7 @@ void installDefaultMappers()
 registerIpcHandlers({
   driverRegistry,
   mqtt,
-  pushConfigToDriver,
+  uploadConfigToDriver,
   udpClient,
   getMainWindow: () => {
     if (!mainWindow) {
@@ -194,6 +194,7 @@ const createWindow = () => {
     width: MAIN_WINDOW_WIDTH,
     height: MAIN_WINDOW_HEIGHT,
     title: `RGFX Hub v${pkg.version}`,
+    backgroundColor: '#121212', // Material UI dark mode background
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
