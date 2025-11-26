@@ -158,7 +158,11 @@ Implemented LED progress indicator for OTA firmware updates showing orange LED m
 
 ## November 25, 2025
 
-Fixed OTA progress indicator bug where LEDs stopped updating at 50% due to effect processor continuing to run during updates. Refactored ESP32 codebase for better organization by extracting OTA setup and network task into dedicated modules (ota_update.cpp, network_task.cpp). Changed progress calculation to use float precision for smoother LED updates.
+Implemented bitmap effect system for LED matrices with animated Pac-Man sprites showing directional movement. Added Zod schema validation throughout the codebase for effects, driver persistence, firmware manifests, and MQTT messages ensuring type safety and runtime validation. Refactored MQTT module to use Zod for all JSON parsing operations.
+
+Enhanced driver registration with backward compatibility for old firmware versions, allowing Hub to work with both new and legacy drivers during transition period. Cleaned up unused exports and improved UI with dark mode window background.
+
+Fixed critical OTA progress indicator bug where LEDs stopped updating at 50% due to effect processor continuing to run during updates. Refactored ESP32 codebase by extracting OTA setup and network task into dedicated modules (ota_update.cpp, network_task.cpp). Changed progress calculation to use float precision for smoother LED updates.
 
 **Total Development Time:** 45 days (October 11 - November 25, 2025)
-**Total Commits:** 261
+**Total Commits:** 268
