@@ -9,13 +9,13 @@ import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 
-interface PushDriverConfigHandlerDeps {
+interface UploadDriverConfigHandlerDeps {
   driverRegistry: DriverRegistry;
-  pushConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<void>;
 }
 
-export function registerUpdateDriverConfigHandler(deps: PushDriverConfigHandlerDeps): void {
-  const { driverRegistry, pushConfigToDriver } = deps;
+export function registerUpdateDriverConfigHandler(deps: UploadDriverConfigHandlerDeps): void {
+  const { driverRegistry, uploadConfigToDriver } = deps;
 
   ipcMain.handle('driver:update-config', async (_event, driverId: string) => {
     log.info(`Update config requested for driver ${driverId}`);
@@ -30,7 +30,7 @@ export function registerUpdateDriverConfigHandler(deps: PushDriverConfigHandlerD
     }
 
     log.info(`Updating LED configuration for driver ${driverId}...`);
-    await pushConfigToDriver(driver.mac);
+    await uploadConfigToDriver(driver.mac);
     log.info(`Configuration updated for driver ${driverId}`);
   });
 }

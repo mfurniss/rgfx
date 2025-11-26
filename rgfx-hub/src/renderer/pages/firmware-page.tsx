@@ -18,19 +18,9 @@ import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icon
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
+import { FirmwareManifestSchema, type FirmwareManifest } from '../../schemas';
 
 type FlashMethod = 'usb' | 'ota';
-
-interface FirmwareManifest {
-  version: string;
-  generatedAt: string;
-  files: {
-    name: string;
-    address: number;
-    size: number;
-    sha256: string;
-  }[];
-}
 
 const FirmwarePage: React.FC = () => {
   const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
@@ -107,7 +97,12 @@ const FirmwarePage: React.FC = () => {
       if (!manifestResponse.ok) {
         throw new Error('Failed to load firmware manifest');
       }
-      const manifest = (await manifestResponse.json()) as FirmwareManifest;
+      const manifestJson: unknown = await manifestResponse.json();
+      const manifestResult = FirmwareManifestSchema.safeParse(manifestJson);
+      if (!manifestResult.success) {
+        throw new Error(`Invalid firmware manifest: ${manifestResult.error.message}`);
+      }
+      const manifest: FirmwareManifest = manifestResult.data;
       const firmwareVersion = manifest.version;
       addLog(`Firmware version: ${firmwareVersion}`);
       addLog(`Files to flash: ${manifest.files.length}`);

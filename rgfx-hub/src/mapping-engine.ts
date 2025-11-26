@@ -15,7 +15,7 @@ import { getMappingsDir } from './mapper-installer';
 /**
  * Options for MappingEngine constructor
  */
-export interface MappingEngineOptions {
+interface MappingEngineOptions {
   /**
    * Custom module import function for testing
    * Defaults to dynamic import with cache-busting in production

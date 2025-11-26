@@ -45,7 +45,7 @@ void WipeEffect::render() {
 		uint16_t column = wipe.currentColumn(width);
 		uint32_t rgba = RGBA(wipe.r, wipe.g, wipe.b, 255);
 
-		uint16_t columnWidth = width / 10;
+		uint16_t columnWidth = std::min(width / 10, 8);
 		canvas.drawRectangle(column, 0, columnWidth, height, rgba);
 	}
 }

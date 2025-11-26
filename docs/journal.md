@@ -156,5 +156,13 @@ Fixed critical firmware version system bug from previous days affecting Platform
 
 Implemented LED progress indicator for OTA firmware updates showing orange LED moving across strip/matrix during upload. Enhanced firmware deployment pipeline with automatic manifest.json generation including SHA256 checksums for integrity validation. Improved Hub test suite by consolidating redundant tests.
 
-**Total Development Time:** 44 days (October 11 - November 24, 2025)
-**Total Commits:** 261
+## November 25, 2025
+
+Implemented bitmap effect system. Added Zod schema validation throughout the codebase for effects, driver persistence, firmware manifests, and MQTT messages ensuring type safety and runtime validation. Refactored MQTT module to use Zod for all JSON parsing operations.
+
+Cleaned up unused exports and improved UI with dark mode window background.
+
+Refactored ESP32 codebase by extracting OTA setup and network task into dedicated modules (ota_update.cpp, network_task.cpp). Changed progress calculation to use float precision for smoother LED updates.
+
+**Total Development Time:** 45 days (October 11 - November 25, 2025)
+**Total Commits:** 268

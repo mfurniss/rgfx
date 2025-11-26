@@ -8,11 +8,11 @@
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
-import type { Mqtt } from '../mqtt';
+import type { MqttBroker } from '../mqtt';
 
 interface SendDriverCommandHandlerDeps {
   driverRegistry: DriverRegistry;
-  mqtt: Mqtt;
+  mqtt: MqttBroker;
 }
 
 export function registerSendDriverCommandHandler(deps: SendDriverCommandHandlerDeps): void {

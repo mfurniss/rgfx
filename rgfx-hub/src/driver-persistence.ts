@@ -10,35 +10,17 @@ import * as path from 'path';
 import log from 'electron-log/main';
 import type { DriverLEDConfig } from './types';
 import { CONFIG_VERSION, CONFIG_DIRECTORY } from './config/constants';
+import {
+  PersistedDriverSchema,
+  DriversConfigFileRawSchema,
+  type PersistedDriverFromSchema,
+  type DriversConfigFile,
+} from './schemas';
 
 /**
- * Persisted driver data structure
- * Stores static configuration and metadata, excludes runtime state
+ * Re-export the Zod-inferred type as PersistedDriver for backward compatibility
  */
-export interface PersistedDriver {
-  /** Unique driver ID (sequential format: rgfx-driver-0001) */
-  id: string;
-
-  /** Original MAC address for reference and MQTT communication */
-  macAddress: string;
-
-  /** Optional user-editable description */
-  description?: string;
-
-  /** Unix timestamp of first discovery */
-  firstSeen: number;
-
-  /** LED configuration (hardware reference + settings) */
-  ledConfig?: DriverLEDConfig | null;
-}
-
-/**
- * Unified driver configuration file structure
- */
-interface DriversConfigFile {
-  version: string;
-  drivers: PersistedDriver[];
-}
+export type PersistedDriver = PersistedDriverFromSchema;
 
 /**
  * Manages persistent driver data in unified JSON format
@@ -90,40 +72,27 @@ export class DriverPersistence {
       const data = fs.readFileSync(this.configFile, 'utf8');
       const parsed: unknown = JSON.parse(data);
 
-      // Runtime validation of parsed JSON structure
-      if (!parsed || typeof parsed !== 'object') {
-        log.error('Invalid drivers config: not a valid object');
+      // Validate config file structure (version + drivers array exists)
+      const result = DriversConfigFileRawSchema.safeParse(parsed);
+      if (!result.success) {
+        log.error(`Invalid drivers config: ${result.error.message}`);
         return;
       }
 
-      // Type guard to check if parsed has drivers array
-      const config = parsed as Record<string, unknown>;
-      if (!config.drivers || !Array.isArray(config.drivers)) {
-        log.error('Invalid drivers config: missing or invalid drivers array');
-        return;
-      }
-
-      // Validate version
-      if (typeof config.version !== 'string' || config.version.length === 0) {
-        log.error('Invalid drivers config: missing or invalid version');
-        return;
-      }
-
-      const driversConfig = parsed as DriversConfigFile;
-
-      // Validate each driver entry against schema
+      // Validate each driver entry individually for graceful skip of invalid entries
       let validCount = 0;
-      for (const driver of driversConfig.drivers) {
-        if (this.validateDriverEntry(driver)) {
-          this.drivers.set(driver.id, driver);
+      for (const driver of result.data.drivers) {
+        const driverResult = PersistedDriverSchema.safeParse(driver);
+        if (driverResult.success) {
+          this.drivers.set(driverResult.data.id, driverResult.data);
           validCount++;
         } else {
-          log.error(`Skipping invalid driver entry: ${JSON.stringify(driver)}`);
+          log.error(`Skipping invalid driver entry: ${driverResult.error.message}`);
         }
       }
 
       log.info(
-        `Loaded ${validCount} valid drivers from ${this.configFile} (${driversConfig.drivers.length - validCount} invalid entries skipped)`
+        `Loaded ${validCount} valid drivers from ${this.configFile} (${result.data.drivers.length - validCount} invalid entries skipped)`
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -152,83 +121,29 @@ export class DriverPersistence {
   }
 
   /**
-   * Validate driver ID format
-   * Max 32 characters, alphanumeric + hyphens only
-   */
-  private validateDriverId(id: string): boolean {
-    if (id.length === 0 || id.length > 32) {
-      return false;
-    }
-    return /^[a-z0-9-]+$/i.test(id);
-  }
-
-  /**
-   * Validate a single driver entry against schema
-   */
-  private validateDriverEntry(driver: unknown): driver is PersistedDriver {
-    if (!driver || typeof driver !== 'object') {
-      return false;
-    }
-
-    const d = driver as Record<string, unknown>;
-
-    // Required fields
-    if (typeof d.id !== 'string' || !this.validateDriverId(d.id)) {
-      log.error(`Invalid driver ID: ${String(d.id)}`);
-      return false;
-    }
-
-    if (typeof d.macAddress !== 'string' || !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(d.macAddress)) {
-      log.error(`Invalid MAC address for driver ${d.id}: ${String(d.macAddress)}`);
-      return false;
-    }
-
-    if (typeof d.firstSeen !== 'number' || d.firstSeen <= 0) {
-      log.error(`Invalid firstSeen timestamp for driver ${d.id}: ${String(d.firstSeen)}`);
-      return false;
-    }
-
-    // Optional fields
-    if (d.description !== undefined && typeof d.description !== 'string') {
-      log.error(`Invalid description for driver ${d.id}: must be string`);
-      return false;
-    }
-
-    if (d.ledConfig !== undefined && d.ledConfig !== null && typeof d.ledConfig !== 'object') {
-      log.error(`Invalid ledConfig for driver ${d.id}: must be object or null`);
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
    * Add a newly discovered driver
    * Returns true if driver was added, false if it already exists
    */
   addDriver(id: string, macAddress: string): boolean {
-    if (!this.validateDriverId(id)) {
-      log.error(`Invalid driver ID format: ${id}`);
-      return false;
-    }
-
-    if (!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(macAddress)) {
-      log.error(`Invalid MAC address format: ${macAddress}`);
-      return false;
-    }
-
     if (this.drivers.has(id)) {
       return false; // Driver already exists
     }
 
-    const driver: PersistedDriver = {
+    const driver = {
       id,
       macAddress,
       firstSeen: Date.now(),
       ledConfig: null,
     };
 
-    this.drivers.set(id, driver);
+    // Validate with Zod schema
+    const result = PersistedDriverSchema.safeParse(driver);
+    if (!result.success) {
+      log.error(`Invalid driver data: ${result.error.message}`);
+      return false;
+    }
+
+    this.drivers.set(id, result.data);
     this.saveConfig();
     log.info(`Added new driver: ${id} (MAC: ${macAddress})`);
     return true;
