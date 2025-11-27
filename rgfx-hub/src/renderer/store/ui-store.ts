@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type SortField = 'id' | 'name' | 'ip' | 'status' | 'firstSeen';
+export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 interface UiState {

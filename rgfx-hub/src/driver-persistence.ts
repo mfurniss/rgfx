@@ -27,11 +27,11 @@ export type PersistedDriver = PersistedDriverFromSchema;
  *
  * Responsibilities:
  * - Load/save all driver data from single JSON file
- * - Persist driver discovery (id, macAddress, description, firstSeen)
+ * - Persist driver discovery (id, macAddress, description)
  * - Persist LED configurations (nested in each driver entry)
  * - Provide drivers to DriverRegistry for runtime tracking
  *
- * What gets persisted: id, macAddress, description, firstSeen, ledConfig
+ * What gets persisted: id, macAddress, description, ledConfig
  * What is runtime-only: ip, lastSeen, connected, stats
  */
 export class DriverPersistence {
@@ -132,7 +132,6 @@ export class DriverPersistence {
     const driver = {
       id,
       macAddress,
-      firstSeen: Date.now(),
       ledConfig: null,
     };
 

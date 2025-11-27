@@ -139,14 +139,14 @@ describe('DriverRegistry', () => {
       const telemetryData = createMockTelemetryData();
 
       const device1 = registry.registerDriver(telemetryData);
-      const firstSeen = device1.lastSeen;
+      const initialLastSeen = device1.lastSeen;
 
       // Wait a bit
       const now = Date.now();
       vi.setSystemTime(now + 1000);
 
       const device2 = registry.registerDriver(telemetryData);
-      expect(device2.lastSeen).toBeGreaterThan(firstSeen);
+      expect(device2.lastSeen).toBeGreaterThan(initialLastSeen);
 
       vi.useRealTimers();
     });
@@ -361,24 +361,6 @@ describe('DriverRegistry', () => {
   });
 
   describe('constructDriver (via registerDriver)', () => {
-    it('should preserve firstSeen timestamp across registrations', () => {
-      const telemetryData = createMockTelemetryData();
-
-      const driver1 = registry.registerDriver(telemetryData);
-      const originalFirstSeen = driver1.firstSeen;
-
-      // Wait a bit
-      vi.useFakeTimers();
-      vi.advanceTimersByTime(5000);
-
-      const driver2 = registry.registerDriver(telemetryData);
-
-      expect(driver2.firstSeen).toBe(originalFirstSeen);
-      expect(driver2.lastSeen).toBeGreaterThan(originalFirstSeen);
-
-      vi.useRealTimers();
-    });
-
     it('should set connected=true for new registration with valid IP', () => {
       const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
       const driver = registry.registerDriver(telemetryData);

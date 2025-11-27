@@ -43,7 +43,6 @@ describe('driver-store', () => {
     return new Driver({
       id,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       lastSeenAt: connected ? Date.now() : undefined,
       ip: connected ? '192.168.1.100' : undefined,
@@ -134,7 +133,6 @@ describe('driver-store', () => {
         id: 'rgfx-driver-0001',
         mac: 'AA:BB:CC:DD:EE:FF',
         lastSeen: Date.now(),
-        firstSeen: Date.now(),
         failedHeartbeats: 0,
         telemetry: undefined,
         stats: {

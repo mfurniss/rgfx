@@ -44,7 +44,6 @@ export const useDriverStore = create<DriverState>()(
               minFreeHeap: driver.minFreeHeap,
               uptimeMs: driver.uptimeMs,
               lastSeen: driver.lastSeen,
-              firstSeen: driver.firstSeen,
               failedHeartbeats: driver.failedHeartbeats,
               lastHeartbeat: driver.lastHeartbeat,
               lastSeenAt: driver.lastSeenAt,

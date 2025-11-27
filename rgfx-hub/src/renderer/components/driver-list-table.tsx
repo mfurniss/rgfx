@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -12,9 +12,7 @@ import {
   TableSortLabel,
   Tooltip,
 } from '@mui/material';
-import { formatDistanceToNow, format } from 'date-fns';
 import type { Driver } from '~/src/types';
-import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
 import { useUiStore, type SortField } from '../store/ui-store';
 import { useDriverStore } from '../store/driver-store';
 
@@ -26,39 +24,17 @@ const SORT_COLUMNS: { field: SortField; label: string }[] = [
   { field: 'id', label: 'Device ID' },
   { field: 'ip', label: 'IP Address' },
   { field: 'status', label: 'Status' },
-  { field: 'firstSeen', label: 'First Seen' },
 ];
 
 /**
  * Driver list table component with sortable columns
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
-  const location = useLocation();
+  const navigate = useNavigate();
   const sortField = useUiStore((state) => state.driverTableSortField);
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
   const currentFirmwareVersion = useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
-  const [, setCurrentTime] = useState(Date.now());
-
-  // Update current time every second for live relative timestamps - only when component is visible
-  useEffect(() => {
-    // Check if we're on the drivers list page (/drivers)
-    const isVisible = location.pathname === '/drivers';
-
-    if (isVisible) {
-      // Immediate update when page becomes visible
-      setCurrentTime(Date.now());
-
-      // Then start interval
-      const interval = setInterval(() => {
-        setCurrentTime(Date.now());
-      }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [location.pathname]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -80,9 +56,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
         break;
       case 'status':
         compareValue = (a.connected ? 1 : 0) - (b.connected ? 1 : 0);
-        break;
-      case 'firstSeen':
-        compareValue = a.firstSeen - b.firstSeen;
         break;
     }
 
@@ -113,9 +86,11 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
           {sortedDrivers.map((driver: Driver) => (
             <TableRow
               key={driver.id}
-              component={Link}
-              to={`/driver/${driver.id}`}
+              onClick={() => {
+                void navigate(`/driver/${driver.id}`);
+              }}
               sx={{
+                cursor: 'pointer',
                 '&:hover': { backgroundColor: 'action.hover' },
                 opacity: driver.connected ? 1 : 0.6,
               }}
@@ -153,11 +128,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                 ) : (
                   <Chip label="Connected" color="success" size="small" />
                 )}
-              </TableCell>
-              <TableCell>
-                <Tooltip title={format(driver.firstSeen, 'PPpp')}>
-                  <span>{formatDistanceToNow(driver.firstSeen, { addSuffix: true })}</span>
-                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

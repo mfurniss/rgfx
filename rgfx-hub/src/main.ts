@@ -189,12 +189,11 @@ systemMonitor.startFirmwareMonitoring((_version: string | null) => {
 });
 
 const createWindow = () => {
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     width: MAIN_WINDOW_WIDTH,
     height: MAIN_WINDOW_HEIGHT,
     title: `RGFX Hub v${pkg.version}`,
-    backgroundColor: '#121212', // Material UI dark mode background
+    backgroundColor: '#121212',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

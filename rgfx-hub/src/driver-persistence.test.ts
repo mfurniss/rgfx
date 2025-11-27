@@ -46,12 +46,10 @@ describe('DriverPersistence', () => {
           {
             id: 'rgfx-driver-0001',
             macAddress: 'AA:BB:CC:DD:EE:FF',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0002',
             macAddress: '11:22:33:44:55:66',
-            firstSeen: 9876543210,
           },
         ],
       };
@@ -110,18 +108,6 @@ describe('DriverPersistence', () => {
       expect(firstAdd).toBe(true);
       expect(secondAdd).toBe(false);
       expect(persistence.getAllDrivers()).toHaveLength(1);
-    });
-
-    it('should set firstSeen timestamp', () => {
-      const now = Date.now();
-      const persistence = new DriverPersistence(testConfigDir);
-
-      persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
-
-      const driver = persistence.getDriver('rgfx-driver-0001');
-      expect(driver).toBeDefined();
-      expect(driver!.firstSeen).toBeGreaterThanOrEqual(now);
-      expect(driver!.firstSeen).toBeLessThanOrEqual(Date.now());
     });
 
     it('should reject invalid driver ID', () => {
@@ -301,12 +287,10 @@ describe('DriverPersistence', () => {
           {
             id: 'AA:BB:CC:DD:EE:FF', // Invalid format (MAC address)
             macAddress: 'AA:BB:CC:DD:EE:FF',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0001',
             macAddress: '11:22:33:44:55:66',
-            firstSeen: 1234567890,
           },
         ],
       };
@@ -327,39 +311,10 @@ describe('DriverPersistence', () => {
           {
             id: 'rgfx-driver-0001',
             macAddress: 'invalid-mac',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0002',
             macAddress: '11:22:33:44:55:66',
-            firstSeen: 1234567890,
-          },
-        ],
-      };
-      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
-
-      const persistence = new DriverPersistence(testConfigDir);
-      const drivers = persistence.getAllDrivers();
-
-      expect(drivers).toHaveLength(1);
-      expect(drivers[0].id).toBe('rgfx-driver-0002');
-    });
-
-
-    it('should skip drivers with invalid firstSeen timestamp', () => {
-      fs.mkdirSync(testConfigDir, { recursive: true });
-      const testData = {
-        version: '1.0',
-        drivers: [
-          {
-            id: 'rgfx-driver-0001',
-            macAddress: 'AA:BB:CC:DD:EE:FF',
-            firstSeen: -1, // Invalid (negative)
-          },
-          {
-            id: 'rgfx-driver-0002',
-            macAddress: '11:22:33:44:55:66',
-            firstSeen: 1234567890,
           },
         ],
       };
@@ -380,17 +335,14 @@ describe('DriverPersistence', () => {
           {
             // Missing id
             macAddress: 'AA:BB:CC:DD:EE:FF',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0001',
             // Missing macAddress
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0002',
             macAddress: '11:22:33:44:55:66',
-            firstSeen: 1234567890,
           },
         ],
       };
@@ -411,22 +363,18 @@ describe('DriverPersistence', () => {
           {
             id: 'invalid-mac-format',
             macAddress: 'not-a-mac',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0001',
             macAddress: 'AA:BB:CC:DD:EE:FF',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0002',
             macAddress: '11:22:33:44:55:66',
-            firstSeen: 1234567890,
           },
           {
             id: 'rgfx-driver-0003',
             macAddress: '22:33:44:55:66:77',
-            firstSeen: 1234567890,
           },
         ],
       };
