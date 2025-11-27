@@ -70,7 +70,6 @@ void processUDP() {
 				pendingMessage.props = doc["props"];
 
 				newMessageAvailable = true;
-				log("UDP RX from Hub: effect=" + pendingMessage.effect);
 			} else {
 				log("UDP RX: JSON parse error: " + String(error.c_str()));
 			}
