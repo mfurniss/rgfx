@@ -40,7 +40,6 @@ export class DriverRegistry {
           id: pd.id,
           description: pd.description,
           lastSeen: 0,
-          firstSeen: pd.firstSeen,
           failedHeartbeats: 0,
           ledConfig: pd.ledConfig,
           resolvedHardware: resolvedHardware,
@@ -101,14 +100,11 @@ export class DriverRegistry {
     // Phase 3: Clean up old ID if migrated
     this.handleIdMigration(existingDriver, driverId);
 
-    // Phase 4: Determine firstSeen (immutable)
-    const firstSeen = existingDriver?.firstSeen ?? persistedDriver?.firstSeen ?? Date.now();
-
-    // Phase 5: Calculate stats
+    // Phase 4: Calculate stats
     const stats = this.calculateDriverStats(telemetryData, existingDriver);
 
-    // Phase 6: Construct and store driver
-    const driver = this.constructDriver(driverId, telemetryData, persistedDriver, existingDriver, firstSeen, stats);
+    // Phase 5: Construct and store driver
+    const driver = this.constructDriver(driverId, telemetryData, persistedDriver, existingDriver, stats);
     this.drivers.set(driver.id, driver);
     log.info(
       `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`
@@ -213,7 +209,6 @@ export class DriverRegistry {
     },
     persistedDriver: PersistedDriver | undefined,
     existingDriver: Driver | undefined,
-    firstSeen: number,
     stats: {
       mqttMessagesReceived: number;
       mqttMessagesFailed: number;
@@ -238,7 +233,6 @@ export class DriverRegistry {
       uptimeMs: telemetryData.uptimeMs,
       // Connection tracking
       lastSeen: now,
-      firstSeen: firstSeen,
       failedHeartbeats: 0,
       lastHeartbeat: now,
       lastSeenAt: now, // Timestamp for connection detection

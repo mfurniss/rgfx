@@ -25,7 +25,6 @@ const createMockDriver = (id: string, connected: boolean, ip?: string): Driver =
   return new Driver({
     id,
     lastSeen: Date.now(),
-    firstSeen: Date.now(),
     failedHeartbeats: 0,
     lastSeenAt: connected ? Date.now() : undefined,
     ip: connected ? ip : undefined,
