@@ -25,7 +25,9 @@ export function getLocalIP(): string {
   for (const name of Object.keys(nets)) {
     const netInterfaces = nets[name];
 
-    if (!netInterfaces) continue;
+    if (!netInterfaces) {
+      continue;
+    }
 
     for (const net of netInterfaces) {
       if (net.family === 'IPv4' && !net.internal) {
@@ -35,12 +37,12 @@ export function getLocalIP(): string {
   }
 
   log.info(
-    `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`
+    `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`,
   );
 
   // Prefer WiFi/Ethernet interfaces (en0, en1, eth0, etc.)
   const preferred = candidates.find(
-    (c) => c.name.startsWith('en') || c.name.startsWith('eth')
+    (c) => c.name.startsWith('en') || c.name.startsWith('eth'),
   );
 
   if (preferred) {
@@ -51,7 +53,7 @@ export function getLocalIP(): string {
   // Fallback to first candidate or localhost
   if (candidates.length > 0) {
     log.info(
-      `Using first available interface ${candidates[0].name} with IP ${candidates[0].address}`
+      `Using first available interface ${candidates[0].name} with IP ${candidates[0].address}`,
     );
     return candidates[0].address;
   }

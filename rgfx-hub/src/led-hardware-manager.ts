@@ -65,7 +65,7 @@ export class LEDHardwareManager {
       this.cache.set(hardwareRef, hardware);
       const identifier = hardware.asin ?? hardware.sku ?? 'no SKU/ASIN';
       log.info(
-        `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`
+        `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`,
       );
 
       return hardware;

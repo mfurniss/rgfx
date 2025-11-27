@@ -50,11 +50,17 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   // Helper function to determine WiFi signal quality
   const getSignalQuality = (rssi: number): string => {
-    if (rssi >= -50) return 'Excellent';
+    if (rssi >= -50) {
+      return 'Excellent';
+    }
 
-    if (rssi >= -60) return 'Good';
+    if (rssi >= -60) {
+      return 'Good';
+    }
 
-    if (rssi >= -70) return 'Fair';
+    if (rssi >= -70) {
+      return 'Fair';
+    }
     return 'Poor';
   };
 
@@ -72,12 +78,12 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // Network info - only shown when telemetry is available
   const networkRows: InfoRowData[] = telemetry
     ? [
-        { label: 'IP Address', value: driver.ip ?? '' },
-        { label: 'MAC Address', value: driver.mac ?? '' },
-        { label: 'Hostname', value: driver.hostname ?? '' },
-        { label: 'SSID', value: driver.ssid ?? '' },
-        { label: 'Signal (RSSI)', value: `${formatNumber(driver.rssi ?? 0)} dBm` },
-      ]
+      { label: 'IP Address', value: driver.ip ?? '' },
+      { label: 'MAC Address', value: driver.mac ?? '' },
+      { label: 'Hostname', value: driver.hostname ?? '' },
+      { label: 'SSID', value: driver.ssid ?? '' },
+      { label: 'Signal (RSSI)', value: `${formatNumber(driver.rssi ?? 0)} dBm` },
+    ]
     : [];
 
   // Driver telemetry from periodic heartbeats - always show if any data available
@@ -87,29 +93,29 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     // Memory from heartbeat telemetry
     ...(driver.freeHeap !== undefined && driver.minFreeHeap !== undefined
       ? [
-          {
-            label: 'Memory',
-            value: `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`,
-          },
-        ]
+        {
+          label: 'Memory',
+          value: `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`,
+        },
+      ]
       : []),
     // WiFi Signal from heartbeat telemetry
     ...(driver.rssi !== undefined
       ? [
-          {
-            label: 'WiFi Signal',
-            value: `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`,
-          },
-        ]
+        {
+          label: 'WiFi Signal',
+          value: `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`,
+        },
+      ]
       : []),
     // Uptime from heartbeat telemetry
     ...(driver.uptimeMs !== undefined
       ? [
-          {
-            label: 'Uptime',
-            value: formatUptime(driver.uptimeMs),
-          },
-        ]
+        {
+          label: 'Uptime',
+          value: formatUptime(driver.uptimeMs),
+        },
+      ]
       : []),
     // Message counters
     { label: 'MQTT Messages Received', value: formatNumber(driver.stats.mqttMessagesReceived) },
@@ -119,52 +125,52 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     // Last updated timestamp
     ...(driver.lastHeartbeat
       ? [
-          {
-            label: 'Last Updated',
-            value: `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`,
-          },
-        ]
+        {
+          label: 'Last Updated',
+          value: `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`,
+        },
+      ]
       : []),
   ];
 
   const hardwareRows: InfoRowData[] = telemetry
     ? [
-        { label: 'Chip Model', value: telemetry.chipModel },
-        { label: 'Chip Revision', value: formatNumber(telemetry.chipRevision) },
-        { label: 'CPU Cores', value: formatNumber(telemetry.chipCores) },
-        { label: 'CPU Frequency', value: `${formatNumber(telemetry.cpuFreqMHz)} MHz` },
-        { label: 'Flash Size', value: formatBytes(telemetry.flashSize) },
-        { label: 'Flash Speed', value: `${formatNumber(telemetry.flashSpeed / 1000000)} MHz` },
-        {
-          label: 'Display Connected',
-          value: telemetry.hasDisplay ? 'Yes (OLED)' : 'No',
-        },
-        ...(telemetry.firmwareVersion
-          ? [{ label: 'Firmware Version', value: telemetry.firmwareVersion }]
-          : []),
-      ]
+      { label: 'Chip Model', value: telemetry.chipModel },
+      { label: 'Chip Revision', value: formatNumber(telemetry.chipRevision) },
+      { label: 'CPU Cores', value: formatNumber(telemetry.chipCores) },
+      { label: 'CPU Frequency', value: `${formatNumber(telemetry.cpuFreqMHz)} MHz` },
+      { label: 'Flash Size', value: formatBytes(telemetry.flashSize) },
+      { label: 'Flash Speed', value: `${formatNumber(telemetry.flashSpeed / 1000000)} MHz` },
+      {
+        label: 'Display Connected',
+        value: telemetry.hasDisplay ? 'Yes (OLED)' : 'No',
+      },
+      ...(telemetry.firmwareVersion
+        ? [{ label: 'Firmware Version', value: telemetry.firmwareVersion }]
+        : []),
+    ]
     : [];
 
   const memoryRows: InfoRowData[] = telemetry
     ? [
-        {
-          label: 'Free Heap',
-          value: `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`,
-        },
-        ...(telemetry.psramSize > 0
-          ? [
-              {
-                label: 'Free PSRAM',
-                value: `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`,
-              },
-            ]
-          : []),
-        {
-          label: 'Free Sketch Space',
-          value: formatBytes(telemetry.freeSketchSpace),
-        },
-        { label: 'SDK Version', value: telemetry.sdkVersion },
-      ]
+      {
+        label: 'Free Heap',
+        value: `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`,
+      },
+      ...(telemetry.psramSize > 0
+        ? [
+          {
+            label: 'Free PSRAM',
+            value: `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`,
+          },
+        ]
+        : []),
+      {
+        label: 'Free Sketch Space',
+        value: formatBytes(telemetry.freeSketchSpace),
+      },
+      { label: 'SDK Version', value: telemetry.sdkVersion },
+    ]
     : [];
 
   // LED configuration from Hub's resolved hardware + driver settings
@@ -174,42 +180,42 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // Always show LED Configuration section (with message if not configured)
   const ledRows: InfoRowData[] = hardware
     ? [
-        { label: 'Hardware', value: hardware.name },
-        { label: 'Description', value: hardware.description ?? 'Not set' },
-        { label: 'SKU', value: hardware.sku ?? 'Not set' },
-        ...(hardware.asin ? [{ label: 'ASIN', value: hardware.asin }] : []),
-        { label: 'Layout', value: hardware.layout },
-        { label: 'LED Count', value: formatNumber(hardware.count) },
-        {
-          label: 'Matrix Size',
-          value:
+      { label: 'Hardware', value: hardware.name },
+      { label: 'Description', value: hardware.description ?? 'Not set' },
+      { label: 'SKU', value: hardware.sku ?? 'Not set' },
+      ...(hardware.asin ? [{ label: 'ASIN', value: hardware.asin }] : []),
+      { label: 'Layout', value: hardware.layout },
+      { label: 'LED Count', value: formatNumber(hardware.count) },
+      {
+        label: 'Matrix Size',
+        value:
             hardware.layout !== 'strip'
               ? `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`
               : 'N/A',
-        },
-        ...(ledConfig ? [{ label: 'Data Pin', value: formatNumber(ledConfig.pin) }] : []),
-        { label: 'Chipset', value: hardware.chipset ?? 'Unknown' },
-        { label: 'Color Order', value: hardware.colorOrder ?? 'Unknown' },
-        ...(ledConfig
-          ? [
-              {
-                label: 'Max Brightness',
-                value:
+      },
+      ...(ledConfig ? [{ label: 'Data Pin', value: formatNumber(ledConfig.pin) }] : []),
+      { label: 'Chipset', value: hardware.chipset ?? 'Unknown' },
+      { label: 'Color Order', value: hardware.colorOrder ?? 'Unknown' },
+      ...(ledConfig
+        ? [
+          {
+            label: 'Max Brightness',
+            value:
                   ledConfig.maxBrightness !== undefined
                     ? formatNumber(ledConfig.maxBrightness)
                     : 'Not set',
-              },
-              {
-                label: 'Brightness Limit',
-                value:
+          },
+          {
+            label: 'Brightness Limit',
+            value:
                   ledConfig.globalBrightnessLimit !== undefined
                     ? formatNumber(ledConfig.globalBrightnessLimit)
                     : 'Not set',
-              },
-              { label: 'Dithering', value: ledConfig.dithering ? 'Yes' : 'No' },
-            ]
-          : []),
-      ]
+          },
+          { label: 'Dithering', value: ledConfig.dithering ? 'Yes' : 'No' },
+        ]
+        : []),
+    ]
     : [];
 
   return (
@@ -251,19 +257,19 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           ) : currentFirmwareVersion &&
             telemetry?.firmwareVersion &&
             telemetry.firmwareVersion !== currentFirmwareVersion ? (
-            <Tooltip
-              title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
-              arrow
-            >
-              <Chip label="Update Available" color="warning" size="small" />
-            </Tooltip>
-          ) : !driver.ledConfig ? (
-            <Tooltip title="Connected but needs LED configuration" arrow>
-              <Chip label="Needs Configuration" color="warning" size="small" />
-            </Tooltip>
-          ) : (
-            <Chip label="Connected" color="success" size="small" />
-          )}
+              <Tooltip
+                title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
+                arrow
+              >
+                <Chip label="Update Available" color="warning" size="small" />
+              </Tooltip>
+            ) : !driver.ledConfig ? (
+              <Tooltip title="Connected but needs LED configuration" arrow>
+                <Chip label="Needs Configuration" color="warning" size="small" />
+              </Tooltip>
+            ) : (
+              <Chip label="Connected" color="success" size="small" />
+            )}
         </Box>
       </Paper>
 

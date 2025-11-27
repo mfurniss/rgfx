@@ -41,7 +41,9 @@ export class EventFileReader {
   }
 
   private checkForFile() {
-    if (!this.onEventCallback) return;
+    if (!this.onEventCallback) {
+      return;
+    }
 
     if (existsSync(this.filePath)) {
       // [A] File exists - set position to end and start watching
@@ -123,7 +125,9 @@ export class EventFileReader {
   }
 
   private readNewLines() {
-    if (!this.onEventCallback) return;
+    if (!this.onEventCallback) {
+      return;
+    }
 
     try {
       if (!existsSync(this.filePath)) {

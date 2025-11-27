@@ -121,7 +121,7 @@ describe('UdpClientImpl', () => {
         expect.objectContaining({
           effect: 'score',
           value: 1000,
-        })
+        }),
       );
     });
 
@@ -175,7 +175,7 @@ describe('UdpClientImpl', () => {
       expect(mockUdpSend).toHaveBeenCalledWith(
         expect.objectContaining({
           effect: 'score',
-        })
+        }),
       );
     });
 
@@ -282,7 +282,7 @@ describe('UdpClientImpl', () => {
       expect(mockUdpSend).toHaveBeenCalledWith(
         expect.objectContaining({
           effect: 'generic',
-        })
+        }),
       );
     });
 
@@ -306,7 +306,7 @@ describe('UdpClientImpl', () => {
           color: '#0000FF',
           speed: 200,
           duration: 5000,
-        })
+        }),
       );
     });
 
@@ -330,7 +330,7 @@ describe('UdpClientImpl', () => {
           player: 'p1',
           multiplier: 2,
           combo: true,
-        })
+        }),
       );
     });
   });

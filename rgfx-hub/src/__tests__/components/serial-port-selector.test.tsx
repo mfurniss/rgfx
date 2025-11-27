@@ -18,7 +18,7 @@ describe('SerialPortSelector', () => {
         onPortSelect={onPortSelect}
         onLog={onLog}
         onError={onError}
-      />
+      />,
     );
 
     expect(screen.getByText('Select a port...')).toBeDefined();
@@ -35,7 +35,7 @@ describe('SerialPortSelector', () => {
         onPortSelect={onPortSelect}
         onLog={onLog}
         onError={onError}
-      />
+      />,
     );
 
     const select = screen.getByRole('combobox');

@@ -61,10 +61,10 @@ export class MappingEngine {
       await this.loadDefaultMapper(join(mappingsDir, 'default.js'));
 
       this.context.log.info(
-        `Loaded default mappings: ` +
+        'Loaded default mappings: ' +
           `${this.subjectHandlers.size} subjects, ` +
           `${this.patternHandlers.length} patterns, ` +
-          `${this.defaultHandler ? '1' : '0'} default`
+          `${this.defaultHandler ? '1' : '0'} default`,
       );
 
       // Start watching for file changes
@@ -81,7 +81,9 @@ export class MappingEngine {
   private startFileWatcher(mappingsDir: string): void {
     try {
       this.watcher = watch(mappingsDir, { recursive: true }, (_eventType, filename) => {
-        if (!filename?.endsWith('.js')) return;
+        if (!filename?.endsWith('.js')) {
+          return;
+        }
 
         this.context.log.info(`Mapper file changed: ${filename}`);
         void this.reloadMapper(mappingsDir, filename);
@@ -100,15 +102,14 @@ export class MappingEngine {
     try {
       const filePath = join(mappingsDir, filename);
 
-      // Check if this is in games/ subdirectory
       if (filename.startsWith('games/') || filename.startsWith('games\\')) {
+        // games/ subdirectory
         const gameName = basename(filename, '.js');
         this.gameHandlers.delete(gameName);
         await this.loadGameMapper(gameName);
         this.context.log.info(`Reloaded game mapper: ${gameName}`);
-      }
-      // Check if this is in subjects/ subdirectory
-      else if (filename.startsWith('subjects/') || filename.startsWith('subjects\\')) {
+      } else if (filename.startsWith('subjects/') || filename.startsWith('subjects\\')) {
+        // subjects/ subdirectory
         const subjectName = basename(filename, '.js');
         this.subjectHandlers.delete(subjectName);
         const module = await this.importModule(filePath);
@@ -118,18 +119,16 @@ export class MappingEngine {
           this.subjectHandlers.set(subjectName, handler);
           this.context.log.info(`Reloaded subject mapper: ${subjectName}`);
         }
-      }
-      // Check if this is in patterns/ subdirectory
-      else if (filename.startsWith('patterns/') || filename.startsWith('patterns\\')) {
+      } else if (filename.startsWith('patterns/') || filename.startsWith('patterns\\')) {
+        // patterns/ subdirectory
         this.patternHandlers = [];
         await this.loadPatternMappers(join(mappingsDir, 'patterns'));
-        this.context.log.info(`Reloaded pattern mappers`);
-      }
-      // Check if this is default.js in root
-      else if (filename === 'default.js') {
+        this.context.log.info('Reloaded pattern mappers');
+      } else if (filename === 'default.js') {
+        // default.js in root
         this.defaultHandler = undefined;
         await this.loadDefaultMapper(filePath);
-        this.context.log.info(`Reloaded default mapper`);
+        this.context.log.info('Reloaded default mapper');
       }
     } catch (error) {
       this.context.log.error(`Failed to reload mapper ${filename}:`, error);
@@ -188,7 +187,9 @@ export class MappingEngine {
       if (namespace && this.gameHandlers.has(namespace)) {
         const handler = this.gameHandlers.get(namespace);
 
-        if (!handler) return;
+        if (!handler) {
+          return;
+        }
         this.context.log.info(`Calling game mapper for: ${topic}`);
         const handled = await handler(topicObj, payload, this.context);
         this.context.log.info(`Game mapper returned: ${handled} for ${topic}`);
@@ -204,7 +205,9 @@ export class MappingEngine {
       if (subject && this.subjectHandlers.has(subject)) {
         const handler = this.subjectHandlers.get(subject);
 
-        if (!handler) return;
+        if (!handler) {
+          return;
+        }
         const handled = await handler(topicObj, payload, this.context);
 
         if (handled) {
@@ -291,7 +294,7 @@ export class MappingEngine {
       // Log error for debugging but don't crash
       // Game will fall through to generic handlers
       this.context.log.warn(
-        `Could not load game mapper for ${gameName}: ${error instanceof Error ? error.message : String(error)}`
+        `Could not load game mapper for ${gameName}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -304,7 +307,9 @@ export class MappingEngine {
       const files = await fs.readdir(subjectsDir);
 
       for (const file of files) {
-        if (!file.endsWith('.js')) continue;
+        if (!file.endsWith('.js')) {
+          continue;
+        }
 
         const subjectName = file.replace('.js', '');
         const filePath = join(subjectsDir, file);
@@ -335,7 +340,9 @@ export class MappingEngine {
       const files = await fs.readdir(patternsDir);
 
       for (const file of files) {
-        if (!file.endsWith('.js')) continue;
+        if (!file.endsWith('.js')) {
+          continue;
+        }
 
         const filePath = join(patternsDir, file);
 

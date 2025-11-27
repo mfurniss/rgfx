@@ -107,7 +107,9 @@ function isWindowAvailable(): boolean {
 
 // Helper to send system status to renderer
 function sendSystemStatus() {
-  if (!isWindowAvailable() || !mainWindow) return;
+  if (!isWindowAvailable() || !mainWindow) {
+    return;
+  }
   const status = systemMonitor.getSystemStatus(driverRegistry.getConnectedCount(), eventsProcessed);
   mainWindow.webContents.send('system:status', status);
 }
@@ -210,7 +212,7 @@ const createWindow = () => {
   } else {
     log.info(`Loading production build from: ${MAIN_WINDOW_VITE_NAME}`);
     void mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
 
@@ -236,7 +238,9 @@ const createWindow = () => {
   // Wait for renderer to signal it's ready before sending initial state
   // Use 'on' instead of 'once' to handle HMR reloads during development
   ipcMain.on('renderer:ready', () => {
-    if (!isWindowAvailable() || !mainWindow) return;
+    if (!isWindowAvailable() || !mainWindow) {
+      return;
+    }
 
     // Send all drivers (both connected and disconnected)
     driverRegistry.getAllDrivers().forEach((driver) => {
@@ -268,7 +272,7 @@ app.on('ready', () => {
     const extensionPath = path.join(
       app.getPath('userData'),
       'extensions',
-      'lmhkpmbekcpmknklioeibfkpmmfibljd'
+      'lmhkpmbekcpmknklioeibfkpmmfibljd',
     );
 
     session.defaultSession.extensions

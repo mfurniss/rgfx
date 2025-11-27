@@ -88,7 +88,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         const macAddress = parsed.mac;
 
         log.info(
-          `[DEBUG] Full telemetry validated, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
+          `[DEBUG] Full telemetry validated, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
 
         // Extract registration data using Zod schemas
@@ -99,7 +99,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         const driver = driverRegistry.registerDriver(registrationData);
 
         log.info(
-          `[DEBUG] registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
+          `[DEBUG] registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
 
         // Notify renderer of driver update
@@ -110,7 +110,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
           log.info(`[DEBUG] driver:updated sent successfully for ${driver.id}`);
         } else {
-          log.warn(`[DEBUG] Cannot send driver:updated - mainWindow unavailable`);
+          log.warn('[DEBUG] Cannot send driver:updated - mainWindow unavailable');
         }
       } else {
         // Try minimal validation (old firmware fallback)
@@ -119,7 +119,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         if (minimalParseResult.success) {
           const minimalData = minimalParseResult.data;
           log.warn(
-            `Registering driver with minimal telemetry (old firmware): ${minimalData.mac} at ${minimalData.ip}`
+            `Registering driver with minimal telemetry (old firmware): ${minimalData.mac} at ${minimalData.ip}`,
           );
 
           // Create minimal driver registration with placeholder telemetry
@@ -127,7 +127,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           const driver = driverRegistry.registerDriver(registrationData);
 
           log.info(
-            `[DEBUG] Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`
+            `[DEBUG] Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
           );
 
           // Notify renderer of driver update (UI will show "Update Required" badge)
@@ -137,7 +137,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
             mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
             log.info(`[DEBUG] driver:updated sent successfully for ${driver.id} (minimal)`);
           } else {
-            log.warn(`[DEBUG] Cannot send driver:updated - mainWindow unavailable`);
+            log.warn('[DEBUG] Cannot send driver:updated - mainWindow unavailable');
           }
         } else {
           // Completely invalid - reject
@@ -145,7 +145,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
             `Invalid telemetry payload (failed both full and minimal validation): ${JSON.stringify({
               fullErrors: fullParseResult.error.issues.slice(0, 5), // Limit to first 5 errors
               minimalErrors: minimalParseResult.error.issues,
-            })}`
+            })}`,
           );
         }
       }

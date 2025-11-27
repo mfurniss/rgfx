@@ -53,7 +53,7 @@ export function validateEffectProps(effect: string, props: unknown): EffectProps
  */
 export function safeValidateEffectProps(
   effect: string,
-  props: unknown
+  props: unknown,
 ): { success: true; data: EffectProps } | { success: false; error: z.ZodError } {
   if (!isEffectName(effect)) {
     return {

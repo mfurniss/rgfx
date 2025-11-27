@@ -38,14 +38,14 @@ export class SsdpDiscovery implements DiscoveryService {
     (this.ssdpServer.start() as Promise<void>)
       .then(() => {
         log.info(`SSDP server started on port ${SSDP_PORT}`);
-        log.info(`Broadcasting NOTIFY messages every 10 seconds to 239.255.255.250:1900`);
+        log.info('Broadcasting NOTIFY messages every 10 seconds to 239.255.255.250:1900');
 
         // Manually trigger first advertisement immediately
         this.ssdpServer?.advertise();
-        log.info(`Sent initial SSDP NOTIFY advertisement`);
+        log.info('Sent initial SSDP NOTIFY advertisement');
       })
       .catch((err: unknown) => {
-        log.error(`Failed to start SSDP server:`, err);
+        log.error('Failed to start SSDP server:', err);
       });
 
     log.info(`MQTT broker announced via SSDP at ${location}`);

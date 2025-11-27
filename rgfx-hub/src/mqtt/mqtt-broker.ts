@@ -131,7 +131,7 @@ export class MqttBroker {
             log.info(`Published to ${topic} (QoS ${MQTT_QOS_LEVEL}): ${payload}`);
             resolve();
           }
-        }
+        },
       );
     });
   }

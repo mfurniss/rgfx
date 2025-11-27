@@ -95,7 +95,7 @@ export class DriverPersistence {
       }
 
       log.info(
-        `Loaded ${validCount} valid drivers from ${this.configFile} (${result.data.drivers.length - validCount} invalid entries skipped)`
+        `Loaded ${validCount} valid drivers from ${this.configFile} (${result.data.drivers.length - validCount} invalid entries skipped)`,
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

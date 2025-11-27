@@ -101,7 +101,7 @@ describe('DriverPersistence', () => {
 
       const firstAdd = persistence.addDriver(
         'rgfx-driver-0001',
-        'aa:bb:cc:dd:ee:ff'
+        'aa:bb:cc:dd:ee:ff',
       );
       const secondAdd = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
