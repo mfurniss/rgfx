@@ -130,3 +130,30 @@ bool ConfigNVS::hasDeviceId() {
 	prefs.end();
 	return exists;
 }
+
+bool ConfigNVS::saveLoggingLevel(const String& level) {
+	if (level != "all" && level != "errors" && level != "off") {
+		log("ERROR: Invalid logging level: " + level);
+		return false;
+	}
+
+	prefs.begin(NAMESPACE, false);  // Read-write mode
+	size_t bytesWritten = prefs.putString(KEY_LOG_LEVEL, level);
+	prefs.end();
+
+	if (bytesWritten == 0) {
+		log("ERROR: Failed to save logging level to NVS");
+		return false;
+	}
+
+	log("Logging level saved to NVS: " + level);
+	return true;
+}
+
+String ConfigNVS::loadLoggingLevel() {
+	prefs.begin(NAMESPACE, true);  // Read-only mode
+	String level = prefs.getString(KEY_LOG_LEVEL, "off");
+	prefs.end();
+
+	return level;
+}

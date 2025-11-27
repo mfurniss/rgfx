@@ -15,6 +15,8 @@ export { LEDHardwareSchema } from './led-hardware';
 export {
   PersistedDriverSchema,
   type PersistedDriverFromSchema,
+  RemoteLoggingLevelSchema,
+  type RemoteLoggingLevel,
   DriversConfigFileRawSchema,
   DriversConfigFileSchema,
   type DriversConfigFile,
