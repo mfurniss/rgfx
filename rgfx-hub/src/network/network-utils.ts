@@ -24,6 +24,7 @@ export function getLocalIP(): string {
   // Collect all non-loopback IPv4 addresses
   for (const name of Object.keys(nets)) {
     const netInterfaces = nets[name];
+
     if (!netInterfaces) continue;
 
     for (const net of netInterfaces) {
@@ -41,6 +42,7 @@ export function getLocalIP(): string {
   const preferred = candidates.find(
     (c) => c.name.startsWith('en') || c.name.startsWith('eth')
   );
+
   if (preferred) {
     log.info(`Selected interface ${preferred.name} with IP ${preferred.address}`);
     return preferred.address;

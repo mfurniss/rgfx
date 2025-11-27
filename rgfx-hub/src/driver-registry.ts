@@ -22,11 +22,14 @@ export class DriverRegistry {
     // Load all known drivers from persistence (all start as disconnected)
     if (persistence && ledHardwareManager) {
       const persistedDrivers = persistence.getAllDrivers();
+
       for (const pd of persistedDrivers) {
         // Resolve LED hardware if config exists
         let resolvedHardware: LEDHardware | undefined = undefined;
+
         if (pd.ledConfig?.hardwareRef) {
           const hardware = ledHardwareManager.loadHardware(pd.ledConfig.hardwareRef);
+
           if (hardware) {
             resolvedHardware = hardware;
           } else {
@@ -135,6 +138,7 @@ export class DriverRegistry {
   } {
     // Try to find existing driver by MAC address in persistence
     let persistedDriver: PersistedDriver | undefined;
+
     if (this.persistence) {
       persistedDriver = this.persistence.getDriverByMac(macAddress);
     }
@@ -292,6 +296,7 @@ export class DriverRegistry {
   // Track UDP message sent to driver
   trackUdpSent(ip: string, success: boolean): Driver | undefined {
     const driver = this.findByIp(ip);
+
     if (!driver) {
       log.warn(`trackUdpSent: No driver found with IP ${ip}`);
       return undefined;

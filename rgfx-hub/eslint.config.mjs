@@ -33,6 +33,13 @@ export default tseslint.config(
       }],
       // Enforce const for variables that are never reassigned
       'prefer-const': 'error',
+      // Require curly braces for all control statements
+      curly: 'error',
+      // Require blank line before control statements (if, for, while, etc.)
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: ['if', 'for', 'while', 'switch', 'try'] },
+      ],
     },
   },
 

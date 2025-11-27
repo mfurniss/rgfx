@@ -23,6 +23,7 @@ export class EventFileReader {
       this.filePath = customFilePath;
     } else {
       const rgfxDir = join(homedir(), '.rgfx');
+
       try {
         mkdirSync(rgfxDir, { recursive: true });
       } catch (err) {
@@ -154,6 +155,7 @@ export class EventFileReader {
 
         for (const line of lines) {
           const firstSpaceIndex = line.indexOf(' ');
+
           if (firstSpaceIndex > 0) {
             const topic = line.substring(0, firstSpaceIndex);
             const message = line.substring(firstSpaceIndex + 1);

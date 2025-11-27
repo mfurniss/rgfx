@@ -94,11 +94,13 @@ const FirmwarePage: React.FC = () => {
       // Load firmware manifest
       addLog('Loading firmware manifest...');
       const manifestResponse = await fetch('/esp32/firmware/manifest.json');
+
       if (!manifestResponse.ok) {
         throw new Error('Failed to load firmware manifest');
       }
       const manifestJson: unknown = await manifestResponse.json();
       const manifestResult = FirmwareManifestSchema.safeParse(manifestJson);
+
       if (!manifestResult.success) {
         throw new Error(`Invalid firmware manifest: ${manifestResult.error.message}`);
       }
@@ -113,6 +115,7 @@ const FirmwarePage: React.FC = () => {
 
       for (const fileInfo of manifest.files) {
         const response = await fetch(`/esp32/firmware/${fileInfo.name}`);
+
         if (!response.ok) {
           throw new Error(`Failed to load ${fileInfo.name}`);
         }
@@ -128,6 +131,7 @@ const FirmwarePage: React.FC = () => {
 
         // Verify checksum
         const checksum = await sha256(buffer);
+
         if (checksum !== fileInfo.sha256) {
           throw new Error(
             `Checksum mismatch for ${fileInfo.name}: expected ${fileInfo.sha256.substring(0, 16)}..., got ${checksum.substring(0, 16)}...`
@@ -211,6 +215,7 @@ const FirmwarePage: React.FC = () => {
             const progressPct = (written / total) * 100;
             setProgress(Math.round(progressPct));
           }
+
           if (written === total) {
             addLog(`File ${fileIndex + 1}/${fileArray.length} complete`);
           }
@@ -286,8 +291,10 @@ const FirmwarePage: React.FC = () => {
 
       // Fetch firmware version
       let firmwareVersion = 'unknown';
+
       try {
         const versionResponse = await fetch('/esp32/firmware/version.json');
+
         if (versionResponse.ok) {
           const versionData = (await versionResponse.json()) as { version: string };
           firmwareVersion = versionData.version;
@@ -298,6 +305,7 @@ const FirmwarePage: React.FC = () => {
       }
 
       const driver = drivers.find((d) => d.id === selectedDriver);
+
       if (!driver) {
         throw new Error('Selected driver not found');
       }

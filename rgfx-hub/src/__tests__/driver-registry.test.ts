@@ -163,6 +163,7 @@ describe('DriverRegistry', () => {
 
       // Manually mark as disconnected (simulating timeout)
       const device = registry.findByIp(telemetryData.ip);
+
       if (device) {
         device.connected = false;
       }

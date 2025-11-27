@@ -37,6 +37,7 @@ export class LEDHardwareManager {
   loadHardware(hardwareRef: string): LEDHardware | null {
     // Check cache first
     const cached = this.cache.get(hardwareRef);
+
     if (cached) {
       log.debug(`LED hardware loaded from cache: ${hardwareRef}`);
       return cached;

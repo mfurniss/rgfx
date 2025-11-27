@@ -28,6 +28,7 @@ import { effectSchemas, safeValidateEffectProps, isEffectName } from '../../sche
 function validateProps(effect: string, json: string): string | null {
   // First check if it's valid JSON
   let parsed: unknown;
+
   try {
     parsed = JSON.parse(json);
   } catch {
@@ -40,6 +41,7 @@ function validateProps(effect: string, json: string): string | null {
   }
 
   const result = safeValidateEffectProps(effect, parsed);
+
   if (!result.success) {
     // Format Zod errors nicely
     const issues = result.error.issues.map((issue) => {
@@ -96,6 +98,7 @@ export default function TestEffectsPage() {
 
   const handleDriverToggle = (driverId: string) => {
     const newSelected = new Set(selectedDrivers);
+
     if (newSelected.has(driverId)) {
       newSelected.delete(driverId);
     } else {

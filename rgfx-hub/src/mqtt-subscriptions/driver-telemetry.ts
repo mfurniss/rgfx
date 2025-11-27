@@ -105,6 +105,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         // Notify renderer of driver update
         const mainWindow = getMainWindow();
         log.info(`[DEBUG] Sending driver:updated to renderer for ${driver.id}`);
+
         if (mainWindow !== null && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
           log.info(`[DEBUG] driver:updated sent successfully for ${driver.id}`);
@@ -131,6 +132,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
 
           // Notify renderer of driver update (UI will show "Update Required" badge)
           const mainWindow = getMainWindow();
+
           if (mainWindow !== null && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
             log.info(`[DEBUG] driver:updated sent successfully for ${driver.id} (minimal)`);
