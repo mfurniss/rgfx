@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Paper, Typography, Box, Chip, Tooltip, IconButton } from '@mui/material';
+import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert } from '@mui/material';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -246,7 +246,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           </Box>
           {!driver.connected ? (
             <Chip label="Disconnected" color="error" size="small" />
-          ) : currentFirmwareVersion && telemetry?.firmwareVersion &&
+          ) : currentFirmwareVersion &&
+            telemetry?.firmwareVersion &&
             telemetry.firmwareVersion !== currentFirmwareVersion ? (
             <Tooltip
               title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
@@ -282,15 +283,15 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           }
         >
           {!driver.ledConfig && (
-            <Box sx={{ mt: 1, p: 1.5, bgcolor: 'warning.light', borderRadius: 1 }}>
-              <Typography variant="body2" color="warning.dark">
-                This driver needs LED configuration. Edit{' '}
-                <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                  ~/.rgfx/drivers.json
-                </Typography>{' '}
-                to configure LED hardware.
+            <Alert severity="warning">
+              This driver needs LED configuration.
+              <br />
+              Edit&nbsp;
+              <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                ~/.rgfx/drivers.json
               </Typography>
-            </Box>
+              &nbsp; to configure LED hardware.
+            </Alert>
           )}
         </InfoSection>
 

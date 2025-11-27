@@ -11,8 +11,8 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app';
 
-// Create root element if it doesn't exist
 let container = document.getElementById('root');
+
 if (!container) {
   container = document.createElement('div');
   container.id = 'root';
