@@ -1,17 +1,28 @@
 #include "canvas.h"
 #include "matrix.h"
+#include "log.h"
 #include <cstring>
+#include <cstdlib>
 
 Canvas::Canvas(const Matrix& matrix)
     : width(matrix.width * 4),
       height((matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.height * 4),
-      size(width * height) {
-    pixels = new uint32_t[size];
+      size(width * height),
+      pixels(nullptr) {
+    pixels = (uint32_t*)malloc(size * sizeof(uint32_t));
+    if (!pixels) {
+        log("ERROR: Failed to allocate canvas buffer");
+        return;
+    }
     clear();
 }
 
 Canvas::~Canvas() {
-    delete[] pixels;
+    free(pixels);
+}
+
+bool Canvas::isValid() const {
+    return pixels != nullptr;
 }
 
 uint16_t Canvas::getWidth() const {
@@ -35,7 +46,7 @@ bool Canvas::inBounds(uint16_t x, uint16_t y) const {
 }
 
 void Canvas::drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode) {
-    if (!inBounds(x, y)) {
+    if (!pixels || !inBounds(x, y)) {
         return;
     }
 
@@ -61,7 +72,7 @@ void Canvas::drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mod
 }
 
 void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t rgbaValue, BlendMode mode) {
-    if (w == 0 || h == 0) {
+    if (!pixels || w == 0 || h == 0) {
         return;
     }
 
@@ -106,7 +117,7 @@ void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint3
 }
 
 uint32_t Canvas::getPixel(uint16_t x, uint16_t y) const {
-    if (!inBounds(x, y)) {
+    if (!pixels || !inBounds(x, y)) {
         return 0;
     }
     return pixels[index(x, y)];
@@ -117,10 +128,16 @@ uint32_t* Canvas::getPixels() const {
 }
 
 void Canvas::clear() {
+    if (!pixels) {
+        return;
+    }
     memset(pixels, 0, size * sizeof(uint32_t));
 }
 
 void Canvas::fill(uint32_t rgbaValue) {
+    if (!pixels) {
+        return;
+    }
     for (uint32_t i = 0; i < size; i++) {
         pixels[i] = rgbaValue;
     }

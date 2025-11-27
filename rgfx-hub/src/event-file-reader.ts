@@ -23,6 +23,7 @@ export class EventFileReader {
       this.filePath = customFilePath;
     } else {
       const rgfxDir = join(homedir(), '.rgfx');
+
       try {
         mkdirSync(rgfxDir, { recursive: true });
       } catch (err) {
@@ -40,7 +41,9 @@ export class EventFileReader {
   }
 
   private checkForFile() {
-    if (!this.onEventCallback) return;
+    if (!this.onEventCallback) {
+      return;
+    }
 
     if (existsSync(this.filePath)) {
       // [A] File exists - set position to end and start watching
@@ -122,7 +125,9 @@ export class EventFileReader {
   }
 
   private readNewLines() {
-    if (!this.onEventCallback) return;
+    if (!this.onEventCallback) {
+      return;
+    }
 
     try {
       if (!existsSync(this.filePath)) {
@@ -154,6 +159,7 @@ export class EventFileReader {
 
         for (const line of lines) {
           const firstSpaceIndex = line.indexOf(' ');
+
           if (firstSpaceIndex > 0) {
             const topic = line.substring(0, firstSpaceIndex);
             const message = line.substring(firstSpaceIndex + 1);

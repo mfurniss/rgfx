@@ -40,7 +40,6 @@ describe('UdpClientImpl', () => {
       ip: '192.168.1.101',
       connected: true,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
         mqttMessagesReceived: 0,
@@ -55,7 +54,6 @@ describe('UdpClientImpl', () => {
       ip: '192.168.1.102',
       connected: true,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
         mqttMessagesReceived: 0,
@@ -70,7 +68,6 @@ describe('UdpClientImpl', () => {
       ip: '192.168.1.103',
       connected: false,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
         mqttMessagesReceived: 0,
@@ -85,7 +82,6 @@ describe('UdpClientImpl', () => {
       ip: undefined, // No IP
       connected: true,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
         mqttMessagesReceived: 0,
@@ -125,7 +121,7 @@ describe('UdpClientImpl', () => {
         expect.objectContaining({
           effect: 'score',
           value: 1000,
-        })
+        }),
       );
     });
 
@@ -179,7 +175,7 @@ describe('UdpClientImpl', () => {
       expect(mockUdpSend).toHaveBeenCalledWith(
         expect.objectContaining({
           effect: 'score',
-        })
+        }),
       );
     });
 
@@ -286,7 +282,7 @@ describe('UdpClientImpl', () => {
       expect(mockUdpSend).toHaveBeenCalledWith(
         expect.objectContaining({
           effect: 'generic',
-        })
+        }),
       );
     });
 
@@ -310,7 +306,7 @@ describe('UdpClientImpl', () => {
           color: '#0000FF',
           speed: 200,
           duration: 5000,
-        })
+        }),
       );
     });
 
@@ -334,7 +330,7 @@ describe('UdpClientImpl', () => {
           player: 'p1',
           multiplier: 2,
           combo: true,
-        })
+        }),
       );
     });
   });

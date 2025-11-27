@@ -77,9 +77,11 @@ export class MqttBroker {
     // # must be last segment and matches everything after
     if (patternParts[patternParts.length - 1] === '#') {
       const prefixParts = patternParts.slice(0, -1);
+
       if (topicParts.length < prefixParts.length) {
         return false;
       }
+
       for (let i = 0; i < prefixParts.length; i++) {
         if (prefixParts[i] !== '+' && prefixParts[i] !== topicParts[i]) {
           return false;
@@ -129,7 +131,7 @@ export class MqttBroker {
             log.info(`Published to ${topic} (QoS ${MQTT_QOS_LEVEL}): ${payload}`);
             resolve();
           }
-        }
+        },
       );
     });
   }

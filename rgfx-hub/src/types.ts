@@ -118,7 +118,6 @@ export class Driver {
 
   // Connection tracking
   lastSeen: number;
-  firstSeen: number;
   failedHeartbeats: number;
   lastHeartbeat?: number;
   lastSeenAt?: number; // Timestamp when last telemetry was received
@@ -150,7 +149,6 @@ export class Driver {
     minFreeHeap?: number;
     uptimeMs?: number;
     lastSeen: number;
-    firstSeen: number;
     failedHeartbeats: number;
     lastHeartbeat?: number;
     lastSeenAt?: number;
@@ -173,7 +171,6 @@ export class Driver {
     this.minFreeHeap = data.minFreeHeap;
     this.uptimeMs = data.uptimeMs;
     this.lastSeen = data.lastSeen;
-    this.firstSeen = data.firstSeen;
     this.failedHeartbeats = data.failedHeartbeats;
     this.lastHeartbeat = data.lastHeartbeat;
     this.lastSeenAt = data.lastSeenAt;
@@ -203,7 +200,6 @@ export function serializeDriverForIPC(driver: Driver) {
     minFreeHeap: driver.minFreeHeap,
     uptimeMs: driver.uptimeMs,
     lastSeen: driver.lastSeen,
-    firstSeen: driver.firstSeen,
     failedHeartbeats: driver.failedHeartbeats,
     lastHeartbeat: driver.lastHeartbeat,
     lastSeenAt: driver.lastSeenAt,

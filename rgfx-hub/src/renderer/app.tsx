@@ -30,22 +30,22 @@ const App: React.FC = () => {
     const unsubConnected = window.rgfx.onDriverConnected((driver) => {
       const ipcReceiveTime = Date.now();
       console.log(
-        `[DEBUG] IPC driver:connected received in renderer for ${driver.id} at ${ipcReceiveTime}`
+        `[DEBUG] IPC driver:connected received in renderer for ${driver.id} at ${ipcReceiveTime}`,
       );
       onDriverConnected(driver);
       console.log(
-        `[DEBUG] onDriverConnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`
+        `[DEBUG] onDriverConnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`,
       );
     });
 
     const unsubDisconnected = window.rgfx.onDriverDisconnected((driver) => {
       const ipcReceiveTime = Date.now();
       console.log(
-        `[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`
+        `[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`,
       );
       onDriverDisconnected(driver);
       console.log(
-        `[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`
+        `[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`,
       );
     });
 

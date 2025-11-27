@@ -5,7 +5,6 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import importPlugin from 'eslint-plugin-import';
 import stylistic from '@stylistic/eslint-plugin';
-import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   // Base ESLint recommended rules
@@ -89,16 +88,36 @@ export default tseslint.config(
     },
   },
 
-  // Stylistic rules
+  // Stylistic rules (replaces Prettier)
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {
       '@stylistic': stylistic,
     },
+    rules: {
+      // Require curly braces for all control statements
+      curly: 'error',
+      // Require blank line before control statements
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: ['if', 'for', 'while', 'switch', 'try'] },
+      ],
+      // Brace style: opening on same line, else on same line as closing brace, no single-line
+      '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+      // Indentation: 2 spaces
+      '@stylistic/indent': ['error', 2],
+      // Semicolons required
+      '@stylistic/semi': ['error', 'always'],
+      // Single quotes
+      '@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
+      // Trailing commas in multiline
+      '@stylistic/comma-dangle': ['error', 'always-multiline'],
+      // No trailing spaces
+      '@stylistic/no-trailing-spaces': 'error',
+      // Newline at end of file
+      '@stylistic/eol-last': ['error', 'always'],
+    },
   },
-
-  // Prettier compatibility (disables conflicting rules)
-  prettier,
 
   // Test file overrides - relax strict rules for tests
   {

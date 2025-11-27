@@ -16,7 +16,7 @@ describe('ConfirmFlashDialog', () => {
         open={true}
         onConfirm={onConfirm}
         onCancel={onCancel}
-      />
+      />,
     );
 
     expect(screen.getByText('Confirm Firmware Flash')).toBeDefined();
@@ -32,7 +32,7 @@ describe('ConfirmFlashDialog', () => {
         open={true}
         onConfirm={onConfirm}
         onCancel={onCancel}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Start Flashing'));
@@ -47,7 +47,7 @@ describe('ConfirmFlashDialog', () => {
         open={true}
         onConfirm={onConfirm}
         onCancel={onCancel}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Cancel'));
@@ -62,7 +62,7 @@ describe('ConfirmFlashDialog', () => {
         open={false}
         onConfirm={onConfirm}
         onCancel={onCancel}
-      />
+      />,
     );
 
     expect(screen.queryByText('Confirm Firmware Flash')).toBeNull();

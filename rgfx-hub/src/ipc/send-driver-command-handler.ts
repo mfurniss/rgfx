@@ -24,6 +24,7 @@ export function registerSendDriverCommandHandler(deps: SendDriverCommandHandlerD
       log.info(`Command '${command}' requested for driver ${driverId}${payload ? ` with payload: ${payload}` : ''}`);
 
       const driver = driverRegistry.getDriver(driverId);
+
       if (!driver) {
         throw new Error(`No driver found with ID ${driverId}`);
       }

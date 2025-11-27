@@ -688,7 +688,7 @@ VSCode multi-root workspace with sub-projects:
 **Configuration File:** `rgfx-hub/config/drivers.json`
 
 Single unified configuration file managed by `DriverPersistence`:
-- Driver discovery metadata (id, name, type, firstSeen)
+- Driver discovery metadata (id, name, type)
 - LED hardware configurations (inline `ledConfig` for each driver)
 
 **CRITICAL:** Hub sends snake_case property names (`led_devices`, `color_order`, `max_brightness`) to match ESP32 expectations. Hub's internal TypeScript uses camelCase, but converts to snake_case when publishing to MQTT.

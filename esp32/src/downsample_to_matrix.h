@@ -4,14 +4,22 @@
 #include "matrix.h"
 #include "canvas.h"
 #include <FastLED.h>
+#include <cstdlib>
 
 template <size_t N>
 void downsampleToMatrix(EffectProcessor::EffectEntry (&effects)[N], Matrix* matrix) {
+	if (!matrix || !matrix->isValid()) {
+		return;
+	}
+
 	uint16_t width = matrix->width;
 	uint16_t height = matrix->height;
 	uint32_t size = width * height;
 
-	CRGB* rgbArray = new CRGB[size];
+	CRGB* rgbArray = (CRGB*)malloc(size * sizeof(CRGB));
+	if (!rgbArray) {
+		return;
+	}
 
 	for (uint32_t i = 0; i < size; i++) {
 		rgbArray[i] = CRGB::Black;
@@ -85,5 +93,5 @@ void downsampleToMatrix(EffectProcessor::EffectEntry (&effects)[N], Matrix* matr
 		}
 	}
 
-	delete[] rgbArray;
+	free(rgbArray);
 }

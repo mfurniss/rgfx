@@ -6,7 +6,6 @@
       "macAddress": "44:1D:64:F8:CF:68",
       "name": "LED Strip",
       "description": "ESP32 with BTF-LIGHTING WS2812B 144px LED strip",
-      "firstSeen": 1761512408332,
       "ledConfig": {
         "hardwareRef": "led-hardware/btf-strip-144px-ip65.json",
         "pin": 16,
@@ -22,7 +21,6 @@
       "macAddress": "44:1D:64:F8:9A:58",
       "name": "LED Matrix",
       "description": "Primary development board with 8x32 LED matrix",
-      "firstSeen": 1761512509975,
       "ledConfig": {
         "hardwareRef": "led-hardware/wesiri-8x32-matrix.json",
         "pin": 16,
@@ -38,7 +36,6 @@
       "macAddress": "CC:DB:A7:29:BF:D0",
       "name": "Driver 0005",
       "description": "ESP32 development board",
-      "firstSeen": 1732132800000,
       "ledConfig": {
         "hardwareRef": "led-hardware/wesiri-8x32-matrix.json",
         "pin": 16,

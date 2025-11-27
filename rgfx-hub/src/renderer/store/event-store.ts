@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 interface EventTopic {
   topic: string;
@@ -25,6 +25,6 @@ export const useEventStore = create<EventStore>()(
         });
       },
     }),
-    { name: "event-store" }
-  )
+    { name: 'event-store' },
+  ),
 );

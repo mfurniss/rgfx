@@ -36,19 +36,25 @@ export const ThemeToggle: React.FC = () => {
         {icon}
       </IconButton>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={() => { handleModeChange('system'); }}>
+        <MenuItem onClick={() => {
+          handleModeChange('system');
+        }}>
           <ListItemIcon>
             <SettingsBrightness />
           </ListItemIcon>
           <ListItemText>System</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { handleModeChange('light'); }}>
+        <MenuItem onClick={() => {
+          handleModeChange('light');
+        }}>
           <ListItemIcon>
             <Brightness7 />
           </ListItemIcon>
           <ListItemText>Light</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { handleModeChange('dark'); }}>
+        <MenuItem onClick={() => {
+          handleModeChange('dark');
+        }}>
           <ListItemIcon>
             <Brightness4 />
           </ListItemIcon>

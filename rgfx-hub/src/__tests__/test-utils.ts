@@ -35,7 +35,7 @@ export async function waitForFileWatcherReady(
   options: {
     retryDelayMs?: number;
     maxRetries?: number;
-  } = {}
+  } = {},
 ): Promise<void> {
   const {
     retryDelayMs = TEST_FILE_WATCHER_RETRY_DELAY_MS,
@@ -78,6 +78,7 @@ export async function waitForFileWatcherReady(
   // Phase 3: Wait for expected callbacks (including ALL probe writes)
   // We expect: probeCallCount callbacks + expectedCalls from actual data
   const targetCalls = initialCalls + probeCallCount + expectedCalls;
+
   for (let i = 0; i < maxRetries; i++) {
     await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
 
@@ -88,6 +89,6 @@ export async function waitForFileWatcherReady(
 
   throw new Error(
     `File watcher did not process data after ${maxRetries * retryDelayMs}ms. ` +
-      `Expected ${targetCalls} total calls, got ${getActualCalls()}`
+      `Expected ${targetCalls} total calls, got ${getActualCalls()}`,
   );
 }

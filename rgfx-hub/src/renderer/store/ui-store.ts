@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type SortField = 'id' | 'name' | 'ip' | 'status' | 'firstSeen';
+export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 interface UiState {
@@ -58,6 +58,6 @@ export const useUiStore = create<UiState>()(
         driverTableSortOrder: state.driverTableSortOrder,
         // Exclude test effects state from persistence
       }),
-    }
-  )
+    },
+  ),
 );

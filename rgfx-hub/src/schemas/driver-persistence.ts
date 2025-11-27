@@ -35,7 +35,6 @@ export const PersistedDriverSchema = z.object({
     .regex(/^[a-zA-Z0-9-]+$/),
   macAddress: z.string().regex(/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i),
   description: z.string().optional(),
-  firstSeen: z.number().positive(),
   ledConfig: DriverLEDConfigSchema.nullable().optional(),
 });
 

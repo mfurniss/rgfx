@@ -31,10 +31,14 @@ describe('MqttBroker', () => {
       handle: vi.fn(),
       on: vi.fn(),
       publish: vi.fn((_packet, callback) => {
-        if (callback) callback(null);
+        if (callback) {
+          callback(null);
+        }
       }),
       close: vi.fn((callback) => {
-        if (callback) callback();
+        if (callback) {
+          callback();
+        }
       }),
     };
 
@@ -42,10 +46,14 @@ describe('MqttBroker', () => {
     mockServer = {
       on: vi.fn(),
       listen: vi.fn((_port, callback) => {
-        if (callback) callback();
+        if (callback) {
+          callback();
+        }
       }),
       close: vi.fn((callback) => {
-        if (callback) callback();
+        if (callback) {
+          callback();
+        }
       }),
     };
 
@@ -102,7 +110,7 @@ describe('MqttBroker', () => {
 
       // Simulate a publish event
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       const mockClient = { id: 'test-client' };
@@ -123,7 +131,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('rgfx/driver/+/test/state', callback);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       const mockClient = { id: 'test-client' };
@@ -135,7 +143,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/driver/AA-BB-CC-DD-EE-FF/test/state',
             payload: Buffer.from('on'),
           },
-          mockClient
+          mockClient,
         );
       }
 
@@ -147,7 +155,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('rgfx/+/+/test', callback);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       if (publishHandler) {
@@ -156,7 +164,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/driver/device-id/test',
             payload: Buffer.from('data'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
       }
 
@@ -168,7 +176,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('rgfx/driver/#', callback);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       if (publishHandler) {
@@ -177,7 +185,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/driver/device-id/test/state',
             payload: Buffer.from('on'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
 
         publishHandler(
@@ -185,7 +193,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/driver/config',
             payload: Buffer.from('{}'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
       }
 
@@ -197,7 +205,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('rgfx/driver/+/test', callback);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       if (publishHandler) {
@@ -207,7 +215,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/driver/device-id/test/extra',
             payload: Buffer.from('data'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
 
         // Too few segments
@@ -216,7 +224,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/driver/test',
             payload: Buffer.from('data'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
       }
 
@@ -228,7 +236,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('rgfx/driver/+/test', callback);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       if (publishHandler) {
@@ -237,7 +245,7 @@ describe('MqttBroker', () => {
             topic: 'rgfx/sensor/device-id/test',
             payload: Buffer.from('data'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
       }
 
@@ -252,7 +260,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('topic/two', callback2);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       const mockClient = { id: 'test-client' };
@@ -264,7 +272,7 @@ describe('MqttBroker', () => {
             topic: 'topic/one',
             payload: Buffer.from('payload1'),
           },
-          mockClient
+          mockClient,
         );
       }
 
@@ -278,7 +286,7 @@ describe('MqttBroker', () => {
             topic: 'topic/two',
             payload: Buffer.from('payload2'),
           },
-          mockClient
+          mockClient,
         );
       }
 
@@ -290,7 +298,7 @@ describe('MqttBroker', () => {
       mqtt.subscribe('subscribed/topic', callback);
 
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       if (publishHandler) {
@@ -299,7 +307,7 @@ describe('MqttBroker', () => {
             topic: 'unsubscribed/topic',
             payload: Buffer.from('test'),
           },
-          { id: 'client' }
+          { id: 'client' },
         );
       }
 
@@ -320,14 +328,16 @@ describe('MqttBroker', () => {
           payload: Buffer.from('test payload'),
           retain: false,
         },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
     it('should handle publish errors', async () => {
       const testError = new Error('Publish failed');
       mockAedes.publish.mockImplementation((_packet: any, callback: any) => {
-        if (callback) callback(testError);
+        if (callback) {
+          callback(testError);
+        }
       });
 
       // Should reject with the error
@@ -389,26 +399,30 @@ describe('MqttBroker', () => {
 
       // Should not throw
       expect(() => {
-        if (clientHandler) clientHandler(mockClient);
+        if (clientHandler) {
+          clientHandler(mockClient);
+        }
       }).not.toThrow();
     });
 
     it('should handle client disconnection', () => {
       const disconnectHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'clientDisconnect'
+        (call: any) => call[0] === 'clientDisconnect',
       )?.[1];
 
       const mockClient = { id: 'disconnecting-client' };
 
       // Should not throw
       expect(() => {
-        if (disconnectHandler) disconnectHandler(mockClient);
+        if (disconnectHandler) {
+          disconnectHandler(mockClient);
+        }
       }).not.toThrow();
     });
 
     it('should handle publish without client', () => {
       const publishHandler = mockAedes.on.mock.calls.find(
-        (call: any) => call[0] === 'publish'
+        (call: any) => call[0] === 'publish',
       )?.[1];
 
       const mockPacket = {
@@ -418,7 +432,9 @@ describe('MqttBroker', () => {
 
       // Should not throw when client is null
       expect(() => {
-        if (publishHandler) publishHandler(mockPacket, null);
+        if (publishHandler) {
+          publishHandler(mockPacket, null);
+        }
       }).not.toThrow();
     });
   });
@@ -431,7 +447,9 @@ describe('MqttBroker', () => {
 
       // Should not throw
       expect(() => {
-        if (errorHandler) errorHandler(testError);
+        if (errorHandler) {
+          errorHandler(testError);
+        }
       }).not.toThrow();
     });
   });

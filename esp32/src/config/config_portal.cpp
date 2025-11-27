@@ -8,6 +8,7 @@
 #include <IotWebConfUsing.h>
 #include <IotWebConfSettings.h>
 #include <EEPROM.h>
+#include <new>
 #include "generated/html_status.h"
 
 // DNS server for captive portal
@@ -98,12 +99,16 @@ void ConfigPortal::begin() {
 	// Initialize IotWebConf with a default AP password
 	// IotWebConf REQUIRES an AP password to be set before it will connect to WiFi
 	const char* defaultApPassword = "rgfx1234";     // Default password for AP mode
-	iotWebConf = new IotWebConf(apName.c_str(),     // Thing name (AP SSID)
-	                            &dnsServer,         // DNS server
-	                            &server,            // Web server
-	                            defaultApPassword,  // Default AP password (required!)
-	                            CONFIG_VERSION      // Config version
+	iotWebConf = new (std::nothrow) IotWebConf(apName.c_str(),     // Thing name (AP SSID)
+	                                           &dnsServer,         // DNS server
+	                                           &server,            // Web server
+	                                           defaultApPassword,  // Default AP password (required!)
+	                                           CONFIG_VERSION      // Config version
 	);
+	if (!iotWebConf) {
+		log("ERROR: Failed to allocate IotWebConf");
+		return;
+	}
 
 	// Set callbacks
 	iotWebConf->setConfigSavedCallback(&configSaved);
