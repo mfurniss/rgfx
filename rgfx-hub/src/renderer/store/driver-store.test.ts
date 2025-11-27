@@ -22,7 +22,7 @@ describe('driver-store', () => {
   const createMockDriver = (
     id: string,
     mac: string,
-    connected = true
+    connected = true,
   ): Driver => {
     const telemetry: DriverTelemetry = {
       chipModel: 'ESP32',
@@ -43,7 +43,6 @@ describe('driver-store', () => {
     return new Driver({
       id,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       lastSeenAt: connected ? Date.now() : undefined,
       ip: connected ? '192.168.1.100' : undefined,
@@ -96,7 +95,7 @@ describe('driver-store', () => {
       // Simulate driver connecting with MAC as ID (before set-id)
       const driverWithMacId = createMockDriver(
         'AA:BB:CC:DD:EE:FF',
-        'AA:BB:CC:DD:EE:FF'
+        'AA:BB:CC:DD:EE:FF',
       );
 
       useDriverStore.getState().onDriverConnected(driverWithMacId);
@@ -107,7 +106,7 @@ describe('driver-store', () => {
       // Simulate driver reconnecting with custom ID (after set-id)
       const driverWithCustomId = createMockDriver(
         'rgfx-driver-0001',
-        'AA:BB:CC:DD:EE:FF'
+        'AA:BB:CC:DD:EE:FF',
       );
 
       useDriverStore.getState().onDriverConnected(driverWithCustomId);
@@ -134,7 +133,6 @@ describe('driver-store', () => {
         id: 'rgfx-driver-0001',
         mac: 'AA:BB:CC:DD:EE:FF',
         lastSeen: Date.now(),
-        firstSeen: Date.now(),
         failedHeartbeats: 0,
         telemetry: undefined,
         stats: {
@@ -173,14 +171,14 @@ describe('driver-store', () => {
     it('should replace old entry when MAC matches but ID changed during update', () => {
       const driverWithMacId = createMockDriver(
         'AA:BB:CC:DD:EE:FF',
-        'AA:BB:CC:DD:EE:FF'
+        'AA:BB:CC:DD:EE:FF',
       );
 
       useDriverStore.getState().onDriverConnected(driverWithMacId);
 
       const driverWithCustomId = createMockDriver(
         'rgfx-driver-0001',
-        'AA:BB:CC:DD:EE:FF'
+        'AA:BB:CC:DD:EE:FF',
       );
 
       useDriverStore.getState().onDriverUpdated(driverWithCustomId);
@@ -212,7 +210,7 @@ describe('driver-store', () => {
       const driver2 = createMockDriver(
         'rgfx-driver-0002',
         '11:22:33:44:55:66',
-        false
+        false,
       );
 
       useDriverStore.getState().onDriverConnected(driver1);

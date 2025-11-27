@@ -22,7 +22,10 @@ const LogDisplay: React.FC<LogDisplayProps> = ({ messages }) => {
   // Increase buffer and scroll on new messages
   useEffect(() => {
     const el = listRef.current;
-    if (!el) return;
+
+    if (!el) {
+      return;
+    }
 
     bufferRef.current += 50;
     const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < bufferRef.current;

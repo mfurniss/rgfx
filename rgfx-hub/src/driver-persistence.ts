@@ -27,11 +27,11 @@ export type PersistedDriver = PersistedDriverFromSchema;
  *
  * Responsibilities:
  * - Load/save all driver data from single JSON file
- * - Persist driver discovery (id, macAddress, description, firstSeen)
+ * - Persist driver discovery (id, macAddress, description)
  * - Persist LED configurations (nested in each driver entry)
  * - Provide drivers to DriverRegistry for runtime tracking
  *
- * What gets persisted: id, macAddress, description, firstSeen, ledConfig
+ * What gets persisted: id, macAddress, description, ledConfig
  * What is runtime-only: ip, lastSeen, connected, stats
  */
 export class DriverPersistence {
@@ -74,6 +74,7 @@ export class DriverPersistence {
 
       // Validate config file structure (version + drivers array exists)
       const result = DriversConfigFileRawSchema.safeParse(parsed);
+
       if (!result.success) {
         log.error(`Invalid drivers config: ${result.error.message}`);
         return;
@@ -81,8 +82,10 @@ export class DriverPersistence {
 
       // Validate each driver entry individually for graceful skip of invalid entries
       let validCount = 0;
+
       for (const driver of result.data.drivers) {
         const driverResult = PersistedDriverSchema.safeParse(driver);
+
         if (driverResult.success) {
           this.drivers.set(driverResult.data.id, driverResult.data);
           validCount++;
@@ -92,7 +95,7 @@ export class DriverPersistence {
       }
 
       log.info(
-        `Loaded ${validCount} valid drivers from ${this.configFile} (${result.data.drivers.length - validCount} invalid entries skipped)`
+        `Loaded ${validCount} valid drivers from ${this.configFile} (${result.data.drivers.length - validCount} invalid entries skipped)`,
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -132,12 +135,12 @@ export class DriverPersistence {
     const driver = {
       id,
       macAddress,
-      firstSeen: Date.now(),
       ledConfig: null,
     };
 
     // Validate with Zod schema
     const result = PersistedDriverSchema.safeParse(driver);
+
     if (!result.success) {
       log.error(`Invalid driver data: ${result.error.message}`);
       return false;
@@ -155,6 +158,7 @@ export class DriverPersistence {
    */
   updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'description'>>): boolean {
     const driver = this.drivers.get(id);
+
     if (!driver) {
       log.warn(`Cannot update non-existent driver: ${id}`);
       return false;
@@ -179,6 +183,7 @@ export class DriverPersistence {
    */
   setLEDConfig(id: string, ledConfig: DriverLEDConfig): boolean {
     const driver = this.drivers.get(id);
+
     if (!driver) {
       log.warn(`Cannot set LED config for non-existent driver: ${id}`);
       return false;
@@ -247,6 +252,7 @@ export class DriverPersistence {
    */
   deleteDriver(id: string): boolean {
     const hasDriver = this.drivers.has(id);
+
     if (!hasDriver) {
       return false;
     }

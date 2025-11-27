@@ -21,6 +21,7 @@ export function registerUpdateDriverConfigHandler(deps: UploadDriverConfigHandle
     log.info(`Update config requested for driver ${driverId}`);
 
     const driver = driverRegistry.getDriver(driverId);
+
     if (!driver) {
       throw new Error(`No driver found with ID ${driverId}`);
     }

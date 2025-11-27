@@ -271,7 +271,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('pacman/unknown', 'value');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        'No handler found for event: pacman/unknown'
+        'No handler found for event: pacman/unknown',
       );
     });
   });
@@ -285,7 +285,7 @@ describe('MappingEngine', () => {
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
         'Error handling event pacman/player/score:',
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
@@ -297,7 +297,7 @@ describe('MappingEngine', () => {
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
         'Error handling event game/player/score:',
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
@@ -390,7 +390,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('pacman/player/score', '1000');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by game mapper: pacman - pacman/player/score'
+        'Event handled by game mapper: pacman - pacman/player/score',
       );
     });
 
@@ -401,7 +401,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('game/player/score', '1000');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by subject mapper: player - game/player/score'
+        'Event handled by subject mapper: player - game/player/score',
       );
     });
 
@@ -412,7 +412,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by pattern mapper: test/topic'
+        'Event handled by pattern mapper: test/topic',
       );
     });
 
@@ -423,7 +423,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by default mapper: test/topic'
+        'Event handled by default mapper: test/topic',
       );
     });
   });
@@ -513,7 +513,9 @@ describe('MappingEngine', () => {
     it('should handle dispose when no watcher exists', () => {
       (engine as any).watcher = undefined;
 
-      expect(() => { engine.dispose(); }).not.toThrow();
+      expect(() => {
+        engine.dispose();
+      }).not.toThrow();
       expect(mockContext.log.info).not.toHaveBeenCalledWith('File watcher stopped');
     });
 
@@ -557,7 +559,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('nonexistent/player/score', '1000');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Could not load game mapper for nonexistent')
+        expect.stringContaining('Could not load game mapper for nonexistent'),
       );
       expect(defaultHandler).toHaveBeenCalled();
     });
@@ -752,10 +754,10 @@ describe('MappingEngine', () => {
       expect(mockWatch).toHaveBeenCalledWith(
         '/mock/mappings',
         { recursive: true },
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockContext.log.info).toHaveBeenCalledWith(
-        'File watcher started for mapper hot-reload'
+        'File watcher started for mapper hot-reload',
       );
     });
 
@@ -769,7 +771,7 @@ describe('MappingEngine', () => {
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
         'Could not start file watcher:',
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
@@ -841,7 +843,7 @@ describe('MappingEngine', () => {
       await (testEngine as any).loadGameMapper('nonexistent');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Could not load game mapper for nonexistent')
+        expect.stringContaining('Could not load game mapper for nonexistent'),
       );
       expect((testEngine as any).gameHandlers.has('nonexistent')).toBe(false);
     });
@@ -857,7 +859,7 @@ describe('MappingEngine', () => {
       await (testEngine as any).loadGameMapper('broken');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        'Game mapper broken.js has no valid handler function'
+        'Game mapper broken.js has no valid handler function',
       );
       expect((testEngine as any).gameHandlers.has('broken')).toBe(false);
     });
@@ -889,7 +891,7 @@ describe('MappingEngine', () => {
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
         'Failed to load default mapper:',
-        syntaxError
+        syntaxError,
       );
       expect((testEngine as any).defaultHandler).toBeUndefined();
     });

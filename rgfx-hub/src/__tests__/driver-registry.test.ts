@@ -139,14 +139,14 @@ describe('DriverRegistry', () => {
       const telemetryData = createMockTelemetryData();
 
       const device1 = registry.registerDriver(telemetryData);
-      const firstSeen = device1.lastSeen;
+      const initialLastSeen = device1.lastSeen;
 
       // Wait a bit
       const now = Date.now();
       vi.setSystemTime(now + 1000);
 
       const device2 = registry.registerDriver(telemetryData);
-      expect(device2.lastSeen).toBeGreaterThan(firstSeen);
+      expect(device2.lastSeen).toBeGreaterThan(initialLastSeen);
 
       vi.useRealTimers();
     });
@@ -163,6 +163,7 @@ describe('DriverRegistry', () => {
 
       // Manually mark as disconnected (simulating timeout)
       const device = registry.findByIp(telemetryData.ip);
+
       if (device) {
         device.connected = false;
       }
@@ -194,7 +195,7 @@ describe('DriverRegistry', () => {
         createMockTelemetryData({
           ip: '192.168.1.101',
           mac: '11:22:33:44:55:66',
-        })
+        }),
       );
 
       const found = registry.findByIp('192.168.1.101');
@@ -310,7 +311,7 @@ describe('DriverRegistry', () => {
 
       // Manually change driver ID in registry to simulate migration scenario
       const originalId = driver1.id;
-       
+
       const registryDrivers = (registry as any).drivers as Map<string, import('../types').Driver>;
       registryDrivers.delete(originalId);
       registryDrivers.set('custom-id', driver1);
@@ -361,24 +362,6 @@ describe('DriverRegistry', () => {
   });
 
   describe('constructDriver (via registerDriver)', () => {
-    it('should preserve firstSeen timestamp across registrations', () => {
-      const telemetryData = createMockTelemetryData();
-
-      const driver1 = registry.registerDriver(telemetryData);
-      const originalFirstSeen = driver1.firstSeen;
-
-      // Wait a bit
-      vi.useFakeTimers();
-      vi.advanceTimersByTime(5000);
-
-      const driver2 = registry.registerDriver(telemetryData);
-
-      expect(driver2.firstSeen).toBe(originalFirstSeen);
-      expect(driver2.lastSeen).toBeGreaterThan(originalFirstSeen);
-
-      vi.useRealTimers();
-    });
-
     it('should set connected=true for new registration with valid IP', () => {
       const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
       const driver = registry.registerDriver(telemetryData);
@@ -416,7 +399,7 @@ describe('DriverRegistry', () => {
       const oldId = driver1.id;
 
       // Manually change driver ID in registry to simulate migration
-       
+
       const registryDrivers = (registry as any).drivers as Map<string, import('../types').Driver>;
       registryDrivers.delete(oldId);
       registryDrivers.set('old-id', driver1);

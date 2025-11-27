@@ -57,6 +57,7 @@ export class UdpClientImpl implements UdpClient {
    */
   private sendEffectToDriver(driverId: string, effectData: EffectPayload): boolean {
     const driver = this.driverRegistry.getDriver(driverId);
+
     if (!driver?.ip) {
       return true; // Still return true for mapper convenience
     }

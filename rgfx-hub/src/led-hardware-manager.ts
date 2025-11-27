@@ -37,6 +37,7 @@ export class LEDHardwareManager {
   loadHardware(hardwareRef: string): LEDHardware | null {
     // Check cache first
     const cached = this.cache.get(hardwareRef);
+
     if (cached) {
       log.debug(`LED hardware loaded from cache: ${hardwareRef}`);
       return cached;
@@ -64,7 +65,7 @@ export class LEDHardwareManager {
       this.cache.set(hardwareRef, hardware);
       const identifier = hardware.asin ?? hardware.sku ?? 'no SKU/ASIN';
       log.info(
-        `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`
+        `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`,
       );
 
       return hardware;

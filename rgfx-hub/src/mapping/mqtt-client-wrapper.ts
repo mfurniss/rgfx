@@ -27,7 +27,7 @@ export class MqttClientWrapper implements MqttClient {
   async publish(
     topic: string,
     payload: unknown,
-    qos: 0 | 1 | 2 = MQTT_QOS_LEVEL as 0 | 1 | 2
+    qos: 0 | 1 | 2 = MQTT_QOS_LEVEL as 0 | 1 | 2,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
@@ -49,7 +49,7 @@ export class MqttClientWrapper implements MqttClient {
             } else {
               resolve();
             }
-          }
+          },
         );
       } catch (error) {
         reject(error instanceof Error ? error : new Error(String(error)));

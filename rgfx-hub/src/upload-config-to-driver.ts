@@ -23,6 +23,7 @@ export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress:
 
   return async function uploadConfigToDriver(macAddress: string): Promise<void> {
     const driver = driverRegistry.getDriverByMac(macAddress);
+
     if (!driver) {
       throw new Error(`No driver found with MAC ${macAddress}`);
     }

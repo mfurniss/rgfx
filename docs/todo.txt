@@ -81,7 +81,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Optimize canvas for 1D LED strips
 [X] Fix flash via OTA "no progress bar" bug
 [ ] ESP-Now POC
-[ ] Bitmap effect
+[X] Bitmap effect
 [ ] Starfield effect
 [ ] Missile effect
 [ ] Driver reboot command and Hub button

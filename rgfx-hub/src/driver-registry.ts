@@ -22,16 +22,19 @@ export class DriverRegistry {
     // Load all known drivers from persistence (all start as disconnected)
     if (persistence && ledHardwareManager) {
       const persistedDrivers = persistence.getAllDrivers();
+
       for (const pd of persistedDrivers) {
         // Resolve LED hardware if config exists
         let resolvedHardware: LEDHardware | undefined = undefined;
+
         if (pd.ledConfig?.hardwareRef) {
           const hardware = ledHardwareManager.loadHardware(pd.ledConfig.hardwareRef);
+
           if (hardware) {
             resolvedHardware = hardware;
           } else {
             log.warn(
-              `Failed to resolve LED hardware for driver ${pd.id}: ${pd.ledConfig.hardwareRef}`
+              `Failed to resolve LED hardware for driver ${pd.id}: ${pd.ledConfig.hardwareRef}`,
             );
           }
         }
@@ -40,7 +43,6 @@ export class DriverRegistry {
           id: pd.id,
           description: pd.description,
           lastSeen: 0,
-          firstSeen: pd.firstSeen,
           failedHeartbeats: 0,
           ledConfig: pd.ledConfig,
           resolvedHardware: resolvedHardware,
@@ -101,17 +103,14 @@ export class DriverRegistry {
     // Phase 3: Clean up old ID if migrated
     this.handleIdMigration(existingDriver, driverId);
 
-    // Phase 4: Determine firstSeen (immutable)
-    const firstSeen = existingDriver?.firstSeen ?? persistedDriver?.firstSeen ?? Date.now();
-
-    // Phase 5: Calculate stats
+    // Phase 4: Calculate stats
     const stats = this.calculateDriverStats(telemetryData, existingDriver);
 
-    // Phase 6: Construct and store driver
-    const driver = this.constructDriver(driverId, telemetryData, persistedDriver, existingDriver, firstSeen, stats);
+    // Phase 5: Construct and store driver
+    const driver = this.constructDriver(driverId, telemetryData, persistedDriver, existingDriver, stats);
     this.drivers.set(driver.id, driver);
     log.info(
-      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`
+      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
     );
 
     // Phase 7: Trigger callback if new connection
@@ -120,7 +119,7 @@ export class DriverRegistry {
       log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
       this.onDriverConnectedCallback?.(driver);
       log.info(
-        `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`
+        `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
       );
     } else {
       log.debug(`Driver ${driverId} already connected - skipping onDriverConnectedCallback`);
@@ -139,6 +138,7 @@ export class DriverRegistry {
   } {
     // Try to find existing driver by MAC address in persistence
     let persistedDriver: PersistedDriver | undefined;
+
     if (this.persistence) {
       persistedDriver = this.persistence.getDriverByMac(macAddress);
     }
@@ -165,7 +165,7 @@ export class DriverRegistry {
     for (const driver of this.drivers.values()) {
       if (driver.mac === macAddress && driver.id !== currentId) {
         log.info(
-          `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`
+          `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`,
         );
         return driver;
       }
@@ -181,7 +181,7 @@ export class DriverRegistry {
       mqttMessagesReceived?: number;
       udpMessagesReceived?: number;
     },
-    existingDriver?: Driver
+    existingDriver?: Driver,
   ) {
     return {
       mqttMessagesReceived:
@@ -213,13 +213,12 @@ export class DriverRegistry {
     },
     persistedDriver: PersistedDriver | undefined,
     existingDriver: Driver | undefined,
-    firstSeen: number,
     stats: {
       mqttMessagesReceived: number;
       mqttMessagesFailed: number;
       udpMessagesSent: number;
       udpMessagesFailed: number;
-    }
+    },
   ): Driver {
     const now = Date.now();
 
@@ -238,7 +237,6 @@ export class DriverRegistry {
       uptimeMs: telemetryData.uptimeMs,
       // Connection tracking
       lastSeen: now,
-      firstSeen: firstSeen,
       failedHeartbeats: 0,
       lastHeartbeat: now,
       lastSeenAt: now, // Timestamp for connection detection
@@ -262,7 +260,7 @@ export class DriverRegistry {
   private handleIdMigration(existingDriver: Driver | undefined, newDriverId: string): void {
     if (existingDriver && existingDriver.id !== newDriverId) {
       log.info(
-        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`
+        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`,
       );
       this.drivers.delete(existingDriver.id);
     }
@@ -275,7 +273,7 @@ export class DriverRegistry {
     const wasConnected = existingDriver?.connected ?? false;
     log.info(
       `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
-        `wasConnected=${wasConnected}, callbackRegistered=${this.onDriverConnectedCallback !== undefined}`
+        `wasConnected=${wasConnected}, callbackRegistered=${this.onDriverConnectedCallback !== undefined}`,
     );
     return !wasConnected;
   }
@@ -298,6 +296,7 @@ export class DriverRegistry {
   // Track UDP message sent to driver
   trackUdpSent(ip: string, success: boolean): Driver | undefined {
     const driver = this.findByIp(ip);
+
     if (!driver) {
       log.warn(`trackUdpSent: No driver found with IP ${ip}`);
       return undefined;
@@ -326,7 +325,7 @@ export class DriverRegistry {
   getConnectedCount(): number {
     return Array.from(this.drivers.values()).reduce(
       (count, driver) => count + (driver.connected ? 1 : 0),
-      0
+      0,
     );
   }
 

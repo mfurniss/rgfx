@@ -38,6 +38,7 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
 
   const getTooltipText = () => {
     const hardware = driver.resolvedHardware;
+
     if (!hardware) {
       return 'Displays a test pattern to validate LED hardware and wiring';
     }

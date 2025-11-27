@@ -102,7 +102,6 @@ describe('App IPC Listener Registration', () => {
       id: '44:1D:64:F8:9A:58',
       connected: true,
       lastSeen: Date.now(),
-      firstSeen: Date.now(),
       failedHeartbeats: 0,
       ip: '192.168.1.50',
       stats: {

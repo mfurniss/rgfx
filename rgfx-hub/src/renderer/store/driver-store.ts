@@ -44,7 +44,6 @@ export const useDriverStore = create<DriverState>()(
               minFreeHeap: driver.minFreeHeap,
               uptimeMs: driver.uptimeMs,
               lastSeen: driver.lastSeen,
-              firstSeen: driver.firstSeen,
               failedHeartbeats: driver.failedHeartbeats,
               lastHeartbeat: driver.lastHeartbeat,
               lastSeenAt: driver.lastSeenAt,
@@ -86,89 +85,89 @@ export const useDriverStore = create<DriverState>()(
           hubStartTime: 0,
         },
 
-      // Actions (callbacks prefixed with 'on')
-      onDriverConnected: (driver) => {
-        set((state) => {
-          const existsById = state.drivers.find((d) => d.id === driver.id);
+        // Actions (callbacks prefixed with 'on')
+        onDriverConnected: (driver) => {
+          set((state) => {
+            const existsById = state.drivers.find((d) => d.id === driver.id);
 
-          // Check if driver exists by MAC (handles ID migration)
-          const existsByMac = driver.mac
-            ? state.drivers.find(
-                (d) => d.mac === driver.mac && d.id !== driver.id
+            // Check if driver exists by MAC (handles ID migration)
+            const existsByMac = driver.mac
+              ? state.drivers.find(
+                (d) => d.mac === driver.mac && d.id !== driver.id,
               )
-            : undefined;
+              : undefined;
 
-          if (existsByMac) {
+            if (existsByMac) {
             // Driver ID changed (MAC → custom ID migration)
             // Remove old entry and add new one
-            return {
-              drivers: [
-                ...state.drivers.filter((d) => d.mac !== driver.mac),
-                driver,
-              ],
-            };
-          } else if (existsById) {
+              return {
+                drivers: [
+                  ...state.drivers.filter((d) => d.mac !== driver.mac),
+                  driver,
+                ],
+              };
+            } else if (existsById) {
             // Update existing driver
-            return {
-              drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
-            };
-          } else {
+              return {
+                drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
+              };
+            } else {
             // New driver
-            return {
-              drivers: [...state.drivers, driver],
-            };
-          }
-        });
-      },
+              return {
+                drivers: [...state.drivers, driver],
+              };
+            }
+          });
+        },
 
-      onDriverDisconnected: (driver) => {
-        set((state) => ({
-          drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
-        }));
-      },
+        onDriverDisconnected: (driver) => {
+          set((state) => ({
+            drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
+          }));
+        },
 
-      onDriverUpdated: (driver) => {
-        set((state) => {
-          const existsById = state.drivers.find((d) => d.id === driver.id);
+        onDriverUpdated: (driver) => {
+          set((state) => {
+            const existsById = state.drivers.find((d) => d.id === driver.id);
 
-          // Check if driver exists by MAC (handles ID migration during update)
-          const existsByMac = driver.mac
-            ? state.drivers.find(
-                (d) => d.mac === driver.mac && d.id !== driver.id
+            // Check if driver exists by MAC (handles ID migration during update)
+            const existsByMac = driver.mac
+              ? state.drivers.find(
+                (d) => d.mac === driver.mac && d.id !== driver.id,
               )
-            : undefined;
+              : undefined;
 
-          if (existsByMac) {
+            if (existsByMac) {
             // Driver ID changed - remove old entry and add new one
-            return {
-              drivers: [
-                ...state.drivers.filter((d) => d.mac !== driver.mac),
-                driver,
-              ],
-            };
-          } else if (existsById) {
+              return {
+                drivers: [
+                  ...state.drivers.filter((d) => d.mac !== driver.mac),
+                  driver,
+                ],
+              };
+            } else if (existsById) {
             // Normal update by ID
-            return {
-              drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
-            };
-          } else {
+              return {
+                drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
+              };
+            } else {
             // New driver - add it
-            return {
-              drivers: [...state.drivers, driver],
-            };
-          }
-        });
-      },
+              return {
+                drivers: [...state.drivers, driver],
+              };
+            }
+          });
+        },
 
-      onSystemStatusUpdate: (status) => {
-        set({ systemStatus: status });
-      },
+        onSystemStatusUpdate: (status) => {
+          set({ systemStatus: status });
+        },
 
         // Selectors
         connectedDrivers: () => get().drivers.filter((d) => d.connected),
         getDriverById: (id) => get().drivers.find((d) => d.id === id),
       };
     },
-    { name: 'RGFX Driver Store' }
-  )
+    { name: 'RGFX Driver Store' },
+  ),
 );

@@ -44,7 +44,7 @@ export class UdpDiscovery implements DiscoveryService {
       }, UDP_DISCOVERY_INTERVAL_MS);
 
       log.info(
-        `Broadcasting MQTT broker discovery every ${UDP_DISCOVERY_INTERVAL_MS / 1000}s via UDP broadcast`
+        `Broadcasting MQTT broker discovery every ${UDP_DISCOVERY_INTERVAL_MS / 1000}s via UDP broadcast`,
       );
     });
   }
@@ -62,7 +62,9 @@ export class UdpDiscovery implements DiscoveryService {
   }
 
   private broadcast(localIP: string, mqttPort: number): void {
-    if (!this.socket) return;
+    if (!this.socket) {
+      return;
+    }
 
     const message = JSON.stringify({
       service: 'rgfx-mqtt-broker',
