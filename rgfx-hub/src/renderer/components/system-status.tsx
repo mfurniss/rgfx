@@ -22,8 +22,8 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
 
   // Update every second for live uptime - only when component is visible
   useEffect(() => {
-    // Check if we're on the status page (/status)
-    const isVisible = location.pathname === '/status';
+    // Check if we're on the status page (root path)
+    const isVisible = location.pathname === '/';
 
     if (isVisible) {
       // Immediate update when page becomes visible

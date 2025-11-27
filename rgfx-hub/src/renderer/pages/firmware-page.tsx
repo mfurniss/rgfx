@@ -359,7 +359,7 @@ const FirmwarePage: React.FC = () => {
           Flash Method
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Choose how to flash firmware to your RGFX driver.
+          Choose how to flash RGFX Driver firmware to your ESP32 device(s).
         </Typography>
 
         <ToggleButtonGroup

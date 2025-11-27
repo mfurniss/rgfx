@@ -21,7 +21,6 @@
       "id": "f89a58",
       "name": "rgfx-driver-f89a58",
       "type": "driver",
-      "firstSeen": 1234567890,
       "ledConfig": {
         "friendly_name": "Dev Board 8x8 Matrix",
         "led_devices": [...],
@@ -36,7 +35,6 @@
 - ✅ `id` - MAC-based unique identifier (never changes)
 - ✅ `name` - User-editable device name
 - ✅ `type` - "driver" or "controller"
-- ✅ `firstSeen` - Unix timestamp of first discovery
 - ✅ `ledConfig` - Hardware LED configuration (nested object)
 - ❌ `ip` - **NOT persisted** (runtime-only, discovered fresh via MQTT each session)
 - ❌ `lastSeen` - **NOT persisted** (runtime-only, updated on heartbeats)
