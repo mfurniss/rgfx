@@ -21,6 +21,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
   ipcMain.handle('driver:flash-ota', async (_event, driverId: string) => {
     try {
       const driver = driverRegistry.getDriver(driverId);
+
       if (!driver) {
         throw new Error('Driver not found');
       }
@@ -30,6 +31,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
 
       const ipAddress = driver.ip;
+
       if (!ipAddress) {
         throw new Error('Driver IP address not available');
       }
@@ -41,6 +43,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         : path.join(app.getAppPath(), 'public', 'esp32', 'firmware', 'firmware.bin');
 
       const fs = await import('fs');
+
       if (!fs.existsSync(firmwarePath)) {
         throw new Error(`Firmware file not found: ${firmwarePath}`);
       }
@@ -56,6 +59,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       let lastPercent = -1;
       esp.on('progress', (data: { sent: number; total: number }) => {
         const percent = Math.round((data.sent / data.total) * 100);
+
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
           getMainWindow().webContents.send('flash:ota:progress', {

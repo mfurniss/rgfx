@@ -78,6 +78,7 @@ export async function waitForFileWatcherReady(
   // Phase 3: Wait for expected callbacks (including ALL probe writes)
   // We expect: probeCallCount callbacks + expectedCalls from actual data
   const targetCalls = initialCalls + probeCallCount + expectedCalls;
+
   for (let i = 0; i < maxRetries; i++) {
     await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
 

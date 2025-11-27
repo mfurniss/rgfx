@@ -22,6 +22,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(true);
+
       if (result.success) {
         expect(result.data.ip).toBe('192.168.1.100');
         expect(result.data.mac).toBe('AA:BB:CC:DD:EE:FF');
@@ -43,6 +44,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(true);
+
       if (result.success) {
         expect(result.data.hostname).toBe('esp32-test');
         expect(result.data.firmwareVersion).toBe('0.0.1-old');
@@ -82,6 +84,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(false);
+
       if (!result.success) {
         expect(result.error.issues).toContainEqual(
           expect.objectContaining({
@@ -100,6 +103,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(false);
+
       if (!result.success) {
         expect(result.error.issues).toContainEqual(
           expect.objectContaining({
@@ -119,6 +123,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(false);
+
       if (!result.success) {
         expect(result.error.issues).toContainEqual(
           expect.objectContaining({
@@ -138,6 +143,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(false);
+
       if (!result.success) {
         expect(result.error.issues).toContainEqual(
           expect.objectContaining({
@@ -185,6 +191,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(true);
+
       if (result.success) {
         expect(result.data.rssi).toBe(-50);
         expect(result.data.freeHeap).toBe(200000);
@@ -204,6 +211,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(true);
+
       if (result.success) {
         expect(result.data.hasDisplay).toBe(true);
         expect(result.data.testActive).toBe(false);
@@ -220,6 +228,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(minimal);
 
       expect(result.success).toBe(false);
+
       if (!result.success) {
         expect(result.error.issues).toContainEqual(
           expect.objectContaining({
@@ -271,6 +280,7 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse(partialTelemetry);
 
       expect(result.success).toBe(true);
+
       if (result.success) {
         expect(result.data.hostname).toBe('esp32-driver');
         expect(result.data.ssid).toBe('HomeNetwork');

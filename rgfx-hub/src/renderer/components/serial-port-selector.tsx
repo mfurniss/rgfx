@@ -19,6 +19,7 @@ function getPortDisplayName(info: SerialPortInfo): string {
   const pid = info.usbProductId?.toString(16).toUpperCase().padStart(4, '0') ?? '????';
 
   let chipName = 'Unknown USB Serial';
+
   if (info.usbVendorId === 0x10c4 && info.usbProductId === 0xea60)
     chipName = 'CP2102 USB to UART Bridge';
   else if (info.usbVendorId === 0x1a86 && info.usbProductId === 0x7523)
@@ -107,6 +108,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
 
   const handlePortChange = (index: number | '') => {
     setSelectedPortIndex(index);
+
     if (index !== '' && availablePorts?.[index]) {
       const selectedInfo = availablePorts[index].info;
 
@@ -129,6 +131,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
         // If there are multiple matching ports, forget all but the first one
         if (matchingPorts.length > 1) {
           onLog('Multiple port references found, clearing extras...');
+
           for (let i = 1; i < matchingPorts.length; i++) {
             try {
               await matchingPorts[i].forget();
@@ -147,9 +150,11 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
 
         // Log port state before opening
         onLog(`Port state: readable=${port.readable !== null}, writable=${port.writable !== null}`);
+
         if (port.readable) {
           onLog(`  readable.locked=${port.readable.locked}`);
         }
+
         if (port.writable) {
           onLog(`  writable.locked=${port.writable.locked}`);
         }
@@ -157,6 +162,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
         // Ensure port is closed before returning (esptool-js will open it)
         if (port.readable !== null || port.writable !== null) {
           onLog('Port appears to be open, closing it first...');
+
           try {
             if (port.readable?.locked) {
               onLog('Releasing readable stream lock...');
@@ -192,6 +198,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
       onLog('Scanning for ports...');
       const count = await refreshPorts();
       onLog(`Found ${count} previously granted port(s)`);
+
       if (count === 0) {
         onLog('No granted ports - requesting access...');
         void requestNewPort();

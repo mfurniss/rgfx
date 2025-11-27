@@ -51,7 +51,9 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // Helper function to determine WiFi signal quality
   const getSignalQuality = (rssi: number): string => {
     if (rssi >= -50) return 'Excellent';
+
     if (rssi >= -60) return 'Good';
+
     if (rssi >= -70) return 'Fair';
     return 'Poor';
   };

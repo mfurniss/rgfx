@@ -22,11 +22,13 @@ export function registerSetIdHandler(deps: SetIdHandlerDeps): void {
   ipcMain.handle('driver:set-id', async (_event, driverId: string, newId: string) => {
     try {
       const validation = validateDriverId(newId);
+
       if (!validation.valid) {
         throw new Error(validation.error ?? 'Invalid driver ID');
       }
 
       const driver = driverRegistry.getDriver(driverId);
+
       if (!driver) {
         throw new Error('Driver not found');
       }

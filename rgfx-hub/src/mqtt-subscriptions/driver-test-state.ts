@@ -24,6 +24,7 @@ export function subscribeDriverTestState(deps: DriverTestStateDeps): void {
     log.info(`Test state change: ${topic} = ${payload}`);
 
     const match = /^rgfx\/driver\/(.+)\/test\/state$/.exec(topic);
+
     if (!match) {
       log.error(`Invalid test state topic format: ${topic}`);
       return;
@@ -40,6 +41,7 @@ export function subscribeDriverTestState(deps: DriverTestStateDeps): void {
     driver.testActive = payload === 'on';
 
     const mainWindow = getMainWindow();
+
     if (mainWindow !== null && !mainWindow.isDestroyed()) {
       log.info(`Sending driver:updated to renderer for ${driverId}`);
       mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));

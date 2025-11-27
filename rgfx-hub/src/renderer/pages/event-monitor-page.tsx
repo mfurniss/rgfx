@@ -21,6 +21,7 @@ const formatValue = (value: string | number | undefined): string => {
   if (value === undefined) return '';
 
   const numValue = Number(value);
+
   if (isNaN(numValue)) {
     return String(value);
   }

@@ -113,6 +113,7 @@ export class MappingEngine {
         this.subjectHandlers.delete(subjectName);
         const module = await this.importModule(filePath);
         const handler = this.extractHandler(module);
+
         if (handler) {
           this.subjectHandlers.set(subjectName, handler);
           this.context.log.info(`Reloaded subject mapper: ${subjectName}`);
@@ -186,10 +187,12 @@ export class MappingEngine {
       // 1. Try game-specific handler (highest priority)
       if (namespace && this.gameHandlers.has(namespace)) {
         const handler = this.gameHandlers.get(namespace);
+
         if (!handler) return;
         this.context.log.info(`Calling game mapper for: ${topic}`);
         const handled = await handler(topicObj, payload, this.context);
         this.context.log.info(`Game mapper returned: ${handled} for ${topic}`);
+
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
           this.context.log.debug(`Event handled by game mapper: ${namespace} - ${topic}`);
@@ -200,8 +203,10 @@ export class MappingEngine {
       // 2. Try subject handlers (medium priority)
       if (subject && this.subjectHandlers.has(subject)) {
         const handler = this.subjectHandlers.get(subject);
+
         if (!handler) return;
         const handled = await handler(topicObj, payload, this.context);
+
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
           this.context.log.debug(`Event handled by subject mapper: ${subject} - ${topic}`);
@@ -212,6 +217,7 @@ export class MappingEngine {
       // 3. Try pattern handlers (lower priority)
       for (const handler of this.patternHandlers) {
         const handled = await handler(topicObj, payload, this.context);
+
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
           this.context.log.debug(`Event handled by pattern mapper: ${topic}`);
@@ -247,8 +253,10 @@ export class MappingEngine {
 
     // Try number
     const trimmed = payload.trim();
+
     if (trimmed !== '') {
       const num = Number(trimmed);
+
       if (!isNaN(num)) {
         return num;
       }
@@ -379,6 +387,7 @@ export class MappingEngine {
 
     // Try default export with handle property
     const defaultExport = module.default as Record<string, unknown> | undefined;
+
     if (defaultExport && typeof defaultExport.handle === 'function') {
       return defaultExport.handle as MappingHandler;
     }

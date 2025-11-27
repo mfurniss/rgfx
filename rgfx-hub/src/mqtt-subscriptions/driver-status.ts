@@ -27,6 +27,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
     log.info(`Driver status change: ${topic} = ${payload}`);
 
     const match = /^rgfx\/driver\/(.+)\/status$/.exec(topic);
+
     if (!match) {
       log.error(`Invalid status topic format: ${topic}`);
       return;
@@ -45,6 +46,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
     if (payload === 'offline' && driver.connected) {
       log.warn(`Driver ${driverId} went offline (LWT triggered)`);
       driver.ip = undefined;
+
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
         const status = systemMonitor.getSystemStatus(

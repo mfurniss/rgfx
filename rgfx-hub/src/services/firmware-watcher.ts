@@ -34,6 +34,7 @@ export class FirmwareWatcher extends EventEmitter {
 
     // Read initial version
     this.currentVersion = this.detectFirmwareVersion();
+
     if (this.currentVersion) {
       log.info('[FirmwareWatcher] Initial firmware version:', this.currentVersion);
     } else {

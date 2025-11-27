@@ -55,8 +55,11 @@ export const formatUptime = (ms: number): string => {
   const duration = intervalToDuration({ start: 0, end: ms });
 
   const parts: string[] = [];
+
   if (duration.days) parts.push(`${duration.days}d`);
+
   if (duration.hours || duration.days) parts.push(`${duration.hours ?? 0}h`);
+
   if (duration.minutes || duration.hours || duration.days) parts.push(`${duration.minutes ?? 0}m`);
   parts.push(`${duration.seconds ?? 0}s`);
 
