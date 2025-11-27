@@ -8,6 +8,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <new>
 
 // Display configuration
 #define SCREEN_WIDTH 128
@@ -58,7 +59,12 @@ namespace Display {
 		Wire.setClock(I2C_CLOCK_SPEED);
 
 		// Allocate display object
-		display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+		display = new (std::nothrow) Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+		if (!display) {
+			log("ERROR: Failed to allocate display object");
+			displayAvailable = false;
+			return false;
+		}
 
 		// Initialize display with SSD1306 driver
 		if (!display->begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDRESS)) {
@@ -90,6 +96,8 @@ namespace Display {
 	}
 
 	void showBoot(const String& deviceName) {
+		if (!displayAvailable) return;
+
 		display->clearDisplay();
 
 		// Title with device ID
@@ -109,6 +117,8 @@ namespace Display {
 	}
 
 	void showConnecting(const String& ssid, const String& deviceName) {
+		if (!displayAvailable) return;
+
 		display->clearDisplay();
 
 		// Header
@@ -136,6 +146,8 @@ namespace Display {
 	}
 
 	void showAPMode(const String& apName) {
+		if (!displayAvailable) return;
+
 		display->clearDisplay();
 
 		// Header
@@ -170,6 +182,8 @@ namespace Display {
 	}
 
 	void updateAPModeCountdown(uint16_t secondsRemaining) {
+		if (!displayAvailable) return;
+
 		// Clear countdown area (right side, next to "SETUP MODE")
 		display->fillRect(80, 16, SCREEN_WIDTH - 80, 32, SSD1306_BLACK);
 
@@ -195,6 +209,8 @@ namespace Display {
 
 	void showConnected(const String& ssid, const String& ip, bool mqttConnected,
 	                   const String& deviceName) {
+		if (!displayAvailable) return;
+
 		// Cache values for later updates
 		cachedSSID = ssid;
 		cachedIP = ip;
@@ -238,6 +254,8 @@ namespace Display {
 	}
 
 	void updateMQTTStatus(bool connected) {
+		if (!displayAvailable) return;
+
 		// Only update if status actually changed
 		if (connected == cachedMQTTStatus)
 			return;
@@ -259,6 +277,8 @@ namespace Display {
 	}
 
 	void updateUptime(unsigned long uptimeSeconds) {
+		if (!displayAvailable) return;
+
 		// Only update every second to avoid excessive I2C traffic
 		if (uptimeSeconds == lastUptimeUpdate)
 			return;
@@ -291,6 +311,8 @@ namespace Display {
 	}
 
 	void clear() {
+		if (!displayAvailable) return;
+
 		display->clearDisplay();
 		display->display();
 

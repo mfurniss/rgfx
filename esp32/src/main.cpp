@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
+#include <new>
 #include "matrix.h"
 #include "effects/effect_processor.h"
 #include "network/network_init.h"
@@ -225,9 +226,12 @@ void loop() {
 	// UDP is processed at top of loop() for lowest latency
 	// Skip effect processing during OTA to prevent clearing progress indicator
 	if (isConnected && udpSetupDone && !otaInProgress) {
-		// Initialize effect processor on first run (only if matrix is ready)
-		if (effectProcessor == nullptr && matrix != nullptr) {
-			effectProcessor = new EffectProcessor(*matrix);
+		// Initialize effect processor on first run (only if matrix is ready and valid)
+		if (effectProcessor == nullptr && matrix != nullptr && matrix->isValid()) {
+			effectProcessor = new (std::nothrow) EffectProcessor(*matrix);
+			if (!effectProcessor) {
+				log("ERROR: Failed to allocate EffectProcessor");
+			}
 		}
 
 		// Check for UDP message updates

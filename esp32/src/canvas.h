@@ -39,6 +39,8 @@ class Canvas {
     Canvas(const Matrix& matrix);
     ~Canvas();
 
+    bool isValid() const;
+
     uint16_t getWidth() const;
     uint16_t getHeight() const;
     uint32_t getSize() const;

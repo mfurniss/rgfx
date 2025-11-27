@@ -107,6 +107,10 @@ bool discoverMQTTBroker() {
 
 			char packet[512];
 			int len = udp.read(packet, sizeof(packet) - 1);
+			if (len <= 0 || len >= (int)sizeof(packet)) {
+				log("Invalid packet length: " + String(len));
+				continue;
+			}
 			packet[len] = '\0';
 
 			// Parse JSON message: {"service":"rgfx-mqtt-broker","ip":"192.168.10.23","port":1883}
