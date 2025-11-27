@@ -24,11 +24,15 @@ describe('UdpDiscovery', () => {
     mockSocket = {
       on: vi.fn(),
       bind: vi.fn((callback) => {
-        if (callback) callback();
+        if (callback) {
+          callback();
+        }
       }),
       setBroadcast: vi.fn(),
       send: vi.fn((_msg, _port, _addr, callback) => {
-        if (callback) callback(null);
+        if (callback) {
+          callback(null);
+        }
       }),
       close: vi.fn(),
     };
@@ -74,7 +78,7 @@ describe('UdpDiscovery', () => {
         }),
         8889,
         '192.168.1.255',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -97,18 +101,22 @@ describe('UdpDiscovery', () => {
       udpDiscovery.start({ mqttPort: 1883, localIP: '192.168.1.100' });
 
       const errorHandler = mockSocket.on.mock.calls.find(
-        (call: any) => call[0] === 'error'
+        (call: any) => call[0] === 'error',
       )?.[1];
 
       // Should not throw
       expect(() => {
-        if (errorHandler) errorHandler(new Error('Socket error'));
+        if (errorHandler) {
+          errorHandler(new Error('Socket error'));
+        }
       }).not.toThrow();
     });
 
     it('should handle send error gracefully', () => {
       mockSocket.send.mockImplementation((_msg: any, _port: any, _addr: any, callback: any) => {
-        if (callback) callback(new Error('Send failed'));
+        if (callback) {
+          callback(new Error('Send failed'));
+        }
       });
 
       // Should not throw

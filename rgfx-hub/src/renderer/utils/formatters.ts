@@ -39,7 +39,9 @@ const shortLocale: Locale = {
  * Format bytes into human-readable sizes (B, KB, MB, GB)
  */
 export const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) {
+    return '0 B';
+  }
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -56,11 +58,17 @@ export const formatUptime = (ms: number): string => {
 
   const parts: string[] = [];
 
-  if (duration.days) parts.push(`${duration.days}d`);
+  if (duration.days) {
+    parts.push(`${duration.days}d`);
+  }
 
-  if (duration.hours || duration.days) parts.push(`${duration.hours ?? 0}h`);
+  if (duration.hours || duration.days) {
+    parts.push(`${duration.hours ?? 0}h`);
+  }
 
-  if (duration.minutes || duration.hours || duration.days) parts.push(`${duration.minutes ?? 0}m`);
+  if (duration.minutes || duration.hours || duration.days) {
+    parts.push(`${duration.minutes ?? 0}m`);
+  }
   parts.push(`${duration.seconds ?? 0}s`);
 
   return parts.join(' ');

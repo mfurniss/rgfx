@@ -20,13 +20,15 @@ function getPortDisplayName(info: SerialPortInfo): string {
 
   let chipName = 'Unknown USB Serial';
 
-  if (info.usbVendorId === 0x10c4 && info.usbProductId === 0xea60)
+  if (info.usbVendorId === 0x10c4 && info.usbProductId === 0xea60) {
     chipName = 'CP2102 USB to UART Bridge';
-  else if (info.usbVendorId === 0x1a86 && info.usbProductId === 0x7523)
+  } else if (info.usbVendorId === 0x1a86 && info.usbProductId === 0x7523) {
     chipName = 'CH340 USB to Serial';
-  else if (info.usbVendorId === 0x0403 && info.usbProductId === 0x6001)
+  } else if (info.usbVendorId === 0x0403 && info.usbProductId === 0x6001) {
     chipName = 'FTDI USB to Serial';
-  else if (info.usbVendorId === 0x303a) chipName = 'Espressif ESP32 Native USB';
+  } else if (info.usbVendorId === 0x303a) {
+    chipName = 'Espressif ESP32 Native USB';
+  }
 
   return `${chipName} [${vid}:${pid}]`;
 }
@@ -124,7 +126,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
         const matchingPorts = allPorts.filter(
           (p) =>
             p.getInfo().usbVendorId === selectedInfo.usbVendorId &&
-            p.getInfo().usbProductId === selectedInfo.usbProductId
+            p.getInfo().usbProductId === selectedInfo.usbProductId,
         );
         onLog(`Found ${matchingPorts.length} matching port(s)`);
 

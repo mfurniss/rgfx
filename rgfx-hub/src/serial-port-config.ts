@@ -12,7 +12,7 @@ export function configureSerialPort(): void {
   session.defaultSession.on('select-serial-port', (event, portList, webContents, callback) => {
     log.info(`Serial port request from ${webContents.getURL()}`);
     log.info(
-      `Available ports: ${portList.map((p) => `${p.displayName ?? p.portName} (VID=${p.vendorId} PID=${p.productId})`).join(', ')}`
+      `Available ports: ${portList.map((p) => `${p.displayName ?? p.portName} (VID=${p.vendorId} PID=${p.productId})`).join(', ')}`,
     );
 
     if (portList.length === 1) {

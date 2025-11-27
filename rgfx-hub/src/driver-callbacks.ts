@@ -31,10 +31,12 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
   function sendSystemStatus() {
     const mainWindow = getMainWindow();
 
-    if (!isWindowAvailable() || !mainWindow) return;
+    if (!isWindowAvailable() || !mainWindow) {
+      return;
+    }
     const status = systemMonitor.getSystemStatus(
       driverRegistry.getConnectedCount(),
-      getEventsProcessed()
+      getEventsProcessed(),
     );
     mainWindow.webContents.send('system:status', status);
   }
@@ -48,7 +50,7 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
     if (isWindowAvailable() && mainWindow) {
       mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
       log.info(
-        `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`
+        `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`,
       );
       sendSystemStatus();
     }
@@ -67,7 +69,7 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
 
     if (isWindowAvailable() && mainWindow) {
       mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
-      log.info(`Sent driver:disconnected event to renderer`);
+      log.info('Sent driver:disconnected event to renderer');
       sendSystemStatus();
     }
   });

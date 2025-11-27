@@ -54,9 +54,9 @@ const FirmwarePage: React.FC = () => {
       (progressData: { sent: number; total: number; percent: number }): void => {
         setProgress(progressData.percent);
         addLog(
-          `OTA progress: ${progressData.percent}% (${progressData.sent}/${progressData.total} bytes)`
+          `OTA progress: ${progressData.percent}% (${progressData.sent}/${progressData.total} bytes)`,
         );
-      }
+      },
     );
 
     return (): void => {
@@ -125,7 +125,7 @@ const FirmwarePage: React.FC = () => {
         // Verify size
         if (buffer.byteLength !== fileInfo.size) {
           throw new Error(
-            `Size mismatch for ${fileInfo.name}: expected ${fileInfo.size}, got ${buffer.byteLength}`
+            `Size mismatch for ${fileInfo.name}: expected ${fileInfo.size}, got ${buffer.byteLength}`,
           );
         }
 
@@ -134,7 +134,7 @@ const FirmwarePage: React.FC = () => {
 
         if (checksum !== fileInfo.sha256) {
           throw new Error(
-            `Checksum mismatch for ${fileInfo.name}: expected ${fileInfo.sha256.substring(0, 16)}..., got ${checksum.substring(0, 16)}...`
+            `Checksum mismatch for ${fileInfo.name}: expected ${fileInfo.sha256.substring(0, 16)}..., got ${checksum.substring(0, 16)}...`,
           );
         }
 
@@ -153,7 +153,7 @@ const FirmwarePage: React.FC = () => {
       // Find the largest file (app binary) for progress reporting
       const largestFileIndex = fileArray.reduce(
         (maxIdx, file, idx, arr) => (file.data.length > arr[maxIdx].data.length ? idx : maxIdx),
-        0
+        0,
       );
 
       // Get fresh, clean port from selector

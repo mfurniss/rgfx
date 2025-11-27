@@ -90,7 +90,7 @@ describe('MinimalDriverRegistrationSchema', () => {
           expect.objectContaining({
             path: ['ip'],
             code: 'invalid_type',
-          })
+          }),
         );
       }
     });
@@ -109,7 +109,7 @@ describe('MinimalDriverRegistrationSchema', () => {
           expect.objectContaining({
             path: ['mac'],
             code: 'invalid_type',
-          })
+          }),
         );
       }
     });
@@ -129,7 +129,7 @@ describe('MinimalDriverRegistrationSchema', () => {
           expect.objectContaining({
             path: ['ip'],
             code: 'too_small',
-          })
+          }),
         );
       }
     });
@@ -149,7 +149,7 @@ describe('MinimalDriverRegistrationSchema', () => {
           expect.objectContaining({
             path: ['mac'],
             code: 'invalid_format',
-          })
+          }),
         );
       }
     });
@@ -234,7 +234,7 @@ describe('MinimalDriverRegistrationSchema', () => {
           expect.objectContaining({
             path: ['rssi'],
             code: 'invalid_type',
-          })
+          }),
         );
       }
     });

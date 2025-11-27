@@ -61,7 +61,7 @@ export default function TestEffectsPage() {
       .filter((d) => d.connected)
       .map((d) => d.id)
       .sort()
-      .join(',')
+      .join(','),
   );
 
   const drivers = useDriverStore((state) => state.drivers);
@@ -76,7 +76,7 @@ export default function TestEffectsPage() {
 
   // Convert stored array back to Set for component logic
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    new Set(storedSelectedDrivers)
+    new Set(storedSelectedDrivers),
   );
 
   // Initialize with all drivers selected when connected drivers change

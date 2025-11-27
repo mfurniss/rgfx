@@ -109,25 +109,25 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                   </Tooltip>
                 ) : currentFirmwareVersion &&
                   driver.telemetry.firmwareVersion !== currentFirmwareVersion ? (
-                  <Tooltip
-                    title={`Driver: ${driver.telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
-                    arrow
-                  >
-                    <Chip label="Update Available" color="warning" size="small" />
-                  </Tooltip>
-                ) : !driver.ledConfig ? (
-                  <Tooltip title="Needs LED configuration" arrow>
-                    <Chip label="Needs Configuration" color="warning" size="small" />
-                  </Tooltip>
-                ) : driver.failedHeartbeats > 0 ? (
-                  <Chip
-                    label={`Connected (${driver.failedHeartbeats} missed)`}
-                    color="warning"
-                    size="small"
-                  />
-                ) : (
-                  <Chip label="Connected" color="success" size="small" />
-                )}
+                    <Tooltip
+                      title={`Driver: ${driver.telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
+                      arrow
+                    >
+                      <Chip label="Update Available" color="warning" size="small" />
+                    </Tooltip>
+                  ) : !driver.ledConfig ? (
+                    <Tooltip title="Needs LED configuration" arrow>
+                      <Chip label="Needs Configuration" color="warning" size="small" />
+                    </Tooltip>
+                  ) : driver.failedHeartbeats > 0 ? (
+                    <Chip
+                      label={`Connected (${driver.failedHeartbeats} missed)`}
+                      color="warning"
+                      size="small"
+                    />
+                  ) : (
+                    <Chip label="Connected" color="success" size="small" />
+                  )}
               </TableCell>
             </TableRow>
           ))}

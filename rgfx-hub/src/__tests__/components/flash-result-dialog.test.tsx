@@ -15,7 +15,7 @@ describe('FlashResultDialog', () => {
         success={true}
         message="Firmware flashed successfully!"
         onClose={onClose}
-      />
+      />,
     );
 
     expect(screen.getByText('Flash Complete')).toBeDefined();
@@ -30,7 +30,7 @@ describe('FlashResultDialog', () => {
         success={false}
         message="Connection failed"
         onClose={onClose}
-      />
+      />,
     );
 
     expect(screen.getByText('Flash Failed')).toBeDefined();
@@ -45,7 +45,7 @@ describe('FlashResultDialog', () => {
         success={true}
         message="Done"
         onClose={onClose}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'OK' }));
@@ -60,7 +60,7 @@ describe('FlashResultDialog', () => {
         success={true}
         message="Should not appear"
         onClose={onClose}
-      />
+      />,
     );
 
     expect(screen.queryByText('Flash Complete')).toBeNull();

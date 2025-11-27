@@ -58,6 +58,6 @@ export const useUiStore = create<UiState>()(
         driverTableSortOrder: state.driverTableSortOrder,
         // Exclude test effects state from persistence
       }),
-    }
-  )
+    },
+  ),
 );

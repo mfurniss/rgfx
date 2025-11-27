@@ -195,7 +195,7 @@ describe('DriverRegistry', () => {
         createMockTelemetryData({
           ip: '192.168.1.101',
           mac: '11:22:33:44:55:66',
-        })
+        }),
       );
 
       const found = registry.findByIp('192.168.1.101');
@@ -311,7 +311,7 @@ describe('DriverRegistry', () => {
 
       // Manually change driver ID in registry to simulate migration scenario
       const originalId = driver1.id;
-       
+
       const registryDrivers = (registry as any).drivers as Map<string, import('../types').Driver>;
       registryDrivers.delete(originalId);
       registryDrivers.set('custom-id', driver1);
@@ -399,7 +399,7 @@ describe('DriverRegistry', () => {
       const oldId = driver1.id;
 
       // Manually change driver ID in registry to simulate migration
-       
+
       const registryDrivers = (registry as any).drivers as Map<string, import('../types').Driver>;
       registryDrivers.delete(oldId);
       registryDrivers.set('old-id', driver1);

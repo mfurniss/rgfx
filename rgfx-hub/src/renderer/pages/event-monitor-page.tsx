@@ -18,7 +18,9 @@ type SortField = 'topic' | 'count';
 type SortOrder = 'asc' | 'desc';
 
 const formatValue = (value: string | number | undefined): string => {
-  if (value === undefined) return '';
+  if (value === undefined) {
+    return '';
+  }
 
   const numValue = Number(value);
 

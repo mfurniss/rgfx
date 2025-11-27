@@ -56,7 +56,7 @@ describe('OtaDriverSelector', () => {
         selectedDriver=""
         onDriverSelect={onDriverSelect}
         disabled={false}
-      />
+      />,
     );
 
     expect(screen.getByRole('combobox')).toBeDefined();
@@ -72,7 +72,7 @@ describe('OtaDriverSelector', () => {
         selectedDriver=""
         onDriverSelect={onDriverSelect}
         disabled={false}
-      />
+      />,
     );
 
     expect(screen.getByText(/No drivers connected/)).toBeDefined();
@@ -88,7 +88,7 @@ describe('OtaDriverSelector', () => {
         selectedDriver=""
         onDriverSelect={onDriverSelect}
         disabled={false}
-      />
+      />,
     );
 
     expect(screen.queryByText(/No drivers connected/)).toBeNull();
@@ -104,7 +104,7 @@ describe('OtaDriverSelector', () => {
         selectedDriver=""
         onDriverSelect={onDriverSelect}
         disabled={false}
-      />
+      />,
     );
 
     const select = screen.getByRole('combobox');
@@ -126,7 +126,7 @@ describe('OtaDriverSelector', () => {
         selectedDriver=""
         onDriverSelect={onDriverSelect}
         disabled={true}
-      />
+      />,
     );
 
     const select = screen.getByRole('combobox');
