@@ -26,6 +26,7 @@ class Matrix {
 	LayoutType layoutType;
 	Matrix(uint16_t w, uint16_t h, const String& layoutPattern = "matrix-br-v-snake");
 	~Matrix();
+	bool isValid() const;
 	void updateLayout(const String& newLayout);
 	uint16_t xy(uint16_t x, uint16_t y);
 	CRGB& led(uint16_t x, uint16_t y);

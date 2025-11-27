@@ -9,6 +9,8 @@
 #include "network/mqtt.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include <new>
+#include <cstdlib>
 
 // External matrix pointer used by game loop
 extern Matrix* matrix;
@@ -203,12 +205,22 @@ void handleDriverConfig(const String& payload) {
 					}
 
 					// Create new Matrix with correct dimensions
-					matrix = new Matrix(newWidth, newHeight, newLayout);
+					matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout);
+					if (!matrix) {
+						log("ERROR: Failed to allocate Matrix");
+						return;
+					}
+					if (!matrix->isValid()) {
+						log("ERROR: Matrix allocation failed internally");
+						delete matrix;
+						matrix = nullptr;
+						return;
+					}
 					log("Matrix created: " + String(newWidth) + "x" + String(newHeight) +
 					    " with layout " + newLayout);
 
 					// Replace the default allocated buffer with FastLED's actual buffer
-					delete[] matrix->leds;
+					free(matrix->leds);
 					matrix->leds = leds;
 
 					log("Matrix now using FastLED buffer directly");

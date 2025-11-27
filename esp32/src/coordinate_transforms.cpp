@@ -1,4 +1,5 @@
 #include "coordinate_transforms.h"
+#include <cstdlib>
 #include <cstring>
 
 // Layout: "strip"
@@ -143,7 +144,10 @@ uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout
 
 	// Build coordinate map
 	uint16_t size = width * height;
-	uint16_t* map = new uint16_t[size];
+	uint16_t* map = (uint16_t*)malloc(size * sizeof(uint16_t));
+	if (!map) {
+		return nullptr;
+	}
 
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; x++) {
