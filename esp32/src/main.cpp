@@ -238,6 +238,7 @@ void loop() {
 		UDPMessage message;
 		if (checkUDPMessage(&message) && effectProcessor != nullptr) {
 			effectProcessor->addEffect(message.effect, message.props);
+			log("UDP RX from Hub: effect=" + message.effect);
 		}
 
 		// Update and render continuous effects

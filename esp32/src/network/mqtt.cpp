@@ -6,6 +6,7 @@
 #include "driver_config.h"
 #include "oled/oled_display.h"
 #include "config/constants.h"
+#include "config/config_nvs.h"
 #include "effects/effect_processor.h"
 #include "serial_commands/commands.h"
 #include <WiFi.h>
@@ -75,6 +76,25 @@ void mqttCallback(String& topic, String& payload) {
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reboot")) {
 		log("Reboot command received - initiating reboot...");
 		Commands::reboot("");
+	}
+
+	// Handle logging configuration
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/logging")) {
+		JsonDocument doc;
+		DeserializationError error = deserializeJson(doc, payload);
+
+		if (error) {
+			log("Failed to parse logging config: " + String(error.c_str()), LogLevel::ERROR);
+			return;
+		}
+
+		const char* level = doc["level"];
+		if (level) {
+			String levelStr = String(level);
+			setRemoteLoggingLevel(levelStr);
+			ConfigNVS::saveLoggingLevel(levelStr);
+			log("Remote logging level set to: " + levelStr);
+		}
 	}
 
 }
@@ -236,12 +256,22 @@ void reconnectMQTT() {
 		String rebootTopic = "rgfx/driver/" + deviceId + "/reboot";
 		mqttClient.subscribe(rebootTopic.c_str(), 2);
 
+		// Subscribe to logging config topic (uses MAC address)
+		String loggingTopic = "rgfx/driver/" + macAddress + "/logging";
+		mqttClient.subscribe(loggingTopic.c_str(), 2);
+
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
 		log("  - " + macConfigTopic + " (config via MAC)");
+		log("  - " + loggingTopic + " (logging config via MAC)");
 		log("  - " + testTopic);
 		log("  - " + resetTopic);
 		log("  - " + rebootTopic);
+
+		// Load saved remote logging level from NVS
+		String savedLoggingLevel = ConfigNVS::loadLoggingLevel();
+		setRemoteLoggingLevel(savedLoggingLevel);
+		log("Remote logging level loaded from NVS: " + savedLoggingLevel);
 
 		// Update display to show MQTT connected
 		if (Display::isAvailable()) {

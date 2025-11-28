@@ -14,6 +14,7 @@ import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';
 import { DriverPersistence } from './driver-persistence';
+import { DriverLogPersistence } from './driver-log-persistence';
 import { LEDHardwareManager } from './led-hardware-manager';
 import { MappingEngine } from './mapping-engine';
 import { UdpClientImpl } from './mapping/udp-client';
@@ -62,6 +63,7 @@ let mainWindow: BrowserWindow | null = null;
 // Initialize services (persistence first, then registry)
 const configPath = path.join(app.getPath('home'), '.rgfx');
 const driverPersistence = new DriverPersistence(configPath);
+const driverLogPersistence = new DriverLogPersistence(configPath);
 const ledHardwareManager = new LEDHardwareManager(configPath);
 const mqtt = new MqttBroker(MQTT_DEFAULT_PORT);
 const eventReader = new EventFileReader();
@@ -117,7 +119,9 @@ function sendSystemStatus() {
 // Register driver callbacks
 registerDriverCallbacks({
   driverRegistry,
+  driverPersistence,
   systemMonitor,
+  mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
   uploadConfigToDriver,
@@ -155,6 +159,7 @@ registerMqttSubscriptions({
   mqtt,
   driverRegistry,
   systemMonitor,
+  driverLogPersistence,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
 });

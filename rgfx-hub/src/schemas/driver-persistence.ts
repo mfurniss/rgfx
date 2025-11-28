@@ -24,6 +24,12 @@ export const DriverLEDConfigSchema = z.object({
 export type DriverLEDConfigFromSchema = z.infer<typeof DriverLEDConfigSchema>;
 
 /**
+ * Remote logging level for driver-to-hub log forwarding
+ */
+export const RemoteLoggingLevelSchema = z.enum(['all', 'errors', 'off']);
+export type RemoteLoggingLevel = z.infer<typeof RemoteLoggingLevelSchema>;
+
+/**
  * Persisted driver schema
  * Stores static configuration and metadata, excludes runtime state
  */
@@ -36,6 +42,7 @@ export const PersistedDriverSchema = z.object({
   macAddress: z.string().regex(/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i),
   description: z.string().optional(),
   ledConfig: DriverLEDConfigSchema.nullable().optional(),
+  remoteLogging: RemoteLoggingLevelSchema.optional().default('off'),
 });
 
 export type PersistedDriverFromSchema = z.infer<typeof PersistedDriverSchema>;

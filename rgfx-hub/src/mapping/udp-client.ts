@@ -8,6 +8,7 @@
 import log from 'electron-log/main';
 import type { UdpClient, EffectPayload } from '../types/mapping-types';
 import type { DriverRegistry } from '../driver-registry';
+import { type Driver } from '../types';
 import { Udp } from '../udp';
 import { UDP_PORT } from '../config/constants';
 
@@ -34,8 +35,11 @@ export class UdpClientImpl implements UdpClient {
 
     // Apply selective routing if specified
     if (targetDriverIds?.length) {
-      // Filter drivers by sequential ID (e.g., "rgfx-driver-0001")
-      drivers = drivers.filter(({ id }) => targetDriverIds.includes(id));
+      // Resolve '*' wildcards to actual driver IDs
+      const resolvedIds = this.resolveRandomDrivers(targetDriverIds, drivers);
+
+      // Filter drivers by resolved IDs
+      drivers = drivers.filter(({ id }) => resolvedIds.includes(id));
 
       if (drivers.length === 0) {
         log.debug(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
@@ -50,11 +54,33 @@ export class UdpClientImpl implements UdpClient {
   }
 
   /**
-   * Internal method to send effect data to a driver (without drivers property)
-   * @param driverId Driver ID (last 3 bytes of MAC, e.g., "F8:9A:58")
-   * @param effectData Effect payload without routing information
-   * @returns true
+   * Resolve '*' wildcards in target IDs to actual random driver IDs
+   * - Each '*' picks a unique random driver from the pool
+   * - Named drivers are excluded from the random pool
    */
+  private resolveRandomDrivers(targetIds: string[], connectedDrivers: Driver[]): string[] {
+    const namedIds = targetIds.filter((id) => id !== '*');
+    const randomCount = targetIds.length - namedIds.length;
+
+    if (randomCount === 0) {
+      return namedIds;
+    }
+
+    // Build pool excluding named drivers
+    const availablePool = connectedDrivers.map((d) => d.id).filter((id) => !namedIds.includes(id));
+
+    // Pick unique random drivers from pool
+    const randomIds: string[] = [];
+    const poolCopy = [...availablePool];
+
+    for (let i = 0; i < randomCount && poolCopy.length > 0; i++) {
+      const randomIndex = Math.floor(Math.random() * poolCopy.length);
+      randomIds.push(poolCopy.splice(randomIndex, 1)[0]);
+    }
+
+    return [...namedIds, ...randomIds];
+  }
+
   private sendEffectToDriver(driverId: string, effectData: EffectPayload): boolean {
     const driver = this.driverRegistry.getDriver(driverId);
 
