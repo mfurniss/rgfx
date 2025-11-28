@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import OtaDriverSelector from '../../renderer/components/ota-driver-selector';
-import { Driver, DriverTelemetry } from '../../types';
+import OtaDriverSelector from '@/renderer/components/ota-driver-selector';
+import { Driver, DriverTelemetry } from '@/types';
 
 const createMockDriver = (id: string, connected: boolean, ip?: string): Driver => {
   const telemetry: DriverTelemetry = {

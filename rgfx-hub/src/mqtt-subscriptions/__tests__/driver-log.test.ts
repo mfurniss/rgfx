@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { subscribeDriverLog } from '../driver-log';
-import type { MqttBroker } from '../../mqtt';
-import type { DriverLogPersistence } from '../../driver-log-persistence';
+import type { MqttBroker } from '@/mqtt';
+import type { DriverLogPersistence } from '@/driver-log-persistence';
 
 vi.mock('electron-log/main', () => ({
   default: {

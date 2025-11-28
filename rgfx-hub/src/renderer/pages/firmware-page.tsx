@@ -18,7 +18,7 @@ import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icon
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
-import { FirmwareManifestSchema, type FirmwareManifest } from '../../schemas';
+import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 
 type FlashMethod = 'usb' | 'ota';
 

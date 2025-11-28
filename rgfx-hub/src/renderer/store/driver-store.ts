@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Driver, type SystemStatus } from '../../types';
-import { DRIVER_CONNECTION_TIMEOUT_MS } from '../../config/constants';
+import { Driver, type SystemStatus } from '@/types';
+import { DRIVER_CONNECTION_TIMEOUT_MS } from '@/config/constants';
 import { useNotificationStore } from './notification-store';
 
 interface DriverState {

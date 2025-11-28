@@ -7,9 +7,9 @@
 
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { registerFlashOtaHandler } from '../flash-ota-handler';
-import type { DriverRegistry } from '../../driver-registry';
+import type { DriverRegistry } from '@/driver-registry';
 import type { BrowserWindow } from 'electron';
-import type { Driver } from '../../types';
+import type { Driver } from '@/types';
 
 vi.mock('electron', () => ({
   ipcMain: {

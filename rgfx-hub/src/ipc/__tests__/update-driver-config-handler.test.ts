@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { registerUpdateDriverConfigHandler } from '../update-driver-config-handler';
-import type { DriverRegistry } from '../../driver-registry';
-import type { Driver } from '../../types';
+import type { DriverRegistry } from '@/driver-registry';
+import type { Driver } from '@/types';
 
 vi.mock('electron', () => ({
   ipcMain: {
