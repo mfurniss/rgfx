@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import App from '../app';
-import type { Driver, SystemStatus } from '../../types';
+import type { Driver, SystemStatus } from '@/types';
 
 // Mock Zustand store
 const mockOnDriverConnected = vi.fn();
