@@ -87,6 +87,21 @@ class ConfigNVS {
 	 */
 	static bool hasDeviceId();
 
+	/**
+	 * Save remote logging level to NVS
+	 *
+	 * @param level - Logging level ("all", "errors", or "off")
+	 * @return true if saved successfully, false on error
+	 */
+	static bool saveLoggingLevel(const String& level);
+
+	/**
+	 * Load remote logging level from NVS
+	 *
+	 * @return Logging level string, or "off" if not found
+	 */
+	static String loadLoggingLevel();
+
    private:
 	// NVS namespace name (max 15 characters)
 	static constexpr const char* NAMESPACE = "rgfx";
@@ -94,6 +109,7 @@ class ConfigNVS {
 	// NVS keys
 	static constexpr const char* KEY_LED_CONFIG = "led_config";
 	static constexpr const char* KEY_DEVICE_ID = "device_id";
+	static constexpr const char* KEY_LOG_LEVEL = "log_level";
 };
 
 #endif

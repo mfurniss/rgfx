@@ -15,8 +15,10 @@ interface TriggerEffectHandlerDeps {
 
 export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): void {
   const { udpClient } = deps;
+  log.info('[TriggerEffectHandler] Registering effect:trigger IPC handler');
 
   ipcMain.handle('effect:trigger', (_event, payload: EffectPayload) => {
+    log.info('[TriggerEffectHandler] IPC handler invoked');
     log.info(`Manual effect trigger requested: ${payload.effect}`, payload);
 
     try {

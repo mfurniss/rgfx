@@ -11,7 +11,7 @@
  * @returns {boolean}
  */
 export function handle({ subject, property }, _payload, { broadcast }) {
-
+  return false;
   if (subject !== 'enemy') return false;
 
   // Enemy destroyed/killed

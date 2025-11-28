@@ -4,14 +4,15 @@
 #include <algorithm>
 
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
-static const uint32_t DEFAULT_DURATION = 1000;
+static const float DEFAULT_DURATION = 1.0f;  // Duration in seconds
 static const bool DEFAULT_FADE = true;
 
 PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
-	uint32_t duration = props["duration"] | DEFAULT_DURATION;
+	// Duration comes in as milliseconds, convert to seconds
+	uint32_t durationMs = props["duration"] | static_cast<uint32_t>(DEFAULT_DURATION * 1000);
 	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : DEFAULT_FADE;
 	const char* easingName = props["easing"] | "quadraticOut";
 
@@ -19,42 +20,22 @@ void PulseEffect::add(JsonDocument& props) {
 	newPulse.r = (color >> 16) & 0xFF;
 	newPulse.g = (color >> 8) & 0xFF;
 	newPulse.b = color & 0xFF;
-	newPulse.alpha = 255;
-	newPulse.duration = duration;
+	newPulse.duration = durationMs / 1000.0f;  // Convert ms to seconds
 	newPulse.fade = fade;
-	newPulse.elapsedTime = 0;
+	newPulse.elapsedTime = 0.0f;
 	newPulse.easing = getEasingFunction(easingName);
 	pulses.push_back(newPulse);
 }
 
 void PulseEffect::update(float deltaTime) {
-	// Cache deltaTime in milliseconds to avoid redundant calculations
-	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
-
-	// Iterate through all pulses and update their elapsed time and alpha values
 	for (auto p = pulses.begin(); p != pulses.end();) {
-		// Update elapsed time for all pulses (needed for rendering)
-		p->elapsedTime += deltaTimeMs;
+		p->elapsedTime += deltaTime;
 
-		if (p->fade) {
-			// Fading pulse: calculate fade delta based on uint8_t alpha (0-255)
-			// fadeDelta = (deltaTime in ms / duration in ms) * 255
-			float fadeDelta = (deltaTimeMs * 255.0f) / p->duration;
-
-			// Decrement alpha (uint8_t will clamp at 0)
-			if (fadeDelta >= p->alpha) {
-				p = pulses.erase(p);
-			} else {
-				p->alpha -= static_cast<uint8_t>(fadeDelta);
-				++p;
-			}
+		// Remove pulse when duration is complete
+		if (p->elapsedTime >= p->duration) {
+			p = pulses.erase(p);
 		} else {
-			// Non-fading pulse: keep alpha at 255, remove when duration expires
-			if (p->elapsedTime >= p->duration) {
-				p = pulses.erase(p);
-			} else {
-				++p;
-			}
+			++p;
 		}
 	}
 }
@@ -72,13 +53,20 @@ void PulseEffect::render() {
 
 	// Render pulses to canvas
 	for (const auto& p : pulses) {
-		// Normalize time to 0-1 range
-		float t = static_cast<float>(p.elapsedTime) / static_cast<float>(p.duration);
-
-		// Apply easing function
+		float t = p.progress();
 		float easedT = p.easing(t);
 
-		uint32_t color = RGBA(p.r, p.g, p.b, p.alpha / 2);
+		// Calculate alpha based on fade mode
+		uint8_t alpha;
+		if (p.fade) {
+			// Fading pulse: alpha decreases from 255 to 0
+			alpha = static_cast<uint8_t>((1.0f - t) * 255.0f);
+		} else {
+			// Non-fading pulse: full brightness
+			alpha = 255;
+		}
+
+		uint32_t color = RGBA(p.r, p.g, p.b, alpha / 2);
 
 		if (isStrip) {
 			// Strip: Contract from edges toward center horizontally
