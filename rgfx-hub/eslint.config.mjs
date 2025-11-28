@@ -143,6 +143,7 @@ export default tseslint.config(
       '**/.vite/**',
       '**/out/**',
       '**/dist/**',
+      '**/coverage/**',
       'eslint.config.js',
       'eslint.config.mjs',
       '*.config.ts',
