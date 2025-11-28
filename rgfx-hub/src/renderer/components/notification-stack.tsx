@@ -2,7 +2,7 @@ import React from 'react';
 import { Snackbar, Alert, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useNotificationStore, type Notification } from '../store/notification-store';
-import { TOAST_AUTO_HIDE_DURATION_MS } from '../../config/constants';
+import { TOAST_AUTO_HIDE_DURATION_MS } from '@/config/constants';
 
 interface NotificationToastProps {
   notification: Notification;

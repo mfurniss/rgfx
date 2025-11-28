@@ -44,15 +44,23 @@ export function subscribeDriverLog(deps: DriverLogDeps): void {
       const result = DriverLogMessageSchema.safeParse(parsed);
 
       if (!result.success) {
-        log.error(`Invalid driver log message from ${driverId}: ${result.error.message}`);
+        log.error(
+          `Invalid driver log message from ${driverId}: ${result.error.message}`,
+        );
         return;
       }
 
       const { level, message } = result.data;
       // Use Hub's timestamp since driver only has uptime (millis())
-      driverLogPersistence.appendLog(driverId, level, message, Date.now());
+      driverLogPersistence.appendLog(
+        driverId,
+        level,
+        message,
+        Date.now(),
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       log.error(`Failed to parse driver log from ${driverId}: ${errorMessage}`);
     }
   });

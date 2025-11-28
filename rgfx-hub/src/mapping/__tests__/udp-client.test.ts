@@ -4,9 +4,9 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UdpClientImpl } from '../udp-client';
-import { DriverRegistry } from '../../driver-registry';
-import { Driver } from '../../types';
-import type { EffectPayload } from '../../types/mapping-types';
+import { DriverRegistry } from '@/driver-registry';
+import { Driver } from '@/types';
+import type { EffectPayload } from '@/types/mapping-types';
 
 // Create mock functions at module scope
 const mockUdpSend = vi.fn();

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDriverStore } from './driver-store';
-import { Driver, DriverTelemetry } from '../../types';
+import { Driver, DriverTelemetry } from '@/types';
 
 describe('driver-store', () => {
   beforeEach(() => {

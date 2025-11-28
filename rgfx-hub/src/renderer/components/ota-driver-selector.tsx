@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, FormControl, InputLabel, Select, MenuItem, Alert } from '@mui/material';
-import { Driver } from '../../types';
+import { Driver } from '@/types';
 
 interface OtaDriverSelectorProps {
   drivers: Driver[];
