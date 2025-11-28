@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Aedes from 'aedes';
 import { MqttClientWrapper } from '../mqtt-client-wrapper';
-import type { MqttBroker } from '../../mqtt';
+import type { MqttBroker } from '@/mqtt';
 
 describe('MqttClientWrapper', () => {
   let aedes: Aedes;

@@ -7,11 +7,11 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { subscribeDriverStatus } from '../driver-status';
-import type { MqttBroker } from '../../mqtt';
-import type { DriverRegistry } from '../../driver-registry';
-import type { SystemMonitor } from '../../system-monitor';
+import type { MqttBroker } from '@/mqtt';
+import type { DriverRegistry } from '@/driver-registry';
+import type { SystemMonitor } from '@/system-monitor';
 import type { BrowserWindow } from 'electron';
-import type { Driver, SystemStatus } from '../../types';
+import type { Driver, SystemStatus } from '@/types';
 
 vi.mock('electron-log/main', () => ({
   default: {
