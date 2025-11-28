@@ -162,6 +162,12 @@ export const MAX_DRIVER_ID_LENGTH = 32;
  */
 export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
 
+/**
+ * Duration for toast notifications to auto-hide (milliseconds).
+ * Long enough to read, short enough not to annoy.
+ */
+export const TOAST_AUTO_HIDE_DURATION_MS = 5000;
+
 // ============================================================================
 // Test Configuration
 // ============================================================================

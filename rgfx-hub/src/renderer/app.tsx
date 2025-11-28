@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Box } from '@mui/material';
 import { AppLayout } from './components/app-layout';
+import { NotificationStack } from './components/notification-stack';
 import SystemStatusPage from './pages/system-status-page';
 import DriverDetailPage from './pages/driver-detail-page';
 import EventMonitorPage from './pages/event-monitor-page';
@@ -98,6 +99,7 @@ const App: React.FC = () => {
             </Routes>
           </AppLayout>
         </Box>
+        <NotificationStack />
       </HashRouter>
     </ThemeProvider>
   );
