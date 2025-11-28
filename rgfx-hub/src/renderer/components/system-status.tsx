@@ -4,7 +4,7 @@ import { Paper, Grid } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '../../types';
 import SystemStatusItem from './system-status-item';
 import { formatNumber, formatUptime } from '../utils/formatters';
-import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
+import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import pkg from '../../../package.json';
 
 interface SystemStatusProps {
