@@ -9,12 +9,12 @@ import {
   Sensors as SensorsIcon,
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
-import type { Driver } from '~/src/types';
+import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
-import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '~/src/config/constants';
+import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import { useDriverStore } from '../store/driver-store';
 
 interface DriverCardProps {

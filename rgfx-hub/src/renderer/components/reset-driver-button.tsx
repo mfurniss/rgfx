@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { RestartAlt as RestartAltIcon, Warning as WarningIcon } from '@mui/icons-material';
-import type { Driver } from '~/src/types';
+import type { Driver } from '@/types';
 
 interface ResetDriverButtonProps {
   driver: Driver;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Tooltip } from '@mui/material';
 import { Science as ScienceIcon } from '@mui/icons-material';
-import type { Driver } from '~/src/types';
+import type { Driver } from '@/types';
 
 interface TestLedButtonProps {
   driver: Driver;

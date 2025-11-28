@@ -12,7 +12,7 @@ import {
   TableSortLabel,
   Tooltip,
 } from '@mui/material';
-import type { Driver } from '~/src/types';
+import type { Driver } from '@/types';
 import { useUiStore, type SortField } from '../store/ui-store';
 import { useDriverStore } from '../store/driver-store';
 
