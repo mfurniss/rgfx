@@ -194,7 +194,7 @@ export default function TestEffectsPage() {
                 color="primary"
                 size="large"
                 onClick={handleTriggerEffect}
-                disabled={connectedDrivers.length === 0 || !isValid}
+                disabled={connectedDrivers.length === 0 || selectedDrivers.size === 0 || !isValid}
                 startIcon={<ScienceIcon />}
               >
                 Trigger Effect
