@@ -1,6 +1,5 @@
 // Galaga mapper - see pacman.js for format example
 export function handle({ subject, property }, _payload, { broadcast }) {
-
   // if (subject === "player" && property === "score") {
   //   return broadcast({
   //     effect: "pulse",
@@ -8,10 +7,11 @@ export function handle({ subject, property }, _payload, { broadcast }) {
   //   });
   // }
 
-  if (subject === "player" && property === "fired") {
+  if (subject === 'player' && property === 'fired') {
     return broadcast({
-      effect: "pulse",
-      props: { color: "#000020", duration: 800 },
+      effect: 'wipe',
+      drivers: ['rgfx-driver-0002', 'rgfx-driver-0006'],
+      props: { color: '#000010', duration: 1600 },
     });
   }
 
@@ -23,9 +23,10 @@ export function handle({ subject, property }, _payload, { broadcast }) {
   //   });
   // }
 
-  if (subject === "enemy" && property === "destroyed") {
+  if (subject === 'enemy' && property === 'destroyed') {
     return broadcast({
-      effect: "explode",
+      effect: 'explode',
+      drivers: ['*'],
       props: {
         // color: "random",
         particleCount: 80,
@@ -38,7 +39,7 @@ export function handle({ subject, property }, _payload, { broadcast }) {
         lifespanSpread: 1.2,
         // centerX: 50,
         // centerY: 50
-      }
+      },
     });
   }
 }

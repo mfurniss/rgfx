@@ -1,5 +1,6 @@
 // Generic player events
 export function handle({ subject, property }, _payload, { broadcast }) {
+  return false;
   if (subject !== 'player') return false;
 
   if (property === 'score') {

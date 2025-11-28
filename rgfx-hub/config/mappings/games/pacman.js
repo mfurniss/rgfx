@@ -93,7 +93,11 @@ const GHOST_STATE_COLORS = {
   [GHOST_STATE.EYES]: '#FFFFFF',
 };
 
-export function handle({ subject, property, qualifier }, payload, { broadcast }) {
+export function handle(
+  { subject, property, qualifier },
+  payload,
+  { broadcast }
+) {
   // Score changes - disabled for now to test bitmap effect
   // if (subject === 'player' && property === 'score') {
   //   broadcast({
@@ -136,24 +140,70 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
   }
 
   // Power pill eaten
-  if (subject === 'player' && property === 'eat' && qualifier === 'power-pill') {
+  if (
+    subject === 'player' &&
+    property === 'eat' &&
+    qualifier === 'power-pill'
+  ) {
+    broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#0000FF',
+        duration: 5000,
+      },
+    });
+
+    broadcast({
+      effect: 'explode',
+      props: {
+        color: '#FFFF80',
+        particleCount: 200,
+        power: 100,
+        lifespan: 800,
+        powerSpread: 1.6,
+        particleSize: 3,
+        friction: 2.2,
+        lifespanSpread: 1.3,
+        centerX: 0,
+        centerY: 0,
+      },
+    });
+
     return broadcast({
       effect: 'explode',
       props: {
-        color: '#0000FF',
-        duration: 1000,
+        color: '#FFFF80',
+        particleCount: 200,
+        power: 100,
+        lifespan: 800,
+        powerSpread: 1.6,
+        particleSize: 3,
+        friction: 2.2,
+        lifespanSpread: 1.3,
+        centerX: 100,
+        centerY: 100,
       },
     });
   }
 
   // Wakka wakka - eating regular pills
   if (subject === 'player' && property === 'eat' && qualifier === 'pill') {
+    broadcast({
+      effect: 'wipe',
+      drivers: ['*', '*'],
+      props: {
+        color: '#603030',
+        duration: 700,
+      },
+    });
     return broadcast({
       effect: 'bitmap',
+      drivers: ['rgfx-driver-0003', 'rgfx-driver-0005'],
       props: {
         color: 'yellow',
         duration: 150,
-        image: payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
+        image:
+          payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
       },
     });
   }
@@ -164,7 +214,7 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
       effect: 'pulse',
       props: {
         color: '#FF00FF',
-        duration: 800,
+        duration: 1200,
       },
     });
   }
@@ -174,8 +224,8 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
     return broadcast({
       effect: 'pulse',
       props: {
-        color: '#00FFFF',
-        duration: 600,
+        color: '#00A0FF',
+        duration: 1000,
       },
     });
   }
@@ -186,19 +236,26 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
     return broadcast({
       effect: 'pulse',
       props: {
-        color: '#FF0000',
-        duration: part === 1 ? 500 : 1000,
+        color: '#FFFF00',
+        duration: part === 1 ? 2500 : 300,
       },
     });
   }
 
   // Ghost eyes (after being eaten, returning to home)
   if (subject === 'player' && property === 'ghost' && qualifier === 'eyes') {
-    return broadcast({
-      effect: 'pulse',
+    broadcast({
+      effect: 'wipe',
       props: {
         color: '#FFFFFF',
-        duration: 400,
+        duration: 1200,
+      },
+    });
+    return broadcast({
+      effect: 'wipe',
+      props: {
+        color: '#FFFFFF',
+        duration: 800,
       },
     });
   }
@@ -243,15 +300,16 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
     const state = parseInt(payload);
 
     // Look up color by state, or use ghost's normal color
-    const color = GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || '#FFFFFF';
+    const color =
+      GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || '#FFFFFF';
 
     return broadcast({
       effect: 'pulse',
-      drivers: ['rgfx-driver-0002'], // LED Matrix
+      drivers: ['*'], // LED Matrix
       props: {
         color,
-        duration: 500,
-        fade: false,
+        duration: 1500,
+        fade: true,
       },
     });
   }
