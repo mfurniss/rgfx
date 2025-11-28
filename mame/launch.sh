@@ -25,4 +25,4 @@ fi
 cd "$MAME_DIR" || exit 1
 
 # Run MAME with autoboot script using absolute path to the script
-./mame "$@" -console -window -nomaximize -skip_gameinfo -video opengl -autoboot_script "${SCRIPT_DIR}/lua/rgfx.lua"
+./mame "$@" -window -nomaximize -skip_gameinfo -video opengl -autoboot_script "${SCRIPT_DIR}/lua/rgfx.lua"
