@@ -9,7 +9,7 @@ import Aedes from 'aedes';
 import { createServer, Server } from 'node:net';
 import log from 'electron-log/main';
 import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL } from '../config/constants';
-import { getLocalIP } from '../network/network-utils';
+import { getLocalIP } from './network-utils';
 import type { DiscoveryService } from './discovery-service';
 import { SsdpDiscovery } from './ssdp-discovery';
 import { UdpDiscovery } from './udp-discovery';

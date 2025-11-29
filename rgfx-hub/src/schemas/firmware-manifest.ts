@@ -10,14 +10,12 @@ import { z } from 'zod';
 /**
  * Firmware file entry schema
  */
-export const FirmwareFileSchema = z.object({
+const FirmwareFileSchema = z.object({
   name: z.string().min(1),
   address: z.number().int().nonnegative(),
   size: z.number().int().positive(),
   sha256: z.string().regex(/^[a-f0-9]{64}$/i),
 });
-
-export type FirmwareFile = z.infer<typeof FirmwareFileSchema>;
 
 /**
  * Firmware manifest schema

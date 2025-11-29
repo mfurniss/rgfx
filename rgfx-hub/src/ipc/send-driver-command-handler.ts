@@ -8,7 +8,7 @@
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
-import type { MqttBroker } from '../mqtt';
+import type { MqttBroker } from '../network';
 
 interface SendDriverCommandHandlerDeps {
   driverRegistry: DriverRegistry;

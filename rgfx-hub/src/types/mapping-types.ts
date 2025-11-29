@@ -89,7 +89,7 @@ export interface MqttClient {
 /**
  * HTTP client interface for calling external REST APIs
  */
-export interface HttpClient {
+interface HttpClient {
   /**
    * HTTP GET request
    * @param url Target URL
@@ -227,18 +227,3 @@ export type MappingHandler = (
   context: MappingContext
 ) => boolean | Promise<boolean>;
 
-/**
- * Mapping file export structure
- *
- * Each mapper file must export a default object or a named "handle" function
- */
-export interface MappingFile {
-  /** Handler function */
-  handle: MappingHandler;
-
-  /** Optional priority (higher = earlier in cascade) */
-  priority?: number;
-
-  /** Optional enable/disable flag */
-  enabled?: boolean;
-}

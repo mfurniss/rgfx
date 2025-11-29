@@ -32,6 +32,8 @@ export default tseslint.config(
       }],
       // Enforce const for variables that are never reassigned
       'prefer-const': 'error',
+      // Enforce object shorthand syntax
+      'object-shorthand': ['error', 'always'],
     },
   },
 

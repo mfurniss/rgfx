@@ -9,7 +9,7 @@ import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
-import { MqttBroker } from './mqtt';
+import { MqttBroker } from './network';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';

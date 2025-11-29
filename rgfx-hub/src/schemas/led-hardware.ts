@@ -25,4 +25,3 @@ export const LEDHardwareSchema = z.object({
   height: z.number().optional(),
 });
 
-export type LEDHardwareFromSchema = z.infer<typeof LEDHardwareSchema>;
