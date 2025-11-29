@@ -23,6 +23,11 @@ class ExplodeEffect : public IEffect {
 		float centerX, centerY;
 		uint32_t particleSize;
 		float friction;
+
+		// Flash state (LED strips only - white pulse that collapses inward)
+		float flashInitialWidth;  // Starting width of flash
+		float flashDuration;      // Total flash duration in seconds
+		float flashAge;           // Current age in seconds
 	};
 
 	Canvas canvas;
