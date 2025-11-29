@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { app } from 'electron';
 
-export class FirmwareVersionService {
+class FirmwareVersionService {
   private readonly firmwareDir: string;
 
   constructor() {

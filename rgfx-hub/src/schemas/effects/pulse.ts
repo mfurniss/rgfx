@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { color, easing } from './properties';
 
 /**
  * Pulse effect props schema
@@ -13,9 +14,9 @@ import { z } from 'zod';
  */
 export default z
   .object({
-    color: z.union([z.string(), z.number()]).optional().default('random'),
+    color,
     duration: z.number().positive().optional().default(1000),
     fade: z.boolean().optional().default(true),
-    easing: z.string().optional().default('quadraticOut'),
+    easing,
   })
   .strict();

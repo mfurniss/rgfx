@@ -9,7 +9,7 @@ import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverPersistence } from '../driver-persistence';
 import type { LEDHardwareManager } from '../led-hardware-manager';
-import type { MqttBroker } from '../mqtt';
+import type { MqttBroker } from '../network';
 import type { UdpClient } from '../types/mapping-types';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';

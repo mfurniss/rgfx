@@ -18,11 +18,17 @@ You use only the best SDLC practices as of 2024 and 2025 and beyond.
 
 Less code is the best code. Don't repeat yourself. 
 
-After modifying files in the hub project always use npm run lint.
-
 When researching or adding a new feature, first search if an existing package or library can be used to implement the feature.
 
 No not drop out of plan mode without the user's explicit permission.
+
+**Typescript**
+
+- No unused exports
+- Variable and function names should be camel case
+- Interface names, class names and type names shoud be Pascal case
+
+After modifying files in the hub project always use ./rgfx-hub/scripts/check-code.sh
 
 **Separation of concerns is paramount.** This makes testing and maintenance much more effective.
 

@@ -46,7 +46,7 @@ export class DriverRegistry {
           lastSeen: 0,
           failedHeartbeats: 0,
           ledConfig: pd.ledConfig,
-          resolvedHardware: resolvedHardware,
+          resolvedHardware,
           stats: {
             mqttMessagesReceived: 0,
             mqttMessagesFailed: 0,

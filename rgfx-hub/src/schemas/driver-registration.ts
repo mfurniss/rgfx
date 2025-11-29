@@ -5,7 +5,6 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { z } from 'zod';
 import { TelemetryPayloadSchema } from './telemetry-payload';
 import { DriverTelemetrySchema } from './driver-telemetry';
 
@@ -29,4 +28,3 @@ export const DriverRegistrationSchema = TelemetryPayloadSchema.pick({
   telemetry: DriverTelemetrySchema,
 });
 
-export type DriverRegistration = z.infer<typeof DriverRegistrationSchema>;

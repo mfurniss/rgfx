@@ -8,7 +8,7 @@
 import log from 'electron-log/main';
 import type { DriverPersistence } from './driver-persistence';
 import type { LEDHardwareManager } from './led-hardware-manager';
-import type { MqttBroker } from './mqtt';
+import type { MqttBroker } from './network';
 
 interface UploadConfigDeps {
   driverPersistence: DriverPersistence;
