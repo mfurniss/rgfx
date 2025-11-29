@@ -197,6 +197,24 @@ export class DriverPersistence {
   }
 
   /**
+   * Set remote logging level for a specific driver
+   */
+  setRemoteLogging(id: string, level: PersistedDriver['remoteLogging']): boolean {
+    const driver = this.drivers.get(id);
+
+    if (!driver) {
+      log.warn(`Cannot set remote logging for non-existent driver: ${id}`);
+      return false;
+    }
+
+    driver.remoteLogging = level;
+    this.drivers.set(id, driver);
+    this.saveConfig();
+    log.info(`Set remote logging for driver ${id}: ${level}`);
+    return true;
+  }
+
+  /**
    * Get all known drivers (for UI and DriverRegistry initialization)
    */
   getAllDrivers(): PersistedDriver[] {

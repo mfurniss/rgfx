@@ -63,6 +63,8 @@ describe('App IPC Listener Registration', () => {
       flashOTA: vi.fn(),
       triggerDiscovery: vi.fn(),
       triggerEffect: vi.fn(),
+      saveDriverConfig: vi.fn(),
+      getLEDHardwareList: vi.fn(),
     };
   });
 
