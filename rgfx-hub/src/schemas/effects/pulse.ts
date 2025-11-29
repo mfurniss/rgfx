@@ -16,7 +16,7 @@ export default z
   .object({
     color,
     duration: z.number().positive().optional().default(1000),
-    fade: z.boolean().optional().default(true),
     easing,
+    fade: z.boolean().optional().default(true),
   })
   .strict();
