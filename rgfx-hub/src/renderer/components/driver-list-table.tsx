@@ -85,9 +85,9 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
         <TableBody>
           {sortedDrivers.map((driver: Driver) => (
             <TableRow
-              key={driver.id}
+              key={driver.mac ?? driver.id}
               onClick={() => {
-                void navigate(`/driver/${driver.id}`);
+                void navigate(`/driver/${driver.mac}`);
               }}
               sx={{
                 cursor: 'pointer',

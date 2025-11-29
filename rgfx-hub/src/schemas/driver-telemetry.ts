@@ -5,7 +5,6 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { z } from 'zod';
 import { TelemetryPayloadSchema } from './telemetry-payload';
 
 /**
@@ -29,4 +28,3 @@ export const DriverTelemetrySchema = TelemetryPayloadSchema.pick({
   freeSketchSpace: true,
 });
 
-export type DriverTelemetryFromSchema = z.infer<typeof DriverTelemetrySchema>;

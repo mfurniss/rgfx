@@ -42,11 +42,20 @@ void WipeEffect::render() {
 	uint16_t height = canvas.getHeight();
 
 	for (const auto& wipe : wipes) {
-		uint16_t column = wipe.currentColumn(width);
 		uint32_t rgba = RGBA(wipe.r, wipe.g, wipe.b, 255);
+		uint32_t halfDuration = wipe.duration / 2;
 
-		uint16_t columnWidth = std::min(width / 10, 8);
-		canvas.drawRectangle(column, 0, columnWidth, height, rgba);
+		if (wipe.elapsedTime < halfDuration) {
+			// First half: fill from left to right
+			float progress = static_cast<float>(wipe.elapsedTime) / halfDuration;
+			uint16_t fillWidth = static_cast<uint16_t>(progress * width);
+			canvas.drawRectangle(0, 0, fillWidth, height, rgba, BlendMode::AVERAGE);
+		} else {
+			// Second half: disappear from left to right
+			float progress = static_cast<float>(wipe.elapsedTime - halfDuration) / halfDuration;
+			uint16_t startX = static_cast<uint16_t>(progress * width);
+			canvas.drawRectangle(startX, 0, width - startX, height, rgba, BlendMode::AVERAGE);
+		}
 	}
 }
 

@@ -10,23 +10,21 @@ import { z } from 'zod';
 /**
  * Driver LED configuration schema
  */
-export const DriverLEDConfigSchema = z.object({
+const DriverLEDConfigSchema = z.object({
   hardwareRef: z.string(),
   pin: z.number().int().min(0).max(39),
-  offset: z.number().int().min(0).optional(),
-  maxBrightness: z.number().int().min(0).max(255).optional(),
-  globalBrightnessLimit: z.number().int().min(0).max(255).optional(),
-  dithering: z.boolean().optional(),
-  powerSupplyVolts: z.number().positive().optional(),
-  maxPowerMilliamps: z.number().positive().optional(),
+  offset: z.number().int().min(0).nullable().optional(),
+  maxBrightness: z.number().int().min(0).max(255).nullable().optional(),
+  globalBrightnessLimit: z.number().int().min(0).max(255).nullable().optional(),
+  dithering: z.boolean().nullable().optional(),
+  powerSupplyVolts: z.number().positive().max(24).nullable().optional(),
+  maxPowerMilliamps: z.number().positive().max(10000).nullable().optional(),
 });
-
-export type DriverLEDConfigFromSchema = z.infer<typeof DriverLEDConfigSchema>;
 
 /**
  * Remote logging level for driver-to-hub log forwarding
  */
-export const RemoteLoggingLevelSchema = z.enum(['all', 'errors', 'off']);
+const RemoteLoggingLevelSchema = z.enum(['all', 'errors', 'off']);
 export type RemoteLoggingLevel = z.infer<typeof RemoteLoggingLevelSchema>;
 
 /**
@@ -42,10 +40,13 @@ export const PersistedDriverSchema = z.object({
   macAddress: z.string().regex(/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i),
   description: z.string().optional(),
   ledConfig: DriverLEDConfigSchema.nullable().optional(),
-  remoteLogging: RemoteLoggingLevelSchema.optional().default('off'),
+  remoteLogging: RemoteLoggingLevelSchema.optional().default('errors'),
 });
 
 export type PersistedDriverFromSchema = z.infer<typeof PersistedDriverSchema>;
+
+// Input type for forms (before defaults are applied)
+export type PersistedDriverInput = z.input<typeof PersistedDriverSchema>;
 
 /**
  * Raw driver configuration file schema (for initial parsing)
@@ -56,12 +57,7 @@ export const DriversConfigFileRawSchema = z.object({
   drivers: z.array(z.unknown()),
 });
 
-/**
- * Unified driver configuration file schema (fully validated)
- */
-export const DriversConfigFileSchema = z.object({
-  version: z.string().min(1),
-  drivers: z.array(PersistedDriverSchema),
-});
-
-export type DriversConfigFile = z.infer<typeof DriversConfigFileSchema>;
+export interface DriversConfigFile {
+  version: string;
+  drivers: PersistedDriverFromSchema[];
+}

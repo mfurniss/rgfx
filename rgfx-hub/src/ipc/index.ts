@@ -7,20 +7,26 @@
 
 import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
-import type { MqttBroker } from '../mqtt';
+import type { DriverPersistence } from '../driver-persistence';
+import type { LEDHardwareManager } from '../led-hardware-manager';
+import type { MqttBroker } from '../network';
 import type { UdpClient } from '../types/mapping-types';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';
 import { registerTriggerEffectHandler } from './trigger-effect-handler';
 import { registerSendDriverCommandHandler } from './send-driver-command-handler';
 import { registerUpdateDriverConfigHandler } from './update-driver-config-handler';
+import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
+import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
+  driverPersistence: DriverPersistence;
+  ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
   udpClient: UdpClient;
-  getMainWindow: () => BrowserWindow;
+  getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerIpcHandlers(deps: IpcHandlersDeps): void {
@@ -29,4 +35,6 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerTriggerEffectHandler(deps);
   registerSendDriverCommandHandler(deps);
   registerUpdateDriverConfigHandler(deps);
+  registerSaveDriverConfigHandler(deps);
+  registerListLEDHardwareHandler(deps);
 }

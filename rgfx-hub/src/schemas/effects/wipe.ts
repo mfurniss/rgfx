@@ -7,13 +7,15 @@
 
 import { z } from 'zod';
 
+import { color } from './properties';
+
 /**
  * Wipe effect props schema
  * Creates a color wipe that sweeps across the display
  */
 export default z
   .object({
-    color: z.union([z.string(), z.number()]).optional().default('green'),
+    color,
     duration: z.number().positive().optional().default(500),
   })
   .strict();

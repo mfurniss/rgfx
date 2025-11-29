@@ -5,6 +5,7 @@ import { AppLayout } from './components/app-layout';
 import { NotificationStack } from './components/notification-stack';
 import SystemStatusPage from './pages/system-status-page';
 import DriverDetailPage from './pages/driver-detail-page';
+import DriverConfigPage from './pages/driver-config-page';
 import EventMonitorPage from './pages/event-monitor-page';
 import FirmwarePage from './pages/firmware-page';
 import TestEffectsPage from './pages/test-effects-page';
@@ -91,7 +92,8 @@ const App: React.FC = () => {
           <AppLayout>
             <Routes>
               <Route path="/" element={<SystemStatusPage />} />
-              <Route path="/driver/:id" element={<DriverDetailPage />} />
+              <Route path="/driver/:mac" element={<DriverDetailPage />} />
+              <Route path="/driver/:mac/config" element={<DriverConfigPage />} />
               <Route path="/events" element={<EventMonitorPage />} />
               <Route path="/firmware" element={<FirmwarePage />} />
               <Route path="/test-effects" element={<TestEffectsPage />} />

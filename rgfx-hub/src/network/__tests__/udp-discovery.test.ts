@@ -10,7 +10,7 @@ import { UdpDiscovery } from '../udp-discovery';
 import { createSocket } from 'node:dgram';
 
 vi.mock('node:dgram');
-vi.mock('../../network/network-utils', () => ({
+vi.mock('../network-utils', () => ({
   getBroadcastAddress: vi.fn().mockReturnValue('192.168.1.255'),
 }));
 

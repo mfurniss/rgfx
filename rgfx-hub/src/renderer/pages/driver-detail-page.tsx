@@ -8,15 +8,15 @@ import { useDriverStore } from '../store/driver-store';
  * Driver detail page showing full DriverCard for a specific driver
  */
 const DriverDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { mac } = useParams<{ mac: string }>();
 
   // Use reactive selector that subscribes to specific driver changes
-  const driver = useDriverStore((state) => state.drivers.find((d) => d.id === id));
+  const driver = useDriverStore((state) => state.drivers.find((d) => d.mac === mac));
 
-  if (!id) {
+  if (!mac) {
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">Invalid driver ID</Typography>
+        <Typography color="error">Invalid driver MAC address</Typography>
       </Paper>
     );
   }
@@ -27,7 +27,7 @@ const DriverDetailPage: React.FC = () => {
         <Typography variant="h6" color="error" gutterBottom>
           Driver Not Found
         </Typography>
-        <Typography color="text.secondary">No driver found with ID: {id}</Typography>
+        <Typography color="text.secondary">No driver found with MAC: {mac}</Typography>
       </Paper>
     );
   }

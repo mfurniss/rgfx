@@ -15,10 +15,9 @@ export { LEDHardwareSchema } from './led-hardware';
 export {
   PersistedDriverSchema,
   type PersistedDriverFromSchema,
-  RemoteLoggingLevelSchema,
+  type PersistedDriverInput,
   type RemoteLoggingLevel,
   DriversConfigFileRawSchema,
-  DriversConfigFileSchema,
   type DriversConfigFile,
 } from './driver-persistence';
 
@@ -27,3 +26,4 @@ export { FirmwareManifestSchema, type FirmwareManifest } from './firmware-manife
 
 // Effect props schemas and validation
 export { effectSchemas, safeValidateEffectProps, isEffectName } from './effects';
+

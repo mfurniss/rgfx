@@ -128,7 +128,7 @@ export default function TestEffectsPage() {
 
         const payload: EffectPayload = {
           effect: selectedEffect,
-          props: props,
+          props,
         };
 
         if (selectedDrivers.size > 0) {
@@ -186,7 +186,10 @@ export default function TestEffectsPage() {
                 fullWidth
                 error={!isValid}
                 helperText={validationError}
-                sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace' } }}
+                sx={{
+                  '& .MuiInputBase-input': { fontFamily: 'monospace' },
+                  '& .MuiFormHelperText-root': { wordBreak: 'break-word' },
+                }}
               />
 
               <Button

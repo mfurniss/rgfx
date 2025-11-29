@@ -42,10 +42,11 @@ export class DriverRegistry {
         const driver = new Driver({
           id: pd.id,
           description: pd.description,
+          remoteLogging: pd.remoteLogging,
           lastSeen: 0,
           failedHeartbeats: 0,
           ledConfig: pd.ledConfig,
-          resolvedHardware: resolvedHardware,
+          resolvedHardware,
           stats: {
             mqttMessagesReceived: 0,
             mqttMessagesFailed: 0,
@@ -225,6 +226,7 @@ export class DriverRegistry {
     return new Driver({
       id: driverId,
       description: persistedDriver?.description,
+      remoteLogging: persistedDriver?.remoteLogging,
       // Network information
       ip: telemetryData.ip,
       mac: telemetryData.mac,
@@ -336,5 +338,85 @@ export class DriverRegistry {
 
   getConnectedDrivers(): Driver[] {
     return this.getAllDrivers().filter((d) => d.connected);
+  }
+
+  /**
+   * Refresh a driver from persistence after config changes (e.g., rename)
+   * Updates the runtime driver and returns the updated driver for IPC notification
+   */
+  refreshDriverFromPersistence(
+    macAddress: string,
+    ledHardwareManager: LEDHardwareManager,
+  ): Driver | undefined {
+    if (!this.persistence) {
+      return undefined;
+    }
+
+    const persistedDriver = this.persistence.getDriverByMac(macAddress);
+
+    if (!persistedDriver) {
+      log.warn(`Cannot refresh driver: no persisted driver found for MAC ${macAddress}`);
+      return undefined;
+    }
+
+    // Find the existing runtime driver by MAC
+    const existingDriver = this.getDriverByMac(macAddress);
+
+    if (!existingDriver) {
+      log.warn(`Cannot refresh driver: no runtime driver found for MAC ${macAddress}`);
+      return undefined;
+    }
+
+    const oldId = existingDriver.id;
+    const newId = persistedDriver.id;
+
+    // Resolve LED hardware if config exists
+    let resolvedHardware: LEDHardware | undefined = existingDriver.resolvedHardware;
+
+    if (persistedDriver.ledConfig?.hardwareRef) {
+      const hardware = ledHardwareManager.loadHardware(persistedDriver.ledConfig.hardwareRef);
+
+      if (hardware) {
+        resolvedHardware = hardware;
+      }
+    }
+
+    // Create updated driver with new ID and config
+    const updatedDriver = new Driver({
+      id: newId,
+      description: persistedDriver.description,
+      ip: existingDriver.ip,
+      mac: existingDriver.mac,
+      hostname: existingDriver.hostname,
+      ssid: existingDriver.ssid,
+      remoteLogging: persistedDriver.remoteLogging,
+      rssi: existingDriver.rssi,
+      freeHeap: existingDriver.freeHeap,
+      minFreeHeap: existingDriver.minFreeHeap,
+      uptimeMs: existingDriver.uptimeMs,
+      lastSeen: existingDriver.lastSeen,
+      failedHeartbeats: existingDriver.failedHeartbeats,
+      lastHeartbeat: existingDriver.lastHeartbeat,
+      lastSeenAt: existingDriver.lastSeenAt,
+      telemetry: existingDriver.telemetry,
+      ledConfig: persistedDriver.ledConfig,
+      resolvedHardware,
+      stats: existingDriver.stats,
+      updateRate: existingDriver.updateRate,
+      testActive: existingDriver.testActive,
+      connected: existingDriver.connected,
+    });
+
+    // Remove old entry if ID changed
+    if (oldId !== newId) {
+      this.drivers.delete(oldId);
+      log.info(`Driver ID changed in registry: ${oldId} → ${newId}`);
+    }
+
+    // Store updated driver
+    this.drivers.set(newId, updatedDriver);
+    log.info(`Refreshed driver ${newId} from persistence`);
+
+    return updatedDriver;
   }
 }

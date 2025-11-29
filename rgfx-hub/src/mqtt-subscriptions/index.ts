@@ -6,7 +6,7 @@
  */
 
 import type { BrowserWindow } from 'electron';
-import type { MqttBroker } from '../mqtt';
+import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverLogPersistence } from '../driver-log-persistence';
