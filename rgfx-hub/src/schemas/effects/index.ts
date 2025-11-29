@@ -21,7 +21,7 @@ export const effectSchemas = {
   bitmap: bitmapSchema,
 } as const;
 
-export type EffectName = keyof typeof effectSchemas;
+type EffectName = keyof typeof effectSchemas;
 
 // Union type of all effect props (used internally for return types)
 type EffectProps =
@@ -37,16 +37,6 @@ export function isEffectName(effect: string): effect is EffectName {
   return effect in effectSchemas;
 }
 
-/**
- * Validate effect props against the appropriate schema
- * Returns parsed data with defaults applied, or throws on invalid input
- */
-export function validateEffectProps(effect: string, props: unknown): EffectProps {
-  if (!isEffectName(effect)) {
-    throw new Error(`Unknown effect type: ${effect}`);
-  }
-  return effectSchemas[effect].parse(props) as EffectProps;
-}
 
 /**
  * Safe version that returns a result object instead of throwing

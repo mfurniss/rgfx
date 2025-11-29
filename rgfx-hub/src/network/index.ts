@@ -6,10 +6,3 @@
  */
 
 export { MqttBroker } from './mqtt-broker';
-
-// Export types for external use
-export type { DiscoveryService, DiscoveryServiceConfig } from './discovery-service';
-
-// Export discovery implementations for testing or custom configuration
-export { SsdpDiscovery } from './ssdp-discovery';
-export { UdpDiscovery } from './udp-discovery';

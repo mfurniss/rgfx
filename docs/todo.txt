@@ -10,7 +10,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Per-driver LED config
 [X] Game event to network message mapping using per-game JS scripts
 [X] Research Electron app and Aedes pure JS MQTT
-[ ] Device logging - on device logs, via network and web interface
+[X] Device logging - on device logs, via network and web interface
 [X] Research other emulators
 [X] Hub unit and integration tests
 [X] Virtual LED arrays with down-sampling
@@ -30,7 +30,6 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] rgfx.io website
 [ ] Implement all FastLED config options
 [X] Mame Lua mapping file for same game with different ROM files
-[ ] Event prioritization in the hub - game events can optionally be sent as MQTT
 [X] Lua linting and formatting
 [X] ESP32 dual-core processing
 [ ] Hub to download new firmware and flash connected drivers
@@ -52,7 +51,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] C++ native unit and integration tests
 [ ] ESP32 embedded unit and integration tests
 [X] Selective driver event routing
-[ ] Driver config UI
+[X] Driver config UI
 [X] New driver ID format
 [X] Display driver firmware version in Hub
 [X] Fix MAME Lua file writing bug - stops writing to file
@@ -75,7 +74,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Research Electron app auto updates
 [X] Implement esptool-js + node-serialport
 [X] Ensure Hub and firmware versions are syncronized
-[ ] Global Event Bus instead of individual IPC handlers
+[X] Look into Global Event Bus instead of individual IPC handlers
 [X] Driver telemetry displayed in Hub
 [ ] Store WiFi creds in hub and auto set for newly flashed drivers
 [X] Optimize canvas for 1D LED strips

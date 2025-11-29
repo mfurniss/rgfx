@@ -1,6 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload } from './types/mapping-types';
+import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
  * LED Configuration Types
@@ -56,12 +57,12 @@ export interface LEDHardware {
 export interface DriverLEDConfig {
   hardwareRef: string;
   pin: number;
-  offset?: number;
-  maxBrightness?: number;
-  globalBrightnessLimit?: number;
-  dithering?: boolean;
-  powerSupplyVolts?: number;
-  maxPowerMilliamps?: number;
+  offset?: number | null;
+  maxBrightness?: number | null;
+  globalBrightnessLimit?: number | null;
+  dithering?: boolean | null;
+  powerSupplyVolts?: number | null;
+  maxPowerMilliamps?: number | null;
 }
 
 /**
@@ -110,6 +111,9 @@ export class Driver {
   hostname?: string;
   ssid?: string;
 
+  // Configuration
+  remoteLogging?: RemoteLoggingLevel;
+
   // Runtime metrics (updated via telemetry)
   rssi?: number;
   freeHeap?: number;
@@ -144,6 +148,7 @@ export class Driver {
     mac?: string;
     hostname?: string;
     ssid?: string;
+    remoteLogging?: RemoteLoggingLevel;
     rssi?: number;
     freeHeap?: number;
     minFreeHeap?: number;
@@ -166,6 +171,7 @@ export class Driver {
     this.mac = data.mac;
     this.hostname = data.hostname;
     this.ssid = data.ssid;
+    this.remoteLogging = data.remoteLogging;
     this.rssi = data.rssi;
     this.freeHeap = data.freeHeap;
     this.minFreeHeap = data.minFreeHeap;
@@ -195,6 +201,7 @@ export function serializeDriverForIPC(driver: Driver) {
     mac: driver.mac,
     hostname: driver.hostname,
     ssid: driver.ssid,
+    remoteLogging: driver.remoteLogging,
     rssi: driver.rssi,
     freeHeap: driver.freeHeap,
     minFreeHeap: driver.minFreeHeap,
@@ -252,6 +259,8 @@ declare global {
       rendererReady: () => void;
       triggerDiscovery: () => Promise<void>;
       triggerEffect: (payload: EffectPayload) => Promise<void>;
+      saveDriverConfig: (config: PersistedDriverFromSchema) => Promise<{ success: boolean }>;
+      getLEDHardwareList: () => Promise<string[]>;
     };
   }
 }

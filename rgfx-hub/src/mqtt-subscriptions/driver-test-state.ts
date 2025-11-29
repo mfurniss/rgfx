@@ -7,7 +7,7 @@
 
 import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
-import type { MqttBroker } from '../mqtt';
+import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import { serializeDriverForIPC } from '../types';
 

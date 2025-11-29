@@ -6,7 +6,7 @@
  */
 
 import type { MqttClient } from '../types/mapping-types';
-import type { MqttBroker } from '../mqtt';
+import type { MqttBroker } from '../network';
 import { MQTT_QOS_LEVEL } from '../config/constants';
 
 /**
@@ -37,9 +37,9 @@ export class MqttClientWrapper implements MqttClient {
         this.mqtt.aedes.publish(
           {
             cmd: 'publish',
-            qos: qos,
+            qos,
             dup: false,
-            topic: topic,
+            topic,
             payload: Buffer.from(payloadStr),
             retain: false,
           },

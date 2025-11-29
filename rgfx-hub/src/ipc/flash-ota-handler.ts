@@ -12,7 +12,7 @@ import type { DriverRegistry } from '../driver-registry';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
-  getMainWindow: () => BrowserWindow;
+  getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
@@ -53,7 +53,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
-        getMainWindow().webContents.send('flash:ota:state', state);
+        getMainWindow()?.webContents.send('flash:ota:state', state);
       });
 
       let lastPercent = -1;
@@ -62,7 +62,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
-          getMainWindow().webContents.send('flash:ota:progress', {
+          getMainWindow()?.webContents.send('flash:ota:progress', {
             sent: data.sent,
             total: data.total,
             percent,

@@ -1,0 +1,37 @@
+import { z } from 'zod';
+
+const easingNameSchema = z.enum([
+  'linear',
+  'quadraticIn',
+  'quadraticOut',
+  'quadraticInOut',
+  'cubicIn',
+  'cubicOut',
+  'cubicInOut',
+  'quarticIn',
+  'quarticOut',
+  'quarticInOut',
+  'quinticIn',
+  'quinticOut',
+  'quinticInOut',
+  'sineIn',
+  'sineOut',
+  'sineInOut',
+  'circularIn',
+  'circularOut',
+  'circularInOut',
+  'exponentialIn',
+  'exponentialOut',
+  'exponentialInOut',
+  'elasticIn',
+  'elasticOut',
+  'elasticInOut',
+  'backIn',
+  'backOut',
+  'backInOut',
+  'bounceIn',
+  'bounceOut',
+  'bounceInOut',
+]);
+
+export default easingNameSchema.optional().default('quadraticOut');

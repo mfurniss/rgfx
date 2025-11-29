@@ -44,4 +44,3 @@ export const TelemetryPayloadSchema = z.object({
   udpMessagesReceived: z.number().optional(),
 });
 
-export type TelemetryPayload = z.infer<typeof TelemetryPayloadSchema>;

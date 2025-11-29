@@ -7,13 +7,15 @@
 
 import { z } from 'zod';
 
+import { color } from './properties';
+
 /**
  * Explode effect props schema
  * Creates a particle explosion effect from a center point
  */
 export default z
   .object({
-    color: z.union([z.string(), z.number()]).optional().default('random'),
+    color,
     particleCount: z.number().int().min(1).max(500).optional().default(100),
     power: z.number().positive().optional().default(50),
     lifespan: z.number().positive().optional().default(800),

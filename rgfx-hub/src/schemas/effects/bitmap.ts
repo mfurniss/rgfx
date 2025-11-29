@@ -7,13 +7,15 @@
 
 import { z } from 'zod';
 
+import { color } from './properties';
+
 /**
  * Bitmap effect props schema
  * Displays a bitmap image on the LED matrix
  */
 export default z
   .object({
-    color: z.union([z.string(), z.number()]).optional().default('random'),
+    color,
     duration: z.number().positive().optional().default(400),
     image: z
       .array(z.string())

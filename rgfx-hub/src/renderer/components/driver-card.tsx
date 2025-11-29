@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert } from '@mui/material';
+import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert, Button, Stack } from '@mui/material';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -8,6 +8,7 @@ import {
   Speed as SpeedIcon,
   Sensors as SensorsIcon,
   ArrowBack as ArrowBackIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from './info-section';
@@ -201,14 +202,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           {
             label: 'Max Brightness',
             value:
-                  ledConfig.maxBrightness !== undefined
+                  ledConfig.maxBrightness != null
                     ? formatNumber(ledConfig.maxBrightness)
                     : 'Not set',
           },
           {
             label: 'Brightness Limit',
             value:
-                  ledConfig.globalBrightnessLimit !== undefined
+                  ledConfig.globalBrightnessLimit != null
                     ? formatNumber(ledConfig.globalBrightnessLimit)
                     : 'Not set',
           },
@@ -239,37 +240,46 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             justifyContent: 'space-between',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
             <IconButton
               onClick={() => {
                 void navigate('/');
               }}
               size="small"
-              sx={{ mr: 1 }}
               aria-label="Back to System Status"
             >
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h6">{driver.id}</Typography>
-          </Box>
-          {!driver.connected ? (
-            <Chip label="Disconnected" color="error" size="small" />
-          ) : currentFirmwareVersion &&
-            telemetry?.firmwareVersion &&
-            telemetry.firmwareVersion !== currentFirmwareVersion ? (
-              <Tooltip
-                title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
-                arrow
-              >
-                <Chip label="Update Available" color="warning" size="small" />
-              </Tooltip>
-            ) : !driver.ledConfig ? (
-              <Tooltip title="Connected but needs LED configuration" arrow>
-                <Chip label="Needs Configuration" color="warning" size="small" />
-              </Tooltip>
-            ) : (
-              <Chip label="Connected" color="success" size="small" />
-            )}
+            <Typography variant="h6" sx={{ pb: 0 }}>{driver.id}</Typography>
+            {!driver.connected ? (
+              <Chip label="Disconnected" color="error" size="small" />
+            ) : currentFirmwareVersion &&
+              telemetry?.firmwareVersion &&
+              telemetry.firmwareVersion !== currentFirmwareVersion ? (
+                <Tooltip
+                  title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
+                  arrow
+                >
+                  <Chip label="Update Available" color="warning" size="small" />
+                </Tooltip>
+              ) : !driver.ledConfig ? (
+                <Tooltip title="Connected but needs LED configuration" arrow>
+                  <Chip label="Needs Configuration" color="warning" size="small" />
+                </Tooltip>
+              ) : (
+                <Chip label="Connected" color="success" size="small" />
+              )}
+          </Stack>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<SettingsIcon />}
+            onClick={() => {
+              void navigate(`/driver/${driver.mac}/config`);
+            }}
+          >
+            Configure Driver
+          </Button>
         </Box>
       </Paper>
 

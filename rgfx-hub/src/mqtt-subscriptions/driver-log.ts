@@ -7,7 +7,7 @@
 
 import log from 'electron-log/main';
 import { z } from 'zod';
-import type { MqttBroker } from '../mqtt';
+import type { MqttBroker } from '../network';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 
 /**

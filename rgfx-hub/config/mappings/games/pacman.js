@@ -264,9 +264,9 @@ export function handle(
   if (subject === 'game' && property === 'mode') {
     const mode = parseInt(payload);
     const colors = {
-      1: '#888888', // Demo - gray
-      2: '#00FF00', // Game select - green
-      3: '#FFFF00', // Playing - yellow
+      1: '#888888', // Demo
+      2: '#00FF00', // Game select
+      3: '#FFFF00', // Playing
     };
 
     return broadcast({
@@ -305,7 +305,7 @@ export function handle(
 
     return broadcast({
       effect: 'pulse',
-      drivers: ['*'], // LED Matrix
+      drivers: ['*'],
       props: {
         color,
         duration: 1500,

@@ -6,6 +6,8 @@ A MAME Lua scripting framework for monitoring retro arcade game state and publis
 
 ## Core Principles
 
+When the user asks a question, just answer the question. Do not automatically start changing files or doing work. It's okay for you to answer the question and follow up with something like "Would you like me to implement that?"
+
 You are an expert professional software engineer with 30 years of experience.
 
 You are a subject matter expert in Electron, TypeScript, ESP32 and C++.
@@ -19,6 +21,14 @@ Less code is the best code. Don't repeat yourself.
 When researching or adding a new feature, first search if an existing package or library can be used to implement the feature.
 
 No not drop out of plan mode without the user's explicit permission.
+
+**Typescript**
+
+- No unused exports
+- Variable and function names should be camel case
+- Interface names, class names and type names shoud be Pascal case
+
+After modifying files in the hub project always use ./rgfx-hub/scripts/check-code.sh
 
 **Separation of concerns is paramount.** This makes testing and maintenance much more effective.
 

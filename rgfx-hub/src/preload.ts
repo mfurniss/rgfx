@@ -2,6 +2,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { Driver, SystemStatus, EventTopicData } from './types';
 import type { EffectPayload } from './types/mapping-types';
+import type { PersistedDriverFromSchema } from './schemas';
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
@@ -127,6 +128,14 @@ export const rgfxAPI = {
 
   triggerEffect: (payload: EffectPayload): Promise<void> => {
     return ipcRenderer.invoke('effect:trigger', payload);
+  },
+
+  saveDriverConfig: (config: PersistedDriverFromSchema): Promise<{ success: boolean }> => {
+    return ipcRenderer.invoke('driver:save-config', config);
+  },
+
+  getLEDHardwareList: (): Promise<string[]> => {
+    return ipcRenderer.invoke('led-hardware:list');
   },
 };
 
