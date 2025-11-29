@@ -66,6 +66,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource/poppins": "^5.2.7",
+    "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
     "aedes": "^0.51.3",
@@ -78,6 +79,7 @@
     "node-ssdp": "^4.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.67.0",
     "react-router-dom": "^7.9.4",
     "zod": "^4.1.13",
     "zustand": "^5.0.8"

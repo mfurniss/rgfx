@@ -72,7 +72,6 @@ const systemMonitor = new SystemMonitor();
 
 // Create uploadConfigToDriver function
 const uploadConfigToDriver = createUploadConfigToDriver({
-  driverRegistry,
   driverPersistence,
   ledHardwareManager,
   mqtt,
@@ -143,6 +142,8 @@ void installDefaultMappers()
 // Register IPC handlers
 registerIpcHandlers({
   driverRegistry,
+  driverPersistence,
+  ledHardwareManager,
   mqtt,
   uploadConfigToDriver,
   udpClient,
