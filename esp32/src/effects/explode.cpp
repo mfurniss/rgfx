@@ -1,6 +1,7 @@
 #include "explode.h"
 #include "effect_utils.h"
 #include "canvas.h"
+#include "utils/easing.h"
 #include <FastLED.h>
 #include <algorithm>
 #include <cmath>
@@ -63,6 +64,19 @@ void ExplodeEffect::add(JsonDocument& props) {
 	newExplosion.centerY = centerY;
 	newExplosion.particleSize = particleSize;
 	newExplosion.friction = friction;
+
+	// Initialize flash for LED strips (white pulse that collapses inward)
+	if (isStrip) {
+		// Flash width proportional to power, capped at 30% of canvas width
+		newExplosion.flashInitialWidth =
+			min(scaledPower * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
+		newExplosion.flashDuration = (lifespan * 0.35f) / 1000.0f;  // 35% of lifespan, in seconds
+		newExplosion.flashAge = 0.0f;
+	} else {
+		newExplosion.flashInitialWidth = 0.0f;  // No flash for matrix
+		newExplosion.flashDuration = 0.0f;
+		newExplosion.flashAge = 0.0f;
+	}
 
 	// FIFO eviction: if adding particleCount would exceed max, remove oldest particles first
 	if (particlePool.size() + particleCount > MAX_PARTICLE_POOL_SIZE) {
@@ -134,12 +148,14 @@ void ExplodeEffect::add(JsonDocument& props) {
 		p.alpha = 255;
 		p.age = 0;
 
-		// Apply lifespan variation
-		if (lifespanSpread < 0.01f) {
+		// Apply lifespan variation symmetrically around lifespan (±spread%)
+		if (lifespanSpread < 1.01f) {
 			p.lifespan = lifespan;
 		} else {
-			float variation = 0.5f + (static_cast<float>(random(0, 100)) / 100.0f);
-			p.lifespan = static_cast<uint32_t>(lifespan * variation * lifespanSpread);
+			float spreadAmount = lifespan * (lifespanSpread - 1.0f);
+			float variation = (static_cast<float>(random(0, 200)) / 100.0f) - 1.0f;  // -1.0 to 1.0
+			float calculatedLifespan = lifespan + variation * spreadAmount;
+			p.lifespan = static_cast<uint32_t>(max(50.0f, calculatedLifespan));
 		}
 		p.lifespanMultiplier = 1.0f;
 
@@ -157,6 +173,15 @@ void ExplodeEffect::update(float deltaTime) {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
+
+	// Update flash age for all explosions (LED strips only)
+	if (isStrip) {
+		for (auto& exp : explosions) {
+			if (exp.flashAge < exp.flashDuration) {
+				exp.flashAge += deltaTime;
+			}
+		}
+	}
 
 	// Update all particles in the shared pool
 	for (auto p = particlePool.begin(); p != particlePool.end();) {
@@ -221,6 +246,41 @@ void ExplodeEffect::render() {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
+
+	// Render flashes first for LED strips (white pulse that collapses inward)
+	if (isStrip) {
+		for (const auto& exp : explosions) {
+			if (exp.flashAge >= exp.flashDuration || exp.flashInitialWidth <= 0.0f) {
+				continue;
+			}
+
+			float progress = exp.flashAge / exp.flashDuration;
+			float easedProgress = quarticEaseOutf(progress);
+			float currentHalfWidth = (exp.flashInitialWidth * 0.5f) * (1.0f - easedProgress);
+			if (currentHalfWidth < 1.0f) {
+				continue;
+			}
+			float maxAlpha = 150.0f * (1.0f - easedProgress);
+			float alphaPerPixel = maxAlpha / currentHalfWidth;
+
+			// Draw from center outward (both directions)
+			int16_t centerX = static_cast<int16_t>(exp.centerX);
+
+			for (int16_t offset = 0; offset <= static_cast<int16_t>(currentHalfWidth); offset++) {
+				uint8_t alpha = static_cast<uint8_t>(maxAlpha - offset * alphaPerPixel);
+				int16_t leftX = centerX - offset;
+				int16_t rightX = centerX + offset;
+
+				if (leftX >= 0 && leftX < width) {
+					canvas.drawPixel(leftX, 0, RGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
+				}
+
+				if (offset > 0 && rightX >= 0 && rightX < width) {
+					canvas.drawPixel(rightX, 0, RGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
+				}
+			}
+		}
+	}
 
 	// Render all particles from the shared pool
 	for (const auto& particle : particlePool) {
