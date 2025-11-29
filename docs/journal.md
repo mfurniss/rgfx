@@ -164,5 +164,23 @@ Cleaned up unused exports and improved UI with dark mode window background.
 
 Refactored ESP32 codebase by extracting OTA setup and network task into dedicated modules (ota_update.cpp, network_task.cpp). Changed progress calculation to use float precision for smoother LED updates.
 
-**Total Development Time:** 45 days (October 11 - November 25, 2025)
-**Total Commits:** 268
+## November 26, 2025
+
+Replaced Prettier with ESLint stylistic rules for unified code formatting. Added ESP32 memory safety using malloc/nothrow for safe allocation handling. Implemented remote logging from ESP32 drivers to Hub via MQTT, enabling centralized log viewing. Added toast notifications for driver connect/disconnect events. Fixed pulse effect integer truncation bugs causing backwards movement and blinking. Improved versioning and test effects UI.
+
+Updated Galaga mapper with explode effect and added Prettier for JS mapper files with wildcard driver routing support. Removed -console flag from MAME launch script.
+
+## November 27, 2025
+
+Refactored CLAUDE.md into modular documentation structure with separate files for development workflow, coding standards, ESP32 development, MAME integration, architecture, and broker discovery. Added comprehensive test coverage and standardized @ path aliases throughout the codebase. Converted remaining deep relative imports.
+
+Updated wipe effect to fill/unfill animation pattern and bumped firmware version.
+
+## November 28, 2025
+
+Added driver configuration page with LED hardware settings form using react-hook-form and Zod validation. Implemented NumberField component for numeric inputs with proper clearing support. Added Configure Driver button to driver card header with status chip moved next to driver name. Fixed vertical alignment issue in MUI Typography h6 with padding-bottom override.
+
+Added save-driver-config-handler and list-led-hardware-handler IPC handlers. Created comprehensive tests for NumberField component (9 tests) and DriverConfigPage (11 tests). Total test count now at 378 tests.
+
+**Total Development Time:** 48 days (October 11 - November 28, 2025)
+**Total Commits:** 340
