@@ -182,5 +182,9 @@ Added driver configuration page with LED hardware settings form using react-hook
 
 Added save-driver-config-handler and list-led-hardware-handler IPC handlers. Created comprehensive tests for NumberField component (9 tests) and DriverConfigPage (11 tests). Total test count now at 378 tests.
 
-**Total Development Time:** 48 days (October 11 - November 28, 2025)
-**Total Commits:** 340
+## November 29, 2025
+
+Refactored mqtt module to network directory for clearer naming convention. Cleaned up unused type exports from schemas (DriverLEDConfigFromSchema, DriverTelemetryFromSchema, LEDHardwareFromSchema, etc.). Added object-shorthand ESLint rule and applied fixes throughout the codebase. Removed unused constants from config/constants.ts. Added npm script for checking unused exports. Extracted shared effect properties to dedicated properties/ directory.
+
+**Total Development Time:** 49 days (October 11 - November 29, 2025)
+**Total Commits:** 343

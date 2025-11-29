@@ -15,16 +15,16 @@ import { color } from './properties';
  */
 export default z
   .object({
-    color,
-    particleCount: z.number().int().min(1).max(500).optional().default(100),
-    power: z.number().positive().optional().default(50),
-    lifespan: z.number().positive().optional().default(800),
-    powerSpread: z.number().positive().optional().default(1.6),
-    particleSize: z.number().int().positive().optional().default(2),
-    hueSpread: z.number().int().min(0).max(359).optional().default(40),
-    friction: z.number().positive().optional().default(2.0),
-    lifespanSpread: z.number().positive().optional().default(1.3),
     centerX: z.number().min(0).max(100).optional().default(50),
     centerY: z.number().min(0).max(100).optional().default(50),
+    color,
+    friction: z.number().positive().optional().default(2.0),
+    hueSpread: z.number().int().min(0).max(359).optional().default(40),
+    lifespan: z.number().positive().optional().default(700),
+    lifespanSpread: z.number().positive().optional().default(1.6),
+    particleCount: z.number().int().min(1).max(500).optional().default(100),
+    particleSize: z.number().int().positive().optional().default(2),
+    power: z.number().positive().optional().default(50),
+    powerSpread: z.number().positive().optional().default(1.6),
   })
   .strict();
