@@ -6,7 +6,6 @@
  */
 
 import { z } from 'zod';
-
 import { color } from './properties';
 
 /**
