@@ -15,6 +15,7 @@ import {
 import type { Driver } from '@/types';
 import { useUiStore, type SortField } from '../store/ui-store';
 import { useDriverStore } from '../store/driver-store';
+import TestLedButton from './test-led-button';
 
 interface DriverListTableProps {
   drivers: Driver[];
@@ -80,6 +81,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                 </TableSortLabel>
               </TableCell>
             ))}
+            <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -128,6 +130,13 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
                   ) : (
                     <Chip label="Connected" color="success" size="small" />
                   )}
+              </TableCell>
+              <TableCell
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <TestLedButton driver={driver} />
               </TableCell>
             </TableRow>
           ))}
