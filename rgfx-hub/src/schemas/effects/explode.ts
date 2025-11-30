@@ -18,13 +18,13 @@ export default z
     centerX: z.number().min(0).max(100).optional().default(50),
     centerY: z.number().min(0).max(100).optional().default(50),
     color,
-    friction: z.number().positive().optional().default(2.0),
+    friction: z.number().min(0).max(50).optional().default(3.0),
     hueSpread: z.number().int().min(0).max(359).optional().default(40),
     lifespan: z.number().positive().optional().default(700),
     lifespanSpread: z.number().positive().optional().default(1.6),
     particleCount: z.number().int().min(1).max(500).optional().default(100),
-    particleSize: z.number().int().positive().optional().default(2),
-    power: z.number().positive().optional().default(50),
+    particleSize: z.number().int().min(1).max(16).optional().default(4),
+    power: z.number().min(1).max(1000).optional().default(70),
     powerSpread: z.number().positive().optional().default(1.6),
   })
   .strict();
