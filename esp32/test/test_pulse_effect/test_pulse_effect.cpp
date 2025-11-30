@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <algorithm>
 
@@ -33,12 +34,15 @@ class IEffect {
 
 class PulseEffect : public IEffect {
    private:
+	enum class CollapseMode { Horizontal, Vertical, None };
+
 	struct Pulse {
 		uint8_t r, g, b;
 		uint8_t alpha;
 		uint32_t duration;
 		uint32_t elapsedTime;
 		bool fade;
+		CollapseMode collapse;
 
 		uint32_t remaining() const {
 			return fade ?
@@ -69,6 +73,14 @@ void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
 	uint32_t duration = props["duration"] | DEFAULT_DURATION;
 	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : DEFAULT_FADE;
+	const char* collapseStr = props["collapse"] | "horizontal";
+
+	CollapseMode collapse = CollapseMode::Horizontal;
+	if (strcmp(collapseStr, "vertical") == 0) {
+		collapse = CollapseMode::Vertical;
+	} else if (strcmp(collapseStr, "none") == 0) {
+		collapse = CollapseMode::None;
+	}
 
 	Pulse newPulse;
 	newPulse.r = (color >> 16) & 0xFF;
@@ -77,6 +89,7 @@ void PulseEffect::add(JsonDocument& props) {
 	newPulse.alpha = 255;
 	newPulse.duration = duration;
 	newPulse.fade = fade;
+	newPulse.collapse = collapse;
 	newPulse.elapsedTime = 0;
 	pulses.push_back(newPulse);
 }
@@ -117,8 +130,28 @@ void PulseEffect::render() {
 		});
 
 	for (const auto& pulse : pulses) {
-		for (uint16_t y = 0; y < height; y++) {
-			for (uint16_t x = 0; x < width; x++) {
+		// Calculate bounds based on collapse mode
+		uint16_t startX = 0;
+		uint16_t startY = 0;
+		uint16_t endX = width;
+		uint16_t endY = height;
+
+		float progress = static_cast<float>(pulse.elapsedTime) / pulse.duration;
+		if (progress > 1.0f) progress = 1.0f;
+
+		if (pulse.collapse == CollapseMode::Horizontal) {
+			uint16_t shrink = static_cast<uint16_t>(progress * (height / 2));
+			startY = shrink;
+			endY = height - shrink;
+		} else if (pulse.collapse == CollapseMode::Vertical) {
+			uint16_t shrink = static_cast<uint16_t>(progress * (width / 2));
+			startX = shrink;
+			endX = width - shrink;
+		}
+		// CollapseMode::None: full canvas
+
+		for (uint16_t y = startY; y < endY; y++) {
+			for (uint16_t x = startX; x < endX; x++) {
 				uint32_t existing = canvas.getPixel(x, y);
 
 				uint8_t existingR = RGBA_RED(existing);
@@ -350,6 +383,77 @@ void test_pulse_alpha_calculation() {
 	TEST_ASSERT_UINT8_WITHIN(2, expectedAlpha, alpha);
 }
 
+void test_pulse_collapse_none_fills_canvas() {
+	Matrix mockMatrix(4, 4);
+	PulseEffect effect(mockMatrix);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "none";
+	effect.add(props);
+
+	effect.update(0.5f);
+	effect.render();
+
+	Canvas& canvas = effect.getCanvas();
+
+	// All corners should be filled
+	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(0, 0)));
+	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(15, 0)));
+	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(0, 15)));
+	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(15, 15)));
+}
+
+void test_pulse_collapse_horizontal_shrinks_height() {
+	Matrix mockMatrix(4, 4);
+	PulseEffect effect(mockMatrix);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "horizontal";
+	effect.add(props);
+
+	effect.update(0.5f);
+	effect.render();
+
+	Canvas& canvas = effect.getCanvas();
+
+	// Center should be filled
+	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(8, 8)));
+
+	// Top and bottom edges should be empty (shrunk)
+	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(8, 0)));
+	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(8, 15)));
+}
+
+void test_pulse_collapse_vertical_shrinks_width() {
+	Matrix mockMatrix(4, 4);
+	PulseEffect effect(mockMatrix);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "vertical";
+	effect.add(props);
+
+	effect.update(0.5f);
+	effect.render();
+
+	Canvas& canvas = effect.getCanvas();
+
+	// Center should be filled
+	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(8, 8)));
+
+	// Left and right edges should be empty (shrunk)
+	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(0, 8)));
+	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(15, 8)));
+}
+
 int main(int argc, char** argv) {
 	UNITY_BEGIN();
 	RUN_TEST(test_pulse_creation_default_values);
@@ -362,5 +466,8 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_pulse_reset_clears_all);
 	RUN_TEST(test_pulse_canvas_size_matches_matrix);
 	RUN_TEST(test_pulse_alpha_calculation);
+	RUN_TEST(test_pulse_collapse_none_fills_canvas);
+	RUN_TEST(test_pulse_collapse_horizontal_shrinks_height);
+	RUN_TEST(test_pulse_collapse_vertical_shrinks_width);
 	return UNITY_END();
 }
