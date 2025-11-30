@@ -16,6 +16,7 @@ import { color } from './properties';
 export default z
   .object({
     color,
+    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random'),
     duration: z.number().positive().optional().default(500),
   })
   .strict();
