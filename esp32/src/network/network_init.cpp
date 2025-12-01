@@ -16,6 +16,21 @@
 // Forward declaration from main.cpp
 void handleDriverConfig(const String& payload);
 
+// Map dBm float value to wifi_power_t enum
+static wifi_power_t dBmToWifiPower(float dBm) {
+	if (dBm >= 19.5f) return WIFI_POWER_19_5dBm;
+	if (dBm >= 19.0f) return WIFI_POWER_19dBm;
+	if (dBm >= 18.5f) return WIFI_POWER_18_5dBm;
+	if (dBm >= 17.0f) return WIFI_POWER_17dBm;
+	if (dBm >= 15.0f) return WIFI_POWER_15dBm;
+	if (dBm >= 13.0f) return WIFI_POWER_13dBm;
+	if (dBm >= 11.0f) return WIFI_POWER_11dBm;
+	if (dBm >= 8.5f) return WIFI_POWER_8_5dBm;
+	if (dBm >= 7.0f) return WIFI_POWER_7dBm;
+	if (dBm >= 5.0f) return WIFI_POWER_5dBm;
+	return WIFI_POWER_2dBm;
+}
+
 void setupNetworkServices(Matrix& matrix) {
 	log("WiFi connected - setting up OTA, MQTT and UDP");
 	fill_solid(matrix.leds, matrix.size, CRGB::Green);
@@ -23,8 +38,9 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Disable WiFi power saving for low latency UDP
 	WiFi.setSleep(WIFI_PS_NONE);
-	WiFi.setTxPower(WIFI_POWER_19_5dBm);
-	log("WiFi power saving disabled for low-latency operation");
+	wifi_power_t txPower = dBmToWifiPower(g_driverConfig.wifiTxPower);
+	WiFi.setTxPower(txPower);
+	log("WiFi power saving disabled, TX power: " + String(g_driverConfig.wifiTxPower, 1) + " dBm");
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
@@ -109,8 +125,9 @@ void setupNetworkServices() {
 
 	// Disable WiFi power saving for low latency UDP
 	WiFi.setSleep(WIFI_PS_NONE);
-	WiFi.setTxPower(WIFI_POWER_19_5dBm);
-	log("WiFi power saving disabled for low-latency operation");
+	wifi_power_t txPower = dBmToWifiPower(g_driverConfig.wifiTxPower);
+	WiFi.setTxPower(txPower);
+	log("WiFi power saving disabled, TX power: " + String(g_driverConfig.wifiTxPower, 1) + " dBm");
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
