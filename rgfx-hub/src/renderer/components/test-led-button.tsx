@@ -60,6 +60,7 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
           startIcon={<ScienceIcon />}
           onClick={handleTestToggle}
           disabled={!driver.connected || testRequestPending}
+          sx={{ height: 30, width: 140 }}
         >
           {testRequestPending ? 'Processing...' : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
         </Button>

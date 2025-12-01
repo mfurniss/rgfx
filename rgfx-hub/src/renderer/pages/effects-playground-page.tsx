@@ -148,7 +148,7 @@ export default function TestEffectsPage() {
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <ScienceIcon />
-        Test Effects
+        Effects Playground
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
@@ -166,7 +166,7 @@ export default function TestEffectsPage() {
                     handleEffectChange(e.target.value);
                   }}
                 >
-                  {Object.keys(effectSchemas).map((effect) => (
+                  {Object.keys(effectSchemas).sort().map((effect) => (
                     <MenuItem key={effect} value={effect}>
                       {effect}
                     </MenuItem>
@@ -231,7 +231,7 @@ export default function TestEffectsPage() {
                         },
                       }}
                     />
-                    {drivers.map((driver) => {
+                    {[...drivers].sort((a, b) => a.id.localeCompare(b.id)).map((driver) => {
                       return (
                         <FormControlLabel
                           key={driver.id}

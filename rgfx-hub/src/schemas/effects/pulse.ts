@@ -15,8 +15,9 @@ import { color, easing } from './properties';
 export default z
   .object({
     color,
-    duration: z.number().positive().optional().default(1000),
+    duration: z.number().positive().optional().default(700),
     easing,
     fade: z.boolean().optional().default(true),
+    collapse: z.enum(['horizontal', 'vertical', 'none']).optional().default('horizontal'),
   })
   .strict();

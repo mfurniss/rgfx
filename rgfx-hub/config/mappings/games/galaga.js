@@ -11,7 +11,11 @@ export function handle({ subject, property }, _payload, { broadcast }) {
     return broadcast({
       effect: 'wipe',
       drivers: ['rgfx-driver-0002', 'rgfx-driver-0006'],
-      props: { color: '#000010', duration: 1600 },
+      props: {
+        color: '#000020',
+        duration: 400,
+        direction: 'right',
+      },
     });
   }
 
@@ -26,14 +30,14 @@ export function handle({ subject, property }, _payload, { broadcast }) {
   if (subject === 'enemy' && property === 'destroyed') {
     return broadcast({
       effect: 'explode',
-      drivers: ['*'],
+      drivers: ['*', '*'],
       props: {
         // color: "random",
         particleCount: 80,
         power: 120,
         lifespan: 400,
         powerSpread: 1.4,
-        particleSize: 3,
+        particleSize: 4,
         hueSpread: 40,
         friction: 3,
         lifespanSpread: 1.2,

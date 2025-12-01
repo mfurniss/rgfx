@@ -20,7 +20,7 @@ const navItems: NavItem[] = [
   { label: 'System Status', path: '/', icon: <DashboardIcon /> },
   { label: 'Event Monitor', path: '/events', icon: <MonitorIcon /> },
   { label: 'Firmware', path: '/firmware', icon: <FirmwareIcon /> },
-  { label: 'Test Effects', path: '/test-effects', icon: <ScienceIcon /> },
+  { label: 'FX Playground', path: '/effects-playground', icon: <ScienceIcon /> },
   { label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
   { label: 'About', path: '/about', icon: <InfoIcon /> },
 ];

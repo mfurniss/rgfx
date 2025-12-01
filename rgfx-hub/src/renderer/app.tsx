@@ -8,7 +8,7 @@ import DriverDetailPage from './pages/driver-detail-page';
 import DriverConfigPage from './pages/driver-config-page';
 import EventMonitorPage from './pages/event-monitor-page';
 import FirmwarePage from './pages/firmware-page';
-import TestEffectsPage from './pages/test-effects-page';
+import EffectsPlaygroundPage from './pages/effects-playground-page';
 import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
@@ -96,7 +96,7 @@ const App: React.FC = () => {
               <Route path="/driver/:mac/config" element={<DriverConfigPage />} />
               <Route path="/events" element={<EventMonitorPage />} />
               <Route path="/firmware" element={<FirmwarePage />} />
-              <Route path="/test-effects" element={<TestEffectsPage />} />
+              <Route path="/effects-playground" element={<EffectsPlaygroundPage />} />
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </AppLayout>

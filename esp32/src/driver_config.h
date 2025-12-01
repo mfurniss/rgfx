@@ -48,11 +48,12 @@ struct DriverConfigData {
 	uint8_t updateRate;             // Refresh rate in Hz
 	uint8_t powerSupplyVolts;       // Power supply voltage
 	uint16_t maxPowerMilliamps;     // Maximum power draw in milliamps
+	float wifiTxPower;              // WiFi TX power in dBm (2.0 to 19.5)
 
 	// Constructor with defaults
 	DriverConfigData()
 		: globalBrightnessLimit(255), dithering(true), updateRate(120),
-		  powerSupplyVolts(5), maxPowerMilliamps(2000) {}
+		  powerSupplyVolts(5), maxPowerMilliamps(2000), wifiTxPower(19.5f) {}
 };
 
 /**

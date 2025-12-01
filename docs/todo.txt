@@ -85,3 +85,8 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Missile effect
 [ ] Driver reboot command and Hub button
 [X] Hub route effects to random devices
+[ ] Driver WiFi power config option
+[ ] Common effect property which aborts all previous effects of the same type
+[ ] Hub game event simulator
+[ ] Open driver log file directly from Hub
+[ ] Infinite Canvas wrap-around for strips

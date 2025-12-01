@@ -134,6 +134,7 @@ void handleDriverConfig(const String& payload) {
 		g_driverConfig.updateRate = settings["update_rate"] | 60;
 		g_driverConfig.powerSupplyVolts = settings["power_supply_volts"] | 5;
 		g_driverConfig.maxPowerMilliamps = settings["max_power_milliamps"] | 2000;
+		g_driverConfig.wifiTxPower = settings["wifi_tx_power"] | 19.5f;
 
 		log("Global settings:");
 		log("  Brightness limit: " + String(g_driverConfig.globalBrightnessLimit));
@@ -141,6 +142,7 @@ void handleDriverConfig(const String& payload) {
 		log("  Update rate: " + String(g_driverConfig.updateRate) + " Hz");
 		log("  Power supply: " + String(g_driverConfig.powerSupplyVolts) + "V @ " +
 		    String(g_driverConfig.maxPowerMilliamps) + "mA");
+		log("  WiFi TX power: " + String(g_driverConfig.wifiTxPower, 1) + " dBm");
 	}
 
 	// Mark configuration as received
