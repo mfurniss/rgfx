@@ -72,6 +72,7 @@
     "@mui/material": "^7.3.4",
     "aedes": "^0.51.3",
     "colord": "^2.9.3",
+    "date-fns": "^4.1.0",
     "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
     "esp-ota": "^1.2.0",
