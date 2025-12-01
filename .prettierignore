@@ -1,6 +1,4 @@
-# Ignore everything
+# Ignore everything except .js files
 *
-
-# Except .js files
-!*.js
+!*/
 !**/*.js

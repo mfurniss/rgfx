@@ -1,21 +1,34 @@
 #include "canvas.h"
+#ifndef UNIT_TEST
 #include "matrix.h"
 #include "log.h"
+#endif
 #include <cstring>
 #include <cstdlib>
 
+// Simple constructor for testing (no Matrix dependency)
+Canvas::Canvas(uint16_t w, uint16_t h)
+    : width(w), height(h), size(w * h), pixels(nullptr) {
+	pixels = (uint32_t*)malloc(size * sizeof(uint32_t));
+	if (pixels) {
+		clear();
+	}
+}
+
+#ifndef UNIT_TEST
 Canvas::Canvas(const Matrix& matrix)
     : width(matrix.width * 4),
       height((matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.height * 4),
       size(width * height),
       pixels(nullptr) {
-    pixels = (uint32_t*)malloc(size * sizeof(uint32_t));
-    if (!pixels) {
-        log("ERROR: Failed to allocate canvas buffer");
-        return;
-    }
-    clear();
+	pixels = (uint32_t*)malloc(size * sizeof(uint32_t));
+	if (!pixels) {
+		log("ERROR: Failed to allocate canvas buffer");
+		return;
+	}
+	clear();
 }
+#endif
 
 Canvas::~Canvas() {
     free(pixels);

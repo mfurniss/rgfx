@@ -31,6 +31,8 @@
  * @returns {boolean} - True if event was handled, false otherwise
  */
 
+import { Collapse } from '@mui/material';
+
 const PACMAN_SPRITE_OPEN_MOUTH = [
   '     XXXXXX     ',
   '   XXXXXXXXXX   ',
@@ -93,6 +95,10 @@ const GHOST_STATE_COLORS = {
   [GHOST_STATE.EYES]: '#FFFFFF',
 };
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export function handle(
   { subject, property, qualifier },
   payload,
@@ -124,7 +130,6 @@ export function handle(
       props: {
         color: isActive ? '#0000FF' : '#FF0000',
       },
-      drivers: ['rgfx-driver-0002'], // LED Matrix
     });
   }
 
@@ -149,39 +154,8 @@ export function handle(
       effect: 'pulse',
       props: {
         color: '#0000FF',
-        duration: 5000,
-      },
-    });
-
-    broadcast({
-      effect: 'explode',
-      props: {
-        color: '#FFFF80',
-        particleCount: 200,
-        power: 100,
-        lifespan: 800,
-        powerSpread: 1.6,
-        particleSize: 3,
-        friction: 2.2,
-        lifespanSpread: 1.3,
-        centerX: 0,
-        centerY: 0,
-      },
-    });
-
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: '#FFFF80',
-        particleCount: 200,
-        power: 100,
-        lifespan: 800,
-        powerSpread: 1.6,
-        particleSize: 3,
-        friction: 2.2,
-        lifespanSpread: 1.3,
-        centerX: 100,
-        centerY: 100,
+        duration: 8000,
+        collapse: 'none',
       },
     });
   }
@@ -190,18 +164,18 @@ export function handle(
   if (subject === 'player' && property === 'eat' && qualifier === 'pill') {
     broadcast({
       effect: 'wipe',
-      drivers: ['*', '*'],
+      drivers: ['*'],
       props: {
-        color: '#603030',
-        duration: 700,
+        color: '#402020',
+        duration: 300,
       },
     });
     return broadcast({
       effect: 'bitmap',
-      drivers: ['rgfx-driver-0003', 'rgfx-driver-0005'],
+      drivers: ['rgxfx-driver-0001', 'rgfx-driver-0003', 'rgfx-driver-0005'],
       props: {
-        color: 'yellow',
-        duration: 150,
+        color: '#A0A000',
+        duration: 180,
         image:
           payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
       },
@@ -211,10 +185,10 @@ export function handle(
   // Bonus fruit eaten
   if (subject === 'player' && property === 'eat' && qualifier === 'bonus') {
     return broadcast({
-      effect: 'pulse',
+      effect: 'explode',
       props: {
         color: '#FF00FF',
-        duration: 1200,
+        duration: 2000,
       },
     });
   }
@@ -237,27 +211,27 @@ export function handle(
       effect: 'pulse',
       props: {
         color: '#FFFF00',
-        duration: part === 1 ? 2500 : 300,
+        duration: part === 1 ? 2000 : 300,
       },
     });
   }
 
   // Ghost eyes (after being eaten, returning to home)
   if (subject === 'player' && property === 'ghost' && qualifier === 'eyes') {
-    broadcast({
-      effect: 'wipe',
-      props: {
-        color: '#FFFFFF',
-        duration: 1200,
-      },
-    });
-    return broadcast({
-      effect: 'wipe',
-      props: {
-        color: '#FFFFFF',
-        duration: 800,
-      },
-    });
+    (async () => {
+      for (var i = 0; i < 5; i++) {
+        broadcast({
+          effect: 'wipe',
+          props: {
+            color: '#FFFFFF',
+            duration: 500,
+          },
+        });
+        await sleep(500);
+      }
+    })();
+
+    return true;
   }
 
   // Game mode changes (1=demo, 2=select game, 3=playing)

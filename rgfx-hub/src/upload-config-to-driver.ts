@@ -66,6 +66,7 @@ export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress:
         dithering: ledConfig.dithering,
         power_supply_volts: ledConfig.powerSupplyVolts,
         max_power_milliamps: ledConfig.maxPowerMilliamps,
+        wifi_tx_power: persistedDriver.wifiTxPower,
       },
     };
 
