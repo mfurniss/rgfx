@@ -36,6 +36,7 @@ class Canvas {
     void blendAverage(uint32_t& existing, uint32_t incoming) const;
 
   public:
+    Canvas(uint16_t w, uint16_t h);  // For testing without Matrix dependency
     Canvas(const Matrix& matrix);
     ~Canvas();
 

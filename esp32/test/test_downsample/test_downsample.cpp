@@ -26,10 +26,10 @@ void test_downsample_8x8_to_2x2_quadrants() {
 
 	for (uint16_t y = 0; y < 4; y++) {
 		for (uint16_t x = 0; x < 4; x++) {
-			source.setPixel(x, y, RGBA(255, 0, 0, 255));
-			source.setPixel(x + 4, y, RGBA(0, 255, 0, 255));
-			source.setPixel(x, y + 4, RGBA(0, 0, 255, 255));
-			source.setPixel(x + 4, y + 4, RGBA(255, 255, 0, 255));
+			source.drawPixel(x, y, RGBA(255, 0, 0, 255));
+			source.drawPixel(x + 4, y, RGBA(0, 255, 0, 255));
+			source.drawPixel(x, y + 4, RGBA(0, 0, 255, 255));
+			source.drawPixel(x + 4, y + 4, RGBA(255, 255, 0, 255));
 		}
 	}
 
@@ -45,25 +45,25 @@ void test_downsample_color_averaging() {
 	Canvas source(4, 4);
 	Canvas dest(1, 1);
 
-	source.setPixel(0, 0, RGBA(255, 0, 0, 255));
-	source.setPixel(1, 0, RGBA(0, 255, 0, 255));
-	source.setPixel(2, 0, RGBA(0, 0, 255, 255));
-	source.setPixel(3, 0, RGBA(255, 255, 255, 255));
+	source.drawPixel(0, 0, RGBA(255, 0, 0, 255));
+	source.drawPixel(1, 0, RGBA(0, 255, 0, 255));
+	source.drawPixel(2, 0, RGBA(0, 0, 255, 255));
+	source.drawPixel(3, 0, RGBA(255, 255, 255, 255));
 
-	source.setPixel(0, 1, RGBA(128, 0, 0, 255));
-	source.setPixel(1, 1, RGBA(0, 128, 0, 255));
-	source.setPixel(2, 1, RGBA(0, 0, 128, 255));
-	source.setPixel(3, 1, RGBA(128, 128, 128, 255));
+	source.drawPixel(0, 1, RGBA(128, 0, 0, 255));
+	source.drawPixel(1, 1, RGBA(0, 128, 0, 255));
+	source.drawPixel(2, 1, RGBA(0, 0, 128, 255));
+	source.drawPixel(3, 1, RGBA(128, 128, 128, 255));
 
-	source.setPixel(0, 2, RGBA(64, 0, 0, 255));
-	source.setPixel(1, 2, RGBA(0, 64, 0, 255));
-	source.setPixel(2, 2, RGBA(0, 0, 64, 255));
-	source.setPixel(3, 2, RGBA(64, 64, 64, 255));
+	source.drawPixel(0, 2, RGBA(64, 0, 0, 255));
+	source.drawPixel(1, 2, RGBA(0, 64, 0, 255));
+	source.drawPixel(2, 2, RGBA(0, 0, 64, 255));
+	source.drawPixel(3, 2, RGBA(64, 64, 64, 255));
 
-	source.setPixel(0, 3, RGBA(32, 0, 0, 255));
-	source.setPixel(1, 3, RGBA(0, 32, 0, 255));
-	source.setPixel(2, 3, RGBA(0, 0, 32, 255));
-	source.setPixel(3, 3, RGBA(32, 32, 32, 255));
+	source.drawPixel(0, 3, RGBA(32, 0, 0, 255));
+	source.drawPixel(1, 3, RGBA(0, 32, 0, 255));
+	source.drawPixel(2, 3, RGBA(0, 0, 32, 255));
+	source.drawPixel(3, 3, RGBA(32, 32, 32, 255));
 
 	downsample(&source, &dest);
 
@@ -112,14 +112,14 @@ void test_downsample_alpha_averaging() {
 	Canvas source(4, 4);
 	Canvas dest(1, 1);
 
-	source.setPixel(0, 0, RGBA(255, 0, 0, 255));
-	source.setPixel(1, 0, RGBA(255, 0, 0, 192));
-	source.setPixel(2, 0, RGBA(255, 0, 0, 128));
-	source.setPixel(3, 0, RGBA(255, 0, 0, 64));
+	source.drawPixel(0, 0, RGBA(255, 0, 0, 255));
+	source.drawPixel(1, 0, RGBA(255, 0, 0, 192));
+	source.drawPixel(2, 0, RGBA(255, 0, 0, 128));
+	source.drawPixel(3, 0, RGBA(255, 0, 0, 64));
 
 	for (uint16_t y = 1; y < 4; y++) {
 		for (uint16_t x = 0; x < 4; x++) {
-			source.setPixel(x, y, RGBA(255, 0, 0, 128));
+			source.drawPixel(x, y, RGBA(255, 0, 0, 128));
 		}
 	}
 
@@ -141,7 +141,7 @@ void test_downsample_32x32_to_8x8() {
 	for (uint16_t y = 0; y < 32; y++) {
 		for (uint16_t x = 0; x < 32; x++) {
 			uint8_t value = (x + y) % 256;
-			source.setPixel(x, y, RGBA(value, value, value, 255));
+			source.drawPixel(x, y, RGBA(value, value, value, 255));
 		}
 	}
 
