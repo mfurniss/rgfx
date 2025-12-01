@@ -16,3 +16,6 @@ esp32-installer/*.bin
 
 # Auto-generated version files
 esp32/src/version.h
+
+# Local CI testing
+.gitlab-ci-local/
