@@ -26,6 +26,8 @@ workflow:
     on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # Run on MRs
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never                                        # Skip branch pipeline if MR exists
     - if: $CI_COMMIT_BRANCH                              # Run on all branch pushes
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/          # Run on version tags
 
