@@ -274,6 +274,7 @@ void test_pulse_non_fading_stays_full_brightness() {
 	props["color"] = "#00FF00";
 	props["duration"] = 2000;
 	props["fade"] = false;
+	props["collapse"] = "none";  // Don't collapse so pixel (0,0) is filled
 	effect.add(props);
 
 	effect.update(0.5f);

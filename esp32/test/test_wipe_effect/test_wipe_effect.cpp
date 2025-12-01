@@ -197,7 +197,9 @@ void test_wipe_creation_default_values() {
 	WipeEffect effect(mockMatrix);
 
 	JsonDocument props;
+	props["direction"] = "right";
 	effect.add(props);
+	effect.update(0.01f);  // Small time step to start the wipe
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
@@ -222,7 +224,9 @@ void test_wipe_creation_with_color() {
 	JsonDocument props;
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
+	props["direction"] = "right";
 	effect.add(props);
+	effect.update(0.1f);  // Time step to start the wipe
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
@@ -230,7 +234,8 @@ void test_wipe_creation_with_color() {
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
 			uint32_t pixel = canvas.getPixel(x, y);
-			if (RGBA_RED(pixel) > 200 && RGBA_GREEN(pixel) == 0 && RGBA_BLUE(pixel) == 0) {
+			// AVERAGE blend mode halves the value, so check for > 100 instead of > 200
+			if (RGBA_RED(pixel) > 100 && RGBA_GREEN(pixel) == 0 && RGBA_BLUE(pixel) == 0) {
 				hasRed = true;
 				break;
 			}
@@ -248,6 +253,7 @@ void test_wipe_progresses_over_time() {
 	JsonDocument props;
 	props["color"] = "#00FF00";
 	props["duration"] = 2000;
+	props["direction"] = "right";
 	effect.add(props);
 
 	effect.update(0.5f);
@@ -257,7 +263,8 @@ void test_wipe_progresses_over_time() {
 	bool hasGreen1 = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (RGBA_GREEN(canvas.getPixel(x, y)) > 200) {
+			// AVERAGE blend mode halves the value, so check for > 100 instead of > 200
+			if (RGBA_GREEN(canvas.getPixel(x, y)) > 100) {
 				hasGreen1 = true;
 				break;
 			}
@@ -271,7 +278,8 @@ void test_wipe_progresses_over_time() {
 	bool hasGreen2 = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (RGBA_GREEN(canvas.getPixel(x, y)) > 200) {
+			// AVERAGE blend mode halves the value, so check for > 100 instead of > 200
+			if (RGBA_GREEN(canvas.getPixel(x, y)) > 100) {
 				hasGreen2 = true;
 				break;
 			}
