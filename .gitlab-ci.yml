@@ -20,7 +20,10 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/rgfx-hub/.npm"  # Use project-local npm cache
 
 # Run on all branches, MRs, and tags
+# Auto-cancel redundant pipelines when new commits are pushed
 workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # Run on MRs
     - if: $CI_COMMIT_BRANCH                              # Run on all branch pushes
@@ -39,6 +42,7 @@ stages:
 test:hub:
   stage: test
   image: node:${NODE_VERSION}
+  interruptible: true
 
   # Cache npm packages to speed up subsequent runs
   cache:
@@ -73,6 +77,7 @@ test:hub:
 test:driver:
   stage: test
   image: python:3.11
+  interruptible: true
 
   # Cache PlatformIO packages and pip installs to speed up subsequent runs
   cache:
@@ -113,6 +118,7 @@ test:driver:
 build:hub:
   stage: build
   image: node:${NODE_VERSION}
+  interruptible: true
 
   # Cache npm packages to speed up subsequent runs
   cache:
@@ -168,6 +174,7 @@ build:hub:
 build:driver:
   stage: build
   image: python:3.11
+  interruptible: true
 
   # Cache PlatformIO packages
   cache:
