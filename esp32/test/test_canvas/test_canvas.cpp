@@ -28,7 +28,7 @@ void test_set_and_get_pixel() {
 	Canvas canvas(10, 10);
 	uint32_t color = RGBA(255, 128, 64, 255);
 
-	canvas.setPixel(5, 5, color);
+	canvas.drawPixel(5, 5, color);
 	TEST_ASSERT_EQUAL_UINT32(color, canvas.getPixel(5, 5));
 }
 
@@ -39,10 +39,10 @@ void test_set_pixel_at_edges() {
 	uint32_t blue = RGBA(0, 0, 255, 255);
 	uint32_t white = RGBA(255, 255, 255, 255);
 
-	canvas.setPixel(0, 0, red);
-	canvas.setPixel(7, 0, green);
-	canvas.setPixel(0, 7, blue);
-	canvas.setPixel(7, 7, white);
+	canvas.drawPixel(0, 0, red);
+	canvas.drawPixel(7, 0, green);
+	canvas.drawPixel(0, 7, blue);
+	canvas.drawPixel(7, 7, white);
 
 	TEST_ASSERT_EQUAL_UINT32(red, canvas.getPixel(0, 0));
 	TEST_ASSERT_EQUAL_UINT32(green, canvas.getPixel(7, 0));
@@ -54,7 +54,7 @@ void test_bounds_checking_out_of_range() {
 	Canvas canvas(8, 8);
 	uint32_t color = RGBA(255, 0, 0, 255);
 
-	canvas.setPixel(10, 10, color);
+	canvas.drawPixel(10, 10, color);
 
 	TEST_ASSERT_EQUAL_UINT32(0, canvas.getPixel(10, 10));
 }

@@ -164,7 +164,7 @@ void PulseEffect::render() {
 				uint8_t newB = ((existingB * (255 - pulse.alpha)) + (pulse.b * pulse.alpha)) / 255;
 				uint8_t newA = existingA + pulse.alpha - ((existingA * pulse.alpha) / 255);
 
-				canvas.setPixel(x, y, RGBA(newR, newG, newB, newA));
+				canvas.drawPixel(x, y, RGBA(newR, newG, newB, newA));
 			}
 		}
 	}
