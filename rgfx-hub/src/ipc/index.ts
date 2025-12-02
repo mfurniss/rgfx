@@ -8,6 +8,7 @@
 import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverPersistence } from '../driver-persistence';
+import type { DriverLogPersistence } from '../driver-log-persistence';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
 import type { UdpClient } from '../types/mapping-types';
@@ -18,10 +19,12 @@ import { registerSendDriverCommandHandler } from './send-driver-command-handler'
 import { registerUpdateDriverConfigHandler } from './update-driver-config-handler';
 import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
 import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
+import { registerOpenDriverLogHandler } from './open-driver-log-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
   driverPersistence: DriverPersistence;
+  driverLogPersistence: DriverLogPersistence;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
@@ -37,4 +40,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerUpdateDriverConfigHandler(deps);
   registerSaveDriverConfigHandler(deps);
   registerListLEDHardwareHandler(deps);
+  registerOpenDriverLogHandler(deps);
 }

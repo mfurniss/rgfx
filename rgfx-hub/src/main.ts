@@ -143,6 +143,7 @@ void installDefaultMappers()
 registerIpcHandlers({
   driverRegistry,
   driverPersistence,
+  driverLogPersistence,
   ledHardwareManager,
   mqtt,
   uploadConfigToDriver,
