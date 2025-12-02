@@ -48,5 +48,9 @@
       "editor.formatOnSave": true
     },
     "stylua.targetReleaseVersion": "latest",
+    "files.associations": {
+      "*.h": "cpp",
+      "random": "cpp"
+    },
   },
 }

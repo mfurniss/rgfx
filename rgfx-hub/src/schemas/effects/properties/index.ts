@@ -1,2 +1,2 @@
-export { default as color } from './color';
+export { default as baseEffect } from './base';
 export { default as easing } from './easing';
