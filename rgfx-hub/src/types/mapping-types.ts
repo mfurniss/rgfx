@@ -71,6 +71,11 @@ export interface UdpClient {
    * @returns true (for mapper return convenience)
    */
   broadcast(payload: EffectPayload): boolean;
+
+  /**
+   * Stop the UDP client and release resources
+   */
+  stop(): void;
 }
 
 /**

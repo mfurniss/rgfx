@@ -316,6 +316,7 @@ app.on('before-quit', () => {
 
   // Stop services
   eventReader.stop();
+  udpClient.stop();
   void mqtt.stop();
 });
 
