@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { Driver, type SystemStatus } from '@/types';
-import { DRIVER_CONNECTION_TIMEOUT_MS } from '@/config/constants';
+import { DRIVER_CONNECTION_TIMEOUT_MS, DRIVER_CONNECTION_CHECK_INTERVAL_MS } from '@/config/constants';
 import { useNotificationStore } from './notification-store';
 
 interface DriverState {
@@ -79,7 +79,7 @@ export const useDriverStore = create<DriverState>()(
         if (disconnectedDrivers.length > 0) {
           set({ drivers: updatedDrivers });
         }
-      }, 5000); // Check every 5 seconds
+      }, DRIVER_CONNECTION_CHECK_INTERVAL_MS);
 
       // Note: In a browser environment, this interval will be automatically
       // cleaned up when the page unloads. In development with HMR, Zustand's
@@ -153,7 +153,7 @@ export const useDriverStore = create<DriverState>()(
           if (existingDriver?.connected && !driver.connected) {
             useNotificationStore.getState().addNotification({
               message: `${driver.id} disconnected`,
-              severity: 'warning',
+              severity: 'error',
               driverId: driver.id,
             });
           }

@@ -6,15 +6,16 @@
  */
 
 import { z } from 'zod';
-import { color } from './properties';
+import { baseEffect, centerX, centerY } from './properties';
 
 /**
  * Bitmap effect props schema
  * Displays a bitmap image on the LED matrix
  */
-export default z
-  .object({
-    color,
+export default baseEffect
+  .extend({
+    centerX,
+    centerY,
     duration: z.number().positive().optional().default(400),
     image: z
       .array(z.string())

@@ -1,4 +1,5 @@
 {
+  "platformio-ide.projectDir": "esp32",
   "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"

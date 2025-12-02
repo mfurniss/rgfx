@@ -7,15 +7,14 @@
 
 import { z } from 'zod';
 
-import { color } from './properties';
+import { baseEffect } from './properties';
 
 /**
  * Wipe effect props schema
  * Creates a color wipe that sweeps across the display
  */
-export default z
-  .object({
-    color,
+export default baseEffect
+  .extend({
     direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random'),
     duration: z.number().positive().optional().default(500),
   })

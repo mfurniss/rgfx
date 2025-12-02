@@ -137,6 +137,10 @@ export const rgfxAPI = {
   getLEDHardwareList: (): Promise<string[]> => {
     return ipcRenderer.invoke('led-hardware:list');
   },
+
+  openDriverLog: (driverId: string): Promise<{ success: boolean; error?: string }> => {
+    return ipcRenderer.invoke('driver:open-log', driverId);
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

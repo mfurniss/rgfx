@@ -12,11 +12,28 @@ void BitmapEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
 	uint32_t duration = props["duration"] | DEFAULT_DURATION;
 
+	// Parse center position as percentage (0-100), "random", or default to center (50%)
+	float centerXPercent = 50.0f;
+	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
+		centerXPercent = random(0, 101);
+	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
+		centerXPercent = props["centerX"].as<float>();
+	}
+
+	float centerYPercent = 50.0f;
+	if (props["centerY"].is<const char*>() && strcmp(props["centerY"].as<const char*>(), "random") == 0) {
+		centerYPercent = random(0, 101);
+	} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
+		centerYPercent = props["centerY"].as<float>();
+	}
+
 	Bitmap newBitmap;
 	newBitmap.duration = duration;
 	newBitmap.elapsedTime = 0;
 	newBitmap.imageWidth = 0;
 	newBitmap.imageHeight = 0;
+	newBitmap.centerX = (centerXPercent / 100.0f) * canvas.getWidth();
+	newBitmap.centerY = (centerYPercent / 100.0f) * canvas.getHeight();
 
 	// Parse image array and convert to RGBA pixels
 	if (props["image"].is<JsonArray>()) {
@@ -94,9 +111,15 @@ void BitmapEffect::render() {
 		uint16_t scaledWidth = bmp.imageWidth * scale;
 		uint16_t scaledHeight = bmp.imageHeight * scale;
 
-		// Center the scaled bitmap on the canvas
-		int16_t offsetX = (canvasWidth - scaledWidth) / 2;
-		int16_t offsetY = (canvasHeight - scaledHeight) / 2;
+		// Position bitmap so its center is at the specified coordinates
+		int16_t offsetX = static_cast<int16_t>(bmp.centerX) - (scaledWidth / 2);
+		int16_t offsetY = static_cast<int16_t>(bmp.centerY) - (scaledHeight / 2);
+
+		// Skip if bitmap is completely off-canvas
+		if (offsetX + scaledWidth <= 0 || offsetX >= canvasWidth ||
+		    offsetY + scaledHeight <= 0 || offsetY >= canvasHeight) {
+			continue;
+		}
 
 		// Render pre-computed pixels, scaled up 4x
 		for (uint8_t row = 0; row < bmp.imageHeight; row++) {
