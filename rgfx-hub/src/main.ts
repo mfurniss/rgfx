@@ -143,6 +143,7 @@ void installDefaultMappers()
 registerIpcHandlers({
   driverRegistry,
   driverPersistence,
+  driverLogPersistence,
   ledHardwareManager,
   mqtt,
   uploadConfigToDriver,
@@ -315,6 +316,7 @@ app.on('before-quit', () => {
 
   // Stop services
   eventReader.stop();
+  udpClient.stop();
   void mqtt.stop();
 });
 

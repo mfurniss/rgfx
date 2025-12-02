@@ -9,6 +9,7 @@ import {
   Sensors as SensorsIcon,
   ArrowBack as ArrowBackIcon,
   Settings as SettingsIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from './info-section';
@@ -296,6 +297,16 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TestLedButton driver={driver} />
                 <ResetDriverButton driver={driver} />
+                <Tooltip title="Open driver log file">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      void window.rgfx.openDriverLog(driver.id);
+                    }}
+                  >
+                    <DescriptionIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
             ) : undefined
           }

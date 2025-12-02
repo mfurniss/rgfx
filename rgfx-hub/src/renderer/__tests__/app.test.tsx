@@ -65,6 +65,7 @@ describe('App IPC Listener Registration', () => {
       triggerEffect: vi.fn(),
       saveDriverConfig: vi.fn(),
       getLEDHardwareList: vi.fn(),
+      openDriverLog: vi.fn(),
     };
   });
 

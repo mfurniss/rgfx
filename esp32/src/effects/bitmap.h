@@ -13,6 +13,8 @@ class BitmapEffect : public IEffect {
 		std::vector<uint32_t> pixels;    // Pre-computed RGBA pixels, row-major order
 		uint8_t imageWidth;              // Width in pixels
 		uint8_t imageHeight;             // Height in pixels
+		float centerX;                   // Center X position in canvas coords
+		float centerY;                   // Center Y position in canvas coords
 		uint32_t remaining() const { return duration - elapsedTime; }
 	};
 

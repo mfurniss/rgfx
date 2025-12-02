@@ -6,15 +6,14 @@
  */
 
 import { z } from 'zod';
-import { color, easing } from './properties';
+import { baseEffect, easing } from './properties';
 
 /**
  * Pulse effect props schema
  * Creates a full-screen color pulse that fades out over time
  */
-export default z
-  .object({
-    color,
+export default baseEffect
+  .extend({
     duration: z.number().positive().optional().default(700),
     easing,
     fade: z.boolean().optional().default(true),

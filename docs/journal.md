@@ -186,5 +186,13 @@ Added save-driver-config-handler and list-led-hardware-handler IPC handlers. Cre
 
 Refactored mqtt module to network directory for clearer naming convention. Cleaned up unused type exports from schemas (DriverLEDConfigFromSchema, DriverTelemetryFromSchema, LEDHardwareFromSchema, etc.). Added object-shorthand ESLint rule and applied fixes throughout the codebase. Removed unused constants from config/constants.ts. Added npm script for checking unused exports. Extracted shared effect properties to dedicated properties/ directory.
 
-**Total Development Time:** 49 days (October 11 - November 29, 2025)
-**Total Commits:** 343
+## November 30, 2025
+
+Added Test LEDs button directly to drivers table for quick LED testing without opening configuration. Updated explode effect default parameters. Implemented configurable WiFi TX power setting in driver config, allowing adjustment of ESP32 radio output power via Hub configuration.
+
+## December 1, 2025
+
+Fixed native C++ test compilation by adding test-only Canvas constructor. Fixed failing native tests for wipe and pulse effects. Improved CI pipeline by adding auto-cancel for redundant pipelines on new commits and skipping branch pipelines when merge requests exist to prevent duplicate builds. Fixed CI issues with date-fns dependency and platform binary rebuilds. Updated gitignore. Merged multi-pin-output branch.
+
+**Total Development Time:** 52 days (October 11 - December 1, 2025)
+**Total Commits:** 362

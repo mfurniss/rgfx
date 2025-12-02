@@ -37,6 +37,7 @@ describe('MappingEngine', () => {
       broadcast: broadcastMock,
       udp: {
         broadcast: broadcastMock,
+        stop: vi.fn(),
       },
       mqtt: {
         publish: vi.fn(),
