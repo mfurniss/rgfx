@@ -49,15 +49,10 @@ export default function SimulatorPage() {
 
       <Paper sx={{ p: 3, mt: 2 }}>
         <Stack spacing={2}>
-          <Typography variant="body2" color="text.secondary">
-            Simulate MAME event log lines. Format: <code>topic payload</code> (e.g.,{' '}
-            <code>galaga/enemy/destroyed</code>)
-          </Typography>
-
           <Stack direction="row" spacing={2} alignItems="center">
             <TextField
               label="Event Line"
-              placeholder="galaga/player/ship/x 133"
+              placeholder="game/subject/property/qualifier payload"
               value={eventLine}
               onChange={(e) => {
                 setSimulatorState(e.target.value, autoInterval);
@@ -79,10 +74,10 @@ export default function SimulatorPage() {
               Trigger
             </Button>
             <FormControl sx={{ minWidth: 140, flexShrink: 0 }} size="small">
-              <InputLabel>Auto</InputLabel>
+              <InputLabel>Auto Trigger</InputLabel>
               <Select
                 value={autoInterval}
-                label="Auto"
+                label="Auto Trigger"
                 onChange={(e) => {
                   setSimulatorState(eventLine, e.target.value as SimulatorAutoInterval);
                 }}
