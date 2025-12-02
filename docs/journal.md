@@ -194,5 +194,9 @@ Added Test LEDs button directly to drivers table for quick LED testing without o
 
 Fixed native C++ test compilation by adding test-only Canvas constructor. Fixed failing native tests for wipe and pulse effects. Improved CI pipeline by adding auto-cancel for redundant pipelines on new commits and skipping branch pipelines when merge requests exist to prevent duplicate builds. Fixed CI issues with date-fns dependency and platform binary rebuilds. Updated gitignore. Merged multi-pin-output branch.
 
-**Total Development Time:** 52 days (October 11 - December 1, 2025)
-**Total Commits:** 362
+## December 2, 2025
+
+Implemented effect reset functionality allowing effects to be cleared before adding new instances via a reset flag in the effect schema. Refactored effect schemas to use a shared baseEffect that includes color and reset properties, reducing duplication across bitmap, explode, pulse, and wipe effects. Added open driver log file feature to Hub for easier debugging. Added d3-scale library for mapper value scaling and bitmap centerX/centerY support for positioning effects. Refactored UdpClient to use reusable socket for improved performance. Fixed VSCode Prettier configuration for HTML formatting by updating .prettierignore and user settings.
+
+**Total Development Time:** 53 days (October 11 - December 2, 2025)
+**Total Commits:** 367
