@@ -22,5 +22,6 @@ if (!container) {
 const root = createRoot(container);
 root.render(<App />);
 
-// Remove splash screen after React has rendered
-document.getElementById('splash')?.remove();
+setTimeout(() => {
+  document.getElementById('splash')?.remove();
+}, 1000);
