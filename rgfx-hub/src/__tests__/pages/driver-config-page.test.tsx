@@ -98,6 +98,7 @@ beforeEach(() => {
     flashOTA: vi.fn(),
     triggerDiscovery: vi.fn(),
     triggerEffect: vi.fn(),
+    openDriverLog: vi.fn(),
   };
 });
 
