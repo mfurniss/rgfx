@@ -3,23 +3,32 @@
  *
  * Provides high-level interface for broadcasting effects to LED drivers.
  * Uses DriverRegistry to discover connected drivers and their IP addresses.
+ * Maintains a single reusable UDP socket for efficient message sending.
  */
 
+import dgram from 'dgram';
 import log from 'electron-log/main';
 import type { UdpClient, EffectPayload } from '../types/mapping-types';
 import type { DriverRegistry } from '../driver-registry';
 import { type Driver } from '../types';
-import { Udp } from '../udp';
 import { UDP_PORT } from '../config/constants';
 
 /**
  * UDP client implementation for broadcasting effects to drivers
  *
- * Creates UDP sockets on-demand for each driver and broadcasts
- * semantic effect payloads as JSON.
+ * Maintains a single reusable UDP socket and broadcasts
+ * semantic effect payloads as JSON to connected drivers.
  */
 export class UdpClientImpl implements UdpClient {
-  constructor(private driverRegistry: DriverRegistry) {}
+  private socket: dgram.Socket;
+
+  constructor(private driverRegistry: DriverRegistry) {
+    this.socket = dgram.createSocket('udp4');
+    this.socket.on('error', (err) => {
+      log.error(`UDP client socket error: ${err.message}`);
+    });
+    log.debug('UDP client socket initialized');
+  }
 
   /**
    * Broadcast effect to all connected drivers or selective drivers if specified
@@ -88,23 +97,25 @@ export class UdpClientImpl implements UdpClient {
       return true; // Still return true for mapper convenience
     }
 
-    // Create UDP socket and send
-    const udp = new Udp(driver.ip, UDP_PORT);
+    const message = JSON.stringify(effectData);
+    const buffer = Buffer.from(message);
 
-    // Set callback to close socket after send completes
-    udp.setSentCallback(() => {
-      udp.stop();
+    this.socket.send(buffer, UDP_PORT, driver.ip, (err) => {
+      if (err) {
+        log.error(`UDP send to ${driver.ip} failed: ${err.message}`);
+      } else {
+        log.info(`Sent effect to driver ${driverId} (${driver.ip}):`, effectData);
+      }
     });
-
-    // Set error callback to close socket on error
-    udp.setErrorCallback(() => {
-      udp.stop();
-    });
-
-    udp.send(effectData);
-
-    log.info(`Sent effect to driver ${driverId} (${driver.ip}):`, effectData);
 
     return true;
+  }
+
+  /**
+   * Stop the UDP client and close the socket
+   */
+  stop(): void {
+    this.socket.close();
+    log.debug('UDP client socket closed');
   }
 }

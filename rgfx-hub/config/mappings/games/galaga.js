@@ -1,6 +1,6 @@
 import { scaleLinear } from 'd3-scale';
 
-const shipPositionScale = scaleLinear().domain([17, 225]).range([0, 100]);
+const shipPositionScale = scaleLinear().domain([17, 225]).range([13, 88]);
 
 // Galaga mapper - see pacman.js for format example
 export function handle({ subject, property }, payload, { broadcast }) {
@@ -24,13 +24,14 @@ export function handle({ subject, property }, payload, { broadcast }) {
   }
 
   // Player ship movement - blue pulse (17 to 225)
-  if (subject === 'player' && property === 'ship') {
+  if (subject === 'player' && property === 'ship' && payload >= 17) {
     return broadcast({
       effect: 'bitmap',
+      drivers: ['rgfx-driver-0003'],
       props: {
         color: '#0000FF',
         reset: true,
-        centerY: shipPositionScale(Number(payload)),
+        centerY: Math.floor(shipPositionScale(Number(payload))),
         duration: 400,
         image: [
           '   XX   ',
