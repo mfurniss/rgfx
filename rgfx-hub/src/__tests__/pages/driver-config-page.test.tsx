@@ -99,6 +99,7 @@ beforeEach(() => {
     triggerDiscovery: vi.fn(),
     triggerEffect: vi.fn(),
     openDriverLog: vi.fn(),
+    simulateEvent: vi.fn(),
   };
 });
 

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
+export type SimulatorAutoInterval = 'off' | '1s' | '5s';
 
 interface UiState {
   // Driver table sort preferences
@@ -15,6 +16,10 @@ interface UiState {
   testEffectsSelectedDrivers: string[]; // Set serialized as array
   testEffectsSelectAll: boolean;
 
+  // Simulator page state
+  simulatorEventLine: string;
+  simulatorAutoInterval: SimulatorAutoInterval;
+
   // Actions
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
   setTestEffectsState: (
@@ -23,6 +28,7 @@ interface UiState {
     selectedDrivers: Set<string>,
     selectAll: boolean
   ) => void;
+  setSimulatorState: (eventLine: string, autoInterval: SimulatorAutoInterval) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -38,6 +44,10 @@ export const useUiStore = create<UiState>()(
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
 
+      // Simulator defaults
+      simulatorEventLine: '',
+      simulatorAutoInterval: 'off',
+
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
       },
@@ -48,6 +58,13 @@ export const useUiStore = create<UiState>()(
           testEffectsPropsJson: propsJson,
           testEffectsSelectedDrivers: Array.from(selectedDrivers),
           testEffectsSelectAll: selectAll,
+        });
+      },
+
+      setSimulatorState: (eventLine, autoInterval) => {
+        set({
+          simulatorEventLine: eventLine,
+          simulatorAutoInterval: autoInterval,
         });
       },
     }),

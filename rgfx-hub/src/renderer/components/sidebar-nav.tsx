@@ -5,6 +5,7 @@ import {
   Monitor as MonitorIcon,
   Memory as FirmwareIcon,
   Science as ScienceIcon,
+  Terminal as TerminalIcon,
   Settings as SettingsIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
@@ -21,6 +22,7 @@ const navItems: NavItem[] = [
   { label: 'Event Monitor', path: '/events', icon: <MonitorIcon /> },
   { label: 'Firmware', path: '/firmware', icon: <FirmwareIcon /> },
   { label: 'FX Playground', path: '/effects-playground', icon: <ScienceIcon /> },
+  { label: 'Simulator', path: '/simulator', icon: <TerminalIcon /> },
   { label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
   { label: 'About', path: '/about', icon: <InfoIcon /> },
 ];

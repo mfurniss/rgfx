@@ -9,9 +9,11 @@ import DriverConfigPage from './pages/driver-config-page';
 import EventMonitorPage from './pages/event-monitor-page';
 import FirmwarePage from './pages/firmware-page';
 import EffectsPlaygroundPage from './pages/effects-playground-page';
+import SimulatorPage from './pages/simulator-page';
 import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
+import { useSimulatorAutoTrigger } from './hooks/use-simulator-auto-trigger';
 import { theme } from './theme';
 
 // Flag to ensure rendererReady is only called once per app lifecycle
@@ -20,6 +22,9 @@ let rendererReadyCalled = false;
 const App: React.FC = () => {
   // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
+
+  // Run simulator auto-trigger at app level so it persists across navigation
+  useSimulatorAutoTrigger();
   const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
   const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
   const onSystemStatusUpdate = useDriverStore((state) => state.onSystemStatusUpdate);
@@ -97,6 +102,7 @@ const App: React.FC = () => {
               <Route path="/events" element={<EventMonitorPage />} />
               <Route path="/firmware" element={<FirmwarePage />} />
               <Route path="/effects-playground" element={<EffectsPlaygroundPage />} />
+              <Route path="/simulator" element={<SimulatorPage />} />
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </AppLayout>
