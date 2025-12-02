@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { baseEffect } from './properties';
+import { baseEffect, centerX, centerY } from './properties';
 
 /**
  * Bitmap effect props schema
@@ -14,6 +14,8 @@ import { baseEffect } from './properties';
  */
 export default baseEffect
   .extend({
+    centerX,
+    centerY,
     duration: z.number().positive().optional().default(400),
     image: z
       .array(z.string())

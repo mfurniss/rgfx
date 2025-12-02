@@ -1,5 +1,9 @@
+import { scaleLinear } from 'd3-scale';
+
+const shipPositionScale = scaleLinear().domain([17, 225]).range([0, 100]);
+
 // Galaga mapper - see pacman.js for format example
-export function handle({ subject, property }, _payload, { broadcast }) {
+export function handle({ subject, property }, payload, { broadcast }) {
   // if (subject === "player" && property === "score") {
   //   return broadcast({
   //     effect: "pulse",
@@ -19,13 +23,28 @@ export function handle({ subject, property }, _payload, { broadcast }) {
     });
   }
 
-  // Player ship movement - blue pulse
-  // if (subject === "player" && property === "ship") {
-  //   return broadcast({
-  //     effect: "pulse",
-  //     props: { color: "#0000FF" },
-  //   });
-  // }
+  // Player ship movement - blue pulse (17 to 225)
+  if (subject === 'player' && property === 'ship') {
+    return broadcast({
+      effect: 'bitmap',
+      props: {
+        color: '#0000FF',
+        reset: true,
+        centerY: shipPositionScale(Number(payload)),
+        duration: 400,
+        image: [
+          '   XX   ',
+          '   XX   ',
+          '   XX   ',
+          'X XXXX X',
+          'X XXXX X',
+          'XXXXXXXX',
+          'X XXXX X',
+          'X  XX  X',
+        ],
+      },
+    });
+  }
 
   if (subject === 'enemy' && property === 'destroyed') {
     return broadcast({
