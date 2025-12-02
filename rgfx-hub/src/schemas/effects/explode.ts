@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 
-import { baseEffect } from './properties';
+import { baseEffect, centerX, centerY } from './properties';
 
 /**
  * Explode effect props schema
@@ -15,8 +15,8 @@ import { baseEffect } from './properties';
  */
 export default baseEffect
   .extend({
-    centerX: z.number().min(0).max(100).optional().default(50),
-    centerY: z.number().min(0).max(100).optional().default(50),
+    centerX,
+    centerY,
     friction: z.number().min(0).max(50).optional().default(3.0),
     hueSpread: z.number().int().min(0).max(359).optional().default(40),
     lifespan: z.number().positive().optional().default(700),

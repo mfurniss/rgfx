@@ -40,15 +40,25 @@ void ExplodeEffect::add(JsonDocument& props) {
 	float powerScale = static_cast<float>(largestDimension * 4) / 64.0f;
 	float scaledPower = power * powerScale;
 
-	// Parse center position as percentage (0-100), default to center (50%)
-	float centerXPercent = props["centerX"] | 50.0f;
+	// Parse center position as percentage (0-100), "random", or default to center (50%)
+	float centerXPercent = 50.0f;
+	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
+		centerXPercent = random(0, 101);
+	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
+		centerXPercent = props["centerX"].as<float>();
+	}
 	float centerX = (centerXPercent / 100.0f) * canvas.getWidth();
 
 	float centerY;
 	if (isStrip) {
 		centerY = canvas.getHeight() / 2.0f;
 	} else {
-		float centerYPercent = props["centerY"] | 50.0f;
+		float centerYPercent = 50.0f;
+		if (props["centerY"].is<const char*>() && strcmp(props["centerY"].as<const char*>(), "random") == 0) {
+			centerYPercent = random(0, 101);
+		} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
+			centerYPercent = props["centerY"].as<float>();
+		}
 		centerY = (centerYPercent / 100.0f) * canvas.getHeight();
 	}
 
