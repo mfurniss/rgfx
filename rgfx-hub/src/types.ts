@@ -262,6 +262,7 @@ declare global {
       saveDriverConfig: (config: PersistedDriverFromSchema) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
+      simulateEvent: (eventLine: string) => Promise<void>;
     };
   }
 }
