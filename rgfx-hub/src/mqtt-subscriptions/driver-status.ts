@@ -46,6 +46,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
     if (payload === 'offline' && driver.connected) {
       log.warn(`Driver ${driverId} went offline (LWT triggered)`);
       driver.ip = undefined;
+      driver.connected = false;
 
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));

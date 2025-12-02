@@ -46,6 +46,12 @@ export const UDP_DISCOVERY_INTERVAL_MS = 5000;
  */
 export const DRIVER_CONNECTION_TIMEOUT_MS = 30000;
 
+/**
+ * Interval for checking driver connection timeouts (milliseconds).
+ * The driver store checks for stale connections at this interval.
+ */
+export const DRIVER_CONNECTION_CHECK_INTERVAL_MS = 5000;
+
 // ============================================================================
 // Application Window Configuration
 // ============================================================================
