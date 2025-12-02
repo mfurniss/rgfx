@@ -68,7 +68,11 @@ void EffectProcessor::update() {
 }
 
 void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
-	// Validate common props before passing to effects
+	// Check for reset flag (common to all effects)
+	bool shouldReset = false;
+	if (!props["reset"].isNull() && props["reset"].is<bool>()) {
+		shouldReset = props["reset"].as<bool>();
+	}
 
 	// Validate color prop (common to all effects)
 	if (!props["color"].isNull()) {
@@ -87,6 +91,9 @@ void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
 	// Route to the appropriate effect
 	for (const auto& entry : effectMap) {
 		if (effectName == entry.name) {
+			if (shouldReset) {
+				entry.effect->reset();
+			}
 			entry.effect->add(props);
 			return;
 		}
