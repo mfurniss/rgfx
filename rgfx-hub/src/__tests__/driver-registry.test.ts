@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
 import { DriverPersistence } from '../driver-persistence';
+import { LEDHardwareManager } from '../led-hardware-manager';
 import type { DriverTelemetry } from '../types';
 
 // Mock electron-log
@@ -460,6 +461,37 @@ describe('DriverRegistry', () => {
       const driver2 = registry.registerDriver(telemetryData);
       expect(driver2.connected).toBe(true);
       expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('loading persisted drivers at startup', () => {
+    it('should set mac property from persisted macAddress for disconnected drivers', () => {
+      // Add a driver to persistence first
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+
+      // Create a new registry that loads from persistence (requires both persistence and ledHardwareManager)
+      const ledHardwareManager = new LEDHardwareManager('test-config');
+      const newRegistry = new DriverRegistry(persistence, ledHardwareManager);
+
+      // Get all drivers (should include the persisted one)
+      const drivers = newRegistry.getAllDrivers();
+      expect(drivers).toHaveLength(1);
+
+      const driver = drivers[0];
+      expect(driver.id).toBe('rgfx-driver-0001');
+      expect(driver.mac).toBe('AA:BB:CC:DD:EE:FF');
+      expect(driver.connected).toBe(false);
+    });
+
+    it('should allow finding persisted disconnected driver by mac', () => {
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+
+      const ledHardwareManager = new LEDHardwareManager('test-config');
+      const newRegistry = new DriverRegistry(persistence, ledHardwareManager);
+
+      const driver = newRegistry.getDriverByMac('AA:BB:CC:DD:EE:FF');
+      expect(driver).toBeDefined();
+      expect(driver?.id).toBe('rgfx-driver-0001');
     });
   });
 });

@@ -41,6 +41,7 @@ export class DriverRegistry {
 
         const driver = new Driver({
           id: pd.id,
+          mac: pd.macAddress,
           description: pd.description,
           remoteLogging: pd.remoteLogging,
           lastSeen: 0,
