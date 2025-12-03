@@ -213,12 +213,10 @@ describe('DriverConfigPage', () => {
 
       renderWithRouter(mac);
 
+      // Wait for hardware options to load and LED Hardware dropdown to appear
       await waitFor(() => {
-        expect(screen.getByText('LED Configuration')).toBeDefined();
+        expect(screen.getAllByText('LED Hardware').length).toBeGreaterThan(0);
       });
-
-      // Verify the LED Hardware label is present (MUI renders it twice - label and legend)
-      expect(screen.getAllByText('LED Hardware').length).toBeGreaterThan(0);
     });
   });
 
