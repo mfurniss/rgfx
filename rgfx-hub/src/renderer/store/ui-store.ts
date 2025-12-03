@@ -3,6 +3,14 @@ import { persist } from 'zustand/middleware';
 
 export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
+export type SimulatorAutoInterval = 'off' | '1s' | '5s';
+
+interface SimulatorRow {
+  eventLine: string;
+  autoInterval: SimulatorAutoInterval;
+}
+
+const SIMULATOR_ROW_COUNT = 6;
 
 interface UiState {
   // Driver table sort preferences
@@ -15,6 +23,9 @@ interface UiState {
   testEffectsSelectedDrivers: string[]; // Set serialized as array
   testEffectsSelectAll: boolean;
 
+  // Simulator page state
+  simulatorRows: SimulatorRow[];
+
   // Actions
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
   setTestEffectsState: (
@@ -23,6 +34,7 @@ interface UiState {
     selectedDrivers: Set<string>,
     selectAll: boolean
   ) => void;
+  setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -38,6 +50,12 @@ export const useUiStore = create<UiState>()(
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
 
+      // Simulator defaults (6 empty rows)
+      simulatorRows: Array.from({ length: SIMULATOR_ROW_COUNT }, () => ({
+        eventLine: '',
+        autoInterval: 'off' as SimulatorAutoInterval,
+      })),
+
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
       },
@@ -50,13 +68,21 @@ export const useUiStore = create<UiState>()(
           testEffectsSelectAll: selectAll,
         });
       },
+
+      setSimulatorRow: (index, eventLine, autoInterval) => {
+        set((state) => {
+          const newRows = [...state.simulatorRows];
+          newRows[index] = { eventLine, autoInterval };
+          return { simulatorRows: newRows };
+        });
+      },
     }),
     {
       name: 'rgfx-ui-preferences',
       partialize: (state) => ({
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
-        // Exclude test effects state from persistence
+        simulatorRows: state.simulatorRows,
       }),
     },
   ),

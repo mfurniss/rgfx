@@ -52,17 +52,14 @@ export function handle({ subject, property }, payload, { broadcast }) {
       effect: 'explode',
       drivers: ['*', '*'],
       props: {
-        // color: "random",
         particleCount: 80,
         power: 120,
-        lifespan: 400,
+        lifespan: 380,
         powerSpread: 1.4,
         particleSize: 4,
         hueSpread: 40,
         friction: 3,
-        lifespanSpread: 1.2,
-        // centerX: 50,
-        // centerY: 50
+        lifespanSpread: 1.4,
       },
     });
   }

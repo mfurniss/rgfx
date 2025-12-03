@@ -11,6 +11,7 @@ import type { DriverPersistence } from '../driver-persistence';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
+import type { MappingEngine } from '../mapping-engine';
 import type { UdpClient } from '../types/mapping-types';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';
@@ -20,6 +21,7 @@ import { registerUpdateDriverConfigHandler } from './update-driver-config-handle
 import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
 import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
 import { registerOpenDriverLogHandler } from './open-driver-log-handler';
+import { registerSimulateEventHandler } from './simulate-event-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -29,6 +31,8 @@ interface IpcHandlersDeps {
   mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
   udpClient: UdpClient;
+  mappingEngine: MappingEngine;
+  onEventProcessed: (topic: string, payload: string) => void;
   getMainWindow: () => BrowserWindow | null;
 }
 
@@ -41,4 +45,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerSaveDriverConfigHandler(deps);
   registerListLEDHardwareHandler(deps);
   registerOpenDriverLogHandler(deps);
+  registerSimulateEventHandler(deps);
 }
