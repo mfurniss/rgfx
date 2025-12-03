@@ -1,7 +1,38 @@
 ---
 name: rgfx-hub-developer
-description: Use this agent when working on the rgfx-hub Electron application, including feature development, bug fixes, code improvements, architecture decisions, or any task involving TypeScript, Material UI, Zustand, or Zod within the hub project. This agent maintains architectural documentation and ensures best practices are followed.\n\nExamples:\n\n<example>\nContext: User wants to add a new feature to the hub application.\nuser: "Add a settings panel for configuring MQTT connection parameters"\nassistant: "I'll use the rgfx-hub-developer agent to implement this feature following the established architecture and best practices."\n<Task tool call to rgfx-hub-developer agent>\n</example>\n\n<example>\nContext: User encounters a bug in the hub application.\nuser: "The device list isn't updating when new drivers connect"\nassistant: "Let me launch the rgfx-hub-developer agent to investigate and fix this Zustand state management issue."\n<Task tool call to rgfx-hub-developer agent>\n</example>\n\n<example>\nContext: User wants to refactor existing hub code.\nuser: "The LED configuration component is getting too large, can you refactor it?"\nassistant: "I'll use the rgfx-hub-developer agent to refactor this component with proper separation of concerns."\n<Task tool call to rgfx-hub-developer agent>\n</example>\n\n<example>\nContext: User asks about hub architecture decisions.\nuser: "Why are we using Zustand instead of Redux for state management?"\nassistant: "Let me have the rgfx-hub-developer agent check the architectural documentation and explain this decision."\n<Task tool call to rgfx-hub-developer agent>\n</example>
-tools: 
+description: |
+  Use this agent when working on the rgfx-hub Electron application, including feature development, bug fixes, code improvements, architecture decisions, or any task involving TypeScript, Material UI, Zustand, or Zod within the hub project. This agent maintains architectural documentation and ensures best practices are followed.
+
+  Examples:
+
+  <example>
+  Context: User wants to add a new feature to the hub application.
+  user: "Add a settings panel for configuring MQTT connection parameters"
+  assistant: "I'll use the rgfx-hub-developer agent to implement this feature following the established architecture and best practices."
+  <Task tool call to rgfx-hub-developer agent>
+  </example>
+
+  <example>
+  Context: User encounters a bug in the hub application.
+  user: "The device list isn't updating when new drivers connect"
+  assistant: "Let me launch the rgfx-hub-developer agent to investigate and fix this Zustand state management issue."
+  <Task tool call to rgfx-hub-developer agent>
+  </example>
+
+  <example>
+  Context: User wants to refactor existing hub code.
+  user: "The LED configuration component is getting too large, can you refactor it?"
+  assistant: "I'll use the rgfx-hub-developer agent to refactor this component with proper separation of concerns."
+  <Task tool call to rgfx-hub-developer agent>
+  </example>
+
+  <example>
+  Context: User asks about hub architecture decisions.
+  user: "Why are we using Zustand instead of Redux for state management?"
+  assistant: "Let me have the rgfx-hub-developer agent check the architectural documentation and explain this decision."
+  <Task tool call to rgfx-hub-developer agent>
+  </example>
+tools:
 model: opus
 ---
 
