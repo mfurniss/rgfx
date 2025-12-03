@@ -1,0 +1,259 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+ */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as fs from 'fs';
+import { LEDHardwareManager } from '../led-hardware-manager';
+
+vi.mock('electron-log/main', () => ({
+  default: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock('fs');
+
+describe('LEDHardwareManager', () => {
+  const mockFs = vi.mocked(fs);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const validHardwareJson = JSON.stringify({
+    name: 'Test LED Matrix',
+    description: 'A test 8x8 matrix',
+    sku: 'TEST-8X8',
+    asin: 'B00TEST123',
+    layout: 'matrix',
+    count: 64,
+    chipset: 'WS2812B',
+    colorOrder: 'GRB',
+    colorCorrection: 'TypicalSMD5050',
+    width: 8,
+    height: 8,
+  });
+
+  describe('loadHardware', () => {
+    it('should load and parse valid hardware file', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(validHardwareJson);
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/test-matrix.json');
+
+      expect(hardware).not.toBeNull();
+      expect(hardware?.name).toBe('Test LED Matrix');
+      expect(hardware?.count).toBe(64);
+      expect(hardware?.layout).toBe('matrix');
+    });
+
+    it('should cache loaded hardware', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(validHardwareJson);
+
+      const manager = new LEDHardwareManager('/config');
+
+      // First load
+      const hardware1 = manager.loadHardware('led-hardware/test-matrix.json');
+      expect(mockFs.readFileSync).toHaveBeenCalledTimes(1);
+
+      // Second load should come from cache
+      const hardware2 = manager.loadHardware('led-hardware/test-matrix.json');
+      expect(mockFs.readFileSync).toHaveBeenCalledTimes(1);
+      expect(hardware1).toBe(hardware2);
+    });
+
+    it('should return null for non-existent file', () => {
+      mockFs.existsSync.mockReturnValue(false);
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/missing.json');
+
+      expect(hardware).toBeNull();
+      expect(mockFs.readFileSync).not.toHaveBeenCalled();
+    });
+
+    it('should return null for invalid JSON', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('not valid json');
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/invalid.json');
+
+      expect(hardware).toBeNull();
+    });
+
+    it('should return null for JSON that fails schema validation', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      // Missing required 'name' field
+      mockFs.readFileSync.mockReturnValue(
+        JSON.stringify({
+          sku: 'TEST',
+          layout: 'strip',
+          count: 10,
+        }),
+      );
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/invalid-schema.json');
+
+      expect(hardware).toBeNull();
+    });
+
+    it('should handle file read errors', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockImplementation(() => {
+        throw new Error('Permission denied');
+      });
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/no-access.json');
+
+      expect(hardware).toBeNull();
+    });
+
+    it('should resolve path correctly with base directory', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(validHardwareJson);
+
+      const manager = new LEDHardwareManager('/custom/base');
+      manager.loadHardware('led-hardware/test.json');
+
+      expect(mockFs.existsSync).toHaveBeenCalledWith(expect.stringContaining('/custom/base'));
+    });
+  });
+
+  describe('hasHardware', () => {
+    it('should return true when file exists', () => {
+      mockFs.existsSync.mockReturnValue(true);
+
+      const manager = new LEDHardwareManager('/config');
+      const exists = manager.hasHardware('led-hardware/test-matrix.json');
+
+      expect(exists).toBe(true);
+    });
+
+    it('should return false when file does not exist', () => {
+      mockFs.existsSync.mockReturnValue(false);
+
+      const manager = new LEDHardwareManager('/config');
+      const exists = manager.hasHardware('led-hardware/missing.json');
+
+      expect(exists).toBe(false);
+    });
+  });
+
+  describe('clearCache', () => {
+    it('should clear all cached entries', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(validHardwareJson);
+
+      const manager = new LEDHardwareManager('/config');
+
+      // Load and cache
+      manager.loadHardware('led-hardware/test1.json');
+      manager.loadHardware('led-hardware/test2.json');
+      expect(mockFs.readFileSync).toHaveBeenCalledTimes(2);
+
+      // Clear cache
+      manager.clearCache();
+
+      // Should reload from file
+      manager.loadHardware('led-hardware/test1.json');
+      expect(mockFs.readFileSync).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('listHardware', () => {
+    it('should list all JSON files in led-hardware directory', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      // readdirSync returns string[] when called without withFileTypes option
+      (mockFs.readdirSync as ReturnType<typeof vi.fn>).mockReturnValue([
+        'matrix-8x8.json',
+        'strip-60.json',
+        'panel-16x16.json',
+        'readme.txt',
+      ]);
+
+      const manager = new LEDHardwareManager('/config');
+      const files = manager.listHardware();
+
+      expect(files).toHaveLength(3);
+      expect(files).toContain('led-hardware/matrix-8x8.json');
+      expect(files).toContain('led-hardware/strip-60.json');
+      expect(files).toContain('led-hardware/panel-16x16.json');
+    });
+
+    it('should return empty array when directory does not exist', () => {
+      mockFs.existsSync.mockReturnValue(false);
+
+      const manager = new LEDHardwareManager('/config');
+      const files = manager.listHardware();
+
+      expect(files).toHaveLength(0);
+    });
+
+    it('should return empty array on read error', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readdirSync.mockImplementation(() => {
+        throw new Error('Read error');
+      });
+
+      const manager = new LEDHardwareManager('/config');
+      const files = manager.listHardware();
+
+      expect(files).toHaveLength(0);
+    });
+  });
+
+  describe('hardware with optional fields', () => {
+    it('should load hardware without asin', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
+        JSON.stringify({
+          name: 'Generic Strip',
+          sku: 'GEN-STRIP',
+          layout: 'strip',
+          count: 30,
+        }),
+      );
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/generic.json');
+
+      expect(hardware).not.toBeNull();
+      expect(hardware?.name).toBe('Generic Strip');
+      expect(hardware?.asin).toBeUndefined();
+    });
+
+    it('should load hardware with null sku', () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
+        JSON.stringify({
+          name: 'Custom Strip',
+          sku: null,
+          layout: 'strip',
+          count: 50,
+        }),
+      );
+
+      const manager = new LEDHardwareManager('/config');
+      const hardware = manager.loadHardware('led-hardware/custom.json');
+
+      expect(hardware).not.toBeNull();
+      expect(hardware?.sku).toBeNull();
+    });
+  });
+});
