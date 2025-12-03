@@ -139,6 +139,30 @@ void installDefaultMappers()
     log.error('Failed to install default mappers:', error);
   });
 
+// Track event topics and their counts
+const eventTopicCounts = new Map<string, number>();
+const eventTopicLastValues = new Map<string, string>();
+
+// Handle event processing (used by both event file reader and simulator)
+function processEvent(topic: string, payload: string): void {
+  eventsProcessed++;
+
+  // Track event topic count and last value
+  const currentCount = eventTopicCounts.get(topic) ?? 0;
+  eventTopicCounts.set(topic, currentCount + 1);
+  eventTopicLastValues.set(topic, payload);
+
+  // Send event count to renderer in real-time (lightweight, just a number)
+  if (isWindowAvailable() && mainWindow) {
+    mainWindow.webContents.send('event:count', eventsProcessed);
+    mainWindow.webContents.send('event:topic', {
+      topic,
+      count: currentCount + 1,
+      lastValue: payload.length > 0 ? payload : undefined,
+    });
+  }
+}
+
 // Register IPC handlers
 registerIpcHandlers({
   driverRegistry,
@@ -148,6 +172,8 @@ registerIpcHandlers({
   mqtt,
   uploadConfigToDriver,
   udpClient,
+  mappingEngine,
+  onEventProcessed: processEvent,
   getMainWindow: () => {
     if (!mainWindow) {
       throw new Error('Main window not initialized');
@@ -166,29 +192,10 @@ registerMqttSubscriptions({
   getEventsProcessed: () => eventsProcessed,
 });
 
-// Track event topics and their counts
-const eventTopicCounts = new Map<string, number>();
-const eventTopicLastValues = new Map<string, string>();
-
 // Start reading events and send to mapping engine for processing
 eventReader.start((topic, message) => {
-  eventsProcessed++;
   void mappingEngine.handleEvent(topic, message);
-
-  // Track event topic count and last value
-  const currentCount = eventTopicCounts.get(topic) ?? 0;
-  eventTopicCounts.set(topic, currentCount + 1);
-  eventTopicLastValues.set(topic, message);
-
-  // Send event count to renderer in real-time (lightweight, just a number)
-  if (isWindowAvailable() && mainWindow) {
-    mainWindow.webContents.send('event:count', eventsProcessed);
-    mainWindow.webContents.send('event:topic', {
-      topic,
-      count: currentCount + 1,
-      lastValue: message.length > 0 ? message : undefined,
-    });
-  }
+  processEvent(topic, message);
 });
 
 // Start firmware monitoring
@@ -207,6 +214,7 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      backgroundThrottling: false,
     },
   });
 

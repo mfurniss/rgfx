@@ -141,6 +141,10 @@ export const rgfxAPI = {
   openDriverLog: (driverId: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('driver:open-log', driverId);
   },
+
+  simulateEvent: (eventLine: string): Promise<void> => {
+    return ipcRenderer.invoke('event:simulate', eventLine);
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

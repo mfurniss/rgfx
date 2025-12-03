@@ -96,7 +96,7 @@ const GHOST_STATE_COLORS = {
 };
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function handle(
@@ -174,8 +174,10 @@ export function handle(
       effect: 'bitmap',
       drivers: ['rgxfx-driver-0001', 'rgfx-driver-0003', 'rgfx-driver-0005'],
       props: {
-        color: '#A0A000',
-        duration: 180,
+        color: 'random',
+        centerX: 'random',
+        duration: 2000,
+        reset: true,
         image:
           payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
       },
