@@ -1,83 +1,80 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useUiStore, SimulatorRow } from '../store/ui-store';
+import { useEffect, useRef } from 'react';
+import { useUiStore } from '../store/ui-store';
 
 /**
  * Hook that manages the simulator auto-trigger intervals for all rows.
- * Should be used at the App level so it persists across navigation.
+ * Uses a single effect that directly manages intervals based on store state.
  */
 export function useSimulatorAutoTrigger(): void {
-  const simulatorRows = useUiStore((state) => state.simulatorRows);
-  const intervalsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
-  const prevRowsRef = useRef<(SimulatorRow | undefined)[]>([]);
+  const intervalRefs = useRef<(NodeJS.Timeout | null)[]>([null, null, null, null, null, null]);
 
-  const triggerEvent = useCallback(async (eventLine: string) => {
-    if (!eventLine.trim()) {
-      return;
-    }
-
-    try {
-      await window.rgfx.simulateEvent(eventLine);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  // Main effect to manage intervals per row
   useEffect(() => {
-    const currentIntervals = intervalsRef.current;
-    const prevRows = prevRowsRef.current;
+    // Subscribe to store changes
+    const unsubscribe = useUiStore.subscribe((state, prevState) => {
+      state.simulatorRows.forEach((row, index) => {
+        const prevRow = prevState.simulatorRows[index];
+        const intervalChanged = row.autoInterval !== prevRow.autoInterval;
 
-    // Process each row
-    simulatorRows.forEach((row: SimulatorRow, index: number) => {
-      const prevRow = prevRows[index];
-      const existingInterval = currentIntervals.get(index);
-      const shouldHaveInterval = row.autoInterval !== 'off' && row.eventLine.trim();
+        if (intervalChanged) {
+          // Clear existing interval for this row
+          const existingInterval = intervalRefs.current[index];
 
-      // Check if this row's settings actually changed
-      const rowChanged =
-        prevRow === undefined ||
-        prevRow.eventLine !== row.eventLine ||
-        prevRow.autoInterval !== row.autoInterval;
-
-      if (shouldHaveInterval) {
-        if (rowChanged) {
-          const ms = row.autoInterval === '1s' ? 1000 : 5000;
-
-          // Clear existing interval if settings changed
           if (existingInterval) {
             clearInterval(existingInterval);
+            intervalRefs.current[index] = null;
           }
 
-          // Trigger immediately when auto mode is enabled or changed
-          void triggerEvent(row.eventLine);
+          // Set up new interval if not 'off'
+          if (row.autoInterval !== 'off') {
+            const ms = row.autoInterval === '1s' ? 1000 : 5000;
 
-          // Set new interval
-          const newInterval = setInterval(() => {
-            void triggerEvent(row.eventLine);
-          }, ms);
-          currentIntervals.set(index, newInterval);
+            // Trigger immediately
+            if (row.eventLine.trim()) {
+              void window.rgfx.simulateEvent(row.eventLine);
+            }
+
+            // Set up recurring interval
+            intervalRefs.current[index] = setInterval(() => {
+              const currentRow = useUiStore.getState().simulatorRows[index];
+
+              if (currentRow.eventLine.trim() && currentRow.autoInterval !== 'off') {
+                void window.rgfx.simulateEvent(currentRow.eventLine);
+              }
+            }, ms);
+          }
         }
-      } else if (existingInterval) {
-        // Clear interval if no longer needed
-        clearInterval(existingInterval);
-        currentIntervals.delete(index);
+      });
+    });
+
+    // Initialize intervals for any rows that already have auto-trigger enabled
+    const initialState = useUiStore.getState();
+
+    initialState.simulatorRows.forEach((row, index) => {
+      if (row.autoInterval !== 'off') {
+        const ms = row.autoInterval === '1s' ? 1000 : 5000;
+
+        if (row.eventLine.trim()) {
+          void window.rgfx.simulateEvent(row.eventLine);
+        }
+
+        intervalRefs.current[index] = setInterval(() => {
+          const currentRow = useUiStore.getState().simulatorRows[index];
+
+          if (currentRow.eventLine.trim() && currentRow.autoInterval !== 'off') {
+            void window.rgfx.simulateEvent(currentRow.eventLine);
+          }
+        }, ms);
       }
     });
 
-    // Store current rows for next comparison
-    prevRowsRef.current = simulatorRows;
-
-    // No cleanup here - we manage intervals manually above
-  }, [simulatorRows, triggerEvent]);
-
-  // Cleanup only on unmount
-  useEffect(() => {
-    const currentIntervals = intervalsRef.current;
     return () => {
-      currentIntervals.forEach((interval) => {
-        clearInterval(interval);
+      unsubscribe();
+      intervalRefs.current.forEach((interval) => {
+        if (interval) {
+          clearInterval(interval);
+        }
       });
-      currentIntervals.clear();
+      intervalRefs.current = [null, null, null, null, null, null];
     };
   }, []);
 }
