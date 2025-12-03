@@ -12,9 +12,11 @@ The VSCode workspace contains three key projects.
 - /rgfx-hub is the main controller app which converts event log entries to network messages. The native app uses Electron and is written in TypeScript and Material UI. When working on rgfx-hub delegate to the rgfx-hub-developer agent.
 - /esp32 is the driver firmware for ESP32 microcontrollers. It is a Platform IO project written in C++. The driver's job is to receive network messages from the hub and convert these to visual effects using the connected LED strips and LED matrices. Use the platformio-esp32-expert agent when working on the esp32 driver firmware.
 
-## Change Logs
+## Changes
 
 Keep a change log in the project root. The file is /CHANGELOG.md. If this file does not exist create it. Each time a change is committed, write a record of the change to the change log.
+
+Certain folders contain their own local CLAUDE.md files which hold detailed context and information for the files in the folder. It is very important that these are kept up to date. Remember to update these after making changes.
 
 ## Core Principles
 

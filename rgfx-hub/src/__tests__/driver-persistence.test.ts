@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DriverPersistence } from './driver-persistence';
+import { DriverPersistence } from '../driver-persistence';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
