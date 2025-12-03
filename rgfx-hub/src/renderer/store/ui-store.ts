@@ -5,6 +5,13 @@ export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
 export type SimulatorAutoInterval = 'off' | '1s' | '5s';
 
+export interface SimulatorRow {
+  eventLine: string;
+  autoInterval: SimulatorAutoInterval;
+}
+
+const SIMULATOR_ROW_COUNT = 6;
+
 interface UiState {
   // Driver table sort preferences
   driverTableSortField: SortField;
@@ -17,8 +24,7 @@ interface UiState {
   testEffectsSelectAll: boolean;
 
   // Simulator page state
-  simulatorEventLine: string;
-  simulatorAutoInterval: SimulatorAutoInterval;
+  simulatorRows: SimulatorRow[];
 
   // Actions
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
@@ -28,7 +34,7 @@ interface UiState {
     selectedDrivers: Set<string>,
     selectAll: boolean
   ) => void;
-  setSimulatorState: (eventLine: string, autoInterval: SimulatorAutoInterval) => void;
+  setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -44,9 +50,11 @@ export const useUiStore = create<UiState>()(
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
 
-      // Simulator defaults
-      simulatorEventLine: '',
-      simulatorAutoInterval: 'off',
+      // Simulator defaults (6 empty rows)
+      simulatorRows: Array.from({ length: SIMULATOR_ROW_COUNT }, () => ({
+        eventLine: '',
+        autoInterval: 'off' as SimulatorAutoInterval,
+      })),
 
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
@@ -61,10 +69,11 @@ export const useUiStore = create<UiState>()(
         });
       },
 
-      setSimulatorState: (eventLine, autoInterval) => {
-        set({
-          simulatorEventLine: eventLine,
-          simulatorAutoInterval: autoInterval,
+      setSimulatorRow: (index, eventLine, autoInterval) => {
+        set((state) => {
+          const newRows = [...state.simulatorRows];
+          newRows[index] = { eventLine, autoInterval };
+          return { simulatorRows: newRows };
         });
       },
     }),
