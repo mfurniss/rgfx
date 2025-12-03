@@ -5,7 +5,7 @@ export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
 export type SimulatorAutoInterval = 'off' | '1s' | '5s';
 
-export interface SimulatorRow {
+interface SimulatorRow {
   eventLine: string;
   autoInterval: SimulatorAutoInterval;
 }
@@ -82,7 +82,7 @@ export const useUiStore = create<UiState>()(
       partialize: (state) => ({
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
-        // Exclude test effects state from persistence
+        simulatorRows: state.simulatorRows,
       }),
     },
   ),
