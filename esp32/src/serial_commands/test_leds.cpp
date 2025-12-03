@@ -7,7 +7,7 @@
 
 #include "commands.h"
 #include "log.h"
-#include "matrix.h"
+#include "graphics/matrix.h"
 #include "effects/effect_processor.h"
 #include "network/mqtt.h"
 #include <ArduinoJson.h>

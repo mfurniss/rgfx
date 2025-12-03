@@ -1,5 +1,5 @@
 #include "effect_processor.h"
-#include "downsample_to_matrix.h"
+#include "graphics/downsample_to_matrix.h"
 #include "driver_config.h"
 #include "effects/effect_utils.h"
 #include <FastLED.h>

@@ -7,7 +7,7 @@
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
 #include <new>
-#include "matrix.h"
+#include "graphics/matrix.h"
 #include "effects/effect_processor.h"
 #include "network/network_init.h"
 #include "network/network_task.h"

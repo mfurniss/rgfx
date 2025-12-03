@@ -1,6 +1,6 @@
 #include "pulse.h"
 #include "effect_utils.h"
-#include "canvas.h"
+#include "graphics/canvas.h"
 #include <algorithm>
 #include <cstring>
 
