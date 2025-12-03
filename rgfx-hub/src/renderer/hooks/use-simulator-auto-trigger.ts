@@ -1,16 +1,16 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useUiStore } from '../store/ui-store';
+import { useUiStore, SimulatorRow } from '../store/ui-store';
 
 /**
- * Hook that manages the simulator auto-trigger interval.
+ * Hook that manages the simulator auto-trigger intervals for all rows.
  * Should be used at the App level so it persists across navigation.
  */
 export function useSimulatorAutoTrigger(): void {
-  const eventLine = useUiStore((state) => state.simulatorEventLine);
-  const autoInterval = useUiStore((state) => state.simulatorAutoInterval);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const simulatorRows = useUiStore((state) => state.simulatorRows);
+  const intervalsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  const prevRowsRef = useRef<(SimulatorRow | undefined)[]>([]);
 
-  const triggerEvent = useCallback(async () => {
+  const triggerEvent = useCallback(async (eventLine: string) => {
     if (!eventLine.trim()) {
       return;
     }
@@ -20,29 +20,64 @@ export function useSimulatorAutoTrigger(): void {
     } catch (err) {
       console.error(err);
     }
-  }, [eventLine]);
+  }, []);
 
+  // Main effect to manage intervals per row
   useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    const currentIntervals = intervalsRef.current;
+    const prevRows = prevRowsRef.current;
 
-    if (autoInterval !== 'off' && eventLine.trim()) {
-      // Trigger immediately when auto mode is enabled
-      void triggerEvent();
+    // Process each row
+    simulatorRows.forEach((row: SimulatorRow, index: number) => {
+      const prevRow = prevRows[index];
+      const existingInterval = currentIntervals.get(index);
+      const shouldHaveInterval = row.autoInterval !== 'off' && row.eventLine.trim();
 
-      const ms = autoInterval === '1s' ? 1000 : 5000;
-      intervalRef.current = setInterval(() => {
-        void triggerEvent();
-      }, ms);
-    }
+      // Check if this row's settings actually changed
+      const rowChanged =
+        prevRow === undefined ||
+        prevRow.eventLine !== row.eventLine ||
+        prevRow.autoInterval !== row.autoInterval;
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (shouldHaveInterval) {
+        if (rowChanged) {
+          const ms = row.autoInterval === '1s' ? 1000 : 5000;
+
+          // Clear existing interval if settings changed
+          if (existingInterval) {
+            clearInterval(existingInterval);
+          }
+
+          // Trigger immediately when auto mode is enabled or changed
+          void triggerEvent(row.eventLine);
+
+          // Set new interval
+          const newInterval = setInterval(() => {
+            void triggerEvent(row.eventLine);
+          }, ms);
+          currentIntervals.set(index, newInterval);
+        }
+      } else if (existingInterval) {
+        // Clear interval if no longer needed
+        clearInterval(existingInterval);
+        currentIntervals.delete(index);
       }
+    });
+
+    // Store current rows for next comparison
+    prevRowsRef.current = simulatorRows;
+
+    // No cleanup here - we manage intervals manually above
+  }, [simulatorRows, triggerEvent]);
+
+  // Cleanup only on unmount
+  useEffect(() => {
+    const currentIntervals = intervalsRef.current;
+    return () => {
+      currentIntervals.forEach((interval) => {
+        clearInterval(interval);
+      });
+      currentIntervals.clear();
     };
-  }, [autoInterval, eventLine, triggerEvent]);
+  }, []);
 }
