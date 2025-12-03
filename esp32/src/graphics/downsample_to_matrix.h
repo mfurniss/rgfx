@@ -1,6 +1,6 @@
 #pragma once
 
-#include "effects/effect_processor.h"
+#include "../effects/effect_processor.h"
 #include "matrix.h"
 #include "canvas.h"
 #include <FastLED.h>

@@ -2,7 +2,7 @@
 #include "config/config_leds.h"
 #include "config/config_nvs.h"
 #include "log.h"
-#include "matrix.h"
+#include "graphics/matrix.h"
 #include "effects/effect_processor.h"
 #include "utils.h"
 #include "oled/oled_display.h"

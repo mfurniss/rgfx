@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matrix.h"
+#include "graphics/matrix.h"
 #include "effects/pulse.h"
 #include "effects/bitmap.h"
 #include "effects/wipe.h"
