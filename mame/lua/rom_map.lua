@@ -26,6 +26,9 @@ return {
 	-- Galaga
 	galaga = "galaga_rgfx",
 
+	-- Robotron: 2084
+	robotron = "robotron_rgfx",
+
 	-- ============================================================================
 	-- NES Games (cartridge filename → interceptor)
 	-- ============================================================================

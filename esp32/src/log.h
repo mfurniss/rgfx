@@ -31,3 +31,15 @@ void setRemoteLoggingLevel(const String& level);
  * @return Current logging level string ("all", "errors", or "off")
  */
 String getRemoteLoggingLevel();
+
+/**
+ * Initialize the log queue for thread-safe remote logging
+ * Must be called during setup before any logging occurs
+ */
+void initLogQueue();
+
+/**
+ * Process pending log messages from the queue and publish via MQTT
+ * MUST be called from Core 0 (network task) to ensure thread-safe MQTT access
+ */
+void processLogQueue();

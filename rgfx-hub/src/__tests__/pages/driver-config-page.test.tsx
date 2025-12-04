@@ -198,12 +198,12 @@ describe('DriverConfigPage', () => {
 
       renderWithRouter(mac);
 
+      // Wait for form to be fully valid (button enabled) and click it
       await waitFor(() => {
-        expect(screen.getByText('Save Configuration')).toBeDefined();
+        const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
+        expect(saveButton.getAttribute('disabled')).toBeNull();
+        fireEvent.click(saveButton);
       });
-
-      const saveButton = screen.getByText('Save Configuration');
-      fireEvent.click(saveButton);
 
       await waitFor(() => {
         expect(mockSaveDriverConfig).toHaveBeenCalled();

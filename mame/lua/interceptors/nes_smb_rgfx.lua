@@ -249,14 +249,4 @@ local map = {
 -- This allows Hub to load the correct game-specific mapper
 _G.event(game_name .. "/init", "1")
 
--- Install all RAM monitors
-for name, config in pairs(map) do
-	ram.install_ram_monitor({
-		mem = cpu.spaces["program"],
-		start_addr = config.addr_start,
-		end_addr = config.addr_end,
-		name = name,
-		callback = config.callback,
-		size = config.size,
-	})
-end
+ram.install_monitors(map, mem)
