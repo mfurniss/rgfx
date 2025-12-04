@@ -25,6 +25,7 @@ workflow:
   auto_cancel:
     on_new_commit: interruptible
   rules:
+    - if: $GITLAB_CI == "false"                         # Run locally with gitlab-ci-local
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # Run on MRs
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/          # Run on version tags
     - if: $CI_COMMIT_BRANCH == "main"                   # Run on main branch only
@@ -71,6 +72,7 @@ test:hub:
     - npm test           # Any test failure = FAIL
 
   rules:
+    - if: $GITLAB_CI == "false"                       # Run locally with gitlab-ci-local
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -108,6 +110,7 @@ test:driver:
     # Note: Native tests run in CI. Embedded tests require hardware and must be run locally.
 
   rules:
+    - if: $GITLAB_CI == "false"                       # Run locally with gitlab-ci-local
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
 
