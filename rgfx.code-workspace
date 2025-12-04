@@ -19,9 +19,6 @@
     {
       "path": "rgfx-hub",
     },
-    {
-      "path": "../../.rgfx",
-    },
   ],
   "settings": {
     "files.exclude": {
