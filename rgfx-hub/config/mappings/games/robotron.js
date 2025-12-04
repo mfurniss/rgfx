@@ -26,52 +26,6 @@
  * @returns {boolean} - True if event was handled
  */
 
-// Robotron player sprite (simplified humanoid)
-const PLAYER_SPRITE = [
-  '    XX    ',
-  '   XXXX   ',
-  '    XX    ',
-  '  XXXXXX  ',
-  ' XXXXXXXX ',
-  '    XX    ',
-  '   X  X   ',
-  '  X    X  ',
-];
-
-// Explosion/death sprite
-const EXPLOSION_SPRITE = [
-  '  X    X  ',
-  ' X  XX  X ',
-  '   XXXX   ',
-  ' XXXXXXXX ',
-  ' XXXXXXXX ',
-  '   XXXX   ',
-  ' X  XX  X ',
-  '  X    X  ',
-];
-
-// Family member sprite (for rescue effects)
-const FAMILY_SPRITE = [
-  '   XX   ',
-  '  XXXX  ',
-  '   XX   ',
-  '  XXXX  ',
-  '   XX   ',
-  '  X  X  ',
-];
-
-// Direction to wipe mapping for fire events
-const FIRE_DIRECTION_MAP = {
-  up: 'up',
-  down: 'down',
-  left: 'left',
-  right: 'right',
-  'up-left': 'left',
-  'up-right': 'right',
-  'down-left': 'left',
-  'down-right': 'right',
-};
-
 // Track score for milestone detection
 let lastScore = 0;
 
@@ -205,13 +159,13 @@ export function handle(
   }
 
   const colors = {
-    grunt: 'red',
+    grunt: 'orange',
     enforcer: 'yellow',
     hulk: 'green',
     brain: 'purple',
     spheroid: 'random',
-    tank: 'yellow',
-    quark: 'orange',
+    tank: 'red',
+    quark: 'green',
   };
 
   if (subject === 'enemy' && qualifier === 'destroy') {
