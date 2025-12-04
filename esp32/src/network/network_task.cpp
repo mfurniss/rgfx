@@ -13,6 +13,9 @@
 #include "telemetry.h"
 #include "utils.h"
 
+// Forward declaration for log queue processing (defined in log.cpp)
+void processLogQueue();
+
 // Network Task - runs on Core 0 (protocol core)
 // Handles MQTT, web server, OTA, and OLED display updates
 void networkTask(void* parameter) {
@@ -60,6 +63,9 @@ void networkTask(void* parameter) {
 
 			// Process MQTT connection and messages
 			mqttLoop();
+
+			// Process queued log messages (ensures all MQTT publishes happen on Core 0)
+			processLogQueue();
 
 			// Send periodic telemetry (only after MQTT connected)
 			if (mqttClient.connected() && (now - lastTelemetryBroadcast >= TELEMETRY_INTERVAL_MS)) {

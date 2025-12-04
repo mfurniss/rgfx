@@ -47,6 +47,17 @@ The driver discovers the MQTT broker via UDP broadcast:
 2. Driver listens and validates broker is on same subnet
 3. Once discovered, MQTT connection is established
 
+## Thread Safety
+
+**CRITICAL:** The `256dpi/MQTT` library is NOT thread-safe. All MQTT client operations must happen on a single core.
+
+- **Core 0 (Network Task):** Handles all MQTT operations via `mqttLoop()` and `processLogQueue()`
+- **Core 1 (Application Loop):** Must NOT directly call `mqttClient.publish()`
+
+The `log()` function uses a FreeRTOS queue to safely pass log messages from any core to Core 0 for MQTT publishing. This prevents race conditions that can corrupt the MQTT connection state.
+
+When adding new MQTT publish calls, always use the log queue pattern or ensure the call is made from the network task.
+
 ## Network Initialization Flow
 
 1. WiFi connects (via IotWebConf portal or saved credentials)
@@ -61,7 +72,8 @@ The driver discovers the MQTT broker via UDP broadcast:
    - Process config portal requests
    - Poll for MQTT broker (every 3s until found)
    - Handle MQTT messages
-   - Send periodic telemetry (every 30s)
+   - Process log queue (publish queued log messages)
+   - Send periodic telemetry (every 10s)
    - Handle OTA updates
    - Update OLED display
 
@@ -87,7 +99,7 @@ UDP packets are only accepted from the Hub's IP address (validated against disco
 - `UDP_PORT` - UDP listener port for effects
 - `UDP_BUFFER_SIZE` - UDP message buffer size
 - `SSDP_POLL_INTERVAL_MS` - Broker discovery poll interval (3000ms)
-- `TELEMETRY_INTERVAL_MS` - Telemetry broadcast interval (30000ms)
+- `TELEMETRY_INTERVAL_MS` - Telemetry broadcast interval (10000ms)
 
 ## Dependencies
 
