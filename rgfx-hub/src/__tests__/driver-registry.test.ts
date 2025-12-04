@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
 import { DriverPersistence } from '../driver-persistence';
 import { LEDHardwareManager } from '../led-hardware-manager';
-import type { DriverTelemetry } from '../types';
+import { createMockTelemetryData } from './test-utils';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -38,47 +38,6 @@ describe('DriverRegistry', () => {
     persistence = new DriverPersistence('test-config');
     registry = new DriverRegistry(persistence);
   });
-
-  const createMockTelemetryData = (overrides: {
-    mac?: string;
-    ip?: string;
-    hostname?: string;
-    ssid?: string;
-    rssi?: number;
-    freeHeap?: number;
-    minFreeHeap?: number;
-    uptimeMs?: number;
-    telemetryOverrides?: Partial<DriverTelemetry>;
-  } = {}) => {
-    const telemetry: DriverTelemetry = {
-      chipModel: 'ESP32',
-      chipRevision: 1,
-      chipCores: 2,
-      cpuFreqMHz: 240,
-      flashSize: 4194304,
-      flashSpeed: 40000000,
-      heapSize: 327680,
-      psramSize: 0,
-      freePsram: 0,
-      hasDisplay: false,
-      sdkVersion: 'v4.4',
-      sketchSize: 1000000,
-      freeSketchSpace: 2000000,
-      ...overrides.telemetryOverrides,
-    };
-
-    return {
-      ip: overrides.ip ?? '192.168.1.100',
-      mac: overrides.mac ?? 'AA:BB:CC:DD:EE:FF',
-      hostname: overrides.hostname ?? 'esp32-driver',
-      ssid: overrides.ssid ?? 'TestNetwork',
-      rssi: overrides.rssi ?? -50,
-      freeHeap: overrides.freeHeap ?? 200000,
-      minFreeHeap: overrides.minFreeHeap ?? 180000,
-      uptimeMs: overrides.uptimeMs ?? 60000,
-      telemetry,
-    };
-  };
 
   describe('registerDriver', () => {
     it('should register a new driver with generated ID', () => {

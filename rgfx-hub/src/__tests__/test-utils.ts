@@ -10,6 +10,107 @@ import {
   TEST_FILE_WATCHER_RETRY_DELAY_MS,
   TEST_FILE_WATCHER_MAX_RETRIES,
 } from '../config/constants';
+import { Driver, DriverTelemetry } from '../types';
+
+/**
+ * Creates a mock DriverTelemetry object with sensible defaults.
+ * All properties can be overridden via the overrides parameter.
+ */
+export const createMockTelemetry = (
+  overrides?: Partial<DriverTelemetry>,
+): DriverTelemetry => ({
+  chipModel: 'ESP32',
+  chipRevision: 1,
+  chipCores: 2,
+  cpuFreqMHz: 240,
+  flashSize: 4194304,
+  flashSpeed: 40000000,
+  heapSize: 327680,
+  psramSize: 0,
+  freePsram: 0,
+  sdkVersion: 'v4.4.2',
+  sketchSize: 1000000,
+  freeSketchSpace: 2000000,
+  hasDisplay: false,
+  firmwareVersion: '1.0.0',
+  ...overrides,
+});
+
+interface MockDriverOptions {
+  id?: string;
+  mac?: string;
+  ip?: string;
+  hostname?: string;
+  connected?: boolean;
+  telemetry?: Partial<DriverTelemetry>;
+}
+
+/**
+ * Creates a mock Driver instance with sensible defaults.
+ * When connected=false, network fields are set to undefined.
+ */
+export const createMockDriver = (overrides?: MockDriverOptions): Driver => {
+  const defaults = {
+    id: 'test-driver',
+    mac: 'AA:BB:CC:DD:EE:FF',
+    ip: '192.168.1.100',
+    hostname: 'rgfx-driver',
+    connected: true,
+  };
+  const opts = { ...defaults, ...overrides };
+
+  return new Driver({
+    id: opts.id,
+    mac: opts.mac,
+    ip: opts.connected ? opts.ip : undefined,
+    hostname: opts.connected ? opts.hostname : undefined,
+    ssid: opts.connected ? 'TestNetwork' : undefined,
+    rssi: opts.connected ? -50 : undefined,
+    freeHeap: opts.connected ? 200000 : undefined,
+    minFreeHeap: opts.connected ? 180000 : undefined,
+    uptimeMs: opts.connected ? 60000 : undefined,
+    lastSeen: Date.now(),
+    lastSeenAt: opts.connected ? Date.now() : undefined,
+    failedHeartbeats: 0,
+    telemetry: opts.connected ? createMockTelemetry(overrides?.telemetry) : undefined,
+    stats: {
+      mqttMessagesReceived: 0,
+      mqttMessagesFailed: 0,
+      udpMessagesSent: 0,
+      udpMessagesFailed: 0,
+    },
+    connected: opts.connected,
+    remoteLogging: 'errors',
+  });
+};
+
+interface MockTelemetryDataOptions {
+  mac?: string;
+  ip?: string;
+  hostname?: string;
+  ssid?: string;
+  rssi?: number;
+  freeHeap?: number;
+  minFreeHeap?: number;
+  uptimeMs?: number;
+  telemetry?: Partial<DriverTelemetry>;
+}
+
+/**
+ * Creates mock telemetry data as received from a driver via MQTT.
+ * This is the format used by DriverRegistry.registerDriver().
+ */
+export const createMockTelemetryData = (overrides?: MockTelemetryDataOptions) => ({
+  mac: overrides?.mac ?? 'AA:BB:CC:DD:EE:FF',
+  ip: overrides?.ip ?? '192.168.1.100',
+  hostname: overrides?.hostname ?? 'esp32-driver',
+  ssid: overrides?.ssid ?? 'TestNetwork',
+  rssi: overrides?.rssi ?? -50,
+  freeHeap: overrides?.freeHeap ?? 200000,
+  minFreeHeap: overrides?.minFreeHeap ?? 180000,
+  uptimeMs: overrides?.uptimeMs ?? 60000,
+  telemetry: createMockTelemetry(overrides?.telemetry),
+});
 
 /**
  * Write to a file and retry until a watcher detects the change.
