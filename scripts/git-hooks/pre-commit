@@ -1,13 +1,17 @@
 #!/bin/bash
 # Pre-commit hook to enforce code quality
-# Runs: TypeScript check, ESLint (with auto-fix), and tests
+# Runs: Hub (TypeScript, ESLint, tests) and ESP32 native tests
 
 set -e  # Exit on any error
 
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
 echo "🔍 Running pre-commit checks..."
 
-# Change to rgfx-hub directory
-cd "$(git rev-parse --show-toplevel)/rgfx-hub"
+# ===== RGFX-HUB CHECKS =====
+echo ""
+echo "📦 Checking rgfx-hub..."
+cd "$ROOT_DIR/rgfx-hub"
 
 # 1. TypeScript type checking
 echo "📝 TypeScript type checking..."
@@ -19,9 +23,20 @@ echo "🔧 Running ESLint with auto-fix..."
 npm run lint -- --fix
 echo "✅ ESLint passed"
 
-# 3. Run tests
-echo "🧪 Running tests..."
+# 3. Run Hub tests
+echo "🧪 Running Hub tests..."
 npm test
-echo "✅ Tests passed"
+echo "✅ Hub tests passed"
 
+# ===== ESP32 DRIVER CHECKS =====
+echo ""
+echo "🔌 Checking ESP32 driver..."
+cd "$ROOT_DIR/esp32"
+
+# 4. Run native unit tests (fast, no hardware required)
+echo "🧪 Running ESP32 native tests..."
+pio test -e native
+echo "✅ ESP32 native tests passed"
+
+echo ""
 echo "✨ All pre-commit checks passed! Proceeding with commit..."
