@@ -68,7 +68,7 @@ const EventMonitorPage: React.FC = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>
+              <TableCell sx={{ width: 0.4}}>
                 <TableSortLabel
                   active={sortField === 'topic'}
                   direction={sortField === 'topic' ? sortOrder : 'asc'}
@@ -79,7 +79,7 @@ const EventMonitorPage: React.FC = () => {
                   Event Topic
                 </TableSortLabel>
               </TableCell>
-              <TableCell align="right">
+              <TableCell sx={{ width: 0.3}} align="right">
                 <TableSortLabel
                   active={sortField === 'count'}
                   direction={sortField === 'count' ? sortOrder : 'asc'}
@@ -90,7 +90,7 @@ const EventMonitorPage: React.FC = () => {
                   Count
                 </TableSortLabel>
               </TableCell>
-              <TableCell align="right">Last Value</TableCell>
+              <TableCell sx={{ width: 0.3}} align="right">Last Value</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -107,7 +107,7 @@ const EventMonitorPage: React.FC = () => {
                 <TableRow key={eventTopic.topic}>
                   <TableCell>{eventTopic.topic}</TableCell>
                   <TableCell align="right">{formatNumber(eventTopic.count)}</TableCell>
-                  <TableCell align="right">{formatValue(eventTopic.lastValue)}</TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatValue(eventTopic.lastValue)}</TableCell>
                 </TableRow>
               ))
             )}

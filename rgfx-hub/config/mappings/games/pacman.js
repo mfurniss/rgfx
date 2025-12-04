@@ -172,11 +172,10 @@ export function handle(
     });
     return broadcast({
       effect: 'bitmap',
-      drivers: ['rgxfx-driver-0001', 'rgfx-driver-0003', 'rgfx-driver-0005'],
+      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003', 'rgfx-driver-0005'],
       props: {
-        color: 'random',
         centerX: 'random',
-        duration: 2000,
+        duration: 250,
         reset: true,
         image:
           payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
@@ -189,8 +188,18 @@ export function handle(
     return broadcast({
       effect: 'explode',
       props: {
-        color: '#FF00FF',
-        duration: 2000,
+        color: 'purple',
+        reset: false,
+        centerX: 50,
+        centerY: 50,
+        friction: 3,
+        hueSpread: 40,
+        lifespan: 2000,
+        lifespanSpread: 1.6,
+        particleCount: 200,
+        particleSize: 4,
+        power: 70,
+        powerSpread: 1.6,
       },
     });
   }
@@ -201,7 +210,7 @@ export function handle(
       effect: 'pulse',
       props: {
         color: '#00A0FF',
-        duration: 1000,
+        duration: 2000,
       },
     });
   }
@@ -213,7 +222,7 @@ export function handle(
       effect: 'pulse',
       props: {
         color: '#FFFF00',
-        duration: part === 1 ? 2000 : 300,
+        duration: part === 1 ? 1700 : 300,
       },
     });
   }
@@ -221,7 +230,7 @@ export function handle(
   // Ghost eyes (after being eaten, returning to home)
   if (subject === 'player' && property === 'ghost' && qualifier === 'eyes') {
     (async () => {
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < 8; i++) {
         broadcast({
           effect: 'wipe',
           props: {
@@ -262,8 +271,18 @@ export function handle(
       return broadcast({
         effect: 'explode',
         props: {
-          color: '#FFFF00',
-          duration: 2000,
+          color: 'blue',
+          reset: true,
+          centerX: 50,
+          centerY: 50,
+          friction: 3,
+          hueSpread: 0,
+          lifespan: 2000,
+          lifespanSpread: 1.6,
+          particleCount: 300,
+          particleSize: 4,
+          power: 70,
+          powerSpread: 1,
         },
       });
     }

@@ -57,6 +57,10 @@ void setup() {
 	// Initialize serial command system (must be done before any log() calls)
 	SerialCommand::begin();
 
+	// Initialize log queue for thread-safe remote logging
+	// Must be done before any log() calls that could be sent to hub
+	initLogQueue();
+
 	log("\n\nRGFX Driver v" + String(RGFX_VERSION) + " starting...");
 	log("Core 0: Protocol/Network core (WiFi, MQTT, Web, Display)");
 	log("Core 1: Application core (LEDs, UDP effects)");
