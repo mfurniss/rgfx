@@ -10,7 +10,8 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import DriverConfigPage from '@/renderer/pages/driver-config-page';
-import { Driver, DriverTelemetry } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver } from '../test-utils';
 
 // Mock the stores
 const mockAddNotification = vi.fn();
@@ -21,46 +22,14 @@ vi.mock('@/renderer/store/notification-store', () => ({
   }),
 }));
 
-// Create mock driver data
-const createMockDriver = (mac: string, id: string): Driver => {
-  const telemetry: DriverTelemetry = {
-    chipModel: 'ESP32',
-    chipRevision: 1,
-    chipCores: 2,
-    cpuFreqMHz: 240,
-    flashSize: 4194304,
-    flashSpeed: 40000000,
-    heapSize: 327680,
-    psramSize: 0,
-    freePsram: 0,
-    sketchSize: 1000000,
-    freeSketchSpace: 3000000,
-    firmwareVersion: '1.0.0',
-    sdkVersion: '4.4.0',
-    hasDisplay: false,
+// Helper to create mock driver with ledConfig for this test file
+const createTestDriver = (mac: string, id: string): Driver => {
+  const driver = createMockDriver({ mac, id });
+  driver.ledConfig = {
+    hardwareRef: 'led-hardware/test-matrix.json',
+    pin: 16,
   };
-
-  return new Driver({
-    id,
-    mac,
-    ip: '192.168.1.50',
-    hostname: id,
-    ssid: 'TestNetwork',
-    rssi: -50,
-    freeHeap: 100000,
-    minFreeHeap: 90000,
-    uptimeMs: 1000,
-    lastSeen: Date.now(),
-    failedHeartbeats: 0,
-    telemetry,
-    stats: { mqttMessagesReceived: 0, mqttMessagesFailed: 0, udpMessagesSent: 0, udpMessagesFailed: 0 },
-    connected: true,
-    remoteLogging: 'errors',
-    ledConfig: {
-      hardwareRef: 'led-hardware/test-matrix.json',
-      pin: 16,
-    },
-  });
+  return driver;
 };
 
 // Variable to hold mock drivers for the store
@@ -133,7 +102,7 @@ describe('DriverConfigPage', () => {
   describe('form display', () => {
     it('displays driver configuration form when driver exists', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
 
       renderWithRouter(mac);
@@ -148,7 +117,7 @@ describe('DriverConfigPage', () => {
 
     it('populates form with driver data', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'my-custom-driver')];
+      mockDrivers = [createTestDriver(mac, 'my-custom-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
 
       renderWithRouter(mac);
@@ -164,7 +133,7 @@ describe('DriverConfigPage', () => {
 
     it('disables MAC address field', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue([]);
 
       renderWithRouter(mac);
@@ -179,7 +148,7 @@ describe('DriverConfigPage', () => {
   describe('LED hardware selection', () => {
     it('shows loading state while fetching hardware options', () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       // Don't resolve the promise yet - use a never-resolving promise
       mockGetLEDHardwareList.mockReturnValue(new Promise<string[]>(() => undefined));
 
@@ -190,7 +159,7 @@ describe('DriverConfigPage', () => {
 
     it('shows warning when no hardware options available', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue([]);
 
       renderWithRouter(mac);
@@ -203,7 +172,7 @@ describe('DriverConfigPage', () => {
     it('displays hardware options in dropdown', async () => {
       const mac = '44:1D:64:F8:9A:58';
       // Create driver without LED config so we don't get out-of-range warning
-      const driver = createMockDriver(mac, 'test-driver');
+      const driver = createTestDriver(mac, 'test-driver');
       driver.ledConfig = null;
       mockDrivers = [driver];
       mockGetLEDHardwareList.mockResolvedValue([
@@ -213,19 +182,17 @@ describe('DriverConfigPage', () => {
 
       renderWithRouter(mac);
 
+      // Wait for hardware options to load and LED Hardware dropdown to appear
       await waitFor(() => {
-        expect(screen.getByText('LED Configuration')).toBeDefined();
+        expect(screen.getAllByText('LED Hardware').length).toBeGreaterThan(0);
       });
-
-      // Verify the LED Hardware label is present (MUI renders it twice - label and legend)
-      expect(screen.getAllByText('LED Hardware').length).toBeGreaterThan(0);
     });
   });
 
   describe('form submission', () => {
     it('calls saveDriverConfig on form submit', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
       mockSaveDriverConfig.mockResolvedValue(undefined);
 
@@ -245,7 +212,7 @@ describe('DriverConfigPage', () => {
 
     it('shows success notification on successful save', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
       mockSaveDriverConfig.mockResolvedValue(undefined);
 
@@ -270,7 +237,7 @@ describe('DriverConfigPage', () => {
 
     it('shows error notification on save failure', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
       mockSaveDriverConfig.mockRejectedValue(new Error('Save failed'));
 
@@ -297,7 +264,7 @@ describe('DriverConfigPage', () => {
   describe('exit button', () => {
     it('renders exit button', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createMockDriver(mac, 'test-driver')];
+      mockDrivers = [createTestDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue([]);
 
       renderWithRouter(mac);

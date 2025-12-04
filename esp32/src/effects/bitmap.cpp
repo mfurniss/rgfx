@@ -1,6 +1,6 @@
 #include "bitmap.h"
 #include "effect_utils.h"
-#include "canvas.h"
+#include "graphics/canvas.h"
 #include <algorithm>
 
 static const uint32_t DEFAULT_COLOR = 0xFFFF00;

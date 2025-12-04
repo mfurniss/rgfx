@@ -1,5 +1,5 @@
 #include "test_leds.h"
-#include "canvas.h"
+#include "graphics/canvas.h"
 
 TestLedsEffect::TestLedsEffect(const Matrix& m) : canvas(m), matrix(m) {}
 

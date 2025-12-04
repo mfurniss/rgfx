@@ -3,7 +3,7 @@
 #include <vector>
 #include <ArduinoJson.h>
 #include "effect.h"
-#include "canvas.h"
+#include "graphics/canvas.h"
 
 class ExplodeEffect : public IEffect {
    private:

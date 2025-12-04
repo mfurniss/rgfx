@@ -3,7 +3,7 @@
 #include <vector>
 #include <ArduinoJson.h>
 #include "effect.h"
-#include "canvas.h"
+#include "graphics/canvas.h"
 #include "utils/easing.h"
 
 class PulseEffect : public IEffect {

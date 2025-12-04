@@ -1,6 +1,6 @@
 #include "wipe.h"
 #include "effect_utils.h"
-#include "canvas.h"
+#include "graphics/canvas.h"
 #include <cstring>
 
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;

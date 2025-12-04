@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
 import { DriverPersistence } from '../driver-persistence';
-import type { DriverTelemetry } from '../types';
+import { LEDHardwareManager } from '../led-hardware-manager';
+import { createMockTelemetryData } from './test-utils';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -37,47 +38,6 @@ describe('DriverRegistry', () => {
     persistence = new DriverPersistence('test-config');
     registry = new DriverRegistry(persistence);
   });
-
-  const createMockTelemetryData = (overrides: {
-    mac?: string;
-    ip?: string;
-    hostname?: string;
-    ssid?: string;
-    rssi?: number;
-    freeHeap?: number;
-    minFreeHeap?: number;
-    uptimeMs?: number;
-    telemetryOverrides?: Partial<DriverTelemetry>;
-  } = {}) => {
-    const telemetry: DriverTelemetry = {
-      chipModel: 'ESP32',
-      chipRevision: 1,
-      chipCores: 2,
-      cpuFreqMHz: 240,
-      flashSize: 4194304,
-      flashSpeed: 40000000,
-      heapSize: 327680,
-      psramSize: 0,
-      freePsram: 0,
-      hasDisplay: false,
-      sdkVersion: 'v4.4',
-      sketchSize: 1000000,
-      freeSketchSpace: 2000000,
-      ...overrides.telemetryOverrides,
-    };
-
-    return {
-      ip: overrides.ip ?? '192.168.1.100',
-      mac: overrides.mac ?? 'AA:BB:CC:DD:EE:FF',
-      hostname: overrides.hostname ?? 'esp32-driver',
-      ssid: overrides.ssid ?? 'TestNetwork',
-      rssi: overrides.rssi ?? -50,
-      freeHeap: overrides.freeHeap ?? 200000,
-      minFreeHeap: overrides.minFreeHeap ?? 180000,
-      uptimeMs: overrides.uptimeMs ?? 60000,
-      telemetry,
-    };
-  };
 
   describe('registerDriver', () => {
     it('should register a new driver with generated ID', () => {
@@ -460,6 +420,37 @@ describe('DriverRegistry', () => {
       const driver2 = registry.registerDriver(telemetryData);
       expect(driver2.connected).toBe(true);
       expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('loading persisted drivers at startup', () => {
+    it('should set mac property from persisted macAddress for disconnected drivers', () => {
+      // Add a driver to persistence first
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+
+      // Create a new registry that loads from persistence (requires both persistence and ledHardwareManager)
+      const ledHardwareManager = new LEDHardwareManager('test-config');
+      const newRegistry = new DriverRegistry(persistence, ledHardwareManager);
+
+      // Get all drivers (should include the persisted one)
+      const drivers = newRegistry.getAllDrivers();
+      expect(drivers).toHaveLength(1);
+
+      const driver = drivers[0];
+      expect(driver.id).toBe('rgfx-driver-0001');
+      expect(driver.mac).toBe('AA:BB:CC:DD:EE:FF');
+      expect(driver.connected).toBe(false);
+    });
+
+    it('should allow finding persisted disconnected driver by mac', () => {
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+
+      const ledHardwareManager = new LEDHardwareManager('test-config');
+      const newRegistry = new DriverRegistry(persistence, ledHardwareManager);
+
+      const driver = newRegistry.getDriverByMac('AA:BB:CC:DD:EE:FF');
+      expect(driver).toBeDefined();
+      expect(driver?.id).toBe('rgfx-driver-0001');
     });
   });
 });
