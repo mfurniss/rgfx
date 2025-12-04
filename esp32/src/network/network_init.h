@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matrix.h"
+#include "graphics/matrix.h"
 
 /**
  * Network Initialization Module

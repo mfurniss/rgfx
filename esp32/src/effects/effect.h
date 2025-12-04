@@ -1,7 +1,7 @@
 #pragma once
 
-#include "matrix.h"
-#include "canvas.h"
+#include "graphics/matrix.h"
+#include "graphics/canvas.h"
 #include <ArduinoJson.h>
 
 // Abstract base class defining the interface for all effects

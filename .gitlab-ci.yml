@@ -2,14 +2,14 @@
 # Multi-stage pipeline: test → build → deploy → release
 #
 # Workflow:
-# 1. Feature branch: Push changes → CI runs tests
+# 1. Feature branch: Push changes → No CI (use local pre-commit hooks)
 # 2. Merge request: CI runs tests → Must pass to merge
 # 3. Merge to main: CI runs tests + builds artifacts
 # 4. Create tag: git tag v1.0.0 && git push origin v1.0.0
 # 5. CI runs full pipeline → Deploys to Pages → Manual approval for release
 #
 # Stage breakdown:
-# - test: Runs on ALL branches/MRs (fast feedback, no artifacts)
+# - test: Runs on MRs and main branch (no artifacts)
 # - build: Runs on main + tags (creates artifacts for releases)
 # - deploy: Runs on tags only (deploys to GitLab Pages)
 # - release: Runs on tags only (creates GitHub-style release with manual approval)
@@ -19,17 +19,15 @@ variables:
   GIT_DEPTH: 0  # Full git history for version extraction
   npm_config_cache: "$CI_PROJECT_DIR/rgfx-hub/.npm"  # Use project-local npm cache
 
-# Run on all branches, MRs, and tags
+# Run on merge requests, main branch, and version tags only
 # Auto-cancel redundant pipelines when new commits are pushed
 workflow:
   auto_cancel:
     on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # Run on MRs
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never                                        # Skip branch pipeline if MR exists
-    - if: $CI_COMMIT_BRANCH                              # Run on all branch pushes
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/          # Run on version tags
+    - if: $CI_COMMIT_BRANCH == "main"                   # Run on main branch only
 
 stages:
   - test
@@ -74,7 +72,7 @@ test:hub:
 
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == "main"
 
 test:driver:
   stage: test
@@ -111,7 +109,7 @@ test:driver:
 
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == "main"
 
 # ===== BUILD STAGE =====
 # Runs on main branch and tags only
