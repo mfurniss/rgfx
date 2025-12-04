@@ -11,7 +11,7 @@ export function handle({ subject, property }, payload, { broadcast }) {
   //   });
   // }
 
-  if (subject === 'player' && property === 'fired') {
+  if (subject === 'player' && property === 'fire') {
     return broadcast({
       effect: 'wipe',
       drivers: ['rgfx-driver-0002', 'rgfx-driver-0006'],
@@ -47,7 +47,7 @@ export function handle({ subject, property }, payload, { broadcast }) {
     });
   }
 
-  if (subject === 'enemy' && property === 'destroyed') {
+  if (subject === 'enemy' && property === 'destroy') {
     return broadcast({
       effect: 'explode',
       drivers: ['*', '*'],
