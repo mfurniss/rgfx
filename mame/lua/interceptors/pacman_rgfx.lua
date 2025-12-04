@@ -141,14 +141,4 @@ local map = {
 	},
 }
 
-for name, config in pairs(map) do
-	ram.install_ram_monitor({
-		mem = cpu.spaces["program"],
-		start_addr = config.addr_start,
-		end_addr = config.addr_end,
-		name = name,
-		callback = config.callback,
-		callback_changed = config.callback_changed,
-		size = config.size,
-	})
-end
+ram.install_monitors(map, cpu.spaces["program"])

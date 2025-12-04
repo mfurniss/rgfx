@@ -37,6 +37,21 @@
 | 0x988E | 1 byte | Cruise missiles |
 | 0x9892 | 1 byte | Electrodes |
 
+### Enemy Type Counters (0xBE68-0xBE71)
+
+| Address | Enemy Type | Points | Destructible |
+|---------|-----------|--------|--------------|
+| 0xBE68 | Grunt | 100 | Yes |
+| 0xBE69 | Electrode | 0 | No (wave clear only) |
+| 0xBE6A | Mommie (family) | 1000-5000 | N/A (rescue) |
+| 0xBE6B | Daddie (family) | 1000-5000 | N/A (rescue) |
+| 0xBE6C | Mikey (family) | 1000-5000 | N/A (rescue) |
+| 0xBE6D | Hulk | 0 | No (indestructible) |
+| 0xBE6E | Brain | 500 | Yes |
+| 0xBE6F | Spheroid | 1000 | Yes (spawns Enforcers) |
+| 0xBE70 | Quark | 1000 | Yes (spawns Tanks) |
+| 0xBE71 | Tank | 200 | Yes |
+
 ### Entity Tables
 - `0x9817`: Spheroid/Enforcer list pointer
 - `0x9821`: Grunts/Hulks/Brains/Progs list pointer

@@ -8,12 +8,17 @@
  * - robotron/player/fire - Laser fired (with direction: up, down, left, right, up-left, etc.)
  * - robotron/wave/number - Current wave number
  * - robotron/wave/complete - Wave completed
- * - robotron/enemy/enforcer/count - Enforcers on screen
+ * - robotron/enemy/grunt/destroy - Grunt killed (100 pts)
+ * - robotron/enemy/brain/destroy - Brain killed (500 pts)
+ * - robotron/enemy/spheroid/destroy - Spheroid killed (1000 pts, spawns Enforcers)
+ * - robotron/enemy/quark/destroy - Quark killed (1000 pts, spawns Tanks)
+ * - robotron/enemy/tank/destroy - Tank killed (200 pts)
+ * - robotron/enemy/enforcer/destroy - Enforcer killed (150 pts)
  * - robotron/enemy/enforcer/spawn - Enforcer spawned
- * - robotron/enemy/enforcer/destroyed - Enforcer destroyed
  * - robotron/enemy/spark/count - Spark missiles on screen
  * - robotron/enemy/cruise/count - Cruise missiles on screen
  * - robotron/enemy/electrode/count - Electrodes on screen
+ * - robotron/family/rescue - Family member rescued (mommie/daddie/mikey)
  *
  * @param {import('../../../src/types/mapping-types').RgfxTopic} topic - Parsed topic
  * @param {string} payload - Event payload
@@ -192,8 +197,8 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
     });
   }
 
-  // Enforcer destroyed - cyan flash
-  if (subject === 'enemy' && property === 'enforcer' && qualifier === 'destroyed') {
+  // Enforcer destroy - cyan flash
+  if (subject === 'enemy' && property === 'enforcer' && qualifier === 'destroy') {
     return broadcast({
       effect: 'explode',
       props: {
@@ -209,6 +214,126 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
         particleSize: 3,
         power: 60,
         powerSpread: 1.3,
+      },
+    });
+  }
+
+  // Grunt destroy - quick cyan pulse (most common enemy)
+  if (subject === 'enemy' && property === 'grunt' && qualifier === 'destroy') {
+    return broadcast({
+      effect: 'pulse',
+      props: {
+        color: '#00FFFF',
+        duration: 100,
+        fade: true,
+      },
+    });
+  }
+
+  // Brain destroy - purple explosion (high value, dangerous)
+  if (subject === 'enemy' && property === 'brain' && qualifier === 'destroy') {
+    return broadcast({
+      effect: 'explode',
+      props: {
+        color: '#AA00FF',
+        reset: true,
+        centerX: 'random',
+        centerY: 'random',
+        friction: 3,
+        hueSpread: 40,
+        lifespan: 600,
+        lifespanSpread: 1.4,
+        particleCount: 80,
+        particleSize: 4,
+        power: 100,
+        powerSpread: 1.5,
+      },
+    });
+  }
+
+  // Spheroid destroy - magenta explosion (spawner, high value)
+  if (subject === 'enemy' && property === 'spheroid' && qualifier === 'destroy') {
+    return broadcast({
+      effect: 'explode',
+      props: {
+        color: '#FF00AA',
+        reset: true,
+        centerX: 'random',
+        centerY: 'random',
+        friction: 2,
+        hueSpread: 50,
+        lifespan: 800,
+        lifespanSpread: 1.6,
+        particleCount: 120,
+        particleSize: 5,
+        power: 120,
+        powerSpread: 1.6,
+      },
+    });
+  }
+
+  // Quark destroy - orange explosion (spawner, high value)
+  if (subject === 'enemy' && property === 'quark' && qualifier === 'destroy') {
+    return broadcast({
+      effect: 'explode',
+      props: {
+        color: '#FF8800',
+        reset: true,
+        centerX: 'random',
+        centerY: 'random',
+        friction: 2,
+        hueSpread: 40,
+        lifespan: 800,
+        lifespanSpread: 1.6,
+        particleCount: 120,
+        particleSize: 5,
+        power: 120,
+        powerSpread: 1.6,
+      },
+    });
+  }
+
+  // Tank destroy - yellow explosion
+  if (subject === 'enemy' && property === 'tank' && qualifier === 'destroy') {
+    return broadcast({
+      effect: 'explode',
+      props: {
+        color: '#FFFF00',
+        reset: true,
+        centerX: 'random',
+        centerY: 'random',
+        friction: 3,
+        hueSpread: 30,
+        lifespan: 500,
+        lifespanSpread: 1.3,
+        particleCount: 60,
+        particleSize: 4,
+        power: 80,
+        powerSpread: 1.4,
+      },
+    });
+  }
+
+  // Family member rescue - green pulse with bitmap
+  if (subject === 'family' && property === 'rescue') {
+    broadcast({
+      effect: 'bitmap',
+      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
+      props: {
+        color: '#00FF00',
+        centerX: 'random',
+        centerY: 50,
+        duration: 500,
+        reset: true,
+        image: FAMILY_SPRITE,
+      },
+    });
+    return broadcast({
+      effect: 'pulse',
+      drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
+      props: {
+        color: '#00FF00',
+        duration: 400,
       },
     });
   }

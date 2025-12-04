@@ -158,4 +158,20 @@ function exports.install_ram_monitor(options)
 	}
 end
 
+-- Install monitors from a map table
+-- Each entry should have addr_start and optionally addr_end, callback, callback_changed, size
+function exports.install_monitors(map, mem)
+	for name, config in pairs(map) do
+		exports.install_ram_monitor({
+			mem = mem,
+			start_addr = config.addr_start,
+			end_addr = config.addr_end,
+			name = name,
+			callback = config.callback,
+			callback_changed = config.callback_changed,
+			size = config.size,
+		})
+	end
+end
+
 return exports

@@ -52,34 +52,25 @@ local map = {
 			_G.event("galaga/player/ship/x", current)
 		end,
 	},
-	player_fired = {
+	player_fire = {
 		addr_start = 0x9846,
 		size = 2, -- 16-bit word (little-endian)
 		callback = function(_, current, previous)
 			-- Shot counter increments when player fires
 			if current > previous then
-				_G.event("galaga/player/fired", current)
+				_G.event("galaga/player/fire", current)
 			end
 		end,
 	},
-	enemy_destroyed = {
+	enemy_destroy = {
 		addr_start = 0x9844,
 		callback = function(_, current, previous)
 			-- Hit counter increments when enemy is destroyed
 			if current > previous then
-				_G.event("galaga/enemy/destroyed", current)
+				_G.event("galaga/enemy/destroy", current)
 			end
 		end,
 	},
 }
 
-for name, config in pairs(map) do
-	ram.install_ram_monitor({
-		mem = cpu.spaces["program"],
-		start_addr = config.addr_start,
-		end_addr = config.addr_end,
-		name = name,
-		callback = config.callback,
-		size = config.size,
-	})
-end
+ram.install_monitors(map, mem)
