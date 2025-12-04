@@ -75,40 +75,47 @@ const FIRE_DIRECTION_MAP = {
 // Track score for milestone detection
 let lastScore = 0;
 
-export function handle({ subject, property, qualifier }, payload, { broadcast }) {
+export function handle(
+  { subject, property, qualifier },
+  payload,
+  { broadcast }
+) {
   // Player fire - directional green wipe
-  if (subject === 'player' && property === 'fire') {
-    const wipeDirection = FIRE_DIRECTION_MAP[payload] || 'right';
-    return broadcast({
-      effect: 'wipe',
-      props: {
-        color: '#00FF00',
-        duration: 150,
-        direction: wipeDirection,
-      },
-    });
-  }
+  // if (subject === 'player' && property === 'fire') {
+  //   const wipeDirection = FIRE_DIRECTION_MAP[payload] || 'right';
+  //   return broadcast({
+  //     effect: 'wipe',
+  //     props: {
+  //       color: '#00FF00',
+  //       duration: 250,
+  //       direction: wipeDirection,
+  //     },
+  //   });
+  // }
 
   // Player death - red pulse with explosion bitmap
   if (subject === 'player' && property === 'die') {
     broadcast({
-      effect: 'bitmap',
-      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
+      effect: 'explode',
       props: {
-        color: '#FF0000',
-        centerX: 50,
-        centerY: 50,
-        duration: 800,
+        color: 'blue',
         reset: true,
-        image: EXPLOSION_SPRITE,
+        friction: 3,
+        hueSpread: 0,
+        lifespan: 1200,
+        lifespanSpread: 2,
+        particleCount: 200,
+        particleSize: 4,
+        power: 70,
+        powerSpread: 2,
       },
     });
     return broadcast({
       effect: 'pulse',
-      drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
       props: {
-        color: '#FF0000',
-        duration: 800,
+        color: 'white',
+        duration: 2000,
+        reset: true,
       },
     });
   }
@@ -197,143 +204,46 @@ export function handle({ subject, property, qualifier }, payload, { broadcast })
     });
   }
 
-  // Enforcer destroy - cyan flash
-  if (subject === 'enemy' && property === 'enforcer' && qualifier === 'destroy') {
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: '#00FFFF',
-        reset: true,
-        centerX: 'random',
-        centerY: 'random',
-        friction: 4,
-        hueSpread: 30,
-        lifespan: 400,
-        lifespanSpread: 1.2,
-        particleCount: 50,
-        particleSize: 3,
-        power: 60,
-        powerSpread: 1.3,
-      },
-    });
+  const colors = {
+    grunt: 'red',
+    enforcer: 'yellow',
+    hulk: 'green',
+    brain: 'purple',
+    spheroid: 'random',
+    tank: 'yellow',
+    quark: 'orange',
+  };
+
+  if (subject === 'enemy' && qualifier === 'destroy') {
+    const color = colors[property];
+
+    if (color) {
+      return broadcast({
+        effect: 'explode',
+        drivers: ['*', '*'],
+        props: {
+          color,
+          centerX: 'random',
+          centerY: 'random',
+          friction: 4,
+          hueSpread: 0,
+          lifespan: 400,
+          lifespanSpread: 1.3,
+          particleCount: 30,
+          particleSize: 3,
+          power: 40,
+          powerSpread: 1.2,
+        },
+      });
+    }
   }
 
-  // Grunt destroy - quick cyan pulse (most common enemy)
-  if (subject === 'enemy' && property === 'grunt' && qualifier === 'destroy') {
-    return broadcast({
-      effect: 'pulse',
-      props: {
-        color: '#00FFFF',
-        duration: 100,
-        fade: true,
-      },
-    });
-  }
-
-  // Brain destroy - purple explosion (high value, dangerous)
-  if (subject === 'enemy' && property === 'brain' && qualifier === 'destroy') {
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: '#AA00FF',
-        reset: true,
-        centerX: 'random',
-        centerY: 'random',
-        friction: 3,
-        hueSpread: 40,
-        lifespan: 600,
-        lifespanSpread: 1.4,
-        particleCount: 80,
-        particleSize: 4,
-        power: 100,
-        powerSpread: 1.5,
-      },
-    });
-  }
-
-  // Spheroid destroy - magenta explosion (spawner, high value)
-  if (subject === 'enemy' && property === 'spheroid' && qualifier === 'destroy') {
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: '#FF00AA',
-        reset: true,
-        centerX: 'random',
-        centerY: 'random',
-        friction: 2,
-        hueSpread: 50,
-        lifespan: 800,
-        lifespanSpread: 1.6,
-        particleCount: 120,
-        particleSize: 5,
-        power: 120,
-        powerSpread: 1.6,
-      },
-    });
-  }
-
-  // Quark destroy - orange explosion (spawner, high value)
-  if (subject === 'enemy' && property === 'quark' && qualifier === 'destroy') {
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: '#FF8800',
-        reset: true,
-        centerX: 'random',
-        centerY: 'random',
-        friction: 2,
-        hueSpread: 40,
-        lifespan: 800,
-        lifespanSpread: 1.6,
-        particleCount: 120,
-        particleSize: 5,
-        power: 120,
-        powerSpread: 1.6,
-      },
-    });
-  }
-
-  // Tank destroy - yellow explosion
-  if (subject === 'enemy' && property === 'tank' && qualifier === 'destroy') {
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: '#FFFF00',
-        reset: true,
-        centerX: 'random',
-        centerY: 'random',
-        friction: 3,
-        hueSpread: 30,
-        lifespan: 500,
-        lifespanSpread: 1.3,
-        particleCount: 60,
-        particleSize: 4,
-        power: 80,
-        powerSpread: 1.4,
-      },
-    });
-  }
-
-  // Family member rescue - green pulse with bitmap
   if (subject === 'family' && property === 'rescue') {
     broadcast({
-      effect: 'bitmap',
-      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
-      props: {
-        color: '#00FF00',
-        centerX: 'random',
-        centerY: 50,
-        duration: 500,
-        reset: true,
-        image: FAMILY_SPRITE,
-      },
-    });
-    return broadcast({
       effect: 'pulse',
-      drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
       props: {
-        color: '#00FF00',
-        duration: 400,
+        color: '#FFA0A0',
+        duration: 2000,
       },
     });
   }
