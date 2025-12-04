@@ -265,6 +265,17 @@ const createWindow = () => {
     });
     // Send system status
     sendSystemStatus();
+
+    // Send all accumulated event topic counts
+    eventTopicCounts.forEach((count, topic) => {
+      if (isWindowAvailable() && mainWindow) {
+        mainWindow.webContents.send('event:topic', {
+          topic,
+          count,
+          lastValue: eventTopicLastValues.get(topic),
+        });
+      }
+    });
   });
 
   return mainWindow;
