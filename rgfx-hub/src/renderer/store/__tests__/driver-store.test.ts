@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDriverStore } from '../driver-store';
-import { Driver, DriverTelemetry } from '@/types';
+import { createMockDriver } from '@/__tests__/test-utils';
 
 describe('driver-store', () => {
   beforeEach(() => {
@@ -19,54 +19,9 @@ describe('driver-store', () => {
     });
   });
 
-  const createMockDriver = (
-    id: string,
-    mac: string,
-    connected = true,
-  ): Driver => {
-    const telemetry: DriverTelemetry = {
-      chipModel: 'ESP32',
-      chipRevision: 3,
-      chipCores: 2,
-      cpuFreqMHz: 240,
-      flashSize: 4194304,
-      flashSpeed: 40000000,
-      heapSize: 327680,
-      psramSize: 0,
-      freePsram: 0,
-      sdkVersion: 'v4.4.2',
-      sketchSize: 1000000,
-      freeSketchSpace: 2000000,
-      hasDisplay: false,
-    };
-
-    return new Driver({
-      id,
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      lastSeenAt: connected ? Date.now() : undefined,
-      ip: connected ? '192.168.1.100' : undefined,
-      mac,
-      hostname: connected ? id : undefined,
-      ssid: connected ? 'test-network' : undefined,
-      rssi: connected ? -50 : undefined,
-      freeHeap: connected ? 200000 : undefined,
-      minFreeHeap: connected ? 180000 : undefined,
-      uptimeMs: connected ? 60000 : undefined,
-      telemetry: connected ? telemetry : undefined,
-      stats: {
-        mqttMessagesReceived: 0,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
-      connected,
-    });
-  };
-
   describe('onDriverConnected', () => {
     it('should add a new driver when it does not exist', () => {
-      const driver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
 
       useDriverStore.getState().onDriverConnected(driver);
 
@@ -76,12 +31,12 @@ describe('driver-store', () => {
     });
 
     it('should update existing driver when ID matches', () => {
-      const driver1 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      const driver1 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
 
       useDriverStore.getState().onDriverConnected(driver1);
 
       // Create driver with modified failedHeartbeats
-      const driver2 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      const driver2 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
       driver2.failedHeartbeats = 1;
 
       useDriverStore.getState().onDriverConnected(driver2);
@@ -93,10 +48,10 @@ describe('driver-store', () => {
 
     it('should replace old entry when MAC matches but ID changed (driver migration)', () => {
       // Simulate driver connecting with MAC as ID (before set-id)
-      const driverWithMacId = createMockDriver(
-        'AA:BB:CC:DD:EE:FF',
-        'AA:BB:CC:DD:EE:FF',
-      );
+      const driverWithMacId = createMockDriver({
+        id: 'AA:BB:CC:DD:EE:FF',
+        mac: 'AA:BB:CC:DD:EE:FF',
+      });
 
       useDriverStore.getState().onDriverConnected(driverWithMacId);
 
@@ -104,10 +59,10 @@ describe('driver-store', () => {
       expect(useDriverStore.getState().drivers[0].id).toBe('AA:BB:CC:DD:EE:FF');
 
       // Simulate driver reconnecting with custom ID (after set-id)
-      const driverWithCustomId = createMockDriver(
-        'rgfx-driver-0001',
-        'AA:BB:CC:DD:EE:FF',
-      );
+      const driverWithCustomId = createMockDriver({
+        id: 'rgfx-driver-0001',
+        mac: 'AA:BB:CC:DD:EE:FF',
+      });
 
       useDriverStore.getState().onDriverConnected(driverWithCustomId);
 
@@ -118,8 +73,8 @@ describe('driver-store', () => {
     });
 
     it('should handle multiple drivers with different MACs', () => {
-      const driver1 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
-      const driver2 = createMockDriver('rgfx-driver-0002', '11:22:33:44:55:66');
+      const driver1 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
+      const driver2 = createMockDriver({ id: 'rgfx-driver-0002', mac: '11:22:33:44:55:66' });
 
       useDriverStore.getState().onDriverConnected(driver1);
       useDriverStore.getState().onDriverConnected(driver2);
@@ -129,20 +84,8 @@ describe('driver-store', () => {
     });
 
     it('should handle driver with no telemetry', () => {
-      const driver = new Driver({
-        id: 'rgfx-driver-0001',
-        mac: 'AA:BB:CC:DD:EE:FF',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
-        telemetry: undefined,
-        stats: {
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
-        connected: false,
-      });
+      // connected: false sets telemetry to undefined
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: false });
 
       useDriverStore.getState().onDriverConnected(driver);
 
@@ -154,11 +97,11 @@ describe('driver-store', () => {
 
   describe('onDriverUpdated', () => {
     it('should update existing driver by ID', () => {
-      const driver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
       useDriverStore.getState().onDriverConnected(driver);
 
       // Create updated driver with modified failedHeartbeats
-      const updatedDriver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      const updatedDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
       updatedDriver.failedHeartbeats = 5;
 
       useDriverStore.getState().onDriverUpdated(updatedDriver);
@@ -169,17 +112,17 @@ describe('driver-store', () => {
     });
 
     it('should replace old entry when MAC matches but ID changed during update', () => {
-      const driverWithMacId = createMockDriver(
-        'AA:BB:CC:DD:EE:FF',
-        'AA:BB:CC:DD:EE:FF',
-      );
+      const driverWithMacId = createMockDriver({
+        id: 'AA:BB:CC:DD:EE:FF',
+        mac: 'AA:BB:CC:DD:EE:FF',
+      });
 
       useDriverStore.getState().onDriverConnected(driverWithMacId);
 
-      const driverWithCustomId = createMockDriver(
-        'rgfx-driver-0001',
-        'AA:BB:CC:DD:EE:FF',
-      );
+      const driverWithCustomId = createMockDriver({
+        id: 'rgfx-driver-0001',
+        mac: 'AA:BB:CC:DD:EE:FF',
+      });
 
       useDriverStore.getState().onDriverUpdated(driverWithCustomId);
 
@@ -191,11 +134,11 @@ describe('driver-store', () => {
 
   describe('onDriverDisconnected', () => {
     it('should mark driver as disconnected', () => {
-      const driver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', true);
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: true });
       useDriverStore.getState().onDriverConnected(driver);
 
       // Create disconnected driver by clearing IP
-      const disconnectedDriver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', false);
+      const disconnectedDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: false });
       useDriverStore.getState().onDriverDisconnected(disconnectedDriver);
 
       const drivers = useDriverStore.getState().drivers;
@@ -206,12 +149,12 @@ describe('driver-store', () => {
 
   describe('selectors', () => {
     it('connectedDrivers should return only connected drivers', () => {
-      const driver1 = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF', true);
-      const driver2 = createMockDriver(
-        'rgfx-driver-0002',
-        '11:22:33:44:55:66',
-        false,
-      );
+      const driver1 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: true });
+      const driver2 = createMockDriver({
+        id: 'rgfx-driver-0002',
+        mac: '11:22:33:44:55:66',
+        connected: false,
+      });
 
       useDriverStore.getState().onDriverConnected(driver1);
       useDriverStore.getState().onDriverConnected(driver2);
@@ -222,7 +165,7 @@ describe('driver-store', () => {
     });
 
     it('getDriverById should return driver by ID', () => {
-      const driver = createMockDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
       useDriverStore.getState().onDriverConnected(driver);
 
       const found = useDriverStore.getState().getDriverById('rgfx-driver-0001');
