@@ -25,4 +25,5 @@ fi
 cd "$MAME_DIR" || exit 1
 
 # Run MAME with autoboot script using absolute path to the script
-"$MAME_EXEC" "$@" -rompath ~/mame-roms -window -nomaximize -skip_gameinfo -video opengl -autoboot_script "${SCRIPT_DIR}/lua/rgfx.lua"
+# Vector brightness settings (beam options require OpenGL, not BGFX)
+"$MAME_EXEC" "$@" -rompath ~/mame-roms -window -nomaximize -skip_gameinfo -video opengl -joystick_deadzone 0.1 -beam_width_min 3.0 -beam_width_max 8.0 -beam_intensity_weight 1.0 -flicker 0 -autoboot_script "${SCRIPT_DIR}/lua/rgfx.lua"
