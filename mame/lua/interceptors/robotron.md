@@ -83,6 +83,27 @@ The game stores fire direction in two bytes:
 
 Combining these gives 8-way direction (up, down, left, right, up-left, up-right, down-left, down-right).
 
+## Sound System
+
+### Hardware Architecture
+- **Sound Board**: Williams D8224 with MC6802/MC6808 CPU
+- **Communication**: Main CPU writes 6-bit command to ROM board PIA, triggers interrupt on sound CPU
+- **Command Register**: `0xC80E` (ROM board PIA data port B, bits 0-5)
+
+### Limitation: No Direct Sound Detection
+
+MAME's Lua `install_write_tap` only works on RAM, not memory-mapped I/O devices.
+The PIA at `$C80E` is handled by a device driver, so writes cannot be intercepted.
+
+**Workaround:** Use gameplay events as proxies for sound effects:
+| Event | Corresponding Sound |
+|-------|---------------------|
+| `robotron/player/fire` | Laser firing |
+| `robotron/player/die` | Player death |
+| `robotron/enemy/*/destroy` | Enemy explosion |
+| `robotron/wave/complete` | Level transition |
+| `robotron/family/rescue` | Human rescued |
+
 ## Sources
 
 - [Sean Riddle's Robotron Disassembly](http://www.seanriddle.com/robomame.asm) - Complete 6809 source

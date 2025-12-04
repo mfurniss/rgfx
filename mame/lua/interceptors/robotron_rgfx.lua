@@ -180,3 +180,13 @@ local map = {
 }
 
 ram.install_monitors(map, mem)
+
+-- NOTE: Direct sound detection is not possible with MAME's Lua API.
+-- The Williams sound board uses PIA registers ($C80E) which are memory-mapped I/O.
+-- MAME's install_write_tap only works on RAM, not device-mapped I/O regions.
+-- The existing gameplay events provide equivalent coverage for LED effects:
+--   - robotron/player/fire (laser sound)
+--   - robotron/player/die (death sound)
+--   - robotron/enemy/*/destroy (explosion sounds)
+--   - robotron/wave/complete (level transition sound)
+--   - robotron/family/rescue (rescue sound)
