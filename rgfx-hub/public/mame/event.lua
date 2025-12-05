@@ -21,7 +21,7 @@ local function get_event_file_path()
 	-- Create .rgfx directory if it doesn't exist
 	os.execute((os_name == "windows" and "mkdir " or "mkdir -p ") .. rgfx_dir)
 
-	return rgfx_dir .. separator .. "mame_events.log"
+	return rgfx_dir .. separator .. "interceptor_events.log"
 end
 
 local event_file_path = get_event_file_path()
