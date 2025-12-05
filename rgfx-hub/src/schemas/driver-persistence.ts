@@ -13,7 +13,7 @@ import { z } from 'zod';
  * Array structure defines grid: rows = length, cols = first row length.
  * Example: [[0, 1], [3, 2]] = 2x2 grid with snake wiring
  */
-const UnifiedPanelLayoutSchema = z
+export const UnifiedPanelLayoutSchema = z
   .array(z.array(z.number().int().min(0)))
   .refine(
     (rows) => {
