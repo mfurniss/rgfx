@@ -109,10 +109,42 @@ void handleDriverConfig(const String& payload) {
 			devCfg.width = device["width"] | 0;
 			devCfg.height = device["height"] | 0;
 
-			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
-			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
-			log("  Matrix: " + String(devCfg.width) + "x" + String(devCfg.height));
-			log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
+			// Parse unified panel configuration if present
+			if (device["unified"].is<JsonArray>()) {
+				JsonArray unified = device["unified"];
+				devCfg.panelWidth = device["panel_width"] | devCfg.width;
+				devCfg.panelHeight = device["panel_height"] | devCfg.height;
+				devCfg.unifiedRows = unified.size();
+				devCfg.unifiedCols = unified[0].size();
+
+				// Flatten the 2D array to panelOrder vector (row-major)
+				devCfg.panelOrder.clear();
+				for (JsonArray row : unified) {
+					for (int idx : row) {
+						devCfg.panelOrder.push_back((uint8_t)idx);
+					}
+				}
+
+				log("Device: " + devCfg.name + " (" + devCfg.id + ")");
+				log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
+				log("  Unified: " + String(devCfg.unifiedCols) + "x" + String(devCfg.unifiedRows) +
+				    " panels of " + String(devCfg.panelWidth) + "x" + String(devCfg.panelHeight));
+				log("  Total: " + String(devCfg.width) + "x" + String(devCfg.height) +
+				    " (" + String(devCfg.count) + " LEDs)");
+			} else {
+				// Single panel (no unification)
+				devCfg.panelWidth = devCfg.width;
+				devCfg.panelHeight = devCfg.height;
+				devCfg.unifiedRows = 1;
+				devCfg.unifiedCols = 1;
+				devCfg.panelOrder.clear();
+				devCfg.panelOrder.push_back(0);
+
+				log("Device: " + devCfg.name + " (" + devCfg.id + ")");
+				log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
+				log("  Matrix: " + String(devCfg.width) + "x" + String(devCfg.height));
+				log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
+			}
 		} else {
 			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
 			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
@@ -206,8 +238,19 @@ void handleDriverConfig(const String& payload) {
 						log("EffectProcessor cleared due to Matrix change");
 					}
 
-					// Create new Matrix with correct dimensions
-					matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout);
+					// Create new Matrix - use unified constructor if multi-panel
+					bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1;
+					if (isUnified) {
+						matrix = new (std::nothrow) Matrix(
+						    firstDevice.panelWidth, firstDevice.panelHeight,
+						    firstDevice.unifiedCols, firstDevice.unifiedRows,
+						    firstDevice.panelOrder.data(),
+						    newLayout
+						);
+					} else {
+						matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout);
+					}
+
 					if (!matrix) {
 						log("ERROR: Failed to allocate Matrix");
 						return;
@@ -218,8 +261,11 @@ void handleDriverConfig(const String& payload) {
 						matrix = nullptr;
 						return;
 					}
-					log("Matrix created: " + String(newWidth) + "x" + String(newHeight) +
-					    " with layout " + newLayout);
+
+					if (!isUnified) {
+						log("Matrix created: " + String(newWidth) + "x" + String(newHeight) +
+						    " with layout " + newLayout);
+					}
 
 					// Replace the default allocated buffer with FastLED's actual buffer
 					free(matrix->leds);

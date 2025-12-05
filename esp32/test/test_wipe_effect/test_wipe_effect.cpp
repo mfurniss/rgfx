@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 #include <unity.h>
 #include <ArduinoJson.h>
 #include <cstdint>
@@ -123,7 +127,7 @@ void WipeEffect::render() {
 	uint16_t height = canvas.getHeight();
 
 	for (const auto& wipe : wipes) {
-		uint32_t rgba = RGBA(wipe.r, wipe.g, wipe.b, 255);
+		CRGB color(wipe.r, wipe.g, wipe.b);
 		uint32_t halfDuration = wipe.duration / 2;
 		float progress;
 
@@ -139,40 +143,40 @@ void WipeEffect::render() {
 			case WipeDirection::RIGHT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(0, 0, fillWidth, height, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, fillWidth, height, CRGBA(color), BlendMode::AVERAGE);
 				} else {
 					uint16_t startX = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(startX, 0, width - startX, height, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(startX, 0, width - startX, height, CRGBA(color), BlendMode::AVERAGE);
 				}
 				break;
 			}
 			case WipeDirection::LEFT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, CRGBA(color), BlendMode::AVERAGE);
 				} else {
 					uint16_t clearWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(0, 0, width - clearWidth, height, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, width - clearWidth, height, CRGBA(color), BlendMode::AVERAGE);
 				}
 				break;
 			}
 			case WipeDirection::DOWN: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, 0, width, fillHeight, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, width, fillHeight, CRGBA(color), BlendMode::AVERAGE);
 				} else {
 					uint16_t startY = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, startY, width, height - startY, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(0, startY, width, height - startY, CRGBA(color), BlendMode::AVERAGE);
 				}
 				break;
 			}
 			case WipeDirection::UP: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, CRGBA(color), BlendMode::AVERAGE);
 				} else {
 					uint16_t clearHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, 0, width, height - clearHeight, rgba, BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, width, height - clearHeight, CRGBA(color), BlendMode::AVERAGE);
 				}
 				break;
 			}
@@ -186,6 +190,11 @@ void WipeEffect::reset() {
 
 Canvas& WipeEffect::getCanvas() {
 	return canvas;
+}
+
+// Helper to check if a pixel is non-black
+static bool isNonBlack(const CRGB& p) {
+	return p.r != 0 || p.g != 0 || p.b != 0;
 }
 
 void setUp(void) {}
@@ -206,7 +215,7 @@ void test_wipe_creation_default_values() {
 	bool hasPixel = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixel = true;
 				break;
 			}
@@ -233,9 +242,9 @@ void test_wipe_creation_with_color() {
 	bool hasRed = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			uint32_t pixel = canvas.getPixel(x, y);
+			CRGB pixel = canvas.getPixel(x, y);
 			// AVERAGE blend mode halves the value, so check for > 100 instead of > 200
-			if (RGBA_RED(pixel) > 100 && RGBA_GREEN(pixel) == 0 && RGBA_BLUE(pixel) == 0) {
+			if (pixel.r > 100 && pixel.g == 0 && pixel.b == 0) {
 				hasRed = true;
 				break;
 			}
@@ -264,7 +273,7 @@ void test_wipe_progresses_over_time() {
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
 			// AVERAGE blend mode halves the value, so check for > 100 instead of > 200
-			if (RGBA_GREEN(canvas.getPixel(x, y)) > 100) {
+			if (canvas.getPixel(x, y).g > 100) {
 				hasGreen1 = true;
 				break;
 			}
@@ -279,7 +288,7 @@ void test_wipe_progresses_over_time() {
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
 			// AVERAGE blend mode halves the value, so check for > 100 instead of > 200
-			if (RGBA_GREEN(canvas.getPixel(x, y)) > 100) {
+			if (canvas.getPixel(x, y).g > 100) {
 				hasGreen2 = true;
 				break;
 			}
@@ -307,7 +316,7 @@ void test_wipe_completes() {
 	bool hasPixel = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixel = true;
 				break;
 			}
@@ -333,7 +342,7 @@ void test_wipe_reset_clears_all() {
 	bool hasPixel = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixel = true;
 				break;
 			}
@@ -371,7 +380,7 @@ void test_wipe_column_calculation() {
 	bool hasPixelInFirstHalf = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth() / 2; x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixelInFirstHalf = true;
 				break;
 			}
@@ -401,7 +410,7 @@ void test_wipe_direction_left() {
 	bool hasPixelInRightHalf = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = canvas.getWidth() / 2; x < canvas.getWidth(); x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixelInRightHalf = true;
 				break;
 			}
@@ -431,7 +440,7 @@ void test_wipe_direction_down() {
 	bool hasPixelInTopHalf = false;
 	for (uint16_t y = 0; y < canvas.getHeight() / 2; y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixelInTopHalf = true;
 				break;
 			}
@@ -461,7 +470,7 @@ void test_wipe_direction_up() {
 	bool hasPixelInBottomHalf = false;
 	for (uint16_t y = canvas.getHeight() / 2; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (canvas.getPixel(x, y) != RGBA(0, 0, 0, 0)) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
 				hasPixelInBottomHalf = true;
 				break;
 			}

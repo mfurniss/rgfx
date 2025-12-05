@@ -2,38 +2,63 @@
 
 #include <cstdint>
 
+// Forward declarations
 class Matrix;
 
-// RGBA color format macros (0xRRGGBBAA)
-#define RGBA(r, g, b, a) \
-    (((uint32_t)(r) << 24) | ((uint32_t)(g) << 16) | \
-     ((uint32_t)(b) << 8) | (uint32_t)(a))
+#ifdef UNIT_TEST
+// Minimal CRGB stub for native tests
+struct CRGB {
+	union {
+		struct { uint8_t r, g, b; };
+		uint8_t raw[3];
+	};
+	CRGB() : r(0), g(0), b(0) {}
+	CRGB(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
+	static const CRGB Black;
+	bool operator==(const CRGB& other) const { return r == other.r && g == other.g && b == other.b; }
+};
+#else
+struct CRGB;
+#endif
 
-#define RGBA_RED(color)   (((color) >> 24) & 0xFF)
-#define RGBA_GREEN(color) (((color) >> 16) & 0xFF)
-#define RGBA_BLUE(color)  (((color) >> 8) & 0xFF)
-#define RGBA_ALPHA(color) ((color) & 0xFF)
+/**
+ * RGBA color for passing to blend operations.
+ * Alpha is used during blending, but only RGB is stored in the canvas.
+ */
+struct CRGBA {
+	uint8_t r, g, b, a;
 
-enum class BlendMode {
-	REPLACE,   // Overwrite pixel (default)
-	ALPHA,     // Alpha compositing (standard over operator)
-	ADDITIVE,  // Add RGB values
-	AVERAGE    // Average RGB values
+	CRGBA() : r(0), g(0), b(0), a(255) {}
+	CRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) : r(r), g(g), b(b), a(a) {}
+	CRGBA(const CRGB& rgb, uint8_t a = 255);
+
+	CRGB toCRGB() const;
 };
 
+enum class BlendMode {
+	REPLACE,   // Overwrite pixel (default for CRGBA)
+	ALPHA,     // Alpha compositing: result = src * alpha + dst * (1 - alpha)
+	ADDITIVE,  // Add with alpha scaling: result = dst + src * alpha
+	AVERAGE    // Average RGB values (50/50 blend, ignores alpha)
+};
+
+/**
+ * Canvas stores RGB pixels (no alpha).
+ * Alpha is used only during blend operations via CRGBA input.
+ */
 class Canvas {
   private:
     uint16_t width;
     uint16_t height;
     uint32_t size;
-    uint32_t* pixels;
+    CRGB* pixels;
 
     uint32_t index(uint16_t x, uint16_t y) const;
     bool inBounds(uint16_t x, uint16_t y) const;
 
-    void blendAlpha(uint32_t& existing, uint32_t incoming) const;
-    void blendAdditive(uint32_t& existing, uint32_t incoming) const;
-    void blendAverage(uint32_t& existing, uint32_t incoming) const;
+    void blendAlpha(CRGB& existing, const CRGBA& incoming) const;
+    void blendAdditive(CRGB& existing, const CRGBA& incoming) const;
+    void blendAverage(CRGB& existing, const CRGB& incoming) const;
 
   public:
     Canvas(uint16_t w, uint16_t h);  // For testing without Matrix dependency
@@ -46,11 +71,22 @@ class Canvas {
     uint16_t getHeight() const;
     uint32_t getSize() const;
 
-    void drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode = BlendMode::REPLACE);
-    void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t rgbaValue, BlendMode mode = BlendMode::REPLACE);
-    uint32_t getPixel(uint16_t x, uint16_t y) const;
-    uint32_t* getPixels() const;
+    // Direct write (no blending)
+    void drawPixel(uint16_t x, uint16_t y, const CRGB& color);
+
+    // Alpha blend with default mode (ALPHA)
+    void drawPixel(uint16_t x, uint16_t y, const CRGBA& color);
+
+    // Explicit blend mode
+    void drawPixel(uint16_t x, uint16_t y, const CRGBA& color, BlendMode mode);
+
+    // Rectangle drawing
+    void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGB& color);
+    void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGBA& color, BlendMode mode = BlendMode::ALPHA);
+
+    CRGB getPixel(uint16_t x, uint16_t y) const;
+    CRGB* getPixels() const;
 
     void clear();
-    void fill(uint32_t rgbaValue);
+    void fill(const CRGB& color);
 };

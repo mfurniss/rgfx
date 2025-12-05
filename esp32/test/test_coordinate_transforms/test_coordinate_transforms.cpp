@@ -190,6 +190,170 @@ void test_8x32_matrix_corners() {
 	delete[] map;
 }
 
+// ============================================================================
+// Unified Multi-Panel Coordinate Map Tests
+// ============================================================================
+
+void test_unified_single_panel() {
+	// Single panel (1x1 grid) should behave like regular buildCoordinateMap
+	uint8_t panelOrder[] = {0};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    4, 4,           // panelWidth=4, panelHeight=4
+	    1, 1,           // unifiedCols=1, unifiedRows=1
+	    panelOrder,
+	    "matrix-tl-h"
+	);
+
+	uint16_t expected[] = {
+		0,  1,  2,  3,
+		4,  5,  6,  7,
+		8,  9, 10, 11,
+		12, 13, 14, 15
+	};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
+	free(map);
+}
+
+void test_unified_2x1_horizontal_panels() {
+	// Two 4x1 strip panels side by side: [[0, 1]]
+	// Panel 0 has LEDs 0-3, Panel 1 has LEDs 4-7
+	uint8_t panelOrder[] = {0, 1};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    4, 1,           // panelWidth=4, panelHeight=1
+	    2, 1,           // unifiedCols=2, unifiedRows=1
+	    panelOrder,
+	    "strip"
+	);
+
+	// Unified display is 8x1
+	// x=0-3 maps to panel 0 (LEDs 0-3)
+	// x=4-7 maps to panel 1 (LEDs 4-7)
+	uint16_t expected[] = {0, 1, 2, 3, 4, 5, 6, 7};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
+	free(map);
+}
+
+void test_unified_1x2_vertical_panels() {
+	// Two 2x2 panels stacked vertically: [[0], [1]]
+	// Panel 0 has LEDs 0-3, Panel 1 has LEDs 4-7
+	uint8_t panelOrder[] = {0, 1};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    2, 2,           // panelWidth=2, panelHeight=2
+	    1, 2,           // unifiedCols=1, unifiedRows=2
+	    panelOrder,
+	    "matrix-tl-h"
+	);
+
+	// Unified display is 2x4
+	// Row 0-1 maps to panel 0, Row 2-3 maps to panel 1
+	uint16_t expected[] = {
+		0, 1,    // y=0: panel 0, row 0
+		2, 3,    // y=1: panel 0, row 1
+		4, 5,    // y=2: panel 1, row 0
+		6, 7     // y=3: panel 1, row 1
+	};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
+	free(map);
+}
+
+void test_unified_2x2_panels_sequential() {
+	// Four 2x2 panels in 2x2 grid: [[0, 1], [2, 3]]
+	// Sequential wiring order
+	uint8_t panelOrder[] = {0, 1, 2, 3};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    2, 2,           // panelWidth=2, panelHeight=2
+	    2, 2,           // unifiedCols=2, unifiedRows=2
+	    panelOrder,
+	    "matrix-tl-h"
+	);
+
+	// Unified display is 4x4
+	// Each panel has 4 LEDs (2x2)
+	// Panel 0: LEDs 0-3, Panel 1: LEDs 4-7, Panel 2: LEDs 8-11, Panel 3: LEDs 12-15
+	uint16_t expected[] = {
+		0,  1,  4,  5,    // y=0: panel 0 row 0, panel 1 row 0
+		2,  3,  6,  7,    // y=1: panel 0 row 1, panel 1 row 1
+		8,  9, 12, 13,    // y=2: panel 2 row 0, panel 3 row 0
+		10, 11, 14, 15    // y=3: panel 2 row 1, panel 3 row 1
+	};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
+	free(map);
+}
+
+void test_unified_2x2_panels_snake_wiring() {
+	// Four 2x2 panels in 2x2 grid with snake wiring: [[0, 1], [3, 2]]
+	// Common physical layout where cable snakes back
+	uint8_t panelOrder[] = {0, 1, 3, 2};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    2, 2,           // panelWidth=2, panelHeight=2
+	    2, 2,           // unifiedCols=2, unifiedRows=2
+	    panelOrder,
+	    "matrix-tl-h"
+	);
+
+	// Unified display is 4x4
+	// Panel 0: LEDs 0-3, Panel 1: LEDs 4-7, Panel 2: LEDs 8-11, Panel 3: LEDs 12-15
+	// But position [1,0] uses panel 3, position [1,1] uses panel 2
+	uint16_t expected[] = {
+		0,  1,  4,  5,    // y=0: panel 0 row 0, panel 1 row 0
+		2,  3,  6,  7,    // y=1: panel 0 row 1, panel 1 row 1
+		12, 13, 8,  9,    // y=2: panel 3 row 0, panel 2 row 0
+		14, 15, 10, 11    // y=3: panel 3 row 1, panel 2 row 1
+	};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
+	free(map);
+}
+
+void test_unified_panel_reordering() {
+	// Two panels with swapped order: [[1, 0]]
+	// Panel 0 is on the right, Panel 1 is on the left
+	uint8_t panelOrder[] = {1, 0};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    2, 2,           // panelWidth=2, panelHeight=2
+	    2, 1,           // unifiedCols=2, unifiedRows=1
+	    panelOrder,
+	    "matrix-tl-h"
+	);
+
+	// Unified display is 4x2
+	// Left half (x=0-1) uses panel 1 (LEDs 4-7)
+	// Right half (x=2-3) uses panel 0 (LEDs 0-3)
+	uint16_t expected[] = {
+		4, 5, 0, 1,    // y=0: panel 1 row 0, panel 0 row 0
+		6, 7, 2, 3     // y=1: panel 1 row 1, panel 0 row 1
+	};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
+	free(map);
+}
+
+void test_unified_with_snake_layout() {
+	// Two 2x2 panels with snake wiring within each panel
+	uint8_t panelOrder[] = {0, 1};
+	uint16_t* map = buildUnifiedCoordinateMap(
+	    2, 2,           // panelWidth=2, panelHeight=2
+	    2, 1,           // unifiedCols=2, unifiedRows=1
+	    panelOrder,
+	    "matrix-tl-h-snake"
+	);
+
+	// Each panel uses snake layout:
+	// Panel 0: (0,0)->0, (1,0)->1, (1,1)->2, (0,1)->3
+	// Panel 1: (0,0)->4, (1,0)->5, (1,1)->6, (0,1)->7
+	uint16_t expected[] = {
+		0, 1, 4, 5,    // y=0: forward
+		3, 2, 7, 6     // y=1: snake back
+	};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
+	free(map);
+}
+
 int main(int argc, char** argv) {
 	UNITY_BEGIN();
 
@@ -207,6 +371,15 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_unknown_layout_defaults_to_strip);
 	RUN_TEST(test_8x8_matrix_corners);
 	RUN_TEST(test_8x32_matrix_corners);
+
+	// Unified multi-panel tests
+	RUN_TEST(test_unified_single_panel);
+	RUN_TEST(test_unified_2x1_horizontal_panels);
+	RUN_TEST(test_unified_1x2_vertical_panels);
+	RUN_TEST(test_unified_2x2_panels_sequential);
+	RUN_TEST(test_unified_2x2_panels_snake_wiring);
+	RUN_TEST(test_unified_panel_reordering);
+	RUN_TEST(test_unified_with_snake_layout);
 
 	return UNITY_END();
 }

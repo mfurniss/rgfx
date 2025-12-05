@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/matrix.h"
-#include "graphics/canvas.h"
 #include <ArduinoJson.h>
 
 // Abstract base class defining the interface for all effects
@@ -13,5 +12,4 @@ class IEffect {
 	virtual void update(float deltaTime) = 0;
 	virtual void render() = 0;
 	virtual void reset() = 0;
-	virtual Canvas& getCanvas() = 0;
 };

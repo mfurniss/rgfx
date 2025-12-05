@@ -281,4 +281,163 @@ describe('createUploadConfigToDriver', () => {
       expect(mockDriverPersistence.getDriverByMac).toHaveBeenCalledWith(testMacAddress);
     });
   });
+
+  describe('unified panel configuration', () => {
+    it('should use single panel dimensions when unified is undefined', async () => {
+      vi.mocked(mockDriverPersistence.getDriverByMac).mockReturnValue(mockPersistedDriver);
+      vi.mocked(mockLedHardwareManager.loadHardware).mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = vi.mocked(mockMqtt.publish).mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.width).toBe(8);
+      expect(device.height).toBe(8);
+      expect(device.count).toBe(64);
+      expect(device.panel_width).toBeUndefined();
+      expect(device.panel_height).toBeUndefined();
+      expect(device.unified).toBeUndefined();
+    });
+
+    it('should calculate dimensions for 2x2 unified grid', async () => {
+      const driverWithUnified = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          unified: [
+            [0, 1],
+            [3, 2],
+          ],
+        },
+      };
+
+      vi.mocked(mockDriverPersistence.getDriverByMac).mockReturnValue(driverWithUnified);
+      vi.mocked(mockLedHardwareManager.loadHardware).mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = vi.mocked(mockMqtt.publish).mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      // 2x2 grid of 8x8 panels = 16x16 display with 256 LEDs
+      expect(device.width).toBe(16);
+      expect(device.height).toBe(16);
+      expect(device.count).toBe(256);
+      expect(device.panel_width).toBe(8);
+      expect(device.panel_height).toBe(8);
+      expect(device.unified).toEqual([
+        [0, 1],
+        [3, 2],
+      ]);
+    });
+
+    it('should calculate dimensions for 1x3 horizontal strip of panels', async () => {
+      const driverWithUnified = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          unified: [[0, 1, 2]],
+        },
+      };
+
+      vi.mocked(mockDriverPersistence.getDriverByMac).mockReturnValue(driverWithUnified);
+      vi.mocked(mockLedHardwareManager.loadHardware).mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = vi.mocked(mockMqtt.publish).mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      // 1x3 grid of 8x8 panels = 24x8 display with 192 LEDs
+      expect(device.width).toBe(24);
+      expect(device.height).toBe(8);
+      expect(device.count).toBe(192);
+    });
+
+    it('should calculate dimensions for 3x1 vertical strip of panels', async () => {
+      const driverWithUnified = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          unified: [[0], [1], [2]],
+        },
+      };
+
+      vi.mocked(mockDriverPersistence.getDriverByMac).mockReturnValue(driverWithUnified);
+      vi.mocked(mockLedHardwareManager.loadHardware).mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = vi.mocked(mockMqtt.publish).mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      // 3x1 grid of 8x8 panels = 8x24 display with 192 LEDs
+      expect(device.width).toBe(8);
+      expect(device.height).toBe(24);
+      expect(device.count).toBe(192);
+    });
+
+    it('should handle hardware without explicit height (strip)', async () => {
+      const stripHardware = {
+        ...mockHardware,
+        width: 60,
+        height: undefined,
+      };
+      const driverWithUnified = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          unified: [[0, 1]],
+        },
+      };
+
+      vi.mocked(mockDriverPersistence.getDriverByMac).mockReturnValue(driverWithUnified);
+      vi.mocked(mockLedHardwareManager.loadHardware).mockReturnValue(stripHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = vi.mocked(mockMqtt.publish).mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      // 1x2 grid of 60-LED strips = 120x1 display
+      expect(device.width).toBe(120);
+      expect(device.height).toBe(1);
+    });
+  });
 });

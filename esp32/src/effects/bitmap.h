@@ -10,7 +10,7 @@ class BitmapEffect : public IEffect {
 	struct Bitmap {
 		uint32_t duration;               // Total duration in milliseconds
 		uint32_t elapsedTime;            // Elapsed time in milliseconds
-		std::vector<uint32_t> pixels;    // Pre-computed RGBA pixels, row-major order
+		std::vector<CRGBA> pixels;       // Pre-computed RGBA pixels, row-major order
 		uint8_t imageWidth;              // Width in pixels
 		uint8_t imageHeight;             // Height in pixels
 		float centerX;                   // Center X position in canvas coords
@@ -20,13 +20,12 @@ class BitmapEffect : public IEffect {
 
 	std::vector<Bitmap> bitmaps;
 	const Matrix& matrix;
-	Canvas canvas;
+	Canvas& canvas;
 
    public:
-	BitmapEffect(const Matrix& matrix);
+	BitmapEffect(const Matrix& matrix, Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;
 	void reset() override;
-	Canvas& getCanvas() override;
 };
