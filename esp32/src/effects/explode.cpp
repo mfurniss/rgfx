@@ -281,11 +281,11 @@ void ExplodeEffect::render() {
 				int16_t rightX = centerX + offset;
 
 				if (leftX >= 0 && leftX < width) {
-					canvas.drawPixel(leftX, 0, RGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
+					canvas.drawPixel(leftX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
 				}
 
 				if (offset > 0 && rightX >= 0 && rightX < width) {
-					canvas.drawPixel(rightX, 0, RGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
+					canvas.drawPixel(rightX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
 				}
 			}
 		}
@@ -320,7 +320,7 @@ void ExplodeEffect::render() {
 
 				if (x >= 0 && x < width) {
 					canvas.drawRectangle(x, 0, 1, height,
-					                     RGBA(particle.r, particle.g, particle.b, particle.alpha),
+					                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
 					                     BlendMode::ADDITIVE);
 				}
 			}
@@ -330,7 +330,7 @@ void ExplodeEffect::render() {
 			int16_t y = centerY - halfSize;
 
 			canvas.drawRectangle(x, y, size, size,
-			                     RGBA(particle.r, particle.g, particle.b, particle.alpha),
+			                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
 			                     BlendMode::ADDITIVE);
 		}
 	}
