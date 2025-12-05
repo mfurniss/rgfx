@@ -9,7 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
 import type { DriverLEDConfig } from './types';
-import { CONFIG_VERSION, CONFIG_DIRECTORY } from './config/constants';
+import { CONFIG_VERSION } from './config/constants';
+import { CONFIG_DIRECTORY } from './config/paths';
 import {
   PersistedDriverSchema,
   DriversConfigFileRawSchema,

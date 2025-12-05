@@ -97,12 +97,6 @@ bool configLEDs() {
 		uint8_t pin = pair.first;
 		uint16_t count = pair.second;
 
-		if (count > MAX_LEDS_PER_PIN) {
-			log("ERROR: Too many LEDs on pin " + String(pin) + " (" + String(count) + " > " +
-			    String(MAX_LEDS_PER_PIN) + ")");
-			return false;
-		}
-
 		log("Pin " + String(pin) + ": allocating " + String(count) + " LEDs");
 
 		// Allocate buffer

@@ -102,9 +102,6 @@ constexpr unsigned long FLASH_DURATION_MS = 10;  // 10 milliseconds
 /** Maximum number of GPIO pins that can drive LEDs simultaneously */
 constexpr int MAX_PINS = 4;
 
-/** Maximum number of LEDs per GPIO pin */
-constexpr int MAX_LEDS_PER_PIN = 300;
-
 // ============================================================================
 // LED Configuration Defaults
 // ============================================================================

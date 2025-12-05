@@ -6,7 +6,7 @@
 static const uint32_t DEFAULT_COLOR = 0xFFFF00;
 static const uint32_t DEFAULT_DURATION = 1000;
 
-BitmapEffect::BitmapEffect(const Matrix& m) : matrix(m), canvas(m) {}
+BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {}
 
 void BitmapEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -91,8 +91,6 @@ void BitmapEffect::update(float deltaTime) {
 }
 
 void BitmapEffect::render() {
-	canvas.clear();
-
 	uint16_t canvasWidth = canvas.getWidth();
 	uint16_t canvasHeight = canvas.getHeight();
 
@@ -138,8 +136,4 @@ void BitmapEffect::render() {
 
 void BitmapEffect::reset() {
 	bitmaps.clear();
-}
-
-Canvas& BitmapEffect::getCanvas() {
-	return canvas;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/matrix.h"
+#include "graphics/canvas.h"
 #include "effects/pulse.h"
 #include "effects/bitmap.h"
 #include "effects/wipe.h"
@@ -14,6 +15,7 @@
  *
  * Manages continuous effect updates and rendering.
  * Handles frame timing and adding effects.
+ * Owns the shared canvas used by all effects.
  */
 class EffectProcessor {
    public:
@@ -24,6 +26,7 @@ class EffectProcessor {
 
    private:
 	Matrix& matrix;
+	Canvas canvas;  // Single shared canvas (must be declared before effects)
 	PulseEffect pulseEffect;
 	BitmapEffect bitmapEffect;
 	WipeEffect wipeEffect;

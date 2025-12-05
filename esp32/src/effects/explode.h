@@ -30,17 +30,16 @@ class ExplodeEffect : public IEffect {
 		float flashAge;           // Current age in seconds
 	};
 
-	Canvas canvas;
+	Canvas& canvas;
 	const Matrix& matrix;
 	std::vector<Particle> particlePool;     // Shared FIFO particle pool
 	std::vector<Explosion> explosions;      // Dynamic array of active explosions
 	uint32_t nextExplosionId;               // Counter for unique explosion IDs
 
    public:
-	ExplodeEffect(const Matrix& matrix);
+	ExplodeEffect(const Matrix& matrix, Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;
 	void reset() override;
-	Canvas& getCanvas() override;
 };

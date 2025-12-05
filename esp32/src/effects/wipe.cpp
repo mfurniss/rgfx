@@ -32,7 +32,9 @@ static WipeDirection parseDirection(const char* dir, bool is1D) {
 	return result;
 }
 
-WipeEffect::WipeEffect(const Matrix& m) : canvas(m) {}
+WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
+	(void)m;  // Matrix not needed, but kept for API consistency
+}
 
 void WipeEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -51,8 +53,6 @@ void WipeEffect::add(JsonDocument& props) {
 }
 
 void WipeEffect::update(float deltaTime) {
-	canvas.clear();
-
 	// Cache deltaTime in milliseconds to avoid redundant calculations
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 
@@ -131,8 +131,4 @@ void WipeEffect::render() {
 
 void WipeEffect::reset() {
 	wipes.clear();
-}
-
-Canvas& WipeEffect::getCanvas() {
-	return canvas;
 }
