@@ -110,37 +110,40 @@ struct LayoutTransform {
 	CoordinateTransform transform;
 };
 
-// Build coordinate lookup table using selected transform function
-uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout) {
-	// Lookup table mapping layout strings to transform functions
-	static const LayoutTransform lookupTable[] = {
-		{"strip", coordinateStrip},
-		{"matrix-tl-h", coordinateMatrixTLH},
-		{"matrix-tl-h-snake", coordinateMatrixTLHSnake},
-		{"matrix-tr-h", coordinateMatrixTRH},
-		{"matrix-tr-h-snake", coordinateMatrixTRHSnake},
-		{"matrix-bl-h", coordinateMatrixBLH},
-		{"matrix-bl-h-snake", coordinateMatrixBLHSnake},
-		{"matrix-br-h", coordinateMatrixBRH},
-		{"matrix-br-h-snake", coordinateMatrixBRHSnake},
-		{"matrix-tl-v", coordinateMatrixTLV},
-		{"matrix-tl-v-snake", coordinateMatrixTLVSnake},
-		{"matrix-tr-v", coordinateMatrixTRV},
-		{"matrix-tr-v-snake", coordinateMatrixTRVSnake},
-		{"matrix-bl-v", coordinateMatrixBLV},
-		{"matrix-bl-v-snake", coordinateMatrixBLVSnake},
-		{"matrix-br-v", coordinateMatrixBRV},
-		{"matrix-br-v-snake", coordinateMatrixBRVSnake},
-	};
+// Lookup table mapping layout strings to transform functions
+static const LayoutTransform layoutLookupTable[] = {
+	{"strip", coordinateStrip},
+	{"matrix-tl-h", coordinateMatrixTLH},
+	{"matrix-tl-h-snake", coordinateMatrixTLHSnake},
+	{"matrix-tr-h", coordinateMatrixTRH},
+	{"matrix-tr-h-snake", coordinateMatrixTRHSnake},
+	{"matrix-bl-h", coordinateMatrixBLH},
+	{"matrix-bl-h-snake", coordinateMatrixBLHSnake},
+	{"matrix-br-h", coordinateMatrixBRH},
+	{"matrix-br-h-snake", coordinateMatrixBRHSnake},
+	{"matrix-tl-v", coordinateMatrixTLV},
+	{"matrix-tl-v-snake", coordinateMatrixTLVSnake},
+	{"matrix-tr-v", coordinateMatrixTRV},
+	{"matrix-tr-v-snake", coordinateMatrixTRVSnake},
+	{"matrix-bl-v", coordinateMatrixBLV},
+	{"matrix-bl-v-snake", coordinateMatrixBLVSnake},
+	{"matrix-br-v", coordinateMatrixBRV},
+	{"matrix-br-v-snake", coordinateMatrixBRVSnake},
+};
 
-	// Find matching transform function
-	CoordinateTransform transform = coordinateStrip;  // Default fallback
-	for (const auto& entry : lookupTable) {
+// Find transform function for a layout string
+static CoordinateTransform findTransform(const char* layout) {
+	for (const auto& entry : layoutLookupTable) {
 		if (strcmp(layout, entry.layout) == 0) {
-			transform = entry.transform;
-			break;
+			return entry.transform;
 		}
 	}
+	return coordinateStrip;  // Default fallback
+}
+
+// Build coordinate lookup table using selected transform function
+uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout) {
+	CoordinateTransform transform = findTransform(layout);
 
 	// Build coordinate map
 	uint16_t size = width * height;
@@ -152,6 +155,52 @@ uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; x++) {
 			map[y * width + x] = transform(x, y, width, height);
+		}
+	}
+
+	return map;
+}
+
+// Build coordinate lookup table for unified multi-panel display
+uint16_t* buildUnifiedCoordinateMap(
+    uint16_t panelWidth, uint16_t panelHeight,
+    uint8_t unifiedCols, uint8_t unifiedRows,
+    const uint8_t* panelOrder,
+    const char* layout
+) {
+	CoordinateTransform transform = findTransform(layout);
+
+	// Calculate unified display dimensions
+	uint16_t unifiedWidth = panelWidth * unifiedCols;
+	uint16_t unifiedHeight = panelHeight * unifiedRows;
+	uint32_t unifiedSize = (uint32_t)unifiedWidth * unifiedHeight;
+	uint16_t panelLedCount = panelWidth * panelHeight;
+
+	// Allocate coordinate map
+	uint16_t* map = (uint16_t*)malloc(unifiedSize * sizeof(uint16_t));
+	if (!map) {
+		return nullptr;
+	}
+
+	// For each pixel in the unified display
+	for (uint16_t y = 0; y < unifiedHeight; y++) {
+		for (uint16_t x = 0; x < unifiedWidth; x++) {
+			// Which panel are we on?
+			uint8_t panelCol = x / panelWidth;
+			uint8_t panelRow = y / panelHeight;
+			uint8_t panelChainIndex = panelOrder[panelRow * unifiedCols + panelCol];
+
+			// Where within that panel?
+			uint16_t localX = x % panelWidth;
+			uint16_t localY = y % panelHeight;
+
+			// Get LED index within the panel using the layout transform
+			uint16_t localLedIndex = transform(localX, localY, panelWidth, panelHeight);
+
+			// Final LED index = panel's starting position + local offset
+			uint16_t ledIndex = (panelChainIndex * panelLedCount) + localLedIndex;
+
+			map[y * unifiedWidth + x] = ledIndex;
 		}
 	}
 

@@ -20,13 +20,12 @@ class WipeEffect : public IEffect {
 	};
 
 	std::vector<Wipe> wipes;  // Dynamic array of active wipes
-	Canvas canvas;
+	Canvas& canvas;
 
    public:
-	WipeEffect(const Matrix& matrix);
+	WipeEffect(const Matrix& matrix, Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;
 	void reset() override;
-	Canvas& getCanvas() override;
 };

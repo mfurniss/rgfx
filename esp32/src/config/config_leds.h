@@ -19,7 +19,6 @@
 
 // Hardware limits defined in config/constants.h:
 // - MAX_PINS: Maximum supported GPIO pins
-// - MAX_LEDS_PER_PIN: Maximum LEDs per pin
 
 /**
  * Initialize FastLED based on g_driverConfig

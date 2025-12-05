@@ -75,9 +75,6 @@ export const OPEN_DEVTOOLS_IN_DEV = false;
 /** Version identifier for configuration file format */
 export const CONFIG_VERSION = '1.0';
 
-/** Base directory for configuration files (relative to app data directory) */
-export const CONFIG_DIRECTORY = 'config';
-
 // ============================================================================
 // Event File Reader Configuration
 // ============================================================================

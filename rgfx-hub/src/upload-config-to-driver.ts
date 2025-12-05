@@ -40,6 +40,17 @@ export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress:
       throw new Error(`Failed to load LED hardware: ${ledConfig.hardwareRef}`);
     }
 
+    // Calculate unified display dimensions
+    const unified = ledConfig.unified;
+    const unifiedRows = unified ? unified.length : 1;
+    const unifiedCols = unified ? unified[0].length : 1;
+    const panelCount = unifiedRows * unifiedCols;
+
+    // Effective dimensions for the unified display
+    const effectiveWidth = (hardware.width ?? hardware.count) * unifiedCols;
+    const effectiveHeight = (hardware.height ?? 1) * unifiedRows;
+    const effectiveCount = hardware.count * panelCount;
+
     const completeConfig = {
       id: driverId,
       name: hardware.name,
@@ -51,14 +62,18 @@ export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress:
           name: hardware.name,
           pin: ledConfig.pin,
           layout: hardware.layout,
-          count: hardware.count,
+          count: effectiveCount,
           offset: ledConfig.offset ?? 0,
           chipset: hardware.chipset,
           color_order: hardware.colorOrder,
           max_brightness: ledConfig.maxBrightness,
           color_correction: hardware.colorCorrection,
-          width: hardware.width,
-          height: hardware.height,
+          width: effectiveWidth,
+          height: effectiveHeight,
+          // Unified panel configuration (null if single panel)
+          panel_width: unified ? hardware.width : undefined,
+          panel_height: unified ? hardware.height : undefined,
+          unified,
         },
       ],
       settings: {

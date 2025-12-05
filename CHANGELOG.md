@@ -5,14 +5,33 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Unified multi-panel LED matrix support - combine multiple identical LED matrices into a single logical display
+  - New `unified` property in `ledConfig` accepts a 2D array describing panel layout and wiring order
+  - Example: `"unified": [[0, 1], [3, 2]]` creates a 2x2 grid with snake wiring
+  - Hub computes effective dimensions and sends to ESP32 driver
+  - ESP32 builds unified coordinate map for seamless rendering across panels
 - Robotron: 2084 MAME Lua interceptor (`mame/lua/interceptors/robotron_rgfx.lua`)
 - Robotron: 2084 hub mapper (`rgfx-hub/config/mappings/games/robotron.js`)
 - Robotron ROM mapping in `rom_map.lua`
 - Robotron technical documentation including sound system notes (`mame/lua/interceptors/robotron.md`)
 - Sean Riddle's Robotron disassembly for reference (`mame/lua/interceptors/robomame.asm`)
 
+### Changed
+- Refactored ESP32 effects to use shared canvas architecture
+  - Single canvas owned by EffectProcessor reduces memory from ~160KB to ~32KB
+  - Effects receive Canvas& reference via constructor instead of owning their own
+  - EffectProcessor clears canvas once per frame before rendering
+  - Removed `getCanvas()` from IEffect interface
+- Simplified Canvas from RGBA (32-bit) to RGB (24-bit) storage
+  - 25% memory reduction in canvas storage (e.g., 32x32 canvas: 4KB → 3KB)
+  - Alpha is now used only during blend operations via CRGBA input struct
+  - New API: `drawPixel(x, y, CRGB)` for direct writes, `drawPixel(x, y, CRGBA, BlendMode)` for blending
+  - BlendMode supports REPLACE, ALPHA, ADDITIVE, and AVERAGE modes
+- Removed arbitrary MAX_LEDS_PER_PIN limit (300) - memory allocation is the real constraint
+
 ### Fixed
 - ESP32 native unit tests failing in CI due to missing include paths for subdirectories (graphics, effects, utils)
+- Hub renderer crash when importing constants.ts - moved CONFIG_DIRECTORY to paths.ts (Node.js-only)
 
 ### Added
 - ESP32 native tests to pre-commit hook to catch test failures before pushing
