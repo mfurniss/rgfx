@@ -80,10 +80,10 @@ export const CONFIG_VERSION = '1.0';
 // ============================================================================
 
 /**
- * Filename for MAME event log file.
- * MAME Lua scripts write events to this file in ~/.rgfx/ directory.
+ * Filename for interceptor event log file.
+ * Interceptor Lua scripts write events to this file in ~/.rgfx/ directory.
  */
-export const EVENT_LOG_FILENAME = 'mame_events.log';
+export const EVENT_LOG_FILENAME = 'interceptor_events.log';
 
 /**
  * Interval for polling event file existence when file doesn't exist (milliseconds).

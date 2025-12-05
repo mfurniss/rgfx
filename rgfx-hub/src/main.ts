@@ -22,6 +22,7 @@ import { MqttClientWrapper } from './transformer/mqtt-client-wrapper';
 import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
 import { installDefaultTransformers } from './transformer-installer';
+import { installDefaultInterceptors } from './interceptor-installer';
 import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
@@ -129,7 +130,7 @@ registerDriverCallbacks({
 // Start MQTT broker
 mqtt.start();
 
-// Install default transformers to user config directory (async)
+// Install default transformers and interceptors to user config directory (async)
 void installDefaultTransformers()
   .then(() => {
     // Load transformer engine handlers after installing defaults
@@ -137,6 +138,11 @@ void installDefaultTransformers()
   })
   .catch((error: unknown) => {
     log.error('Failed to install default transformers:', error);
+  });
+
+void installDefaultInterceptors()
+  .catch((error: unknown) => {
+    log.error('Failed to install default interceptors:', error);
   });
 
 // Track event topics and their counts

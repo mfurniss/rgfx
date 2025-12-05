@@ -12,7 +12,7 @@ describe('EventFileReader', () => {
   beforeEach(() => {
     testDir = join(tmpdir(), `rgfx-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-    testFilePath = join(testDir, 'mame_events.log');
+    testFilePath = join(testDir, 'interceptor_events.log');
     reader = new EventFileReader(testFilePath);
   });
 

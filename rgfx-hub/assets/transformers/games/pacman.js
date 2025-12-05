@@ -31,8 +31,6 @@
  * @returns {boolean} - True if event was handled, false otherwise
  */
 
-import { Collapse } from '@mui/material';
-
 const PACMAN_SPRITE_OPEN_MOUTH = [
   '     XXXXXX     ',
   '   XXXXXXXXXX   ',
