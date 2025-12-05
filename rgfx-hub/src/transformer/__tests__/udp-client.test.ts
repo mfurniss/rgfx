@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UdpClientImpl } from '../udp-client';
 import { DriverRegistry } from '@/driver-registry';
 import { Driver } from '@/types';
-import type { EffectPayload } from '@/types/mapping-types';
+import type { EffectPayload } from '@/types/transformer-types';
 
 // Create mock socket
 const mockSocketSend = vi.fn(

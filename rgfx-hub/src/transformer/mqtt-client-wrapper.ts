@@ -1,11 +1,11 @@
 /**
- * MQTT client wrapper for event mappers
+ * MQTT client wrapper for event transformers
  *
  * Wraps the embedded Aedes MQTT broker to provide a clean interface
- * for mappers to publish messages with configurable QoS levels.
+ * for transformers to publish messages with configurable QoS levels.
  */
 
-import type { MqttClient } from '../types/mapping-types';
+import type { MqttClient } from '../types/transformer-types';
 import type { MqttBroker } from '../network';
 import { MQTT_QOS_LEVEL } from '../config/constants';
 

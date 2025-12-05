@@ -1,5 +1,5 @@
 /**
- * UDP client wrapper for event mappers
+ * UDP client wrapper for event transformers
  *
  * Provides high-level interface for broadcasting effects to LED drivers.
  * Uses DriverRegistry to discover connected drivers and their IP addresses.
@@ -8,7 +8,7 @@
 
 import dgram from 'dgram';
 import log from 'electron-log/main';
-import type { UdpClient, EffectPayload } from '../types/mapping-types';
+import type { UdpClient, EffectPayload } from '../types/transformer-types';
 import type { DriverRegistry } from '../driver-registry';
 import { type Driver } from '../types';
 import { UDP_PORT } from '../config/constants';

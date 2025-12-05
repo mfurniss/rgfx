@@ -1,6 +1,6 @@
 // Shared types for IPC communication between main and renderer processes
 
-import type { EffectPayload } from './types/mapping-types';
+import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**

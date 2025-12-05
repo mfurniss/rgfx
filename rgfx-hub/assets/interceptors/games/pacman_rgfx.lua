@@ -4,7 +4,7 @@
 --
 -- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
 
-package.path = package.path .. ";" .. debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "?.lua"
+-- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
 
 -- Set boot delay to skip RAM test phase (6 seconds)

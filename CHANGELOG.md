@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Renamed "mappings" to "transformers" throughout the Hub codebase
+  - Moved example transformers from `config/mappings/` to `assets/transformers/`
+  - Renamed `MappingEngine` → `TransformerEngine`, `MappingContext` → `TransformerContext`, etc.
+  - Transformers are now copied to user config folder (`~/.rgfx/transformers/`) on startup
+  - User-edited transformers are never overwritten (preserves customizations)
+  - Hot-reload still supported for real-time transformer development
+- Moved MAME Lua interceptors from `mame/` project into Hub
+  - System modules (`rgfx.lua`, `event.lua`, `ram.lua`) now in `rgfx-hub/public/mame/`
+  - User-editable interceptors (`rom_map.lua`, game scripts) now in `rgfx-hub/assets/interceptors/`
+  - Interceptors copied to `~/.rgfx/interceptors/` on startup (user customizations preserved)
+  - Updated `rgfx.lua` to load system modules from bundle, user files from config directory
+  - Added `launch-mame.sh` script to `rgfx-hub/scripts/` for launching MAME with RGFX support
+  - Removed `mame/` project from workspace (no longer needed)
+
 ### Added
 - Unified multi-panel LED matrix support - combine multiple identical LED matrices into a single logical display
   - New `unified` property in `ledConfig` accepts a 2D array describing panel layout and wiring order

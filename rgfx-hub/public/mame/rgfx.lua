@@ -4,11 +4,25 @@
 --
 -- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
 
-local base_path = debug.getinfo(1, "S").source:sub(2):match("(.*/)") or ""
-local interceptors_dir = "interceptors"
+-- RGFX MAME Bootstrap
+-- This file is the entry point for MAME's -autoboot_script option.
+-- It loads system modules from the app bundle and user interceptors from ~/.rgfx/interceptors/
 
-package.path = package.path .. ";" .. base_path .. "?.lua"
-package.path = package.path .. ";" .. base_path .. interceptors_dir .. "/?.lua"
+-- System modules path (where this file lives - app bundle)
+local system_path = debug.getinfo(1, "S").source:sub(2):match("(.*/)") or "./"
+
+-- User interceptors path (~/.rgfx/interceptors/)
+local home = os.getenv("HOME") or os.getenv("USERPROFILE")
+if not home then
+	error("Could not determine home directory")
+end
+local user_path = home .. "/.rgfx/interceptors/"
+
+-- Load system modules from bundle (event.lua, ram.lua)
+package.path = system_path .. "?.lua;" .. package.path
+
+-- Load user files from ~/.rgfx/interceptors/ (rom_map.lua, game interceptors)
+package.path = user_path .. "?.lua;" .. user_path .. "games/?.lua;" .. package.path
 
 -- Load event logging module (defines _G.event and event_file)
 require("event")
@@ -58,7 +72,7 @@ local load_interceptor = function()
 		print("No image devices found!")
 	end
 
-	-- Load ROM-to-interceptor mapping
+	-- Load ROM-to-interceptor mapping from user directory
 	local rom_map = require("rom_map")
 
 	-- Lookup interceptor: prefer cart_name (console games), fallback to rom_name (arcade)
@@ -71,7 +85,7 @@ local load_interceptor = function()
 		_G.game_name = lookup_key
 		local status = pcall(require, game_script)
 		if status then
-			print("Successfully loaded: " .. interceptors_dir .. "/" .. game_script .. ".lua")
+			print("Successfully loaded interceptor: " .. game_script .. ".lua")
 			-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
 			-- Use lookup_key (cart_name for consoles, rom_name for arcade) to match event prefixes
 			event(lookup_key .. "/init", lookup_key)

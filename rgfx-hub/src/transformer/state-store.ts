@@ -1,14 +1,14 @@
 /**
- * In-memory state store for event mappers
+ * In-memory state store for event transformers
  *
- * Provides type-safe key-value storage for mappers to persist data across
+ * Provides type-safe key-value storage for transformers to persist data across
  * events. Useful for tracking game state, debouncing, rate limiting, etc.
  *
  * Phase 1: Simple in-memory Map storage
  * Phase 2: Optional persistence to disk with auto-save
  */
 
-import type { StateStore } from '../types/mapping-types';
+import type { StateStore } from '../types/transformer-types';
 
 /**
  * Simple Map-based state store implementation
