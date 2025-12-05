@@ -16,8 +16,17 @@ All notable changes to this project will be documented in this file.
 - Robotron technical documentation including sound system notes (`mame/lua/interceptors/robotron.md`)
 - Sean Riddle's Robotron disassembly for reference (`mame/lua/interceptors/robomame.asm`)
 
+### Changed
+- Refactored ESP32 effects to use shared canvas architecture
+  - Single canvas owned by EffectProcessor reduces memory from ~160KB to ~32KB
+  - Effects receive Canvas& reference via constructor instead of owning their own
+  - EffectProcessor clears canvas once per frame before rendering
+  - Removed `getCanvas()` from IEffect interface
+- Removed arbitrary MAX_LEDS_PER_PIN limit (300) - memory allocation is the real constraint
+
 ### Fixed
 - ESP32 native unit tests failing in CI due to missing include paths for subdirectories (graphics, effects, utils)
+- Hub renderer crash when importing constants.ts - moved CONFIG_DIRECTORY to paths.ts (Node.js-only)
 
 ### Added
 - ESP32 native tests to pre-commit hook to catch test failures before pushing
