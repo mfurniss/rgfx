@@ -8,7 +8,7 @@ static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
 static const float DEFAULT_DURATION = 1.0f;  // Duration in seconds
 static const bool DEFAULT_FADE = true;
 
-PulseEffect::PulseEffect(const Matrix& m) : matrix(m), canvas(m) {}
+PulseEffect::PulseEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
@@ -51,8 +51,6 @@ void PulseEffect::update(float deltaTime) {
 }
 
 void PulseEffect::render() {
-	canvas.clear();
-
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
 
@@ -102,8 +100,4 @@ void PulseEffect::render() {
 
 void PulseEffect::reset() {
 	pulses.clear();
-}
-
-Canvas& PulseEffect::getCanvas() {
-	return canvas;
 }

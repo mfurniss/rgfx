@@ -24,10 +24,26 @@ class Matrix {
 	uint16_t* coordinateMap;
 	String layout;
 	LayoutType layoutType;
+
+	// Single panel constructor
 	Matrix(uint16_t w, uint16_t h, const String& layoutPattern = "matrix-br-v-snake");
+
+	// Unified multi-panel constructor
+	Matrix(uint16_t panelWidth, uint16_t panelHeight,
+	       uint8_t unifiedCols, uint8_t unifiedRows,
+	       const uint8_t* panelOrder,
+	       const String& layoutPattern = "matrix-br-v-snake");
+
 	~Matrix();
 	bool isValid() const;
 	void updateLayout(const String& newLayout);
 	uint16_t xy(uint16_t x, uint16_t y);
 	CRGB& led(uint16_t x, uint16_t y);
+
+   private:
+	// Unified panel configuration (stored for potential future use)
+	uint16_t panelWidth;
+	uint16_t panelHeight;
+	uint8_t unifiedCols;
+	uint8_t unifiedRows;
 };

@@ -63,6 +63,14 @@ export interface DriverLEDConfig {
   dithering?: boolean | null;
   powerSupplyVolts?: number | null;
   maxPowerMilliamps?: number | null;
+  /**
+   * Unified panel layout - 2D array mapping grid positions to panel chain indices.
+   * Array structure defines grid: rows = length, cols = first row length.
+   * Each number is the panel's index in the physical LED chain (0 = first panel wired).
+   * Example: [[0, 1], [3, 2]] = 2x2 grid with snake wiring
+   * Defaults to null (single panel, no unification)
+   */
+  unified?: number[][] | null;
 }
 
 /**

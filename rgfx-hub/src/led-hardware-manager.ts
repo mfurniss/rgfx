@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
 import type { LEDHardware } from './types';
-import { CONFIG_DIRECTORY } from './config/constants';
+import { CONFIG_DIRECTORY } from './config/paths';
 import { LEDHardwareSchema } from './schemas';
 
 /**

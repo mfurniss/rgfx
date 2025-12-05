@@ -23,11 +23,21 @@ struct LEDDeviceConfig {
 	String colorCorrection;  // "TypicalLEDStrip", "Typical8mmPixel", "UncorrectedColor"
 
 	// Matrix-specific fields
-	uint8_t width;   // Matrix width (0 if not a matrix)
-	uint8_t height;  // Matrix height (0 if not a matrix)
+	uint16_t width;   // Matrix width (0 if not a matrix)
+	uint16_t height;  // Matrix height (0 if not a matrix)
+
+	// Unified panel configuration (for multi-panel displays)
+	uint16_t panelWidth;               // Single panel width (0 if not unified)
+	uint16_t panelHeight;              // Single panel height (0 if not unified)
+	uint8_t unifiedRows;               // Number of panel rows (1 if not unified)
+	uint8_t unifiedCols;               // Number of panel columns (1 if not unified)
+	std::vector<uint8_t> panelOrder;   // Panel chain indices, row-major order
 
 	// Constructor with defaults
-	LEDDeviceConfig() : pin(0), count(0), offset(0), maxBrightness(255), width(0), height(0) {}
+	LEDDeviceConfig()
+		: pin(0), count(0), offset(0), maxBrightness(255),
+		  width(0), height(0), panelWidth(0), panelHeight(0),
+		  unifiedRows(1), unifiedCols(1) {}
 };
 
 /**

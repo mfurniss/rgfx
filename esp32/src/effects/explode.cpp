@@ -17,7 +17,7 @@ static const float DEFAULT_FRICTION = 2.0f;
 static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
-ExplodeEffect::ExplodeEffect(const Matrix& m) : canvas(m), matrix(m), nextExplosionId(0) {
+ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m), nextExplosionId(0) {
 	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
 }
 
@@ -176,7 +176,6 @@ void ExplodeEffect::add(JsonDocument& props) {
 }
 
 void ExplodeEffect::update(float deltaTime) {
-	canvas.clear();
 
 	// Cache deltaTime in milliseconds to avoid redundant calculations
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
@@ -340,8 +339,4 @@ void ExplodeEffect::render() {
 void ExplodeEffect::reset() {
 	particlePool.clear();
 	explosions.clear();
-}
-
-Canvas& ExplodeEffect::getCanvas() {
-	return canvas;
 }

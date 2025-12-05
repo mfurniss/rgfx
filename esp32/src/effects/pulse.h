@@ -31,13 +31,12 @@ class PulseEffect : public IEffect {
 
 	std::vector<Pulse> pulses;  // Dynamic array of active pulses
 	const Matrix& matrix;
-	Canvas canvas;
+	Canvas& canvas;
 
    public:
-	PulseEffect(const Matrix& matrix);
+	PulseEffect(const Matrix& matrix, Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;
 	void reset() override;
-	Canvas& getCanvas() override;
 };

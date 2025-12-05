@@ -8,6 +8,41 @@
 import { z } from 'zod';
 
 /**
+ * Unified panel layout schema
+ * 2D array where each number is the panel's index in the physical LED chain.
+ * Array structure defines grid: rows = length, cols = first row length.
+ * Example: [[0, 1], [3, 2]] = 2x2 grid with snake wiring
+ */
+const UnifiedPanelLayoutSchema = z
+  .array(z.array(z.number().int().min(0)))
+  .refine(
+    (rows) => {
+      if (rows.length === 0) {
+        return false;
+      }
+
+      const colCount = rows[0].length;
+
+      if (colCount === 0) {
+        return false;
+      }
+
+      return rows.every((row) => row.length === colCount);
+    },
+    { message: 'All rows must have the same length and be non-empty' },
+  )
+  .refine(
+    (rows) => {
+      const flat = rows.flat();
+      const expected = Array.from({ length: flat.length }, (_, i) => i);
+      const sorted = [...flat].sort((a, b) => a - b);
+
+      return JSON.stringify(sorted) === JSON.stringify(expected);
+    },
+    { message: 'Panel indices must be sequential from 0 to n-1' },
+  );
+
+/**
  * Driver LED configuration schema
  */
 const DriverLEDConfigSchema = z.object({
@@ -19,6 +54,7 @@ const DriverLEDConfigSchema = z.object({
   dithering: z.boolean().nullable().optional(),
   powerSupplyVolts: z.number().positive().max(24).nullable().optional(),
   maxPowerMilliamps: z.number().positive().max(10000).nullable().optional(),
+  unified: UnifiedPanelLayoutSchema.nullable().optional(),
 });
 
 /**

@@ -6,11 +6,12 @@
 
 EffectProcessor::EffectProcessor(Matrix& matrix)
 	: matrix(matrix),
-	  pulseEffect(matrix),
-	  bitmapEffect(matrix),
-	  wipeEffect(matrix),
-	  explodeEffect(matrix),
-	  testLedsEffect(matrix),
+	  canvas(matrix),
+	  pulseEffect(matrix, canvas),
+	  bitmapEffect(matrix, canvas),
+	  wipeEffect(matrix, canvas),
+	  explodeEffect(matrix, canvas),
+	  testLedsEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
 		  {"pulse", &pulseEffect},     {"bitmap", &bitmapEffect},      {"wipe", &wipeEffect},
@@ -29,11 +30,10 @@ void EffectProcessor::update() {
 	// Check if in test mode FIRST
 	extern bool testModeActive;
 	if (testModeActive) {
-		// Test mode: just render test pattern
+		// Test mode: clear canvas and render test pattern
+		canvas.clear();
 		testLedsEffect.render();
-		// Downsample and display test effect
-		EffectEntry testEntry[1] = {{"test_leds", &testLedsEffect}};
-		downsampleToMatrix(testEntry, &matrix);
+		downsampleToMatrix(canvas, &matrix);
 		FastLED.show();
 		return;
 	}
@@ -42,7 +42,10 @@ void EffectProcessor::update() {
 	float deltaTime = (now - lastFrameTime) / 1000.0f;
 	lastFrameTime = now;
 
-	// Update and render normal effects
+	// Clear canvas once per frame
+	canvas.clear();
+
+	// Update and render all effects (excluding test effect)
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0) {
 			entry.effect->update(deltaTime);
@@ -50,20 +53,10 @@ void EffectProcessor::update() {
 		}
 	}
 
-	// Build array of active effects (excluding test effect)
-	EffectEntry activeEffects[4];
-	int activeCount = 0;
-	for (const auto& entry : effectMap) {
-		if (strcmp(entry.name, "test_leds") != 0) {
-			activeEffects[activeCount++] = entry;
-		}
-	}
-
-	// Composite only active effect canvases and downsample to matrix
-	downsampleToMatrix(activeEffects, &matrix);
+	// Downsample shared canvas to matrix
+	downsampleToMatrix(canvas, &matrix);
 
 	// Display the frame
-	// Note: FastLED.show() applies color correction, temperature, and gamma internally
 	FastLED.show();
 }
 

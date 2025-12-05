@@ -1,7 +1,7 @@
 #include "test_leds.h"
 #include "graphics/canvas.h"
 
-TestLedsEffect::TestLedsEffect(const Matrix& m) : canvas(m), matrix(m) {}
+TestLedsEffect::TestLedsEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {}
 
 void TestLedsEffect::add(JsonDocument& props) {
 	(void)props;
@@ -12,7 +12,6 @@ void TestLedsEffect::update(float deltaTime) {
 }
 
 void TestLedsEffect::render() {
-	canvas.clear();
 
 	uint16_t canvasWidth = canvas.getWidth();
 	uint16_t canvasHeight = canvas.getHeight();
@@ -40,10 +39,4 @@ void TestLedsEffect::render() {
 	}
 }
 
-void TestLedsEffect::reset() {
-	canvas.clear();
-}
-
-Canvas& TestLedsEffect::getCanvas() {
-	return canvas;
-}
+void TestLedsEffect::reset() {}
