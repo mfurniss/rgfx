@@ -2,14 +2,25 @@
 #ifndef UNIT_TEST
 #include "matrix.h"
 #include "log.h"
+#include <FastLED.h>
+#else
+// Define CRGB::Black for native tests
+const CRGB CRGB::Black = CRGB(0, 0, 0);
 #endif
 #include <cstring>
 #include <cstdlib>
 
+// CRGBA implementation
+CRGBA::CRGBA(const CRGB& rgb, uint8_t a) : r(rgb.r), g(rgb.g), b(rgb.b), a(a) {}
+
+CRGB CRGBA::toCRGB() const {
+	return CRGB(r, g, b);
+}
+
 // Simple constructor for testing (no Matrix dependency)
 Canvas::Canvas(uint16_t w, uint16_t h)
     : width(w), height(h), size(w * h), pixels(nullptr) {
-	pixels = (uint32_t*)malloc(size * sizeof(uint32_t));
+	pixels = (CRGB*)malloc(size * sizeof(CRGB));
 	if (pixels) {
 		clear();
 	}
@@ -21,7 +32,7 @@ Canvas::Canvas(const Matrix& matrix)
       height((matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.height * 4),
       size(width * height),
       pixels(nullptr) {
-	pixels = (uint32_t*)malloc(size * sizeof(uint32_t));
+	pixels = (CRGB*)malloc(size * sizeof(CRGB));
 	if (!pixels) {
 		log("ERROR: Failed to allocate canvas buffer");
 		return;
@@ -58,7 +69,21 @@ bool Canvas::inBounds(uint16_t x, uint16_t y) const {
     return x < width && y < height;
 }
 
-void Canvas::drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mode) {
+// Direct write (no blending)
+void Canvas::drawPixel(uint16_t x, uint16_t y, const CRGB& color) {
+    if (!pixels || !inBounds(x, y)) {
+        return;
+    }
+    pixels[index(x, y)] = color;
+}
+
+// Alpha blend with default mode (ALPHA)
+void Canvas::drawPixel(uint16_t x, uint16_t y, const CRGBA& color) {
+    drawPixel(x, y, color, BlendMode::ALPHA);
+}
+
+// Explicit blend mode
+void Canvas::drawPixel(uint16_t x, uint16_t y, const CRGBA& color, BlendMode mode) {
     if (!pixels || !inBounds(x, y)) {
         return;
     }
@@ -67,24 +92,49 @@ void Canvas::drawPixel(uint16_t x, uint16_t y, uint32_t rgbaValue, BlendMode mod
 
     switch (mode) {
         case BlendMode::REPLACE:
-            pixels[idx] = rgbaValue;
+            pixels[idx] = color.toCRGB();
             break;
 
         case BlendMode::ALPHA:
-            blendAlpha(pixels[idx], rgbaValue);
+            blendAlpha(pixels[idx], color);
             break;
 
         case BlendMode::ADDITIVE:
-            blendAdditive(pixels[idx], rgbaValue);
+            blendAdditive(pixels[idx], color);
             break;
 
         case BlendMode::AVERAGE:
-            blendAverage(pixels[idx], rgbaValue);
+            blendAverage(pixels[idx], color.toCRGB());
             break;
     }
 }
 
-void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t rgbaValue, BlendMode mode) {
+// Direct write rectangle
+void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGB& color) {
+    if (!pixels || w == 0 || h == 0) {
+        return;
+    }
+
+    uint16_t x2 = x + w;
+    uint16_t y2 = y + h;
+
+    if (x >= width || y >= height) {
+        return;
+    }
+
+    if (x2 > width) x2 = width;
+    if (y2 > height) y2 = height;
+
+    for (uint16_t row = y; row < y2; row++) {
+        uint32_t idx = index(x, row);
+        for (uint16_t col = x; col < x2; col++) {
+            pixels[idx++] = color;
+        }
+    }
+}
+
+// Blended rectangle
+void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGBA& color, BlendMode mode) {
     if (!pixels || w == 0 || h == 0) {
         return;
     }
@@ -100,10 +150,11 @@ void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint3
     if (y2 > height) y2 = height;
 
     if (mode == BlendMode::REPLACE) {
+        CRGB rgb = color.toCRGB();
         for (uint16_t row = y; row < y2; row++) {
             uint32_t idx = index(x, row);
             for (uint16_t col = x; col < x2; col++) {
-                pixels[idx++] = rgbaValue;
+                pixels[idx++] = rgb;
             }
         }
     } else {
@@ -112,13 +163,13 @@ void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint3
             for (uint16_t col = x; col < x2; col++) {
                 switch (mode) {
                     case BlendMode::ALPHA:
-                        blendAlpha(pixels[idx], rgbaValue);
+                        blendAlpha(pixels[idx], color);
                         break;
                     case BlendMode::ADDITIVE:
-                        blendAdditive(pixels[idx], rgbaValue);
+                        blendAdditive(pixels[idx], color);
                         break;
                     case BlendMode::AVERAGE:
-                        blendAverage(pixels[idx], rgbaValue);
+                        blendAverage(pixels[idx], color.toCRGB());
                         break;
                     default:
                         break;
@@ -129,14 +180,14 @@ void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint3
     }
 }
 
-uint32_t Canvas::getPixel(uint16_t x, uint16_t y) const {
+CRGB Canvas::getPixel(uint16_t x, uint16_t y) const {
     if (!pixels || !inBounds(x, y)) {
-        return 0;
+        return CRGB::Black;
     }
     return pixels[index(x, y)];
 }
 
-uint32_t* Canvas::getPixels() const {
+CRGB* Canvas::getPixels() const {
     return pixels;
 }
 
@@ -144,71 +195,45 @@ void Canvas::clear() {
     if (!pixels) {
         return;
     }
-    memset(pixels, 0, size * sizeof(uint32_t));
+    // Zero all RGB bytes - CRGB is trivially copyable with 3 bytes
+    memset(static_cast<void*>(pixels), 0, size * sizeof(CRGB));
 }
 
-void Canvas::fill(uint32_t rgbaValue) {
+void Canvas::fill(const CRGB& color) {
     if (!pixels) {
         return;
     }
     for (uint32_t i = 0; i < size; i++) {
-        pixels[i] = rgbaValue;
+        pixels[i] = color;
     }
 }
 
-inline void Canvas::blendAlpha(uint32_t& existing, uint32_t incoming) const {
-    uint8_t existingR = RGBA_RED(existing);
-    uint8_t existingG = RGBA_GREEN(existing);
-    uint8_t existingB = RGBA_BLUE(existing);
-    uint8_t existingA = RGBA_ALPHA(existing);
+inline void Canvas::blendAlpha(CRGB& existing, const CRGBA& incoming) const {
+    // result = src * alpha + dst * (255 - alpha)
+    uint8_t alpha = incoming.a;
+    uint8_t invAlpha = 255 - alpha;
 
-    uint8_t incomingR = RGBA_RED(incoming);
-    uint8_t incomingG = RGBA_GREEN(incoming);
-    uint8_t incomingB = RGBA_BLUE(incoming);
-    uint8_t incomingA = RGBA_ALPHA(incoming);
-
-    uint8_t newR = ((existingR * (255 - incomingA)) + (incomingR * incomingA)) / 255;
-    uint8_t newG = ((existingG * (255 - incomingA)) + (incomingG * incomingA)) / 255;
-    uint8_t newB = ((existingB * (255 - incomingA)) + (incomingB * incomingA)) / 255;
-    uint8_t newA = existingA + incomingA - ((existingA * incomingA) / 255);
-
-    existing = RGBA(newR, newG, newB, newA);
+    existing.r = ((existing.r * invAlpha) + (incoming.r * alpha)) / 255;
+    existing.g = ((existing.g * invAlpha) + (incoming.g * alpha)) / 255;
+    existing.b = ((existing.b * invAlpha) + (incoming.b * alpha)) / 255;
 }
 
-inline void Canvas::blendAdditive(uint32_t& existing, uint32_t incoming) const {
-    uint8_t existingR = RGBA_RED(existing);
-    uint8_t existingG = RGBA_GREEN(existing);
-    uint8_t existingB = RGBA_BLUE(existing);
-    uint8_t existingA = RGBA_ALPHA(existing);
+inline void Canvas::blendAdditive(CRGB& existing, const CRGBA& incoming) const {
+    // result = dst + src * alpha
+    uint8_t alpha = incoming.a;
 
-    uint8_t incomingR = RGBA_RED(incoming);
-    uint8_t incomingG = RGBA_GREEN(incoming);
-    uint8_t incomingB = RGBA_BLUE(incoming);
-    uint8_t incomingA = RGBA_ALPHA(incoming);
+    uint16_t newR = existing.r + ((incoming.r * alpha) / 255);
+    uint16_t newG = existing.g + ((incoming.g * alpha) / 255);
+    uint16_t newB = existing.b + ((incoming.b * alpha) / 255);
 
-    uint8_t newR = (existingR + incomingR > 255) ? 255 : existingR + incomingR;
-    uint8_t newG = (existingG + incomingG > 255) ? 255 : existingG + incomingG;
-    uint8_t newB = (existingB + incomingB > 255) ? 255 : existingB + incomingB;
-    uint8_t newA = (existingA + incomingA > 255) ? 255 : existingA + incomingA;
-
-    existing = RGBA(newR, newG, newB, newA);
+    existing.r = (newR > 255) ? 255 : newR;
+    existing.g = (newG > 255) ? 255 : newG;
+    existing.b = (newB > 255) ? 255 : newB;
 }
 
-inline void Canvas::blendAverage(uint32_t& existing, uint32_t incoming) const {
-    uint8_t existingR = RGBA_RED(existing);
-    uint8_t existingG = RGBA_GREEN(existing);
-    uint8_t existingB = RGBA_BLUE(existing);
-    uint8_t existingA = RGBA_ALPHA(existing);
-
-    uint8_t incomingR = RGBA_RED(incoming);
-    uint8_t incomingG = RGBA_GREEN(incoming);
-    uint8_t incomingB = RGBA_BLUE(incoming);
-    uint8_t incomingA = RGBA_ALPHA(incoming);
-
-    uint8_t newR = (existingR + incomingR) / 2;
-    uint8_t newG = (existingG + incomingG) / 2;
-    uint8_t newB = (existingB + incomingB) / 2;
-    uint8_t newA = (existingA + incomingA) / 2;
-
-    existing = RGBA(newR, newG, newB, newA);
+inline void Canvas::blendAverage(CRGB& existing, const CRGB& incoming) const {
+    // Simple 50/50 blend
+    existing.r = (existing.r + incoming.r) / 2;
+    existing.g = (existing.g + incoming.g) / 2;
+    existing.b = (existing.b + incoming.b) / 2;
 }

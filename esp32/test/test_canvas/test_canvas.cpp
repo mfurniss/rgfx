@@ -24,89 +24,164 @@ void test_canvas_different_dimensions() {
 	TEST_ASSERT_EQUAL(256, canvas.getSize());
 }
 
-void test_set_and_get_pixel() {
+void test_set_and_get_pixel_crgb() {
 	Canvas canvas(10, 10);
-	uint32_t color = RGBA(255, 128, 64, 255);
+	CRGB color(255, 128, 64);
 
 	canvas.drawPixel(5, 5, color);
-	TEST_ASSERT_EQUAL_UINT32(color, canvas.getPixel(5, 5));
+	CRGB result = canvas.getPixel(5, 5);
+	TEST_ASSERT_EQUAL_UINT8(255, result.r);
+	TEST_ASSERT_EQUAL_UINT8(128, result.g);
+	TEST_ASSERT_EQUAL_UINT8(64, result.b);
 }
 
 void test_set_pixel_at_edges() {
 	Canvas canvas(8, 8);
-	uint32_t red = RGBA(255, 0, 0, 255);
-	uint32_t green = RGBA(0, 255, 0, 255);
-	uint32_t blue = RGBA(0, 0, 255, 255);
-	uint32_t white = RGBA(255, 255, 255, 255);
+	CRGB red(255, 0, 0);
+	CRGB green(0, 255, 0);
+	CRGB blue(0, 0, 255);
+	CRGB white(255, 255, 255);
 
 	canvas.drawPixel(0, 0, red);
 	canvas.drawPixel(7, 0, green);
 	canvas.drawPixel(0, 7, blue);
 	canvas.drawPixel(7, 7, white);
 
-	TEST_ASSERT_EQUAL_UINT32(red, canvas.getPixel(0, 0));
-	TEST_ASSERT_EQUAL_UINT32(green, canvas.getPixel(7, 0));
-	TEST_ASSERT_EQUAL_UINT32(blue, canvas.getPixel(0, 7));
-	TEST_ASSERT_EQUAL_UINT32(white, canvas.getPixel(7, 7));
+	TEST_ASSERT_TRUE(red == canvas.getPixel(0, 0));
+	TEST_ASSERT_TRUE(green == canvas.getPixel(7, 0));
+	TEST_ASSERT_TRUE(blue == canvas.getPixel(0, 7));
+	TEST_ASSERT_TRUE(white == canvas.getPixel(7, 7));
 }
 
 void test_bounds_checking_out_of_range() {
 	Canvas canvas(8, 8);
-	uint32_t color = RGBA(255, 0, 0, 255);
+	CRGB color(255, 0, 0);
 
 	canvas.drawPixel(10, 10, color);
 
-	TEST_ASSERT_EQUAL_UINT32(0, canvas.getPixel(10, 10));
+	// Out of bounds should return black
+	CRGB result = canvas.getPixel(10, 10);
+	TEST_ASSERT_EQUAL_UINT8(0, result.r);
+	TEST_ASSERT_EQUAL_UINT8(0, result.g);
+	TEST_ASSERT_EQUAL_UINT8(0, result.b);
 }
 
 void test_clear_canvas() {
 	Canvas canvas(4, 4);
 
-	canvas.fill(RGBA(255, 255, 255, 255));
+	canvas.fill(CRGB(255, 255, 255));
 	canvas.clear();
 
 	for (uint16_t y = 0; y < 4; y++) {
 		for (uint16_t x = 0; x < 4; x++) {
-			TEST_ASSERT_EQUAL_UINT32(0, canvas.getPixel(x, y));
+			CRGB p = canvas.getPixel(x, y);
+			TEST_ASSERT_EQUAL_UINT8(0, p.r);
+			TEST_ASSERT_EQUAL_UINT8(0, p.g);
+			TEST_ASSERT_EQUAL_UINT8(0, p.b);
 		}
 	}
 }
 
 void test_fill_canvas() {
 	Canvas canvas(4, 4);
-	uint32_t color = RGBA(128, 64, 32, 16);
+	CRGB color(128, 64, 32);
 
 	canvas.fill(color);
 
 	for (uint16_t y = 0; y < 4; y++) {
 		for (uint16_t x = 0; x < 4; x++) {
-			TEST_ASSERT_EQUAL_UINT32(color, canvas.getPixel(x, y));
+			TEST_ASSERT_TRUE(color == canvas.getPixel(x, y));
 		}
 	}
 }
 
-void test_rgba_macro() {
-	uint32_t color = RGBA(0xAA, 0xBB, 0xCC, 0xDD);
-	TEST_ASSERT_EQUAL_UINT32(0xAABBCCDD, color);
+void test_crgba_struct() {
+	CRGBA color(0xAA, 0xBB, 0xCC, 0xDD);
+	TEST_ASSERT_EQUAL_UINT8(0xAA, color.r);
+	TEST_ASSERT_EQUAL_UINT8(0xBB, color.g);
+	TEST_ASSERT_EQUAL_UINT8(0xCC, color.b);
+	TEST_ASSERT_EQUAL_UINT8(0xDD, color.a);
 }
 
-void test_rgba_extraction_macros() {
-	uint32_t color = RGBA(0xAA, 0xBB, 0xCC, 0xDD);
+void test_crgba_to_crgb() {
+	CRGBA rgba(100, 150, 200, 128);
+	CRGB rgb = rgba.toCRGB();
+	TEST_ASSERT_EQUAL_UINT8(100, rgb.r);
+	TEST_ASSERT_EQUAL_UINT8(150, rgb.g);
+	TEST_ASSERT_EQUAL_UINT8(200, rgb.b);
+}
 
-	TEST_ASSERT_EQUAL_UINT8(0xAA, RGBA_RED(color));
-	TEST_ASSERT_EQUAL_UINT8(0xBB, RGBA_GREEN(color));
-	TEST_ASSERT_EQUAL_UINT8(0xCC, RGBA_BLUE(color));
-	TEST_ASSERT_EQUAL_UINT8(0xDD, RGBA_ALPHA(color));
+void test_crgba_from_crgb() {
+	CRGB rgb(100, 150, 200);
+	CRGBA rgba(rgb, 128);
+	TEST_ASSERT_EQUAL_UINT8(100, rgba.r);
+	TEST_ASSERT_EQUAL_UINT8(150, rgba.g);
+	TEST_ASSERT_EQUAL_UINT8(200, rgba.b);
+	TEST_ASSERT_EQUAL_UINT8(128, rgba.a);
 }
 
 void test_get_pixels_pointer() {
 	Canvas canvas(4, 4);
-	uint32_t* pixels = canvas.getPixels();
+	CRGB* pixels = canvas.getPixels();
 
 	TEST_ASSERT_NOT_NULL(pixels);
 
-	pixels[0] = RGBA(255, 0, 0, 255);
-	TEST_ASSERT_EQUAL_UINT32(RGBA(255, 0, 0, 255), canvas.getPixel(0, 0));
+	pixels[0] = CRGB(255, 0, 0);
+	CRGB result = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL_UINT8(255, result.r);
+	TEST_ASSERT_EQUAL_UINT8(0, result.g);
+	TEST_ASSERT_EQUAL_UINT8(0, result.b);
+}
+
+void test_alpha_blend() {
+	Canvas canvas(4, 4);
+	canvas.fill(CRGB(0, 0, 0));
+
+	// Draw white with 50% alpha
+	canvas.drawPixel(0, 0, CRGBA(255, 255, 255, 128));
+
+	CRGB result = canvas.getPixel(0, 0);
+	// 0 * (255-128)/255 + 255 * 128/255 ≈ 128
+	TEST_ASSERT_UINT8_WITHIN(2, 128, result.r);
+	TEST_ASSERT_UINT8_WITHIN(2, 128, result.g);
+	TEST_ASSERT_UINT8_WITHIN(2, 128, result.b);
+}
+
+void test_additive_blend() {
+	Canvas canvas(4, 4);
+	canvas.fill(CRGB(100, 100, 100));
+
+	// Add white with 50% alpha
+	canvas.drawPixel(0, 0, CRGBA(255, 255, 255, 128), BlendMode::ADDITIVE);
+
+	CRGB result = canvas.getPixel(0, 0);
+	// 100 + 255 * 128/255 ≈ 228
+	TEST_ASSERT_UINT8_WITHIN(2, 228, result.r);
+}
+
+void test_average_blend() {
+	Canvas canvas(4, 4);
+	canvas.fill(CRGB(100, 100, 100));
+
+	// Average with 200
+	canvas.drawPixel(0, 0, CRGBA(200, 200, 200), BlendMode::AVERAGE);
+
+	CRGB result = canvas.getPixel(0, 0);
+	// (100 + 200) / 2 = 150
+	TEST_ASSERT_EQUAL_UINT8(150, result.r);
+}
+
+void test_replace_blend() {
+	Canvas canvas(4, 4);
+	canvas.fill(CRGB(100, 100, 100));
+
+	// Replace ignores existing
+	canvas.drawPixel(0, 0, CRGBA(200, 150, 100, 50), BlendMode::REPLACE);
+
+	CRGB result = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL_UINT8(200, result.r);
+	TEST_ASSERT_EQUAL_UINT8(150, result.g);
+	TEST_ASSERT_EQUAL_UINT8(100, result.b);
 }
 
 int main(int argc, char** argv) {
@@ -114,14 +189,19 @@ int main(int argc, char** argv) {
 
 	RUN_TEST(test_canvas_creation);
 	RUN_TEST(test_canvas_different_dimensions);
-	RUN_TEST(test_set_and_get_pixel);
+	RUN_TEST(test_set_and_get_pixel_crgb);
 	RUN_TEST(test_set_pixel_at_edges);
 	RUN_TEST(test_bounds_checking_out_of_range);
 	RUN_TEST(test_clear_canvas);
 	RUN_TEST(test_fill_canvas);
-	RUN_TEST(test_rgba_macro);
-	RUN_TEST(test_rgba_extraction_macros);
+	RUN_TEST(test_crgba_struct);
+	RUN_TEST(test_crgba_to_crgb);
+	RUN_TEST(test_crgba_from_crgb);
 	RUN_TEST(test_get_pixels_pointer);
+	RUN_TEST(test_alpha_blend);
+	RUN_TEST(test_additive_blend);
+	RUN_TEST(test_average_blend);
+	RUN_TEST(test_replace_blend);
 
 	return UNITY_END();
 }

@@ -58,7 +58,7 @@ void BitmapEffect::add(JsonDocument& props) {
 		uint8_t r = (color >> 16) & 0xFF;
 		uint8_t g = (color >> 8) & 0xFF;
 		uint8_t b = color & 0xFF;
-		uint32_t rgbaColor = RGBA(r, g, b, 255);
+		CRGBA rgbaColor(r, g, b, 255);
 
 		// Second pass: convert strings to RGBA pixels
 		for (JsonVariant row : imageArray) {
@@ -67,7 +67,7 @@ void BitmapEffect::add(JsonDocument& props) {
 				if (rowStr && col < strlen(rowStr) && rowStr[col] != ' ') {
 					newBitmap.pixels.push_back(rgbaColor);
 				} else {
-					newBitmap.pixels.push_back(0);  // Transparent
+					newBitmap.pixels.push_back(CRGBA(0, 0, 0, 0));  // Transparent
 				}
 			}
 		}
@@ -122,8 +122,8 @@ void BitmapEffect::render() {
 		// Render pre-computed pixels, scaled up 4x
 		for (uint8_t row = 0; row < bmp.imageHeight; row++) {
 			for (uint8_t col = 0; col < bmp.imageWidth; col++) {
-				uint32_t pixel = bmp.pixels[row * bmp.imageWidth + col];
-				if (pixel != 0) {
+				const CRGBA& pixel = bmp.pixels[row * bmp.imageWidth + col];
+				if (pixel.a != 0) {
 					// Draw a 4x4 block for each pixel
 					int16_t x = offsetX + col * scale;
 					int16_t y = offsetY + row * scale;

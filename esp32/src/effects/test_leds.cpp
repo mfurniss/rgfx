@@ -1,5 +1,6 @@
 #include "test_leds.h"
 #include "graphics/canvas.h"
+#include <FastLED.h>
 
 TestLedsEffect::TestLedsEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {}
 
@@ -20,22 +21,20 @@ void TestLedsEffect::render() {
 	if (matrix.layoutType == LayoutType::STRIP) {
 		uint16_t segmentWidth = canvasWidth / 4;
 
-		canvas.drawRectangle(0, 0, segmentWidth, canvasHeight, RGBA(255, 0, 0, 255));
-		canvas.drawRectangle(segmentWidth, 0, segmentWidth, canvasHeight, RGBA(0, 255, 0, 255));
-		canvas.drawRectangle(segmentWidth * 2, 0, segmentWidth, canvasHeight, RGBA(0, 0, 255, 255));
-		canvas.drawRectangle(segmentWidth * 3, 0, segmentWidth, canvasHeight,
-		                     RGBA(255, 255, 0, 255));
+		canvas.drawRectangle(0, 0, segmentWidth, canvasHeight, CRGB(255, 0, 0));
+		canvas.drawRectangle(segmentWidth, 0, segmentWidth, canvasHeight, CRGB(0, 255, 0));
+		canvas.drawRectangle(segmentWidth * 2, 0, segmentWidth, canvasHeight, CRGB(0, 0, 255));
+		canvas.drawRectangle(segmentWidth * 3, 0, segmentWidth, canvasHeight, CRGB(255, 255, 0));
 	}
 	// Matrix layout: 4 quadrants (TL=Red, TR=Green, BL=Blue, BR=Yellow)
 	else {
 		uint16_t midX = canvasWidth / 2;
 		uint16_t midY = canvasHeight / 2;
 
-		canvas.drawRectangle(0, 0, midX, midY, RGBA(255, 0, 0, 255));     // Top-Left: Red
-		canvas.drawRectangle(midX, 0, midX, midY, RGBA(0, 255, 0, 255));  // Top-Right: Green
-		canvas.drawRectangle(0, midY, midX, midY, RGBA(0, 0, 255, 255));  // Bottom-Left: Blue
-		canvas.drawRectangle(midX, midY, midX, midY,
-		                     RGBA(255, 255, 0, 255));  // Bottom-Right: Yellow
+		canvas.drawRectangle(0, 0, midX, midY, CRGB(255, 0, 0));      // Top-Left: Red
+		canvas.drawRectangle(midX, 0, midX, midY, CRGB(0, 255, 0));   // Top-Right: Green
+		canvas.drawRectangle(0, midY, midX, midY, CRGB(0, 0, 255));   // Bottom-Left: Blue
+		canvas.drawRectangle(midX, midY, midX, midY, CRGB(255, 255, 0));  // Bottom-Right: Yellow
 	}
 }
 

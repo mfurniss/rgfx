@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 #include <unity.h>
 #include <ArduinoJson.h>
 #include <cstdint>
@@ -150,21 +154,10 @@ void PulseEffect::render() {
 		}
 		// CollapseMode::None: full canvas
 
+		CRGBA color(pulse.r, pulse.g, pulse.b, pulse.alpha);
 		for (uint16_t y = startY; y < endY; y++) {
 			for (uint16_t x = startX; x < endX; x++) {
-				uint32_t existing = canvas.getPixel(x, y);
-
-				uint8_t existingR = RGBA_RED(existing);
-				uint8_t existingG = RGBA_GREEN(existing);
-				uint8_t existingB = RGBA_BLUE(existing);
-				uint8_t existingA = RGBA_ALPHA(existing);
-
-				uint8_t newR = ((existingR * (255 - pulse.alpha)) + (pulse.r * pulse.alpha)) / 255;
-				uint8_t newG = ((existingG * (255 - pulse.alpha)) + (pulse.g * pulse.alpha)) / 255;
-				uint8_t newB = ((existingB * (255 - pulse.alpha)) + (pulse.b * pulse.alpha)) / 255;
-				uint8_t newA = existingA + pulse.alpha - ((existingA * pulse.alpha) / 255);
-
-				canvas.drawPixel(x, y, RGBA(newR, newG, newB, newA));
+				canvas.drawPixel(x, y, color);
 			}
 		}
 	}
@@ -176,6 +169,11 @@ void PulseEffect::reset() {
 
 Canvas& PulseEffect::getCanvas() {
 	return canvas;
+}
+
+// Helper to check if pixel is non-black
+static bool isNonBlack(const CRGB& p) {
+	return p.r != 0 || p.g != 0 || p.b != 0;
 }
 
 void setUp(void) {}
@@ -191,12 +189,11 @@ void test_pulse_creation_default_values() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(pixel));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_GREEN(pixel));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_BLUE(pixel));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_ALPHA(pixel));
+	TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(255, pixel.b);
 }
 
 void test_pulse_creation_with_color() {
@@ -209,12 +206,11 @@ void test_pulse_creation_with_color() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_GREEN(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_BLUE(pixel));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_ALPHA(pixel));
+	TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
 void test_pulse_fade_over_time() {
@@ -231,17 +227,17 @@ void test_pulse_fade_over_time() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
-	uint8_t alpha1 = RGBA_ALPHA(pixel);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_LESS_THAN(255, alpha1);
+	// After 50% time with fade, color should be blended (darker red)
+	TEST_ASSERT_LESS_THAN(255, pixel.r);
 
 	effect.update(0.5f);
 	effect.render();
 	pixel = canvas.getPixel(0, 0);
-	uint8_t alpha2 = RGBA_ALPHA(pixel);
 
-	TEST_ASSERT_LESS_THAN(alpha1, alpha2);
+	// After 100% time, should be very dark or black (pulse removed or nearly gone)
+	TEST_ASSERT_UINT8_WITHIN(2, 0, pixel.r);
 }
 
 void test_pulse_fade_completes() {
@@ -258,12 +254,11 @@ void test_pulse_fade_completes() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_GREEN(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_BLUE(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_ALPHA(pixel));
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
 void test_pulse_non_fading_stays_full_brightness() {
@@ -281,12 +276,11 @@ void test_pulse_non_fading_stays_full_brightness() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(pixel));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_GREEN(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_BLUE(pixel));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_ALPHA(pixel));
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
 void test_pulse_non_fading_expires() {
@@ -303,12 +297,11 @@ void test_pulse_non_fading_expires() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_GREEN(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_BLUE(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_ALPHA(pixel));
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
 void test_pulse_multiple_pulses_exist() {
@@ -328,9 +321,9 @@ void test_pulse_multiple_pulses_exist() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_NOT_EQUAL_UINT32(RGBA(0, 0, 0, 0), pixel);
+	TEST_ASSERT_TRUE(isNonBlack(pixel));
 }
 
 void test_pulse_reset_clears_all() {
@@ -345,12 +338,11 @@ void test_pulse_reset_clears_all() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_GREEN(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_BLUE(pixel));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_ALPHA(pixel));
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
 void test_pulse_canvas_size_matches_matrix() {
@@ -377,11 +369,11 @@ void test_pulse_alpha_calculation() {
 	effect.render();
 
 	Canvas& canvas = effect.getCanvas();
-	uint32_t pixel = canvas.getPixel(0, 0);
-	uint8_t alpha = RGBA_ALPHA(pixel);
+	CRGB pixel = canvas.getPixel(0, 0);
 
-	uint8_t expectedAlpha = 255 - (uint8_t)((0.25f * 1000.0f * 255.0f) / 1000.0f);
-	TEST_ASSERT_UINT8_WITHIN(2, expectedAlpha, alpha);
+	// After 25% time with fade, expect alpha around 191 (255 * 0.75)
+	// Red channel blended: 0 * (255-191)/255 + 255 * 191/255 ≈ 191
+	TEST_ASSERT_UINT8_WITHIN(5, 191, pixel.r);
 }
 
 void test_pulse_collapse_none_fills_canvas() {
@@ -401,10 +393,10 @@ void test_pulse_collapse_none_fills_canvas() {
 	Canvas& canvas = effect.getCanvas();
 
 	// All corners should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(0, 0)));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(15, 0)));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(0, 15)));
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(15, 15)));
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(15, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 15).r);
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(15, 15).r);
 }
 
 void test_pulse_collapse_horizontal_shrinks_height() {
@@ -424,11 +416,11 @@ void test_pulse_collapse_horizontal_shrinks_height() {
 	Canvas& canvas = effect.getCanvas();
 
 	// Center should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(8, 8)));
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 8).r);
 
 	// Top and bottom edges should be empty (shrunk)
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(8, 0)));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(8, 15)));
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(8, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(8, 15).r);
 }
 
 void test_pulse_collapse_vertical_shrinks_width() {
@@ -448,11 +440,11 @@ void test_pulse_collapse_vertical_shrinks_width() {
 	Canvas& canvas = effect.getCanvas();
 
 	// Center should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, RGBA_RED(canvas.getPixel(8, 8)));
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 8).r);
 
 	// Left and right edges should be empty (shrunk)
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(0, 8)));
-	TEST_ASSERT_EQUAL_UINT8(0, RGBA_RED(canvas.getPixel(15, 8)));
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 8).r);
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(15, 8).r);
 }
 
 int main(int argc, char** argv) {

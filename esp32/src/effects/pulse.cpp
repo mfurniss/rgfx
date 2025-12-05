@@ -73,7 +73,7 @@ void PulseEffect::render() {
 			alpha = 255;
 		}
 
-		uint32_t color = RGBA(p.r, p.g, p.b, alpha / 2);
+		CRGBA color(p.r, p.g, p.b, alpha / 2);
 
 		uint16_t startCol = 0;
 		uint16_t startRow = 0;

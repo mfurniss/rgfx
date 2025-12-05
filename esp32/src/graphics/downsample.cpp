@@ -1,5 +1,8 @@
 #include "downsample.h"
 #include <cassert>
+#ifndef UNIT_TEST
+#include <FastLED.h>
+#endif
 
 void downsample(const Canvas* source, Canvas* destination) {
     assert(source != nullptr && "Source canvas cannot be null");
@@ -20,24 +23,22 @@ void downsample(const Canvas* source, Canvas* destination) {
             uint16_t sx = dx * 4;
             uint16_t sy = dy * 4;
 
-            uint32_t rSum = 0, gSum = 0, bSum = 0, aSum = 0;
+            uint16_t rSum = 0, gSum = 0, bSum = 0;
 
             for (uint16_t y = 0; y < 4; y++) {
                 for (uint16_t x = 0; x < 4; x++) {
-                    uint32_t pixel = source->getPixel(sx + x, sy + y);
-                    rSum += RGBA_RED(pixel);
-                    gSum += RGBA_GREEN(pixel);
-                    bSum += RGBA_BLUE(pixel);
-                    aSum += RGBA_ALPHA(pixel);
+                    CRGB pixel = source->getPixel(sx + x, sy + y);
+                    rSum += pixel.r;
+                    gSum += pixel.g;
+                    bSum += pixel.b;
                 }
             }
 
-            uint32_t r = rSum >> 4;
-            uint32_t g = gSum >> 4;
-            uint32_t b = bSum >> 4;
-            uint32_t a = aSum >> 4;
+            uint8_t r = rSum >> 4;
+            uint8_t g = gSum >> 4;
+            uint8_t b = bSum >> 4;
 
-            destination->drawPixel(dx, dy, RGBA(r, g, b, a));
+            destination->drawPixel(dx, dy, CRGB(r, g, b));
         }
     }
 }

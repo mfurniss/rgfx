@@ -22,6 +22,11 @@ All notable changes to this project will be documented in this file.
   - Effects receive Canvas& reference via constructor instead of owning their own
   - EffectProcessor clears canvas once per frame before rendering
   - Removed `getCanvas()` from IEffect interface
+- Simplified Canvas from RGBA (32-bit) to RGB (24-bit) storage
+  - 25% memory reduction in canvas storage (e.g., 32x32 canvas: 4KB → 3KB)
+  - Alpha is now used only during blend operations via CRGBA input struct
+  - New API: `drawPixel(x, y, CRGB)` for direct writes, `drawPixel(x, y, CRGBA, BlendMode)` for blending
+  - BlendMode supports REPLACE, ALPHA, ADDITIVE, and AVERAGE modes
 - Removed arbitrary MAX_LEDS_PER_PIN limit (300) - memory allocation is the real constraint
 
 ### Fixed
