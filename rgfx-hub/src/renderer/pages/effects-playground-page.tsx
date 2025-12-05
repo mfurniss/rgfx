@@ -18,7 +18,7 @@ import {
 import { Science as ScienceIcon } from '@mui/icons-material';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
-import type { EffectPayload } from '@/types/mapping-types';
+import type { EffectPayload } from '@/types/transformer-types';
 import { effectSchemas, safeValidateEffectProps, isEffectName } from '@/schemas';
 
 /**

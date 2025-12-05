@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Renamed "mappings" to "transformers" throughout the Hub codebase
+  - Moved example transformers from `config/mappings/` to `assets/transformers/`
+  - Renamed `MappingEngine` → `TransformerEngine`, `MappingContext` → `TransformerContext`, etc.
+  - Transformers are now copied to user config folder (`~/.rgfx/transformers/`) on startup
+  - User-edited transformers are never overwritten (preserves customizations)
+  - Hot-reload still supported for real-time transformer development
+
 ### Added
 - Unified multi-panel LED matrix support - combine multiple identical LED matrices into a single logical display
   - New `unified` property in `ledConfig` accepts a 2D array describing panel layout and wiring order

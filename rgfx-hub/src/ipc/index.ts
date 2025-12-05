@@ -11,8 +11,8 @@ import type { DriverPersistence } from '../driver-persistence';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
-import type { MappingEngine } from '../mapping-engine';
-import type { UdpClient } from '../types/mapping-types';
+import type { TransformerEngine } from '../transformer-engine';
+import type { UdpClient } from '../types/transformer-types';
 import { registerSetIdHandler } from './set-id-handler';
 import { registerFlashOtaHandler } from './flash-ota-handler';
 import { registerTriggerEffectHandler } from './trigger-effect-handler';
@@ -31,7 +31,7 @@ interface IpcHandlersDeps {
   mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
   udpClient: UdpClient;
-  mappingEngine: MappingEngine;
+  transformerEngine: TransformerEngine;
   onEventProcessed: (topic: string, payload: string) => void;
   getMainWindow: () => BrowserWindow | null;
 }
