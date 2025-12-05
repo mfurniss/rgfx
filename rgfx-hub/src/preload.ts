@@ -1,7 +1,7 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
 import type { Driver, SystemStatus, EventTopicData } from './types';
-import type { EffectPayload } from './types/mapping-types';
+import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
 
 // Expose protected methods that allow the renderer process to use
