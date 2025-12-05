@@ -16,12 +16,13 @@ import { SystemMonitor } from './system-monitor';
 import { DriverPersistence } from './driver-persistence';
 import { DriverLogPersistence } from './driver-log-persistence';
 import { LEDHardwareManager } from './led-hardware-manager';
-import { MappingEngine } from './mapping-engine';
-import { UdpClientImpl } from './mapping/udp-client';
-import { MqttClientWrapper } from './mapping/mqtt-client-wrapper';
-import { StateStoreImpl } from './mapping/state-store';
-import { LoggerWrapper } from './mapping/logger-wrapper';
-import { installDefaultMappers } from './mapper-installer';
+import { TransformerEngine } from './transformer-engine';
+import { UdpClientImpl } from './transformer/udp-client';
+import { MqttClientWrapper } from './transformer/mqtt-client-wrapper';
+import { StateStoreImpl } from './transformer/state-store';
+import { LoggerWrapper } from './transformer/logger-wrapper';
+import { installDefaultTransformers } from './transformer-installer';
+import { installDefaultInterceptors } from './interceptor-installer';
 import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
@@ -83,7 +84,7 @@ const mqttClient = new MqttClientWrapper(mqtt);
 const stateStore = new StateStoreImpl();
 const logger = new LoggerWrapper(log);
 
-const mappingEngine = new MappingEngine({
+const transformerEngine = new TransformerEngine({
   broadcast: udpClient.broadcast.bind(udpClient),
   udp: udpClient,
   mqtt: mqttClient,
@@ -129,14 +130,19 @@ registerDriverCallbacks({
 // Start MQTT broker
 mqtt.start();
 
-// Install default mappers to user data directory (async)
-void installDefaultMappers()
+// Install default transformers and interceptors to user config directory (async)
+void installDefaultTransformers()
   .then(() => {
-    // Load mapping engine handlers after installing defaults
-    void mappingEngine.loadMappings();
+    // Load transformer engine handlers after installing defaults
+    void transformerEngine.loadTransformers();
   })
   .catch((error: unknown) => {
-    log.error('Failed to install default mappers:', error);
+    log.error('Failed to install default transformers:', error);
+  });
+
+void installDefaultInterceptors()
+  .catch((error: unknown) => {
+    log.error('Failed to install default interceptors:', error);
   });
 
 // Track event topics and their counts
@@ -172,7 +178,7 @@ registerIpcHandlers({
   mqtt,
   uploadConfigToDriver,
   udpClient,
-  mappingEngine,
+  transformerEngine,
   onEventProcessed: processEvent,
   getMainWindow: () => {
     if (!mainWindow) {
@@ -192,9 +198,9 @@ registerMqttSubscriptions({
   getEventsProcessed: () => eventsProcessed,
 });
 
-// Start reading events and send to mapping engine for processing
+// Start reading events and send to transformer engine for processing
 eventReader.start((topic, message) => {
-  void mappingEngine.handleEvent(topic, message);
+  void transformerEngine.handleEvent(topic, message);
   processEvent(topic, message);
 });
 

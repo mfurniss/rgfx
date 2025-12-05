@@ -7,7 +7,7 @@
 
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
-import type { UdpClient, EffectPayload } from '../types/mapping-types';
+import type { UdpClient, EffectPayload } from '../types/transformer-types';
 
 interface TriggerEffectHandlerDeps {
   udpClient: UdpClient;

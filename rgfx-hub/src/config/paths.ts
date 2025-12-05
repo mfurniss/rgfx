@@ -15,3 +15,9 @@ import { join } from 'path';
 
 /** Base directory for configuration files (user's home directory) */
 export const CONFIG_DIRECTORY = join(homedir(), '.rgfx');
+
+/** Directory for user transformers (event → effect mappings) */
+export const TRANSFORMERS_DIRECTORY = join(CONFIG_DIRECTORY, 'transformers');
+
+/** Directory for user interceptors (MAME game scripts) */
+export const INTERCEPTORS_DIRECTORY = join(CONFIG_DIRECTORY, 'interceptors');

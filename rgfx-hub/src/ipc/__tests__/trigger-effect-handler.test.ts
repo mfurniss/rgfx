@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { registerTriggerEffectHandler } from '../trigger-effect-handler';
-import type { UdpClient, EffectPayload } from '@/types/mapping-types';
+import type { UdpClient, EffectPayload } from '@/types/transformer-types';
 
 vi.mock('electron', () => ({
   ipcMain: {

@@ -1,7 +1,7 @@
 /**
- * Type definitions for the RGFX event mapping system
+ * Type definitions for the RGFX event transformer system
  *
- * The mapping system transforms raw game events into semantic LED effects
+ * The transformer system transforms raw game events into semantic LED effects
  * using a cascading precedence system: game → subject → pattern → default
  */
 
@@ -68,7 +68,7 @@ export interface UdpClient {
   /**
    * Broadcast effect to all connected drivers or selective drivers if specified
    * @param payload Effect payload with semantic data. Use payload.drivers to target specific drivers.
-   * @returns true (for mapper return convenience)
+   * @returns true (for transformer return convenience)
    */
   broadcast(payload: EffectPayload): boolean;
 
@@ -127,7 +127,7 @@ interface HttpClient {
 }
 
 /**
- * State store interface for mappers to persist data across events
+ * State store interface for transformers to persist data across events
  *
  * Useful for tracking game state, debouncing, rate limiting, etc.
  */
@@ -165,7 +165,7 @@ export interface StateStore {
 }
 
 /**
- * Logger interface for mappers to log debug/info/warnings/errors
+ * Logger interface for transformers to log debug/info/warnings/errors
  */
 export interface Logger {
   /**
@@ -190,12 +190,12 @@ export interface Logger {
 }
 
 /**
- * Context provided to all mapping handlers
+ * Context provided to all transformer handlers
  *
- * Contains all services and utilities mappers can use to interact with
+ * Contains all services and utilities transformers can use to interact with
  * the system (send effects, publish MQTT, store state, log messages)
  */
-export interface MappingContext {
+export interface TransformerContext {
   /** Broadcast effect to all connected drivers or selective drivers via payload.drivers */
   broadcast(payload: EffectPayload): boolean;
 
@@ -219,16 +219,15 @@ export interface MappingContext {
 }
 
 /**
- * Mapping handler function signature
+ * Transformer handler function signature
  *
  * @param topic Parsed topic with pre-split segments
  * @param payload Event payload (e.g., "12450" or JSON string)
- * @param context Mapping context with services
+ * @param context Transformer context with services
  * @returns true if event was handled (stops cascade), false to continue
  */
-export type MappingHandler = (
+export type TransformerHandler = (
   topic: RgfxTopic,
   payload: string,
-  context: MappingContext
+  context: TransformerContext,
 ) => boolean | Promise<boolean>;
-

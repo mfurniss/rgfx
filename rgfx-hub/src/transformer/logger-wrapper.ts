@@ -1,12 +1,12 @@
 /**
- * Logger wrapper for event mappers
+ * Logger wrapper for event transformers
  *
  * Wraps electron-log to provide a consistent Logger interface for the
- * mapping system. This allows mappers to log without direct dependency
+ * transformer system. This allows transformers to log without direct dependency
  * on electron-log, making testing easier.
  */
 
-import type { Logger } from '../types/mapping-types';
+import type { Logger } from '../types/transformer-types';
 import type ElectronLog from 'electron-log';
 
 /**

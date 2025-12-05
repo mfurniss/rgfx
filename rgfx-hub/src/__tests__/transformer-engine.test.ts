@@ -1,10 +1,10 @@
 /**
- * Unit tests for MappingEngine
+ * Unit tests for TransformerEngine
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MappingEngine } from '../mapping-engine';
-import type { MappingContext, RgfxTopic } from '../types/mapping-types';
+import { TransformerEngine } from '../transformer-engine';
+import type { TransformerContext, RgfxTopic } from '../types/transformer-types';
 import * as fs from 'node:fs/promises';
 import * as fsSync from 'node:fs';
 
@@ -21,14 +21,14 @@ function createTopic(raw: string): RgfxTopic {
 vi.mock('node:fs/promises');
 vi.mock('node:fs');
 
-// Mock mapper-installer
-vi.mock('../mapper-installer', () => ({
-  getMappingsDir: vi.fn(() => '/mock/mappings'),
+// Mock transformer-installer
+vi.mock('../transformer-installer', () => ({
+  getTransformersDir: vi.fn(() => '/mock/transformers'),
 }));
 
-describe('MappingEngine', () => {
-  let mockContext: MappingContext;
-  let engine: MappingEngine;
+describe('TransformerEngine', () => {
+  let mockContext: TransformerContext;
+  let engine: TransformerEngine;
 
   beforeEach(() => {
     const broadcastMock = vi.fn().mockReturnValue(true);
@@ -64,7 +64,7 @@ describe('MappingEngine', () => {
       drivers: {} as any,
     };
 
-    engine = new MappingEngine(mockContext);
+    engine = new TransformerEngine(mockContext);
   });
 
   describe('parsePayload', () => {
@@ -391,7 +391,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('pacman/player/score', '1000');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by game mapper: pacman - pacman/player/score',
+        'Event handled by game transformer: pacman - pacman/player/score',
       );
     });
 
@@ -402,7 +402,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('game/player/score', '1000');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by subject mapper: player - game/player/score',
+        'Event handled by subject transformer: player - game/player/score',
       );
     });
 
@@ -413,7 +413,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by pattern mapper: test/topic',
+        'Event handled by pattern transformer: test/topic',
       );
     });
 
@@ -424,7 +424,7 @@ describe('MappingEngine', () => {
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by default mapper: test/topic',
+        'Event handled by default transformer: test/topic',
       );
     });
   });
@@ -530,37 +530,37 @@ describe('MappingEngine', () => {
     });
   });
 
-  describe('dynamic game mapper loading', () => {
-    it('should auto-load game mapper on first event', async () => {
-      const loadGameMapperSpy = vi.spyOn(engine as any, 'loadGameMapper');
+  describe('dynamic game transformer loading', () => {
+    it('should auto-load game transformer on first event', async () => {
+      const loadGameTransformerSpy = vi.spyOn(engine as any, 'loadGameTransformer');
       const defaultHandler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = defaultHandler;
 
       await engine.handleEvent('donkeykong/player/position', '100');
 
-      expect(loadGameMapperSpy).toHaveBeenCalledWith('donkeykong');
+      expect(loadGameTransformerSpy).toHaveBeenCalledWith('donkeykong');
     });
 
-    it('should not reload game mapper on subsequent events', async () => {
+    it('should not reload game transformer on subsequent events', async () => {
       const gameHandler = vi.fn().mockReturnValue(true);
       (engine as any).gameHandlers.set('pacman', gameHandler);
-      const loadGameMapperSpy = vi.spyOn(engine as any, 'loadGameMapper');
+      const loadGameTransformerSpy = vi.spyOn(engine as any, 'loadGameTransformer');
 
       await engine.handleEvent('pacman/player/score', '1000');
       await engine.handleEvent('pacman/player/score', '2000');
 
-      expect(loadGameMapperSpy).not.toHaveBeenCalled();
+      expect(loadGameTransformerSpy).not.toHaveBeenCalled();
       expect(gameHandler).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle failed game mapper load gracefully', async () => {
+    it('should handle failed game transformer load gracefully', async () => {
       const defaultHandler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = defaultHandler;
 
       await engine.handleEvent('nonexistent/player/score', '1000');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Could not load game mapper for nonexistent'),
+        expect.stringContaining('Could not load game transformer for nonexistent'),
       );
       expect(defaultHandler).toHaveBeenCalled();
     });
@@ -744,21 +744,21 @@ describe('MappingEngine', () => {
   });
 
   describe('file watcher', () => {
-    it('should start watching mapper directory', () => {
+    it('should start watching transformer directory', () => {
       const mockWatch = vi.fn().mockReturnValue({ close: vi.fn() });
       vi.mocked(fsSync.watch).mockImplementation(mockWatch as any);
       vi.mocked(fs.readdir).mockResolvedValue([] as any);
 
       const startWatcher = (engine as any).startFileWatcher.bind(engine);
-      startWatcher('/mock/mappings');
+      startWatcher('/mock/transformers');
 
       expect(mockWatch).toHaveBeenCalledWith(
-        '/mock/mappings',
+        '/mock/transformers',
         { recursive: true },
         expect.any(Function),
       );
       expect(mockContext.log.info).toHaveBeenCalledWith(
-        'File watcher started for mapper hot-reload',
+        'File watcher started for transformer hot-reload',
       );
     });
 
@@ -768,7 +768,7 @@ describe('MappingEngine', () => {
       });
 
       const startWatcher = (engine as any).startFileWatcher.bind(engine);
-      startWatcher('/mock/mappings');
+      startWatcher('/mock/transformers');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
         'Could not start file watcher:',
@@ -784,9 +784,9 @@ describe('MappingEngine', () => {
       });
 
       const startWatcher = (engine as any).startFileWatcher.bind(engine);
-      startWatcher('/mock/mappings');
+      startWatcher('/mock/transformers');
 
-      const reloadSpy = vi.spyOn(engine as any, 'reloadMapper');
+      const reloadSpy = vi.spyOn(engine as any, 'reloadTransformer');
 
       watchCallback('change', 'readme.md');
       watchCallback('change', 'config.json');
@@ -803,14 +803,14 @@ describe('MappingEngine', () => {
       });
 
       const startWatcher = (engine as any).startFileWatcher.bind(engine);
-      startWatcher('/mock/mappings');
+      startWatcher('/mock/transformers');
 
-      const reloadSpy = vi.spyOn(engine as any, 'reloadMapper').mockResolvedValue(undefined);
+      const reloadSpy = vi.spyOn(engine as any, 'reloadTransformer').mockResolvedValue(undefined);
 
       watchCallback('change', 'games/pacman.js');
 
-      expect(mockContext.log.info).toHaveBeenCalledWith('Mapper file changed: games/pacman.js');
-      expect(reloadSpy).toHaveBeenCalledWith('/mock/mappings', 'games/pacman.js');
+      expect(mockContext.log.info).toHaveBeenCalledWith('Transformer file changed: games/pacman.js');
+      expect(reloadSpy).toHaveBeenCalledWith('/mock/transformers', 'games/pacman.js');
     });
   });
 
@@ -819,93 +819,93 @@ describe('MappingEngine', () => {
       vi.clearAllMocks();
     });
 
-    it('should load game mapper via importModule', async () => {
+    it('should load game transformer via importModule', async () => {
       const mockHandler = vi.fn().mockReturnValue(true);
       const mockImportModule = vi.fn().mockResolvedValue({
         handle: mockHandler,
       });
 
-      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadGameMapper('pacman');
+      await (testEngine as any).loadGameTransformer('pacman');
 
       expect(mockImportModule).toHaveBeenCalledWith(expect.stringMatching(/games\/pacman\.js$/));
       expect((testEngine as any).gameHandlers.has('pacman')).toBe(true);
-      expect(mockContext.log.info).toHaveBeenCalledWith('Loaded game mapper: pacman');
+      expect(mockContext.log.info).toHaveBeenCalledWith('Loaded game transformer: pacman');
     });
 
-    it('should handle game mapper import failures gracefully', async () => {
+    it('should handle game transformer import failures gracefully', async () => {
       const mockImportModule = vi.fn().mockRejectedValue(new Error('File not found'));
 
-      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadGameMapper('nonexistent');
+      await (testEngine as any).loadGameTransformer('nonexistent');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Could not load game mapper for nonexistent'),
+        expect.stringContaining('Could not load game transformer for nonexistent'),
       );
       expect((testEngine as any).gameHandlers.has('nonexistent')).toBe(false);
     });
 
-    it('should warn when game mapper has no valid handler', async () => {
+    it('should warn when game transformer has no valid handler', async () => {
       const mockImportModule = vi.fn().mockResolvedValue({
         someOtherExport: 'value',
       });
 
-      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadGameMapper('broken');
+      await (testEngine as any).loadGameTransformer('broken');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        'Game mapper broken.js has no valid handler function',
+        'Game transformer broken.js has no valid handler function',
       );
       expect((testEngine as any).gameHandlers.has('broken')).toBe(false);
     });
 
 
-    it('should load default mapper', async () => {
+    it('should load default transformer', async () => {
       const mockHandler = vi.fn();
       const mockImportModule = vi.fn().mockResolvedValue({
         handle: mockHandler,
       });
 
-      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadDefaultMapper('/mock/default.js');
+      await (testEngine as any).loadDefaultTransformer('/mock/default.js');
 
       expect(mockImportModule).toHaveBeenCalledWith('/mock/default.js');
       expect((testEngine as any).defaultHandler).toBe(mockHandler);
     });
 
-    it('should handle default mapper import failures (non-ENOENT)', async () => {
+    it('should handle default transformer import failures (non-ENOENT)', async () => {
       const syntaxError = new Error('Syntax error');
       const mockImportModule = vi.fn().mockRejectedValue(syntaxError);
 
-      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadDefaultMapper('/mock/default.js');
+      await (testEngine as any).loadDefaultTransformer('/mock/default.js');
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
-        'Failed to load default mapper:',
+        'Failed to load default transformer:',
         syntaxError,
       );
       expect((testEngine as any).defaultHandler).toBeUndefined();
     });
 
-    it('should ignore default mapper ENOENT errors', async () => {
+    it('should ignore default transformer ENOENT errors', async () => {
       const enoentError: any = new Error('File not found');
       enoentError.code = 'ENOENT';
       const mockImportModule = vi.fn().mockRejectedValue(enoentError);
 
-      const testEngine = new (await import('../mapping-engine.js')).MappingEngine(mockContext, {
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadDefaultMapper('/mock/default.js');
+      await (testEngine as any).loadDefaultTransformer('/mock/default.js');
 
       expect(mockContext.log.error).not.toHaveBeenCalled();
       expect((testEngine as any).defaultHandler).toBeUndefined();
