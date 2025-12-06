@@ -2,7 +2,8 @@
  * Interceptor Installer
  *
  * Manages installation of default interceptors to user config directory.
- * Default interceptors are shipped with the app in assets/interceptors/ and copied to user directory on first run.
+ * Default interceptors are shipped with the app in assets/interceptors/
+ * and copied to user directory on first run.
  */
 
 import { app } from 'electron';
@@ -12,7 +13,8 @@ import log from 'electron-log/main';
 import { INTERCEPTORS_DIRECTORY } from './config/paths';
 
 /**
- * Get the bundled interceptors directory (assets/interceptors in development, Resources/assets/interceptors in production)
+ * Get the bundled interceptors directory
+ * (assets/interceptors in development, Resources/assets/interceptors in production)
  */
 function getBundledInterceptorsDir(): string {
   if (app.isPackaged) {

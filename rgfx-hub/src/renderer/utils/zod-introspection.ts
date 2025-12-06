@@ -42,14 +42,7 @@ interface ZodWithDef {
 }
 
 function hasZodDef(schema: z.ZodType): schema is z.ZodType & ZodWithDef {
-  if (!('_zod' in schema)) {
-    return false;
-  }
-
-  const typed = schema as ZodWithDef;
-
-  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-unnecessary-condition
-  return typed._zod !== undefined && typed._zod.def !== undefined;
+  return '_zod' in schema;
 }
 
 interface UnwrapResult {

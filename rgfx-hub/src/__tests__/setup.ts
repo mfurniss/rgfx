@@ -5,7 +5,12 @@ import React from 'react';
 (globalThis as any).React = React;
 
 // Track resources for cleanup (prevents hung processes)
-const activeResources: { stop?: () => void | Promise<void>; close?: () => void | Promise<void>; dispose?: () => void | Promise<void> }[] = [];
+interface CleanupResource {
+  stop?: () => void | Promise<void>;
+  close?: () => void | Promise<void>;
+  dispose?: () => void | Promise<void>;
+}
+const activeResources: CleanupResource[] = [];
 
 /**
  * Track a resource that needs cleanup

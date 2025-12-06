@@ -35,7 +35,8 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const sortField = useUiStore((state) => state.driverTableSortField);
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
-  const currentFirmwareVersion = useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
+  const currentFirmwareVersion =
+    useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

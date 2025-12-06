@@ -103,7 +103,10 @@ function NumberInput({
  * @see https://stackoverflow.com/questions/58627879/how-to-allow-deleting-all-chars-in-react-material-ui-input-field-component
  * @see https://react-hook-form.com/docs/usecontroller/controller
  */
-export function NumberField<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
+export function NumberField<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+>({
   name,
   control,
   label,

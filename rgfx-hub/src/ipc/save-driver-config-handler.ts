@@ -22,8 +22,9 @@ interface SaveDriverConfigHandlerDeps {
 }
 
 export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDeps): void {
-  const { driverPersistence, driverRegistry, ledHardwareManager, uploadConfigToDriver, getMainWindow } =
-    deps;
+  const {
+    driverPersistence, driverRegistry, ledHardwareManager, uploadConfigToDriver, getMainWindow,
+  } = deps;
 
   ipcMain.handle('driver:save-config', async (_event, config: PersistedDriverFromSchema) => {
     const macAddress = config.macAddress;
@@ -96,7 +97,8 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
     log.info(`Driver ${currentId} config saved successfully`);
 
     // Refresh the runtime driver registry from persistence
-    const updatedDriver = driverRegistry.refreshDriverFromPersistence(macAddress, ledHardwareManager);
+    const updatedDriver =
+      driverRegistry.refreshDriverFromPersistence(macAddress, ledHardwareManager);
 
     // Notify renderer of the updated driver
     if (updatedDriver) {
