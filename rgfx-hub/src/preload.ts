@@ -79,9 +79,14 @@ export const rgfxAPI = {
     };
   },
 
-  onFlashOtaState: (callback: (state: string) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, state: string): void => {
-      callback(state);
+  onFlashOtaState: (
+    callback: (data: { driverId: string; state: string }) => void,
+  ): (() => void) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      data: { driverId: string; state: string },
+    ): void => {
+      callback(data);
     };
     ipcRenderer.on('flash:ota:state', handler);
     return () => {
@@ -90,11 +95,16 @@ export const rgfxAPI = {
   },
 
   onFlashOtaProgress: (
-    callback: (progress: { sent: number; total: number; percent: number }) => void,
+    callback: (progress: {
+      driverId: string;
+      sent: number;
+      total: number;
+      percent: number;
+    }) => void,
   ): (() => void) => {
     const handler = (
       _event: Electron.IpcRendererEvent,
-      progress: { sent: number; total: number; percent: number },
+      progress: { driverId: string; sent: number; total: number; percent: number },
     ): void => {
       callback(progress);
     };

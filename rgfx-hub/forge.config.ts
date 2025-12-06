@@ -12,9 +12,9 @@ const config: ForgeConfig = {
     extraResource: [
       "./assets/transformers",
       "./assets/interceptors",
+      "./assets/esp32/firmware",
+      "./assets/mame",
       "./config/led-hardware",
-      "./public/esp32/firmware",
-      "./public/mame"
     ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [

@@ -198,5 +198,9 @@ Fixed native C++ test compilation by adding test-only Canvas constructor. Fixed 
 
 Implemented effect reset functionality allowing effects to be cleared before adding new instances via a reset flag in the effect schema. Refactored effect schemas to use a shared baseEffect that includes color and reset properties, reducing duplication across bitmap, explode, pulse, and wipe effects. Added open driver log file feature to Hub for easier debugging. Added d3-scale library for mapper value scaling and bitmap centerX/centerY support for positioning effects. Refactored UdpClient to use reusable socket for improved performance. Fixed VSCode Prettier configuration for HTML formatting by updating .prettierignore and user settings.
 
-**Total Development Time:** 53 days (October 11 - December 2, 2025)
-**Total Commits:** 367
+## December 5, 2025
+
+Consolidated project resource organization by moving `public/` folder contents into `assets/` for consistent Electron extraResource handling. The `public/` naming was a leftover from web conventions with no special meaning in Electron packaging. Updated forge.config.ts, flash-ota-handler, launch-mame.sh, and related tests. Added CLAUDE.md documentation files for the network module (MQTT broker, SSDP/UDP discovery services, network utilities) and schemas module (Zod validation schemas for telemetry, driver persistence, LED hardware, firmware manifests, and effects).
+
+**Total Development Time:** 56 days (October 11 - December 5, 2025)
+**Total Commits:** 368
