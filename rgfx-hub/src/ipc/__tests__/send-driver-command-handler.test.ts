@@ -90,7 +90,12 @@ describe('registerSendDriverCommandHandler', () => {
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
       (
         _channel: string,
-        handler: (event: unknown, driverId: string, command: string, payload?: string) => Promise<void>,
+        handler: (
+          event: unknown,
+          driverId: string,
+          command: string,
+          payload?: string,
+        ) => Promise<void>,
       ) => {
         registeredHandler = handler;
       },

@@ -14,9 +14,9 @@ import { baseEffect, easing } from './properties';
  */
 export default baseEffect
   .extend({
-    duration: z.number().positive().optional().default(700),
+    duration: z.number().positive().optional().default(700).describe('Effect duration in milliseconds'),
     easing,
-    fade: z.boolean().optional().default(true),
-    collapse: z.enum(['horizontal', 'vertical', 'none']).optional().default('horizontal'),
+    fade: z.boolean().optional().default(true).describe('Fade out the effect over time'),
+    collapse: z.enum(['horizontal', 'vertical', 'none']).optional().default('horizontal').describe('Direction the pulse collapses'),
   })
   .strict();

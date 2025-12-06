@@ -25,7 +25,7 @@ describe('driver-store', () => {
 
       useDriverStore.getState().onDriverConnected(driver);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].id).toBe('rgfx-driver-0001');
     });
@@ -41,7 +41,7 @@ describe('driver-store', () => {
 
       useDriverStore.getState().onDriverConnected(driver2);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].failedHeartbeats).toBe(1);
     });
@@ -67,7 +67,7 @@ describe('driver-store', () => {
       useDriverStore.getState().onDriverConnected(driverWithCustomId);
 
       // Should have replaced the old entry, not created duplicate
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].id).toBe('rgfx-driver-0001');
     });
@@ -79,17 +79,21 @@ describe('driver-store', () => {
       useDriverStore.getState().onDriverConnected(driver1);
       useDriverStore.getState().onDriverConnected(driver2);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(2);
     });
 
     it('should handle driver with no telemetry', () => {
       // connected: false sets telemetry to undefined
-      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: false });
+      const driver = createMockDriver({
+        id: 'rgfx-driver-0001',
+        mac: 'AA:BB:CC:DD:EE:FF',
+        connected: false,
+      });
 
       useDriverStore.getState().onDriverConnected(driver);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].id).toBe('rgfx-driver-0001');
     });
@@ -106,7 +110,7 @@ describe('driver-store', () => {
 
       useDriverStore.getState().onDriverUpdated(updatedDriver);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].failedHeartbeats).toBe(5);
     });
@@ -126,7 +130,7 @@ describe('driver-store', () => {
 
       useDriverStore.getState().onDriverUpdated(driverWithCustomId);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].id).toBe('rgfx-driver-0001');
     });
@@ -134,14 +138,22 @@ describe('driver-store', () => {
 
   describe('onDriverDisconnected', () => {
     it('should mark driver as disconnected', () => {
-      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: true });
+      const driver = createMockDriver({
+        id: 'rgfx-driver-0001',
+        mac: 'AA:BB:CC:DD:EE:FF',
+        connected: true,
+      });
       useDriverStore.getState().onDriverConnected(driver);
 
       // Create disconnected driver by clearing IP
-      const disconnectedDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: false });
+      const disconnectedDriver = createMockDriver({
+        id: 'rgfx-driver-0001',
+        mac: 'AA:BB:CC:DD:EE:FF',
+        connected: false,
+      });
       useDriverStore.getState().onDriverDisconnected(disconnectedDriver);
 
-      const drivers = useDriverStore.getState().drivers;
+      const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
       expect(drivers[0].connected).toBe(false);
     });

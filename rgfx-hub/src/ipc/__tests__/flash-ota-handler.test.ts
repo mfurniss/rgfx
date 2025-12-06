@@ -116,7 +116,10 @@ describe('registerFlashOtaHandler', () => {
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
       (
         _channel: string,
-        handler: (event: unknown, driverId: string) => Promise<{ success: boolean; error?: string }>,
+        handler: (
+          event: unknown,
+          driverId: string,
+        ) => Promise<{ success: boolean; error?: string }>,
       ) => {
         registeredHandler = handler;
       },

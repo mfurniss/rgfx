@@ -14,5 +14,5 @@ import color from './color';
  */
 export default z.object({
   color,
-  reset: z.boolean().optional().default(false),
+  reset: z.boolean().optional().default(false).describe('Clear LEDs before running the effect'),
 });

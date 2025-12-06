@@ -176,8 +176,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     : [];
 
   // LED configuration from Hub's resolved hardware + driver settings
-  const hardware = driver.resolvedHardware;
-  const ledConfig = driver.ledConfig;
+  const { resolvedHardware: hardware, ledConfig } = driver;
 
   // Always show LED Configuration section (with message if not configured)
   const ledRows: InfoRowData[] = hardware

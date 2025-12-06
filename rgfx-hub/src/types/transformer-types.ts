@@ -37,9 +37,12 @@ export interface EffectPayload extends Record<string, unknown> {
  * Topics follow the format: namespace/subject/property/qualifier
  *
  * Examples:
- * - "pacman/player/score/p1" → { namespace: "pacman", subject: "player", property: "score", qualifier: "p1" }
- * - "galaga/enemy/destroyed" → { namespace: "galaga", subject: "enemy", property: "destroyed", qualifier: undefined }
- * - "rgfx/driver/connected" → { namespace: "rgfx", subject: "driver", property: "connected", qualifier: undefined }
+ * - "pacman/player/score/p1" →
+ *   { namespace: "pacman", subject: "player", property: "score", qualifier: "p1" }
+ * - "galaga/enemy/destroyed" →
+ *   { namespace: "galaga", subject: "enemy", property: "destroyed", qualifier: undefined }
+ * - "rgfx/driver/connected" →
+ *   { namespace: "rgfx", subject: "driver", property: "connected", qualifier: undefined }
  */
 export interface RgfxTopic {
   /** Original raw topic string */
@@ -67,7 +70,8 @@ export interface RgfxTopic {
 export interface UdpClient {
   /**
    * Broadcast effect to all connected drivers or selective drivers if specified
-   * @param payload Effect payload with semantic data. Use payload.drivers to target specific drivers.
+   * @param payload Effect payload with semantic data.
+   *   Use payload.drivers to target specific drivers.
    * @returns true (for transformer return convenience)
    */
   broadcast(payload: EffectPayload): boolean;

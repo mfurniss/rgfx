@@ -74,18 +74,18 @@ describe('NumberField', () => {
   it('displays initial value', () => {
     render(<TestNumberField defaultValue={16} />);
 
-    const input: HTMLInputElement = screen.getByRole('textbox');
+    const input: HTMLInputElement = screen.getByRole('spinbutton');
     expect(input.value).toBe('16');
   });
 
   it('displays empty when value is null', () => {
     render(<TestNumberField defaultValue={null} />);
 
-    const input: HTMLInputElement = screen.getByRole('textbox');
+    const input: HTMLInputElement = screen.getByRole('spinbutton');
     expect(input.value).toBe('');
   });
 
-  it('converts string input to integer', () => {
+  it('converts string input to integer on blur', () => {
     let capturedValue: number | null = null;
     render(
       <TestNumberField
@@ -95,8 +95,9 @@ describe('NumberField', () => {
       />,
     );
 
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '42' } });
+    fireEvent.blur(input);
 
     expect(capturedValue).toBe(42);
   });
@@ -112,14 +113,15 @@ describe('NumberField', () => {
       />,
     );
 
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '3.14' } });
+    fireEvent.blur(input);
 
     expect(capturedValue).toBe(3.14);
   });
 
-  it('sets value to null when input is cleared', () => {
-    let capturedValue: number | null = 42;
+  it('sets value to undefined when input is cleared', () => {
+    let capturedValue: number | null | undefined = 42;
     render(
       <TestNumberField
         defaultValue={42}
@@ -129,14 +131,15 @@ describe('NumberField', () => {
       />,
     );
 
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '' } });
+    fireEvent.blur(input);
 
-    expect(capturedValue).toBeNull();
+    expect(capturedValue).toBeUndefined();
   });
 
-  it('sets value to null for invalid input', () => {
-    let capturedValue: number | null = 42;
+  it('sets value to undefined for invalid input', () => {
+    let capturedValue: number | null | undefined = 42;
     render(
       <TestNumberField
         defaultValue={42}
@@ -146,17 +149,18 @@ describe('NumberField', () => {
       />,
     );
 
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: 'abc' } });
+    fireEvent.blur(input);
 
-    expect(capturedValue).toBeNull();
+    expect(capturedValue).toBeUndefined();
   });
 
-  it('uses type="text" to allow clearing', () => {
+  it('uses type="number" for native number input behavior', () => {
     render(<TestNumberField />);
 
-    const input = screen.getByRole('textbox');
-    expect(input.getAttribute('type')).toBe('text');
+    const input = screen.getByRole('spinbutton');
+    expect(input.getAttribute('type')).toBe('number');
   });
 });
 
