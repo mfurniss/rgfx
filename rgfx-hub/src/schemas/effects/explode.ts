@@ -17,13 +17,13 @@ export default baseEffect
   .extend({
     centerX,
     centerY,
-    friction: z.number().min(0).max(50).optional().default(3.0),
-    hueSpread: z.number().int().min(0).max(359).optional().default(40),
-    lifespan: z.number().positive().optional().default(700),
-    lifespanSpread: z.number().positive().optional().default(1.6),
-    particleCount: z.number().int().min(1).max(500).optional().default(100),
-    particleSize: z.number().int().min(1).max(16).optional().default(4),
-    power: z.number().min(1).max(1000).optional().default(70),
-    powerSpread: z.number().positive().optional().default(1.6),
+    friction: z.number().min(0).max(50).optional().default(3.0).describe('Air resistance slowing particles'),
+    hueSpread: z.number().int().min(0).max(359).optional().default(40).describe('Color variation in degrees'),
+    lifespan: z.number().positive().optional().default(700).describe('Particle lifetime in milliseconds'),
+    lifespanSpread: z.number().positive().optional().default(1.6).describe('Randomness multiplier for lifespan'),
+    particleCount: z.number().int().min(1).max(500).optional().default(100).describe('Number of particles to spawn'),
+    particleSize: z.number().int().min(1).max(16).optional().default(4).describe('Size of each particle in pixels'),
+    power: z.number().min(1).max(1000).optional().default(70).describe('Initial velocity of particles'),
+    powerSpread: z.number().positive().optional().default(1.6).describe('Randomness multiplier for power'),
   })
   .strict();
