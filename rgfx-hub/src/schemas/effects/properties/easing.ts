@@ -34,4 +34,4 @@ const easingNameSchema = z.enum([
   'bounceInOut',
 ]);
 
-export default easingNameSchema.optional().default('quadraticOut');
+export default easingNameSchema.optional().default('quadraticOut').describe('Animation curve for smooth transitions');
