@@ -2,7 +2,8 @@
  * Transformer Installer
  *
  * Manages installation of default transformers to user config directory.
- * Default transformers are shipped with the app in assets/transformers/ and copied to user directory on first run.
+ * Default transformers are shipped with the app in assets/transformers/
+ * and copied to user directory on first run.
  */
 
 import { app } from 'electron';
@@ -12,7 +13,8 @@ import log from 'electron-log/main';
 import { TRANSFORMERS_DIRECTORY } from './config/paths';
 
 /**
- * Get the bundled transformers directory (assets/transformers in development, Resources/assets/transformers in production)
+ * Get the bundled transformers directory
+ * (assets/transformers in development, Resources/assets/transformers in production)
  */
 function getBundledTransformersDir(): string {
   if (app.isPackaged) {

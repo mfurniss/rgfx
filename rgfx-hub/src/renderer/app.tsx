@@ -76,7 +76,9 @@ const App: React.FC = () => {
       unsubSystemStatus();
       unsubEventTopic();
     };
-  }, [onDriverConnected, onDriverDisconnected, onDriverUpdated, onSystemStatusUpdate, onEventTopic]);
+  }, [
+    onDriverConnected, onDriverDisconnected, onDriverUpdated, onSystemStatusUpdate, onEventTopic,
+  ]);
 
   // Signal renderer ready only once per app lifecycle (not per mount)
   useEffect(() => {

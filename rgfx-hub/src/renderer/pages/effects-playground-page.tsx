@@ -1,4 +1,11 @@
-import React, { useState, useEffect } from 'react';
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+ */
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -7,55 +14,111 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField,
   Button,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
-  Alert,
   Stack,
+  Tabs,
+  Tab,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { Science as ScienceIcon } from '@mui/icons-material';
+import {
+  Science as ScienceIcon,
+  ContentCopy as CopyIcon,
+} from '@mui/icons-material';
+import { TargetDriversPicker } from '../components/target-drivers-picker';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectSchemas, safeValidateEffectProps, isEffectName } from '@/schemas';
+import { effectSchemas, isEffectName } from '@/schemas';
+import { EffectForm } from '../components/effect-form';
 
-/**
- * Validate props JSON against the effect schema
- * Returns null if valid, or an error message string if invalid
- */
-function validateProps(effect: string, json: string): string | null {
-  // First check if it's valid JSON
-  let parsed: unknown;
+// Effects to show in the form (exclude bitmap which needs special handling)
+const formEffects = Object.keys(effectSchemas).filter((e) => e !== 'bitmap').sort();
 
-  try {
-    parsed = JSON.parse(json);
-  } catch {
-    return 'Invalid JSON syntax';
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel({ children, value, index }: TabPanelProps) {
+  return (
+    <Box
+      role="tabpanel"
+      hidden={value !== index}
+      sx={{ pt: 3 }}
+    >
+      {value === index && children}
+    </Box>
+  );
+}
+
+function generateBroadcastCode(
+  effect: string,
+  props: Record<string, unknown>,
+  drivers: string[],
+  isAllDrivers: boolean,
+): string {
+  const formatValue = (value: unknown, indent: number): string => {
+    const spaces = '  '.repeat(indent);
+
+    if (value === null) {
+      return 'null';
+    }
+
+    if (typeof value === 'string') {
+      return `'${value}'`;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return '[]';
+      }
+
+      const items = value.map((v) => formatValue(v, 0)).join(', ');
+
+      return `[${items}]`;
+    }
+
+    if (typeof value === 'object') {
+      const entries = Object.entries(value as Record<string, unknown>);
+
+      if (entries.length === 0) {
+        return '{}';
+      }
+
+      const lines = entries.map(([k, v]) => `${spaces}  ${k}: ${formatValue(v, indent + 1)},`);
+
+      return `{\n${lines.join('\n')}\n${spaces}}`;
+    }
+
+    return JSON.stringify(value);
+  };
+
+  const lines = [
+    'broadcast({',
+    `  effect: '${effect}',`,
+  ];
+
+  // Only include drivers if targeting specific drivers (not all)
+  if (!isAllDrivers && drivers.length > 0) {
+    lines.push(`  drivers: ${formatValue(drivers, 1)},`);
   }
 
-  // Then validate against the effect schema
-  if (!isEffectName(effect)) {
-    return `Unknown effect: ${effect}`;
-  }
+  lines.push(`  props: ${formatValue(props, 1)},`);
+  lines.push('});');
 
-  const result = safeValidateEffectProps(effect, parsed);
-
-  if (!result.success) {
-    // Format Zod errors nicely
-    const issues = result.error.issues.map((issue) => {
-      const path = issue.path.length > 0 ? `${issue.path.join('.')}: ` : '';
-      return `${path}${issue.message}`;
-    });
-    return issues.join('; ');
-  }
-
-  return null;
+  return lines.join('\n');
 }
 
 export default function TestEffectsPage() {
-  // Use a stable selector that only changes when connected driver IDs actually change
+  const [tabIndex, setTabIndex] = useState(0);
+  const [copySuccess, setCopySuccess] = useState(false);
+
   const connectedDriverIds = useDriverStore((state) =>
     state.drivers
       .filter((d) => d.connected)
@@ -67,19 +130,33 @@ export default function TestEffectsPage() {
   const drivers = useDriverStore((state) => state.drivers);
   const connectedDrivers = drivers.filter((d) => d.connected);
 
-  // Get state from Zustand store (persisted across navigation)
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsJson = useUiStore((state) => state.testEffectsPropsJson);
   const storedSelectedDrivers = useUiStore((state) => state.testEffectsSelectedDrivers);
   const selectAll = useUiStore((state) => state.testEffectsSelectAll);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
 
-  // Convert stored array back to Set for component logic
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     new Set(storedSelectedDrivers),
   );
 
-  // Initialize with all drivers selected when connected drivers change
+  // Parse current props from JSON
+  const currentProps = useMemo(() => {
+    try {
+      return JSON.parse(propsJson) as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  }, [propsJson]);
+
+  // Get schema for selected effect
+  const currentSchema = useMemo(() => {
+    if (isEffectName(selectedEffect) && selectedEffect !== 'bitmap') {
+      return effectSchemas[selectedEffect];
+    }
+    return null;
+  }, [selectedEffect]);
+
   useEffect(() => {
     const driverIds = connectedDriverIds.split(',').filter(Boolean);
     const newSelectedDrivers = new Set(driverIds);
@@ -88,13 +165,20 @@ export default function TestEffectsPage() {
   }, [connectedDriverIds, selectedEffect, propsJson, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
-    // Only reset props if switching to a different effect
     if (effect !== selectedEffect && isEffectName(effect)) {
       const defaults = effectSchemas[effect].parse({});
       const newPropsJson = JSON.stringify(defaults, null, 2);
       setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
     }
   };
+
+  const handlePropsChange = useCallback(
+    (values: Record<string, unknown>) => {
+      const newPropsJson = JSON.stringify(values, null, 2);
+      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
+    },
+    [selectedEffect, selectedDrivers, selectAll, setTestEffectsState],
+  );
 
   const handleDriverToggle = (driverId: string) => {
     const newSelected = new Set(selectedDrivers);
@@ -125,7 +209,6 @@ export default function TestEffectsPage() {
     void (async () => {
       try {
         const props = JSON.parse(propsJson) as Record<string, unknown>;
-
         const payload: EffectPayload = {
           effect: selectedEffect,
           props,
@@ -134,15 +217,33 @@ export default function TestEffectsPage() {
         if (selectedDrivers.size > 0) {
           payload.drivers = Array.from(selectedDrivers);
         }
-
-        console.log('triggerEffect', payload);
-
         await window.rgfx.triggerEffect(payload);
       } catch (err) {
         console.error(err);
       }
     })();
   };
+
+  const handleCopyCode = async () => {
+    const code = generateBroadcastCode(
+      selectedEffect,
+      currentProps,
+      Array.from(selectedDrivers),
+      selectAll,
+    );
+    await navigator.clipboard.writeText(code);
+    setCopySuccess(true);
+    setTimeout(() => {
+      setCopySuccess(false);
+    }, 2000);
+  };
+
+  const broadcastCode = generateBroadcastCode(
+    selectedEffect,
+    currentProps,
+    Array.from(selectedDrivers),
+    selectAll,
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -152,118 +253,95 @@ export default function TestEffectsPage() {
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
-        {(() => {
-          const validationError = validateProps(selectedEffect, propsJson);
-          const isValid = validationError === null;
-          return (
-            <Stack spacing={3}>
-              <FormControl fullWidth>
-                <InputLabel>Effect</InputLabel>
-                <Select
-                  value={selectedEffect}
-                  label="Effect"
-                  onChange={(e) => {
-                    handleEffectChange(e.target.value);
-                  }}
-                >
-                  {Object.keys(effectSchemas).sort().map((effect) => (
-                    <MenuItem key={effect} value={effect}>
-                      {effect}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+        <Tabs
+          value={tabIndex}
+          onChange={(_, v: number) => {
+            setTabIndex(v);
+          }}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="Effect Form" />
+          <Tab label="Transformer Code" />
+        </Tabs>
 
-              <TextField
-                label="Props (JSON)"
-                multiline
-                rows={8}
-                value={propsJson}
+        <TabPanel value={tabIndex} index={0}>
+          <Stack spacing={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Effect</InputLabel>
+              <Select
+                value={selectedEffect}
+                label="Effect"
                 onChange={(e) => {
-                  const newPropsJson = e.target.value;
-                  setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
+                  handleEffectChange(e.target.value);
                 }}
-                fullWidth
-                error={!isValid}
-                helperText={validationError}
-                sx={{
-                  '& .MuiInputBase-input': { fontFamily: 'monospace' },
-                  '& .MuiFormHelperText-root': { wordBreak: 'break-word' },
-                }}
-              />
-
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleTriggerEffect}
-                disabled={connectedDrivers.length === 0 || selectedDrivers.size === 0 || !isValid}
-                startIcon={<ScienceIcon />}
               >
-                Trigger Effect
-              </Button>
+                {formEffects.map((effect) => (
+                  <MenuItem key={effect} value={effect}>
+                    {effect}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Target Drivers
-                </Typography>
-                {drivers.length === 0 ? (
-                  <Alert severity="warning">No drivers available</Alert>
-                ) : (
-                  <FormGroup>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={selectAll}
-                          onChange={handleSelectAll}
-                          indeterminate={
-                            selectedDrivers.size > 0 && selectedDrivers.size < connectedDrivers.length
-                          }
-                          disabled={connectedDrivers.length === 0}
-                          sx={{ py: 0.5 }}
-                        />
-                      }
-                      label={`All Drivers (${connectedDrivers.length})`}
-                      sx={{
-                        my: 0,
-                        '& .MuiFormControlLabel-label': {
-                          fontSize: '0.95rem',
-                        },
-                      }}
-                    />
-                    {[...drivers].sort((a, b) => a.id.localeCompare(b.id)).map((driver) => {
-                      return (
-                        <FormControlLabel
-                          key={driver.id}
-                          control={
-                            <Checkbox
-                              checked={selectedDrivers.has(driver.id)}
-                              onChange={() => {
-                                handleDriverToggle(driver.id);
-                              }}
-                              disabled={!driver.connected}
-                              sx={{ py: 0.5 }}
-                            />
-                          }
-                          label={`${driver.id} (${driver.ip ?? 'disconnected'})`}
-                          sx={{
-                            ml: 3,
-                            my: 0,
-                            opacity: driver.connected ? 1 : 0.4,
-                            color: driver.connected ? 'text.primary' : 'text.disabled',
-                            '& .MuiFormControlLabel-label': {
-                              fontSize: '0.95rem',
-                            },
-                          }}
-                        />
-                      );
-                    })}
-                  </FormGroup>
-                )}
-              </Box>
-            </Stack>
-          );
-        })()}
+            {currentSchema && (
+              <EffectForm
+                schema={currentSchema}
+                defaultValues={currentProps}
+                onChange={handlePropsChange}
+              />
+            )}
+
+            <TargetDriversPicker
+              drivers={drivers}
+              selectedDrivers={selectedDrivers}
+              selectAll={selectAll}
+              onDriverToggle={handleDriverToggle}
+              onSelectAll={handleSelectAll}
+            />
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleTriggerEffect}
+              disabled={connectedDrivers.length === 0 || selectedDrivers.size === 0}
+              startIcon={<ScienceIcon />}
+            >
+              Trigger Effect
+            </Button>
+          </Stack>
+        </TabPanel>
+
+        <TabPanel value={tabIndex} index={1}>
+          <Stack spacing={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="subtitle2">
+                Copy this code to the transformer JavaScript (.js) file.
+              </Typography>
+              <Tooltip title={copySuccess ? 'Copied!' : 'Copy to clipboard'}>
+                <IconButton onClick={() => {
+                  void handleCopyCode();
+                }} size="small">
+                  <CopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <Box
+              component="pre"
+              sx={{
+                p: 2,
+                bgcolor: 'grey.900',
+                color: 'grey.100',
+                borderRadius: 1,
+                overflow: 'auto',
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                m: 0,
+              }}
+            >
+              {broadcastCode}
+            </Box>
+          </Stack>
+        </TabPanel>
       </Paper>
     </Box>
   );

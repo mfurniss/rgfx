@@ -29,6 +29,10 @@ const colorNameSchema = z.enum([
 const hexColorSchema = z.string().regex(/^#?[0-9a-fA-F]{6}$/, 'Invalid hex color format');
 
 // Color can be a named color, hex string, or numeric RGB value
-const colorSchema = z.union([colorNameSchema, hexColorSchema, z.number().int().min(0).max(0xffffff)]);
+const colorSchema = z.union([
+  colorNameSchema,
+  hexColorSchema,
+  z.number().int().min(0).max(0xffffff),
+]);
 
-export default colorSchema.optional().default('random');
+export default colorSchema.optional().default('random').describe('Named color, hex value, or random');

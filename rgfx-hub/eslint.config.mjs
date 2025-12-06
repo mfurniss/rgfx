@@ -118,6 +118,19 @@ export default tseslint.config(
       '@stylistic/no-trailing-spaces': 'error',
       // Newline at end of file
       '@stylistic/eol-last': ['error', 'always'],
+      // Max line length
+      '@stylistic/max-len': ['error', {
+        code: 100,
+        ignoreUrls: true,
+        ignoreStrings: true,
+        ignoreTemplateLiterals: true,
+        ignoreRegExpLiterals: true,
+      }],
+      // Prefer destructuring for object properties
+      'prefer-destructuring': ['error', {
+        VariableDeclarator: { array: false, object: true },
+        AssignmentExpression: { array: false, object: false },
+      }],
     },
   },
 

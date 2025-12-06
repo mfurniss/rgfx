@@ -15,7 +15,7 @@ import { baseEffect } from './properties';
  */
 export default baseEffect
   .extend({
-    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random'),
-    duration: z.number().positive().optional().default(500),
+    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random').describe('Direction of the wipe animation'),
+    duration: z.number().positive().optional().default(500).describe('Effect duration in milliseconds'),
   })
   .strict();

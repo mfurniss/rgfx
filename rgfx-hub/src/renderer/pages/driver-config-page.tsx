@@ -276,7 +276,7 @@ export default function DriverConfigPage() {
                     value={ledConfig?.hardwareRef ?? ''}
                     label="LED Hardware"
                     onChange={(e) => {
-                      const value = e.target.value;
+                      const { value } = e.target;
 
                       if (value === '') {
                         setValue('ledConfig', null, { shouldDirty: true, shouldValidate: true });

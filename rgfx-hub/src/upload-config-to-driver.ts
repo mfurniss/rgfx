@@ -16,7 +16,9 @@ interface UploadConfigDeps {
   mqtt: MqttBroker;
 }
 
-export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress: string) => Promise<void> {
+export function createUploadConfigToDriver(
+  deps: UploadConfigDeps,
+): (macAddress: string) => Promise<void> {
   const { driverPersistence, ledHardwareManager, mqtt } = deps;
 
   return async function uploadConfigToDriver(macAddress: string): Promise<void> {
@@ -27,8 +29,7 @@ export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress:
       throw new Error(`No driver found with MAC ${macAddress}`);
     }
 
-    const driverId = persistedDriver.id;
-    const ledConfig = persistedDriver.ledConfig;
+    const { id: driverId, ledConfig } = persistedDriver;
 
     if (!ledConfig) {
       throw new Error(`Driver ${driverId} has no LED configuration`);
@@ -41,7 +42,7 @@ export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress:
     }
 
     // Calculate unified display dimensions
-    const unified = ledConfig.unified;
+    const { unified } = ledConfig;
     const unifiedRows = unified ? unified.length : 1;
     const unifiedCols = unified ? unified[0].length : 1;
     const panelCount = unifiedRows * unifiedCols;
