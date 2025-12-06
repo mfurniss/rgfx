@@ -31,6 +31,7 @@ import { Save as SaveIcon } from '@mui/icons-material';
 import { useDriverStore } from '../store/driver-store';
 import { useNotificationStore } from '../store/notification-store';
 import { NumberField } from '../components/number-field';
+import SuperButton from '../components/super-button';
 import {
   PersistedDriverSchema,
   type PersistedDriverFromSchema,
@@ -386,14 +387,15 @@ export default function DriverConfigPage() {
             <Button variant="outlined" onClick={handleExit} disabled={saving}>
               Exit
             </Button>
-            <Button
+            <SuperButton
               type="submit"
               variant="contained"
-              startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-              disabled={!isValid || saving}
+              icon={<SaveIcon />}
+              busy={saving}
+              disabled={!isValid}
             >
               {saving ? 'Saving...' : 'Save Configuration'}
-            </Button>
+            </SuperButton>
           </Box>
         </form>
       </Paper>

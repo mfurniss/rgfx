@@ -14,7 +14,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Button,
   Stack,
   Tabs,
   Tab,
@@ -26,6 +25,7 @@ import {
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
 import { TargetDriversPicker } from '../components/target-drivers-picker';
+import SuperButton from '../components/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
@@ -299,15 +299,15 @@ export default function TestEffectsPage() {
               onSelectAll={handleSelectAll}
             />
 
-            <Button
+            <SuperButton
               variant="contained"
               color="primary"
               onClick={handleTriggerEffect}
               disabled={connectedDrivers.length === 0 || selectedDrivers.size === 0}
-              startIcon={<ScienceIcon />}
+              icon={<ScienceIcon />}
             >
               Trigger Effect
-            </Button>
+            </SuperButton>
           </Stack>
         </TabPanel>
 

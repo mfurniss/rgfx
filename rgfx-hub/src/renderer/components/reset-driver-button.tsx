@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Button,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -10,6 +9,7 @@ import {
 } from '@mui/material';
 import { RestartAlt as RestartAltIcon, Warning as WarningIcon } from '@mui/icons-material';
 import type { Driver } from '@/types';
+import SuperButton from './super-button';
 
 interface ResetDriverButtonProps {
   driver: Driver;
@@ -44,23 +44,18 @@ const ResetDriverButton: React.FC<ResetDriverButtonProps> = ({ driver }) => {
 
   return (
     <>
-      <Tooltip
-        title="Reset: Erases device ID, LED configuration, and WiFi credentials"
-        arrow
+      <SuperButton
+        tooltipTitle="Reset: Erases device ID, LED configuration, and WiFi credentials"
+        icon={<RestartAltIcon />}
+        variant="outlined"
+        color="error"
+        size="small"
+        onClick={handleOpenDialog}
+        disabled={!driver.connected}
+        busy={resetPending}
       >
-        <span>
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            startIcon={<RestartAltIcon />}
-            onClick={handleOpenDialog}
-            disabled={!driver.connected || resetPending}
-          >
-            {resetPending ? 'Resetting...' : 'Reset'}
-          </Button>
-        </span>
-      </Tooltip>
+        {resetPending ? 'Resetting...' : 'Reset'}
+      </SuperButton>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
