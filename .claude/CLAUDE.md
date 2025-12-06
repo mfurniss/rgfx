@@ -42,7 +42,9 @@ Do not drop out of plan mode without the user's explicit permission.
 - Variable and function names should be camel case
 - Interface names, class names and type names should be Pascal case
 
-After modifying files in the hub project always use ./rgfx-hub/scripts/check-code.sh
+After modifying files in the hub project always run `./rgfx-hub/scripts/check-code.sh`
+
+After modifying files in the esp32 project always run `pio run -e rgfx-driver` to verify the build compiles successfully. Do not report the task as complete until the build passes.
 
 **Separation of concerns is paramount.** This makes testing and maintenance much more effective.
 
