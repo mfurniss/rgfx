@@ -5,9 +5,6 @@
       "path": ".",
     },
     {
-      "path": "mame",
-    },
-    {
       "path": "esp32",
     },
     {
@@ -22,7 +19,6 @@
   ],
   "settings": {
     "files.exclude": {
-      "mame": true,
       "esp32": true,
       "esp32-installer": true,
       "rgfx.io": true,
