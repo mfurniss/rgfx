@@ -29,8 +29,7 @@ export function createUploadConfigToDriver(
       throw new Error(`No driver found with MAC ${macAddress}`);
     }
 
-    const driverId = persistedDriver.id;
-    const ledConfig = persistedDriver.ledConfig;
+    const { id: driverId, ledConfig } = persistedDriver;
 
     if (!ledConfig) {
       throw new Error(`Driver ${driverId} has no LED configuration`);
@@ -43,7 +42,7 @@ export function createUploadConfigToDriver(
     }
 
     // Calculate unified display dimensions
-    const unified = ledConfig.unified;
+    const { unified } = ledConfig;
     const unifiedRows = unified ? unified.length : 1;
     const unifiedCols = unified ? unified[0].length : 1;
     const panelCount = unifiedRows * unifiedCols;

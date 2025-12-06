@@ -375,7 +375,8 @@ export class DriverRegistry {
     const newId = persistedDriver.id;
 
     // Resolve LED hardware if config exists
-    let resolvedHardware: LEDHardware | undefined = existingDriver.resolvedHardware;
+    const { resolvedHardware: existingHardware } = existingDriver;
+    let resolvedHardware: LEDHardware | undefined = existingHardware;
 
     if (persistedDriver.ledConfig?.hardwareRef) {
       const hardware = ledHardwareManager.loadHardware(persistedDriver.ledConfig.hardwareRef);
