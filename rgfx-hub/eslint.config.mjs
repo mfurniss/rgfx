@@ -126,6 +126,11 @@ export default tseslint.config(
         ignoreTemplateLiterals: true,
         ignoreRegExpLiterals: true,
       }],
+      // Prefer destructuring for object properties
+      'prefer-destructuring': ['error', {
+        VariableDeclarator: { array: false, object: true },
+        AssignmentExpression: { array: false, object: false },
+      }],
     },
   },
 

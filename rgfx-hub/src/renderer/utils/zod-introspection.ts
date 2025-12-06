@@ -74,7 +74,7 @@ function unwrapSchema(schema: z.ZodType): UnwrapResult {
 
   // Unwrap ZodDefault - check for _zod.def.defaultValue
   if (hasZodDef(current) && 'defaultValue' in current._zod.def) {
-    const def = current._zod.def;
+    const { def } = current._zod;
     defaultValue = typeof def.defaultValue === 'function'
       ? (def.defaultValue as () => unknown)()
       : def.defaultValue;
@@ -104,7 +104,7 @@ function isColorSchema(schema: z.ZodType): boolean {
     return false;
   }
 
-  const def = schema._zod.def;
+  const { def } = schema._zod;
 
   if (def.type !== 'union' || !def.options || def.options.length < 2) {
     return false;
@@ -144,7 +144,7 @@ function isCenterSchema(schema: z.ZodType): boolean {
     return false;
   }
 
-  const def = schema._zod.def;
+  const { def } = schema._zod;
 
   if (def.type !== 'union' || !def.options?.length || def.options.length !== 2) {
     return false;
@@ -178,7 +178,7 @@ function extractEnumValues(schema: z.ZodType): readonly string[] | undefined {
     return undefined;
   }
 
-  const def = schema._zod.def;
+  const { def } = schema._zod;
 
   if (def.type !== 'enum' || !def.entries) {
     return undefined;
@@ -195,7 +195,7 @@ function extractColorNames(schema: z.ZodType): readonly string[] | undefined {
     return undefined;
   }
 
-  const def = schema._zod.def;
+  const { def } = schema._zod;
 
   if (def.type !== 'union' || !def.options) {
     return undefined;
@@ -220,7 +220,7 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
     return undefined;
   }
 
-  const def = schema._zod.def;
+  const { def } = schema._zod;
 
   if (def.type !== 'number' || !def.checks) {
     return undefined;
@@ -272,7 +272,7 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     return { name, type: 'enum', defaultValue, description };
   }
 
-  const def = innerSchema._zod.def;
+  const { def } = innerSchema._zod;
 
   // Check for enum
   if (def.type === 'enum') {
@@ -314,7 +314,7 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
  * Extract field metadata from a Zod object schema
  */
 export function extractFieldMetadata(schema: z.ZodObject<ZodShape>): FieldMetadata[] {
-  const shape = schema.shape;
+  const { shape } = schema;
   const fields: FieldMetadata[] = [];
 
   for (const [name, fieldSchema] of Object.entries(shape)) {

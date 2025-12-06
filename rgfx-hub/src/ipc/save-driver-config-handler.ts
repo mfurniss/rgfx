@@ -27,7 +27,7 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
   } = deps;
 
   ipcMain.handle('driver:save-config', async (_event, config: PersistedDriverFromSchema) => {
-    const macAddress = config.macAddress;
+    const { macAddress } = config;
     log.info(`Save config requested for driver with MAC ${macAddress}`);
 
     // Validate with Zod schema

@@ -88,7 +88,7 @@ export class LEDHardwareManager {
    * Clear cache (useful for hot-reload)
    */
   clearCache(): void {
-    const size = this.cache.size;
+    const { size } = this.cache;
     this.cache.clear();
     log.info(`Cleared LED hardware cache (${size} entries)`);
   }

@@ -92,7 +92,7 @@ describe('useNotificationStore', () => {
       addNotification({ message: 'Test', severity: 'info' });
 
       const { notifications, removeNotification } = useNotificationStore.getState();
-      const id = notifications[0].id;
+      const { id } = notifications[0];
 
       removeNotification(id);
 
