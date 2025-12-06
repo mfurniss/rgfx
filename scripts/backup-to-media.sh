@@ -10,7 +10,9 @@ set -e  # Exit on error
 
 # Configuration
 SOURCE_DIR="/Users/matt/Workspace/rgfx"
+RGFX_CONFIG_DIR="$HOME/.rgfx"
 BACKUP_DEST="/Volumes/media/backups/rgfx"
+CONFIG_BACKUP_DEST="/Volumes/media/backups/rgfx-config"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 LOG_FILE="$HOME/Library/Logs/rgfx-backup-media.log"
 
@@ -43,11 +45,13 @@ if [ ! -d "/Volumes/media" ]; then
   exit 1
 fi
 
-# Create backup directory if it doesn't exist
+# Create backup directories if they don't exist
 mkdir -p "$BACKUP_DEST"
+mkdir -p "$CONFIG_BACKUP_DEST"
 
 log "Starting RGFX backup to $BACKUP_DEST"
 log "Source: $SOURCE_DIR"
+log "Config source: $RGFX_CONFIG_DIR"
 
 # rsync options:
 # -a  : archive mode (recursive, preserve permissions, timestamps, etc.)
@@ -75,14 +79,38 @@ rsync -ah --delete \
   "$SOURCE_DIR/" "$BACKUP_DEST/" 2>&1 | tee -a "$LOG_FILE"
 
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
-  log_success "Backup completed successfully"
-
-  # Show backup size
-  BACKUP_SIZE=$(du -sh "$BACKUP_DEST" | cut -f1)
-  log "Backup size: $BACKUP_SIZE"
+  log_success "Project backup completed successfully"
 else
-  log_error "Backup failed"
+  log_error "Project backup failed"
   exit 1
+fi
+
+# Backup ~/.rgfx config directory
+log "Backing up ~/.rgfx config directory..."
+
+if [ -d "$RGFX_CONFIG_DIR" ]; then
+  rsync -ah --delete \
+    --exclude='.DS_Store' \
+    --info=progress2 \
+    "$RGFX_CONFIG_DIR/" "$CONFIG_BACKUP_DEST/" 2>&1 | tee -a "$LOG_FILE"
+
+  if [ ${PIPESTATUS[0]} -eq 0 ]; then
+    log_success "Config backup completed successfully"
+  else
+    log_error "Config backup failed"
+    exit 1
+  fi
+else
+  log_warning "Config directory $RGFX_CONFIG_DIR does not exist, skipping"
+fi
+
+# Show backup sizes
+BACKUP_SIZE=$(du -sh "$BACKUP_DEST" | cut -f1)
+log "Project backup size: $BACKUP_SIZE"
+
+if [ -d "$CONFIG_BACKUP_DEST" ]; then
+  CONFIG_SIZE=$(du -sh "$CONFIG_BACKUP_DEST" | cut -f1)
+  log "Config backup size: $CONFIG_SIZE"
 fi
 
 # Create a timestamp marker file

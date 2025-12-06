@@ -9,6 +9,7 @@
 
 import { promises as fs, watch } from 'node:fs';
 import { join, basename } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
 import { getTransformersDir } from './transformer-installer';
 
@@ -41,9 +42,13 @@ export class TransformerEngine {
     private context: TransformerContext,
     options?: TransformerEngineOptions,
   ) {
-    // Default: dynamic import with cache-busting for hot-reload
+    // Default: dynamic import with cache-busting for hot-reload support
     this.importModule =
-      options?.importModule ?? ((path: string) => import(`${path}?t=${Date.now()}`));
+      options?.importModule ??
+      ((filePath: string) => {
+        const url = pathToFileURL(filePath).href;
+        return import(`${url}?t=${Date.now()}`) as Promise<Record<string, unknown>>;
+      });
   }
 
   /**
@@ -193,9 +198,7 @@ export class TransformerEngine {
         if (!handler) {
           return;
         }
-        this.context.log.info(`Calling game transformer for: ${topic}`);
         const handled = await handler(topicObj, payload, this.context);
-        this.context.log.info(`Game transformer returned: ${handled} for ${topic}`);
 
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled

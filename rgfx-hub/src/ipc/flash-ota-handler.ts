@@ -40,7 +40,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       const firmwarePath = app.isPackaged
         ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
-        : path.join(app.getAppPath(), 'public', 'esp32', 'firmware', 'firmware.bin');
+        : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', 'firmware.bin');
 
       const fs = await import('fs');
 
@@ -53,7 +53,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
-        getMainWindow()?.webContents.send('flash:ota:state', state);
+        getMainWindow()?.webContents.send('flash:ota:state', { driverId, state });
       });
 
       let lastPercent = -1;
@@ -63,6 +63,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
           getMainWindow()?.webContents.send('flash:ota:progress', {
+            driverId,
             sent: data.sent,
             total: data.total,
             percent,
