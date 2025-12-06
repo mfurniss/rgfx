@@ -53,7 +53,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
-        getMainWindow()?.webContents.send('flash:ota:state', state);
+        getMainWindow()?.webContents.send('flash:ota:state', { driverId, state });
       });
 
       let lastPercent = -1;
@@ -63,6 +63,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
           getMainWindow()?.webContents.send('flash:ota:progress', {
+            driverId,
             sent: data.sent,
             total: data.total,
             percent,
