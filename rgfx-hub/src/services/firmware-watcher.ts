@@ -22,8 +22,8 @@ export class FirmwareWatcher extends EventEmitter {
   constructor() {
     super();
     this.firmwareDir = app.isPackaged
-      ? join(process.resourcesPath, 'esp32', 'firmware')
-      : join(app.getAppPath(), 'public', 'esp32', 'firmware');
+      ? join(process.resourcesPath, 'firmware')
+      : join(app.getAppPath(), 'assets', 'esp32', 'firmware');
 
     log.info('[FirmwareWatcher] Initialized');
     log.info('[FirmwareWatcher] Watching directory:', this.firmwareDir);
