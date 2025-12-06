@@ -255,9 +255,16 @@ declare global {
       onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
       onEventCount: (callback: (count: number) => void) => () => void;
       onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
-      onFlashOtaState: (callback: (state: string) => void) => () => void;
+      onFlashOtaState: (
+        callback: (data: { driverId: string; state: string }) => void,
+      ) => () => void;
       onFlashOtaProgress: (
-        callback: (progress: { sent: number; total: number; percent: number }) => void
+        callback: (progress: {
+          driverId: string;
+          sent: number;
+          total: number;
+          percent: number;
+        }) => void,
       ) => () => void;
       sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
       updateDriverConfig: (driverId: string) => Promise<void>;

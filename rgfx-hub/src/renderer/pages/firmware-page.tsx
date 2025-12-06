@@ -13,7 +13,7 @@ import LogDisplay from '../components/log-display';
 import FlashResultDialog from '../components/flash-result-dialog';
 import ConfirmFlashDialog from '../components/confirm-flash-dialog';
 import SerialPortSelector from '../components/serial-port-selector';
-import OtaDriverSelector from '../components/ota-driver-selector';
+import { TargetDriversPicker } from '../components/target-drivers-picker';
 import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icons-material';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
@@ -22,12 +22,22 @@ import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 
 type FlashMethod = 'usb' | 'ota';
 
+interface DriverFlashStatus {
+  status: 'pending' | 'flashing' | 'success' | 'error';
+  progress: number;
+  error?: string;
+}
+
 const FirmwarePage: React.FC = () => {
   const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
-  const [selectedDriver, setSelectedDriver] = useState<string>('');
+  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [driverFlashStatus, setDriverFlashStatus] = useState<Map<string, DriverFlashStatus>>(
+    new Map(),
+  );
   const [logMessages, setLogMessages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [resultModal, setResultModal] = useState<{
@@ -38,6 +48,7 @@ const FirmwarePage: React.FC = () => {
   const [confirmModal, setConfirmModal] = useState(false);
 
   const drivers = useDriverStore((state) => state.drivers);
+  const connectedDrivers = drivers.filter((d) => d.connected);
 
   const addLog = (message: string) => {
     console.log('>', message);
@@ -46,16 +57,31 @@ const FirmwarePage: React.FC = () => {
 
   // Subscribe to OTA flash events
   useEffect(() => {
-    const unsubscribeState = window.rgfx.onFlashOtaState((state: string): void => {
-      addLog(`OTA state: ${state}`);
-    });
+    const unsubscribeState = window.rgfx.onFlashOtaState(
+      ({ driverId, state }: { driverId: string; state: string }): void => {
+        addLog(`[${driverId}] OTA state: ${state}`);
+      },
+    );
 
     const unsubscribeProgress = window.rgfx.onFlashOtaProgress(
-      (progressData: { sent: number; total: number; percent: number }): void => {
-        setProgress(progressData.percent);
-        addLog(
-          `OTA progress: ${progressData.percent}% (${progressData.sent}/${progressData.total} bytes)`,
-        );
+      (progressData: {
+        driverId: string;
+        sent: number;
+        total: number;
+        percent: number;
+      }): void => {
+        const { driverId, percent, sent, total } = progressData;
+
+        setDriverFlashStatus((prev) => {
+          const next = new Map(prev);
+          const current = next.get(driverId);
+
+          if (current) {
+            next.set(driverId, { ...current, progress: percent, status: 'flashing' });
+          }
+          return next;
+        });
+        addLog(`[${driverId}] OTA progress: ${percent}% (${sent}/${total} bytes)`);
       },
     );
 
@@ -278,8 +304,17 @@ const FirmwarePage: React.FC = () => {
   };
 
   const flashViaOTA = async () => {
-    if (!selectedDriver) {
-      setError('No driver selected');
+    if (selectedDrivers.size === 0) {
+      setError('No drivers selected');
+      return;
+    }
+
+    const driversToFlash = Array.from(selectedDrivers)
+      .map((id) => drivers.find((d) => d.id === id))
+      .filter((d): d is (typeof drivers)[0] => d?.connected === true);
+
+    if (driversToFlash.length === 0) {
+      setError('No connected drivers selected');
       return;
     }
 
@@ -288,6 +323,13 @@ const FirmwarePage: React.FC = () => {
       setError(null);
       setProgress(0);
       setLogMessages([]);
+
+      // Initialize status for all drivers
+      const initialStatus = new Map<string, DriverFlashStatus>();
+      driversToFlash.forEach((d) => {
+        initialStatus.set(d.id, { status: 'pending', progress: 0 });
+      });
+      setDriverFlashStatus(initialStatus);
 
       // Fetch firmware version
       let firmwareVersion = 'unknown';
@@ -304,27 +346,87 @@ const FirmwarePage: React.FC = () => {
         addLog('Warning: Could not fetch firmware version');
       }
 
-      const driver = drivers.find((d) => d.id === selectedDriver);
+      addLog(`Starting OTA flash to ${driversToFlash.length} driver(s) in parallel...`);
+      driversToFlash.forEach((driver) => {
+        addLog(`  - ${driver.id} (${driver.ip})`);
+      });
 
-      if (!driver) {
-        throw new Error('Selected driver not found');
-      }
+      // Flash all drivers in parallel
+      const results = await Promise.allSettled(
+        driversToFlash.map(async (driver) => {
+          setDriverFlashStatus((prev) => {
+            const next = new Map(prev);
+            next.set(driver.id, { status: 'flashing', progress: 0 });
+            return next;
+          });
 
-      addLog(`Starting OTA flash to ${driver.id}...`);
-      addLog(`Driver hostname: ${driver.id}.local`);
+          const result = await window.rgfx.flashOTA(driver.id);
 
-      const result = await window.rgfx.flashOTA(driver.id);
+          if (result.success) {
+            setDriverFlashStatus((prev) => {
+              const next = new Map(prev);
+              next.set(driver.id, { status: 'success', progress: 100 });
+              return next;
+            });
+            addLog(`[${driver.id}] Firmware flashed successfully!`);
+            return { driverId: driver.id, success: true };
+          } else {
+            const errorMsg = result.error ?? 'Unknown error';
+            setDriverFlashStatus((prev) => {
+              const next = new Map(prev);
+              next.set(driver.id, { status: 'error', progress: 0, error: errorMsg });
+              return next;
+            });
+            addLog(`[${driver.id}] Flash failed: ${errorMsg}`);
+            return { driverId: driver.id, success: false, error: errorMsg };
+          }
+        }),
+      );
 
-      if (result.success) {
-        addLog('Firmware flashed successfully via OTA!');
-        setProgress(100);
+      // Process results
+      const successCount = results.filter(
+        (r) => r.status === 'fulfilled' && r.value.success,
+      ).length;
+      const failedResults = results.filter(
+        (r) => r.status === 'rejected' || !r.value.success,
+      );
+
+      setProgress(100);
+
+      if (failedResults.length === 0) {
         setResultModal({
           open: true,
           success: true,
-          message: `Firmware v${firmwareVersion} flashed successfully via OTA! The driver has been reset and is now running the new firmware.`,
+          message: `Firmware v${firmwareVersion} flashed successfully to ${successCount} driver(s)!`,
+        });
+      } else if (successCount > 0) {
+        const failedDrivers = failedResults
+          .map((r) => {
+            if (r.status === 'fulfilled') {
+              return `${r.value.driverId}: ${r.value.error}`;
+            }
+            return `Unknown: ${r.reason}`;
+          })
+          .join('\n');
+        setResultModal({
+          open: true,
+          success: false,
+          message: `Partial success: ${successCount} of ${driversToFlash.length} driver(s) flashed.\n\nFailed:\n${failedDrivers}`,
         });
       } else {
-        throw new Error(result.error ?? 'Unknown OTA flash error');
+        const failedDrivers = failedResults
+          .map((r) => {
+            if (r.status === 'fulfilled') {
+              return `${r.value.driverId}: ${r.value.error}`;
+            }
+            return `Unknown: ${r.reason}`;
+          })
+          .join('\n');
+        setResultModal({
+          open: true,
+          success: false,
+          message: `OTA flash failed for all drivers:\n${failedDrivers}`,
+        });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -353,8 +455,31 @@ const FirmwarePage: React.FC = () => {
     void flashViaUSB();
   };
 
+  const handleDriverToggle = (driverId: string) => {
+    const newSelected = new Set(selectedDrivers);
+
+    if (newSelected.has(driverId)) {
+      newSelected.delete(driverId);
+    } else {
+      newSelected.add(driverId);
+    }
+    setSelectedDrivers(newSelected);
+    setSelectAll(newSelected.size === connectedDrivers.length && connectedDrivers.length > 0);
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedDrivers(new Set());
+      setSelectAll(false);
+    } else {
+      setSelectedDrivers(new Set(connectedDrivers.map((d) => d.id)));
+      setSelectAll(true);
+    }
+  };
+
   const canFlash =
-    (flashMethod === 'usb' && getPort !== null) || (flashMethod === 'ota' && selectedDriver !== '');
+    (flashMethod === 'usb' && getPort !== null) ||
+    (flashMethod === 'ota' && selectedDrivers.size > 0);
 
   return (
     <Box>
@@ -427,18 +552,18 @@ const FirmwarePage: React.FC = () => {
         {flashMethod === 'ota' && (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Flash firmware to an already-configured driver over WiFi.
+              Flash firmware to already-configured drivers over WiFi. Multiple drivers can be
+              flashed in parallel.
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
-              <Box sx={{ flex: 1 }}>
-                <OtaDriverSelector
-                  drivers={drivers}
-                  selectedDriver={selectedDriver}
-                  onDriverSelect={setSelectedDriver}
-                  disabled={isFlashing}
-                />
-              </Box>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+              <TargetDriversPicker
+                drivers={drivers}
+                selectedDrivers={selectedDrivers}
+                selectAll={selectAll}
+                onDriverToggle={handleDriverToggle}
+                onSelectAll={handleSelectAll}
+              />
 
               <Button
                 variant="contained"
@@ -461,12 +586,53 @@ const FirmwarePage: React.FC = () => {
           </Alert>
         )}
 
-        {isFlashing && (
+        {isFlashing && flashMethod === 'usb' && (
           <Box sx={{ mt: 2 }}>
             <LinearProgress variant="determinate" value={progress} />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               {progress}%
             </Typography>
+          </Box>
+        )}
+
+        {isFlashing && flashMethod === 'ota' && driverFlashStatus.size > 0 && (
+          <Box sx={{ mt: 2 }}>
+            {Array.from(driverFlashStatus.entries()).map(([driverId, status]) => (
+              <Box key={driverId} sx={{ mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ minWidth: 120 }}>
+                    {driverId}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color={
+                      status.status === 'success'
+                        ? 'success.main'
+                        : status.status === 'error'
+                          ? 'error.main'
+                          : 'text.secondary'
+                    }
+                    sx={{ minWidth: 60 }}
+                  >
+                    {status.status === 'pending' && 'Waiting...'}
+                    {status.status === 'flashing' && `${status.progress}%`}
+                    {status.status === 'success' && 'Done'}
+                    {status.status === 'error' && 'Failed'}
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={status.progress}
+                  color={
+                    status.status === 'success'
+                      ? 'success'
+                      : status.status === 'error'
+                        ? 'error'
+                        : 'primary'
+                  }
+                />
+              </Box>
+            ))}
           </Box>
         )}
       </Paper>
