@@ -1,6 +1,6 @@
-import { scaleLinear } from 'd3-scale';
+import { scaleLinear } from '../utils.js';
 
-const shipPositionScale = scaleLinear().domain([17, 225]).range([13, 88]);
+const shipPositionScale = scaleLinear(17, 225, 13, 88);
 
 // Galaga mapper - see pacman.js for format example
 export function handle({ subject, property }, payload, { broadcast }) {
