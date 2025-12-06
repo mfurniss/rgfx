@@ -242,7 +242,7 @@ describe('registerFlashOtaHandler', () => {
       await registeredHandler({}, 'rgfx-driver-0001');
 
       expect(existsSyncMock).toHaveBeenCalledWith(
-        expect.stringContaining('public/esp32/firmware/firmware.bin'),
+        expect.stringContaining('assets/esp32/firmware/firmware.bin'),
       );
     });
   });

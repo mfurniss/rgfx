@@ -40,7 +40,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       const firmwarePath = app.isPackaged
         ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
-        : path.join(app.getAppPath(), 'public', 'esp32', 'firmware', 'firmware.bin');
+        : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', 'firmware.bin');
 
       const fs = await import('fs');
 

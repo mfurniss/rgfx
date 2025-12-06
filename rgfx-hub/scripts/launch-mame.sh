@@ -11,21 +11,21 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Determine the rgfx.lua path based on environment
-# In development: rgfx-hub/public/mame/rgfx.lua
-# In production: RGFX Hub.app/Contents/Resources/public/mame/rgfx.lua
+# In development: rgfx-hub/assets/mame/rgfx.lua
+# In production: RGFX Hub.app/Contents/Resources/mame/rgfx.lua
 
 # Check if we're in the packaged app (production)
-if [[ -d "$SCRIPT_DIR/../Resources/public/mame" ]]; then
+if [[ -d "$SCRIPT_DIR/../Resources/mame" ]]; then
     # Production: script is in Contents/MacOS or similar
-    RGFX_LUA="$SCRIPT_DIR/../Resources/public/mame/rgfx.lua"
-elif [[ -d "$SCRIPT_DIR/../public/mame" ]]; then
+    RGFX_LUA="$SCRIPT_DIR/../Resources/mame/rgfx.lua"
+elif [[ -d "$SCRIPT_DIR/../assets/mame" ]]; then
     # Development: script is in rgfx-hub/scripts
-    RGFX_LUA="$SCRIPT_DIR/../public/mame/rgfx.lua"
+    RGFX_LUA="$SCRIPT_DIR/../assets/mame/rgfx.lua"
 else
     echo "Error: Could not find rgfx.lua"
     echo "Expected locations:"
-    echo "  Development: $SCRIPT_DIR/../public/mame/rgfx.lua"
-    echo "  Production:  $SCRIPT_DIR/../Resources/public/mame/rgfx.lua"
+    echo "  Development: $SCRIPT_DIR/../assets/mame/rgfx.lua"
+    echo "  Production:  $SCRIPT_DIR/../Resources/mame/rgfx.lua"
     exit 1
 fi
 
