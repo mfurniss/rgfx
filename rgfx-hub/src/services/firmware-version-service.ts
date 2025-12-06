@@ -7,8 +7,8 @@ class FirmwareVersionService {
 
   constructor() {
     this.firmwareDir = app.isPackaged
-      ? join(process.resourcesPath, 'esp32', 'firmware')
-      : join(app.getAppPath(), 'public', 'esp32', 'firmware');
+      ? join(process.resourcesPath, 'firmware')
+      : join(app.getAppPath(), 'assets', 'esp32', 'firmware');
     console.log('[FirmwareVersionService] Firmware directory:', this.firmwareDir);
   }
 
