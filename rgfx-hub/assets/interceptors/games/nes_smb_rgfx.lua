@@ -117,8 +117,9 @@ local map = {
 		}
 	end)(),
 
-	-- Event music - death, game over, level ending, flagpole, etc. (trigger register that resets to 0x00)
-	-- 0x01 = Death, 0x02 = Game over, 0x04 = Ending theme, 0x08 = Castle ending, 0x20 = Level ending, 0x40 = Hurry up jingle
+	-- Event music - death, game over, level ending, flagpole, etc.
+	-- (trigger register that resets to 0x00)
+	-- 0x01=Death, 0x02=Game over, 0x04=Ending, 0x08=Castle, 0x20=Level end, 0x40=Hurry
 	music_event = (function()
 		local last_event = nil
 		return {
