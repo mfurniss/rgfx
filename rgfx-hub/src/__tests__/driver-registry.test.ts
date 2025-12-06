@@ -428,7 +428,8 @@ describe('DriverRegistry', () => {
       // Add a driver to persistence first
       persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
 
-      // Create a new registry that loads from persistence (requires both persistence and ledHardwareManager)
+      // Create a new registry that loads from persistence
+      // (requires both persistence and ledHardwareManager)
       const ledHardwareManager = new LEDHardwareManager('test-config');
       const newRegistry = new DriverRegistry(persistence, ledHardwareManager);
 

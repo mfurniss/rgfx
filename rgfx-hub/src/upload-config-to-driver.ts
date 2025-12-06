@@ -16,7 +16,9 @@ interface UploadConfigDeps {
   mqtt: MqttBroker;
 }
 
-export function createUploadConfigToDriver(deps: UploadConfigDeps): (macAddress: string) => Promise<void> {
+export function createUploadConfigToDriver(
+  deps: UploadConfigDeps,
+): (macAddress: string) => Promise<void> {
   const { driverPersistence, ledHardwareManager, mqtt } = deps;
 
   return async function uploadConfigToDriver(macAddress: string): Promise<void> {

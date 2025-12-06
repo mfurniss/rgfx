@@ -31,7 +31,9 @@ export const useDriverStore = create<DriverState>()(
 
         const updatedDrivers = currentDrivers.map((driver) => {
           // If driver is connected but hasn't sent telemetry within timeout window
-          if (driver.connected && driver.lastSeenAt && (now - driver.lastSeenAt > DRIVER_CONNECTION_TIMEOUT_MS)) {
+          const timedOut = now - (driver.lastSeenAt ?? 0) > DRIVER_CONNECTION_TIMEOUT_MS;
+
+          if (driver.connected && driver.lastSeenAt && timedOut) {
             // Create new Driver instance with connected=false
             return new Driver({
               id: driver.id,

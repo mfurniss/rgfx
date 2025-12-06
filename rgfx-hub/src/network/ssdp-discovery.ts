@@ -26,7 +26,7 @@ export class SsdpDiscovery implements DiscoveryService {
 
     this.ssdpServer = new SSDPServer({
       location,
-      // @ts-expect-error - sourcePort, adInterval, ttl not in @types/node-ssdp but exist in implementation
+      // @ts-expect-error - sourcePort/adInterval/ttl not in @types/node-ssdp but exist
       sourcePort: SSDP_PORT,
       adInterval: 10000, // Broadcast every 10 seconds
       ttl: 4, // Multicast TTL hops

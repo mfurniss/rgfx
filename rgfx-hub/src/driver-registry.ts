@@ -100,7 +100,8 @@ export class DriverRegistry {
     const { driverId, persistedDriver } = this.resolveDriverIdentity(macAddress);
 
     // Phase 2: Find existing in registry
-    const existingDriver = this.drivers.get(driverId) ?? this.findExistingDriverByMac(macAddress, driverId);
+    const existingDriver =
+      this.drivers.get(driverId) ?? this.findExistingDriverByMac(macAddress, driverId);
 
     // Phase 3: Clean up old ID if migrated
     this.handleIdMigration(existingDriver, driverId);
@@ -109,7 +110,9 @@ export class DriverRegistry {
     const stats = this.calculateDriverStats(telemetryData, existingDriver);
 
     // Phase 5: Construct and store driver
-    const driver = this.constructDriver(driverId, telemetryData, persistedDriver, existingDriver, stats);
+    const driver = this.constructDriver(
+      driverId, telemetryData, persistedDriver, existingDriver, stats,
+    );
     this.drivers.set(driver.id, driver);
     log.info(
       `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
