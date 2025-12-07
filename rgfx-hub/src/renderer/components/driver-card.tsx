@@ -297,16 +297,16 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TestLedButton driver={driver} />
                 <ResetDriverButton driver={driver} />
-                <Tooltip title="Open driver log file">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      void window.rgfx.openDriverLog(driver.id);
-                    }}
-                  >
-                    <DescriptionIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                <SuperButton
+                  icon={<DescriptionIcon />}
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    void window.rgfx.openDriverLog(driver.id);
+                  }}
+                >
+                  Open driver log
+                </SuperButton>
               </Box>
             ) : undefined
           }
