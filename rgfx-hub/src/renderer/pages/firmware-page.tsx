@@ -3,7 +3,6 @@ import {
   Typography,
   Box,
   Paper,
-  Button,
   LinearProgress,
   Alert,
   ToggleButtonGroup,
@@ -14,6 +13,7 @@ import FlashResultDialog from '../components/flash-result-dialog';
 import ConfirmFlashDialog from '../components/confirm-flash-dialog';
 import SerialPortSelector from '../components/serial-port-selector';
 import { TargetDriversPicker } from '../components/target-drivers-picker';
+import SuperButton from '../components/super-button';
 import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icons-material';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
@@ -534,17 +534,18 @@ const FirmwarePage: React.FC = () => {
                 />
               </Box>
 
-              <Button
+              <SuperButton
                 variant="contained"
-                startIcon={<FlashIcon />}
+                icon={<FlashIcon />}
                 onClick={() => {
                   handleFlash();
                 }}
-                disabled={!canFlash || isFlashing}
+                disabled={!canFlash}
+                busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
                 {isFlashing ? 'Flashing...' : 'Flash via USB'}
-              </Button>
+              </SuperButton>
             </Box>
           </>
         )}
@@ -565,17 +566,18 @@ const FirmwarePage: React.FC = () => {
                 onSelectAll={handleSelectAll}
               />
 
-              <Button
+              <SuperButton
                 variant="contained"
-                startIcon={<FlashIcon />}
+                icon={<FlashIcon />}
                 onClick={() => {
                   handleFlash();
                 }}
-                disabled={!canFlash || isFlashing}
+                disabled={!canFlash}
+                busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
                 {isFlashing ? 'Flashing...' : 'Flash via OTA'}
-              </Button>
+              </SuperButton>
             </Box>
           </>
         )}

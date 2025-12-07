@@ -4,7 +4,6 @@ import {
   Paper,
   Typography,
   TextField,
-  Button,
   Stack,
   FormControl,
   InputLabel,
@@ -13,6 +12,7 @@ import {
 } from '@mui/material';
 import { Terminal as TerminalIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
 import { useUiStore, SimulatorAutoInterval } from '../store/ui-store';
+import SuperButton from '../components/super-button';
 
 export default function SimulatorPage() {
   const simulatorRows = useUiStore((state) => state.simulatorRows);
@@ -65,19 +65,19 @@ export default function SimulatorPage() {
                   '& .MuiInputBase-input': { fontFamily: 'monospace' },
                 }}
               />
-              <Button
+              <SuperButton
                 variant="contained"
                 color="primary"
                 onClick={() => {
                   handleTrigger(row.eventLine);
                 }}
                 disabled={!row.eventLine.trim()}
-                startIcon={<PlayArrowIcon />}
+                icon={<PlayArrowIcon />}
                 sx={{ flexShrink: 0 }}
                 size="small"
               >
                 Trigger
-              </Button>
+              </SuperButton>
               <FormControl sx={{ minWidth: 140, flexShrink: 0 }} size="small">
                 <InputLabel>Auto Trigger</InputLabel>
                 <Select
