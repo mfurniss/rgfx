@@ -17,7 +17,7 @@ When modifying ESP32 code:
 1. **Build firmware**: `pio run --project-dir /Users/matt/Workspace/rgfx/esp32`
 2. **Check for compilation errors** and fix immediately
 3. **Deploy to Hub** (when ready): `npm run esp32:copy-firmware` (from project root)
-   - Copies firmware binaries from `esp32/.pio/build/` to `rgfx-hub/public/esp32/firmware/`
+   - Copies firmware binaries from `esp32/.pio/build/` to `rgfx-hub/assets/esp32/firmware/`
    - Creates both `firmware.bin` (for USB serial flash) and `rgfx-firmware.{version}.bin` (for OTA)
    - Generates `manifest.json` with SHA256 checksums for USB serial flashing
    - Hub automatically detects new firmware via file watcher
@@ -35,7 +35,7 @@ When modifying ESP32 code:
 
 - Build compiles to `esp32/.pio/build/` directory
 - Deploy is explicit and atomic - no premature detection
-- Hub watches `rgfx-hub/public/esp32/firmware/` for completed firmware
+- Hub watches `rgfx-hub/assets/esp32/firmware/` for completed firmware
 - File watcher triggers immediately on copy (no debounce, no guessing)
 
 ## Upload and Monitor Workflow
