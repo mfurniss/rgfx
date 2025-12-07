@@ -29,7 +29,7 @@ interface DriverFlashStatus {
 }
 
 const FirmwarePage: React.FC = () => {
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
+  const [flashMethod, setFlashMethod] = useState<FlashMethod>('ota');
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
@@ -48,6 +48,9 @@ const FirmwarePage: React.FC = () => {
   const [confirmModal, setConfirmModal] = useState(false);
 
   const drivers = useDriverStore((state) => state.drivers);
+  const currentFirmwareVersion = useDriverStore(
+    (state) => state.systemStatus.currentFirmwareVersion,
+  );
   const connectedDrivers = drivers.filter((d) => d.connected);
 
   const addLog = (message: string) => {
@@ -97,6 +100,27 @@ const FirmwarePage: React.FC = () => {
       setGetPort(null);
     }
   }, [flashMethod]);
+
+  // Auto-select drivers that need firmware update (only on initial mount)
+  useEffect(() => {
+    if (!currentFirmwareVersion) {
+      return;
+    }
+
+    const connected = drivers.filter((d) => d.connected);
+    const driversNeedingUpdate = connected.filter(
+      (d) =>
+        d.telemetry?.firmwareVersion &&
+        d.telemetry.firmwareVersion !== currentFirmwareVersion,
+    );
+
+    if (driversNeedingUpdate.length > 0) {
+      setSelectedDrivers(new Set(driversNeedingUpdate.map((d) => d.id)));
+      setSelectAll(driversNeedingUpdate.length === connected.length);
+    }
+    // Only run on mount - don't re-select when drivers change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePortSelect = (portGetter: (() => Promise<SerialPort>) | null) => {
     setGetPort(() => portGetter);
@@ -508,47 +532,15 @@ const FirmwarePage: React.FC = () => {
           sx={{ mb: 3 }}
           disabled={isFlashing}
         >
-          <ToggleButton value="usb">
-            <UsbIcon sx={{ mr: 1 }} />
-            USB Serial
-          </ToggleButton>
           <ToggleButton value="ota">
             <WifiIcon sx={{ mr: 1 }} />
             OTA WiFi
           </ToggleButton>
+          <ToggleButton value="usb">
+            <UsbIcon sx={{ mr: 1 }} />
+            USB Serial
+          </ToggleButton>
         </ToggleButtonGroup>
-
-        {flashMethod === 'usb' && (
-          <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Connect a new ESP32 or existing driver via USB cable.
-            </Typography>
-
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
-              <Box sx={{ flex: 1 }}>
-                <SerialPortSelector
-                  disabled={isFlashing}
-                  onPortSelect={handlePortSelect}
-                  onLog={addLog}
-                  onError={setError}
-                />
-              </Box>
-
-              <SuperButton
-                variant="contained"
-                icon={<FlashIcon />}
-                onClick={() => {
-                  handleFlash();
-                }}
-                disabled={!canFlash}
-                busy={isFlashing}
-                sx={{ whiteSpace: 'nowrap' }}
-              >
-                {isFlashing ? 'Flashing...' : 'Flash via USB'}
-              </SuperButton>
-            </Box>
-          </>
-        )}
 
         {flashMethod === 'ota' && (
           <>
@@ -577,6 +569,38 @@ const FirmwarePage: React.FC = () => {
                 sx={{ whiteSpace: 'nowrap' }}
               >
                 {isFlashing ? 'Flashing...' : 'Flash via OTA'}
+              </SuperButton>
+            </Box>
+          </>
+        )}
+
+        {flashMethod === 'usb' && (
+          <>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Connect a new ESP32 or existing driver via USB cable.
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+              <Box sx={{ flex: 1 }}>
+                <SerialPortSelector
+                  disabled={isFlashing}
+                  onPortSelect={handlePortSelect}
+                  onLog={addLog}
+                  onError={setError}
+                />
+              </Box>
+
+              <SuperButton
+                variant="contained"
+                icon={<FlashIcon />}
+                onClick={() => {
+                  handleFlash();
+                }}
+                disabled={!canFlash}
+                busy={isFlashing}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                {isFlashing ? 'Flashing...' : 'Flash via USB'}
               </SuperButton>
             </Box>
           </>
@@ -657,6 +681,7 @@ const FirmwarePage: React.FC = () => {
           setConfirmModal(false);
         }}
       />
+
     </Box>
   );
 };
