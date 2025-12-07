@@ -25,9 +25,6 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
 
     void (async () => {
       try {
-        if (newTestMode) {
-          await window.rgfx.updateDriverConfig(driver.id);
-        }
         await window.rgfx.sendDriverCommand(driver.id, 'test', newTestMode ? 'on' : 'off');
       } catch (error) {
         console.error('Failed to toggle test mode:', error);
