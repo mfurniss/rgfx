@@ -8,14 +8,13 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Chip,
   TableSortLabel,
-  Tooltip,
 } from '@mui/material';
 import type { Driver } from '@/types';
 import { useUiStore, type SortField } from '../store/ui-store';
 import { useDriverStore } from '../store/driver-store';
 import TestLedButton from './test-led-button';
+import DriverState from './driver-state';
 
 interface DriverListTableProps {
   drivers: Driver[];
@@ -101,36 +100,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>{driver.id}</TableCell>
               <TableCell>{driver.ip ?? ''}</TableCell>
               <TableCell>
-                {!driver.connected ? (
-                  <Chip label="Disconnected" color="error" size="small" />
-                ) : !driver.telemetry?.firmwareVersion ? (
-                  <Tooltip
-                    title="Driver firmware version unknown - update required"
-                    arrow
-                  >
-                    <Chip label="Update Required" color="error" size="small" />
-                  </Tooltip>
-                ) : currentFirmwareVersion &&
-                  driver.telemetry.firmwareVersion !== currentFirmwareVersion ? (
-                    <Tooltip
-                      title={`Driver: ${driver.telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
-                      arrow
-                    >
-                      <Chip label="Update Available" color="warning" size="small" />
-                    </Tooltip>
-                  ) : !driver.ledConfig ? (
-                    <Tooltip title="Needs LED configuration" arrow>
-                      <Chip label="Needs Configuration" color="warning" size="small" />
-                    </Tooltip>
-                  ) : driver.failedHeartbeats > 0 ? (
-                    <Chip
-                      label={`Connected (${driver.failedHeartbeats} missed)`}
-                      color="warning"
-                      size="small"
-                    />
-                  ) : (
-                    <Chip label="Connected" color="success" size="small" />
-                  )}
+                <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
               </TableCell>
               <TableCell
                 onClick={(e) => {

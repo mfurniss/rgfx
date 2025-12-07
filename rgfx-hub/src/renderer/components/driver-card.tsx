@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert, Stack } from '@mui/material';
+import { Paper, Typography, Box, IconButton, Alert, Stack } from '@mui/material';
 import SuperButton from './super-button';
+import DriverState from './driver-state';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -252,24 +253,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" sx={{ pb: 0 }}>{driver.id}</Typography>
-            {!driver.connected ? (
-              <Chip label="Disconnected" color="error" size="small" />
-            ) : currentFirmwareVersion &&
-              telemetry?.firmwareVersion &&
-              telemetry.firmwareVersion !== currentFirmwareVersion ? (
-                <Tooltip
-                  title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
-                  arrow
-                >
-                  <Chip label="Update Available" color="warning" size="small" />
-                </Tooltip>
-              ) : !driver.ledConfig ? (
-                <Tooltip title="Connected but needs LED configuration" arrow>
-                  <Chip label="Needs Configuration" color="warning" size="small" />
-                </Tooltip>
-              ) : (
-                <Chip label="Connected" color="success" size="small" />
-              )}
+            <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
           </Stack>
           <SuperButton
             variant="outlined"
