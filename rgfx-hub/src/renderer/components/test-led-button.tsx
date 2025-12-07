@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Tooltip } from '@mui/material';
 import { Science as ScienceIcon } from '@mui/icons-material';
 import type { Driver } from '@/types';
+import SuperButton from './super-button';
 
 interface TestLedButtonProps {
   driver: Driver;
@@ -44,28 +44,26 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
     }
 
     if (hardware.layout === 'strip') {
-      return 'Strip: 4 segments in Red, Green, Blue, Yellow (25% each)';
+      return 'Strip: 4 segments in RGBY (25% each). White pixel marks the start.';
     } else {
-      return 'Matrix: 4 quadrants - Top-Left: Red, Top-Right: Green, Bottom-Left: Blue, Bottom-Right: Yellow';
+      return 'Matrix: 4 quadrants (TL:Red, TR:Green, BL:Blue, BR:Yellow). White pixel marks top-left of each panel.';
     }
   };
 
   return (
-    <Tooltip title={getTooltipText()} arrow>
-      <span>
-        <Button
-          variant={driver.testActive ? 'contained' : 'outlined'}
-          color={driver.testActive ? 'success' : 'primary'}
-          size="small"
-          startIcon={<ScienceIcon />}
-          onClick={handleTestToggle}
-          disabled={!driver.connected || testRequestPending}
-          sx={{ height: 30, width: 140 }}
-        >
-          {testRequestPending ? 'Processing...' : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
-        </Button>
-      </span>
-    </Tooltip>
+    <SuperButton
+      tooltipTitle={getTooltipText()}
+      icon={<ScienceIcon />}
+      variant={driver.testActive ? 'contained' : 'outlined'}
+      color={driver.testActive ? 'success' : 'primary'}
+      size="small"
+      onClick={handleTestToggle}
+      disabled={!driver.connected}
+      busy={testRequestPending}
+      sx={{ height: 30, width: 140 }}
+    >
+      {testRequestPending ? 'Processing...' : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
+    </SuperButton>
   );
 };
 

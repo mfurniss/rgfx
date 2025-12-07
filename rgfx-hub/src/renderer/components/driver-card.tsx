@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert, Button, Stack } from '@mui/material';
+import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert, Stack } from '@mui/material';
+import SuperButton from './super-button';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -270,16 +271,16 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
                 <Chip label="Connected" color="success" size="small" />
               )}
           </Stack>
-          <Button
+          <SuperButton
             variant="outlined"
             size="small"
-            startIcon={<SettingsIcon />}
+            icon={<SettingsIcon />}
             onClick={() => {
               void navigate(`/driver/${driver.mac}/config`);
             }}
           >
             Configure Driver
-          </Button>
+          </SuperButton>
         </Box>
       </Paper>
 

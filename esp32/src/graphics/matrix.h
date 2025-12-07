@@ -40,6 +40,12 @@ class Matrix {
 	uint16_t xy(uint16_t x, uint16_t y);
 	CRGB& led(uint16_t x, uint16_t y);
 
+	// Panel dimension accessors (for unified panel support)
+	uint16_t getPanelWidth() const { return panelWidth; }
+	uint16_t getPanelHeight() const { return panelHeight; }
+	uint8_t getUnifiedCols() const { return unifiedCols; }
+	uint8_t getUnifiedRows() const { return unifiedRows; }
+
    private:
 	// Unified panel configuration (stored for potential future use)
 	uint16_t panelWidth;

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * Generate version.json for the firmware directory
- * Reads version from esp32/src/version.h and writes to rgfx-hub/public/esp32/firmware/version.json
+ * Reads version from esp32/src/version.h and writes to rgfx-hub/assets/esp32/firmware/version.json
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const versionHeaderPath = path.join(__dirname, '../esp32/src/version.h');
-const outputPath = path.join(__dirname, '../rgfx-hub/public/esp32/firmware/version.json');
+const outputPath = path.join(__dirname, '../rgfx-hub/assets/esp32/firmware/version.json');
 
 try {
   const versionHeader = fs.readFileSync(versionHeaderPath, 'utf-8');

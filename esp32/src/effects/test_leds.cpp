@@ -36,6 +36,23 @@ void TestLedsEffect::render() {
 		canvas.drawRectangle(0, midY, midX, midY, CRGB(0, 0, 255));   // Bottom-Left: Blue
 		canvas.drawRectangle(midX, midY, midX, midY, CRGB(255, 255, 0));  // Bottom-Right: Yellow
 	}
+
+	// White orientation marker at top-left of each physical panel
+	// Canvas is 4x the matrix size, so draw a 4x4 block to map to one LED after downsampling
+	uint16_t pWidth = matrix.getPanelWidth() * 4;
+	uint16_t pHeight = (matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.getPanelHeight() * 4;
+	uint8_t cols = matrix.getUnifiedCols();
+	uint8_t rows = matrix.getUnifiedRows();
+
+	for (uint8_t row = 0; row < rows; row++) {
+		for (uint8_t col = 0; col < cols; col++) {
+			uint16_t x = col * pWidth;
+			uint16_t y = row * pHeight;
+			// Draw 4x4 block (or 4x1 for strips) to ensure it maps to exactly one LED
+			uint16_t markerHeight = (matrix.layoutType == LayoutType::STRIP) ? 1 : 4;
+			canvas.drawRectangle(x, y, 4, markerHeight, CRGB(255, 255, 255));
+		}
+	}
 }
 
 void TestLedsEffect::reset() {}

@@ -4,7 +4,7 @@ Firmware Build Post-Processing Script
 
 Copies compiled ESP32 firmware files to:
 1. esp32-installer/ (for serial flashing via esptool)
-2. rgfx-hub/public/esp32/firmware/ (for OTA updates from Hub)
+2. rgfx-hub/assets/esp32/firmware/ (for OTA updates from Hub)
 
 This script runs automatically after PlatformIO builds via extra_scripts in platformio.ini.
 Can also be run standalone for manual deployment.
@@ -103,12 +103,12 @@ def copy_to_hub_public(project_root, build_dir):
     Both files are IDENTICAL (same SHA256) to ensure consistency across flash methods.
     The manifest.json is auto-generated with checksums to ensure integrity.
     """
-    hub_firmware_dir = project_root / 'rgfx-hub' / 'public' / 'esp32' / 'firmware'
+    hub_firmware_dir = project_root / 'rgfx-hub' / 'assets' / 'esp32' / 'firmware'
     hub_firmware_dir.mkdir(parents=True, exist_ok=True)
 
     version = get_version(project_root)
 
-    print("\nCopying files to rgfx-hub/public/esp32/firmware:")
+    print("\nCopying files to rgfx-hub/assets/esp32/firmware:")
 
     # Delete all old rgfx-firmware.*.bin files
     for old_file in hub_firmware_dir.glob('rgfx-firmware.*.bin'):

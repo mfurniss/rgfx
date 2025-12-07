@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed firmware version sync between ESP32 builds and Hub app
+  - `copy_firmware.py` now writes to `assets/esp32/firmware/` instead of `public/esp32/firmware/`
+  - Hub's `FirmwareVersionService` reads from `assets/` (the bundled location) in dev mode
+  - Ensures Hub correctly detects when drivers need firmware updates after OTA flashing
+
 ### Changed
 - Renamed "mappings" to "transformers" throughout the Hub codebase
   - Moved example transformers from `config/mappings/` to `assets/transformers/`
