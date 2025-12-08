@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Games page in Hub UI showing configured games with their interceptor and transformer files
+  - New "Games" menu item in sidebar navigation
+  - Two-column table displaying Lua interceptor and JS transformer filenames
+  - Clickable filenames open files in the default OS application
+  - Data sourced from `rom_map.lua` configuration
+- Generic `file:open` IPC handler for opening any file in the default OS application
+  - Refactored `driver:open-log` handler to use the shared `openFile()` function
+- MAME interceptor fallback loading - if ROM not found in `rom_map.lua`, tries loading `{rom_name}_rgfx.lua` directly
+  - `rom_map.lua` now used for aliasing (multiple ROMs to one interceptor) and overrides only
+
 ### Fixed
 - Fixed drivers showing as disconnected during OTA firmware updates
   - OTA progress now updates the driver's `lastSeenAt` timestamp

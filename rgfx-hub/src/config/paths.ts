@@ -21,3 +21,6 @@ export const TRANSFORMERS_DIRECTORY = join(CONFIG_DIRECTORY, 'transformers');
 
 /** Directory for user interceptors (MAME game scripts) */
 export const INTERCEPTORS_DIRECTORY = join(CONFIG_DIRECTORY, 'interceptors');
+
+/** Directory for ROM files */
+export const ROMS_DIRECTORY = join(homedir(), 'mame-roms');
