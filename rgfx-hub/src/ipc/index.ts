@@ -21,6 +21,8 @@ import { registerUpdateDriverConfigHandler } from './update-driver-config-handle
 import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
 import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
 import { registerOpenDriverLogHandler } from './open-driver-log-handler';
+import { registerOpenFileHandler } from './open-file-handler';
+import { registerListGamesHandler } from './list-games-handler';
 import { registerSimulateEventHandler } from './simulate-event-handler';
 
 interface IpcHandlersDeps {
@@ -45,5 +47,7 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerSaveDriverConfigHandler(deps);
   registerListLEDHardwareHandler(deps);
   registerOpenDriverLogHandler(deps);
+  registerOpenFileHandler();
+  registerListGamesHandler();
   registerSimulateEventHandler(deps);
 }

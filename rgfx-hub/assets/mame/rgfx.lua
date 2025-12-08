@@ -79,21 +79,24 @@ local load_interceptor = function()
 	local lookup_key = cart_name or rom_name
 	local game_script = rom_map[lookup_key]
 
-	if game_script then
-		print("Loading interceptor: " .. game_script .. ".lua")
-		-- Set game name in global scope so interceptor can use it for event prefixes
-		_G.game_name = lookup_key
-		local status = pcall(require, game_script)
-		if status then
-			print("Successfully loaded interceptor: " .. game_script .. ".lua")
-			-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
-			-- Use lookup_key (cart_name for consoles, rom_name for arcade) to match event prefixes
-			event(lookup_key .. "/init", lookup_key)
-		else
-			print("ERROR: Failed to load interceptor: " .. game_script .. ".lua")
-		end
+	-- If no mapping found, try loading {lookup_key}_rgfx as fallback
+	if not game_script then
+		local fallback_script = lookup_key .. "_rgfx"
+		print("No mapping in rom_map for: " .. lookup_key .. ", trying fallback: " .. fallback_script)
+		game_script = fallback_script
+	end
+
+	print("Loading interceptor: " .. game_script .. ".lua")
+	-- Set game name in global scope so interceptor can use it for event prefixes
+	_G.game_name = lookup_key
+	local status = pcall(require, game_script)
+	if status then
+		print("Successfully loaded interceptor: " .. game_script .. ".lua")
+		-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
+		-- Use lookup_key (cart_name for consoles, rom_name for arcade) to match event prefixes
+		event(lookup_key .. "/init", lookup_key)
 	else
-		print("No interceptor mapping found for: " .. lookup_key)
+		print("No interceptor found for: " .. lookup_key .. " (tried " .. game_script .. ".lua)")
 	end
 
 	-- Debug: Print screen info

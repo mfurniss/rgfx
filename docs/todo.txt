@@ -92,5 +92,6 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Infinite Canvas wrap-around for strips
 [X] FX Playground form and JSON tabs
 [X] Fix disconnected driver detail page bug
-[ ] Open Lua interceptors from Hub
+[X] Open Lua interceptors from Hub
 [X] LED panel dot in top left cornder
+[ ] Unified rotation per-panel (0A, 1B, 2C, 3D, etc)

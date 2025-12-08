@@ -277,7 +277,17 @@ declare global {
       saveDriverConfig: (config: PersistedDriverFromSchema) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
+      openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
+      listGames: () => Promise<GameInfo[]>;
       simulateEvent: (eventLine: string) => Promise<void>;
     };
   }
+}
+
+export interface GameInfo {
+  romName: string;
+  interceptorPath: string | null;
+  interceptorName: string | null;
+  transformerPath: string | null;
+  transformerName: string | null;
 }

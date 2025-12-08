@@ -148,8 +148,42 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 
 **Behavior:**
 1. Gets log file path from `DriverLogPersistence`
-2. Verifies file exists
-3. Opens file using `shell.openPath()`
+2. Delegates to `openFile()` from open-file-handler
+
+---
+
+### `file:open`
+
+**File:** [open-file-handler.ts](open-file-handler.ts)
+
+**Purpose:** Opens any file in the system's default application.
+
+**Parameters:**
+- `filePath: string` - Absolute path to the file to open
+
+**Returns:** `{ success: boolean, error?: string }`
+
+**Behavior:**
+1. Verifies file exists
+2. Opens file using `shell.openPath()`
+
+---
+
+### `games:list`
+
+**File:** [list-games-handler.ts](list-games-handler.ts)
+
+**Purpose:** Returns a list of configured games with their interceptor and transformer file paths.
+
+**Parameters:** None
+
+**Returns:** `GameInfo[]` - Array of game information objects
+
+**Behavior:**
+1. Parses `rom_map.lua` to extract unique interceptor names
+2. For each interceptor, derives the corresponding transformer name
+3. Checks file existence for both interceptor and transformer files
+4. Returns array with file paths (null if file doesn't exist)
 
 ---
 

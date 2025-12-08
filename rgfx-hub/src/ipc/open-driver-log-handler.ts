@@ -5,10 +5,9 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { ipcMain, shell } from 'electron';
-import * as fs from 'fs';
-import log from 'electron-log/main';
+import { ipcMain } from 'electron';
 import type { DriverLogPersistence } from '../driver-log-persistence';
+import { openFile } from './open-file-handler';
 
 interface OpenDriverLogHandlerDeps {
   driverLogPersistence: DriverLogPersistence;
@@ -19,20 +18,6 @@ export function registerOpenDriverLogHandler(deps: OpenDriverLogHandlerDeps): vo
 
   ipcMain.handle('driver:open-log', async (_event, driverId: string) => {
     const logPath = driverLogPersistence.getLogFilePath(driverId);
-
-    if (!fs.existsSync(logPath)) {
-      log.warn(`Log file does not exist for driver ${driverId}: ${logPath}`);
-      return { success: false, error: 'Log file does not exist' };
-    }
-
-    log.info(`Opening log file for driver ${driverId}: ${logPath}`);
-    const result = await shell.openPath(logPath);
-
-    if (result) {
-      log.error(`Failed to open log file: ${result}`);
-      return { success: false, error: result };
-    }
-
-    return { success: true };
+    return openFile(logPath);
   });
 }
