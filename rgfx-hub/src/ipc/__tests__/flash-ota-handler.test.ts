@@ -47,6 +47,7 @@ vi.mock('esp-ota', () => ({
 describe('registerFlashOtaHandler', () => {
   let mockDriverRegistry: {
     getDriver: ReturnType<typeof vi.fn>;
+    touchDriver: ReturnType<typeof vi.fn>;
   };
   let mockMainWindow: {
     webContents: {
@@ -102,6 +103,7 @@ describe('registerFlashOtaHandler', () => {
 
     mockDriverRegistry = {
       getDriver: vi.fn(() => mockDriver),
+      touchDriver: vi.fn(() => mockDriver),
     };
 
     mockMainWindow = {

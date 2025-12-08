@@ -39,6 +39,13 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
 
+      // Touch driver immediately at OTA start to reset timeout
+      const initialTouch = driverRegistry.touchDriver(driverId);
+
+      if (initialTouch) {
+        getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(initialTouch));
+      }
+
       const firmwarePath = app.isPackaged
         ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
         : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', 'firmware.bin');
@@ -54,6 +61,14 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
+
+        // Touch driver on state changes too
+        const touchedDriver = driverRegistry.touchDriver(driverId);
+
+        if (touchedDriver) {
+          getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(touchedDriver));
+        }
+
         getMainWindow()?.webContents.send('flash:ota:state', { driverId, state });
       });
 
