@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- Fixed drivers showing as disconnected during OTA firmware updates
+  - OTA progress now updates the driver's `lastSeenAt` timestamp
+  - Prevents connection timeout from triggering while firmware is being uploaded
 - Fixed firmware version sync between ESP32 builds and Hub app
   - `copy_firmware.py` now writes to `assets/esp32/firmware/` instead of `public/esp32/firmware/`
   - Hub's `FirmwareVersionService` reads from `assets/` (the bundled location) in dev mode
