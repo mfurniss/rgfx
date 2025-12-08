@@ -9,6 +9,7 @@ import { ipcMain, app, type BrowserWindow } from 'electron';
 import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
+import { serializeDriverForIPC } from '../types';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -62,6 +63,15 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
+
+          // Touch driver to keep it marked as connected during OTA
+          // (OTA activity proves the driver is still responsive)
+          const updatedDriver = driverRegistry.touchDriver(driverId);
+
+          if (updatedDriver) {
+            getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(updatedDriver));
+          }
+
           getMainWindow()?.webContents.send('flash:ota:progress', {
             driverId,
             sent: data.sent,

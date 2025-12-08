@@ -65,6 +65,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     if (rssi >= -70) {
       return 'Fair';
     }
+
     return 'Poor';
   };
 
