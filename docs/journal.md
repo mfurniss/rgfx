@@ -202,5 +202,27 @@ Implemented effect reset functionality allowing effects to be cleared before add
 
 Consolidated project resource organization by moving `public/` folder contents into `assets/` for consistent Electron extraResource handling. The `public/` naming was a leftover from web conventions with no special meaning in Electron packaging. Updated forge.config.ts, flash-ota-handler, launch-mame.sh, and related tests. Added CLAUDE.md documentation files for the network module (MQTT broker, SSDP/UDP discovery services, network utilities) and schemas module (Zod validation schemas for telemetry, driver persistence, LED hardware, firmware manifests, and effects).
 
-**Total Development Time:** 56 days (October 11 - December 5, 2025)
-**Total Commits:** 368
+## December 6, 2025
+
+Fixed firmware version sync issue where copy_firmware.py was writing to the wrong directory (public/ instead of assets/), causing the Hub to incorrectly report drivers as needing updates after OTA flashing. Added SuperButton component for consistent button styling across the UI and refactored driver log button to use it. Created DriverState component showing connection status with optional update warning icon.
+
+Fixed critical bug where drivers would disconnect during OTA firmware updates. During OTA, ESP32 drivers disconnect from MQTT to receive firmware, triggering the Last Will and Testament "offline" message. Implemented ota-state.ts module to track active OTA sessions and ignore spurious offline messages. Also added touchDriver() to update lastSeenAt during OTA progress events, preventing connection timeouts.
+
+Improved Firmware page UX by making OTA the default flash method and auto-selecting drivers that need firmware updates on page load.
+
+## December 7, 2025
+
+Updated CLAUDE.md documentation files across the codebase. Removed legacy config folder from source tree (configs now stored in ~/.rgfx/). Moved Reset and Open Driver Log buttons from LED Configuration section to header bar for better accessibility.
+
+Added .luarc.json for MAME Lua scripts to configure lua-language-server with MAME-provided globals (emu, manager), suppressing false positive undefined global warnings.
+
+Implemented Games page showing configured games from MAME ROMs directory with three-column sortable table (ROM filename, Interceptor, Transformer). Clickable filenames open files in default OS application. ROM resolution uses rom_map.lua for aliases with fallback to 1-to-1 mapping. Added generic file:open IPC handler and refactored open-driver-log to use shared openFile() function.
+
+## December 8, 2025
+
+Implemented Settings page with appearance and directories sections. Moved theme toggle from sidebar header to dedicated settings page with System/Light/Dark options. Added RGFX config directory input (required, auto-populated with ~/.rgfx default) and MAME ROMs directory input (optional). Both inputs have native OS folder picker buttons using Electron's dialog API. Directory existence validation on save with success/error notifications. Settings persist to localStorage via Zustand.
+
+Standardized terminology from "folder" to "directory" throughout the codebase for consistency. Updated Games page column headers for clarity: ROM → MAME ROM File, Interceptor → MAME Interceptor, Transformer → RGFX Hub Transformer.
+
+**Total Development Time:** 59 days (October 11 - December 8, 2025)
+**Total Commits:** 440
