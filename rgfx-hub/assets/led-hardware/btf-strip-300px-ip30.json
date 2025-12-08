@@ -1,0 +1,10 @@
+{
+  "name": "BTF-LIGHTING 5m Strip 60px/m IP30",
+  "description": "16.4ft (5m) WS2812B LED strip, 60 pixels/m, non-waterproof (IP30), Pure Gold PCB",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 300,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}
