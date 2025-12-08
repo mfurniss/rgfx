@@ -11,6 +11,7 @@ import FirmwarePage from './pages/firmware-page';
 import EffectsPlaygroundPage from './pages/effects-playground-page';
 import SimulatorPage from './pages/simulator-page';
 import GamesPage from './pages/games-page';
+import SettingsPage from './pages/settings-page';
 import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
@@ -107,6 +108,7 @@ const App: React.FC = () => {
               <Route path="/firmware" element={<FirmwarePage />} />
               <Route path="/effects-playground" element={<EffectsPlaygroundPage />} />
               <Route path="/simulator" element={<SimulatorPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </AppLayout>

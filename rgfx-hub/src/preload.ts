@@ -168,6 +168,21 @@ export const rgfxAPI = {
   simulateEvent: (eventLine: string): Promise<void> => {
     return ipcRenderer.invoke('event:simulate', eventLine);
   },
+
+  getDefaultPaths: (): Promise<{
+    rgfxConfigDirectory: string;
+    mameRomsDirectory: string;
+  }> => {
+    return ipcRenderer.invoke('paths:get-defaults');
+  },
+
+  selectFolder: (title?: string, defaultPath?: string): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:select-folder', title, defaultPath);
+  },
+
+  verifyDirectory: (path: string): Promise<boolean> => {
+    return ipcRenderer.invoke('fs:verify-directory', path);
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);
