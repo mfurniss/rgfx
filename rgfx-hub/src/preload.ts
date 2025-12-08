@@ -152,8 +152,36 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:open-log', driverId);
   },
 
+  openFile: (filePath: string): Promise<{ success: boolean; error?: string }> => {
+    return ipcRenderer.invoke('file:open', filePath);
+  },
+
+  listGames: (): Promise<{
+    interceptorPath: string | null;
+    interceptorName: string | null;
+    transformerPath: string | null;
+    transformerName: string | null;
+  }[]> => {
+    return ipcRenderer.invoke('games:list');
+  },
+
   simulateEvent: (eventLine: string): Promise<void> => {
     return ipcRenderer.invoke('event:simulate', eventLine);
+  },
+
+  getDefaultPaths: (): Promise<{
+    rgfxConfigDirectory: string;
+    mameRomsDirectory: string;
+  }> => {
+    return ipcRenderer.invoke('paths:get-defaults');
+  },
+
+  selectDirectory: (title?: string, defaultPath?: string): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:select-directory', title, defaultPath);
+  },
+
+  verifyDirectory: (path: string): Promise<boolean> => {
+    return ipcRenderer.invoke('fs:verify-directory', path);
   },
 };
 

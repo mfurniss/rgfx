@@ -9,6 +9,8 @@ import { ipcMain, app, type BrowserWindow } from 'electron';
 import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
+import { serializeDriverForIPC } from '../types';
+import { markDriverOtaStarted, markDriverOtaFinished } from '../ota-state';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -38,6 +40,16 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
 
+      // Mark driver as in OTA mode to prevent LWT "offline" from disconnecting it
+      markDriverOtaStarted(driverId);
+
+      // Touch driver immediately at OTA start to reset timeout
+      const initialTouch = driverRegistry.touchDriver(driverId);
+
+      if (initialTouch) {
+        getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(initialTouch));
+      }
+
       const firmwarePath = app.isPackaged
         ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
         : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', 'firmware.bin');
@@ -53,6 +65,14 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
+
+        // Touch driver on state changes too
+        const touchedDriver = driverRegistry.touchDriver(driverId);
+
+        if (touchedDriver) {
+          getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(touchedDriver));
+        }
+
         getMainWindow()?.webContents.send('flash:ota:state', { driverId, state });
       });
 
@@ -62,6 +82,15 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
         if (percent !== lastPercent) {
           log.info(`OTA progress: ${percent}%`);
+
+          // Touch driver to keep it marked as connected during OTA
+          // (OTA activity proves the driver is still responsive)
+          const updatedDriver = driverRegistry.touchDriver(driverId);
+
+          if (updatedDriver) {
+            getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(updatedDriver));
+          }
+
           getMainWindow()?.webContents.send('flash:ota:progress', {
             driverId,
             sent: data.sent,
@@ -75,10 +104,12 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       await esp.uploadFile(firmwarePath, ipAddress, 3232, EspOTA.FLASH);
 
       log.info(`OTA flash to ${driverId} completed successfully`);
+      markDriverOtaFinished(driverId);
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log.error('OTA flash failed:', errorMessage);
+      markDriverOtaFinished(driverId);
       return { success: false, error: errorMessage };
     }
   });

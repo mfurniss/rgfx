@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Paper, Typography, Box, Chip, Tooltip, IconButton, Alert, Stack } from '@mui/material';
+import { Paper, Typography, Box, IconButton, Alert, Stack } from '@mui/material';
 import SuperButton from './super-button';
+import DriverState from './driver-state';
 import {
   Memory as MemoryIcon,
   Router as RouterIcon,
@@ -64,6 +65,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     if (rssi >= -70) {
       return 'Fair';
     }
+
     return 'Poor';
   };
 
@@ -239,9 +241,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1,
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
             <IconButton
               onClick={() => {
                 void navigate('/');
@@ -252,35 +256,31 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" sx={{ pb: 0 }}>{driver.id}</Typography>
-            {!driver.connected ? (
-              <Chip label="Disconnected" color="error" size="small" />
-            ) : currentFirmwareVersion &&
-              telemetry?.firmwareVersion &&
-              telemetry.firmwareVersion !== currentFirmwareVersion ? (
-                <Tooltip
-                  title={`Driver: ${telemetry.firmwareVersion}, Hub: ${currentFirmwareVersion}`}
-                  arrow
-                >
-                  <Chip label="Update Available" color="warning" size="small" />
-                </Tooltip>
-              ) : !driver.ledConfig ? (
-                <Tooltip title="Connected but needs LED configuration" arrow>
-                  <Chip label="Needs Configuration" color="warning" size="small" />
-                </Tooltip>
-              ) : (
-                <Chip label="Connected" color="success" size="small" />
-              )}
+            <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
           </Stack>
-          <SuperButton
-            variant="outlined"
-            size="small"
-            icon={<SettingsIcon />}
-            onClick={() => {
-              void navigate(`/driver/${driver.mac}/config`);
-            }}
-          >
-            Configure Driver
-          </SuperButton>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <ResetDriverButton driver={driver} />
+            <SuperButton
+              icon={<DescriptionIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                void window.rgfx.openDriverLog(driver.id);
+              }}
+            >
+              Open driver log
+            </SuperButton>
+            <SuperButton
+              variant="outlined"
+              size="small"
+              icon={<SettingsIcon />}
+              onClick={() => {
+                void navigate(`/driver/${driver.mac}/config`);
+              }}
+            >
+              Configure Driver
+            </SuperButton>
+          </Box>
         </Box>
       </Paper>
 
@@ -292,24 +292,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           title="LED Configuration"
           icon={<LightbulbIcon fontSize="small" color="action" />}
           rows={ledRows}
-          titleAction={
-            driver.ledConfig ? (
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <TestLedButton driver={driver} />
-                <ResetDriverButton driver={driver} />
-                <Tooltip title="Open driver log file">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      void window.rgfx.openDriverLog(driver.id);
-                    }}
-                  >
-                    <DescriptionIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            ) : undefined
-          }
+          titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
         >
           {!driver.ledConfig && (
             <Alert severity="warning">

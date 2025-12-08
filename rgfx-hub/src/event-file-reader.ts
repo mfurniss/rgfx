@@ -6,10 +6,10 @@
  */
 
 import { watch, readFileSync, statSync, existsSync, mkdirSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 import log from 'electron-log/main';
 import { EVENT_LOG_FILENAME, EVENT_FILE_POLL_INTERVAL_MS } from './config/constants';
+import { CONFIG_DIRECTORY } from './config/paths';
 
 export class EventFileReader {
   private filePath: string;
@@ -22,14 +22,12 @@ export class EventFileReader {
     if (customFilePath) {
       this.filePath = customFilePath;
     } else {
-      const rgfxDir = join(homedir(), '.rgfx');
-
       try {
-        mkdirSync(rgfxDir, { recursive: true });
+        mkdirSync(CONFIG_DIRECTORY, { recursive: true });
       } catch (err) {
         log.error('Failed to create .rgfx directory:', err);
       }
-      this.filePath = join(rgfxDir, EVENT_LOG_FILENAME);
+      this.filePath = join(CONFIG_DIRECTORY, EVENT_LOG_FILENAME);
     }
     log.info(`Event file path: ${this.filePath}`);
   }

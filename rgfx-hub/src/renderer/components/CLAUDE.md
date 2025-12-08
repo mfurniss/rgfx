@@ -174,22 +174,41 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
-### OtaDriverSelector
+### DriverState
 
-**File:** [ota-driver-selector.tsx](ota-driver-selector.tsx)
+**File:** [driver-state.tsx](driver-state.tsx)
 
-**Purpose:** Dropdown to select a driver for OTA firmware update.
+**Purpose:** Displays driver connection state as a chip with optional update warning indicator.
+
+**Props:**
+- `driver: Driver` - The driver to display state for
+- `currentFirmwareVersion?: string` - Hub's current firmware version for comparison
+
+**Features:**
+- Connected: green chip, Disconnected: red chip
+- Orange warning icon when firmware update available (version mismatch)
+- Clicking warning navigates to firmware page
+
+---
+
+### TargetDriversPicker
+
+**File:** [target-drivers-picker.tsx](target-drivers-picker.tsx)
+
+**Purpose:** Dropdown popover for selecting which drivers to target for effects.
 
 **Props:**
 - `drivers: Driver[]` - Available drivers
-- `selectedDriver: string` - Currently selected driver ID
-- `onDriverSelect: (id) => void` - Selection callback
-- `disabled: boolean` - Disable selector
+- `selectedDrivers: Set<string>` - Currently selected driver IDs
+- `selectAll: boolean` - Whether "select all" is checked
+- `onDriverToggle: (driverId) => void` - Toggle callback
+- `onSelectAll: () => void` - Select all callback
 
 **Features:**
-- Shows driver ID and IP (or "offline")
-- Disables offline drivers in dropdown
-- Warning alert when no drivers connected
+- Popover with checkbox list
+- "All Drivers" option with indeterminate state
+- Shows driver IP or "disconnected"
+- Disables offline drivers
 
 ---
 
@@ -297,3 +316,56 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Stacked vertically from bottom-left
 - Clickable notifications link to driver detail page (if driverId present)
 - Uses NotificationStore for state
+
+---
+
+### SuperButton
+
+**File:** [super-button.tsx](super-button.tsx)
+
+**Purpose:** Enhanced button with tooltip support and busy state indicator.
+
+**Props:**
+- `children: React.ReactNode` - Button text (required)
+- `tooltipTitle?: string` - Optional tooltip text
+- `icon?: React.ReactNode` - Optional start icon
+- `busyIcon?: React.ReactNode` - Icon shown during busy state (default: CircularProgress)
+- `busy?: boolean` - Show busy state with spinner
+- Plus all standard MUI ButtonProps
+
+**Features:**
+- Wraps MUI Button with optional tooltip
+- Busy state disables button and shows spinner
+- Span wrapper allows tooltip on disabled buttons
+
+---
+
+## Effect Form Components
+
+### EffectForm
+
+**File:** [effect-form/effect-form.tsx](effect-form/effect-form.tsx)
+
+**Purpose:** Dynamic form generator for effect properties based on Zod schemas.
+
+**Props:**
+- `schema: z.ZodObject` - Zod schema defining form fields
+- `defaultValues: Record<string, unknown>` - Initial form values
+- `onChange: (values) => void` - Callback when form values change
+
+**Features:**
+- Introspects Zod schema to generate form fields automatically
+- Uses react-hook-form with Zod resolver for validation
+- Resets form when schema changes
+- Grid layout with responsive columns
+
+### FieldRenderer
+
+**File:** [effect-form/field-renderer.tsx](effect-form/field-renderer.tsx)
+
+**Purpose:** Renders individual form fields based on inferred field metadata.
+
+**Features:**
+- Supports text, number, boolean, enum, and color field types
+- Integrates with react-hook-form Controller
+- Shows validation errors from form state

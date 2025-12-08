@@ -68,7 +68,12 @@ beforeEach(() => {
     triggerDiscovery: vi.fn(),
     triggerEffect: vi.fn(),
     openDriverLog: vi.fn(),
+    openFile: vi.fn(),
+    listGames: vi.fn(),
     simulateEvent: vi.fn(),
+    getDefaultPaths: vi.fn(),
+    selectDirectory: vi.fn(),
+    verifyDirectory: vi.fn(),
   };
 });
 

@@ -2,7 +2,8 @@ import React from 'react';
 import { Button, Tooltip, CircularProgress } from '@mui/material';
 import type { ButtonProps } from '@mui/material';
 
-interface SuperButtonProps extends Omit<ButtonProps, 'startIcon'> {
+interface SuperButtonProps extends Omit<ButtonProps, 'startIcon' | 'children'> {
+  children: React.ReactNode;
   tooltipTitle?: string;
   icon?: React.ReactNode;
   busyIcon?: React.ReactNode;

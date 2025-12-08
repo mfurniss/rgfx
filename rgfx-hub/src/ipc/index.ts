@@ -21,7 +21,12 @@ import { registerUpdateDriverConfigHandler } from './update-driver-config-handle
 import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
 import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
 import { registerOpenDriverLogHandler } from './open-driver-log-handler';
+import { registerOpenFileHandler } from './open-file-handler';
+import { registerListGamesHandler } from './list-games-handler';
 import { registerSimulateEventHandler } from './simulate-event-handler';
+import { registerGetDefaultPathsHandler } from './get-default-paths-handler';
+import { registerSelectDirectoryHandler } from './select-directory-handler';
+import { registerVerifyDirectoryHandler } from './verify-directory-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -45,5 +50,10 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerSaveDriverConfigHandler(deps);
   registerListLEDHardwareHandler(deps);
   registerOpenDriverLogHandler(deps);
+  registerOpenFileHandler();
+  registerListGamesHandler();
   registerSimulateEventHandler(deps);
+  registerGetDefaultPathsHandler();
+  registerSelectDirectoryHandler();
+  registerVerifyDirectoryHandler();
 }

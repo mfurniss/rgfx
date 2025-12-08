@@ -8,6 +8,7 @@ import {
   Terminal as TerminalIcon,
   Settings as SettingsIcon,
   Info as InfoIcon,
+  SportsEsports as GamesIcon,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -19,6 +20,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'System Status', path: '/', icon: <DashboardIcon /> },
+  { label: 'Games', path: '/games', icon: <GamesIcon /> },
   { label: 'Event Monitor', path: '/events', icon: <MonitorIcon /> },
   { label: 'Firmware', path: '/firmware', icon: <FirmwareIcon /> },
   { label: 'FX Playground', path: '/effects-playground', icon: <ScienceIcon /> },
