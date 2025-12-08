@@ -81,7 +81,7 @@ const GamesPage: React.FC = () => {
                     handleSort('romName');
                   }}
                 >
-                  ROM
+                  MAME ROM File
                 </TableSortLabel>
               </TableCell>
               <TableCell>
@@ -92,7 +92,7 @@ const GamesPage: React.FC = () => {
                     handleSort('interceptorName');
                   }}
                 >
-                  Interceptor
+                  MAME Interceptor
                 </TableSortLabel>
               </TableCell>
               <TableCell>
@@ -103,7 +103,7 @@ const GamesPage: React.FC = () => {
                     handleSort('transformerName');
                   }}
                 >
-                  Transformer
+                  RGFX Hub Transformer
                 </TableSortLabel>
               </TableCell>
             </TableRow>

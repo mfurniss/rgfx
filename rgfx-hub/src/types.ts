@@ -281,7 +281,7 @@ declare global {
       listGames: () => Promise<GameInfo[]>;
       simulateEvent: (eventLine: string) => Promise<void>;
       getDefaultPaths: () => Promise<DefaultPaths>;
-      selectFolder: (title?: string, defaultPath?: string) => Promise<string | null>;
+      selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
       verifyDirectory: (path: string) => Promise<boolean>;
     };
   }
