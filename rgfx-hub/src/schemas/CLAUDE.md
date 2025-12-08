@@ -43,6 +43,7 @@ Effect property schemas for LED visual effects sent to drivers.
 
 ### effects/properties/
 Reusable property schemas shared across effects:
+- `index.ts` - Re-exports all property schemas
 - `base.ts` - Base schema all effects extend (`color`, `reset`)
 - `color.ts` - RGB color validation
 - `centerX.ts` / `centerY.ts` - Center point for radial effects

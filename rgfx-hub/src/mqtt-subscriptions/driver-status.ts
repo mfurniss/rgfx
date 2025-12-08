@@ -11,6 +11,7 @@ import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
 import { serializeDriverForIPC } from '../types';
+import { isDriverInOta } from '../ota-state';
 
 interface DriverStatusDeps {
   mqtt: MqttBroker;
@@ -44,6 +45,13 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
     const mainWindow = getMainWindow();
 
     if (payload === 'offline' && driver.connected) {
+      // Ignore LWT offline messages during OTA updates - the ESP32 disconnects
+      // from MQTT to receive firmware, but we don't want to mark it as disconnected
+      if (isDriverInOta(driverId)) {
+        log.info(`Driver ${driverId} LWT offline ignored (OTA in progress)`);
+        return;
+      }
+
       log.warn(`Driver ${driverId} went offline (LWT triggered)`);
       driver.ip = undefined;
       driver.connected = false;

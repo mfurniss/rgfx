@@ -327,6 +327,20 @@ export class DriverRegistry {
     return driver;
   }
 
+  // Update lastSeenAt timestamp for a driver (keeps driver marked as connected)
+  // Used during OTA updates when telemetry stops but driver is still responsive
+  touchDriver(driverId: string): Driver | undefined {
+    const driver = this.drivers.get(driverId);
+
+    if (!driver) {
+      return undefined;
+    }
+
+    driver.lastSeenAt = Date.now();
+    this.drivers.set(driverId, driver);
+    return driver;
+  }
+
   // Get count of connected drivers only
   getConnectedCount(): number {
     return Array.from(this.drivers.values()).reduce(
