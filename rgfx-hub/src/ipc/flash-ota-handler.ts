@@ -10,6 +10,7 @@ import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { serializeDriverForIPC } from '../types';
+import { markDriverOtaStarted, markDriverOtaFinished } from '../ota-state';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -38,6 +39,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
 
       log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
+
+      // Mark driver as in OTA mode to prevent LWT "offline" from disconnecting it
+      markDriverOtaStarted(driverId);
 
       // Touch driver immediately at OTA start to reset timeout
       const initialTouch = driverRegistry.touchDriver(driverId);
@@ -100,10 +104,12 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       await esp.uploadFile(firmwarePath, ipAddress, 3232, EspOTA.FLASH);
 
       log.info(`OTA flash to ${driverId} completed successfully`);
+      markDriverOtaFinished(driverId);
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log.error('OTA flash failed:', errorMessage);
+      markDriverOtaFinished(driverId);
       return { success: false, error: errorMessage };
     }
   });
