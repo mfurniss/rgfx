@@ -241,9 +241,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1,
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
             <IconButton
               onClick={() => {
                 void navigate('/');
@@ -256,16 +258,29 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             <Typography variant="h6" sx={{ pb: 0 }}>{driver.id}</Typography>
             <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
           </Stack>
-          <SuperButton
-            variant="outlined"
-            size="small"
-            icon={<SettingsIcon />}
-            onClick={() => {
-              void navigate(`/driver/${driver.mac}/config`);
-            }}
-          >
-            Configure Driver
-          </SuperButton>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <ResetDriverButton driver={driver} />
+            <SuperButton
+              icon={<DescriptionIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                void window.rgfx.openDriverLog(driver.id);
+              }}
+            >
+              Open driver log
+            </SuperButton>
+            <SuperButton
+              variant="outlined"
+              size="small"
+              icon={<SettingsIcon />}
+              onClick={() => {
+                void navigate(`/driver/${driver.mac}/config`);
+              }}
+            >
+              Configure Driver
+            </SuperButton>
+          </Box>
         </Box>
       </Paper>
 
@@ -277,24 +292,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           title="LED Configuration"
           icon={<LightbulbIcon fontSize="small" color="action" />}
           rows={ledRows}
-          titleAction={
-            driver.ledConfig ? (
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <TestLedButton driver={driver} />
-                <ResetDriverButton driver={driver} />
-                <SuperButton
-                  icon={<DescriptionIcon />}
-                  variant="outlined"
-                  size="small"
-                  onClick={() => {
-                    void window.rgfx.openDriverLog(driver.id);
-                  }}
-                >
-                  Open driver log
-                </SuperButton>
-              </Box>
-            ) : undefined
-          }
+          titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
         >
           {!driver.ledConfig && (
             <Alert severity="warning">
