@@ -1,0 +1,13 @@
+{
+  "name": "SEZO 16x16 Matrix",
+  "description": "16x16 WS2812B flexible LED panel with 256 individually addressable pixels",
+  "sku": null,
+  "asin": null,
+  "layout": "matrix-br-h-snake",
+  "count": 256,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB",
+  "colorCorrection": "TypicalLEDStrip",
+  "width": 16,
+  "height": 16
+}
