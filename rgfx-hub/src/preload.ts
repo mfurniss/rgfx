@@ -176,8 +176,8 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('paths:get-defaults');
   },
 
-  selectFolder: (title?: string, defaultPath?: string): Promise<string | null> => {
-    return ipcRenderer.invoke('dialog:select-folder', title, defaultPath);
+  selectDirectory: (title?: string, defaultPath?: string): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:select-directory', title, defaultPath);
   },
 
   verifyDirectory: (path: string): Promise<boolean> => {

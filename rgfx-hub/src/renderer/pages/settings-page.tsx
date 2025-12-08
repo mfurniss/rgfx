@@ -119,7 +119,7 @@ const SettingsPage: React.FC = () => {
 
   const handleSelectConfigDir = () => {
     void (async () => {
-      const selected = await window.rgfx.selectFolder(
+      const selected = await window.rgfx.selectDirectory(
         'Select RGFX Config Directory',
         configDir || defaultConfigDir,
       );
@@ -136,7 +136,7 @@ const SettingsPage: React.FC = () => {
 
   const handleSelectRomsDir = () => {
     void (async () => {
-      const selected = await window.rgfx.selectFolder(
+      const selected = await window.rgfx.selectDirectory(
         'Select MAME ROMs Directory',
         romsDir || undefined,
       );

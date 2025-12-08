@@ -25,7 +25,7 @@ import { registerOpenFileHandler } from './open-file-handler';
 import { registerListGamesHandler } from './list-games-handler';
 import { registerSimulateEventHandler } from './simulate-event-handler';
 import { registerGetDefaultPathsHandler } from './get-default-paths-handler';
-import { registerSelectFolderHandler } from './select-folder-handler';
+import { registerSelectDirectoryHandler } from './select-directory-handler';
 import { registerVerifyDirectoryHandler } from './verify-directory-handler';
 
 interface IpcHandlersDeps {
@@ -54,6 +54,6 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerListGamesHandler();
   registerSimulateEventHandler(deps);
   registerGetDefaultPathsHandler();
-  registerSelectFolderHandler();
+  registerSelectDirectoryHandler();
   registerVerifyDirectoryHandler();
 }

@@ -72,7 +72,7 @@ beforeEach(() => {
     listGames: vi.fn(),
     simulateEvent: vi.fn(),
     getDefaultPaths: vi.fn(),
-    selectFolder: vi.fn(),
+    selectDirectory: vi.fn(),
     verifyDirectory: vi.fn(),
   };
 });

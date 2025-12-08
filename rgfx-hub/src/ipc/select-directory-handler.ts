@@ -7,12 +7,12 @@
 
 import { ipcMain, dialog } from 'electron';
 
-export function registerSelectFolderHandler(): void {
+export function registerSelectDirectoryHandler(): void {
   ipcMain.handle(
-    'dialog:select-folder',
+    'dialog:select-directory',
     async (_event, title?: string, defaultPath?: string): Promise<string | null> => {
       const result = await dialog.showOpenDialog({
-        title: title ?? 'Select Folder',
+        title: title ?? 'Select Directory',
         defaultPath,
         properties: ['openDirectory', 'createDirectory'],
       });
