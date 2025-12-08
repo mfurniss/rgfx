@@ -280,6 +280,9 @@ declare global {
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
       listGames: () => Promise<GameInfo[]>;
       simulateEvent: (eventLine: string) => Promise<void>;
+      getDefaultPaths: () => Promise<DefaultPaths>;
+      selectFolder: (title?: string, defaultPath?: string) => Promise<string | null>;
+      verifyDirectory: (path: string) => Promise<boolean>;
     };
   }
 }
@@ -290,4 +293,9 @@ export interface GameInfo {
   interceptorName: string | null;
   transformerPath: string | null;
   transformerName: string | null;
+}
+
+export interface DefaultPaths {
+  rgfxConfigDirectory: string;
+  mameRomsDirectory: string;
 }

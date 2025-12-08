@@ -71,6 +71,9 @@ beforeEach(() => {
     openFile: vi.fn(),
     listGames: vi.fn(),
     simulateEvent: vi.fn(),
+    getDefaultPaths: vi.fn(),
+    selectFolder: vi.fn(),
+    verifyDirectory: vi.fn(),
   };
 });
 

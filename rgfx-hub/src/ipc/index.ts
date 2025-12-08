@@ -24,6 +24,9 @@ import { registerOpenDriverLogHandler } from './open-driver-log-handler';
 import { registerOpenFileHandler } from './open-file-handler';
 import { registerListGamesHandler } from './list-games-handler';
 import { registerSimulateEventHandler } from './simulate-event-handler';
+import { registerGetDefaultPathsHandler } from './get-default-paths-handler';
+import { registerSelectFolderHandler } from './select-folder-handler';
+import { registerVerifyDirectoryHandler } from './verify-directory-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -50,4 +53,7 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerOpenFileHandler();
   registerListGamesHandler();
   registerSimulateEventHandler(deps);
+  registerGetDefaultPathsHandler();
+  registerSelectFolderHandler();
+  registerVerifyDirectoryHandler();
 }

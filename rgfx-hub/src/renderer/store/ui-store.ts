@@ -26,6 +26,10 @@ interface UiState {
   // Simulator page state
   simulatorRows: SimulatorRow[];
 
+  // Settings page state
+  rgfxConfigDirectory: string;
+  mameRomsDirectory: string;
+
   // Actions
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
   setTestEffectsState: (
@@ -35,6 +39,8 @@ interface UiState {
     selectAll: boolean
   ) => void;
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
+  setRgfxConfigDirectory: (path: string) => void;
+  setMameRomsDirectory: (path: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -56,6 +62,10 @@ export const useUiStore = create<UiState>()(
         autoInterval: 'off' as SimulatorAutoInterval,
       })),
 
+      // Settings defaults
+      rgfxConfigDirectory: '',
+      mameRomsDirectory: '',
+
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
       },
@@ -76,6 +86,14 @@ export const useUiStore = create<UiState>()(
           return { simulatorRows: newRows };
         });
       },
+
+      setRgfxConfigDirectory: (path) => {
+        set({ rgfxConfigDirectory: path });
+      },
+
+      setMameRomsDirectory: (path) => {
+        set({ mameRomsDirectory: path });
+      },
     }),
     {
       name: 'rgfx-ui-preferences',
@@ -83,6 +101,8 @@ export const useUiStore = create<UiState>()(
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
         simulatorRows: state.simulatorRows,
+        rgfxConfigDirectory: state.rgfxConfigDirectory,
+        mameRomsDirectory: state.mameRomsDirectory,
       }),
     },
   ),
