@@ -34,11 +34,9 @@ Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern)
 Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
                uint8_t uCols, uint8_t uRows,
                const uint8_t* panelOrder,
+               const uint8_t* panelRotation,
                const String& layoutPattern)
-    : width(pWidth * uCols),
-      height(pHeight * uRows),
-      size((uint32_t)pWidth * uCols * pHeight * uRows),
-      leds(nullptr),
+    : leds(nullptr),
       coordinateMap(nullptr),
       layout(layoutPattern),
       layoutType((layoutPattern == "strip") ? LayoutType::STRIP : LayoutType::MATRIX),
@@ -46,6 +44,18 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
       panelHeight(pHeight),
       unifiedCols(uCols),
       unifiedRows(uRows) {
+	// Calculate effective panel dimensions after rotation
+	// For 90°/270° rotations, width and height swap in the logical display
+	uint8_t firstRotation = panelRotation[0];
+	bool dimsSwapped = (firstRotation == 1 || firstRotation == 3);
+	uint16_t effectivePanelWidth = dimsSwapped ? pHeight : pWidth;
+	uint16_t effectivePanelHeight = dimsSwapped ? pWidth : pHeight;
+
+	// Set unified display dimensions using effective panel size
+	width = effectivePanelWidth * uCols;
+	height = effectivePanelHeight * uRows;
+	size = (uint32_t)width * height;
+
 	leds = (CRGB*)malloc(size * sizeof(CRGB));
 	if (!leds) {
 		log("ERROR: Failed to allocate LED buffer for unified display");
@@ -56,6 +66,7 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
 	    panelWidth, panelHeight,
 	    unifiedCols, unifiedRows,
 	    panelOrder,
+	    panelRotation,
 	    layout.c_str()
 	);
 	if (!coordinateMap) {
@@ -67,7 +78,8 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
 
 	log("Unified matrix created: " + String(width) + "x" + String(height) +
 	    " (" + String(unifiedCols) + "x" + String(unifiedRows) + " panels of " +
-	    String(panelWidth) + "x" + String(panelHeight) + ")");
+	    String(panelWidth) + "x" + String(panelHeight) +
+	    (dimsSwapped ? " rotated" : "") + ")");
 }
 
 bool Matrix::isValid() const {
