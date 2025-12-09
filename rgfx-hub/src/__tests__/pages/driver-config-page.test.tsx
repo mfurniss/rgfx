@@ -72,10 +72,13 @@ beforeEach(() => {
     listGames: vi.fn(),
     simulateEvent: vi.fn(),
     selectDirectory: vi.fn(),
-    rgfxConfigDirectory: '/mock/.rgfx',
-    mameRomsDirectory: '/mock/mame-roms',
     verifyDirectory: vi.fn(),
-    getLicensePath: vi.fn(),
+    getAppInfo: vi.fn().mockResolvedValue({
+      version: '0.0.1-test',
+      licensePath: '/mock/LICENSE',
+      defaultRgfxConfigDir: '/mock/.rgfx',
+      defaultMameRomsDir: '/mock/mame-roms',
+    }),
   };
 });
 

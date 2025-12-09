@@ -15,6 +15,7 @@ import SettingsPage from './pages/settings-page';
 import AboutPage from './pages/about-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
+import { useAppInfoStore } from './store/app-info-store';
 import { useSimulatorAutoTrigger } from './hooks/use-simulator-auto-trigger';
 import { theme } from './theme';
 
@@ -82,16 +83,19 @@ const App: React.FC = () => {
     onDriverConnected, onDriverDisconnected, onDriverUpdated, onSystemStatusUpdate, onEventTopic,
   ]);
 
-  // Signal renderer ready only once per app lifecycle (not per mount)
+  // Signal renderer ready and get app info only once per app lifecycle (not per mount)
+  const getAppInfo = useAppInfoStore((state) => state.getAppInfo);
+
   useEffect(() => {
     if (!rendererReadyCalled) {
       console.log('[APP] Signaling renderer ready');
       window.rgfx.rendererReady();
+      void getAppInfo();
       rendererReadyCalled = true;
     } else {
       console.log('[APP] Skipping rendererReady - already called');
     }
-  }, []);
+  }, [getAppInfo]);
 
   return (
     <ThemeProvider theme={theme}>

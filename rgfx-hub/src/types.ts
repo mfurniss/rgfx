@@ -4,6 +4,16 @@ import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
+ * Static application information returned by a single IPC call at startup
+ */
+export interface AppInfo {
+  version: string;
+  licensePath: string;
+  defaultRgfxConfigDir: string;
+  defaultMameRomsDir: string;
+}
+
+/**
  * LED Configuration Types
  */
 type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
@@ -256,9 +266,7 @@ export interface EventTopicData {
 declare global {
   interface Window {
     rgfx: {
-      // Static paths (computed once at preload)
-      rgfxConfigDirectory: string;
-      mameRomsDirectory: string;
+      getAppInfo: () => Promise<AppInfo>;
 
       onDriverConnected: (callback: (driver: Driver) => void) => () => void;
       onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
@@ -293,7 +301,6 @@ declare global {
       simulateEvent: (eventLine: string) => Promise<void>;
       selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
       verifyDirectory: (path: string) => Promise<boolean>;
-      getLicensePath: () => Promise<string>;
     };
   }
 }
