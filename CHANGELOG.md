@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Per-panel rotation support for unified LED matrix displays
+  - Unified panel entries now use string format: `"<index><rotation>"` (e.g., `"0a"`, `"1b"`, `"2c"`, `"3d"`)
+  - Rotation codes: `a`=0°, `b`=90°, `c`=180°, `d`=270° (clockwise)
+  - Rotation suffix is optional; defaults to `a` (0°) if omitted (e.g., `"0"` = `"0a"`)
+  - Allows individual panels in a unified display to be physically rotated
+  - ESP32 applies rotation transforms when building coordinate map
 - Games page in Hub UI showing configured games with their interceptor and transformer files
   - New "Games" menu item in sidebar navigation
   - Two-column table displaying Lua interceptor and JS transformer filenames

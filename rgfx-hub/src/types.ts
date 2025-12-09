@@ -64,13 +64,16 @@ export interface DriverLEDConfig {
   powerSupplyVolts?: number | null;
   maxPowerMilliamps?: number | null;
   /**
-   * Unified panel layout - 2D array mapping grid positions to panel chain indices.
+   * Unified panel layout - 2D array mapping grid positions to panel chain indices with rotation.
    * Array structure defines grid: rows = length, cols = first row length.
-   * Each number is the panel's index in the physical LED chain (0 = first panel wired).
-   * Example: [[0, 1], [3, 2]] = 2x2 grid with snake wiring
+   * Each string is "<index><rotation>" where:
+   *   - index = panel's position in the physical LED chain (0 = first panel wired)
+   *   - rotation = optional letter: a=0°, b=90°, c=180°, d=270° (default: a)
+   * Examples: "0", "0a", "1b", "2c", "3d"
+   * Full example: [["0a", "1b"], ["3d", "2c"]] = 2x2 grid with per-panel rotation
    * Defaults to null (single panel, no unification)
    */
-  unified?: number[][] | null;
+  unified?: string[][] | null;
 }
 
 /**
@@ -96,6 +99,10 @@ export interface DriverTelemetry {
   sdkVersion: string;
   sketchSize: number;
   freeSketchSpace: number;
+
+  // Crash/reset information
+  lastResetReason?: string;
+  crashCount?: number;
 
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
   // and pushed to drivers via MQTT - not reported in telemetry

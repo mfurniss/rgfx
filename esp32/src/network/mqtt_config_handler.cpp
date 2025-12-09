@@ -117,11 +117,31 @@ void handleDriverConfig(const String& payload) {
 				devCfg.unifiedRows = unified.size();
 				devCfg.unifiedCols = unified[0].size();
 
-				// Flatten the 2D array to panelOrder vector (row-major)
+				// Flatten the 2D array to panelOrder and panelRotation vectors (row-major)
+				// Format: "<index><rotation>" where rotation is optional a/b/c/d
 				devCfg.panelOrder.clear();
+				devCfg.panelRotation.clear();
 				for (JsonArray row : unified) {
-					for (int idx : row) {
+					for (JsonVariant entry : row) {
+						String str = entry.as<String>();
+						// Extract numeric index (all digits at start)
+						int idx = 0;
+						size_t i = 0;
+						while (i < str.length() && str[i] >= '0' && str[i] <= '9') {
+							idx = idx * 10 + (str[i] - '0');
+							i++;
+						}
 						devCfg.panelOrder.push_back((uint8_t)idx);
+
+						// Extract rotation (optional letter at end: a=0, b=1, c=2, d=3)
+						uint8_t rotation = 0;  // Default: 0° (same as 'a')
+						if (i < str.length()) {
+							char rotChar = str[i];
+							if (rotChar >= 'a' && rotChar <= 'd') {
+								rotation = rotChar - 'a';
+							}
+						}
+						devCfg.panelRotation.push_back(rotation);
 					}
 				}
 
@@ -131,6 +151,18 @@ void handleDriverConfig(const String& payload) {
 				    " panels of " + String(devCfg.panelWidth) + "x" + String(devCfg.panelHeight));
 				log("  Total: " + String(devCfg.width) + "x" + String(devCfg.height) +
 				    " (" + String(devCfg.count) + " LEDs)");
+				// Log parsed panel order and rotations for debugging
+				String orderStr = "  PanelOrder: [";
+				String rotStr = "  PanelRotation: [";
+				for (size_t i = 0; i < devCfg.panelOrder.size(); i++) {
+					if (i > 0) { orderStr += ", "; rotStr += ", "; }
+					orderStr += String(devCfg.panelOrder[i]);
+					rotStr += String(devCfg.panelRotation[i]);
+				}
+				orderStr += "]";
+				rotStr += "]";
+				log(orderStr);
+				log(rotStr);
 			} else {
 				// Single panel (no unification)
 				devCfg.panelWidth = devCfg.width;
@@ -139,6 +171,8 @@ void handleDriverConfig(const String& payload) {
 				devCfg.unifiedCols = 1;
 				devCfg.panelOrder.clear();
 				devCfg.panelOrder.push_back(0);
+				devCfg.panelRotation.clear();
+				devCfg.panelRotation.push_back(0);  // Default: no rotation
 
 				log("Device: " + devCfg.name + " (" + devCfg.id + ")");
 				log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
@@ -215,15 +249,32 @@ void handleDriverConfig(const String& payload) {
 				}
 
 				// Check if Matrix exists and if dimensions/layout changed
+				// Also recreate if unified config is present (rotations may have changed)
+				bool hasUnifiedConfig = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1;
+				for (uint8_t rot : firstDevice.panelRotation) {
+					if (rot != 0) {
+						hasUnifiedConfig = true;
+						break;
+					}
+				}
+
 				if (matrix == nullptr) {
 					needsRecreation = true;
 					log("Creating Matrix for first time");
 				} else if (matrix->width != newWidth || matrix->height != newHeight || matrix->layout != newLayout) {
 					needsRecreation = true;
 					log("Matrix dimensions or layout changed, recreating");
+				} else if (hasUnifiedConfig) {
+					// Always recreate for unified configs since rotations may have changed
+					// (Matrix doesn't store rotation array to compare)
+					needsRecreation = true;
+					log("Unified config detected, recreating Matrix to apply panel rotations");
 				}
 
 				if (needsRecreation) {
+					// Set flag to prevent main loop from accessing matrix/effectProcessor during update
+					g_configUpdateInProgress = true;
+
 					// Delete old matrix if it exists
 					if (matrix != nullptr) {
 						delete matrix;
@@ -238,13 +289,21 @@ void handleDriverConfig(const String& payload) {
 						log("EffectProcessor cleared due to Matrix change");
 					}
 
-					// Create new Matrix - use unified constructor if multi-panel
-					bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1;
+					// Create new Matrix - use unified constructor if multi-panel or has rotation
+					bool hasRotation = false;
+					for (uint8_t rot : firstDevice.panelRotation) {
+						if (rot != 0) {
+							hasRotation = true;
+							break;
+						}
+					}
+					bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1 || hasRotation;
 					if (isUnified) {
 						matrix = new (std::nothrow) Matrix(
 						    firstDevice.panelWidth, firstDevice.panelHeight,
 						    firstDevice.unifiedCols, firstDevice.unifiedRows,
 						    firstDevice.panelOrder.data(),
+						    firstDevice.panelRotation.data(),
 						    newLayout
 						);
 					} else {
@@ -272,6 +331,9 @@ void handleDriverConfig(const String& payload) {
 					matrix->leds = leds;
 
 					log("Matrix now using FastLED buffer directly");
+
+					// Clear update flag - safe for main loop to access matrix again
+					g_configUpdateInProgress = false;
 				} else {
 					// Matrix dimensions haven't changed, just update LED buffer pointer
 					matrix->leds = leds;

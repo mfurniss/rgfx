@@ -32,6 +32,7 @@ class Matrix {
 	Matrix(uint16_t panelWidth, uint16_t panelHeight,
 	       uint8_t unifiedCols, uint8_t unifiedRows,
 	       const uint8_t* panelOrder,
+	       const uint8_t* panelRotation,
 	       const String& layoutPattern = "matrix-br-v-snake");
 
 	~Matrix();

@@ -16,7 +16,7 @@ Effects → Canvas (4x resolution, RGBA) → Downsample → Matrix (1x resolutio
 |------|-------------|
 | `canvas.h/cpp` | High-resolution RGBA drawing surface with blend modes |
 | `matrix.h/cpp` | Physical LED matrix abstraction with coordinate mapping |
-| `coordinate_transforms.h/cpp` | Layout-based coordinate transformations for various matrix wiring patterns |
+| `coordinate_transforms.h/cpp` | Layout-based coordinate transformations for various matrix wiring patterns, including unified multi-panel support |
 | `downsample.h/cpp` | 4x4 box filter downsampling for Canvas-to-Canvas operations |
 | `downsample_to_matrix.h` | Template function to downsample and composite multiple effect canvases to Matrix |
 
@@ -48,6 +48,23 @@ The Matrix class represents the physical LED array with:
 - Logical (x, y) coordinate access via `led(x, y)` and `xy(x, y)`
 - Layout-aware coordinate mapping (strips, various matrix wiring patterns)
 - Direct FastLED CRGB buffer access
+- Unified multi-panel support with per-panel rotation
+
+### Constructors
+
+**Single panel:**
+```cpp
+Matrix(uint16_t width, uint16_t height, const String& layoutPattern);
+```
+
+**Unified multi-panel:**
+```cpp
+Matrix(uint16_t panelWidth, uint16_t panelHeight,
+       uint8_t unifiedCols, uint8_t unifiedRows,
+       const uint8_t* panelOrder,
+       const uint8_t* panelRotation,
+       const String& layoutPattern);
+```
 
 ### Layout Types
 - `STRIP` - 1D LED strip (height = 1)
@@ -58,6 +75,62 @@ The coordinate transform system supports multiple wiring patterns:
 - `matrix-tl-h-snake` - Top-left, horizontal, serpentine
 - `matrix-br-v-snake` - Bottom-right, vertical, serpentine
 - And other combinations of origin/direction/pattern
+
+### Unified Panel Configuration
+
+Multiple identical panels can be combined into a single logical display using the unified panel system:
+
+- **panelOrder**: Array of panel chain indices in row-major grid order
+- **panelRotation**: Array of rotation values per panel (0=0°, 1=90°, 2=180°, 3=270° clockwise)
+
+**Example:** Four 8x8 panels in a 2x2 grid with mixed rotations:
+```
+Config: [["2b", "3b"], ["1b", "0a"]]
+
+panelOrder = [2, 3, 1, 0]     // Grid position -> chain index
+panelRotation = [1, 1, 1, 0]  // b=90°, b=90°, b=90°, a=0°
+```
+
+**Rotation handling:**
+- Square panels (NxN): All rotations result in same dimensions
+- Non-square panels (WxH): 90°/270° rotations swap dimensions (WxH becomes HxW)
+- Each panel's rotation is applied independently when building the coordinate map
+- Grid cell dimensions are determined by the first panel's rotation
+
+## Coordinate Transforms
+
+The `coordinate_transforms.cpp` module provides coordinate mapping from logical (x, y) positions to physical LED indices.
+
+### Functions
+
+**Single panel:**
+```cpp
+uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout);
+```
+
+**Unified multi-panel:**
+```cpp
+uint16_t* buildUnifiedCoordinateMap(
+    uint16_t panelWidth, uint16_t panelHeight,
+    uint8_t unifiedCols, uint8_t unifiedRows,
+    const uint8_t* panelOrder,
+    const uint8_t* panelRotation,
+    const char* layout
+);
+```
+
+### Rotation Math
+
+The coordinate transform applies an **inverse rotation** to map from logical display coordinates back to physical panel coordinates:
+
+| Rotation | Inverse Transform |
+|----------|-------------------|
+| 0° (a)   | `(x, y)` |
+| 90° (b)  | `(y, effW - 1 - x)` |
+| 180° (c) | `(effW - 1 - x, effH - 1 - y)` |
+| 270° (d) | `(effH - 1 - y, x)` |
+
+Where `effW` and `effH` are the effective dimensions after rotation (swapped for 90°/270°).
 
 ## Downsample Pipeline
 

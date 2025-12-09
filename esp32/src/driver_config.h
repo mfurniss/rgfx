@@ -27,11 +27,12 @@ struct LEDDeviceConfig {
 	uint16_t height;  // Matrix height (0 if not a matrix)
 
 	// Unified panel configuration (for multi-panel displays)
-	uint16_t panelWidth;               // Single panel width (0 if not unified)
-	uint16_t panelHeight;              // Single panel height (0 if not unified)
-	uint8_t unifiedRows;               // Number of panel rows (1 if not unified)
-	uint8_t unifiedCols;               // Number of panel columns (1 if not unified)
-	std::vector<uint8_t> panelOrder;   // Panel chain indices, row-major order
+	uint16_t panelWidth;                // Single panel width (0 if not unified)
+	uint16_t panelHeight;               // Single panel height (0 if not unified)
+	uint8_t unifiedRows;                // Number of panel rows (1 if not unified)
+	uint8_t unifiedCols;                // Number of panel columns (1 if not unified)
+	std::vector<uint8_t> panelOrder;    // Panel chain indices, row-major order
+	std::vector<uint8_t> panelRotation; // Rotation per panel: 0=0°, 1=90°, 2=180°, 3=270°
 
 	// Constructor with defaults
 	LEDDeviceConfig()
@@ -76,5 +77,11 @@ extern DriverConfigData g_driverConfig;
  * Flag indicating whether configuration has been received from Hub
  */
 extern bool g_configReceived;
+
+/**
+ * Flag indicating config update is in progress (Matrix/EffectProcessor being recreated)
+ * Used to prevent race conditions between Core 0 (MQTT) and Core 1 (main loop)
+ */
+extern volatile bool g_configUpdateInProgress;
 
 #endif

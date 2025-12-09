@@ -10,54 +10,104 @@ import { UnifiedPanelLayoutSchema } from '../driver-persistence';
 
 describe('UnifiedPanelLayoutSchema', () => {
   describe('valid layouts', () => {
-    it('should accept single panel [[0]]', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0]]);
+    it('should accept single panel [["0"]]', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0']]);
       expect(result.success).toBe(true);
     });
 
-    it('should accept 2x1 horizontal layout [[0, 1]]', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0, 1]]);
+    it('should accept 2x1 horizontal layout [["0", "1"]]', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0', '1']]);
       expect(result.success).toBe(true);
     });
 
-    it('should accept 1x2 vertical layout [[0], [1]]', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0], [1]]);
+    it('should accept 1x2 vertical layout [["0"], ["1"]]', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0'], ['1']]);
       expect(result.success).toBe(true);
     });
 
-    it('should accept 2x2 sequential layout [[0, 1], [2, 3]]', () => {
+    it('should accept 2x2 sequential layout [["0", "1"], ["2", "3"]]', () => {
       const result = UnifiedPanelLayoutSchema.safeParse([
-        [0, 1],
-        [2, 3],
+        ['0', '1'],
+        ['2', '3'],
       ]);
       expect(result.success).toBe(true);
     });
 
-    it('should accept 2x2 snake wiring layout [[0, 1], [3, 2]]', () => {
+    it('should accept 2x2 snake wiring layout [["0", "1"], ["3", "2"]]', () => {
       const result = UnifiedPanelLayoutSchema.safeParse([
-        [0, 1],
-        [3, 2],
+        ['0', '1'],
+        ['3', '2'],
       ]);
       expect(result.success).toBe(true);
     });
 
     it('should accept 3x3 layout with arbitrary wiring order', () => {
       const result = UnifiedPanelLayoutSchema.safeParse([
-        [0, 1, 2],
-        [5, 4, 3],
-        [6, 7, 8],
+        ['0', '1', '2'],
+        ['5', '4', '3'],
+        ['6', '7', '8'],
       ]);
       expect(result.success).toBe(true);
     });
 
     it('should accept 1x4 horizontal layout', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0, 1, 2, 3]]);
+      const result = UnifiedPanelLayoutSchema.safeParse([['0', '1', '2', '3']]);
       expect(result.success).toBe(true);
     });
 
     it('should accept 4x1 vertical layout', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0], [1], [2], [3]]);
+      const result = UnifiedPanelLayoutSchema.safeParse([['0'], ['1'], ['2'], ['3']]);
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('rotation suffix validation', () => {
+    it('should accept panel with rotation suffix "a" (0°)', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0a']]);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept panel with rotation suffix "b" (90°)', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0b']]);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept panel with rotation suffix "c" (180°)', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0c']]);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept panel with rotation suffix "d" (270°)', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0d']]);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept mixed rotations in 2x2 grid', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([
+        ['0a', '1b'],
+        ['3c', '2d'],
+      ]);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept multi-digit indices with rotation', () => {
+      // Create a valid 12-panel layout to test multi-digit indices
+      const result = UnifiedPanelLayoutSchema.safeParse([
+        ['0a', '1b', '2c', '3d'],
+        ['4', '5', '6', '7'],
+        ['8', '9', '10a', '11b'],
+      ]);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid rotation suffix', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['0e']]);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject rotation without index', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([['a']]);
+      expect(result.success).toBe(false);
     });
   });
 
@@ -86,8 +136,8 @@ describe('UnifiedPanelLayoutSchema', () => {
 
     it('should reject jagged array (inconsistent row lengths)', () => {
       const result = UnifiedPanelLayoutSchema.safeParse([
-        [0, 1],
-        [2], // Only 1 element instead of 2
+        ['0', '1'],
+        ['2'], // Only 1 element instead of 2
       ]);
       expect(result.success).toBe(false);
 
@@ -98,20 +148,15 @@ describe('UnifiedPanelLayoutSchema', () => {
       }
     });
 
-    it('should reject non-integer values', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0.5, 1.5]]);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject string values', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([['a', 'b']]);
+    it('should reject number values', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([[0, 1]]);
       expect(result.success).toBe(false);
     });
   });
 
   describe('sequence validation', () => {
     it('should reject non-sequential indices (missing value)', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0, 2]]); // Missing 1
+      const result = UnifiedPanelLayoutSchema.safeParse([['0', '2']]); // Missing 1
       expect(result.success).toBe(false);
 
       if (!result.success) {
@@ -122,7 +167,7 @@ describe('UnifiedPanelLayoutSchema', () => {
     });
 
     it('should reject duplicate indices', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[0, 0]]);
+      const result = UnifiedPanelLayoutSchema.safeParse([['0', '0']]);
       expect(result.success).toBe(false);
 
       if (!result.success) {
@@ -132,13 +177,8 @@ describe('UnifiedPanelLayoutSchema', () => {
       }
     });
 
-    it('should reject negative indices', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[-1, 0]]);
-      expect(result.success).toBe(false);
-    });
-
     it('should reject indices starting from non-zero', () => {
-      const result = UnifiedPanelLayoutSchema.safeParse([[1, 2]]); // Should start from 0
+      const result = UnifiedPanelLayoutSchema.safeParse([['1', '2']]); // Should start from 0
       expect(result.success).toBe(false);
 
       if (!result.success) {
@@ -150,8 +190,22 @@ describe('UnifiedPanelLayoutSchema', () => {
 
     it('should reject indices with gaps in 2x2 grid', () => {
       const result = UnifiedPanelLayoutSchema.safeParse([
-        [0, 1],
-        [2, 5], // 5 instead of 3, skips 3 and 4
+        ['0', '1'],
+        ['2', '5'], // 5 instead of 3, skips 3 and 4
+      ]);
+      expect(result.success).toBe(false);
+
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe(
+          'Panel indices must be sequential from 0 to n-1',
+        );
+      }
+    });
+
+    it('should validate sequence with rotation suffixes', () => {
+      const result = UnifiedPanelLayoutSchema.safeParse([
+        ['0a', '1b'],
+        ['2c', '5d'], // 5 instead of 3, gap
       ]);
       expect(result.success).toBe(false);
 
@@ -167,18 +221,31 @@ describe('UnifiedPanelLayoutSchema', () => {
     it('should accept large valid grid', () => {
       // 4x4 grid with all 16 panels
       const result = UnifiedPanelLayoutSchema.safeParse([
-        [0, 1, 2, 3],
-        [7, 6, 5, 4],
-        [8, 9, 10, 11],
-        [15, 14, 13, 12],
+        ['0', '1', '2', '3'],
+        ['7', '6', '5', '4'],
+        ['8', '9', '10', '11'],
+        ['15', '14', '13', '12'],
       ]);
       expect(result.success).toBe(true);
     });
 
     it('should preserve the original array order when valid', () => {
       const input = [
-        [0, 1],
-        [3, 2],
+        ['0', '1'],
+        ['3', '2'],
+      ];
+      const result = UnifiedPanelLayoutSchema.safeParse(input);
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data).toEqual(input);
+      }
+    });
+
+    it('should preserve rotation suffixes in output', () => {
+      const input = [
+        ['0a', '1b'],
+        ['3c', '2d'],
       ];
       const result = UnifiedPanelLayoutSchema.safeParse(input);
       expect(result.success).toBe(true);
