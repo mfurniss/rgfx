@@ -65,8 +65,7 @@ The embedded Lua environment is **Lua 5.4** with Sol3 bindings.
 
 ```bash
 # Launch game with RGFX
-cd mame
-./launch.sh pacman
+./scripts/launch-mame.sh pacman
 
 # Start RGFX Hub (in another terminal)
 cd rgfx-hub
@@ -75,5 +74,5 @@ npm start
 
 ## Key Files
 
-- `mame/launch.sh` - Launches MAME with rgfx.lua autoboot script
+- `scripts/launch-mame.sh` - Launches MAME with rgfx.lua autoboot script
 - Event log: `$TMPDIR/rgfx_events.log` (macOS/Linux) or `%TEMP%\rgfx_events.log` (Windows)
