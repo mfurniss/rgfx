@@ -34,32 +34,17 @@ const SettingsPage: React.FC = () => {
   const setMameRomsDirectory = useUiStore((state) => state.setMameRomsDirectory);
   const addNotification = useNotificationStore((state) => state.addNotification);
 
-  // Local form state
-  const [configDir, setConfigDir] = useState(storedRgfxConfigDirectory);
+  // Local form state - use static defaults from preload
+  const defaultConfigDir = window.rgfx.rgfxConfigDirectory;
+  const [configDir, setConfigDir] = useState(storedRgfxConfigDirectory || defaultConfigDir);
   const [romsDir, setRomsDir] = useState(storedMameRomsDirectory);
   const [configDirError, setConfigDirError] = useState<string | null>(null);
   const [romsDirError, setRomsDirError] = useState<string | null>(null);
-  const [defaultConfigDir, setDefaultConfigDir] = useState('');
-
-  // Load defaults and initialize form
-  useEffect(() => {
-    const loadDefaults = async () => {
-      const defaults = await window.rgfx.getDefaultPaths();
-      setDefaultConfigDir(defaults.rgfxConfigDirectory);
-
-      // If no stored value, use the default
-      if (!storedRgfxConfigDirectory) {
-        setConfigDir(defaults.rgfxConfigDirectory);
-      }
-    };
-
-    void loadDefaults();
-  }, [storedRgfxConfigDirectory]);
 
   // Sync local state when store changes
   useEffect(() => {
-    setConfigDir(storedRgfxConfigDirectory);
-  }, [storedRgfxConfigDirectory]);
+    setConfigDir(storedRgfxConfigDirectory || defaultConfigDir);
+  }, [storedRgfxConfigDirectory, defaultConfigDir]);
 
   useEffect(() => {
     setRomsDir(storedMameRomsDirectory);
