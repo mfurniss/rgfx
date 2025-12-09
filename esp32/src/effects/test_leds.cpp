@@ -37,12 +37,16 @@ void TestLedsEffect::render() {
 		canvas.drawRectangle(midX, midY, midX, midY, CRGB(255, 255, 0));  // Bottom-Right: Yellow
 	}
 
-	// White orientation marker at top-left of each physical panel
+	// White orientation marker at top-left of each logical panel cell
 	// Canvas is 4x the matrix size, so draw a 4x4 block to map to one LED after downsampling
-	uint16_t pWidth = matrix.getPanelWidth() * 4;
-	uint16_t pHeight = (matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.getPanelHeight() * 4;
+	// Use logical cell dimensions (width/cols, height/rows) not physical panel dimensions,
+	// since panel rotations can swap effective dimensions
 	uint8_t cols = matrix.getUnifiedCols();
 	uint8_t rows = matrix.getUnifiedRows();
+	uint16_t cellWidth = (cols > 1) ? (matrix.width / cols) : matrix.width;
+	uint16_t cellHeight = (rows > 1) ? (matrix.height / rows) : matrix.height;
+	uint16_t pWidth = cellWidth * 4;
+	uint16_t pHeight = (matrix.layoutType == LayoutType::STRIP) ? 1 : cellHeight * 4;
 
 	for (uint8_t row = 0; row < rows; row++) {
 		for (uint8_t col = 0; col < cols; col++) {

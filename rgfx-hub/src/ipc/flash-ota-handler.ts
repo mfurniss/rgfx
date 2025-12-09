@@ -105,6 +105,12 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       log.info(`OTA flash to ${driverId} completed successfully`);
       markDriverOtaFinished(driverId);
+
+      // Mark driver as disconnected since it will reboot
+      driver.connected = false;
+      driver.ip = undefined;
+      getMainWindow()?.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
+
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
