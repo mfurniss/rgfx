@@ -1,11 +1,27 @@
-import React from 'react';
-import { Typography, Box, Paper } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Typography, Box, Paper, Link } from '@mui/material';
+import { Info as InfoIcon } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 
 const AboutPage: React.FC = () => {
   const version = '0.0.1-Test';
+  const [licensePath, setLicensePath] = useState<string | null>(null);
+
+  useEffect(() => {
+    void window.rgfx.getDefaultPaths().then((paths) => {
+      setLicensePath(paths.licensePath);
+    });
+  }, []);
+
+  const handleOpenLicense = () => {
+    if (licensePath) {
+      void window.rgfx.openFile(licensePath);
+    }
+  };
 
   return (
     <Box>
+      <PageTitle icon={<InfoIcon />} title="About" />
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           Retro Game Effects
@@ -72,7 +88,11 @@ const AboutPage: React.FC = () => {
           Copyright &copy; 2025 Matt Furniss
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+          This Source Code Form is subject to the terms of the{' '}
+          <Link component="button" variant="body2" onClick={handleOpenLicense}>
+            Mozilla Public License, v. 2.0
+          </Link>
+          .
         </Typography>
       </Paper>
     </Box>

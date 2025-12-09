@@ -6,7 +6,7 @@
  */
 
 import { ipcMain } from 'electron';
-import { CONFIG_DIRECTORY, ROMS_DIRECTORY } from '../config/paths';
+import { CONFIG_DIRECTORY, ROMS_DIRECTORY, getLicensePath } from '../config/paths';
 import type { DefaultPaths } from '../types';
 
 export function registerGetDefaultPathsHandler(): void {
@@ -14,6 +14,7 @@ export function registerGetDefaultPathsHandler(): void {
     return {
       rgfxConfigDirectory: CONFIG_DIRECTORY,
       mameRomsDirectory: ROMS_DIRECTORY,
+      licensePath: getLicensePath(),
     };
   });
 }
