@@ -313,8 +313,8 @@ describe('createUploadConfigToDriver', () => {
         ledConfig: {
           ...mockPersistedDriver.ledConfig,
           unified: [
-            [0, 1],
-            [3, 2],
+            ['0', '1'],
+            ['3', '2'],
           ],
         },
       };
@@ -341,8 +341,8 @@ describe('createUploadConfigToDriver', () => {
       expect(device.panel_width).toBe(8);
       expect(device.panel_height).toBe(8);
       expect(device.unified).toEqual([
-        [0, 1],
-        [3, 2],
+        ['0', '1'],
+        ['3', '2'],
       ]);
     });
 
@@ -351,7 +351,7 @@ describe('createUploadConfigToDriver', () => {
         ...mockPersistedDriver,
         ledConfig: {
           ...mockPersistedDriver.ledConfig,
-          unified: [[0, 1, 2]],
+          unified: [['0', '1', '2']],
         },
       };
 
@@ -381,7 +381,7 @@ describe('createUploadConfigToDriver', () => {
         ...mockPersistedDriver,
         ledConfig: {
           ...mockPersistedDriver.ledConfig,
-          unified: [[0], [1], [2]],
+          unified: [['0'], ['1'], ['2']],
         },
       };
 
@@ -416,7 +416,7 @@ describe('createUploadConfigToDriver', () => {
         ...mockPersistedDriver,
         ledConfig: {
           ...mockPersistedDriver.ledConfig,
-          unified: [[0, 1]],
+          unified: [['0', '1']],
         },
       };
 

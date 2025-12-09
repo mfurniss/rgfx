@@ -93,6 +93,13 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   // Driver telemetry from periodic heartbeats - always show if any data available
   const telemetryRows: InfoRowData[] = [
+    // Reset/crash information
+    ...(telemetry?.lastResetReason
+      ? [{ label: 'Last Reset Reason', value: telemetry.lastResetReason }]
+      : []),
+    ...(telemetry?.crashCount !== undefined && telemetry.crashCount > 0
+      ? [{ label: 'Crash Count', value: formatNumber(telemetry.crashCount) }]
+      : []),
     // Driver Uptime from telemetry
     ...(telemetry ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
     // Memory from heartbeat telemetry

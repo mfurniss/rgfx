@@ -18,13 +18,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -d "$SCRIPT_DIR/../Resources/mame" ]]; then
     # Production: script is in Contents/MacOS or similar
     RGFX_LUA="$SCRIPT_DIR/../Resources/mame/rgfx.lua"
-elif [[ -d "$SCRIPT_DIR/../assets/mame" ]]; then
-    # Development: script is in rgfx-hub/scripts
-    RGFX_LUA="$SCRIPT_DIR/../assets/mame/rgfx.lua"
+elif [[ -d "$SCRIPT_DIR/../rgfx-hub/assets/mame" ]]; then
+    # Development: script is in project root scripts/
+    RGFX_LUA="$SCRIPT_DIR/../rgfx-hub/assets/mame/rgfx.lua"
 else
     echo "Error: Could not find rgfx.lua"
     echo "Expected locations:"
-    echo "  Development: $SCRIPT_DIR/../assets/mame/rgfx.lua"
+    echo "  Development: $SCRIPT_DIR/../rgfx-hub/assets/mame/rgfx.lua"
     echo "  Production:  $SCRIPT_DIR/../Resources/mame/rgfx.lua"
     exit 1
 fi

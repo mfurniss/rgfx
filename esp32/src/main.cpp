@@ -24,6 +24,7 @@
 #include "utils.h"
 #include "version.h"
 #include "serial.h"
+#include "crash_handler.h"
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
@@ -60,6 +61,10 @@ void setup() {
 	// Initialize log queue for thread-safe remote logging
 	// Must be done before any log() calls that could be sent to hub
 	initLogQueue();
+
+	// Check for previous crash BEFORE anything else that might crash
+	// This logs crash info to Serial immediately
+	initCrashHandler();
 
 	log("\n\nRGFX Driver v" + String(RGFX_VERSION) + " starting...");
 	log("Core 0: Protocol/Network core (WiFi, MQTT, Web, Display)");
@@ -229,7 +234,8 @@ void loop() {
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
 	// UDP is processed at top of loop() for lowest latency
 	// Skip effect processing during OTA to prevent clearing progress indicator
-	if (isConnected && udpSetupDone && !otaInProgress) {
+	// Skip during config update to prevent race conditions with Core 0
+	if (isConnected && udpSetupDone && !otaInProgress && !g_configUpdateInProgress) {
 		// Initialize effect processor on first run (only if matrix is ready and valid)
 		if (effectProcessor == nullptr && matrix != nullptr && matrix->isValid()) {
 			effectProcessor = new (std::nothrow) EffectProcessor(*matrix);
@@ -250,6 +256,9 @@ void loop() {
 			effectProcessor->update();
 		}
 	}
+
+	// Update crash handler with current uptime (so we know uptime at crash)
+	updateCrashUptime();
 
 	// Yield to task scheduler (prevents watchdog timer issues)
 	yield();

@@ -26,5 +26,7 @@ export const DriverTelemetrySchema = TelemetryPayloadSchema.pick({
   sdkVersion: true,
   sketchSize: true,
   freeSketchSpace: true,
+  lastResetReason: true,
+  crashCount: true,
 });
 
