@@ -71,9 +71,11 @@ beforeEach(() => {
     openFile: vi.fn(),
     listGames: vi.fn(),
     simulateEvent: vi.fn(),
-    getDefaultPaths: vi.fn(),
     selectDirectory: vi.fn(),
+    rgfxConfigDirectory: '/mock/.rgfx',
+    mameRomsDirectory: '/mock/mame-roms',
     verifyDirectory: vi.fn(),
+    getLicensePath: vi.fn(),
   };
 });
 

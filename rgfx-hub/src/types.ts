@@ -256,6 +256,10 @@ export interface EventTopicData {
 declare global {
   interface Window {
     rgfx: {
+      // Static paths (computed once at preload)
+      rgfxConfigDirectory: string;
+      mameRomsDirectory: string;
+
       onDriverConnected: (callback: (driver: Driver) => void) => () => void;
       onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
       onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
@@ -287,9 +291,9 @@ declare global {
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
       listGames: () => Promise<GameInfo[]>;
       simulateEvent: (eventLine: string) => Promise<void>;
-      getDefaultPaths: () => Promise<DefaultPaths>;
       selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
       verifyDirectory: (path: string) => Promise<boolean>;
+      getLicensePath: () => Promise<string>;
     };
   }
 }
@@ -300,10 +304,4 @@ export interface GameInfo {
   interceptorName: string | null;
   transformerPath: string | null;
   transformerName: string | null;
-}
-
-export interface DefaultPaths {
-  rgfxConfigDirectory: string;
-  mameRomsDirectory: string;
-  licensePath: string;
 }
