@@ -14,6 +14,7 @@ The VSCode workspace contains three key projects.
 
 ## Changes
 
+Read the CHANGELOG.md file before starting work.
 Keep a change log in the project root. The file is /CHANGELOG.md. If this file does not exist create it. Each time a change is committed, write a record of the change to the change log.
 
 Certain folders contain their own local CLAUDE.md files which hold detailed context and information for the files in the folder. It is very important that these are kept up to date. Remember to update these after making changes.
