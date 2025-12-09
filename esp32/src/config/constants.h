@@ -47,7 +47,7 @@ constexpr const char* MQTT_USER = "";
 /** MQTT password (empty if no authentication) */
 constexpr const char* MQTT_PASSWORD = "";
 
-/** MQTT buffer size for large JSON payloads */
+/** MQTT buffer size for JSON payloads */
 constexpr uint16_t MQTT_BUFFER_SIZE = 1024;
 
 /** SSDP broker discovery poll interval (milliseconds) */

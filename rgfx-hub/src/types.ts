@@ -100,6 +100,10 @@ export interface DriverTelemetry {
   sketchSize: number;
   freeSketchSpace: number;
 
+  // Crash/reset information
+  lastResetReason?: string;
+  crashCount?: number;
+
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
   // and pushed to drivers via MQTT - not reported in telemetry
 }
