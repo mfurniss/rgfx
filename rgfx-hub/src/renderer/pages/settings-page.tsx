@@ -17,7 +17,9 @@ import {
   SettingsBrightness,
   Save,
   FolderOpen,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 import { useColorScheme } from '@mui/material/styles';
 import { useUiStore } from '../store/ui-store';
 import { useNotificationStore } from '../store/notification-store';
@@ -153,9 +155,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        Settings
-      </Typography>
+      <PageTitle icon={<SettingsIcon />} title="Settings" />
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>

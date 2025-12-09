@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   Paper,
-  Typography,
   TextField,
   Stack,
   FormControl,
@@ -13,6 +12,7 @@ import {
 import { Terminal as TerminalIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
 import { useUiStore, SimulatorAutoInterval } from '../store/ui-store';
 import SuperButton from '../components/super-button';
+import { PageTitle } from '../components/page-title';
 
 export default function SimulatorPage() {
   const simulatorRows = useUiStore((state) => state.simulatorRows);
@@ -40,11 +40,8 @@ export default function SimulatorPage() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <TerminalIcon />
-        Event Simulator
-      </Typography>
+    <Box>
+      <PageTitle icon={<TerminalIcon />} title="Event Simulator" />
 
       <Paper sx={{ p: 3, mt: 2 }}>
         <Stack spacing={2}>

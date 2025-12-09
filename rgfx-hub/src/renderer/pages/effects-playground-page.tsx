@@ -24,6 +24,7 @@ import {
   Science as ScienceIcon,
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 import { TargetDriversPicker } from '../components/target-drivers-picker';
 import SuperButton from '../components/super-button';
 import { useDriverStore } from '../store/driver-store';
@@ -246,11 +247,8 @@ export default function TestEffectsPage() {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <ScienceIcon />
-        Effects Playground
-      </Typography>
+    <Box>
+      <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
 
       <Paper sx={{ p: 3, mt: 2 }}>
         <Tabs
@@ -258,7 +256,7 @@ export default function TestEffectsPage() {
           onChange={(_, v: number) => {
             setTabIndex(v);
           }}
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
         >
           <Tab label="Effect Form" />
           <Tab label="Transformer Code" />

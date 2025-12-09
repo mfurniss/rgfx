@@ -14,7 +14,8 @@ import ConfirmFlashDialog from '../components/confirm-flash-dialog';
 import SerialPortSelector from '../components/serial-port-selector';
 import { TargetDriversPicker } from '../components/target-drivers-picker';
 import SuperButton from '../components/super-button';
-import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icons-material';
+import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as FirmwareIcon } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
@@ -507,9 +508,7 @@ const FirmwarePage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Firmware Management
-      </Typography>
+      <PageTitle icon={<FirmwareIcon />} title="Firmware" />
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>

@@ -305,4 +305,5 @@ export interface GameInfo {
 export interface DefaultPaths {
   rgfxConfigDirectory: string;
   mameRomsDirectory: string;
+  licensePath: string;
 }

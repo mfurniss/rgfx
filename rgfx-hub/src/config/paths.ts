@@ -10,6 +10,7 @@
  * This file must ONLY be imported from main process code, not renderer.
  */
 
+import { app } from 'electron';
 import { homedir } from 'os';
 import { join } from 'path';
 
@@ -24,3 +25,9 @@ export const INTERCEPTORS_DIRECTORY = join(CONFIG_DIRECTORY, 'interceptors');
 
 /** Directory for ROM files */
 export const ROMS_DIRECTORY = join(homedir(), 'mame-roms');
+
+/** Path to LICENSE file (bundled as extraResource) */
+export const getLicensePath = (): string =>
+  app.isPackaged
+    ? join(process.resourcesPath, 'LICENSE')
+    : join(app.getAppPath(), '..', 'LICENSE');
