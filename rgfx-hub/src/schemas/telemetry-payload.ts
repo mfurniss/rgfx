@@ -42,5 +42,8 @@ export const TelemetryPayloadSchema = z.object({
   // Statistics
   mqttMessagesReceived: z.number().optional(),
   udpMessagesReceived: z.number().optional(),
+  // Crash/reset information
+  lastResetReason: z.string().optional(),
+  crashCount: z.number().optional(),
 });
 

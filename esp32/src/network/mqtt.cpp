@@ -9,6 +9,7 @@
 #include "config/config_nvs.h"
 #include "effects/effect_processor.h"
 #include "serial_commands/commands.h"
+#include "crash_handler.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
@@ -282,6 +283,11 @@ void reconnectMQTT() {
 		mqttClient.publish(statusTopic.c_str(), "online", true, 2);
 		log("Published status: online to " + statusTopic);
 
+		// FIRST: Send crash report if we recovered from a crash
+		// This must happen before anything else to ensure crash data reaches Hub
+		// even if we crash again shortly after (e.g., when processing LED config)
+		publishCrashReport();
+
 		// Send initial driver telemetry
 		sendDriverTelemetry();
 
@@ -329,17 +335,17 @@ void sendDriverTelemetry() {
 	String payload;
 	serializeJson(doc, payload);
 
-	// Check if payload exceeds MQTT buffer size (1024 bytes configured in constructor)
-	if (payload.length() > 1024) {
+	// Check if payload exceeds MQTT buffer size
+	if (payload.length() > MQTT_BUFFER_SIZE) {
 		log("ERROR: Telemetry payload too large for MQTT buffer");
 		log("Payload size: " + String(payload.length()) + " bytes");
-		log("Buffer size: 1024 bytes");
+		log("Buffer size: " + String(MQTT_BUFFER_SIZE) + " bytes");
 
 		// Send error message instead with QoS 2
 		JsonDocument errorDoc;
 		errorDoc["error"] = "Payload too large for MQTT buffer";
 		errorDoc["payloadSize"] = payload.length();
-		errorDoc["bufferSize"] = 1024;
+		errorDoc["bufferSize"] = MQTT_BUFFER_SIZE;
 		errorDoc["mac"] = WiFi.macAddress();
 		errorDoc["ip"] = WiFi.localIP().toString();
 
