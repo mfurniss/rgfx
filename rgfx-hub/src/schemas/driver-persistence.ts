@@ -8,13 +8,31 @@
 import { z } from 'zod';
 
 /**
+ * Panel entry format: "<index><rotation>" where:
+ *   - index = panel chain index (0, 1, 2, ...)
+ *   - rotation = optional letter: a=0°, b=90°, c=180°, d=270° (default: a if omitted)
+ * Examples: "0", "0a", "1b", "10c", "2d"
+ */
+const PanelEntrySchema = z.string().regex(/^[0-9]+[abcd]?$/, {
+  message: 'Panel entry must be "<index>" or "<index><rotation>" (e.g., "0", "1a", "2b")',
+});
+
+/**
+ * Extract the panel index from a panel entry string
+ */
+function extractPanelIndex(entry: string): number {
+  const match = /^([0-9]+)/.exec(entry);
+  return match ? parseInt(match[1], 10) : -1;
+}
+
+/**
  * Unified panel layout schema
- * 2D array where each number is the panel's index in the physical LED chain.
+ * 2D array where each string encodes panel index and rotation.
  * Array structure defines grid: rows = length, cols = first row length.
- * Example: [[0, 1], [3, 2]] = 2x2 grid with snake wiring
+ * Example: [["0a", "1b"], ["3d", "2c"]] = 2x2 grid with per-panel rotation
  */
 export const UnifiedPanelLayoutSchema = z
-  .array(z.array(z.number().int().min(0)))
+  .array(z.array(PanelEntrySchema))
   .refine(
     (rows) => {
       if (rows.length === 0) {
@@ -33,9 +51,9 @@ export const UnifiedPanelLayoutSchema = z
   )
   .refine(
     (rows) => {
-      const flat = rows.flat();
-      const expected = Array.from({ length: flat.length }, (_, i) => i);
-      const sorted = [...flat].sort((a, b) => a - b);
+      const indices = rows.flat().map(extractPanelIndex);
+      const expected = Array.from({ length: indices.length }, (_, i) => i);
+      const sorted = [...indices].sort((a, b) => a - b);
 
       return JSON.stringify(sorted) === JSON.stringify(expected);
     },

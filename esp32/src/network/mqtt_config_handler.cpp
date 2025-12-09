@@ -117,11 +117,31 @@ void handleDriverConfig(const String& payload) {
 				devCfg.unifiedRows = unified.size();
 				devCfg.unifiedCols = unified[0].size();
 
-				// Flatten the 2D array to panelOrder vector (row-major)
+				// Flatten the 2D array to panelOrder and panelRotation vectors (row-major)
+				// Format: "<index><rotation>" where rotation is optional a/b/c/d
 				devCfg.panelOrder.clear();
+				devCfg.panelRotation.clear();
 				for (JsonArray row : unified) {
-					for (int idx : row) {
+					for (JsonVariant entry : row) {
+						String str = entry.as<String>();
+						// Extract numeric index (all digits at start)
+						int idx = 0;
+						size_t i = 0;
+						while (i < str.length() && str[i] >= '0' && str[i] <= '9') {
+							idx = idx * 10 + (str[i] - '0');
+							i++;
+						}
 						devCfg.panelOrder.push_back((uint8_t)idx);
+
+						// Extract rotation (optional letter at end: a=0, b=1, c=2, d=3)
+						uint8_t rotation = 0;  // Default: 0° (same as 'a')
+						if (i < str.length()) {
+							char rotChar = str[i];
+							if (rotChar >= 'a' && rotChar <= 'd') {
+								rotation = rotChar - 'a';
+							}
+						}
+						devCfg.panelRotation.push_back(rotation);
 					}
 				}
 
@@ -139,6 +159,8 @@ void handleDriverConfig(const String& payload) {
 				devCfg.unifiedCols = 1;
 				devCfg.panelOrder.clear();
 				devCfg.panelOrder.push_back(0);
+				devCfg.panelRotation.clear();
+				devCfg.panelRotation.push_back(0);  // Default: no rotation
 
 				log("Device: " + devCfg.name + " (" + devCfg.id + ")");
 				log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
@@ -238,13 +260,21 @@ void handleDriverConfig(const String& payload) {
 						log("EffectProcessor cleared due to Matrix change");
 					}
 
-					// Create new Matrix - use unified constructor if multi-panel
-					bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1;
+					// Create new Matrix - use unified constructor if multi-panel or has rotation
+					bool hasRotation = false;
+					for (uint8_t rot : firstDevice.panelRotation) {
+						if (rot != 0) {
+							hasRotation = true;
+							break;
+						}
+					}
+					bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1 || hasRotation;
 					if (isUnified) {
 						matrix = new (std::nothrow) Matrix(
 						    firstDevice.panelWidth, firstDevice.panelHeight,
 						    firstDevice.unifiedCols, firstDevice.unifiedRows,
 						    firstDevice.panelOrder.data(),
+						    firstDevice.panelRotation.data(),
 						    newLayout
 						);
 					} else {

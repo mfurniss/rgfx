@@ -166,13 +166,26 @@ uint16_t* buildUnifiedCoordinateMap(
     uint16_t panelWidth, uint16_t panelHeight,
     uint8_t unifiedCols, uint8_t unifiedRows,
     const uint8_t* panelOrder,
+    const uint8_t* panelRotation,
     const char* layout
 ) {
 	CoordinateTransform transform = findTransform(layout);
 
+	// For the unified display grid, we need to determine effective panel dimensions.
+	// Each panel can have independent rotation, but the grid cells must be uniform size.
+	// For square panels: all rotations result in same dimensions (NxN stays NxN)
+	// For non-square panels: user must ensure compatible rotations for grid alignment
+	//
+	// We use the first panel's rotation to determine logical cell dimensions for the grid,
+	// but each panel's rotation is applied independently when mapping coordinates.
+	uint8_t firstRotation = panelRotation[0];
+	bool dimsSwapped = (firstRotation == 1 || firstRotation == 3);
+	uint16_t cellWidth = dimsSwapped ? panelHeight : panelWidth;
+	uint16_t cellHeight = dimsSwapped ? panelWidth : panelHeight;
+
 	// Calculate unified display dimensions
-	uint16_t unifiedWidth = panelWidth * unifiedCols;
-	uint16_t unifiedHeight = panelHeight * unifiedRows;
+	uint16_t unifiedWidth = cellWidth * unifiedCols;
+	uint16_t unifiedHeight = cellHeight * unifiedRows;
 	uint32_t unifiedSize = (uint32_t)unifiedWidth * unifiedHeight;
 	uint16_t panelLedCount = panelWidth * panelHeight;
 
@@ -185,17 +198,48 @@ uint16_t* buildUnifiedCoordinateMap(
 	// For each pixel in the unified display
 	for (uint16_t y = 0; y < unifiedHeight; y++) {
 		for (uint16_t x = 0; x < unifiedWidth; x++) {
-			// Which panel are we on?
-			uint8_t panelCol = x / panelWidth;
-			uint8_t panelRow = y / panelHeight;
-			uint8_t panelChainIndex = panelOrder[panelRow * unifiedCols + panelCol];
+			// Which panel cell are we in?
+			uint8_t panelCol = x / cellWidth;
+			uint8_t panelRow = y / cellHeight;
+			uint8_t panelGridIndex = panelRow * unifiedCols + panelCol;
+			uint8_t panelChainIndex = panelOrder[panelGridIndex];
+			uint8_t rotation = panelRotation[panelGridIndex];
 
-			// Where within that panel?
-			uint16_t localX = x % panelWidth;
-			uint16_t localY = y % panelHeight;
+			// Local coordinates within the cell
+			uint16_t localX = x % cellWidth;
+			uint16_t localY = y % cellHeight;
+
+			// Apply inverse rotation to get physical coordinates within the panel
+			// Each panel's rotation is independent - we map from logical cell space
+			// back to physical panel space using that panel's specific rotation.
+			//
+			// For this panel's rotation, determine its effective dimensions:
+			bool thisSwapped = (rotation == 1 || rotation == 3);
+			uint16_t effW = thisSwapped ? panelHeight : panelWidth;
+			uint16_t effH = thisSwapped ? panelWidth : panelHeight;
+
+			uint16_t physicalX, physicalY;
+			switch (rotation) {
+				case 1:  // 90° clockwise: inverse is 270° = (y, effW-1-x)
+					physicalX = localY;
+					physicalY = effW - 1 - localX;
+					break;
+				case 2:  // 180°: inverse is 180° = (effW-1-x, effH-1-y)
+					physicalX = effW - 1 - localX;
+					physicalY = effH - 1 - localY;
+					break;
+				case 3:  // 270° clockwise: inverse is 90° = (effH-1-y, x)
+					physicalX = effH - 1 - localY;
+					physicalY = localX;
+					break;
+				default:  // 0° (no rotation)
+					physicalX = localX;
+					physicalY = localY;
+					break;
+			}
 
 			// Get LED index within the panel using the layout transform
-			uint16_t localLedIndex = transform(localX, localY, panelWidth, panelHeight);
+			uint16_t localLedIndex = transform(physicalX, physicalY, panelWidth, panelHeight);
 
 			// Final LED index = panel's starting position + local offset
 			uint16_t ledIndex = (panelChainIndex * panelLedCount) + localLedIndex;
