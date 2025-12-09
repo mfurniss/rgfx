@@ -26,7 +26,7 @@ import { registerListGamesHandler } from './list-games-handler';
 import { registerSimulateEventHandler } from './simulate-event-handler';
 import { registerSelectDirectoryHandler } from './select-directory-handler';
 import { registerVerifyDirectoryHandler } from './verify-directory-handler';
-import { registerGetLicensePathHandler } from './get-license-path-handler';
+import { registerGetAppInfoHandler } from './get-app-info-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -55,5 +55,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerSimulateEventHandler(deps);
   registerSelectDirectoryHandler();
   registerVerifyDirectoryHandler();
-  registerGetLicensePathHandler();
+  registerGetAppInfoHandler();
 }

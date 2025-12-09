@@ -1,20 +1,15 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Driver, SystemStatus, EventTopicData } from './types';
+import type { Driver, SystemStatus, EventTopicData, AppInfo } from './types';
 import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
-
-// Static paths using process.env (available in preload sandbox)
-const home = process.env.HOME ?? process.env.USERPROFILE ?? '';
-const rgfxConfigDirectory = `${home}/.rgfx`;
-const mameRomsDirectory = `${home}/mame-roms`;
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
 export const rgfxAPI = {
-  // Static paths (computed once at preload)
-  rgfxConfigDirectory,
-  mameRomsDirectory,
+  getAppInfo: (): Promise<AppInfo> => {
+    return ipcRenderer.invoke('app:get-info');
+  },
 
   onDriverConnected: (callback: (driver: Driver) => void): (() => void) => {
     console.log('[PRELOAD] Registering listener for driver:connected');
@@ -184,10 +179,6 @@ export const rgfxAPI = {
 
   verifyDirectory: (path: string): Promise<boolean> => {
     return ipcRenderer.invoke('fs:verify-directory', path);
-  },
-
-  getLicensePath: (): Promise<string> => {
-    return ipcRenderer.invoke('paths:get-license');
   },
 };
 

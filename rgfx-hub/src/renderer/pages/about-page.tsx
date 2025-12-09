@@ -2,12 +2,15 @@ import React from 'react';
 import { Typography, Box, Paper, Link } from '@mui/material';
 import { Info as InfoIcon } from '@mui/icons-material';
 import { PageTitle } from '../components/page-title';
+import { useAppInfoStore } from '../store/app-info-store';
 
 const AboutPage: React.FC = () => {
-  const version = '0.0.1-Test';
+  const appInfo = useAppInfoStore((state) => state.appInfo);
 
   const handleOpenLicense = () => {
-    void window.rgfx.getLicensePath().then((path) => window.rgfx.openFile(path));
+    if (appInfo?.licensePath) {
+      void window.rgfx.openFile(appInfo.licensePath);
+    }
   };
 
   return (
@@ -22,7 +25,7 @@ const AboutPage: React.FC = () => {
           network events to control LED hardware",
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Version {version}
+          Version {appInfo?.version ?? '...'}
         </Typography>
       </Paper>
 
