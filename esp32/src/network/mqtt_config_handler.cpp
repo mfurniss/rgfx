@@ -151,6 +151,18 @@ void handleDriverConfig(const String& payload) {
 				    " panels of " + String(devCfg.panelWidth) + "x" + String(devCfg.panelHeight));
 				log("  Total: " + String(devCfg.width) + "x" + String(devCfg.height) +
 				    " (" + String(devCfg.count) + " LEDs)");
+				// Log parsed panel order and rotations for debugging
+				String orderStr = "  PanelOrder: [";
+				String rotStr = "  PanelRotation: [";
+				for (size_t i = 0; i < devCfg.panelOrder.size(); i++) {
+					if (i > 0) { orderStr += ", "; rotStr += ", "; }
+					orderStr += String(devCfg.panelOrder[i]);
+					rotStr += String(devCfg.panelRotation[i]);
+				}
+				orderStr += "]";
+				rotStr += "]";
+				log(orderStr);
+				log(rotStr);
 			} else {
 				// Single panel (no unification)
 				devCfg.panelWidth = devCfg.width;
@@ -237,15 +249,32 @@ void handleDriverConfig(const String& payload) {
 				}
 
 				// Check if Matrix exists and if dimensions/layout changed
+				// Also recreate if unified config is present (rotations may have changed)
+				bool hasUnifiedConfig = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1;
+				for (uint8_t rot : firstDevice.panelRotation) {
+					if (rot != 0) {
+						hasUnifiedConfig = true;
+						break;
+					}
+				}
+
 				if (matrix == nullptr) {
 					needsRecreation = true;
 					log("Creating Matrix for first time");
 				} else if (matrix->width != newWidth || matrix->height != newHeight || matrix->layout != newLayout) {
 					needsRecreation = true;
 					log("Matrix dimensions or layout changed, recreating");
+				} else if (hasUnifiedConfig) {
+					// Always recreate for unified configs since rotations may have changed
+					// (Matrix doesn't store rotation array to compare)
+					needsRecreation = true;
+					log("Unified config detected, recreating Matrix to apply panel rotations");
 				}
 
 				if (needsRecreation) {
+					// Set flag to prevent main loop from accessing matrix/effectProcessor during update
+					g_configUpdateInProgress = true;
+
 					// Delete old matrix if it exists
 					if (matrix != nullptr) {
 						delete matrix;
@@ -302,6 +331,9 @@ void handleDriverConfig(const String& payload) {
 					matrix->leds = leds;
 
 					log("Matrix now using FastLED buffer directly");
+
+					// Clear update flag - safe for main loop to access matrix again
+					g_configUpdateInProgress = false;
 				} else {
 					// Matrix dimensions haven't changed, just update LED buffer pointer
 					matrix->leds = leds;

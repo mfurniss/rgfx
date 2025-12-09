@@ -62,6 +62,16 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
 		return;
 	}
 
+	// Log rotation values being used for coordinate map
+	String rotDebug = "Building coord map with rotations: [";
+	uint8_t panelCount = uCols * uRows;
+	for (uint8_t i = 0; i < panelCount; i++) {
+		if (i > 0) rotDebug += ", ";
+		rotDebug += String(panelRotation[i]);
+	}
+	rotDebug += "]";
+	log(rotDebug);
+
 	coordinateMap = buildUnifiedCoordinateMap(
 	    panelWidth, panelHeight,
 	    unifiedCols, unifiedRows,

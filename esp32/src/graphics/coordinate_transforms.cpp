@@ -1,4 +1,5 @@
 #include "coordinate_transforms.h"
+#include "log.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -171,17 +172,16 @@ uint16_t* buildUnifiedCoordinateMap(
 ) {
 	CoordinateTransform transform = findTransform(layout);
 
-	// For the unified display grid, we need to determine effective panel dimensions.
-	// Each panel can have independent rotation, but the grid cells must be uniform size.
-	// For square panels: all rotations result in same dimensions (NxN stays NxN)
-	// For non-square panels: user must ensure compatible rotations for grid alignment
-	//
-	// We use the first panel's rotation to determine logical cell dimensions for the grid,
-	// but each panel's rotation is applied independently when mapping coordinates.
+	// All panels are identical hardware (panelWidth x panelHeight).
+	// The first panel's rotation determines the logical cell size for the unified grid.
+	// All panels MUST use compatible rotations (same orientation class):
+	//   - 0°/180° panels have cell size = panelWidth x panelHeight
+	//   - 90°/270° panels have cell size = panelHeight x panelWidth
+	// Mixing orientation classes on non-square panels will produce incorrect results.
 	uint8_t firstRotation = panelRotation[0];
-	bool dimsSwapped = (firstRotation == 1 || firstRotation == 3);
-	uint16_t cellWidth = dimsSwapped ? panelHeight : panelWidth;
-	uint16_t cellHeight = dimsSwapped ? panelWidth : panelHeight;
+	bool gridSwapped = (firstRotation == 1 || firstRotation == 3);
+	uint16_t cellWidth = gridSwapped ? panelHeight : panelWidth;
+	uint16_t cellHeight = gridSwapped ? panelWidth : panelHeight;
 
 	// Calculate unified display dimensions
 	uint16_t unifiedWidth = cellWidth * unifiedCols;
@@ -189,9 +189,16 @@ uint16_t* buildUnifiedCoordinateMap(
 	uint32_t unifiedSize = (uint32_t)unifiedWidth * unifiedHeight;
 	uint16_t panelLedCount = panelWidth * panelHeight;
 
+	log("buildUnifiedCoordinateMap: panel=" + String(panelWidth) + "x" + String(panelHeight) +
+	    " grid=" + String(unifiedCols) + "x" + String(unifiedRows) +
+	    " cell=" + String(cellWidth) + "x" + String(cellHeight) +
+	    " unified=" + String(unifiedWidth) + "x" + String(unifiedHeight) +
+	    " size=" + String(unifiedSize));
+
 	// Allocate coordinate map
 	uint16_t* map = (uint16_t*)malloc(unifiedSize * sizeof(uint16_t));
 	if (!map) {
+		log("ERROR: Failed to allocate coordinate map (" + String(unifiedSize * sizeof(uint16_t)) + " bytes)");
 		return nullptr;
 	}
 
@@ -209,30 +216,30 @@ uint16_t* buildUnifiedCoordinateMap(
 			uint16_t localX = x % cellWidth;
 			uint16_t localY = y % cellHeight;
 
-			// Apply inverse rotation to get physical coordinates within the panel
-			// Each panel's rotation is independent - we map from logical cell space
-			// back to physical panel space using that panel's specific rotation.
+			// Apply inverse rotation to map cell coordinates to physical panel coordinates.
+			// localX/localY are in cell space (cellWidth x cellHeight).
+			// physicalX/physicalY must be in panel space (panelWidth x panelHeight).
 			//
-			// For this panel's rotation, determine its effective dimensions:
-			bool thisSwapped = (rotation == 1 || rotation == 3);
-			uint16_t effW = thisSwapped ? panelHeight : panelWidth;
-			uint16_t effH = thisSwapped ? panelWidth : panelHeight;
-
+			// Rotation defines how the panel is oriented in the grid:
+			//   0 (a): panel's (0,0) is at cell's top-left
+			//   1 (b): panel rotated 90° CW, panel's (0,0) is at cell's top-right
+			//   2 (c): panel rotated 180°, panel's (0,0) is at cell's bottom-right
+			//   3 (d): panel rotated 270° CW, panel's (0,0) is at cell's bottom-left
 			uint16_t physicalX, physicalY;
 			switch (rotation) {
-				case 1:  // 90° clockwise: inverse is 270° = (y, effW-1-x)
+				case 1:  // 90° CW: cell(x,y) -> panel(y, cellWidth-1-x)
 					physicalX = localY;
-					physicalY = effW - 1 - localX;
+					physicalY = cellWidth - 1 - localX;
 					break;
-				case 2:  // 180°: inverse is 180° = (effW-1-x, effH-1-y)
-					physicalX = effW - 1 - localX;
-					physicalY = effH - 1 - localY;
+				case 2:  // 180°: cell(x,y) -> panel(cellWidth-1-x, cellHeight-1-y)
+					physicalX = cellWidth - 1 - localX;
+					physicalY = cellHeight - 1 - localY;
 					break;
-				case 3:  // 270° clockwise: inverse is 90° = (effH-1-y, x)
-					physicalX = effH - 1 - localY;
+				case 3:  // 270° CW: cell(x,y) -> panel(cellHeight-1-y, x)
+					physicalX = cellHeight - 1 - localY;
 					physicalY = localX;
 					break;
-				default:  // 0° (no rotation)
+				default:  // 0°: cell(x,y) -> panel(x, y)
 					physicalX = localX;
 					physicalY = localY;
 					break;

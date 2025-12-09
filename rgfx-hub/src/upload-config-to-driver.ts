@@ -89,6 +89,11 @@ export function createUploadConfigToDriver(
     const topic = `rgfx/driver/${macAddress}/config`;
     const payload = JSON.stringify(completeConfig);
 
+    // Log the unified array being sent for debugging
+    if (unified) {
+      log.info(`Uploading unified config: ${JSON.stringify(unified)}`);
+    }
+
     await mqtt.publish(topic, payload);
     log.info(`Uploaded LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
   };

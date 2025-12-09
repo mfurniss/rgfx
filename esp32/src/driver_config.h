@@ -78,4 +78,10 @@ extern DriverConfigData g_driverConfig;
  */
 extern bool g_configReceived;
 
+/**
+ * Flag indicating config update is in progress (Matrix/EffectProcessor being recreated)
+ * Used to prevent race conditions between Core 0 (MQTT) and Core 1 (main loop)
+ */
+extern volatile bool g_configUpdateInProgress;
+
 #endif

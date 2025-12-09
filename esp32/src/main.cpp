@@ -229,7 +229,8 @@ void loop() {
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
 	// UDP is processed at top of loop() for lowest latency
 	// Skip effect processing during OTA to prevent clearing progress indicator
-	if (isConnected && udpSetupDone && !otaInProgress) {
+	// Skip during config update to prevent race conditions with Core 0
+	if (isConnected && udpSetupDone && !otaInProgress && !g_configUpdateInProgress) {
 		// Initialize effect processor on first run (only if matrix is ready and valid)
 		if (effectProcessor == nullptr && matrix != nullptr && matrix->isValid()) {
 			effectProcessor = new (std::nothrow) EffectProcessor(*matrix);
