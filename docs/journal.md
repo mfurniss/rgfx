@@ -224,6 +224,14 @@ Implemented Settings page with appearance and directories sections. Moved theme 
 
 Standardized terminology from "folder" to "directory" throughout the codebase for consistency. Updated Games page column headers for clarity: ROM → MAME ROM File, Interceptor → MAME Interceptor, Transformer → RGFX Hub Transformer.
 
+## December 9, 2025
+
+Added animated page transitions using Framer Motion for smooth navigation between Hub pages. Created PageTitle component for consistent page headers with clickable license link. Consolidated static app info (version, paths) into a single IPC handler and exposed static paths from preload instead of requiring IPC calls.
+
+Improved test infrastructure significantly. Added ESP32 driver unit tests with PlatformIO native testing environment and mock implementations for FastLED, Arduino, and ArduinoJson. Improved Hub test coverage and quality across multiple modules.
+
+Added and updated CLAUDE.md documentation files throughout the codebase. Refined app layout, removed window title bar for cleaner appearance, and cleaned up page components.
+
 ## December 10, 2025
 
 Fixed critical UDP message queue race condition on ESP32 drivers. When the hub sends multiple effects in rapid succession (e.g., `robotron/player/die` triggers both a blue explosion and white pulse), the single-message buffer was being overwritten before the first message could be processed. This caused LED strip drivers to frequently miss the blue explosion while matrix drivers (with different timing characteristics) worked correctly.
