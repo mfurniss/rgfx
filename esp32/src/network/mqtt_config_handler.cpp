@@ -2,21 +2,18 @@
 #include "config/config_leds.h"
 #include "config/config_nvs.h"
 #include "log.h"
-#include "graphics/matrix.h"
-#include "effects/effect_processor.h"
 #include "utils.h"
 #include "oled/oled_display.h"
 #include "network/mqtt.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
-#include <new>
-#include <cstdlib>
-
-// External matrix pointer used by game loop
-extern Matrix* matrix;
 
 // Handle driver configuration received from Hub
 void handleDriverConfig(const String& payload) {
+	// Set flag immediately to prevent Core 1 from accessing matrix during config update
+	// This protects against race conditions when config is received while effects are running
+	g_configUpdateInProgress = true;
+
 	log("Processing driver configuration...");
 
 	// Parse JSON configuration
@@ -26,6 +23,7 @@ void handleDriverConfig(const String& payload) {
 	if (error) {
 		log("ERROR: Failed to parse config JSON");
 		log("Error: " + String(error.c_str()));
+		g_configUpdateInProgress = false;
 		return;
 	}
 
@@ -223,128 +221,15 @@ void handleDriverConfig(const String& payload) {
 		log("WARNING: Failed to save configuration to NVS");
 	}
 
-	// Apply configuration immediately
+	// Apply LED configuration (FastLED init)
+	// Matrix creation is done lazily in main loop when first needed
 	log("Applying LED configuration...");
 	if (configLEDs()) {
 		log("LED configuration applied successfully!");
-
-		// Create Matrix with actual LED configuration
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-
-			if (leds) {
-				// Check if we need to recreate the Matrix (only if dimensions or layout changed)
-				bool needsRecreation = false;
-				uint16_t newWidth = 0;
-				uint16_t newHeight = 0;
-				String newLayout = firstDevice.layout;
-
-				if (firstDevice.layout.startsWith("matrix-")) {
-					newWidth = firstDevice.width;
-					newHeight = firstDevice.height;
-				} else {
-					newWidth = firstDevice.count;
-					newHeight = 1;
-				}
-
-				// Check if Matrix exists and if dimensions/layout changed
-				// Also recreate if unified config is present (rotations may have changed)
-				bool hasUnifiedConfig = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1;
-				for (uint8_t rot : firstDevice.panelRotation) {
-					if (rot != 0) {
-						hasUnifiedConfig = true;
-						break;
-					}
-				}
-
-				if (matrix == nullptr) {
-					needsRecreation = true;
-					log("Creating Matrix for first time");
-				} else if (matrix->width != newWidth || matrix->height != newHeight || matrix->layout != newLayout) {
-					needsRecreation = true;
-					log("Matrix dimensions or layout changed, recreating");
-				} else if (hasUnifiedConfig) {
-					// Always recreate for unified configs since rotations may have changed
-					// (Matrix doesn't store rotation array to compare)
-					needsRecreation = true;
-					log("Unified config detected, recreating Matrix to apply panel rotations");
-				}
-
-				if (needsRecreation) {
-					// Set flag to prevent main loop from accessing matrix/effectProcessor during update
-					g_configUpdateInProgress = true;
-
-					// Delete old matrix if it exists
-					if (matrix != nullptr) {
-						delete matrix;
-						matrix = nullptr;
-					}
-
-					// Also need to clear EffectProcessor since it holds references to old Matrix
-					extern EffectProcessor* effectProcessor;
-					if (effectProcessor != nullptr) {
-						delete effectProcessor;
-						effectProcessor = nullptr;
-						log("EffectProcessor cleared due to Matrix change");
-					}
-
-					// Create new Matrix - use unified constructor if multi-panel or has rotation
-					bool hasRotation = false;
-					for (uint8_t rot : firstDevice.panelRotation) {
-						if (rot != 0) {
-							hasRotation = true;
-							break;
-						}
-					}
-					bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1 || hasRotation;
-					if (isUnified) {
-						matrix = new (std::nothrow) Matrix(
-						    firstDevice.panelWidth, firstDevice.panelHeight,
-						    firstDevice.unifiedCols, firstDevice.unifiedRows,
-						    firstDevice.panelOrder.data(),
-						    firstDevice.panelRotation.data(),
-						    newLayout
-						);
-					} else {
-						matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout);
-					}
-
-					if (!matrix) {
-						log("ERROR: Failed to allocate Matrix");
-						return;
-					}
-					if (!matrix->isValid()) {
-						log("ERROR: Matrix allocation failed internally");
-						delete matrix;
-						matrix = nullptr;
-						return;
-					}
-
-					if (!isUnified) {
-						log("Matrix created: " + String(newWidth) + "x" + String(newHeight) +
-						    " with layout " + newLayout);
-					}
-
-					// Replace the default allocated buffer with FastLED's actual buffer
-					free(matrix->leds);
-					matrix->leds = leds;
-
-					log("Matrix now using FastLED buffer directly");
-
-					// Clear update flag - safe for main loop to access matrix again
-					g_configUpdateInProgress = false;
-				} else {
-					// Matrix dimensions haven't changed, just update LED buffer pointer
-					matrix->leds = leds;
-					log("Matrix dimensions unchanged, keeping existing Matrix and EffectProcessor");
-				}
-			}
-		}
-
-		log("LEDs are now ready for use");
 	} else {
 		log("ERROR: Failed to apply LED configuration");
-		log("LEDs will use fallback behavior");
 	}
+
+	// Clear flag - config update complete
+	g_configUpdateInProgress = false;
 }

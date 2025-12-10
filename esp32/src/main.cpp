@@ -29,6 +29,9 @@
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
 
+// Forward declaration for lazy Matrix creation
+static void createMatrixIfNeeded();
+
 // Timing constants defined in config/constants.h:
 // - FLASH_DURATION_MS: MQTT message flash duration
 // - UPTIME_UPDATE_INTERVAL: OLED display refresh interval
@@ -119,6 +122,82 @@ void setup() {
 	);
 
 	log("Network task created on Core 0");
+}
+
+/**
+ * Create Matrix lazily when FastLED is initialized and config is available
+ * Matrix is created on Core 1 (main loop) to avoid race conditions
+ */
+static void createMatrixIfNeeded() {
+	// Skip if Matrix already exists or FastLED not ready
+	if (matrix != nullptr || !isFastLEDInitialized() || g_driverConfig.devices.empty()) {
+		return;
+	}
+
+	const auto& firstDevice = g_driverConfig.devices[0];
+	CRGB* leds = getLEDsForDevice(firstDevice.id);
+	if (!leds) {
+		return;
+	}
+
+	log("Creating Matrix...");
+
+	uint16_t newWidth = 0;
+	uint16_t newHeight = 0;
+	String newLayout = firstDevice.layout;
+
+	if (firstDevice.layout.startsWith("matrix-")) {
+		newWidth = firstDevice.width;
+		newHeight = firstDevice.height;
+	} else {
+		newWidth = firstDevice.count;
+		newHeight = 1;
+	}
+
+	// Check if unified config (multi-panel or has rotation)
+	bool hasRotation = false;
+	for (uint8_t rot : firstDevice.panelRotation) {
+		if (rot != 0) {
+			hasRotation = true;
+			break;
+		}
+	}
+	bool isUnified = firstDevice.unifiedRows > 1 || firstDevice.unifiedCols > 1 || hasRotation;
+
+	if (isUnified) {
+		matrix = new (std::nothrow) Matrix(
+		    firstDevice.panelWidth, firstDevice.panelHeight,
+		    firstDevice.unifiedCols, firstDevice.unifiedRows,
+		    firstDevice.panelOrder.data(),
+		    firstDevice.panelRotation.data(),
+		    newLayout
+		);
+	} else {
+		matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout);
+	}
+
+	if (!matrix) {
+		log("ERROR: Failed to allocate Matrix");
+		return;
+	}
+	if (!matrix->isValid()) {
+		log("ERROR: Matrix allocation failed internally");
+		delete matrix;
+		matrix = nullptr;
+		return;
+	}
+
+	if (!isUnified) {
+		log("Matrix created: " + String(newWidth) + "x" + String(newHeight) +
+		    " with layout " + newLayout);
+	}
+
+	// Replace the default allocated buffer with FastLED's actual buffer
+	free(matrix->leds);
+	matrix->leds = leds;
+
+	log("Matrix now using FastLED buffer directly");
+	log("LEDs are now ready for use");
 }
 
 // Main loop - runs on Core 1 (application core)
@@ -236,6 +315,9 @@ void loop() {
 	// Skip effect processing during OTA to prevent clearing progress indicator
 	// Skip during config update to prevent race conditions with Core 0
 	if (isConnected && udpSetupDone && !otaInProgress && !g_configUpdateInProgress) {
+		// Create Matrix lazily when FastLED is ready (only happens once)
+		createMatrixIfNeeded();
+
 		// Initialize effect processor on first run (only if matrix is ready and valid)
 		if (effectProcessor == nullptr && matrix != nullptr && matrix->isValid()) {
 			effectProcessor = new (std::nothrow) EffectProcessor(*matrix);
