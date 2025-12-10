@@ -3,9 +3,6 @@
 #include "matrix.h"
 #include "log.h"
 #include <FastLED.h>
-#else
-// Define CRGB::Black for native tests
-const CRGB CRGB::Black = CRGB(0, 0, 0);
 #endif
 #include <cstring>
 #include <cstdlib>

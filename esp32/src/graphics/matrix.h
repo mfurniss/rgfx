@@ -1,5 +1,13 @@
 #pragma once
+
+#ifdef UNIT_TEST
+#include "../test/mocks/mock_fastled.h"
+#include <string>
+using String = std::string;
+#else
 #include <FastLED.h>
+#endif
+
 #include "coordinate_transforms.h"
 #include "config/constants.h"
 
