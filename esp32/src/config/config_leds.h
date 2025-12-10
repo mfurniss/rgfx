@@ -59,4 +59,10 @@ void showAllLEDs();
  */
 void clearAllLEDs();
 
+/**
+ * Check if FastLED has been initialized
+ * FastLED.addLeds() can only be called once per pin
+ */
+bool isFastLEDInitialized();
+
 #endif
