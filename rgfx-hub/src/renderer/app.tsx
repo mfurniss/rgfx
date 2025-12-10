@@ -15,6 +15,7 @@ import SimulatorPage from './pages/simulator-page';
 import GamesPage from './pages/games-page';
 import SettingsPage from './pages/settings-page';
 import AboutPage from './pages/about-page';
+import SupportPage from './pages/support-page';
 import { useDriverStore } from './store/driver-store';
 import { useEventStore } from './store/event-store';
 import { useAppInfoStore } from './store/app-info-store';
@@ -40,6 +41,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/effects-playground" element={<PageTransition><EffectsPlaygroundPage /></PageTransition>} />
         <Route path="/simulator" element={<PageTransition><SimulatorPage /></PageTransition>} />
         <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+        <Route path="/support" element={<PageTransition><SupportPage /></PageTransition>} />
         <Route path="/about" element={<PageTransition><AboutPage /></PageTransition>} />
       </Routes>
     </AnimatePresence>
