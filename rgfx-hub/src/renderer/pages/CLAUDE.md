@@ -129,6 +129,41 @@ This folder contains the main page components for the RGFX Hub application. Each
 
 ---
 
+### Settings Page
+
+**File:** [settings-page.tsx](settings-page.tsx)
+
+**Route:** `/settings`
+
+**Purpose:** Application settings and preferences.
+
+**Features:**
+- **Appearance:** Theme mode selection (system/light/dark) via MUI color scheme
+- **Directories:**
+  - RGFX Config Directory (required) - for interceptors, transformers, driver configs
+  - MAME ROMs Directory (optional) - for ROM file location
+- Directory validation with folder picker dialogs
+- Saves to `UiStore` (localStorage persistence)
+- Gets default paths from `AppInfoStore`
+
+---
+
+### Games Page
+
+**File:** [games-page.tsx](games-page.tsx)
+
+**Route:** `/games`
+
+**Purpose:** View configured games and their associated scripts.
+
+**Features:**
+- Sortable table showing all configured games
+- Columns: MAME ROM name, interceptor script, transformer script
+- Clickable links to open interceptor/transformer files in default editor
+- Data loaded via `window.rgfx.listGames()` IPC call
+
+---
+
 ### About Page
 
 **File:** [about-page.tsx](about-page.tsx)
