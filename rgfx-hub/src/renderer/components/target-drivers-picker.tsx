@@ -80,7 +80,7 @@ export function TargetDriversPicker({
                   size="small"
                 />
               }
-              label={`All Drivers (${connectedDrivers.length})`}
+              label={`All Available Drivers (${connectedDrivers.length})`}
               sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.9rem' } }}
             />
             {[...drivers].sort((a, b) => a.id.localeCompare(b.id)).map((driver) => (
