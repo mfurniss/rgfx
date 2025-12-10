@@ -49,161 +49,34 @@ describe('registerTriggerEffectHandler', () => {
     });
   });
 
-  describe('handler registration', () => {
-    it('should register handler for effect:trigger channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('effect:trigger', expect.any(Function));
-    });
+  it('should register handler for effect:trigger channel', async () => {
+    const { ipcMain } = await import('electron');
+    expect(ipcMain.handle).toHaveBeenCalledWith('effect:trigger', expect.any(Function));
   });
 
-  describe('effect broadcasting', () => {
-    it('should broadcast pulse effect with props', () => {
-      const payload: EffectPayload = {
-        effect: 'pulse',
-        props: {
-          color: '#FF0000',
-          duration: 500,
-        },
-      };
+  it('should pass payload directly to udpClient.broadcast', () => {
+    const payload: EffectPayload = {
+      effect: 'pulse',
+      props: { color: '#FF0000', duration: 500 },
+    };
 
-      registeredHandler({}, payload);
+    registeredHandler({}, payload);
 
-      expect(mockUdpClient.broadcast).toHaveBeenCalledWith(payload);
-    });
-
-    it('should broadcast wipe effect with props', () => {
-      const payload: EffectPayload = {
-        effect: 'wipe',
-        props: {
-          color: '#00FF00',
-          direction: 'forward',
-          duration: 1000,
-        },
-      };
-
-      registeredHandler({}, payload);
-
-      expect(mockUdpClient.broadcast).toHaveBeenCalledWith(payload);
-    });
-
-    it('should broadcast explode effect with props', () => {
-      const payload: EffectPayload = {
-        effect: 'explode',
-        props: {
-          color: '#0000FF',
-          speed: 2,
-        },
-      };
-
-      registeredHandler({}, payload);
-
-      expect(mockUdpClient.broadcast).toHaveBeenCalledWith(payload);
-    });
-
-    it('should broadcast effect with minimal props', () => {
-      const payload: EffectPayload = {
-        effect: 'flash',
-        props: {},
-      };
-
-      registeredHandler({}, payload);
-
-      expect(mockUdpClient.broadcast).toHaveBeenCalledWith(payload);
-    });
-
-    it('should preserve all payload properties', () => {
-      const payload: EffectPayload = {
-        effect: 'custom',
-        props: {
-          nested: { deep: { value: 123 } },
-          array: [1, 2, 3],
-          string: 'test',
-          number: 42,
-          boolean: true,
-        },
-      };
-
-      registeredHandler({}, payload);
-
-      expect(mockUdpClient.broadcast).toHaveBeenCalledWith(payload);
-    });
+    // Verify exact same object reference passed through (no modification)
+    expect(mockUdpClient.broadcast).toHaveBeenCalledTimes(1);
+    expect(mockUdpClient.broadcast.mock.calls[0][0]).toBe(payload);
   });
 
-  describe('error handling', () => {
-    it('should throw when broadcast fails', () => {
-      const error = new Error('UDP broadcast failed');
-      mockUdpClient.broadcast.mockImplementation(() => {
-        throw error;
-      });
-
-      const payload: EffectPayload = {
-        effect: 'pulse',
-        props: {},
-      };
-
-      expect(() => {
-        registeredHandler({}, payload);
-      }).toThrow('UDP broadcast failed');
+  it('should propagate broadcast errors', () => {
+    const error = new Error('UDP broadcast failed');
+    mockUdpClient.broadcast.mockImplementation(() => {
+      throw error;
     });
 
-    it('should propagate original error', () => {
-      const originalError = new Error('Network unreachable');
-      mockUdpClient.broadcast.mockImplementation(() => {
-        throw originalError;
-      });
+    const payload: EffectPayload = { effect: 'pulse', props: {} };
 
-      const payload: EffectPayload = {
-        effect: 'pulse',
-        props: {},
-      };
-
-      expect(() => {
-        registeredHandler({}, payload);
-      }).toThrow(originalError);
-    });
-  });
-
-  describe('payload passthrough', () => {
-    it('should pass payload directly without modification', () => {
-      const payload: EffectPayload = {
-        effect: 'test-effect',
-        props: {
-          someKey: 'someValue',
-        },
-      };
-
+    expect(() => {
       registeredHandler({}, payload);
-
-      const broadcastCall = mockUdpClient.broadcast.mock.calls[0][0];
-      expect(broadcastCall).toBe(payload);
-    });
-
-    it('should broadcast exactly once per call', () => {
-      const payload: EffectPayload = {
-        effect: 'pulse',
-        props: {},
-      };
-
-      registeredHandler({}, payload);
-
-      expect(mockUdpClient.broadcast).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle multiple sequential calls', () => {
-      const payloads: EffectPayload[] = [
-        { effect: 'pulse', props: { color: '#FF0000' } },
-        { effect: 'wipe', props: { color: '#00FF00' } },
-        { effect: 'explode', props: { color: '#0000FF' } },
-      ];
-
-      payloads.forEach((payload) => {
-        registeredHandler({}, payload);
-      });
-
-      expect(mockUdpClient.broadcast).toHaveBeenCalledTimes(3);
-      expect(mockUdpClient.broadcast).toHaveBeenNthCalledWith(1, payloads[0]);
-      expect(mockUdpClient.broadcast).toHaveBeenNthCalledWith(2, payloads[1]);
-      expect(mockUdpClient.broadcast).toHaveBeenNthCalledWith(3, payloads[2]);
-    });
+    }).toThrow(error);
   });
 });
