@@ -69,9 +69,14 @@ describe('App IPC Listener Registration', () => {
       openFile: vi.fn(),
       listGames: vi.fn(),
       simulateEvent: vi.fn(),
-      getDefaultPaths: vi.fn(),
       selectDirectory: vi.fn(),
       verifyDirectory: vi.fn(),
+      getAppInfo: vi.fn().mockResolvedValue({
+        version: '0.0.1-test',
+        licensePath: '/mock/LICENSE',
+        defaultRgfxConfigDir: '/mock/.rgfx',
+        defaultMameRomsDir: '/mock/mame-roms',
+      }),
     };
   });
 

@@ -14,7 +14,8 @@ import ConfirmFlashDialog from '../components/confirm-flash-dialog';
 import SerialPortSelector from '../components/serial-port-selector';
 import { TargetDriversPicker } from '../components/target-drivers-picker';
 import SuperButton from '../components/super-button';
-import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon } from '@mui/icons-material';
+import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as FirmwareIcon } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
@@ -355,20 +356,10 @@ const FirmwarePage: React.FC = () => {
       });
       setDriverFlashStatus(initialStatus);
 
-      // Fetch firmware version
-      let firmwareVersion = 'unknown';
-
-      try {
-        const versionResponse = await fetch('/esp32/firmware/version.json');
-
-        if (versionResponse.ok) {
-          const versionData = (await versionResponse.json()) as { version: string };
-          firmwareVersion = versionData.version;
-          addLog(`Firmware version: ${firmwareVersion}`);
-        }
-      } catch {
-        addLog('Warning: Could not fetch firmware version');
+      if (!currentFirmwareVersion) {
+        throw new Error('Firmware version not available');
       }
+      addLog(`Firmware version: ${currentFirmwareVersion}`);
 
       addLog(`Starting OTA flash to ${driversToFlash.length} driver(s) in parallel...`);
       driversToFlash.forEach((driver) => {
@@ -421,7 +412,7 @@ const FirmwarePage: React.FC = () => {
         setResultModal({
           open: true,
           success: true,
-          message: `Firmware v${firmwareVersion} flashed successfully to ${successCount} driver(s)!`,
+          message: `Firmware v${currentFirmwareVersion} flashed successfully to ${successCount} driver(s)!`,
         });
       } else if (successCount > 0) {
         const failedDrivers = failedResults
@@ -467,16 +458,17 @@ const FirmwarePage: React.FC = () => {
   };
 
   const handleFlash = () => {
-    if (flashMethod === 'usb') {
-      setConfirmModal(true);
-    } else {
-      void flashViaOTA();
-    }
+    setConfirmModal(true);
   };
 
   const handleConfirmFlash = () => {
     setConfirmModal(false);
-    void flashViaUSB();
+
+    if (flashMethod === 'usb') {
+      void flashViaUSB();
+    } else {
+      void flashViaOTA();
+    }
   };
 
   const handleDriverToggle = (driverId: string) => {
@@ -507,9 +499,7 @@ const FirmwarePage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Firmware Management
-      </Typography>
+      <PageTitle icon={<FirmwareIcon />} title="Firmware" />
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
@@ -676,6 +666,8 @@ const FirmwarePage: React.FC = () => {
 
       <ConfirmFlashDialog
         open={confirmModal}
+        firmwareVersion={currentFirmwareVersion ?? ''}
+        flashMethod={flashMethod}
         onConfirm={handleConfirmFlash}
         onCancel={() => {
           setConfirmModal(false);

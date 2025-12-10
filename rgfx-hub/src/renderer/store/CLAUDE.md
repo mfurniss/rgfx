@@ -108,3 +108,31 @@ interface EventTopic {
 - Uses Zustand persist middleware to save preferences to localStorage
 - Only persists sort preferences and simulator rows (not test effects state)
 - Storage key: `rgfx-ui-preferences`
+
+---
+
+### App Info Store
+
+**File:** [app-info-store.ts](app-info-store.ts)
+
+**Purpose:** Holds static application information fetched from the main process.
+
+**State:**
+- `appInfo: AppInfo | null` - Application metadata (name, version, default directories)
+
+**Actions:**
+- `getAppInfo()` - Fetches app info via IPC (`window.rgfx.getAppInfo()`)
+
+**AppInfo Shape:**
+```typescript
+interface AppInfo {
+  name: string;
+  version: string;
+  defaultRgfxConfigDir: string;
+}
+```
+
+**Features:**
+- Loaded once at app startup
+- Provides default values for settings page
+- No persistence (always fetched fresh from main process)

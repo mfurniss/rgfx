@@ -21,13 +21,13 @@ import {
   MenuItem,
   FormControlLabel,
   Checkbox,
-  Divider,
   CircularProgress,
   Alert,
   Grid,
   Tooltip,
 } from '@mui/material';
-import { Save as SaveIcon } from '@mui/icons-material';
+import { Save as SaveIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { useNotificationStore } from '../store/notification-store';
 import { NumberField } from '../components/number-field';
@@ -162,22 +162,13 @@ export default function DriverConfigPage() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-        <Box>
-          <Typography variant="h5" component="h1" sx={{ lineHeight: 1.2 }}>
-            Driver Configuration
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {driver.id}
-          </Typography>
-        </Box>
-      </Box>
+    <Box>
+      <PageTitle icon={<SettingsIcon />} title="Driver Configuration" subtitle={driver.id} />
 
       <Paper sx={{ p: 3, maxWidth: 900 }}>
         <form onSubmit={handleFormSubmit}>
           <Typography variant="h6" gutterBottom>
-            Driver Identity
+            Identity
           </Typography>
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -212,10 +203,8 @@ export default function DriverConfigPage() {
             </Grid>
           </Grid>
 
-          <Divider sx={{ my: 3 }} />
-
           <Typography variant="h6" gutterBottom>
-            Driver Settings
+            Settings
           </Typography>
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -252,8 +241,6 @@ export default function DriverConfigPage() {
               />
             </Grid>
           </Grid>
-
-          <Divider sx={{ my: 3 }} />
 
           <Typography variant="h6" gutterBottom>
             LED Configuration
@@ -380,8 +367,6 @@ export default function DriverConfigPage() {
               )}
             </Grid>
           )}
-
-          <Divider sx={{ my: 3 }} />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button variant="outlined" onClick={handleExit} disabled={saving}>

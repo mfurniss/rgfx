@@ -79,6 +79,7 @@
     "electron-squirrel-startup": "^1.0.1",
     "esp-ota": "^1.2.0",
     "esptool-js": "^0.5.7",
+    "framer-motion": "^12.23.25",
     "lodash-es": "^4.17.21",
     "node-ssdp": "^4.0.1",
     "react": "^19.2.0",

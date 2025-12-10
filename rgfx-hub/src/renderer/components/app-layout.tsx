@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Drawer, Toolbar, Typography } from '@mui/material';
 import { SidebarNav } from './sidebar-nav';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 220;
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -23,7 +23,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         }}
       >
         <Toolbar>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h4" noWrap component="div" sx={{ flexGrow: 1, pt: 1 }}>
             RGFX
           </Typography>
         </Toolbar>

@@ -2,7 +2,11 @@
 #include "effect_utils.h"
 #include "graphics/canvas.h"
 #include "utils/easing.h"
+#ifdef UNIT_TEST
+#include "../test/mocks/mock_fastled.h"
+#else
 #include <FastLED.h>
+#endif
 #include <algorithm>
 #include <cmath>
 
@@ -328,10 +332,28 @@ void ExplodeEffect::render() {
 			// Matrix: Render NxN block centered around position
 			int16_t x = centerX - halfSize;
 			int16_t y = centerY - halfSize;
+			int16_t sizeS = static_cast<int16_t>(size);
 
-			canvas.drawRectangle(x, y, size, size,
-			                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
-			                     BlendMode::ADDITIVE);
+			// Skip particles completely off-canvas
+			if (x + sizeS <= 0 || x >= static_cast<int16_t>(width) ||
+			    y + sizeS <= 0 || y >= static_cast<int16_t>(height)) {
+				continue;
+			}
+
+			// Clip to canvas bounds for partially visible particles
+			uint16_t clippedX = (x < 0) ? 0 : static_cast<uint16_t>(x);
+			uint16_t clippedY = (y < 0) ? 0 : static_cast<uint16_t>(y);
+			uint16_t clippedW = (x < 0) ? static_cast<uint16_t>(sizeS + x) : size;
+			uint16_t clippedH = (y < 0) ? static_cast<uint16_t>(sizeS + y) : size;
+
+			if (clippedX + clippedW > width) clippedW = width - clippedX;
+			if (clippedY + clippedH > height) clippedH = height - clippedY;
+
+			if (clippedW > 0 && clippedH > 0) {
+				canvas.drawRectangle(clippedX, clippedY, clippedW, clippedH,
+				                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
+				                     BlendMode::ADDITIVE);
+			}
 		}
 	}
 }

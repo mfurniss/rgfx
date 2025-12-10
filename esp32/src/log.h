@@ -1,5 +1,10 @@
 #pragma once
+
+#ifdef UNIT_TEST
+#include "../test/mocks/mock_arduino.h"
+#else
 #include <Arduino.h>
+#endif
 
 /**
  * Log level for categorizing log messages
@@ -16,8 +21,11 @@ enum class LogLevel {
  * @param level - Log level (INFO or ERROR), defaults to INFO
  */
 void log(const char* message, LogLevel level = LogLevel::INFO);
+#ifndef UNIT_TEST
 void log(const String& message, LogLevel level = LogLevel::INFO);
+#endif
 
+#ifndef UNIT_TEST
 /**
  * Set the remote logging level (called when Hub sends logging config)
  *
@@ -43,3 +51,4 @@ void initLogQueue();
  * MUST be called from Core 0 (network task) to ensure thread-safe MQTT access
  */
 void processLogQueue();
+#endif

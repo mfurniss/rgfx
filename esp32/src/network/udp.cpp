@@ -2,12 +2,12 @@
 #include "network/mqtt.h"
 #include "log.h"
 #include <ArduinoJson.h>
+#include <cstring>
 
 WiFiUDP udp;
 
-// UDP message handling
-volatile bool newMessageAvailable = false;
-UDPMessage pendingMessage;
+// Circular queue for UDP messages (raw JSON strings to avoid heap fragmentation)
+static UDPMessageQueue messageQueue = {};
 static bool udpInitialized = false;
 
 // UDP message statistics
@@ -23,7 +23,7 @@ void setupUDP() {
 	}
 }
 
-// Check for UDP packets and process them (call from main loop)
+// Check for UDP packets and enqueue them (call from main loop)
 void processUDP() {
 	if (!udpInitialized) {
 		return;
@@ -39,7 +39,8 @@ void processUDP() {
 			IPAddress hubIP;
 			if (hubIP.fromString(MQTT_SERVER)) {
 				if (sourceIP != hubIP) {
-					log("UDP RX: Rejected packet from unauthorized source " + sourceIP.toString() + " (expected " + hubIP.toString() + ")");
+					log("UDP RX: Rejected packet from unauthorized source " + sourceIP.toString() +
+					    " (expected " + hubIP.toString() + ")");
 					return;
 				}
 			}
@@ -54,35 +55,49 @@ void processUDP() {
 		if (len > 0) {
 			buffer[len] = '\0';  // Null terminate
 
-			// Parse JSON
-			JsonDocument doc;
-			DeserializationError error = deserializeJson(doc, buffer);
-
-			if (!error) {
-				udpMessagesReceived++;  // Increment counter for valid UDP messages
-
-				// Extract effect name
-				if (doc["effect"]) {
-					pendingMessage.effect = doc["effect"].as<String>();
-				}
-
-				// Copy entire props object
-				pendingMessage.props = doc["props"];
-
-				newMessageAvailable = true;
+			// Enqueue raw JSON string (parse later when dequeuing)
+			if (messageQueue.count < UDP_QUEUE_SIZE) {
+				uint8_t idx = messageQueue.head;
+				memcpy(messageQueue.messages[idx].buffer, buffer, len + 1);
+				messageQueue.messages[idx].length = static_cast<uint16_t>(len);
+				messageQueue.head = (messageQueue.head + 1) % UDP_QUEUE_SIZE;
+				messageQueue.count++;
+				udpMessagesReceived++;
 			} else {
-				log("UDP RX: JSON parse error: " + String(error.c_str()));
+				log("UDP RX: Queue full, dropping message");
 			}
 		}
 	}
 }
 
-// Check for UDP message updates (call from main loop)
+// Dequeue and parse next UDP message (call from main loop)
 bool checkUDPMessage(UDPMessage* message) {
-	if (newMessageAvailable) {
-		*message = pendingMessage;
-		newMessageAvailable = false;
-		return true;
+	if (messageQueue.count == 0) {
+		return false;
 	}
-	return false;
+
+	// Dequeue raw message
+	uint8_t idx = messageQueue.tail;
+	const char* buffer = messageQueue.messages[idx].buffer;
+
+	// Parse JSON
+	JsonDocument doc;
+	DeserializationError error = deserializeJson(doc, buffer);
+
+	// Advance tail regardless of parse success (consume the slot)
+	messageQueue.tail = (messageQueue.tail + 1) % UDP_QUEUE_SIZE;
+	messageQueue.count--;
+
+	if (error) {
+		log("UDP: JSON parse error: " + String(error.c_str()));
+		return false;
+	}
+
+	// Extract effect name and props
+	if (doc["effect"]) {
+		message->effect = doc["effect"].as<String>();
+	}
+	message->props = doc["props"];
+
+	return true;
 }

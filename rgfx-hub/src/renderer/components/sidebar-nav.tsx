@@ -50,7 +50,7 @@ export function SidebarNav() {
                 handleNavigate(item.path);
               }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: '46px'}}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
             </ListItemButton>
           </ListItem>

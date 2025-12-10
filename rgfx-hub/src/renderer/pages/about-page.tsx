@@ -1,21 +1,31 @@
 import React from 'react';
-import { Typography, Box, Paper } from '@mui/material';
+import { Typography, Box, Paper, Link } from '@mui/material';
+import { Info as InfoIcon } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
+import { useAppInfoStore } from '../store/app-info-store';
 
 const AboutPage: React.FC = () => {
-  const version = '0.0.1-Test';
+  const appInfo = useAppInfoStore((state) => state.appInfo);
+
+  const handleOpenLicense = () => {
+    if (appInfo?.licensePath) {
+      void window.rgfx.openFile(appInfo.licensePath);
+    }
+  };
 
   return (
     <Box>
+      <PageTitle icon={<InfoIcon />} title="About" />
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           Retro Game Effects
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          An application and MAME Lua scripts for monitoring emulated game states and publishing
-          network events to control LED hardware",
+          A system framework for monitoring emulated game states and publishing
+          network events to connected LED drivers.
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Version {version}
+          Version {appInfo?.version ?? '...'}
         </Typography>
       </Paper>
 
@@ -52,18 +62,6 @@ const AboutPage: React.FC = () => {
         </Typography>
       </Paper>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          License & Source Code
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          RGFX is open source software.
-        </Typography>
-        <Typography variant="body2">
-          For documentation, source code, and support, visit the project repository.
-        </Typography>
-      </Paper>
-
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Copyright & License
@@ -72,7 +70,11 @@ const AboutPage: React.FC = () => {
           Copyright &copy; 2025 Matt Furniss
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+          This Source Code Form is subject to the terms of the{' '}
+          <Link component="button" variant="body2" onClick={handleOpenLicense}>
+            Mozilla Public License, v. 2.0
+          </Link>
+          .
         </Typography>
       </Paper>
     </Box>

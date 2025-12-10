@@ -4,11 +4,9 @@
 
 #include "crash_handler.h"
 #include "log.h"
-#include "utils.h"
 #include "network/mqtt.h"
 #include <esp_system.h>
 #include <Arduino.h>
-#include <ArduinoJson.h>
 
 // RTC memory survives crashes, watchdog resets, and software resets
 // Only cleared on power-on reset
@@ -134,27 +132,11 @@ void publishCrashReport() {
 		return;
 	}
 
-	String deviceId = Utils::getDeviceId();
-	String topic = "rgfx/driver/" + deviceId + "/crash";
+	// Send crash info via the regular log system (Hub subscribes to /log topic)
+	log("CRASH RECOVERY - reason: " + String(getResetReasonString(crashInfo.lastResetReason)) +
+		", count: " + String(crashInfo.crashCount) +
+		", uptime before crash: " + String(crashInfo.uptimeAtCrash) + "ms",
+		LogLevel::ERROR);
 
-	JsonDocument doc;
-	doc["event"] = "crash_recovery";
-	doc["deviceId"] = deviceId;
-	doc["resetReason"] = crashInfo.lastResetReason;
-	doc["resetReasonText"] = getResetReasonString(crashInfo.lastResetReason);
-	doc["crashCount"] = crashInfo.crashCount;
-	doc["uptimeBeforeCrashMs"] = crashInfo.uptimeAtCrash;
-	doc["timestamp"] = millis();
-
-	String payload;
-	serializeJson(doc, payload);
-
-	bool result = mqttClient.publish(topic.c_str(), payload.c_str(), false, 2);
-
-	if (result) {
-		log("Crash report sent to Hub: " + topic);
-		markCrashReported();
-	} else {
-		log("Failed to send crash report", LogLevel::ERROR);
-	}
+	markCrashReported();
 }

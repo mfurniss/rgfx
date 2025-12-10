@@ -17,9 +17,12 @@ import {
   SettingsBrightness,
   Save,
   FolderOpen,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
+import { PageTitle } from '../components/page-title';
 import { useColorScheme } from '@mui/material/styles';
 import { useUiStore } from '../store/ui-store';
+import { useAppInfoStore } from '../store/app-info-store';
 import { useNotificationStore } from '../store/notification-store';
 
 type ThemeMode = 'system' | 'light' | 'dark';
@@ -30,34 +33,20 @@ const SettingsPage: React.FC = () => {
   const storedMameRomsDirectory = useUiStore((state) => state.mameRomsDirectory);
   const setRgfxConfigDirectory = useUiStore((state) => state.setRgfxConfigDirectory);
   const setMameRomsDirectory = useUiStore((state) => state.setMameRomsDirectory);
+  const appInfo = useAppInfoStore((state) => state.appInfo);
   const addNotification = useNotificationStore((state) => state.addNotification);
 
-  // Local form state
-  const [configDir, setConfigDir] = useState(storedRgfxConfigDirectory);
+  // Local form state - use static defaults from app info
+  const defaultConfigDir = appInfo?.defaultRgfxConfigDir ?? '';
+  const [configDir, setConfigDir] = useState(storedRgfxConfigDirectory || defaultConfigDir);
   const [romsDir, setRomsDir] = useState(storedMameRomsDirectory);
   const [configDirError, setConfigDirError] = useState<string | null>(null);
   const [romsDirError, setRomsDirError] = useState<string | null>(null);
-  const [defaultConfigDir, setDefaultConfigDir] = useState('');
-
-  // Load defaults and initialize form
-  useEffect(() => {
-    const loadDefaults = async () => {
-      const defaults = await window.rgfx.getDefaultPaths();
-      setDefaultConfigDir(defaults.rgfxConfigDirectory);
-
-      // If no stored value, use the default
-      if (!storedRgfxConfigDirectory) {
-        setConfigDir(defaults.rgfxConfigDirectory);
-      }
-    };
-
-    void loadDefaults();
-  }, [storedRgfxConfigDirectory]);
 
   // Sync local state when store changes
   useEffect(() => {
-    setConfigDir(storedRgfxConfigDirectory);
-  }, [storedRgfxConfigDirectory]);
+    setConfigDir(storedRgfxConfigDirectory || defaultConfigDir);
+  }, [storedRgfxConfigDirectory, defaultConfigDir]);
 
   useEffect(() => {
     setRomsDir(storedMameRomsDirectory);
@@ -153,9 +142,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        Settings
-      </Typography>
+      <PageTitle icon={<SettingsIcon />} title="Settings" />
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
