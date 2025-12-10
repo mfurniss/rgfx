@@ -16,6 +16,9 @@
     {
       "path": "rgfx-hub",
     },
+    {
+      "path": "public-docs",
+    },
   ],
   "settings": {
     "files.exclude": {
@@ -23,6 +26,7 @@
       "esp32-installer": true,
       "rgfx.io": true,
       "rgfx-hub": true,
+      "public-docs": true,
     },
     "eslint.format.enable": true,
     "editor.codeActionsOnSave": {

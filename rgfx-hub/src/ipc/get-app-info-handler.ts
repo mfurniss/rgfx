@@ -19,6 +19,9 @@ export function registerGetAppInfoHandler(): void {
       licensePath: app.isPackaged
         ? join(process.resourcesPath, 'LICENSE')
         : join(app.getAppPath(), '..', 'LICENSE'),
+      docsPath: app.isPackaged
+        ? join(process.resourcesPath, 'docs', 'index.html')
+        : join(app.getAppPath(), '..', 'public-docs', 'site', 'index.html'),
       defaultRgfxConfigDir: `${home}/.rgfx`,
       defaultMameRomsDir: `${home}/mame-roms`,
     };

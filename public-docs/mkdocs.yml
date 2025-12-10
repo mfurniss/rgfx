@@ -1,0 +1,39 @@
+# RGFX Documentation
+# https://squidfunk.github.io/mkdocs-material/
+
+site_name: RGFX Documentation
+site_url: https://rgfx.io/
+site_description: Retro Game Effects - External visual effects for retro video games
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: red
+    accent: light blue
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - offline
+
+# Disable features incompatible with file:// protocol
+use_directory_urls: false
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - toc:
+      permalink: true
