@@ -21,7 +21,6 @@ import {
   MenuItem,
   FormControlLabel,
   Checkbox,
-  Divider,
   CircularProgress,
   Alert,
   Grid,
@@ -169,7 +168,7 @@ export default function DriverConfigPage() {
       <Paper sx={{ p: 3, maxWidth: 900 }}>
         <form onSubmit={handleFormSubmit}>
           <Typography variant="h6" gutterBottom>
-            Driver Identity
+            Identity
           </Typography>
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -204,10 +203,8 @@ export default function DriverConfigPage() {
             </Grid>
           </Grid>
 
-          <Divider sx={{ my: 3 }} />
-
           <Typography variant="h6" gutterBottom>
-            Driver Settings
+            Settings
           </Typography>
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -244,8 +241,6 @@ export default function DriverConfigPage() {
               />
             </Grid>
           </Grid>
-
-          <Divider sx={{ my: 3 }} />
 
           <Typography variant="h6" gutterBottom>
             LED Configuration
@@ -372,8 +367,6 @@ export default function DriverConfigPage() {
               )}
             </Grid>
           )}
-
-          <Divider sx={{ my: 3 }} />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button variant="outlined" onClick={handleExit} disabled={saving}>

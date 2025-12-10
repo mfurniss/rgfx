@@ -21,8 +21,8 @@ const AboutPage: React.FC = () => {
           Retro Game Effects
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          An application and MAME Lua scripts for monitoring emulated game states and publishing
-          network events to control LED hardware",
+          A system framework for monitoring emulated game states and publishing
+          network events to connected LED drivers.
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Version {appInfo?.version ?? '...'}
@@ -59,18 +59,6 @@ const AboutPage: React.FC = () => {
         </Typography>
         <Typography variant="body2">
           <strong>Game Integration:</strong> MAME Lua 5.4 scripting
-        </Typography>
-      </Paper>
-
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          License & Source Code
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          RGFX is open source software.
-        </Typography>
-        <Typography variant="body2">
-          For documentation, source code, and support, visit the project repository.
         </Typography>
       </Paper>
 
