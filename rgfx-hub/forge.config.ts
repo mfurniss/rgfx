@@ -16,6 +16,7 @@ const config: ForgeConfig = {
       "./assets/mame",
       "./assets/led-hardware",
       "../LICENSE",
+      { from: "../public-docs/site", to: "docs" },
     ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [

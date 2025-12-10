@@ -9,6 +9,7 @@ import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
 export interface AppInfo {
   version: string;
   licensePath: string;
+  docsPath: string;
   defaultRgfxConfigDir: string;
   defaultMameRomsDir: string;
 }
