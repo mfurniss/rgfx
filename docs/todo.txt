@@ -96,3 +96,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] LED panel dot in top left cornder
 [X] Unified rotation per-panel (0A, 1B, 2C, 3D, etc)
 [ ] Initial install with no drivers
+[ ] FX Playground randomizer
+[X] Animated hub route transitions
