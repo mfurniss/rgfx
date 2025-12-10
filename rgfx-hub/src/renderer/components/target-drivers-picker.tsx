@@ -56,7 +56,7 @@ export function TargetDriversPicker({
         endIcon={<ExpandMoreIcon />}
         sx={{ textTransform: 'none' }}
       >
-        Target Drivers: {selectAll ? 'All' : `${selectedDrivers.size} of ${connectedDrivers.length}`}
+        Target Drivers: {selectAll && connectedDrivers.length === drivers.length ? 'All' : `${selectedDrivers.size} of ${drivers.length}`}
       </Button>
       <Popover
         open={Boolean(anchorEl)}
