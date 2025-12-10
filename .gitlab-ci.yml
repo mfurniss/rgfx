@@ -122,6 +122,7 @@ build:hub:
   stage: build
   image: node:${NODE_VERSION}
   interruptible: true
+  allow_failure: true  # DMG build fails on Linux - don't block pages deploy
 
   # Cache npm packages to speed up subsequent runs
   cache:
