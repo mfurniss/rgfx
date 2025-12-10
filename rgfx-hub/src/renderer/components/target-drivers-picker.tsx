@@ -56,7 +56,7 @@ export function TargetDriversPicker({
         endIcon={<ExpandMoreIcon />}
         sx={{ textTransform: 'none' }}
       >
-        Target Drivers: {selectAll ? 'All' : `${selectedDrivers.size} of ${connectedDrivers.length}`}
+        Target Drivers: {selectAll && connectedDrivers.length === drivers.length ? 'All' : `${selectedDrivers.size} of ${drivers.length}`}
       </Button>
       <Popover
         open={Boolean(anchorEl)}
@@ -80,7 +80,7 @@ export function TargetDriversPicker({
                   size="small"
                 />
               }
-              label={`All Drivers (${connectedDrivers.length})`}
+              label={`All Available Drivers (${connectedDrivers.length})`}
               sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.9rem' } }}
             />
             {[...drivers].sort((a, b) => a.id.localeCompare(b.id)).map((driver) => (

@@ -15,6 +15,7 @@ const config: ForgeConfig = {
       "./assets/esp32/firmware",
       "./assets/mame",
       "./assets/led-hardware",
+      "../LICENSE",
     ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [

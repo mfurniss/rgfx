@@ -22,6 +22,10 @@ vi.mock('electron-log/main', () => ({
   },
 }));
 
+vi.mock('@/ota-state', () => ({
+  isDriverInOta: vi.fn(() => false),
+}));
+
 describe('subscribeDriverStatus', () => {
   let mockMqtt: {
     subscribe: ReturnType<typeof vi.fn>;
@@ -393,6 +397,80 @@ describe('subscribeDriverStatus', () => {
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
       expect(mockDriver.telemetry).toEqual(originalTelemetry);
+    });
+  });
+
+  describe('OTA state handling', () => {
+    let mockIsDriverInOta: ReturnType<typeof vi.fn>;
+
+    beforeEach(async () => {
+      const otaState = await vi.importMock<{ isDriverInOta: ReturnType<typeof vi.fn> }>(
+        '@/ota-state',
+      );
+      mockIsDriverInOta = otaState.isDriverInOta;
+      mockIsDriverInOta.mockReturnValue(false);
+
+      subscribeDriverStatus({
+        mqtt: mockMqtt as unknown as MqttBroker,
+        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        getEventsProcessed: mockGetEventsProcessed,
+      });
+    });
+
+    it('should ignore LWT offline message during OTA update', () => {
+      mockIsDriverInOta.mockReturnValue(true);
+
+      mockDriver.connected = true;
+      mockDriver.ip = '192.168.1.100';
+
+      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+
+      // Driver should remain connected during OTA
+      expect(mockDriver.connected).toBe(true);
+      expect(mockDriver.ip).toBe('192.168.1.100');
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should check OTA state with correct driver ID', () => {
+      mockDriver.connected = true;
+
+      subscribedCallback('rgfx/driver/my-driver-id/status', 'offline');
+
+      expect(mockIsDriverInOta).toHaveBeenCalledWith('my-driver-id');
+    });
+
+    it('should process offline normally when OTA is not in progress', () => {
+      mockIsDriverInOta.mockReturnValue(false);
+
+      mockDriver.connected = true;
+
+      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+
+      expect(mockDriver.connected).toBe(false);
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+        'driver:disconnected',
+        expect.any(Object),
+      );
+    });
+
+    it('should not check OTA state for online messages', () => {
+      mockIsDriverInOta.mockClear();
+
+      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'online');
+
+      expect(mockIsDriverInOta).not.toHaveBeenCalled();
+    });
+
+    it('should not check OTA state if driver already disconnected', () => {
+      mockIsDriverInOta.mockClear();
+
+      mockDriver.connected = false;
+
+      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+
+      expect(mockIsDriverInOta).not.toHaveBeenCalled();
     });
   });
 });

@@ -8,20 +8,42 @@ describe('ConfirmFlashDialog', () => {
     cleanup();
   });
 
-  it('renders warning content when open', () => {
+  it('renders USB warning content when open', () => {
     const onConfirm = vi.fn();
     const onCancel = vi.fn();
     render(
       <ConfirmFlashDialog
         open={true}
+        firmwareVersion="1.0.0"
+        flashMethod="usb"
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
     );
 
     expect(screen.getByText('Confirm Firmware Flash')).toBeDefined();
+    expect(screen.getByText(/1\.0\.0/)).toBeDefined();
     expect(screen.getByText(/cannot be interrupted/)).toBeDefined();
-    expect(screen.getByText(/Do not disconnect/)).toBeDefined();
+    expect(screen.getByText(/USB cable/)).toBeDefined();
+  });
+
+  it('renders OTA warning content when open', () => {
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <ConfirmFlashDialog
+        open={true}
+        firmwareVersion="1.0.0"
+        flashMethod="ota"
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+      />,
+    );
+
+    expect(screen.getByText('Confirm Firmware Flash')).toBeDefined();
+    expect(screen.getByText(/1\.0\.0/)).toBeDefined();
+    expect(screen.getByText(/cannot be interrupted/)).toBeDefined();
+    expect(screen.getByText(/network/)).toBeDefined();
   });
 
   it('calls onConfirm when Start Flashing clicked', () => {
@@ -30,6 +52,8 @@ describe('ConfirmFlashDialog', () => {
     render(
       <ConfirmFlashDialog
         open={true}
+        firmwareVersion="1.0.0"
+        flashMethod="usb"
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
@@ -45,6 +69,8 @@ describe('ConfirmFlashDialog', () => {
     render(
       <ConfirmFlashDialog
         open={true}
+        firmwareVersion="1.0.0"
+        flashMethod="usb"
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
@@ -60,6 +86,8 @@ describe('ConfirmFlashDialog', () => {
     render(
       <ConfirmFlashDialog
         open={false}
+        firmwareVersion="1.0.0"
+        flashMethod="usb"
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,

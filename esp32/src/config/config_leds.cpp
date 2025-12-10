@@ -19,6 +19,9 @@ struct DeviceMapping {
 
 static std::vector<DeviceMapping> deviceMappings;
 
+// Track if FastLED has been initialized (addLeds can only be called once per pin)
+static bool g_fastledInitialized = false;
+
 /**
  * Helper: Find pin index for a GPIO pin number
  */
@@ -46,8 +49,15 @@ static uint32_t getColorCorrection(const String& correction) {
 
 /**
  * Initialize FastLED based on configuration
+ * FastLED.addLeds() can only be called once per pin - subsequent calls corrupt RMT channels
  */
 bool configLEDs() {
+	// Skip if already initialized - FastLED doesn't support re-initialization
+	if (g_fastledInitialized && activePins > 0) {
+		log("FastLED already initialized, skipping re-initialization");
+		return true;
+	}
+
 	log("Initializing FastLED configuration...");
 
 	if (!g_configReceived) {
@@ -63,6 +73,16 @@ bool configLEDs() {
 	// Clear existing setup
 	FastLED.clear(true);
 	deviceMappings.clear();
+
+	// Free existing LED buffers before reallocating
+	for (uint8_t i = 0; i < activePins; i++) {
+		if (ledBuffers[i]) {
+			delete[] ledBuffers[i];
+			ledBuffers[i] = nullptr;
+		}
+		ledCounts[i] = 0;
+		pinNumbers[i] = 0;
+	}
 	activePins = 0;
 
 	// Group devices by pin and calculate buffer sizes
@@ -186,7 +206,15 @@ bool configLEDs() {
 	    String(g_driverConfig.maxPowerMilliamps) + "mA");
 	log("Dithering: " + String(g_driverConfig.dithering ? "enabled" : "disabled"));
 
+	g_fastledInitialized = true;
 	return true;
+}
+
+/**
+ * Check if FastLED has been initialized
+ */
+bool isFastLEDInitialized() {
+	return g_fastledInitialized;
 }
 
 /**

@@ -4,6 +4,16 @@ import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
+ * Static application information returned by a single IPC call at startup
+ */
+export interface AppInfo {
+  version: string;
+  licensePath: string;
+  defaultRgfxConfigDir: string;
+  defaultMameRomsDir: string;
+}
+
+/**
  * LED Configuration Types
  */
 type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
@@ -256,6 +266,8 @@ export interface EventTopicData {
 declare global {
   interface Window {
     rgfx: {
+      getAppInfo: () => Promise<AppInfo>;
+
       onDriverConnected: (callback: (driver: Driver) => void) => () => void;
       onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
       onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
@@ -287,7 +299,6 @@ declare global {
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
       listGames: () => Promise<GameInfo[]>;
       simulateEvent: (eventLine: string) => Promise<void>;
-      getDefaultPaths: () => Promise<DefaultPaths>;
       selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
       verifyDirectory: (path: string) => Promise<boolean>;
     };
@@ -300,9 +311,4 @@ export interface GameInfo {
   interceptorName: string | null;
   transformerPath: string | null;
   transformerName: string | null;
-}
-
-export interface DefaultPaths {
-  rgfxConfigDirectory: string;
-  mameRomsDirectory: string;
 }

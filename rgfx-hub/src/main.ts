@@ -214,7 +214,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: MAIN_WINDOW_WIDTH,
     height: MAIN_WINDOW_HEIGHT,
-    title: `RGFX Hub v${pkg.version}`,
+    title: '',
     backgroundColor: '#121212',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

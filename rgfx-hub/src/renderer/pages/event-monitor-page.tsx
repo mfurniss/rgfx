@@ -11,8 +11,10 @@ import {
   TableSortLabel,
   Paper,
 } from '@mui/material';
+import { Monitor as MonitorIcon } from '@mui/icons-material';
 import { useEventStore } from '../store/event-store';
 import { formatNumber } from '../utils/formatters';
+import { PageTitle } from '../components/page-title';
 
 type SortField = 'topic' | 'count';
 type SortOrder = 'asc' | 'desc';
@@ -64,6 +66,7 @@ const EventMonitorPage: React.FC = () => {
 
   return (
     <Box>
+      <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>

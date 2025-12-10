@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <unity.h>
+#include "../mocks/mock_arduino.h"
+
 #include "coordinate_transforms.h"
 #include "coordinate_transforms.cpp"
 

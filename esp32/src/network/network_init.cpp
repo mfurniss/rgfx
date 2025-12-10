@@ -87,8 +87,13 @@ void setupNetworkServices(Matrix& matrix) {
 	}
 
 	// Go dark for normal operation
-	fill_solid(matrix.leds, matrix.size, CRGB::Black);
-	FastLED.show();
+	// NOTE: Use global matrix pointer, not the reference parameter, because
+	// handleDriverConfig() may have deleted and recreated the matrix
+	extern Matrix* matrix;
+	if (matrix != nullptr && matrix->leds != nullptr) {
+		fill_solid(matrix->leds, matrix->size, CRGB::Black);
+		FastLED.show();
+	}
 }
 
 void cleanupNetworkServices(Matrix& matrix) {

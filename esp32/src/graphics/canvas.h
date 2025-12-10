@@ -6,17 +6,7 @@
 class Matrix;
 
 #ifdef UNIT_TEST
-// Minimal CRGB stub for native tests
-struct CRGB {
-	union {
-		struct { uint8_t r, g, b; };
-		uint8_t raw[3];
-	};
-	CRGB() : r(0), g(0), b(0) {}
-	CRGB(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
-	static const CRGB Black;
-	bool operator==(const CRGB& other) const { return r == other.r && g == other.g && b == other.b; }
-};
+#include "../test/mocks/mock_fastled.h"
 #else
 struct CRGB;
 #endif

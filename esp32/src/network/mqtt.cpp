@@ -17,9 +17,9 @@
 // MQTT broker server (discovered via SSDP)
 String MQTT_SERVER = "";
 
-// MQTT client
+// MQTT client - read buffer for incoming config, write buffer only needs header/topic (payloads stream)
 WiFiClient espClient;
-MQTTClient mqttClient(MQTT_BUFFER_SIZE);
+MQTTClient mqttClient(2048, 256);
 
 // Discovery state tracking
 static bool brokerDiscovered = false;
@@ -335,27 +335,8 @@ void sendDriverTelemetry() {
 	String payload;
 	serializeJson(doc, payload);
 
-	// Check if payload exceeds MQTT buffer size
-	if (payload.length() > MQTT_BUFFER_SIZE) {
-		log("ERROR: Telemetry payload too large for MQTT buffer");
-		log("Payload size: " + String(payload.length()) + " bytes");
-		log("Buffer size: " + String(MQTT_BUFFER_SIZE) + " bytes");
-
-		// Send error message instead with QoS 2
-		JsonDocument errorDoc;
-		errorDoc["error"] = "Payload too large for MQTT buffer";
-		errorDoc["payloadSize"] = payload.length();
-		errorDoc["bufferSize"] = MQTT_BUFFER_SIZE;
-		errorDoc["mac"] = WiFi.macAddress();
-		errorDoc["ip"] = WiFi.localIP().toString();
-
-		String errorPayload;
-		serializeJson(errorDoc, errorPayload);
-		mqttClient.publish("rgfx/system/driver/telemetry", errorPayload.c_str(), false, 2);
-		return;
-	}
-
 	// Publish to unified telemetry topic with QoS 2 (exactly-once delivery)
+	// Note: Write buffer only needs header/topic space - payloads are streamed directly (v2.5.2+)
 	bool result = mqttClient.publish("rgfx/system/driver/telemetry", payload.c_str(), false, 2);
 
 	if (result) {

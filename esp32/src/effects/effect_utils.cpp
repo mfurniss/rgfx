@@ -1,5 +1,9 @@
 #include "effect_utils.h"
+#ifdef UNIT_TEST
+#include "../test/mocks/mock_fastled.h"
+#else
 #include <FastLED.h>
+#endif
 #include <string.h>
 #include <ctype.h>
 

@@ -12,7 +12,9 @@ import {
   Paper,
   Link,
 } from '@mui/material';
+import { SportsEsports as GamesIcon } from '@mui/icons-material';
 import type { GameInfo } from '@/types';
+import { PageTitle } from '../components/page-title';
 
 type SortField = 'romName' | 'interceptorName' | 'transformerName';
 type SortOrder = 'asc' | 'desc';
@@ -69,6 +71,7 @@ const GamesPage: React.FC = () => {
 
   return (
     <Box>
+      <PageTitle icon={<GamesIcon />} title="Games" />
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
