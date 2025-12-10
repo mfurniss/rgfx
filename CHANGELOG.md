@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed UDP message queue race condition causing dropped effects on LED strip drivers
+  - When hub sends multiple effects rapidly (e.g., blue explosion + white pulse for player death), the single-message buffer was being overwritten before processing
+  - Replaced single `pendingMessage` buffer with 8-slot circular queue of raw JSON strings
+  - Messages are now parsed on dequeue to avoid heap fragmentation
+  - Main loop drains all queued messages per iteration
+
 ### Added
 - Per-panel rotation support for unified LED matrix displays
   - Unified panel entries now use string format: `"<index><rotation>"` (e.g., `"0a"`, `"1b"`, `"2c"`, `"3d"`)
