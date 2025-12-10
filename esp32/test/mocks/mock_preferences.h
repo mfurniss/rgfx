@@ -42,6 +42,11 @@ class Preferences {
 		return storage.erase(fullKey) > 0;
 	}
 
+	bool isKey(const char* key) {
+		std::string fullKey = currentNamespace + ":" + key;
+		return storage.find(fullKey) != storage.end();
+	}
+
 	// String operations
 	std::string getString(const char* key, const std::string& defaultValue = "") {
 		std::string fullKey = currentNamespace + ":" + key;
