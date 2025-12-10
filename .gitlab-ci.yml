@@ -233,8 +233,10 @@ pages:
     - build:driver
 
   script:
-    - mkdir -p public
+    # Assemble public directory
+    - mkdir -p public/docs
     - cp -r esp32-installer/* public/
+    - cp -r public-docs/site/* public/docs/
 
   artifacts:
     paths:
