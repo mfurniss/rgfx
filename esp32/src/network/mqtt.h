@@ -6,8 +6,10 @@
 #include <WiFi.h>
 #include <MQTTClient.h>
 
-// MQTT broker server (discovered via SSDP)
-extern String MQTT_SERVER;
+// MQTT broker server IP (discovered via SSDP broadcast)
+// Fixed-size char array avoids heap fragmentation from String operations
+extern char mqttServerIP[16];  // "xxx.xxx.xxx.xxx\0"
+extern bool mqttServerDiscovered;
 
 // MQTT client
 extern MQTTClient mqttClient;

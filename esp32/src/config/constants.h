@@ -17,13 +17,17 @@
 // Network & Communication Configuration
 // ============================================================================
 
-/** UDP port for receiving LED effects from MAME */
+/** UDP port for receiving LED effects from Hub */
 constexpr int UDP_PORT = 8888;
 
-/** UDP buffer size for incoming messages (must accommodate bitmap image arrays) */
+/**
+ * UDP buffer size for incoming messages.
+ * Sized to accommodate bitmap effect payloads: 32x32 RGB = 3072 bytes max.
+ * Current value handles typical effect messages with room to spare.
+ */
 constexpr int UDP_BUFFER_SIZE = 1024;
 
-/** Serial command buffer size for user input */
+/** Serial command buffer size for user input (longest command ~50 chars) */
 constexpr int SERIAL_BUFFER_SIZE = 128;
 
 /** Web server port for configuration portal */
@@ -47,10 +51,16 @@ constexpr const char* MQTT_USER = "";
 /** MQTT password (empty if no authentication) */
 constexpr const char* MQTT_PASSWORD = "";
 
-/** SSDP broker discovery poll interval (milliseconds) */
-constexpr uint16_t SSDP_POLL_INTERVAL_MS = 3000;  // 3 seconds
+/**
+ * Broker discovery poll interval (milliseconds).
+ * Hub broadcasts its presence every 5 seconds, so poll slightly faster to ensure discovery.
+ */
+constexpr uint16_t SSDP_POLL_INTERVAL_MS = 3000;
 
-/** MQTT reconnection retry interval (milliseconds) */
+/**
+ * MQTT reconnection retry interval (milliseconds).
+ * Allows time for network to stabilize between attempts without spamming.
+ */
 constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000;
 
 /** MQTT topic for test commands */
@@ -59,8 +69,12 @@ constexpr const char* MQTT_TOPIC_TEST = "rgfx/test";
 /** MQTT topic for status messages */
 constexpr const char* MQTT_TOPIC_STATUS = "led/status";
 
-/** MQTT telemetry broadcast interval (milliseconds) - periodic heartbeat */
-constexpr unsigned long TELEMETRY_INTERVAL_MS = 10000;  // 10 seconds
+/**
+ * MQTT telemetry broadcast interval (milliseconds).
+ * Periodic heartbeat sent to Hub with driver status (heap, uptime, etc.).
+ * 10 seconds balances responsiveness vs network/CPU overhead.
+ */
+constexpr unsigned long TELEMETRY_INTERVAL_MS = 10000;
 
 // ============================================================================
 // Timing & Update Configuration
@@ -96,7 +110,11 @@ constexpr unsigned long FLASH_DURATION_MS = 10;  // 10 milliseconds
 // Hardware Limits Configuration
 // ============================================================================
 
-/** Maximum number of GPIO pins that can drive LEDs simultaneously */
+/**
+ * Maximum number of GPIO pins that can drive LEDs simultaneously.
+ * Limited by FastLED parallel output and available RMT channels on ESP32.
+ * Each pin can drive a separate LED strip/matrix.
+ */
 constexpr int MAX_PINS = 4;
 
 // ============================================================================
