@@ -7,8 +7,15 @@ import fs from "fs";
 
 const config: ForgeConfig = {
   packagerConfig: {
+    appBundleId: "com.rgfx.hub",
     asar: true,
     icon: "./assets/icons/icon",
+    darwinDarkModeSupport: true,
+    // macOS Sequoia requires Local Network permission for UDP sockets
+    extendInfo: {
+      NSLocalNetworkUsageDescription: "RGFX Hub needs local network access to communicate with LED drivers via UDP and MQTT.",
+      NSBonjourServices: ["_mqtt._tcp", "_rgfx._udp"],
+    },
     extraResource: [
       "./assets/transformers",
       "./assets/interceptors",
@@ -16,8 +23,14 @@ const config: ForgeConfig = {
       "./assets/mame",
       "./assets/led-hardware",
       "../LICENSE",
-      { from: "../public-docs/site", to: "docs" },
+      "../public-docs/site",
     ],
+    osxSign: {
+      optionsForFile: () => ({
+        entitlements: "./entitlements.mac.plist",
+        hardenedRuntime: true,
+      }),
+    },
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [
       async (
