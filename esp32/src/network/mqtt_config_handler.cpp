@@ -9,6 +9,8 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <FastLED.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 // Handle driver configuration received from Hub
 void handleDriverConfig(const String& payload) {
@@ -16,7 +18,9 @@ void handleDriverConfig(const String& payload) {
 	// This protects against race conditions when config is received while effects are running
 	g_configUpdateInProgress = true;
 
-	log("Processing driver configuration...");
+	// Log stack high-water mark at entry (helps diagnose stack overflow crashes)
+	UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
+	log("Processing driver configuration... (stack: " + String(stackRemaining) + " bytes free)");
 
 	// Parse JSON configuration
 	JsonDocument doc;

@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include <atomic>
 #include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
@@ -48,11 +49,12 @@ EffectProcessor* effectProcessor = nullptr;
 TaskHandle_t networkTaskHandle = NULL;
 
 // Track WiFi/MQTT/OTA connection state (shared between cores)
+// std::atomic ensures proper memory ordering across ESP32 cores
 static bool wasConnected = false;
-bool mqttSetupDone = false;  // Extern in network-init.h
-bool udpSetupDone = false;   // Extern in network-init.h
-bool otaSetupDone = false;   // Extern in network-init.h
-bool otaInProgress = false;  // Extern in network-init.h - Track OTA upload state
+std::atomic<bool> mqttSetupDone(false);  // Extern in network_init.h
+std::atomic<bool> udpSetupDone(false);   // Extern in network_init.h
+std::atomic<bool> otaSetupDone(false);   // Extern in network_init.h
+std::atomic<bool> otaInProgress(false);  // Extern in network_init.h - Track OTA upload state
 static bool initialConnectionAttemptDone = false;
 
 void setup() {
@@ -116,10 +118,12 @@ void setup() {
 	log("Connecting to WiFi...");
 
 	// Create network task on Core 0
-	// Priority 1 (same as loop), 8KB stack
+	// Priority 1 (same as loop), 16KB stack
+	// Stack must be large enough for MQTT config handling which parses JSON and
+	// creates LEDDeviceConfig structs (~200 bytes each) plus String temporaries
 	xTaskCreatePinnedToCore(networkTask,         // Task function
 	                        "NetworkTask",       // Task name
-	                        8192,                // Stack size (bytes)
+	                        16384,               // Stack size (bytes) - increased for config parsing
 	                        NULL,                // Parameters
 	                        1,                   // Priority (1 = same as loop)
 	                        &networkTaskHandle,  // Task handle
@@ -250,7 +254,8 @@ void loop() {
 
 	if (nowInApMode && !inApMode) {
 		// Just entered AP mode - show PURPLE immediately (unless in test mode)
-		if (!testModeActive && matrix != nullptr) {
+		// Check both matrix and leds pointers for safety
+		if (!testModeActive && matrix != nullptr && matrix->leds != nullptr) {
 			log("Entering AP mode - LEDs PURPLE");
 			fill_solid(matrix->leds, matrix->size, CRGB::Purple);
 			FastLED.show();

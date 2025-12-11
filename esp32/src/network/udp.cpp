@@ -12,6 +12,7 @@ static bool udpInitialized = false;
 
 // UDP message statistics
 uint32_t udpMessagesReceived = 0;
+uint32_t udpMessagesDropped = 0;
 
 void setupUDP() {
 	if (udp.begin(UDP_PORT)) {
@@ -23,13 +24,26 @@ void setupUDP() {
 	}
 }
 
-// Check for UDP packets and enqueue them (call from main loop)
+/**
+ * Check for UDP packets and enqueue them
+ *
+ * IMPORTANT: Must be called from Core 1 (main loop) only.
+ * This is the producer side of the UDP message queue.
+ */
 void processUDP() {
 	if (!udpInitialized) {
 		return;
 	}
 	int packetSize = udp.parsePacket();
 	if (packetSize > 0) {
+		// Bounds check: reject packets larger than our buffer
+		if (packetSize > UDP_BUFFER_SIZE - 1) {
+			log("UDP RX: Packet too large (" + String(packetSize) +
+			    " bytes, max " + String(UDP_BUFFER_SIZE - 1) + "), dropping");
+			udpMessagesDropped++;
+			return;
+		}
+
 		// Get source IP of the packet
 		IPAddress sourceIP = udp.remoteIP();
 
@@ -65,12 +79,18 @@ void processUDP() {
 				udpMessagesReceived++;
 			} else {
 				log("UDP RX: Queue full, dropping message");
+				udpMessagesDropped++;
 			}
 		}
 	}
 }
 
-// Dequeue and parse next UDP message (call from main loop)
+/**
+ * Dequeue and parse next UDP message
+ *
+ * IMPORTANT: Must be called from Core 1 (main loop) only.
+ * This is the consumer side of the UDP message queue.
+ */
 bool checkUDPMessage(UDPMessage* message) {
 	if (messageQueue.count == 0) {
 		return false;
