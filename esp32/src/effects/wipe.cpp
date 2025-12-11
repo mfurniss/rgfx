@@ -89,40 +89,40 @@ void WipeEffect::render() {
 			case WipeDirection::RIGHT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(0, 0, fillWidth, height, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, fillWidth, height, CRGBA(color), BlendMode::ADDITIVE);
 				} else {
 					uint16_t startX = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(startX, 0, width - startX, height, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(startX, 0, width - startX, height, CRGBA(color), BlendMode::ADDITIVE);
 				}
 				break;
 			}
 			case WipeDirection::LEFT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, CRGBA(color), BlendMode::ADDITIVE);
 				} else {
 					uint16_t clearWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(0, 0, width - clearWidth, height, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, width - clearWidth, height, CRGBA(color), BlendMode::ADDITIVE);
 				}
 				break;
 			}
 			case WipeDirection::DOWN: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, 0, width, fillHeight, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, width, fillHeight, CRGBA(color), BlendMode::ADDITIVE);
 				} else {
 					uint16_t startY = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, startY, width, height - startY, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(0, startY, width, height - startY, CRGBA(color), BlendMode::ADDITIVE);
 				}
 				break;
 			}
 			case WipeDirection::UP: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, CRGBA(color), BlendMode::ADDITIVE);
 				} else {
 					uint16_t clearHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, 0, width, height - clearHeight, CRGBA(color), BlendMode::AVERAGE);
+					canvas.drawRectangle(0, 0, width, height - clearHeight, CRGBA(color), BlendMode::ADDITIVE);
 				}
 				break;
 			}

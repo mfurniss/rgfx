@@ -24,8 +24,12 @@ MQTTClient mqttClient(2048, 256);
 // Discovery state tracking
 static bool brokerDiscovered = false;
 
-// Test mode state (accessible from main loop)
-bool testModeActive = false;
+// MQTT reconnection failure tracking
+static uint8_t mqttConsecutiveFailures = 0;
+static const uint8_t MQTT_MAX_FAILURES = 10;
+
+// Test mode state (atomic for cross-core access - written by Core 0, read by Core 1)
+std::atomic<bool> testModeActive(false);
 
 // MQTT message statistics
 uint32_t mqttMessagesReceived = 0;
@@ -210,6 +214,10 @@ void reconnectMQTT() {
 		return;  // Can't connect without a broker
 	}
 
+	// Ensure old TCP connection is properly closed before reconnecting
+	// This prevents socket leaks and CLOSE_WAIT state accumulation
+	espClient.stop();
+
 	log("Connecting to MQTT broker at " + MQTT_SERVER + "...");
 
 	// Create unique client ID based on device ID
@@ -232,6 +240,7 @@ void reconnectMQTT() {
 
 	if (connected) {
 		log("MQTT connected!");
+		mqttConsecutiveFailures = 0;  // Reset failure counter on successful connection
 
 		// Seed random number generator with unique values per driver
 		IPAddress ip = WiFi.localIP();
@@ -294,7 +303,18 @@ void reconnectMQTT() {
 		// Publish current test state immediately to sync with Hub
 		publishTestState(testModeActive ? "on" : "off");
 	} else {
-		log("MQTT connection failed, rc=" + String(mqttClient.returnCode()));
+		mqttConsecutiveFailures++;
+		log("MQTT connection failed, rc=" + String(mqttClient.returnCode()) +
+		    " (attempt " + String(mqttConsecutiveFailures) + "/" + String(MQTT_MAX_FAILURES) + ")");
+
+		// Reset broker discovery after too many consecutive failures
+		if (mqttConsecutiveFailures >= MQTT_MAX_FAILURES) {
+			log("MQTT reconnection failed " + String(MQTT_MAX_FAILURES) +
+			    " times - resetting broker discovery", LogLevel::ERROR);
+			brokerDiscovered = false;
+			MQTT_SERVER = "";
+			mqttConsecutiveFailures = 0;
+		}
 
 		// Update display to show MQTT disconnected
 		if (Display::isAvailable()) {

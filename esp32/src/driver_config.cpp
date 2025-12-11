@@ -7,7 +7,8 @@ DriverConfigData g_driverConfig;
 bool g_configReceived = false;
 
 // Flag indicating config update is in progress (prevents race conditions)
-volatile bool g_configUpdateInProgress = false;
+// std::atomic ensures proper memory ordering across ESP32 cores
+std::atomic<bool> g_configUpdateInProgress(false);
 
 // Gamma correction lookup tables (256 bytes each)
 // Initialized to linear (1:1 mapping) by default

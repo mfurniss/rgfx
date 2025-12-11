@@ -25,16 +25,28 @@ struct UDPRawMessage {
 	uint16_t length;
 };
 
-// Circular queue for UDP messages
+/**
+ * Circular queue for UDP messages
+ *
+ * THREAD SAFETY: This queue is accessed ONLY from Core 1 (main loop).
+ * Both processUDP() (producer) and checkUDPMessage() (consumer) run on
+ * the same core, so no cross-core synchronization is required.
+ *
+ * The volatile qualifiers are retained for ISR safety (futureproofing)
+ * but are NOT required for the current single-threaded access pattern.
+ * If cross-core access is ever needed, replace with std::atomic or
+ * use a FreeRTOS queue.
+ */
 struct UDPMessageQueue {
 	UDPRawMessage messages[UDP_QUEUE_SIZE];
-	volatile uint8_t head;   // Next write position
-	volatile uint8_t tail;   // Next read position
-	volatile uint8_t count;  // Messages in queue
+	volatile uint8_t head;   // Next write position (Core 1 only)
+	volatile uint8_t tail;   // Next read position (Core 1 only)
+	volatile uint8_t count;  // Messages in queue (Core 1 only)
 };
 
 // UDP message statistics
 extern uint32_t udpMessagesReceived;
+extern uint32_t udpMessagesDropped;
 
 // Function declarations
 void setupUDP();

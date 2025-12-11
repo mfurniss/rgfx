@@ -20,11 +20,16 @@ void setupOTA() {
 		log("OTA Update starting...");
 		otaInProgress = true;
 
+		// Skip LED update if config update is in progress (avoid race condition)
+		if (g_configUpdateInProgress) {
+			return;
+		}
+
 		// Clear all LEDs at start
 		if (!g_driverConfig.devices.empty()) {
 			const auto& firstDevice = g_driverConfig.devices[0];
 			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
+			if (leds && firstDevice.count > 0) {
 				fill_solid(leds, firstDevice.count, CRGB::Black);
 				FastLED.show();
 			}
@@ -38,7 +43,14 @@ void setupOTA() {
 
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
 		static unsigned int lastPercent = 0;
-		float percent = (float)progress / (float)total * 100.0f;
+
+		// Bounds-safe percentage calculation (handle edge cases and potential corruption)
+		float percent;
+		if (total == 0 || progress >= total) {
+			percent = 100.0f;
+		} else {
+			percent = (float)progress / (float)total * 100.0f;
+		}
 
 		// Log every 10%
 		if ((unsigned int)percent != lastPercent && (unsigned int)percent % 10 == 0) {
@@ -46,13 +58,19 @@ void setupOTA() {
 			lastPercent = (unsigned int)percent;
 		}
 
+		// Skip LED update if config update is in progress (avoid race condition)
+		if (g_configUpdateInProgress) {
+			return;
+		}
+
 		// Show progress indicator on LEDs
 		if (!g_driverConfig.devices.empty()) {
 			const auto& firstDevice = g_driverConfig.devices[0];
 			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
-				// Calculate LED index from percentage (0-100% → 0 to size-1)
+			if (leds && firstDevice.count > 0) {
+				// Calculate LED index with bounds checking
 				int ledIndex = (int)(percent * (firstDevice.count - 1) / 100.0f);
+				ledIndex = constrain(ledIndex, 0, firstDevice.count - 1);
 
 				if (ledIndex > 0) {
 					fill_solid(leds, ledIndex, CRGB(0x000020));
@@ -68,11 +86,16 @@ void setupOTA() {
 		log("OTA Error: " + String(error));
 		otaInProgress = false;
 
+		// Skip LED update if config update is in progress (avoid race condition)
+		if (g_configUpdateInProgress) {
+			return;
+		}
+
 		// Show error: all red for 5 seconds
 		if (!g_driverConfig.devices.empty()) {
 			const auto& firstDevice = g_driverConfig.devices[0];
 			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds) {
+			if (leds && firstDevice.count > 0) {
 				fill_solid(leds, firstDevice.count, CRGB::Red);
 				FastLED.show();
 				delay(5000);

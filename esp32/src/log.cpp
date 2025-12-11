@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
+#include <freertos/semphr.h>
 
 // Remote logging level: "off", "errors", or "all"
 static String remoteLoggingLevel = "off";
@@ -15,6 +16,10 @@ static String remoteLoggingLevel = "off";
 static QueueHandle_t logQueue = nullptr;
 static const int LOG_QUEUE_SIZE = 32;
 static const int MAX_LOG_MESSAGE_LENGTH = 256;
+
+// Mutex for MQTT client access in log publishing
+// Prevents race condition between connection state check and publish
+static SemaphoreHandle_t mqttLogMutex = nullptr;
 
 // Structure for queued log messages
 struct LogMessage {
@@ -27,6 +32,13 @@ void initLogQueue() {
 		logQueue = xQueueCreate(LOG_QUEUE_SIZE, sizeof(LogMessage));
 		if (logQueue == nullptr) {
 			Serial.println("[LOG] Failed to create log queue!");
+		}
+	}
+
+	if (mqttLogMutex == nullptr) {
+		mqttLogMutex = xSemaphoreCreateMutex();
+		if (mqttLogMutex == nullptr) {
+			Serial.println("[LOG] Failed to create MQTT log mutex!");
 		}
 	}
 }
@@ -71,8 +83,20 @@ void log(const String& message, LogLevel level) {
 }
 
 void processLogQueue() {
-	// Only process if MQTT is connected and queue exists
-	if (logQueue == nullptr || !mqttClient.connected()) {
+	// Only process if queue exists
+	if (logQueue == nullptr || mqttLogMutex == nullptr) {
+		return;
+	}
+
+	// Try to acquire mutex with short timeout (10ms)
+	// This prevents blocking the network task if MQTT operations are slow
+	if (xSemaphoreTake(mqttLogMutex, pdMS_TO_TICKS(10)) != pdTRUE) {
+		return;  // Mutex busy, try again next iteration
+	}
+
+	// Check MQTT connection under mutex protection
+	if (!mqttClient.connected()) {
+		xSemaphoreGive(mqttLogMutex);
 		return;
 	}
 
@@ -96,6 +120,8 @@ void processLogQueue() {
 
 		processed++;
 	}
+
+	xSemaphoreGive(mqttLogMutex);
 }
 
 void setRemoteLoggingLevel(const String& level) {

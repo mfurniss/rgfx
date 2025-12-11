@@ -43,6 +43,11 @@ void networkTask(void* parameter) {
 	// Track last telemetry broadcast
 	unsigned long lastTelemetryBroadcast = 0;
 
+	// Track last stack check time
+	unsigned long lastStackCheck = 0;
+	const unsigned long STACK_CHECK_INTERVAL_MS = 30000;  // Check every 30 seconds
+	const UBaseType_t STACK_WARNING_THRESHOLD = 1024;     // Warn if below 1KB remaining
+
 	// Main network task loop
 	while (true) {
 		// Process config portal web requests (MUST be called regularly)
@@ -85,6 +90,19 @@ void networkTask(void* parameter) {
 			if (now - lastUptimeUpdate >= UPTIME_UPDATE_INTERVAL) {
 				Display::updateUptime(now / 1000);
 				lastUptimeUpdate = now;
+			}
+		}
+
+		// Monitor network task stack usage periodically
+		{
+			unsigned long now = millis();
+			if (now - lastStackCheck >= STACK_CHECK_INTERVAL_MS) {
+				UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
+				if (stackRemaining < STACK_WARNING_THRESHOLD) {
+					log("WARNING: Network task stack low: " + String(stackRemaining) +
+					    " bytes remaining", LogLevel::ERROR);
+				}
+				lastStackCheck = now;
 			}
 		}
 

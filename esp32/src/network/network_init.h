@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include "graphics/matrix.h"
 
 /**
@@ -10,10 +11,12 @@
  */
 
 // Setup state flags (declared in main.cpp)
-extern bool mqttSetupDone;
-extern bool udpSetupDone;
-extern bool otaSetupDone;
-extern bool otaInProgress;  // Track OTA upload state
+// std::atomic ensures proper memory ordering across ESP32 cores
+// (volatile alone is insufficient for multi-core synchronization on Xtensa)
+extern std::atomic<bool> mqttSetupDone;
+extern std::atomic<bool> udpSetupDone;
+extern std::atomic<bool> otaSetupDone;
+extern std::atomic<bool> otaInProgress;  // Track OTA upload state
 
 // Initialize all network services when WiFi connects
 void setupNetworkServices(Matrix& matrix);
