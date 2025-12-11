@@ -9,14 +9,10 @@ import { describe, it, expect } from 'vitest';
 import easingSchema from '../../properties/easing';
 
 describe('easingSchema', () => {
-  describe('default value', () => {
-    it('should default to quadraticOut when undefined', () => {
+  describe('required field', () => {
+    it('should reject undefined (no default - effects define their own)', () => {
       const result = easingSchema.safeParse(undefined);
-      expect(result.success).toBe(true);
-
-      if (result.success) {
-        expect(result.data).toBe('quadraticOut');
-      }
+      expect(result.success).toBe(false);
     });
   });
 

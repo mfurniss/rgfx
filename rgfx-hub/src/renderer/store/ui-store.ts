@@ -1,5 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { effectSchemas } from '@/schemas';
+import { DEFAULT_FX_PLAYGROUND_EFFECT } from '@/config/constants';
+
+function getDefaultPropsJson(effect: keyof typeof effectSchemas): string {
+  return JSON.stringify(effectSchemas[effect].parse({}), null, 2);
+}
 
 export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
@@ -51,8 +57,8 @@ export const useUiStore = create<UiState>()(
       driverTableSortOrder: 'asc',
 
       // Test effects defaults
-      testEffectsSelectedEffect: 'pulse',
-      testEffectsPropsJson: JSON.stringify({ color: 'random', duration: 1000, fade: true }, null, 2),
+      testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
+      testEffectsPropsJson: getDefaultPropsJson(DEFAULT_FX_PLAYGROUND_EFFECT),
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
 
