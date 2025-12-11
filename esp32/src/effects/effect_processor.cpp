@@ -12,10 +12,12 @@ EffectProcessor::EffectProcessor(Matrix& matrix)
 	  wipeEffect(matrix, canvas),
 	  explodeEffect(matrix, canvas),
 	  testLedsEffect(matrix, canvas),
+	  backgroundEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
-		  {"pulse", &pulseEffect},     {"bitmap", &bitmapEffect},      {"wipe", &wipeEffect},
-		  {"explode", &explodeEffect}, {"test_leds", &testLedsEffect},
+		  {"pulse", &pulseEffect},       {"bitmap", &bitmapEffect},
+		  {"wipe", &wipeEffect},         {"explode", &explodeEffect},
+		  {"test_leds", &testLedsEffect}, {"background", &backgroundEffect},
 	  } {}
 
 void EffectProcessor::update() {
@@ -45,9 +47,12 @@ void EffectProcessor::update() {
 	// Clear canvas once per frame
 	canvas.clear();
 
-	// Update and render all effects (excluding test effect)
+	// Render background FIRST (no update needed - static effect)
+	backgroundEffect.render();
+
+	// Update and render all other effects (excluding test and background)
 	for (const auto& entry : effectMap) {
-		if (strcmp(entry.name, "test_leds") != 0) {
+		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0) {
 			entry.effect->update(deltaTime);
 			entry.effect->render();
 		}

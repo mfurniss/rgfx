@@ -363,6 +363,44 @@ export default function DriverConfigPage() {
                       )}
                     />
                   </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
+                      Gamma Correction (1.0 = linear, 2.8 = typical for WS2812B)
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <NumberField
+                      name="ledConfig.gamma.r"
+                      control={control}
+                      label="Gamma Red"
+                      helperText="Red channel gamma (1.0-5.0)"
+                      min={1.0}
+                      max={5.0}
+                      allowFloat
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <NumberField
+                      name="ledConfig.gamma.g"
+                      control={control}
+                      label="Gamma Green"
+                      helperText="Green channel gamma (1.0-5.0)"
+                      min={1.0}
+                      max={5.0}
+                      allowFloat
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <NumberField
+                      name="ledConfig.gamma.b"
+                      control={control}
+                      label="Gamma Blue"
+                      helperText="Blue channel gamma (1.0-5.0)"
+                      min={1.0}
+                      max={5.0}
+                      allowFloat
+                    />
+                  </Grid>
                 </>
               )}
             </Grid>

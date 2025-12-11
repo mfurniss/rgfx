@@ -28,6 +28,7 @@ const createTestDriver = (mac: string, id: string): Driver => {
   driver.ledConfig = {
     hardwareRef: 'led-hardware/test-matrix.json',
     pin: 16,
+    gamma: { r: 2.8, g: 2.8, b: 2.8 },
   };
   return driver;
 };
@@ -200,20 +201,30 @@ describe('DriverConfigPage', () => {
   });
 
   describe('form submission', () => {
+    // Helper to create a minimal valid driver (no ledConfig to avoid gamma field complexity)
+    const createMinimalDriver = (mac: string, id: string): Driver => {
+      const driver = createMockDriver({ mac, id });
+      driver.ledConfig = null;
+      return driver;
+    };
+
     it('calls saveDriverConfig on form submit', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createTestDriver(mac, 'test-driver')];
+      mockDrivers = [createMinimalDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
       mockSaveDriverConfig.mockResolvedValue(undefined);
 
       renderWithRouter(mac);
 
-      // Wait for form to be fully valid (button enabled) and click it
+      // Wait for form to be fully valid (button enabled)
       await waitFor(() => {
         const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
         expect(saveButton.getAttribute('disabled')).toBeNull();
-        fireEvent.click(saveButton);
       });
+
+      // Click outside of waitFor to avoid multiple clicks on retry
+      const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
+      fireEvent.click(saveButton);
 
       await waitFor(() => {
         expect(mockSaveDriverConfig).toHaveBeenCalled();
@@ -222,17 +233,19 @@ describe('DriverConfigPage', () => {
 
     it('shows success notification on successful save', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createTestDriver(mac, 'test-driver')];
+      mockDrivers = [createMinimalDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
       mockSaveDriverConfig.mockResolvedValue(undefined);
 
       renderWithRouter(mac);
 
+      // Wait for form to be valid
       await waitFor(() => {
-        expect(screen.getByText('Save Configuration')).toBeDefined();
+        const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
+        expect(saveButton.getAttribute('disabled')).toBeNull();
       });
 
-      const saveButton = screen.getByText('Save Configuration');
+      const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
       fireEvent.click(saveButton);
 
       await waitFor(() => {
@@ -247,17 +260,19 @@ describe('DriverConfigPage', () => {
 
     it('shows error notification on save failure', async () => {
       const mac = '44:1D:64:F8:9A:58';
-      mockDrivers = [createTestDriver(mac, 'test-driver')];
+      mockDrivers = [createMinimalDriver(mac, 'test-driver')];
       mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
       mockSaveDriverConfig.mockRejectedValue(new Error('Save failed'));
 
       renderWithRouter(mac);
 
+      // Wait for form to be valid
       await waitFor(() => {
-        expect(screen.getByText('Save Configuration')).toBeDefined();
+        const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
+        expect(saveButton.getAttribute('disabled')).toBeNull();
       });
 
-      const saveButton = screen.getByText('Save Configuration');
+      const saveButton = screen.getByRole('button', { name: /Save Configuration/i });
       fireEvent.click(saveButton);
 
       await waitFor(() => {

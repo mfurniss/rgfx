@@ -74,6 +74,7 @@ export const createMockDriver = (overrides?: MockDriverOptions): Driver => {
     failedHeartbeats: 0,
     telemetry: opts.connected ? createMockTelemetry(overrides?.telemetry) : undefined,
     stats: {
+      telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
       mqttMessagesFailed: 0,
       udpMessagesSent: 0,

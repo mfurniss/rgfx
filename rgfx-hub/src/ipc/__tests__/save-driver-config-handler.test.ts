@@ -75,6 +75,7 @@ describe('registerSaveDriverConfigHandler', () => {
     failedHeartbeats: 0,
     testActive: false,
     stats: {
+      telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
       mqttMessagesFailed: 0,
       udpMessagesSent: 0,

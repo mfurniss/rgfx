@@ -49,6 +49,7 @@ export class DriverRegistry {
           ledConfig: pd.ledConfig,
           resolvedHardware,
           stats: {
+            telemetryEventsReceived: 0,
             mqttMessagesReceived: 0,
             mqttMessagesFailed: 0,
             udpMessagesSent: 0,
@@ -189,6 +190,7 @@ export class DriverRegistry {
     existingDriver?: Driver,
   ) {
     return {
+      telemetryEventsReceived: (existingDriver?.stats.telemetryEventsReceived ?? 0) + 1,
       mqttMessagesReceived:
         telemetryData.mqttMessagesReceived ??
         (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
@@ -219,6 +221,7 @@ export class DriverRegistry {
     persistedDriver: PersistedDriver | undefined,
     existingDriver: Driver | undefined,
     stats: {
+      telemetryEventsReceived: number;
       mqttMessagesReceived: number;
       mqttMessagesFailed: number;
       udpMessagesSent: number;
