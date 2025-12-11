@@ -339,8 +339,8 @@ void loop() {
 		// Process all queued UDP messages
 		UDPMessage message;
 		while (checkUDPMessage(&message) && effectProcessor != nullptr) {
-			effectProcessor->addEffect(message.effect, message.props);
-			log("UDP RX from Hub: effect=" + message.effect);
+			effectProcessor->addEffect(String(message.effect), message.props);
+			log("UDP RX from Hub: effect=" + String(message.effect));
 		}
 
 		// Update and render continuous effects

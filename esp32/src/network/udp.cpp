@@ -14,6 +14,10 @@ static bool udpInitialized = false;
 uint32_t udpMessagesReceived = 0;
 uint32_t udpMessagesDropped = 0;
 
+// JSON parse failure tracking - detects protocol mismatches or corrupted data
+static uint8_t consecutiveParseFailures = 0;
+static const uint8_t MAX_PARSE_FAILURES_BEFORE_WARNING = 20;
+
 void setupUDP() {
 	if (udp.begin(UDP_PORT)) {
 		log("UDP listener started on port " + String(UDP_PORT));
@@ -48,10 +52,10 @@ void processUDP() {
 		IPAddress sourceIP = udp.remoteIP();
 
 		// Only accept packets from the Hub (MQTT broker IP)
-		// MQTT_SERVER is set during broker discovery (empty if not discovered yet)
-		if (MQTT_SERVER.length() > 0) {
+		// mqttServerIP is set during broker discovery (empty if not discovered yet)
+		if (mqttServerDiscovered && mqttServerIP[0] != '\0') {
 			IPAddress hubIP;
-			if (hubIP.fromString(MQTT_SERVER)) {
+			if (hubIP.fromString(mqttServerIP)) {
 				if (sourceIP != hubIP) {
 					log("UDP RX: Rejected packet from unauthorized source " + sourceIP.toString() +
 					    " (expected " + hubIP.toString() + ")");
@@ -109,14 +113,27 @@ bool checkUDPMessage(UDPMessage* message) {
 	messageQueue.count--;
 
 	if (error) {
+		consecutiveParseFailures++;
 		log("UDP: JSON parse error: " + String(error.c_str()));
+		if (consecutiveParseFailures >= MAX_PARSE_FAILURES_BEFORE_WARNING) {
+			log("UDP: " + String(consecutiveParseFailures) + " consecutive parse failures - possible protocol mismatch", LogLevel::ERROR);
+			consecutiveParseFailures = 0;  // Reset to avoid spamming
+		}
 		return false;
 	}
 
+	// Reset failure counter on successful parse
+	consecutiveParseFailures = 0;
+
 	// Extract effect name and props
-	if (doc["effect"]) {
-		message->effect = doc["effect"].as<String>();
+	// Use const char* to avoid String heap allocation
+	const char* effectName = doc["effect"] | "";
+	size_t nameLen = strlen(effectName);
+	if (nameLen >= MAX_EFFECT_NAME_LENGTH) {
+		log("UDP: Effect name truncated (was " + String(nameLen) + " chars)", LogLevel::ERROR);
 	}
+	strncpy(message->effect, effectName, MAX_EFFECT_NAME_LENGTH - 1);
+	message->effect[MAX_EFFECT_NAME_LENGTH - 1] = '\0';
 	message->props = doc["props"];
 
 	return true;

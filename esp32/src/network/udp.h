@@ -13,9 +13,13 @@
 // Queue capacity - 8 messages handles burst traffic
 static const uint8_t UDP_QUEUE_SIZE = 8;
 
+// Maximum effect name length (e.g., "explode", "pulse", "wipe")
+static const size_t MAX_EFFECT_NAME_LENGTH = 32;
+
 // Parsed UDP message (returned by checkUDPMessage)
+// Uses fixed char buffer to avoid heap fragmentation from String
 struct UDPMessage {
-	String effect;
+	char effect[MAX_EFFECT_NAME_LENGTH];
 	JsonDocument props;
 };
 
