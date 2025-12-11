@@ -4,8 +4,6 @@ import { Paper, Typography, Box, IconButton, Alert, Stack } from '@mui/material'
 import SuperButton from './super-button';
 import DriverState from './driver-state';
 import {
-  Memory as MemoryIcon,
-  Router as RouterIcon,
   Lightbulb as LightbulbIcon,
   Speed as SpeedIcon,
   Sensors as SensorsIcon,
@@ -80,17 +78,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       : driverUptimeAtSnapshot;
 
   // Prepare data arrays for InfoSection components
-  // Network info - only shown when telemetry is available
-  const networkRows: InfoRowData[] = telemetry
-    ? [
-      { label: 'IP Address', value: driver.ip ?? '' },
-      { label: 'MAC Address', value: driver.mac ?? '' },
-      { label: 'Hostname', value: driver.hostname ?? '' },
-      { label: 'SSID', value: driver.ssid ?? '' },
-      { label: 'Signal (RSSI)', value: `${formatNumber(driver.rssi ?? 0)} dBm` },
-    ]
-    : [];
-
   // Driver telemetry from periodic heartbeats - always show if any data available
   const telemetryRows: InfoRowData[] = [
     // Reset/crash information
@@ -101,7 +88,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ? [{ label: 'Crash Count', value: formatNumber(telemetry.crashCount) }]
       : []),
     // Driver Uptime from telemetry
-    ...(telemetry ? [{ label: 'Driver Uptime', value: formatUptime(currentUptime) }] : []),
+    ...(telemetry ? [{ label: 'Driver Uptime', value: formatUptime(Math.max(0, currentUptime)) }] : []),
     // Memory from heartbeat telemetry
     ...(driver.freeHeap !== undefined && driver.minFreeHeap !== undefined
       ? [
@@ -109,6 +96,28 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           label: 'Memory',
           value: `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`,
         },
+      ]
+      : []),
+    // Memory details from telemetry
+    ...(telemetry
+      ? [
+        {
+          label: 'Free Heap',
+          value: `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`,
+        },
+        ...(telemetry.psramSize > 0
+          ? [
+            {
+              label: 'Free PSRAM',
+              value: `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`,
+            },
+          ]
+          : []),
+        {
+          label: 'Free Sketch Space',
+          value: formatBytes(telemetry.freeSketchSpace),
+        },
+        { label: 'SDK Version', value: telemetry.sdkVersion },
       ]
       : []),
     // WiFi Signal from heartbeat telemetry
@@ -130,6 +139,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ]
       : []),
     // Message counters
+    { label: 'Telemetry Events', value: formatNumber(driver.stats.telemetryEventsReceived) },
     { label: 'MQTT Messages Received', value: formatNumber(driver.stats.mqttMessagesReceived) },
     { label: 'MQTT Errors', value: formatNumber(driver.stats.mqttMessagesFailed) },
     { label: 'UDP Messages Received', value: formatNumber(driver.stats.udpMessagesSent) },
@@ -147,6 +157,12 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   const hardwareRows: InfoRowData[] = telemetry
     ? [
+      // Network info
+      { label: 'IP Address', value: driver.ip ?? '' },
+      { label: 'MAC Address', value: driver.mac ?? '' },
+      { label: 'Hostname', value: driver.hostname ?? '' },
+      { label: 'SSID', value: driver.ssid ?? '' },
+      // Hardware info
       { label: 'Chip Model', value: telemetry.chipModel },
       { label: 'Chip Revision', value: formatNumber(telemetry.chipRevision) },
       { label: 'CPU Cores', value: formatNumber(telemetry.chipCores) },
@@ -160,28 +176,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ...(telemetry.firmwareVersion
         ? [{ label: 'Firmware Version', value: telemetry.firmwareVersion }]
         : []),
-    ]
-    : [];
-
-  const memoryRows: InfoRowData[] = telemetry
-    ? [
-      {
-        label: 'Free Heap',
-        value: `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`,
-      },
-      ...(telemetry.psramSize > 0
-        ? [
-          {
-            label: 'Free PSRAM',
-            value: `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`,
-          },
-        ]
-        : []),
-      {
-        label: 'Free Sketch Space',
-        value: formatBytes(telemetry.freeSketchSpace),
-      },
-      { label: 'SDK Version', value: telemetry.sdkVersion },
     ]
     : [];
 
@@ -314,41 +308,32 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           )}
         </InfoSection>
 
-        {networkRows.length > 0 && (
-          <InfoSection
-            title="Network"
-            icon={<RouterIcon fontSize="small" color="action" />}
-            rows={networkRows}
-            showDivider
-          />
-        )}
+        <InfoSection
+          title="Driver Hardware"
+          icon={<SpeedIcon fontSize="small" color="action" />}
+          rows={hardwareRows}
+          showDivider
+        >
+          {!telemetry && (
+            <Typography variant="body2" color="text.secondary">
+              Hardware details will be displayed when the driver connects.
+            </Typography>
+          )}
+        </InfoSection>
 
-        {telemetryRows.length > 0 && (
-          <InfoSection
-            title="Driver Telemetry"
-            icon={<SensorsIcon fontSize="small" color="action" />}
-            rows={telemetryRows}
-            showDivider
-          />
-        )}
+        <InfoSection
+          title="Driver Telemetry"
+          icon={<SensorsIcon fontSize="small" color="action" />}
+          rows={telemetry ? telemetryRows : []}
+          showDivider
+        >
+          {!telemetry && (
+            <Typography variant="body2" color="text.secondary">
+              No telemetry data received in this session.
+            </Typography>
+          )}
+        </InfoSection>
 
-        {hardwareRows.length > 0 && (
-          <InfoSection
-            title="Hardware"
-            icon={<SpeedIcon fontSize="small" color="action" />}
-            rows={hardwareRows}
-            showDivider
-          />
-        )}
-
-        {memoryRows.length > 0 && (
-          <InfoSection
-            title="Memory"
-            icon={<MemoryIcon fontSize="small" color="action" />}
-            rows={memoryRows}
-            showDivider
-          />
-        )}
       </Box>
     </Box>
   );

@@ -49,6 +49,7 @@ describe('UdpClientImpl', () => {
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
+        telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,
@@ -63,6 +64,7 @@ describe('UdpClientImpl', () => {
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
+        telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,
@@ -77,6 +79,7 @@ describe('UdpClientImpl', () => {
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
+        telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,
@@ -91,6 +94,7 @@ describe('UdpClientImpl', () => {
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
+        telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,
