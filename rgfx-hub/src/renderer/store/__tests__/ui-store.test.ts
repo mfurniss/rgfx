@@ -7,6 +7,8 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useUiStore } from '../ui-store';
+import { effectSchemas } from '@/schemas';
+import { DEFAULT_FX_PLAYGROUND_EFFECT } from '@/config/constants';
 
 describe('useUiStore', () => {
   beforeEach(() => {
@@ -14,8 +16,10 @@ describe('useUiStore', () => {
     useUiStore.setState({
       driverTableSortField: 'id',
       driverTableSortOrder: 'asc',
-      testEffectsSelectedEffect: 'pulse',
-      testEffectsPropsJson: JSON.stringify({ color: 'random', duration: 1000, fade: true }, null, 2),
+      testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
+      testEffectsPropsJson: JSON.stringify(
+        effectSchemas[DEFAULT_FX_PLAYGROUND_EFFECT].parse({}), null, 2,
+      ),
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
       simulatorRows: Array.from({ length: 6 }, () => ({
@@ -35,7 +39,7 @@ describe('useUiStore', () => {
     it('should have default test effects state', () => {
       const { testEffectsSelectedEffect, testEffectsSelectedDrivers, testEffectsSelectAll } =
         useUiStore.getState();
-      expect(testEffectsSelectedEffect).toBe('pulse');
+      expect(testEffectsSelectedEffect).toBe(DEFAULT_FX_PLAYGROUND_EFFECT);
       expect(testEffectsSelectedDrivers).toEqual([]);
       expect(testEffectsSelectAll).toBe(false);
     });
