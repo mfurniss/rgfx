@@ -120,6 +120,7 @@ export interface DriverTelemetry {
 }
 
 interface DriverStats {
+  telemetryEventsReceived: number;
   mqttMessagesReceived: number;
   mqttMessagesFailed: number;
   udpMessagesSent: number;

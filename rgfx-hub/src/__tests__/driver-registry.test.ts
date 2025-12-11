@@ -68,6 +68,7 @@ describe('DriverRegistry', () => {
       const device = registry.registerDriver(telemetryData);
 
       expect(device.stats).toEqual({
+        telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,
