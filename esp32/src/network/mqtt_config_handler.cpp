@@ -1,12 +1,14 @@
 #include "driver_config.h"
 #include "config/config_leds.h"
 #include "config/config_nvs.h"
+#include "graphics/downsample_to_matrix.h"
 #include "log.h"
 #include "utils.h"
 #include "oled/oled_display.h"
 #include "network/mqtt.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include <FastLED.h>
 
 // Handle driver configuration received from Hub
 void handleDriverConfig(const String& payload) {
@@ -199,6 +201,9 @@ void handleDriverConfig(const String& payload) {
 		g_driverConfig.powerSupplyVolts = settings["power_supply_volts"] | 5;
 		g_driverConfig.maxPowerMilliamps = settings["max_power_milliamps"] | 2000;
 		g_driverConfig.wifiTxPower = settings["wifi_tx_power"] | 19.5f;
+		g_driverConfig.gammaR = settings["gamma_r"] | 1.0f;
+		g_driverConfig.gammaG = settings["gamma_g"] | 1.0f;
+		g_driverConfig.gammaB = settings["gamma_b"] | 1.0f;
 
 		log("Global settings:");
 		log("  Brightness limit: " + String(g_driverConfig.globalBrightnessLimit));
@@ -207,6 +212,15 @@ void handleDriverConfig(const String& payload) {
 		log("  Power supply: " + String(g_driverConfig.powerSupplyVolts) + "V @ " +
 		    String(g_driverConfig.maxPowerMilliamps) + "mA");
 		log("  WiFi TX power: " + String(g_driverConfig.wifiTxPower, 1) + " dBm");
+		log("  Gamma: R=" + String(g_driverConfig.gammaR, 2) +
+		    " G=" + String(g_driverConfig.gammaG, 2) +
+		    " B=" + String(g_driverConfig.gammaB, 2));
+
+		// Apply brightness immediately (don't wait for FastLED re-init)
+		FastLED.setBrightness(g_driverConfig.globalBrightnessLimit);
+
+		// Rebuild gamma lookup tables from new values
+		rebuildGammaLUT();
 	}
 
 	// Mark configuration as received

@@ -7,6 +7,7 @@
 #include "effects/wipe.h"
 #include "effects/explode.h"
 #include "effects/test_leds.h"
+#include "effects/background.h"
 #include "effects/effect.h"
 #include <ArduinoJson.h>
 
@@ -32,9 +33,10 @@ class EffectProcessor {
 	WipeEffect wipeEffect;
 	ExplodeEffect explodeEffect;
 	TestLedsEffect testLedsEffect;
+	BackgroundEffect backgroundEffect;
 	unsigned long lastFrameTime;
 
-	EffectEntry effectMap[5];
+	EffectEntry effectMap[6];
 
    public:
 	EffectProcessor(Matrix& matrix);

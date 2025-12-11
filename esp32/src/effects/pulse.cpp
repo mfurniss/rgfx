@@ -73,7 +73,7 @@ void PulseEffect::render() {
 			alpha = 255;
 		}
 
-		CRGBA color(p.r, p.g, p.b, alpha / 2);
+		CRGBA color(p.r, p.g, p.b, alpha);
 
 		uint16_t startCol = 0;
 		uint16_t startRow = 0;
@@ -94,7 +94,7 @@ void PulseEffect::render() {
 		}
 		// CollapseMode::None: full canvas, no shrinking
 
-		canvas.drawRectangle(startCol, startRow, rectWidth, rectHeight, color, BlendMode::ALPHA);
+		canvas.drawRectangle(startCol, startRow, rectWidth, rectHeight, color);
 	}
 }
 
