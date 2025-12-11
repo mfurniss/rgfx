@@ -61,10 +61,16 @@ struct DriverConfigData {
 	uint16_t maxPowerMilliamps;     // Maximum power draw in milliamps
 	float wifiTxPower;              // WiFi TX power in dBm (2.0 to 19.5)
 
+	// Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
+	float gammaR;
+	float gammaG;
+	float gammaB;
+
 	// Constructor with defaults
 	DriverConfigData()
 		: globalBrightnessLimit(255), dithering(true), updateRate(120),
-		  powerSupplyVolts(5), maxPowerMilliamps(2000), wifiTxPower(19.5f) {}
+		  powerSupplyVolts(5), maxPowerMilliamps(2000), wifiTxPower(19.5f),
+		  gammaR(1.0f), gammaG(1.0f), gammaB(1.0f) {}
 };
 
 /**

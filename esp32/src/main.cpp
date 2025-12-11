@@ -25,6 +25,7 @@
 #include "version.h"
 #include "serial.h"
 #include "crash_handler.h"
+#include "graphics/downsample_to_matrix.h"
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
@@ -82,6 +83,10 @@ void setup() {
 
 	// Initialize NVS configuration
 	ConfigNVS::begin();
+
+	// Initialize gamma LUT to linear (1:1) before any LED operations
+	// Will be rebuilt when config is received from Hub
+	rebuildGammaLUT();
 
 	// Power-on LED test - light all LEDs green if config exists
 	if (ConfigNVS::hasLEDConfig()) {

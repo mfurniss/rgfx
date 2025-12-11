@@ -2,10 +2,34 @@
 
 #include "matrix.h"
 #include "canvas.h"
+#include "driver_config.h"
 #include <FastLED.h>
+#include <cmath>
+
+// Gamma correction lookup tables (256 bytes each, generated from gamma values)
+// These are rebuilt when config changes via rebuildGammaLUT()
+extern uint8_t g_gammaLutR[256];
+extern uint8_t g_gammaLutG[256];
+extern uint8_t g_gammaLutB[256];
+
+// Rebuild gamma lookup tables from current config
+// Call this after receiving new gamma values from Hub
+inline void rebuildGammaLUT() {
+	float gammaR = g_driverConfig.gammaR;
+	float gammaG = g_driverConfig.gammaG;
+	float gammaB = g_driverConfig.gammaB;
+
+	for (int i = 0; i < 256; i++) {
+		float normalized = i / 255.0f;
+		g_gammaLutR[i] = (uint8_t)(powf(normalized, gammaR) * 255.0f + 0.5f);
+		g_gammaLutG[i] = (uint8_t)(powf(normalized, gammaG) * 255.0f + 0.5f);
+		g_gammaLutB[i] = (uint8_t)(powf(normalized, gammaB) * 255.0f + 0.5f);
+	}
+}
 
 // Downsample a single canvas to the LED matrix
 // Canvas is 4x the matrix resolution for supersampling
+// Applies gamma correction using precomputed lookup tables
 inline void downsampleToMatrix(Canvas& canvas, Matrix* matrix) {
 	if (!matrix || !matrix->isValid() || !canvas.isValid()) {
 		return;
@@ -26,7 +50,12 @@ inline void downsampleToMatrix(Canvas& canvas, Matrix* matrix) {
 				bSum += pixel.b;
 			}
 
-			matrix->led(x, 0) = CRGB(rSum >> 2, gSum >> 2, bSum >> 2);
+			// Apply gamma correction via LUT
+			matrix->led(x, 0) = CRGB(
+				g_gammaLutR[rSum >> 2],
+				g_gammaLutG[gSum >> 2],
+				g_gammaLutB[bSum >> 2]
+			);
 		}
 	} else {
 		// 2D matrix: downsample 4x4 canvas pixels to 1 LED
@@ -43,7 +72,12 @@ inline void downsampleToMatrix(Canvas& canvas, Matrix* matrix) {
 					}
 				}
 
-				matrix->led(x, y) = CRGB(rSum >> 4, gSum >> 4, bSum >> 4);
+				// Apply gamma correction via LUT
+				matrix->led(x, y) = CRGB(
+					g_gammaLutR[rSum >> 4],
+					g_gammaLutG[gSum >> 4],
+					g_gammaLutB[bSum >> 4]
+				);
 			}
 		}
 	}

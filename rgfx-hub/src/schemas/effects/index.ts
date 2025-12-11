@@ -10,6 +10,7 @@ import pulseSchema from './pulse';
 import wipeSchema from './wipe';
 import explodeSchema from './explode';
 import bitmapSchema from './bitmap';
+import backgroundSchema from './background';
 
 /**
  * Map of effect names to their schemas
@@ -19,6 +20,7 @@ export const effectSchemas = {
   wipe: wipeSchema,
   explode: explodeSchema,
   bitmap: bitmapSchema,
+  background: backgroundSchema,
 } as const;
 
 type EffectName = keyof typeof effectSchemas;
@@ -28,7 +30,8 @@ type EffectProps =
   | z.infer<typeof pulseSchema>
   | z.infer<typeof wipeSchema>
   | z.infer<typeof explodeSchema>
-  | z.infer<typeof bitmapSchema>;
+  | z.infer<typeof bitmapSchema>
+  | z.infer<typeof backgroundSchema>;
 
 /**
  * Check if a string is a valid effect name

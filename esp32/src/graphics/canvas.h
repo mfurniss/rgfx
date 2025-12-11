@@ -64,7 +64,7 @@ class Canvas {
     // Direct write (no blending)
     void drawPixel(uint16_t x, uint16_t y, const CRGB& color);
 
-    // Alpha blend with default mode (ALPHA)
+    // Blend with default mode (ADDITIVE for bright effects)
     void drawPixel(uint16_t x, uint16_t y, const CRGBA& color);
 
     // Explicit blend mode
@@ -72,7 +72,7 @@ class Canvas {
 
     // Rectangle drawing
     void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGB& color);
-    void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGBA& color, BlendMode mode = BlendMode::ALPHA);
+    void drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGBA& color, BlendMode mode = BlendMode::ADDITIVE);
 
     CRGB getPixel(uint16_t x, uint16_t y) const;
     CRGB* getPixels() const;

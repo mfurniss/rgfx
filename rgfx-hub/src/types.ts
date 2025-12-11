@@ -85,6 +85,15 @@ export interface DriverLEDConfig {
    * Defaults to null (single panel, no unification)
    */
   unified?: string[][] | null;
+  /**
+   * Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
+   * Compensates for non-linear human brightness perception
+   */
+  gamma?: {
+    r?: number;
+    g?: number;
+    b?: number;
+  } | null;
 }
 
 /**
