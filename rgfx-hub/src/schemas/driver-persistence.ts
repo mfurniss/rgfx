@@ -73,6 +73,12 @@ const DriverLEDConfigSchema = z.object({
   powerSupplyVolts: z.number().positive().max(24).nullable().optional(),
   maxPowerMilliamps: z.number().positive().max(10000).nullable().optional(),
   unified: UnifiedPanelLayoutSchema.nullable().optional(),
+  // Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
+  gamma: z.object({
+    r: z.number().min(1.0).max(5.0).optional(),
+    g: z.number().min(1.0).max(5.0).optional(),
+    b: z.number().min(1.0).max(5.0).optional(),
+  }).nullable().optional(),
 });
 
 /**

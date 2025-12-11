@@ -119,6 +119,7 @@ describe('App IPC Listener Registration', () => {
       failedHeartbeats: 0,
       ip: '192.168.1.50',
       stats: {
+        telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,

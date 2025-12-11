@@ -62,6 +62,7 @@ describe('subscribeDriverStatus', () => {
       failedHeartbeats: 0,
       testActive: false,
       stats: {
+        telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,
         mqttMessagesFailed: 0,
         udpMessagesSent: 0,

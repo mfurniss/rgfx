@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventFileReader } from '../event-file-reader';
 import { writeFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -18,6 +18,9 @@ describe('EventFileReader', () => {
 
   afterEach(async () => {
     reader.stop();
+
+    // Restore real timers if fake timers were used
+    vi.useRealTimers();
 
     // Wait for async cleanup to complete (file watchers, intervals)
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -46,6 +49,8 @@ describe('EventFileReader', () => {
   });
 
   it('should read events from file created after reader starts', async () => {
+    vi.useFakeTimers();
+
     const events: [string, string][] = [];
     const onEvent = (topic: string, message: string) => events.push([topic, message]);
 
@@ -53,11 +58,13 @@ describe('EventFileReader', () => {
 
     // Create empty file first
     writeFileSync(testFilePath, '');
-    await new Promise((r) => setTimeout(r, 5100)); // Wait for poll
 
-    // Then append data
+    // Advance time to trigger poll interval (5000ms)
+    await vi.advanceTimersByTimeAsync(5000);
+
+    // Then append data - this triggers the file watcher
     writeFileSync(testFilePath, 'game pacman\n', { flag: 'a' });
-    await new Promise((r) => setTimeout(r, 50));
+    await vi.advanceTimersByTimeAsync(50);
 
     expect(events).toEqual([['game', 'pacman']]);
   });

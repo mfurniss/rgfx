@@ -74,9 +74,9 @@ void Canvas::drawPixel(uint16_t x, uint16_t y, const CRGB& color) {
     pixels[index(x, y)] = color;
 }
 
-// Alpha blend with default mode (ALPHA)
+// Default blend mode is ADDITIVE for bright effects
 void Canvas::drawPixel(uint16_t x, uint16_t y, const CRGBA& color) {
-    drawPixel(x, y, color, BlendMode::ALPHA);
+    drawPixel(x, y, color, BlendMode::ADDITIVE);
 }
 
 // Explicit blend mode
