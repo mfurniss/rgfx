@@ -1,5 +1,7 @@
 {
   "platformio-ide.projectDir": "esp32",
+  "cmake.ignoreCMakeListsMissing": true,
+  "cmake.configureOnOpen": false,
   "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"

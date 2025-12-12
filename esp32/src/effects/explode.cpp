@@ -1,12 +1,9 @@
 #include "explode.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
+#include "hal/types.h"
 #include "graphics/canvas.h"
 #include "utils/easing.h"
-#ifdef UNIT_TEST
-#include "../test/mocks/mock_fastled.h"
-#else
-#include <FastLED.h>
-#endif
 #include <algorithm>
 #include <cmath>
 
@@ -47,7 +44,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 	// Parse center position as percentage (0-100), "random", or default to center (50%)
 	float centerXPercent = 50.0f;
 	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
-		centerXPercent = random(0, 101);
+		centerXPercent = hal::random(0, 101);
 	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
 		centerXPercent = props["centerX"].as<float>();
 	}
@@ -59,7 +56,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 	} else {
 		float centerYPercent = 50.0f;
 		if (props["centerY"].is<const char*>() && strcmp(props["centerY"].as<const char*>(), "random") == 0) {
-			centerYPercent = random(0, 101);
+			centerYPercent = hal::random(0, 101);
 		} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
 			centerYPercent = props["centerY"].as<float>();
 		}
@@ -111,7 +108,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		// Calculate velocity with power variation based on powerSpread
 		float powerVariation =
 			scaledPower *
-			(1.0f + (static_cast<float>(random(-100, 100)) / 100.0f) * (powerSpread - 1.0f));
+			(1.0f + (static_cast<float>(hal::random(-100, 100)) / 100.0f) * (powerSpread - 1.0f));
 
 		if (isStrip) {
 			// Strip: Only horizontal movement (half go left, half go right)
@@ -121,7 +118,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		} else {
 			// Matrix: Full 2D explosion with radial distribution
 			float angle = (static_cast<float>(i) / particleCount) * 2.0f * PI;
-			angle += (static_cast<float>(random(-100, 100)) / 100.0f) * 0.3f;
+			angle += (static_cast<float>(hal::random(-100, 100)) / 100.0f) * 0.3f;
 			p.vx = cos(angle) * powerVariation;
 			p.vy = sin(angle) * powerVariation;
 		}
@@ -167,7 +164,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 			p.lifespan = lifespan;
 		} else {
 			float spreadAmount = lifespan * (lifespanSpread - 1.0f);
-			float variation = (static_cast<float>(random(0, 200)) / 100.0f) - 1.0f;  // -1.0 to 1.0
+			float variation = (static_cast<float>(hal::random(0, 200)) / 100.0f) - 1.0f;  // -1.0 to 1.0
 			float calculatedLifespan = lifespan + variation * spreadAmount;
 			p.lifespan = static_cast<uint32_t>(max(50.0f, calculatedLifespan));
 		}

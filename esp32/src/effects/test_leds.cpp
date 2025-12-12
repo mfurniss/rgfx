@@ -1,6 +1,6 @@
 #include "test_leds.h"
 #include "graphics/canvas.h"
-#include <FastLED.h>
+#include "hal/types.h"
 
 TestLedsEffect::TestLedsEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {}
 

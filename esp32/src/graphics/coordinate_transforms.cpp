@@ -1,5 +1,5 @@
 #include "coordinate_transforms.h"
-#ifndef UNIT_TEST
+#ifdef ESP32
 #include "log.h"
 #endif
 #include <cstdlib>
@@ -7,31 +7,31 @@
 
 // Layout: "strip"
 // Simple linear mapping (0, 1, 2, ...)
-static uint16_t coordinateStrip(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateStrip(uint16_t x, uint16_t y, uint16_t width, uint16_t /*height*/) {
 	return y * width + x;
 }
 
 // Layout: "matrix-tl-h"
 // Top-Left corner, Horizontal rows, Progressive
-static uint16_t coordinateMatrixTLH(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixTLH(uint16_t x, uint16_t y, uint16_t width, uint16_t /*height*/) {
 	return y * width + x;
 }
 
 // Layout: "matrix-tl-h-snake"
 // Top-Left corner, Horizontal rows, Serpentine
-static uint16_t coordinateMatrixTLHSnake(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixTLHSnake(uint16_t x, uint16_t y, uint16_t width, uint16_t /*height*/) {
 	return y * width + (y & 1 ? width - 1 - x : x);
 }
 
 // Layout: "matrix-tr-h"
 // Top-Right corner, Horizontal rows, Progressive
-static uint16_t coordinateMatrixTRH(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixTRH(uint16_t x, uint16_t y, uint16_t width, uint16_t /*height*/) {
 	return y * width + (width - 1 - x);
 }
 
 // Layout: "matrix-tr-h-snake"
 // Top-Right corner, Horizontal rows, Serpentine
-static uint16_t coordinateMatrixTRHSnake(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixTRHSnake(uint16_t x, uint16_t y, uint16_t width, uint16_t /*height*/) {
 	return y * width + (y & 1 ? x : width - 1 - x);
 }
 
@@ -61,13 +61,13 @@ static uint16_t coordinateMatrixBRHSnake(uint16_t x, uint16_t y, uint16_t width,
 
 // Layout: "matrix-tl-v"
 // Top-Left corner, Vertical columns, Progressive
-static uint16_t coordinateMatrixTLV(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixTLV(uint16_t x, uint16_t y, uint16_t /*width*/, uint16_t height) {
 	return x * height + y;
 }
 
 // Layout: "matrix-tl-v-snake"
 // Top-Left corner, Vertical columns, Serpentine
-static uint16_t coordinateMatrixTLVSnake(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixTLVSnake(uint16_t x, uint16_t y, uint16_t /*width*/, uint16_t height) {
 	return x * height + (x & 1 ? height - 1 - y : y);
 }
 
@@ -85,13 +85,13 @@ static uint16_t coordinateMatrixTRVSnake(uint16_t x, uint16_t y, uint16_t width,
 
 // Layout: "matrix-bl-v"
 // Bottom-Left corner, Vertical columns, Progressive
-static uint16_t coordinateMatrixBLV(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixBLV(uint16_t x, uint16_t y, uint16_t /*width*/, uint16_t height) {
 	return x * height + (height - 1 - y);
 }
 
 // Layout: "matrix-bl-v-snake"
 // Bottom-Left corner, Vertical columns, Serpentine
-static uint16_t coordinateMatrixBLVSnake(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+static uint16_t coordinateMatrixBLVSnake(uint16_t x, uint16_t y, uint16_t /*width*/, uint16_t height) {
 	return x * height + (x & 1 ? y : height - 1 - y);
 }
 
@@ -191,7 +191,7 @@ uint16_t* buildUnifiedCoordinateMap(
 	uint32_t unifiedSize = (uint32_t)unifiedWidth * unifiedHeight;
 	uint16_t panelLedCount = panelWidth * panelHeight;
 
-#ifndef UNIT_TEST
+#ifdef ESP32
 	log("buildUnifiedCoordinateMap: panel=" + String(panelWidth) + "x" + String(panelHeight) +
 	    " grid=" + String(unifiedCols) + "x" + String(unifiedRows) +
 	    " cell=" + String(cellWidth) + "x" + String(cellHeight) +
@@ -202,7 +202,7 @@ uint16_t* buildUnifiedCoordinateMap(
 	// Allocate coordinate map
 	uint16_t* map = (uint16_t*)malloc(unifiedSize * sizeof(uint16_t));
 	if (!map) {
-#ifndef UNIT_TEST
+#ifdef ESP32
 		log("ERROR: Failed to allocate coordinate map (" + String(unifiedSize * sizeof(uint16_t)) + " bytes)");
 #endif
 		return nullptr;

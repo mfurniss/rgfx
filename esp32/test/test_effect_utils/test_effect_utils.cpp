@@ -2,20 +2,38 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/**
+ * Unit Tests for effect_utils
+ *
+ * Tests parseColor and randomColor functions using the real implementation.
+ */
+
 #include <unity.h>
 #include <cstdint>
 #include <cstdlib>
 
-// Include mocks before production code
-#include "../mocks/mock_fastled.h"
-#include "../mocks/mock_arduino.h"
+// Standard library Arduino-like functions
+#include <string>
+using String = std::string;
+
+// HAL types (CRGB, fill_solid, etc.)
+#include "hal/types.h"
+
+// HAL test headers
+#include "hal/test/test_platform.h"
+
+// HAL platform for millis/random
+#include "hal/platform.h"
+
+// Include HAL implementations
+#include "hal/test/platform.cpp"
 
 // Include production code
-#include "effect_utils.cpp"
+#include "effects/effect_utils.cpp"
 
 void setUp(void) {
-	// Seed random for reproducible tests
-	srand(12345);
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
 }
 
 void tearDown(void) {}
@@ -170,21 +188,21 @@ void test_parseColor_random_returns_valid_color() {
 
 void test_parseColor_random_is_deterministic_with_seed() {
 	// Seed the random generator
-	random16_set_seed(42);
+	hal::test::seedRandom(42);
 	uint32_t color1 = parseColor("random");
 
 	// Re-seed with same value
-	random16_set_seed(42);
+	hal::test::seedRandom(42);
 	uint32_t color2 = parseColor("random");
 
 	TEST_ASSERT_EQUAL_UINT32(color1, color2);
 }
 
 void test_parseColor_random_varies_with_different_seeds() {
-	random16_set_seed(100);
+	hal::test::seedRandom(100);
 	uint32_t color1 = parseColor("random");
 
-	random16_set_seed(200);
+	hal::test::seedRandom(200);
 	uint32_t color2 = parseColor("random");
 
 	// With different seeds, colors should differ (probabilistically)
@@ -202,7 +220,7 @@ void test_randomColor_returns_valid_color() {
 }
 
 void test_randomColor_varies() {
-	srand(12345);
+	hal::test::seedRandom(12345);
 	uint32_t color1 = randomColor();
 	uint32_t color2 = randomColor();
 
@@ -211,6 +229,9 @@ void test_randomColor_varies() {
 }
 
 int main(int argc, char** argv) {
+	(void)argc;
+	(void)argv;
+
 	UNITY_BEGIN();
 
 	// Hex color parsing
