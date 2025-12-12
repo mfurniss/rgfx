@@ -74,12 +74,12 @@ const App: React.FC = () => {
       );
     });
 
-    const unsubDisconnected = window.rgfx.onDriverDisconnected((driver) => {
+    const unsubDisconnected = window.rgfx.onDriverDisconnected((driver, reason) => {
       const ipcReceiveTime = Date.now();
       console.log(
-        `[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`,
+        `[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} (reason: ${reason}) at ${ipcReceiveTime}`,
       );
-      onDriverDisconnected(driver);
+      onDriverDisconnected(driver, reason);
       console.log(
         `[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`,
       );

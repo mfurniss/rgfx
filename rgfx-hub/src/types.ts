@@ -273,6 +273,8 @@ export interface EventTopicData {
   lastValue?: string;
 }
 
+export type DisconnectReason = 'disconnected' | 'restarting';
+
 // Extend Window interface for TypeScript
 declare global {
   interface Window {
@@ -280,7 +282,9 @@ declare global {
       getAppInfo: () => Promise<AppInfo>;
 
       onDriverConnected: (callback: (driver: Driver) => void) => () => void;
-      onDriverDisconnected: (callback: (driver: Driver) => void) => () => void;
+      onDriverDisconnected: (
+        callback: (driver: Driver, reason: DisconnectReason) => void,
+      ) => () => void;
       onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
       onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
       onEventCount: (callback: (count: number) => void) => () => void;
@@ -306,7 +310,7 @@ declare global {
       triggerEffect: (payload: EffectPayload) => Promise<void>;
       saveDriverConfig: (
         config: PersistedDriverFromSchema
-      ) => Promise<{ success: boolean; driverRebooted: boolean }>;
+      ) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;

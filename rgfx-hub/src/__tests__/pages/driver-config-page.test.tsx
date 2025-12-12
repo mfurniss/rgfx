@@ -13,13 +13,10 @@ import DriverConfigPage from '@/renderer/pages/driver-config-page';
 import { Driver } from '@/types';
 import { createMockDriver } from '../test-utils';
 
-// Mock the stores
-const mockAddNotification = vi.fn();
+// Mock the notification store
+const mockNotify = vi.fn();
 vi.mock('@/renderer/store/notification-store', () => ({
-  useNotificationStore: vi.fn((selector) => {
-    const state = { addNotification: mockAddNotification };
-    return selector(state);
-  }),
+  notify: (...args: unknown[]) => mockNotify(...args),
 }));
 
 // Helper to create mock driver with ledConfig for this test file
@@ -249,12 +246,7 @@ describe('DriverConfigPage', () => {
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'Configuration saved',
-            severity: 'success',
-          }),
-        );
+        expect(mockNotify).toHaveBeenCalledWith('test-driver configuration saved', 'success');
       });
     });
 
@@ -276,11 +268,9 @@ describe('DriverConfigPage', () => {
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: expect.stringContaining('Failed to save configuration'),
-            severity: 'error',
-          }),
+        expect(mockNotify).toHaveBeenCalledWith(
+          expect.stringContaining('test-driver failed to save'),
+          'error',
         );
       });
     });
