@@ -13,8 +13,8 @@
 #include <ArduinoJson.h>
 
 extern Matrix* matrix;
-extern bool testModeActive;
 extern EffectProcessor* effectProcessor;
+// testModeActive is declared in network/mqtt.h (included above)
 
 namespace Commands {
 

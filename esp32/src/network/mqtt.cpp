@@ -14,25 +14,60 @@
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
 
-// MQTT broker server (discovered via SSDP)
-String MQTT_SERVER = "";
+// MQTT broker server IP (discovered via SSDP broadcast)
+// Fixed-size char array avoids heap fragmentation from String operations
+char mqttServerIP[16] = {0};
+bool mqttServerDiscovered = false;
 
 // MQTT client - read buffer for incoming config, write buffer only needs header/topic (payloads stream)
 WiFiClient espClient;
 MQTTClient mqttClient(2048, 256);
 
-// Discovery state tracking
-static bool brokerDiscovered = false;
+// MQTT reconnection failure tracking
+static uint8_t mqttConsecutiveFailures = 0;
+static const uint8_t MQTT_MAX_FAILURES = 10;
 
-// Test mode state (accessible from main loop)
-bool testModeActive = false;
+// Test mode state (atomic for cross-core access - written by Core 0, read by Core 1)
+std::atomic<bool> testModeActive(false);
 
 // MQTT message statistics
 uint32_t mqttMessagesReceived = 0;
 
+// Pre-allocated topic buffers (initialized once in initMQTTTopics)
+// Avoids heap fragmentation from repeated String allocations in reconnectMQTT()
+static const size_t TOPIC_BUFFER_SIZE = 64;
+static char topicStatus[TOPIC_BUFFER_SIZE];      // rgfx/driver/{id}/status
+static char topicConfig[TOPIC_BUFFER_SIZE];      // rgfx/driver/{mac}/config
+static char topicTest[TOPIC_BUFFER_SIZE];        // rgfx/driver/{id}/test
+static char topicReset[TOPIC_BUFFER_SIZE];       // rgfx/driver/{id}/reset
+static char topicReboot[TOPIC_BUFFER_SIZE];      // rgfx/driver/{id}/reboot
+static char topicLogging[TOPIC_BUFFER_SIZE];     // rgfx/driver/{mac}/logging
+static char clientId[32];                        // Device ID as client ID
+static bool topicsInitialized = false;
+
 // Forward declarations
 void handleDriverConfig(const String& payload);
 extern EffectProcessor* effectProcessor;
+
+// Initialize MQTT topic strings (called once when device ID is known)
+static void initMQTTTopics() {
+	if (topicsInitialized) return;
+
+	String deviceId = Utils::getDeviceId();
+	String macAddress = WiFi.macAddress();
+
+	snprintf(topicStatus, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/status", deviceId.c_str());
+	snprintf(topicConfig, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/config", macAddress.c_str());
+	snprintf(topicTest, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/test", deviceId.c_str());
+	snprintf(topicReset, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reset", deviceId.c_str());
+	snprintf(topicReboot, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reboot", deviceId.c_str());
+	snprintf(topicLogging, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/logging", macAddress.c_str());
+	strncpy(clientId, deviceId.c_str(), sizeof(clientId) - 1);
+	clientId[sizeof(clientId) - 1] = '\0';
+
+	topicsInitialized = true;
+	log("MQTT topics initialized for device: " + deviceId);
+}
 
 // MQTT callback function - called when a message is received
 void mqttCallback(String& topic, String& payload) {
@@ -162,12 +197,13 @@ bool discoverMQTTBroker() {
 						}
 
 						if (sameSubnet) {
-							MQTT_SERVER = String(ipStr);
-							log("MQTT broker discovered via UDP broadcast: " + MQTT_SERVER + ":" + String(port));
-							brokerDiscovered = true;
+							strncpy(mqttServerIP, ipStr, sizeof(mqttServerIP) - 1);
+							mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
+							log("MQTT broker discovered via UDP broadcast: " + String(mqttServerIP) + ":" + String(port));
+							mqttServerDiscovered = true;
 
 							// Update client with discovered broker address
-							mqttClient.setHost(MQTT_SERVER.c_str(), port);
+							mqttClient.setHost(mqttServerIP, port);
 
 							udp.stop();
 							return true;
@@ -206,32 +242,33 @@ void reconnectMQTT() {
 		return;  // Already connected
 	}
 
-	if (!brokerDiscovered) {
+	if (!mqttServerDiscovered) {
 		return;  // Can't connect without a broker
 	}
 
-	log("Connecting to MQTT broker at " + MQTT_SERVER + "...");
+	// Initialize topic buffers on first connection attempt
+	initMQTTTopics();
 
-	// Create unique client ID based on device ID
-	String deviceId = Utils::getDeviceId();
-	String clientId = deviceId;
+	// Ensure old TCP connection is properly closed before reconnecting
+	// This prevents socket leaks and CLOSE_WAIT state accumulation
+	espClient.stop();
 
-	// Build status topic for LWT: rgfx/driver/{driver-id}/status
-	String statusTopic = "rgfx/driver/" + deviceId + "/status";
+	log("Connecting to MQTT broker at " + String(mqttServerIP) + "...");
 
 	// Set Last Will and Testament (LWT) - broker publishes this if connection drops
-	mqttClient.setWill(statusTopic.c_str(), "offline", true, 2);
+	mqttClient.setWill(topicStatus, "offline", true, 2);
 
-	// Connect to broker
+	// Connect to broker using pre-allocated client ID
 	bool connected;
 	if (strlen(MQTT_USER) > 0) {
-		connected = mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASSWORD);
+		connected = mqttClient.connect(clientId, MQTT_USER, MQTT_PASSWORD);
 	} else {
-		connected = mqttClient.connect(clientId.c_str());
+		connected = mqttClient.connect(clientId);
 	}
 
 	if (connected) {
 		log("MQTT connected!");
+		mqttConsecutiveFailures = 0;  // Reset failure counter on successful connection
 
 		// Seed random number generator with unique values per driver
 		IPAddress ip = WiFi.localIP();
@@ -239,35 +276,21 @@ void reconnectMQTT() {
 		random16_set_seed(seed);
 		log("Random seed initialized: " + String(seed));
 
-		// Subscribe to topics with QoS 2 (exactly-once delivery)
+		// Subscribe to topics with QoS 2 (exactly-once delivery) using pre-allocated buffers
 		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
-
-		// Subscribe to MAC-based config topic (Hub → Driver commands)
-		String macAddress = WiFi.macAddress();
-		String macConfigTopic = "rgfx/driver/" + macAddress + "/config";
-		mqttClient.subscribe(macConfigTopic.c_str(), 2);
-
-		// Subscribe to ID-based topics (Driver events)
-		String testTopic = "rgfx/driver/" + deviceId + "/test";
-		mqttClient.subscribe(testTopic.c_str(), 2);
-
-		String resetTopic = "rgfx/driver/" + deviceId + "/reset";
-		mqttClient.subscribe(resetTopic.c_str(), 2);
-
-		String rebootTopic = "rgfx/driver/" + deviceId + "/reboot";
-		mqttClient.subscribe(rebootTopic.c_str(), 2);
-
-		// Subscribe to logging config topic (uses MAC address)
-		String loggingTopic = "rgfx/driver/" + macAddress + "/logging";
-		mqttClient.subscribe(loggingTopic.c_str(), 2);
+		mqttClient.subscribe(topicConfig, 2);
+		mqttClient.subscribe(topicTest, 2);
+		mqttClient.subscribe(topicReset, 2);
+		mqttClient.subscribe(topicReboot, 2);
+		mqttClient.subscribe(topicLogging, 2);
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
-		log("  - " + macConfigTopic + " (config via MAC)");
-		log("  - " + loggingTopic + " (logging config via MAC)");
-		log("  - " + testTopic);
-		log("  - " + resetTopic);
-		log("  - " + rebootTopic);
+		log("  - " + String(topicConfig) + " (config via MAC)");
+		log("  - " + String(topicLogging) + " (logging config via MAC)");
+		log("  - " + String(topicTest));
+		log("  - " + String(topicReset));
+		log("  - " + String(topicReboot));
 
 		// Load saved remote logging level from NVS
 		String savedLoggingLevel = ConfigNVS::loadLoggingLevel();
@@ -280,8 +303,8 @@ void reconnectMQTT() {
 		}
 
 		// Publish "online" status (retained) - overrides LWT offline message
-		mqttClient.publish(statusTopic.c_str(), "online", true, 2);
-		log("Published status: online to " + statusTopic);
+		mqttClient.publish(topicStatus, "online", true, 2);
+		log("Published status: online to " + String(topicStatus));
 
 		// FIRST: Send crash report if we recovered from a crash
 		// This must happen before anything else to ensure crash data reaches Hub
@@ -294,7 +317,18 @@ void reconnectMQTT() {
 		// Publish current test state immediately to sync with Hub
 		publishTestState(testModeActive ? "on" : "off");
 	} else {
-		log("MQTT connection failed, rc=" + String(mqttClient.returnCode()));
+		mqttConsecutiveFailures++;
+		log("MQTT connection failed, rc=" + String(mqttClient.returnCode()) +
+		    " (attempt " + String(mqttConsecutiveFailures) + "/" + String(MQTT_MAX_FAILURES) + ")");
+
+		// Reset broker discovery after too many consecutive failures
+		if (mqttConsecutiveFailures >= MQTT_MAX_FAILURES) {
+			log("MQTT reconnection failed " + String(MQTT_MAX_FAILURES) +
+			    " times - resetting broker discovery", LogLevel::ERROR);
+			mqttServerDiscovered = false;
+			mqttServerIP[0] = '\0';
+			mqttConsecutiveFailures = 0;
+		}
 
 		// Update display to show MQTT disconnected
 		if (Display::isAvailable()) {

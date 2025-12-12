@@ -3,11 +3,10 @@
 #include "oled/oled_display.h"
 #include "version.h"
 #include "crash_handler.h"
+#include "network/mqtt.h"
+#include "network/udp.h"
 #include <WiFi.h>
 #include <Arduino.h>
-
-// External test mode state
-extern volatile bool testModeActive;
 
 JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool configReceived) {
 	JsonDocument doc;
@@ -50,7 +49,12 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	doc["hasDisplay"] = Display::isAvailable();
 
 	// Test mode state
-	doc["testActive"] = testModeActive;
+	doc["testActive"] = testModeActive.load();
+
+	// Message statistics
+	doc["mqttMessagesReceived"] = mqttMessagesReceived;
+	doc["udpMessagesReceived"] = udpMessagesReceived;
+	doc["udpMessagesDropped"] = udpMessagesDropped;
 
 	// Note: LED config is NOT included in telemetry - Hub already has it
 	// Including it would exceed the 1024 byte MQTT buffer limit

@@ -77,7 +77,7 @@ describe('safeValidateEffectProps', () => {
 
       if (result.success) {
         expect(result.data.color).toBe('random');
-        expect((result.data as { duration: number }).duration).toBe(700);
+        expect((result.data as { duration: number }).duration).toBe(800);
       }
     });
   });

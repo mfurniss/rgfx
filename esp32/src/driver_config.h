@@ -2,6 +2,7 @@
 #define DRIVER_CONFIG_H
 
 #include <Arduino.h>
+#include <atomic>
 #include <vector>
 
 /**
@@ -87,7 +88,10 @@ extern bool g_configReceived;
 /**
  * Flag indicating config update is in progress (Matrix/EffectProcessor being recreated)
  * Used to prevent race conditions between Core 0 (MQTT) and Core 1 (main loop)
+ *
+ * std::atomic<bool> ensures proper memory ordering and visibility across ESP32 cores
+ * (volatile alone is insufficient for multi-core synchronization on Xtensa)
  */
-extern volatile bool g_configUpdateInProgress;
+extern std::atomic<bool> g_configUpdateInProgress;
 
 #endif

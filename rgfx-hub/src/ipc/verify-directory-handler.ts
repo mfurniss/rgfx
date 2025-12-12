@@ -7,15 +7,11 @@
 
 import { ipcMain } from 'electron';
 import { stat } from 'fs/promises';
-import { homedir } from 'os';
-import { resolve } from 'path';
+import { expandPath } from '../utils/expand-path';
 
 export function registerVerifyDirectoryHandler(): void {
   ipcMain.handle('fs:verify-directory', async (_event, path: string): Promise<boolean> => {
-    // Expand ~ to home directory
-    const expandedPath = path.startsWith('~')
-      ? resolve(homedir(), path.slice(1).replace(/^\//, ''))
-      : path;
+    const expandedPath = expandPath(path);
 
     try {
       const stats = await stat(expandedPath);

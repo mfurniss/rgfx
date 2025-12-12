@@ -33,8 +33,7 @@ import type { EffectPayload } from '@/types/transformer-types';
 import { effectSchemas, isEffectName } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 
-// Effects to show in the form (exclude bitmap which needs special handling)
-const formEffects = Object.keys(effectSchemas).filter((e) => e !== 'bitmap').sort();
+const formEffects = Object.keys(effectSchemas).sort();
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -80,9 +79,16 @@ function generateBroadcastCode(
         return '[]';
       }
 
-      const items = value.map((v) => formatValue(v, 0)).join(', ');
+      // Format short arrays inline, longer arrays on multiple lines
+      if (value.length <= 3) {
+        const items = value.map((v) => formatValue(v, 0)).join(', ');
 
-      return `[${items}]`;
+        return `[${items}]`;
+      }
+
+      const items = value.map((v) => `${spaces}  ${formatValue(v, indent + 1)},`);
+
+      return `[\n${items.join('\n')}\n${spaces}]`;
     }
 
     if (typeof value === 'object') {
@@ -152,7 +158,7 @@ export default function TestEffectsPage() {
 
   // Get schema for selected effect
   const currentSchema = useMemo(() => {
-    if (isEffectName(selectedEffect) && selectedEffect !== 'bitmap') {
+    if (isEffectName(selectedEffect)) {
       return effectSchemas[selectedEffect];
     }
     return null;
