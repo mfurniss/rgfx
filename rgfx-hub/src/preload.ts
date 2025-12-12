@@ -144,7 +144,9 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('effect:trigger', payload);
   },
 
-  saveDriverConfig: (config: PersistedDriverFromSchema): Promise<{ success: boolean }> => {
+  saveDriverConfig: (
+    config: PersistedDriverFromSchema,
+  ): Promise<{ success: boolean; driverRebooted: boolean }> => {
     return ipcRenderer.invoke('driver:save-config', config);
   },
 
