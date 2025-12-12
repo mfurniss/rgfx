@@ -5,8 +5,8 @@
 #include "network/ota_update.h"
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
-#include <FastLED.h>
 #include "config/config_leds.h"
+#include "hal/led_controller.h"
 #include "driver_config.h"
 #include "log.h"
 #include "network/network_init.h"
@@ -31,7 +31,7 @@ void setupOTA() {
 			CRGB* leds = getLEDsForDevice(firstDevice.id);
 			if (leds && firstDevice.count > 0) {
 				fill_solid(leds, firstDevice.count, CRGB::Black);
-				FastLED.show();
+				hal::getLedController().show();
 			}
 		}
 	});
@@ -77,7 +77,7 @@ void setupOTA() {
 				}
 
 				leds[ledIndex] = CRGB::White;
-				FastLED.show();
+				hal::getLedController().show();
 			}
 		}
 	});
@@ -97,12 +97,12 @@ void setupOTA() {
 			CRGB* leds = getLEDsForDevice(firstDevice.id);
 			if (leds && firstDevice.count > 0) {
 				fill_solid(leds, firstDevice.count, CRGB::Red);
-				FastLED.show();
+				hal::getLedController().show();
 				delay(5000);
 
 				// Clear LEDs
 				fill_solid(leds, firstDevice.count, CRGB::Black);
-				FastLED.show();
+				hal::getLedController().show();
 			}
 		}
 	});

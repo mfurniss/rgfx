@@ -1,5 +1,6 @@
 #include "config_leds.h"
 #include "driver_config.h"
+#include "hal/led_controller.h"
 #include "log.h"
 #include <map>
 
@@ -71,7 +72,7 @@ bool configLEDs() {
 	}
 
 	// Clear existing setup
-	FastLED.clear(true);
+	hal::getLedController().clear(true);
 	deviceMappings.clear();
 
 	// Free existing LED buffers before reallocating
@@ -191,12 +192,12 @@ bool configLEDs() {
 
 	// Apply global settings
 	uint8_t brightness = min((int)g_driverConfig.globalBrightnessLimit, 255);
-	FastLED.setBrightness(brightness);
-	FastLED.setMaxPowerInVoltsAndMilliamps(g_driverConfig.powerSupplyVolts,
-	                                       g_driverConfig.maxPowerMilliamps);
+	hal::getLedController().setBrightness(brightness);
+	hal::getLedController().setMaxPower(g_driverConfig.powerSupplyVolts,
+	                                    g_driverConfig.maxPowerMilliamps);
 
 	// Apply dithering setting
-	FastLED.setDither(g_driverConfig.dithering ? 1 : 0);
+	hal::getLedController().setDither(g_driverConfig.dithering);
 
 	log("FastLED initialized successfully");
 	log("Active pins: " + String(activePins));
@@ -245,7 +246,7 @@ uint16_t getLEDCountForDevice(const String& deviceId) {
  * Show all LEDs
  */
 void showAllLEDs() {
-	FastLED.show();
+	hal::getLedController().show();
 }
 
 /**
@@ -257,5 +258,5 @@ void clearAllLEDs() {
 			fill_solid(ledBuffers[i], ledCounts[i], CRGB::Black);
 		}
 	}
-	FastLED.show();
+	hal::getLedController().show();
 }
