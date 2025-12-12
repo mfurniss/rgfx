@@ -1,5 +1,6 @@
 #include "pulse.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
 #include "graphics/canvas.h"
 #include <algorithm>
 #include <cstring>
@@ -20,7 +21,7 @@ void PulseEffect::add(JsonDocument& props) {
 
 	CollapseMode collapse;
 	if (strcmp(collapseStr, "random") == 0) {
-		collapse = (random(2) == 0) ? CollapseMode::Horizontal : CollapseMode::Vertical;
+		collapse = (hal::random(2) == 0) ? CollapseMode::Horizontal : CollapseMode::Vertical;
 	} else if (strcmp(collapseStr, "vertical") == 0) {
 		collapse = CollapseMode::Vertical;
 	} else if (strcmp(collapseStr, "none") == 0) {

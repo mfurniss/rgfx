@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Native LED simulator (`tools/led-sim/`) for rapid effect development
+  - Runs the same C++ effect code as ESP32 firmware on macOS/Linux
+  - Uses raylib for visual LED rendering
+  - Press SPACE to trigger effects, C to clear, D for auto-demo mode
+  - Eliminates ~30s firmware flash cycles with ~2s compile-run cycles
+- Hardware Abstraction Layer (HAL) in `esp32/src/hal/`
+  - Platform-agnostic color types (`hal/types.h`) - CRGB, CHSV compatible with FastLED
+  - Timing and logging abstractions (`hal/platform.h`) - millis(), random(), log()
+  - Display interface (`hal/display.h`) - IDisplay for dependency injection
+  - ESP32 implementations wrap Arduino/FastLED
+  - Native implementations use std::chrono, std::random, raylib
+
 ### Fixed
 - Fixed UDP message queue race condition causing dropped effects on LED strip drivers
   - When hub sends multiple effects rapidly (e.g., blue explosion + white pulse for player death), the single-message buffer was being overwritten before processing

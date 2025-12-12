@@ -2,9 +2,15 @@
 
 #include "matrix.h"
 #include "canvas.h"
-#include "driver_config.h"
-#include <FastLED.h>
+#include "hal/types.h"
 #include <cmath>
+
+#ifdef ESP32
+#include "driver_config.h"
+#else
+// Native build: driver_config.h from hal/native/ is used via include path
+#include "driver_config.h"
+#endif
 
 // Gamma correction lookup tables (256 bytes each, generated from gamma values)
 // These are rebuilt when config changes via rebuildGammaLUT()

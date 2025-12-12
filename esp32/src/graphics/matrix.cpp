@@ -1,5 +1,7 @@
 #include "matrix.h"
+#ifdef ESP32
 #include "log.h"
+#endif
 #include <cstdlib>
 
 // Single panel constructor
@@ -17,13 +19,17 @@ Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern)
       unifiedRows(1) {
 	leds = (CRGB*)malloc(size * sizeof(CRGB));
 	if (!leds) {
+#ifdef ESP32
 		log("ERROR: Failed to allocate LED buffer");
+#endif
 		return;
 	}
 
 	coordinateMap = buildCoordinateMap(width, height, layout.c_str());
 	if (!coordinateMap) {
+#ifdef ESP32
 		log("ERROR: Failed to allocate coordinate map");
+#endif
 		free(leds);
 		leds = nullptr;
 		return;
@@ -58,10 +64,13 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
 
 	leds = (CRGB*)malloc(size * sizeof(CRGB));
 	if (!leds) {
+#ifdef ESP32
 		log("ERROR: Failed to allocate LED buffer for unified display");
+#endif
 		return;
 	}
 
+#ifdef ESP32
 	// Log rotation values being used for coordinate map
 	String rotDebug = "Building coord map with rotations: [";
 	uint8_t panelCount = uCols * uRows;
@@ -71,6 +80,7 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
 	}
 	rotDebug += "]";
 	log(rotDebug);
+#endif
 
 	coordinateMap = buildUnifiedCoordinateMap(
 	    panelWidth, panelHeight,
@@ -80,16 +90,20 @@ Matrix::Matrix(uint16_t pWidth, uint16_t pHeight,
 	    layout.c_str()
 	);
 	if (!coordinateMap) {
+#ifdef ESP32
 		log("ERROR: Failed to allocate unified coordinate map");
+#endif
 		free(leds);
 		leds = nullptr;
 		return;
 	}
 
+#ifdef ESP32
 	log("Unified matrix created: " + String(width) + "x" + String(height) +
 	    " (" + String(unifiedCols) + "x" + String(unifiedRows) + " panels of " +
 	    String(panelWidth) + "x" + String(panelHeight) +
 	    (dimsSwapped ? " rotated" : "") + ")");
+#endif
 }
 
 bool Matrix::isValid() const {
@@ -106,9 +120,11 @@ void Matrix::updateLayout(const String& newLayout) {
 
 	free(coordinateMap);
 	coordinateMap = buildCoordinateMap(width, height, layout.c_str());
+#ifdef ESP32
 	if (!coordinateMap) {
 		log("ERROR: Failed to reallocate coordinate map");
 	}
+#endif
 }
 
 Matrix::~Matrix() {

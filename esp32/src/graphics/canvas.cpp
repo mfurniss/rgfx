@@ -1,9 +1,7 @@
 #include "canvas.h"
-#ifndef UNIT_TEST
 #include "matrix.h"
 #include "log.h"
-#include <FastLED.h>
-#endif
+#include "hal/types.h"
 #include <cstring>
 #include <cstdlib>
 

@@ -1,8 +1,6 @@
 #include "downsample.h"
+#include "hal/types.h"
 #include <cassert>
-#ifndef UNIT_TEST
-#include <FastLED.h>
-#endif
 
 void downsample(const Canvas* source, Canvas* destination) {
     assert(source != nullptr && "Source canvas cannot be null");

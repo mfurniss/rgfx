@@ -1,7 +1,8 @@
 #include "wipe.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
+#include "hal/types.h"
 #include "graphics/canvas.h"
-#include <FastLED.h>
 #include <cstring>
 
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
@@ -11,7 +12,7 @@ static WipeDirection parseDirection(const char* dir, bool is1D) {
 	WipeDirection result;
 
 	if (dir == nullptr || strcmp(dir, "random") == 0) {
-		result = static_cast<WipeDirection>(random(4));
+		result = static_cast<WipeDirection>(hal::random(4));
 	} else if (strcmp(dir, "left") == 0) {
 		result = WipeDirection::LEFT;
 	} else if (strcmp(dir, "right") == 0) {
@@ -21,7 +22,7 @@ static WipeDirection parseDirection(const char* dir, bool is1D) {
 	} else if (strcmp(dir, "down") == 0) {
 		result = WipeDirection::DOWN;
 	} else {
-		result = static_cast<WipeDirection>(random(4));
+		result = static_cast<WipeDirection>(hal::random(4));
 	}
 
 	// For 1D strips, vertical directions map to horizontal
