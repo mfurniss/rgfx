@@ -1,15 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include "hal/types.h"
 
 // Forward declarations
 class Matrix;
-
-#ifdef UNIT_TEST
-#include "../test/mocks/mock_fastled.h"
-#else
-struct CRGB;
-#endif
 
 /**
  * RGBA color for passing to blend operations.

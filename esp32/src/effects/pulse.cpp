@@ -5,17 +5,19 @@
 #include <algorithm>
 #include <cstring>
 
-static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
-static const float DEFAULT_DURATION = 0.8f;  // Duration in seconds
-static const bool DEFAULT_FADE = true;
+namespace {
+	constexpr uint32_t PULSE_DEFAULT_COLOR = 0xFFFFFF;
+	constexpr float PULSE_DEFAULT_DURATION = 0.8f;  // Duration in seconds
+	constexpr bool PULSE_DEFAULT_FADE = true;
+}  // namespace
 
 PulseEffect::PulseEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {}
 
 void PulseEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
+	uint32_t color = props["color"] ? parseColor(props["color"]) : PULSE_DEFAULT_COLOR;
 	// Duration comes in as milliseconds, convert to seconds
-	uint32_t durationMs = props["duration"] | static_cast<uint32_t>(DEFAULT_DURATION * 1000);
-	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : DEFAULT_FADE;
+	uint32_t durationMs = props["duration"] | static_cast<uint32_t>(PULSE_DEFAULT_DURATION * 1000);
+	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : PULSE_DEFAULT_FADE;
 	const char* easingName = props["easing"] | "quinticOut";
 	const char* collapseStr = props["collapse"] | "random";
 
@@ -90,7 +92,8 @@ void PulseEffect::render() {
 			uint16_t shrink = static_cast<uint16_t>(easedT * (height / 2));
 			startRow = shrink;
 			rectHeight = height - (shrink * 2);
-		} else if (p.collapse == CollapseMode::Vertical || (p.collapse == CollapseMode::Horizontal && height == 1)) {
+		} else if (p.collapse == CollapseMode::Vertical ||
+		           (p.collapse == CollapseMode::Horizontal && height == 1)) {
 			// Shrink width from left/right toward center
 			// For 1D strips (height=1), horizontal and vertical behave the same
 			uint16_t shrink = static_cast<uint16_t>(easedT * (width / 2));

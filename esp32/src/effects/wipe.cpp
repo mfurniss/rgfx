@@ -5,8 +5,10 @@
 #include "graphics/canvas.h"
 #include <cstring>
 
-static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
-static const uint32_t DEFAULT_DURATION = 100;
+namespace {
+constexpr uint32_t WIPE_DEFAULT_COLOR = 0xFFFFFF;
+constexpr uint32_t WIPE_DEFAULT_DURATION = 100;
+}  // namespace
 
 static WipeDirection parseDirection(const char* dir, bool is1D) {
 	WipeDirection result;
@@ -39,8 +41,8 @@ WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
 }
 
 void WipeEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
-	uint32_t duration = props["duration"] | DEFAULT_DURATION;
+	uint32_t color = props["color"] ? parseColor(props["color"]) : WIPE_DEFAULT_COLOR;
+	uint32_t duration = props["duration"] | WIPE_DEFAULT_DURATION;
 	const char* dirStr = props["direction"] | "random";
 	bool is1D = canvas.getHeight() == 1;
 
