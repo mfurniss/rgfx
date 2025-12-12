@@ -2,13 +2,13 @@
 #include "config/config_leds.h"
 #include "config/config_nvs.h"
 #include "graphics/downsample_to_matrix.h"
+#include "hal/led_controller.h"
 #include "log.h"
 #include "utils.h"
 #include "oled/oled_display.h"
 #include "network/mqtt.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
-#include <FastLED.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -221,7 +221,7 @@ void handleDriverConfig(const String& payload) {
 		    " B=" + String(g_driverConfig.gammaB, 2));
 
 		// Apply brightness immediately (don't wait for FastLED re-init)
-		FastLED.setBrightness(g_driverConfig.globalBrightnessLimit);
+		hal::getLedController().setBrightness(g_driverConfig.globalBrightnessLimit);
 
 		// Rebuild gamma lookup tables from new values
 		rebuildGammaLUT();

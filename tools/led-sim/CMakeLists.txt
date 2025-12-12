@@ -15,13 +15,16 @@ endif()
 # ESP32 source directory
 set(ESP32_SRC_DIR "${CMAKE_SOURCE_DIR}/../../esp32/src")
 
+# Native HAL implementation (local to led-sim)
+set(HAL_SOURCES
+    src/hal/platform.cpp
+    src/hal/log_stub.cpp
+    src/hal/driver_config_stub.cpp
+    src/hal/led_controller.cpp
+)
+
 # Source files from esp32/src that we need
 set(ESP32_SOURCES
-    # HAL native implementation (display defined locally to avoid raylib conflicts)
-    ${ESP32_SRC_DIR}/hal/native/platform.cpp
-    ${ESP32_SRC_DIR}/hal/native/log_stub.cpp
-    ${ESP32_SRC_DIR}/hal/native/driver_config_stub.cpp
-
     # Graphics
     ${ESP32_SRC_DIR}/graphics/canvas.cpp
     ${ESP32_SRC_DIR}/graphics/coordinate_transforms.cpp
@@ -42,17 +45,22 @@ set(ESP32_SOURCES
     ${ESP32_SRC_DIR}/utils/easing_impl.cpp
 )
 
-# Simulator main
+# Simulator sources
 set(SIM_SOURCES
     src/main.cpp
+    src/config.cpp
+    src/demo.cpp
+    src/sim_display.cpp
+    src/window.cpp
 )
 
 # Create executable
-add_executable(led-sim ${SIM_SOURCES} ${ESP32_SOURCES})
+add_executable(led-sim ${SIM_SOURCES} ${HAL_SOURCES} ${ESP32_SOURCES})
 
 # Include directories - native HAL first so it overrides ESP32 headers
 target_include_directories(led-sim PRIVATE
-    ${ESP32_SRC_DIR}/hal/native
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/hal
     ${ESP32_SRC_DIR}
     ${CMAKE_SOURCE_DIR}/../../esp32/.pio/libdeps/rgfx-driver/ArduinoJson/src
 )

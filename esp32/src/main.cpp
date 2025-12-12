@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <atomic>
-#include <FastLED.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
@@ -28,6 +27,7 @@
 #include "crash_handler.h"
 #include "graphics/downsample_to_matrix.h"
 #include "hal/display.h"
+#include "hal/led_controller.h"
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
@@ -105,7 +105,7 @@ void setup() {
 				CRGB* leds = getLEDsForDevice(firstDevice.id);
 				if (leds) {
 					fill_solid(leds, firstDevice.count, CRGB::Green);
-					FastLED.show();
+					hal::getLedController().show();
 				}
 			}
 		}
@@ -259,7 +259,7 @@ void loop() {
 		if (!testModeActive && matrix != nullptr && matrix->leds != nullptr) {
 			log("Entering AP mode - LEDs PURPLE");
 			fill_solid(matrix->leds, matrix->size, CRGB::Purple);
-			FastLED.show();
+			hal::getLedController().show();
 		}
 		inApMode = true;
 		initialConnectionAttemptDone = true;

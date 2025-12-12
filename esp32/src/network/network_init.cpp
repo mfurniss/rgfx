@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
-#include <FastLED.h>
+#include "hal/led_controller.h"
 #include "network/mqtt.h"
 #include "network/ota_update.h"
 #include "network/udp.h"
@@ -57,7 +57,7 @@ static wifi_power_t dBmToWifiPower(float dBm) {
 void setupNetworkServices(Matrix& matrix) {
 	log("WiFi connected - setting up OTA, MQTT and UDP");
 	fill_solid(matrix.leds, matrix.size, CRGB::Green);
-	FastLED.show();
+	hal::getLedController().show();
 
 	// Register WiFi event handler once (for clean disconnect handling)
 	if (!wifiEventHandlerRegistered) {
@@ -122,7 +122,7 @@ void setupNetworkServices(Matrix& matrix) {
 	extern Matrix* matrix;
 	if (matrix != nullptr && matrix->leds != nullptr) {
 		fill_solid(matrix->leds, matrix->size, CRGB::Black);
-		FastLED.show();
+		hal::getLedController().show();
 	}
 }
 
@@ -132,7 +132,7 @@ void cleanupNetworkServices(Matrix& matrix) {
 	// Don't show purple LEDs if OTA is in progress (reset is imminent)
 	if (!otaInProgress) {
 		fill_solid(matrix.leds, matrix.size, CRGB::Purple);
-		FastLED.show();
+		hal::getLedController().show();
 	}
 
 	// Update display to show AP mode
@@ -156,7 +156,7 @@ void setupNetworkServices() {
 	// Check both pointer and leds buffer, and ensure config update isn't in progress
 	if (!g_configUpdateInProgress && matrix != nullptr && matrix->leds != nullptr) {
 		fill_solid(matrix->leds, matrix->size, CRGB::Black);
-		FastLED.show();
+		hal::getLedController().show();
 	}
 
 	// Register WiFi event handler once (for clean disconnect handling)

@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
   - Platform-agnostic color types (`hal/types.h`) - CRGB, CHSV compatible with FastLED
   - Timing and logging abstractions (`hal/platform.h`) - millis(), random(), log()
   - Display interface (`hal/display.h`) - IDisplay for dependency injection
+  - LED controller interface (`hal/led_controller.h`) - Abstracts FastLED operations
+    - `show()`, `clear()`, `setBrightness()`, `setMaxPower()`, `setDither()`
+    - ESP32 wraps real FastLED, native/test provide no-ops
   - ESP32 implementations wrap Arduino/FastLED
   - Native implementations use std::chrono, std::random, raylib
 
