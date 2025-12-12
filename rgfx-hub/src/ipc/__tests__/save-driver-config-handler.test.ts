@@ -106,6 +106,7 @@ describe('registerSaveDriverConfigHandler', () => {
       webContents: { send: vi.fn() },
     };
     mockGetMainWindow = vi.fn(() => mockMainWindow);
+    const mockMqtt = { publish: vi.fn(() => Promise.resolve()) };
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -118,6 +119,7 @@ describe('registerSaveDriverConfigHandler', () => {
       driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
       driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
       ledHardwareManager: mockLedHardwareManager,
+      mqtt: mockMqtt as never,
       uploadConfigToDriver: mockUploadConfigToDriver,
       getMainWindow: mockGetMainWindow,
     });
@@ -506,7 +508,7 @@ describe('registerSaveDriverConfigHandler', () => {
 
       const result = await registeredHandler({}, config);
 
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual({ success: true, driverRebooted: true });
     });
   });
 
