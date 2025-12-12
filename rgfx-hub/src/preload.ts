@@ -160,13 +160,14 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('file:open', filePath);
   },
 
-  listGames: (): Promise<{
+  listGames: (romsDirectory?: string): Promise<{
+    romName: string | null;
     interceptorPath: string | null;
     interceptorName: string | null;
     transformerPath: string | null;
     transformerName: string | null;
   }[]> => {
-    return ipcRenderer.invoke('games:list');
+    return ipcRenderer.invoke('games:list', romsDirectory);
   },
 
   simulateEvent: (eventLine: string): Promise<void> => {
