@@ -117,7 +117,7 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
       }
 
       // If driver is connected, push the new config to the device and reboot
-      if (updatedDriver.connected) {
+      if (updatedDriver.connected && mainWindow) {
         log.info(`Driver ${currentId} is connected, uploading new config...`);
         await uploadConfigToDriver(macAddress);
 
@@ -126,10 +126,15 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
         const rebootTopic = `rgfx/driver/${currentId}/reboot`;
         await mqtt.publish(rebootTopic, '');
 
-        return { success: true, driverRebooted: true };
+        // Mark driver as disconnected (it will reboot) with 'restarting' reason
+        updatedDriver.connected = false;
+        updatedDriver.ip = undefined;
+        mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(updatedDriver), 'restarting');
+
+        return { success: true };
       }
     }
 
-    return { success: true, driverRebooted: false };
+    return { success: true };
   });
 }

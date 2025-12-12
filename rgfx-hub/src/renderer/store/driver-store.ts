@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Driver, type SystemStatus } from '@/types';
+import { Driver, type SystemStatus, type DisconnectReason } from '@/types';
 import { DRIVER_CONNECTION_TIMEOUT_MS, DRIVER_CONNECTION_CHECK_INTERVAL_MS } from '@/config/constants';
-import { useNotificationStore } from './notification-store';
+import { notify } from './notification-store';
 
 interface DriverState {
   // State
@@ -11,7 +11,7 @@ interface DriverState {
 
   // Actions (callbacks prefixed with 'on')
   onDriverConnected: (driver: Driver) => void;
-  onDriverDisconnected: (driver: Driver) => void;
+  onDriverDisconnected: (driver: Driver, reason?: DisconnectReason) => void;
   onDriverUpdated: (driver: Driver) => void;
   onSystemStatusUpdate: (status: SystemStatus) => void;
 
@@ -70,11 +70,7 @@ export const useDriverStore = create<DriverState>()(
 
         // Notify for each driver that timed out
         disconnectedDrivers.forEach((driver) => {
-          useNotificationStore.getState().addNotification({
-            message: `${driver.id} disconnected`,
-            severity: 'error',
-            driverId: driver.id,
-          });
+          notify(`${driver.id} disconnected`, 'error');
         });
 
         // Only update store if at least one driver changed state
@@ -108,11 +104,7 @@ export const useDriverStore = create<DriverState>()(
 
           // Notify if transitioning from disconnected/new to connected
           if (!existingDriver?.connected && driver.connected) {
-            useNotificationStore.getState().addNotification({
-              message: `${driver.id} connected`,
-              severity: 'success',
-              driverId: driver.id,
-            });
+            notify(`${driver.id} connected`, 'success');
           }
 
           set((state) => {
@@ -148,16 +140,16 @@ export const useDriverStore = create<DriverState>()(
           });
         },
 
-        onDriverDisconnected: (driver) => {
+        onDriverDisconnected: (driver, reason = 'disconnected') => {
           const existingDriver = get().drivers.find((d) => d.id === driver.id);
 
           // Notify if transitioning from connected to disconnected
           if (existingDriver?.connected && !driver.connected) {
-            useNotificationStore.getState().addNotification({
-              message: `${driver.id} disconnected`,
-              severity: 'error',
-              driverId: driver.id,
-            });
+            if (reason === 'restarting') {
+              notify(`${driver.id} is restarting...`, 'warning');
+            } else {
+              notify(`${driver.id} disconnected`, 'error');
+            }
           }
 
           set((state) => ({

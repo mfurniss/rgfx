@@ -1,6 +1,5 @@
 import React from 'react';
 import { Snackbar, Alert, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
 import { useNotificationStore, type Notification } from '../store/notification-store';
 import { TOAST_AUTO_HIDE_DURATION_MS } from '@/config/constants';
 
@@ -18,24 +17,6 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, ind
     onClose(notification.id);
   };
 
-  const alertContent = (
-    <Alert
-      onClose={handleClose}
-      severity={notification.severity}
-      variant="filled"
-      {...(notification.driverId && {
-        component: Link,
-        to: `/driver/${notification.driverId}`,
-        onClick: () => {
-          onClose(notification.id);
-        },
-        sx: { textDecoration: 'none', color: 'inherit' },
-      })}
-    >
-      {notification.message}
-    </Alert>
-  );
-
   return (
     <Snackbar
       open={true}
@@ -44,7 +25,9 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, ind
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       sx={{ bottom: `${24 + index * 60}px !important` }}
     >
-      {alertContent}
+      <Alert onClose={handleClose} severity={notification.severity} variant="filled">
+        {notification.message}
+      </Alert>
     </Snackbar>
   );
 };
