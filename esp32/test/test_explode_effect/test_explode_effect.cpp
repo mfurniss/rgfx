@@ -2,6 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/**
+ * Unit Tests for ExplodeEffect
+ *
+ * Tests the explode effect rendering using the real implementation.
+ */
+
 #include <unity.h>
 #include <ArduinoJson.h>
 #include <cstdint>
@@ -10,80 +16,40 @@
 #include <vector>
 #include <algorithm>
 
-// Include mocks - mock_arduino before anything else
-#include "../mocks/mock_arduino.h"
-#include "../mocks/mock_fastled.h"
+// Standard library Arduino-like functions
+#include <string>
+using String = std::string;
 
-// Include canvas (it will use mock_fastled.h via UNIT_TEST)
-#include "canvas.h"
-#include "canvas.cpp"
+// HAL types (CRGB, fill_solid, etc.)
+#include "hal/types.h"
 
-// Include easing functions
-#include "easing.h"
-#include "easing_impl.cpp"
+// HAL test headers
+#include "hal/test/test_platform.h"
 
-// Include effect_utils for parseColor and randomColor
-#include "effect_utils.h"
-#include "effect_utils.cpp"
+// HAL platform for millis/random
+#include "hal/platform.h"
 
-// LayoutType from matrix.h
-enum class LayoutType : uint8_t {
-	STRIP = 1,
-	MATRIX = 2
-};
+// Include HAL implementations
+#include "hal/test/platform.cpp"
 
-// Mock Matrix class that provides what ExplodeEffect needs
-class Matrix {
-public:
-	uint16_t width;
-	uint16_t height;
-	uint32_t size;
-	CRGB* leds;
-	LayoutType layoutType;
+// Include graphics
+#include "graphics/canvas.h"
+#include "graphics/canvas.cpp"
+#include "graphics/coordinate_transforms.h"
+#include "graphics/coordinate_transforms.cpp"
+#include "graphics/matrix.h"
+#include "graphics/matrix.cpp"
 
-private:
-	uint16_t panelWidth_;
-	uint16_t panelHeight_;
-	uint8_t unifiedCols_;
-	uint8_t unifiedRows_;
+// Include utils
+#include "utils/easing.h"
+#include "utils/easing_impl.cpp"
+#include "effects/effect_utils.h"
+#include "effects/effect_utils.cpp"
 
-public:
-	Matrix(uint16_t w, uint16_t h, LayoutType layout = LayoutType::MATRIX)
-		: width(w), height(h), size(w * h), layoutType(layout),
-		  panelWidth_(w), panelHeight_(h), unifiedCols_(1), unifiedRows_(1) {
-		leds = new CRGB[size];
-	}
-
-	~Matrix() {
-		delete[] leds;
-	}
-
-	uint16_t getPanelWidth() const { return panelWidth_; }
-	uint16_t getPanelHeight() const { return panelHeight_; }
-	uint8_t getUnifiedCols() const { return unifiedCols_; }
-	uint8_t getUnifiedRows() const { return unifiedRows_; }
-};
-
-// Define IEffect interface
-class IEffect {
-public:
-	virtual ~IEffect() = default;
-	virtual void add(JsonDocument& props) = 0;
-	virtual void update(float deltaTime) = 0;
-	virtual void render() = 0;
-	virtual void reset() = 0;
-};
-
-// Include explode.h directly (it will skip matrix.h includes with our mock)
-// We need to selectively include just the ExplodeEffect class definition
-// Since explode.h includes effect.h which includes matrix.h, we define our mock first
-
-// Prevent matrix.h from being included (we have our own mock)
-#define MATRIX_H_INCLUDED
-
-// Include the ExplodeEffect implementation
-// Note: We include the cpp directly with our mocks defined first
-#include "explode_impl.inl"
+// Include effects
+#include "effects/effect.h"
+#include "effects/explode.h"
+#include "effects/explode.cpp"
 
 // Helper to count non-black pixels in canvas
 static int countNonBlackPixels(Canvas& canvas) {
@@ -100,9 +66,8 @@ static int countNonBlackPixels(Canvas& canvas) {
 }
 
 void setUp(void) {
-	// Seed random for reproducible tests
-	srand(12345);
-	random16_set_seed(12345);
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
 }
 
 void tearDown(void) {}
@@ -113,7 +78,7 @@ void tearDown(void) {}
 
 void test_explode_effect_creation() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);  // 4x matrix size
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	// Just verify construction doesn't crash
@@ -122,7 +87,7 @@ void test_explode_effect_creation() {
 
 void test_explode_effect_add_creates_particles() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -130,6 +95,7 @@ void test_explode_effect_add_creates_particles() {
 	props["particleCount"] = 10;
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// Should have some pixels rendered
@@ -139,13 +105,14 @@ void test_explode_effect_add_creates_particles() {
 
 void test_explode_effect_default_values() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	// No explicit values - should use defaults
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// Should still create particles with defaults
@@ -159,7 +126,7 @@ void test_explode_effect_default_values() {
 
 void test_explode_effect_particles_expire() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -187,7 +154,7 @@ void test_explode_effect_particles_expire() {
 
 void test_explode_effect_particles_fade_alpha() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -213,7 +180,7 @@ void test_explode_effect_particles_fade_alpha() {
 
 void test_explode_effect_reset_clears_all() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -221,6 +188,7 @@ void test_explode_effect_reset_clears_all() {
 	props["particleCount"] = 100;
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// Verify particles exist
@@ -243,7 +211,7 @@ void test_explode_effect_reset_clears_all() {
 
 void test_explode_effect_fifo_eviction() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	// Add first explosion with many particles
@@ -274,8 +242,8 @@ void test_explode_effect_fifo_eviction() {
 // =============================================================================
 
 void test_explode_effect_strip_mode_horizontal_only() {
-	Matrix matrix(32, 1, LayoutType::STRIP);
-	Canvas canvas(128, 4);  // 4x size for strip
+	Matrix matrix(32, 1, "strip");
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -284,6 +252,7 @@ void test_explode_effect_strip_mode_horizontal_only() {
 
 	effect.add(props);
 	effect.update(0.01f);
+	canvas.clear();
 	effect.render();
 
 	// In strip mode, particles should move horizontally
@@ -293,8 +262,8 @@ void test_explode_effect_strip_mode_horizontal_only() {
 }
 
 void test_explode_effect_matrix_mode_2d_spread() {
-	Matrix matrix(16, 16, LayoutType::MATRIX);
-	Canvas canvas(64, 64);
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -305,6 +274,7 @@ void test_explode_effect_matrix_mode_2d_spread() {
 
 	effect.add(props);
 	effect.update(0.05f);
+	canvas.clear();
 	effect.render();
 
 	// Matrix mode should have 2D spread
@@ -318,7 +288,7 @@ void test_explode_effect_matrix_mode_2d_spread() {
 
 void test_explode_effect_center_position() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -329,6 +299,7 @@ void test_explode_effect_center_position() {
 	props["centerY"] = 10;  // Near top edge
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// Check that particles exist somewhere in the first half of the canvas
@@ -346,7 +317,7 @@ void test_explode_effect_center_position() {
 
 void test_explode_effect_random_center() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -357,6 +328,7 @@ void test_explode_effect_random_center() {
 
 	// Should not crash with random center
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	int pixelCount = countNonBlackPixels(canvas);
@@ -369,7 +341,7 @@ void test_explode_effect_random_center() {
 
 void test_explode_effect_specific_color() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -378,6 +350,7 @@ void test_explode_effect_specific_color() {
 	props["hueSpread"] = 0;  // No hue variation
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// All colored pixels should be red-ish
@@ -397,7 +370,7 @@ void test_explode_effect_specific_color() {
 
 void test_explode_effect_hue_spread() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -406,6 +379,7 @@ void test_explode_effect_hue_spread() {
 	props["hueSpread"] = 180;  // Large hue variation
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// Should still render particles (with color variations)
@@ -419,7 +393,7 @@ void test_explode_effect_hue_spread() {
 
 void test_explode_effect_high_friction_slows_particles() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -446,7 +420,7 @@ void test_explode_effect_high_friction_slows_particles() {
 
 void test_explode_effect_power_affects_spread() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -458,6 +432,7 @@ void test_explode_effect_power_affects_spread() {
 
 	effect.add(props);
 	effect.update(0.1f);
+	canvas.clear();
 	effect.render();
 
 	// Should have particles near center
@@ -471,7 +446,7 @@ void test_explode_effect_power_affects_spread() {
 
 void test_explode_effect_multiple_explosions() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	// First explosion
@@ -492,6 +467,7 @@ void test_explode_effect_multiple_explosions() {
 
 	effect.add(props2);
 
+	canvas.clear();
 	effect.render();
 
 	// Should have particles from both explosions
@@ -501,7 +477,7 @@ void test_explode_effect_multiple_explosions() {
 
 void test_explode_effect_explosion_cleanup() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -529,7 +505,7 @@ void test_explode_effect_explosion_cleanup() {
 
 void test_explode_effect_particle_size() {
 	Matrix matrix(8, 8);
-	Canvas canvas(32, 32);
+	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
@@ -538,6 +514,7 @@ void test_explode_effect_particle_size() {
 	props["particleSize"] = 4;  // Larger particles
 
 	effect.add(props);
+	canvas.clear();
 	effect.render();
 
 	// Should have particles

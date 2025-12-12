@@ -1,17 +1,20 @@
 #include "wipe.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
+#include "hal/types.h"
 #include "graphics/canvas.h"
-#include <FastLED.h>
 #include <cstring>
 
-static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
-static const uint32_t DEFAULT_DURATION = 100;
+namespace {
+constexpr uint32_t WIPE_DEFAULT_COLOR = 0xFFFFFF;
+constexpr uint32_t WIPE_DEFAULT_DURATION = 100;
+}  // namespace
 
 static WipeDirection parseDirection(const char* dir, bool is1D) {
 	WipeDirection result;
 
 	if (dir == nullptr || strcmp(dir, "random") == 0) {
-		result = static_cast<WipeDirection>(random(4));
+		result = static_cast<WipeDirection>(hal::random(4));
 	} else if (strcmp(dir, "left") == 0) {
 		result = WipeDirection::LEFT;
 	} else if (strcmp(dir, "right") == 0) {
@@ -21,7 +24,7 @@ static WipeDirection parseDirection(const char* dir, bool is1D) {
 	} else if (strcmp(dir, "down") == 0) {
 		result = WipeDirection::DOWN;
 	} else {
-		result = static_cast<WipeDirection>(random(4));
+		result = static_cast<WipeDirection>(hal::random(4));
 	}
 
 	// For 1D strips, vertical directions map to horizontal
@@ -38,8 +41,8 @@ WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
 }
 
 void WipeEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
-	uint32_t duration = props["duration"] | DEFAULT_DURATION;
+	uint32_t color = props["color"] ? parseColor(props["color"]) : WIPE_DEFAULT_COLOR;
+	uint32_t duration = props["duration"] | WIPE_DEFAULT_DURATION;
 	const char* dirStr = props["direction"] | "random";
 	bool is1D = canvas.getHeight() == 1;
 

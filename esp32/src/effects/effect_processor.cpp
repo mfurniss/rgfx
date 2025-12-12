@@ -2,10 +2,11 @@
 #include "graphics/downsample_to_matrix.h"
 #include "driver_config.h"
 #include "effects/effect_utils.h"
-#include <FastLED.h>
+#include "hal/platform.h"
 
-EffectProcessor::EffectProcessor(Matrix& matrix)
+EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	: matrix(matrix),
+	  display(display),
 	  canvas(matrix),
 	  pulseEffect(matrix, canvas),
 	  bitmapEffect(matrix, canvas),
@@ -21,7 +22,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix)
 	  } {}
 
 void EffectProcessor::update() {
-	unsigned long now = millis();
+	unsigned long now = hal::millis();
 
 	// First frame: initialize timing, skip rendering
 	if (lastFrameTime == 0) {
@@ -36,7 +37,7 @@ void EffectProcessor::update() {
 		canvas.clear();
 		testLedsEffect.render();
 		downsampleToMatrix(canvas, &matrix);
-		FastLED.show();
+		display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
 		return;
 	}
 
@@ -62,7 +63,7 @@ void EffectProcessor::update() {
 	downsampleToMatrix(canvas, &matrix);
 
 	// Display the frame
-	FastLED.show();
+	display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
 }
 
 void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
@@ -75,12 +76,12 @@ void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
 	// Validate color prop (common to all effects)
 	if (!props["color"].isNull()) {
 		if (!props["color"].is<const char*>()) {
-			Serial.println("WARNING: 'color' prop wrong type (expected string), removing");
+			hal::log("WARNING: 'color' prop wrong type (expected string), removing");
 			props.remove("color");
 		} else {
 			const char* colorStr = props["color"];
 			if (colorStr == nullptr) {
-				Serial.println("WARNING: 'color' prop is null, removing");
+				hal::log("WARNING: 'color' prop is null, removing");
 				props.remove("color");
 			}
 		}
@@ -105,5 +106,5 @@ void EffectProcessor::clearEffects() {
 
 	// Clear the matrix to black
 	fill_solid(matrix.leds, matrix.size, CRGB::Black);
-	FastLED.show();
+	display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
 }

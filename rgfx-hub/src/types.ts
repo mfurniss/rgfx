@@ -304,7 +304,9 @@ declare global {
       rendererReady: () => void;
       triggerDiscovery: () => Promise<void>;
       triggerEffect: (payload: EffectPayload) => Promise<void>;
-      saveDriverConfig: (config: PersistedDriverFromSchema) => Promise<{ success: boolean }>;
+      saveDriverConfig: (
+        config: PersistedDriverFromSchema
+      ) => Promise<{ success: boolean; driverRebooted: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;

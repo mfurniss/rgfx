@@ -10,6 +10,7 @@ import log from 'electron-log/main';
 import type { DriverPersistence } from '../driver-persistence';
 import type { DriverRegistry } from '../driver-registry';
 import type { LEDHardwareManager } from '../led-hardware-manager';
+import type { MqttBroker } from '../network';
 import { PersistedDriverSchema, type PersistedDriverFromSchema } from '../schemas';
 import { serializeDriverForIPC } from '../types';
 
@@ -17,13 +18,15 @@ interface SaveDriverConfigHandlerDeps {
   driverPersistence: DriverPersistence;
   driverRegistry: DriverRegistry;
   ledHardwareManager: LEDHardwareManager;
+  mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
   getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDeps): void {
   const {
-    driverPersistence, driverRegistry, ledHardwareManager, uploadConfigToDriver, getMainWindow,
+    driverPersistence, driverRegistry, ledHardwareManager, mqtt,
+    uploadConfigToDriver, getMainWindow,
   } = deps;
 
   ipcMain.handle('driver:save-config', async (_event, config: PersistedDriverFromSchema) => {
@@ -84,9 +87,13 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
       driverPersistence.updateDriver(currentId, { description: validConfig.description });
     }
 
-    // Update LED config if provided
+    // Update LED config if provided (merge with existing to preserve fields not in the form)
     if (validConfig.ledConfig) {
-      driverPersistence.setLEDConfig(currentId, validConfig.ledConfig);
+      const mergedLedConfig = {
+        ...existingDriver.ledConfig,
+        ...validConfig.ledConfig,
+      };
+      driverPersistence.setLEDConfig(currentId, mergedLedConfig);
     }
 
     // Update remoteLogging if changed
@@ -109,13 +116,20 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
         log.info(`Sent driver:updated to renderer for ${currentId}`);
       }
 
-      // If driver is connected, push the new config to the device
+      // If driver is connected, push the new config to the device and reboot
       if (updatedDriver.connected) {
         log.info(`Driver ${currentId} is connected, uploading new config...`);
         await uploadConfigToDriver(macAddress);
+
+        // Reboot the driver so it applies the new config (FastLED can't reinitialize)
+        log.info(`Rebooting driver ${currentId} to apply new config...`);
+        const rebootTopic = `rgfx/driver/${currentId}/reboot`;
+        await mqtt.publish(rebootTopic, '');
+
+        return { success: true, driverRebooted: true };
       }
     }
 
-    return { success: true };
+    return { success: true, driverRebooted: false };
   });
 }

@@ -134,13 +134,23 @@ export default function DriverConfigPage() {
     setSaving(true);
 
     try {
-      await window.rgfx.saveDriverConfig(data);
+      const result = await window.rgfx.saveDriverConfig(data);
       reset(data);
       addNotification({
         message: 'Configuration saved',
         severity: 'success',
         driverId: data.id,
       });
+
+      if (result.driverRebooted) {
+        setTimeout(() => {
+          addNotification({
+            message: `Driver ${data.id} is restarting...`,
+            severity: 'warning',
+            driverId: data.id,
+          });
+        }, 1000);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       addNotification({

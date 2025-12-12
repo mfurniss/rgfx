@@ -13,9 +13,14 @@ node_modules/
 
 # ESP32 firmware binaries (built by CI/local builds)
 esp32-installer/*.bin
+rgfx-hub/assets/esp32/firmware/*.bin
+rgfx-hub/assets/esp32/firmware/manifest.json
 
 # Auto-generated version files
 esp32/src/version.h
 
 # Local CI testing
 .gitlab-ci-local/
+
+# CMake build directories
+tools/led-sim/build/

@@ -1,9 +1,7 @@
 #include "canvas.h"
-#ifndef UNIT_TEST
 #include "matrix.h"
 #include "log.h"
-#include <FastLED.h>
-#endif
+#include "hal/types.h"
 #include <cstring>
 #include <cstdlib>
 
@@ -23,7 +21,6 @@ Canvas::Canvas(uint16_t w, uint16_t h)
 	}
 }
 
-#ifndef UNIT_TEST
 Canvas::Canvas(const Matrix& matrix)
     : width(matrix.width * 4),
       height((matrix.layoutType == LayoutType::STRIP) ? 1 : matrix.height * 4),
@@ -31,12 +28,13 @@ Canvas::Canvas(const Matrix& matrix)
       pixels(nullptr) {
 	pixels = (CRGB*)malloc(size * sizeof(CRGB));
 	if (!pixels) {
+#ifndef UNIT_TEST
 		log("ERROR: Failed to allocate canvas buffer");
+#endif
 		return;
 	}
 	clear();
 }
-#endif
 
 Canvas::~Canvas() {
     free(pixels);

@@ -9,6 +9,7 @@
 #include "effects/test_leds.h"
 #include "effects/background.h"
 #include "effects/effect.h"
+#include "hal/display.h"
 #include <ArduinoJson.h>
 
 /**
@@ -17,6 +18,11 @@
  * Manages continuous effect updates and rendering.
  * Handles frame timing and adding effects.
  * Owns the shared canvas used by all effects.
+ *
+ * Uses dependency injection for the display backend, enabling:
+ * - FastLED output on ESP32
+ * - Raylib window on native (LED simulator)
+ * - Headless capture for unit tests
  */
 class EffectProcessor {
    public:
@@ -27,7 +33,8 @@ class EffectProcessor {
 
    private:
 	Matrix& matrix;
-	Canvas canvas;  // Single shared canvas (must be declared before effects)
+	hal::IDisplay& display;	 // Injected display backend
+	Canvas canvas;			 // Single shared canvas (must be declared before effects)
 	PulseEffect pulseEffect;
 	BitmapEffect bitmapEffect;
 	WipeEffect wipeEffect;
@@ -39,7 +46,7 @@ class EffectProcessor {
 	EffectEntry effectMap[6];
 
    public:
-	EffectProcessor(Matrix& matrix);
+	EffectProcessor(Matrix& matrix, hal::IDisplay& display);
 	void update();
 	void addEffect(const String& effectName, JsonDocument& props);
 	void clearEffects();

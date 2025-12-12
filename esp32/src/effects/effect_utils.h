@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef UNIT_TEST
-#include "../test/mocks/mock_arduino.h"
-#else
-#include <Arduino.h>
-#endif
+#include "hal/platform.h"
 #include <ArduinoJson.h>
 
 // Shared utility functions for effects
