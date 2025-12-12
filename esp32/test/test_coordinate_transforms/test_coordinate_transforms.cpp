@@ -630,7 +630,7 @@ void test_unified_nonsquare_panel_270_rotation() {
 	free(map);
 }
 
-int main(int argc, char** argv) {
+int main(int /*argc*/, char** /*argv*/) {
 	UNITY_BEGIN();
 
 	RUN_TEST(test_strip_layout_4x1);

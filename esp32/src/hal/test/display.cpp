@@ -3,47 +3,28 @@
  *
  * Headless display that captures frames for assertions in unit tests.
  */
-#include "hal/display.h"
-#include <vector>
+#include "hal/test/test_display.h"
 
 namespace hal {
+namespace test {
 
-class HeadlessDisplay : public IDisplay {
-   public:
-	HeadlessDisplay() : brightness_(255), frameCount_(0) {}
+void HeadlessDisplay::show(const CRGB* pixels, uint32_t count, uint16_t /*width*/, uint16_t /*height*/) {
+	// Store a copy of the last frame
+	lastFrame_.assign(pixels, pixels + count);
+	frameCount_++;
+}
 
-	void show(const CRGB* pixels, uint32_t count, uint16_t width, uint16_t height) override {
-		// Store a copy of the last frame
-		lastFrame_.assign(pixels, pixels + count);
-		lastWidth_ = width;
-		lastHeight_ = height;
-		frameCount_++;
-	}
+void HeadlessDisplay::setBrightness(uint8_t brightness) {
+	brightness_ = brightness;
+}
 
-	void setBrightness(uint8_t brightness) override { brightness_ = brightness; }
+}  // namespace test
 
-	bool shouldQuit() override { return false; }
+// Global accessor returns a static instance
+static test::HeadlessDisplay g_testDisplay;
 
-	// Test helpers
-	const std::vector<CRGB>& getLastFrame() const { return lastFrame_; }
-	uint16_t getLastWidth() const { return lastWidth_; }
-	uint16_t getLastHeight() const { return lastHeight_; }
-	uint32_t getFrameCount() const { return frameCount_; }
-	uint8_t getBrightness() const { return brightness_; }
-
-	void reset() {
-		lastFrame_.clear();
-		lastWidth_ = 0;
-		lastHeight_ = 0;
-		frameCount_ = 0;
-	}
-
-   private:
-	std::vector<CRGB> lastFrame_;
-	uint16_t lastWidth_ = 0;
-	uint16_t lastHeight_ = 0;
-	uint8_t brightness_;
-	uint32_t frameCount_;
-};
+IDisplay& getDisplay() {
+	return g_testDisplay;
+}
 
 }  // namespace hal

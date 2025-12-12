@@ -5,6 +5,7 @@
  * Time can be manually advanced, RNG is seeded for reproducibility.
  */
 #include "hal/platform.h"
+#include "hal/test/test_platform.h"
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
