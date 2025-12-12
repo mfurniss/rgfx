@@ -24,7 +24,7 @@ describe('explodeSchema', () => {
         expect(result.data.lifespan).toBe(700);
         expect(result.data.lifespanSpread).toBe(1.6);
         expect(result.data.particleCount).toBe(100);
-        expect(result.data.particleSize).toBe(4);
+        expect(result.data.particleSize).toBe(6);
         expect(result.data.power).toBe(70);
         expect(result.data.powerSpread).toBe(1.6);
       }

@@ -117,6 +117,15 @@ export const MAX_DRIVER_ID_LENGTH = 32;
 
 
 // ============================================================================
+// Effects Playground Configuration
+// ============================================================================
+
+/**
+ * Default effect selected in the Effects Playground page.
+ */
+export const DEFAULT_FX_PLAYGROUND_EFFECT = 'background';
+
+// ============================================================================
 // UI Refresh Configuration
 // ============================================================================
 

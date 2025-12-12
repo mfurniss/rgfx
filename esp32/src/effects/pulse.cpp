@@ -5,7 +5,7 @@
 #include <cstring>
 
 static const uint32_t DEFAULT_COLOR = 0xFFFFFF;
-static const float DEFAULT_DURATION = 1.0f;  // Duration in seconds
+static const float DEFAULT_DURATION = 0.8f;  // Duration in seconds
 static const bool DEFAULT_FADE = true;
 
 PulseEffect::PulseEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {}
@@ -15,14 +15,18 @@ void PulseEffect::add(JsonDocument& props) {
 	// Duration comes in as milliseconds, convert to seconds
 	uint32_t durationMs = props["duration"] | static_cast<uint32_t>(DEFAULT_DURATION * 1000);
 	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : DEFAULT_FADE;
-	const char* easingName = props["easing"] | "quadraticOut";
-	const char* collapseStr = props["collapse"] | "horizontal";
+	const char* easingName = props["easing"] | "quinticOut";
+	const char* collapseStr = props["collapse"] | "random";
 
-	CollapseMode collapse = CollapseMode::Horizontal;
-	if (strcmp(collapseStr, "vertical") == 0) {
+	CollapseMode collapse;
+	if (strcmp(collapseStr, "random") == 0) {
+		collapse = (random(2) == 0) ? CollapseMode::Horizontal : CollapseMode::Vertical;
+	} else if (strcmp(collapseStr, "vertical") == 0) {
 		collapse = CollapseMode::Vertical;
 	} else if (strcmp(collapseStr, "none") == 0) {
 		collapse = CollapseMode::None;
+	} else {
+		collapse = CollapseMode::Horizontal;
 	}
 
 	Pulse newPulse;

@@ -17,10 +17,10 @@ describe('pulseSchema', () => {
       if (result.success) {
         expect(result.data.color).toBe('random');
         expect(result.data.reset).toBe(false);
-        expect(result.data.duration).toBe(700);
-        expect(result.data.easing).toBe('quadraticOut');
+        expect(result.data.duration).toBe(800);
+        expect(result.data.easing).toBe('quinticOut');
         expect(result.data.fade).toBe(true);
-        expect(result.data.collapse).toBe('horizontal');
+        expect(result.data.collapse).toBe('random');
       }
     });
 
@@ -80,6 +80,11 @@ describe('pulseSchema', () => {
 
     it('should accept none collapse', () => {
       const result = pulseSchema.safeParse({ collapse: 'none' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept random collapse', () => {
+      const result = pulseSchema.safeParse({ collapse: 'random' });
       expect(result.success).toBe(true);
     });
 

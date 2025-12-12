@@ -63,31 +63,92 @@ export class UdpClientImpl implements UdpClient {
   }
 
   /**
-   * Resolve '*' wildcards in target IDs to actual random driver IDs
-   * - Each '*' picks a unique random driver from the pool
+   * Resolve wildcards in target IDs to actual random driver IDs
+   * Wildcards: '*' = any driver, '*S' = strip driver, '*M' = matrix driver
+   * - Typed wildcards (*S, *M) are resolved first to ensure they get matching drivers
+   * - Each wildcard picks a unique random driver from the appropriate pool
    * - Named drivers are excluded from the random pool
    */
   private resolveRandomDrivers(targetIds: string[], connectedDrivers: Driver[]): string[] {
-    const namedIds = targetIds.filter((id) => id !== '*');
-    const randomCount = targetIds.length - namedIds.length;
+    const namedIds: string[] = [];
+    let stripCount = 0;
+    let matrixCount = 0;
+    let anyCount = 0;
 
-    if (randomCount === 0) {
+    for (const id of targetIds) {
+      if (id === '*S') {
+        stripCount++;
+      } else if (id === '*M') {
+        matrixCount++;
+      } else if (id === '*') {
+        anyCount++;
+      } else {
+        namedIds.push(id);
+      }
+    }
+
+    if (stripCount === 0 && matrixCount === 0 && anyCount === 0) {
       return namedIds;
     }
 
     // Build pool excluding named drivers
-    const availablePool = connectedDrivers.map((d) => d.id).filter((id) => !namedIds.includes(id));
+    const availableDrivers = connectedDrivers.filter((d) => !namedIds.includes(d.id));
+    const selectedIds = [...namedIds];
 
-    // Pick unique random drivers from pool
-    const randomIds: string[] = [];
-    const poolCopy = [...availablePool];
+    // Helper to pick random drivers from a filtered pool
+    const pickRandom = (pool: Driver[], count: number): void => {
+      const poolCopy = [...pool];
 
-    for (let i = 0; i < randomCount && poolCopy.length > 0; i++) {
-      const randomIndex = Math.floor(Math.random() * poolCopy.length);
-      randomIds.push(poolCopy.splice(randomIndex, 1)[0]);
+      for (let i = 0; i < count && poolCopy.length > 0; i++) {
+        const randomIndex = Math.floor(Math.random() * poolCopy.length);
+        const picked = poolCopy.splice(randomIndex, 1)[0];
+        selectedIds.push(picked.id);
+      }
+    };
+
+    // Track which drivers have been selected to avoid duplicates
+    const remainingPool = [...availableDrivers];
+
+    const removeFromPool = (id: string) => {
+      const idx = remainingPool.findIndex((d) => d.id === id);
+
+      if (idx >= 0) {
+        remainingPool.splice(idx, 1);
+      }
+    };
+
+    // Resolve *S (strip) wildcards first
+    if (stripCount > 0) {
+      const stripPool = remainingPool.filter((d) => d.resolvedHardware?.layout === 'strip');
+      const beforeCount = selectedIds.length;
+      pickRandom(stripPool, stripCount);
+
+      // Remove picked drivers from remaining pool
+      for (let i = beforeCount; i < selectedIds.length; i++) {
+        removeFromPool(selectedIds[i]);
+      }
     }
 
-    return [...namedIds, ...randomIds];
+    // Resolve *M (matrix) wildcards second
+    if (matrixCount > 0) {
+      const matrixPool = remainingPool.filter(
+        (d) => d.resolvedHardware?.layout.startsWith('matrix-') ?? false,
+      );
+      const beforeCount = selectedIds.length;
+      pickRandom(matrixPool, matrixCount);
+
+      // Remove picked drivers from remaining pool
+      for (let i = beforeCount; i < selectedIds.length; i++) {
+        removeFromPool(selectedIds[i]);
+      }
+    }
+
+    // Resolve * (any) wildcards last from remaining pool
+    if (anyCount > 0) {
+      pickRandom(remainingPool, anyCount);
+    }
+
+    return selectedIds;
   }
 
   private sendEffectToDriver(driverId: string, effectData: EffectPayload): boolean {

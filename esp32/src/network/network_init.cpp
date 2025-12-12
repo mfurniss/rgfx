@@ -16,6 +16,29 @@
 // Forward declaration from main.cpp
 void handleDriverConfig(const String& payload);
 
+// WiFi event handler flag to track if registered
+static bool wifiEventHandlerRegistered = false;
+
+/**
+ * WiFi event handler for clean state management
+ *
+ * Ensures MQTT client is properly disconnected when WiFi drops,
+ * preventing stale connection state and socket leaks.
+ */
+static void onWiFiEvent(WiFiEvent_t event) {
+	switch (event) {
+		case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+			log("WiFi disconnected event - forcing MQTT disconnect");
+			mqttClient.disconnect();
+			break;
+		case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+			log("WiFi connected event - IP: " + WiFi.localIP().toString());
+			break;
+		default:
+			break;
+	}
+}
+
 // Map dBm float value to wifi_power_t enum
 static wifi_power_t dBmToWifiPower(float dBm) {
 	if (dBm >= 19.5f) return WIFI_POWER_19_5dBm;
@@ -35,6 +58,13 @@ void setupNetworkServices(Matrix& matrix) {
 	log("WiFi connected - setting up OTA, MQTT and UDP");
 	fill_solid(matrix.leds, matrix.size, CRGB::Green);
 	FastLED.show();
+
+	// Register WiFi event handler once (for clean disconnect handling)
+	if (!wifiEventHandlerRegistered) {
+		WiFi.onEvent(onWiFiEvent);
+		wifiEventHandlerRegistered = true;
+		log("WiFi event handler registered");
+	}
 
 	// Disable WiFi power saving for low latency UDP
 	WiFi.setSleep(WIFI_PS_NONE);
@@ -123,9 +153,17 @@ void setupNetworkServices() {
 	log("WiFi connected - setting up OTA, MQTT and UDP (no LED feedback yet)");
 
 	// Clear LEDs if matrix is available (e.g., after reset when purple LEDs remain lit)
-	if (matrix != nullptr) {
+	// Check both pointer and leds buffer, and ensure config update isn't in progress
+	if (!g_configUpdateInProgress && matrix != nullptr && matrix->leds != nullptr) {
 		fill_solid(matrix->leds, matrix->size, CRGB::Black);
 		FastLED.show();
+	}
+
+	// Register WiFi event handler once (for clean disconnect handling)
+	if (!wifiEventHandlerRegistered) {
+		WiFi.onEvent(onWiFiEvent);
+		wifiEventHandlerRegistered = true;
+		log("WiFi event handler registered");
 	}
 
 	// Disable WiFi power saving for low latency UDP
