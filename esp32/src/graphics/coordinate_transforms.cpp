@@ -1,5 +1,5 @@
 #include "coordinate_transforms.h"
-#ifndef UNIT_TEST
+#ifdef ESP32
 #include "log.h"
 #endif
 #include <cstdlib>
@@ -191,7 +191,7 @@ uint16_t* buildUnifiedCoordinateMap(
 	uint32_t unifiedSize = (uint32_t)unifiedWidth * unifiedHeight;
 	uint16_t panelLedCount = panelWidth * panelHeight;
 
-#ifndef UNIT_TEST
+#ifdef ESP32
 	log("buildUnifiedCoordinateMap: panel=" + String(panelWidth) + "x" + String(panelHeight) +
 	    " grid=" + String(unifiedCols) + "x" + String(unifiedRows) +
 	    " cell=" + String(cellWidth) + "x" + String(cellHeight) +
@@ -202,7 +202,7 @@ uint16_t* buildUnifiedCoordinateMap(
 	// Allocate coordinate map
 	uint16_t* map = (uint16_t*)malloc(unifiedSize * sizeof(uint16_t));
 	if (!map) {
-#ifndef UNIT_TEST
+#ifdef ESP32
 		log("ERROR: Failed to allocate coordinate map (" + String(unifiedSize * sizeof(uint16_t)) + " bytes)");
 #endif
 		return nullptr;

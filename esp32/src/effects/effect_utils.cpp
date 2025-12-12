@@ -1,9 +1,5 @@
 #include "effect_utils.h"
-#ifdef UNIT_TEST
-#include "../test/mocks/mock_fastled.h"
-#else
-#include <FastLED.h>
-#endif
+#include "hal/types.h"
 #include <string.h>
 #include <ctype.h>
 
@@ -64,18 +60,14 @@ uint32_t parseColor(const char* colorHex) {
 uint32_t validateColor(JsonDocument& props, const char* propName, uint32_t defaultColor) {
 	if (!props[propName].is<const char*>()) {
 		if (!props[propName].isNull()) {
-			Serial.print("WARNING: '");
-			Serial.print(propName);
-			Serial.println("' prop wrong type (expected string), using default");
+			hal::log("WARNING: '%s' prop wrong type (expected string), using default", propName);
 		}
 		return defaultColor;
 	}
 
 	const char* colorStr = props[propName];
 	if (colorStr == nullptr) {
-		Serial.print("WARNING: '");
-		Serial.print(propName);
-		Serial.println("' prop is null, using default");
+		hal::log("WARNING: '%s' prop is null, using default", propName);
 		return defaultColor;
 	}
 

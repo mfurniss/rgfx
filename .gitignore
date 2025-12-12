@@ -19,3 +19,6 @@ esp32/src/version.h
 
 # Local CI testing
 .gitlab-ci-local/
+
+# CMake build directories
+tools/led-sim/build/

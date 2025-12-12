@@ -1,5 +1,6 @@
 #include "bitmap.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
 #include "graphics/canvas.h"
 #include <algorithm>
 
@@ -15,14 +16,14 @@ void BitmapEffect::add(JsonDocument& props) {
 	// Parse center position as percentage (0-100), "random", or default to center (50%)
 	float centerXPercent = 50.0f;
 	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
-		centerXPercent = random(0, 101);
+		centerXPercent = hal::random(0, 101);
 	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
 		centerXPercent = props["centerX"].as<float>();
 	}
 
 	float centerYPercent = 50.0f;
 	if (props["centerY"].is<const char*>() && strcmp(props["centerY"].as<const char*>(), "random") == 0) {
-		centerYPercent = random(0, 101);
+		centerYPercent = hal::random(0, 101);
 	} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
 		centerYPercent = props["centerY"].as<float>();
 	}

@@ -27,6 +27,7 @@
 #include "serial.h"
 #include "crash_handler.h"
 #include "graphics/downsample_to_matrix.h"
+#include "hal/display.h"
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
@@ -330,7 +331,7 @@ void loop() {
 
 		// Initialize effect processor on first run (only if matrix is ready and valid)
 		if (effectProcessor == nullptr && matrix != nullptr && matrix->isValid()) {
-			effectProcessor = new (std::nothrow) EffectProcessor(*matrix);
+			effectProcessor = new (std::nothrow) EffectProcessor(*matrix, hal::getDisplay());
 			if (!effectProcessor) {
 				log("ERROR: Failed to allocate EffectProcessor");
 			}
