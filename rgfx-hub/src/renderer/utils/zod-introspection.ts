@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 
-type FieldType = 'enum' | 'boolean' | 'number' | 'color' | 'centerXY';
+type FieldType = 'enum' | 'boolean' | 'number' | 'color' | 'centerXY' | 'spritePreset';
 
 interface FieldConstraints {
   min?: number;
@@ -171,6 +171,30 @@ function isCenterSchema(schema: z.ZodType): boolean {
 }
 
 /**
+ * Check if schema is an array of strings (sprite data)
+ */
+function isSpriteArraySchema(schema: z.ZodType): boolean {
+  if (!hasZodDef(schema)) {
+    return false;
+  }
+
+  const { def } = schema._zod;
+
+  if (def.type !== 'array') {
+    return false;
+  }
+
+  // Check if element type is string
+  const { element } = def as { element?: z.ZodType };
+
+  if (element && hasZodDef(element) && element._zod.def.type === 'string') {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Extract enum values from a ZodEnum schema
  */
 function extractEnumValues(schema: z.ZodType): readonly string[] | undefined {
@@ -263,6 +287,16 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     return {
       name,
       type: 'centerXY',
+      defaultValue,
+      description,
+    };
+  }
+
+  // Check for sprite array schema (array of strings)
+  if (isSpriteArraySchema(innerSchema)) {
+    return {
+      name,
+      type: 'spritePreset',
       defaultValue,
       description,
     };

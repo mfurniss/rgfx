@@ -412,4 +412,293 @@ describe('UdpClientImpl', () => {
       client.stop();
     });
   });
+
+  describe('wildcard driver targeting', () => {
+    let stripMatrixRegistry: DriverRegistry;
+    let stripMatrixClient: UdpClientImpl;
+
+    beforeEach(() => {
+      stripMatrixRegistry = new DriverRegistry();
+
+      // Create strip drivers
+      const strip1 = new Driver({
+        id: 'strip-1',
+        ip: '192.168.1.201',
+        connected: true,
+        lastSeen: Date.now(),
+        failedHeartbeats: 0,
+        resolvedHardware: { name: 'Strip 1', sku: null, layout: 'strip', count: 60 },
+        stats: {
+          telemetryEventsReceived: 0,
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
+
+      const strip2 = new Driver({
+        id: 'strip-2',
+        ip: '192.168.1.202',
+        connected: true,
+        lastSeen: Date.now(),
+        failedHeartbeats: 0,
+        resolvedHardware: { name: 'Strip 2', sku: null, layout: 'strip', count: 60 },
+        stats: {
+          telemetryEventsReceived: 0,
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
+
+      // Create matrix drivers
+      const matrix1 = new Driver({
+        id: 'matrix-1',
+        ip: '192.168.1.203',
+        connected: true,
+        lastSeen: Date.now(),
+        failedHeartbeats: 0,
+        resolvedHardware: {
+          name: 'Matrix 1',
+          sku: null,
+          layout: 'matrix-tl-h',
+          count: 256,
+          width: 16,
+          height: 16,
+        },
+        stats: {
+          telemetryEventsReceived: 0,
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
+
+      const matrix2 = new Driver({
+        id: 'matrix-2',
+        ip: '192.168.1.204',
+        connected: true,
+        lastSeen: Date.now(),
+        failedHeartbeats: 0,
+        resolvedHardware: {
+          name: 'Matrix 2',
+          sku: null,
+          layout: 'matrix-bl-v-snake',
+          count: 256,
+          width: 16,
+          height: 16,
+        },
+        stats: {
+          telemetryEventsReceived: 0,
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
+
+      // Driver with no resolvedHardware (unknown type)
+      const unknown1 = new Driver({
+        id: 'unknown-1',
+        ip: '192.168.1.205',
+        connected: true,
+        lastSeen: Date.now(),
+        failedHeartbeats: 0,
+        stats: {
+          telemetryEventsReceived: 0,
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
+
+      // Add drivers to registry
+      const drivers = stripMatrixRegistry as unknown as { drivers: Map<string, Driver> };
+      drivers.drivers.set(strip1.id, strip1);
+      drivers.drivers.set(strip2.id, strip2);
+      drivers.drivers.set(matrix1.id, matrix1);
+      drivers.drivers.set(matrix2.id, matrix2);
+      drivers.drivers.set(unknown1.id, unknown1);
+
+      stripMatrixClient = new UdpClientImpl(stripMatrixRegistry);
+      mockSocketSend.mockClear();
+    });
+
+    afterEach(() => {
+      stripMatrixClient.stop();
+    });
+
+    it('should select only strip drivers with *S wildcard', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*S'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      const sentIp = mockSocketSend.mock.calls[0][2];
+      expect(['192.168.1.201', '192.168.1.202']).toContain(sentIp);
+    });
+
+    it('should select only matrix drivers with *M wildcard', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*M'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      const sentIp = mockSocketSend.mock.calls[0][2];
+      expect(['192.168.1.203', '192.168.1.204']).toContain(sentIp);
+    });
+
+    it('should select two unique strip drivers with *S, *S', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*S', '*S'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(sentIps).toContain('192.168.1.201');
+      expect(sentIps).toContain('192.168.1.202');
+    });
+
+    it('should select two unique matrix drivers with *M, *M', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*M', '*M'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(sentIps).toContain('192.168.1.203');
+      expect(sentIps).toContain('192.168.1.204');
+    });
+
+    it('should select one strip and one matrix with *S, *M', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*S', '*M'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      // One should be a strip IP, one should be a matrix IP
+      const stripIps = ['192.168.1.201', '192.168.1.202'];
+      const matrixIps = ['192.168.1.203', '192.168.1.204'];
+      expect(sentIps.some((ip) => stripIps.includes(ip))).toBe(true);
+      expect(sentIps.some((ip) => matrixIps.includes(ip))).toBe(true);
+    });
+
+    it('should resolve typed wildcards before untyped to avoid overlap', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*', '*S'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      // Should have 2 unique IPs (no duplicates)
+      expect(new Set(sentIps).size).toBe(2);
+      // One must be a strip
+      const stripIps = ['192.168.1.201', '192.168.1.202'];
+      expect(sentIps.some((ip) => stripIps.includes(ip))).toBe(true);
+    });
+
+    it('should return empty when *S requested but no strip drivers exist', () => {
+      // Create registry with only matrix drivers
+      const matrixOnlyRegistry = new DriverRegistry();
+      const matrix = new Driver({
+        id: 'matrix-only',
+        ip: '192.168.1.210',
+        connected: true,
+        lastSeen: Date.now(),
+        failedHeartbeats: 0,
+        resolvedHardware: {
+          name: 'Matrix',
+          sku: null,
+          layout: 'matrix-tl-h',
+          count: 256,
+          width: 16,
+          height: 16,
+        },
+        stats: {
+          telemetryEventsReceived: 0,
+          mqttMessagesReceived: 0,
+          mqttMessagesFailed: 0,
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
+        },
+      });
+      (matrixOnlyRegistry as unknown as { drivers: Map<string, Driver> }).drivers.set(
+        matrix.id,
+        matrix,
+      );
+
+      const client = new UdpClientImpl(matrixOnlyRegistry);
+      mockSocketSend.mockClear();
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*S'],
+      };
+
+      client.broadcast(payload);
+
+      expect(mockSocketSend).not.toHaveBeenCalled();
+      client.stop();
+    });
+
+    it('should combine named driver with *S wildcard', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['matrix-1', '*S'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      // Should include matrix-1 and one strip
+      expect(sentIps).toContain('192.168.1.203'); // matrix-1
+      const stripIps = ['192.168.1.201', '192.168.1.202'];
+      expect(sentIps.some((ip) => stripIps.includes(ip))).toBe(true);
+    });
+
+    it('should select any driver type with * wildcard (existing behavior)', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*'],
+      };
+
+      stripMatrixClient.broadcast(payload);
+
+      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      // Could be any of the 5 drivers
+      const allIps = [
+        '192.168.1.201',
+        '192.168.1.202',
+        '192.168.1.203',
+        '192.168.1.204',
+        '192.168.1.205',
+      ];
+      const sentIp = mockSocketSend.mock.calls[0][2];
+      expect(allIps).toContain(sentIp);
+    });
+  });
 });
