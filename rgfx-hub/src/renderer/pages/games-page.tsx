@@ -11,10 +11,15 @@ import {
   TableSortLabel,
   Paper,
   Link,
+  FormControlLabel,
+  Switch,
+  Alert,
 } from '@mui/material';
 import { SportsEsports as GamesIcon } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
 import type { GameInfo } from '@/types';
 import { PageTitle } from '../components/page-title';
+import { useUiStore } from '../store/ui-store';
 
 type SortField = 'romName' | 'interceptorName' | 'transformerName';
 type SortOrder = 'asc' | 'desc';
@@ -22,18 +27,22 @@ type SortOrder = 'asc' | 'desc';
 const GamesPage: React.FC = () => {
   const [games, setGames] = useState<GameInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortField, setSortField] = useState<SortField>('romName');
+  const [sortField, setSortField] = useState<SortField>('interceptorName');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [hideUnconfigured, setHideUnconfigured] = useState(true);
+  const mameRomsDirectory = useUiStore((state) => state.mameRomsDirectory);
+  const hasMameRomsDirectory = Boolean(mameRomsDirectory);
 
   useEffect(() => {
     const loadGames = async () => {
-      const gamesList = await window.rgfx.listGames();
+      setLoading(true);
+      const gamesList = await window.rgfx.listGames(mameRomsDirectory || undefined);
       setGames(gamesList);
       setLoading(false);
     };
 
     void loadGames();
-  }, []);
+  }, [mameRomsDirectory]);
 
   const handleOpenFile = (filePath: string | null) => {
     if (filePath) {
@@ -50,7 +59,11 @@ const GamesPage: React.FC = () => {
     }
   };
 
-  const sortedGames = [...games].sort((a, b) => {
+  const isConfigured = (game: GameInfo) => Boolean(game.interceptorName ?? game.transformerName);
+
+  const filteredGames = hideUnconfigured ? games.filter(isConfigured) : games;
+
+  const sortedGames = [...filteredGames].sort((a, b) => {
     const aValue = (a[sortField] ?? '').toLowerCase();
     const bValue = (b[sortField] ?? '').toLowerCase();
 
@@ -71,22 +84,48 @@ const GamesPage: React.FC = () => {
 
   return (
     <Box>
-      <PageTitle icon={<GamesIcon />} title="Games" />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <PageTitle icon={<GamesIcon />} title="Games" />
+        {hasMameRomsDirectory ? (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={hideUnconfigured}
+                onChange={(e) => {
+                  setHideUnconfigured(e.target.checked);
+                }}
+              />
+            }
+            label="Hide unconfigured"
+          />
+        ) : null}
+      </Box>
+      {!hasMameRomsDirectory ? (
+        <Alert variant="outlined" severity="info" sx={{ mb: 2 }}>
+          Configure the MAME ROMs directory in{' '}
+          <Link component={RouterLink} to="/settings">
+            Settings
+          </Link>{' '}
+          to see which ROMs have interceptors and transformers.
+        </Alert>
+      ) : null}
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === 'romName'}
-                  direction={sortField === 'romName' ? sortOrder : 'asc'}
-                  onClick={() => {
-                    handleSort('romName');
-                  }}
-                >
-                  MAME ROM File
-                </TableSortLabel>
-              </TableCell>
+              {hasMameRomsDirectory ? (
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'romName'}
+                    direction={sortField === 'romName' ? sortOrder : 'asc'}
+                    onClick={() => {
+                      handleSort('romName');
+                    }}
+                  >
+                    MAME ROM File
+                  </TableSortLabel>
+                </TableCell>
+              ) : null}
               <TableCell>
                 <TableSortLabel
                   active={sortField === 'interceptorName'}
@@ -114,7 +153,7 @@ const GamesPage: React.FC = () => {
           <TableBody>
             {sortedGames.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} align="center">
+                <TableCell colSpan={hasMameRomsDirectory ? 3 : 2} align="center">
                   <Typography variant="body2" color="text.secondary">
                     No games configured
                   </Typography>
@@ -123,7 +162,7 @@ const GamesPage: React.FC = () => {
             ) : (
               sortedGames.map((game, index) => (
                 <TableRow key={index}>
-                  <TableCell>{game.romName}</TableCell>
+                  {hasMameRomsDirectory ? <TableCell>{game.romName}</TableCell> : null}
                   <TableCell>
                     {game.interceptorName ? (
                       <Link

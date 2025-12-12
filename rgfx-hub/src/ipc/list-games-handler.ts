@@ -10,7 +10,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
 import type { GameInfo } from '../types';
-import { CONFIG_DIRECTORY, ROMS_DIRECTORY } from '../config/paths';
+import { CONFIG_DIRECTORY } from '../config/paths';
+import { expandPath } from '../utils/expand-path';
 
 const ROM_EXTENSIONS = ['.zip', '.nes', '.smc', '.sfc', '.bin', '.rom'];
 
@@ -48,56 +49,82 @@ function parseRomMap(romMapPath: string): Map<string, string> {
 }
 
 export function registerListGamesHandler(): void {
-  ipcMain.handle('games:list', (): GameInfo[] => {
+  ipcMain.handle('games:list', (_event, romsDirectory?: string): GameInfo[] => {
     try {
       const interceptorsDir = path.join(CONFIG_DIRECTORY, 'interceptors', 'games');
       const transformersDir = path.join(CONFIG_DIRECTORY, 'transformers', 'games');
       const romMapPath = path.join(CONFIG_DIRECTORY, 'interceptors', 'rom_map.lua');
 
-      if (!fs.existsSync(ROMS_DIRECTORY)) {
-        log.warn(`ROMs directory not found at ${ROMS_DIRECTORY}`);
-        return [];
-      }
-
       // Parse rom_map for alias resolution
       const romMap = parseRomMap(romMapPath);
       const games: GameInfo[] = [];
+      const seenInterceptors = new Set<string>();
 
-      // Scan ROM files
-      const romFiles = fs.readdirSync(ROMS_DIRECTORY).filter((f) => {
-        const ext = path.extname(f).toLowerCase();
-        return ROM_EXTENSIONS.includes(ext);
-      });
+      // If ROMs directory is configured, scan ROM files
+      const expandedRomsDir = romsDirectory ? expandPath(romsDirectory) : undefined;
 
-      for (const romFile of romFiles) {
-        const romBaseName = getRomBaseName(romFile);
-
-        // 1. Check rom_map for alias, 2. Fall back to 1-1 mapping
-        const mappedInterceptor = romMap.get(romBaseName);
-        const interceptorName = mappedInterceptor
-          ? `${mappedInterceptor}.lua`
-          : `${romBaseName}_rgfx.lua`;
-        const interceptorPath = path.join(interceptorsDir, interceptorName);
-        const interceptorExists = fs.existsSync(interceptorPath);
-
-        // Transformer uses interceptor base name (e.g., pacman_rgfx -> pacman.js)
-        const interceptorBaseName = mappedInterceptor
-          ? mappedInterceptor.replace(/_rgfx$/, '')
-          : romBaseName;
-        const transformerName = `${interceptorBaseName}.js`;
-        const transformerPath = path.join(transformersDir, transformerName);
-        const transformerExists = fs.existsSync(transformerPath);
-
-        games.push({
-          romName: romFile,
-          interceptorPath: interceptorExists ? interceptorPath : null,
-          interceptorName: interceptorExists ? interceptorName : null,
-          transformerPath: transformerExists ? transformerPath : null,
-          transformerName: transformerExists ? transformerName : null,
+      if (expandedRomsDir && fs.existsSync(expandedRomsDir)) {
+        const romFiles = fs.readdirSync(expandedRomsDir).filter((f) => {
+          const ext = path.extname(f).toLowerCase();
+          return ROM_EXTENSIONS.includes(ext);
         });
+
+        for (const romFile of romFiles) {
+          const romBaseName = getRomBaseName(romFile);
+
+          // 1. Check rom_map for alias, 2. Fall back to 1-1 mapping
+          const mappedInterceptor = romMap.get(romBaseName);
+          const interceptorName = mappedInterceptor
+            ? `${mappedInterceptor}.lua`
+            : `${romBaseName}_rgfx.lua`;
+          const interceptorPath = path.join(interceptorsDir, interceptorName);
+          const interceptorExists = fs.existsSync(interceptorPath);
+
+          // Transformer uses interceptor base name (e.g., pacman_rgfx -> pacman.js)
+          const interceptorBaseName = mappedInterceptor
+            ? mappedInterceptor.replace(/_rgfx$/, '')
+            : romBaseName;
+          const transformerName = `${interceptorBaseName}.js`;
+          const transformerPath = path.join(transformersDir, transformerName);
+          const transformerExists = fs.existsSync(transformerPath);
+
+          if (interceptorExists) {
+            seenInterceptors.add(interceptorName);
+          }
+
+          games.push({
+            romName: romFile,
+            interceptorPath: interceptorExists ? interceptorPath : null,
+            interceptorName: interceptorExists ? interceptorName : null,
+            transformerPath: transformerExists ? transformerPath : null,
+            transformerName: transformerExists ? transformerName : null,
+          });
+        }
       }
 
-      log.info(`Listed ${games.length} games from ROMs directory`);
+      // Also scan interceptors directory for games not in ROMs
+      if (fs.existsSync(interceptorsDir)) {
+        const interceptorFiles = fs.readdirSync(interceptorsDir).filter(
+          (f) => f.endsWith('_rgfx.lua') && !seenInterceptors.has(f),
+        );
+
+        for (const interceptorFile of interceptorFiles) {
+          const interceptorBaseName = interceptorFile.replace(/_rgfx\.lua$/, '');
+          const transformerName = `${interceptorBaseName}.js`;
+          const transformerPath = path.join(transformersDir, transformerName);
+          const transformerExists = fs.existsSync(transformerPath);
+
+          games.push({
+            romName: null,
+            interceptorPath: path.join(interceptorsDir, interceptorFile),
+            interceptorName: interceptorFile,
+            transformerPath: transformerExists ? transformerPath : null,
+            transformerName: transformerExists ? transformerName : null,
+          });
+        }
+      }
+
+      log.info(`Listed ${games.length} games`);
       return games;
     } catch (error) {
       log.error('Failed to list games:', error);

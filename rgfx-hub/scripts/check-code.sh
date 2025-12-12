@@ -1,10 +1,14 @@
 #!/bin/bash
 # Code quality check script
-# Runs: ESLint and ts-unused-exports
+# Runs: TypeScript type check, ESLint, and ts-unused-exports
 
 set -e
 
 cd "$(dirname "$0")/.."
+
+echo "🔍 Running TypeScript type check..."
+npm run typecheck
+echo "✅ TypeScript passed"
 
 echo "🔧 Running ESLint..."
 npm run lint

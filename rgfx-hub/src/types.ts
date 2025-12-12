@@ -308,7 +308,7 @@ declare global {
       getLEDHardwareList: () => Promise<string[]>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
-      listGames: () => Promise<GameInfo[]>;
+      listGames: (romsDirectory?: string) => Promise<GameInfo[]>;
       simulateEvent: (eventLine: string) => Promise<void>;
       selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
       verifyDirectory: (path: string) => Promise<boolean>;
@@ -317,7 +317,7 @@ declare global {
 }
 
 export interface GameInfo {
-  romName: string;
+  romName: string | null;
   interceptorPath: string | null;
   interceptorName: string | null;
   transformerPath: string | null;
