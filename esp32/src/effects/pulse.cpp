@@ -11,7 +11,9 @@ namespace {
 	constexpr bool PULSE_DEFAULT_FADE = true;
 }  // namespace
 
-PulseEffect::PulseEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {}
+PulseEffect::PulseEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
+	pulses.reserve(16);
+}
 
 void PulseEffect::add(JsonDocument& props) {
 	uint32_t color = props["color"] ? parseColor(props["color"]) : PULSE_DEFAULT_COLOR;

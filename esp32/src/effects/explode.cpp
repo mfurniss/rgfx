@@ -18,8 +18,9 @@ static const float DEFAULT_FRICTION = 2.0f;
 static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
-ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m), nextExplosionId(0) {
+ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {
 	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
+	flashes.reserve(16);
 }
 
 void ExplodeEffect::add(JsonDocument& props) {
@@ -68,25 +69,15 @@ void ExplodeEffect::add(JsonDocument& props) {
 	uint8_t baseG = (color >> 8) & 0xFF;
 	uint8_t baseB = color & 0xFF;
 
-	// Create new explosion with unique ID
-	Explosion newExplosion;
-	newExplosion.id = nextExplosionId++;
-	newExplosion.centerX = centerX;
-	newExplosion.centerY = centerY;
-	newExplosion.particleSize = particleSize;
-	newExplosion.friction = friction;
-
-	// Initialize flash for LED strips (white pulse that collapses inward)
+	// Create flash effect for LED strips (white pulse that collapses inward)
 	if (isStrip) {
+		Flash flash;
+		flash.centerX = centerX;
 		// Flash width proportional to power, capped at 30% of canvas width
-		newExplosion.flashInitialWidth =
-			min(scaledPower * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
-		newExplosion.flashDuration = (lifespan * 0.35f) / 1000.0f;  // 35% of lifespan, in seconds
-		newExplosion.flashAge = 0.0f;
-	} else {
-		newExplosion.flashInitialWidth = 0.0f;  // No flash for matrix
-		newExplosion.flashDuration = 0.0f;
-		newExplosion.flashAge = 0.0f;
+		flash.initialWidth = min(scaledPower * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
+		flash.duration = (lifespan * 0.35f) / 1000.0f;  // 35% of lifespan, in seconds
+		flash.age = 0.0f;
+		flashes.push_back(flash);
 	}
 
 	// FIFO eviction: if adding particleCount would exceed max, remove oldest particles first
@@ -103,7 +94,8 @@ void ExplodeEffect::add(JsonDocument& props) {
 		Particle p;
 		p.x = centerX;
 		p.y = centerY;
-		p.explosionId = newExplosion.id;
+		p.friction = friction;
+		p.particleSize = static_cast<uint8_t>(min(particleSize, 255u));
 
 		// Calculate velocity with power variation based on powerSpread
 		float powerVariation =
@@ -168,50 +160,37 @@ void ExplodeEffect::add(JsonDocument& props) {
 			float calculatedLifespan = lifespan + variation * spreadAmount;
 			p.lifespan = static_cast<uint32_t>(max(50.0f, calculatedLifespan));
 		}
-		p.lifespanMultiplier = 1.0f;
-
 		particlePool.push_back(p);
 	}
-
-	explosions.push_back(newExplosion);
 }
 
 void ExplodeEffect::update(float deltaTime) {
-
-	// Cache deltaTime in milliseconds to avoid redundant calculations
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
-	// Update flash age for all explosions (LED strips only)
-	if (isStrip) {
-		for (auto& exp : explosions) {
-			if (exp.flashAge < exp.flashDuration) {
-				exp.flashAge += deltaTime;
-			}
+	// Update and remove expired flashes (swap-and-pop for O(1) removal)
+	for (size_t i = 0; i < flashes.size();) {
+		flashes[i].age += deltaTime;
+		if (flashes[i].age >= flashes[i].duration) {
+			flashes[i] = flashes.back();
+			flashes.pop_back();
+		} else {
+			++i;
 		}
 	}
 
 	// Update all particles in the shared pool
 	for (auto p = particlePool.begin(); p != particlePool.end();) {
-		// Find the explosion this particle belongs to (for friction)
-		float friction = DEFAULT_FRICTION;
-		for (const auto& exp : explosions) {
-			if (exp.id == p->explosionId) {
-				friction = exp.friction;
-				break;
-			}
-		}
-
-		// Update X position (always)
+		// Update X position (always) - friction is stored per-particle
 		p->x += p->vx * deltaTime;
-		p->vx *= (1.0f - (friction * deltaTime));
+		p->vx *= (1.0f - (p->friction * deltaTime));
 
 		// Update Y position (only for matrices)
 		if (!isStrip) {
 			p->y += p->vy * deltaTime;
-			p->vy *= (1.0f - (friction * deltaTime));
+			p->vy *= (1.0f - (p->friction * deltaTime));
 		}
 
 		// Age the particle
@@ -233,23 +212,6 @@ void ExplodeEffect::update(float deltaTime) {
 			++p;
 		}
 	}
-
-	// Remove explosions that have no particles left
-	for (auto expIt = explosions.begin(); expIt != explosions.end();) {
-		bool hasParticles = false;
-		for (const auto& particle : particlePool) {
-			if (particle.explosionId == expIt->id) {
-				hasParticles = true;
-				break;
-			}
-		}
-
-		if (!hasParticles) {
-			expIt = explosions.erase(expIt);
-		} else {
-			++expIt;
-		}
-	}
 }
 
 void ExplodeEffect::render() {
@@ -258,56 +220,41 @@ void ExplodeEffect::render() {
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
 	// Render flashes first for LED strips (white pulse that collapses inward)
-	if (isStrip) {
-		for (const auto& exp : explosions) {
-			if (exp.flashAge >= exp.flashDuration || exp.flashInitialWidth <= 0.0f) {
-				continue;
+	for (const auto& flash : flashes) {
+		if (flash.initialWidth <= 0.0f) {
+			continue;
+		}
+
+		float progress = flash.age / flash.duration;
+		float easedProgress = quarticEaseOutf(progress);
+		float currentHalfWidth = (flash.initialWidth * 0.5f) * (1.0f - easedProgress);
+		if (currentHalfWidth < 1.0f) {
+			continue;
+		}
+		float maxAlpha = 150.0f * (1.0f - easedProgress);
+		float alphaPerPixel = maxAlpha / currentHalfWidth;
+
+		// Draw from center outward (both directions)
+		int16_t centerX = static_cast<int16_t>(flash.centerX);
+
+		for (int16_t offset = 0; offset <= static_cast<int16_t>(currentHalfWidth); offset++) {
+			uint8_t alpha = static_cast<uint8_t>(maxAlpha - offset * alphaPerPixel);
+			int16_t leftX = centerX - offset;
+			int16_t rightX = centerX + offset;
+
+			if (leftX >= 0 && leftX < width) {
+				canvas.drawPixel(leftX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
 			}
 
-			float progress = exp.flashAge / exp.flashDuration;
-			float easedProgress = quarticEaseOutf(progress);
-			float currentHalfWidth = (exp.flashInitialWidth * 0.5f) * (1.0f - easedProgress);
-			if (currentHalfWidth < 1.0f) {
-				continue;
-			}
-			float maxAlpha = 150.0f * (1.0f - easedProgress);
-			float alphaPerPixel = maxAlpha / currentHalfWidth;
-
-			// Draw from center outward (both directions)
-			int16_t centerX = static_cast<int16_t>(exp.centerX);
-
-			for (int16_t offset = 0; offset <= static_cast<int16_t>(currentHalfWidth); offset++) {
-				uint8_t alpha = static_cast<uint8_t>(maxAlpha - offset * alphaPerPixel);
-				int16_t leftX = centerX - offset;
-				int16_t rightX = centerX + offset;
-
-				if (leftX >= 0 && leftX < width) {
-					canvas.drawPixel(leftX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
-				}
-
-				if (offset > 0 && rightX >= 0 && rightX < width) {
-					canvas.drawPixel(rightX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
-				}
+			if (offset > 0 && rightX >= 0 && rightX < width) {
+				canvas.drawPixel(rightX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
 			}
 		}
 	}
 
-	// Render all particles from the shared pool
+	// Render all particles from the shared pool - particleSize is stored per-particle
 	for (const auto& particle : particlePool) {
-		// Find the explosion this particle belongs to (for size)
-		const Explosion* explosion = nullptr;
-		for (const auto& exp : explosions) {
-			if (exp.id == particle.explosionId) {
-				explosion = &exp;
-				break;
-			}
-		}
-
-		if (!explosion) {
-			continue;
-		}
-
-		uint32_t size = explosion->particleSize;
+		uint8_t size = particle.particleSize;
 		int16_t halfSize = size / 2;
 
 		// Convert float position to integer canvas coordinates (center of particle)
@@ -357,5 +304,5 @@ void ExplodeEffect::render() {
 
 void ExplodeEffect::reset() {
 	particlePool.clear();
-	explosions.clear();
+	flashes.clear();
 }
