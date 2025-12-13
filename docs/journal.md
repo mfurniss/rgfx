@@ -234,9 +234,22 @@ Added and updated CLAUDE.md documentation files throughout the codebase. Refined
 
 ## December 10, 2025
 
-Fixed critical UDP message queue race condition on ESP32 drivers. When the hub sends multiple effects in rapid succession (e.g., `robotron/player/die` triggers both a blue explosion and white pulse), the single-message buffer was being overwritten before the first message could be processed. This caused LED strip drivers to frequently miss the blue explosion while matrix drivers (with different timing characteristics) worked correctly.
+Fixed critical UDP message queue race condition on ESP32 drivers. Rapid-fire effects were being dropped because the single-message buffer was overwritten before processing. Replaced with an 8-slot circular queue ensuring all effects are delivered.
 
-Replaced the single `pendingMessage` buffer with an 8-slot circular queue of raw JSON strings (~8KB static memory). Messages are stored as raw strings and parsed on dequeue to avoid JsonDocument heap fragmentation. The main loop now drains all queued messages per iteration using a `while` loop instead of `if`.
+## December 11, 2025
 
-**Total Development Time:** 61 days (October 11 - December 10, 2025)
-**Total Commits:** 442
+Implemented Hardware Abstraction Layer (HAL) enabling ESP32 effect code to run natively on desktop. The led-sim application now shares effect code with ESP32 drivers, using Raylib for rendering instead of FastLED. Drivers now reboot after saving configuration. Improved disconnect notifications with reason tracking.
+
+## December 12, 2025
+
+Made led-sim window resizable with dynamic LED scaling. Fixed UDP message parsing bug causing effects to display incorrect colors.
+
+**Codebase Statistics:**
+- ESP32 Driver: 8,048 lines
+- RGFX Hub: 12,260 lines
+- LED Simulator: 1,111 lines
+- MAME Lua Scripts: 460 lines
+- **Total: ~21,879 lines of code**
+
+**Total Development Time:** 63 days (October 11 - December 12, 2025)
+**Total Commits:** 501

@@ -25,11 +25,18 @@
 #include "demo.h"
 #include "raylib_compat.h"
 #include "sim_display.h"
+#include "udp_listener.h"
 #include "window.h"
 
+#include <ArduinoJson.h>
 #include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 int main(int argc, char* argv[]) {
+	// Seed rand() for random8/random16 (used by parseColor("random"))
+	srand(static_cast<unsigned int>(time(nullptr)));
+
 	// Require config file argument
 	if (argc != 2) {
 		printUsage(argv[0]);
@@ -54,6 +61,12 @@ int main(int argc, char* argv[]) {
 	printf("  D     - Toggle auto-demo\n");
 	printf("  Q/ESC - Quit\n\n");
 
+	// Initialize UDP listener for receiving effects from Hub
+	UdpListener udpListener;
+	if (!udpListener.init(8888)) {
+		printf("Warning: UDP listener failed to start - keyboard input only\n");
+	}
+
 	// Calculate optimal window size for LED dimensions
 	int windowWidth, windowHeight;
 	float ledSize, ledGap;
@@ -63,6 +76,8 @@ int main(int argc, char* argv[]) {
 
 	// Initialize raylib with calculated window size
 	InitWindow(windowWidth, windowHeight, "RGFX LED Simulator");
+	SetWindowState(FLAG_WINDOW_RESIZABLE);
+	SetWindowMinSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
 	SetTargetFPS(120);
 
 	// Create Matrix (same as ESP32)
@@ -94,6 +109,25 @@ int main(int argc, char* argv[]) {
 	while (!WindowShouldClose() && !hal::getDisplay().shouldQuit()) {
 		float deltaTime = GetFrameTime();
 		timeSinceLastEffect += deltaTime;
+
+		// Check for UDP packets from Hub
+		char udpBuffer[1024];
+		size_t bytesRead;
+		while (udpListener.receive(udpBuffer, sizeof(udpBuffer), bytesRead)) {
+			JsonDocument doc;
+			DeserializationError err = deserializeJson(doc, udpBuffer, bytesRead);
+			if (err == DeserializationError::Ok) {
+				const char* effect = doc["effect"];
+				if (effect) {
+					JsonDocument props;
+					props.set(doc["props"]);
+					processor.addEffect(effect, props);
+					printf("UDP: %s\n", effect);
+				}
+			} else {
+				printf("UDP: JSON parse error: %s\n", err.c_str());
+			}
+		}
 
 		// Handle input - number keys for specific effects
 		if (IsKeyPressed(KEY_ONE)) {

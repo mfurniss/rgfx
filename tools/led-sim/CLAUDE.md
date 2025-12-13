@@ -31,10 +31,13 @@ Requires raylib installed via Homebrew: `brew install raylib`
 ```
 
 **Controls:**
-- `SPACE` - Trigger random effect
+- `1-4` - Trigger specific effects (pulse, wipe, explode, background)
 - `C` - Clear all effects
 - `D` - Toggle auto-demo mode
 - `Q` / `ESC` - Quit
+
+**UDP Input:**
+The simulator listens on UDP port 8888 (same as ESP32 drivers) and receives effect commands from the Hub's Effects Playground. This allows testing effects without hardware.
 
 ## Architecture
 
@@ -125,20 +128,23 @@ unsigned int color = (0xFF << 24) | (b << 16) | (g << 8) | r;
 | `src/hal/log_stub.cpp` | No-op stubs for ESP_LOG macros |
 | `src/hal/driver_config_stub.cpp` | DriverConfig stub (returns defaults) |
 | `src/hal/led_controller.cpp` | No-op ILedController (brightness → display) |
+| `src/udp_listener.h/.cpp` | UDP socket listener for Hub effects |
 | `CMakeLists.txt` | Build config, links esp32/src files and raylib |
 | `.vscode/c_cpp_properties.json` | IntelliSense configuration |
 
-## Dynamic Window Sizing
+## Resizable Window
 
-The window automatically scales based on LED dimensions:
+The window is resizable like any standard macOS application. The LED grid dynamically scales to fit the window:
 
-- **Max window:** 1200×800
-- **Min window:** 400×150
+- **Initial size:** Calculated to fit LEDs at optimal size (up to 30px per LED)
+- **Min window:** 400×150 (enforced via `SetWindowMinSize`)
 - **LED size range:** 3-30 pixels
 - **Gap:** 15% of LED size
 
-For a 300×1 strip: window is 1200×150 with 3.4px LEDs
-For a 32×8 matrix: window is 1139×341 with 30px LEDs
+The resize handling in `SimDisplay::show()` recalculates LED size and offsets whenever the window dimensions change, keeping the grid centered.
+
+For a 300×1 strip: initial window is 1200×150 with 3.4px LEDs
+For a 32×8 matrix: initial window is 1139×341 with 30px LEDs
 
 ## Adding New Effects
 
@@ -155,5 +161,6 @@ Effects are platform-agnostic. To test a new effect:
 |--------|-------|-----------|
 | Output | WS2812B LEDs | raylib window |
 | Frame rate | ~60 FPS | 120 FPS (configurable) |
-| MQTT | Receives commands | N/A (keyboard input) |
+| Effects | UDP port 8888 | UDP port 8888 (same) |
+| MQTT | Config, OTA, telemetry | N/A |
 | Config | NVS flash | Command-line args / JSON |

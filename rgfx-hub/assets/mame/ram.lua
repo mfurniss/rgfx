@@ -69,7 +69,6 @@ function exports.install_ram_monitor(options)
 	end
 
 	local read_func = mem[config.method]
-	local hex_format = config.hex_format
 
 	if name then
 		print(

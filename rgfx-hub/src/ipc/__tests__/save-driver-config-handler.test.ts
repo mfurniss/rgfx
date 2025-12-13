@@ -508,7 +508,22 @@ describe('registerSaveDriverConfigHandler', () => {
 
       const result = await registeredHandler({}, config);
 
-      expect(result).toEqual({ success: true, driverRebooted: true });
+      expect(result).toEqual({ success: true });
+    });
+
+    it('should send driver:disconnected with restarting reason when driver is connected', async () => {
+      const config: PersistedDriverInput = {
+        id: 'old-driver-id',
+        macAddress: 'AA:BB:CC:DD:EE:FF',
+      };
+
+      await registeredHandler({}, config);
+
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+        'driver:disconnected',
+        expect.objectContaining({ id: 'old-driver-id', connected: false }),
+        'restarting',
+      );
     });
   });
 

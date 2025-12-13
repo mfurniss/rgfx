@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useNotificationStore } from '../notification-store';
+import { useNotificationStore, notify } from '../notification-store';
 
 describe('useNotificationStore', () => {
   beforeEach(() => {
@@ -46,19 +46,6 @@ describe('useNotificationStore', () => {
 
       const { notifications } = useNotificationStore.getState();
       expect(notifications[0].id).not.toBe(notifications[1].id);
-    });
-
-    it('should add notification with driverId', () => {
-      const { addNotification } = useNotificationStore.getState();
-
-      addNotification({
-        message: 'Driver disconnected',
-        severity: 'warning',
-        driverId: 'rgfx-driver-0001',
-      });
-
-      const { notifications } = useNotificationStore.getState();
-      expect(notifications[0].driverId).toBe('rgfx-driver-0001');
     });
 
     it('should support all severity levels', () => {
@@ -123,6 +110,28 @@ describe('useNotificationStore', () => {
       removeNotification('non-existent-id');
 
       expect(useNotificationStore.getState().notifications).toHaveLength(1);
+    });
+  });
+
+  describe('notify', () => {
+    it('should add a notification to the store', () => {
+      notify('Test message', 'success');
+
+      const { notifications } = useNotificationStore.getState();
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].message).toBe('Test message');
+      expect(notifications[0].severity).toBe('success');
+    });
+
+    it('should work with all severity levels', () => {
+      notify('Success', 'success');
+      notify('Info', 'info');
+      notify('Warning', 'warning');
+      notify('Error', 'error');
+
+      const { notifications } = useNotificationStore.getState();
+      expect(notifications).toHaveLength(4);
+      expect(notifications.map((n) => n.severity)).toEqual(['success', 'info', 'warning', 'error']);
     });
   });
 });

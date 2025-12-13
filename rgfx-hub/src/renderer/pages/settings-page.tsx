@@ -23,7 +23,7 @@ import { PageTitle } from '../components/page-title';
 import { useColorScheme } from '@mui/material/styles';
 import { useUiStore } from '../store/ui-store';
 import { useAppInfoStore } from '../store/app-info-store';
-import { useNotificationStore } from '../store/notification-store';
+import { notify } from '../store/notification-store';
 
 type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -34,7 +34,6 @@ const SettingsPage: React.FC = () => {
   const setRgfxConfigDirectory = useUiStore((state) => state.setRgfxConfigDirectory);
   const setMameRomsDirectory = useUiStore((state) => state.setMameRomsDirectory);
   const appInfo = useAppInfoStore((state) => state.appInfo);
-  const addNotification = useNotificationStore((state) => state.addNotification);
 
   // Local form state - use static defaults from app info
   const defaultConfigDir = appInfo?.defaultRgfxConfigDir ?? '';
@@ -97,9 +96,9 @@ const SettingsPage: React.FC = () => {
       if (isValid) {
         setRgfxConfigDirectory(configDir.trim());
         setMameRomsDirectory(romsDir.trim());
-        addNotification({ message: 'Settings saved', severity: 'success' });
+        notify('Settings saved', 'success');
       } else {
-        addNotification({ message: 'Settings not saved, fix error(s)', severity: 'error' });
+        notify('Settings not saved, fix error(s)', 'error');
       }
 
       setIsSaving(false);

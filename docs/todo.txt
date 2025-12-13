@@ -28,7 +28,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] E2E tests
 [X] Documentation for end users
 [X] rgfx.io website
-[ ] Implement all FastLED config options
+[X] Implement all FastLED config options
 [X] Mame Lua mapping file for same game with different ROM files
 [X] Lua linting and formatting
 [X] ESP32 dual-core processing
@@ -49,7 +49,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Optimize build pipeline
 [X] Wipe effect
 [X] C++ native unit and integration tests
-[ ] ESP32 embedded unit and integration tests
+[X] ESP32 embedded unit and integration tests
 [X] Selective driver event routing
 [X] Driver config UI
 [X] New driver ID format
@@ -93,9 +93,12 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] FX Playground form and JSON tabs
 [X] Fix disconnected driver detail page bug
 [X] Open Lua interceptors from Hub
-[X] LED panel dot in top left cornder
+[X] LED panel dot in top left corner
 [X] Unified rotation per-panel (0A, 1B, 2C, 3D, etc)
 [ ] Initial install with no drivers
 [ ] FX Playground randomizer
-[X] Animated hub route transitions
+[X] Animated 
 [ ] Common effect defaults for hub and esp32
+[X] Hardware abstraction layer
+[X] Headless effect rendering tests
+[ ] Unified LED options in Hub app
