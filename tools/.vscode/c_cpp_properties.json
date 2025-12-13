@@ -3,10 +3,10 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/src",
-                "${workspaceFolder}/src/hal",
-                "${workspaceFolder}/../../esp32/src",
-                "${workspaceFolder}/../../esp32/.pio/libdeps/rgfx-driver/ArduinoJson/src",
+                "${workspaceFolder}/led-sim/src",
+                "${workspaceFolder}/led-sim/src/hal",
+                "${workspaceFolder}/../esp32/src",
+                "${workspaceFolder}/../esp32/.pio/libdeps/rgfx-driver/ArduinoJson/src",
                 "/opt/homebrew/include"
             ],
             "defines": [

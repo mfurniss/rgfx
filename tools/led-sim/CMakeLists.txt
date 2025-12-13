@@ -40,6 +40,7 @@ set(ESP32_SOURCES
     ${ESP32_SRC_DIR}/effects/bitmap.cpp
     ${ESP32_SRC_DIR}/effects/background.cpp
     ${ESP32_SRC_DIR}/effects/test_leds.cpp
+    ${ESP32_SRC_DIR}/effects/projectile.cpp
 
     # Utils
     ${ESP32_SRC_DIR}/utils/easing_impl.cpp
@@ -53,6 +54,7 @@ set(SIM_SOURCES
     src/sim_display.cpp
     src/udp_listener.cpp
     src/window.cpp
+    src/window_state.cpp
 )
 
 # Create executable

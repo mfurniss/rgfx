@@ -14,11 +14,13 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  explodeEffect(matrix, canvas),
 	  testLedsEffect(matrix, canvas),
 	  backgroundEffect(matrix, canvas),
+	  projectileEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
 		  {"pulse", &pulseEffect},       {"bitmap", &bitmapEffect},
 		  {"wipe", &wipeEffect},         {"explode", &explodeEffect},
 		  {"test_leds", &testLedsEffect}, {"background", &backgroundEffect},
+		  {"projectile", &projectileEffect},
 	  } {}
 
 void EffectProcessor::update() {
@@ -51,11 +53,12 @@ void EffectProcessor::update() {
 	// Render background FIRST (no update needed - static effect)
 	backgroundEffect.render();
 
-	// Update and render all other effects (excluding test and background)
+	// Render then update all other effects (excluding test and background)
+	// Render first so initial state is visible on the frame the effect is added
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0) {
-			entry.effect->update(deltaTime);
 			entry.effect->render();
+			entry.effect->update(deltaTime);
 		}
 	}
 
