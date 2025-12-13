@@ -51,6 +51,7 @@ set(SIM_SOURCES
     src/config.cpp
     src/demo.cpp
     src/sim_display.cpp
+    src/udp_listener.cpp
     src/window.cpp
 )
 
