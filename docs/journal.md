@@ -238,5 +238,26 @@ Fixed critical UDP message queue race condition on ESP32 drivers. When the hub s
 
 Replaced the single `pendingMessage` buffer with an 8-slot circular queue of raw JSON strings (~8KB static memory). Messages are stored as raw strings and parsed on dequeue to avoid JsonDocument heap fragmentation. The main loop now drains all queued messages per iteration using a `while` loop instead of `if`.
 
-**Total Development Time:** 61 days (October 11 - December 10, 2025)
-**Total Commits:** 442
+## December 11, 2025
+
+Implemented Hardware Abstraction Layer (HAL) enabling ESP32 effect code to run natively on desktop for the led-sim application. Created `hal::IDisplay` and `hal::ILedController` interfaces abstracting FastLED and display operations. Native implementations in led-sim use Raylib for rendering. This allows the same effect code (pulse, wipe, explode, bitmap, background, test_leds) to run identically on ESP32 hardware and in the native simulator.
+
+Refactored native HAL implementations into led-sim project. Added VSCode configuration for led-sim development. Fixed tests to use real HAL types with proper integration tests. Removed firmware binaries from git repository.
+
+Implemented driver reboot after saving configuration with unified field preservation. Refactored notifications with disconnect reason tracking and notify helper functions. Updated settings infrastructure.
+
+## December 12, 2025
+
+Made led-sim window resizable like standard macOS applications. Added `SetWindowState(FLAG_WINDOW_RESIZABLE)` and `SetWindowMinSize()` calls, with dynamic LED size recalculation on window resize. LEDs scale and re-center automatically when the window is resized.
+
+Fixed critical bug where led-sim was not parsing UDP effect messages correctly. The Hub sends `{"effect": "pulse", "props": {"color": "random", ...}}` but led-sim was passing the entire document to effects instead of extracting `doc["props"]` first. This caused effects to look for properties at the wrong JSON path, resulting in white colors instead of random and incorrect timing. Fixed by extracting props before passing to `addEffect()`, matching the ESP32 driver's behavior.
+
+**Codebase Statistics:**
+- ESP32 Driver: 8,048 lines
+- RGFX Hub: 12,260 lines
+- LED Simulator: 1,111 lines
+- MAME Lua Scripts: 460 lines
+- **Total: ~21,879 lines of code**
+
+**Total Development Time:** 63 days (October 11 - December 12, 2025)
+**Total Commits:** 501
