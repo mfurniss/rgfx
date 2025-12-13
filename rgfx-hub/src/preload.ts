@@ -1,6 +1,6 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Driver, SystemStatus, EventTopicData, AppInfo } from './types';
+import type { Driver, SystemStatus, EventTopicData, AppInfo, DisconnectReason } from './types';
 import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
 
@@ -24,11 +24,13 @@ export const rgfxAPI = {
     };
   },
 
-  onDriverDisconnected: (callback: (driver: Driver) => void): (() => void) => {
+  onDriverDisconnected: (
+    callback: (driver: Driver, reason: DisconnectReason) => void,
+  ): (() => void) => {
     console.log('[PRELOAD] Registering listener for driver:disconnected');
-    const handler = (_event: Electron.IpcRendererEvent, driver: Driver) => {
-      console.log(`[PRELOAD] IPC event received: driver:disconnected for ${driver.id}`);
-      callback(driver);
+    const handler = (_event: Electron.IpcRendererEvent, driver: Driver, reason: DisconnectReason = 'disconnected') => {
+      console.log(`[PRELOAD] IPC event received: driver:disconnected for ${driver.id} (reason: ${reason})`);
+      callback(driver, reason);
     };
     ipcRenderer.on('driver:disconnected', handler);
     return () => {

@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 
+type Severity = 'success' | 'info' | 'warning' | 'error';
+
 export interface Notification {
   id: string;
   message: string;
-  severity: 'success' | 'info' | 'warning' | 'error';
-  driverId?: string;
+  severity: Severity;
 }
 
 interface NotificationState {
@@ -29,3 +30,8 @@ export const useNotificationStore = create<NotificationState>()((set) => ({
     }));
   },
 }));
+
+/** Show a notification. Can be called from anywhere (inside or outside React components). */
+export const notify = (message: string, severity: Severity): void => {
+  useNotificationStore.getState().addNotification({ message, severity });
+};

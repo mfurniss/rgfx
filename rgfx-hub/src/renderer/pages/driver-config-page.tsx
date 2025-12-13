@@ -29,7 +29,7 @@ import {
 import { Save as SaveIcon, Settings as SettingsIcon } from '@mui/icons-material';
 import { PageTitle } from '../components/page-title';
 import { useDriverStore } from '../store/driver-store';
-import { useNotificationStore } from '../store/notification-store';
+import { notify } from '../store/notification-store';
 import { NumberField } from '../components/number-field';
 import SuperButton from '../components/super-button';
 import {
@@ -45,7 +45,6 @@ const getHardwareDisplayName = (ref: string): string =>
 export default function DriverConfigPage() {
   const { mac } = useParams<{ mac: string }>();
   const navigate = useNavigate();
-  const addNotification = useNotificationStore((state) => state.addNotification);
 
   // Get driver from store by MAC address (immutable identifier)
   const driver = useDriverStore((state) => state.drivers.find((d) => d.mac === mac));
@@ -134,30 +133,12 @@ export default function DriverConfigPage() {
     setSaving(true);
 
     try {
-      const result = await window.rgfx.saveDriverConfig(data);
+      await window.rgfx.saveDriverConfig(data);
       reset(data);
-      addNotification({
-        message: 'Configuration saved',
-        severity: 'success',
-        driverId: data.id,
-      });
-
-      if (result.driverRebooted) {
-        setTimeout(() => {
-          addNotification({
-            message: `Driver ${data.id} is restarting...`,
-            severity: 'warning',
-            driverId: data.id,
-          });
-        }, 1000);
-      }
+      notify(`${data.id} configuration saved`, 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      addNotification({
-        message: `Failed to save configuration: ${message}`,
-        severity: 'error',
-        driverId: driver.id,
-      });
+      notify(`${data.id} failed to save: ${message}`, 'error');
     } finally {
       setSaving(false);
     }
