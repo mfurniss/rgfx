@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "graphics/matrix.h"
 #include "raylib_compat.h"
+#include "window.h"
 
 // Global display for HAL
 static hal::IDisplay* g_display = nullptr;
@@ -32,6 +33,20 @@ void SimDisplay::setMatrix(const Matrix* matrix) {
 }
 
 void SimDisplay::show(const CRGB* pixels, uint32_t count, uint16_t width, uint16_t height) {
+	// Handle window resize
+	int currentWidth = GetScreenWidth();
+	int currentHeight = GetScreenHeight();
+	if (currentWidth != windowWidth_ || currentHeight != windowHeight_) {
+		windowWidth_ = currentWidth;
+		windowHeight_ = currentHeight;
+		calculateLedSizeForWindow(windowWidth_, windowHeight_, ledWidth_, ledHeight_, ledSize_, ledGap_);
+		// Recalculate offsets for centering
+		float gridWidth = ledWidth_ * (ledSize_ + ledGap_) - ledGap_;
+		float gridHeight = ledHeight_ * (ledSize_ + ledGap_) - ledGap_;
+		offsetX_ = (windowWidth_ - gridWidth) / 2.0f;
+		offsetY_ = (windowHeight_ - STATUS_BAR_HEIGHT - gridHeight) / 2.0f;
+	}
+
 	BeginDrawing();
 	ClearBackground(RAYLIB_DARKGRAY);
 
