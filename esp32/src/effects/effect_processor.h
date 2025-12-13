@@ -8,6 +8,7 @@
 #include "effects/explode.h"
 #include "effects/test_leds.h"
 #include "effects/background.h"
+#include "effects/projectile.h"
 #include "effects/effect.h"
 #include "hal/display.h"
 #include <ArduinoJson.h>
@@ -41,9 +42,10 @@ class EffectProcessor {
 	ExplodeEffect explodeEffect;
 	TestLedsEffect testLedsEffect;
 	BackgroundEffect backgroundEffect;
+	ProjectileEffect projectileEffect;
 	unsigned long lastFrameTime;
 
-	EffectEntry effectMap[6];
+	EffectEntry effectMap[7];
 
    public:
 	EffectProcessor(Matrix& matrix, hal::IDisplay& display);

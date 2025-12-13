@@ -9,12 +9,21 @@
 // Raylib config flags
 #define FLAG_WINDOW_RESIZABLE 0x00000004
 
+// Raylib Vector2 struct (needed for GetWindowPosition)
+struct RaylibVector2 {
+	float x;
+	float y;
+};
+
 extern "C" {
+RaylibVector2 GetWindowPosition(void);
 void InitWindow(int width, int height, const char* title);
 void CloseWindow(void);
 void SetTargetFPS(int fps);
 void SetWindowState(unsigned int flags);
 void SetWindowMinSize(int width, int height);
+void SetWindowSize(int width, int height);
+void SetWindowPosition(int x, int y);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
 bool WindowShouldClose(void);
