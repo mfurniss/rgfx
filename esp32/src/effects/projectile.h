@@ -24,6 +24,8 @@ class ProjectileEffect : public IEffect {
 
 	std::vector<Projectile> projectiles;
 	Canvas& canvas;
+	uint16_t canvasWidth;
+	uint16_t canvasHeight;
 
    public:
 	ProjectileEffect(const Matrix& matrix, Canvas& canvas);

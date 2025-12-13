@@ -45,8 +45,10 @@ static ProjectileDirection parseDirection(const char* dir, bool is1D) {
 	return result;
 }
 
-ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c) : canvas(c) {
+ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c)
+    : canvas(c), canvasWidth(c.getWidth()), canvasHeight(c.getHeight()) {
 	(void)m;  // Matrix not needed, but kept for API consistency
+	projectiles.reserve(16);  // Pre-allocate to avoid heap fragmentation
 }
 
 void ProjectileEffect::add(JsonDocument& props) {
@@ -80,9 +82,6 @@ void ProjectileEffect::add(JsonDocument& props) {
 	newProjectile.elapsedTime = 0.0f;
 	newProjectile.maxLifespan = lifespanMs / 1000.0f;
 
-	uint16_t canvasWidth = canvas.getWidth();
-	uint16_t canvasHeight = canvas.getHeight();
-
 	// Calculate start position and velocity based on direction
 	switch (direction) {
 		case ProjectileDirection::RIGHT:
@@ -115,78 +114,89 @@ void ProjectileEffect::add(JsonDocument& props) {
 }
 
 void ProjectileEffect::update(float deltaTime) {
-	uint16_t canvasWidth = canvas.getWidth();
-	uint16_t canvasHeight = canvas.getHeight();
+	if (projectiles.empty()) return;
 
-	for (auto it = projectiles.begin(); it != projectiles.end();) {
+	// Use index-based loop with swap-and-pop for O(1) removal
+	for (size_t i = 0; i < projectiles.size();) {
+		Projectile& p = projectiles[i];
+
 		// Update elapsed time
-		it->elapsedTime += deltaTime;
+		p.elapsedTime += deltaTime;
 
 		// Apply friction to velocity (exponential decay model)
 		// friction=0: no slowdown, friction=1: moderate, friction=2: fast
 		// Formula: velocity *= (1 - friction * deltaTime), clamped to prevent reversal
-		if (it->friction != 0.0f) {
-			float decay = 1.0f - (it->friction * deltaTime);
+		if (p.friction != 0.0f) {
+			float decay = 1.0f - (p.friction * deltaTime);
 			if (decay < 0.0f)
 				decay = 0.0f;
-			it->velocityX *= decay;
-			it->velocityY *= decay;
+			p.velocityX *= decay;
+			p.velocityY *= decay;
 		}
 
 		// Update position
-		it->x += it->velocityX * deltaTime;
-		it->y += it->velocityY * deltaTime;
+		p.x += p.velocityX * deltaTime;
+		p.y += p.velocityY * deltaTime;
 
 		// Check if projectile should be removed
 		// Calculate actual trail length in pixels (velocity * trail multiplier)
-		float trailPixels = fabsf(it->velocityX * it->trail) + fabsf(it->velocityY * it->trail);
+		float trailPixels = fabsf(p.velocityX * p.trail) + fabsf(p.velocityY * p.trail);
 
 		// Projectile is off-canvas when both head AND trail are fully outside
-		bool offCanvas = (it->x < -static_cast<float>(it->width) - trailPixels) ||
-		                 (it->x > static_cast<float>(canvasWidth) + trailPixels) ||
-		                 (it->y < -static_cast<float>(it->height) - trailPixels) ||
-		                 (it->y > static_cast<float>(canvasHeight) + trailPixels);
-		bool expired = it->elapsedTime >= it->maxLifespan;
+		bool offCanvas = (p.x < -static_cast<float>(p.width) - trailPixels) ||
+		                 (p.x > static_cast<float>(canvasWidth) + trailPixels) ||
+		                 (p.y < -static_cast<float>(p.height) - trailPixels) ||
+		                 (p.y > static_cast<float>(canvasHeight) + trailPixels);
+		bool expired = p.elapsedTime >= p.maxLifespan;
 
 		if (offCanvas || expired) {
-			it = projectiles.erase(it);
+			// Swap-and-pop: O(1) removal instead of O(n) erase
+			projectiles[i] = projectiles.back();
+			projectiles.pop_back();
+			// Don't increment i - need to check the swapped element
 		} else {
-			++it;
+			++i;
 		}
 	}
 }
 
 void ProjectileEffect::render() {
+	if (projectiles.empty()) return;
+
 	for (const auto& proj : projectiles) {
 		// Render trail: tail position = current position - (velocity * trail multiplier)
 		// trail=1.0 means trail length equals velocity, trail=0.2 means 20% of velocity
 		if (proj.trail > 0.0f) {
-			float tailX = proj.x - proj.velocityX * proj.trail;
-			float trailLength = fabsf(proj.x - tailX);
+			// Pre-calculate trail length directly (avoids redundant fabsf)
+			float trailLength = fabsf(proj.velocityX * proj.trail);
 
-			// Draw segments from tail to head with increasing alpha
-			int numSegments = static_cast<int>(trailLength / PROJECTILE_MIN_SEGMENT_WIDTH);
-			if (numSegments < 1)
-				numSegments = 1;
-			float segmentWidth = trailLength / numSegments;
+			if (trailLength > 0.0f) {
+				float tailX = proj.x - proj.velocityX * proj.trail;
 
-			// Step direction: from tail toward head
-			float stepDir = (proj.x > tailX) ? 1.0f : -1.0f;
+				// Draw segments from tail to head with increasing alpha
+				int numSegments = static_cast<int>(trailLength / PROJECTILE_MIN_SEGMENT_WIDTH);
+				if (numSegments < 1)
+					numSegments = 1;
+				float segmentWidth = trailLength / numSegments;
 
-			if (trailLength > 0) {
+				// Step direction and pre-calculate segment delta for additive loop
+				float segDelta = (proj.x > tailX) ? segmentWidth : -segmentWidth;
+				float segX = tailX;
+
+				// Pre-calculate alpha increment to avoid division in loop
+				int alphaRange = PROJECTILE_TRAIL_ALPHA_MAX - PROJECTILE_TRAIL_ALPHA_MIN;
+				int alphaDivisor = (numSegments > 1) ? (numSegments - 1) : 1;
+
 				for (int i = 0; i < numSegments; i++) {
-					float segX = tailX + i * segmentWidth * stepDir;
-					uint8_t alpha =
-						(numSegments == 1)
-							? PROJECTILE_TRAIL_ALPHA_MAX
-							: static_cast<uint8_t>(
-								  PROJECTILE_TRAIL_ALPHA_MIN +
-								  (i * (PROJECTILE_TRAIL_ALPHA_MAX - PROJECTILE_TRAIL_ALPHA_MIN) /
-					               (numSegments - 1)));
+					uint8_t alpha = (numSegments == 1)
+					                    ? PROJECTILE_TRAIL_ALPHA_MAX
+					                    : static_cast<uint8_t>(PROJECTILE_TRAIL_ALPHA_MIN +
+					                                           (i * alphaRange / alphaDivisor));
 					canvas.drawRectangle(
-						static_cast<int16_t>(segX), static_cast<int16_t>(proj.y),
-						static_cast<uint8_t>(segmentWidth + 1),  // +1 to avoid gaps
-						proj.height, CRGBA(proj.r, proj.g, proj.b, alpha), BlendMode::ADDITIVE);
+					    static_cast<int16_t>(segX), static_cast<int16_t>(proj.y),
+					    static_cast<uint8_t>(segmentWidth + 1),  // +1 to avoid gaps
+					    proj.height, CRGBA(proj.r, proj.g, proj.b, alpha), BlendMode::ADDITIVE);
+					segX += segDelta;  // Additive increment instead of multiplication
 				}
 			}
 		}
