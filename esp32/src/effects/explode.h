@@ -14,27 +14,22 @@ class ExplodeEffect : public IEffect {
 		uint8_t alpha;           // Alpha channel: 255 (full) → 0 (transparent)
 		uint32_t lifespan;       // Total duration in milliseconds
 		uint32_t age;            // Current age in milliseconds
-		float lifespanMultiplier; // Random multiplier (0.0-lifespanSpread) for fade variation
-		uint32_t explosionId;    // Which explosion owns this particle
+		float friction;          // Velocity decay per second (denormalized from explosion)
+		uint8_t particleSize;    // Render size in pixels (denormalized from explosion)
 	};
 
-	struct Explosion {
-		uint32_t id;          // Unique ID for this explosion
-		float centerX, centerY;
-		uint32_t particleSize;
-		float friction;
-
-		// Flash state (LED strips only - white pulse that collapses inward)
-		float flashInitialWidth;  // Starting width of flash
-		float flashDuration;      // Total flash duration in seconds
-		float flashAge;           // Current age in seconds
+	// Flash effect for LED strips only (white pulse that collapses inward)
+	struct Flash {
+		float centerX;            // Center position of flash
+		float initialWidth;       // Starting width of flash
+		float duration;           // Total flash duration in seconds
+		float age;                // Current age in seconds
 	};
 
 	Canvas& canvas;
 	const Matrix& matrix;
 	std::vector<Particle> particlePool;     // Shared FIFO particle pool
-	std::vector<Explosion> explosions;      // Dynamic array of active explosions
-	uint32_t nextExplosionId;               // Counter for unique explosion IDs
+	std::vector<Flash> flashes;             // Active flash effects (strips only)
 
    public:
 	ExplodeEffect(const Matrix& matrix, Canvas& canvas);

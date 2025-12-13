@@ -38,6 +38,7 @@ static WipeDirection parseDirection(const char* dir, bool is1D) {
 
 WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
+	wipes.reserve(8);
 }
 
 void WipeEffect::add(JsonDocument& props) {
