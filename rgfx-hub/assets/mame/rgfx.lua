@@ -99,12 +99,12 @@ local load_interceptor = function()
 		print("No interceptor found for: " .. lookup_key .. " (tried " .. game_script .. ".lua)")
 	end
 
-	-- Debug: Print screen info
-	for tag, screen in pairs(manager.machine.screens) do
+	-- Debug: Print first screen info
+	local tag, screen = next(manager.machine.screens)
+	if screen then
 		print("Screen tag:", tag)
 		print("Screen size:", screen.width .. "x" .. screen.height)
 		print("Refresh rate (Hz):", screen.refresh)
-		break
 	end
 end
 
