@@ -7,11 +7,11 @@
 void calculateWindowSize(uint16_t ledWidth, uint16_t ledHeight,
                          int& windowWidth, int& windowHeight,
                          float& ledSize, float& ledGap) {
-	// Start with max LED size
+	// Use fixed LED size and gap from constants
 	ledSize = MAX_LED_SIZE;
-	ledGap = ledSize * 0.15f;  // 15% gap
+	ledGap = LED_GAP;
 
-	// Calculate grid size at max LED size
+	// Calculate grid size
 	float gridWidth = ledWidth * (ledSize + ledGap) - ledGap;
 	float gridHeight = ledHeight * (ledSize + ledGap) - ledGap;
 
@@ -26,7 +26,7 @@ void calculateWindowSize(uint16_t ledWidth, uint16_t ledHeight,
 		float scale = (scaleX < scaleY) ? scaleX : scaleY;
 
 		ledSize *= scale;
-		ledGap = ledSize * 0.15f;
+		// Keep gap fixed, don't scale it
 
 		gridWidth = ledWidth * (ledSize + ledGap) - ledGap;
 		gridHeight = ledHeight * (ledSize + ledGap) - ledGap;
@@ -38,7 +38,6 @@ void calculateWindowSize(uint16_t ledWidth, uint16_t ledHeight,
 	// Enforce minimum LED size
 	if (ledSize < MIN_LED_SIZE) {
 		ledSize = MIN_LED_SIZE;
-		ledGap = 1.0f;
 		gridWidth = ledWidth * (ledSize + ledGap) - ledGap;
 		gridHeight = ledHeight * (ledSize + ledGap) - ledGap;
 		windowWidth = static_cast<int>(gridWidth + WINDOW_PADDING * 2);
@@ -57,22 +56,21 @@ void calculateLedSizeForWindow(int windowWidth, int windowHeight,
 	float availableWidth = static_cast<float>(windowWidth - WINDOW_PADDING * 2);
 	float availableHeight = static_cast<float>(windowHeight - WINDOW_PADDING * 2 - STATUS_BAR_HEIGHT);
 
-	// Calculate max LED size that fits in each dimension
-	// Grid formula: gridSize = ledCount * (ledSize + gap) - gap
-	// With gap = ledSize * 0.15, this becomes: gridSize = ledCount * ledSize * 1.15 - ledSize * 0.15
-	// Solving for ledSize: ledSize = (gridSize + 0.15 * ledSize) / (ledCount * 1.15)
-	// Simplified: ledSize = gridSize / (ledCount * 1.15 - 0.15)
-	float ledSizeX = availableWidth / (ledWidth * 1.15f - 0.15f);
-	float ledSizeY = availableHeight / (ledHeight * 1.15f - 0.15f);
+	// LED_GAP is the base gap at MAX_LED_SIZE, scale proportionally
+	// Grid formula: gridSize = ledCount * ledSize + (ledCount - 1) * gap
+	// With gap = ledSize * (LED_GAP / MAX_LED_SIZE):
+	// gridSize = ledCount * ledSize + (ledCount - 1) * ledSize * ratio
+	// gridSize = ledSize * (ledCount + (ledCount - 1) * ratio)
+	float gapRatio = LED_GAP / MAX_LED_SIZE;
+	float ledSizeX = availableWidth / (ledWidth + (ledWidth - 1) * gapRatio);
+	float ledSizeY = availableHeight / (ledHeight + (ledHeight - 1) * gapRatio);
 
 	// Use smaller of the two to maintain aspect ratio
 	ledSize = (ledSizeX < ledSizeY) ? ledSizeX : ledSizeY;
 
-	// Clamp to valid range
-	if (ledSize > MAX_LED_SIZE) ledSize = MAX_LED_SIZE;
+	// Clamp to minimum
 	if (ledSize < MIN_LED_SIZE) ledSize = MIN_LED_SIZE;
 
-	// Calculate gap (15% of LED size, minimum 1px for very small LEDs)
-	ledGap = ledSize * 0.15f;
-	if (ledGap < 1.0f && ledSize > MIN_LED_SIZE) ledGap = 1.0f;
+	// Scale gap proportionally with LED size
+	ledGap = ledSize * gapRatio;
 }

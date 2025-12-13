@@ -25,6 +25,7 @@ void BeginDrawing(void);
 void EndDrawing(void);
 void ClearBackground(unsigned int color);
 void DrawRectangleRounded(float x, float y, float width, float height, float roundness, int segments, unsigned int color);
+void DrawCircle(int centerX, int centerY, float radius, unsigned int color);
 void DrawText(const char* text, int posX, int posY, int fontSize, unsigned int color);
 const char* TextFormat(const char* text, ...);
 }
