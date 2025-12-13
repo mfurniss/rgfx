@@ -36,8 +36,8 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 		}
 		case 2: {
 			// Wipe effect
-			props["color"] = "cyan";
-			props["duration"] = 300;
+			props["color"] = "random";
+			props["duration"] = 500;
 			props["direction"] = "random";
 			processor.addEffect("wipe", props);
 			printf("Triggered: wipe\n");
