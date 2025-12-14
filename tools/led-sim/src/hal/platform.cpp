@@ -16,13 +16,16 @@ namespace hal {
 // Start time for millis() calculation
 static auto g_startTime = std::chrono::steady_clock::now();
 
+// Time scale factor for debugging (1.0 = real time, 0.1 = 10% speed)
+static constexpr float TIME_SCALE = 1.0f;
+
 // Random number generator
 static std::mt19937 g_rng(std::random_device{}());
 
 uint32_t millis() {
 	auto now = std::chrono::steady_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_startTime);
-	return static_cast<uint32_t>(elapsed.count());
+	return static_cast<uint32_t>(elapsed.count() * TIME_SCALE);
 }
 
 void delay(uint32_t ms) {

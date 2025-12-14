@@ -17,8 +17,7 @@ Effects → Canvas (4x resolution, RGBA) → Downsample → Matrix (1x resolutio
 | `canvas.h/cpp` | High-resolution RGBA drawing surface with blend modes |
 | `matrix.h/cpp` | Physical LED matrix abstraction with coordinate mapping |
 | `coordinate_transforms.h/cpp` | Layout-based coordinate transformations for various matrix wiring patterns, including unified multi-panel support |
-| `downsample.h/cpp` | 4x4 box filter downsampling for Canvas-to-Canvas operations |
-| `downsample_to_matrix.h` | Template function to downsample and composite multiple effect canvases to Matrix |
+| `downsample_to_matrix.h` | Optimized downsampling from Canvas to Matrix with gamma correction |
 
 ## Canvas
 
@@ -134,23 +133,27 @@ Where `effW` and `effH` are the effective dimensions after rotation (swapped for
 
 ## Downsample Pipeline
 
-### downsample()
-Basic 4x4 box filter for Canvas-to-Canvas downsampling:
-```cpp
-void downsample(const Canvas* source, Canvas* destination);
-```
-
 ### downsampleToMatrix()
-Template function that composites multiple effect canvases and downsamples directly to the Matrix:
+Downsamples a single Canvas to the physical LED Matrix with gamma correction:
 ```cpp
-template <size_t N>
-void downsampleToMatrix(EffectProcessor::EffectEntry (&effects)[N], Matrix* matrix);
+inline void downsampleToMatrix(Canvas& canvas, Matrix* matrix);
 ```
 
 Features:
-- Alpha-aware compositing of multiple effect layers
-- Optimized paths for strips (1D) vs matrices (2D)
-- Direct output to FastLED buffer
+- Direct buffer access eliminates per-pixel bounds checking overhead
+- Optimized paths for strips (4 pixels → 1 LED) vs matrices (4x4 pixels → 1 LED)
+- Per-channel gamma correction via precomputed lookup tables
+- Separate gamma values for R, G, B channels (configured via driver config)
+
+### Gamma Correction
+Gamma lookup tables are rebuilt when configuration changes:
+```cpp
+extern uint8_t g_gammaLutR[256];
+extern uint8_t g_gammaLutG[256];
+extern uint8_t g_gammaLutB[256];
+
+void rebuildGammaLUT();  // Call after receiving new gamma values from Hub
+```
 
 ## Dependencies
 

@@ -28,5 +28,8 @@ export const DriverTelemetrySchema = TelemetryPayloadSchema.pick({
   freeSketchSpace: true,
   lastResetReason: true,
   crashCount: true,
+  currentFps: true,
+  minFps: true,
+  maxFps: true,
 });
 

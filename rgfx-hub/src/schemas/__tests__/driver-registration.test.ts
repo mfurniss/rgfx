@@ -37,6 +37,9 @@ describe('DriverRegistrationSchema', () => {
       sdkVersion: 'v5.1.1',
       sketchSize: 1500000,
       freeSketchSpace: 2500000,
+      currentFps: 120.0,
+      minFps: 118.0,
+      maxFps: 122.0,
     },
   };
 

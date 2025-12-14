@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/led-sim/src",
+                "${workspaceFolder}/led-sim/src/hal",
+                "${workspaceFolder}/../esp32/src",
+                "${workspaceFolder}/../esp32/.pio/libdeps/rgfx-driver/ArduinoJson/src",
+                "/opt/homebrew/include"
+            ],
+            "defines": [
+                "NATIVE_BUILD=1"
+            ],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64"
+        }
+    ],
+    "version": 4
+}

@@ -342,6 +342,239 @@ void test_wipe_direction_up() {
 	TEST_ASSERT_TRUE(hasPixelInBottomHalf);
 }
 
+// =============================================================================
+// Edge Case Tests
+// =============================================================================
+
+void test_wipe_fill_then_clear_phases() {
+	// Wipe has two phases: fill (first half) and clear (second half)
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;  // 500ms fill, 500ms clear
+	props["direction"] = "right";
+	effect.add(props);
+
+	// At 25% (125ms) - in fill phase, should have some pixels
+	effect.update(0.125f);
+	canvas.clear();
+	effect.render();
+	int pixelsAt25 = 0;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) pixelsAt25++;
+		}
+	}
+	TEST_ASSERT_TRUE(pixelsAt25 > 0);
+
+	// At 50% (250ms total) - end of fill phase, should be fully filled
+	effect.update(0.125f);  // Now at 250ms
+	canvas.clear();
+	effect.render();
+	int pixelsAt50 = 0;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) pixelsAt50++;
+		}
+	}
+	// At exactly 50%, should be fully filled
+	TEST_ASSERT_TRUE(pixelsAt50 >= pixelsAt25);
+
+	// At 75% (375ms total) - in clear phase, should have fewer pixels
+	effect.update(0.125f);  // Now at 375ms
+	canvas.clear();
+	effect.render();
+	int pixelsAt75 = 0;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) pixelsAt75++;
+		}
+	}
+	TEST_ASSERT_TRUE(pixelsAt75 > 0);  // Still some visible
+
+	// Update past the duration to verify wipe is removed
+	effect.update(0.625f);  // Now at 1125ms (past 1000ms duration)
+	canvas.clear();
+	effect.render();
+	int pixelsAfterDuration = 0;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) pixelsAfterDuration++;
+		}
+	}
+	TEST_ASSERT_EQUAL(0, pixelsAfterDuration);
+}
+
+void test_wipe_direction_random() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["direction"] = "random";
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+
+	// Should render something (direction was randomly selected)
+	bool hasPixel = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
+				hasPixel = true;
+				break;
+			}
+		}
+		if (hasPixel) break;
+	}
+	TEST_ASSERT_TRUE(hasPixel);
+}
+
+void test_wipe_strip_vertical_maps_to_horizontal() {
+	// On 1D strip, vertical directions should map to horizontal
+	Matrix matrix(16, 1, "strip");
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#00FF00";
+	props["duration"] = 1000;
+	props["direction"] = "down";  // Should become "right" on strip
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+
+	// Should have pixels in left portion (like right wipe)
+	bool hasPixelInLeft = false;
+	for (uint16_t x = 0; x < canvas.getWidth() / 2; x++) {
+		if (isNonBlack(canvas.getPixel(x, 0))) {
+			hasPixelInLeft = true;
+			break;
+		}
+	}
+	TEST_ASSERT_TRUE(hasPixelInLeft);
+}
+
+void test_wipe_strip_up_maps_to_left() {
+	Matrix matrix(16, 1, "strip");
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#0000FF";
+	props["duration"] = 1000;
+	props["direction"] = "up";  // Should become "left" on strip
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+
+	// Should have pixels in right portion (like left wipe)
+	bool hasPixelInRight = false;
+	for (uint16_t x = canvas.getWidth() / 2; x < canvas.getWidth(); x++) {
+		if (isNonBlack(canvas.getPixel(x, 0))) {
+			hasPixelInRight = true;
+			break;
+		}
+	}
+	TEST_ASSERT_TRUE(hasPixelInRight);
+}
+
+void test_wipe_multiple_concurrent() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	// First wipe: left to right, red
+	JsonDocument props1;
+	props1["color"] = "#FF0000";
+	props1["duration"] = 2000;
+	props1["direction"] = "right";
+	effect.add(props1);
+
+	// Second wipe: right to left, green
+	JsonDocument props2;
+	props2["color"] = "#00FF00";
+	props2["duration"] = 2000;
+	props2["direction"] = "left";
+	effect.add(props2);
+
+	effect.update(0.2f);  // 200ms into both
+	canvas.clear();
+	effect.render();
+
+	// Should have both colors present (additive blending)
+	bool hasRed = false;
+	bool hasGreen = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r > 0) hasRed = true;
+			if (pixel.g > 0) hasGreen = true;
+		}
+	}
+	TEST_ASSERT_TRUE(hasRed);
+	TEST_ASSERT_TRUE(hasGreen);
+}
+
+void test_wipe_duration_very_short() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["duration"] = 10;  // 10ms duration
+	props["direction"] = "right";
+	effect.add(props);
+
+	// Small update should still show something
+	effect.update(0.005f);  // 5ms
+	canvas.clear();
+	effect.render();
+
+	bool hasPixel = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
+				hasPixel = true;
+				break;
+			}
+		}
+		if (hasPixel) break;
+	}
+	TEST_ASSERT_TRUE(hasPixel);
+
+	// Update past duration
+	effect.update(0.010f);  // 15ms total
+	canvas.clear();
+	effect.render();
+
+	hasPixel = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			if (isNonBlack(canvas.getPixel(x, y))) {
+				hasPixel = true;
+				break;
+			}
+		}
+		if (hasPixel) break;
+	}
+	TEST_ASSERT_FALSE(hasPixel);  // Should be gone
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -357,5 +590,14 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_wipe_direction_left);
 	RUN_TEST(test_wipe_direction_down);
 	RUN_TEST(test_wipe_direction_up);
+
+	// Edge case tests
+	RUN_TEST(test_wipe_fill_then_clear_phases);
+	RUN_TEST(test_wipe_direction_random);
+	RUN_TEST(test_wipe_strip_vertical_maps_to_horizontal);
+	RUN_TEST(test_wipe_strip_up_maps_to_left);
+	RUN_TEST(test_wipe_multiple_concurrent);
+	RUN_TEST(test_wipe_duration_very_short);
+
 	return UNITY_END();
 }

@@ -27,6 +27,7 @@
 #include "sim_display.h"
 #include "udp_listener.h"
 #include "window.h"
+#include "window_state.h"
 
 #include <ArduinoJson.h>
 #include <cstdio>
@@ -57,6 +58,7 @@ int main(int argc, char* argv[]) {
 	printf("  2     - Wipe effect\n");
 	printf("  3     - Explode effect\n");
 	printf("  4     - Background effect\n");
+	printf("  5     - Projectile effect\n");
 	printf("  C     - Clear all effects\n");
 	printf("  D     - Toggle auto-demo\n");
 	printf("  Q/ESC - Quit\n\n");
@@ -72,6 +74,13 @@ int main(int argc, char* argv[]) {
 	float ledSize, ledGap;
 	calculateWindowSize(config.width, config.height, windowWidth, windowHeight, ledSize, ledGap);
 
+	// Check for saved window state
+	WindowState savedState = loadWindowState();
+	if (savedState.valid) {
+		windowWidth = savedState.width;
+		windowHeight = savedState.height;
+	}
+
 	printf("  Window: %dx%d, LED size: %.1f\n\n", windowWidth, windowHeight, ledSize);
 
 	// Initialize raylib with calculated window size
@@ -79,6 +88,11 @@ int main(int argc, char* argv[]) {
 	SetWindowState(FLAG_WINDOW_RESIZABLE);
 	SetWindowMinSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
 	SetTargetFPS(120);
+
+	// Restore window position if saved
+	if (savedState.valid) {
+		SetWindowPosition(savedState.x, savedState.y);
+	}
 
 	// Create Matrix (same as ESP32)
 	Matrix matrix(config.width, config.height, config.layout.c_str());
@@ -142,6 +156,9 @@ int main(int argc, char* argv[]) {
 		if (IsKeyPressed(KEY_FOUR)) {
 			triggerDemoEffect(processor, 4);
 		}
+		if (IsKeyPressed(KEY_FIVE)) {
+			triggerDemoEffect(processor, 5);
+		}
 		if (IsKeyPressed(KEY_C)) {
 			processor.clearEffects();
 			printf("Cleared all effects\n");
@@ -157,13 +174,17 @@ int main(int argc, char* argv[]) {
 		// Auto-demo mode - cycle through effects
 		if (autoDemo && timeSinceLastEffect > 2.0f) {
 			triggerDemoEffect(processor, autoEffectIndex);
-			autoEffectIndex = (autoEffectIndex % 4) + 1;
+			autoEffectIndex = (autoEffectIndex % 5) + 1;
 			timeSinceLastEffect = 0.0f;
 		}
 
 		// Update effects
 		processor.update();
 	}
+
+	// Save window state before exit
+	RaylibVector2 pos = GetWindowPosition();
+	saveWindowState(static_cast<int>(pos.x), static_cast<int>(pos.y), GetScreenWidth(), GetScreenHeight());
 
 	// Cleanup
 	cleanupDisplay();

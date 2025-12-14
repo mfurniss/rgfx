@@ -52,6 +52,9 @@ describe('MinimalDriverRegistrationSchema', () => {
         testActive: false,
         mqttMessagesReceived: 100,
         udpMessagesReceived: 50,
+        currentFps: 120.0,
+        minFps: 118.0,
+        maxFps: 122.0,
       };
 
       const result = MinimalDriverRegistrationSchema.safeParse(data);
