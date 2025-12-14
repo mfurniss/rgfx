@@ -144,33 +144,43 @@ void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const
     if (x2 > width) x2 = width;
     if (y2 > height) y2 = height;
 
-    if (mode == BlendMode::REPLACE) {
-        CRGB rgb = color.toCRGB();
-        for (uint16_t row = y; row < y2; row++) {
-            uint32_t idx = index(x, row);
-            for (uint16_t col = x; col < x2; col++) {
-                pixels[idx++] = rgb;
-            }
-        }
-    } else {
-        for (uint16_t row = y; row < y2; row++) {
-            uint32_t idx = index(x, row);
-            for (uint16_t col = x; col < x2; col++) {
-                switch (mode) {
-                    case BlendMode::ALPHA:
-                        blendAlpha(pixels[idx], color);
-                        break;
-                    case BlendMode::ADDITIVE:
-                        blendAdditive(pixels[idx], color);
-                        break;
-                    case BlendMode::AVERAGE:
-                        blendAverage(pixels[idx], color.toCRGB());
-                        break;
-                    default:
-                        break;
+    // Hoist switch outside inner loops for better branch prediction
+    switch (mode) {
+        case BlendMode::REPLACE: {
+            CRGB rgb = color.toCRGB();
+            for (uint16_t row = y; row < y2; row++) {
+                uint32_t idx = index(x, row);
+                for (uint16_t col = x; col < x2; col++) {
+                    pixels[idx++] = rgb;
                 }
-                idx++;
             }
+            break;
+        }
+        case BlendMode::ALPHA:
+            for (uint16_t row = y; row < y2; row++) {
+                uint32_t idx = index(x, row);
+                for (uint16_t col = x; col < x2; col++) {
+                    blendAlpha(pixels[idx++], color);
+                }
+            }
+            break;
+        case BlendMode::ADDITIVE:
+            for (uint16_t row = y; row < y2; row++) {
+                uint32_t idx = index(x, row);
+                for (uint16_t col = x; col < x2; col++) {
+                    blendAdditive(pixels[idx++], color);
+                }
+            }
+            break;
+        case BlendMode::AVERAGE: {
+            CRGB rgb = color.toCRGB();
+            for (uint16_t row = y; row < y2; row++) {
+                uint32_t idx = index(x, row);
+                for (uint16_t col = x; col < x2; col++) {
+                    blendAverage(pixels[idx++], rgb);
+                }
+            }
+            break;
         }
     }
 }

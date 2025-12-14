@@ -87,13 +87,9 @@ describe('subscribeDriverTelemetry', () => {
       sketchSize: 1000000,
       freeSketchSpace: 2000000,
       firmwareVersion: '1.0.0',
-      ...overrides,
-    });
-
-  const createMinimalTelemetryPayload = (overrides: Record<string, unknown> = {}) =>
-    JSON.stringify({
-      ip: '192.168.1.100',
-      mac: 'AA:BB:CC:DD:EE:FF',
+      currentFps: 120.0,
+      minFps: 118.0,
+      maxFps: 122.0,
       ...overrides,
     });
 
@@ -177,7 +173,7 @@ describe('subscribeDriverTelemetry', () => {
     });
   });
 
-  describe('minimal telemetry handling (backward compatibility)', () => {
+  describe('FPS telemetry handling', () => {
     beforeEach(() => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
@@ -186,53 +182,50 @@ describe('subscribeDriverTelemetry', () => {
       });
     });
 
-    it('should register driver with minimal telemetry (only ip and mac)', () => {
-      const payload = createMinimalTelemetryPayload();
-      subscribedCallback('rgfx/system/driver/telemetry', payload);
-
-      expect(mockDriverRegistry.registerDriver).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ip: '192.168.1.100',
-          mac: 'AA:BB:CC:DD:EE:FF',
-          hostname: 'unknown',
-          telemetry: expect.objectContaining({
-            chipModel: 'ESP32',
-            cpuFreqMHz: 240,
-          }),
-        }),
-      );
-    });
-
-    it('should use placeholder values for missing telemetry fields', () => {
-      const payload = createMinimalTelemetryPayload();
-      subscribedCallback('rgfx/system/driver/telemetry', payload);
-
-      const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
-        telemetry: { chipModel: string; sdkVersion: string };
-        hostname: string;
-        ssid: string;
-        rssi: number;
-      };
-      expect(registrationCall.hostname).toBe('unknown');
-      expect(registrationCall.ssid).toBe('unknown');
-      expect(registrationCall.rssi).toBe(-100);
-      expect(registrationCall.telemetry.chipModel).toBe('ESP32');
-      expect(registrationCall.telemetry.sdkVersion).toBe('unknown');
-    });
-
-    it('should preserve provided optional fields in minimal payload', () => {
-      const payload = createMinimalTelemetryPayload({
-        hostname: 'custom-hostname',
-        cpuFreqMHz: 160,
+    it('should extract FPS metrics from telemetry', () => {
+      const payload = createFullTelemetryPayload({
+        currentFps: 45.5,
+        minFps: 40.0,
+        maxFps: 50.0,
       });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
-        telemetry: { cpuFreqMHz: number };
-        hostname: string;
+        telemetry: { currentFps: number; minFps: number; maxFps: number };
       };
-      expect(registrationCall.hostname).toBe('custom-hostname');
-      expect(registrationCall.telemetry.cpuFreqMHz).toBe(160);
+      expect(registrationCall.telemetry.currentFps).toBe(45.5);
+      expect(registrationCall.telemetry.minFps).toBe(40.0);
+      expect(registrationCall.telemetry.maxFps).toBe(50.0);
+    });
+
+    it('should reject payload missing required FPS fields', () => {
+      const payload = JSON.stringify({
+        ip: '192.168.1.100',
+        mac: 'AA:BB:CC:DD:EE:FF',
+        hostname: 'rgfx-driver-0001',
+        ssid: 'TestNetwork',
+        rssi: -50,
+        freeHeap: 200000,
+        minFreeHeap: 180000,
+        uptimeMs: 60000,
+        chipModel: 'ESP32',
+        chipRevision: 1,
+        chipCores: 2,
+        cpuFreqMHz: 240,
+        flashSize: 4194304,
+        flashSpeed: 40000000,
+        heapSize: 327680,
+        psramSize: 0,
+        freePsram: 0,
+        hasDisplay: false,
+        sdkVersion: 'v4.4',
+        sketchSize: 1000000,
+        freeSketchSpace: 2000000,
+        // Missing currentFps, minFps, maxFps
+      });
+      subscribedCallback('rgfx/system/driver/telemetry', payload);
+
+      expect(mockDriverRegistry.registerDriver).not.toHaveBeenCalled();
     });
   });
 
@@ -304,8 +297,8 @@ describe('subscribeDriverTelemetry', () => {
       expect(registrationCall.telemetry.firmwareVersion).toBe('2.0.0');
     });
 
-    it('should keep firmwareVersion undefined in minimal payload if not provided', () => {
-      const payload = createMinimalTelemetryPayload();
+    it('should keep firmwareVersion undefined if not provided', () => {
+      const payload = createFullTelemetryPayload({ firmwareVersion: undefined });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -359,6 +352,9 @@ describe('subscribeDriverTelemetry', () => {
           sdkVersion: 'v4.4',
           sketchSize: 1000000,
           freeSketchSpace: 2000000,
+          currentFps: 120.0,
+          minFps: 118.0,
+          maxFps: 122.0,
         },
       };
 

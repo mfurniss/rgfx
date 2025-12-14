@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- FPS telemetry tracking in ESP32 driver firmware
+  - Measures actual achieved frame rate (current, min, max since boot)
+  - Sent with telemetry every 10 seconds via MQTT
+  - Displayed in Hub driver card UI as "Frame Rate: X FPS (min: Y, max: Z)"
+
+### Changed
+- Optimized downsampleToMatrix() for significant CPU reduction
+  - Replaced per-pixel getPixel() calls (with bounds checking) with direct buffer access
+  - For 32x24 matrix: eliminates ~12,288 function calls and bounds checks per frame
+  - Removed dead code: downsample.cpp and downsample.h (unused Canvas-to-Canvas downsampling)
 - Native LED simulator (`tools/led-sim/`) for rapid effect development
   - Runs the same C++ effect code as ESP32 firmware on macOS/Linux
   - Uses raylib for visual LED rendering

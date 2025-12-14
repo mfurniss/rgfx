@@ -19,6 +19,9 @@
     {
       "path": "public-docs",
     },
+    {
+      "path": "tools",
+    },
   ],
   "settings": {
     "files.exclude": {
@@ -27,6 +30,7 @@
       "rgfx.io": true,
       "rgfx-hub": true,
       "public-docs": true,
+      "tools": true,
     },
     "eslint.format.enable": true,
     "editor.codeActionsOnSave": {

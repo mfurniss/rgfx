@@ -319,6 +319,164 @@ void test_pulse_collapse_vertical_shrinks_width() {
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(15, 8).r);
 }
 
+// =============================================================================
+// Edge Case Tests
+// =============================================================================
+
+void test_pulse_collapse_random_selects_one() {
+	// Random collapse should select either horizontal or vertical
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "random";
+	effect.add(props);
+
+	canvas.clear();
+	effect.update(0.5f);
+	effect.render();
+
+	// With random collapse at 50%, either edges should be clear
+	// Either top/bottom OR left/right edges should be empty
+	bool topClear = canvas.getPixel(8, 0).r == 0;
+	bool leftClear = canvas.getPixel(0, 8).r == 0;
+
+	// At least one pair of edges should be clear (shrunk)
+	TEST_ASSERT_TRUE(topClear || leftClear);
+}
+
+void test_pulse_strip_layout() {
+	// Strip has height=1, so horizontal collapse should act like vertical
+	Matrix matrix(16, 1, "strip");
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#00FF00";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "horizontal";  // For strips, should shrink width
+	effect.add(props);
+
+	canvas.clear();
+	effect.update(0.5f);
+	effect.render();
+
+	// Center should still be filled
+	uint16_t midX = canvas.getWidth() / 2;
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(midX, 0).g);
+
+	// Edges should be shrunk toward center
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 0).g);
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(canvas.getWidth() - 1, 0).g);
+}
+
+void test_pulse_duration_zero() {
+	// Duration of 0 should cause immediate expiration
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 0;  // Immediate expiration
+	props["collapse"] = "none";
+	effect.add(props);
+
+	// Even tiny update should remove it
+	effect.update(0.001f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be gone
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 0).r);
+}
+
+void test_pulse_multiple_sorted_by_remaining() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	// First pulse: longer duration, red
+	JsonDocument props1;
+	props1["color"] = "#FF0000";
+	props1["duration"] = 2000;
+	props1["fade"] = false;
+	props1["collapse"] = "none";
+	effect.add(props1);
+
+	// Second pulse: shorter duration, green
+	JsonDocument props2;
+	props2["color"] = "#00FF00";
+	props2["duration"] = 500;
+	props2["fade"] = false;
+	props2["collapse"] = "none";
+	effect.add(props2);
+
+	effect.update(0.1f);  // Both active
+	canvas.clear();
+	effect.render();
+
+	// Green should render on top (shorter remaining = rendered last)
+	// With additive blending, we should see green added
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_TRUE(pixel.g > 0);  // Green component present
+	TEST_ASSERT_TRUE(pixel.r > 0);  // Red component present (additive)
+}
+
+void test_pulse_easing_linear() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["fade"] = true;
+	props["collapse"] = "none";
+	props["easing"] = "linear";
+	effect.add(props);
+
+	// At 50% time with linear easing and fade, alpha should be ~127
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+
+	CRGB pixel = canvas.getPixel(0, 0);
+	// With linear fade at 50%, alpha ~127, so red ~127
+	TEST_ASSERT_INT_WITHIN(20, 127, pixel.r);
+}
+
+void test_pulse_easing_quinticOut_default() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["duration"] = 1000;
+	props["fade"] = true;
+	props["collapse"] = "none";
+	// Default easing is quinticOut
+	effect.add(props);
+
+	// At 50% time, alpha = (1-0.5)*255 = 127 (fade is linear based on t)
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+
+	CRGB pixel = canvas.getPixel(0, 0);
+	// Fade uses raw t not eased t, so should be similar to linear
+	TEST_ASSERT_INT_WITHIN(20, 127, pixel.r);
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -336,5 +494,14 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_pulse_collapse_none_fills_canvas);
 	RUN_TEST(test_pulse_collapse_horizontal_shrinks_height);
 	RUN_TEST(test_pulse_collapse_vertical_shrinks_width);
+
+	// Edge case tests
+	RUN_TEST(test_pulse_collapse_random_selects_one);
+	RUN_TEST(test_pulse_strip_layout);
+	RUN_TEST(test_pulse_duration_zero);
+	RUN_TEST(test_pulse_multiple_sorted_by_remaining);
+	RUN_TEST(test_pulse_easing_linear);
+	RUN_TEST(test_pulse_easing_quinticOut_default);
+
 	return UNITY_END();
 }

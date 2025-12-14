@@ -5,6 +5,13 @@
 #include "hal/platform.h"
 #include <ArduinoJson.h>
 #include <cstdio>
+#include <string>
+
+static void logEffect(const char* effectName, const JsonDocument& props) {
+	std::string json;
+	serializeJson(props, json);
+	printf("Triggered: %s %s\n", effectName, json.c_str());
+}
 
 // Background colors for variety (nullptr means disabled)
 static const char* backgroundColors[] = {
@@ -31,7 +38,7 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			props["fade"] = true;
 			props["collapse"] = "random";
 			processor.addEffect("pulse", props);
-			printf("Triggered: pulse\n");
+			logEffect("pulse", props);
 			break;
 		}
 		case 2: {
@@ -40,7 +47,7 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			props["duration"] = 500;
 			props["direction"] = "random";
 			processor.addEffect("wipe", props);
-			printf("Triggered: wipe\n");
+			logEffect("wipe", props);
 			break;
 		}
 		case 3: {
@@ -52,7 +59,7 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			props["centerX"] = "random";
 			props["centerY"] = "random";
 			processor.addEffect("explode", props);
-			printf("Triggered: explode\n");
+			logEffect("explode", props);
 			break;
 		}
 		case 4: {
@@ -61,12 +68,23 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			if (color) {
 				props["color"] = color;
 				props["enabled"] = true;
-				printf("Triggered: background (%s)\n", color);
 			} else {
 				props["enabled"] = false;
-				printf("Triggered: background (disabled)\n");
 			}
 			processor.addEffect("background", props);
+			logEffect("background", props);
+			break;
+		}
+		case 5: {
+			// Projectile effect
+			props["color"] = "random";
+			props["width"] = 8;
+			props["direction"] = "random";
+			props["velocity"] = 120;
+			props["friction"] = -2;  // 0=none, 1=moderate, 2=fast decay
+			props["trail"] = 0.3;
+			processor.addEffect("projectile", props);
+			logEffect("projectile", props);
 			break;
 		}
 	}

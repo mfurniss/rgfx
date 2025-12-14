@@ -43,6 +43,18 @@ static void createMatrixIfNeeded();
 // Global matrix pointer - initialized only after LED configuration is received
 Matrix* matrix = nullptr;
 
+// FPS tracking - calculated once per second, reported via telemetry
+static float g_currentFps = 0.0f;
+static float g_minFps = 999.0f;
+static float g_maxFps = 0.0f;
+static uint32_t g_frameCount = 0;
+static uint32_t g_lastFpsCalcTime = 0;
+
+// FPS getters for telemetry
+float getCurrentFps() { return g_currentFps; }
+float getMinFps() { return g_minFps; }
+float getMaxFps() { return g_maxFps; }
+
 // Global effect processor (initialized after driver comes online)
 EffectProcessor* effectProcessor = nullptr;
 
@@ -241,6 +253,16 @@ void loop() {
 	// Note: deltaTime is available for future effects system
 	// Effects can use it for movement calculations: position += velocity * deltaTime
 	(void)deltaTime;  // Suppress unused variable warning until effects system uses it
+
+	// FPS calculation (update every second)
+	g_frameCount++;
+	if (now - g_lastFpsCalcTime >= 1000) {
+		g_currentFps = g_frameCount * 1000.0f / (now - g_lastFpsCalcTime);
+		if (g_currentFps > 0 && g_currentFps < g_minFps) g_minFps = g_currentFps;
+		if (g_currentFps > g_maxFps) g_maxFps = g_currentFps;
+		g_frameCount = 0;
+		g_lastFpsCalcTime = now;
+	}
 
 	// Check WiFi connection state and update LEDs accordingly
 	// Note: isConnected already declared at top of loop() for UDP processing

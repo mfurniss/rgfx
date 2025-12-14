@@ -80,6 +80,13 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // Prepare data arrays for InfoSection components
   // Driver telemetry from periodic heartbeats - always show if any data available
   const telemetryRows: InfoRowData[] = [
+    // FPS metrics
+    ...(telemetry
+      ? [{
+        label: 'Frame Rate',
+        value: `${telemetry.currentFps.toFixed(1)} FPS (min: ${telemetry.minFps.toFixed(1)}, max: ${telemetry.maxFps.toFixed(1)})`,
+      }]
+      : []),
     // Reset/crash information
     ...(telemetry?.lastResetReason
       ? [{ label: 'Last Reset Reason', value: telemetry.lastResetReason }]
