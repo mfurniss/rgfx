@@ -37,6 +37,11 @@ print("ROM name: " .. rom_name)
 local interceptor_loaded = false
 
 local load_interceptor = function()
+	if interceptor_loaded then
+		return
+	end
+	interceptor_loaded = true
+
 	print("Machine prestart - initializing interceptor...")
 
 	-- Check for loaded cartridges (console systems like NES, Genesis, SNES, etc.)
@@ -114,10 +119,7 @@ end
 
 -- Try to load interceptor on first frame (prestart doesn't seem to work for NES)
 local frame_cb = function()
-	if not interceptor_loaded then
-		load_interceptor()
-		interceptor_loaded = true
-	end
+	load_interceptor()
 end
 
 print("Registering callbacks...")
