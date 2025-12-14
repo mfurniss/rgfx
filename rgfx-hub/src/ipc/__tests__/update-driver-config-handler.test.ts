@@ -68,6 +68,9 @@ describe('registerUpdateDriverConfigHandler', () => {
         sdkVersion: 'v4.4',
         sketchSize: 1000000,
         freeSketchSpace: 2000000,
+        currentFps: 120.0,
+        minFps: 118.0,
+        maxFps: 122.0,
       },
     };
 

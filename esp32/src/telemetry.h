@@ -4,6 +4,11 @@
 #include <ArduinoJson.h>
 #include "driver_config.h"
 
+// FPS getters (defined in main.cpp)
+float getCurrentFps();
+float getMinFps();
+float getMaxFps();
+
 // System telemetry utilities
 class Telemetry {
    public:

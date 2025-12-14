@@ -45,8 +45,6 @@ namespace {
 // Include graphics
 #include "graphics/canvas.h"
 #include "graphics/canvas.cpp"
-#include "graphics/downsample.h"
-#include "graphics/downsample.cpp"
 #include "graphics/coordinate_transforms.h"
 #include "graphics/coordinate_transforms.cpp"
 #include "graphics/matrix.h"

@@ -33,6 +33,9 @@ export const createMockTelemetry = (
   freeSketchSpace: 2000000,
   hasDisplay: false,
   firmwareVersion: '1.0.0',
+  currentFps: 120.0,
+  minFps: 118.0,
+  maxFps: 122.0,
   ...overrides,
 });
 
