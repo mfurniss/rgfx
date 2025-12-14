@@ -155,7 +155,11 @@ export class UdpClientImpl implements UdpClient {
     const driver = this.driverRegistry.getDriver(driverId);
 
     if (!driver?.ip) {
-      return true; // Still return true for mapper convenience
+      return true;
+    }
+
+    if (effectData.effect === 'text' && driver.resolvedHardware?.layout === 'strip') {
+      return true;
     }
 
     const message = JSON.stringify(effectData);

@@ -15,12 +15,13 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  testLedsEffect(matrix, canvas),
 	  backgroundEffect(matrix, canvas),
 	  projectileEffect(matrix, canvas),
+	  textEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
-		  {"pulse", &pulseEffect},       {"bitmap", &bitmapEffect},
-		  {"wipe", &wipeEffect},         {"explode", &explodeEffect},
+		  {"pulse", &pulseEffect},        {"bitmap", &bitmapEffect},
+		  {"wipe", &wipeEffect},          {"explode", &explodeEffect},
 		  {"test_leds", &testLedsEffect}, {"background", &backgroundEffect},
-		  {"projectile", &projectileEffect},
+		  {"projectile", &projectileEffect}, {"text", &textEffect},
 	  } {}
 
 void EffectProcessor::update() {

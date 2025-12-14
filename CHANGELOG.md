@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Text rendering effect for ESP32 LED drivers
+  - DEN 8x8 bitmap font (CC0 Public Domain, by denzel5310)
+  - Font data: 95 ASCII characters (32-126), 665 bytes in flash
+  - Each font pixel renders as 4x4 canvas block (1:1 with physical LEDs after downsampling)
+  - JSON API: `{"effect": "text", "text": "HELLO", "color": "#FF0000", "x": 0, "y": 0, "duration": 5000}`
+  - Parameters: text (required), color (default white), x/y (default 0), duration (0 = permanent)
+  - Hub Effects Playground UI with text input field
 - FPS telemetry tracking in ESP32 driver firmware
   - Measures actual achieved frame rate (current, min, max since boot)
   - Sent with telemetry every 10 seconds via MQTT
