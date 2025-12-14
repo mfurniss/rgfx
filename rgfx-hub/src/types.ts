@@ -124,6 +124,11 @@ export interface DriverTelemetry {
   lastResetReason?: string;
   crashCount?: number;
 
+  // FPS metrics
+  currentFps: number;
+  minFps: number;
+  maxFps: number;
+
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
   // and pushed to drivers via MQTT - not reported in telemetry
 }

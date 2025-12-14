@@ -56,6 +56,11 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	doc["udpMessagesReceived"] = udpMessagesReceived;
 	doc["udpMessagesDropped"] = udpMessagesDropped;
 
+	// FPS metrics
+	doc["currentFps"] = getCurrentFps();
+	doc["minFps"] = getMinFps();
+	doc["maxFps"] = getMaxFps();
+
 	// Note: LED config is NOT included in telemetry - Hub already has it
 	// Including it would exceed the 1024 byte MQTT buffer limit
 	(void)driverConfig;

@@ -45,5 +45,9 @@ export const TelemetryPayloadSchema = z.object({
   // Crash/reset information
   lastResetReason: z.string().optional(),
   crashCount: z.number().optional(),
+  // FPS metrics
+  currentFps: z.number(),
+  minFps: z.number(),
+  maxFps: z.number(),
 });
 
