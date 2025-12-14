@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 
-type FieldType = 'enum' | 'boolean' | 'number' | 'color' | 'centerXY' | 'spritePreset';
+type FieldType = 'enum' | 'boolean' | 'number' | 'string' | 'color' | 'centerXY' | 'spritePreset';
 
 interface FieldConstraints {
   min?: number;
@@ -271,7 +271,6 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
 function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
   const { innerSchema, defaultValue, description } = unwrapSchema(schema);
 
-  // Check for color schema (union of named | hex | number)
   if (isColorSchema(innerSchema)) {
     return {
       name,
@@ -282,7 +281,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     };
   }
 
-  // Check for centerX/Y schema (union of 'random' | number)
   if (isCenterSchema(innerSchema)) {
     return {
       name,
@@ -292,7 +290,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     };
   }
 
-  // Check for sprite array schema (array of strings)
   if (isSpriteArraySchema(innerSchema)) {
     return {
       name,
@@ -308,7 +305,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
 
   const { def } = innerSchema._zod;
 
-  // Check for enum
   if (def.type === 'enum') {
     return {
       name,
@@ -319,7 +315,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     };
   }
 
-  // Check for boolean
   if (def.type === 'boolean') {
     return {
       name,
@@ -329,7 +324,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     };
   }
 
-  // Check for number
   if (def.type === 'number') {
     return {
       name,
@@ -340,7 +334,15 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     };
   }
 
-  // Default to enum for unknown types
+  if (def.type === 'string') {
+    return {
+      name,
+      type: 'string',
+      defaultValue,
+      description,
+    };
+  }
+
   return { name, type: 'enum', defaultValue, description };
 }
 

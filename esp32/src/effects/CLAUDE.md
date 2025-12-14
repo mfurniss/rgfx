@@ -39,6 +39,7 @@ class IEffect {
 | **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). Fills canvas with color sweeping from one edge. |
 | **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
 | **Bitmap** | [bitmap.h](bitmap.h)/[bitmap.cpp](bitmap.cpp) | Static image display. Used for sprites or icons. |
+| **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text rendering using DEN 8x8 bitmap font. Font data in `fonts/den_8x8.h/cpp`. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
 
 ---
@@ -65,6 +66,7 @@ class IEffect {
 | `wipe.h/cpp` | Directional wipe effect |
 | `explode.h/cpp` | Radial explosion effect |
 | `bitmap.h/cpp` | Static image display |
+| `text.h/cpp` | Static text rendering |
 | `test_leds.h/cpp` | Hardware test pattern |
 
 ---

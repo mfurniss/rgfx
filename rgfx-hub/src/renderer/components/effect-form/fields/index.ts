@@ -10,3 +10,4 @@ export { BooleanField } from './boolean-field';
 export { ColorField } from './color-field';
 export { CenterField } from './center-field';
 export { SpritePresetField } from './sprite-preset-field';
+export { StringField } from './string-field';
