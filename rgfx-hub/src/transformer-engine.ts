@@ -154,6 +154,29 @@ export class TransformerEngine {
   }
 
   /**
+   * Clear effects on all connected drivers
+   * Called when a game init event is received to reset driver state
+   */
+  private async clearAllDriverEffects(): Promise<void> {
+    const connectedDrivers = this.context.drivers.getConnectedDrivers();
+
+    if (connectedDrivers.length === 0) {
+      this.context.log.debug('No connected drivers to clear effects');
+      return;
+    }
+
+    this.context.log.info(`Clearing effects on ${connectedDrivers.length} connected driver(s)`);
+
+    for (const driver of connectedDrivers) {
+      try {
+        await this.context.mqtt.publish(`rgfx/driver/${driver.id}/clear-effects`, '', 2);
+      } catch (error) {
+        this.context.log.error(`Failed to clear effects on driver ${driver.id}:`, error);
+      }
+    }
+  }
+
+  /**
    * Parse raw topic string into RgfxTopic structure
    * @param raw Raw topic string (e.g., "pacman/player/score/p1")
    * @returns Parsed topic with pre-split segments
@@ -185,6 +208,11 @@ export class TransformerEngine {
       // Parse topic once into structured object
       const topicObj = this.parseTopic(topic);
       const { namespace, subject } = topicObj;
+
+      // Clear effects on all drivers when a game init event is received
+      if (subject === 'init') {
+        await this.clearAllDriverEffects();
+      }
 
       // Auto-load game transformer on first event from game
       if (namespace && !this.gameHandlers.has(namespace)) {

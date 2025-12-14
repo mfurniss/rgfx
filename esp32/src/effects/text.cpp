@@ -64,7 +64,7 @@ void TextEffect::renderChar(char c, int16_t x, int16_t y, uint8_t r, uint8_t g, 
 		return;
 	}
 
-	CRGBA color(r, g, b, 255);
+	CRGB color(r, g, b);
 
 	constexpr uint8_t SCALE = 4;
 

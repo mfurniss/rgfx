@@ -42,6 +42,7 @@ static char topicTest[TOPIC_BUFFER_SIZE];        // rgfx/driver/{id}/test
 static char topicReset[TOPIC_BUFFER_SIZE];       // rgfx/driver/{id}/reset
 static char topicReboot[TOPIC_BUFFER_SIZE];      // rgfx/driver/{id}/reboot
 static char topicLogging[TOPIC_BUFFER_SIZE];     // rgfx/driver/{mac}/logging
+static char topicClearEffects[TOPIC_BUFFER_SIZE]; // rgfx/driver/{id}/clear-effects
 static char clientId[32];                        // Device ID as client ID
 static bool topicsInitialized = false;
 
@@ -62,6 +63,7 @@ static void initMQTTTopics() {
 	snprintf(topicReset, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reset", deviceId.c_str());
 	snprintf(topicReboot, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reboot", deviceId.c_str());
 	snprintf(topicLogging, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/logging", macAddress.c_str());
+	snprintf(topicClearEffects, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/clear-effects", deviceId.c_str());
 	strncpy(clientId, deviceId.c_str(), sizeof(clientId) - 1);
 	clientId[sizeof(clientId) - 1] = '\0';
 
@@ -112,6 +114,14 @@ void mqttCallback(String& topic, String& payload) {
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reboot")) {
 		log("Reboot command received - initiating reboot...");
 		Commands::reboot("");
+	}
+
+	// Handle clear-effects command
+	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/clear-effects")) {
+		log("Clear effects command received");
+		if (effectProcessor != nullptr) {
+			effectProcessor->clearEffects();
+		}
 	}
 
 	// Handle logging configuration
@@ -283,6 +293,7 @@ void reconnectMQTT() {
 		mqttClient.subscribe(topicReset, 2);
 		mqttClient.subscribe(topicReboot, 2);
 		mqttClient.subscribe(topicLogging, 2);
+		mqttClient.subscribe(topicClearEffects, 2);
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
@@ -291,6 +302,7 @@ void reconnectMQTT() {
 		log("  - " + String(topicTest));
 		log("  - " + String(topicReset));
 		log("  - " + String(topicReboot));
+		log("  - " + String(topicClearEffects));
 
 		// Load saved remote logging level from NVS
 		String savedLoggingLevel = ConfigNVS::loadLoggingLevel();
