@@ -1,0 +1,73 @@
+// ROM name → Aurcade game ID lookup table
+const AURCADE_IDS = {
+  pacman: 10,
+  galaga: 12,
+  robotron: 185,
+  // Add more as needed
+};
+
+/**
+ * Fetch world record score for a MAME ROM
+ * @param {string} mameRomName - MAME ROM name (e.g., 'pacman', 'galaga')
+ * @param {object} http - HTTP client from transformer context
+ * @param {object} log - Logger from transformer context
+ * @returns {Promise<{score: string, player: string, date: string} | null>}
+ */
+export async function getWorldRecord(mameRomName, http, log) {
+  const gameId = AURCADE_IDS[mameRomName];
+
+  if (!gameId) {
+    log.info(`World record: ROM "${mameRomName}" not in Aurcade lookup table`);
+    return null;
+  }
+
+  const url = `https://aurcade.com/games/view.aspx?id=${gameId}`;
+  log.info(`World record: Fetching ${url}`);
+
+  try {
+    const response = await http.get(url);
+    const html = await response.text();
+    log.debug(`World record: Received ${html.length} bytes`);
+
+    const record = parseWorldRecord(html);
+    if (!record) {
+      log.warn(`World record: Could not parse record from page`);
+      return null;
+    }
+
+    log.info(
+      `World record for ${mameRomName}: ${record.score} by ${record.player} on ${record.date}`
+    );
+    return record;
+  } catch (err) {
+    log.error(`World record: Fetch failed - ${err.message}`);
+    return null;
+  }
+}
+
+function parseWorldRecord(html) {
+  // HTML structure from Aurcade:
+  // <span class="format-top-score">3,333,360</span><br />
+  // <b>Billy Mitchell</b><br />
+  // 07/03/99<br />
+
+  // Score: inside <span class="format-top-score">
+  const scoreMatch = html.match(
+    /<span class="format-top-score">([^<]+)<\/span>/
+  );
+  const score = scoreMatch ? scoreMatch[1] : null;
+
+  // Player: inside <b> tag after the score
+  const playerMatch = html.match(
+    /<span class="format-top-score">[^<]+<\/span><br \/>\s*<b>([^<]+)<\/b>/
+  );
+  const player = playerMatch ? playerMatch[1] : null;
+
+  // Date: MM/DD/YY pattern after player name
+  const dateMatch = html.match(/<b>[^<]+<\/b><br \/>\s*(\d{2}\/\d{2}\/\d{2})/);
+  const date = dateMatch ? dateMatch[1] : null;
+
+  if (!score) return null;
+
+  return { score, player, date };
+}
