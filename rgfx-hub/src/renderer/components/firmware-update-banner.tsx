@@ -2,12 +2,19 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useDriverStore } from '../store/driver-store';
+import { useUiStore } from '../store/ui-store';
 
 export function FirmwareUpdateBanner() {
   const drivers = useDriverStore((state) => state.drivers);
   const currentFirmwareVersion = useDriverStore(
     (state) => state.systemStatus.currentFirmwareVersion,
   );
+  const isFlashingFirmware = useUiStore((state) => state.isFlashingFirmware);
+
+  // Hide banner while firmware update is in progress
+  if (isFlashingFirmware) {
+    return null;
+  }
 
   // Count connected drivers that need firmware update
   const driversNeedingUpdate = drivers.filter((driver) => {
