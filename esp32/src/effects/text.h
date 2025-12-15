@@ -22,8 +22,6 @@ class TextEffect : public IEffect {
 	const Matrix& matrix;
 	Canvas& canvas;
 
-	void renderChar(char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b);
-
    public:
 	TextEffect(const Matrix& matrix, Canvas& canvas);
 	void add(JsonDocument& props) override;

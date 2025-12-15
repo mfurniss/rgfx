@@ -1,17 +1,18 @@
-#include "text.h"
+#include "scroll_text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
 #include <cstring>
 
 namespace {
 	constexpr uint32_t TEXT_DEFAULT_COLOR = 0xFFFFFF;
+	constexpr float DEFAULT_SCROLL_SPEED = 60.0f;  // Canvas pixels per second
 }  // namespace
 
-TextEffect::TextEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
-	instances.reserve(8);
+ScrollTextEffect::ScrollTextEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
+	instances.reserve(4);
 }
 
-void TextEffect::add(JsonDocument& props) {
+void ScrollTextEffect::add(JsonDocument& props) {
 	if (matrix.layoutType == LayoutType::STRIP) {
 		return;
 	}
@@ -22,11 +23,11 @@ void TextEffect::add(JsonDocument& props) {
 	}
 
 	uint32_t color = props["color"] ? parseColor(props["color"]) : TEXT_DEFAULT_COLOR;
-	int16_t x = props["x"] | 0;
 	int16_t y = props["y"] | 0;
-	uint32_t durationMs = props["duration"] | 0;
+	float speed = props["speed"] | DEFAULT_SCROLL_SPEED;
+	bool repeat = props["repeat"] | true;
 
-	TextInstance instance;
+	ScrollInstance instance;
 	instance.textLen = static_cast<uint8_t>(strlen(text));
 	if (instance.textLen > MAX_TEXT_LENGTH - 1) {
 		instance.textLen = MAX_TEXT_LENGTH - 1;
@@ -37,30 +38,35 @@ void TextEffect::add(JsonDocument& props) {
 	instance.r = (color >> 16) & 0xFF;
 	instance.g = (color >> 8) & 0xFF;
 	instance.b = color & 0xFF;
-	instance.x = x;
 	instance.y = y;
-	instance.duration = durationMs / 1000.0f;
-	instance.elapsedTime = 0.0f;
+	instance.scrollX = static_cast<float>(canvas.getWidth());
+	instance.speed = speed;
+	instance.repeat = repeat;
 
 	instances.push_back(instance);
 }
 
-void TextEffect::update(float deltaTime) {
+void ScrollTextEffect::update(float deltaTime) {
 	for (auto it = instances.begin(); it != instances.end();) {
-		if (it->duration > 0) {
-			it->elapsedTime += deltaTime;
-			if (it->elapsedTime >= it->duration) {
+		it->scrollX -= it->speed * deltaTime;
+
+		int16_t textWidth = it->textLen * CHAR_WIDTH;
+		if (it->scrollX + textWidth < 0) {
+			if (it->repeat) {
+				it->scrollX = static_cast<float>(canvas.getWidth());
+				++it;
+			} else {
 				it = instances.erase(it);
-				continue;
 			}
+		} else {
+			++it;
 		}
-		++it;
 	}
 }
 
-void TextEffect::render() {
+void ScrollTextEffect::render() {
 	for (const auto& inst : instances) {
-		int16_t x = inst.x;
+		int16_t x = static_cast<int16_t>(inst.scrollX);
 		for (uint8_t i = 0; i < inst.textLen; i++) {
 			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b);
 			x += CHAR_WIDTH;
@@ -68,6 +74,6 @@ void TextEffect::render() {
 	}
 }
 
-void TextEffect::reset() {
+void ScrollTextEffect::reset() {
 	instances.clear();
 }

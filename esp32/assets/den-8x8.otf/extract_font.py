@@ -24,9 +24,9 @@ def extract_glyph(font, char, size=8):
     # Draw character at origin
     draw.text((0, 0), char, font=font, fill=255)
 
-    # Extract 7 rows (skip bottom row which is typically blank for spacing)
+    # Extract all 8 rows
     rows = []
-    for y in range(7):
+    for y in range(8):
         row_byte = 0
         for x in range(8):
             if x < img.width and y < img.height:
@@ -53,7 +53,7 @@ def generate_cpp(glyphs):
         "",
         "namespace {",
         "",
-        "// 7 bytes per character (7 rows, MSB = leftmost pixel)",
+        "// 8 bytes per character (8 rows, MSB = leftmost pixel)",
         "// Characters 32 (space) through 126 (tilde)",
         "const uint8_t FONT_DATA[] PROGMEM = {",
     ]
@@ -78,7 +78,7 @@ def generate_cpp(glyphs):
         "    if (c < 32 || c > 126) {",
         "        return nullptr;",
         "    }",
-        "    return &FONT_DATA[(c - 32) * 7];",
+        "    return &FONT_DATA[(c - 32) * 8];",
         "}",
         "",
     ])
@@ -105,9 +105,9 @@ def generate_header():
 #endif
 
 constexpr uint8_t FONT_CHAR_WIDTH = 8;
-constexpr uint8_t FONT_CHAR_HEIGHT = 7;
+constexpr uint8_t FONT_CHAR_HEIGHT = 8;
 
-// Returns pointer to 7 bytes of glyph data, or nullptr if char not in font
+// Returns pointer to 8 bytes of glyph data, or nullptr if char not in font
 const uint8_t* getGlyph(char c);
 """
 
@@ -137,7 +137,7 @@ def main():
     print(f"Generated: {cpp_path}")
 
     # Print stats
-    total_bytes = len(glyphs) * 7
+    total_bytes = len(glyphs) * 8
     print(f"Font data: {len(glyphs)} characters, {total_bytes} bytes")
 
 if __name__ == "__main__":
