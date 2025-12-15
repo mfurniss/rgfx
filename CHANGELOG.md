@@ -43,6 +43,12 @@ All notable changes to this project will be documented in this file.
   - Native implementations use std::chrono, std::random, raylib
 
 ### Fixed
+- Fixed MQTT Error -9 (LWMQTT_MISSING_OR_WRONG_PACKET) causing random driver disconnections
+  - Telemetry was using QoS 2 (exactly-once) which requires a 4-message handshake
+  - Brief WiFi micro-disconnects could break the TCP connection during the handshake
+  - Changed telemetry from QoS 2 to QoS 0 (fire-and-forget)
+  - QoS 0 is appropriate since telemetry is resent every 10 seconds anyway
+  - Critical messages (status, test state) still use QoS 2 for guaranteed delivery
 - Fixed periodic MQTT disconnections caused by keep-alive timeout
   - Default arduino-mqtt keep-alive was 10 seconds, causing timeouts during blocking operations
   - Broker discovery blocks for up to 6 seconds listening for UDP broadcasts
