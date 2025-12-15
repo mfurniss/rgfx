@@ -13,6 +13,8 @@ class ScrollTextEffect : public IEffect {
 		char text[MAX_TEXT_LENGTH];
 		uint8_t textLen;
 		uint8_t r, g, b;
+		uint8_t accentR, accentG, accentB;
+		bool hasAccent;
 		int16_t y;       // Vertical position (fixed)
 		float scrollX;   // Current x position (float for smooth scrolling)
 		float speed;     // Scroll speed in canvas pixels per second
