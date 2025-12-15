@@ -228,6 +228,19 @@ glab ci status -b <branch-name>
 - **Avoid**: Python scripts unless absolutely necessary
 - **Rationale**: Consistent tooling, better IDE support, easier maintenance
 
+## Transformers
+
+**CRITICAL - TRANSFORMER FILE LOCATIONS:**
+
+- **Source templates**: `rgfx-hub/assets/transformers/` - These are bundled with the app and installed on first run
+- **Active files**: `~/.rgfx/transformers/` - These are the files actually used at runtime
+
+**When editing transformers during development:**
+- Edit `~/.rgfx/transformers/` for immediate testing
+- Copy changes back to `rgfx-hub/assets/transformers/` before committing
+
+**DO NOT edit `rgfx-hub/assets/transformers/` expecting immediate effect** - those files are only installed on fresh installs or reinstall.
+
 ## Release Management
 
 **For creating releases, see [docs/release-workflow.md](../../docs/release-workflow.md)**
