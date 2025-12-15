@@ -13,6 +13,10 @@ uint32_t millis() {
 	return ::millis();
 }
 
+uint32_t micros() {
+	return ::micros();
+}
+
 void delay(uint32_t ms) {
 	::delay(ms);
 }

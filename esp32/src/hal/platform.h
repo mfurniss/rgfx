@@ -19,6 +19,11 @@ namespace hal {
 uint32_t millis();
 
 /**
+ * Get microseconds since program start
+ */
+uint32_t micros();
+
+/**
  * Delay execution for specified milliseconds
  * Note: On native platform, this may yield to other threads
  */

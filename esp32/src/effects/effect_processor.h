@@ -47,7 +47,7 @@ class EffectProcessor {
 	ProjectileEffect projectileEffect;
 	TextEffect textEffect;
 	ScrollTextEffect scrollTextEffect;
-	unsigned long lastFrameTime;
+	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
 	EffectEntry effectMap[9];
 
