@@ -11,7 +11,7 @@ namespace {
 	constexpr bool PULSE_DEFAULT_FADE = true;
 }  // namespace
 
-PulseEffect::PulseEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
+PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {
 	pulses.reserve(16);
 }
 
