@@ -159,6 +159,34 @@ void Canvas::drawRectangle(int16_t x, int16_t y, int16_t w, int16_t h, const CRG
 	);
 }
 
+// Signed coordinate rectangle with clipping and blend mode
+void Canvas::drawRectangle(int16_t x, int16_t y, int16_t w, int16_t h, const CRGBA& color, BlendMode mode) {
+	if (!pixels || w <= 0 || h <= 0) {
+		return;
+	}
+
+	int16_t x2 = x + w;
+	int16_t y2 = y + h;
+
+	if (x < 0) x = 0;
+	if (y < 0) y = 0;
+	if (x2 > static_cast<int16_t>(width)) x2 = static_cast<int16_t>(width);
+	if (y2 > static_cast<int16_t>(height)) y2 = static_cast<int16_t>(height);
+
+	if (x >= x2 || y >= y2) {
+		return;
+	}
+
+	drawRectangle(
+		static_cast<uint16_t>(x),
+		static_cast<uint16_t>(y),
+		static_cast<uint16_t>(x2 - x),
+		static_cast<uint16_t>(y2 - y),
+		color,
+		mode
+	);
+}
+
 // Blended rectangle
 void Canvas::drawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const CRGBA& color, BlendMode mode) {
     if (!pixels || w == 0 || h == 0) {

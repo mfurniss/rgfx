@@ -13,6 +13,8 @@ class TextEffect : public IEffect {
 		char text[MAX_TEXT_LENGTH];
 		uint8_t textLen;
 		uint8_t r, g, b;
+		uint8_t accentR, accentG, accentB;
+		bool hasAccent;
 		int16_t x, y;        // Position in canvas coords (top-left of first char)
 		float duration;      // Duration in seconds, 0 = permanent
 		float elapsedTime;   // Elapsed time in seconds

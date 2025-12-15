@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Optional `accentColor` property for text and scroll_text effects
+  - Renders a shadow/accent at +4,+4 pixel offset behind the main text
+  - Uses REPLACE blend mode for crisp rendering
+  - Accent is drawn first, then main text overlays it
+  - If omitted, text renders as before (no accent)
 - Text rendering effect for ESP32 LED drivers
   - DEN 8x8 bitmap font (CC0 Public Domain, by denzel5310)
   - Font data: 95 ASCII characters (32-126), 665 bytes in flash

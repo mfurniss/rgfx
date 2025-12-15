@@ -38,6 +38,15 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.r = (color >> 16) & 0xFF;
 	instance.g = (color >> 8) & 0xFF;
 	instance.b = color & 0xFF;
+
+	instance.hasAccent = !props["accentColor"].isNull();
+	if (instance.hasAccent) {
+		uint32_t accent = parseColor(props["accentColor"]);
+		instance.accentR = (accent >> 16) & 0xFF;
+		instance.accentG = (accent >> 8) & 0xFF;
+		instance.accentB = accent & 0xFF;
+	}
+
 	instance.y = y;
 	instance.scrollX = static_cast<float>(canvas.getWidth());
 	instance.speed = speed;
@@ -65,10 +74,25 @@ void ScrollTextEffect::update(float deltaTime) {
 }
 
 void ScrollTextEffect::render() {
+	constexpr int16_t ACCENT_OFFSET = 4;
+
 	for (const auto& inst : instances) {
-		int16_t x = static_cast<int16_t>(inst.scrollX);
+		int16_t baseX = static_cast<int16_t>(inst.scrollX);
+
+		// Pass 1: Accent (if present)
+		if (inst.hasAccent) {
+			int16_t ax = baseX;
+			for (uint8_t i = 0; i < inst.textLen; i++) {
+				renderChar(canvas, inst.text[i], ax + ACCENT_OFFSET, inst.y + ACCENT_OFFSET,
+				           inst.accentR, inst.accentG, inst.accentB, BlendMode::REPLACE);
+				ax += CHAR_WIDTH;
+			}
+		}
+
+		// Pass 2: Main text
+		int16_t x = baseX;
 		for (uint8_t i = 0; i < inst.textLen; i++) {
-			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b);
+			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b, BlendMode::REPLACE);
 			x += CHAR_WIDTH;
 		}
 	}
