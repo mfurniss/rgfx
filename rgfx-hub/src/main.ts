@@ -89,10 +89,36 @@ const transformerEngine = new TransformerEngine({
   udp: udpClient,
   mqtt: mqttClient,
   http: {
-    get: () => Promise.resolve(new Response()),
-    post: () => Promise.resolve(new Response()),
-    put: () => Promise.resolve(new Response()),
-    delete: () => Promise.resolve(new Response()),
+    get: (url: string, options?: RequestInit) => fetch(url, { ...options, method: 'GET' }),
+    post: (url: string, body: unknown, options?: RequestInit) => {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+
+      if (options?.headers) {
+        const extraHeaders =
+          options.headers instanceof Headers ? options.headers : new Headers(options.headers);
+
+        extraHeaders.forEach((value, key) => {
+          headers.set(key, value);
+        });
+      }
+
+      return fetch(url, { ...options, method: 'POST', body: JSON.stringify(body), headers });
+    },
+    put: (url: string, body: unknown, options?: RequestInit) => {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+
+      if (options?.headers) {
+        const extraHeaders =
+          options.headers instanceof Headers ? options.headers : new Headers(options.headers);
+
+        extraHeaders.forEach((value, key) => {
+          headers.set(key, value);
+        });
+      }
+
+      return fetch(url, { ...options, method: 'PUT', body: JSON.stringify(body), headers });
+    },
+    delete: (url: string, options?: RequestInit) => fetch(url, { ...options, method: 'DELETE' }),
   },
   state: stateStore,
   log: logger,
