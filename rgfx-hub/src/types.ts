@@ -323,6 +323,8 @@ declare global {
       simulateEvent: (eventLine: string) => Promise<void>;
       selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
       verifyDirectory: (path: string) => Promise<boolean>;
+      getFirmwareManifest: () => Promise<unknown>;
+      getFirmwareFile: (filename: string) => Promise<Buffer>;
     };
   }
 }

@@ -50,6 +50,15 @@ static bool topicsInitialized = false;
 void handleDriverConfig(const String& payload);
 extern EffectProcessor* effectProcessor;
 
+// Pending operations for deferred processing (set in callback, processed in loop)
+// The arduino-mqtt library is not reentrant - heavy operations in callbacks corrupt state
+static String pendingConfig;
+static bool hasPendingConfig = false;
+static bool pendingTestModeChange = false;
+static bool pendingTestModeValue = false;
+static bool pendingLoggingConfig = false;
+static String pendingLoggingPayload;
+
 // Initialize MQTT topic strings (called once when device ID is known)
 static void initMQTTTopics() {
 	if (topicsInitialized) return;
@@ -72,77 +81,62 @@ static void initMQTTTopics() {
 }
 
 // MQTT callback function - called when a message is received
+// IMPORTANT: Keep this lightweight! The arduino-mqtt library is not reentrant.
+// Heavy operations or MQTT calls (publish/subscribe/unsubscribe) inside callbacks
+// corrupt the library's internal state, causing Error -9 on subsequent operations.
+// Queue work here, process it in processPendingMqttOperations().
 void mqttCallback(String& topic, String& payload) {
 	mqttMessagesReceived++;  // Increment counter for ALL MQTT messages
 	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
-	// Handle driver configuration
+	// Handle driver configuration - queue for deferred processing
+	// Config handling does JSON parsing, NVS writes, FastLED init, and MQTT subscribe/unsubscribe
 	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/config")) {
-		log("Received driver configuration from Hub");
-		handleDriverConfig(payload);
+		log("Queuing driver configuration for processing");
+		pendingConfig = payload;
+		hasPendingConfig = true;
 	}
 
-	// Handle LED test mode toggle
-	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/test")) {
-		log("LED test mode: " + payload);
+	// Handle LED test mode toggle - queue state change for deferred processing
+	// Test mode changes call publishTestState() which must not happen inside callback
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/test")) {
+		log("Queuing test mode change: " + payload);
 		if (payload == "on") {
-			// Enable test mode
-			testModeActive = true;
-			log("Test mode ENABLED");
-			publishTestState("on");
+			pendingTestModeChange = true;
+			pendingTestModeValue = true;
 		} else if (payload == "off") {
-			// Disable test mode
-			testModeActive = false;
-
-			// Clear LEDs when turning off test mode
-			if (effectProcessor != nullptr) {
-				effectProcessor->clearEffects();
-			}
-
-			log("Test mode DISABLED");
-			publishTestState("off");
+			pendingTestModeChange = true;
+			pendingTestModeValue = false;
 		}
 	}
 
-	// Handle reset command
-	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reset")) {
+	// Handle reset command - safe to execute directly (no MQTT operations)
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reset")) {
 		log("Reset command received - initiating reset...");
 		Commands::reset("");
 	}
 
-	// Handle reboot command
-	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reboot")) {
+	// Handle reboot command - safe to execute directly (no MQTT operations)
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/reboot")) {
 		log("Reboot command received - initiating reboot...");
 		Commands::reboot("");
 	}
 
-	// Handle clear-effects command
-	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/clear-effects")) {
+	// Handle clear-effects command - safe to execute directly (no MQTT operations)
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/clear-effects")) {
 		log("Clear effects command received");
 		if (effectProcessor != nullptr) {
 			effectProcessor->clearEffects();
 		}
 	}
 
-	// Handle logging configuration
-	if (topic.startsWith("rgfx/driver/") && topic.endsWith("/logging")) {
-		JsonDocument doc;
-		DeserializationError error = deserializeJson(doc, payload);
-
-		if (error) {
-			log("Failed to parse logging config: " + String(error.c_str()), LogLevel::ERROR);
-			return;
-		}
-
-		const char* level = doc["level"];
-		if (level) {
-			String levelStr = String(level);
-			setRemoteLoggingLevel(levelStr);
-			ConfigNVS::saveLoggingLevel(levelStr);
-			log("Remote logging level set to: " + levelStr);
-		}
+	// Handle logging configuration - queue for deferred processing
+	// Logging config does NVS writes which can be slow
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/logging")) {
+		log("Queuing logging configuration for processing");
+		pendingLoggingConfig = true;
+		pendingLoggingPayload = payload;
 	}
-
 }
 
 // Discover MQTT broker via UDP broadcast
@@ -317,7 +311,8 @@ void reconnectMQTT() {
 		}
 
 		// Publish "online" status (retained) - overrides LWT offline message
-		mqttClient.publish(topicStatus, "online", true, 2);
+		// QoS 1 is sufficient since LWT handles offline detection
+		mqttClient.publish(topicStatus, "online", true, 1);
 		log("Published status: online to " + String(topicStatus));
 
 		// FIRST: Send crash report if we recovered from a crash
@@ -325,8 +320,15 @@ void reconnectMQTT() {
 		// even if we crash again shortly after (e.g., when processing LED config)
 		publishCrashReport();
 
+		// Process MQTT protocol before sending more messages
+		// This allows QoS acknowledgments to complete and prevents connection issues
+		mqttClient.loop();
+
 		// Send initial driver telemetry
 		sendDriverTelemetry();
+
+		// Process MQTT protocol again before final publish
+		mqttClient.loop();
 
 		// Publish current test state immediately to sync with Hub
 		publishTestState(testModeActive ? "on" : "off");
@@ -408,13 +410,73 @@ void publishTestState(const String& state) {
 	String deviceId = Utils::getDeviceId();
 	String topic = "rgfx/driver/" + deviceId + "/test/state";
 
-	// Publish state with RETAIN flag and QoS 2
+	// Publish state with RETAIN flag and QoS 1 (at-least-once delivery)
+	// QoS 1 is more reliable than QoS 2 for rapid publishes and sufficient for state sync
 	// Retained messages ensure Hub receives state even if it subscribes late
-	bool result = mqttClient.publish(topic.c_str(), state.c_str(), true, 2);
+	bool result = mqttClient.publish(topic.c_str(), state.c_str(), true, 1);
 
 	if (result) {
 		log("Published test state: " + state + " to " + topic);
 	} else {
 		log("Failed to publish test state");
+	}
+}
+
+// Process pending MQTT operations queued from callback
+// Call this from the network task loop AFTER mqttLoop()
+// This ensures heavy operations and MQTT calls happen outside the callback context
+void processPendingMqttOperations() {
+	// Process pending driver configuration
+	if (hasPendingConfig) {
+		hasPendingConfig = false;
+		String config = pendingConfig;
+		pendingConfig = "";  // Free memory immediately
+		log("Processing deferred driver configuration");
+		handleDriverConfig(config);
+	}
+
+	// Process pending test mode change
+	if (pendingTestModeChange) {
+		pendingTestModeChange = false;
+		bool newState = pendingTestModeValue;
+
+		if (newState) {
+			testModeActive = true;
+			log("Test mode ENABLED");
+			publishTestState("on");
+		} else {
+			testModeActive = false;
+
+			// Clear LEDs when turning off test mode
+			if (effectProcessor != nullptr) {
+				effectProcessor->clearEffects();
+			}
+
+			log("Test mode DISABLED");
+			publishTestState("off");
+		}
+	}
+
+	// Process pending logging configuration
+	if (pendingLoggingConfig) {
+		pendingLoggingConfig = false;
+		String payload = pendingLoggingPayload;
+		pendingLoggingPayload = "";  // Free memory immediately
+
+		JsonDocument doc;
+		DeserializationError error = deserializeJson(doc, payload);
+
+		if (error) {
+			log("Failed to parse logging config: " + String(error.c_str()), LogLevel::ERROR);
+			return;
+		}
+
+		const char* level = doc["level"];
+		if (level) {
+			String levelStr = String(level);
+			setRemoteLoggingLevel(levelStr);
+			ConfigNVS::saveLoggingLevel(levelStr);
+			log("Remote logging level set to: " + levelStr);
+		}
 	}
 }
