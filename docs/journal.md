@@ -2,6 +2,14 @@
 
 A day-by-day chronicle of the RGFX project development.
 
+<!-- CLAUDE NOTE:
+When updating journal entries:
+- Always review git commits for that day first
+- Each day is a high-level executive summary
+- Keep entries concise without low-level implementation details
+- Focus on major features implemented that day
+-->
+
 ## October 11, 2025
 
 Initial project setup for RGFX, a MAME Lua scripting framework for monitoring retro arcade game state. The first working proof-of-concept successfully tracked Pac-Man scores in real-time using MAME's Lua API and memory monitoring, validating the core technical approach.
@@ -52,7 +60,7 @@ Optimized UDP message handling for better performance. Implemented game mapping 
 
 ## October 27, 2025
 
-CI/CD debugging and refinement. Fixed HTML generation issues in the pipeline and disabled problematic html_to_progmem.py pre-script. Fixed GitLab CI YAML syntax errors and ESP.h include path issues causing cross-platform build failures. Completed the automated Git bundle backup system with Google Drive integration. Implemented the complete feature branch CI/CD workflow with proper pre-merge testing. Fixed test:driver job by adding version.h generation and configured PlatformIO to skip hardware tests in CI. Added authorship information and established MPL-2.0 licensing consistently across the codebase.
+CI/CD refinement and debugging. Completed the automated Git bundle backup system with Google Drive integration. Implemented the complete feature branch CI/CD workflow with proper pre-merge testing. Added authorship information and established MPL-2.0 licensing consistently across the codebase.
 
 ## October 28, 2025
 
@@ -80,7 +88,7 @@ Refactored codebase to consolidate global constants and improve the heartbeat me
 
 ## November 4, 2025
 
-Added variable frame rate limiting to LED rendering for handling different refresh rates based on effect complexity. Created centralized constants file for ESP32 driver firmware to eliminate magic numbers. Refactored serial commands into a modular thread-safe system. Fixed critical ESP32 boot loop caused by corrupted EEPROM configuration with validation and fallback mechanisms. Added sys_info serial command for better debugging capabilities and improved C++ code formatting. Removed unused 'type' field from Driver interface. Implemented PulseEffect class with alpha-based fading and modular architecture as the first proper LED effect. Updated documentation and disabled MAME audio to reduce noise during gameplay. Added IEffect interface for extensibility. Fixed CI issues with package-lock.json workaround and DMG build failures on Linux by skipping DMG creation on non-tag commits.
+Added variable frame rate limiting to LED rendering for handling different refresh rates. Created centralized constants file for ESP32 driver firmware. Refactored serial commands into a modular thread-safe system. Fixed critical ESP32 boot loop caused by corrupted EEPROM configuration. Implemented PulseEffect as the first proper LED effect with alpha-based fading.
 
 ## November 5, 2025
 
@@ -89,10 +97,6 @@ Updated documentation across the project. Added pulse fade control and optimized
 ## November 6, 2025
 
 Implemented robust MQTT state synchronization architecture enabling Hub and Drivers to maintain consistent state through disconnections and reconnections. Standardized all logging to use the log() wrapper consistently throughout the codebase. Added optimistic UI updates for the test button to improve perceived responsiveness. Added tooltip to test button explaining the test pattern. Fixed LED test mode and matrix orientation issues ensuring test patterns display correctly on both strip and matrix layouts.
-
-## November 7, 2025
-
-Fixed CI cache warning by removing non-existent .platformio/ path from cache configuration.
 
 ## November 8, 2025
 
@@ -112,9 +116,7 @@ Merged driver-hardware branch completing the transition to SSDP-based discovery 
 
 ## November 14, 2025
 
-Implemented sequential driver ID system (`rgfx-driver-0001`, `rgfx-driver-0002`) with centralized validation and automatic assignment on first connection. Hub looks up persisted drivers by MAC address and sends set-id commands via MQTT, eliminating unreliable MAC-based fallback IDs. Updated factory_reset command to clear both NVS and WiFi credentials.
-
-Implemented auto-incrementing firmware version system using `git describe` with format `<tag>-dev.<commits>+<hash>[-dirty]` for automatic build numbering. Made event logging extremely robust by removing fs.watch polling backup and relying entirely on native file watching for lowest latency. Added firmware version to driver sysInfo payload, displayed it in Hub UI, and updated OTA upload script to use proper driver IDs.
+Implemented sequential driver ID system with centralized validation and automatic assignment on first connection. Implemented auto-incrementing firmware version system for automatic build numbering. Added firmware version display to Hub UI and updated factory_reset command to clear both NVS and WiFi credentials.
 
 ## November 15, 2025
 
@@ -124,9 +126,7 @@ Implemented real-time events counter, Hub uptime display with 1-second refresh, 
 
 ## November 16, 2025
 
-Implemented comprehensive test improvements for mapping-engine with dependency injection pattern enabling proper testing of dynamic imports. Added 6 new tests for module loading, import failures, and error handling. Fixed all TypeScript diagnostic errors by correcting fs.watch callback signatures and adding .js extensions to dynamic imports.
-
-Improved driver list UX by making entire table rows clickable, disabled WiFi power saving for low-latency UDP, and added LED configuration validation. Implemented graceful shutdown when window close button is clicked. All 322 tests pass with strict TypeScript checking and ESLint validation.
+Implemented comprehensive test improvements for mapping-engine. Improved driver list UX by making entire table rows clickable, disabled WiFi power saving for low-latency UDP, and added LED configuration validation. Implemented graceful shutdown when window close button is clicked.
 
 ## November 17, 2025
 
@@ -158,11 +158,7 @@ Implemented LED progress indicator for OTA firmware updates showing orange LED m
 
 ## November 25, 2025
 
-Implemented bitmap effect system. Added Zod schema validation throughout the codebase for effects, driver persistence, firmware manifests, and MQTT messages ensuring type safety and runtime validation. Refactored MQTT module to use Zod for all JSON parsing operations.
-
-Cleaned up unused exports and improved UI with dark mode window background.
-
-Refactored ESP32 codebase by extracting OTA setup and network task into dedicated modules (ota_update.cpp, network_task.cpp). Changed progress calculation to use float precision for smoother LED updates.
+Implemented bitmap effect system. Added Zod schema validation throughout the codebase for effects, driver persistence, firmware manifests, and MQTT messages. Cleaned up unused exports and improved UI with dark mode window background. Refactored ESP32 codebase by extracting OTA setup and network task into dedicated modules.
 
 ## November 26, 2025
 
@@ -178,13 +174,11 @@ Updated wipe effect to fill/unfill animation pattern and bumped firmware version
 
 ## November 28, 2025
 
-Added driver configuration page with LED hardware settings form using react-hook-form and Zod validation. Implemented NumberField component for numeric inputs with proper clearing support. Added Configure Driver button to driver card header with status chip moved next to driver name. Fixed vertical alignment issue in MUI Typography h6 with padding-bottom override.
-
-Added save-driver-config-handler and list-led-hardware-handler IPC handlers. Created comprehensive tests for NumberField component (9 tests) and DriverConfigPage (11 tests). Total test count now at 378 tests.
+Added driver configuration page with LED hardware settings form. Added Configure Driver button to driver card header with status chip moved next to driver name.
 
 ## November 29, 2025
 
-Refactored mqtt module to network directory for clearer naming convention. Cleaned up unused type exports from schemas (DriverLEDConfigFromSchema, DriverTelemetryFromSchema, LEDHardwareFromSchema, etc.). Added object-shorthand ESLint rule and applied fixes throughout the codebase. Removed unused constants from config/constants.ts. Added npm script for checking unused exports. Extracted shared effect properties to dedicated properties/ directory.
+Refactored mqtt module to network directory for clearer naming convention. Cleaned up unused exports throughout the codebase. Added npm script for checking unused exports. Extracted shared effect properties to dedicated directory.
 
 ## November 30, 2025
 
@@ -192,7 +186,7 @@ Added Test LEDs button directly to drivers table for quick LED testing without o
 
 ## December 1, 2025
 
-Fixed native C++ test compilation by adding test-only Canvas constructor. Fixed failing native tests for wipe and pulse effects. Improved CI pipeline by adding auto-cancel for redundant pipelines on new commits and skipping branch pipelines when merge requests exist to prevent duplicate builds. Fixed CI issues with date-fns dependency and platform binary rebuilds. Updated gitignore. Merged multi-pin-output branch.
+Fixed native C++ test compilation issues. Improved CI pipeline by adding auto-cancel for redundant pipelines on new commits and skipping branch pipelines when merge requests exist. Merged multi-pin-output branch.
 
 ## December 2, 2025
 
@@ -204,11 +198,7 @@ Consolidated project resource organization by moving `public/` folder contents i
 
 ## December 6, 2025
 
-Fixed firmware version sync issue where copy_firmware.py was writing to the wrong directory (public/ instead of assets/), causing the Hub to incorrectly report drivers as needing updates after OTA flashing. Added SuperButton component for consistent button styling across the UI and refactored driver log button to use it. Created DriverState component showing connection status with optional update warning icon.
-
-Fixed critical bug where drivers would disconnect during OTA firmware updates. During OTA, ESP32 drivers disconnect from MQTT to receive firmware, triggering the Last Will and Testament "offline" message. Implemented ota-state.ts module to track active OTA sessions and ignore spurious offline messages. Also added touchDriver() to update lastSeenAt during OTA progress events, preventing connection timeouts.
-
-Improved Firmware page UX by making OTA the default flash method and auto-selecting drivers that need firmware updates on page load.
+Fixed firmware version sync issue causing Hub to incorrectly report drivers as needing updates. Added SuperButton component for consistent button styling. Created DriverState component showing connection status with update warning icon. Fixed drivers disconnecting during OTA firmware updates. Improved Firmware page UX by making OTA the default flash method and auto-selecting drivers that need updates.
 
 ## December 7, 2025
 
@@ -234,7 +224,7 @@ Added and updated CLAUDE.md documentation files throughout the codebase. Refined
 
 ## December 10, 2025
 
-Fixed critical UDP message queue race condition on ESP32 drivers. Rapid-fire effects were being dropped because the single-message buffer was overwritten before processing. Replaced with an 8-slot circular queue ensuring all effects are delivered.
+Fixed critical UDP message queue race condition on ESP32 drivers. Rapid-fire effects were being dropped because the single-message buffer was overwritten before processing.
 
 ## December 11, 2025
 
@@ -242,7 +232,15 @@ Implemented Hardware Abstraction Layer (HAL) enabling ESP32 effect code to run n
 
 ## December 12, 2025
 
-Made led-sim window resizable with dynamic LED scaling. Fixed UDP message parsing bug causing effects to display incorrect colors.
+Made led-sim window resizable with dynamic LED scaling. Fixed UDP message parsing bug causing effects to display incorrect colors. Added localhost UDP broadcast so led-sim can receive effects from Hub's Effects Playground. Improved LED simulator visuals with smaller round LEDs, glow effect, and better contrast. Created unified check-code script for all projects.
+
+## December 13, 2025
+
+Implemented projectile effect with trail rendering, configurable velocity, friction, and directional movement. Added comprehensive effect tests and runtime optimizations. Added FPS telemetry to driver cards. Implemented text rendering effect. Added clear-effects command to reset effects on game init. Integrated world record high score display from Aurcade.com on game initialization.
+
+## December 14, 2025
+
+Added scroll_text effect for horizontally scrolling text. Added accentColor support to text effects for shadow rendering. Implemented firmware update banner shown when drivers need updates. Improved timing precision with microsecond resolution. Removed 120 FPS cap, switching to variable frame rate (VFR) rendering. Fixed MQTT reconnection failures after WiFi disconnect/reconnect. Fixed periodic MQTT disconnections by increasing keep-alive timeout.
 
 **Codebase Statistics:**
 - ESP32 Driver: 8,048 lines
@@ -251,5 +249,5 @@ Made led-sim window resizable with dynamic LED scaling. Fixed UDP message parsin
 - MAME Lua Scripts: 460 lines
 - **Total: ~21,879 lines of code**
 
-**Total Development Time:** 63 days (October 11 - December 12, 2025)
-**Total Commits:** 501
+**Total Development Time:** 65 days (October 11 - December 14, 2025)
+**Total Commits:** 502

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Drawer, Toolbar, Typography } from '@mui/material';
 import { SidebarNav } from './sidebar-nav';
+import { FirmwareUpdateBanner } from './firmware-update-banner';
 
 const DRAWER_WIDTH = 220;
 
@@ -33,13 +34,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
           width: `calc(100% - ${DRAWER_WIDTH}px)`,
           overflow: 'auto',
           backgroundColor: 'action.hover',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {children}
+        <FirmwareUpdateBanner />
+        <Box sx={{ p: 3, flexGrow: 1 }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   );

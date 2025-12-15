@@ -27,5 +27,6 @@ void reconnectMQTT();
 void mqttLoop();
 void sendDriverTelemetry();
 void publishTestState(const String& state);
+void processPendingMqttOperations();
 
 #endif

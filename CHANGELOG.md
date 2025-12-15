@@ -4,7 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- ESP32 MQTT first-connection failures (Error -9)
+  - Root cause: arduino-mqtt library is not reentrant - calling publish/subscribe/unsubscribe inside callbacks corrupts internal state
+  - handleDriverConfig() was calling mqttClient.subscribe/unsubscribe inside the callback (mqtt_config_handler.cpp lines 54, 60)
+  - Solution: Queue operations in callback, process them in main network task loop via processPendingMqttOperations()
+  - Deferred operations: driver config, test mode changes, logging config
+  - Lightweight operations (reset, reboot, clear-effects) still execute directly in callback
+
 ### Added
+- Optional `accentColor` property for text and scroll_text effects
+  - Renders a shadow/accent at +4,+4 pixel offset behind the main text
+  - Uses REPLACE blend mode for crisp rendering
+  - Accent is drawn first, then main text overlays it
+  - If omitted, text renders as before (no accent)
 - Text rendering effect for ESP32 LED drivers
   - DEN 8x8 bitmap font (CC0 Public Domain, by denzel5310)
   - Font data: 95 ASCII characters (32-126), 665 bytes in flash
@@ -38,6 +51,23 @@ All notable changes to this project will be documented in this file.
   - Native implementations use std::chrono, std::random, raylib
 
 ### Fixed
+- Fixed MQTT Error -9 (LWMQTT_MISSING_OR_WRONG_PACKET) causing random driver disconnections
+  - Telemetry was using QoS 2 (exactly-once) which requires a 4-message handshake
+  - Brief WiFi micro-disconnects could break the TCP connection during the handshake
+  - Changed telemetry from QoS 2 to QoS 0 (fire-and-forget)
+  - QoS 0 is appropriate since telemetry is resent every 10 seconds anyway
+  - Critical messages (status, test state) still use QoS 2 for guaranteed delivery
+- Fixed periodic MQTT disconnections caused by keep-alive timeout
+  - Default arduino-mqtt keep-alive was 10 seconds, causing timeouts during blocking operations
+  - Broker discovery blocks for up to 6 seconds listening for UDP broadcasts
+  - Increased MQTT keep-alive to 60 seconds (`MQTT_KEEPALIVE_SECONDS` constant)
+  - Provides 90-second tolerance (1.5x per MQTT spec) for network hiccups
+  - Telemetry every 10 seconds still provides frequent implicit heartbeats
+- Fixed MQTT reconnection failures after WiFi disconnect/reconnect cycles
+  - Broker discovery state (`mqttServerDiscovered`, `mqttServerIP`) was not reset in `cleanupNetworkServices()`
+  - This caused drivers to repeatedly fail connecting to stale broker IPs (10 failures before re-discovery)
+  - Now properly clears broker state on WiFi disconnect, forcing fresh discovery on reconnect
+  - Added unit tests for network cleanup behavior
 - Fixed UDP message queue race condition causing dropped effects on LED strip drivers
   - When hub sends multiple effects rapidly (e.g., blue explosion + white pulse for player death), the single-message buffer was being overwritten before processing
   - Replaced single `pendingMessage` buffer with 8-slot circular queue of raw JSON strings

@@ -185,6 +185,14 @@ export const rgfxAPI = {
   verifyDirectory: (path: string): Promise<boolean> => {
     return ipcRenderer.invoke('fs:verify-directory', path);
   },
+
+  getFirmwareManifest: (): Promise<unknown> => {
+    return ipcRenderer.invoke('firmware:get-manifest');
+  },
+
+  getFirmwareFile: (filename: string): Promise<Buffer> => {
+    return ipcRenderer.invoke('firmware:get-file', filename);
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

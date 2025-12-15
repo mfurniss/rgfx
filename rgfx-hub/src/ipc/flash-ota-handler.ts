@@ -101,7 +101,23 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         }
       });
 
+      // Handle socket/connection errors to prevent uncaught exceptions
+      const errorState = { error: null as Error | null };
+      esp.on('error', (error: Error) => {
+        log.error(`OTA error for ${driverId}:`, error.message);
+        errorState.error = error;
+        getMainWindow()?.webContents.send('flash:ota:error', {
+          driverId,
+          error: error.message,
+        });
+      });
+
       await esp.uploadFile(firmwarePath, ipAddress, 3232, EspOTA.FLASH);
+
+      // Check if an error occurred during upload (may not reject the promise)
+      if (errorState.error) {
+        throw errorState.error;
+      }
 
       log.info(`OTA flash to ${driverId} completed successfully`);
       markDriverOtaFinished(driverId);
