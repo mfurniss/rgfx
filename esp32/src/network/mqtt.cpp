@@ -239,8 +239,10 @@ void setupMQTT() {
 		// Initialize MQTT client with dummy host (will be updated when broker is discovered)
 		mqttClient.begin("0.0.0.0", MQTT_PORT, espClient);
 		mqttClient.onMessage(mqttCallback);
+		mqttClient.setKeepAlive(MQTT_KEEPALIVE_SECONDS);
 
-		log("MQTT client initialized - will poll for broker every 3 seconds");
+		log("MQTT client initialized (keepalive=" + String(MQTT_KEEPALIVE_SECONDS) +
+		    "s) - will poll for broker every 3 seconds");
 	} else {
 		log("Skipping MQTT setup - no WiFi connection");
 	}

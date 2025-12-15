@@ -63,6 +63,15 @@ constexpr uint16_t SSDP_POLL_INTERVAL_MS = 3000;
  */
 constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000;
 
+/**
+ * MQTT keep-alive interval (seconds).
+ * Broker disconnects client if no activity within 1.5x this value.
+ * Set to 60 seconds to provide resilience against brief network hiccups
+ * and blocking operations like broker discovery (which can take 6 seconds).
+ * Telemetry sent every 10 seconds provides more frequent implicit heartbeats.
+ */
+constexpr int MQTT_KEEPALIVE_SECONDS = 60;
+
 /** MQTT topic for test commands */
 constexpr const char* MQTT_TOPIC_TEST = "rgfx/test";
 

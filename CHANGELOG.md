@@ -43,6 +43,12 @@ All notable changes to this project will be documented in this file.
   - Native implementations use std::chrono, std::random, raylib
 
 ### Fixed
+- Fixed periodic MQTT disconnections caused by keep-alive timeout
+  - Default arduino-mqtt keep-alive was 10 seconds, causing timeouts during blocking operations
+  - Broker discovery blocks for up to 6 seconds listening for UDP broadcasts
+  - Increased MQTT keep-alive to 60 seconds (`MQTT_KEEPALIVE_SECONDS` constant)
+  - Provides 90-second tolerance (1.5x per MQTT spec) for network hiccups
+  - Telemetry every 10 seconds still provides frequent implicit heartbeats
 - Fixed MQTT reconnection failures after WiFi disconnect/reconnect cycles
   - Broker discovery state (`mqttServerDiscovered`, `mqttServerIP`) was not reset in `cleanupNetworkServices()`
   - This caused drivers to repeatedly fail connecting to stale broker IPs (10 failures before re-discovery)
