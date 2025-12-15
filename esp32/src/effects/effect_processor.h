@@ -10,6 +10,7 @@
 #include "effects/background.h"
 #include "effects/projectile.h"
 #include "effects/text.h"
+#include "effects/scroll_text.h"
 #include "effects/effect.h"
 #include "hal/display.h"
 #include <ArduinoJson.h>
@@ -45,9 +46,10 @@ class EffectProcessor {
 	BackgroundEffect backgroundEffect;
 	ProjectileEffect projectileEffect;
 	TextEffect textEffect;
+	ScrollTextEffect scrollTextEffect;
 	unsigned long lastFrameTime;
 
-	EffectEntry effectMap[8];
+	EffectEntry effectMap[9];
 
    public:
 	EffectProcessor(Matrix& matrix, hal::IDisplay& display);
