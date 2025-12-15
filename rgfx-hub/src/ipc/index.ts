@@ -27,6 +27,7 @@ import { registerSimulateEventHandler } from './simulate-event-handler';
 import { registerSelectDirectoryHandler } from './select-directory-handler';
 import { registerVerifyDirectoryHandler } from './verify-directory-handler';
 import { registerGetAppInfoHandler } from './get-app-info-handler';
+import { registerFirmwareFilesHandler } from './firmware-files-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -56,4 +57,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerSelectDirectoryHandler();
   registerVerifyDirectoryHandler();
   registerGetAppInfoHandler();
+  registerFirmwareFilesHandler();
 }

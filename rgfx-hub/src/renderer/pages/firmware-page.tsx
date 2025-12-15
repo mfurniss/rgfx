@@ -144,14 +144,9 @@ const FirmwarePage: React.FC = () => {
       setProgress(0);
       setLogMessages([]);
 
-      // Load firmware manifest
+      // Load firmware manifest via IPC
       addLog('Loading firmware manifest...');
-      const manifestResponse = await fetch('/esp32/firmware/manifest.json');
-
-      if (!manifestResponse.ok) {
-        throw new Error('Failed to load firmware manifest');
-      }
-      const manifestJson: unknown = await manifestResponse.json();
+      const manifestJson: unknown = await window.rgfx.getFirmwareManifest();
       const manifestResult = FirmwareManifestSchema.safeParse(manifestJson);
 
       if (!manifestResult.success) {
@@ -167,13 +162,11 @@ const FirmwarePage: React.FC = () => {
       const fileArray: { data: string; address: number }[] = [];
 
       for (const fileInfo of manifest.files) {
-        const response = await fetch(`/esp32/firmware/${fileInfo.name}`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to load ${fileInfo.name}`);
-        }
-
-        const buffer = await response.arrayBuffer();
+        // Load firmware file via IPC (returns Node.js Buffer)
+        const nodeBuffer = await window.rgfx.getFirmwareFile(fileInfo.name);
+        // Convert Node.js Buffer to Uint8Array then to ArrayBuffer
+        const uint8Array = new Uint8Array(nodeBuffer);
+        const { buffer } = uint8Array;
 
         // Verify size
         if (buffer.byteLength !== fileInfo.size) {

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- ESP32 MQTT first-connection failures (Error -9)
+  - Root cause: arduino-mqtt library is not reentrant - calling publish/subscribe/unsubscribe inside callbacks corrupts internal state
+  - handleDriverConfig() was calling mqttClient.subscribe/unsubscribe inside the callback (mqtt_config_handler.cpp lines 54, 60)
+  - Solution: Queue operations in callback, process them in main network task loop via processPendingMqttOperations()
+  - Deferred operations: driver config, test mode changes, logging config
+  - Lightweight operations (reset, reboot, clear-effects) still execute directly in callback
+
 ### Added
 - Optional `accentColor` property for text and scroll_text effects
   - Renders a shadow/accent at +4,+4 pixel offset behind the main text

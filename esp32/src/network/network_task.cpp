@@ -69,6 +69,10 @@ void networkTask(void* parameter) {
 			// Process MQTT connection and messages
 			mqttLoop();
 
+			// Process pending operations queued from MQTT callback
+			// Must happen outside callback context to avoid corrupting MQTT library state
+			processPendingMqttOperations();
+
 			// Process queued log messages (ensures all MQTT publishes happen on Core 0)
 			processLogQueue();
 
