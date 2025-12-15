@@ -22,5 +22,6 @@ export default baseEffect
     y: z.number().int().optional().default(0).describe('Y position in canvas coordinates'),
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(true).describe('Restart scrolling when text exits left edge'),
+    snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
   })
   .strict();

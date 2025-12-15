@@ -1,6 +1,7 @@
 #include "scroll_text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include <cmath>
 #include <cstring>
 
 namespace {
@@ -51,6 +52,7 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.scrollX = static_cast<float>(canvas.getWidth());
 	instance.speed = speed;
 	instance.repeat = repeat;
+	instance.snapToLed = props["snapToLed"] | true;
 
 	instances.push_back(instance);
 }
@@ -77,7 +79,13 @@ void ScrollTextEffect::render() {
 	constexpr int16_t ACCENT_OFFSET = 4;
 
 	for (const auto& inst : instances) {
-		int16_t baseX = static_cast<int16_t>(inst.scrollX);
+		int16_t baseX;
+		if (inst.snapToLed) {
+			// Snap to LED boundary (4 canvas pixels per LED) to eliminate shimmer
+			baseX = static_cast<int16_t>(std::round(inst.scrollX / 4.0f)) * 4;
+		} else {
+			baseX = static_cast<int16_t>(inst.scrollX);
+		}
 
 		// Pass 1: Accent (if present)
 		if (inst.hasAccent) {

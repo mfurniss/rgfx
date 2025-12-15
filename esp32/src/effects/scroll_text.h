@@ -19,6 +19,7 @@ class ScrollTextEffect : public IEffect {
 		float scrollX;   // Current x position (float for smooth scrolling)
 		float speed;     // Scroll speed in canvas pixels per second
 		bool repeat;     // Whether to restart when text exits left edge
+		bool snapToLed;  // Snap to LED boundaries to reduce shimmer
 	};
 
 	std::vector<ScrollInstance> instances;
