@@ -38,6 +38,11 @@ All notable changes to this project will be documented in this file.
   - Native implementations use std::chrono, std::random, raylib
 
 ### Fixed
+- Fixed MQTT reconnection failures after WiFi disconnect/reconnect cycles
+  - Broker discovery state (`mqttServerDiscovered`, `mqttServerIP`) was not reset in `cleanupNetworkServices()`
+  - This caused drivers to repeatedly fail connecting to stale broker IPs (10 failures before re-discovery)
+  - Now properly clears broker state on WiFi disconnect, forcing fresh discovery on reconnect
+  - Added unit tests for network cleanup behavior
 - Fixed UDP message queue race condition causing dropped effects on LED strip drivers
   - When hub sends multiple effects rapidly (e.g., blue explosion + white pulse for player death), the single-message buffer was being overwritten before processing
   - Replaced single `pendingMessage` buffer with 8-slot circular queue of raw JSON strings
