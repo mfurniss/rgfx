@@ -18,6 +18,7 @@ import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as Firmwa
 import { PageTitle } from '../components/page-title';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
+import { useUiStore } from '../store/ui-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 
@@ -34,7 +35,8 @@ const FirmwarePage: React.FC = () => {
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
-  const [isFlashing, setIsFlashing] = useState(false);
+  const isFlashing = useUiStore((state) => state.isFlashingFirmware);
+  const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
   const [progress, setProgress] = useState(0);
   const [driverFlashStatus, setDriverFlashStatus] = useState<Map<string, DriverFlashStatus>>(
     new Map(),

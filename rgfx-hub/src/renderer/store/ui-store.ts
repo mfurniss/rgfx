@@ -36,8 +36,12 @@ interface UiState {
   rgfxConfigDirectory: string;
   mameRomsDirectory: string;
 
+  // Firmware update state (transient, not persisted)
+  isFlashingFirmware: boolean;
+
   // Actions
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
+  setIsFlashingFirmware: (isFlashing: boolean) => void;
   setTestEffectsState: (
     selectedEffect: string,
     propsJson: string,
@@ -72,8 +76,15 @@ export const useUiStore = create<UiState>()(
       rgfxConfigDirectory: '',
       mameRomsDirectory: '',
 
+      // Firmware update state
+      isFlashingFirmware: false,
+
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
+      },
+
+      setIsFlashingFirmware: (isFlashing) => {
+        set({ isFlashingFirmware: isFlashing });
       },
 
       setTestEffectsState: (selectedEffect, propsJson, selectedDrivers, selectAll) => {
