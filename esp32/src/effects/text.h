@@ -19,7 +19,7 @@ class TextEffect : public IEffect {
 	};
 
 	std::vector<TextInstance> instances;
-	[[maybe_unused]] const Matrix& matrix;
+	const Matrix& matrix;
 	Canvas& canvas;
 
 	void renderChar(char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b);
