@@ -143,6 +143,13 @@ void cleanupNetworkServices(Matrix& matrix) {
 	mqttSetupDone = false;
 	udpSetupDone = false;
 	otaSetupDone = false;
+
+	// Reset MQTT broker discovery state to force fresh discovery on reconnect
+	// This prevents stale broker IPs from causing repeated connection failures
+	extern bool mqttServerDiscovered;
+	extern char mqttServerIP[];
+	mqttServerDiscovered = false;
+	mqttServerIP[0] = '\0';
 }
 
 // Forward declaration of global matrix from main.cpp
@@ -226,4 +233,11 @@ void cleanupNetworkServices() {
 	mqttSetupDone = false;
 	udpSetupDone = false;
 	otaSetupDone = false;
+
+	// Reset MQTT broker discovery state to force fresh discovery on reconnect
+	// This prevents stale broker IPs from causing repeated connection failures
+	extern bool mqttServerDiscovered;
+	extern char mqttServerIP[];
+	mqttServerDiscovered = false;
+	mqttServerIP[0] = '\0';
 }
