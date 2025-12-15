@@ -383,12 +383,13 @@ void sendDriverTelemetry() {
 	String payload;
 	serializeJson(doc, payload);
 
-	// Publish to unified telemetry topic with QoS 2 (exactly-once delivery)
-	// Note: Write buffer only needs header/topic space - payloads are streamed directly (v2.5.2+)
-	bool result = mqttClient.publish("rgfx/system/driver/telemetry", payload.c_str(), false, 2);
+	// Publish to unified telemetry topic with QoS 0 (fire-and-forget)
+	// QoS 0 is appropriate for periodic telemetry - missing one message is acceptable
+	// since identical data is resent every 10 seconds
+	bool result = mqttClient.publish("rgfx/system/driver/telemetry", payload.c_str(), false, 0);
 
 	if (result) {
-		log("Driver telemetry sent (QoS 2)");
+		log("Driver telemetry sent (QoS 0)");
 	} else {
 		log("Failed to send driver telemetry");
 		log("Payload size: " + String(payload.length()) + " bytes");

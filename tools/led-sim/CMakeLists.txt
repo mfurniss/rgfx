@@ -28,7 +28,6 @@ set(ESP32_SOURCES
     # Graphics
     ${ESP32_SRC_DIR}/graphics/canvas.cpp
     ${ESP32_SRC_DIR}/graphics/coordinate_transforms.cpp
-    ${ESP32_SRC_DIR}/graphics/downsample.cpp
     ${ESP32_SRC_DIR}/graphics/matrix.cpp
 
     # Effects
@@ -41,6 +40,12 @@ set(ESP32_SOURCES
     ${ESP32_SRC_DIR}/effects/background.cpp
     ${ESP32_SRC_DIR}/effects/test_leds.cpp
     ${ESP32_SRC_DIR}/effects/projectile.cpp
+    ${ESP32_SRC_DIR}/effects/text.cpp
+    ${ESP32_SRC_DIR}/effects/scroll_text.cpp
+    ${ESP32_SRC_DIR}/effects/text_rendering.cpp
+
+    # Fonts
+    ${ESP32_SRC_DIR}/fonts/den_8x8.cpp
 
     # Utils
     ${ESP32_SRC_DIR}/utils/easing_impl.cpp

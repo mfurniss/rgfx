@@ -28,6 +28,12 @@ uint32_t millis() {
 	return static_cast<uint32_t>(elapsed.count() * TIME_SCALE);
 }
 
+uint32_t micros() {
+	auto now = std::chrono::steady_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - g_startTime);
+	return static_cast<uint32_t>(elapsed.count() * TIME_SCALE);
+}
+
 void delay(uint32_t ms) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
