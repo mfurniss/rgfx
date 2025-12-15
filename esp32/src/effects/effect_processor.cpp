@@ -27,7 +27,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  } {}
 
 void EffectProcessor::update() {
-	unsigned long now = hal::millis();
+	uint32_t now = hal::micros();
 
 	// First frame: initialize timing, skip rendering
 	if (lastFrameTime == 0) {
@@ -43,11 +43,12 @@ void EffectProcessor::update() {
 		testLedsEffect.render();
 		downsampleToMatrix(canvas, &matrix);
 		display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
+		lastFrameTime = now;
 		return;
 	}
 
-	// Normal mode: calculate delta time and update effects
-	float deltaTime = (now - lastFrameTime) / 1000.0f;
+	// Normal mode: calculate delta time with microsecond precision
+	float deltaTime = (now - lastFrameTime) / 1000000.0f;
 	lastFrameTime = now;
 
 	// Clear canvas once per frame

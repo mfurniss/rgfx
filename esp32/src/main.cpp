@@ -233,28 +233,8 @@ void loop() {
 		processUDP();
 	}
 
-	// Frame rate limiting (VRR with configurable soft cap)
-	// Calculate minimum frame time based on configured update rate (default 120 FPS)
-	static uint32_t lastFrameTime = 0;
-	uint32_t now = millis();
-	uint32_t minFrameTimeMs = 1000 / g_driverConfig.updateRate;  // e.g., 8ms @ 120 FPS
-
-	// Early return if not enough time has elapsed (non-blocking time-based gating)
-	// Note: UDP processing above still happens every iteration for low latency
-	if (now - lastFrameTime < minFrameTimeMs) {
-		yield();  // Give time to other tasks
-		return;
-	}
-
-	// Calculate actual delta-time for hardware-independent animation speeds
-	float deltaTime = (now - lastFrameTime) / 1000.0f;  // Seconds elapsed
-	lastFrameTime = now;
-
-	// Note: deltaTime is available for future effects system
-	// Effects can use it for movement calculations: position += velocity * deltaTime
-	(void)deltaTime;  // Suppress unused variable warning until effects system uses it
-
 	// FPS calculation (update every second)
+	uint32_t now = millis();
 	g_frameCount++;
 	if (now - g_lastFpsCalcTime >= 1000) {
 		g_currentFps = g_frameCount * 1000.0f / (now - g_lastFpsCalcTime);

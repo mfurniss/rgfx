@@ -12,18 +12,24 @@
 
 namespace hal {
 
-// Controllable mock time
-static uint32_t g_mockTime = 0;
+// Controllable mock time (milliseconds and microseconds)
+static uint32_t g_mockTimeMs = 0;
+static uint32_t g_mockTimeUs = 0;
 
 // Seeded RNG for reproducible tests
 static uint16_t g_seed = 12345;
 
 uint32_t millis() {
-	return g_mockTime;
+	return g_mockTimeMs;
+}
+
+uint32_t micros() {
+	return g_mockTimeUs;
 }
 
 void delay(uint32_t ms) {
-	g_mockTime += ms;
+	g_mockTimeMs += ms;
+	g_mockTimeUs += ms * 1000;
 }
 
 int32_t random(int32_t max) {
@@ -48,11 +54,23 @@ void log(const char* fmt, ...) {
 namespace test {
 
 void setTime(uint32_t ms) {
-	g_mockTime = ms;
+	g_mockTimeMs = ms;
+	g_mockTimeUs = ms * 1000;
+}
+
+void setTimeMicros(uint32_t us) {
+	g_mockTimeUs = us;
+	g_mockTimeMs = us / 1000;
 }
 
 void advanceTime(uint32_t ms) {
-	g_mockTime += ms;
+	g_mockTimeMs += ms;
+	g_mockTimeUs += ms * 1000;
+}
+
+void advanceTimeMicros(uint32_t us) {
+	g_mockTimeUs += us;
+	g_mockTimeMs = g_mockTimeUs / 1000;
 }
 
 void seedRandom(uint16_t seed) {
