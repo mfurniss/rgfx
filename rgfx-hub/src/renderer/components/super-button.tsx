@@ -33,7 +33,7 @@ const SuperButton: React.FC<SuperButtonProps> = ({
 
   if (tooltipTitle) {
     return (
-      <Tooltip title={tooltipTitle} arrow>
+      <Tooltip title={tooltipTitle} arrow disableInteractive>
         <span>{button}</span>
       </Tooltip>
     );

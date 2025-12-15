@@ -104,8 +104,9 @@ local load_interceptor = function()
 		print("No interceptor found for: " .. lookup_key .. " (tried " .. game_script .. ".lua)")
 	end
 
-	-- Debug: Print first screen info
-	local tag, screen = next(manager.machine.screens)
+	-- Debug: Print first screen info (use pairs iterator to get first element from MAME enumerator)
+	local screens_iter = pairs(manager.machine.screens)
+	local tag, screen = screens_iter(manager.machine.screens)
 	if screen then
 		print("Screen tag:", tag)
 		print("Screen size:", screen.width .. "x" .. screen.height)

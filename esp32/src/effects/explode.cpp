@@ -267,7 +267,8 @@ void ExplodeEffect::render() {
 				int16_t x = centerX - halfSize + dx;
 
 				if (x >= 0 && x < width) {
-					canvas.drawRectangle(x, 0, 1, height,
+					canvas.drawRectangle(x, static_cast<int16_t>(0), static_cast<int16_t>(1),
+					                     static_cast<int16_t>(height),
 					                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
 					                     BlendMode::ADDITIVE);
 				}

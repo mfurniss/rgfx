@@ -16,16 +16,18 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  backgroundEffect(matrix, canvas),
 	  projectileEffect(matrix, canvas),
 	  textEffect(matrix, canvas),
+	  scrollTextEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
-		  {"pulse", &pulseEffect},        {"bitmap", &bitmapEffect},
-		  {"wipe", &wipeEffect},          {"explode", &explodeEffect},
-		  {"test_leds", &testLedsEffect}, {"background", &backgroundEffect},
+		  {"pulse", &pulseEffect},           {"bitmap", &bitmapEffect},
+		  {"wipe", &wipeEffect},             {"explode", &explodeEffect},
+		  {"test_leds", &testLedsEffect},    {"background", &backgroundEffect},
 		  {"projectile", &projectileEffect}, {"text", &textEffect},
+		  {"scroll_text", &scrollTextEffect},
 	  } {}
 
 void EffectProcessor::update() {
-	unsigned long now = hal::millis();
+	uint32_t now = hal::micros();
 
 	// First frame: initialize timing, skip rendering
 	if (lastFrameTime == 0) {
@@ -41,11 +43,12 @@ void EffectProcessor::update() {
 		testLedsEffect.render();
 		downsampleToMatrix(canvas, &matrix);
 		display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
+		lastFrameTime = now;
 		return;
 	}
 
-	// Normal mode: calculate delta time and update effects
-	float deltaTime = (now - lastFrameTime) / 1000.0f;
+	// Normal mode: calculate delta time with microsecond precision
+	float deltaTime = (now - lastFrameTime) / 1000000.0f;
 	lastFrameTime = now;
 
 	// Clear canvas once per frame

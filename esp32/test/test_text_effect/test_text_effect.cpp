@@ -48,6 +48,8 @@ using String = std::string;
 
 // Include effects
 #include "effects/effect.h"
+#include "effects/text_rendering.h"
+#include "effects/text_rendering.cpp"
 #include "effects/text.h"
 #include "effects/text.cpp"
 

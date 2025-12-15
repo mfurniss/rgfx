@@ -16,7 +16,7 @@
 #endif
 
 constexpr uint8_t FONT_CHAR_WIDTH = 8;
-constexpr uint8_t FONT_CHAR_HEIGHT = 7;
+constexpr uint8_t FONT_CHAR_HEIGHT = 8;
 
-// Returns pointer to 7 bytes of glyph data, or nullptr if char not in font
+// Returns pointer to 8 bytes of glyph data, or nullptr if char not in font
 const uint8_t* getGlyph(char c);
