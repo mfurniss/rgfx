@@ -5,14 +5,14 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { ipcMain, type BrowserWindow } from 'electron';
+import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverPersistence } from '../driver-persistence';
 import type { DriverRegistry } from '../driver-registry';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
 import { PersistedDriverSchema, type PersistedDriverFromSchema } from '../schemas';
-import { serializeDriverForIPC } from '../types';
+import { eventBus } from '../services/event-bus';
 
 interface SaveDriverConfigHandlerDeps {
   driverPersistence: DriverPersistence;
@@ -20,13 +20,12 @@ interface SaveDriverConfigHandlerDeps {
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
-  getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDeps): void {
   const {
     driverPersistence, driverRegistry, ledHardwareManager, mqtt,
-    uploadConfigToDriver, getMainWindow,
+    uploadConfigToDriver,
   } = deps;
 
   ipcMain.handle('driver:save-config', async (_event, config: PersistedDriverFromSchema) => {
@@ -107,17 +106,13 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
     const updatedDriver =
       driverRegistry.refreshDriverFromPersistence(macAddress, ledHardwareManager);
 
-    // Notify renderer of the updated driver
+    // Notify renderer of the updated driver via event bus
     if (updatedDriver) {
-      const mainWindow = getMainWindow();
-
-      if (mainWindow) {
-        mainWindow.webContents.send('driver:updated', serializeDriverForIPC(updatedDriver));
-        log.info(`Sent driver:updated to renderer for ${currentId}`);
-      }
+      eventBus.emit('driver:updated', { driver: updatedDriver });
+      log.info(`Emitted driver:updated event for ${currentId}`);
 
       // If driver is connected, push the new config to the device and reboot
-      if (updatedDriver.connected && mainWindow) {
+      if (updatedDriver.connected) {
         log.info(`Driver ${currentId} is connected, uploading new config...`);
         await uploadConfigToDriver(macAddress);
 
@@ -129,12 +124,12 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
         // Mark driver as disconnected (it will reboot) with 'restarting' reason
         updatedDriver.connected = false;
         updatedDriver.ip = undefined;
-        mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(updatedDriver), 'restarting');
+        eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
 
-        return { success: true };
+        return { success: true, driverRebooted: true };
       }
     }
 
-    return { success: true };
+    return { success: true, driverRebooted: false };
   });
 }

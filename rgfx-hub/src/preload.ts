@@ -1,8 +1,14 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
+import { exposeElectronTRPC } from 'electron-trpc/main';
 import type { Driver, SystemStatus, EventTopicData, AppInfo, DisconnectReason } from './types';
 import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
+
+// Expose electron-trpc for type-safe IPC communication
+process.once('loaded', () => {
+  exposeElectronTRPC();
+});
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object

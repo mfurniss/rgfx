@@ -12,8 +12,9 @@ import type { DriverPersistence } from './driver-persistence';
 import type { SystemMonitor } from './system-monitor';
 import type { MqttBroker } from './network';
 import { serializeDriverForIPC } from './types';
+import { eventBus } from './services/event-bus';
 
-interface DriverCallbacksDeps {
+interface DriverEventHandlersDeps {
   driverRegistry: DriverRegistry;
   driverPersistence: DriverPersistence;
   systemMonitor: SystemMonitor;
@@ -23,7 +24,11 @@ interface DriverCallbacksDeps {
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
 }
 
-export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
+/**
+ * Sets up event handlers for driver lifecycle events.
+ * Subscribes to the event bus and handles IPC communication to renderer.
+ */
+export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
   const {
     driverRegistry,
     driverPersistence,
@@ -52,16 +57,17 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
     mainWindow.webContents.send('system:status', status);
   }
 
-  driverRegistry.onDriverConnected((driver) => {
-    const callbackTime = Date.now();
-    log.info(`[DEBUG] onDriverConnected callback triggered for ${driver.id} at ${callbackTime}`);
+  // Handle driver connected events
+  eventBus.on('driver:connected', ({ driver }) => {
+    const eventTime = Date.now();
+    log.info(`[DEBUG] driver:connected event received for ${driver.id} at ${eventTime}`);
 
     const mainWindow = getMainWindow();
 
     if (isWindowAvailable() && mainWindow) {
       mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
       log.info(
-        `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - callbackTime}ms)`,
+        `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - eventTime}ms)`,
       );
       sendSystemStatus();
     }
@@ -87,13 +93,57 @@ export function registerDriverCallbacks(deps: DriverCallbacksDeps): void {
     }
   });
 
-  driverRegistry.onDriverDisconnected((driver) => {
+  // Handle driver disconnected events
+  eventBus.on('driver:disconnected', ({ driver, reason }) => {
     const mainWindow = getMainWindow();
 
     if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
-      log.info('Sent driver:disconnected event to renderer');
+      mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver), reason);
+      log.info(`Sent driver:disconnected event to renderer (reason: ${reason})`);
       sendSystemStatus();
+    }
+  });
+
+  // Handle driver updated events (stats changes, telemetry updates)
+  eventBus.on('driver:updated', ({ driver }) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
+    }
+  });
+
+  // Handle game event statistics
+  eventBus.on('event:topic', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('event:topic', data);
+    }
+  });
+
+  // Handle OTA flash events
+  eventBus.on('flash:ota:state', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('flash:ota:state', data);
+    }
+  });
+
+  eventBus.on('flash:ota:progress', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('flash:ota:progress', data);
+    }
+  });
+
+  eventBus.on('flash:ota:error', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('flash:ota:error', data);
     }
   });
 }

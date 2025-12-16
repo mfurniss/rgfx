@@ -7,9 +7,11 @@
 
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { registerFlashOtaHandler } from '../flash-ota-handler';
+import { eventBus } from '@/services/event-bus';
 import type { DriverRegistry } from '@/driver-registry';
-import type { BrowserWindow } from 'electron';
 import type { Driver } from '@/types';
+
+vi.mocked(eventBus);
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -34,6 +36,12 @@ vi.mock('fs', () => ({
   existsSync: vi.fn(() => true),
 }));
 
+vi.mock('@/services/event-bus', () => ({
+  eventBus: {
+    emit: vi.fn(),
+  },
+}));
+
 class MockEspOTA {
   static FLASH = 'flash';
   uploadFile = vi.fn(() => Promise.resolve());
@@ -49,12 +57,6 @@ describe('registerFlashOtaHandler', () => {
     getDriver: ReturnType<typeof vi.fn>;
     touchDriver: ReturnType<typeof vi.fn>;
   };
-  let mockMainWindow: {
-    webContents: {
-      send: ReturnType<typeof vi.fn>;
-    };
-  };
-  let mockGetMainWindow: ReturnType<typeof vi.fn>;
   let mockDriver: Driver;
   let registeredHandler: (
     event: unknown,
@@ -110,14 +112,6 @@ describe('registerFlashOtaHandler', () => {
       touchDriver: vi.fn(() => mockDriver),
     };
 
-    mockMainWindow = {
-      webContents: {
-        send: vi.fn(),
-      },
-    };
-
-    mockGetMainWindow = vi.fn(() => mockMainWindow as unknown as BrowserWindow);
-
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
       (
@@ -133,7 +127,6 @@ describe('registerFlashOtaHandler', () => {
 
     registerFlashOtaHandler({
       driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-      getMainWindow: mockGetMainWindow,
     });
   });
 
@@ -192,6 +185,23 @@ describe('registerFlashOtaHandler', () => {
       const result = await registeredHandler({}, 'rgfx-driver-0001');
 
       expect(result.success).toBe(true);
+    });
+
+    it('should emit driver:disconnected with restarting reason on success', async () => {
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
+        driver: expect.objectContaining({ connected: false, ip: undefined }),
+        reason: 'restarting',
+      });
+    });
+
+    it('should touch driver during progress updates without emitting driver:updated', async () => {
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      // touchDriver should be called but driver:updated should NOT be emitted during progress
+      expect(mockDriverRegistry.touchDriver).toHaveBeenCalled();
+      expect(eventBus.emit).not.toHaveBeenCalledWith('driver:updated', expect.anything());
     });
   });
 
