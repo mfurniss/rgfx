@@ -30,6 +30,8 @@ export default tseslint.config(
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
+      // Warn on unnecessary conditions - allows compile-time feature flags
+      '@typescript-eslint/no-unnecessary-condition': 'warn',
       // Enforce const for variables that are never reassigned
       'prefer-const': 'error',
       // Enforce object shorthand syntax

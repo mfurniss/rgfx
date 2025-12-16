@@ -74,6 +74,9 @@ export const MAIN_WINDOW_ZOOM_FACTOR = 0.9;
 /** Whether to automatically open DevTools console in development mode */
 export const OPEN_DEVTOOLS_IN_DEV = false;
 
+/** Whether to log all events emitted on the event bus */
+export const EVENT_BUS_LOGGING = true;
+
 // ============================================================================
 // File System & Persistence Configuration
 // ============================================================================
