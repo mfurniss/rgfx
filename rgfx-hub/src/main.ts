@@ -24,6 +24,7 @@ import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
 import { installDefaultTransformers } from './transformer-installer';
 import { installDefaultInterceptors } from './interceptor-installer';
+import { eventBus } from './services/event-bus';
 import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
@@ -191,15 +192,12 @@ function processEvent(topic: string, payload: string): void {
   eventTopicCounts.set(topic, currentCount + 1);
   eventTopicLastValues.set(topic, payload);
 
-  // Send event count to renderer in real-time (lightweight, just a number)
-  if (isWindowAvailable() && mainWindow) {
-    mainWindow.webContents.send('event:count', eventsProcessed);
-    mainWindow.webContents.send('event:topic', {
-      topic,
-      count: currentCount + 1,
-      lastValue: payload.length > 0 ? payload : undefined,
-    });
-  }
+  // Emit via event bus (handler in event-callbacks.ts sends to renderer)
+  eventBus.emit('event:topic', {
+    topic,
+    count: currentCount + 1,
+    lastValue: payload.length > 0 ? payload : undefined,
+  });
 }
 
 // Register IPC handlers

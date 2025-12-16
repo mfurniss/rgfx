@@ -23,6 +23,14 @@ export interface AppEventMap {
 
   // System events
   'system:status': SystemStatus;
+
+  // Game event statistics
+  'event:topic': { topic: string; count: number; lastValue?: string };
+
+  // OTA flash events
+  'flash:ota:state': { driverId: string; state: string };
+  'flash:ota:progress': { driverId: string; sent: number; total: number; percent: number };
+  'flash:ota:error': { driverId: string; error: string };
 }
 
 type AppEventName = keyof AppEventMap;
