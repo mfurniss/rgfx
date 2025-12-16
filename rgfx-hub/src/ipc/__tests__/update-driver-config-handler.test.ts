@@ -43,7 +43,7 @@ describe('registerUpdateDriverConfigHandler', () => {
       hostname: 'test-host',
       ssid: 'TestNetwork',
       rssi: -50,
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       testActive: false,

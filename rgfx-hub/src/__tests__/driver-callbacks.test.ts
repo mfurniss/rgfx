@@ -70,7 +70,7 @@ describe('setupDriverEventHandlers', () => {
       hostname: 'test-host',
       ssid: 'TestNetwork',
       rssi: -50,
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       testActive: false,
@@ -414,7 +414,7 @@ describe('setupDriverEventHandlers', () => {
       expect(sentDriver.id).toBe('rgfx-driver-0001');
       expect(sentDriver.mac).toBe('AA:BB:CC:DD:EE:FF');
       expect(sentDriver.ip).toBe('192.168.1.100');
-      expect(sentDriver.connected).toBe(true);
+      expect(sentDriver.state === 'connected').toBe(true);
     });
 
     it('should serialize driver correctly for IPC on disconnect', () => {

@@ -180,7 +180,7 @@ export class Driver {
 
   // Runtime state
   testActive?: boolean;
-  connected: boolean;
+  state: DriverState;
 
   constructor(data: {
     id: string;
@@ -204,7 +204,7 @@ export class Driver {
     stats: DriverStats;
     updateRate?: number;
     testActive?: boolean;
-    connected: boolean;
+    state: DriverState;
   }) {
     this.id = data.id;
     this.description = data.description;
@@ -227,7 +227,7 @@ export class Driver {
     this.stats = data.stats;
     this.updateRate = data.updateRate;
     this.testActive = data.testActive;
-    this.connected = data.connected;
+    this.state = data.state;
   }
 }
 
@@ -257,7 +257,7 @@ export function serializeDriverForIPC(driver: Driver) {
     stats: driver.stats,
     updateRate: driver.updateRate,
     testActive: driver.testActive,
-    connected: driver.connected,
+    state: driver.state,
   };
 }
 
@@ -279,6 +279,8 @@ export interface EventTopicData {
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting';
+
+export type DriverState = 'connected' | 'disconnected' | 'updating';
 
 // Extend Window interface for TypeScript
 declare global {

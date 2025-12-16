@@ -13,13 +13,13 @@ import { TargetDriversPicker } from '../target-drivers-picker';
 interface Driver {
   id: string;
   ip?: string;
-  connected: boolean;
+  state: 'connected' | 'disconnected' | 'updating';
 }
 
 const createMockDrivers = (): Driver[] => [
-  { id: 'driver-1', ip: '192.168.1.10', connected: true },
-  { id: 'driver-2', ip: '192.168.1.11', connected: true },
-  { id: 'driver-3', connected: false }, // No IP for disconnected driver
+  { id: 'driver-1', ip: '192.168.1.10', state: 'connected' },
+  { id: 'driver-2', ip: '192.168.1.11', state: 'connected' },
+  { id: 'driver-3', state: 'disconnected' }, // No IP for disconnected driver
 ];
 
 describe('TargetDriversPicker', () => {
@@ -45,7 +45,7 @@ describe('TargetDriversPicker', () => {
     });
 
     it('should show "All" when all drivers are selected', () => {
-      const drivers = createMockDrivers().filter((d) => d.connected);
+      const drivers = createMockDrivers().filter((d) => d.state === 'connected');
       render(
         <TargetDriversPicker
           drivers={drivers}

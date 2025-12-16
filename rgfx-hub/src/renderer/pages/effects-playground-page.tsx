@@ -128,14 +128,14 @@ export default function TestEffectsPage() {
 
   const connectedDriverIds = useDriverStore((state) =>
     state.drivers
-      .filter((d) => d.connected)
+      .filter((d) => d.state === 'connected')
       .map((d) => d.id)
       .sort()
       .join(','),
   );
 
   const drivers = useDriverStore((state) => state.drivers);
-  const connectedDrivers = drivers.filter((d) => d.connected);
+  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsJson = useUiStore((state) => state.testEffectsPropsJson);

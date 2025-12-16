@@ -77,7 +77,7 @@ describe('registerSaveDriverConfigHandler', () => {
     hostname: 'test-host',
     ssid: 'TestNetwork',
     rssi: -50,
-    connected: true,
+    state: 'connected',
     lastSeen: Date.now(),
     failedHeartbeats: 0,
     testActive: false,
@@ -448,7 +448,7 @@ describe('registerSaveDriverConfigHandler', () => {
   describe('connected driver config upload', () => {
     it('should upload config when driver is connected', async () => {
       const connectedDriver = structuredClone(runtimeDriver);
-      connectedDriver.connected = true;
+      connectedDriver.state = 'connected';
       mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(connectedDriver);
 
       const config: PersistedDriverInput = {
@@ -463,7 +463,7 @@ describe('registerSaveDriverConfigHandler', () => {
 
     it('should not upload config when driver is disconnected', async () => {
       const disconnectedDriver = structuredClone(runtimeDriver);
-      disconnectedDriver.connected = false;
+      disconnectedDriver.state = 'disconnected';
       mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(disconnectedDriver);
 
       const config: PersistedDriverInput = {
@@ -493,7 +493,7 @@ describe('registerSaveDriverConfigHandler', () => {
   describe('return value', () => {
     it('should return success: true, driverRebooted: false when driver not connected', async () => {
       const disconnectedDriver = structuredClone(runtimeDriver);
-      disconnectedDriver.connected = false;
+      disconnectedDriver.state = 'disconnected';
       mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(disconnectedDriver);
 
       const config: PersistedDriverInput = {
@@ -508,7 +508,7 @@ describe('registerSaveDriverConfigHandler', () => {
 
     it('should return success: true, driverRebooted: true when driver is connected', async () => {
       const connectedDriver = structuredClone(runtimeDriver);
-      connectedDriver.connected = true;
+      connectedDriver.state = 'connected';
       mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(connectedDriver);
 
       const config: PersistedDriverInput = {
@@ -532,7 +532,7 @@ describe('registerSaveDriverConfigHandler', () => {
       expect(eventBus.emit).toHaveBeenCalledWith(
         'driver:disconnected',
         expect.objectContaining({
-          driver: expect.objectContaining({ id: 'old-driver-id', connected: false }),
+          driver: expect.objectContaining({ id: 'old-driver-id', state: 'disconnected' }),
           reason: 'restarting',
         }),
       );
