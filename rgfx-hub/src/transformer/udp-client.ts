@@ -162,14 +162,15 @@ export class UdpClientImpl implements UdpClient {
       return true;
     }
 
+    const { ip } = driver;
     const message = JSON.stringify(effectData);
     const buffer = Buffer.from(message);
 
-    this.socket.send(buffer, UDP_PORT, driver.ip, (err) => {
+    this.socket.send(buffer, UDP_PORT, ip, (err) => {
       if (err) {
-        log.error(`UDP send to ${driver.ip} failed: ${err.message}`);
+        log.error(`UDP send to ${ip} failed: ${err.message}`);
       } else {
-        log.info(`Sent effect to driver ${driverId} (${driver.ip}):`, effectData);
+        log.info(`Sent effect to driver ${driverId} (${ip}):`, effectData);
       }
     });
 

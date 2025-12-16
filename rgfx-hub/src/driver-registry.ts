@@ -9,11 +9,10 @@ import log from 'electron-log/main';
 import { Driver, type DriverTelemetry, type LEDHardware } from './types';
 import type { DriverPersistence, PersistedDriver } from './driver-persistence';
 import type { LEDHardwareManager } from './led-hardware-manager';
+import { eventBus } from './services/event-bus';
 
 export class DriverRegistry {
   private drivers = new Map<string, Driver>();
-  private onDriverConnectedCallback?: (driver: Driver) => void;
-  private onDriverDisconnectedCallback?: (driver: Driver) => void;
   private persistence?: DriverPersistence;
 
   constructor(persistence?: DriverPersistence, ledHardwareManager?: LEDHardwareManager) {
@@ -63,16 +62,6 @@ export class DriverRegistry {
     }
   }
 
-  // Set callback for when a driver connects (new or reconnecting)
-  onDriverConnected(callback: (driver: Driver) => void) {
-    this.onDriverConnectedCallback = callback;
-  }
-
-  // Set callback for when a driver disconnects (timeout)
-  onDriverDisconnected(callback: (driver: Driver) => void) {
-    this.onDriverDisconnectedCallback = callback;
-  }
-
   // Register or update a driver from MQTT telemetry message
   registerDriver(telemetryData: {
     // Network info (reported by driver)
@@ -119,16 +108,16 @@ export class DriverRegistry {
       `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
     );
 
-    // Phase 7: Trigger callback if new connection
+    // Phase 7: Emit event if new connection
     if (this.isNewConnection(existingDriver)) {
       log.info(`Driver connected: ${driverId}`);
-      log.info(`[DEBUG] Calling onDriverConnectedCallback for ${driverId}`);
-      this.onDriverConnectedCallback?.(driver);
+      log.info(`[DEBUG] Emitting driver:connected event for ${driverId}`);
+      eventBus.emit('driver:connected', { driver });
       log.info(
-        `[DEBUG] onDriverConnectedCallback completed for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
+        `[DEBUG] driver:connected event emitted for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
       );
     } else {
-      log.debug(`Driver ${driverId} already connected - skipping onDriverConnectedCallback`);
+      log.debug(`Driver ${driverId} already connected - skipping driver:connected event`);
     }
 
     return driver;
@@ -282,7 +271,7 @@ export class DriverRegistry {
     const wasConnected = existingDriver?.connected ?? false;
     log.info(
       `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
-        `wasConnected=${wasConnected}, callbackRegistered=${this.onDriverConnectedCallback !== undefined}`,
+        `wasConnected=${wasConnected}`,
     );
     return !wasConnected;
   }
@@ -324,8 +313,8 @@ export class DriverRegistry {
 
     this.drivers.set(driver.id, driver);
 
-    // Notify callback so main can update renderer
-    this.onDriverConnectedCallback?.(driver);
+    // Emit driver:updated event so main can update renderer
+    eventBus.emit('driver:updated', { driver });
 
     return driver;
   }

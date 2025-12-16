@@ -9,6 +9,7 @@ import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
+import { createIPCHandler } from 'electron-trpc/main';
 import { MqttBroker, NetworkManager } from './network';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
@@ -34,8 +35,9 @@ import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
 import { createUploadConfigToDriver } from './upload-config-to-driver';
 import { configureSerialPort } from './serial-port-config';
-import { registerDriverCallbacks } from './driver-callbacks';
+import { setupDriverEventHandlers } from './driver-callbacks';
 import { serializeDriverForIPC } from './types';
+import { appRouter } from './trpc/router';
 import pkg from '../package.json';
 
 // Vite environment variables injected by Electron Forge
@@ -142,8 +144,8 @@ function sendSystemStatus() {
   mainWindow.webContents.send('system:status', status);
 }
 
-// Register driver callbacks
-registerDriverCallbacks({
+// Register driver event handlers
+setupDriverEventHandlers({
   driverRegistry,
   driverPersistence,
   systemMonitor,
@@ -286,6 +288,9 @@ const createWindow = () => {
     log.info('Main window closing, quitting app...');
     app.quit();
   });
+
+  // Setup tRPC IPC handler for type-safe cross-process communication
+  createIPCHandler({ router: appRouter, windows: [mainWindow] });
 
   // Wait for renderer to signal it's ready before sending initial state
   // Use 'on' instead of 'once' to handle HMR reloads during development

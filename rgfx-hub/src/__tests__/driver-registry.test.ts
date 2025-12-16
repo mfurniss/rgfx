@@ -3,6 +3,7 @@ import { DriverRegistry } from '../driver-registry';
 import { DriverPersistence } from '../driver-persistence';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { createMockTelemetryData } from './test-utils';
+import { eventBus } from '../services/event-bus';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -13,6 +14,9 @@ vi.mock('electron-log/main', () => ({
     debug: vi.fn(),
   },
 }));
+
+// Spy on eventBus
+const emitSpy = vi.spyOn(eventBus, 'emit');
 
 // Mock fs to prevent actual file operations
 vi.mock('fs', () => ({
@@ -34,6 +38,7 @@ describe('DriverRegistry', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    emitSpy.mockClear();
     // Initialize with a test persistence instance (will not actually write to disk due to mocks)
     persistence = new DriverPersistence('test-config');
     registry = new DriverRegistry(persistence);
@@ -76,14 +81,11 @@ describe('DriverRegistry', () => {
       });
     });
 
-    it('should call onDriverConnected callback for new driver', () => {
-      const callback = vi.fn();
-      registry.onDriverConnected(callback);
-
+    it('should emit driver:connected event for new driver', () => {
       const telemetryData = createMockTelemetryData();
       const device = registry.registerDriver(telemetryData);
 
-      expect(callback).toHaveBeenCalledWith(device);
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', { driver: device });
     });
 
     it('should increment message count on repeated registration', () => {
@@ -112,15 +114,13 @@ describe('DriverRegistry', () => {
       vi.useRealTimers();
     });
 
-    it('should call onDriverConnected when reconnecting disconnected driver', () => {
-      const callback = vi.fn();
-      registry.onDriverConnected(callback);
-
+    it('should emit driver:connected event when reconnecting disconnected driver', () => {
       const telemetryData = createMockTelemetryData();
 
       // Register first time
       registry.registerDriver(telemetryData);
-      expect(callback).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
 
       // Manually mark as disconnected (simulating timeout)
       const device = registry.findByIp(telemetryData.ip);
@@ -129,9 +129,12 @@ describe('DriverRegistry', () => {
         device.connected = false;
       }
 
+      emitSpy.mockClear();
+
       // Register again (reconnection)
       registry.registerDriver(telemetryData);
-      expect(callback).toHaveBeenCalledTimes(2);
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
     });
   });
 
@@ -190,18 +193,16 @@ describe('DriverRegistry', () => {
       expect(device).toBeUndefined();
     });
 
-    it('should call onDriverConnected callback after tracking', () => {
-      const callback = vi.fn();
-      registry.onDriverConnected(callback);
-
+    it('should emit driver:updated event after tracking', () => {
       const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
       registry.registerDriver(telemetryData);
 
-      // Reset mock to only count trackUdpSent callback
-      callback.mockClear();
+      // Clear emitSpy to only count trackUdpSent event
+      emitSpy.mockClear();
 
-      registry.trackUdpSent('192.168.1.100', true);
-      expect(callback).toHaveBeenCalledTimes(1);
+      const driver = registry.trackUdpSent('192.168.1.100', true);
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('driver:updated', { driver });
     });
   });
 
@@ -376,51 +377,42 @@ describe('DriverRegistry', () => {
 
   describe('isNewConnection (via registerDriver)', () => {
     it('should detect new connection for first registration', () => {
-      const callback = vi.fn();
-      registry.onDriverConnected(callback);
-
       const telemetryData = createMockTelemetryData();
       registry.registerDriver(telemetryData);
 
-      expect(callback).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
     });
 
-    it('should not trigger callback for already-connected driver', () => {
-      const callback = vi.fn();
-      registry.onDriverConnected(callback);
-
+    it('should not emit driver:connected for already-connected driver', () => {
       const telemetryData = createMockTelemetryData();
 
       // First registration
       registry.registerDriver(telemetryData);
-      expect(callback).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledTimes(1);
 
-      callback.mockClear();
+      emitSpy.mockClear();
 
-      // Second registration (driver still connected)
+      // Second registration (driver still connected) - should not emit driver:connected
       registry.registerDriver(telemetryData);
-      expect(callback).toHaveBeenCalledTimes(0);
+      expect(emitSpy).not.toHaveBeenCalledWith('driver:connected', expect.any(Object));
     });
 
     it('should detect reconnection after disconnect', () => {
-      const callback = vi.fn();
-      registry.onDriverConnected(callback);
-
       const telemetryData = createMockTelemetryData();
 
       // First registration
       const driver1 = registry.registerDriver(telemetryData);
-      expect(callback).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
 
       // Mark as disconnected
       driver1.connected = false;
 
-      callback.mockClear();
+      emitSpy.mockClear();
 
       // Reconnection
       const driver2 = registry.registerDriver(telemetryData);
       expect(driver2.connected).toBe(true);
-      expect(callback).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
     });
   });
 

@@ -77,4 +77,71 @@ describe('eventBus', () => {
       eventBus.off('network:error', handler2);
     });
   });
+
+  describe('driver events', () => {
+    it('should emit driver:connected event with driver payload', () => {
+      const handler = vi.fn();
+      const mockDriver = {
+        id: 'driver-1',
+        mac: '00:11:22:33:44:55',
+        connected: true,
+      };
+
+      eventBus.on('driver:connected', handler);
+      eventBus.emit('driver:connected', { driver: mockDriver as any });
+
+      expect(handler).toHaveBeenCalledWith({ driver: mockDriver });
+
+      eventBus.off('driver:connected', handler);
+    });
+
+    it('should emit driver:disconnected event with driver and reason', () => {
+      const handler = vi.fn();
+      const mockDriver = {
+        id: 'driver-1',
+        mac: '00:11:22:33:44:55',
+        connected: false,
+      };
+
+      eventBus.on('driver:disconnected', handler);
+      eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
+
+      expect(handler).toHaveBeenCalledWith({ driver: mockDriver, reason: 'disconnected' });
+
+      eventBus.off('driver:disconnected', handler);
+    });
+
+    it('should emit driver:disconnected with restarting reason', () => {
+      const handler = vi.fn();
+      const mockDriver = {
+        id: 'driver-1',
+        mac: '00:11:22:33:44:55',
+        connected: false,
+      };
+
+      eventBus.on('driver:disconnected', handler);
+      eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'restarting' });
+
+      expect(handler).toHaveBeenCalledWith({ driver: mockDriver, reason: 'restarting' });
+
+      eventBus.off('driver:disconnected', handler);
+    });
+
+    it('should emit driver:updated event with driver payload', () => {
+      const handler = vi.fn();
+      const mockDriver = {
+        id: 'driver-1',
+        mac: '00:11:22:33:44:55',
+        connected: true,
+        stats: { udpMessagesSent: 10 },
+      };
+
+      eventBus.on('driver:updated', handler);
+      eventBus.emit('driver:updated', { driver: mockDriver as any });
+
+      expect(handler).toHaveBeenCalledWith({ driver: mockDriver });
+
+      eventBus.off('driver:updated', handler);
+    });
+  });
 });

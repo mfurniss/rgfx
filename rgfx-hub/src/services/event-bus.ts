@@ -6,12 +6,23 @@
  */
 
 import { EventEmitter } from 'node:events';
+import log from 'electron-log/main';
+import type { Driver, DisconnectReason, SystemStatus } from '../types';
+import { EVENT_BUS_LOGGING } from '../config/constants';
 
 /**
  * Type-safe event payloads. Add new events here.
  */
-interface AppEventMap {
+export interface AppEventMap {
   'network:error': { code: string };
+
+  // Driver lifecycle events
+  'driver:connected': { driver: Driver };
+  'driver:disconnected': { driver: Driver; reason: DisconnectReason };
+  'driver:updated': { driver: Driver };
+
+  // System events
+  'system:status': SystemStatus;
 }
 
 type AppEventName = keyof AppEventMap;
@@ -24,6 +35,10 @@ class TypedEventBus {
   private emitter = new EventEmitter();
 
   emit<K extends AppEventName>(event: K, payload: AppEventMap[K]): void {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (EVENT_BUS_LOGGING) {
+      log.info('[EventBus]', event, payload);
+    }
     this.emitter.emit(event, payload);
   }
 

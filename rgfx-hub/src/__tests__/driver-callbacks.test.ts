@@ -5,8 +5,8 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { registerDriverCallbacks } from '../driver-callbacks';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { setupDriverEventHandlers } from '../driver-callbacks';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverPersistence } from '../driver-persistence';
 import type { SystemMonitor } from '../system-monitor';
@@ -14,6 +14,7 @@ import type { MqttBroker } from '../network';
 import type { BrowserWindow } from 'electron';
 import type { Driver, SystemStatus } from '../types';
 import type { PersistedDriver } from '../driver-persistence';
+import { eventBus } from '../services/event-bus';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -24,10 +25,8 @@ vi.mock('electron-log/main', () => ({
   },
 }));
 
-describe('registerDriverCallbacks', () => {
+describe('setupDriverEventHandlers', () => {
   let mockDriverRegistry: {
-    onDriverConnected: ReturnType<typeof vi.fn>;
-    onDriverDisconnected: ReturnType<typeof vi.fn>;
     getConnectedCount: ReturnType<typeof vi.fn>;
   };
   let mockDriverPersistence: {
@@ -50,11 +49,19 @@ describe('registerDriverCallbacks', () => {
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   let mockDriver: Driver;
 
-  let onDriverConnectedCallback: (driver: Driver) => void;
-  let onDriverDisconnectedCallback: (driver: Driver) => void;
+  // Track event handlers for cleanup
+  const eventHandlers: { event: string; handler: any }[] = [];
+  const originalOn = eventBus.on.bind(eventBus);
 
   beforeEach(() => {
     vi.clearAllMocks();
+    eventHandlers.length = 0;
+
+    // Wrap eventBus.on to track handlers for cleanup
+    vi.spyOn(eventBus, 'on').mockImplementation((event: any, handler: any) => {
+      eventHandlers.push({ event, handler });
+      originalOn(event, handler);
+    });
 
     mockDriver = {
       id: 'rgfx-driver-0001',
@@ -95,12 +102,6 @@ describe('registerDriverCallbacks', () => {
     };
 
     mockDriverRegistry = {
-      onDriverConnected: vi.fn((callback: (driver: Driver) => void) => {
-        onDriverConnectedCallback = callback;
-      }),
-      onDriverDisconnected: vi.fn((callback: (driver: Driver) => void) => {
-        onDriverDisconnectedCallback = callback;
-      }),
       getConnectedCount: vi.fn(() => 1),
     };
 
@@ -138,7 +139,7 @@ describe('registerDriverCallbacks', () => {
     mockGetEventsProcessed = vi.fn(() => 100);
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
 
-    registerDriverCallbacks({
+    setupDriverEventHandlers({
       driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
       driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
       systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
@@ -149,20 +150,32 @@ describe('registerDriverCallbacks', () => {
     });
   });
 
-  describe('callback registration', () => {
-    it('should register onDriverConnected callback', () => {
-      expect(mockDriverRegistry.onDriverConnected).toHaveBeenCalledWith(expect.any(Function));
+  afterEach(() => {
+    // Clean up event handlers
+    for (const { event, handler } of eventHandlers) {
+      eventBus.off(event as any, handler);
+    }
+    vi.restoreAllMocks();
+  });
+
+  describe('event subscription', () => {
+    it('should subscribe to driver:connected event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('driver:connected', expect.any(Function));
     });
 
-    it('should register onDriverDisconnected callback', () => {
-      expect(mockDriverRegistry.onDriverDisconnected).toHaveBeenCalledWith(expect.any(Function));
+    it('should subscribe to driver:disconnected event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('driver:disconnected', expect.any(Function));
+    });
+
+    it('should subscribe to driver:updated event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('driver:updated', expect.any(Function));
     });
   });
 
-  describe('onDriverConnected', () => {
+  describe('driver:connected event', () => {
     describe('IPC messaging', () => {
       it('should send driver:connected IPC message', () => {
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
           'driver:connected',
@@ -173,7 +186,7 @@ describe('registerDriverCallbacks', () => {
       });
 
       it('should send system:status IPC message after driver:connected', () => {
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
           'system:status',
@@ -186,7 +199,7 @@ describe('registerDriverCallbacks', () => {
       it('should not send IPC if window is destroyed', () => {
         mockMainWindow.isDestroyed.mockReturnValue(true);
 
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
       });
@@ -194,7 +207,7 @@ describe('registerDriverCallbacks', () => {
       it('should not send IPC if window is null', () => {
         mockGetMainWindow.mockReturnValue(null);
 
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
       });
@@ -202,14 +215,14 @@ describe('registerDriverCallbacks', () => {
 
     describe('config upload', () => {
       it('should upload config to driver with MAC address', () => {
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockUploadConfigToDriver).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
       });
 
       it('should not upload config if driver has no MAC', () => {
         mockDriver.mac = undefined;
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockUploadConfigToDriver).not.toHaveBeenCalled();
       });
@@ -218,14 +231,14 @@ describe('registerDriverCallbacks', () => {
         mockUploadConfigToDriver.mockRejectedValue(new Error('Upload failed'));
 
         expect(() => {
-          onDriverConnectedCallback(mockDriver);
+          eventBus.emit('driver:connected', { driver: mockDriver as any });
         }).not.toThrow();
       });
     });
 
     describe('remote logging configuration', () => {
       it('should publish logging config to driver', async () => {
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         await vi.waitFor(() => {
           expect(mockMqtt.publish).toHaveBeenCalledWith(
@@ -244,7 +257,7 @@ describe('registerDriverCallbacks', () => {
         };
         mockDriverPersistence.getDriver.mockReturnValue(persistedDriver);
 
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         await vi.waitFor(() => {
           expect(mockMqtt.publish).toHaveBeenCalledWith(
@@ -257,7 +270,7 @@ describe('registerDriverCallbacks', () => {
       it('should default to "off" if no persisted driver exists', async () => {
         mockDriverPersistence.getDriver.mockReturnValue(null);
 
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         await vi.waitFor(() => {
           expect(mockMqtt.publish).toHaveBeenCalledWith(
@@ -269,7 +282,7 @@ describe('registerDriverCallbacks', () => {
 
       it('should not publish logging config if driver has no MAC', () => {
         mockDriver.mac = undefined;
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockMqtt.publish).not.toHaveBeenCalled();
       });
@@ -278,7 +291,7 @@ describe('registerDriverCallbacks', () => {
         mockMqtt.publish.mockRejectedValue(new Error('MQTT error'));
 
         expect(() => {
-          onDriverConnectedCallback(mockDriver);
+          eventBus.emit('driver:connected', { driver: mockDriver as any });
         }).not.toThrow();
       });
     });
@@ -288,28 +301,41 @@ describe('registerDriverCallbacks', () => {
         mockDriverRegistry.getConnectedCount.mockReturnValue(3);
         mockGetEventsProcessed.mockReturnValue(500);
 
-        onDriverConnectedCallback(mockDriver);
+        eventBus.emit('driver:connected', { driver: mockDriver as any });
 
         expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 500);
       });
     });
   });
 
-  describe('onDriverDisconnected', () => {
+  describe('driver:disconnected event', () => {
     describe('IPC messaging', () => {
-      it('should send driver:disconnected IPC message', () => {
-        onDriverDisconnectedCallback(mockDriver);
+      it('should send driver:disconnected IPC message with reason', () => {
+        eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
           'driver:disconnected',
           expect.objectContaining({
             id: 'rgfx-driver-0001',
           }),
+          'disconnected',
+        );
+      });
+
+      it('should send driver:disconnected IPC message with restarting reason', () => {
+        eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'restarting' });
+
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+          'driver:disconnected',
+          expect.objectContaining({
+            id: 'rgfx-driver-0001',
+          }),
+          'restarting',
         );
       });
 
       it('should send system:status IPC message after driver:disconnected', () => {
-        onDriverDisconnectedCallback(mockDriver);
+        eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
           'system:status',
@@ -322,7 +348,7 @@ describe('registerDriverCallbacks', () => {
       it('should not send IPC if window is destroyed', () => {
         mockMainWindow.isDestroyed.mockReturnValue(true);
 
-        onDriverDisconnectedCallback(mockDriver);
+        eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
         expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
       });
@@ -330,7 +356,7 @@ describe('registerDriverCallbacks', () => {
       it('should not send IPC if window is null', () => {
         mockGetMainWindow.mockReturnValue(null);
 
-        onDriverDisconnectedCallback(mockDriver);
+        eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
         expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
       });
@@ -341,16 +367,45 @@ describe('registerDriverCallbacks', () => {
         mockDriverRegistry.getConnectedCount.mockReturnValue(0);
         mockGetEventsProcessed.mockReturnValue(200);
 
-        onDriverDisconnectedCallback(mockDriver);
+        eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
         expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 200);
       });
     });
   });
 
+  describe('driver:updated event', () => {
+    it('should send driver:updated IPC message', () => {
+      eventBus.emit('driver:updated', { driver: mockDriver as any });
+
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+        'driver:updated',
+        expect.objectContaining({
+          id: 'rgfx-driver-0001',
+        }),
+      );
+    });
+
+    it('should not send IPC if window is destroyed', () => {
+      mockMainWindow.isDestroyed.mockReturnValue(true);
+
+      eventBus.emit('driver:updated', { driver: mockDriver as any });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should not send IPC if window is null', () => {
+      mockGetMainWindow.mockReturnValue(null);
+
+      eventBus.emit('driver:updated', { driver: mockDriver as any });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+  });
+
   describe('driver serialization', () => {
     it('should serialize driver correctly for IPC on connect', () => {
-      onDriverConnectedCallback(mockDriver);
+      eventBus.emit('driver:connected', { driver: mockDriver as any });
 
       const sentDriver = mockMainWindow.webContents.send.mock.calls.find(
         (call) => call[0] === 'driver:connected',
@@ -363,7 +418,7 @@ describe('registerDriverCallbacks', () => {
     });
 
     it('should serialize driver correctly for IPC on disconnect', () => {
-      onDriverDisconnectedCallback(mockDriver);
+      eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
       const sentDriver = mockMainWindow.webContents.send.mock.calls.find(
         (call) => call[0] === 'driver:disconnected',
