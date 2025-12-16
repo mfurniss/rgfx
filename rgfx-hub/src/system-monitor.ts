@@ -5,11 +5,11 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { networkInterfaces } from 'node:os';
 import log from 'electron-log/main';
 import type { SystemStatus } from './types';
 import { firmwareVersionService } from './services/firmware-version-service';
 import { FirmwareWatcher } from './services/firmware-watcher';
+import { getLocalIP } from './network/network-utils';
 
 export class SystemMonitor {
   private readonly hubStartTime: number;
@@ -46,25 +46,23 @@ export class SystemMonitor {
     this.firmwareWatcher.stop();
   }
 
-  // Get Hub's local IP address (first non-internal IPv4 address)
   getLocalIpAddress(): string {
-    const nets = networkInterfaces();
-
-    const ipv4Address = Object.values(nets)
-      .flatMap((interfaces) => interfaces ?? [])
-      .find((net) => net.family === 'IPv4' && !net.internal);
-
-    return ipv4Address?.address ?? 'Unknown';
+    const ip = getLocalIP();
+    // getLocalIP returns '127.0.0.1' when no network found
+    return ip === '127.0.0.1' ? 'Unknown' : ip;
   }
 
   // Generate system status object
   getSystemStatus(connectedDriverCount: number, eventsProcessed: number): SystemStatus {
+    const hubIp = this.getLocalIpAddress();
+    const isNetworkAvailable = hubIp !== 'Unknown';
+
     return {
-      mqttBroker: 'running',
-      udpServer: 'active',
+      mqttBroker: isNetworkAvailable ? 'running' : 'stopped',
+      udpServer: isNetworkAvailable ? 'active' : 'inactive',
       eventReader: 'monitoring',
       driversConnected: connectedDriverCount,
-      hubIp: this.getLocalIpAddress(),
+      hubIp,
       eventsProcessed,
       hubStartTime: this.hubStartTime,
       currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,

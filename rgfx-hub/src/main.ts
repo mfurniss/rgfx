@@ -9,7 +9,7 @@ import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
-import { MqttBroker } from './network';
+import { MqttBroker, NetworkManager } from './network';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';
@@ -151,6 +151,11 @@ registerDriverCallbacks({
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
   uploadConfigToDriver,
+});
+
+// Create network manager to handle network changes
+const networkManager = new NetworkManager(mqtt, () => {
+  sendSystemStatus();
 });
 
 // Start MQTT broker
@@ -368,6 +373,7 @@ app.on('before-quit', () => {
   // Stop services
   eventReader.stop();
   udpClient.stop();
+  networkManager.stop();
   void mqtt.stop();
 });
 

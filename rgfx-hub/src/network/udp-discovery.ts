@@ -10,6 +10,7 @@ import log from 'electron-log/main';
 import { UDP_DISCOVERY_PORT, UDP_DISCOVERY_INTERVAL_MS } from '../config/constants';
 import { getBroadcastAddress } from '../network/network-utils';
 import type { DiscoveryService, DiscoveryServiceConfig } from './discovery-service';
+import { eventBus } from '../services/event-bus';
 
 /**
  * UDP broadcast-based discovery service for MQTT broker.
@@ -77,6 +78,13 @@ export class UdpDiscovery implements DiscoveryService {
     this.socket.send(message, UDP_DISCOVERY_PORT, broadcastAddress, (err) => {
       if (err) {
         log.error('Failed to send discovery broadcast:', err);
+
+        // Network unreachable indicates network change (e.g., WiFi switch)
+        const errorCode = (err as NodeJS.ErrnoException).code;
+
+        if (errorCode === 'ENETUNREACH') {
+          eventBus.emit('network:error', { code: errorCode });
+        }
       } else {
         log.debug(`Sent discovery broadcast to ${broadcastAddress}:${UDP_DISCOVERY_PORT}`);
       }
