@@ -57,7 +57,7 @@ const FirmwarePage: React.FC = () => {
   const currentFirmwareVersion = useDriverStore(
     (state) => state.systemStatus.currentFirmwareVersion,
   );
-  const connectedDrivers = drivers.filter((d) => d.connected);
+  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
 
   const addLog = (message: string) => {
     console.log('>', message);
@@ -118,7 +118,7 @@ const FirmwarePage: React.FC = () => {
       return;
     }
 
-    const connected = drivers.filter((d) => d.connected);
+    const connected = drivers.filter((d) => d.state === 'connected');
     const driversNeedingUpdate = connected.filter(
       (d) =>
         d.telemetry?.firmwareVersion &&
@@ -349,7 +349,7 @@ const FirmwarePage: React.FC = () => {
 
     const driversToFlash = Array.from(selectedDrivers)
       .map((id) => drivers.find((d) => d.id === id))
-      .filter((d): d is (typeof drivers)[0] => d?.connected === true);
+      .filter((d): d is (typeof drivers)[0] => d?.state === 'connected');
 
     if (driversToFlash.length === 0) {
       setError('No connected drivers selected');

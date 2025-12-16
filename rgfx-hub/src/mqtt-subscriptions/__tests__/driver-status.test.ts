@@ -22,9 +22,6 @@ vi.mock('electron-log/main', () => ({
   },
 }));
 
-vi.mock('@/ota-state', () => ({
-  isDriverInOta: vi.fn(() => false),
-}));
 
 describe('subscribeDriverStatus', () => {
   let mockMqtt: {
@@ -57,7 +54,7 @@ describe('subscribeDriverStatus', () => {
       hostname: 'test-host',
       ssid: 'TestNetwork',
       rssi: -50,
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       testActive: false,
@@ -189,7 +186,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should clear driver IP when receiving offline status', () => {
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
       mockDriver.ip = '192.168.1.100';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
@@ -198,7 +195,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should send driver:disconnected IPC message when driver goes offline', () => {
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
@@ -211,7 +208,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should send system:status IPC message when driver goes offline', () => {
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
@@ -224,7 +221,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should call getSystemStatus with current driver count and events', () => {
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
       mockDriverRegistry.getConnectedCount.mockReturnValue(2);
       mockGetEventsProcessed.mockReturnValue(500);
 
@@ -234,7 +231,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should NOT process offline if driver was already disconnected', () => {
-      mockDriver.connected = false;
+      mockDriver.state = 'disconnected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
@@ -307,7 +304,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should not send IPC message if window is destroyed', () => {
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
@@ -328,7 +325,7 @@ describe('subscribeDriverStatus', () => {
         topic: string,
         payload: string,
       ) => void;
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
       callback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
@@ -378,7 +375,7 @@ describe('subscribeDriverStatus', () => {
 
     it('should preserve driver ID when going offline', () => {
       const originalId = mockDriver.id;
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
@@ -387,7 +384,7 @@ describe('subscribeDriverStatus', () => {
 
     it('should preserve driver MAC when going offline', () => {
       const originalMac = mockDriver.mac;
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
@@ -396,7 +393,7 @@ describe('subscribeDriverStatus', () => {
 
     it('should preserve telemetry data when going offline', () => {
       const originalTelemetry = { ...mockDriver.telemetry };
-      mockDriver.connected = true;
+      mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
@@ -405,15 +402,7 @@ describe('subscribeDriverStatus', () => {
   });
 
   describe('OTA state handling', () => {
-    let mockIsDriverInOta: ReturnType<typeof vi.fn>;
-
-    beforeEach(async () => {
-      const otaState = await vi.importMock<{ isDriverInOta: ReturnType<typeof vi.fn> }>(
-        '@/ota-state',
-      );
-      mockIsDriverInOta = otaState.isDriverInOta;
-      mockIsDriverInOta.mockReturnValue(false);
-
+    beforeEach(() => {
       subscribeDriverStatus({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
@@ -423,58 +412,38 @@ describe('subscribeDriverStatus', () => {
       });
     });
 
-    it('should ignore LWT offline message during OTA update', () => {
-      mockIsDriverInOta.mockReturnValue(true);
-
-      mockDriver.connected = true;
+    it('should ignore LWT offline message when driver state is updating', () => {
+      // Driver is in 'updating' state (OTA in progress)
+      mockDriver.state = 'updating';
       mockDriver.ip = '192.168.1.100';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
-      // Driver should remain connected during OTA
-      expect(mockDriver.connected).toBe(true);
+      // Driver should remain in updating state during OTA
+      expect(mockDriver.state).toBe('updating');
       expect(mockDriver.ip).toBe('192.168.1.100');
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
-    it('should check OTA state with correct driver ID', () => {
-      mockDriver.connected = true;
-
-      subscribedCallback('rgfx/driver/my-driver-id/status', 'offline');
-
-      expect(mockIsDriverInOta).toHaveBeenCalledWith('my-driver-id');
-    });
-
-    it('should process offline normally when OTA is not in progress', () => {
-      mockIsDriverInOta.mockReturnValue(false);
-
-      mockDriver.connected = true;
+    it('should process offline normally when driver state is connected', () => {
+      mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
-      expect(mockDriver.connected).toBe(false);
+      expect(mockDriver.state).toBe('disconnected');
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         'driver:disconnected',
         expect.any(Object),
       );
     });
 
-    it('should not check OTA state for online messages', () => {
-      mockIsDriverInOta.mockClear();
-
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'online');
-
-      expect(mockIsDriverInOta).not.toHaveBeenCalled();
-    });
-
-    it('should not check OTA state if driver already disconnected', () => {
-      mockIsDriverInOta.mockClear();
-
-      mockDriver.connected = false;
+    it('should not process offline if driver already disconnected', () => {
+      mockDriver.state = 'disconnected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
-      expect(mockIsDriverInOta).not.toHaveBeenCalled();
+      // Should not send notification since driver was already disconnected
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
   });
 });

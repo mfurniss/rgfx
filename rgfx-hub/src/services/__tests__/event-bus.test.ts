@@ -84,7 +84,7 @@ describe('eventBus', () => {
       const mockDriver = {
         id: 'driver-1',
         mac: '00:11:22:33:44:55',
-        connected: true,
+        state: 'connected',
       };
 
       eventBus.on('driver:connected', handler);
@@ -100,7 +100,7 @@ describe('eventBus', () => {
       const mockDriver = {
         id: 'driver-1',
         mac: '00:11:22:33:44:55',
-        connected: false,
+        state: 'disconnected',
       };
 
       eventBus.on('driver:disconnected', handler);
@@ -116,7 +116,7 @@ describe('eventBus', () => {
       const mockDriver = {
         id: 'driver-1',
         mac: '00:11:22:33:44:55',
-        connected: false,
+        state: 'disconnected',
       };
 
       eventBus.on('driver:disconnected', handler);
@@ -132,7 +132,7 @@ describe('eventBus', () => {
       const mockDriver = {
         id: 'driver-1',
         mac: '00:11:22:33:44:55',
-        connected: true,
+        state: 'connected',
         stats: { udpMessagesSent: 10 },
       };
 

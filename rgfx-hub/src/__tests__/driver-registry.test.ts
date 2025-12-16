@@ -52,7 +52,7 @@ describe('DriverRegistry', () => {
       expect(device).toBeDefined();
       expect(device.id).toBe('rgfx-driver-0001'); // Generated ID, not MAC
       expect(device.ip).toBe(telemetryData.ip);
-      expect(device.connected).toBe(true);
+      expect(device.state === 'connected').toBe(true);
       expect(device.failedHeartbeats).toBe(0);
     });
 
@@ -126,7 +126,7 @@ describe('DriverRegistry', () => {
       const device = registry.findByIp(telemetryData.ip);
 
       if (device) {
-        device.connected = false;
+        device.state = 'disconnected';
       }
 
       emitSpy.mockClear();
@@ -328,21 +328,21 @@ describe('DriverRegistry', () => {
       const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
       const driver = registry.registerDriver(telemetryData);
 
-      expect(driver.connected).toBe(true);
+      expect(driver.state === 'connected').toBe(true);
     });
 
     it('should set connected=false when IP is empty string', () => {
       const telemetryData = createMockTelemetryData({ ip: '' });
       const driver = registry.registerDriver(telemetryData);
 
-      expect(driver.connected).toBe(false);
+      expect(driver.state === 'connected').toBe(false);
     });
 
     it('should set connected=false when IP is whitespace only', () => {
       const telemetryData = createMockTelemetryData({ ip: '   ' });
       const driver = registry.registerDriver(telemetryData);
 
-      expect(driver.connected).toBe(false);
+      expect(driver.state === 'connected').toBe(false);
     });
 
     it('should set connected=true when IP has leading/trailing whitespace but valid content', () => {
@@ -350,7 +350,7 @@ describe('DriverRegistry', () => {
       const driver = registry.registerDriver(telemetryData);
 
       // Note: IP validation happens, trim() ensures non-empty after whitespace removal
-      expect(driver.connected).toBe(true);
+      expect(driver.state === 'connected').toBe(true);
     });
   });
 
@@ -405,13 +405,13 @@ describe('DriverRegistry', () => {
       expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
 
       // Mark as disconnected
-      driver1.connected = false;
+      driver1.state = 'disconnected';
 
       emitSpy.mockClear();
 
       // Reconnection
       const driver2 = registry.registerDriver(telemetryData);
-      expect(driver2.connected).toBe(true);
+      expect(driver2.state === 'connected').toBe(true);
       expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
     });
   });
@@ -433,7 +433,7 @@ describe('DriverRegistry', () => {
       const driver = drivers[0];
       expect(driver.id).toBe('rgfx-driver-0001');
       expect(driver.mac).toBe('AA:BB:CC:DD:EE:FF');
-      expect(driver.connected).toBe(false);
+      expect(driver.state === 'connected').toBe(false);
     });
 
     it('should allow finding persisted disconnected driver by mac', () => {

@@ -51,7 +51,7 @@ const ResetDriverButton: React.FC<ResetDriverButtonProps> = ({ driver }) => {
         color="error"
         size="small"
         onClick={handleOpenDialog}
-        disabled={!driver.connected}
+        disabled={driver.state !== 'connected'}
         busy={resetPending}
       >
         {resetPending ? 'Resetting...' : 'Reset'}

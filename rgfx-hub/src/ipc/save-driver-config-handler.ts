@@ -112,7 +112,7 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
       log.info(`Emitted driver:updated event for ${currentId}`);
 
       // If driver is connected, push the new config to the device and reboot
-      if (updatedDriver.connected) {
+      if (updatedDriver.state === 'connected') {
         log.info(`Driver ${currentId} is connected, uploading new config...`);
         await uploadConfigToDriver(macAddress);
 
@@ -122,7 +122,7 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
         await mqtt.publish(rebootTopic, '');
 
         // Mark driver as disconnected (it will reboot) with 'restarting' reason
-        updatedDriver.connected = false;
+        updatedDriver.state = 'disconnected';
         updatedDriver.ip = undefined;
         eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
 

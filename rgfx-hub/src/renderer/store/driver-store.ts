@@ -1,17 +1,41 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Driver, type SystemStatus, type DisconnectReason } from '@/types';
+import { Driver, type SystemStatus, type DriverState as DriverStateType } from '@/types';
 import { DRIVER_CONNECTION_TIMEOUT_MS, DRIVER_CONNECTION_CHECK_INTERVAL_MS } from '@/config/constants';
 import { notify } from './notification-store';
 
-interface DriverState {
+/**
+ * Centralized notification for driver state changes.
+ * Only notifies when state actually changes.
+ */
+function notifyStateChange(
+  driverId: string,
+  oldState: DriverStateType | undefined,
+  newState: DriverStateType,
+): void {
+  if (oldState === newState) {
+    return;
+  }
+
+  if (newState === 'connected') {
+    notify(`${driverId} connected`, 'success');
+  } else if (newState === 'updating') {
+    notify(`${driverId} updating firmware...`, 'warning');
+  } else if (oldState !== 'updating') {
+    // newState must be 'disconnected' at this point
+    // Don't notify disconnect if transitioning from 'updating' (expected reboot)
+    notify(`${driverId} disconnected`, 'error');
+  }
+}
+
+interface DriverStoreState {
   // State
   drivers: Driver[];
   systemStatus: SystemStatus;
 
   // Actions (callbacks prefixed with 'on')
   onDriverConnected: (driver: Driver) => void;
-  onDriverDisconnected: (driver: Driver, reason?: DisconnectReason) => void;
+  onDriverDisconnected: (driver: Driver) => void;
   onDriverUpdated: (driver: Driver) => void;
   onSystemStatusUpdate: (status: SystemStatus) => void;
 
@@ -20,7 +44,7 @@ interface DriverState {
   getDriverById: (id: string) => Driver | undefined;
 }
 
-export const useDriverStore = create<DriverState>()(
+export const useDriverStore = create<DriverStoreState>()(
   devtools(
     (set, get) => {
       // Start connection timeout monitor
@@ -33,8 +57,8 @@ export const useDriverStore = create<DriverState>()(
           // If driver is connected but hasn't sent telemetry within timeout window
           const timedOut = now - (driver.lastSeenAt ?? 0) > DRIVER_CONNECTION_TIMEOUT_MS;
 
-          if (driver.connected && driver.lastSeenAt && timedOut) {
-            // Create new Driver instance with connected=false
+          if (driver.state === 'connected' && driver.lastSeenAt && timedOut) {
+            // Create new Driver instance with state='disconnected'
             return new Driver({
               id: driver.id,
               description: driver.description,
@@ -56,25 +80,25 @@ export const useDriverStore = create<DriverState>()(
               stats: driver.stats,
               updateRate: driver.updateRate,
               testActive: driver.testActive,
-              connected: false,
+              state: 'disconnected',
             });
           }
+
           return driver;
         });
 
-        // Find drivers that changed from connected to disconnected
-        const disconnectedDrivers = updatedDrivers.filter((driver, index) => {
-          const wasConnected = currentDrivers[index]?.connected;
-          return wasConnected && !driver.connected;
-        });
-
-        // Notify for each driver that timed out
-        disconnectedDrivers.forEach((driver) => {
-          notify(`${driver.id} disconnected`, 'error');
+        // Find drivers that changed state and notify
+        updatedDrivers.forEach((driver, index) => {
+          const oldState = currentDrivers[index]?.state;
+          notifyStateChange(driver.id, oldState, driver.state);
         });
 
         // Only update store if at least one driver changed state
-        if (disconnectedDrivers.length > 0) {
+        const hasChanges = updatedDrivers.some(
+          (driver, index) => driver.state !== currentDrivers[index]?.state,
+        );
+
+        if (hasChanges) {
           set({ drivers: updatedDrivers });
         }
       }, DRIVER_CONNECTION_CHECK_INTERVAL_MS);
@@ -102,10 +126,8 @@ export const useDriverStore = create<DriverState>()(
           const existingDriver = currentDrivers.find((d) => d.id === driver.id)
             ?? (driver.mac ? currentDrivers.find((d) => d.mac === driver.mac) : undefined);
 
-          // Notify if transitioning from disconnected/new to connected
-          if (!existingDriver?.connected && driver.connected) {
-            notify(`${driver.id} connected`, 'success');
-          }
+          // Notify state change
+          notifyStateChange(driver.id, existingDriver?.state, driver.state);
 
           set((state) => {
             const existsById = state.drivers.find((d) => d.id === driver.id);
@@ -140,17 +162,11 @@ export const useDriverStore = create<DriverState>()(
           });
         },
 
-        onDriverDisconnected: (driver, reason = 'disconnected') => {
+        onDriverDisconnected: (driver) => {
           const existingDriver = get().drivers.find((d) => d.id === driver.id);
 
-          // Notify if transitioning from connected to disconnected
-          if (existingDriver?.connected && !driver.connected) {
-            if (reason === 'restarting') {
-              notify(`${driver.id} is restarting...`, 'warning');
-            } else {
-              notify(`${driver.id} disconnected`, 'error');
-            }
-          }
+          // Notify state change (notifyStateChange handles updating → disconnected suppression)
+          notifyStateChange(driver.id, existingDriver?.state, driver.state);
 
           set((state) => ({
             drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
@@ -158,6 +174,13 @@ export const useDriverStore = create<DriverState>()(
         },
 
         onDriverUpdated: (driver) => {
+          const currentDrivers = get().drivers;
+          const existingDriver = currentDrivers.find((d) => d.id === driver.id)
+            ?? (driver.mac ? currentDrivers.find((d) => d.mac === driver.mac) : undefined);
+
+          // Notify state change
+          notifyStateChange(driver.id, existingDriver?.state, driver.state);
+
           set((state) => {
             const existsById = state.drivers.find((d) => d.id === driver.id);
 
@@ -195,7 +218,7 @@ export const useDriverStore = create<DriverState>()(
         },
 
         // Selectors
-        connectedDrivers: () => get().drivers.filter((d) => d.connected),
+        connectedDrivers: () => get().drivers.filter((d) => d.state === 'connected'),
         getDriverById: (id) => get().drivers.find((d) => d.id === id),
       };
     },

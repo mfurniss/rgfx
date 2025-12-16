@@ -44,13 +44,13 @@ interface MockDriverOptions {
   mac?: string;
   ip?: string;
   hostname?: string;
-  connected?: boolean;
+  state?: 'connected' | 'disconnected' | 'updating';
   telemetry?: Partial<DriverTelemetry>;
 }
 
 /**
  * Creates a mock Driver instance with sensible defaults.
- * When connected=false, network fields are set to undefined.
+ * When state is 'disconnected', network fields are set to undefined.
  */
 export const createMockDriver = (overrides?: MockDriverOptions): Driver => {
   const defaults = {
@@ -58,24 +58,25 @@ export const createMockDriver = (overrides?: MockDriverOptions): Driver => {
     mac: 'AA:BB:CC:DD:EE:FF',
     ip: '192.168.1.100',
     hostname: 'rgfx-driver',
-    connected: true,
+    state: 'connected' as const,
   };
   const opts = { ...defaults, ...overrides };
+  const isConnected = opts.state === 'connected';
 
   return new Driver({
     id: opts.id,
     mac: opts.mac,
-    ip: opts.connected ? opts.ip : undefined,
-    hostname: opts.connected ? opts.hostname : undefined,
-    ssid: opts.connected ? 'TestNetwork' : undefined,
-    rssi: opts.connected ? -50 : undefined,
-    freeHeap: opts.connected ? 200000 : undefined,
-    minFreeHeap: opts.connected ? 180000 : undefined,
-    uptimeMs: opts.connected ? 60000 : undefined,
+    ip: isConnected ? opts.ip : undefined,
+    hostname: isConnected ? opts.hostname : undefined,
+    ssid: isConnected ? 'TestNetwork' : undefined,
+    rssi: isConnected ? -50 : undefined,
+    freeHeap: isConnected ? 200000 : undefined,
+    minFreeHeap: isConnected ? 180000 : undefined,
+    uptimeMs: isConnected ? 60000 : undefined,
     lastSeen: Date.now(),
-    lastSeenAt: opts.connected ? Date.now() : undefined,
+    lastSeenAt: isConnected ? Date.now() : undefined,
     failedHeartbeats: 0,
-    telemetry: opts.connected ? createMockTelemetry(overrides?.telemetry) : undefined,
+    telemetry: isConnected ? createMockTelemetry(overrides?.telemetry) : undefined,
     stats: {
       telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
@@ -83,7 +84,7 @@ export const createMockDriver = (overrides?: MockDriverOptions): Driver => {
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
     },
-    connected: opts.connected,
+    state: opts.state,
     remoteLogging: 'errors',
   });
 };

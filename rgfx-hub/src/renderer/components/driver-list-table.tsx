@@ -56,7 +56,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
         compareValue = (a.ip ?? '').localeCompare(b.ip ?? '');
         break;
       case 'status':
-        compareValue = (a.connected ? 1 : 0) - (b.connected ? 1 : 0);
+        compareValue = (a.state === 'connected' ? 1 : 0) - (b.state === 'connected' ? 1 : 0);
         break;
     }
 
@@ -94,7 +94,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               sx={{
                 cursor: 'pointer',
                 '&:hover': { backgroundColor: 'action.hover' },
-                opacity: driver.connected ? 1 : 0.6,
+                opacity: driver.state === 'connected' ? 1 : 0.6,
               }}
             >
               <TableCell>{driver.id}</TableCell>
