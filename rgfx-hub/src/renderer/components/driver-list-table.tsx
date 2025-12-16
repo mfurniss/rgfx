@@ -94,7 +94,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               sx={{
                 cursor: 'pointer',
                 '&:hover': { backgroundColor: 'action.hover' },
-                opacity: driver.state === 'connected' ? 1 : 0.6,
               }}
             >
               <TableCell>{driver.id}</TableCell>
