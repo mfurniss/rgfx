@@ -13,7 +13,8 @@ function notifyStateChange(
   oldState: DriverStateType | undefined,
   newState: DriverStateType,
 ): void {
-  if (oldState === newState) {
+  // Don't notify on initial load (oldState is undefined) or if state unchanged
+  if (oldState === undefined || oldState === newState) {
     return;
   }
 
