@@ -18,28 +18,31 @@ import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as Firmwa
 import { PageTitle } from '../components/page-title';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
-import { useUiStore } from '../store/ui-store';
+import { useUiStore, type FlashMethod, type DriverFlashStatus } from '../store/ui-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 
-type FlashMethod = 'usb' | 'ota';
-
-interface DriverFlashStatus {
-  status: 'pending' | 'flashing' | 'success' | 'error';
-  progress: number;
-  error?: string;
-}
-
 const FirmwarePage: React.FC = () => {
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>('ota');
+  // Persisted state from store
+  const storedFlashMethod = useUiStore((state) => state.firmwareFlashMethod);
+  const storedSelectedDrivers = useUiStore((state) => state.firmwareSelectedDrivers);
+  const storedSelectAll = useUiStore((state) => state.firmwareSelectAll);
+  const storedDriverFlashStatus = useUiStore((state) => state.firmwareDriverFlashStatus);
+  const setFirmwareState = useUiStore((state) => state.setFirmwareState);
+  const setFirmwareDriverFlashStatus = useUiStore((state) => state.setFirmwareDriverFlashStatus);
+
+  // Local state initialized from store
+  const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
+  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
+    new Set(storedSelectedDrivers),
+  );
+  const [selectAll, setSelectAll] = useState(storedSelectAll);
   const isFlashing = useUiStore((state) => state.isFlashingFirmware);
   const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
   const [progress, setProgress] = useState(0);
   const [driverFlashStatus, setDriverFlashStatus] = useState<Map<string, DriverFlashStatus>>(
-    new Map(),
+    () => new Map(Object.entries(storedDriverFlashStatus)),
   );
   const [logMessages, setLogMessages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -104,8 +107,13 @@ const FirmwarePage: React.FC = () => {
     }
   }, [flashMethod]);
 
-  // Auto-select drivers that need firmware update (only on initial mount)
+  // Auto-select drivers that need firmware update (only on initial mount if no stored selection)
   useEffect(() => {
+    // Skip if we have stored selections (user navigated away and back)
+    if (storedSelectedDrivers.length > 0) {
+      return;
+    }
+
     if (!currentFirmwareVersion) {
       return;
     }
@@ -124,6 +132,16 @@ const FirmwarePage: React.FC = () => {
     // Only run on mount - don't re-select when drivers change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync state changes to store for persistence across navigation
+  useEffect(() => {
+    setFirmwareState(flashMethod, Array.from(selectedDrivers), selectAll);
+  }, [flashMethod, selectedDrivers, selectAll, setFirmwareState]);
+
+  // Sync driver flash status to store
+  useEffect(() => {
+    setFirmwareDriverFlashStatus(Object.fromEntries(driverFlashStatus));
+  }, [driverFlashStatus, setFirmwareDriverFlashStatus]);
 
   const handlePortSelect = (portGetter: (() => Promise<SerialPort>) | null) => {
     setGetPort(() => portGetter);
@@ -541,6 +559,7 @@ const FirmwarePage: React.FC = () => {
                 selectAll={selectAll}
                 onDriverToggle={handleDriverToggle}
                 onSelectAll={handleSelectAll}
+                disabled={isFlashing}
               />
 
               <SuperButton

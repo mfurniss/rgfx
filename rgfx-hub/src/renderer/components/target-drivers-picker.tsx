@@ -29,6 +29,7 @@ interface TargetDriversPickerProps {
   selectAll: boolean;
   onDriverToggle: (driverId: string) => void;
   onSelectAll: () => void;
+  disabled?: boolean;
 }
 
 export function TargetDriversPicker({
@@ -37,6 +38,7 @@ export function TargetDriversPicker({
   selectAll,
   onDriverToggle,
   onSelectAll,
+  disabled = false,
 }: TargetDriversPickerProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const connectedDrivers = drivers.filter((d) => d.connected);
@@ -55,6 +57,7 @@ export function TargetDriversPicker({
         }}
         endIcon={<ExpandMoreIcon />}
         sx={{ textTransform: 'none' }}
+        disabled={disabled}
       >
         Target Drivers: {selectAll && connectedDrivers.length === drivers.length ? 'All' : `${selectedDrivers.size} of ${drivers.length}`}
       </Button>
