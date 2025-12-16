@@ -428,4 +428,120 @@ describe('setupDriverEventHandlers', () => {
       expect(sentDriver.mac).toBe('AA:BB:CC:DD:EE:FF');
     });
   });
+
+  describe('event:topic event', () => {
+    it('should subscribe to event:topic event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('event:topic', expect.any(Function));
+    });
+
+    it('should send event:topic IPC message', () => {
+      const eventData = { topic: 'pacman/score', count: 5, lastValue: '1000' };
+      eventBus.emit('event:topic', eventData);
+
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith('event:topic', eventData);
+    });
+
+    it('should not send IPC if window is destroyed', () => {
+      mockMainWindow.isDestroyed.mockReturnValue(true);
+
+      eventBus.emit('event:topic', { topic: 'pacman/score', count: 5, lastValue: '1000' });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should not send IPC if window is null', () => {
+      mockGetMainWindow.mockReturnValue(null);
+
+      eventBus.emit('event:topic', { topic: 'pacman/score', count: 5, lastValue: '1000' });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('flash:ota:state event', () => {
+    it('should subscribe to flash:ota:state event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('flash:ota:state', expect.any(Function));
+    });
+
+    it('should send flash:ota:state IPC message', () => {
+      const stateData = { driverId: 'rgfx-driver-0001', state: 'uploading' };
+      eventBus.emit('flash:ota:state', stateData);
+
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith('flash:ota:state', stateData);
+    });
+
+    it('should not send IPC if window is destroyed', () => {
+      mockMainWindow.isDestroyed.mockReturnValue(true);
+
+      eventBus.emit('flash:ota:state', { driverId: 'rgfx-driver-0001', state: 'uploading' });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should not send IPC if window is null', () => {
+      mockGetMainWindow.mockReturnValue(null);
+
+      eventBus.emit('flash:ota:state', { driverId: 'rgfx-driver-0001', state: 'uploading' });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('flash:ota:progress event', () => {
+    it('should subscribe to flash:ota:progress event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('flash:ota:progress', expect.any(Function));
+    });
+
+    it('should send flash:ota:progress IPC message', () => {
+      const progressData = { driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50 };
+      eventBus.emit('flash:ota:progress', progressData);
+
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith('flash:ota:progress', progressData);
+    });
+
+    it('should not send IPC if window is destroyed', () => {
+      mockMainWindow.isDestroyed.mockReturnValue(true);
+
+      eventBus.emit('flash:ota:progress', { driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50 });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should not send IPC if window is null', () => {
+      mockGetMainWindow.mockReturnValue(null);
+
+      eventBus.emit('flash:ota:progress', { driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50 });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('flash:ota:error event', () => {
+    it('should subscribe to flash:ota:error event', () => {
+      expect(eventBus.on).toHaveBeenCalledWith('flash:ota:error', expect.any(Function));
+    });
+
+    it('should send flash:ota:error IPC message', () => {
+      const errorData = { driverId: 'rgfx-driver-0001', error: 'Connection timeout' };
+      eventBus.emit('flash:ota:error', errorData);
+
+      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith('flash:ota:error', errorData);
+    });
+
+    it('should not send IPC if window is destroyed', () => {
+      mockMainWindow.isDestroyed.mockReturnValue(true);
+
+      eventBus.emit('flash:ota:error', { driverId: 'rgfx-driver-0001', error: 'Connection timeout' });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should not send IPC if window is null', () => {
+      mockGetMainWindow.mockReturnValue(null);
+
+      eventBus.emit('flash:ota:error', { driverId: 'rgfx-driver-0001', error: 'Connection timeout' });
+
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+  });
 });

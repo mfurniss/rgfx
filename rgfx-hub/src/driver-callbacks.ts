@@ -112,4 +112,38 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
     }
   });
+
+  // Handle game event statistics
+  eventBus.on('event:topic', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('event:topic', data);
+    }
+  });
+
+  // Handle OTA flash events
+  eventBus.on('flash:ota:state', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('flash:ota:state', data);
+    }
+  });
+
+  eventBus.on('flash:ota:progress', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('flash:ota:progress', data);
+    }
+  });
+
+  eventBus.on('flash:ota:error', (data) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('flash:ota:error', data);
+    }
+  });
 }
