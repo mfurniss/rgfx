@@ -5,20 +5,19 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { ipcMain, app, type BrowserWindow } from 'electron';
+import { ipcMain, app } from 'electron';
 import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
-import { serializeDriverForIPC } from '../types';
 import { markDriverOtaStarted, markDriverOtaFinished } from '../ota-state';
+import { eventBus } from '../services/event-bus';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
-  getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
-  const { driverRegistry, getMainWindow } = deps;
+  const { driverRegistry } = deps;
 
   ipcMain.handle('driver:flash-ota', async (_event, driverId: string) => {
     try {
@@ -44,11 +43,8 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       markDriverOtaStarted(driverId);
 
       // Touch driver immediately at OTA start to reset timeout
-      const initialTouch = driverRegistry.touchDriver(driverId);
-
-      if (initialTouch) {
-        getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(initialTouch));
-      }
+      // (no need to emit driver:updated - renderer doesn't need lastSeenAt changes)
+      driverRegistry.touchDriver(driverId);
 
       const firmwarePath = app.isPackaged
         ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
@@ -66,14 +62,10 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       esp.on('state', (state: string) => {
         log.info(`OTA state: ${state}`);
 
-        // Touch driver on state changes too
-        const touchedDriver = driverRegistry.touchDriver(driverId);
+        // Touch driver on state changes to prevent heartbeat timeout
+        driverRegistry.touchDriver(driverId);
 
-        if (touchedDriver) {
-          getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(touchedDriver));
-        }
-
-        getMainWindow()?.webContents.send('flash:ota:state', { driverId, state });
+        eventBus.emit('flash:ota:state', { driverId, state });
       });
 
       let lastPercent = -1;
@@ -81,17 +73,13 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         const percent = Math.round((data.sent / data.total) * 100);
 
         if (percent !== lastPercent) {
-          log.info(`OTA progress: ${percent}%`);
+          log.info(`OTA progress: ${driverId} ${percent}%`);
 
           // Touch driver to keep it marked as connected during OTA
           // (OTA activity proves the driver is still responsive)
-          const updatedDriver = driverRegistry.touchDriver(driverId);
+          driverRegistry.touchDriver(driverId);
 
-          if (updatedDriver) {
-            getMainWindow()?.webContents.send('driver:updated', serializeDriverForIPC(updatedDriver));
-          }
-
-          getMainWindow()?.webContents.send('flash:ota:progress', {
+          eventBus.emit('flash:ota:progress', {
             driverId,
             sent: data.sent,
             total: data.total,
@@ -106,7 +94,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       esp.on('error', (error: Error) => {
         log.error(`OTA error for ${driverId}:`, error.message);
         errorState.error = error;
-        getMainWindow()?.webContents.send('flash:ota:error', {
+        eventBus.emit('flash:ota:error', {
           driverId,
           error: error.message,
         });
@@ -125,7 +113,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       // Mark driver as disconnected (it will reboot) with 'restarting' reason
       driver.connected = false;
       driver.ip = undefined;
-      getMainWindow()?.webContents.send('driver:disconnected', serializeDriverForIPC(driver), 'restarting');
+      eventBus.emit('driver:disconnected', { driver, reason: 'restarting' });
 
       return { success: true };
     } catch (error) {

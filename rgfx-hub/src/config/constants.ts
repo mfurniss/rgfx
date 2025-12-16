@@ -35,6 +35,12 @@ export const UDP_DISCOVERY_PORT = 8889;
 /** Interval for UDP broker discovery broadcasts (milliseconds) */
 export const UDP_DISCOVERY_INTERVAL_MS = 5000;
 
+/** Debounce delay before restarting discovery after network change (milliseconds) */
+export const DISCOVERY_RESTART_DEBOUNCE_MS = 5000;
+
+/** Interval for checking if the local IP address has changed (milliseconds) */
+export const IP_CHECK_INTERVAL_MS = 5000;
+
 // ============================================================================
 // Driver Connection Timeout Configuration
 // ============================================================================
@@ -67,6 +73,9 @@ export const MAIN_WINDOW_ZOOM_FACTOR = 0.9;
 
 /** Whether to automatically open DevTools console in development mode */
 export const OPEN_DEVTOOLS_IN_DEV = false;
+
+/** Whether to log all events emitted on the event bus */
+export const EVENT_BUS_LOGGING = true;
 
 // ============================================================================
 // File System & Persistence Configuration

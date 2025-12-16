@@ -307,7 +307,6 @@ export default function TestEffectsPage() {
               variant="contained"
               color="primary"
               onClick={handleTriggerEffect}
-              disabled={connectedDrivers.length === 0 || selectedDrivers.size === 0}
               icon={<ScienceIcon />}
             >
               Trigger Effect

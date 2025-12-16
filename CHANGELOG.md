@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Refactored IPC handlers to use global event bus for driver events
+  - `flash-ota-handler.ts` now emits `driver:updated`, `driver:disconnected`, `flash:ota:state`, `flash:ota:progress`, `flash:ota:error` via event bus
+  - `save-driver-config-handler.ts` now emits `driver:updated`, `driver:disconnected` via event bus
+  - Removed `getMainWindow` dependency from both handlers
+  - Event handlers in `driver-callbacks.ts` forward events to renderer via IPC
+- Added `event:topic` to event bus for game event statistics
+  - `processEvent()` in `main.ts` now emits via event bus instead of direct IPC
+
 ### Fixed
 - ESP32 MQTT first-connection failures (Error -9)
   - Root cause: arduino-mqtt library is not reentrant - calling publish/subscribe/unsubscribe inside callbacks corrupts internal state

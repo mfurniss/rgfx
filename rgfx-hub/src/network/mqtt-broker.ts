@@ -33,10 +33,31 @@ export class MqttBroker {
     this.setupEventHandlers();
 
     // Use provided discovery services or create defaults
-    this.discoveryServices = discoveryServices ?? [
-      new SsdpDiscovery(),
-      new UdpDiscovery(),
-    ];
+    this.discoveryServices = discoveryServices ?? [new SsdpDiscovery(), new UdpDiscovery()];
+  }
+
+  /**
+   * Stop discovery services without restarting.
+   * Called by NetworkManager when network becomes unreachable.
+   */
+  stopDiscovery(): void {
+    log.info('Stopping discovery services');
+
+    for (const service of this.discoveryServices) {
+      service.stop();
+    }
+  }
+
+  /**
+   * Restart discovery services with a new IP address.
+   * Called by NetworkManager when network recovers.
+   */
+  restartDiscovery(newIP: string): void {
+    log.info(`Starting discovery services with IP: ${newIP}`);
+
+    for (const service of this.discoveryServices) {
+      service.start({ mqttPort: this.port, localIP: newIP });
+    }
   }
 
   private setupEventHandlers() {

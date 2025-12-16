@@ -7,11 +7,14 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { registerSaveDriverConfigHandler } from '../save-driver-config-handler';
+import { eventBus } from '@/services/event-bus';
 import type { DriverPersistence } from '@/driver-persistence';
 import type { DriverRegistry } from '@/driver-registry';
 import type { LEDHardwareManager } from '@/led-hardware-manager';
 import type { PersistedDriverInput } from '@/schemas';
 import type { Driver } from '@/types';
+
+vi.mocked(eventBus);
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -25,6 +28,12 @@ vi.mock('electron-log/main', () => ({
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/event-bus', () => ({
+  eventBus: {
+    emit: vi.fn(),
   },
 }));
 
@@ -43,12 +52,10 @@ describe('registerSaveDriverConfigHandler', () => {
   };
   let mockLedHardwareManager: LEDHardwareManager;
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
-  let mockGetMainWindow: ReturnType<typeof vi.fn>;
-  let mockMainWindow: { webContents: { send: ReturnType<typeof vi.fn> } };
   type HandlerFn = (
     event: unknown,
     config: PersistedDriverInput
-  ) => Promise<{ success: boolean }>;
+  ) => Promise<{ success: boolean; driverRebooted: boolean }>;
   let registeredHandler: HandlerFn;
 
   const existingDriver: PersistedDriverInput = {
@@ -102,10 +109,6 @@ describe('registerSaveDriverConfigHandler', () => {
 
     mockLedHardwareManager = {} as LEDHardwareManager;
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
-    mockMainWindow = {
-      webContents: { send: vi.fn() },
-    };
-    mockGetMainWindow = vi.fn(() => mockMainWindow);
     const mockMqtt = { publish: vi.fn(() => Promise.resolve()) };
 
     const { ipcMain } = await import('electron');
@@ -121,7 +124,6 @@ describe('registerSaveDriverConfigHandler', () => {
       ledHardwareManager: mockLedHardwareManager,
       mqtt: mockMqtt as never,
       uploadConfigToDriver: mockUploadConfigToDriver,
-      getMainWindow: mockGetMainWindow,
     });
   });
 
@@ -398,7 +400,7 @@ describe('registerSaveDriverConfigHandler', () => {
     });
   });
 
-  describe('registry refresh and renderer notification', () => {
+  describe('registry refresh and event bus notification', () => {
     it('should refresh driver from persistence after save', async () => {
       const config: PersistedDriverInput = {
         id: 'old-driver-id',
@@ -413,7 +415,7 @@ describe('registerSaveDriverConfigHandler', () => {
       );
     });
 
-    it('should send driver:updated to renderer when window available', async () => {
+    it('should emit driver:updated event when driver is refreshed', async () => {
       const config: PersistedDriverInput = {
         id: 'old-driver-id',
         macAddress: 'AA:BB:CC:DD:EE:FF',
@@ -421,26 +423,15 @@ describe('registerSaveDriverConfigHandler', () => {
 
       await registeredHandler({}, config);
 
-      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      expect(eventBus.emit).toHaveBeenCalledWith(
         'driver:updated',
-        expect.objectContaining({ id: 'old-driver-id' }),
+        expect.objectContaining({
+          driver: expect.objectContaining({ id: 'old-driver-id' }),
+        }),
       );
     });
 
-    it('should not send to renderer when window is null', async () => {
-      mockGetMainWindow.mockReturnValue(null);
-
-      const config: PersistedDriverInput = {
-        id: 'old-driver-id',
-        macAddress: 'AA:BB:CC:DD:EE:FF',
-      };
-
-      await registeredHandler({}, config);
-
-      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
-    });
-
-    it('should not notify renderer if refresh returns undefined', async () => {
+    it('should not emit event if refresh returns undefined', async () => {
       mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(undefined);
 
       const config: PersistedDriverInput = {
@@ -450,7 +441,7 @@ describe('registerSaveDriverConfigHandler', () => {
 
       await registeredHandler({}, config);
 
-      expect(mockGetMainWindow).not.toHaveBeenCalled();
+      expect(eventBus.emit).not.toHaveBeenCalled();
     });
   });
 
@@ -500,7 +491,11 @@ describe('registerSaveDriverConfigHandler', () => {
   });
 
   describe('return value', () => {
-    it('should return success: true on successful save', async () => {
+    it('should return success: true, driverRebooted: false when driver not connected', async () => {
+      const disconnectedDriver = structuredClone(runtimeDriver);
+      disconnectedDriver.connected = false;
+      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(disconnectedDriver);
+
       const config: PersistedDriverInput = {
         id: 'old-driver-id',
         macAddress: 'AA:BB:CC:DD:EE:FF',
@@ -508,10 +503,25 @@ describe('registerSaveDriverConfigHandler', () => {
 
       const result = await registeredHandler({}, config);
 
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual({ success: true, driverRebooted: false });
     });
 
-    it('should send driver:disconnected with restarting reason when driver is connected', async () => {
+    it('should return success: true, driverRebooted: true when driver is connected', async () => {
+      const connectedDriver = structuredClone(runtimeDriver);
+      connectedDriver.connected = true;
+      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(connectedDriver);
+
+      const config: PersistedDriverInput = {
+        id: 'old-driver-id',
+        macAddress: 'AA:BB:CC:DD:EE:FF',
+      };
+
+      const result = await registeredHandler({}, config);
+
+      expect(result).toEqual({ success: true, driverRebooted: true });
+    });
+
+    it('should emit driver:disconnected with restarting reason when driver is connected', async () => {
       const config: PersistedDriverInput = {
         id: 'old-driver-id',
         macAddress: 'AA:BB:CC:DD:EE:FF',
@@ -519,10 +529,12 @@ describe('registerSaveDriverConfigHandler', () => {
 
       await registeredHandler({}, config);
 
-      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      expect(eventBus.emit).toHaveBeenCalledWith(
         'driver:disconnected',
-        expect.objectContaining({ id: 'old-driver-id', connected: false }),
-        'restarting',
+        expect.objectContaining({
+          driver: expect.objectContaining({ id: 'old-driver-id', connected: false }),
+          reason: 'restarting',
+        }),
       );
     });
   });

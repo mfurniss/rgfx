@@ -9,7 +9,8 @@ import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
-import { MqttBroker } from './network';
+import { createIPCHandler } from 'electron-trpc/main';
+import { MqttBroker, NetworkManager } from './network';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';
@@ -23,6 +24,7 @@ import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
 import { installDefaultTransformers } from './transformer-installer';
 import { installDefaultInterceptors } from './interceptor-installer';
+import { eventBus } from './services/event-bus';
 import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
@@ -34,8 +36,9 @@ import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
 import { createUploadConfigToDriver } from './upload-config-to-driver';
 import { configureSerialPort } from './serial-port-config';
-import { registerDriverCallbacks } from './driver-callbacks';
+import { setupDriverEventHandlers } from './driver-callbacks';
 import { serializeDriverForIPC } from './types';
+import { appRouter } from './trpc/router';
 import pkg from '../package.json';
 
 // Vite environment variables injected by Electron Forge
@@ -142,8 +145,8 @@ function sendSystemStatus() {
   mainWindow.webContents.send('system:status', status);
 }
 
-// Register driver callbacks
-registerDriverCallbacks({
+// Register driver event handlers
+setupDriverEventHandlers({
   driverRegistry,
   driverPersistence,
   systemMonitor,
@@ -151,6 +154,11 @@ registerDriverCallbacks({
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
   uploadConfigToDriver,
+});
+
+// Create network manager to handle network changes
+const networkManager = new NetworkManager(mqtt, () => {
+  sendSystemStatus();
 });
 
 // Start MQTT broker
@@ -184,15 +192,12 @@ function processEvent(topic: string, payload: string): void {
   eventTopicCounts.set(topic, currentCount + 1);
   eventTopicLastValues.set(topic, payload);
 
-  // Send event count to renderer in real-time (lightweight, just a number)
-  if (isWindowAvailable() && mainWindow) {
-    mainWindow.webContents.send('event:count', eventsProcessed);
-    mainWindow.webContents.send('event:topic', {
-      topic,
-      count: currentCount + 1,
-      lastValue: payload.length > 0 ? payload : undefined,
-    });
-  }
+  // Emit via event bus (handler in event-callbacks.ts sends to renderer)
+  eventBus.emit('event:topic', {
+    topic,
+    count: currentCount + 1,
+    lastValue: payload.length > 0 ? payload : undefined,
+  });
 }
 
 // Register IPC handlers
@@ -282,6 +287,9 @@ const createWindow = () => {
     app.quit();
   });
 
+  // Setup tRPC IPC handler for type-safe cross-process communication
+  createIPCHandler({ router: appRouter, windows: [mainWindow] });
+
   // Wait for renderer to signal it's ready before sending initial state
   // Use 'on' instead of 'once' to handle HMR reloads during development
   ipcMain.on('renderer:ready', () => {
@@ -368,6 +376,7 @@ app.on('before-quit', () => {
   // Stop services
   eventReader.stop();
   udpClient.stop();
+  networkManager.stop();
   void mqtt.stop();
 });
 
