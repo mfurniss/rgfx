@@ -52,9 +52,8 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
 
     const oldId = existingDriver.id;
     const newId = validConfig.id;
-    const isRename = newId !== oldId;
 
-    if (isRename) {
+    if (newId !== oldId) {
       // Check new ID doesn't already exist
       if (driverPersistence.getDriver(newId)) {
         throw new Error(`Driver ID "${newId}" already exists`);

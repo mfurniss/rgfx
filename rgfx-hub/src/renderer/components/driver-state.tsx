@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Chip, type ChipProps, Tooltip, IconButton } from '@mui/material';
+import { Box, Chip, type ChipProps, CircularProgress, Tooltip, IconButton } from '@mui/material';
 import { Warning as WarningIcon } from '@mui/icons-material';
 import type { Driver, DriverState as DriverStateType } from '@/types';
 
@@ -35,6 +35,15 @@ const DriverState: React.FC<DriverStateProps> = ({ driver, currentFirmwareVersio
     telemetry.firmwareVersion !== currentFirmwareVersion;
 
   const chip = <Chip label={label} color={color} size="small" />;
+
+  if (state === 'updating') {
+    return (
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+        {chip}
+        <CircularProgress size={16} />
+      </Box>
+    );
+  }
 
   if (!needsUpdate) {
     return chip;
