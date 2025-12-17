@@ -7,7 +7,7 @@
 Before starting ANY conversation or implementing features, ALWAYS review local documentation in `docs/` directory.
 
 **Available local docs:**
-1. **MAME Lua API** - `mame/docs/mame_docs/` (comprehensive EPUB extraction)
+1. **MAME Lua API** - `docs/mame_docs/` (comprehensive EPUB extraction)
 2. **arduino-mqtt library** - `docs/arduino-mqtt.md`
 3. **Aedes MQTT broker** - `docs/aedes.md`
 4. **Zustand state management** - `docs/zustand.md`
@@ -30,17 +30,17 @@ When asked about MAME (Lua APIs, command-line options, features, configuration):
 3. **READ AND UNDERSTAND the full context** before providing answers
 4. **DO NOT guess or make assumptions**
 
-The documentation in `mame/docs/mame_docs/` is comprehensive and authoritative.
+The documentation in `docs/mame_docs/` is comprehensive and authoritative.
 
 ## MAME Lua API Reference
 
 The extracted MAME EPUB documentation contains comprehensive API reference:
 
-- `mame/docs/mame_docs/luascript/index.xhtml` - Lua scripting overview
-- `mame/docs/mame_docs/luascript/ref-core.xhtml` - Core APIs
-- `mame/docs/mame_docs/luascript/ref-mem.xhtml` - Memory system
-- `mame/docs/mame_docs/luascript/ref-devices.xhtml` - Device APIs
-- `mame/docs/mame_docs/commandline/commandline-all.xhtml` - Command-line options
+- `docs/mame_docs/luascript/index.xhtml` - Lua scripting overview
+- `docs/mame_docs/luascript/ref-core.xhtml` - Core APIs
+- `docs/mame_docs/luascript/ref-mem.xhtml` - Memory system
+- `docs/mame_docs/luascript/ref-devices.xhtml` - Device APIs
+- `docs/mame_docs/commandline/commandline-all.xhtml` - Command-line options
 
 The embedded Lua environment is **Lua 5.4** with Sol3 bindings.
 
@@ -54,12 +54,19 @@ The embedded Lua environment is **Lua 5.4** with Sol3 bindings.
 
 ## MAME Lua Scripts
 
-### Architecture (`mame/lua/`)
+### Architecture (`rgfx-hub/assets/`)
 
+Scripts are bundled in two subdirectories:
+
+**`mame/`** - Core modules:
 - `rgfx.lua` - Main entry point, loads game-specific interceptors
 - `event.lua` - Event logging module (writes to temp file)
 - `ram.lua` - RAM monitoring utilities
-- `interceptors/` - Game-specific event handlers
+
+**`interceptors/`** - Game interception:
+- `mame.lua` - MAME plugin entry point
+- `rom_map.lua` - Maps ROM names to game-specific interceptor scripts
+- `games/` - Game-specific event handlers (pacman_rgfx.lua, galaga_rgfx.lua, etc.)
 
 ## Running MAME with RGFX
 

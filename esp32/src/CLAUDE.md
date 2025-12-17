@@ -46,12 +46,15 @@ Key global variables shared between cores:
 | Directory | Purpose |
 |-----------|---------|
 | [config/](config/) | LED device configuration, NVS storage, WiFi portal, timing constants |
-| [effects/](effects/) | Visual effect implementations (pulse, wipe, explode) and effect processor |
+| [effects/](effects/) | Visual effect implementations (pulse, wipe, explode, text, projectile, etc.) and effect processor |
+| [fonts/](fonts/) | Bitmap font data (DEN 8x8 font for text rendering) |
+| [generated/](generated/) | Build-time generated assets (e.g., html_status.h for captive portal) |
 | [graphics/](graphics/) | Canvas rendering, Matrix abstraction, coordinate transforms, downsampling |
+| [hal/](hal/) | Hardware Abstraction Layer - platform-agnostic interfaces for displays, LED controllers |
 | [network/](network/) | MQTT, UDP, OTA updates, mDNS, broker discovery |
+| [oled/](oled/) | OLED display driver for status display |
 | [serial_commands/](serial_commands/) | Individual serial command implementations |
-| oled/ | OLED display driver for status display |
-| utils/ | Math utilities (easing functions, scaling) |
+| [utils/](utils/) | Math utilities (easing functions, scaling) |
 
 ---
 
