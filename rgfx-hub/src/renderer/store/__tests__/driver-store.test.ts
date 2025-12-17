@@ -246,7 +246,7 @@ describe('driver-store', () => {
       const updatingDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'updating' });
       useDriverStore.getState().onDriverUpdated(updatingDriver);
 
-      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 updating firmware...', 'warning');
+      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 updating firmware...', 'info');
     });
 
     it('should not notify disconnect when transitioning from updating state (expected reboot)', () => {

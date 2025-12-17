@@ -21,7 +21,7 @@ function notifyStateChange(
   if (newState === 'connected') {
     notify(`${driverId} connected`, 'success');
   } else if (newState === 'updating') {
-    notify(`${driverId} updating firmware...`, 'warning');
+    notify(`${driverId} updating firmware...`, 'info');
   } else if (oldState !== 'updating') {
     // newState must be 'disconnected' at this point
     // Don't notify disconnect if transitioning from 'updating' (expected reboot)
