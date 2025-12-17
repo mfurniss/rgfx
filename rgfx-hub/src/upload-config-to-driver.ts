@@ -82,7 +82,6 @@ export function createUploadConfigToDriver(
         dithering: ledConfig.dithering,
         power_supply_volts: ledConfig.powerSupplyVolts,
         max_power_milliamps: ledConfig.maxPowerMilliamps,
-        wifi_tx_power: persistedDriver.wifiTxPower,
         gamma_r: ledConfig.gamma?.r ?? 1.0,
         gamma_g: ledConfig.gamma?.g ?? 1.0,
         gamma_b: ledConfig.gamma?.b ?? 1.0,
