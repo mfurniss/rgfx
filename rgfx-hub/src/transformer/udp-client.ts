@@ -55,8 +55,11 @@ export class UdpClientImpl implements UdpClient {
       }
     }
 
+    // Pre-serialize JSON once for all drivers (avoid repeated stringify)
+    const buffer = Buffer.from(JSON.stringify(effectData));
+
     for (const driver of drivers) {
-      this.sendEffectToDriver(driver.id, effectData);
+      this.sendBufferToDriver(driver, buffer);
     }
 
     return true;
@@ -151,30 +154,21 @@ export class UdpClientImpl implements UdpClient {
     return selectedIds;
   }
 
-  private sendEffectToDriver(driverId: string, effectData: EffectPayload): boolean {
-    const driver = this.driverRegistry.getDriver(driverId);
-
-    if (!driver?.ip) {
-      return true;
+  /**
+   * Send pre-serialized buffer to a driver (used by broadcast for efficiency)
+   */
+  private sendBufferToDriver(driver: Driver, buffer: Buffer): void {
+    if (!driver.ip) {
+      return;
     }
 
-    if (effectData.effect === 'text' && driver.resolvedHardware?.layout === 'strip') {
-      return true;
-    }
-
-    const { ip } = driver;
-    const message = JSON.stringify(effectData);
-    const buffer = Buffer.from(message);
-
-    this.socket.send(buffer, UDP_PORT, ip, (err) => {
+    this.socket.send(buffer, UDP_PORT, driver.ip, (err) => {
       if (err) {
-        log.error(`UDP send to ${ip} failed: ${err.message}`);
+        log.error(`UDP send to ${driver.ip} failed: ${err.message}`);
       } else {
-        log.info(`Sent effect to driver ${driverId} (${ip}):`, effectData);
+        log.debug(`Sent effect to driver ${driver.id} (${driver.ip})`);
       }
     });
-
-    return true;
   }
 
   /**
