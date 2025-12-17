@@ -253,7 +253,6 @@ describe('setupDriverEventHandlers', () => {
           id: 'rgfx-driver-0001',
           macAddress: 'AA:BB:CC:DD:EE:FF',
           remoteLogging: 'all',
-          wifiTxPower: 19.5,
         };
         mockDriverPersistence.getDriver.mockReturnValue(persistedDriver);
 
