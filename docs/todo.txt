@@ -101,4 +101,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Common effect defaults for hub and esp32
 [X] Hardware abstraction layer
 [X] Headless effect rendering tests
-[ ] Unified LED options in Hub app
+[ ] Unified LED options in Hub app configure driver
+[ ] Star Wars 1983 interceptor and transformer
+[ ] Fix firmware update manifest
+[ ] Change updating firmware notify to info
