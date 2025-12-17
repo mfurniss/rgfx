@@ -164,6 +164,20 @@ This folder contains the main page components for the RGFX Hub application. Each
 
 ---
 
+### Support Page
+
+**File:** [support-page.tsx](support-page.tsx)
+
+**Route:** `/support`
+
+**Purpose:** Documentation and help resources.
+
+**Features:**
+- Button to open bundled documentation in default browser
+- Uses `AppInfoStore` to get documentation path
+
+---
+
 ### About Page
 
 **File:** [about-page.tsx](about-page.tsx)

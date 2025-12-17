@@ -26,6 +26,14 @@ The `MqttBroker` class wraps the [Aedes](https://github.com/moscajs/aedes) MQTT 
 ### udp-discovery.ts
 `UdpDiscovery` implements `DiscoveryService` using UDP broadcast. Sends JSON discovery messages to the network broadcast address (e.g., `192.168.1.255`). This is the more reliable discovery method for typical home networks.
 
+### network-manager.ts
+`NetworkManager` is the central coordinator for network state. Responsibilities:
+- Monitors for IP address changes (detects network switches like WiFi → Ethernet)
+- Listens for `network:error` events via the event bus
+- Handles `ENETUNREACH` errors by stopping discovery and scheduling recovery
+- Restarts discovery services when network becomes available again
+- Notifies dependents of network changes via callback
+
 ### network-utils.ts
 Utility functions for network operations:
 - `getLocalIP()` - Detects the local IPv4 address, preferring WiFi/Ethernet interfaces (en0, en1, eth0)
