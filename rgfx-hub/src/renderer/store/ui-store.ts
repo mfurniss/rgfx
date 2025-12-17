@@ -73,7 +73,7 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      // Default: Device ID ascending
+      // Default: Driver ID ascending
       driverTableSortField: 'id',
       driverTableSortOrder: 'asc',
 

@@ -21,7 +21,7 @@ interface DriverListTableProps {
 }
 
 const SORT_COLUMNS: { field: SortField; label: string }[] = [
-  { field: 'id', label: 'Device ID' },
+  { field: 'id', label: 'Driver ID' },
   { field: 'ip', label: 'IP Address' },
   { field: 'status', label: 'Status' },
 ];

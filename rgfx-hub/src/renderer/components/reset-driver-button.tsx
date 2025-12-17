@@ -68,7 +68,7 @@ const ResetDriverButton: React.FC<ResetDriverButtonProps> = ({ driver }) => {
           </Typography>
           <Typography sx={{ mb: 2 }}>The following will be erased:</Typography>
           <Typography component="ul" sx={{ mb: 2, pl: 2 }}>
-            <li>Device ID</li>
+            <li>Driver ID</li>
             <li>LED hardware configuration</li>
             <li>WiFi credentials</li>
           </Typography>
