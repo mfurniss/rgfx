@@ -32,6 +32,7 @@ import { useDriverStore } from '../store/driver-store';
 import { notify } from '../store/notification-store';
 import { NumberField } from '../components/number-field';
 import SuperButton from '../components/super-button';
+import { UnifiedPanelEditor } from '../components/unified-panel-editor';
 import {
   PersistedDriverSchema,
   type PersistedDriverFromSchema,
@@ -270,6 +271,8 @@ export default function DriverConfigPage() {
                             dithering: ledConfig?.dithering,
                             powerSupplyVolts: ledConfig?.powerSupplyVolts,
                             maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
+                            unified: ledConfig?.unified,
+                            gamma: ledConfig?.gamma,
                           },
                           { shouldDirty: true, shouldValidate: true },
                         );
@@ -390,6 +393,15 @@ export default function DriverConfigPage() {
                       min={1.0}
                       max={5.0}
                       allowFloat
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Controller
+                      name="ledConfig.unified"
+                      control={control}
+                      render={({ field }) => (
+                        <UnifiedPanelEditor value={field.value} onChange={field.onChange} />
+                      )}
                     />
                   </Grid>
                 </>

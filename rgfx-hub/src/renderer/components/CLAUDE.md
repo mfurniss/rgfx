@@ -319,6 +319,58 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### FirmwareUpdateBanner
+
+**File:** [firmware-update-banner.tsx](firmware-update-banner.tsx)
+
+**Purpose:** Warning banner displayed when drivers have outdated firmware.
+
+**Features:**
+- Shown when any connected driver has different firmware version than Hub
+- Hidden automatically during OTA flashing operations
+- Navigates to firmware page when clicked
+
+---
+
+### PageTitle
+
+**File:** [page-title.tsx](page-title.tsx)
+
+**Purpose:** Reusable page header component.
+
+**Props:**
+- `icon: React.ReactNode` - Icon to display
+- `title: string` - Page title
+- `subtitle?: string` - Optional subtitle
+
+---
+
+### PageTransition
+
+**File:** [page-transition.tsx](page-transition.tsx)
+
+**Purpose:** Animated page entrance/exit transitions.
+
+**Features:**
+- Uses framer-motion for animations
+- Slide up and fade in on enter
+- Consistent 200ms animation duration
+
+---
+
+### TrpcProvider
+
+**File:** [trpc-provider.tsx](trpc-provider.tsx)
+
+**Purpose:** Context provider for tRPC/React Query integration.
+
+**Features:**
+- Creates IPC link for main process communication
+- Wraps app with QueryClientProvider and trpc.Provider
+- Used at app root for tRPC hooks to work
+
+---
+
 ### SuperButton
 
 **File:** [super-button.tsx](super-button.tsx)

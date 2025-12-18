@@ -76,7 +76,7 @@ describe('registerFlashOtaHandler', () => {
       hostname: 'test-host',
       ssid: 'TestNetwork',
       rssi: -50,
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       testActive: false,
@@ -148,7 +148,7 @@ describe('registerFlashOtaHandler', () => {
     });
 
     it('should return error for disconnected driver', async () => {
-      mockDriver.connected = false;
+      mockDriver.state = 'disconnected';
       mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
       const result = await registeredHandler({}, 'rgfx-driver-0001');
@@ -191,17 +191,31 @@ describe('registerFlashOtaHandler', () => {
       await registeredHandler({}, 'rgfx-driver-0001');
 
       expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
-        driver: expect.objectContaining({ connected: false, ip: undefined }),
+        driver: expect.objectContaining({ state: 'disconnected', ip: undefined }),
         reason: 'restarting',
       });
     });
 
-    it('should touch driver during progress updates without emitting driver:updated', async () => {
+    it('should touch driver during progress updates', async () => {
       await registeredHandler({}, 'rgfx-driver-0001');
 
-      // touchDriver should be called but driver:updated should NOT be emitted during progress
+      // touchDriver should be called during progress updates
       expect(mockDriverRegistry.touchDriver).toHaveBeenCalled();
-      expect(eventBus.emit).not.toHaveBeenCalledWith('driver:updated', expect.anything());
+    });
+
+    it('should set driver state to updating before upload', async () => {
+      // Track state transitions by capturing when emit is called
+      let stateWhenFirstEmitCalled: string | undefined;
+      vi.mocked(eventBus.emit).mockImplementationOnce((event, data) => {
+        if (event === 'driver:updated') {
+          stateWhenFirstEmitCalled = (data as { driver: Driver }).driver.state;
+        }
+      });
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      // driver:updated should have been called with state 'updating'
+      expect(stateWhenFirstEmitCalled).toBe('updating');
     });
   });
 

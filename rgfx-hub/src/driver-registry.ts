@@ -54,7 +54,7 @@ export class DriverRegistry {
             udpMessagesSent: 0,
             udpMessagesFailed: 0,
           },
-          connected: false, // Persisted drivers start as disconnected
+          state: 'disconnected', // Persisted drivers start as disconnected
         });
         this.drivers.set(driver.id, driver);
       }
@@ -247,8 +247,8 @@ export class DriverRegistry {
       stats,
       // Runtime state
       testActive: telemetryData.testActive,
-      // Driver is only connected if it has a valid IP address
-      connected: Boolean(telemetryData.ip && telemetryData.ip.trim().length > 0),
+      // Driver is connected if it has a valid IP address
+      state: telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected',
     });
   }
 
@@ -268,7 +268,7 @@ export class DriverRegistry {
    * Detect new connection (returns true if driver wasn't previously connected)
    */
   private isNewConnection(existingDriver?: Driver): boolean {
-    const wasConnected = existingDriver?.connected ?? false;
+    const wasConnected = existingDriver?.state === 'connected';
     log.info(
       `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
         `wasConnected=${wasConnected}`,
@@ -336,7 +336,7 @@ export class DriverRegistry {
   // Get count of connected drivers only
   getConnectedCount(): number {
     return Array.from(this.drivers.values()).reduce(
-      (count, driver) => count + (driver.connected ? 1 : 0),
+      (count, driver) => count + (driver.state === 'connected' ? 1 : 0),
       0,
     );
   }
@@ -347,7 +347,7 @@ export class DriverRegistry {
   }
 
   getConnectedDrivers(): Driver[] {
-    return this.getAllDrivers().filter((d) => d.connected);
+    return this.getAllDrivers().filter((d) => d.state === 'connected');
   }
 
   /**
@@ -415,7 +415,7 @@ export class DriverRegistry {
       stats: existingDriver.stats,
       updateRate: existingDriver.updateRate,
       testActive: existingDriver.testActive,
-      connected: existingDriver.connected,
+      state: existingDriver.state,
     });
 
     // Remove old entry if ID changed

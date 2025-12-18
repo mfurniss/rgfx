@@ -35,12 +35,15 @@ class IEffect {
 
 | Effect | File | Description |
 |--------|------|-------------|
-| **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse (shrink horizontally/vertically), and duration. |
-| **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). Fills canvas with color sweeping from one edge. |
-| **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
+| **Background** | [background.h](background.h)/[background.cpp](background.cpp) | Singleton solid color background. Renders first as a base layer for other effects. |
 | **Bitmap** | [bitmap.h](bitmap.h)/[bitmap.cpp](bitmap.cpp) | Static image display. Used for sprites or icons. |
+| **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
+| **Projectile** | [projectile.h](projectile.h)/[projectile.cpp](projectile.cpp) | Moving rectangular object with direction, velocity, friction, and optional trail. |
+| **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse (shrink horizontally/vertically), and duration. |
+| **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with configurable speed, color, and repeat count. |
 | **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text rendering using DEN 8x8 bitmap font. Font data in `fonts/den_8x8.h/cpp`. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
+| **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). Fills canvas with color sweeping from one edge. |
 
 ---
 
@@ -62,12 +65,16 @@ class IEffect {
 | `effect.h` | Base `IEffect` interface |
 | `effect_processor.h/cpp` | Manages effects, frame timing, and rendering |
 | `effect_utils.h/cpp` | Shared utility functions for effects |
-| `pulse.h/cpp` | Pulse effect with easing and collapse modes |
-| `wipe.h/cpp` | Directional wipe effect |
-| `explode.h/cpp` | Radial explosion effect |
+| `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
+| `background.h/cpp` | Solid color background effect |
 | `bitmap.h/cpp` | Static image display |
+| `explode.h/cpp` | Radial explosion effect |
+| `projectile.h/cpp` | Moving object with velocity/friction |
+| `pulse.h/cpp` | Pulse effect with easing and collapse modes |
+| `scroll_text.h/cpp` | Horizontally scrolling text |
 | `text.h/cpp` | Static text rendering |
 | `test_leds.h/cpp` | Hardware test pattern |
+| `wipe.h/cpp` | Directional wipe effect |
 
 ---
 

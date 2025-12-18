@@ -202,3 +202,61 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 1. Parses event line into topic and payload
 2. Processes event through `MappingEngine.handleEvent()`
 3. Calls `onEventProcessed()` callback to update statistics
+
+---
+
+### `firmware:get-manifest` / `firmware:get-file`
+
+**File:** [firmware-files-handler.ts](firmware-files-handler.ts)
+
+**Purpose:** Provides access to bundled firmware files for USB flashing.
+
+**Channels:**
+- `firmware:get-manifest` - Loads and returns `manifest.json` with firmware version and checksums
+- `firmware:get-file` - Loads a firmware binary file by name (with path traversal protection)
+
+**Returns:** JSON object (manifest) or Buffer (firmware file)
+
+---
+
+### `app:get-info`
+
+**File:** [get-app-info-handler.ts](get-app-info-handler.ts)
+
+**Purpose:** Returns application metadata and default paths.
+
+**Parameters:** None
+
+**Returns:** `AppInfo` object containing:
+- `version` - App version from package.json
+- `licensePath` - Path to LICENSE file
+- `docsPath` - Path to documentation
+- `defaultRgfxConfigDir` - Default `~/.rgfx` config directory
+- `defaultMameRomsDir` - Default `~/mame-roms` directory
+
+---
+
+### `dialog:select-directory`
+
+**File:** [select-directory-handler.ts](select-directory-handler.ts)
+
+**Purpose:** Opens a native folder picker dialog.
+
+**Parameters:**
+- `title?: string` - Dialog title
+- `defaultPath?: string` - Starting directory
+
+**Returns:** Selected directory path or `null` if cancelled
+
+---
+
+### `fs:verify-directory`
+
+**File:** [verify-directory-handler.ts](verify-directory-handler.ts)
+
+**Purpose:** Validates if a path is a valid directory.
+
+**Parameters:**
+- `path: string` - Path to verify (supports `~` expansion)
+
+**Returns:** `boolean` - True if path exists and is a directory

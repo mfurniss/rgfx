@@ -73,7 +73,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const timeOfSnapshot = driver.lastSeen;
   const timeSinceSnapshot = now - timeOfSnapshot;
   const currentUptime =
-    driver.connected && telemetry
+    driver.state === 'connected' && telemetry
       ? driverUptimeAtSnapshot + timeSinceSnapshot
       : driverUptimeAtSnapshot;
 

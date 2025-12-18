@@ -51,10 +51,14 @@ Reusable property schemas shared across effects:
 
 ### Effect Schemas
 Each effect has its own schema extending `baseEffect`:
-- `pulse.ts` - Full-screen color pulse with fade and collapse options
-- `wipe.ts` - Color wipe sweeping across the display
-- `explode.ts` - Particle explosion from a center point
+- `background.ts` - Solid color background (singleton, renders first as base layer)
 - `bitmap.ts` - Display a bitmap image on the LED matrix
+- `explode.ts` - Particle explosion from a center point
+- `projectile.ts` - Moving rectangle with direction, velocity, friction, and trail
+- `pulse.ts` - Full-screen color pulse with fade and collapse options
+- `scroll_text.ts` - Horizontally scrolling text with speed and repeat options
+- `text.ts` - Static text rendering at a position
+- `wipe.ts` - Color wipe sweeping across the display
 
 ## Design Patterns
 

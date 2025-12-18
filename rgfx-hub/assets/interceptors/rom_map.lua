@@ -29,6 +29,9 @@ return {
 	-- Robotron: 2084
 	robotron = "robotron_rgfx",
 
+	-- Star Wars (Atari 1983)
+	starwars = "starwars_rgfx",
+
 	-- ============================================================================
 	-- NES Games (cartridge filename → interceptor)
 	-- ============================================================================

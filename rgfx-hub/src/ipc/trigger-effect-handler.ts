@@ -23,11 +23,8 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
   const localhostSocket = dgram.createSocket('udp4');
 
   ipcMain.handle('effect:trigger', (_event, payload: EffectPayload) => {
-    log.info('[TriggerEffectHandler] IPC handler invoked');
-    log.info(`Manual effect trigger requested: ${payload.effect}`, payload);
-
     try {
-      // Send to registered drivers
+      // Send to registered drivers FIRST - minimize latency
       udpClient.broadcast(payload);
 
       // Also send to localhost for led-sim
@@ -35,7 +32,8 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
       const message = Buffer.from(JSON.stringify(effectData));
       localhostSocket.send(message, UDP_PORT, '127.0.0.1');
 
-      log.info(`Effect broadcast successful: ${payload.effect}`);
+      // Log AFTER sending to avoid blocking the hot path
+      log.info(`Effect broadcast: ${payload.effect}`, payload);
     } catch (error) {
       log.error('Failed to broadcast effect:', error);
       throw error;

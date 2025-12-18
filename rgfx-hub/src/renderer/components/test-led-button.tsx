@@ -13,7 +13,7 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
   // Clear pending state when driver's testActive state changes OR when driver connects/disconnects
   useEffect(() => {
     setTestRequestPending(false);
-  }, [driver.testActive, driver.connected]);
+  }, [driver.testActive, driver.state]);
 
   const handleTestToggle = () => {
     if (testRequestPending) {
@@ -55,7 +55,7 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
       color={driver.testActive ? 'success' : 'primary'}
       size="small"
       onClick={handleTestToggle}
-      disabled={!driver.connected}
+      disabled={driver.state !== 'connected'}
       busy={testRequestPending}
       sx={{ height: 30, width: 140 }}
     >

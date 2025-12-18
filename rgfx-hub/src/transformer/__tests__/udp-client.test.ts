@@ -45,7 +45,7 @@ describe('UdpClientImpl', () => {
     const driver1 = new Driver({
       id: 'rgfx-driver-0001',
       ip: '192.168.1.101',
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
@@ -60,7 +60,7 @@ describe('UdpClientImpl', () => {
     const driver2 = new Driver({
       id: 'rgfx-driver-0002',
       ip: '192.168.1.102',
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
@@ -75,7 +75,7 @@ describe('UdpClientImpl', () => {
     const driver3 = new Driver({
       id: 'rgfx-driver-0003',
       ip: '192.168.1.103',
-      connected: false,
+      state: 'disconnected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
@@ -90,7 +90,7 @@ describe('UdpClientImpl', () => {
     const driver4 = new Driver({
       id: 'rgfx-driver-0004',
       ip: undefined, // No IP
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       stats: {
@@ -424,7 +424,7 @@ describe('UdpClientImpl', () => {
       const strip1 = new Driver({
         id: 'strip-1',
         ip: '192.168.1.201',
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         resolvedHardware: { name: 'Strip 1', sku: null, layout: 'strip', count: 60 },
@@ -440,7 +440,7 @@ describe('UdpClientImpl', () => {
       const strip2 = new Driver({
         id: 'strip-2',
         ip: '192.168.1.202',
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         resolvedHardware: { name: 'Strip 2', sku: null, layout: 'strip', count: 60 },
@@ -457,7 +457,7 @@ describe('UdpClientImpl', () => {
       const matrix1 = new Driver({
         id: 'matrix-1',
         ip: '192.168.1.203',
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         resolvedHardware: {
@@ -480,7 +480,7 @@ describe('UdpClientImpl', () => {
       const matrix2 = new Driver({
         id: 'matrix-2',
         ip: '192.168.1.204',
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         resolvedHardware: {
@@ -504,7 +504,7 @@ describe('UdpClientImpl', () => {
       const unknown1 = new Driver({
         id: 'unknown-1',
         ip: '192.168.1.205',
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         stats: {
@@ -626,7 +626,7 @@ describe('UdpClientImpl', () => {
       const matrix = new Driver({
         id: 'matrix-only',
         ip: '192.168.1.210',
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         resolvedHardware: {

@@ -23,7 +23,6 @@ describe('PersistedDriverSchema', () => {
         expect(result.data.id).toBe('rgfx-driver-0001');
         expect(result.data.macAddress).toBe('AA:BB:CC:DD:EE:FF');
         expect(result.data.remoteLogging).toBe('errors'); // default
-        expect(result.data.wifiTxPower).toBe(19.5); // default
       }
     });
 
@@ -235,36 +234,6 @@ describe('PersistedDriverSchema', () => {
     });
   });
 
-  describe('wifiTxPower validation', () => {
-    it('should reject power below 2', () => {
-      const result = PersistedDriverSchema.safeParse({
-        id: 'driver',
-        macAddress: 'AA:BB:CC:DD:EE:FF',
-        wifiTxPower: 1,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject power above 19.5', () => {
-      const result = PersistedDriverSchema.safeParse({
-        id: 'driver',
-        macAddress: 'AA:BB:CC:DD:EE:FF',
-        wifiTxPower: 20,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should accept power at boundaries', () => {
-      for (const power of [2, 10, 19.5]) {
-        const result = PersistedDriverSchema.safeParse({
-          id: 'driver',
-          macAddress: 'AA:BB:CC:DD:EE:FF',
-          wifiTxPower: power,
-        });
-        expect(result.success).toBe(true);
-      }
-    });
-  });
 });
 
 describe('DriversConfigFileRawSchema', () => {

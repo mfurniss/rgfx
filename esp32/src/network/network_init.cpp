@@ -1,20 +1,24 @@
 #include "network/network_init.h"
-#include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
+#include "config/config_leds.h"
+#include "config/config_nvs.h"
+#include "config/constants.h"
+#include "driver_config.h"
 #include "hal/led_controller.h"
+#include "log.h"
 #include "network/mqtt.h"
 #include "network/ota_update.h"
 #include "network/udp.h"
 #include "oled/oled_display.h"
 #include "utils.h"
-#include "log.h"
-#include "config/config_nvs.h"
-#include "config/config_leds.h"
-#include "driver_config.h"
 
-// Forward declaration from main.cpp
+// Forward declarations from main.cpp
 void handleDriverConfig(const String& payload);
+extern Matrix* matrix;
+
+// WiFi TX power - maximum power for best range and reliability
+static constexpr wifi_power_t WIFI_TX_POWER = WIFI_POWER_19_5dBm;
 
 // WiFi event handler flag to track if registered
 static bool wifiEventHandlerRegistered = false;
@@ -39,21 +43,6 @@ static void onWiFiEvent(WiFiEvent_t event) {
 	}
 }
 
-// Map dBm float value to wifi_power_t enum
-static wifi_power_t dBmToWifiPower(float dBm) {
-	if (dBm >= 19.5f) return WIFI_POWER_19_5dBm;
-	if (dBm >= 19.0f) return WIFI_POWER_19dBm;
-	if (dBm >= 18.5f) return WIFI_POWER_18_5dBm;
-	if (dBm >= 17.0f) return WIFI_POWER_17dBm;
-	if (dBm >= 15.0f) return WIFI_POWER_15dBm;
-	if (dBm >= 13.0f) return WIFI_POWER_13dBm;
-	if (dBm >= 11.0f) return WIFI_POWER_11dBm;
-	if (dBm >= 8.5f) return WIFI_POWER_8_5dBm;
-	if (dBm >= 7.0f) return WIFI_POWER_7dBm;
-	if (dBm >= 5.0f) return WIFI_POWER_5dBm;
-	return WIFI_POWER_2dBm;
-}
-
 void setupNetworkServices(Matrix& matrix) {
 	log("WiFi connected - setting up OTA, MQTT and UDP");
 	fill_solid(matrix.leds, matrix.size, CRGB::Green);
@@ -68,9 +57,8 @@ void setupNetworkServices(Matrix& matrix) {
 
 	// Disable WiFi power saving for low latency UDP
 	WiFi.setSleep(WIFI_PS_NONE);
-	wifi_power_t txPower = dBmToWifiPower(g_driverConfig.wifiTxPower);
-	WiFi.setTxPower(txPower);
-	log("WiFi power saving disabled, TX power: " + String(g_driverConfig.wifiTxPower, 1) + " dBm");
+	WiFi.setTxPower(WIFI_TX_POWER);
+	log("WiFi power saving disabled, TX power set to max");
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
@@ -119,9 +107,8 @@ void setupNetworkServices(Matrix& matrix) {
 	// Go dark for normal operation
 	// NOTE: Use global matrix pointer, not the reference parameter, because
 	// handleDriverConfig() may have deleted and recreated the matrix
-	extern Matrix* matrix;
-	if (matrix != nullptr && matrix->leds != nullptr) {
-		fill_solid(matrix->leds, matrix->size, CRGB::Black);
+	if (::matrix != nullptr && ::matrix->leds != nullptr) {
+		fill_solid(::matrix->leds, ::matrix->size, CRGB::Black);
 		hal::getLedController().show();
 	}
 }
@@ -152,9 +139,6 @@ void cleanupNetworkServices(Matrix& matrix) {
 	mqttServerIP[0] = '\0';
 }
 
-// Forward declaration of global matrix from main.cpp
-extern Matrix* matrix;
-
 // Overload without Matrix for when it's not ready
 void setupNetworkServices() {
 	log("WiFi connected - setting up OTA, MQTT and UDP (no LED feedback yet)");
@@ -175,9 +159,8 @@ void setupNetworkServices() {
 
 	// Disable WiFi power saving for low latency UDP
 	WiFi.setSleep(WIFI_PS_NONE);
-	wifi_power_t txPower = dBmToWifiPower(g_driverConfig.wifiTxPower);
-	WiFi.setTxPower(txPower);
-	log("WiFi power saving disabled, TX power: " + String(g_driverConfig.wifiTxPower, 1) + " dBm");
+	WiFi.setTxPower(WIFI_TX_POWER);
+	log("WiFi power saving disabled, TX power set to max");
 
 	// Update display to show connecting
 	if (Display::isAvailable()) {
