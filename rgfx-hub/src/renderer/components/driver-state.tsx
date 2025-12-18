@@ -12,7 +12,7 @@ interface DriverStateProps {
 const stateConfig: Record<DriverStateType, { label: string; color: ChipProps['color'] }> = {
   connected: { label: 'Connected', color: 'success' },
   disconnected: { label: 'Disconnected', color: 'error' },
-  updating: { label: 'Updating', color: 'warning' },
+  updating: { label: 'Updating', color: 'info' },
 };
 
 /**
