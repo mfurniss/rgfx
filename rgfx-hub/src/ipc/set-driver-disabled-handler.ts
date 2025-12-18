@@ -11,17 +11,19 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverPersistence } from '../driver-persistence';
 import type { LEDHardwareManager } from '../led-hardware-manager';
+import type { MqttBroker } from '../network';
 import { serializeDriverForIPC } from '../types';
 
 interface SetDriverDisabledHandlerDeps {
   driverRegistry: DriverRegistry;
   driverPersistence: DriverPersistence;
   ledHardwareManager: LEDHardwareManager;
+  mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerDeps): void {
-  const { driverRegistry, driverPersistence, ledHardwareManager, getMainWindow } = deps;
+  const { driverRegistry, driverPersistence, ledHardwareManager, mqtt, getMainWindow } = deps;
 
   ipcMain.handle(
     'driver:set-disabled',
@@ -43,6 +45,13 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
 
       if (!success) {
         throw new Error(`Failed to update disabled state for driver ${driverId}`);
+      }
+
+      // When disabling, immediately clear effects on the driver
+      if (disabled) {
+        const topic = `rgfx/driver/${driverId}/clear-effects`;
+        void mqtt.publish(topic, '');
+        log.info(`Sent clear-effects command to driver ${driverId}`);
       }
 
       // Refresh driver from persistence to update runtime state
