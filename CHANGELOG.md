@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Per-RGB floor cutoff values for driver configuration
+  - Values at or below the floor are cut off to 0 after gamma correction
+  - Prevents dim red bleed at low brightness (red LEDs have lower forward voltage)
+  - Configurable per channel: floorR, floorG, floorB (0-255, default 0)
+  - New UI controls in Hub driver configuration page
+
 ### Changed
 - Enhanced UnifiedPanelEditor with drag-and-drop and click-to-rotate interactions
   - Panels can now be dragged and dropped to swap positions (using @dnd-kit library)
@@ -22,6 +29,12 @@ All notable changes to this project will be documented in this file.
   - `processEvent()` in `main.ts` now emits via event bus instead of direct IPC
 
 ### Fixed
+- ESP32 OTA flash effects not clearing (cross-core race condition)
+  - Root cause: `clearEffects()` was called from Core 0 (OTA callback) while Core 1 (main loop) was still rendering
+  - Both cores called `FastLED.show()` simultaneously - Core 1's render won the race
+  - Solution: Use `pendingClearEffects` atomic flag to defer clear to Core 1
+  - Core 0 sets flag in `ArduinoOTA.onStart()`, Core 1 processes it at start of `loop()`
+  - All FastLED operations now happen on Core 1, eliminating the race
 - ESP32 MQTT first-connection failures (Error -9)
   - Root cause: arduino-mqtt library is not reentrant - calling publish/subscribe/unsubscribe inside callbacks corrupts internal state
   - handleDriverConfig() was calling mqttClient.subscribe/unsubscribe inside the callback (mqtt_config_handler.cpp lines 54, 60)

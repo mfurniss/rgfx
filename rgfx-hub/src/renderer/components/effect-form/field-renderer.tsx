@@ -11,7 +11,15 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { type Control, type FieldValues, type FieldErrors, type FieldPath } from 'react-hook-form';
 import { type FieldMetadata } from '../../utils/zod-introspection';
 import { NumberField } from '../number-field';
-import { EnumField, BooleanField, ColorField, CenterField, SpritePresetField, StringField } from './fields';
+import {
+  EnumField,
+  BooleanField,
+  ColorField,
+  CenterField,
+  SpritePresetField,
+  GradientPresetField,
+  StringField,
+} from './fields';
 
 interface FieldRendererProps<T extends FieldValues> {
   field: FieldMetadata;
@@ -194,6 +202,18 @@ export function FieldRenderer<T extends FieldValues>({
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
           <SpritePresetField
+            name={field.name as FieldPath<T>}
+            control={control}
+            label={label}
+            error={errorMessage}
+          />
+        </FieldWithHelp>
+      );
+
+    case 'gradientPreset':
+      return (
+        <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
+          <GradientPresetField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}

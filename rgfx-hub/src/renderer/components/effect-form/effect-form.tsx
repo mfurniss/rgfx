@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Grid } from '@mui/material';
 import { z } from 'zod';
@@ -24,16 +24,18 @@ interface EffectFormProps {
 export function EffectForm({ schema, defaultValues, onChange }: EffectFormProps) {
   const fields = useMemo(() => extractFieldMetadata(schema), [schema]);
 
+  const methods = useForm({
+    resolver: zodResolver(schema),
+    defaultValues,
+    mode: 'onChange',
+  });
+
   const {
     control,
     watch,
     reset,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(schema),
-    defaultValues,
-    mode: 'onChange',
-  });
+  } = methods;
 
   // Reset form when schema changes
   useEffect(() => {
@@ -52,12 +54,14 @@ export function EffectForm({ schema, defaultValues, onChange }: EffectFormProps)
   }, [watch, onChange]);
 
   return (
-    <Grid container spacing={3}>
-      {fields.map((field) => (
-        <Grid key={field.name} size={{ xs: 12, md: 6 }}>
-          <FieldRenderer field={field} control={control} errors={errors} />
-        </Grid>
-      ))}
-    </Grid>
+    <FormProvider {...methods}>
+      <Grid container spacing={3}>
+        {fields.map((field) => (
+          <Grid key={field.name} size={{ xs: 12, md: 6 }}>
+            <FieldRenderer field={field} control={control} errors={errors} />
+          </Grid>
+        ))}
+      </Grid>
+    </FormProvider>
   );
 }
