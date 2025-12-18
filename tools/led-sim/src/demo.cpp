@@ -5,6 +5,7 @@
 #include "hal/platform.h"
 #include <ArduinoJson.h>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 
 static void logEffect(const char* effectName, const JsonDocument& props) {
@@ -85,6 +86,20 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			props["trail"] = 0.3;
 			processor.addEffect("projectile", props);
 			logEffect("projectile", props);
+			break;
+		}
+		case 6: {
+			// Plasma effect - toggle on/off with random params
+			static bool plasmaEnabled = false;
+			plasmaEnabled = !plasmaEnabled;
+			props["enabled"] = plasmaEnabled;
+			if (plasmaEnabled) {
+				// Randomize speed (0.3 to 5.0) and scale (0.5 to 5.0)
+				props["speed"] = 0.3f + (rand() % 48) / 10.0f;
+				props["scale"] = 0.5f + (rand() % 46) / 10.0f;
+			}
+			processor.addEffect("plasma", props);
+			logEffect("plasma", props);
 			break;
 		}
 	}

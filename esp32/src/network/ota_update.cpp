@@ -6,11 +6,14 @@
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
 #include "config/config_leds.h"
+#include "effects/effect_processor.h"
 #include "hal/led_controller.h"
 #include "driver_config.h"
 #include "log.h"
 #include "network/network_init.h"
 #include "utils.h"
+
+extern EffectProcessor* effectProcessor;
 
 void setupOTA() {
 	ArduinoOTA.setHostname(Utils::getDeviceId().c_str());
@@ -25,13 +28,18 @@ void setupOTA() {
 			return;
 		}
 
-		// Clear all LEDs at start
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds && firstDevice.count > 0) {
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-				hal::getLedController().show();
+		// Clear all effects (resets plasma, background, etc.)
+		if (effectProcessor != nullptr) {
+			effectProcessor->clearEffects();
+		} else {
+			// Fallback: clear LEDs directly if effect processor not initialized
+			if (!g_driverConfig.devices.empty()) {
+				const auto& firstDevice = g_driverConfig.devices[0];
+				CRGB* leds = getLEDsForDevice(firstDevice.id);
+				if (leds && firstDevice.count > 0) {
+					fill_solid(leds, firstDevice.count, CRGB::Black);
+					hal::getLedController().show();
+				}
 			}
 		}
 	});

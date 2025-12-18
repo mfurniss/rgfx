@@ -17,13 +17,14 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  projectileEffect(matrix, canvas),
 	  textEffect(matrix, canvas),
 	  scrollTextEffect(matrix, canvas),
+	  plasmaEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
 		  {"pulse", &pulseEffect},           {"bitmap", &bitmapEffect},
 		  {"wipe", &wipeEffect},             {"explode", &explodeEffect},
 		  {"test_leds", &testLedsEffect},    {"background", &backgroundEffect},
 		  {"projectile", &projectileEffect}, {"text", &textEffect},
-		  {"scroll_text", &scrollTextEffect},
+		  {"scroll_text", &scrollTextEffect}, {"plasma", &plasmaEffect},
 	  } {}
 
 void EffectProcessor::update() {
@@ -57,10 +58,15 @@ void EffectProcessor::update() {
 	// Render background FIRST (no update needed - static effect)
 	backgroundEffect.render();
 
-	// Render then update all other effects (excluding test and background)
+	// Render plasma SECOND (on top of background, below other effects)
+	plasmaEffect.render();
+	plasmaEffect.update(deltaTime);
+
+	// Render then update all other effects (excluding test, background, and plasma)
 	// Render first so initial state is visible on the frame the effect is added
 	for (const auto& entry : effectMap) {
-		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0) {
+		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0 &&
+			strcmp(entry.name, "plasma") != 0) {
 			entry.effect->render();
 			entry.effect->update(deltaTime);
 		}
@@ -111,7 +117,10 @@ void EffectProcessor::clearEffects() {
 		entry.effect->reset();
 	}
 
-	// Clear the matrix to black
+	// Clear the canvas (prevents re-render showing old state)
+	canvas.clear();
+
+	// Clear the matrix to black and display immediately
 	fill_solid(matrix.leds, matrix.size, CRGB::Black);
 	display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
 }
