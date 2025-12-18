@@ -15,6 +15,7 @@ import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
+import DisableDriverButton from './disable-driver-button';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import { useDriverStore } from '../store/driver-store';
@@ -250,7 +251,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: 1,
+            gap: 2,
           }}
         >
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
@@ -267,6 +268,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
           </Stack>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <DisableDriverButton driver={driver} />
             <ResetDriverButton driver={driver} />
             <SuperButton
               icon={<DescriptionIcon />}

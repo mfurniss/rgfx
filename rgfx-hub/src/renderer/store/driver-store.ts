@@ -83,6 +83,7 @@ export const useDriverStore = create<DriverStoreState>()(
               updateRate: driver.updateRate,
               testActive: driver.testActive,
               state: 'disconnected',
+              disabled: driver.disabled,
             });
           }
 
@@ -244,6 +245,7 @@ export const useDriverStore = create<DriverStoreState>()(
                   testActive: d.testActive,
                   remoteLogging: d.remoteLogging,
                   state: 'updating',
+                  disabled: d.disabled,
                 })
                 : d,
             ),

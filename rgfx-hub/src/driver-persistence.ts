@@ -216,6 +216,38 @@ export class DriverPersistence {
   }
 
   /**
+   * Set disabled state for a specific driver
+   */
+  setDisabled(id: string, disabled: boolean): boolean {
+    const driver = this.drivers.get(id);
+
+    if (!driver) {
+      log.warn(`Cannot set disabled state for non-existent driver: ${id}`);
+      return false;
+    }
+
+    driver.disabled = disabled;
+    this.drivers.set(id, driver);
+    this.saveConfig();
+    log.info(`Set disabled state for driver ${id}: ${disabled}`);
+    return true;
+  }
+
+  /**
+   * Check if a driver is disabled
+   */
+  isDisabled(id: string): boolean {
+    return this.drivers.get(id)?.disabled ?? false;
+  }
+
+  /**
+   * Check if a driver is disabled by MAC address
+   */
+  isDisabledByMac(macAddress: string): boolean {
+    return this.getDriverByMac(macAddress)?.disabled ?? false;
+  }
+
+  /**
    * Get all known drivers (for UI and DriverRegistry initialization)
    */
   getAllDrivers(): PersistedDriver[] {

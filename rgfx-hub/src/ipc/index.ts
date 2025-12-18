@@ -28,6 +28,7 @@ import { registerSelectDirectoryHandler } from './select-directory-handler';
 import { registerVerifyDirectoryHandler } from './verify-directory-handler';
 import { registerGetAppInfoHandler } from './get-app-info-handler';
 import { registerFirmwareFilesHandler } from './firmware-files-handler';
+import { registerSetDriverDisabledHandler } from './set-driver-disabled-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -58,4 +59,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerVerifyDirectoryHandler();
   registerGetAppInfoHandler();
   registerFirmwareFilesHandler();
+  registerSetDriverDisabledHandler(deps);
 }

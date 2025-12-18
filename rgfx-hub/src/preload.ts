@@ -212,6 +212,10 @@ export const rgfxAPI = {
   getFirmwareFile: (filename: string): Promise<Buffer> => {
     return ipcRenderer.invoke('firmware:get-file', filename);
   },
+
+  setDriverDisabled: (driverId: string, disabled: boolean): Promise<{ success: boolean }> => {
+    return ipcRenderer.invoke('driver:set-disabled', driverId, disabled);
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

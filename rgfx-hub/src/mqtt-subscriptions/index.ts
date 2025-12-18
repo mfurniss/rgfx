@@ -8,6 +8,7 @@
 import type { BrowserWindow } from 'electron';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
+import type { DriverPersistence } from '../driver-persistence';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 import { subscribeDriverTelemetry } from './driver-telemetry';
@@ -18,6 +19,7 @@ import { subscribeDriverLog } from './driver-log';
 interface MqttSubscriptionsDeps {
   mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
+  driverPersistence: DriverPersistence;
   systemMonitor: SystemMonitor;
   driverLogPersistence: DriverLogPersistence;
   getMainWindow: () => BrowserWindow | null;
