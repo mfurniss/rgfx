@@ -69,7 +69,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 	uint8_t baseG = (color >> 8) & 0xFF;
 	uint8_t baseB = color & 0xFF;
 
-	// Create flash effect for LED strips (white pulse that collapses inward)
+	// Create flash effect for LED strips (colored pulse that collapses inward)
 	if (isStrip) {
 		Flash flash;
 		flash.centerX = centerX;
@@ -77,6 +77,9 @@ void ExplodeEffect::add(JsonDocument& props) {
 		flash.initialWidth = min(scaledPower * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
 		flash.duration = (lifespan * 0.35f) / 1000.0f;  // 35% of lifespan, in seconds
 		flash.age = 0.0f;
+		flash.r = baseR;
+		flash.g = baseG;
+		flash.b = baseB;
 		flashes.push_back(flash);
 	}
 
@@ -243,11 +246,11 @@ void ExplodeEffect::render() {
 			int16_t rightX = centerX + offset;
 
 			if (leftX >= 0 && leftX < width) {
-				canvas.drawPixel(leftX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
+				canvas.drawPixel(leftX, 0, CRGBA(flash.r, flash.g, flash.b, alpha), BlendMode::ADDITIVE);
 			}
 
 			if (offset > 0 && rightX >= 0 && rightX < width) {
-				canvas.drawPixel(rightX, 0, CRGBA(255, 255, 255, alpha), BlendMode::ADDITIVE);
+				canvas.drawPixel(rightX, 0, CRGBA(flash.r, flash.g, flash.b, alpha), BlendMode::ADDITIVE);
 			}
 		}
 	}
