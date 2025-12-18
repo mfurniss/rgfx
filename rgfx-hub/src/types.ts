@@ -94,6 +94,16 @@ export interface DriverLEDConfig {
     g?: number;
     b?: number;
   } | null;
+  /**
+   * Floor cutoff per channel (0-255, default 0)
+   * Values at or below floor are cut off to 0 after gamma correction
+   * Prevents dim red bleed at low brightness (red LEDs have lower forward voltage)
+   */
+  floor: {
+    r: number;
+    g: number;
+    b: number;
+  };
 }
 
 /**

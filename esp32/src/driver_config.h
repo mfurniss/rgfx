@@ -66,11 +66,18 @@ struct DriverConfigData {
 	float gammaG;
 	float gammaB;
 
+	// Floor cutoff per channel (0-255, values at or below floor become 0)
+	// Prevents dim red bleed at low brightness (red LEDs have lower forward voltage)
+	uint8_t floorR;
+	uint8_t floorG;
+	uint8_t floorB;
+
 	// Constructor with defaults
 	DriverConfigData()
 		: globalBrightnessLimit(255), dithering(true), updateRate(120),
 		  powerSupplyVolts(5), maxPowerMilliamps(2000),
-		  gammaR(1.0f), gammaG(1.0f), gammaB(1.0f) {}
+		  gammaR(1.0f), gammaG(1.0f), gammaB(1.0f),
+		  floorR(0), floorG(0), floorB(0) {}
 };
 
 /**

@@ -107,10 +107,13 @@ const FirmwarePage: React.FC = () => {
     }
   }, [flashMethod]);
 
-  // Auto-select drivers that need firmware update (only on initial mount if no stored selection)
+  // Track whether we've done the initial auto-selection
+  const [hasAutoSelected, setHasAutoSelected] = useState(storedSelectedDrivers.length > 0);
+
+  // Auto-select drivers that need firmware update
   useEffect(() => {
-    // Skip if we have stored selections (user navigated away and back)
-    if (storedSelectedDrivers.length > 0) {
+    // Skip if we've already auto-selected or user has made selections
+    if (hasAutoSelected) {
       return;
     }
 
@@ -128,10 +131,9 @@ const FirmwarePage: React.FC = () => {
     if (driversNeedingUpdate.length > 0) {
       setSelectedDrivers(new Set(driversNeedingUpdate.map((d) => d.id)));
       setSelectAll(driversNeedingUpdate.length === connected.length);
+      setHasAutoSelected(true);
     }
-    // Only run on mount - don't re-select when drivers change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentFirmwareVersion, drivers, hasAutoSelected]);
 
   // Sync state changes to store for persistence across navigation
   useEffect(() => {

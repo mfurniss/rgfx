@@ -26,6 +26,7 @@ const createTestDriver = (mac: string, id: string): Driver => {
     hardwareRef: 'led-hardware/test-matrix.json',
     pin: 16,
     gamma: { r: 2.8, g: 2.8, b: 2.8 },
+    floor: { r: 0, g: 0, b: 0 },
   };
   return driver;
 };

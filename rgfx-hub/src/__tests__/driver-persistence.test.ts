@@ -149,6 +149,7 @@ describe('DriverPersistence', () => {
       dithering: true,
       powerSupplyVolts: 5,
       maxPowerMilliamps: 500,
+      floor: { r: 0, g: 0, b: 0 },
     };
 
     it('should set LED config for driver', () => {

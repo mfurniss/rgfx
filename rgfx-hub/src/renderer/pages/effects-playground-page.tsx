@@ -164,12 +164,20 @@ export default function TestEffectsPage() {
     return null;
   }, [selectedEffect]);
 
+  // Remove disconnected drivers from selection (but don't auto-select new ones)
   useEffect(() => {
-    const driverIds = connectedDriverIds.split(',').filter(Boolean);
-    const newSelectedDrivers = new Set(driverIds);
-    setSelectedDrivers(newSelectedDrivers);
-    setTestEffectsState(selectedEffect, propsJson, newSelectedDrivers, driverIds.length > 0);
-  }, [connectedDriverIds, selectedEffect, propsJson, setTestEffectsState]);
+    const connectedIds = new Set(connectedDriverIds.split(',').filter(Boolean));
+    const stillConnected = new Set(
+      Array.from(selectedDrivers).filter((id) => connectedIds.has(id)),
+    );
+
+    // Only update if selection actually changed (driver disconnected)
+    if (stillConnected.size !== selectedDrivers.size) {
+      setSelectedDrivers(stillConnected);
+      const newSelectAll = stillConnected.size === connectedIds.size && connectedIds.size > 0;
+      setTestEffectsState(selectedEffect, propsJson, stillConnected, newSelectAll);
+    }
+  }, [connectedDriverIds, selectedEffect, propsJson, selectedDrivers, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {

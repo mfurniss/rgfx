@@ -9,8 +9,8 @@ import { z } from 'zod';
 
 /**
  * Plasma effect props schema
- * Classic demoscene plasma effect using overlapping sine waves.
- * Fills the entire canvas with animated rainbow colors.
+ * Classic demoscene plasma effect using Perlin noise.
+ * Fills the entire canvas with animated colors from a user-defined gradient.
  * Renders on top of background with alpha blending.
  *
  * Note: Does not extend baseEffect because:
@@ -33,13 +33,13 @@ export default z
       .optional()
       .default(3)
       .describe('Pattern frequency (0.1-10, higher = more detailed)'),
-    colorShift: z
-      .number()
-      .min(-128)
-      .max(128)
+    gradient: z
+      .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
+      .min(2)
+      .max(20)
       .optional()
-      .default(0)
-      .describe('Hue offset (-128 to 128, shifts the color palette)'),
+      .default(['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'])
+      .describe('Gradient colors (2-20 hex colors)'),
     enabled: z.boolean().optional().default(true).describe('Show or hide the plasma effect'),
   })
   .strict();

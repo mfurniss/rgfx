@@ -13,8 +13,6 @@
 #include "network/network_init.h"
 #include "utils.h"
 
-extern EffectProcessor* effectProcessor;
-
 void setupOTA() {
 	ArduinoOTA.setHostname(Utils::getDeviceId().c_str());
 	ArduinoOTA.setMdnsEnabled(false);  // Disable internal MDNS.begin() - already initialized
@@ -23,25 +21,9 @@ void setupOTA() {
 		log("OTA Update starting...");
 		otaInProgress = true;
 
-		// Skip LED update if config update is in progress (avoid race condition)
-		if (g_configUpdateInProgress) {
-			return;
-		}
-
-		// Clear all effects (resets plasma, background, etc.)
-		if (effectProcessor != nullptr) {
-			effectProcessor->clearEffects();
-		} else {
-			// Fallback: clear LEDs directly if effect processor not initialized
-			if (!g_driverConfig.devices.empty()) {
-				const auto& firstDevice = g_driverConfig.devices[0];
-				CRGB* leds = getLEDsForDevice(firstDevice.id);
-				if (leds && firstDevice.count > 0) {
-					fill_solid(leds, firstDevice.count, CRGB::Black);
-					hal::getLedController().show();
-				}
-			}
-		}
+		// Request effect clear from Core 1 (avoids cross-core FastLED.show() race)
+		// Core 1's main loop checks this flag and clears effects safely
+		pendingClearEffects = true;
 	});
 
 	ArduinoOTA.onEnd([]() {
