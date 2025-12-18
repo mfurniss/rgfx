@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { subscribeDriverTelemetry } from '../driver-telemetry';
 import type { MqttBroker } from '@/network';
 import type { DriverRegistry } from '@/driver-registry';
+import type { DriverPersistence } from '@/driver-persistence';
 import type { BrowserWindow } from 'electron';
 import type { Driver } from '@/types';
 
@@ -27,6 +28,9 @@ describe('subscribeDriverTelemetry', () => {
   };
   let mockDriverRegistry: {
     registerDriver: ReturnType<typeof vi.fn>;
+  };
+  let mockDriverPersistence: {
+    isDisabledByMac: ReturnType<typeof vi.fn>;
   };
   let mockMainWindow: {
     isDestroyed: ReturnType<typeof vi.fn>;
@@ -52,7 +56,12 @@ describe('subscribeDriverTelemetry', () => {
         ip: data.ip,
         state: 'connected',
         telemetry: data.telemetry,
+        disabled: false,
       })),
+    };
+
+    mockDriverPersistence = {
+      isDisabledByMac: vi.fn(() => false),
     };
 
     mockMainWindow = {
@@ -98,6 +107,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
       });
 
@@ -113,6 +123,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
       });
     });
@@ -159,6 +170,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => null,
       });
 
@@ -178,6 +190,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
       });
     });
@@ -234,6 +247,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
       });
     });
@@ -283,6 +297,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
       });
     });
@@ -331,6 +346,7 @@ describe('subscribeDriverTelemetry', () => {
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         testActive: false,
+        disabled: false,
         stats: {
           telemetryEventsReceived: 1,
           mqttMessagesReceived: 1,
@@ -363,6 +379,7 @@ describe('subscribeDriverTelemetry', () => {
       subscribeDriverTelemetry({
         mqtt: mockMqtt as unknown as MqttBroker,
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
       });
 
@@ -376,6 +393,94 @@ describe('subscribeDriverTelemetry', () => {
           state: 'connected',
         }),
       );
+    });
+  });
+
+  describe('disabled driver filtering', () => {
+    it('ignores telemetry from disabled drivers', () => {
+      mockDriverPersistence.isDisabledByMac.mockReturnValue(true);
+
+      subscribeDriverTelemetry({
+        mqtt: mockMqtt as unknown as MqttBroker,
+        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+      });
+
+      // Get the subscribed callback
+      const callback = mockMqtt.subscribe.mock.calls[0][1] as (
+        topic: string,
+        payload: string,
+      ) => void;
+      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+
+      expect(mockDriverRegistry.registerDriver).not.toHaveBeenCalled();
+      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it('processes telemetry from enabled drivers', () => {
+      mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
+
+      subscribeDriverTelemetry({
+        mqtt: mockMqtt as unknown as MqttBroker,
+        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+      });
+
+      // Get the subscribed callback
+      const callback = mockMqtt.subscribe.mock.calls[0][1] as (
+        topic: string,
+        payload: string,
+      ) => void;
+      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+
+      expect(mockDriverRegistry.registerDriver).toHaveBeenCalled();
+    });
+
+    it('checks disabled state using MAC address from payload', () => {
+      mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
+
+      subscribeDriverTelemetry({
+        mqtt: mockMqtt as unknown as MqttBroker,
+        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+      });
+
+      // Get the subscribed callback
+      const callback = mockMqtt.subscribe.mock.calls[0][1] as (
+        topic: string,
+        payload: string,
+      ) => void;
+      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload({ mac: '11:22:33:44:55:66' }));
+
+      expect(mockDriverPersistence.isDisabledByMac).toHaveBeenCalledWith('11:22:33:44:55:66');
+    });
+
+    it('processes telemetry if MAC is missing in payload', () => {
+      // When MAC is missing, we can't check disabled status, so we process it
+      mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
+
+      subscribeDriverTelemetry({
+        mqtt: mockMqtt as unknown as MqttBroker,
+        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+      });
+
+      // Get the subscribed callback
+      const callback = mockMqtt.subscribe.mock.calls[0][1] as (
+        topic: string,
+        payload: string,
+      ) => void;
+
+      // Payload without MAC - will fail validation anyway, but disabled check should not block
+      const payloadWithoutMac = JSON.stringify({ ip: '192.168.1.100' });
+      callback('rgfx/system/driver/telemetry', payloadWithoutMac);
+
+      // isDisabledByMac should not be called when MAC is undefined
+      expect(mockDriverPersistence.isDisabledByMac).not.toHaveBeenCalled();
     });
   });
 });

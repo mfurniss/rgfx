@@ -101,6 +101,7 @@ export const PersistedDriverSchema = z.object({
   description: z.string().optional(),
   ledConfig: DriverLEDConfigSchema.nullable().optional(),
   remoteLogging: RemoteLoggingLevelSchema.optional().default('errors'),
+  disabled: z.boolean().optional().default(false),
 });
 
 export type PersistedDriverFromSchema = z.infer<typeof PersistedDriverSchema>;

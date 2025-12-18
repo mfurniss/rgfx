@@ -80,6 +80,7 @@ describe('registerFlashOtaHandler', () => {
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       testActive: false,
+      disabled: false,
       stats: {
         telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,

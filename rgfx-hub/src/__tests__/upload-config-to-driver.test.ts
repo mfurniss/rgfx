@@ -40,6 +40,7 @@ describe('createUploadConfigToDriver', () => {
       maxPowerMilliamps: 2000,
     },
     remoteLogging: 'errors' as const,
+    disabled: false,
   };
 
   const mockHardware = {

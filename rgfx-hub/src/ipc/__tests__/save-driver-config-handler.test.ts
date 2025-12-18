@@ -81,6 +81,7 @@ describe('registerSaveDriverConfigHandler', () => {
     lastSeen: Date.now(),
     failedHeartbeats: 0,
     testActive: false,
+    disabled: false,
     stats: {
       telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
