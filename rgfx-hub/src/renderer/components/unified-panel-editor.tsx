@@ -5,19 +5,21 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useState, useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Popover,
-  ToggleButton,
-  ToggleButtonGroup,
-  TextField,
-  Stack,
-} from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { Box, Typography, Button, Paper, TextField, Stack, Tooltip } from '@mui/material';
 import { GridView as GridIcon, Clear as ClearIcon } from '@mui/icons-material';
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { SortableContext, rectSwappingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type Rotation = 'a' | 'b' | 'c' | 'd';
 
@@ -64,6 +66,20 @@ function getRotationLabel(rotation: Rotation): string {
       return '180°';
     case 'd':
       return '270°';
+  }
+}
+
+// Get next rotation in cycle
+function getNextRotation(rotation: Rotation): Rotation {
+  switch (rotation) {
+    case 'a':
+      return 'b';
+    case 'b':
+      return 'c';
+    case 'c':
+      return 'd';
+    case 'd':
+      return 'a';
   }
 }
 
@@ -134,10 +150,106 @@ function resizeGrid(
   return newGrid;
 }
 
+// Sortable panel cell component
+interface SortablePanelProps {
+  id: string;
+  index: number;
+  rotation: Rotation;
+  disabled: boolean;
+  onRotate: () => void;
+}
+
+function SortablePanel({ id, index, rotation, disabled, onRotate }: SortablePanelProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    disabled,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    // Only animate during active drag; no transition on drop
+    transition: transform ? transition : undefined,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
+
+  return (
+    <Tooltip title="Drag to swap, click to rotate" enterDelay={500} disableInteractive>
+      <Paper
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        variant="outlined"
+        onClick={(e) => {
+          // Only rotate on click if not dragging
+          if (!isDragging && !disabled) {
+            e.preventDefault();
+            onRotate();
+          }
+        }}
+        sx={{
+          p: 1,
+          textAlign: 'center',
+          cursor: disabled ? 'default' : 'grab',
+          minWidth: 60,
+          userSelect: 'none',
+          '&:hover': disabled ? {} : { bgcolor: 'action.hover' },
+          '&:active': disabled ? {} : { cursor: 'grabbing' },
+        }}
+      >
+        <Typography variant="body2" fontWeight="medium">
+          {index}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {getRotationLabel(rotation)}
+        </Typography>
+      </Paper>
+    </Tooltip>
+  );
+}
+
+// Panel display for drag overlay (not sortable)
+interface PanelDisplayProps {
+  index: number;
+  rotation: Rotation;
+}
+
+function PanelDisplay({ index, rotation }: PanelDisplayProps) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 1,
+        textAlign: 'center',
+        cursor: 'grabbing',
+        minWidth: 60,
+        userSelect: 'none',
+        bgcolor: 'action.selected',
+        boxShadow: 3,
+      }}
+    >
+      <Typography variant="body2" fontWeight="medium">
+        {index}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {getRotationLabel(rotation)}
+      </Typography>
+    </Paper>
+  );
+}
+
 export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEditorProps) {
-  // Popover state for cell editing
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [editingCell, setEditingCell] = useState<{ row: number; col: number } | null>(null);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  // Configure pointer sensor with activation constraint to distinguish click from drag
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Must move 8px before drag starts
+      },
+    }),
+  );
 
   // Parse current grid dimensions
   const { rows, cols } = useMemo(() => {
@@ -146,6 +258,15 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
     }
 
     return { rows: value.length, cols: value[0].length };
+  }, [value]);
+
+  // Generate flat list of cell IDs for SortableContext
+  const cellIds = useMemo(() => {
+    if (!value) {
+      return [];
+    }
+
+    return value.flatMap((row, rowIdx) => row.map((_, colIdx) => `cell-${rowIdx}-${colIdx}`));
   }, [value]);
 
   // Handle dimension changes
@@ -167,46 +288,75 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
     onChange(resizeGrid(value, newRows, newCols));
   };
 
-  // Handle cell click to open editor
-  const handleCellClick = (event: React.MouseEvent<HTMLElement>, row: number, col: number) => {
-    if (disabled) {
+  // Handle rotation on click
+  const handleRotate = (row: number, col: number) => {
+    if (disabled || !value) {
       return;
     }
 
-    setAnchorEl(event.currentTarget);
-    setEditingCell({ row, col });
-  };
-
-  // Handle cell update
-  const handleCellUpdate = (newIndex: number, newRotation: Rotation) => {
-    if (!value || !editingCell) {
-      return;
-    }
+    const parsed = parseCell(value[row][col]);
+    const nextRotation = getNextRotation(parsed.rotation);
 
     const newGrid = value.map((r) => [...r]);
-    newGrid[editingCell.row][editingCell.col] = formatCell({
-      index: newIndex,
-      rotation: newRotation,
-    });
+    newGrid[row][col] = formatCell({ index: parsed.index, rotation: nextRotation });
     onChange(newGrid);
   };
 
-  // Close popover
-  const handleClosePopover = () => {
-    setAnchorEl(null);
-    setEditingCell(null);
+  // Handle drag start
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(String(event.active.id));
   };
 
-  // Get current editing cell data
-  const editingCellData = useMemo(() => {
-    if (!value || !editingCell) {
+  // Handle drag end - swap positions
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragId(null);
+
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !value) {
+      return;
+    }
+
+    // Parse cell IDs to get row/col
+    const activeMatch = /cell-(\d+)-(\d+)/.exec(String(active.id));
+    const overMatch = /cell-(\d+)-(\d+)/.exec(String(over.id));
+
+    if (!activeMatch || !overMatch) {
+      return;
+    }
+
+    const activeRow = parseInt(activeMatch[1], 10);
+    const activeCol = parseInt(activeMatch[2], 10);
+    const overRow = parseInt(overMatch[1], 10);
+    const overCol = parseInt(overMatch[2], 10);
+
+    // Swap cells in 2D array
+    const newGrid = value.map((r) => [...r]);
+    const temp = newGrid[activeRow][activeCol];
+    newGrid[activeRow][activeCol] = newGrid[overRow][overCol];
+    newGrid[overRow][overCol] = temp;
+
+    onChange(newGrid);
+  };
+
+  // Get active drag cell data for overlay
+  const activeDragCell = useMemo(() => {
+    if (!activeDragId || !value) {
       return null;
     }
 
-    return parseCell(value[editingCell.row][editingCell.col]);
-  }, [value, editingCell]);
+    const match = /cell-(\d+)-(\d+)/.exec(activeDragId);
 
-  // Calculate total panels for validation display
+    if (!match) {
+      return null;
+    }
+
+    const row = parseInt(match[1], 10);
+    const col = parseInt(match[2], 10);
+    return parseCell(value[row][col]);
+  }, [activeDragId, value]);
+
+  // Calculate total panels for display
   const totalPanels = rows * cols;
 
   // Clear to single panel mode
@@ -297,103 +447,56 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
           />
         </Stack>
 
-        {/* Grid display */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gap: 1,
-            maxWidth: cols * 80,
-          }}
+        {/* Grid display with drag-and-drop */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
         >
-          {value.map((row, rowIdx) =>
-            row.map((cell, colIdx) => {
-              const parsed = parseCell(cell);
+          <SortableContext items={cellIds} strategy={rectSwappingStrategy}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gap: 1,
+                maxWidth: cols * 80,
+              }}
+            >
+              {value.map((row, rowIdx) =>
+                row.map((cell, colIdx) => {
+                  const parsed = parseCell(cell);
+                  const cellId = `cell-${rowIdx}-${colIdx}`;
 
-              return (
-                <Paper
-                  key={`${rowIdx}-${colIdx}`}
-                  variant="outlined"
-                  onClick={(e) => {
-                    handleCellClick(e, rowIdx, colIdx);
-                  }}
-                  sx={{
-                    p: 1,
-                    textAlign: 'center',
-                    cursor: disabled ? 'default' : 'pointer',
-                    minWidth: 60,
-                    '&:hover': disabled ? {} : { bgcolor: 'action.hover' },
-                  }}
-                >
-                  <Typography variant="body2" fontWeight="medium">
-                    {parsed.index}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {getRotationLabel(parsed.rotation)}
-                  </Typography>
-                </Paper>
-              );
-            }),
-          )}
-        </Box>
+                  return (
+                    <SortablePanel
+                      key={cellId}
+                      id={cellId}
+                      index={parsed.index}
+                      rotation={parsed.rotation}
+                      disabled={disabled ?? false}
+                      onRotate={() => {
+                        handleRotate(rowIdx, colIdx);
+                      }}
+                    />
+                  );
+                }),
+              )}
+            </Box>
+          </SortableContext>
+
+          {/* Drag overlay for smooth visual feedback */}
+          <DragOverlay dropAnimation={null}>
+            {activeDragCell ? (
+              <PanelDisplay index={activeDragCell.index} rotation={activeDragCell.rotation} />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
 
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          Click a cell to change panel index and rotation
+          Drag to swap panels, click to rotate
         </Typography>
       </Paper>
-
-      {/* Cell edit popover */}
-      <Popover
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
-        onClose={handleClosePopover}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        {editingCellData && (
-          <Box sx={{ p: 2, minWidth: 200 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Edit Panel
-            </Typography>
-            <TextField
-              label="Panel Index"
-              type="number"
-              size="small"
-              fullWidth
-              value={editingCellData.index}
-              onChange={(e) => {
-                const newIndex = parseInt(e.target.value, 10);
-
-                if (!isNaN(newIndex) && newIndex >= 0) {
-                  handleCellUpdate(newIndex, editingCellData.rotation);
-                }
-              }}
-              slotProps={{ htmlInput: { min: 0, max: totalPanels - 1 } }}
-              sx={{ mb: 2 }}
-            />
-
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Rotation
-            </Typography>
-            <ToggleButtonGroup
-              value={editingCellData.rotation}
-              exclusive
-              onChange={(_, newRotation) => {
-                if (newRotation) {
-                  handleCellUpdate(editingCellData.index, newRotation as Rotation);
-                }
-              }}
-              size="small"
-              fullWidth
-            >
-              <ToggleButton value="a">0°</ToggleButton>
-              <ToggleButton value="b">90°</ToggleButton>
-              <ToggleButton value="c">180°</ToggleButton>
-              <ToggleButton value="d">270°</ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-        )}
-      </Popover>
     </Box>
   );
 }

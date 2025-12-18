@@ -40,7 +40,7 @@ describe('TargetDriversPicker', () => {
         />,
       );
 
-      expect(screen.getByRole('button')).toBeDefined();
+      expect(screen.getByRole('button', { name: /Target Drivers:/ })).toBeDefined();
       expect(screen.getByText(/Target Drivers:/)).toBeDefined();
     });
 
