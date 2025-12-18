@@ -293,6 +293,7 @@ declare global {
         callback: (driver: Driver, reason: DisconnectReason) => void,
       ) => () => void;
       onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
+      onDriverRestarting: (callback: (driver: Driver) => void) => () => void;
       onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
       onEventCount: (callback: (count: number) => void) => () => void;
       onEventTopic: (callback: (data: EventTopicData) => void) => () => void;

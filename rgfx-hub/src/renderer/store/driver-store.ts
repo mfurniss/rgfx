@@ -38,6 +38,7 @@ interface DriverStoreState {
   onDriverConnected: (driver: Driver) => void;
   onDriverDisconnected: (driver: Driver) => void;
   onDriverUpdated: (driver: Driver) => void;
+  onDriverRestarting: (driver: Driver) => void;
   onSystemStatusUpdate: (status: SystemStatus) => void;
 
   // Selectors
@@ -212,6 +213,46 @@ export const useDriverStore = create<DriverStoreState>()(
               };
             }
           });
+        },
+
+        onDriverRestarting: (driver) => {
+          // Set driver state to 'updating' to suppress disconnect notification
+          // This is used when the driver is rebooting after a config save
+          set((state) => ({
+            drivers: state.drivers.map((d) =>
+              d.id === driver.id || d.mac === driver.mac
+                ? new Driver({
+                  id: d.id,
+                  description: d.description,
+                  ip: d.ip,
+                  mac: d.mac,
+                  hostname: d.hostname,
+                  ssid: d.ssid,
+                  rssi: d.rssi,
+                  freeHeap: d.freeHeap,
+                  minFreeHeap: d.minFreeHeap,
+                  uptimeMs: d.uptimeMs,
+                  lastSeen: d.lastSeen,
+                  failedHeartbeats: d.failedHeartbeats,
+                  lastHeartbeat: d.lastHeartbeat,
+                  lastSeenAt: d.lastSeenAt,
+                  telemetry: d.telemetry,
+                  ledConfig: d.ledConfig,
+                  resolvedHardware: d.resolvedHardware,
+                  stats: d.stats,
+                  updateRate: d.updateRate,
+                  testActive: d.testActive,
+                  remoteLogging: d.remoteLogging,
+                  state: 'updating',
+                })
+                : d,
+            ),
+          }));
+
+          // Show restarting notification after a brief delay (save notification shows first)
+          setTimeout(() => {
+            notify(`${driver.id} restarting...`, 'info');
+          }, 1000);
         },
 
         onSystemStatusUpdate: (status) => {

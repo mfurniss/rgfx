@@ -20,6 +20,7 @@ export interface AppEventMap {
   'driver:connected': { driver: Driver };
   'driver:disconnected': { driver: Driver; reason: DisconnectReason };
   'driver:updated': { driver: Driver };
+  'driver:restarting': { driver: Driver };
 
   // System events
   'system:status': SystemStatus;
