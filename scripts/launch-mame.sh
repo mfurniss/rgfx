@@ -59,5 +59,5 @@ echo "  RGFX: $RGFX_LUA"
 echo ""
 
 # Run MAME with autoboot script using absolute path to the script
-# Vector brightness settings (beam options require OpenGL, not BGFX)
-"$MAME_EXEC" "$@" -rompath ~/mame-roms -window -nomaximize -skip_gameinfo -video opengl -joystick_deadzone 0.1 -beam_width_min 3.0 -beam_width_max 8.0 -beam_intensity_weight 1.0 -flicker 0 -autoboot_script "$RGFX_LUA"
+# Vector settings loaded from ~/.mame/vector.ini (requires -video opengl)
+"$MAME_EXEC" "$@" -rompath ~/mame-roms -window -nomaximize -skip_gameinfo -video opengl -joystick_deadzone 0.1 -autoboot_script "$RGFX_LUA"
