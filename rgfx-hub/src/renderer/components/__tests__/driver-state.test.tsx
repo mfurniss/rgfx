@@ -17,7 +17,7 @@ vi.mock('react-router-dom', async () => {
 
 const createMockDriver = (overrides: Partial<Driver> = {}): Driver => ({
   id: '44:1D:64:F8:9A:58',
-  connected: true,
+  state: 'connected',
   lastSeen: Date.now(),
   failedHeartbeats: 0,
   ip: '192.168.1.50',
@@ -46,7 +46,7 @@ describe('DriverState', () => {
 
   describe('connection state chip', () => {
     it('shows Connected chip when driver is connected', () => {
-      const driver = createMockDriver({ connected: true });
+      const driver = createMockDriver({ state: 'connected' });
       renderWithRouter(<DriverState driver={driver} />);
 
       expect(screen.getByText('Connected')).toBeDefined();
@@ -54,18 +54,27 @@ describe('DriverState', () => {
     });
 
     it('shows Disconnected chip when driver is not connected', () => {
-      const driver = createMockDriver({ connected: false });
+      const driver = createMockDriver({ state: 'disconnected' });
       renderWithRouter(<DriverState driver={driver} />);
 
       expect(screen.getByText('Disconnected')).toBeDefined();
       expect(screen.queryByText('Connected')).toBeNull();
+    });
+
+    it('shows Updating chip when driver is updating firmware', () => {
+      const driver = createMockDriver({ state: 'updating' });
+      renderWithRouter(<DriverState driver={driver} />);
+
+      expect(screen.getByText('Updating')).toBeDefined();
+      expect(screen.queryByText('Connected')).toBeNull();
+      expect(screen.queryByText('Disconnected')).toBeNull();
     });
   });
 
   describe('update warning indicator', () => {
     it('shows warning icon when driver needs update', () => {
       const driver = createMockDriver({
-        connected: true,
+        state: 'connected',
         telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
       });
       renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
@@ -77,7 +86,7 @@ describe('DriverState', () => {
 
     it('does not show warning icon when firmware versions match', () => {
       const driver = createMockDriver({
-        connected: true,
+        state: 'connected',
         telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
       });
       renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="1.0.0" />);
@@ -87,7 +96,7 @@ describe('DriverState', () => {
 
     it('does not show warning icon when driver is disconnected', () => {
       const driver = createMockDriver({
-        connected: false,
+        state: 'disconnected',
         telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
       });
       renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
@@ -96,7 +105,7 @@ describe('DriverState', () => {
     });
 
     it('does not show warning icon when no currentFirmwareVersion provided', () => {
-      const driver = createMockDriver({ connected: true });
+      const driver = createMockDriver({ state: 'connected' });
       renderWithRouter(<DriverState driver={driver} />);
 
       expect(screen.queryByRole('button')).toBeNull();
@@ -104,7 +113,7 @@ describe('DriverState', () => {
 
     it('does not show warning icon when driver has no telemetry', () => {
       const driver = createMockDriver({
-        connected: true,
+        state: 'connected',
         telemetry: undefined,
       });
       renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
@@ -114,7 +123,7 @@ describe('DriverState', () => {
 
     it('navigates to firmware page when warning icon is clicked', () => {
       const driver = createMockDriver({
-        connected: true,
+        state: 'connected',
         telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
       });
       renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
@@ -127,7 +136,7 @@ describe('DriverState', () => {
 
     it('stops event propagation when warning icon is clicked', () => {
       const driver = createMockDriver({
-        connected: true,
+        state: 'connected',
         telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
       });
 

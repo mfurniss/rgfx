@@ -52,9 +52,8 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
 
     const oldId = existingDriver.id;
     const newId = validConfig.id;
-    const isRename = newId !== oldId;
 
-    if (isRename) {
+    if (newId !== oldId) {
       // Check new ID doesn't already exist
       if (driverPersistence.getDriver(newId)) {
         throw new Error(`Driver ID "${newId}" already exists`);
@@ -112,17 +111,20 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
       log.info(`Emitted driver:updated event for ${currentId}`);
 
       // If driver is connected, push the new config to the device and reboot
-      if (updatedDriver.connected) {
+      if (updatedDriver.state === 'connected') {
         log.info(`Driver ${currentId} is connected, uploading new config...`);
         await uploadConfigToDriver(macAddress);
+
+        // Notify renderer that driver is restarting (suppresses disconnect notification)
+        eventBus.emit('driver:restarting', { driver: updatedDriver });
 
         // Reboot the driver so it applies the new config (FastLED can't reinitialize)
         log.info(`Rebooting driver ${currentId} to apply new config...`);
         const rebootTopic = `rgfx/driver/${currentId}/reboot`;
         await mqtt.publish(rebootTopic, '');
 
-        // Mark driver as disconnected (it will reboot) with 'restarting' reason
-        updatedDriver.connected = false;
+        // Mark driver as disconnected (it will reboot)
+        updatedDriver.state = 'disconnected';
         updatedDriver.ip = undefined;
         eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
 

@@ -10,6 +10,13 @@ function getDefaultPropsJson(effect: keyof typeof effectSchemas): string {
 export type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
 export type SimulatorAutoInterval = 'off' | '1s' | '5s';
+export type FlashMethod = 'usb' | 'ota';
+
+export interface DriverFlashStatus {
+  status: 'pending' | 'flashing' | 'success' | 'error';
+  progress: number;
+  error?: string;
+}
 
 interface SimulatorRow {
   eventLine: string;
@@ -38,6 +45,10 @@ interface UiState {
 
   // Firmware update state (transient, not persisted)
   isFlashingFirmware: boolean;
+  firmwareFlashMethod: FlashMethod;
+  firmwareSelectedDrivers: string[];
+  firmwareSelectAll: boolean;
+  firmwareDriverFlashStatus: Record<string, DriverFlashStatus>;
 
   // Actions
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
@@ -51,12 +62,18 @@ interface UiState {
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
   setMameRomsDirectory: (path: string) => void;
+  setFirmwareState: (
+    flashMethod: FlashMethod,
+    selectedDrivers: string[],
+    selectAll: boolean
+  ) => void;
+  setFirmwareDriverFlashStatus: (status: Record<string, DriverFlashStatus>) => void;
 }
 
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      // Default: Device ID ascending
+      // Default: Driver ID ascending
       driverTableSortField: 'id',
       driverTableSortOrder: 'asc',
 
@@ -78,6 +95,10 @@ export const useUiStore = create<UiState>()(
 
       // Firmware update state
       isFlashingFirmware: false,
+      firmwareFlashMethod: 'ota' as FlashMethod,
+      firmwareSelectedDrivers: [],
+      firmwareSelectAll: false,
+      firmwareDriverFlashStatus: {},
 
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
@@ -111,6 +132,18 @@ export const useUiStore = create<UiState>()(
       setMameRomsDirectory: (path) => {
         set({ mameRomsDirectory: path });
       },
+
+      setFirmwareState: (flashMethod, selectedDrivers, selectAll) => {
+        set({
+          firmwareFlashMethod: flashMethod,
+          firmwareSelectedDrivers: selectedDrivers,
+          firmwareSelectAll: selectAll,
+        });
+      },
+
+      setFirmwareDriverFlashStatus: (status) => {
+        set({ firmwareDriverFlashStatus: status });
+      },
     }),
     {
       name: 'rgfx-ui-preferences',
@@ -120,6 +153,10 @@ export const useUiStore = create<UiState>()(
         simulatorRows: state.simulatorRows,
         rgfxConfigDirectory: state.rgfxConfigDirectory,
         mameRomsDirectory: state.mameRomsDirectory,
+        testEffectsSelectedEffect: state.testEffectsSelectedEffect,
+        testEffectsPropsJson: state.testEffectsPropsJson,
+        testEffectsSelectedDrivers: state.testEffectsSelectedDrivers,
+        testEffectsSelectAll: state.testEffectsSelectAll,
       }),
     },
   ),

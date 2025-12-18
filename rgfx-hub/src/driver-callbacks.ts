@@ -113,6 +113,17 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     }
   });
 
+  // Handle driver restarting events (config save, expected reboot)
+  eventBus.on('driver:restarting', ({ driver }) => {
+    const mainWindow = getMainWindow();
+
+    if (isWindowAvailable() && mainWindow) {
+      mainWindow.webContents.send('driver:restarting', serializeDriverForIPC(driver));
+      log.info(`Sent driver:restarting event to renderer for ${driver.id}`);
+      sendSystemStatus();
+    }
+  });
+
   // Handle game event statistics
   eventBus.on('event:topic', (data) => {
     const mainWindow = getMainWindow();

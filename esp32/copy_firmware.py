@@ -48,6 +48,29 @@ def sha256_file(filepath):
     return sha256_hash.hexdigest()
 
 
+def firmware_unchanged(hub_firmware_dir, build_dir):
+    """
+    Check if the newly built firmware is identical to the existing one.
+    Returns True if firmware binary SHA256 matches existing manifest.
+    """
+    manifest_path = hub_firmware_dir / 'manifest.json'
+    firmware_bin_path = build_dir / 'firmware.bin'
+
+    if not manifest_path.exists() or not firmware_bin_path.exists():
+        return False
+
+    try:
+        manifest = json.loads(manifest_path.read_text())
+        existing_sha256 = manifest.get('firmwareBinarySha256')
+        if not existing_sha256:
+            return False
+
+        new_sha256 = sha256_file(firmware_bin_path)
+        return existing_sha256 == new_sha256
+    except (json.JSONDecodeError, KeyError):
+        return False
+
+
 def generate_manifest(hub_firmware_dir, version):
     """Generate manifest.json for USB serial flashing"""
     manifest_path = hub_firmware_dir / 'manifest.json'
@@ -102,9 +125,18 @@ def copy_to_hub_public(project_root, build_dir):
 
     Both files are IDENTICAL (same SHA256) to ensure consistency across flash methods.
     The manifest.json is auto-generated with checksums to ensure integrity.
+
+    If the firmware binary is unchanged from the existing manifest, skip all updates
+    to preserve the existing version number.
     """
     hub_firmware_dir = project_root / 'rgfx-hub' / 'assets' / 'esp32' / 'firmware'
     hub_firmware_dir.mkdir(parents=True, exist_ok=True)
+
+    # Check if firmware binary is unchanged - skip update to preserve version
+    if firmware_unchanged(hub_firmware_dir, build_dir):
+        manifest = json.loads((hub_firmware_dir / 'manifest.json').read_text())
+        print(f"\n✓ Firmware binary unchanged (v{manifest['version']}), skipping manifest update\n")
+        return
 
     version = get_version(project_root)
 

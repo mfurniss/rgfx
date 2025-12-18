@@ -21,7 +21,7 @@ interface DriverListTableProps {
 }
 
 const SORT_COLUMNS: { field: SortField; label: string }[] = [
-  { field: 'id', label: 'Device ID' },
+  { field: 'id', label: 'Driver ID' },
   { field: 'ip', label: 'IP Address' },
   { field: 'status', label: 'Status' },
 ];
@@ -56,7 +56,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
         compareValue = (a.ip ?? '').localeCompare(b.ip ?? '');
         break;
       case 'status':
-        compareValue = (a.connected ? 1 : 0) - (b.connected ? 1 : 0);
+        compareValue = (a.state === 'connected' ? 1 : 0) - (b.state === 'connected' ? 1 : 0);
         break;
     }
 
@@ -94,7 +94,6 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               sx={{
                 cursor: 'pointer',
                 '&:hover': { backgroundColor: 'action.hover' },
-                opacity: driver.connected ? 1 : 0.6,
               }}
             >
               <TableCell>{driver.id}</TableCell>

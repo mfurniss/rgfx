@@ -9,7 +9,6 @@ import { ipcMain, app } from 'electron';
 import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
-import { markDriverOtaStarted, markDriverOtaFinished } from '../ota-state';
 import { eventBus } from '../services/event-bus';
 
 interface FlashOtaHandlerDeps {
@@ -27,7 +26,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         throw new Error('Driver not found');
       }
 
-      if (!driver.connected) {
+      if (driver.state !== 'connected') {
         throw new Error('Driver is not connected');
       }
 
@@ -39,11 +38,12 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
 
-      // Mark driver as in OTA mode to prevent LWT "offline" from disconnecting it
-      markDriverOtaStarted(driverId);
+      // Mark driver as updating - this prevents LWT "offline" from disconnecting it
+      // and shows "Updating" state in the UI
+      driver.state = 'updating';
+      eventBus.emit('driver:updated', { driver });
 
       // Touch driver immediately at OTA start to reset timeout
-      // (no need to emit driver:updated - renderer doesn't need lastSeenAt changes)
       driverRegistry.touchDriver(driverId);
 
       const firmwarePath = app.isPackaged
@@ -108,10 +108,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
 
       log.info(`OTA flash to ${driverId} completed successfully`);
-      markDriverOtaFinished(driverId);
 
       // Mark driver as disconnected (it will reboot) with 'restarting' reason
-      driver.connected = false;
+      driver.state = 'disconnected';
       driver.ip = undefined;
       eventBus.emit('driver:disconnected', { driver, reason: 'restarting' });
 
@@ -119,7 +118,19 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log.error('OTA flash failed:', errorMessage);
-      markDriverOtaFinished(driverId);
+
+      // On error, try to mark driver as disconnected (may not exist if initial lookup failed)
+      try {
+        const errorDriver = driverRegistry.getDriver(driverId);
+
+        if (errorDriver) {
+          errorDriver.state = 'disconnected';
+          eventBus.emit('driver:updated', { driver: errorDriver });
+        }
+      } catch {
+        // Driver lookup failed, nothing to update
+      }
+
       return { success: false, error: errorMessage };
     }
   });

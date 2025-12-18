@@ -52,6 +52,7 @@ describe('App IPC Listener Registration', () => {
       onDriverConnected: mockIpcOnDriverConnected,
       onDriverDisconnected: mockIpcOnDriverDisconnected,
       onDriverUpdated: mockIpcOnDriverUpdated,
+      onDriverRestarting: vi.fn(() => vi.fn()),
       onSystemStatus: mockIpcOnSystemStatus,
       onEventCount: vi.fn(() => vi.fn()),
       onEventTopic: vi.fn(() => vi.fn()),
@@ -116,7 +117,7 @@ describe('App IPC Listener Registration', () => {
     // Simulate IPC event (use 'as Driver' since this is a test mock)
     const mockDriver = {
       id: '44:1D:64:F8:9A:58',
-      connected: true,
+      state: 'connected',
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       ip: '192.168.1.50',

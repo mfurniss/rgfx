@@ -50,7 +50,7 @@ describe('subscribeDriverTelemetry', () => {
         id: 'rgfx-driver-0001',
         mac: data.mac,
         ip: data.ip,
-        connected: true,
+        state: 'connected',
         telemetry: data.telemetry,
       })),
     };
@@ -327,7 +327,7 @@ describe('subscribeDriverTelemetry', () => {
         hostname: 'test-host',
         ssid: 'TestNetwork',
         rssi: -50,
-        connected: true,
+        state: 'connected',
         lastSeen: Date.now(),
         failedHeartbeats: 0,
         testActive: false,
@@ -373,7 +373,7 @@ describe('subscribeDriverTelemetry', () => {
         expect.objectContaining({
           id: 'rgfx-driver-0001',
           mac: 'AA:BB:CC:DD:EE:FF',
-          connected: true,
+          state: 'connected',
         }),
       );
     });

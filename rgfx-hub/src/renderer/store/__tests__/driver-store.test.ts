@@ -1,6 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useDriverStore } from '../driver-store';
 import { createMockDriver } from '@/__tests__/test-utils';
+import * as notificationStore from '../notification-store';
+
+// Mock the notification store
+vi.mock('../notification-store', () => ({
+  notify: vi.fn(),
+}));
 
 describe('driver-store', () => {
   beforeEach(() => {
@@ -84,11 +90,11 @@ describe('driver-store', () => {
     });
 
     it('should handle driver with no telemetry', () => {
-      // connected: false sets telemetry to undefined
+      // state: 'disconnected' sets telemetry to undefined
       const driver = createMockDriver({
         id: 'rgfx-driver-0001',
         mac: 'AA:BB:CC:DD:EE:FF',
-        connected: false,
+        state: 'disconnected',
       });
 
       useDriverStore.getState().onDriverConnected(driver);
@@ -141,7 +147,7 @@ describe('driver-store', () => {
       const driver = createMockDriver({
         id: 'rgfx-driver-0001',
         mac: 'AA:BB:CC:DD:EE:FF',
-        connected: true,
+        state: 'connected',
       });
       useDriverStore.getState().onDriverConnected(driver);
 
@@ -149,23 +155,23 @@ describe('driver-store', () => {
       const disconnectedDriver = createMockDriver({
         id: 'rgfx-driver-0001',
         mac: 'AA:BB:CC:DD:EE:FF',
-        connected: false,
+        state: 'disconnected',
       });
       useDriverStore.getState().onDriverDisconnected(disconnectedDriver);
 
       const { drivers } = useDriverStore.getState();
       expect(drivers).toHaveLength(1);
-      expect(drivers[0].connected).toBe(false);
+      expect(drivers[0].state === 'connected').toBe(false);
     });
   });
 
   describe('selectors', () => {
     it('connectedDrivers should return only connected drivers', () => {
-      const driver1 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', connected: true });
+      const driver1 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
       const driver2 = createMockDriver({
         id: 'rgfx-driver-0002',
         mac: '11:22:33:44:55:66',
-        connected: false,
+        state: 'disconnected',
       });
 
       useDriverStore.getState().onDriverConnected(driver1);
@@ -188,6 +194,90 @@ describe('driver-store', () => {
     it('getDriverById should return undefined for non-existent driver', () => {
       const found = useDriverStore.getState().getDriverById('non-existent');
       expect(found).toBeUndefined();
+    });
+  });
+
+  describe('state change notifications', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should not notify on initial driver load (prevents startup notification spam)', () => {
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+
+      // First time driver appears - should NOT notify (prevents startup spam)
+      useDriverStore.getState().onDriverConnected(driver);
+
+      expect(notificationStore.notify).not.toHaveBeenCalled();
+    });
+
+    it('should notify when existing driver reconnects', () => {
+      // First load the driver (no notification expected)
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'disconnected' });
+      useDriverStore.getState().onDriverConnected(driver);
+
+      vi.clearAllMocks();
+
+      // Now reconnect - this should notify
+      const reconnectedDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+      useDriverStore.getState().onDriverConnected(reconnectedDriver);
+
+      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 connected', 'success');
+    });
+
+    it('should notify when driver disconnects', () => {
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+      useDriverStore.getState().onDriverConnected(driver);
+
+      vi.clearAllMocks();
+
+      const disconnectedDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'disconnected' });
+      useDriverStore.getState().onDriverDisconnected(disconnectedDriver);
+
+      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 disconnected', 'error');
+    });
+
+    it('should notify when driver state changes to updating', () => {
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+      useDriverStore.getState().onDriverConnected(driver);
+
+      vi.clearAllMocks();
+
+      const updatingDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'updating' });
+      useDriverStore.getState().onDriverUpdated(updatingDriver);
+
+      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 updating firmware...', 'info');
+    });
+
+    it('should not notify disconnect when transitioning from updating state (expected reboot)', () => {
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+      useDriverStore.getState().onDriverConnected(driver);
+
+      // Transition to updating state
+      const updatingDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'updating' });
+      useDriverStore.getState().onDriverUpdated(updatingDriver);
+
+      vi.clearAllMocks();
+
+      // Transition from updating to disconnected (expected reboot)
+      const disconnectedDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'disconnected' });
+      useDriverStore.getState().onDriverDisconnected(disconnectedDriver);
+
+      // Should NOT notify disconnect because driver was in 'updating' state
+      expect(notificationStore.notify).not.toHaveBeenCalledWith('rgfx-driver-0001 disconnected', 'error');
+    });
+
+    it('should not notify when state does not change', () => {
+      const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+      useDriverStore.getState().onDriverConnected(driver);
+
+      vi.clearAllMocks();
+
+      // Update same driver with same state
+      const sameDriver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
+      useDriverStore.getState().onDriverUpdated(sameDriver);
+
+      expect(notificationStore.notify).not.toHaveBeenCalled();
     });
   });
 });

@@ -18,7 +18,7 @@ export function FirmwareUpdateBanner() {
 
   // Count connected drivers that need firmware update
   const driversNeedingUpdate = drivers.filter((driver) => {
-    if (!driver.connected) {
+    if (driver.state !== 'connected') {
       return false;
     }
 

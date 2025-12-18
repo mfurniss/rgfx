@@ -39,7 +39,6 @@ describe('createUploadConfigToDriver', () => {
       powerSupplyVolts: 5,
       maxPowerMilliamps: 2000,
     },
-    wifiTxPower: 15,
     remoteLogging: 'errors' as const,
   };
 
@@ -163,7 +162,6 @@ describe('createUploadConfigToDriver', () => {
       expect(payload.settings.dithering).toBe(true);
       expect(payload.settings.power_supply_volts).toBe(5);
       expect(payload.settings.max_power_milliamps).toBe(2000);
-      expect(payload.settings.wifi_tx_power).toBe(15);
     });
 
     it('should default offset to 0 when not specified', async () => {
