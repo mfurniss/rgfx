@@ -6,7 +6,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { Box, Typography, Button, Paper, TextField, Stack, Tooltip } from '@mui/material';
+import { Box, Typography, Button, Paper, TextField, Stack } from '@mui/material';
 import { GridView as GridIcon, Clear as ClearIcon } from '@mui/icons-material';
 import {
   DndContext,
@@ -174,38 +174,36 @@ function SortablePanel({ id, index, rotation, disabled, onRotate }: SortablePane
   };
 
   return (
-    <Tooltip title="Drag to swap, click to rotate" enterDelay={500} disableInteractive>
-      <Paper
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        variant="outlined"
-        onClick={(e) => {
-          // Only rotate on click if not dragging
-          if (!isDragging && !disabled) {
-            e.preventDefault();
-            onRotate();
-          }
-        }}
-        sx={{
-          p: 1,
-          textAlign: 'center',
-          cursor: disabled ? 'default' : 'grab',
-          minWidth: 60,
-          userSelect: 'none',
-          '&:hover': disabled ? {} : { bgcolor: 'action.hover' },
-          '&:active': disabled ? {} : { cursor: 'grabbing' },
-        }}
-      >
-        <Typography variant="body2" fontWeight="medium">
-          {index}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {getRotationLabel(rotation)}
-        </Typography>
-      </Paper>
-    </Tooltip>
+    <Paper
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      variant="outlined"
+      onClick={(e) => {
+        // Only rotate on click if not dragging
+        if (!isDragging && !disabled) {
+          e.preventDefault();
+          onRotate();
+        }
+      }}
+      sx={{
+        p: 1,
+        textAlign: 'center',
+        cursor: disabled ? 'default' : 'grab',
+        minWidth: 60,
+        userSelect: 'none',
+        '&:hover': disabled ? {} : { bgcolor: 'action.hover' },
+        '&:active': disabled ? {} : { cursor: 'grabbing' },
+      }}
+    >
+      <Typography variant="body2" fontWeight="medium">
+        {index}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {getRotationLabel(rotation)}
+      </Typography>
+    </Paper>
   );
 }
 
