@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Enhanced UnifiedPanelEditor with drag-and-drop and click-to-rotate interactions
+  - Panels can now be dragged and dropped to swap positions (using @dnd-kit library)
+  - Clicking a panel rotates it 90° clockwise (cycles through 0°→90°→180°→270°→0°)
+  - Added DragOverlay for smooth visual feedback during drag operations
+  - Removed popover-based editing in favor of direct interaction
+  - Updated helper text: "Drag to swap panels, click to rotate"
+
+### Changed
 - Refactored IPC handlers to use global event bus for driver events
   - `flash-ota-handler.ts` now emits `driver:updated`, `driver:disconnected`, `flash:ota:state`, `flash:ota:progress`, `flash:ota:error` via event bus
   - `save-driver-config-handler.ts` now emits `driver:updated`, `driver:disconnected` via event bus

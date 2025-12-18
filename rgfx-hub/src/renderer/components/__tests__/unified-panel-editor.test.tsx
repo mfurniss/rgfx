@@ -103,6 +103,20 @@ describe('UnifiedPanelEditor', () => {
       expect(screen.getByText('5')).toBeDefined();
       expect(screen.getByText('0°')).toBeDefined();
     });
+
+    it('should show helper text for drag and click interactions', () => {
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['0', '1'],
+            ['2', '3'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      expect(screen.getByText('Drag to swap panels, click to rotate')).toBeDefined();
+    });
   });
 
   describe('clear functionality', () => {
@@ -317,8 +331,8 @@ describe('UnifiedPanelEditor', () => {
     });
   });
 
-  describe('cell editing', () => {
-    it('should open popover when clicking a cell', () => {
+  describe('click-to-rotate', () => {
+    it('should rotate cell from 0° to 90° on click', () => {
       render(
         <UnifiedPanelEditor
           value={[
@@ -329,15 +343,93 @@ describe('UnifiedPanelEditor', () => {
         />,
       );
 
-      // Click on cell with index 0
+      // Click on cell with index 0 (which has 0° rotation by default)
       fireEvent.click(screen.getByText('0'));
 
-      expect(screen.getByText('Edit Panel')).toBeDefined();
-      expect(screen.getByLabelText('Panel Index')).toBeDefined();
-      expect(screen.getByText('Rotation')).toBeDefined();
+      expect(mockOnChange).toHaveBeenCalledWith([
+        ['0b', '1'],
+        ['2', '3'],
+      ]);
     });
 
-    it('should not open popover when clicking a cell in disabled mode', () => {
+    it('should rotate cell from 90° to 180° on click', () => {
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['0b', '1'],
+            ['2', '3'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      fireEvent.click(screen.getByText('0'));
+
+      expect(mockOnChange).toHaveBeenCalledWith([
+        ['0c', '1'],
+        ['2', '3'],
+      ]);
+    });
+
+    it('should rotate cell from 180° to 270° on click', () => {
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['0c', '1'],
+            ['2', '3'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      fireEvent.click(screen.getByText('0'));
+
+      expect(mockOnChange).toHaveBeenCalledWith([
+        ['0d', '1'],
+        ['2', '3'],
+      ]);
+    });
+
+    it('should rotate cell from 270° back to 0° on click', () => {
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['0d', '1'],
+            ['2', '3'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      fireEvent.click(screen.getByText('0'));
+
+      expect(mockOnChange).toHaveBeenCalledWith([
+        ['0', '1'],
+        ['2', '3'],
+      ]);
+    });
+
+    it('should rotate cell in second row', () => {
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['0', '1'],
+            ['2', '3'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      // Click on cell with index 2 (row 1, col 0)
+      fireEvent.click(screen.getByText('2'));
+
+      expect(mockOnChange).toHaveBeenCalledWith([
+        ['0', '1'],
+        ['2b', '3'],
+      ]);
+    });
+
+    it('should not rotate when disabled', () => {
       render(
         <UnifiedPanelEditor
           value={[
@@ -351,184 +443,7 @@ describe('UnifiedPanelEditor', () => {
 
       fireEvent.click(screen.getByText('0'));
 
-      expect(screen.queryByText('Edit Panel')).toBeNull();
-    });
-
-    it('should update cell index when changing panel index input', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      // Click on cell with index 0
-      fireEvent.click(screen.getByText('0'));
-
-      // Change the index
-      const indexInput = screen.getByLabelText('Panel Index');
-      fireEvent.change(indexInput, { target: { value: '5' } });
-
-      expect(mockOnChange).toHaveBeenCalledWith([
-        ['5', '1'],
-        ['2', '3'],
-      ]);
-    });
-
-    it('should update cell rotation when clicking rotation button', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      // Click on cell with index 0
-      fireEvent.click(screen.getByText('0'));
-
-      // Click 90° rotation button
-      fireEvent.click(screen.getByRole('button', { name: '90°' }));
-
-      expect(mockOnChange).toHaveBeenCalledWith([
-        ['0b', '1'],
-        ['2', '3'],
-      ]);
-    });
-
-    it('should update cell rotation to 180°', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      fireEvent.click(screen.getByText('0'));
-      fireEvent.click(screen.getByRole('button', { name: '180°' }));
-
-      expect(mockOnChange).toHaveBeenCalledWith([
-        ['0c', '1'],
-        ['2', '3'],
-      ]);
-    });
-
-    it('should update cell rotation to 270°', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      fireEvent.click(screen.getByText('0'));
-      fireEvent.click(screen.getByRole('button', { name: '270°' }));
-
-      expect(mockOnChange).toHaveBeenCalledWith([
-        ['0d', '1'],
-        ['2', '3'],
-      ]);
-    });
-
-    it('should format cell without suffix when rotation is 0° (a)', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0b', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      // Click on cell with rotation 90°
-      fireEvent.click(screen.getByText('0'));
-      // Change to 0° rotation
-      fireEvent.click(screen.getByRole('button', { name: '0°' }));
-
-      expect(mockOnChange).toHaveBeenCalledWith([
-        ['0', '1'],
-        ['2', '3'],
-      ]);
-    });
-
-    it('should not update when index is negative', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      fireEvent.click(screen.getByText('0'));
-
-      const indexInput = screen.getByLabelText('Panel Index');
-      fireEvent.change(indexInput, { target: { value: '-1' } });
-
-      // Should not have been called with negative index
-      const { calls } = mockOnChange.mock;
-      const hasNegativeIndex = calls.some((call) => JSON.stringify(call[0]).includes('-1'));
-      expect(hasNegativeIndex).toBe(false);
-    });
-
-    it('should not update when index input is empty', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      fireEvent.click(screen.getByText('0'));
-
-      const indexInput = screen.getByLabelText('Panel Index');
-      fireEvent.change(indexInput, { target: { value: '' } });
-
-      // The mockOnChange should not be called with an empty/NaN value
-      const { calls } = mockOnChange.mock;
-      const hasEmptyIndex = calls.some((call) => {
-        const grid = call[0] as string[][];
-        return grid.some((row) => row.some((cell) => cell === '' || cell === 'NaN'));
-      });
-      expect(hasEmptyIndex).toBe(false);
-    });
-
-    it('should edit cell in second row', () => {
-      render(
-        <UnifiedPanelEditor
-          value={[
-            ['0', '1'],
-            ['2', '3'],
-          ]}
-          onChange={mockOnChange}
-        />,
-      );
-
-      // Click on cell with index 2 (row 1, col 0)
-      fireEvent.click(screen.getByText('2'));
-      fireEvent.click(screen.getByRole('button', { name: '90°' }));
-
-      expect(mockOnChange).toHaveBeenCalledWith([
-        ['0', '1'],
-        ['2b', '3'],
-      ]);
+      expect(mockOnChange).not.toHaveBeenCalled();
     });
   });
 
