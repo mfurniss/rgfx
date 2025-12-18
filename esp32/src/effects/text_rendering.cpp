@@ -22,12 +22,16 @@ void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t
 }
 
 void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b, BlendMode mode) {
+	renderChar(canvas, c, x, y, r, g, b, 255, mode);
+}
+
+void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha, BlendMode mode) {
 	const uint8_t* glyph = getGlyph(c);
 	if (glyph == nullptr) {
 		return;
 	}
 
-	CRGBA color(r, g, b, 255);
+	CRGBA color(r, g, b, alpha);
 
 	for (uint8_t row = 0; row < FONT_CHAR_HEIGHT; row++) {
 		uint8_t rowData = pgm_read_byte(&glyph[row]);
