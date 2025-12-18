@@ -18,12 +18,13 @@ class ExplodeEffect : public IEffect {
 		uint8_t particleSize;    // Render size in pixels (denormalized from explosion)
 	};
 
-	// Flash effect for LED strips only (white pulse that collapses inward)
+	// Flash effect for LED strips only (colored pulse that collapses inward)
 	struct Flash {
 		float centerX;            // Center position of flash
 		float initialWidth;       // Starting width of flash
 		float duration;           // Total flash duration in seconds
 		float age;                // Current age in seconds
+		uint8_t r, g, b;          // RGB color (matches explosion color)
 	};
 
 	Canvas& canvas;
