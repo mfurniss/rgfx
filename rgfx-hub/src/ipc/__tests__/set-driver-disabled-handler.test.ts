@@ -10,6 +10,7 @@ import { registerSetDriverDisabledHandler } from '../set-driver-disabled-handler
 import type { DriverRegistry } from '@/driver-registry';
 import type { DriverPersistence } from '@/driver-persistence';
 import type { LEDHardwareManager } from '@/led-hardware-manager';
+import type { MqttBroker } from '@/network';
 import type { BrowserWindow } from 'electron';
 
 vi.mock('electron', () => ({
@@ -36,6 +37,9 @@ describe('registerSetDriverDisabledHandler', () => {
     setDisabled: ReturnType<typeof vi.fn>;
   };
   let mockLedHardwareManager: object;
+  let mockMqtt: {
+    publish: ReturnType<typeof vi.fn>;
+  };
   let mockMainWindow: {
     isDestroyed: ReturnType<typeof vi.fn>;
     webContents: {
@@ -102,6 +106,10 @@ describe('registerSetDriverDisabledHandler', () => {
 
     mockLedHardwareManager = {};
 
+    mockMqtt = {
+      publish: vi.fn().mockResolvedValue(undefined),
+    };
+
     mockMainWindow = {
       isDestroyed: vi.fn().mockReturnValue(false),
       webContents: {
@@ -123,6 +131,7 @@ describe('registerSetDriverDisabledHandler', () => {
       driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
       driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
       ledHardwareManager: mockLedHardwareManager as unknown as LEDHardwareManager,
+      mqtt: mockMqtt as unknown as MqttBroker,
       getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
     });
   });
@@ -197,6 +206,7 @@ describe('registerSetDriverDisabledHandler', () => {
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
         driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
         ledHardwareManager: mockLedHardwareManager as unknown as LEDHardwareManager,
+        mqtt: mockMqtt as unknown as MqttBroker,
         getMainWindow: () => null,
       });
 
@@ -224,6 +234,28 @@ describe('registerSetDriverDisabledHandler', () => {
 
       expect(mockDriverPersistence.setDisabled).toHaveBeenCalledWith('rgfx-driver-0001', false);
       expect(result).toEqual({ success: true });
+    });
+
+    it('sends clear-effects command when disabling a driver', () => {
+      registeredHandler({}, 'rgfx-driver-0001', true);
+
+      expect(mockMqtt.publish).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/clear-effects',
+        '',
+      );
+    });
+
+    it('does not send clear-effects command when enabling a driver', () => {
+      const disabledDriver = { ...mockDriver, disabled: true };
+      mockDriverRegistry.getDriver.mockReturnValue(disabledDriver);
+      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue({
+        ...disabledDriver,
+        disabled: false,
+      });
+
+      registeredHandler({}, 'rgfx-driver-0001', false);
+
+      expect(mockMqtt.publish).not.toHaveBeenCalled();
     });
   });
 });
