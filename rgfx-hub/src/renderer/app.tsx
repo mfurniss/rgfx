@@ -56,6 +56,7 @@ const App: React.FC = () => {
   useSimulatorAutoTrigger();
   const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
   const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
+  const onDriverRestarting = useDriverStore((state) => state.onDriverRestarting);
   const onSystemStatusUpdate = useDriverStore((state) => state.onSystemStatusUpdate);
   const onEventTopic = useEventStore((state) => state.onEventTopic);
 
@@ -90,6 +91,11 @@ const App: React.FC = () => {
       onDriverUpdated(driver);
     });
 
+    const unsubRestarting = window.rgfx.onDriverRestarting((driver) => {
+      console.log(`[DEBUG] IPC driver:restarting received in renderer for ${driver.id}`);
+      onDriverRestarting(driver);
+    });
+
     const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
 
     const unsubEventTopic = window.rgfx.onEventTopic((data) => {
@@ -102,11 +108,13 @@ const App: React.FC = () => {
       unsubConnected();
       unsubDisconnected();
       unsubUpdated();
+      unsubRestarting();
       unsubSystemStatus();
       unsubEventTopic();
     };
   }, [
-    onDriverConnected, onDriverDisconnected, onDriverUpdated, onSystemStatusUpdate, onEventTopic,
+    onDriverConnected, onDriverDisconnected, onDriverUpdated, onDriverRestarting,
+    onSystemStatusUpdate, onEventTopic,
   ]);
 
   // Signal renderer ready and get app info only once per app lifecycle (not per mount)

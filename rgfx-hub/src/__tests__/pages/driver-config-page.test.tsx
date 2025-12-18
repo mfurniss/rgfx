@@ -54,6 +54,7 @@ beforeEach(() => {
     onDriverConnected: vi.fn(() => vi.fn()),
     onDriverDisconnected: vi.fn(() => vi.fn()),
     onDriverUpdated: vi.fn(() => vi.fn()),
+    onDriverRestarting: vi.fn(() => vi.fn()),
     onSystemStatus: vi.fn(() => vi.fn()),
     onEventCount: vi.fn(() => vi.fn()),
     onEventTopic: vi.fn(() => vi.fn()),
