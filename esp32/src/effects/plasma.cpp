@@ -149,6 +149,20 @@ void PlasmaEffect::render() {
 	// Gradient offset rotates the palette over time for full color coverage
 	int16_t gradientOffset = (int16_t)(state.time * 20.0f);
 
+	// Strip layout: height=1, fill 4 pixels per block horizontally
+	if (height == 1) {
+		CRGB* pixels = canvas.getPixels();
+		for (uint16_t x = 0; x < width; x += step) {
+			uint8_t noise = inoise8(x * noiseScale, 0, timeOffset);
+			uint8_t shiftedNoise = (uint8_t)(noise + gradientOffset);
+			uint8_t lutIndex = (uint8_t)((uint16_t)shiftedNoise * (GRADIENT_LUT_SIZE - 1) / 255);
+			CRGB color = state.gradientLut[lutIndex];
+			pixels[x] = pixels[x + 1] = pixels[x + 2] = pixels[x + 3] = color;
+		}
+		return;
+	}
+
+	// Matrix layout: fill 4x4 blocks
 	for (uint16_t y = 0; y < height; y += step) {
 		for (uint16_t x = 0; x < width; x += step) {
 			// 3D Perlin noise: x, y for position, time for animation
@@ -157,8 +171,7 @@ void PlasmaEffect::render() {
 			// Map noise (0-255) + offset to LUT index (0-99)
 			uint8_t shiftedNoise = (uint8_t)(noise + gradientOffset);
 			uint8_t lutIndex = (uint8_t)((uint16_t)shiftedNoise * (GRADIENT_LUT_SIZE - 1) / 255);
-			CRGB color = state.gradientLut[lutIndex];
-			canvas.drawRectangle(x, y, step, step, color);
+			canvas.fillBlock4x4(x, y, state.gradientLut[lutIndex]);
 		}
 	}
 }

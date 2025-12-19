@@ -78,4 +78,16 @@ class Canvas {
 
     void clear();
     void fill(const CRGB& color);
+
+    // Fast 4x4 block fill - caller must ensure x+4 <= width and y+4 <= height
+    inline void fillBlock4x4(uint16_t x, uint16_t y, const CRGB& color) {
+        CRGB* row = pixels + (y * width) + x;
+        row[0] = row[1] = row[2] = row[3] = color;
+        row += width;
+        row[0] = row[1] = row[2] = row[3] = color;
+        row += width;
+        row[0] = row[1] = row[2] = row[3] = color;
+        row += width;
+        row[0] = row[1] = row[2] = row[3] = color;
+    }
 };

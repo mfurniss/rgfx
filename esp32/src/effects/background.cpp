@@ -42,11 +42,7 @@ void BackgroundEffect::render() {
 		return;
 	}
 
-	// Fill entire canvas with solid color
-	uint16_t width = canvas.getWidth();
-	uint16_t height = canvas.getHeight();
-	CRGB color(state.r, state.g, state.b);
-	canvas.drawRectangle(0, 0, width, height, color);
+	canvas.fill(CRGB(state.r, state.g, state.b));
 }
 
 void BackgroundEffect::reset() {
