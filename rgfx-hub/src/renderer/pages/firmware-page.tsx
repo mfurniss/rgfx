@@ -23,23 +23,35 @@ import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 
 const FirmwarePage: React.FC = () => {
+  // Driver store
+  const drivers = useDriverStore((state) => state.drivers);
+  const currentFirmwareVersion = useDriverStore(
+    (state) => state.systemStatus.currentFirmwareVersion,
+  );
+  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const driversNeedingUpdate = connectedDrivers.filter(
+    (d) =>
+      d.telemetry?.firmwareVersion &&
+      d.telemetry.firmwareVersion !== currentFirmwareVersion,
+  );
+
   // Persisted state from store
   const storedFlashMethod = useUiStore((state) => state.firmwareFlashMethod);
-  const storedSelectedDrivers = useUiStore((state) => state.firmwareSelectedDrivers);
-  const storedSelectAll = useUiStore((state) => state.firmwareSelectAll);
   const storedDriverFlashStatus = useUiStore((state) => state.firmwareDriverFlashStatus);
   const setFirmwareState = useUiStore((state) => state.setFirmwareState);
   const setFirmwareDriverFlashStatus = useUiStore((state) => state.setFirmwareDriverFlashStatus);
-
-  // Local state initialized from store
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
-  const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    new Set(storedSelectedDrivers),
-  );
-  const [selectAll, setSelectAll] = useState(storedSelectAll);
   const isFlashing = useUiStore((state) => state.isFlashingFirmware);
   const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
+
+  // Local state
+  const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
+  const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
+  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(() =>
+    new Set(driversNeedingUpdate.map((d) => d.id)),
+  );
+  const [selectAll, setSelectAll] = useState(
+    () => driversNeedingUpdate.length === connectedDrivers.length && connectedDrivers.length > 0,
+  );
   const [progress, setProgress] = useState(0);
   const [driverFlashStatus, setDriverFlashStatus] = useState<Map<string, DriverFlashStatus>>(
     () => new Map(Object.entries(storedDriverFlashStatus)),
@@ -52,12 +64,6 @@ const FirmwarePage: React.FC = () => {
     message: string;
   }>({ open: false, success: false, message: '' });
   const [confirmModal, setConfirmModal] = useState(false);
-
-  const drivers = useDriverStore((state) => state.drivers);
-  const currentFirmwareVersion = useDriverStore(
-    (state) => state.systemStatus.currentFirmwareVersion,
-  );
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
 
   const addLog = (message: string) => {
     console.log('>', message);
@@ -106,34 +112,6 @@ const FirmwarePage: React.FC = () => {
       setGetPort(null);
     }
   }, [flashMethod]);
-
-  // Track whether we've done the initial auto-selection
-  const [hasAutoSelected, setHasAutoSelected] = useState(storedSelectedDrivers.length > 0);
-
-  // Auto-select drivers that need firmware update
-  useEffect(() => {
-    // Skip if we've already auto-selected or user has made selections
-    if (hasAutoSelected) {
-      return;
-    }
-
-    if (!currentFirmwareVersion) {
-      return;
-    }
-
-    const connected = drivers.filter((d) => d.state === 'connected');
-    const driversNeedingUpdate = connected.filter(
-      (d) =>
-        d.telemetry?.firmwareVersion &&
-        d.telemetry.firmwareVersion !== currentFirmwareVersion,
-    );
-
-    if (driversNeedingUpdate.length > 0) {
-      setSelectedDrivers(new Set(driversNeedingUpdate.map((d) => d.id)));
-      setSelectAll(driversNeedingUpdate.length === connected.length);
-      setHasAutoSelected(true);
-    }
-  }, [currentFirmwareVersion, drivers, hasAutoSelected]);
 
   // Sync state changes to store for persistence across navigation
   useEffect(() => {
