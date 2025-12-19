@@ -139,12 +139,11 @@ export default function TestEffectsPage() {
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsJson = useUiStore((state) => state.testEffectsPropsJson);
-  const storedSelectedDrivers = useUiStore((state) => state.testEffectsSelectedDrivers);
   const selectAll = useUiStore((state) => state.testEffectsSelectAll);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
 
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    new Set(storedSelectedDrivers),
+    new Set(connectedDrivers.map((d) => d.id)),
   );
 
   // Parse current props from JSON
