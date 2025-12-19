@@ -249,6 +249,100 @@ void test_text_expires_after_duration() {
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
 
+void test_text_full_alpha_before_halfway() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "X";
+	props["color"] = "#FFFFFF";
+	props["duration"] = 1000;  // 1 second
+
+	effect.add(props);
+
+	// At 40% through duration (before halfway), should be full brightness
+	effect.update(0.4f);  // 400ms
+	canvas.clear();
+	effect.render();
+
+	uint32_t brightness = calculateTotalBrightness(canvas);
+	TEST_ASSERT_TRUE(brightness > 0);
+
+	// Get a lit pixel - should be full white (255)
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r > 0) {
+				TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+				TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
+				TEST_ASSERT_EQUAL_UINT8(255, pixel.b);
+				return;
+			}
+		}
+	}
+	TEST_FAIL_MESSAGE("No lit pixels found");
+}
+
+void test_text_fades_after_halfway() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "X";
+	props["color"] = "#FFFFFF";
+	props["duration"] = 1000;  // 1 second
+
+	effect.add(props);
+
+	// First render at start - get full brightness
+	canvas.clear();
+	effect.render();
+	uint32_t fullBrightness = calculateTotalBrightness(canvas);
+	TEST_ASSERT_TRUE(fullBrightness > 0);
+
+	// At 75% through duration (past halfway), should be fading
+	effect.update(0.75f);  // 750ms
+	canvas.clear();
+	effect.render();
+
+	uint32_t fadedBrightness = calculateTotalBrightness(canvas);
+	printf("Full brightness: %u, Faded brightness: %u\n", fullBrightness, fadedBrightness);
+
+	// Should be dimmer than full but not zero
+	TEST_ASSERT_LESS_THAN(fullBrightness, fadedBrightness);
+	TEST_ASSERT_GREATER_THAN(0, fadedBrightness);
+}
+
+void test_text_permanent_no_fade() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "X";
+	props["color"] = "#FFFFFF";
+	props["duration"] = 0;  // Permanent
+
+	effect.add(props);
+
+	// Get initial brightness
+	canvas.clear();
+	effect.render();
+	uint32_t initialBrightness = calculateTotalBrightness(canvas);
+
+	// Update past any reasonable time
+	effect.update(100.0f);  // 100 seconds
+
+	canvas.clear();
+	effect.render();
+	uint32_t laterBrightness = calculateTotalBrightness(canvas);
+
+	// Should be same brightness (no fade for permanent text)
+	TEST_ASSERT_EQUAL(initialBrightness, laterBrightness);
+}
+
 // =============================================================================
 // 3. Position Tests
 // =============================================================================
@@ -294,6 +388,9 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_text_reset_clears);
 	RUN_TEST(test_text_duration_zero_is_permanent);
 	RUN_TEST(test_text_expires_after_duration);
+	RUN_TEST(test_text_full_alpha_before_halfway);
+	RUN_TEST(test_text_fades_after_halfway);
+	RUN_TEST(test_text_permanent_no_fade);
 	RUN_TEST(test_text_position_offset);
 
 	return UNITY_END();

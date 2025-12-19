@@ -242,12 +242,25 @@ Implemented projectile effect with trail rendering, configurable velocity, frict
 
 Added scroll_text effect for horizontally scrolling text. Added accentColor support to text effects for shadow rendering. Implemented firmware update banner shown when drivers need updates. Improved timing precision with microsecond resolution. Removed 120 FPS cap, switching to variable frame rate (VFR) rendering. Fixed MQTT reconnection failures after WiFi disconnect/reconnect. Fixed periodic MQTT disconnections by increasing keep-alive timeout.
 
-**Codebase Statistics:**
-- ESP32 Driver: 8,048 lines
-- RGFX Hub: 12,260 lines
-- LED Simulator: 1,111 lines
-- MAME Lua Scripts: 460 lines
-- **Total: ~21,879 lines of code**
+## December 15, 2025
 
-**Total Development Time:** 65 days (October 11 - December 14, 2025)
-**Total Commits:** 502
+Implemented event bus architecture for decoupled component communication. Fixed MQTT first-connection failures caused by non-reentrant arduino-mqtt library by queuing operations for main loop processing. Added automatic network change detection and recovery.
+
+## December 16, 2025
+
+Reduced effect trigger latency by ~6ms. Improved firmware update UX with spinner during OTA, disabled controls while updating, and state persistence across navigation. Fixed disconnect notifications incorrectly showing on app startup.
+
+## December 17, 2025
+
+Added Star Wars (Atari 1983) interceptor and transformer. Implemented FX Playground state persistence between reloads. Created UnifiedPanelEditor with drag-and-drop panel swapping and click-to-rotate interactions for multi-panel LED matrix configuration.
+
+**Codebase Statistics:**
+- ESP32 Driver: 9,242 lines
+- RGFX Hub: 31,153 lines
+- LED Simulator: 2,219 lines
+- MAME Lua Scripts: 3,906 lines
+- Transformers: 1,033 lines
+- **Total: ~47,553 lines of code**
+
+**Total Development Time:** 68 days (October 11 - December 17, 2025)
+**Total Commits:** 558

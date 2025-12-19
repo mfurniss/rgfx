@@ -23,23 +23,35 @@ import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 
 const FirmwarePage: React.FC = () => {
+  // Driver store
+  const drivers = useDriverStore((state) => state.drivers);
+  const currentFirmwareVersion = useDriverStore(
+    (state) => state.systemStatus.currentFirmwareVersion,
+  );
+  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const driversNeedingUpdate = connectedDrivers.filter(
+    (d) =>
+      d.telemetry?.firmwareVersion &&
+      d.telemetry.firmwareVersion !== currentFirmwareVersion,
+  );
+
   // Persisted state from store
   const storedFlashMethod = useUiStore((state) => state.firmwareFlashMethod);
-  const storedSelectedDrivers = useUiStore((state) => state.firmwareSelectedDrivers);
-  const storedSelectAll = useUiStore((state) => state.firmwareSelectAll);
   const storedDriverFlashStatus = useUiStore((state) => state.firmwareDriverFlashStatus);
   const setFirmwareState = useUiStore((state) => state.setFirmwareState);
   const setFirmwareDriverFlashStatus = useUiStore((state) => state.setFirmwareDriverFlashStatus);
-
-  // Local state initialized from store
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
-  const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    new Set(storedSelectedDrivers),
-  );
-  const [selectAll, setSelectAll] = useState(storedSelectAll);
   const isFlashing = useUiStore((state) => state.isFlashingFirmware);
   const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
+
+  // Local state
+  const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
+  const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
+  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(() =>
+    new Set(driversNeedingUpdate.map((d) => d.id)),
+  );
+  const [selectAll, setSelectAll] = useState(
+    () => driversNeedingUpdate.length === connectedDrivers.length && connectedDrivers.length > 0,
+  );
   const [progress, setProgress] = useState(0);
   const [driverFlashStatus, setDriverFlashStatus] = useState<Map<string, DriverFlashStatus>>(
     () => new Map(Object.entries(storedDriverFlashStatus)),
@@ -52,12 +64,6 @@ const FirmwarePage: React.FC = () => {
     message: string;
   }>({ open: false, success: false, message: '' });
   const [confirmModal, setConfirmModal] = useState(false);
-
-  const drivers = useDriverStore((state) => state.drivers);
-  const currentFirmwareVersion = useDriverStore(
-    (state) => state.systemStatus.currentFirmwareVersion,
-  );
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
 
   const addLog = (message: string) => {
     console.log('>', message);
@@ -106,32 +112,6 @@ const FirmwarePage: React.FC = () => {
       setGetPort(null);
     }
   }, [flashMethod]);
-
-  // Auto-select drivers that need firmware update (only on initial mount if no stored selection)
-  useEffect(() => {
-    // Skip if we have stored selections (user navigated away and back)
-    if (storedSelectedDrivers.length > 0) {
-      return;
-    }
-
-    if (!currentFirmwareVersion) {
-      return;
-    }
-
-    const connected = drivers.filter((d) => d.state === 'connected');
-    const driversNeedingUpdate = connected.filter(
-      (d) =>
-        d.telemetry?.firmwareVersion &&
-        d.telemetry.firmwareVersion !== currentFirmwareVersion,
-    );
-
-    if (driversNeedingUpdate.length > 0) {
-      setSelectedDrivers(new Set(driversNeedingUpdate.map((d) => d.id)));
-      setSelectAll(driversNeedingUpdate.length === connected.length);
-    }
-    // Only run on mount - don't re-select when drivers change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Sync state changes to store for persistence across navigation
   useEffect(() => {
@@ -516,10 +496,10 @@ const FirmwarePage: React.FC = () => {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Flash Method
+          Update Method
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Choose how to flash RGFX Driver firmware to your ESP32 device(s).
+          Choose how to update RGFX Driver firmware on your ESP32 device(s).
         </Typography>
 
         <ToggleButtonGroup
@@ -548,8 +528,8 @@ const FirmwarePage: React.FC = () => {
         {flashMethod === 'ota' && (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Flash firmware to already-configured drivers over WiFi. Multiple drivers can be
-              flashed in parallel.
+              Update firmware on already-configured drivers over WiFi. Multiple drivers can be
+              updated in parallel.
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
@@ -572,7 +552,7 @@ const FirmwarePage: React.FC = () => {
                 busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                {isFlashing ? 'Flashing...' : 'Flash via OTA'}
+                {isFlashing ? 'Updating...' : 'Update via OTA'}
               </SuperButton>
             </Box>
           </>
@@ -604,7 +584,7 @@ const FirmwarePage: React.FC = () => {
                 busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                {isFlashing ? 'Flashing...' : 'Flash via USB'}
+                {isFlashing ? 'Updating...' : 'Update via USB'}
               </SuperButton>
             </Box>
           </>

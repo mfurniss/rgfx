@@ -198,6 +198,29 @@ inline int countBlueDominantPixels(Canvas& canvas) {
 }
 
 /**
+ * Count pixels that are white/gray (all channels roughly equal and bright enough)
+ * Requires minimum brightness to avoid counting dim single-channel colors as white
+ */
+inline int countWhitePixels(Canvas& canvas, uint8_t tolerance = 10, uint8_t minBrightness = 30) {
+	int count = 0;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			CRGB p = canvas.getPixel(x, y);
+			// Skip dim pixels - they can appear "white" when all channels are near zero
+			uint8_t maxChannel = (p.r > p.g) ? ((p.r > p.b) ? p.r : p.b) : ((p.g > p.b) ? p.g : p.b);
+			if (maxChannel < minBrightness) continue;
+			int dr = abs(static_cast<int>(p.r) - static_cast<int>(p.g));
+			int dg = abs(static_cast<int>(p.g) - static_cast<int>(p.b));
+			int db = abs(static_cast<int>(p.b) - static_cast<int>(p.r));
+			if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+/**
  * Calculate total brightness of canvas (sum of all RGB values)
  * Useful for verifying fading effects
  */

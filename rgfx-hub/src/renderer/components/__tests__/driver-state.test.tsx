@@ -21,6 +21,7 @@ const createMockDriver = (overrides: Partial<Driver> = {}): Driver => ({
   lastSeen: Date.now(),
   failedHeartbeats: 0,
   ip: '192.168.1.50',
+  disabled: false,
   stats: {
     telemetryEventsReceived: 0,
     mqttMessagesReceived: 0,
@@ -68,6 +69,36 @@ describe('DriverState', () => {
       expect(screen.getByText('Updating')).toBeDefined();
       expect(screen.queryByText('Connected')).toBeNull();
       expect(screen.queryByText('Disconnected')).toBeNull();
+    });
+  });
+
+  describe('disabled state', () => {
+    it('shows Disabled chip when driver is disabled', () => {
+      const driver = createMockDriver({ disabled: true, state: 'connected' });
+      renderWithRouter(<DriverState driver={driver} />);
+
+      expect(screen.getByText('Disabled')).toBeDefined();
+      expect(screen.queryByText('Connected')).toBeNull();
+    });
+
+    it('shows Disabled chip instead of Disconnected when disabled', () => {
+      const driver = createMockDriver({ disabled: true, state: 'disconnected' });
+      renderWithRouter(<DriverState driver={driver} />);
+
+      expect(screen.getByText('Disabled')).toBeDefined();
+      expect(screen.queryByText('Disconnected')).toBeNull();
+    });
+
+    it('does not show update warning when driver is disabled', () => {
+      const driver = createMockDriver({
+        disabled: true,
+        state: 'connected',
+        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+      });
+      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+
+      expect(screen.getByText('Disabled')).toBeDefined();
+      expect(screen.queryByRole('button')).toBeNull();
     });
   });
 

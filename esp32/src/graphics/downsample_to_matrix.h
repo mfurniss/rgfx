@@ -19,17 +19,25 @@ extern uint8_t g_gammaLutG[256];
 extern uint8_t g_gammaLutB[256];
 
 // Rebuild gamma lookup tables from current config
-// Call this after receiving new gamma values from Hub
+// Call this after receiving new gamma/floor values from Hub
 inline void rebuildGammaLUT() {
 	float gammaR = g_driverConfig.gammaR;
 	float gammaG = g_driverConfig.gammaG;
 	float gammaB = g_driverConfig.gammaB;
+	uint8_t floorR = g_driverConfig.floorR;
+	uint8_t floorG = g_driverConfig.floorG;
+	uint8_t floorB = g_driverConfig.floorB;
 
 	for (int i = 0; i < 256; i++) {
 		float normalized = i / 255.0f;
-		g_gammaLutR[i] = (uint8_t)(powf(normalized, gammaR) * 255.0f + 0.5f);
-		g_gammaLutG[i] = (uint8_t)(powf(normalized, gammaG) * 255.0f + 0.5f);
-		g_gammaLutB[i] = (uint8_t)(powf(normalized, gammaB) * 255.0f + 0.5f);
+		uint8_t correctedR = (uint8_t)(powf(normalized, gammaR) * 255.0f + 0.5f);
+		uint8_t correctedG = (uint8_t)(powf(normalized, gammaG) * 255.0f + 0.5f);
+		uint8_t correctedB = (uint8_t)(powf(normalized, gammaB) * 255.0f + 0.5f);
+
+		// Apply floor cutoff: values at or below floor become 0
+		g_gammaLutR[i] = (correctedR <= floorR) ? 0 : correctedR;
+		g_gammaLutG[i] = (correctedG <= floorG) ? 0 : correctedG;
+		g_gammaLutB[i] = (correctedB <= floorB) ? 0 : correctedB;
 	}
 }
 

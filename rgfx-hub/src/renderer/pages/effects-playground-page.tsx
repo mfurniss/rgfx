@@ -139,12 +139,11 @@ export default function TestEffectsPage() {
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsJson = useUiStore((state) => state.testEffectsPropsJson);
-  const storedSelectedDrivers = useUiStore((state) => state.testEffectsSelectedDrivers);
   const selectAll = useUiStore((state) => state.testEffectsSelectAll);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
 
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    new Set(storedSelectedDrivers),
+    new Set(connectedDrivers.map((d) => d.id)),
   );
 
   // Parse current props from JSON
@@ -164,12 +163,20 @@ export default function TestEffectsPage() {
     return null;
   }, [selectedEffect]);
 
+  // Remove disconnected drivers from selection (but don't auto-select new ones)
   useEffect(() => {
-    const driverIds = connectedDriverIds.split(',').filter(Boolean);
-    const newSelectedDrivers = new Set(driverIds);
-    setSelectedDrivers(newSelectedDrivers);
-    setTestEffectsState(selectedEffect, propsJson, newSelectedDrivers, driverIds.length > 0);
-  }, [connectedDriverIds, selectedEffect, propsJson, setTestEffectsState]);
+    const connectedIds = new Set(connectedDriverIds.split(',').filter(Boolean));
+    const stillConnected = new Set(
+      Array.from(selectedDrivers).filter((id) => connectedIds.has(id)),
+    );
+
+    // Only update if selection actually changed (driver disconnected)
+    if (stillConnected.size !== selectedDrivers.size) {
+      setSelectedDrivers(stillConnected);
+      const newSelectAll = stillConnected.size === connectedIds.size && connectedIds.size > 0;
+      setTestEffectsState(selectedEffect, propsJson, stillConnected, newSelectAll);
+    }
+  }, [connectedDriverIds, selectedEffect, propsJson, selectedDrivers, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {
@@ -213,17 +220,18 @@ export default function TestEffectsPage() {
   };
 
   const handleTriggerEffect = () => {
+    if (selectedDrivers.size === 0) {
+      return;
+    }
     void (async () => {
       try {
         const props = JSON.parse(propsJson) as Record<string, unknown>;
         const payload: EffectPayload = {
           effect: selectedEffect,
           props,
+          drivers: Array.from(selectedDrivers),
         };
 
-        if (selectedDrivers.size > 0) {
-          payload.drivers = Array.from(selectedDrivers);
-        }
         await window.rgfx.triggerEffect(payload);
       } catch (err) {
         console.error(err);

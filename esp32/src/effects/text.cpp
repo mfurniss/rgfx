@@ -71,12 +71,22 @@ void TextEffect::render() {
 	constexpr int16_t ACCENT_OFFSET = 4;
 
 	for (const auto& inst : instances) {
+		// Calculate alpha for fade-out during last half of duration
+		uint8_t alpha = 255;
+		if (inst.duration > 0) {
+			float progress = inst.elapsedTime / inst.duration;
+			if (progress > 0.5f) {
+				float fadeProgress = (progress - 0.5f) / 0.5f;
+				alpha = static_cast<uint8_t>(255.0f * (1.0f - fadeProgress));
+			}
+		}
+
 		// Pass 1: Accent (if present)
 		if (inst.hasAccent) {
 			int16_t ax = inst.x;
 			for (uint8_t i = 0; i < inst.textLen; i++) {
 				renderChar(canvas, inst.text[i], ax + ACCENT_OFFSET, inst.y + ACCENT_OFFSET,
-				           inst.accentR, inst.accentG, inst.accentB, BlendMode::REPLACE);
+				           inst.accentR, inst.accentG, inst.accentB, alpha, BlendMode::ALPHA);
 				ax += CHAR_WIDTH;
 			}
 		}
@@ -84,7 +94,7 @@ void TextEffect::render() {
 		// Pass 2: Main text
 		int16_t x = inst.x;
 		for (uint8_t i = 0; i < inst.textLen; i++) {
-			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b, BlendMode::REPLACE);
+			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b, alpha, BlendMode::ALPHA);
 			x += CHAR_WIDTH;
 		}
 	}

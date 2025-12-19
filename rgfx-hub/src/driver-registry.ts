@@ -55,6 +55,7 @@ export class DriverRegistry {
             udpMessagesFailed: 0,
           },
           state: 'disconnected', // Persisted drivers start as disconnected
+          disabled: pd.disabled,
         });
         this.drivers.set(driver.id, driver);
       }
@@ -249,6 +250,7 @@ export class DriverRegistry {
       testActive: telemetryData.testActive,
       // Driver is connected if it has a valid IP address
       state: telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected',
+      disabled: persistedDriver?.disabled ?? existingDriver?.disabled ?? false,
     });
   }
 
@@ -416,6 +418,7 @@ export class DriverRegistry {
       updateRate: existingDriver.updateRate,
       testActive: existingDriver.testActive,
       state: existingDriver.state,
+      disabled: persistedDriver.disabled,
     });
 
     // Remove old entry if ID changed

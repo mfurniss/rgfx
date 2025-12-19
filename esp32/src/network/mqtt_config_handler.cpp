@@ -207,6 +207,9 @@ void handleDriverConfig(const String& payload) {
 		g_driverConfig.gammaR = settings["gamma_r"] | 1.0f;
 		g_driverConfig.gammaG = settings["gamma_g"] | 1.0f;
 		g_driverConfig.gammaB = settings["gamma_b"] | 1.0f;
+		g_driverConfig.floorR = settings["floor_r"] | 0;
+		g_driverConfig.floorG = settings["floor_g"] | 0;
+		g_driverConfig.floorB = settings["floor_b"] | 0;
 
 		log("Global settings:");
 		log("  Brightness limit: " + String(g_driverConfig.globalBrightnessLimit));
@@ -217,6 +220,9 @@ void handleDriverConfig(const String& payload) {
 		log("  Gamma: R=" + String(g_driverConfig.gammaR, 2) +
 		    " G=" + String(g_driverConfig.gammaG, 2) +
 		    " B=" + String(g_driverConfig.gammaB, 2));
+		log("  Floor: R=" + String(g_driverConfig.floorR) +
+		    " G=" + String(g_driverConfig.floorG) +
+		    " B=" + String(g_driverConfig.floorB));
 
 		// Apply brightness immediately (don't wait for FastLED re-init)
 		hal::getLedController().setBrightness(g_driverConfig.globalBrightnessLimit);

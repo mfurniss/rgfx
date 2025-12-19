@@ -74,6 +74,7 @@ describe('setupDriverEventHandlers', () => {
       lastSeen: Date.now(),
       failedHeartbeats: 0,
       testActive: false,
+      disabled: false,
       stats: {
         telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,
@@ -253,6 +254,7 @@ describe('setupDriverEventHandlers', () => {
           id: 'rgfx-driver-0001',
           macAddress: 'AA:BB:CC:DD:EE:FF',
           remoteLogging: 'all',
+          disabled: false,
         };
         mockDriverPersistence.getDriver.mockReturnValue(persistedDriver);
 

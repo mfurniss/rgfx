@@ -223,6 +223,7 @@ registerIpcHandlers({
 registerMqttSubscriptions({
   mqtt,
   driverRegistry,
+  driverPersistence,
   systemMonitor,
   driverLogPersistence,
   getMainWindow: () => mainWindow,

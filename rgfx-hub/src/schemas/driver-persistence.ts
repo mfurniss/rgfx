@@ -79,6 +79,13 @@ const DriverLEDConfigSchema = z.object({
     g: z.number().min(1.0).max(5.0).optional(),
     b: z.number().min(1.0).max(5.0).optional(),
   }).nullable().optional(),
+  // Floor cutoff per channel (0-255, values at or below floor become 0)
+  // Default ensures backwards compatibility with old persisted data
+  floor: z.object({
+    r: z.number().int().min(0).max(255),
+    g: z.number().int().min(0).max(255),
+    b: z.number().int().min(0).max(255),
+  }).default({ r: 0, g: 0, b: 0 }),
 });
 
 /**
@@ -101,6 +108,7 @@ export const PersistedDriverSchema = z.object({
   description: z.string().optional(),
   ledConfig: DriverLEDConfigSchema.nullable().optional(),
   remoteLogging: RemoteLoggingLevelSchema.optional().default('errors'),
+  disabled: z.boolean().optional().default(false),
 });
 
 export type PersistedDriverFromSchema = z.infer<typeof PersistedDriverSchema>;

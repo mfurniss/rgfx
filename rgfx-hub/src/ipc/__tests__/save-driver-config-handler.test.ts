@@ -81,6 +81,7 @@ describe('registerSaveDriverConfigHandler', () => {
     lastSeen: Date.now(),
     failedHeartbeats: 0,
     testActive: false,
+    disabled: false,
     stats: {
       telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
@@ -367,7 +368,11 @@ describe('registerSaveDriverConfigHandler', () => {
 
       await registeredHandler({}, config);
 
-      expect(mockDriverPersistence.setLEDConfig).toHaveBeenCalledWith('old-driver-id', newLedConfig);
+      // Zod applies default floor values during validation
+      expect(mockDriverPersistence.setLEDConfig).toHaveBeenCalledWith('old-driver-id', {
+        ...newLedConfig,
+        floor: { r: 0, g: 0, b: 0 },
+      });
     });
 
     it('should update remoteLogging when changed', async () => {

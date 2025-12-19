@@ -184,6 +184,67 @@ void test_replace_blend() {
 	TEST_ASSERT_EQUAL_UINT8(100, result.b);
 }
 
+void test_fillBlock4x4_basic() {
+	Canvas canvas(16, 16);
+	canvas.clear();
+
+	CRGB red(255, 0, 0);
+	canvas.fillBlock4x4(4, 4, red);
+
+	// Check all 16 pixels in the 4x4 block are red
+	for (uint16_t y = 4; y < 8; y++) {
+		for (uint16_t x = 4; x < 8; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+			TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
+			TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
+		}
+	}
+
+	// Check surrounding pixels are still black
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(3, 4).r);
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(8, 4).r);
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(4, 3).r);
+	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(4, 8).r);
+}
+
+void test_fillBlock4x4_at_origin() {
+	Canvas canvas(8, 8);
+	canvas.clear();
+
+	CRGB green(0, 255, 0);
+	canvas.fillBlock4x4(0, 0, green);
+
+	// Check the 4x4 block at origin
+	for (uint16_t y = 0; y < 4; y++) {
+		for (uint16_t x = 0; x < 4; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
+			TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
+			TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
+		}
+	}
+}
+
+void test_fillBlock4x4_multiple_blocks() {
+	Canvas canvas(16, 8);
+	canvas.clear();
+
+	CRGB red(255, 0, 0);
+	CRGB blue(0, 0, 255);
+
+	canvas.fillBlock4x4(0, 0, red);
+	canvas.fillBlock4x4(4, 0, blue);
+	canvas.fillBlock4x4(8, 0, red);
+	canvas.fillBlock4x4(12, 0, blue);
+
+	// Check alternating pattern
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(4, 0).b);
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(12, 0).b);
+}
+
 int main(int argc, char** argv) {
 	UNITY_BEGIN();
 
@@ -202,6 +263,9 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_additive_blend);
 	RUN_TEST(test_average_blend);
 	RUN_TEST(test_replace_blend);
+	RUN_TEST(test_fillBlock4x4_basic);
+	RUN_TEST(test_fillBlock4x4_at_origin);
+	RUN_TEST(test_fillBlock4x4_multiple_blocks);
 
 	return UNITY_END();
 }
