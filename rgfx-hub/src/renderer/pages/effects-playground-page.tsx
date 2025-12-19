@@ -221,17 +221,18 @@ export default function TestEffectsPage() {
   };
 
   const handleTriggerEffect = () => {
+    if (selectedDrivers.size === 0) {
+      return;
+    }
     void (async () => {
       try {
         const props = JSON.parse(propsJson) as Record<string, unknown>;
         const payload: EffectPayload = {
           effect: selectedEffect,
           props,
+          drivers: Array.from(selectedDrivers),
         };
 
-        if (selectedDrivers.size > 0) {
-          payload.drivers = Array.from(selectedDrivers);
-        }
         await window.rgfx.triggerEffect(payload);
       } catch (err) {
         console.error(err);
