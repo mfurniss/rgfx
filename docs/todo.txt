@@ -106,6 +106,8 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Change updating firmware notify to info
 [ ] Stop effects when MAME / Hub is quit
 [ ] Revisit effect defaults, scaling and min / max limits
-[ ] Optimize rendering for background and text - downsampling not needed
+[X] Optimize rendering for background and text - downsampling not needed
 [ ] Normalize hub language for flashing / updating
 [ ] Persist event monitor between sessions and add reset button
+[ ] Bug - explode center pulse still showing white
+[ ] Complete driver detail page
