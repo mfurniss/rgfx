@@ -518,10 +518,10 @@ const FirmwarePage: React.FC = () => {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Flash Method
+          Update Method
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Choose how to flash RGFX Driver firmware to your ESP32 device(s).
+          Choose how to update RGFX Driver firmware on your ESP32 device(s).
         </Typography>
 
         <ToggleButtonGroup
@@ -550,8 +550,8 @@ const FirmwarePage: React.FC = () => {
         {flashMethod === 'ota' && (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Flash firmware to already-configured drivers over WiFi. Multiple drivers can be
-              flashed in parallel.
+              Update firmware on already-configured drivers over WiFi. Multiple drivers can be
+              updated in parallel.
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
@@ -574,7 +574,7 @@ const FirmwarePage: React.FC = () => {
                 busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                {isFlashing ? 'Flashing...' : 'Flash via OTA'}
+                {isFlashing ? 'Updating...' : 'Update via OTA'}
               </SuperButton>
             </Box>
           </>
@@ -606,7 +606,7 @@ const FirmwarePage: React.FC = () => {
                 busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                {isFlashing ? 'Flashing...' : 'Flash via USB'}
+                {isFlashing ? 'Updating...' : 'Update via USB'}
               </SuperButton>
             </Box>
           </>
