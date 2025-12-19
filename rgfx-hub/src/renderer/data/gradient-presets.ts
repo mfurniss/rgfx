@@ -26,10 +26,10 @@ export const gradientPresets: GradientPreset[] = [
     scale: 4,
   },
   {
-    name: 'Ocean',
-    gradient: ['#001F3F', '#0074D9', '#7FDBFF', '#39CCCC'],
-    speed: 3,
-    scale: 4,
+    name: 'The Deep Blue',
+    gradient: ['#002851', '#003e74', '#12706d', '#00424a', '#00473c', '#002851'],
+    speed: 1.5,
+    scale: 1.5,
   },
   {
     name: 'Fire',
@@ -38,7 +38,7 @@ export const gradientPresets: GradientPreset[] = [
     scale: 4,
   },
   {
-    name: 'Freaky',
+    name: 'Alien Goo',
     gradient: [
       '#000000', '#000000', '#000000', '#000000', '#00FF00', '#000000', '#000000',
       '#000000', '#000000', '#000000', '#000000', '#FF00FF', '#000000',
@@ -49,14 +49,14 @@ export const gradientPresets: GradientPreset[] = [
   {
     name: 'Monochrome',
     gradient: ['#000000', '#A0A0A0', '#000000'],
-    speed: 3,
-    scale: 4,
+    speed: 6,
+    scale: 7,
   },
   {
     name: 'Neon',
-    gradient: ['#FF00FF', '#00FFFF', '#FF00FF'],
-    speed: 3,
-    scale: 4,
+    gradient: ['#700070', '#FF8000', '#300050', '#700070'],
+    speed: 6,
+    scale: 7,
   },
   {
     name: 'Lava',
