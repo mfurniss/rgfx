@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 /**
- * Get version from git using git describe + content hash for dirty builds
+ * Get version from git tags + ESP32 source content hash
  *
  * On exact tag match: v1.0.0 → 1.0.0
- * Development builds (clean): v0.0.2-104-g6976fba → 0.0.2-dev.104+6976fba
- * Development builds (dirty): v0.0.2-104-g6976fba-dirty → 0.0.2-dev.104+6976fba-dirty.a1b2c3d4
- * No tags (clean): gabc1234 → 0.0.0-dev.0+abc1234
- * No tags (dirty): gabc1234-dirty → 0.0.0-dev.0+abc1234-dirty.a1b2c3d4
+ * Development builds: v0.0.2-104-g6976fba → 0.0.2-dev.104+a1b2c3d4
  *
- * Content hash is computed from ESP32 source files + platformio.ini
- * This ensures same source = same version (reproducible builds)
+ * The content hash is computed from ESP32 source files + platformio.ini.
+ * This ensures same ESP32 source = same version (reproducible builds).
+ * Version only changes when ESP32 code actually changes.
  */
 
 const { execSync } = require('child_process');
@@ -18,8 +16,8 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Compute a short hash of ESP32 source files and build config
- * Used for dirty builds to ensure same uncommitted changes = same version
+ * Compute a short hash of ESP32 source files and build config.
+ * Same source files = same hash = same version.
  */
 function getSourceHash() {
   const hash = crypto.createHash('sha256');
@@ -62,50 +60,38 @@ function getSourceHash() {
 }
 
 try {
-  const describe = execSync('git describe --long --tags --dirty --always', {
+  const describe = execSync('git describe --long --tags --always', {
     encoding: 'utf-8'
   }).trim();
 
-  // Check if on exact tag (format: v1.0.0-0-ghash or just hash if no tags)
+  const sourceHash = getSourceHash();
+
+  // Check if on exact tag (format: v1.0.0-0-ghash)
   const exactTagMatch = describe.match(/^v?(\d+\.\d+\.\d+)-0-g[a-f0-9]+$/);
   if (exactTagMatch) {
     console.log(exactTagMatch[1]);
     process.exit(0);
   }
 
-  // Parse git describe output: v0.0.2-104-g6976fba or v0.0.2-104-g6976fba-dirty
-  const match = describe.match(
-    /^v?(\d+\.\d+\.\d+)-(\d+)-g([a-f0-9]+)(-dirty)?$/
-  );
+  // Parse git describe output: v0.0.2-104-g6976fba
+  const match = describe.match(/^v?(\d+\.\d+\.\d+)-(\d+)-g([a-f0-9]+)$/);
   if (match) {
-    const [, version, commits, hash, dirty] = match;
-    if (dirty) {
-      const sourceHash = getSourceHash();
-      console.log(`${version}-dev.${commits}+${hash}-dirty.${sourceHash}`);
-    } else {
-      console.log(`${version}-dev.${commits}+${hash}`);
-    }
+    const [, version, commits] = match;
+    console.log(`${version}-dev.${commits}+${sourceHash}`);
     process.exit(0);
   }
 
-  // No tags exist - just a commit hash (possibly with -dirty)
-  const hashMatch = describe.match(/^([a-f0-9]+)(-dirty)?$/);
+  // No tags exist - just a commit hash
+  const hashMatch = describe.match(/^([a-f0-9]+)$/);
   if (hashMatch) {
-    const [, hash, dirty] = hashMatch;
-    if (dirty) {
-      const sourceHash = getSourceHash();
-      console.log(`0.0.0-dev.0+${hash}-dirty.${sourceHash}`);
-    } else {
-      console.log(`0.0.0-dev.0+${hash}`);
-    }
+    console.log(`0.0.0-dev.0+${sourceHash}`);
     process.exit(0);
   }
 
   // Fallback
-  const sourceHash = getSourceHash();
-  console.log(`0.0.0-dev.0+unknown-dirty.${sourceHash}`);
+  console.log(`0.0.0-dev.0+${sourceHash}`);
 } catch {
   // Fallback if git is not available
   const sourceHash = getSourceHash();
-  console.log(`0.0.0-dev.0+unknown-dirty.${sourceHash}`);
+  console.log(`0.0.0-dev.0+${sourceHash}`);
 }
