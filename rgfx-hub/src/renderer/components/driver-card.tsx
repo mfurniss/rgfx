@@ -15,6 +15,7 @@ import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
+import DisableDriverButton from './disable-driver-button';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import { useDriverStore } from '../store/driver-store';
@@ -80,108 +81,60 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // Prepare data arrays for InfoSection components
   // Driver telemetry from periodic heartbeats - always show if any data available
   const telemetryRows: InfoRowData[] = [
-    // FPS metrics
     ...(telemetry
-      ? [{
-        label: 'Frame Rate',
-        value: `${telemetry.currentFps.toFixed(1)} FPS (min: ${telemetry.minFps.toFixed(1)}, max: ${telemetry.maxFps.toFixed(1)})`,
-      }]
+      ? [['Frame Rate', `${telemetry.currentFps.toFixed(1)} FPS (min: ${telemetry.minFps.toFixed(1)}, max: ${telemetry.maxFps.toFixed(1)})`] as InfoRowData]
       : []),
-    // Reset/crash information
     ...(telemetry?.lastResetReason
-      ? [{ label: 'Last Reset Reason', value: telemetry.lastResetReason }]
+      ? [['Last Reset Reason', telemetry.lastResetReason] as InfoRowData]
       : []),
     ...(telemetry?.crashCount !== undefined && telemetry.crashCount > 0
-      ? [{ label: 'Crash Count', value: formatNumber(telemetry.crashCount) }]
+      ? [['Crash Count', formatNumber(telemetry.crashCount)] as InfoRowData]
       : []),
-    // Driver Uptime from telemetry
-    ...(telemetry ? [{ label: 'Driver Uptime', value: formatUptime(Math.max(0, currentUptime)) }] : []),
-    // Memory from heartbeat telemetry
+    ...(telemetry ? [['Driver Uptime', formatUptime(Math.max(0, currentUptime))] as InfoRowData] : []),
     ...(driver.freeHeap !== undefined && driver.minFreeHeap !== undefined
-      ? [
-        {
-          label: 'Memory',
-          value: `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`,
-        },
-      ]
+      ? [['Memory', `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`] as InfoRowData]
       : []),
-    // Memory details from telemetry
     ...(telemetry
       ? [
-        {
-          label: 'Free Heap',
-          value: `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`,
-        },
+        ['Free Heap', `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`] as InfoRowData,
         ...(telemetry.psramSize > 0
-          ? [
-            {
-              label: 'Free PSRAM',
-              value: `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`,
-            },
-          ]
+          ? [['Free PSRAM', `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`] as InfoRowData]
           : []),
-        {
-          label: 'Free Sketch Space',
-          value: formatBytes(telemetry.freeSketchSpace),
-        },
-        { label: 'SDK Version', value: telemetry.sdkVersion },
+        ['Free Sketch Space', formatBytes(telemetry.freeSketchSpace)] as InfoRowData,
+        ['SDK Version', telemetry.sdkVersion] as InfoRowData,
       ]
       : []),
-    // WiFi Signal from heartbeat telemetry
     ...(driver.rssi !== undefined
-      ? [
-        {
-          label: 'WiFi Signal',
-          value: `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`,
-        },
-      ]
+      ? [['WiFi Signal', `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`] as InfoRowData]
       : []),
-    // Uptime from heartbeat telemetry
     ...(driver.uptimeMs !== undefined
-      ? [
-        {
-          label: 'Uptime',
-          value: formatUptime(driver.uptimeMs),
-        },
-      ]
+      ? [['Uptime', formatUptime(driver.uptimeMs)] as InfoRowData]
       : []),
-    // Message counters
-    { label: 'Telemetry Events', value: formatNumber(driver.stats.telemetryEventsReceived) },
-    { label: 'MQTT Messages Received', value: formatNumber(driver.stats.mqttMessagesReceived) },
-    { label: 'MQTT Errors', value: formatNumber(driver.stats.mqttMessagesFailed) },
-    { label: 'UDP Messages Received', value: formatNumber(driver.stats.udpMessagesSent) },
-    { label: 'UDP Send Errors', value: formatNumber(driver.stats.udpMessagesFailed) },
-    // Last updated timestamp
+    ['Telemetry Events', formatNumber(driver.stats.telemetryEventsReceived)],
+    ['MQTT Messages Received', formatNumber(driver.stats.mqttMessagesReceived)],
+    ['MQTT Errors', formatNumber(driver.stats.mqttMessagesFailed)],
+    ['UDP Messages Received', formatNumber(driver.stats.udpMessagesSent)],
+    ['UDP Send Errors', formatNumber(driver.stats.udpMessagesFailed)],
     ...(driver.lastHeartbeat
-      ? [
-        {
-          label: 'Last Updated',
-          value: `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`,
-        },
-      ]
+      ? [['Last Updated', `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`] as InfoRowData]
       : []),
   ];
 
   const hardwareRows: InfoRowData[] = telemetry
     ? [
-      // Network info
-      { label: 'IP Address', value: driver.ip ?? '' },
-      { label: 'MAC Address', value: driver.mac ?? '' },
-      { label: 'Hostname', value: driver.hostname ?? '' },
-      { label: 'SSID', value: driver.ssid ?? '' },
-      // Hardware info
-      { label: 'Chip Model', value: telemetry.chipModel },
-      { label: 'Chip Revision', value: formatNumber(telemetry.chipRevision) },
-      { label: 'CPU Cores', value: formatNumber(telemetry.chipCores) },
-      { label: 'CPU Frequency', value: `${formatNumber(telemetry.cpuFreqMHz)} MHz` },
-      { label: 'Flash Size', value: formatBytes(telemetry.flashSize) },
-      { label: 'Flash Speed', value: `${formatNumber(telemetry.flashSpeed / 1000000)} MHz` },
-      {
-        label: 'Display Connected',
-        value: telemetry.hasDisplay ? 'Yes (OLED)' : 'No',
-      },
+      ['IP Address', driver.ip ?? ''],
+      ['MAC Address', driver.mac ?? ''],
+      ['Hostname', driver.hostname ?? ''],
+      ['SSID', driver.ssid ?? ''],
+      ['Chip Model', telemetry.chipModel],
+      ['Chip Revision', formatNumber(telemetry.chipRevision)],
+      ['CPU Cores', formatNumber(telemetry.chipCores)],
+      ['CPU Frequency', `${formatNumber(telemetry.cpuFreqMHz)} MHz`],
+      ['Flash Size', formatBytes(telemetry.flashSize)],
+      ['Flash Speed', `${formatNumber(telemetry.flashSpeed / 1000000)} MHz`],
+      ['Display Connected', telemetry.hasDisplay ? 'Yes (OLED)' : 'No'],
       ...(telemetry.firmwareVersion
-        ? [{ label: 'Firmware Version', value: telemetry.firmwareVersion }]
+        ? [['Firmware Version', telemetry.firmwareVersion] as InfoRowData]
         : []),
     ]
     : [];
@@ -192,39 +145,30 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // Always show LED Configuration section (with message if not configured)
   const ledRows: InfoRowData[] = hardware
     ? [
-      { label: 'Hardware', value: hardware.name },
-      { label: 'Description', value: hardware.description ?? 'Not set' },
-      { label: 'SKU', value: hardware.sku ?? 'Not set' },
-      ...(hardware.asin ? [{ label: 'ASIN', value: hardware.asin }] : []),
-      { label: 'Layout', value: hardware.layout },
-      { label: 'LED Count', value: formatNumber(hardware.count) },
-      {
-        label: 'Matrix Size',
-        value:
-            hardware.layout !== 'strip'
-              ? `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`
-              : 'N/A',
-      },
-      ...(ledConfig ? [{ label: 'Data Pin', value: formatNumber(ledConfig.pin) }] : []),
-      { label: 'Chipset', value: hardware.chipset ?? 'Unknown' },
-      { label: 'Color Order', value: hardware.colorOrder ?? 'Unknown' },
+      ['Hardware', hardware.name],
+      ['Description', hardware.description ?? 'Not set'],
+      ['SKU', hardware.sku ?? 'Not set'],
+      ...(hardware.asin ? [['ASIN', hardware.asin] as InfoRowData] : []),
+      ['Layout', hardware.layout],
+      ['LED Count', formatNumber(hardware.count)],
+      ['Matrix Size', hardware.layout !== 'strip'
+        ? `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`
+        : 'N/A'],
+      ...(ledConfig ? [['Data Pin', formatNumber(ledConfig.pin)] as InfoRowData] : []),
+      ['Chipset', hardware.chipset ?? 'Unknown'],
+      ['Color Order', hardware.colorOrder ?? 'Unknown'],
       ...(ledConfig
         ? [
-          {
-            label: 'Max Brightness',
-            value:
-                  ledConfig.maxBrightness != null
-                    ? formatNumber(ledConfig.maxBrightness)
-                    : 'Not set',
-          },
-          {
-            label: 'Brightness Limit',
-            value:
-                  ledConfig.globalBrightnessLimit != null
-                    ? formatNumber(ledConfig.globalBrightnessLimit)
-                    : 'Not set',
-          },
-          { label: 'Dithering', value: ledConfig.dithering ? 'Yes' : 'No' },
+          ['Max Brightness', ledConfig.maxBrightness != null ? formatNumber(ledConfig.maxBrightness) : 'Not set'] as InfoRowData,
+          ['Brightness Limit', ledConfig.globalBrightnessLimit != null ? formatNumber(ledConfig.globalBrightnessLimit) : 'Not set'] as InfoRowData,
+          ['Dithering', ledConfig.dithering ? 'Yes' : 'No'] as InfoRowData,
+          ['Gamma Correction', `R: ${ledConfig.gamma?.r ?? 2.8}, G: ${ledConfig.gamma?.g ?? 2.8}, B: ${ledConfig.gamma?.b ?? 2.8}`] as InfoRowData,
+          ...(ledConfig.floor.r > 0 || ledConfig.floor.g > 0 || ledConfig.floor.b > 0
+            ? [['Floor Cutoff', `R: ${ledConfig.floor.r}, G: ${ledConfig.floor.g}, B: ${ledConfig.floor.b}`] as InfoRowData]
+            : []),
+          ...(ledConfig.unified
+            ? [['Multi-Panel Layout', `${ledConfig.unified.length} ${ledConfig.unified.length === 1 ? 'row' : 'rows'} x ${ledConfig.unified[0]?.length ?? 0} ${(ledConfig.unified[0]?.length ?? 0) === 1 ? 'col' : 'cols'} (${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0)} ${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0) === 1 ? 'panel' : 'panels'})`] as InfoRowData]
+            : []),
         ]
         : []),
     ]
@@ -250,7 +194,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: 1,
+            gap: 2,
           }}
         >
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
@@ -267,6 +211,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
           </Stack>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <DisableDriverButton driver={driver} />
             <ResetDriverButton driver={driver} />
             <SuperButton
               icon={<DescriptionIcon />}

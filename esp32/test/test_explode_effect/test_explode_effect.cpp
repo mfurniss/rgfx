@@ -604,7 +604,7 @@ void test_explode_flash_renders_on_strip() {
 
 	JsonDocument props;
 	props["color"] = "#FF0000";
-	props["particleCount"] = 50;
+	props["particleCount"] = 0;  // No particles, only flash
 	props["power"] = 50;
 	props["lifespan"] = 1000;
 
@@ -614,8 +614,14 @@ void test_explode_flash_renders_on_strip() {
 	canvas.clear();
 	effect.render();
 
-	// Flash or particles should be visible
+	// Flash should be visible
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// Flash should be red (matching explosion color), not white
+	int redPixels = countRedDominantPixels(canvas);
+	int whitePixels = countWhitePixels(canvas);
+	TEST_ASSERT_TRUE(redPixels > 0);
+	TEST_ASSERT_EQUAL(0, whitePixels);
 }
 
 void test_explode_flash_collapses_over_time() {

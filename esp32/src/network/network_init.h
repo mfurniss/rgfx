@@ -16,7 +16,8 @@
 extern std::atomic<bool> mqttSetupDone;
 extern std::atomic<bool> udpSetupDone;
 extern std::atomic<bool> otaSetupDone;
-extern std::atomic<bool> otaInProgress;  // Track OTA upload state
+extern std::atomic<bool> otaInProgress;           // Track OTA upload state
+extern std::atomic<bool> pendingClearEffects;     // Request effect clear from Core 1
 
 // Initialize all network services when WiFi connects
 void setupNetworkServices(Matrix& matrix);

@@ -38,8 +38,10 @@ describe('createUploadConfigToDriver', () => {
       dithering: true,
       powerSupplyVolts: 5,
       maxPowerMilliamps: 2000,
+      floor: { r: 0, g: 0, b: 0 },
     },
     remoteLogging: 'errors' as const,
+    disabled: false,
   };
 
   const mockHardware = {
@@ -162,6 +164,37 @@ describe('createUploadConfigToDriver', () => {
       expect(payload.settings.dithering).toBe(true);
       expect(payload.settings.power_supply_volts).toBe(5);
       expect(payload.settings.max_power_milliamps).toBe(2000);
+      expect(payload.settings.floor_r).toBe(0);
+      expect(payload.settings.floor_g).toBe(0);
+      expect(payload.settings.floor_b).toBe(0);
+    });
+
+    it('should include floor values in settings', async () => {
+      const driverWithFloor = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          floor: { r: 10, g: 20, b: 30 },
+        },
+      };
+
+      vi.mocked(mockDriverPersistence.getDriverByMac).mockReturnValue(driverWithFloor);
+      vi.mocked(mockLedHardwareManager.loadHardware).mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = vi.mocked(mockMqtt.publish).mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+
+      expect(payload.settings.floor_r).toBe(10);
+      expect(payload.settings.floor_g).toBe(20);
+      expect(payload.settings.floor_b).toBe(30);
     });
 
     it('should default offset to 0 when not specified', async () => {

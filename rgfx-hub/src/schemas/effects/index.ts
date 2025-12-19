@@ -14,6 +14,7 @@ import backgroundSchema from './background';
 import projectileSchema from './projectile';
 import textSchema from './text';
 import scrollTextSchema from './scroll_text';
+import plasmaSchema from './plasma';
 
 /**
  * Map of effect names to their schemas
@@ -27,6 +28,7 @@ export const effectSchemas = {
   projectile: projectileSchema,
   text: textSchema,
   scroll_text: scrollTextSchema,
+  plasma: plasmaSchema,
 } as const;
 
 type EffectName = keyof typeof effectSchemas;
@@ -40,7 +42,8 @@ type EffectProps =
   | z.infer<typeof backgroundSchema>
   | z.infer<typeof projectileSchema>
   | z.infer<typeof textSchema>
-  | z.infer<typeof scrollTextSchema>;
+  | z.infer<typeof scrollTextSchema>
+  | z.infer<typeof plasmaSchema>;
 
 /**
  * Check if a string is a valid effect name

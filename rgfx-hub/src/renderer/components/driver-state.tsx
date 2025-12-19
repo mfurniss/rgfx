@@ -17,6 +17,7 @@ const stateConfig: Record<DriverStateType, { label: string; color: ChipProps['co
 
 /**
  * Displays driver connection state as a chip with optional update warning indicator.
+ * - Disabled: grey chip (takes precedence over connection state)
  * - Connected: green chip
  * - Disconnected: red chip
  * - Updating: orange chip
@@ -24,7 +25,13 @@ const stateConfig: Record<DriverStateType, { label: string; color: ChipProps['co
  */
 const DriverState: React.FC<DriverStateProps> = ({ driver, currentFirmwareVersion }) => {
   const navigate = useNavigate();
-  const { state, telemetry } = driver;
+  const { state, telemetry, disabled } = driver;
+
+  // Disabled state takes precedence over connection state
+  if (disabled) {
+    return <Chip label="Disabled" color="default" size="small" />;
+  }
+
   const { label, color } = stateConfig[state];
 
   // Only show update warning when connected and firmware versions differ

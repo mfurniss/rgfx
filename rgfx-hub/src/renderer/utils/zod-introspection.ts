@@ -7,7 +7,15 @@
 
 import { z } from 'zod';
 
-type FieldType = 'enum' | 'boolean' | 'number' | 'string' | 'color' | 'centerXY' | 'spritePreset';
+type FieldType =
+  | 'enum'
+  | 'boolean'
+  | 'number'
+  | 'string'
+  | 'color'
+  | 'centerXY'
+  | 'spritePreset'
+  | 'gradientPreset';
 
 interface FieldConstraints {
   min?: number;
@@ -171,7 +179,46 @@ function isCenterSchema(schema: z.ZodType): boolean {
 }
 
 /**
+ * Zod 4 check object interface
+ * In Zod 4, checks have _zod.def with check type and constraint value
+ */
+interface Zod4Check {
+  _zod?: {
+    def?: {
+      check?: string;
+      minimum?: number;
+      maximum?: number;
+    };
+  };
+}
+
+/**
+ * Check if array schema has a minimum length constraint >= threshold
+ * Handles both Zod 3 (kind/value) and Zod 4 (_zod.def.check/minimum) formats
+ */
+function hasMinLengthConstraint(checks: unknown[], threshold: number): boolean {
+  return checks.some((check) => {
+    // Zod 4 format: check._zod.def.check === 'min_length' and check._zod.def.minimum
+    const zod4Check = check as Zod4Check;
+
+    if (zod4Check._zod?.def?.check === 'min_length') {
+      return (zod4Check._zod.def.minimum ?? 0) >= threshold;
+    }
+
+    // Zod 3 format: check.kind === 'min' and check.value
+    const zod3Check = check as { kind?: string; value?: number };
+
+    if (zod3Check.kind === 'min') {
+      return (zod3Check.value ?? 0) >= threshold;
+    }
+
+    return false;
+  });
+}
+
+/**
  * Check if schema is an array of strings (sprite data)
+ * Sprite arrays don't have min/max constraints
  */
 function isSpriteArraySchema(schema: z.ZodType): boolean {
   if (!hasZodDef(schema)) {
@@ -188,7 +235,40 @@ function isSpriteArraySchema(schema: z.ZodType): boolean {
   const { element } = def as { element?: z.ZodType };
 
   if (element && hasZodDef(element) && element._zod.def.type === 'string') {
+    // If it has min constraint >= 2, it's a gradient, not a sprite
+    if (def.checks && hasMinLengthConstraint(def.checks, 2)) {
+      return false;
+    }
+
     return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check if schema is an array of hex color strings (gradient data)
+ * Gradient arrays have min constraint >= 2
+ */
+function isGradientArraySchema(schema: z.ZodType): boolean {
+  if (!hasZodDef(schema)) {
+    return false;
+  }
+
+  const { def } = schema._zod;
+
+  if (def.type !== 'array') {
+    return false;
+  }
+
+  // Check if element type is string (hex colors are strings)
+  const { element } = def as { element?: z.ZodType };
+
+  if (element && hasZodDef(element) && element._zod.def.type === 'string') {
+    // Check for min constraint >= 2 (gradients need at least 2 colors)
+    if (def.checks && hasMinLengthConstraint(def.checks, 2)) {
+      return true;
+    }
   }
 
   return false;
@@ -285,6 +365,15 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     return {
       name,
       type: 'centerXY',
+      defaultValue,
+      description,
+    };
+  }
+
+  if (isGradientArraySchema(innerSchema)) {
+    return {
+      name,
+      type: 'gradientPreset',
       defaultValue,
       description,
     };

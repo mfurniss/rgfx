@@ -273,6 +273,7 @@ export default function DriverConfigPage() {
                             maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
                             unified: ledConfig?.unified,
                             gamma: ledConfig?.gamma,
+                            floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
                           },
                           { shouldDirty: true, shouldValidate: true },
                         );
@@ -393,6 +394,41 @@ export default function DriverConfigPage() {
                       min={1.0}
                       max={5.0}
                       allowFloat
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
+                      Floor Cutoff (0-255, values at or below floor become 0)
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <NumberField
+                      name="ledConfig.floor.r"
+                      control={control}
+                      label="Floor Red"
+                      helperText="Red channel floor cutoff (0-255)"
+                      min={0}
+                      max={255}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <NumberField
+                      name="ledConfig.floor.g"
+                      control={control}
+                      label="Floor Green"
+                      helperText="Green channel floor cutoff (0-255)"
+                      min={0}
+                      max={255}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <NumberField
+                      name="ledConfig.floor.b"
+                      control={control}
+                      label="Floor Blue"
+                      helperText="Blue channel floor cutoff (0-255)"
+                      min={0}
+                      max={255}
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>

@@ -38,6 +38,7 @@ set(ESP32_SOURCES
     ${ESP32_SRC_DIR}/effects/explode.cpp
     ${ESP32_SRC_DIR}/effects/bitmap.cpp
     ${ESP32_SRC_DIR}/effects/background.cpp
+    ${ESP32_SRC_DIR}/effects/plasma.cpp
     ${ESP32_SRC_DIR}/effects/test_leds.cpp
     ${ESP32_SRC_DIR}/effects/projectile.cpp
     ${ESP32_SRC_DIR}/effects/text.cpp

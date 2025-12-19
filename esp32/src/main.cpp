@@ -64,10 +64,11 @@ TaskHandle_t networkTaskHandle = NULL;
 // Track WiFi/MQTT/OTA connection state (shared between cores)
 // std::atomic ensures proper memory ordering across ESP32 cores
 static bool wasConnected = false;
-std::atomic<bool> mqttSetupDone(false);  // Extern in network_init.h
-std::atomic<bool> udpSetupDone(false);   // Extern in network_init.h
-std::atomic<bool> otaSetupDone(false);   // Extern in network_init.h
-std::atomic<bool> otaInProgress(false);  // Extern in network_init.h - Track OTA upload state
+std::atomic<bool> mqttSetupDone(false);       // Extern in network_init.h
+std::atomic<bool> udpSetupDone(false);        // Extern in network_init.h
+std::atomic<bool> otaSetupDone(false);        // Extern in network_init.h
+std::atomic<bool> otaInProgress(false);       // Extern in network_init.h - Track OTA upload state
+std::atomic<bool> pendingClearEffects(false); // Extern in network_init.h - Clear effects from Core 1
 static bool initialConnectionAttemptDone = false;
 
 void setup() {
@@ -225,6 +226,15 @@ static void createMatrixIfNeeded() {
 // Main loop - runs on Core 1 (application core)
 // Focused on time-critical LED effects and low-latency UDP processing
 void loop() {
+	// Process pending effect clear request from Core 0 (OTA start)
+	// Must happen on Core 1 to avoid cross-core FastLED.show() race condition
+	if (pendingClearEffects.exchange(false)) {
+		if (effectProcessor != nullptr && !g_configUpdateInProgress) {
+			effectProcessor->clearEffects();
+			log("Effects cleared for OTA");
+		}
+	}
+
 	// Process UDP FIRST - outside frame rate gate for lowest latency
 	// This ensures UDP packets are processed immediately without waiting for frame timing
 	// Pause UDP effect processing during OTA

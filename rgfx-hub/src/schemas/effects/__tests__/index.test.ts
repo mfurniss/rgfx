@@ -40,7 +40,7 @@ describe('safeValidateEffectProps', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.color).toBe('red');
+        expect((result.data as { color: string }).color).toBe('red');
       }
     });
 
@@ -76,7 +76,7 @@ describe('safeValidateEffectProps', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.color).toBe('random');
+        expect((result.data as { color: string }).color).toBe('random');
         expect((result.data as { duration: number }).duration).toBe(800);
       }
     });

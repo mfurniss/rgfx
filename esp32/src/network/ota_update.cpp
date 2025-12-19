@@ -6,6 +6,7 @@
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
 #include "config/config_leds.h"
+#include "effects/effect_processor.h"
 #include "hal/led_controller.h"
 #include "driver_config.h"
 #include "log.h"
@@ -20,20 +21,9 @@ void setupOTA() {
 		log("OTA Update starting...");
 		otaInProgress = true;
 
-		// Skip LED update if config update is in progress (avoid race condition)
-		if (g_configUpdateInProgress) {
-			return;
-		}
-
-		// Clear all LEDs at start
-		if (!g_driverConfig.devices.empty()) {
-			const auto& firstDevice = g_driverConfig.devices[0];
-			CRGB* leds = getLEDsForDevice(firstDevice.id);
-			if (leds && firstDevice.count > 0) {
-				fill_solid(leds, firstDevice.count, CRGB::Black);
-				hal::getLedController().show();
-			}
-		}
+		// Request effect clear from Core 1 (avoids cross-core FastLED.show() race)
+		// Core 1's main loop checks this flag and clears effects safely
+		pendingClearEffects = true;
 	});
 
 	ArduinoOTA.onEnd([]() {

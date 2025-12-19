@@ -20,7 +20,7 @@ describe('explodeSchema', () => {
         expect(result.data.centerX).toBe(50);
         expect(result.data.centerY).toBe(50);
         expect(result.data.friction).toBe(3.0);
-        expect(result.data.hueSpread).toBe(40);
+        expect(result.data.hueSpread).toBe(0);
         expect(result.data.lifespan).toBe(700);
         expect(result.data.lifespanSpread).toBe(1.6);
         expect(result.data.particleCount).toBe(100);

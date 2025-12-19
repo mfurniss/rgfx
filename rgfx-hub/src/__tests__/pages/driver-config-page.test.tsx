@@ -26,6 +26,7 @@ const createTestDriver = (mac: string, id: string): Driver => {
     hardwareRef: 'led-hardware/test-matrix.json',
     pin: 16,
     gamma: { r: 2.8, g: 2.8, b: 2.8 },
+    floor: { r: 0, g: 0, b: 0 },
   };
   return driver;
 };
@@ -74,6 +75,7 @@ beforeEach(() => {
     verifyDirectory: vi.fn(),
     getFirmwareManifest: vi.fn(),
     getFirmwareFile: vi.fn(),
+    setDriverDisabled: vi.fn(),
     getAppInfo: vi.fn().mockResolvedValue({
       version: '0.0.1-test',
       licensePath: '/mock/LICENSE',

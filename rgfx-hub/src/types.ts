@@ -94,6 +94,16 @@ export interface DriverLEDConfig {
     g?: number;
     b?: number;
   } | null;
+  /**
+   * Floor cutoff per channel (0-255, default 0)
+   * Values at or below floor are cut off to 0 after gamma correction
+   * Prevents dim red bleed at low brightness (red LEDs have lower forward voltage)
+   */
+  floor: {
+    r: number;
+    g: number;
+    b: number;
+  };
 }
 
 /**
@@ -181,6 +191,7 @@ export class Driver {
   // Runtime state
   testActive?: boolean;
   state: DriverState;
+  disabled: boolean;
 
   constructor(data: {
     id: string;
@@ -205,6 +216,7 @@ export class Driver {
     updateRate?: number;
     testActive?: boolean;
     state: DriverState;
+    disabled?: boolean;
   }) {
     this.id = data.id;
     this.description = data.description;
@@ -228,6 +240,7 @@ export class Driver {
     this.updateRate = data.updateRate;
     this.testActive = data.testActive;
     this.state = data.state;
+    this.disabled = data.disabled ?? false;
   }
 }
 
@@ -258,6 +271,7 @@ export function serializeDriverForIPC(driver: Driver) {
     updateRate: driver.updateRate,
     testActive: driver.testActive,
     state: driver.state,
+    disabled: driver.disabled,
   };
 }
 
@@ -328,6 +342,7 @@ declare global {
       verifyDirectory: (path: string) => Promise<boolean>;
       getFirmwareManifest: () => Promise<unknown>;
       getFirmwareFile: (filename: string) => Promise<Buffer>;
+      setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
     };
   }
 }

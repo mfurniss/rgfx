@@ -2,10 +2,7 @@ import React from 'react';
 import { Box, Typography, Divider, Stack } from '@mui/material';
 import InfoRow from './info-row';
 
-export interface InfoRowData {
-  label: string;
-  value: string | number;
-}
+export type InfoRowData = [label: string, value: string | number];
 
 interface InfoSectionProps {
   title: string;
@@ -51,8 +48,8 @@ const InfoSection: React.FC<InfoSectionProps> = ({
         {titleAction}
       </Box>
       <Stack spacing={0.5}>
-        {rows.map((row) => (
-          <InfoRow key={row.label} label={row.label} value={row.value} />
+        {rows.map(([label, value]) => (
+          <InfoRow key={label} label={label} value={value} />
         ))}
       </Stack>
       {children}
