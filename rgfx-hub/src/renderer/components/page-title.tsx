@@ -1,15 +1,32 @@
 import React, { ReactNode } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, IconButton, Typography } from '@mui/material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 
 interface PageTitleProps {
   icon?: ReactNode;
   title: string;
   subtitle?: string;
+  backPath?: string;
+  backLabel?: string;
 }
 
-export function PageTitle({ icon, title, subtitle }: PageTitleProps) {
+export function PageTitle({ icon, title, subtitle, backPath, backLabel }: PageTitleProps) {
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, mt: 1 }}>
+      {backPath && (
+        <IconButton
+          onClick={() => {
+            void navigate(backPath);
+          }}
+          size="small"
+          aria-label={backLabel ?? 'Go back'}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+      )}
       {icon}
       <Box>
         <Typography variant="h5" sx={{ lineHeight: 1.2 }}>
