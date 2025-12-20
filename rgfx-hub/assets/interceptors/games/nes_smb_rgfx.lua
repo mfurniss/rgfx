@@ -12,13 +12,13 @@ local ram = require("ram")
 -- Disassembly: https://6502disassembly.com/nes-smb/
 --
 -- This interceptor is shared by multiple SMB variants (smb, smw)
--- The game prefix is passed via _G.game_name
+-- The game prefix is passed via _G.rgfx.rom
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 
 -- Get the game name from global (set by rgfx.lua before loading interceptor)
-local game_name = _G.game_name or "smb"
+local game_name = _G.rgfx.rom or "smb"
 
 -- Helper function to read BCD score (6 digits)
 -- Score layout: 0x07DD-0x07DF stores 6 BCD digits as nibbles (100000s, 10000s, 1000s, 100s, 10s, 1s)
