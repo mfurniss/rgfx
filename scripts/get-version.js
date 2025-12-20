@@ -76,8 +76,8 @@ try {
   // Parse git describe output: v0.0.2-104-g6976fba
   const match = describe.match(/^v?(\d+\.\d+\.\d+)-(\d+)-g([a-f0-9]+)$/);
   if (match) {
-    const [, version, commits] = match;
-    console.log(`${version}-dev.${commits}+${sourceHash}`);
+    const [, version] = match;
+    console.log(`${version}-dev+${sourceHash}`);
     process.exit(0);
   }
 
