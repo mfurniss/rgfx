@@ -119,6 +119,7 @@ export const useDriverStore = create<DriverStoreState>()(
           udpServer: 'inactive',
           eventReader: 'stopped',
           driversConnected: 0,
+          driversTotal: 0,
           hubIp: 'Unknown',
           eventsProcessed: 0,
           hubStartTime: 0,

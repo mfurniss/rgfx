@@ -49,12 +49,14 @@ describe('subscribeDriverStatus', () => {
     mockDriverRegistry = mock<DriverRegistry>();
     mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
     mockDriverRegistry.getConnectedCount.mockReturnValue(1);
+    mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver]);
 
     const mockStatus: SystemStatus = {
       mqttBroker: 'running',
       udpServer: 'active',
       eventReader: 'monitoring',
       driversConnected: 1,
+      driversTotal: 1,
       hubIp: '192.168.1.1',
       eventsProcessed: 100,
       hubStartTime: Date.now(),
@@ -172,11 +174,12 @@ describe('subscribeDriverStatus', () => {
     it('should call getSystemStatus with current driver count and events', () => {
       mockDriver.state = 'connected';
       mockDriverRegistry.getConnectedCount.mockReturnValue(2);
+      mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver, mockDriver, mockDriver]);
       mockGetEventsProcessed.mockReturnValue(500);
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
-      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(2, 500);
+      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(2, 3, 500);
     });
 
     it('should NOT process offline if driver was already disconnected', () => {

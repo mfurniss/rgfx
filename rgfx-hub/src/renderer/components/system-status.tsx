@@ -48,7 +48,10 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     { name: 'MQTT Broker', value: status.mqttBroker },
     { name: 'UDP Server', value: status.udpServer },
     { name: 'Event Reader', value: status.eventReader },
-    { name: 'Drivers Connected', value: formatNumber(status.driversConnected) },
+    {
+      name: 'Drivers Connected',
+      value: `${formatNumber(status.driversConnected)} of ${formatNumber(status.driversTotal)}`,
+    },
     { name: 'Events Processed', value: formatNumber(eventCount) },
   ];
 

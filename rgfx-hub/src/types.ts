@@ -281,6 +281,7 @@ export interface SystemStatus {
   udpServer: 'active' | 'inactive' | 'error';
   eventReader: 'monitoring' | 'stopped' | 'error';
   driversConnected: number;
+  driversTotal: number;
   hubIp: string;
   eventsProcessed: number;
   hubStartTime: number;

@@ -18,6 +18,14 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
+// Mock getComputedStyle for CSS variable resolution
+vi.stubGlobal(
+  'getComputedStyle',
+  vi.fn().mockReturnValue({
+    getPropertyValue: vi.fn().mockReturnValue('#000000'),
+  }),
+);
+
 const createDataPoint = (
   timestamp: number,
   overrides: Partial<TelemetryDataPoint> = {},
@@ -59,15 +67,16 @@ describe('TelemetryCharts', () => {
   });
 
   describe('with data', () => {
-    it('shows charts when at least 2 data points exist', () => {
+    it('shows all charts when at least 2 data points exist', () => {
       useTelemetryHistoryStore.getState().addDataPoint('driver-1', createDataPoint(1000));
       useTelemetryHistoryStore.getState().addDataPoint('driver-1', createDataPoint(2000));
 
       render(<TelemetryCharts driverId="driver-1" />);
 
       expect(screen.getByText('Telemetry History')).toBeDefined();
-      expect(screen.getByText('Memory Used')).toBeDefined();
       expect(screen.getByText('Frame Rate (FPS)')).toBeDefined();
+      expect(screen.getByText('Memory Used')).toBeDefined();
+      expect(screen.getByText('Heap Fragmentation')).toBeDefined();
     });
 
     it('shows sample count', () => {
@@ -92,6 +101,43 @@ describe('TelemetryCharts', () => {
       render(<TelemetryCharts driverId="driver-1" />);
 
       expect(screen.getByText('2 samples')).toBeDefined();
+    });
+  });
+
+  describe('fragmentation calculation', () => {
+    it('handles maxAllocHeap greater than freeHeap without negative values', () => {
+      // This can happen due to timing differences in ESP32 readings
+      useTelemetryHistoryStore.getState().addDataPoint(
+        'driver-1',
+        createDataPoint(1000, { freeHeap: 100000, maxAllocHeap: 150000 }),
+      );
+      useTelemetryHistoryStore.getState().addDataPoint(
+        'driver-1',
+        createDataPoint(2000, { freeHeap: 100000, maxAllocHeap: 150000 }),
+      );
+
+      // Should render without errors - fragmentation clamped to 0
+      const { container } = render(<TelemetryCharts driverId="driver-1" />);
+
+      expect(container.firstChild).not.toBeNull();
+      expect(screen.getByText('Heap Fragmentation')).toBeDefined();
+    });
+
+    it('handles zero freeHeap without division by zero', () => {
+      useTelemetryHistoryStore.getState().addDataPoint(
+        'driver-1',
+        createDataPoint(1000, { freeHeap: 0, maxAllocHeap: 0 }),
+      );
+      useTelemetryHistoryStore.getState().addDataPoint(
+        'driver-1',
+        createDataPoint(2000, { freeHeap: 0, maxAllocHeap: 0 }),
+      );
+
+      // Should render without errors - fragmentation should be 0
+      const { container } = render(<TelemetryCharts driverId="driver-1" />);
+
+      expect(container.firstChild).not.toBeNull();
+      expect(screen.getByText('Heap Fragmentation')).toBeDefined();
     });
   });
 });

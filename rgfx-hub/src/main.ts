@@ -142,7 +142,11 @@ function sendSystemStatus() {
   if (!isWindowAvailable() || !mainWindow) {
     return;
   }
-  const status = systemMonitor.getSystemStatus(driverRegistry.getConnectedCount(), eventsProcessed);
+  const status = systemMonitor.getSystemStatus(
+    driverRegistry.getConnectedCount(),
+    driverRegistry.getAllDrivers().length,
+    eventsProcessed,
+  );
   mainWindow.webContents.send('system:status', status);
 }
 
