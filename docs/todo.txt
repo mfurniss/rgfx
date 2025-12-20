@@ -96,7 +96,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Unified rotation per-panel (0A, 1B, 2C, 3D, etc)
 [ ] Initial install with no drivers
 [ ] FX Playground randomizer
-[X] Animated 
+[X] Animated route transitions
 [ ] Common effect defaults for hub and esp32
 [X] Hardware abstraction layer
 [X] Headless effect rendering tests
@@ -108,6 +108,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Revisit effect defaults, scaling and min / max limits
 [X] Optimize rendering for background and text - downsampling not needed
 [ ] Normalize hub language for flashing / updating
-[ ] Persist event monitor between sessions and add reset button
-[ ] Bug - explode center pulse still showing white
-[ ] Complete driver detail page
+[X] Persist event monitor between sessions and add reset button
+[X] Bug - explode center pulse still showing white
+[X] Complete driver detail page
+[ ] Zustand persistance needs to be in the user directory
