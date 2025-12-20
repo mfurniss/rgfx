@@ -13,6 +13,7 @@ const mockSystemStatus: SystemStatus = {
   udpServer: 'active',
   eventReader: 'monitoring',
   driversConnected: 0,
+  driversTotal: 0,
   hubIp: '192.168.1.100',
   eventsProcessed: 0,
   hubStartTime: Date.now(),

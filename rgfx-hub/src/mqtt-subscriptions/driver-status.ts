@@ -59,6 +59,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
         mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
         const status = systemMonitor.getSystemStatus(
           driverRegistry.getConnectedCount(),
+          driverRegistry.getAllDrivers().length,
           getEventsProcessed(),
         );
         mainWindow.webContents.send('system:status', status);

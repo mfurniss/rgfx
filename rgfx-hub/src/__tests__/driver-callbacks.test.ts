@@ -28,6 +28,7 @@ vi.mock('electron-log/main', () => ({
 describe('setupDriverEventHandlers', () => {
   let mockDriverRegistry: {
     getConnectedCount: ReturnType<typeof vi.fn>;
+    getAllDrivers: ReturnType<typeof vi.fn>;
   };
   let mockDriverPersistence: {
     getDriver: ReturnType<typeof vi.fn>;
@@ -105,6 +106,7 @@ describe('setupDriverEventHandlers', () => {
 
     mockDriverRegistry = {
       getConnectedCount: vi.fn(() => 1),
+      getAllDrivers: vi.fn(() => [mockDriver]),
     };
 
     mockDriverPersistence = {
@@ -116,6 +118,7 @@ describe('setupDriverEventHandlers', () => {
       udpServer: 'active',
       eventReader: 'monitoring',
       driversConnected: 1,
+      driversTotal: 1,
       hubIp: '192.168.1.1',
       eventsProcessed: 100,
       hubStartTime: Date.now(),
@@ -301,11 +304,13 @@ describe('setupDriverEventHandlers', () => {
     describe('system status', () => {
       it('should call getSystemStatus with current counts', () => {
         mockDriverRegistry.getConnectedCount.mockReturnValue(3);
+        const fourDrivers = [mockDriver, mockDriver, mockDriver, mockDriver];
+        mockDriverRegistry.getAllDrivers.mockReturnValue(fourDrivers);
         mockGetEventsProcessed.mockReturnValue(500);
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 500);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500);
       });
     });
   });
@@ -367,11 +372,12 @@ describe('setupDriverEventHandlers', () => {
     describe('system status', () => {
       it('should call getSystemStatus with current counts', () => {
         mockDriverRegistry.getConnectedCount.mockReturnValue(0);
+        mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver]);
         mockGetEventsProcessed.mockReturnValue(200);
 
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 200);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200);
       });
     });
   });
