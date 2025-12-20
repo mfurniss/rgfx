@@ -21,6 +21,8 @@ import color from './properties/color';
  */
 export default z
   .object({
+    name: z.literal('Background'),
+    description: z.literal('Solid color background fill'),
     color: color.describe('Background color (not needed when enabled is false)'),
     enabled: z.boolean().optional().default(true).describe('Show or hide the background'),
   })

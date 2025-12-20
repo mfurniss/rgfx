@@ -15,6 +15,8 @@ import { baseEffect } from './properties';
  */
 export default baseEffect
   .extend({
+    name: z.literal('Scroll Text'),
+    description: z.literal('Scrolling text marquee'),
     reset: z.boolean().optional().default(true).describe('Clear existing scroll text before adding new'),
     text: z.string().max(64).default("Hidey Ho! it's the FX Playground!").describe('Text to scroll (max 64 chars)'),
     color: z.string().optional().default('#808000').describe('Text color (hex or named)'),
