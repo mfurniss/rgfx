@@ -17,7 +17,7 @@ import scrollTextSchema from './scroll_text';
 import plasmaSchema from './plasma';
 
 /**
- * Map of effect names to their schemas
+ * Map of effect names to their full schemas (includes name/description metadata)
  */
 export const effectSchemas = {
   pulse: pulseSchema,
@@ -29,6 +29,22 @@ export const effectSchemas = {
   text: textSchema,
   scroll_text: scrollTextSchema,
   plasma: plasmaSchema,
+} as const;
+
+/**
+ * Map of effect names to props-only schemas (metadata stripped)
+ * Use these for runtime values sent to drivers.
+ */
+export const effectPropsSchemas = {
+  pulse: pulseSchema.omit({ name: true, description: true }),
+  wipe: wipeSchema.omit({ name: true, description: true }),
+  explode: explodeSchema.omit({ name: true, description: true }),
+  bitmap: bitmapSchema.omit({ name: true, description: true }),
+  background: backgroundSchema.omit({ name: true, description: true }),
+  projectile: projectileSchema.omit({ name: true, description: true }),
+  text: textSchema.omit({ name: true, description: true }),
+  scroll_text: scrollTextSchema.omit({ name: true, description: true }),
+  plasma: plasmaSchema.omit({ name: true, description: true }),
 } as const;
 
 type EffectName = keyof typeof effectSchemas;

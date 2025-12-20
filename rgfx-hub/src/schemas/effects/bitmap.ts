@@ -14,6 +14,8 @@ import { baseEffect, centerX, centerY } from './properties';
  */
 export default baseEffect
   .extend({
+    name: z.literal('Bitmap'),
+    description: z.literal('Display a bitmap image'),
     centerX,
     centerY,
     duration: z.number().positive().optional().default(400),

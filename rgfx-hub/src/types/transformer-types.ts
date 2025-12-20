@@ -14,16 +14,16 @@ import type { DriverRegistry } from '../driver-registry';
  * The `drivers` property is reserved for selective driver targeting.
  *
  * Examples:
- * - { effect: 'pulse', color: '#FF0000', duration: 300 }
- * - { effect: 'score', value: 12450, player: 'p1', drivers: ['rgfx-driver-0001'] }
- * - { effect: 'wipe', direction: 'left', speed: 200 }
+ * - { effect: 'pulse', props: { color: '#FF0000', duration: 300 } }
+ * - { effect: 'wipe', props: { direction: 'left' }, drivers: ['rgfx-driver-0001'] }
+ * - { effect: 'explode', props: { centerX: 50, centerY: 50 } }
  */
 export interface EffectPayload extends Record<string, unknown> {
-  /** Semantic effect name (e.g., "score", "player_death", "powerup") */
+  /** LED effect type (e.g., "pulse", "wipe", "explode", "plasma") */
   effect: string;
 
   /**
-   * Optional array of driver IDs to target (reserved property, not sent via UDP).
+   * Optional array of driver IDs to target (stripped before sending via UDP).
    * Driver IDs use sequential format (e.g., "rgfx-driver-0001", "rgfx-driver-0002").
    * If undefined, broadcasts to all connected drivers.
    * If defined, only sends to drivers with matching IDs.

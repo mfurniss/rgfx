@@ -15,6 +15,8 @@ import { baseEffect } from './properties';
  */
 export default baseEffect
   .extend({
+    name: z.literal('Text'),
+    description: z.literal('Static text display'),
     reset: z.boolean().optional().default(true).describe('Clear existing text before rendering'),
     text: z.string().max(32).default('HELLO').describe('Text to render (max 32 chars)'),
     color: z.string().optional().default('#008888').describe('Text color (hex or named)'),

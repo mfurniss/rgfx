@@ -19,6 +19,8 @@ import { z } from 'zod';
  */
 export default z
   .object({
+    name: z.literal('Plasma'),
+    description: z.literal('Classic demoscene plasma effect'),
     speed: z
       .number()
       .min(0.1)

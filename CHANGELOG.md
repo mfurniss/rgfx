@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Galaga 88 MAME interceptor for Namco System 1 (`galaga88_rgfx.lua`)
+  - Reads score via C117 memory controller's program space at 0x300a14
+  - Unpacked BCD format, 6 digits (supports up to 999,999)
+  - Console output for all events in `event.lua`
+- Event monitor persistence and reset functionality
+  - Persist table data to localStorage between sessions using custom Zustand storage
+  - Reset button with confirmation dialog that clears both UI and backend counters
+- MAME shutdown event (`{rom}/shutdown`) to stop all effects when MAME quits
+  - Hub clears effects on all connected drivers when receiving shutdown event
+- Test coverage for previously untested modules:
+  - `network-utils.ts` (getLocalIP, getBroadcastAddress)
+  - `firmware-version-service.ts` (getCurrentVersion, needsUpdate)
+  - `firmware-watcher.ts` (file watching, polling, events)
+  - `system-monitor.ts` (status, firmware monitoring)
+- Test mock factories to reduce duplication across test files
+  - `createMockDriver()` and `createMockTelemetryPayload()` in `/src/__tests__/factories/`
+  - Electron mocks consolidated in `electron.factory.ts`
+- Canvas `fillBlock4x4()` inline method for optimized 4x4 block fills
 - Per-RGB floor cutoff values for driver configuration
   - Values at or below the floor are cut off to 0 after gamma correction
   - Prevents dim red bleed at low brightness (red LEDs have lower forward voltage)
@@ -12,14 +30,26 @@ All notable changes to this project will be documented in this file.
   - New UI controls in Hub driver configuration page
 
 ### Changed
+- Refactored test mocks to use vitest-mock-extended
+  - Replaces inline mock object literals with type-safe `mock<T>()` and `MockProxy<T>`
+  - Eliminates ~130 type casts and provides proper TypeScript inference
+- Optimized plasma, background, and text effects to use `fillBlock4x4()` fast path
+- Updated gradient presets: renamed Ocean to The Deep Blue, Freaky to Alien Goo
+- Set plasma effect defaults to match Rainbow preset (speed 3, scale 4)
+- Explode effect `hueSpread` default changed from 40 to 0
+- Firmware version now uses content hash only (removed commit count from dev version)
+- Hub clears effects on all drivers when app quits
+- Skip disabled drivers in UDP broadcasts
+- Refactored Lua globals to use `_G.rgfx` namespace to avoid polluting global namespace
+- Display gamma correction, floor cutoff, and multi-panel layout in driver detail page
+- Simplified InfoRowData to tuple format `[label, value]` for less verbose code
+- Replace "Flash" with "Update" in firmware page user-facing text
 - Enhanced UnifiedPanelEditor with drag-and-drop and click-to-rotate interactions
   - Panels can now be dragged and dropped to swap positions (using @dnd-kit library)
   - Clicking a panel rotates it 90° clockwise (cycles through 0°→90°→180°→270°→0°)
   - Added DragOverlay for smooth visual feedback during drag operations
   - Removed popover-based editing in favor of direct interaction
   - Updated helper text: "Drag to swap panels, click to rotate"
-
-### Changed
 - Refactored IPC handlers to use global event bus for driver events
   - `flash-ota-handler.ts` now emits `driver:updated`, `driver:disconnected`, `flash:ota:state`, `flash:ota:progress`, `flash:ota:error` via event bus
   - `save-driver-config-handler.ts` now emits `driver:updated`, `driver:disconnected` via event bus
@@ -29,6 +59,12 @@ All notable changes to this project will be documented in this file.
   - `processEvent()` in `main.ts` now emits via event bus instead of direct IPC
 
 ### Fixed
+- Effects playground broadcasting to all drivers when none selected
+  - Now requires at least one driver to be selected before triggering effects
+- Driver selector now auto-selects on each page visit
+  - Effects playground selects all connected drivers
+  - Firmware page selects drivers needing update
+  - No more persisted selection state
 - ESP32 OTA flash effects not clearing (cross-core race condition)
   - Root cause: `clearEffects()` was called from Core 0 (OTA callback) while Core 1 (main loop) was still rendering
   - Both cores called `FastLED.show()` simultaneously - Core 1's render won the race
