@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useDriverStore } from '../driver-store';
-import { createMockDriver } from '@/__tests__/test-utils';
+import { createMockDriver } from '@/__tests__/factories';
 import * as notificationStore from '../notification-store';
 
 // Mock the notification store

@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import DriverConfigPage from '@/renderer/pages/driver-config-page';
 import { Driver } from '@/types';
-import { createMockDriver } from '../test-utils';
+import { createMockDriver } from '../factories';
 
 // Mock the notification store
 const mockNotify = vi.fn();
