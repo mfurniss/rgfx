@@ -97,7 +97,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               }}
             >
               <TableCell>{driver.id}</TableCell>
-              <TableCell>{driver.ip ?? ''}</TableCell>
+              <TableCell>{driver.state === 'connected' ? driver.ip ?? '' : ''}</TableCell>
               <TableCell>
                 <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
               </TableCell>
