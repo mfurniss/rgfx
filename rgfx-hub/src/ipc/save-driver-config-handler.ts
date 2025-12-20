@@ -13,6 +13,7 @@ import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
 import { PersistedDriverSchema, type PersistedDriverFromSchema } from '../schemas';
 import { eventBus } from '../services/event-bus';
+import { rebootDriver } from '../services/driver-service';
 
 interface SaveDriverConfigHandlerDeps {
   driverPersistence: DriverPersistence;
@@ -115,18 +116,9 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
         log.info(`Driver ${currentId} is connected, uploading new config...`);
         await uploadConfigToDriver(macAddress);
 
-        // Notify renderer that driver is restarting (suppresses disconnect notification)
-        eventBus.emit('driver:restarting', { driver: updatedDriver });
-
         // Reboot the driver so it applies the new config (FastLED can't reinitialize)
         log.info(`Rebooting driver ${currentId} to apply new config...`);
-        const rebootTopic = `rgfx/driver/${currentId}/reboot`;
-        await mqtt.publish(rebootTopic, '');
-
-        // Mark driver as disconnected (it will reboot)
-        updatedDriver.state = 'disconnected';
-        updatedDriver.ip = undefined;
-        eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
+        await rebootDriver(updatedDriver, { mqtt });
 
         return { success: true, driverRebooted: true };
       }

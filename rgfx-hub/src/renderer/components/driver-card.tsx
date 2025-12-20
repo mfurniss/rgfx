@@ -15,6 +15,7 @@ import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
+import RestartDriverButton from './restart-driver-button';
 import DisableDriverButton from './disable-driver-button';
 import TelemetryCharts from './telemetry-charts';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
@@ -234,6 +235,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             >
               Configure Driver
             </SuperButton>
+            <RestartDriverButton driver={driver} />
             <ResetDriverButton driver={driver} />
           </Box>
         </Box>

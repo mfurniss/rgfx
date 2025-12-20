@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Restart button on driver detail page with confirmation modal
+  - Reboots driver without erasing any settings (WiFi, device ID, LED config)
+  - Immediately updates driver state to disconnected (no timeout wait)
+  - Shared `rebootDriver()` service function used by both restart button and config save
 - Top-level Drivers page with dedicated navigation menu item
   - Drivers table moved from System Status page to new `/drivers` page
   - USB icon in sidebar navigation (position 2, after System Status)
