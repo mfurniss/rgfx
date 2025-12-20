@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { Driver, type SystemStatus, type DriverState as DriverStateType } from '@/types';
 import { DRIVER_CONNECTION_TIMEOUT_MS, DRIVER_CONNECTION_CHECK_INTERVAL_MS } from '@/config/constants';
 import { notify } from './notification-store';
+import { useTelemetryHistoryStore } from './telemetry-history-store';
 
 /**
  * Centralized notification for driver state changes.
@@ -183,6 +184,20 @@ export const useDriverStore = create<DriverStoreState>()(
 
           // Notify state change
           notifyStateChange(driver.id, existingDriver?.state, driver.state);
+
+          // Record telemetry data point for charting
+          if (driver.state === 'connected' && driver.telemetry) {
+            useTelemetryHistoryStore.getState().addDataPoint(driver.id, {
+              timestamp: Date.now(),
+              freeHeap: driver.freeHeap ?? 0,
+              heapSize: driver.telemetry.heapSize,
+              maxAllocHeap: driver.telemetry.maxAllocHeap ?? driver.telemetry.heapSize,
+              fps: driver.telemetry.currentFps,
+              minFps: driver.telemetry.minFps,
+              maxFps: driver.telemetry.maxFps,
+              rssi: driver.rssi ?? -100,
+            });
+          }
 
           set((state) => {
             const existsById = state.drivers.find((d) => d.id === driver.id);

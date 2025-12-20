@@ -30,6 +30,7 @@ export const TelemetryPayloadSchema = z.object({
   flashSize: z.number(),
   flashSpeed: z.number(),
   heapSize: z.number(),
+  maxAllocHeap: z.number(),
   psramSize: z.number(),
   freePsram: z.number(),
   hasDisplay: z.boolean(),

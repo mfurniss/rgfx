@@ -90,6 +90,7 @@ describe('setupDriverEventHandlers', () => {
         flashSize: 4194304,
         flashSpeed: 40000000,
         heapSize: 327680,
+        maxAllocHeap: 200000,
         psramSize: 0,
         freePsram: 0,
         hasDisplay: false,
