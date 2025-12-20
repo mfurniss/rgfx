@@ -6,12 +6,14 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { registerSetDriverDisabledHandler } from '../set-driver-disabled-handler';
 import type { DriverRegistry } from '@/driver-registry';
 import type { DriverPersistence } from '@/driver-persistence';
 import type { LEDHardwareManager } from '@/led-hardware-manager';
 import type { MqttBroker } from '@/network';
 import type { BrowserWindow } from 'electron';
+import type { Driver } from '@/types';
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -29,24 +31,12 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerSetDriverDisabledHandler', () => {
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-    refreshDriverFromPersistence: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverPersistence: {
-    setDisabled: ReturnType<typeof vi.fn>;
-  };
-  let mockLedHardwareManager: object;
-  let mockMqtt: {
-    publish: ReturnType<typeof vi.fn>;
-  };
-  let mockMainWindow: {
-    isDestroyed: ReturnType<typeof vi.fn>;
-    webContents: {
-      send: ReturnType<typeof vi.fn>;
-    };
-  };
-  let mockDriver: Record<string, unknown>;
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockDriverPersistence: MockProxy<DriverPersistence>;
+  let mockLedHardwareManager: MockProxy<LEDHardwareManager>;
+  let mockMqtt: MockProxy<MqttBroker>;
+  let mockMainWindow: DeepMockProxy<BrowserWindow>;
+  let mockDriver: Driver;
   let registeredHandler: (
     event: unknown,
     driverId: string,
@@ -95,27 +85,22 @@ describe('registerSetDriverDisabledHandler', () => {
       },
     };
 
-    mockDriverRegistry = {
-      getDriver: vi.fn().mockReturnValue(mockDriver),
-      refreshDriverFromPersistence: vi.fn().mockReturnValue({ ...mockDriver, disabled: true }),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
+    const disabledDriver = structuredClone(mockDriver);
+    disabledDriver.disabled = true;
+    mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(disabledDriver);
 
-    mockDriverPersistence = {
-      setDisabled: vi.fn().mockReturnValue(true),
-    };
+    mockDriverPersistence = mock<DriverPersistence>();
+    mockDriverPersistence.setDisabled.mockReturnValue(true);
 
-    mockLedHardwareManager = {};
+    mockLedHardwareManager = mock<LEDHardwareManager>();
 
-    mockMqtt = {
-      publish: vi.fn().mockResolvedValue(undefined),
-    };
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.publish.mockResolvedValue(undefined);
 
-    mockMainWindow = {
-      isDestroyed: vi.fn().mockReturnValue(false),
-      webContents: {
-        send: vi.fn(),
-      },
-    };
+    mockMainWindow = mockDeep<BrowserWindow>();
+    mockMainWindow.isDestroyed.mockReturnValue(false);
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -128,11 +113,11 @@ describe('registerSetDriverDisabledHandler', () => {
     );
 
     registerSetDriverDisabledHandler({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-      driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-      ledHardwareManager: mockLedHardwareManager as unknown as LEDHardwareManager,
-      mqtt: mockMqtt as unknown as MqttBroker,
-      getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+      driverRegistry: mockDriverRegistry,
+      driverPersistence: mockDriverPersistence,
+      ledHardwareManager: mockLedHardwareManager,
+      mqtt: mockMqtt,
+      getMainWindow: () => mockMainWindow,
     });
   });
 
@@ -151,7 +136,9 @@ describe('registerSetDriverDisabledHandler', () => {
     });
 
     it('throws error when driver has no MAC address', () => {
-      mockDriverRegistry.getDriver.mockReturnValue({ ...mockDriver, mac: undefined });
+      const driverWithoutMac = structuredClone(mockDriver);
+      driverWithoutMac.mac = undefined;
+      mockDriverRegistry.getDriver.mockReturnValue(driverWithoutMac);
 
       expect(() => registeredHandler({}, 'rgfx-driver-0001', true)).toThrow(
         'Driver rgfx-driver-0001 has no MAC address',
@@ -203,10 +190,10 @@ describe('registerSetDriverDisabledHandler', () => {
 
     it('does not send IPC event when window is null', () => {
       registerSetDriverDisabledHandler({
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        ledHardwareManager: mockLedHardwareManager as unknown as LEDHardwareManager,
-        mqtt: mockMqtt as unknown as MqttBroker,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
         getMainWindow: () => null,
       });
 
@@ -223,12 +210,12 @@ describe('registerSetDriverDisabledHandler', () => {
     });
 
     it('handles enabling a disabled driver', () => {
-      const disabledDriver = { ...mockDriver, disabled: true };
+      const disabledDriver = structuredClone(mockDriver);
+      disabledDriver.disabled = true;
       mockDriverRegistry.getDriver.mockReturnValue(disabledDriver);
-      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue({
-        ...disabledDriver,
-        disabled: false,
-      });
+      const enabledDriver = structuredClone(disabledDriver);
+      enabledDriver.disabled = false;
+      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(enabledDriver);
 
       const result = registeredHandler({}, 'rgfx-driver-0001', false);
 
@@ -246,12 +233,12 @@ describe('registerSetDriverDisabledHandler', () => {
     });
 
     it('does not send clear-effects command when enabling a driver', () => {
-      const disabledDriver = { ...mockDriver, disabled: true };
+      const disabledDriver = structuredClone(mockDriver);
+      disabledDriver.disabled = true;
       mockDriverRegistry.getDriver.mockReturnValue(disabledDriver);
-      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue({
-        ...disabledDriver,
-        disabled: false,
-      });
+      const enabledDriver = structuredClone(disabledDriver);
+      enabledDriver.disabled = false;
+      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(enabledDriver);
 
       registeredHandler({}, 'rgfx-driver-0001', false);
 

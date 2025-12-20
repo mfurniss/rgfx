@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerSendDriverCommandHandler } from '../send-driver-command-handler';
 import type { DriverRegistry } from '@/driver-registry';
 import type { MqttBroker } from '@/network';
@@ -27,12 +28,8 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerSendDriverCommandHandler', () => {
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-  };
-  let mockMqtt: {
-    publish: ReturnType<typeof vi.fn>;
-  };
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockMqtt: MockProxy<MqttBroker>;
   let mockDriver: Driver;
   let registeredHandler: (
     event: unknown,
@@ -83,13 +80,11 @@ describe('registerSendDriverCommandHandler', () => {
       },
     };
 
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-    mockMqtt = {
-      publish: vi.fn(() => Promise.resolve()),
-    };
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.publish.mockResolvedValue(undefined);
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -107,8 +102,8 @@ describe('registerSendDriverCommandHandler', () => {
     );
 
     registerSendDriverCommandHandler({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-      mqtt: mockMqtt as unknown as MqttBroker,
+      driverRegistry: mockDriverRegistry,
+      mqtt: mockMqtt,
     });
   });
 

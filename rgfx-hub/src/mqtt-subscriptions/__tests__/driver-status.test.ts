@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { subscribeDriverStatus } from '../driver-status';
 import type { MqttBroker } from '@/network';
 import type { DriverRegistry } from '@/driver-registry';
@@ -24,22 +25,10 @@ vi.mock('electron-log/main', () => ({
 
 
 describe('subscribeDriverStatus', () => {
-  let mockMqtt: {
-    subscribe: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-    getConnectedCount: ReturnType<typeof vi.fn>;
-  };
-  let mockSystemMonitor: {
-    getSystemStatus: ReturnType<typeof vi.fn>;
-  };
-  let mockMainWindow: {
-    isDestroyed: ReturnType<typeof vi.fn>;
-    webContents: {
-      send: ReturnType<typeof vi.fn>;
-    };
-  };
+  let mockMqtt: MockProxy<MqttBroker>;
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockSystemMonitor: MockProxy<SystemMonitor>;
+  let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let subscribedCallback: (topic: string, payload: string) => void;
   let mockDriver: Driver;
   let mockGetEventsProcessed: ReturnType<typeof vi.fn>;
@@ -86,16 +75,16 @@ describe('subscribeDriverStatus', () => {
       },
     };
 
-    mockMqtt = {
-      subscribe: vi.fn((topic: string, callback: (topic: string, payload: string) => void) => {
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.subscribe.mockImplementation(
+      (topic: string, callback: (topic: string, payload: string) => void) => {
         subscribedCallback = callback;
-      }),
-    };
+      },
+    );
 
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-      getConnectedCount: vi.fn(() => 1),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
+    mockDriverRegistry.getConnectedCount.mockReturnValue(1);
 
     const mockStatus: SystemStatus = {
       mqttBroker: 'running',
@@ -108,16 +97,11 @@ describe('subscribeDriverStatus', () => {
       currentFirmwareVersion: '1.0.0',
     };
 
-    mockSystemMonitor = {
-      getSystemStatus: vi.fn(() => mockStatus),
-    };
+    mockSystemMonitor = mock<SystemMonitor>();
+    mockSystemMonitor.getSystemStatus.mockReturnValue(mockStatus);
 
-    mockMainWindow = {
-      isDestroyed: vi.fn(() => false),
-      webContents: {
-        send: vi.fn(),
-      },
-    };
+    mockMainWindow = mockDeep<BrowserWindow>();
+    mockMainWindow.isDestroyed.mockReturnValue(false);
 
     mockGetEventsProcessed = vi.fn(() => 100);
   });
@@ -125,10 +109,10 @@ describe('subscribeDriverStatus', () => {
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic pattern', () => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
 
@@ -142,10 +126,10 @@ describe('subscribeDriverStatus', () => {
   describe('topic parsing', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -178,10 +162,10 @@ describe('subscribeDriverStatus', () => {
   describe('offline status handling (LWT)', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -243,10 +227,10 @@ describe('subscribeDriverStatus', () => {
   describe('online status handling', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -269,10 +253,10 @@ describe('subscribeDriverStatus', () => {
   describe('unknown driver handling', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -296,10 +280,10 @@ describe('subscribeDriverStatus', () => {
   describe('window availability', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -315,10 +299,10 @@ describe('subscribeDriverStatus', () => {
 
     it('should not send IPC message if window is null', () => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
         getMainWindow: () => null,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
 
@@ -336,10 +320,10 @@ describe('subscribeDriverStatus', () => {
   describe('unexpected payload values', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -366,10 +350,10 @@ describe('subscribeDriverStatus', () => {
   describe('state preservation', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });
@@ -405,10 +389,10 @@ describe('subscribeDriverStatus', () => {
   describe('OTA state handling', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+        systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
       });
     });

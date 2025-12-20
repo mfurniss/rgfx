@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerSetIdHandler } from '../set-id-handler';
 import type { DriverRegistry } from '@/driver-registry';
 import type { MqttBroker } from '@/network';
@@ -27,12 +28,8 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerSetIdHandler', () => {
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-  };
-  let mockMqtt: {
-    publish: ReturnType<typeof vi.fn>;
-  };
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockMqtt: MockProxy<MqttBroker>;
   let mockDriver: Driver;
   let registeredHandler: (
     event: unknown,
@@ -82,13 +79,11 @@ describe('registerSetIdHandler', () => {
       },
     };
 
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-    mockMqtt = {
-      publish: vi.fn(() => Promise.resolve()),
-    };
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.publish.mockResolvedValue(undefined);
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -105,8 +100,8 @@ describe('registerSetIdHandler', () => {
     );
 
     registerSetIdHandler({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-      mqtt: mockMqtt as unknown as MqttBroker,
+      driverRegistry: mockDriverRegistry,
+      mqtt: mockMqtt,
     });
   });
 
@@ -189,7 +184,7 @@ describe('registerSetIdHandler', () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'new-driver-id');
 
       const publishCall = mockMqtt.publish.mock.calls[0];
-      const payload = JSON.parse(publishCall[1] as string) as { id: string };
+      const payload = JSON.parse(publishCall[1]) as { id: string };
 
       expect(payload.id).toBe('new-driver-id');
     });

@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerFlashOtaHandler } from '../flash-ota-handler';
 import { eventBus } from '@/services/event-bus';
 import type { DriverRegistry } from '@/driver-registry';
@@ -53,10 +54,7 @@ vi.mock('esp-ota', () => ({
 }));
 
 describe('registerFlashOtaHandler', () => {
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-    touchDriver: ReturnType<typeof vi.fn>;
-  };
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockDriver: Driver;
   let registeredHandler: (
     event: unknown,
@@ -108,10 +106,9 @@ describe('registerFlashOtaHandler', () => {
       },
     };
 
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-      touchDriver: vi.fn(() => mockDriver),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
+    mockDriverRegistry.touchDriver.mockReturnValue(mockDriver);
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -127,7 +124,7 @@ describe('registerFlashOtaHandler', () => {
     );
 
     registerFlashOtaHandler({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+      driverRegistry: mockDriverRegistry,
     });
   });
 
