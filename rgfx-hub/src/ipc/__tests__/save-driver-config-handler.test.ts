@@ -14,7 +14,8 @@ import type { DriverRegistry } from '@/driver-registry';
 import type { LEDHardwareManager } from '@/led-hardware-manager';
 import type { MqttBroker } from '@/network';
 import type { PersistedDriverInput } from '@/schemas';
-import type { Driver } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver } from '@/__tests__/factories';
 
 vi.mocked(eventBus);
 
@@ -65,18 +66,8 @@ describe('registerSaveDriverConfigHandler', () => {
     disabled: false,
   };
 
-  const runtimeDriver: Driver = {
+  const runtimeDriver: Driver = createMockDriver({
     id: 'old-driver-id',
-    mac: 'AA:BB:CC:DD:EE:FF',
-    ip: '192.168.1.100',
-    hostname: 'test-host',
-    ssid: 'TestNetwork',
-    rssi: -50,
-    state: 'connected',
-    lastSeen: Date.now(),
-    failedHeartbeats: 0,
-    testActive: false,
-    disabled: false,
     stats: {
       telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
@@ -84,7 +75,7 @@ describe('registerSaveDriverConfigHandler', () => {
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
     },
-  };
+  });
 
   beforeEach(async () => {
     vi.clearAllMocks();
