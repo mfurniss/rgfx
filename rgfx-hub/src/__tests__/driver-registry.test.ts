@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
 import { DriverPersistence } from '../driver-persistence';
 import { LEDHardwareManager } from '../led-hardware-manager';
-import { createMockTelemetryData } from './test-utils';
+import { createMockTelemetryData } from './factories';
 import { eventBus } from '../services/event-bus';
 
 // Mock electron-log

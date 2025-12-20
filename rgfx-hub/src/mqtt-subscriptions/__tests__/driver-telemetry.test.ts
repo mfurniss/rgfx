@@ -6,12 +6,14 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { subscribeDriverTelemetry } from '../driver-telemetry';
 import type { MqttBroker } from '@/network';
 import type { DriverRegistry } from '@/driver-registry';
 import type { DriverPersistence } from '@/driver-persistence';
 import type { BrowserWindow } from 'electron';
-import type { Driver } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver, createMockTelemetryPayload } from '@/__tests__/factories';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -23,92 +25,46 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('subscribeDriverTelemetry', () => {
-  let mockMqtt: {
-    subscribe: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverRegistry: {
-    registerDriver: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverPersistence: {
-    isDisabledByMac: ReturnType<typeof vi.fn>;
-  };
-  let mockMainWindow: {
-    isDestroyed: ReturnType<typeof vi.fn>;
-    webContents: {
-      send: ReturnType<typeof vi.fn>;
-    };
-  };
+  let mockMqtt: MockProxy<MqttBroker>;
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockDriverPersistence: MockProxy<DriverPersistence>;
+  let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let subscribedCallback: (topic: string, payload: string) => void;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockMqtt = {
-      subscribe: vi.fn((topic: string, callback: (topic: string, payload: string) => void) => {
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.subscribe.mockImplementation(
+      (topic: string, callback: (topic: string, payload: string) => void) => {
         subscribedCallback = callback;
-      }),
-    };
-
-    mockDriverRegistry = {
-      registerDriver: vi.fn((data) => ({
-        id: 'rgfx-driver-0001',
-        mac: data.mac,
-        ip: data.ip,
-        state: 'connected',
-        telemetry: data.telemetry,
-        disabled: false,
-      })),
-    };
-
-    mockDriverPersistence = {
-      isDisabledByMac: vi.fn(() => false),
-    };
-
-    mockMainWindow = {
-      isDestroyed: vi.fn(() => false),
-      webContents: {
-        send: vi.fn(),
       },
-    };
-  });
+    );
 
-  const createFullTelemetryPayload = (overrides: Record<string, unknown> = {}) =>
-    JSON.stringify({
-      ip: '192.168.1.100',
-      mac: 'AA:BB:CC:DD:EE:FF',
-      hostname: 'rgfx-driver-0001',
-      ssid: 'TestNetwork',
-      rssi: -50,
-      freeHeap: 200000,
-      minFreeHeap: 180000,
-      uptimeMs: 60000,
-      chipModel: 'ESP32',
-      chipRevision: 1,
-      chipCores: 2,
-      cpuFreqMHz: 240,
-      flashSize: 4194304,
-      flashSpeed: 40000000,
-      heapSize: 327680,
-      psramSize: 0,
-      freePsram: 0,
-      hasDisplay: false,
-      sdkVersion: 'v4.4',
-      sketchSize: 1000000,
-      freeSketchSpace: 2000000,
-      firmwareVersion: '1.0.0',
-      currentFps: 120.0,
-      minFps: 118.0,
-      maxFps: 122.0,
-      ...overrides,
-    });
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.registerDriver.mockImplementation((data) => ({
+      id: 'rgfx-driver-0001',
+      mac: data.mac,
+      ip: data.ip,
+      state: 'connected',
+      telemetry: data.telemetry,
+      disabled: false,
+    }) as Driver);
+
+    mockDriverPersistence = mock<DriverPersistence>();
+    mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
+
+    mockMainWindow = mockDeep<BrowserWindow>();
+    mockMainWindow.isDestroyed.mockReturnValue(false);
+  });
 
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic', () => {
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
 
       expect(mockMqtt.subscribe).toHaveBeenCalledWith(
@@ -121,15 +77,15 @@ describe('subscribeDriverTelemetry', () => {
   describe('full telemetry handling', () => {
     beforeEach(() => {
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
     it('should register driver with full telemetry payload', () => {
-      const payload = createFullTelemetryPayload();
+      const payload = createMockTelemetryPayload();
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockDriverRegistry.registerDriver).toHaveBeenCalledWith(
@@ -146,7 +102,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should send driver:updated IPC message after registration', () => {
-      const payload = createFullTelemetryPayload();
+      const payload = createMockTelemetryPayload();
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
@@ -160,7 +116,7 @@ describe('subscribeDriverTelemetry', () => {
     it('should not send IPC message if window is destroyed', () => {
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
-      const payload = createFullTelemetryPayload();
+      const payload = createMockTelemetryPayload();
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
@@ -168,9 +124,9 @@ describe('subscribeDriverTelemetry', () => {
 
     it('should not send IPC message if window is null', () => {
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
         getMainWindow: () => null,
       });
 
@@ -179,7 +135,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -188,15 +144,15 @@ describe('subscribeDriverTelemetry', () => {
   describe('FPS telemetry handling', () => {
     beforeEach(() => {
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
     it('should extract FPS metrics from telemetry', () => {
-      const payload = createFullTelemetryPayload({
+      const payload = createMockTelemetryPayload({
         currentFps: 45.5,
         minFps: 40.0,
         maxFps: 50.0,
@@ -245,10 +201,10 @@ describe('subscribeDriverTelemetry', () => {
   describe('error handling', () => {
     beforeEach(() => {
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
@@ -295,15 +251,15 @@ describe('subscribeDriverTelemetry', () => {
   describe('driver data extraction', () => {
     beforeEach(() => {
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
     it('should extract firmware version from full telemetry', () => {
-      const payload = createFullTelemetryPayload({ firmwareVersion: '2.0.0' });
+      const payload = createMockTelemetryPayload({ firmwareVersion: '2.0.0' });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -313,7 +269,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should keep firmwareVersion undefined if not provided', () => {
-      const payload = createFullTelemetryPayload({ firmwareVersion: undefined });
+      const payload = createMockTelemetryPayload({ firmwareVersion: undefined });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -323,7 +279,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should extract testActive state if provided', () => {
-      const payload = createFullTelemetryPayload({ testActive: true });
+      const payload = createMockTelemetryPayload({ testActive: true });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -335,55 +291,18 @@ describe('subscribeDriverTelemetry', () => {
 
   describe('IPC serialization', () => {
     it('should serialize driver for IPC correctly', () => {
-      const mockDriver: Driver = {
-        id: 'rgfx-driver-0001',
-        mac: 'AA:BB:CC:DD:EE:FF',
-        ip: '192.168.1.100',
-        hostname: 'test-host',
-        ssid: 'TestNetwork',
-        rssi: -50,
-        state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
-        testActive: false,
-        disabled: false,
-        stats: {
-          telemetryEventsReceived: 1,
-          mqttMessagesReceived: 1,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
-        telemetry: {
-          chipModel: 'ESP32',
-          chipRevision: 1,
-          chipCores: 2,
-          cpuFreqMHz: 240,
-          flashSize: 4194304,
-          flashSpeed: 40000000,
-          heapSize: 327680,
-          psramSize: 0,
-          freePsram: 0,
-          hasDisplay: false,
-          sdkVersion: 'v4.4',
-          sketchSize: 1000000,
-          freeSketchSpace: 2000000,
-          currentFps: 120.0,
-          minFps: 118.0,
-          maxFps: 122.0,
-        },
-      };
+      const mockDriver = createMockDriver();
 
       mockDriverRegistry.registerDriver.mockReturnValue(mockDriver);
 
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
 
-      subscribedCallback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      subscribedCallback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         'driver:updated',
@@ -401,10 +320,10 @@ describe('subscribeDriverTelemetry', () => {
       mockDriverPersistence.isDisabledByMac.mockReturnValue(true);
 
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
 
       // Get the subscribed callback
@@ -412,7 +331,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockDriverRegistry.registerDriver).not.toHaveBeenCalled();
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
@@ -422,10 +341,10 @@ describe('subscribeDriverTelemetry', () => {
       mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
 
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
 
       // Get the subscribed callback
@@ -433,7 +352,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockDriverRegistry.registerDriver).toHaveBeenCalled();
     });
@@ -442,10 +361,10 @@ describe('subscribeDriverTelemetry', () => {
       mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
 
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
 
       // Get the subscribed callback
@@ -453,7 +372,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload({ mac: '11:22:33:44:55:66' }));
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload({ mac: '11:22:33:44:55:66' }));
 
       expect(mockDriverPersistence.isDisabledByMac).toHaveBeenCalledWith('11:22:33:44:55:66');
     });
@@ -463,10 +382,10 @@ describe('subscribeDriverTelemetry', () => {
       mockDriverPersistence.isDisabledByMac.mockReturnValue(false);
 
       subscribeDriverTelemetry({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        driverPersistence: mockDriverPersistence,
+        getMainWindow: () => mockMainWindow,
       });
 
       // Get the subscribed callback
