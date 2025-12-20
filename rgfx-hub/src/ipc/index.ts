@@ -30,6 +30,7 @@ import { registerGetAppInfoHandler } from './get-app-info-handler';
 import { registerFirmwareFilesHandler } from './firmware-files-handler';
 import { registerSetDriverDisabledHandler } from './set-driver-disabled-handler';
 import { registerResetEventCountsHandler } from './reset-event-counts-handler';
+import { registerRestartDriverHandler } from './restart-driver-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -63,4 +64,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerFirmwareFilesHandler();
   registerSetDriverDisabledHandler(deps);
   registerResetEventCountsHandler(deps);
+  registerRestartDriverHandler(deps);
 }
