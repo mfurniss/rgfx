@@ -12,7 +12,8 @@ import type { MqttBroker } from '@/network';
 import type { DriverRegistry } from '@/driver-registry';
 import type { DriverPersistence } from '@/driver-persistence';
 import type { BrowserWindow } from 'electron';
-import type { Driver } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver, createMockTelemetryPayload } from '@/__tests__/factories';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -57,36 +58,6 @@ describe('subscribeDriverTelemetry', () => {
     mockMainWindow.isDestroyed.mockReturnValue(false);
   });
 
-  const createFullTelemetryPayload = (overrides: Record<string, unknown> = {}) =>
-    JSON.stringify({
-      ip: '192.168.1.100',
-      mac: 'AA:BB:CC:DD:EE:FF',
-      hostname: 'rgfx-driver-0001',
-      ssid: 'TestNetwork',
-      rssi: -50,
-      freeHeap: 200000,
-      minFreeHeap: 180000,
-      uptimeMs: 60000,
-      chipModel: 'ESP32',
-      chipRevision: 1,
-      chipCores: 2,
-      cpuFreqMHz: 240,
-      flashSize: 4194304,
-      flashSpeed: 40000000,
-      heapSize: 327680,
-      psramSize: 0,
-      freePsram: 0,
-      hasDisplay: false,
-      sdkVersion: 'v4.4',
-      sketchSize: 1000000,
-      freeSketchSpace: 2000000,
-      firmwareVersion: '1.0.0',
-      currentFps: 120.0,
-      minFps: 118.0,
-      maxFps: 122.0,
-      ...overrides,
-    });
-
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic', () => {
       subscribeDriverTelemetry({
@@ -114,7 +85,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should register driver with full telemetry payload', () => {
-      const payload = createFullTelemetryPayload();
+      const payload = createMockTelemetryPayload();
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockDriverRegistry.registerDriver).toHaveBeenCalledWith(
@@ -131,7 +102,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should send driver:updated IPC message after registration', () => {
-      const payload = createFullTelemetryPayload();
+      const payload = createMockTelemetryPayload();
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
@@ -145,7 +116,7 @@ describe('subscribeDriverTelemetry', () => {
     it('should not send IPC message if window is destroyed', () => {
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
-      const payload = createFullTelemetryPayload();
+      const payload = createMockTelemetryPayload();
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
@@ -164,7 +135,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -181,7 +152,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should extract FPS metrics from telemetry', () => {
-      const payload = createFullTelemetryPayload({
+      const payload = createMockTelemetryPayload({
         currentFps: 45.5,
         minFps: 40.0,
         maxFps: 50.0,
@@ -288,7 +259,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should extract firmware version from full telemetry', () => {
-      const payload = createFullTelemetryPayload({ firmwareVersion: '2.0.0' });
+      const payload = createMockTelemetryPayload({ firmwareVersion: '2.0.0' });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -298,7 +269,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should keep firmwareVersion undefined if not provided', () => {
-      const payload = createFullTelemetryPayload({ firmwareVersion: undefined });
+      const payload = createMockTelemetryPayload({ firmwareVersion: undefined });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -308,7 +279,7 @@ describe('subscribeDriverTelemetry', () => {
     });
 
     it('should extract testActive state if provided', () => {
-      const payload = createFullTelemetryPayload({ testActive: true });
+      const payload = createMockTelemetryPayload({ testActive: true });
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       const registrationCall = mockDriverRegistry.registerDriver.mock.calls[0][0] as {
@@ -320,44 +291,7 @@ describe('subscribeDriverTelemetry', () => {
 
   describe('IPC serialization', () => {
     it('should serialize driver for IPC correctly', () => {
-      const mockDriver: Driver = {
-        id: 'rgfx-driver-0001',
-        mac: 'AA:BB:CC:DD:EE:FF',
-        ip: '192.168.1.100',
-        hostname: 'test-host',
-        ssid: 'TestNetwork',
-        rssi: -50,
-        state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
-        testActive: false,
-        disabled: false,
-        stats: {
-          telemetryEventsReceived: 1,
-          mqttMessagesReceived: 1,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
-        telemetry: {
-          chipModel: 'ESP32',
-          chipRevision: 1,
-          chipCores: 2,
-          cpuFreqMHz: 240,
-          flashSize: 4194304,
-          flashSpeed: 40000000,
-          heapSize: 327680,
-          psramSize: 0,
-          freePsram: 0,
-          hasDisplay: false,
-          sdkVersion: 'v4.4',
-          sketchSize: 1000000,
-          freeSketchSpace: 2000000,
-          currentFps: 120.0,
-          minFps: 118.0,
-          maxFps: 122.0,
-        },
-      };
+      const mockDriver = createMockDriver();
 
       mockDriverRegistry.registerDriver.mockReturnValue(mockDriver);
 
@@ -368,7 +302,7 @@ describe('subscribeDriverTelemetry', () => {
         getMainWindow: () => mockMainWindow,
       });
 
-      subscribedCallback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      subscribedCallback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         'driver:updated',
@@ -397,7 +331,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockDriverRegistry.registerDriver).not.toHaveBeenCalled();
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
@@ -418,7 +352,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload());
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload());
 
       expect(mockDriverRegistry.registerDriver).toHaveBeenCalled();
     });
@@ -438,7 +372,7 @@ describe('subscribeDriverTelemetry', () => {
         topic: string,
         payload: string,
       ) => void;
-      callback('rgfx/system/driver/telemetry', createFullTelemetryPayload({ mac: '11:22:33:44:55:66' }));
+      callback('rgfx/system/driver/telemetry', createMockTelemetryPayload({ mac: '11:22:33:44:55:66' }));
 
       expect(mockDriverPersistence.isDisabledByMac).toHaveBeenCalledWith('11:22:33:44:55:66');
     });
