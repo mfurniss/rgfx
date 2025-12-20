@@ -90,4 +90,49 @@ describe('useEventStore', () => {
       expect(topicsBefore).not.toBe(topicsAfter);
     });
   });
+
+  describe('reset', () => {
+    it('should clear all topics', () => {
+      const { onEventTopic, reset } = useEventStore.getState();
+
+      // Add some topics
+      onEventTopic('game/score', 10, '10000');
+      onEventTopic('game/lives', 3, '3');
+      onEventTopic('game/level', 2, '2');
+
+      expect(useEventStore.getState().topics.size).toBe(3);
+
+      // Reset
+      reset();
+
+      expect(useEventStore.getState().topics.size).toBe(0);
+    });
+
+    it('should return empty map after reset', () => {
+      const { onEventTopic, reset } = useEventStore.getState();
+
+      onEventTopic('game/score', 1, '100');
+      reset();
+
+      const { topics } = useEventStore.getState();
+      expect(topics).toBeInstanceOf(Map);
+      expect(topics.size).toBe(0);
+    });
+
+    it('should allow adding topics after reset', () => {
+      const { onEventTopic, reset } = useEventStore.getState();
+
+      onEventTopic('old/topic', 5, 'old');
+      reset();
+      onEventTopic('new/topic', 1, 'new');
+
+      const { topics } = useEventStore.getState();
+      expect(topics.size).toBe(1);
+      expect(topics.get('new/topic')).toEqual({
+        topic: 'new/topic',
+        count: 1,
+        lastValue: 'new',
+      });
+    });
+  });
 });

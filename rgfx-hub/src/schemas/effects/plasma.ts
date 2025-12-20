@@ -24,21 +24,21 @@ export default z
       .min(0.1)
       .max(10)
       .optional()
-      .default(2)
+      .default(3)
       .describe('Animation speed multiplier (1 = normal speed)'),
     scale: z
       .number()
       .min(0.1)
       .max(10)
       .optional()
-      .default(3)
+      .default(4)
       .describe('Pattern frequency (0.1-10, higher = more detailed)'),
     gradient: z
       .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
       .min(2)
       .max(20)
       .optional()
-      .default(['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'])
+      .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
       .describe('Gradient colors (2-20 hex colors)'),
     enabled: z.boolean().optional().default(true).describe('Show or hide the plasma effect'),
   })

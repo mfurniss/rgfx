@@ -75,6 +75,7 @@ describe('App IPC Listener Registration', () => {
       getFirmwareManifest: vi.fn(),
       getFirmwareFile: vi.fn(),
       setDriverDisabled: vi.fn(),
+      resetEventCounts: vi.fn(),
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
         licensePath: '/mock/LICENSE',

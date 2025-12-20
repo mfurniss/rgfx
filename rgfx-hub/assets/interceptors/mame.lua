@@ -43,4 +43,4 @@ manager = {}
 
 -- RGFX globals injected by rgfx.lua
 _G.event = function(topic, value) end
-_G.game_name = ""
+_G.rgfx = { rom = "" }

@@ -29,6 +29,7 @@ import { registerVerifyDirectoryHandler } from './verify-directory-handler';
 import { registerGetAppInfoHandler } from './get-app-info-handler';
 import { registerFirmwareFilesHandler } from './firmware-files-handler';
 import { registerSetDriverDisabledHandler } from './set-driver-disabled-handler';
+import { registerResetEventCountsHandler } from './reset-event-counts-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -40,6 +41,7 @@ interface IpcHandlersDeps {
   udpClient: UdpClient;
   transformerEngine: TransformerEngine;
   onEventProcessed: (topic: string, payload: string) => void;
+  resetEventCounts: () => void;
   getMainWindow: () => BrowserWindow | null;
 }
 
@@ -60,4 +62,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerGetAppInfoHandler();
   registerFirmwareFilesHandler();
   registerSetDriverDisabledHandler(deps);
+  registerResetEventCountsHandler(deps);
 }

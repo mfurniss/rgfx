@@ -193,6 +193,24 @@ describe('UdpClientImpl', () => {
       expect(mockSocketSend).toHaveBeenCalledTimes(2);
     });
 
+    it('should skip disabled drivers', () => {
+      // Disable driver-0001
+      const driver1 = driverRegistry.getDriver('rgfx-driver-0001');
+
+      if (driver1) {
+        driver1.disabled = true;
+      }
+
+      const payload: EffectPayload = { effect: 'test' };
+
+      udpClient.broadcast(payload);
+
+      // driver-0001 is disabled, should be skipped
+      // Only driver-0002 should receive
+      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      expect(mockSocketSend.mock.calls[0][2]).toBe('192.168.1.102');
+    });
+
     it('should handle empty driver list', () => {
       // Create empty registry
       const emptyRegistry = new DriverRegistry();
