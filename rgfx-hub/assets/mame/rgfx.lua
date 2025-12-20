@@ -27,6 +27,9 @@ package.path = user_path .. "?.lua;" .. user_path .. "games/?.lua;" .. package.p
 -- Load event logging module (defines _G.event and event_file)
 require("event")
 
+-- Initialize RGFX namespace for globals
+_G.rgfx = _G.rgfx or {}
+
 print(emu.app_name() .. " " .. emu.app_version())
 
 -- Get ROM name early (available before machine starts)
@@ -93,7 +96,7 @@ local load_interceptor = function()
 
 	print("Loading interceptor: " .. game_script .. ".lua")
 	-- Set game name in global scope so interceptor can use it for event prefixes
-	_G.game_name = lookup_key
+	_G.rgfx.rom = lookup_key
 	local status = pcall(require, game_script)
 	if status then
 		print("Successfully loaded interceptor: " .. game_script .. ".lua")
@@ -115,6 +118,9 @@ local load_interceptor = function()
 end
 
 local stop_cb = function()
+	if _G.rgfx.rom then
+		event(_G.rgfx.rom .. "/shutdown")
+	end
 	event_cleanup()
 end
 

@@ -154,11 +154,13 @@ export class TransformerEngine {
   }
 
   /**
-   * Clear effects on all connected drivers
+   * Clear effects on all connected, enabled drivers
    * Called when a game init event is received to reset driver state
    */
   private async clearAllDriverEffects(): Promise<void> {
-    const connectedDrivers = this.context.drivers.getConnectedDrivers();
+    const connectedDrivers = this.context.drivers
+      .getConnectedDrivers()
+      .filter((d) => !d.disabled);
 
     if (connectedDrivers.length === 0) {
       this.context.log.debug('No connected drivers to clear effects');
@@ -211,6 +213,11 @@ export class TransformerEngine {
 
       // Clear effects on all drivers when a game init event is received
       if (subject === 'init') {
+        await this.clearAllDriverEffects();
+      }
+
+      // Clear effects on all drivers when game shuts down
+      if (subject === 'shutdown') {
         await this.clearAllDriverEffects();
       }
 
