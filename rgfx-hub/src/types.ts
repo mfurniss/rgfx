@@ -343,6 +343,7 @@ declare global {
       getFirmwareManifest: () => Promise<unknown>;
       getFirmwareFile: (filename: string) => Promise<Buffer>;
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
+      resetEventCounts: () => Promise<void>;
     };
   }
 }
