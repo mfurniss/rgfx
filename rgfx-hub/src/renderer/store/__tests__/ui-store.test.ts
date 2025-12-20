@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useUiStore } from '../ui-store';
-import { effectSchemas } from '@/schemas';
+import { effectPropsSchemas } from '@/schemas';
 import { DEFAULT_FX_PLAYGROUND_EFFECT } from '@/config/constants';
 
 describe('useUiStore', () => {
@@ -18,7 +18,7 @@ describe('useUiStore', () => {
       driverTableSortOrder: 'asc',
       testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
       testEffectsPropsJson: JSON.stringify(
-        effectSchemas[DEFAULT_FX_PLAYGROUND_EFFECT].parse({}), null, 2,
+        effectPropsSchemas[DEFAULT_FX_PLAYGROUND_EFFECT].parse({}), null, 2,
       ),
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,

@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import projectileSchema from '../projectile';
+import { effectPropsSchemas } from '../index';
+
+const projectileSchema = effectPropsSchemas.projectile;
 
 describe('projectileSchema', () => {
   describe('valid data', () => {

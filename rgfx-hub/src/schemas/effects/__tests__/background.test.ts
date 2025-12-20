@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import backgroundSchema from '../background';
+import { effectPropsSchemas } from '../index';
+
+const backgroundSchema = effectPropsSchemas.background;
 
 describe('backgroundSchema', () => {
   describe('valid data', () => {

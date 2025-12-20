@@ -88,7 +88,7 @@ export function safeValidateEffectProps(
       ]),
     };
   }
-  const result = effectSchemas[effect].safeParse(props);
+  const result = effectPropsSchemas[effect].safeParse(props);
 
   if (result.success) {
     return { success: true, data: result.data as EffectProps };
