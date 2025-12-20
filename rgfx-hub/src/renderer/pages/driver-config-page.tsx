@@ -26,7 +26,7 @@ import {
   Grid,
   Tooltip,
 } from '@mui/material';
-import { Save as SaveIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { Save as SaveIcon } from '@mui/icons-material';
 import { PageTitle } from '../components/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { notify } from '../store/notification-store';
@@ -146,7 +146,7 @@ export default function DriverConfigPage() {
   };
 
   const handleExit = () => {
-    void navigate(`/driver/${mac}`);
+    void navigate(`/drivers/${mac}`);
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -155,7 +155,12 @@ export default function DriverConfigPage() {
 
   return (
     <Box>
-      <PageTitle icon={<SettingsIcon />} title="Driver Configuration" subtitle={driver.id} />
+      <PageTitle
+        title="Driver Configuration"
+        subtitle={driver.id}
+        backPath={`/drivers/${mac}`}
+        backLabel="Back to Driver"
+      />
 
       <Paper sx={{ p: 3, maxWidth: 900 }}>
         <form onSubmit={handleFormSubmit}>

@@ -89,7 +89,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
             <TableRow
               key={driver.mac ?? driver.id}
               onClick={() => {
-                void navigate(`/driver/${driver.mac}`);
+                void navigate(`/drivers/${driver.mac}`);
               }}
               sx={{
                 cursor: 'pointer',

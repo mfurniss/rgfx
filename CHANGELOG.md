@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Top-level Drivers page with dedicated navigation menu item
+  - Drivers table moved from System Status page to new `/drivers` page
+  - USB icon in sidebar navigation (position 2, after System Status)
+  - Sidebar highlights correctly on driver detail and config sub-pages
+  - Updated route structure: `/drivers`, `/drivers/:mac`, `/drivers/:mac/config`
+  - New test suite for driver route navigation and back button behavior
 - Telemetry history charts for driver monitoring
   - Animated line charts for Free Heap, FPS (with min/max bands), and RSSI
   - Uses Recharts library for visualization

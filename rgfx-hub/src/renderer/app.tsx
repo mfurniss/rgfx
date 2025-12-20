@@ -6,6 +6,7 @@ import { AppLayout } from './components/app-layout';
 import { NotificationStack } from './components/notification-stack';
 import { PageTransition } from './components/page-transition';
 import SystemStatusPage from './pages/system-status-page';
+import DriversPage from './pages/drivers-page';
 import DriverDetailPage from './pages/driver-detail-page';
 import DriverConfigPage from './pages/driver-config-page';
 import EventMonitorPage from './pages/event-monitor-page';
@@ -33,8 +34,9 @@ const AnimatedRoutes: React.FC = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><SystemStatusPage /></PageTransition>} />
-        <Route path="/driver/:mac" element={<PageTransition><DriverDetailPage /></PageTransition>} />
-        <Route path="/driver/:mac/config" element={<PageTransition><DriverConfigPage /></PageTransition>} />
+        <Route path="/drivers" element={<PageTransition><DriversPage /></PageTransition>} />
+        <Route path="/drivers/:mac" element={<PageTransition><DriverDetailPage /></PageTransition>} />
+        <Route path="/drivers/:mac/config" element={<PageTransition><DriverConfigPage /></PageTransition>} />
         <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
         <Route path="/events" element={<PageTransition><EventMonitorPage /></PageTransition>} />
         <Route path="/firmware" element={<PageTransition><FirmwarePage /></PageTransition>} />
