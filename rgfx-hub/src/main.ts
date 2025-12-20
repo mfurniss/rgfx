@@ -200,6 +200,14 @@ function processEvent(topic: string, payload: string): void {
   });
 }
 
+// Reset all event counts and statistics
+function resetEventCounts(): void {
+  eventsProcessed = 0;
+  eventTopicCounts.clear();
+  eventTopicLastValues.clear();
+  sendSystemStatus();
+}
+
 // Register IPC handlers
 registerIpcHandlers({
   driverRegistry,
@@ -211,6 +219,7 @@ registerIpcHandlers({
   udpClient,
   transformerEngine,
   onEventProcessed: processEvent,
+  resetEventCounts,
   getMainWindow: () => {
     if (!mainWindow) {
       throw new Error('Main window not initialized');

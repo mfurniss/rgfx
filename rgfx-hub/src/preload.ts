@@ -216,6 +216,10 @@ export const rgfxAPI = {
   setDriverDisabled: (driverId: string, disabled: boolean): Promise<{ success: boolean }> => {
     return ipcRenderer.invoke('driver:set-disabled', driverId, disabled);
   },
+
+  resetEventCounts: (): Promise<void> => {
+    return ipcRenderer.invoke('event:reset');
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

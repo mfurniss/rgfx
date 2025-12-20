@@ -10,8 +10,17 @@ import {
   TableRow,
   TableSortLabel,
   Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
-import { Monitor as MonitorIcon } from '@mui/icons-material';
+import {
+  Monitor as MonitorIcon,
+  Refresh as RefreshIcon,
+  Warning as WarningIcon,
+} from '@mui/icons-material';
 import { useEventStore } from '../store/event-store';
 import { formatNumber } from '../utils/formatters';
 import { PageTitle } from '../components/page-title';
@@ -40,8 +49,10 @@ const formatValue = (value: string | number | undefined): string => {
 
 const EventMonitorPage: React.FC = () => {
   const topics = useEventStore((state) => state.topics);
+  const reset = useEventStore((state) => state.reset);
   const [sortField, setSortField] = useState<SortField>('topic');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const topicsArray = Array.from(topics.values());
 
@@ -64,9 +75,37 @@ const EventMonitorPage: React.FC = () => {
     return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
   });
 
+  const handleOpenDialog = () => {
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
+  const handleConfirmReset = () => {
+    setDialogOpen(false);
+    void (async () => {
+      await window.rgfx.resetEventCounts();
+      reset();
+    })();
+  };
+
   return (
     <Box>
-      <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
+        <Button
+          variant="outlined"
+          color="error"
+          size="small"
+          startIcon={<RefreshIcon />}
+          onClick={handleOpenDialog}
+          disabled={topicsArray.length === 0}
+        >
+          Reset
+        </Button>
+      </Box>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
@@ -117,6 +156,24 @@ const EventMonitorPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon color="warning" />
+          Confirm Reset
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            This will clear all event counts and reset the events processed counter.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleConfirmReset} variant="contained" color="error">
+            Reset
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
