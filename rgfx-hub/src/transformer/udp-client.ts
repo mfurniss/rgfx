@@ -39,8 +39,8 @@ export class UdpClientImpl implements UdpClient {
     // Extract drivers property for routing, don't send it in UDP payload
     const { drivers: targetDriverIds, ...effectData } = payload;
 
-    // Get all connected drivers
-    let drivers = this.driverRegistry.getConnectedDrivers();
+    // Get all connected drivers, excluding disabled ones
+    let drivers = this.driverRegistry.getConnectedDrivers().filter((d) => !d.disabled);
 
     // Apply selective routing if specified
     if (targetDriverIds?.length) {
