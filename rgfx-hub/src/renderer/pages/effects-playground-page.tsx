@@ -34,10 +34,11 @@ import { effectSchemas, effectPropsSchemas, isEffectName } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 
 // Build map of effect keys to display names from schema literals
+// Extract literal value from z.literal() schema via internal _zod.def.values
 const effectDisplayNames = Object.fromEntries(
   Object.entries(effectSchemas).map(([key, schema]) => {
-    const parsed = schema.parse({});
-    return [key, parsed.name as string];
+    const nameSchema = schema.shape.name as { _zod: { def: { values: string[] } } };
+    return [key, nameSchema._zod.def.values[0]];
   }),
 );
 

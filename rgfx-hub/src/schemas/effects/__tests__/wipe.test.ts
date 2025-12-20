@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import wipeSchema from '../wipe';
+import { effectPropsSchemas } from '../index';
+
+const wipeSchema = effectPropsSchemas.wipe;
 
 describe('wipeSchema', () => {
   describe('valid data', () => {
