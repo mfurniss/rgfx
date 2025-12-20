@@ -912,4 +912,87 @@ describe('TransformerEngine', () => {
     });
 
   });
+
+  describe('clearAllDriverEffects', () => {
+    it('should clear effects on init event', async () => {
+      const mockDriver1 = { id: 'driver-1', disabled: false };
+      const mockDriver2 = { id: 'driver-2', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2]),
+      } as any;
+
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/init', '');
+
+      expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-1/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-2/clear-effects', '', 2);
+    });
+
+    it('should clear effects on shutdown event', async () => {
+      const mockDriver1 = { id: 'driver-1', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/shutdown', '');
+
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-1/clear-effects', '', 2);
+    });
+
+    it('should skip disabled drivers when clearing effects', async () => {
+      const mockDriver1 = { id: 'driver-1', disabled: false };
+      const mockDriver2 = { id: 'driver-2', disabled: true };
+      const mockDriver3 = { id: 'driver-3', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2, mockDriver3]),
+      } as any;
+
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/init', '');
+
+      // Should only clear effects on enabled drivers (driver-1 and driver-3)
+      expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-1/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-3/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).not.toHaveBeenCalledWith('rgfx/driver/driver-2/clear-effects', '', 2);
+    });
+
+    it('should not publish when no connected drivers', async () => {
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([]),
+      } as any;
+
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/init', '');
+
+      expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
+      expect(mockContext.log.debug).toHaveBeenCalledWith('No connected drivers to clear effects');
+    });
+
+    it('should not publish when all connected drivers are disabled', async () => {
+      const mockDriver1 = { id: 'driver-1', disabled: true };
+      const mockDriver2 = { id: 'driver-2', disabled: true };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2]),
+      } as any;
+
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/init', '');
+
+      expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
+      expect(mockContext.log.debug).toHaveBeenCalledWith('No connected drivers to clear effects');
+    });
+  });
 });

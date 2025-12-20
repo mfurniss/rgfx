@@ -90,6 +90,13 @@ function _G.event(topic, message)
 
 	event_count = event_count + 1
 
+	-- Output event to console
+	if message ~= nil then
+		print(string.format("%s %s", topic, message))
+	else
+		print(topic)
+	end
+
 	-- Wrap entire write operation in pcall for maximum robustness
 	local ok, result, err = pcall(function()
 		-- Lua's io.write() returns the file handle on success, nil + error on failure
