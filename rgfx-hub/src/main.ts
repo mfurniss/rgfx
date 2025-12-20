@@ -37,6 +37,7 @@ import { registerMqttSubscriptions } from './mqtt-subscriptions';
 import { createUploadConfigToDriver } from './upload-config-to-driver';
 import { configureSerialPort } from './serial-port-config';
 import { setupDriverEventHandlers } from './driver-callbacks';
+import { clearEffectsOnAllDrivers } from './shutdown';
 import { serializeDriverForIPC } from './types';
 import { appRouter } from './trpc/router';
 import pkg from '../package.json';
@@ -383,11 +384,17 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   log.info('Shutting down...');
 
-  // Stop services
-  eventReader.stop();
-  udpClient.stop();
-  networkManager.stop();
-  void mqtt.stop();
+  // Clear effects on all connected drivers before shutdown, then stop services
+  clearEffectsOnAllDrivers(driverRegistry, mqtt)
+    .catch((err: unknown) => {
+      log.error('Failed to clear effects on shutdown:', err);
+    })
+    .finally(() => {
+      eventReader.stop();
+      udpClient.stop();
+      networkManager.stop();
+      void mqtt.stop();
+    });
 });
 
 app.on('activate', () => {
