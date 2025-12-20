@@ -43,7 +43,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] LED test mode
 [X] Optimize driver reconnection system
 [X] LED effect variable frame rate
-[ ] Disable drivers from hub
+[X] Disable drivers from hub
 [X] Reset drivers from hub
 [X] Optimize build pipeline
 [X] Wipe effect
@@ -104,11 +104,10 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Star Wars 1983 interceptor and transformer
 [X] Fix firmware update manifest
 [X] Change updating firmware notify to info
-[ ] Stop effects when MAME / Hub is quit
+[X] Stop effects when MAME / Hub is quit
 [ ] Revisit effect defaults, scaling and min / max limits
 [X] Optimize rendering for background and text - downsampling not needed
 [ ] Normalize hub language for flashing / updating
 [X] Persist event monitor between sessions and add reset button
 [X] Bug - explode center pulse still showing white
 [X] Complete driver detail page
-[ ] Zustand persistance needs to be in the user directory
