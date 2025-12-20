@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerUpdateDriverConfigHandler } from '../update-driver-config-handler';
 import type { DriverRegistry } from '@/driver-registry';
 import type { Driver } from '@/types';
@@ -26,9 +27,7 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerUpdateDriverConfigHandler', () => {
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-  };
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
@@ -75,9 +74,8 @@ describe('registerUpdateDriverConfigHandler', () => {
       },
     };
 
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
 
@@ -89,7 +87,7 @@ describe('registerUpdateDriverConfigHandler', () => {
     );
 
     registerUpdateDriverConfigHandler({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+      driverRegistry: mockDriverRegistry,
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });

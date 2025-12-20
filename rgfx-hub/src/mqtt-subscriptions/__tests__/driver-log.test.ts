@@ -5,7 +5,8 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { subscribeDriverLog } from '../driver-log';
 import type { MqttBroker } from '@/network';
 import type { DriverLogPersistence } from '@/driver-log-persistence';
@@ -20,36 +21,28 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('subscribeDriverLog', () => {
-  let mockMqtt: {
-    subscribe: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverLogPersistence: {
-    appendLog: ReturnType<typeof vi.fn>;
-  };
+  let mockMqtt: MockProxy<MqttBroker>;
+  let mockDriverLogPersistence: MockProxy<DriverLogPersistence>;
   let subscribedCallback: (topic: string, payload: string) => void;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockMqtt = {
-      subscribe: vi.fn(
-        (topic: string, callback: (topic: string, payload: string) => void) => {
-          subscribedCallback = callback;
-        },
-      ),
-    };
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.subscribe.mockImplementation(
+      (topic: string, callback: (topic: string, payload: string) => void) => {
+        subscribedCallback = callback;
+      },
+    );
 
-    mockDriverLogPersistence = {
-      appendLog: vi.fn(),
-    };
+    mockDriverLogPersistence = mock<DriverLogPersistence>();
   });
 
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic pattern', () => {
       subscribeDriverLog({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverLogPersistence:
-          mockDriverLogPersistence as unknown as DriverLogPersistence,
+        mqtt: mockMqtt,
+        driverLogPersistence: mockDriverLogPersistence,
       });
 
       expect(mockMqtt.subscribe).toHaveBeenCalledWith(
@@ -62,9 +55,8 @@ describe('subscribeDriverLog', () => {
   describe('topic parsing', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverLogPersistence:
-          mockDriverLogPersistence as unknown as DriverLogPersistence,
+        mqtt: mockMqtt,
+        driverLogPersistence: mockDriverLogPersistence,
       });
     });
 
@@ -126,9 +118,8 @@ describe('subscribeDriverLog', () => {
   describe('log message validation', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverLogPersistence:
-          mockDriverLogPersistence as unknown as DriverLogPersistence,
+        mqtt: mockMqtt,
+        driverLogPersistence: mockDriverLogPersistence,
       });
     });
 
@@ -231,9 +222,8 @@ describe('subscribeDriverLog', () => {
   describe('error handling', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverLogPersistence:
-          mockDriverLogPersistence as unknown as DriverLogPersistence,
+        mqtt: mockMqtt,
+        driverLogPersistence: mockDriverLogPersistence,
       });
     });
 
@@ -272,9 +262,8 @@ describe('subscribeDriverLog', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00Z'));
 
       subscribeDriverLog({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverLogPersistence:
-          mockDriverLogPersistence as unknown as DriverLogPersistence,
+        mqtt: mockMqtt,
+        driverLogPersistence: mockDriverLogPersistence,
       });
     });
 
@@ -303,9 +292,8 @@ describe('subscribeDriverLog', () => {
   describe('message content', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverLogPersistence:
-          mockDriverLogPersistence as unknown as DriverLogPersistence,
+        mqtt: mockMqtt,
+        driverLogPersistence: mockDriverLogPersistence,
       });
     });
 

@@ -30,17 +30,13 @@ const eventStorage: PersistStorage<EventStore> = {
     try {
       const parsed = JSON.parse(str) as StorageValue<PersistedEventStore>;
 
-      if (parsed.state?.topics) {
-        return {
-          ...parsed,
-          state: {
-            ...parsed.state,
-            topics: new Map<string, EventTopic>(parsed.state.topics),
-          } as EventStore,
-        };
-      }
-
-      return null;
+      return {
+        ...parsed,
+        state: {
+          ...parsed.state,
+          topics: new Map<string, EventTopic>(parsed.state.topics),
+        } as EventStore,
+      };
     } catch {
       return null;
     }

@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerTriggerEffectHandler } from '../trigger-effect-handler';
 import type { UdpClient, EffectPayload } from '@/types/transformer-types';
 
@@ -25,17 +26,13 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerTriggerEffectHandler', () => {
-  let mockUdpClient: {
-    broadcast: ReturnType<typeof vi.fn>;
-  };
+  let mockUdpClient: MockProxy<UdpClient>;
   let registeredHandler: (event: unknown, payload: EffectPayload) => void;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    mockUdpClient = {
-      broadcast: vi.fn(),
-    };
+    mockUdpClient = mock<UdpClient>();
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -45,7 +42,7 @@ describe('registerTriggerEffectHandler', () => {
     );
 
     registerTriggerEffectHandler({
-      udpClient: mockUdpClient as unknown as UdpClient,
+      udpClient: mockUdpClient,
     });
   });
 
