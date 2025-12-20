@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Telemetry history charts for driver monitoring
+  - Animated line charts for Free Heap, FPS (with min/max bands), and RSSI
+  - Uses Recharts library for visualization
+  - Retains 1 hour of telemetry history (~720 data points per driver)
+  - Ring buffer implementation for efficient fixed-size storage
+  - New `TelemetryCharts` component displayed on connected driver detail pages
 - Galaga 88 MAME interceptor for Namco System 1 (`galaga88_rgfx.lua`)
   - Reads score via C117 memory controller's program space at 0x300a14
   - Unpacked BCD format, 6 digits (supports up to 999,999)
