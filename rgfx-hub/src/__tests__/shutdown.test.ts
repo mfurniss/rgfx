@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { clearEffectsOnAllDrivers } from '../shutdown';
 import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
@@ -21,23 +22,14 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('clearEffectsOnAllDrivers', () => {
-  let mockDriverRegistry: {
-    getConnectedDrivers: ReturnType<typeof vi.fn>;
-  };
-  let mockMqtt: {
-    publish: ReturnType<typeof vi.fn>;
-  };
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockMqtt: MockProxy<MqttBroker>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockDriverRegistry = {
-      getConnectedDrivers: vi.fn(),
-    };
-
-    mockMqtt = {
-      publish: vi.fn().mockResolvedValue(undefined),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.publish.mockResolvedValue(undefined);
   });
 
   it('sends clear-effects to all connected drivers', async () => {
@@ -46,12 +38,9 @@ describe('clearEffectsOnAllDrivers', () => {
       { id: 'driver-002', mac: 'AA:BB:CC:DD:EE:02' },
       { id: 'driver-003', mac: 'AA:BB:CC:DD:EE:03' },
     ];
-    mockDriverRegistry.getConnectedDrivers.mockReturnValue(drivers);
+    mockDriverRegistry.getConnectedDrivers.mockReturnValue(drivers as Driver[]);
 
-    await clearEffectsOnAllDrivers(
-      mockDriverRegistry as unknown as DriverRegistry,
-      mockMqtt as unknown as MqttBroker,
-    );
+    await clearEffectsOnAllDrivers(mockDriverRegistry, mockMqtt);
 
     expect(mockMqtt.publish).toHaveBeenCalledTimes(3);
     expect(mockMqtt.publish).toHaveBeenCalledWith(
@@ -71,10 +60,7 @@ describe('clearEffectsOnAllDrivers', () => {
   it('does nothing when no drivers are connected', async () => {
     mockDriverRegistry.getConnectedDrivers.mockReturnValue([]);
 
-    await clearEffectsOnAllDrivers(
-      mockDriverRegistry as unknown as DriverRegistry,
-      mockMqtt as unknown as MqttBroker,
-    );
+    await clearEffectsOnAllDrivers(mockDriverRegistry, mockMqtt);
 
     expect(mockMqtt.publish).not.toHaveBeenCalled();
   });
@@ -83,12 +69,9 @@ describe('clearEffectsOnAllDrivers', () => {
     const drivers: Partial<Driver>[] = [
       { id: 'solo-driver', mac: 'AA:BB:CC:DD:EE:FF' },
     ];
-    mockDriverRegistry.getConnectedDrivers.mockReturnValue(drivers);
+    mockDriverRegistry.getConnectedDrivers.mockReturnValue(drivers as Driver[]);
 
-    await clearEffectsOnAllDrivers(
-      mockDriverRegistry as unknown as DriverRegistry,
-      mockMqtt as unknown as MqttBroker,
-    );
+    await clearEffectsOnAllDrivers(mockDriverRegistry, mockMqtt);
 
     expect(mockMqtt.publish).toHaveBeenCalledTimes(1);
     expect(mockMqtt.publish).toHaveBeenCalledWith(
@@ -102,7 +85,7 @@ describe('clearEffectsOnAllDrivers', () => {
       { id: 'driver-001', mac: 'AA:BB:CC:DD:EE:01' },
       { id: 'driver-002', mac: 'AA:BB:CC:DD:EE:02' },
     ];
-    mockDriverRegistry.getConnectedDrivers.mockReturnValue(drivers);
+    mockDriverRegistry.getConnectedDrivers.mockReturnValue(drivers as Driver[]);
 
     let resolveFirst: () => void;
     let resolveSecond: () => void;
@@ -115,8 +98,8 @@ describe('clearEffectsOnAllDrivers', () => {
 
     let resolved = false;
     const clearPromise = clearEffectsOnAllDrivers(
-      mockDriverRegistry as unknown as DriverRegistry,
-      mockMqtt as unknown as MqttBroker,
+      mockDriverRegistry,
+      mockMqtt,
     ).then(() => {
       resolved = true;
     });

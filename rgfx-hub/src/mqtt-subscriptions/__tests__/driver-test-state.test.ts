@@ -6,11 +6,13 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { subscribeDriverTestState } from '../driver-test-state';
 import type { MqttBroker } from '@/network';
 import type { DriverRegistry } from '@/driver-registry';
 import type { BrowserWindow } from 'electron';
-import type { Driver } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver } from '@/__tests__/factories';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -22,87 +24,37 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('subscribeDriverTestState', () => {
-  let mockMqtt: {
-    subscribe: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-  };
-  let mockMainWindow: {
-    isDestroyed: ReturnType<typeof vi.fn>;
-    webContents: {
-      send: ReturnType<typeof vi.fn>;
-    };
-  };
+  let mockMqtt: MockProxy<MqttBroker>;
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let subscribedCallback: (topic: string, payload: string) => void;
   let mockDriver: Driver;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockDriver = {
-      id: 'rgfx-driver-0001',
-      mac: 'AA:BB:CC:DD:EE:FF',
-      ip: '192.168.1.100',
-      hostname: 'test-host',
-      ssid: 'TestNetwork',
-      rssi: -50,
-      state: 'connected',
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      testActive: false,
-      disabled: false,
-      stats: {
-        telemetryEventsReceived: 1,
-        mqttMessagesReceived: 1,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
-      telemetry: {
-        chipModel: 'ESP32',
-        chipRevision: 1,
-        chipCores: 2,
-        cpuFreqMHz: 240,
-        flashSize: 4194304,
-        flashSpeed: 40000000,
-        heapSize: 327680,
-        psramSize: 0,
-        freePsram: 0,
-        hasDisplay: false,
-        sdkVersion: 'v4.4',
-        sketchSize: 1000000,
-        freeSketchSpace: 2000000,
-        currentFps: 120.0,
-        minFps: 118.0,
-        maxFps: 122.0,
-      },
-    };
+    mockDriver = createMockDriver();
 
-    mockMqtt = {
-      subscribe: vi.fn((topic: string, callback: (topic: string, payload: string) => void) => {
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.subscribe.mockImplementation(
+      (topic: string, callback: (topic: string, payload: string) => void) => {
         subscribedCallback = callback;
-      }),
-    };
-
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-    };
-
-    mockMainWindow = {
-      isDestroyed: vi.fn(() => false),
-      webContents: {
-        send: vi.fn(),
       },
-    };
+    );
+
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
+
+    mockMainWindow = mockDeep<BrowserWindow>();
+    mockMainWindow.isDestroyed.mockReturnValue(false);
   });
 
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic pattern', () => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
       });
 
       expect(mockMqtt.subscribe).toHaveBeenCalledWith(
@@ -115,9 +67,9 @@ describe('subscribeDriverTestState', () => {
   describe('topic parsing', () => {
     beforeEach(() => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
@@ -149,9 +101,9 @@ describe('subscribeDriverTestState', () => {
   describe('test state updates', () => {
     beforeEach(() => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
@@ -187,9 +139,9 @@ describe('subscribeDriverTestState', () => {
   describe('unknown driver handling', () => {
     beforeEach(() => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
@@ -212,9 +164,9 @@ describe('subscribeDriverTestState', () => {
   describe('IPC communication', () => {
     beforeEach(() => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
       });
     });
 
@@ -239,8 +191,8 @@ describe('subscribeDriverTestState', () => {
 
     it('should not send IPC message if window is null', () => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
         getMainWindow: () => null,
       });
 
@@ -257,9 +209,9 @@ describe('subscribeDriverTestState', () => {
   describe('state transitions', () => {
     beforeEach(() => {
       subscribeDriverTestState({
-        mqtt: mockMqtt as unknown as MqttBroker,
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        getMainWindow: () => mockMainWindow as unknown as BrowserWindow,
+        mqtt: mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
       });
     });
 

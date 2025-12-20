@@ -6,13 +6,16 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerSaveDriverConfigHandler } from '../save-driver-config-handler';
 import { eventBus } from '@/services/event-bus';
-import type { DriverPersistence } from '@/driver-persistence';
+import type { DriverPersistence, PersistedDriver } from '@/driver-persistence';
 import type { DriverRegistry } from '@/driver-registry';
 import type { LEDHardwareManager } from '@/led-hardware-manager';
+import type { MqttBroker } from '@/network';
 import type { PersistedDriverInput } from '@/schemas';
-import type { Driver } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver } from '@/__tests__/factories';
 
 vi.mocked(eventBus);
 
@@ -38,19 +41,10 @@ vi.mock('@/services/event-bus', () => ({
 }));
 
 describe('registerSaveDriverConfigHandler', () => {
-  let mockDriverPersistence: {
-    getDriverByMac: ReturnType<typeof vi.fn>;
-    getDriver: ReturnType<typeof vi.fn>;
-    addDriver: ReturnType<typeof vi.fn>;
-    updateDriver: ReturnType<typeof vi.fn>;
-    setLEDConfig: ReturnType<typeof vi.fn>;
-    setRemoteLogging: ReturnType<typeof vi.fn>;
-    deleteDriver: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverRegistry: {
-    refreshDriverFromPersistence: ReturnType<typeof vi.fn>;
-  };
-  let mockLedHardwareManager: LEDHardwareManager;
+  let mockDriverPersistence: MockProxy<DriverPersistence>;
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockLedHardwareManager: MockProxy<LEDHardwareManager>;
+  let mockMqtt: MockProxy<MqttBroker>;
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   type HandlerFn = (
     event: unknown,
@@ -58,7 +52,7 @@ describe('registerSaveDriverConfigHandler', () => {
   ) => Promise<{ success: boolean; driverRebooted: boolean }>;
   let registeredHandler: HandlerFn;
 
-  const existingDriver: PersistedDriverInput = {
+  const existingDriver: PersistedDriver = {
     id: 'old-driver-id',
     macAddress: 'AA:BB:CC:DD:EE:FF',
     description: 'Original description',
@@ -66,22 +60,14 @@ describe('registerSaveDriverConfigHandler', () => {
       hardwareRef: 'ws2812b-strip',
       pin: 16,
       offset: 0,
+      floor: { r: 0, g: 0, b: 0 },
     },
     remoteLogging: 'errors',
+    disabled: false,
   };
 
-  const runtimeDriver: Driver = {
+  const runtimeDriver: Driver = createMockDriver({
     id: 'old-driver-id',
-    mac: 'AA:BB:CC:DD:EE:FF',
-    ip: '192.168.1.100',
-    hostname: 'test-host',
-    ssid: 'TestNetwork',
-    rssi: -50,
-    state: 'connected',
-    lastSeen: Date.now(),
-    failedHeartbeats: 0,
-    testActive: false,
-    disabled: false,
     stats: {
       telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
@@ -89,28 +75,22 @@ describe('registerSaveDriverConfigHandler', () => {
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
     },
-  };
+  });
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    mockDriverPersistence = {
-      getDriverByMac: vi.fn(() => ({ ...existingDriver })),
-      getDriver: vi.fn(() => undefined),
-      addDriver: vi.fn(),
-      updateDriver: vi.fn(),
-      setLEDConfig: vi.fn(),
-      setRemoteLogging: vi.fn(),
-      deleteDriver: vi.fn(),
-    };
+    mockDriverPersistence = mock<DriverPersistence>();
+    mockDriverPersistence.getDriverByMac.mockReturnValue({ ...existingDriver });
+    mockDriverPersistence.getDriver.mockReturnValue(undefined);
 
-    mockDriverRegistry = {
-      refreshDriverFromPersistence: vi.fn(() => structuredClone(runtimeDriver)),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(structuredClone(runtimeDriver));
 
-    mockLedHardwareManager = {} as LEDHardwareManager;
+    mockLedHardwareManager = mock<LEDHardwareManager>();
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.publish.mockResolvedValue(undefined);
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
-    const mockMqtt = { publish: vi.fn(() => Promise.resolve()) };
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -120,10 +100,10 @@ describe('registerSaveDriverConfigHandler', () => {
     );
 
     registerSaveDriverConfigHandler({
-      driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+      driverPersistence: mockDriverPersistence,
+      driverRegistry: mockDriverRegistry,
       ledHardwareManager: mockLedHardwareManager,
-      mqtt: mockMqtt as never,
+      mqtt: mockMqtt,
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });
@@ -216,7 +196,10 @@ describe('registerSaveDriverConfigHandler', () => {
     });
 
     it('should reject rename if new ID already exists', async () => {
-      mockDriverPersistence.getDriver.mockReturnValue({ id: 'new-driver-id' });
+      mockDriverPersistence.getDriver.mockReturnValue({
+        ...existingDriver,
+        id: 'new-driver-id',
+      });
 
       const config: PersistedDriverInput = {
         id: 'new-driver-id',
@@ -267,10 +250,9 @@ describe('registerSaveDriverConfigHandler', () => {
     });
 
     it('should skip copying description if none exists', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue({
-        ...existingDriver,
-        description: undefined,
-      });
+      const driverWithoutDescription = { ...existingDriver };
+      delete (driverWithoutDescription as Partial<PersistedDriver>).description;
+      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithoutDescription);
 
       const config: PersistedDriverInput = {
         id: 'new-driver-id',
@@ -282,16 +264,15 @@ describe('registerSaveDriverConfigHandler', () => {
       // First call should be for the new description update, not the copy
       const updateCalls = mockDriverPersistence.updateDriver.mock.calls;
       const copyDescriptionCall = updateCalls.find(
-        (call) => call[0] === 'new-driver-id' && call[1]?.description === undefined,
+        (call) => call[0] === 'new-driver-id' && call[1].description === undefined,
       );
       expect(copyDescriptionCall).toBeUndefined();
     });
 
     it('should skip copying LED config if none exists', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue({
-        ...existingDriver,
-        ledConfig: undefined,
-      });
+      const driverWithoutLedConfig = { ...existingDriver };
+      delete (driverWithoutLedConfig as Partial<PersistedDriver>).ledConfig;
+      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithoutLedConfig);
 
       const config: PersistedDriverInput = {
         id: 'new-driver-id',
@@ -300,10 +281,9 @@ describe('registerSaveDriverConfigHandler', () => {
 
       await registeredHandler({}, config);
 
-      // setLEDConfig should still be called once for the new config update, but not for copying
-      const ledConfigCalls = mockDriverPersistence.setLEDConfig.mock.calls;
-      const copyLedCall = ledConfigCalls.find((call) => call[1] === undefined);
-      expect(copyLedCall).toBeUndefined();
+      // setLEDConfig should not be called since there's no LED config to copy
+      // and no new LED config provided in the input
+      expect(mockDriverPersistence.setLEDConfig).not.toHaveBeenCalled();
     });
   });
 
@@ -348,7 +328,7 @@ describe('registerSaveDriverConfigHandler', () => {
       // updateDriver should not be called for description
       const updateCalls = mockDriverPersistence.updateDriver.mock.calls;
       const descriptionUpdateCall = updateCalls.find(
-        (call) => call[0] === 'old-driver-id' && call[1]?.description,
+        (call) => call[0] === 'old-driver-id' && call[1].description,
       );
       expect(descriptionUpdateCall).toBeUndefined();
     });
@@ -568,12 +548,15 @@ describe('registerSaveDriverConfigHandler', () => {
 
       mockDriverPersistence.addDriver.mockImplementation(() => {
         callOrder.push('addDriver');
+        return true;
       });
       mockDriverPersistence.deleteDriver.mockImplementation(() => {
         callOrder.push('deleteDriver');
+        return true;
       });
       mockDriverPersistence.setLEDConfig.mockImplementation(() => {
         callOrder.push('setLEDConfig');
+        return true;
       });
 
       const config: PersistedDriverInput = {

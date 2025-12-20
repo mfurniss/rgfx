@@ -6,9 +6,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerUpdateDriverConfigHandler } from '../update-driver-config-handler';
 import type { DriverRegistry } from '@/driver-registry';
-import type { Driver } from '@/types';
+import { Driver } from '@/types';
+import { createMockDriver } from '@/__tests__/factories';
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -26,9 +28,7 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerUpdateDriverConfigHandler', () => {
-  let mockDriverRegistry: {
-    getDriver: ReturnType<typeof vi.fn>;
-  };
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
@@ -36,48 +36,10 @@ describe('registerUpdateDriverConfigHandler', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    mockDriver = {
-      id: 'rgfx-driver-0001',
-      mac: 'AA:BB:CC:DD:EE:FF',
-      ip: '192.168.1.100',
-      hostname: 'test-host',
-      ssid: 'TestNetwork',
-      rssi: -50,
-      state: 'connected',
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      testActive: false,
-      disabled: false,
-      stats: {
-        telemetryEventsReceived: 1,
-        mqttMessagesReceived: 1,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
-      telemetry: {
-        chipModel: 'ESP32',
-        chipRevision: 1,
-        chipCores: 2,
-        cpuFreqMHz: 240,
-        flashSize: 4194304,
-        flashSpeed: 40000000,
-        heapSize: 327680,
-        psramSize: 0,
-        freePsram: 0,
-        hasDisplay: false,
-        sdkVersion: 'v4.4',
-        sketchSize: 1000000,
-        freeSketchSpace: 2000000,
-        currentFps: 120.0,
-        minFps: 118.0,
-        maxFps: 122.0,
-      },
-    };
+    mockDriver = createMockDriver();
 
-    mockDriverRegistry = {
-      getDriver: vi.fn(() => mockDriver),
-    };
+    mockDriverRegistry = mock<DriverRegistry>();
+    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
 
@@ -89,7 +51,7 @@ describe('registerUpdateDriverConfigHandler', () => {
     );
 
     registerUpdateDriverConfigHandler({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+      driverRegistry: mockDriverRegistry,
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });
