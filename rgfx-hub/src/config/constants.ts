@@ -151,6 +151,16 @@ export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
 export const TOAST_AUTO_HIDE_DURATION_MS = 5000;
 
 // ============================================================================
+// Telemetry History Configuration
+// ============================================================================
+
+/**
+ * Maximum number of telemetry data points to retain per driver.
+ * Based on ~5 second telemetry intervals over 1 hour (~720 points).
+ */
+export const TELEMETRY_HISTORY_MAX_POINTS = 720;
+
+// ============================================================================
 // Test Configuration
 // ============================================================================
 

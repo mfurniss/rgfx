@@ -120,6 +120,7 @@ export interface DriverTelemetry {
   flashSize: number;
   flashSpeed: number;
   heapSize: number;
+  maxAllocHeap: number;
   psramSize: number;
   freePsram: number;
   hasDisplay: boolean;

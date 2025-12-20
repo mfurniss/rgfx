@@ -16,6 +16,7 @@ import InfoSection, { type InfoRowData } from './info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
 import DisableDriverButton from './disable-driver-button';
+import TelemetryCharts from './telemetry-charts';
 import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import { useDriverStore } from '../store/driver-store';
@@ -285,6 +286,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             </Typography>
           )}
         </InfoSection>
+
+        {driver.state === 'connected' && <TelemetryCharts driverId={driver.id} />}
 
       </Box>
     </Box>
