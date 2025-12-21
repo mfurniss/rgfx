@@ -1,7 +1,7 @@
 # RGFX ESP32 Driver - Development Commands
 # Provides convenient shortcuts for formatting, linting, and testing
 
-.PHONY: help format format-check lint test test-native compile clean check-tools all ci
+.PHONY: help format format-check lint cppcheck test test-native compile clean check-tools all ci
 
 # Tool detection
 CLANG_FORMAT := $(shell command -v clang-format 2> /dev/null)
@@ -11,10 +11,11 @@ help:
 	@echo "RGFX ESP32 Driver - Available Commands:"
 	@echo ""
 	@echo "  make all           - Run everything: format, lint, test, compile"
-	@echo "  make ci            - CI pipeline: format-check, lint, test, compile"
+	@echo "  make ci            - CI pipeline: format-check, lint, cppcheck, test, compile"
 	@echo "  make format        - Format all C++ source files with clang-format"
 	@echo "  make format-check  - Check formatting without modifying files"
 	@echo "  make lint          - Run clang-tidy static analysis"
+	@echo "  make cppcheck      - Run cppcheck static analysis"
 	@echo "  make test          - Run all unit tests (native)"
 	@echo "  make test-native   - Run unit tests on host machine (fast)"
 	@echo "  make compile       - Compile firmware for ESP32"
@@ -23,6 +24,7 @@ help:
 	@echo ""
 	@echo "Setup Instructions:"
 	@echo "  brew install clang-format   # Install clang-format for code formatting"
+	@echo "  brew install cppcheck       # Install cppcheck for additional static analysis"
 	@echo ""
 
 # Check for required tools
@@ -60,6 +62,18 @@ lint:
 	@pio check --verbose
 	@echo "Linting complete!"
 
+# Run cppcheck static analysis (complementary to clang-tidy)
+cppcheck:
+	@command -v cppcheck >/dev/null 2>&1 || { echo "❌ cppcheck not found. Install with: brew install cppcheck"; exit 1; }
+	@echo "Running cppcheck static analysis..."
+	@cppcheck --enable=warning,performance --error-exitcode=1 \
+		--suppress=missingIncludeSystem \
+		--suppress=unknownMacro \
+		--suppress=ignoredReturnValue \
+		--suppress=normalCheckLevelMaxBranches \
+		-I include -I src src/
+	@echo "✅ cppcheck passed!"
+
 # Run unit tests on native platform (fast)
 test-native:
 	@echo "Running unit tests on native platform..."
@@ -86,7 +100,7 @@ all: format lint test compile
 	@echo ""
 	@echo "✅ All checks passed!"
 
-# CI pipeline: format-check (no modifications), lint, test, compile
-ci: format-check lint test compile
+# CI pipeline: format-check (no modifications), lint, cppcheck, test, compile
+ci: format-check lint cppcheck test compile
 	@echo ""
 	@echo "✅ CI pipeline completed successfully!"

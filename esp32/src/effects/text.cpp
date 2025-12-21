@@ -44,6 +44,10 @@ void TextEffect::add(JsonDocument& props) {
 		instance.accentR = (accent >> 16) & 0xFF;
 		instance.accentG = (accent >> 8) & 0xFF;
 		instance.accentB = accent & 0xFF;
+	} else {
+		instance.accentR = 0;
+		instance.accentG = 0;
+		instance.accentB = 0;
 	}
 
 	instance.x = x;
