@@ -9,7 +9,7 @@ import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TelemetryCharts from '../telemetry-charts';
-import { useTelemetryHistoryStore, type TelemetryDataPoint } from '../../store/telemetry-history-store';
+import { useTelemetryHistoryStore, type TelemetryDataPoint } from '../../../store/telemetry-history-store';
 
 // Mock ResizeObserver for Recharts ResponsiveContainer
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

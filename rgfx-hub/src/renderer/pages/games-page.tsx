@@ -18,7 +18,7 @@ import {
 import { SportsEsports as GamesIcon } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import type { GameInfo } from '@/types';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 import { useUiStore } from '../store/ui-store';
 
 type SortField = 'romName' | 'interceptorName' | 'transformerName';

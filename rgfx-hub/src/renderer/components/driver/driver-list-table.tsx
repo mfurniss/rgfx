@@ -11,8 +11,8 @@ import {
   TableSortLabel,
 } from '@mui/material';
 import type { Driver } from '@/types';
-import { useUiStore, type SortField } from '../store/ui-store';
-import { useDriverStore } from '../store/driver-store';
+import { useUiStore, type SortField } from '../../store/ui-store';
+import { useDriverStore } from '../../store/driver-store';
 import TestLedButton from './test-led-button';
 import DriverState from './driver-state';
 

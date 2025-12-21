@@ -27,12 +27,12 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { notify } from '../store/notification-store';
-import { NumberField } from '../components/number-field';
-import SuperButton from '../components/super-button';
-import { UnifiedPanelEditor } from '../components/unified-panel-editor';
+import { NumberField } from '../components/common/number-field';
+import SuperButton from '../components/common/super-button';
+import { UnifiedPanelEditor } from '../components/editors/unified-panel-editor';
 import {
   PersistedDriverSchema,
   type PersistedDriverFromSchema,

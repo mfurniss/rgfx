@@ -10,7 +10,7 @@ import { Box, Tooltip } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { type Control, type FieldValues, type FieldErrors, type FieldPath } from 'react-hook-form';
 import { type FieldMetadata } from '../../utils/zod-introspection';
-import { NumberField } from '../number-field';
+import { NumberField } from '../common/number-field';
 import {
   EnumField,
   BooleanField,

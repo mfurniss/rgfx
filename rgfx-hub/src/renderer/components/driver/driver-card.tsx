@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Paper, Typography, Box, IconButton, Alert, Stack } from '@mui/material';
-import SuperButton from './super-button';
+import SuperButton from '../common/super-button';
 import DriverState from './driver-state';
 import {
   Lightbulb as LightbulbIcon,
@@ -12,15 +12,15 @@ import {
   Description as DescriptionIcon,
 } from '@mui/icons-material';
 import type { Driver } from '@/types';
-import InfoSection, { type InfoRowData } from './info-section';
+import InfoSection, { type InfoRowData } from '../common/info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
 import RestartDriverButton from './restart-driver-button';
 import DisableDriverButton from './disable-driver-button';
-import TelemetryCharts from './telemetry-charts';
-import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
+import TelemetryCharts from '../charts/telemetry-charts';
+import { formatBytes, formatUptime, formatNumber } from '../../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
-import { useDriverStore } from '../store/driver-store';
+import { useDriverStore } from '../../store/driver-store';
 
 interface DriverCardProps {
   driver: Driver;

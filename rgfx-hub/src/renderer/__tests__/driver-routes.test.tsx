@@ -2,9 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { SidebarNav } from '../components/sidebar-nav.js';
-import DriverCard from '../components/driver-card.js';
-import DriverListTable from '../components/driver-list-table.js';
+import { SidebarNav } from '../components/layout/sidebar-nav.js';
+import DriverCard from '../components/driver/driver-card.js';
+import DriverListTable from '../components/driver/driver-list-table.js';
 import type { Driver } from '@/types';
 
 const mockNavigate = vi.fn();
