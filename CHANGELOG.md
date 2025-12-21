@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Text effect auto-wrapping - text now wraps to the next row when it exceeds canvas width
+  - Character-level wrapping (wraps at any character, not word boundaries)
+  - First row respects starting x position, subsequent rows use full width
+  - Accent shadows wrap identically, maintaining 4px offset
 - Restart button on driver detail page with confirmation modal
   - Reboots driver without erasing any settings (WiFi, device ID, LED config)
   - Immediately updates driver state to disconnected (no timeout wait)
