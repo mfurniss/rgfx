@@ -90,4 +90,22 @@ class Canvas {
         row += width;
         row[0] = row[1] = row[2] = row[3] = color;
     }
+
+    // Fast 4x4 block fill with alpha blending
+    inline void fillBlock4x4Alpha(uint16_t x, uint16_t y, const CRGB& color, uint8_t alpha) {
+        if (alpha == 255) {
+            fillBlock4x4(x, y, color);
+            return;
+        }
+        uint8_t invAlpha = 255 - alpha;
+        CRGB* row = pixels + (y * width) + x;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                row[j].r = (color.r * alpha + row[j].r * invAlpha) / 255;
+                row[j].g = (color.g * alpha + row[j].g * invAlpha) / 255;
+                row[j].b = (color.b * alpha + row[j].b * invAlpha) / 255;
+            }
+            row += width;
+        }
+    }
 };

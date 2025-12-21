@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import ConfirmFlashDialog from '@/renderer/components/confirm-flash-dialog';
+import ConfirmFlashDialog from '@/renderer/components/firmware/confirm-flash-dialog';
 
 describe('ConfirmFlashDialog', () => {
   afterEach(() => {

@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import backgroundSchema from '../background';
+import { effectPropsSchemas } from '../index';
+
+const backgroundSchema = effectPropsSchemas.background;
 
 describe('backgroundSchema', () => {
   describe('valid data', () => {
@@ -16,14 +18,14 @@ describe('backgroundSchema', () => {
 
       if (result.success) {
         expect(result.data.color).toBe('random');
-        expect(result.data.enabled).toBe(true);
+        expect(result.data.enabled).toBe('on');
       }
     });
 
     it('should accept complete background configuration', () => {
       const data = {
         color: '#0000FF',
-        enabled: true,
+        enabled: 'on',
       };
 
       const result = backgroundSchema.safeParse(data);
@@ -31,34 +33,34 @@ describe('backgroundSchema', () => {
 
       if (result.success) {
         expect(result.data.color).toBe('#0000FF');
-        expect(result.data.enabled).toBe(true);
+        expect(result.data.enabled).toBe('on');
       }
     });
 
     it('should accept disabled background without color', () => {
       const data = {
-        enabled: false,
+        enabled: 'off',
       };
 
       const result = backgroundSchema.safeParse(data);
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe(false);
+        expect(result.data.enabled).toBe('off');
       }
     });
 
     it('should accept disabled background with color', () => {
       const data = {
         color: 'blue',
-        enabled: false,
+        enabled: 'off',
       };
 
       const result = backgroundSchema.safeParse(data);
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe(false);
+        expect(result.data.enabled).toBe('off');
         expect(result.data.color).toBe('blue');
       }
     });
@@ -97,26 +99,49 @@ describe('backgroundSchema', () => {
   });
 
   describe('enabled validation', () => {
-    it('should accept boolean true', () => {
-      const result = backgroundSchema.safeParse({ enabled: true });
+    it('should accept enabled: off', () => {
+      const result = backgroundSchema.safeParse({ enabled: 'off' });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe(true);
+        expect(result.data.enabled).toBe('off');
       }
     });
 
-    it('should accept boolean false', () => {
-      const result = backgroundSchema.safeParse({ enabled: false });
+    it('should accept enabled: on', () => {
+      const result = backgroundSchema.safeParse({ enabled: 'on' });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe(false);
+        expect(result.data.enabled).toBe('on');
       }
     });
 
-    it('should reject non-boolean enabled', () => {
+    it('should accept enabled: fadeIn', () => {
+      const result = backgroundSchema.safeParse({ enabled: 'fadeIn' });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.enabled).toBe('fadeIn');
+      }
+    });
+
+    it('should accept enabled: fadeOut', () => {
+      const result = backgroundSchema.safeParse({ enabled: 'fadeOut' });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.enabled).toBe('fadeOut');
+      }
+    });
+
+    it('should reject invalid enabled string', () => {
       const result = backgroundSchema.safeParse({ enabled: 'yes' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject boolean enabled', () => {
+      const result = backgroundSchema.safeParse({ enabled: true });
       expect(result.success).toBe(false);
     });
 

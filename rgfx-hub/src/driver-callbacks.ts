@@ -52,6 +52,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     }
     const status = systemMonitor.getSystemStatus(
       driverRegistry.getConnectedCount(),
+      driverRegistry.getAllDrivers().length,
       getEventsProcessed(),
     );
     mainWindow.webContents.send('system:status', status);

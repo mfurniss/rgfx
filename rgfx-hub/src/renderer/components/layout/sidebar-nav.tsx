@@ -2,6 +2,7 @@ import React from 'react';
 import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
+  Usb as UsbIcon,
   Monitor as MonitorIcon,
   Memory as FirmwareIcon,
   Science as ScienceIcon,
@@ -21,6 +22,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'System Status', path: '/', icon: <DashboardIcon /> },
+  { label: 'Drivers', path: '/drivers', icon: <UsbIcon /> },
   { label: 'Games', path: '/games', icon: <GamesIcon /> },
   { label: 'Event Monitor', path: '/events', icon: <MonitorIcon /> },
   { label: 'Firmware', path: '/firmware', icon: <FirmwareIcon /> },
@@ -42,7 +44,11 @@ export function SidebarNav() {
   return (
     <List>
       {navItems.map((item) => {
-        const isActive = location.pathname === item.path;
+        // Use startsWith for /drivers to highlight on sub-pages like /drivers/:mac
+        const isActive =
+          item.path === '/drivers'
+            ? location.pathname.startsWith('/drivers')
+            : location.pathname === item.path;
 
         return (
           <ListItem key={item.path} disablePadding>

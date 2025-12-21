@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, Box, Paper, Link } from '@mui/material';
 import { Info as InfoIcon } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 import { useAppInfoStore } from '../store/app-info-store';
 
 const AboutPage: React.FC = () => {

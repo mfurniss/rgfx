@@ -25,6 +25,7 @@ describe('TelemetryPayloadSchema', () => {
     flashSize: 4194304,
     flashSpeed: 80000000,
     heapSize: 327680,
+    maxAllocHeap: 200000,
     psramSize: 8388608,
     freePsram: 8000000,
     hasDisplay: true,

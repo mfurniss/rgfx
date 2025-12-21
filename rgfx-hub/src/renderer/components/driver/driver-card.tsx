@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Paper, Typography, Box, IconButton, Alert, Stack } from '@mui/material';
-import SuperButton from './super-button';
+import SuperButton from '../common/super-button';
 import DriverState from './driver-state';
 import {
   Lightbulb as LightbulbIcon,
@@ -12,13 +12,15 @@ import {
   Description as DescriptionIcon,
 } from '@mui/icons-material';
 import type { Driver } from '@/types';
-import InfoSection, { type InfoRowData } from './info-section';
+import InfoSection, { type InfoRowData } from '../common/info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
+import RestartDriverButton from './restart-driver-button';
 import DisableDriverButton from './disable-driver-button';
-import { formatBytes, formatUptime, formatNumber } from '../utils/formatters';
+import TelemetryCharts from '../charts/telemetry-charts';
+import { formatBytes, formatUptime, formatNumber } from '../../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
-import { useDriverStore } from '../store/driver-store';
+import { useDriverStore } from '../../store/driver-store';
 
 interface DriverCardProps {
   driver: Driver;
@@ -200,10 +202,10 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
             <IconButton
               onClick={() => {
-                void navigate('/');
+                void navigate('/drivers');
               }}
               size="small"
-              aria-label="Back to System Status"
+              aria-label="Back to Drivers"
             >
               <ArrowBackIcon />
             </IconButton>
@@ -211,8 +213,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
           </Stack>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {driver.ledConfig && <TestLedButton driver={driver} />}
             <DisableDriverButton driver={driver} />
-            <ResetDriverButton driver={driver} />
             <SuperButton
               icon={<DescriptionIcon />}
               variant="outlined"
@@ -228,11 +230,13 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               size="small"
               icon={<SettingsIcon />}
               onClick={() => {
-                void navigate(`/driver/${driver.mac}/config`);
+                void navigate(`/drivers/${driver.mac}/config`);
               }}
             >
               Configure Driver
             </SuperButton>
+            <RestartDriverButton driver={driver} />
+            <ResetDriverButton driver={driver} />
           </Box>
         </Box>
       </Paper>
@@ -245,7 +249,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           title="LED Configuration"
           icon={<LightbulbIcon fontSize="small" color="action" />}
           rows={ledRows}
-          titleAction={driver.ledConfig ? <TestLedButton driver={driver} /> : undefined}
         >
           {!driver.ledConfig && (
             <Alert severity="warning">
@@ -285,6 +288,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             </Typography>
           )}
         </InfoSection>
+
+        {driver.state === 'connected' && <TelemetryCharts driverId={driver.id} />}
 
       </Box>
     </Box>

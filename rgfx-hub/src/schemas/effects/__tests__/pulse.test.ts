@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import pulseSchema from '../pulse';
+import { effectPropsSchemas } from '../index';
+
+const pulseSchema = effectPropsSchemas.pulse;
 
 describe('pulseSchema', () => {
   describe('valid data', () => {

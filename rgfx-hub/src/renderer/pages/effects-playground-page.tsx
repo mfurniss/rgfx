@@ -24,16 +24,28 @@ import {
   Science as ScienceIcon,
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
-import { TargetDriversPicker } from '../components/target-drivers-picker';
-import SuperButton from '../components/super-button';
+import { PageTitle } from '../components/layout/page-title';
+import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
+import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectSchemas, isEffectName } from '@/schemas';
+import { effectSchemas, effectPropsSchemas, isEffectName } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 
-const formEffects = Object.keys(effectSchemas).sort();
+// Build map of effect keys to display names from schema literals
+// Extract literal value from z.literal() schema via internal _zod.def.values
+const effectDisplayNames = Object.fromEntries(
+  Object.entries(effectSchemas).map(([key, schema]) => {
+    const nameSchema = schema.shape.name as { _zod: { def: { values: string[] } } };
+    return [key, nameSchema._zod.def.values[0]];
+  }),
+);
+
+// Sort by display name for a more intuitive list
+const formEffects = Object.keys(effectSchemas).sort((a, b) =>
+  effectDisplayNames[a].localeCompare(effectDisplayNames[b]),
+);
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -155,10 +167,10 @@ export default function TestEffectsPage() {
     }
   }, [propsJson]);
 
-  // Get schema for selected effect
+  // Get props schema for selected effect (without name/description metadata)
   const currentSchema = useMemo(() => {
     if (isEffectName(selectedEffect)) {
-      return effectSchemas[selectedEffect];
+      return effectPropsSchemas[selectedEffect];
     }
     return null;
   }, [selectedEffect]);
@@ -180,7 +192,7 @@ export default function TestEffectsPage() {
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {
-      const defaults = effectSchemas[effect].parse({});
+      const defaults = effectPropsSchemas[effect].parse({});
       const newPropsJson = JSON.stringify(defaults, null, 2);
       setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
     }
@@ -289,7 +301,7 @@ export default function TestEffectsPage() {
               >
                 {formEffects.map((effect) => (
                   <MenuItem key={effect} value={effect}>
-                    {effect}
+                    {effectDisplayNames[effect]}
                   </MenuItem>
                 ))}
               </Select>

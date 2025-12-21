@@ -13,13 +13,21 @@
  */
 class BackgroundEffect : public IEffect {
    private:
+	enum class EnabledState : uint8_t { OFF, ON, FADE_IN, FADE_OUT };
+
+	static constexpr float FADE_DURATION = 1.0f;  // 1 second
+
 	struct BackgroundState {
 		uint8_t r, g, b;
-		bool enabled;
+		EnabledState enabledState;
+		float fadeTime;
 	};
 
 	BackgroundState state;
 	Canvas& canvas;
+
+	static EnabledState parseEnabledState(const char* str);
+	uint8_t calculateAlpha() const;
 
    public:
 	BackgroundEffect(const Matrix& matrix, Canvas& canvas);

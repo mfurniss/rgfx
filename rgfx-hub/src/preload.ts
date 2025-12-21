@@ -220,6 +220,10 @@ export const rgfxAPI = {
   resetEventCounts: (): Promise<void> => {
     return ipcRenderer.invoke('event:reset');
   },
+
+  restartDriver: (driverId: string): Promise<{ success: boolean }> => {
+    return ipcRenderer.invoke('driver:restart', driverId);
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

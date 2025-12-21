@@ -55,8 +55,11 @@ void EffectProcessor::update() {
 	// Clear canvas once per frame
 	canvas.clear();
 
-	// Render background FIRST (no update needed - static effect)
-	backgroundEffect.render();
+	// Skip background if plasma is fully opaque (optimization)
+	if (!plasmaEffect.isFullyOpaque()) {
+		backgroundEffect.render();
+	}
+	backgroundEffect.update(deltaTime);
 
 	// Render plasma SECOND (on top of background, below other effects)
 	plasmaEffect.render();

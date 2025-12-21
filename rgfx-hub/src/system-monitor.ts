@@ -53,7 +53,11 @@ export class SystemMonitor {
   }
 
   // Generate system status object
-  getSystemStatus(connectedDriverCount: number, eventsProcessed: number): SystemStatus {
+  getSystemStatus(
+    connectedDriverCount: number,
+    totalDriverCount: number,
+    eventsProcessed: number,
+  ): SystemStatus {
     const hubIp = this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
 
@@ -62,6 +66,7 @@ export class SystemMonitor {
       udpServer: isNetworkAvailable ? 'active' : 'inactive',
       eventReader: 'monitoring',
       driversConnected: connectedDriverCount,
+      driversTotal: totalDriverCount,
       hubIp,
       eventsProcessed,
       hubStartTime: this.hubStartTime,

@@ -14,15 +14,17 @@ import { z } from 'zod';
  * Renders on top of background with alpha blending.
  *
  * Note: Does not extend baseEffect because:
- * - 'reset' doesn't make sense for a singleton effect (use enabled: false instead)
+ * - 'reset' doesn't make sense for a singleton effect (use enabled: 'off' instead)
  * - Plasma has similar semantics to background (on/off, not instances)
  */
 export default z
   .object({
+    name: z.literal('Plasma'),
+    description: z.literal('Classic demoscene plasma effect'),
     speed: z
       .number()
       .min(0.1)
-      .max(10)
+      .max(20)
       .optional()
       .default(3)
       .describe('Animation speed multiplier (1 = normal speed)'),
@@ -40,6 +42,10 @@ export default z
       .optional()
       .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
       .describe('Gradient colors (2-20 hex colors)'),
-    enabled: z.boolean().optional().default(true).describe('Show or hide the plasma effect'),
+    enabled: z
+      .enum(['off', 'on', 'fadeIn', 'fadeOut'])
+      .optional()
+      .default('on')
+      .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();

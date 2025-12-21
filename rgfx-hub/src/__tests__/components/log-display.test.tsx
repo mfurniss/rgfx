@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
-import LogDisplay from '@/renderer/components/log-display';
+import LogDisplay from '@/renderer/components/common/log-display';
 
 describe('LogDisplay', () => {
   afterEach(() => {
