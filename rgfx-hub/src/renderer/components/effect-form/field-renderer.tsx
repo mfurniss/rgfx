@@ -17,7 +17,7 @@ import {
   ColorField,
   CenterField,
   SpritePresetField,
-  GradientPresetField,
+  PlasmaPresetField,
   StringField,
 } from './fields';
 
@@ -27,7 +27,15 @@ interface FieldRendererProps<T extends FieldValues> {
   errors: FieldErrors<T>;
 }
 
+const labelOverrides: Record<string, string> = {
+  gradient: 'Preset',
+};
+
 function formatLabel(name: string): string {
+  if (labelOverrides[name]) {
+    return labelOverrides[name];
+  }
+
   return name
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase())
@@ -213,7 +221,7 @@ export function FieldRenderer<T extends FieldValues>({
     case 'gradientPreset':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
-          <GradientPresetField
+          <PlasmaPresetField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}

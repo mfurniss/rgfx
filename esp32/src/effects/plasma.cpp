@@ -1,14 +1,47 @@
 #include "plasma.h"
 #include "hal/types.h"
 #include <cmath>
+#include <cstring>
 
 static const float DEFAULT_SCALE = 3.0f;
 static const float DEFAULT_SPEED = 2.0f;
 
 PlasmaEffect::PlasmaEffect(const Matrix& m, Canvas& c)
-	: state{0.0f, DEFAULT_SCALE, DEFAULT_SPEED, false, {}}, canvas(c) {
+	: state{0.0f, DEFAULT_SCALE, DEFAULT_SPEED, EnabledState::OFF, 0.0f, 0, {}}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 	generateDefaultRainbowLut();
+}
+
+PlasmaEffect::EnabledState PlasmaEffect::parseEnabledState(const char* str) {
+	if (str == nullptr) return EnabledState::ON;
+	if (strcmp(str, "off") == 0) return EnabledState::OFF;
+	if (strcmp(str, "on") == 0) return EnabledState::ON;
+	if (strcmp(str, "fadeIn") == 0) return EnabledState::FADE_IN;
+	if (strcmp(str, "fadeOut") == 0) return EnabledState::FADE_OUT;
+	return EnabledState::ON;
+}
+
+void PlasmaEffect::updateAlpha() {
+	switch (state.enabledState) {
+		case EnabledState::OFF:
+			state.currentAlpha = 0;
+			break;
+		case EnabledState::ON:
+			state.currentAlpha = 255;
+			break;
+		case EnabledState::FADE_IN: {
+			float progress = state.fadeTime / FADE_DURATION;
+			if (progress > 1.0f) progress = 1.0f;
+			state.currentAlpha = static_cast<uint8_t>(progress * 255.0f);
+			break;
+		}
+		case EnabledState::FADE_OUT: {
+			float progress = state.fadeTime / FADE_DURATION;
+			if (progress > 1.0f) progress = 1.0f;
+			state.currentAlpha = static_cast<uint8_t>((1.0f - progress) * 255.0f);
+			break;
+		}
+	}
 }
 
 CRGB PlasmaEffect::parseHexColor(const char* hex) {
@@ -68,15 +101,20 @@ void PlasmaEffect::generateGradientLut(const CRGB* colors, uint8_t colorCount) {
 }
 
 void PlasmaEffect::add(JsonDocument& props) {
-	// Parse enabled flag (default to true if not specified)
-	bool enabled = true;
-	if (!props["enabled"].isNull() && props["enabled"].is<bool>()) {
-		enabled = props["enabled"].as<bool>();
+	// Parse enabled - support both string and bool for backwards compat
+	EnabledState enabledState = EnabledState::ON;
+	if (!props["enabled"].isNull()) {
+		if (props["enabled"].is<bool>()) {
+			enabledState = props["enabled"].as<bool>() ? EnabledState::ON : EnabledState::OFF;
+		} else if (props["enabled"].is<const char*>()) {
+			enabledState = parseEnabledState(props["enabled"].as<const char*>());
+		}
 	}
 
-	// If disabling, just set enabled false and return
-	if (!enabled) {
-		state.enabled = false;
+	// If turning off instantly, just set state and return
+	if (enabledState == EnabledState::OFF) {
+		state.enabledState = EnabledState::OFF;
+		state.currentAlpha = 0;
 		return;
 	}
 
@@ -114,11 +152,27 @@ void PlasmaEffect::add(JsonDocument& props) {
 
 	state.scale = scale;
 	state.speed = speed;
-	state.enabled = enabled;
+
+	// For fades, calculate starting fadeTime based on current alpha
+	// This allows smooth transitions from any alpha level
+	if (enabledState == EnabledState::FADE_IN) {
+		// fadeTime should represent how far along we already are
+		// alpha=0 -> fadeTime=0, alpha=255 -> fadeTime=FADE_DURATION
+		state.fadeTime = (state.currentAlpha / 255.0f) * FADE_DURATION;
+	} else if (enabledState == EnabledState::FADE_OUT) {
+		// alpha=255 -> fadeTime=0, alpha=0 -> fadeTime=FADE_DURATION
+		state.fadeTime = ((255 - state.currentAlpha) / 255.0f) * FADE_DURATION;
+	} else {
+		state.fadeTime = 0.0f;
+		// Instant on/off
+		state.currentAlpha = (enabledState == EnabledState::ON) ? 255 : 0;
+	}
+
+	state.enabledState = enabledState;
 }
 
 void PlasmaEffect::update(float deltaTime) {
-	if (!state.enabled) {
+	if (state.enabledState == EnabledState::OFF) {
 		return;
 	}
 
@@ -129,10 +183,29 @@ void PlasmaEffect::update(float deltaTime) {
 	if (state.time > 1000.0f) {
 		state.time -= 1000.0f;
 	}
+
+	// Handle fade transitions
+	if (state.enabledState == EnabledState::FADE_IN || state.enabledState == EnabledState::FADE_OUT) {
+		state.fadeTime += deltaTime;
+
+		if (state.fadeTime >= FADE_DURATION) {
+			// Transition to final state
+			state.enabledState =
+				(state.enabledState == EnabledState::FADE_IN) ? EnabledState::ON : EnabledState::OFF;
+			state.fadeTime = 0.0f;
+		}
+
+		updateAlpha();
+	}
 }
 
 void PlasmaEffect::render() {
-	if (!state.enabled) {
+	if (state.enabledState == EnabledState::OFF) {
+		return;
+	}
+
+	uint8_t alpha = state.currentAlpha;
+	if (alpha == 0) {
 		return;
 	}
 
@@ -152,17 +225,28 @@ void PlasmaEffect::render() {
 	// Strip layout: height=1, fill 4 pixels per block horizontally
 	if (height == 1) {
 		CRGB* pixels = canvas.getPixels();
+		uint8_t invAlpha = 255 - alpha;
 		for (uint16_t x = 0; x < width; x += step) {
 			uint8_t noise = inoise8(x * noiseScale, 0, timeOffset);
 			uint8_t shiftedNoise = (uint8_t)(noise + gradientOffset);
 			uint8_t lutIndex = (uint8_t)((uint16_t)shiftedNoise * (GRADIENT_LUT_SIZE - 1) / 255);
 			CRGB color = state.gradientLut[lutIndex];
-			pixels[x] = pixels[x + 1] = pixels[x + 2] = pixels[x + 3] = color;
+			if (alpha < 255) {
+				// Alpha blend with existing pixel
+				for (uint16_t i = 0; i < step; i++) {
+					CRGB& p = pixels[x + i];
+					p.r = (color.r * alpha + p.r * invAlpha) / 255;
+					p.g = (color.g * alpha + p.g * invAlpha) / 255;
+					p.b = (color.b * alpha + p.b * invAlpha) / 255;
+				}
+			} else {
+				pixels[x] = pixels[x + 1] = pixels[x + 2] = pixels[x + 3] = color;
+			}
 		}
 		return;
 	}
 
-	// Matrix layout: fill 4x4 blocks
+	// Matrix layout: fill 4x4 blocks with alpha blending
 	for (uint16_t y = 0; y < height; y += step) {
 		for (uint16_t x = 0; x < width; x += step) {
 			// 3D Perlin noise: x, y for position, time for animation
@@ -171,15 +255,22 @@ void PlasmaEffect::render() {
 			// Map noise (0-255) + offset to LUT index (0-99)
 			uint8_t shiftedNoise = (uint8_t)(noise + gradientOffset);
 			uint8_t lutIndex = (uint8_t)((uint16_t)shiftedNoise * (GRADIENT_LUT_SIZE - 1) / 255);
-			canvas.fillBlock4x4(x, y, state.gradientLut[lutIndex]);
+			CRGB color = state.gradientLut[lutIndex];
+			canvas.fillBlock4x4Alpha(x, y, color, alpha);
 		}
 	}
 }
 
 void PlasmaEffect::reset() {
-	state.enabled = false;
+	state.enabledState = EnabledState::OFF;
 	state.time = 0.0f;
 	state.scale = DEFAULT_SCALE;
 	state.speed = DEFAULT_SPEED;
+	state.fadeTime = 0.0f;
+	state.currentAlpha = 0;
 	generateDefaultRainbowLut();
+}
+
+bool PlasmaEffect::isFullyOpaque() const {
+	return state.currentAlpha == 255;
 }

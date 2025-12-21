@@ -8,9 +8,9 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box } from '@mui/material';
 import { Controller, useFormContext, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { gradientPresets, findPresetByGradient } from '../../../data/gradient-presets';
+import { plasmaPresets, findPresetByGradient } from '../../../data/plasma-presets';
 
-interface GradientPresetFieldProps<T extends FieldValues> {
+interface PlasmaPresetFieldProps<T extends FieldValues> {
   name: Path<T>;
   control: Control<T>;
   label: string;
@@ -41,12 +41,12 @@ function GradientPreview({ gradient }: { gradient: string[] }) {
   );
 }
 
-export function GradientPresetField<T extends FieldValues>({
+export function PlasmaPresetField<T extends FieldValues>({
   name,
   control,
   label,
   error,
-}: GradientPresetFieldProps<T>) {
+}: PlasmaPresetFieldProps<T>) {
   const { setValue } = useFormContext<T>();
 
   return (
@@ -65,7 +65,7 @@ export function GradientPresetField<T extends FieldValues>({
               value={selectedValue}
               label={label}
               onChange={(e) => {
-                const preset = gradientPresets.find((p) => p.name === e.target.value);
+                const preset = plasmaPresets.find((p) => p.name === e.target.value);
 
                 if (preset) {
                   field.onChange(preset.gradient);
@@ -74,7 +74,7 @@ export function GradientPresetField<T extends FieldValues>({
                 }
               }}
             >
-              {gradientPresets.map((preset) => (
+              {plasmaPresets.map((preset) => (
                 <MenuItem key={preset.name} value={preset.name}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <GradientPreview gradient={preset.gradient} />

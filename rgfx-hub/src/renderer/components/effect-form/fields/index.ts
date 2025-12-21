@@ -10,5 +10,5 @@ export { BooleanField } from './boolean-field';
 export { ColorField } from './color-field';
 export { CenterField } from './center-field';
 export { SpritePresetField } from './sprite-preset-field';
-export { GradientPresetField } from './gradient-preset-field';
+export { PlasmaPresetField } from './plasma-preset-field';
 export { StringField } from './string-field';
