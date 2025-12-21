@@ -30,6 +30,7 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	doc["freeHeap"] = ESP.getFreeHeap();
 	doc["minFreeHeap"] = ESP.getMinFreeHeap();
 	doc["heapSize"] = ESP.getHeapSize();
+	doc["maxAllocHeap"] = ESP.getMaxAllocHeap();
 	doc["psramSize"] = ESP.getPsramSize();
 	doc["freePsram"] = ESP.getFreePsram();
 

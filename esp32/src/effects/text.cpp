@@ -5,6 +5,29 @@
 
 namespace {
 	constexpr uint32_t TEXT_DEFAULT_COLOR = 0xFFFFFF;
+
+	// Calculate wrapped position for character at given index
+	void getWrappedPosition(int16_t startX, int16_t startY,
+	                        uint8_t charIndex, uint16_t canvasWidth,
+	                        int16_t& outX, int16_t& outY) {
+		int16_t firstRowChars = (canvasWidth - startX) / CHAR_WIDTH;
+		if (firstRowChars < 0) firstRowChars = 0;
+
+		if (charIndex < firstRowChars) {
+			outX = startX + (charIndex * CHAR_WIDTH);
+			outY = startY;
+		} else {
+			int16_t charsPerFullRow = canvasWidth / CHAR_WIDTH;
+			if (charsPerFullRow < 1) charsPerFullRow = 1;
+
+			int16_t remainingChars = charIndex - firstRowChars;
+			int16_t additionalRows = 1 + (remainingChars / charsPerFullRow);
+			int16_t colInRow = remainingChars % charsPerFullRow;
+
+			outX = colInRow * CHAR_WIDTH;
+			outY = startY + (additionalRows * CHAR_HEIGHT);
+		}
+	}
 }  // namespace
 
 TextEffect::TextEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
@@ -44,6 +67,10 @@ void TextEffect::add(JsonDocument& props) {
 		instance.accentR = (accent >> 16) & 0xFF;
 		instance.accentG = (accent >> 8) & 0xFF;
 		instance.accentB = accent & 0xFF;
+	} else {
+		instance.accentR = 0;
+		instance.accentG = 0;
+		instance.accentB = 0;
 	}
 
 	instance.x = x;
@@ -69,6 +96,7 @@ void TextEffect::update(float deltaTime) {
 
 void TextEffect::render() {
 	constexpr int16_t ACCENT_OFFSET = 4;
+	uint16_t canvasWidth = canvas.getWidth();
 
 	for (const auto& inst : instances) {
 		// Calculate alpha for fade-out during last half of duration
@@ -83,19 +111,19 @@ void TextEffect::render() {
 
 		// Pass 1: Accent (if present)
 		if (inst.hasAccent) {
-			int16_t ax = inst.x;
 			for (uint8_t i = 0; i < inst.textLen; i++) {
-				renderChar(canvas, inst.text[i], ax + ACCENT_OFFSET, inst.y + ACCENT_OFFSET,
+				int16_t charX, charY;
+				getWrappedPosition(inst.x, inst.y, i, canvasWidth, charX, charY);
+				renderChar(canvas, inst.text[i], charX + ACCENT_OFFSET, charY + ACCENT_OFFSET,
 				           inst.accentR, inst.accentG, inst.accentB, alpha, BlendMode::ALPHA);
-				ax += CHAR_WIDTH;
 			}
 		}
 
 		// Pass 2: Main text
-		int16_t x = inst.x;
 		for (uint8_t i = 0; i < inst.textLen; i++) {
-			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b, alpha, BlendMode::ALPHA);
-			x += CHAR_WIDTH;
+			int16_t charX, charY;
+			getWrappedPosition(inst.x, inst.y, i, canvasWidth, charX, charY);
+			renderChar(canvas, inst.text[i], charX, charY, inst.r, inst.g, inst.b, alpha, BlendMode::ALPHA);
 		}
 	}
 }

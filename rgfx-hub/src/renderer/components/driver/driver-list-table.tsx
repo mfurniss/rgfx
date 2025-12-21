@@ -11,8 +11,8 @@ import {
   TableSortLabel,
 } from '@mui/material';
 import type { Driver } from '@/types';
-import { useUiStore, type SortField } from '../store/ui-store';
-import { useDriverStore } from '../store/driver-store';
+import { useUiStore, type SortField } from '../../store/ui-store';
+import { useDriverStore } from '../../store/driver-store';
 import TestLedButton from './test-led-button';
 import DriverState from './driver-state';
 
@@ -89,7 +89,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
             <TableRow
               key={driver.mac ?? driver.id}
               onClick={() => {
-                void navigate(`/driver/${driver.mac}`);
+                void navigate(`/drivers/${driver.mac}`);
               }}
               sx={{
                 cursor: 'pointer',
@@ -97,7 +97,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               }}
             >
               <TableCell>{driver.id}</TableCell>
-              <TableCell>{driver.ip ?? ''}</TableCell>
+              <TableCell>{driver.state === 'connected' ? driver.ip ?? '' : ''}</TableCell>
               <TableCell>
                 <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
               </TableCell>

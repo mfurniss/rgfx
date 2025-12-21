@@ -39,7 +39,7 @@ assets/icons/
 - Keep your source file (`app-icon.*`) for future regeneration
 - Icon only appears in **packaged builds**, not in development mode (`npm start`)
 - On macOS, you may need to restart Finder or log out/in to see icon changes
-- The generator uses `electron-icon-builder` (cross-platform Node.js package)
+- The generator uses `sharp` + `png2icons` (pure JavaScript, no native deps)
 - Works on macOS, Linux, and Windows (including GitLab CI)
 
 ## Icon Design Tips

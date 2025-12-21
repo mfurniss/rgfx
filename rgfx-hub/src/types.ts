@@ -120,6 +120,7 @@ export interface DriverTelemetry {
   flashSize: number;
   flashSpeed: number;
   heapSize: number;
+  maxAllocHeap: number;
   psramSize: number;
   freePsram: number;
   hasDisplay: boolean;
@@ -280,6 +281,7 @@ export interface SystemStatus {
   udpServer: 'active' | 'inactive' | 'error';
   eventReader: 'monitoring' | 'stopped' | 'error';
   driversConnected: number;
+  driversTotal: number;
   hubIp: string;
   eventsProcessed: number;
   hubStartTime: number;
@@ -344,6 +346,7 @@ declare global {
       getFirmwareFile: (filename: string) => Promise<Buffer>;
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
       resetEventCounts: () => Promise<void>;
+      restartDriver: (driverId: string) => Promise<{ success: boolean }>;
     };
   }
 }

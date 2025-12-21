@@ -10,14 +10,14 @@ import { Box, Tooltip } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { type Control, type FieldValues, type FieldErrors, type FieldPath } from 'react-hook-form';
 import { type FieldMetadata } from '../../utils/zod-introspection';
-import { NumberField } from '../number-field';
+import { NumberField } from '../common/number-field';
 import {
   EnumField,
   BooleanField,
   ColorField,
   CenterField,
   SpritePresetField,
-  GradientPresetField,
+  PlasmaPresetField,
   StringField,
 } from './fields';
 
@@ -27,7 +27,15 @@ interface FieldRendererProps<T extends FieldValues> {
   errors: FieldErrors<T>;
 }
 
+const labelOverrides: Record<string, string> = {
+  gradient: 'Preset',
+};
+
 function formatLabel(name: string): string {
+  if (labelOverrides[name]) {
+    return labelOverrides[name];
+  }
+
   return name
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase())
@@ -213,7 +221,7 @@ export function FieldRenderer<T extends FieldValues>({
     case 'gradientPreset':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
-          <GradientPresetField
+          <PlasmaPresetField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}

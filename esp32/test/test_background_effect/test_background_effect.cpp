@@ -262,17 +262,17 @@ void test_background_white() {
 }
 
 // =============================================================================
-// 4. Enable/Disable Tests
+// 4. Enable/Disable Tests (using new string enum)
 // =============================================================================
 
-void test_background_enabled_flag_true() {
+void test_background_enabled_on() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	props["color"] = "#FF0000";
-	props["enabled"] = true;
+	props["enabled"] = "on";
 	effect.add(props);
 
 	canvas.clear();
@@ -281,7 +281,7 @@ void test_background_enabled_flag_true() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
-void test_background_enabled_flag_false() {
+void test_background_enabled_off() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BackgroundEffect effect(matrix, canvas);
@@ -291,15 +291,40 @@ void test_background_enabled_flag_false() {
 	props1["color"] = "#FF0000";
 	effect.add(props1);
 
-	// Then disable
+	// Then disable with "off"
 	JsonDocument props2;
-	props2["enabled"] = false;
+	props2["enabled"] = "off";
 	effect.add(props2);
 
 	canvas.clear();
 	effect.render();
 
 	// Background disabled - no pixels
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_background_enabled_bool_backwards_compat() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	// Test bool true (backwards compat)
+	JsonDocument props1;
+	props1["color"] = "#FF0000";
+	props1["enabled"] = true;
+	effect.add(props1);
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// Test bool false (backwards compat)
+	JsonDocument props2;
+	props2["enabled"] = false;
+	effect.add(props2);
+
+	canvas.clear();
+	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
 
@@ -315,13 +340,13 @@ void test_background_re_enable_after_disable() {
 
 	// Disable
 	JsonDocument props2;
-	props2["enabled"] = false;
+	props2["enabled"] = "off";
 	effect.add(props2);
 
 	// Re-enable with new color
 	JsonDocument props3;
 	props3["color"] = "#00FF00";
-	props3["enabled"] = true;
+	props3["enabled"] = "on";
 	effect.add(props3);
 
 	canvas.clear();
@@ -336,28 +361,206 @@ void test_background_re_enable_after_disable() {
 // 5. Update Behavior Tests
 // =============================================================================
 
-void test_background_update_does_nothing() {
+void test_background_update_does_nothing_when_on() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	props["color"] = "#FFFFFF";
+	props["enabled"] = "on";
 	effect.add(props);
 
-	// Update should not affect background
+	// Update should not affect background when just "on"
 	effect.update(1.0f);
 	effect.update(10.0f);
 
 	canvas.clear();
 	effect.render();
 
-	// Should still render
-	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+	// Should still render at full brightness
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(255, pixel.r);
+	TEST_ASSERT_EQUAL(255, pixel.g);
+	TEST_ASSERT_EQUAL(255, pixel.b);
 }
 
 // =============================================================================
-// 6. Canvas Coverage Tests
+// 6. Fade Tests (using enabled: fadeIn/fadeOut)
+// =============================================================================
+
+void test_background_fadeIn_starts_dark() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["enabled"] = "fadeIn";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+
+	// Should start at zero brightness
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(0, pixel.r);
+	TEST_ASSERT_EQUAL(0, pixel.g);
+	TEST_ASSERT_EQUAL(0, pixel.b);
+}
+
+void test_background_fadeIn_brightens() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["enabled"] = "fadeIn";
+	effect.add(props);
+
+	// Advance halfway through fade (0.5s of 1s)
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be at roughly half brightness
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_TRUE(pixel.r > 100 && pixel.r < 150);
+
+	// Advance to full fade
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be at full brightness
+	pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(255, pixel.r);
+}
+
+void test_background_fadeIn_transitions_to_on() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["enabled"] = "fadeIn";
+	effect.add(props);
+
+	// Complete the fade
+	effect.update(1.0f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be at full brightness and stay there
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(255, pixel.r);
+
+	// Further updates shouldn't change anything
+	effect.update(5.0f);
+	canvas.clear();
+	effect.render();
+
+	pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(255, pixel.r);
+}
+
+void test_background_fadeOut_starts_bright() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	// First enable the effect at full brightness
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["enabled"] = "on";
+	effect.add(props);
+
+	// Then trigger fadeOut - should start from current alpha (255)
+	props["enabled"] = "fadeOut";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+
+	// Should start at full brightness
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(255, pixel.r);
+}
+
+void test_background_fadeOut_dims() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	// First enable the effect at full brightness
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["enabled"] = "on";
+	effect.add(props);
+
+	// Then trigger fadeOut
+	props["enabled"] = "fadeOut";
+	effect.add(props);
+
+	// Advance halfway through fade
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be at roughly half brightness
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_TRUE(pixel.r > 100 && pixel.r < 150);
+
+	// Advance to end of fade
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be dark
+	pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_EQUAL(0, pixel.r);
+}
+
+void test_background_fadeOut_transitions_to_off() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	// First enable the effect at full brightness
+	JsonDocument props;
+	props["color"] = "#FFFFFF";
+	props["enabled"] = "on";
+	effect.add(props);
+
+	// Then trigger fadeOut
+	props["enabled"] = "fadeOut";
+	effect.add(props);
+
+	// Complete the fade
+	effect.update(1.0f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be off
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+
+	// Should stay off
+	effect.update(5.0f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+// =============================================================================
+// 7. Canvas Coverage Tests
 // =============================================================================
 
 void test_background_fills_entire_canvas() {
@@ -444,14 +647,23 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_background_white);
 
 	// 4. Enable/Disable Tests
-	RUN_TEST(test_background_enabled_flag_true);
-	RUN_TEST(test_background_enabled_flag_false);
+	RUN_TEST(test_background_enabled_on);
+	RUN_TEST(test_background_enabled_off);
+	RUN_TEST(test_background_enabled_bool_backwards_compat);
 	RUN_TEST(test_background_re_enable_after_disable);
 
 	// 5. Update Behavior Tests
-	RUN_TEST(test_background_update_does_nothing);
+	RUN_TEST(test_background_update_does_nothing_when_on);
 
-	// 6. Canvas Coverage Tests
+	// 6. Fade Tests
+	RUN_TEST(test_background_fadeIn_starts_dark);
+	RUN_TEST(test_background_fadeIn_brightens);
+	RUN_TEST(test_background_fadeIn_transitions_to_on);
+	RUN_TEST(test_background_fadeOut_starts_bright);
+	RUN_TEST(test_background_fadeOut_dims);
+	RUN_TEST(test_background_fadeOut_transitions_to_off);
+
+	// 7. Canvas Coverage Tests
 	RUN_TEST(test_background_fills_entire_canvas);
 	RUN_TEST(test_background_large_matrix);
 	RUN_TEST(test_background_strip_layout);

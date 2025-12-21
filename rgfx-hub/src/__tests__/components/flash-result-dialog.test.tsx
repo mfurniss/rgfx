@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import FlashResultDialog from '@/renderer/components/flash-result-dialog';
+import FlashResultDialog from '@/renderer/components/firmware/flash-result-dialog';
 
 describe('FlashResultDialog', () => {
   afterEach(() => {

@@ -12,6 +12,11 @@ describe('Page Loading Tests', () => {
     expect(module.default).toBeDefined();
   });
 
+  it('DriversPage can be imported', async () => {
+    const module = await import('../drivers-page.js');
+    expect(module.default).toBeDefined();
+  });
+
   it('DriverDetailPage can be imported', async () => {
     const module = await import('../driver-detail-page.js');
     expect(module.default).toBeDefined();

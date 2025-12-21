@@ -1,7 +1,7 @@
 import React from 'react';
 import { Block as BlockIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
 import type { Driver } from '@/types';
-import SuperButton from './super-button';
+import SuperButton from '../common/super-button';
 
 interface DisableDriverButtonProps {
   driver: Driver;

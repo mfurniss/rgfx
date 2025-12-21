@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useEventStore } from '../store/event-store';
 import { formatNumber } from '../utils/formatters';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 
 type SortField = 'topic' | 'count';
 type SortOrder = 'asc' | 'desc';

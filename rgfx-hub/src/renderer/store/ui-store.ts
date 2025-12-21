@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { effectSchemas } from '@/schemas';
+import { effectPropsSchemas } from '@/schemas';
 import { DEFAULT_FX_PLAYGROUND_EFFECT } from '@/config/constants';
 
-function getDefaultPropsJson(effect: keyof typeof effectSchemas): string {
-  return JSON.stringify(effectSchemas[effect].parse({}), null, 2);
+function getDefaultPropsJson(effect: keyof typeof effectPropsSchemas): string {
+  return JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
 }
 
 export type SortField = 'id' | 'name' | 'ip' | 'status';

@@ -13,6 +13,7 @@ const mockSystemStatus: SystemStatus = {
   udpServer: 'active',
   eventReader: 'monitoring',
   driversConnected: 0,
+  driversTotal: 0,
   hubIp: '192.168.1.100',
   eventsProcessed: 0,
   hubStartTime: Date.now(),
@@ -76,6 +77,7 @@ describe('App IPC Listener Registration', () => {
       getFirmwareFile: vi.fn(),
       setDriverDisabled: vi.fn(),
       resetEventCounts: vi.fn(),
+      restartDriver: vi.fn(),
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
         licensePath: '/mock/LICENSE',

@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import bitmapSchema from '../bitmap';
+import { effectPropsSchemas } from '../index';
+
+const bitmapSchema = effectPropsSchemas.bitmap;
 
 describe('bitmapSchema', () => {
   describe('valid data', () => {

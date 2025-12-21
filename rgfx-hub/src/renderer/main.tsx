@@ -10,7 +10,7 @@ import './index.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app';
-import { TRPCProvider } from './components/trpc-provider';
+import { TRPCProvider } from './components/providers/trpc-provider';
 
 let container = document.getElementById('root');
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Drawer, Toolbar, Typography } from '@mui/material';
 import { SidebarNav } from './sidebar-nav';
-import { FirmwareUpdateBanner } from './firmware-update-banner';
+import { FirmwareUpdateBanner } from '../firmware/firmware-update-banner';
 
 const DRAWER_WIDTH = 220;
 

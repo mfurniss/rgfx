@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import SuperButton from '@/renderer/components/super-button';
+import SuperButton from '@/renderer/components/common/super-button';
 import { Star as StarIcon } from '@mui/icons-material';
 
 describe('SuperButton', () => {

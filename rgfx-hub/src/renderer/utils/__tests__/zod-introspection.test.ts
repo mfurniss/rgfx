@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { extractFieldMetadata } from '../zod-introspection';
-import { effectSchemas } from '@/schemas';
+import { effectPropsSchemas } from '@/schemas';
 
 /**
  * These tests ensure that all effect schemas are correctly introspected
@@ -19,7 +19,7 @@ describe('zod-introspection', () => {
   describe('extractFieldMetadata', () => {
     describe('pulse schema', () => {
       it('should extract all fields with correct types', () => {
-        const fields = extractFieldMetadata(effectSchemas.pulse);
+        const fields = extractFieldMetadata(effectPropsSchemas.pulse);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
@@ -31,7 +31,7 @@ describe('zod-introspection', () => {
       });
 
       it('should extract color field with named color options', () => {
-        const fields = extractFieldMetadata(effectSchemas.pulse);
+        const fields = extractFieldMetadata(effectPropsSchemas.pulse);
         const colorField = fields.find((f) => f.name === 'color');
 
         expect(colorField).toBeDefined();
@@ -42,7 +42,7 @@ describe('zod-introspection', () => {
       });
 
       it('should extract easing field with all easing options', () => {
-        const fields = extractFieldMetadata(effectSchemas.pulse);
+        const fields = extractFieldMetadata(effectPropsSchemas.pulse);
         const easingField = fields.find((f) => f.name === 'easing');
 
         expect(easingField).toBeDefined();
@@ -55,7 +55,7 @@ describe('zod-introspection', () => {
 
     describe('wipe schema', () => {
       it('should extract all fields with correct types', () => {
-        const fields = extractFieldMetadata(effectSchemas.wipe);
+        const fields = extractFieldMetadata(effectPropsSchemas.wipe);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
@@ -65,7 +65,7 @@ describe('zod-introspection', () => {
       });
 
       it('should extract direction field with all direction options', () => {
-        const fields = extractFieldMetadata(effectSchemas.wipe);
+        const fields = extractFieldMetadata(effectPropsSchemas.wipe);
         const directionField = fields.find((f) => f.name === 'direction');
 
         expect(directionField).toBeDefined();
@@ -78,7 +78,7 @@ describe('zod-introspection', () => {
 
     describe('explode schema', () => {
       it('should extract all fields with correct types', () => {
-        const fields = extractFieldMetadata(effectSchemas.explode);
+        const fields = extractFieldMetadata(effectPropsSchemas.explode);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
@@ -99,15 +99,26 @@ describe('zod-introspection', () => {
 
     describe('background schema', () => {
       it('should extract all fields with correct types', () => {
-        const fields = extractFieldMetadata(effectSchemas.background);
+        const fields = extractFieldMetadata(effectPropsSchemas.background);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
-        expect(fieldMap.get('enabled')?.type).toBe('boolean');
+        expect(fieldMap.get('enabled')?.type).toBe('enum');
+      });
+
+      it('should extract enabled field with all state options', () => {
+        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const enabledField = fields.find((f) => f.name === 'enabled');
+
+        expect(enabledField).toBeDefined();
+        expect(enabledField?.type).toBe('enum');
+        expect(enabledField?.constraints?.enumValues).toEqual(
+          expect.arrayContaining(['off', 'on', 'fadeIn', 'fadeOut']),
+        );
       });
 
       it('should extract color field as color type (not enum)', () => {
-        const fields = extractFieldMetadata(effectSchemas.background);
+        const fields = extractFieldMetadata(effectPropsSchemas.background);
         const colorField = fields.find((f) => f.name === 'color');
 
         // This test ensures the color field is recognized as a color union,
@@ -121,14 +132,14 @@ describe('zod-introspection', () => {
       });
 
       it('should have exactly 2 fields', () => {
-        const fields = extractFieldMetadata(effectSchemas.background);
+        const fields = extractFieldMetadata(effectPropsSchemas.background);
         expect(fields).toHaveLength(2);
       });
     });
 
     describe('bitmap schema', () => {
       it('should extract color and position fields with correct types', () => {
-        const fields = extractFieldMetadata(effectSchemas.bitmap);
+        const fields = extractFieldMetadata(effectPropsSchemas.bitmap);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
@@ -144,7 +155,7 @@ describe('zod-introspection', () => {
         const schemasWithColor = ['pulse', 'wipe', 'explode', 'bitmap', 'background'] as const;
 
         for (const schemaName of schemasWithColor) {
-          const schema = effectSchemas[schemaName];
+          const schema = effectPropsSchemas[schemaName];
           const fields = extractFieldMetadata(schema);
           const colorField = fields.find((f) => f.name === 'color');
 
@@ -154,7 +165,7 @@ describe('zod-introspection', () => {
       });
 
       it('should extract default values for all fields', () => {
-        for (const [schemaName, schema] of Object.entries(effectSchemas)) {
+        for (const [schemaName, schema] of Object.entries(effectPropsSchemas)) {
           const fields = extractFieldMetadata(schema);
 
           for (const field of fields) {
@@ -168,12 +179,12 @@ describe('zod-introspection', () => {
       });
 
       it('should extract descriptions for fields that have them', () => {
-        const fields = extractFieldMetadata(effectSchemas.background);
+        const fields = extractFieldMetadata(effectPropsSchemas.background);
         const colorField = fields.find((f) => f.name === 'color');
         const enabledField = fields.find((f) => f.name === 'enabled');
 
         expect(colorField?.description).toContain('Background color');
-        expect(enabledField?.description).toContain('Show or hide');
+        expect(enabledField?.description).toContain('fadeIn');
       });
     });
   });
@@ -182,7 +193,7 @@ describe('zod-introspection', () => {
     it('should not confuse color union with regular enum', () => {
       // The color schema is a union of: enum (named colors) | string (hex) | number
       // It should be detected as 'color', not 'enum'
-      const fields = extractFieldMetadata(effectSchemas.pulse);
+      const fields = extractFieldMetadata(effectPropsSchemas.pulse);
       const colorField = fields.find((f) => f.name === 'color');
       const easingField = fields.find((f) => f.name === 'easing');
 
@@ -195,7 +206,7 @@ describe('zod-introspection', () => {
 
     it('should detect centerX/Y as centerXY type', () => {
       // centerX/Y are unions of: 'random' literal | number
-      const fields = extractFieldMetadata(effectSchemas.explode);
+      const fields = extractFieldMetadata(effectPropsSchemas.explode);
       const centerXField = fields.find((f) => f.name === 'centerX');
       const centerYField = fields.find((f) => f.name === 'centerY');
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Snackbar, Alert, Box } from '@mui/material';
-import { useNotificationStore, type Notification } from '../store/notification-store';
+import { useNotificationStore, type Notification } from '../../store/notification-store';
 import { TOAST_AUTO_HIDE_DURATION_MS } from '@/config/constants';
 
 interface NotificationToastProps {

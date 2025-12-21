@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Typography, Paper } from '@mui/material';
-import DriverCard from '../components/driver-card';
+import DriverCard from '../components/driver/driver-card';
 import { useDriverStore } from '../store/driver-store';
 
 /**

@@ -15,6 +15,8 @@ import { baseEffect, centerX, centerY } from './properties';
  */
 export default baseEffect
   .extend({
+    name: z.literal('Explode'),
+    description: z.literal('Expanding particle burst from a center point'),
     centerX,
     centerY,
     friction: z.number().min(0).max(50).optional().default(3.0).describe('Air resistance slowing particles'),

@@ -45,6 +45,7 @@ function createMinimalRegistration(minimal: MinimalDriverRegistration) {
     flashSize: minimal.flashSize ?? 4194304,
     flashSpeed: minimal.flashSpeed ?? 40000000,
     heapSize: minimal.heapSize ?? 327680,
+    maxAllocHeap: minimal.heapSize ?? 327680, // Use heapSize as fallback for old firmware
     psramSize: minimal.psramSize ?? 0,
     freePsram: minimal.freePsram ?? 0,
     hasDisplay: minimal.hasDisplay ?? false,

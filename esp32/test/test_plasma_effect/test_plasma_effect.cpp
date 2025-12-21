@@ -120,16 +120,16 @@ void test_plasma_reset_disables() {
 }
 
 // =============================================================================
-// 2. Enable/Disable Tests
+// 2. Enable/Disable Tests (using new string enum)
 // =============================================================================
 
-void test_plasma_enabled_flag_true() {
+void test_plasma_enabled_on() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	PlasmaEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	props["enabled"] = true;
+	props["enabled"] = "on";
 	effect.add(props);
 
 	canvas.clear();
@@ -138,7 +138,7 @@ void test_plasma_enabled_flag_true() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
-void test_plasma_enabled_flag_false() {
+void test_plasma_enabled_off() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	PlasmaEffect effect(matrix, canvas);
@@ -147,15 +147,39 @@ void test_plasma_enabled_flag_false() {
 	JsonDocument props1;
 	effect.add(props1);
 
-	// Then disable
+	// Then disable with "off"
 	JsonDocument props2;
-	props2["enabled"] = false;
+	props2["enabled"] = "off";
 	effect.add(props2);
 
 	canvas.clear();
 	effect.render();
 
 	// Plasma disabled - no pixels
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_plasma_enabled_bool_backwards_compat() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	// Test bool true (backwards compat)
+	JsonDocument props1;
+	props1["enabled"] = true;
+	effect.add(props1);
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// Test bool false (backwards compat)
+	JsonDocument props2;
+	props2["enabled"] = false;
+	effect.add(props2);
+
+	canvas.clear();
+	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
 
@@ -170,12 +194,12 @@ void test_plasma_re_enable_after_disable() {
 
 	// Disable
 	JsonDocument props2;
-	props2["enabled"] = false;
+	props2["enabled"] = "off";
 	effect.add(props2);
 
 	// Re-enable
 	JsonDocument props3;
-	props3["enabled"] = true;
+	props3["enabled"] = "on";
 	effect.add(props3);
 
 	canvas.clear();
@@ -430,6 +454,187 @@ void test_plasma_has_multiple_colors() {
 }
 
 // =============================================================================
+// 7. Fade Tests (using enabled: fadeIn/fadeOut)
+// =============================================================================
+
+void test_plasma_fadeIn_starts_dark() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "fadeIn";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+
+	// Should start completely dark
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_plasma_fadeIn_brightens() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "fadeIn";
+	effect.add(props);
+
+	// Advance halfway through fade
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should have some pixels now (dimmed)
+	int midPixels = countNonBlackPixels(canvas);
+	TEST_ASSERT_TRUE(midPixels > 0);
+
+	// Advance to full fade
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be at full brightness
+	TEST_ASSERT_EQUAL(canvas.getWidth() * canvas.getHeight(), countNonBlackPixels(canvas));
+}
+
+void test_plasma_fadeIn_transitions_to_on() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "fadeIn";
+	effect.add(props);
+
+	// Complete the fade
+	effect.update(1.0f);
+
+	// Should now be fully opaque
+	TEST_ASSERT_TRUE(effect.isFullyOpaque());
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(canvas.getWidth() * canvas.getHeight(), countNonBlackPixels(canvas));
+}
+
+void test_plasma_fadeOut_starts_bright() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	// First enable the effect at full brightness
+	JsonDocument props;
+	props["enabled"] = "on";
+	effect.add(props);
+
+	// Then trigger fadeOut - should start from current alpha (255)
+	props["enabled"] = "fadeOut";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+
+	// Should start at full brightness
+	TEST_ASSERT_EQUAL(canvas.getWidth() * canvas.getHeight(), countNonBlackPixels(canvas));
+}
+
+void test_plasma_fadeOut_dims() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "fadeOut";
+	effect.add(props);
+
+	// Advance to end of fade
+	effect.update(1.0f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should be dark
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_plasma_fadeOut_transitions_to_off() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "fadeOut";
+	effect.add(props);
+
+	// Complete the fade
+	effect.update(1.0f);
+
+	// Should now be off (not opaque)
+	TEST_ASSERT_FALSE(effect.isFullyOpaque());
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+
+	// Should stay off
+	effect.update(5.0f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+// =============================================================================
+// 8. isFullyOpaque Tests
+// =============================================================================
+
+void test_plasma_isFullyOpaque_when_on() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "on";
+	effect.add(props);
+
+	TEST_ASSERT_TRUE(effect.isFullyOpaque());
+}
+
+void test_plasma_isFullyOpaque_when_off() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["enabled"] = "off";
+	effect.add(props);
+
+	TEST_ASSERT_FALSE(effect.isFullyOpaque());
+}
+
+void test_plasma_isFullyOpaque_when_fading() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	PlasmaEffect effect(matrix, canvas);
+
+	// During fadeIn
+	JsonDocument props1;
+	props1["enabled"] = "fadeIn";
+	effect.add(props1);
+	TEST_ASSERT_FALSE(effect.isFullyOpaque());
+
+	// During fadeOut
+	JsonDocument props2;
+	props2["enabled"] = "fadeOut";
+	effect.add(props2);
+	TEST_ASSERT_FALSE(effect.isFullyOpaque());
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -446,8 +651,9 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_plasma_reset_disables);
 
 	// 2. Enable/Disable Tests
-	RUN_TEST(test_plasma_enabled_flag_true);
-	RUN_TEST(test_plasma_enabled_flag_false);
+	RUN_TEST(test_plasma_enabled_on);
+	RUN_TEST(test_plasma_enabled_off);
+	RUN_TEST(test_plasma_enabled_bool_backwards_compat);
 	RUN_TEST(test_plasma_re_enable_after_disable);
 
 	// 3. Animation Tests
@@ -466,6 +672,19 @@ int main(int argc, char** argv) {
 
 	// 6. Rainbow Color Distribution Tests
 	RUN_TEST(test_plasma_has_multiple_colors);
+
+	// 7. Fade Tests
+	RUN_TEST(test_plasma_fadeIn_starts_dark);
+	RUN_TEST(test_plasma_fadeIn_brightens);
+	RUN_TEST(test_plasma_fadeIn_transitions_to_on);
+	RUN_TEST(test_plasma_fadeOut_starts_bright);
+	RUN_TEST(test_plasma_fadeOut_dims);
+	RUN_TEST(test_plasma_fadeOut_transitions_to_off);
+
+	// 8. isFullyOpaque Tests
+	RUN_TEST(test_plasma_isFullyOpaque_when_on);
+	RUN_TEST(test_plasma_isFullyOpaque_when_off);
+	RUN_TEST(test_plasma_isFullyOpaque_when_fading);
 
 	return UNITY_END();
 }

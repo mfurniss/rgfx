@@ -11,8 +11,8 @@ import {
 } from '@mui/material';
 import { Terminal as TerminalIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
 import { useUiStore, SimulatorAutoInterval } from '../store/ui-store';
-import SuperButton from '../components/super-button';
-import { PageTitle } from '../components/page-title';
+import SuperButton from '../components/common/super-button';
+import { PageTitle } from '../components/layout/page-title';
 
 export default function SimulatorPage() {
   const simulatorRows = useUiStore((state) => state.simulatorRows);

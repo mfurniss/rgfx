@@ -15,6 +15,10 @@ echo "📦 rgfx-hub"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$ROOT_DIR/rgfx-hub"
 
+echo "🔒 Checking for dependency vulnerabilities..."
+npm audit --audit-level=critical
+echo "✅ No critical vulnerabilities found"
+
 echo "📝 TypeScript type checking..."
 npm run typecheck
 echo "✅ TypeScript passed"
@@ -30,6 +34,15 @@ echo "✅ No unused exports found"
 echo "🧪 Running tests..."
 npm test
 echo "✅ Tests passed"
+
+echo "📦 Checking for unused dependencies..."
+# Note: colord and d3-scale may be unused - audit separately
+npx depcheck --ignores="@types/*,electron,@electron-forge/*,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,png2icons,colord,d3-scale,@eslint/*"
+echo "✅ No unused dependencies found"
+
+echo "📜 Checking dependency licenses..."
+npx license-checker --onlyAllow "MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0"
+echo "✅ All licenses are permissive"
 
 echo ""
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import SerialPortSelector from '@/renderer/components/serial-port-selector';
+import SerialPortSelector from '@/renderer/components/firmware/serial-port-selector';
 
 describe('SerialPortSelector', () => {
   afterEach(() => {
@@ -38,7 +38,8 @@ describe('SerialPortSelector', () => {
       />,
     );
 
-    const select = screen.getByRole('combobox');
-    expect(select.getAttribute('aria-disabled')).toBe('true');
+    // MUI Select renders with aria-disabled on the input element
+    const select = screen.getByText('Select a port...');
+    expect(select.closest('[aria-disabled="true"]')).not.toBeNull();
   });
 });
