@@ -15,10 +15,9 @@ echo "📦 rgfx-hub"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$ROOT_DIR/rgfx-hub"
 
-# TODO: Re-enable after fixing electron-icon-builder vulnerability
-# echo "🔒 Checking for dependency vulnerabilities..."
-# npm audit --audit-level=critical
-# echo "✅ No critical vulnerabilities found"
+echo "🔒 Checking for dependency vulnerabilities..."
+npm audit --audit-level=critical
+echo "✅ No critical vulnerabilities found"
 
 echo "📝 TypeScript type checking..."
 npm run typecheck
@@ -38,7 +37,7 @@ echo "✅ Tests passed"
 
 echo "📦 Checking for unused dependencies..."
 # Note: colord and d3-scale may be unused - audit separately
-npx depcheck --ignores="@types/*,electron,@electron-forge/*,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,electron-icon-builder,colord,d3-scale,@eslint/*"
+npx depcheck --ignores="@types/*,electron,@electron-forge/*,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,png2icons,colord,d3-scale,@eslint/*"
 echo "✅ No unused dependencies found"
 
 echo "📜 Checking dependency licenses..."
