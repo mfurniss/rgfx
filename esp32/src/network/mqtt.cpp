@@ -372,6 +372,9 @@ void mqttLoop() {
 	}
 }
 
+// Pre-allocated buffer for telemetry serialization (avoids heap fragmentation)
+static char telemetryBuffer[1024];
+
 // Send driver telemetry message (initial connection and periodic heartbeat)
 void sendDriverTelemetry() {
 	if (!mqttClient.connected()) {
@@ -381,21 +384,21 @@ void sendDriverTelemetry() {
 	// Get full system telemetry (including LED config)
 	JsonDocument doc = Telemetry::getTelemetry(g_driverConfig, g_configReceived);
 
-	// Serialize to string
-	String payload;
-	serializeJson(doc, payload);
+	// Serialize to pre-allocated buffer (avoids String heap allocation)
+	size_t len = serializeJson(doc, telemetryBuffer, sizeof(telemetryBuffer));
 
 	// Publish to unified telemetry topic with QoS 0 (fire-and-forget)
 	// QoS 0 is appropriate for periodic telemetry - missing one message is acceptable
 	// since identical data is resent every 10 seconds
-	bool result = mqttClient.publish("rgfx/system/driver/telemetry", payload.c_str(), false, 0);
+	bool result = mqttClient.publish("rgfx/system/driver/telemetry", telemetryBuffer, false, 0);
 
 	if (result) {
 		log("Driver telemetry sent (QoS 0)");
 	} else {
 		log("Failed to send driver telemetry");
-		log("Payload size: " + String(payload.length()) + " bytes");
-		log("Error: " + String(mqttClient.lastError()));
+		char errBuf[64];
+		snprintf(errBuf, sizeof(errBuf), "Payload size: %u bytes, Error: %d", (unsigned)len, mqttClient.lastError());
+		log(errBuf);
 	}
 }
 
