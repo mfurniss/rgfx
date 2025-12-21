@@ -103,7 +103,18 @@ describe('zod-introspection', () => {
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
-        expect(fieldMap.get('enabled')?.type).toBe('boolean');
+        expect(fieldMap.get('enabled')?.type).toBe('enum');
+      });
+
+      it('should extract enabled field with all state options', () => {
+        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const enabledField = fields.find((f) => f.name === 'enabled');
+
+        expect(enabledField).toBeDefined();
+        expect(enabledField?.type).toBe('enum');
+        expect(enabledField?.constraints?.enumValues).toEqual(
+          expect.arrayContaining(['off', 'on', 'fadeIn', 'fadeOut']),
+        );
       });
 
       it('should extract color field as color type (not enum)', () => {
@@ -173,7 +184,7 @@ describe('zod-introspection', () => {
         const enabledField = fields.find((f) => f.name === 'enabled');
 
         expect(colorField?.description).toContain('Background color');
-        expect(enabledField?.description).toContain('Show or hide');
+        expect(enabledField?.description).toContain('fadeIn');
       });
     });
   });

@@ -5,22 +5,22 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-interface GradientPreset {
+interface PlasmaPreset {
   name: string;
   gradient: string[];
   speed: number;
   scale: number;
 }
 
-export const gradientPresets: GradientPreset[] = [
+export const plasmaPresets: PlasmaPreset[] = [
   {
-    name: 'Rainbow',
+    name: 'Acid Haus',
     gradient: ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'],
     speed: 3,
     scale: 4,
   },
   {
-    name: 'The Deep Blue',
+    name: 'The Deep',
     gradient: ['#002851', '#003e74', '#12706d', '#00424a', '#00473c', '#002851'],
     speed: 1.5,
     scale: 1.5,
@@ -35,28 +35,28 @@ export const gradientPresets: GradientPreset[] = [
     scale: 2,
   },
   {
-    name: 'Clouds',
+    name: 'McLeod\'s Clouds',
     gradient: ['#408080', '#408080', '#B0B0B0', '#408080', '#408080'],
     speed: 0.8,
     scale: 1,
   },
   {
-    name: 'Limeurple',
+    name: 'Lime Dream',
     gradient: ['#700070', '#B0FF00', '#300050', '#700070'],
     speed: 6,
     scale: 5,
+  },
+  {
+    name: 'Lavarama',
+    gradient: ['#400000', '#400000', '#FF4500', '#FFD700', '#400000'],
+    speed: 3,
+    scale: 4,
   },
   {
     name: 'Hot Fuzz',
     gradient: ['#FF0000', '#000000', '#000000', '#0000FF'],
     speed: 17,
     scale: 0.5,
-  },
-  {
-    name: 'Lava',
-    gradient: ['#400000', '#400000', '#FF4500', '#FFD700', '#400000'],
-    speed: 3,
-    scale: 4,
   },
   {
     name: 'Statictastic',
@@ -69,8 +69,8 @@ export const gradientPresets: GradientPreset[] = [
   },
 ];
 
-export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {
-  return gradientPresets.find(
+export function findPresetByGradient(gradient: string[]): PlasmaPreset | undefined {
+  return plasmaPresets.find(
     (p) =>
       p.gradient.length === gradient.length &&
       p.gradient.every((color, i) => color === gradient[i]),

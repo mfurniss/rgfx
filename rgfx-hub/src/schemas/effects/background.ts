@@ -16,14 +16,18 @@ import color from './properties/color';
  * Renders FIRST, before all other effects.
  *
  * Note: Does not extend baseEffect because:
- * - 'reset' doesn't make sense for a singleton effect (use enabled: false instead)
+ * - 'reset' doesn't make sense for a singleton effect (use enabled: 'off' instead)
  * - Background has different semantics than animated effects
  */
 export default z
   .object({
     name: z.literal('Background'),
     description: z.literal('Solid color background fill'),
-    color: color.describe('Background color (not needed when enabled is false)'),
-    enabled: z.boolean().optional().default(true).describe('Show or hide the background'),
+    color: color.describe('Background color (not needed when enabled is off)'),
+    enabled: z
+      .enum(['off', 'on', 'fadeIn', 'fadeOut'])
+      .optional()
+      .default('on')
+      .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();
