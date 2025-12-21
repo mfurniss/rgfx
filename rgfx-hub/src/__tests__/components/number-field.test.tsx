@@ -9,7 +9,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
 import { useForm } from 'react-hook-form';
-import { NumberField } from '@/renderer/components/number-field';
+import { NumberField } from '@/renderer/components/common/number-field';
 
 interface TestFormValues {
   pin: number | null;

@@ -19,7 +19,7 @@ import {
   FolderOpen,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 import { useColorScheme } from '@mui/material/styles';
 import { useUiStore } from '../store/ui-store';
 import { useAppInfoStore } from '../store/app-info-store';

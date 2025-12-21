@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import type { Driver } from '@/types';
-import SuperButton from './super-button';
+import SuperButton from '../common/super-button';
 
 interface RestartDriverButtonProps {
   driver: Driver;

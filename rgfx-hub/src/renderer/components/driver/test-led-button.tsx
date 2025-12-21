@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Science as ScienceIcon } from '@mui/icons-material';
 import type { Driver } from '@/types';
-import SuperButton from './super-button';
+import SuperButton from '../common/super-button';
 
 interface TestLedButtonProps {
   driver: Driver;

@@ -8,14 +8,14 @@ import {
   ToggleButtonGroup,
   ToggleButton,
 } from '@mui/material';
-import LogDisplay from '../components/log-display';
-import FlashResultDialog from '../components/flash-result-dialog';
-import ConfirmFlashDialog from '../components/confirm-flash-dialog';
-import SerialPortSelector from '../components/serial-port-selector';
-import { TargetDriversPicker } from '../components/target-drivers-picker';
-import SuperButton from '../components/super-button';
+import LogDisplay from '../components/common/log-display';
+import FlashResultDialog from '../components/firmware/flash-result-dialog';
+import ConfirmFlashDialog from '../components/firmware/confirm-flash-dialog';
+import SerialPortSelector from '../components/firmware/serial-port-selector';
+import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
+import SuperButton from '../components/common/super-button';
 import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as FirmwareIcon } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore, type FlashMethod, type DriverFlashStatus } from '../store/ui-store';

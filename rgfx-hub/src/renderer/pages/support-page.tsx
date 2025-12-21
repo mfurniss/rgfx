@@ -4,7 +4,7 @@ import {
   HelpOutline as SupportIcon,
   MenuBook as DocsIcon,
 } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 import { useAppInfoStore } from '../store/app-info-store';
 
 const SupportPage: React.FC = () => {

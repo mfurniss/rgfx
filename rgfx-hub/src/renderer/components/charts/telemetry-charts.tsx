@@ -8,8 +8,8 @@
 import React from 'react';
 import { Box, Typography, Divider, Stack, useColorScheme } from '@mui/material';
 import { Timeline as TimelineIcon } from '@mui/icons-material';
-import { useTelemetryHistoryStore, type TelemetryDataPoint } from '../store/telemetry-history-store';
-import { formatBytes } from '../utils/formatters';
+import { useTelemetryHistoryStore, type TelemetryDataPoint } from '../../store/telemetry-history-store';
+import { formatBytes } from '../../utils/formatters';
 import { LineChart } from './line-chart';
 
 interface TelemetryChartsProps {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Alert, Box, Paper } from '@mui/material';
 import { Dashboard as DashboardIcon } from '@mui/icons-material';
-import SystemStatus from '../components/system-status';
+import SystemStatus from '../components/system/system-status';
 import { useDriverStore } from '../store/driver-store';
-import { PageTitle } from '../components/page-title';
+import { PageTitle } from '../components/layout/page-title';
 
 const SystemStatusPage: React.FC = () => {
   const systemStatus = useDriverStore((state) => state.systemStatus);

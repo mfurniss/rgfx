@@ -24,9 +24,9 @@ import {
   Science as ScienceIcon,
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
-import { PageTitle } from '../components/page-title';
-import { TargetDriversPicker } from '../components/target-drivers-picker';
-import SuperButton from '../components/super-button';
+import { PageTitle } from '../components/layout/page-title';
+import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
+import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
