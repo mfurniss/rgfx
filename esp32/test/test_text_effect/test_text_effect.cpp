@@ -372,6 +372,244 @@ void test_text_position_offset() {
 }
 
 // =============================================================================
+// 4. Text Wrapping Tests
+// =============================================================================
+
+// Helper to check if pixel is lit at a given canvas coordinate
+bool isPixelLit(Canvas& canvas, int16_t x, int16_t y) {
+	if (x < 0 || y < 0 || x >= canvas.getWidth() || y >= canvas.getHeight()) {
+		return false;
+	}
+	CRGB pixel = canvas.getPixel(x, y);
+	return pixel.r > 0 || pixel.g > 0 || pixel.b > 0;
+}
+
+// Helper to check if any pixel in a character cell is lit
+// charX/charY are in character units (not canvas pixels)
+bool isCharCellLit(Canvas& canvas, int charX, int charY) {
+	// Each character is CHAR_WIDTH x CHAR_HEIGHT canvas pixels (32x32)
+	int16_t startX = charX * CHAR_WIDTH;
+	int16_t startY = charY * CHAR_HEIGHT;
+
+	for (int16_t y = startY; y < startY + CHAR_HEIGHT && y < canvas.getHeight(); y++) {
+		for (int16_t x = startX; x < startX + CHAR_WIDTH && x < canvas.getWidth(); x++) {
+			if (isPixelLit(canvas, x, y)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void test_text_no_wrap_when_fits() {
+	// 4 characters wide canvas (4 * 32 = 128 canvas pixels)
+	// Text "AB" (2 chars) should fit on one row
+	Matrix matrix(32, 8);  // 128x32 canvas
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "AB";
+	props["x"] = 0;
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	printCanvas(canvas, 128, 64);
+
+	// Both characters should be on row 0
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 0));  // 'A' at char position (0,0)
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));  // 'B' at char position (1,0)
+
+	// Row 1 should be empty
+	TEST_ASSERT_FALSE(isCharCellLit(canvas, 0, 1));
+	TEST_ASSERT_FALSE(isCharCellLit(canvas, 1, 1));
+}
+
+void test_text_wraps_to_next_row() {
+	// 2 characters wide canvas (2 * 32 = 64 canvas pixels)
+	// Text "ABC" (3 chars) should wrap: "AB" on row 0, "C" on row 1
+	Matrix matrix(16, 16);  // 64x64 canvas (2 chars wide, 2 chars tall)
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "ABC";
+	props["x"] = 0;
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	printCanvas(canvas, 64, 64);
+
+	// Row 0: 'A' and 'B'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 0));  // 'A'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));  // 'B'
+
+	// Row 1: 'C' at x=0
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));  // 'C'
+	TEST_ASSERT_FALSE(isCharCellLit(canvas, 1, 1));  // Empty
+}
+
+void test_text_wraps_multiple_rows() {
+	// 2 characters wide canvas
+	// Text "ABCDEF" (6 chars) should wrap: "AB" row 0, "CD" row 1, "EF" row 2
+	Matrix matrix(16, 24);  // 64x96 canvas (2 chars wide, 3 chars tall)
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "ABCDEF";
+	props["x"] = 0;
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	printCanvas(canvas, 64, 96);
+
+	// Row 0: 'A' and 'B'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 0));
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));
+
+	// Row 1: 'C' and 'D'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 1));
+
+	// Row 2: 'E' and 'F'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 2));
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 2));
+}
+
+void test_text_wrap_with_starting_offset() {
+	// 2 characters wide canvas (64 canvas pixels)
+	// Starting at x=32 means only 1 char fits on first row
+	// Text "ABC" should wrap: "A" row 0 at x=32, "BC" row 1 at x=0
+	Matrix matrix(16, 16);  // 64x64 canvas
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "ABC";
+	props["x"] = 32;  // Start at 1 char offset
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	printCanvas(canvas, 64, 64);
+
+	// Row 0: 'A' at x=32 (char position 1)
+	TEST_ASSERT_FALSE(isCharCellLit(canvas, 0, 0));  // x=0 empty
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));   // 'A' at x=32
+
+	// Row 1: 'B' at x=0, 'C' at x=32 (uses full width)
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));   // 'B'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 1));   // 'C'
+}
+
+void test_text_wrap_first_row_empty_when_x_exceeds_width() {
+	// 2 characters wide canvas (64 canvas pixels)
+	// Starting at x=64 means 0 chars fit on first row
+	// Text "AB" should wrap: nothing on row 0, "AB" on row 1
+	Matrix matrix(16, 16);  // 64x64 canvas
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "AB";
+	props["x"] = 64;  // Start at canvas edge
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	printCanvas(canvas, 64, 64);
+
+	// Row 0: empty (x=64 leaves no room)
+	TEST_ASSERT_FALSE(isCharCellLit(canvas, 0, 0));
+	TEST_ASSERT_FALSE(isCharCellLit(canvas, 1, 0));
+
+	// Row 1: 'A' at x=0, 'B' at x=32
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));   // 'A'
+	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 1));   // 'B'
+}
+
+void test_text_wrap_preserves_color() {
+	Matrix matrix(16, 16);  // 64x64 canvas
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "AB";
+	props["color"] = "#FF0000";  // Red
+	props["x"] = 32;  // Force wrap
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Find any lit pixel and verify it's red
+	bool foundRed = false;
+	for (uint16_t y = 0; y < canvas.getHeight() && !foundRed; y++) {
+		for (uint16_t x = 0; x < canvas.getWidth() && !foundRed; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r > 0) {
+				TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+				TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
+				TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
+				foundRed = true;
+			}
+		}
+	}
+	TEST_ASSERT_TRUE(foundRed);
+}
+
+void test_text_wrap_with_accent() {
+	Matrix matrix(16, 16);  // 64x64 canvas
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["text"] = "AB";
+	props["color"] = "#FFFFFF";
+	props["accentColor"] = "#0000FF";  // Blue accent
+	props["x"] = 32;  // Force wrap
+	props["y"] = 0;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	printCanvas(canvas, 64, 64);
+
+	// Should have both white and blue pixels
+	bool foundWhite = false;
+	bool foundBlue = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
+				foundWhite = true;
+			}
+			if (pixel.b > 0 && pixel.r == 0 && pixel.g == 0) {
+				foundBlue = true;
+			}
+		}
+	}
+	TEST_ASSERT_TRUE(foundWhite);
+	TEST_ASSERT_TRUE(foundBlue);
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -392,6 +630,15 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_text_fades_after_halfway);
 	RUN_TEST(test_text_permanent_no_fade);
 	RUN_TEST(test_text_position_offset);
+
+	// Text wrapping tests
+	RUN_TEST(test_text_no_wrap_when_fits);
+	RUN_TEST(test_text_wraps_to_next_row);
+	RUN_TEST(test_text_wraps_multiple_rows);
+	RUN_TEST(test_text_wrap_with_starting_offset);
+	RUN_TEST(test_text_wrap_first_row_empty_when_x_exceeds_width);
+	RUN_TEST(test_text_wrap_preserves_color);
+	RUN_TEST(test_text_wrap_with_accent);
 
 	return UNITY_END();
 }

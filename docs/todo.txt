@@ -112,4 +112,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Bug - explode center pulse still showing white
 [X] Complete driver detail page
 [X] telemetry charts
-[ ] Clean up component directories
+[X] Clean up component directories
+[ ] Wrap text effect to rows
+[ ] Optional fade in/out on background and plasma
+[ ] Waiting to connect glow
