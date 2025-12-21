@@ -192,7 +192,7 @@ export const useDriverStore = create<DriverStoreState>()(
               timestamp: Date.now(),
               freeHeap: driver.freeHeap ?? 0,
               heapSize: driver.telemetry.heapSize,
-              maxAllocHeap: driver.telemetry.maxAllocHeap ?? driver.telemetry.heapSize,
+              maxAllocHeap: driver.telemetry.maxAllocHeap,
               fps: driver.telemetry.currentFps,
               minFps: driver.telemetry.minFps,
               maxFps: driver.telemetry.maxFps,
