@@ -24,7 +24,7 @@ export default z
     speed: z
       .number()
       .min(0.1)
-      .max(10)
+      .max(20)
       .optional()
       .default(3)
       .describe('Animation speed multiplier (1 = normal speed)'),

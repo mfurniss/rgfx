@@ -18,7 +18,7 @@ export default baseEffect
     name: z.literal('Scroll Text'),
     description: z.literal('Scrolling text marquee'),
     reset: z.boolean().optional().default(true).describe('Clear existing scroll text before adding new'),
-    text: z.string().max(64).default("Hidey Ho! it's the FX Playground!").describe('Text to scroll (max 64 chars)'),
+    text: z.string().max(64).default("Hidey Ho! it's the RGFX Show!").describe('Text to scroll (max 64 chars)'),
     color: z.string().optional().default('#808000').describe('Text color (hex or named)'),
     accentColor: z.string().optional().default('#006060').describe('Optional accent/shadow color (hex or named)'),
     y: z.number().int().optional().default(0).describe('Y position in canvas coordinates'),
