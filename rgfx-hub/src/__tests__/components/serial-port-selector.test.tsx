@@ -38,7 +38,8 @@ describe('SerialPortSelector', () => {
       />,
     );
 
-    const select = screen.getByRole('combobox');
-    expect(select.getAttribute('aria-disabled')).toBe('true');
+    // MUI Select renders with aria-disabled on the input element
+    const select = screen.getByText('Select a port...');
+    expect(select.closest('[aria-disabled="true"]')).not.toBeNull();
   });
 });
