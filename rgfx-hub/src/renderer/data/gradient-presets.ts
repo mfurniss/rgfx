@@ -20,22 +20,10 @@ export const gradientPresets: GradientPreset[] = [
     scale: 4,
   },
   {
-    name: 'Sunset',
-    gradient: ['#FF4500', '#FF6347', '#FFD700', '#FF8C00', '#8B0000'],
-    speed: 3,
-    scale: 4,
-  },
-  {
     name: 'The Deep Blue',
     gradient: ['#002851', '#003e74', '#12706d', '#00424a', '#00473c', '#002851'],
     speed: 1.5,
     scale: 1.5,
-  },
-  {
-    name: 'Fire',
-    gradient: ['#8B0000', '#FF0000', '#FF4500', '#FFD700', '#FFFF00'],
-    speed: 3,
-    scale: 4,
   },
   {
     name: 'Alien Goo',
@@ -47,22 +35,37 @@ export const gradientPresets: GradientPreset[] = [
     scale: 2,
   },
   {
-    name: 'Monochrome',
-    gradient: ['#000000', '#A0A0A0', '#000000'],
-    speed: 6,
-    scale: 7,
+    name: 'Clouds',
+    gradient: ['#408080', '#408080', '#B0B0B0', '#408080', '#408080'],
+    speed: 0.8,
+    scale: 1,
   },
   {
-    name: 'Neon',
-    gradient: ['#700070', '#FF8000', '#300050', '#700070'],
+    name: 'Limeurple',
+    gradient: ['#700070', '#B0FF00', '#300050', '#700070'],
     speed: 6,
-    scale: 7,
+    scale: 5,
+  },
+  {
+    name: 'Hot Fuzz',
+    gradient: ['#FF0000', '#000000', '#000000', '#0000FF'],
+    speed: 17,
+    scale: 0.5,
   },
   {
     name: 'Lava',
     gradient: ['#400000', '#400000', '#FF4500', '#FFD700', '#400000'],
     speed: 3,
     scale: 4,
+  },
+  {
+    name: 'Statictastic',
+    gradient: [
+      '#000000', '#808080', '#000000', '#000000', '#B0B0B0', '#000000', '#000000', '#707070',
+      '#000000', '#000000', '#808080', '#000000', '#000000', '#A0A0A0', '#000000',
+    ],
+    speed: 15,
+    scale: 10,
   },
 ];
 
