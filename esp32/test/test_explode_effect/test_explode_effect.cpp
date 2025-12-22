@@ -336,7 +336,7 @@ void test_explode_power_spread_affects_velocity_variation() {
 	JsonDocument props;
 	props["particleCount"] = 50;
 	props["power"] = 30;
-	props["powerSpread"] = 2.0;  // Large variation
+	props["powerSpread"] = 100;  // Large variation (±100%)
 	props["friction"] = 1.0;
 	props["lifespan"] = 5000;
 
@@ -754,7 +754,7 @@ void test_explode_lifespan_spread_affects_expiration() {
 	JsonDocument props;
 	props["particleCount"] = 100;
 	props["lifespan"] = 500;
-	props["lifespanSpread"] = 2.0;  // Wide variation
+	props["lifespanSpread"] = 100;  // Wide variation (±100%)
 
 	effect.add(props);
 
