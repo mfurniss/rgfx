@@ -22,10 +22,10 @@ export default baseEffect
     friction: z.number().min(0).max(50).optional().default(3.0).describe('Air resistance slowing particles'),
     hueSpread: z.number().int().min(0).max(359).optional().default(0).describe('Color variation in degrees'),
     lifespan: z.number().positive().optional().default(700).describe('Particle lifetime in milliseconds'),
-    lifespanSpread: z.number().min(0).optional().default(60).describe('Lifespan variation percentage (0=none, 100=±100%)'),
+    lifespanSpread: z.number().min(0).optional().default(50).describe('Lifespan variation percentage (0=none, 100=±100%)'),
     particleCount: z.number().int().min(1).max(500).optional().default(100).describe('Number of particles to spawn'),
     particleSize: z.number().int().min(1).max(16).optional().default(6).describe('Size of each particle in pixels'),
-    power: z.number().min(1).max(1000).optional().default(70).describe('Initial velocity of particles'),
-    powerSpread: z.number().min(0).optional().default(60).describe('Power variation percentage (0=none, 100=±100%)'),
+    power: z.number().min(1).max(1000).optional().default(60).describe('Initial velocity of particles'),
+    powerSpread: z.number().min(0).optional().default(80).describe('Power variation percentage (0=none, 100=±100%)'),
   })
   .strict();

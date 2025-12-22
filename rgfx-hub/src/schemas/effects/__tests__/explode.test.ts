@@ -24,11 +24,11 @@ describe('explodeSchema', () => {
         expect(result.data.friction).toBe(3.0);
         expect(result.data.hueSpread).toBe(0);
         expect(result.data.lifespan).toBe(700);
-        expect(result.data.lifespanSpread).toBe(60);
+        expect(result.data.lifespanSpread).toBe(50);
         expect(result.data.particleCount).toBe(100);
         expect(result.data.particleSize).toBe(6);
-        expect(result.data.power).toBe(70);
-        expect(result.data.powerSpread).toBe(60);
+        expect(result.data.power).toBe(60);
+        expect(result.data.powerSpread).toBe(80);
       }
     });
 
