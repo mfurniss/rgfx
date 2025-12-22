@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Random Trigger button in FX Playground - randomizes all effect parameters and triggers immediately
+  - Positioned next to Trigger Effect button with shuffle icon
+  - Intelligently randomizes based on field type: numbers respect min/max/integer constraints, enums pick from valid values, colors use weighted distribution (70% named colors, 20% hex, 10% 'random')
+  - Updates form to show randomized values after triggering
+  - Provides quick way to experiment with random effect variations on hardware
+- Reset button in FX Playground form to restore current effect to default values
+  - Positioned next to effect selector dropdown
+  - Uses RestartAlt icon for clear visual indication
+- `scalePower` boolean parameter to explode effect - enables moderate dimension-aware power scaling (default: true)
+  - When enabled, scales velocity uniformly using half-linear scaling to maintain circular explosion shape
+  - Uses reference dimension of 128 (canvas size for 32x32 matrix) for balanced growth
+  - 32x16 matrix: velocity scaled by 1.0x ((32×4)/128 = 1.0)
+  - 96x8 matrix: velocity scaled by 3.0x ((96×4)/128 = 3.0)
+  - Provides moderate scaling between square root (too gentle) and full linear (too aggressive)
+  - Internal variable renamed from `powerScale` to `scalePowerFactor` for clarity
+  - Defaults to enabled for backward compatibility (original code always scaled)
 - Text effect auto-wrapping - text now wraps to the next row when it exceeds canvas width
   - Character-level wrapping (wraps at any character, not word boundaries)
   - First row respects starting x position, subsequent rows use full width
