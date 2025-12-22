@@ -604,6 +604,7 @@ void test_explode_matrix_2d_radial() {
 	props["power"] = 30;
 	props["friction"] = 1.0;
 	props["lifespan"] = 5000;
+	props["scalePower"] = false;  // Disable scaling for predictable spread
 
 	effect.add(props);
 	effect.update(0.1f);
@@ -736,6 +737,7 @@ void test_explode_particles_removed_when_off_canvas() {
 	props["power"] = 200;  // High power to exit canvas quickly
 	props["friction"] = 0;
 	props["lifespan"] = 10000;
+	props["scalePower"] = false;  // Disable scaling for predictable exit velocity
 
 	effect.add(props);
 
@@ -966,6 +968,7 @@ void test_explode_snapshot_after_spread() {
 	props["lifespan"] = 5000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
+	props["scalePower"] = false;  // Disable scaling for predictable spread
 
 	effect.add(props);
 	effect.update(0.2f);  // Allow spread

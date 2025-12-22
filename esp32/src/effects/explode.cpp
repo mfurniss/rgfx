@@ -27,11 +27,6 @@ void ExplodeEffect::add(JsonDocument& props) {
 
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
-	// Scale power relative to largest matrix dimension (canvas is 4x matrix size)
-	uint16_t largestDimension = max(matrix.width, matrix.height);
-	float powerScale = static_cast<float>(largestDimension * 4) / 64.0f;
-	float scaledPower = power * powerScale;
-
 	// Parse center position as percentage (0-100), "random", or default to center (50%)
 	float centerXPercent = 50.0f;
 	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
@@ -64,7 +59,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		Flash flash;
 		flash.centerX = centerX;
 		// Flash width proportional to power, capped at 30% of canvas width
-		flash.initialWidth = min(scaledPower * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
+		flash.initialWidth = min(power * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
 		flash.duration = (lifespan * 0.35f) / 1000.0f;  // 35% of lifespan, in seconds
 		flash.age = 0.0f;
 		flash.r = baseR;
@@ -90,9 +85,9 @@ void ExplodeEffect::add(JsonDocument& props) {
 		p.friction = friction;
 		p.particleSize = static_cast<uint8_t>(min(particleSize, 255u));
 
-		// Calculate velocity with power variation based on powerSpread (percentage)
+		// Calculate power with optional variation based on powerSpread (percentage)
 		float powerVariation =
-			scaledPower *
+			power *
 			(1.0f + (static_cast<float>(hal::random(-100, 100)) / 100.0f) * (powerSpread / 100.0f));
 
 		if (isStrip) {
@@ -104,6 +99,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 			// Matrix: Full 2D explosion with radial distribution
 			float angle = (static_cast<float>(i) / particleCount) * 2.0f * PI;
 			angle += (static_cast<float>(hal::random(-100, 100)) / 100.0f) * 0.3f;
+			// Apply uniform scaling to maintain circular shape
 			p.vx = cos(angle) * powerVariation;
 			p.vy = sin(angle) * powerVariation;
 		}
@@ -272,26 +268,10 @@ void ExplodeEffect::render() {
 			int16_t y = centerY - halfSize;
 			int16_t sizeS = static_cast<int16_t>(size);
 
-			// Skip particles completely off-canvas
-			if (x + sizeS <= 0 || x >= static_cast<int16_t>(width) ||
-			    y + sizeS <= 0 || y >= static_cast<int16_t>(height)) {
-				continue;
-			}
-
-			// Clip to canvas bounds for partially visible particles
-			uint16_t clippedX = (x < 0) ? 0 : static_cast<uint16_t>(x);
-			uint16_t clippedY = (y < 0) ? 0 : static_cast<uint16_t>(y);
-			uint16_t clippedW = (x < 0) ? static_cast<uint16_t>(sizeS + x) : size;
-			uint16_t clippedH = (y < 0) ? static_cast<uint16_t>(sizeS + y) : size;
-
-			if (clippedX + clippedW > width) clippedW = width - clippedX;
-			if (clippedY + clippedH > height) clippedH = height - clippedY;
-
-			if (clippedW > 0 && clippedH > 0) {
-				canvas.drawRectangle(clippedX, clippedY, clippedW, clippedH,
-				                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
-				                     BlendMode::ADDITIVE);
-			}
+			// Canvas handles all clipping safely via signed drawRectangle API
+			canvas.drawRectangle(x, y, sizeS, sizeS,
+			                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
+			                     BlendMode::ADDITIVE);
 		}
 	}
 }

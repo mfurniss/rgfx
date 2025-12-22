@@ -13,14 +13,6 @@ All notable changes to this project will be documented in this file.
 - Reset button in FX Playground form to restore current effect to default values
   - Positioned next to effect selector dropdown
   - Uses RestartAlt icon for clear visual indication
-- `scalePower` boolean parameter to explode effect - enables moderate dimension-aware power scaling (default: true)
-  - When enabled, scales velocity uniformly using half-linear scaling to maintain circular explosion shape
-  - Uses reference dimension of 128 (canvas size for 32x32 matrix) for balanced growth
-  - 32x16 matrix: velocity scaled by 1.0x ((32×4)/128 = 1.0)
-  - 96x8 matrix: velocity scaled by 3.0x ((96×4)/128 = 3.0)
-  - Provides moderate scaling between square root (too gentle) and full linear (too aggressive)
-  - Internal variable renamed from `powerScale` to `scalePowerFactor` for clarity
-  - Defaults to enabled for backward compatibility (original code always scaled)
 - Text effect auto-wrapping - text now wraps to the next row when it exceeds canvas width
   - Character-level wrapping (wraps at any character, not word boundaries)
   - First row respects starting x position, subsequent rows use full width
@@ -95,6 +87,11 @@ All notable changes to this project will be documented in this file.
   - `processEvent()` in `main.ts` now emits via event bus instead of direct IPC
 
 ### Fixed
+- Explode effect particles wrapping to wrong canvas edges on non-square matrices
+  - Root cause: Manual clipping had integer wraparound bugs (negative coords wrapped to ~65000)
+  - Solution: Removed manual clipping, use Canvas signed drawRectangle API (handles all edge cases)
+  - Removed `scalePower` parameter entirely - power values are now raw (no automatic scaling)
+  - Users should adjust power values based on their specific LED matrix configuration
 - Effects playground broadcasting to all drivers when none selected
   - Now requires at least one driver to be selected before triggering effects
 - Driver selector now auto-selects on each page visit

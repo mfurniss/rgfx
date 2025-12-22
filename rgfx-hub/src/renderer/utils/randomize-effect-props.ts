@@ -59,7 +59,6 @@ function randomizeExplode(): Record<string, unknown> {
     particleSize: randomInt(1, 16),
     power: randomInt(0, 1000),
     powerSpread: randomInt(0, 100),
-    scalePower: true,
   };
 }
 

@@ -27,6 +27,5 @@ export default baseEffect
     particleSize: z.number().int().min(1).max(16).optional().default(6).describe('Size of each particle in pixels'),
     power: z.number().min(1).max(1000).optional().default(100).describe('Initial velocity of particles'),
     powerSpread: z.number().min(0).optional().default(80).describe('Power variation percentage (0=none, 100=±100%)'),
-    scalePower: z.boolean().optional().default(true).describe('Scale power by matrix dimensions using geometric mean'),
   })
   .strict();
