@@ -10,8 +10,7 @@ import { join } from 'node:path';
 import { app } from 'electron';
 import log from 'electron-log/main';
 import { EventEmitter } from 'node:events';
-
-const POLL_INTERVAL_MS = 5000;
+import { FIRMWARE_WATCHER_POLL_INTERVAL_MS } from '../config/constants';
 
 export class FirmwareWatcher extends EventEmitter {
   private readonly firmwareDir: string;
@@ -95,9 +94,9 @@ export class FirmwareWatcher extends EventEmitter {
       this.pollInterval = setInterval(() => {
         log.debug('[FirmwareWatcher] Polling for firmware updates...');
         this.checkForFirmwareUpdate();
-      }, POLL_INTERVAL_MS);
+      }, FIRMWARE_WATCHER_POLL_INTERVAL_MS);
 
-      log.info(`[FirmwareWatcher] Polling started (interval: ${POLL_INTERVAL_MS}ms)`);
+      log.info(`[FirmwareWatcher] Polling started (interval: ${FIRMWARE_WATCHER_POLL_INTERVAL_MS}ms)`);
     }
   }
 

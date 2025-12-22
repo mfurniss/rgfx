@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { effectPropsSchemas } from '@/schemas';
-import { DEFAULT_FX_PLAYGROUND_EFFECT } from '@/config/constants';
+import { DEFAULT_FX_PLAYGROUND_EFFECT, SIMULATOR_ROW_COUNT } from '@/config/constants';
 
 function getDefaultPropsJson(effect: keyof typeof effectPropsSchemas): string {
   return JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
@@ -22,8 +22,6 @@ interface SimulatorRow {
   eventLine: string;
   autoInterval: SimulatorAutoInterval;
 }
-
-const SIMULATOR_ROW_COUNT = 6;
 
 interface UiState {
   // Driver table sort preferences
@@ -82,7 +80,7 @@ export const useUiStore = create<UiState>()(
       },
       testEffectsSelectedDrivers: [],
 
-      // Simulator defaults (6 empty rows)
+      // Simulator defaults
       simulatorRows: Array.from({ length: SIMULATOR_ROW_COUNT }, () => ({
         eventLine: '',
         autoInterval: 'off' as SimulatorAutoInterval,
@@ -148,6 +146,7 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'rgfx-ui-preferences',
+      version: 1,
       partialize: (state) => ({
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
@@ -158,6 +157,24 @@ export const useUiStore = create<UiState>()(
         testEffectsPropsMap: state.testEffectsPropsMap,
         testEffectsSelectedDrivers: state.testEffectsSelectedDrivers,
       }),
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as Partial<UiState>;
+
+        // Migrate simulator rows to match SIMULATOR_ROW_COUNT
+        if (state.simulatorRows && state.simulatorRows.length < SIMULATOR_ROW_COUNT) {
+          const additionalRows = SIMULATOR_ROW_COUNT - state.simulatorRows.length;
+          const newRows = [
+            ...state.simulatorRows,
+            ...Array.from({ length: additionalRows }, () => ({
+              eventLine: '',
+              autoInterval: 'off' as SimulatorAutoInterval,
+            })),
+          ];
+          state.simulatorRows = newRows;
+        }
+
+        return state as UiState;
+      },
     },
   ),
 );
