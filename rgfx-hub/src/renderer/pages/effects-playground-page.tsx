@@ -150,9 +150,24 @@ export default function TestEffectsPage() {
   const connectedDrivers = drivers.filter((d) => d.state === 'connected');
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
-  const propsJson = useUiStore((state) => state.testEffectsPropsJson);
+  const propsMap = useUiStore((state) => state.testEffectsPropsMap);
   const selectAll = useUiStore((state) => state.testEffectsSelectAll);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
+
+  // Get props JSON for current effect, falling back to defaults if not in map
+  const propsJson = useMemo(() => {
+    const savedProps = propsMap[selectedEffect];
+
+    if (savedProps) {
+      return savedProps;
+    }
+
+    if (isEffectName(selectedEffect)) {
+      return JSON.stringify(effectPropsSchemas[selectedEffect].parse({}), null, 2);
+    }
+
+    return '{}';
+  }, [propsMap, selectedEffect]);
 
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     new Set(connectedDrivers.map((d) => d.id)),
@@ -192,9 +207,10 @@ export default function TestEffectsPage() {
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {
-      const defaults = effectPropsSchemas[effect].parse({});
-      const newPropsJson = JSON.stringify(defaults, null, 2);
-      setTestEffectsState(effect, newPropsJson, selectedDrivers, selectAll);
+      // Get saved props for this effect, or use defaults
+      const savedProps = propsMap[effect];
+      const defaultProps = JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
+      setTestEffectsState(effect, savedProps || defaultProps, selectedDrivers, selectAll);
     }
   };
 

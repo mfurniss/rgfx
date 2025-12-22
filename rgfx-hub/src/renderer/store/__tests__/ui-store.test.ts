@@ -17,9 +17,11 @@ describe('useUiStore', () => {
       driverTableSortField: 'id',
       driverTableSortOrder: 'asc',
       testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
-      testEffectsPropsJson: JSON.stringify(
-        effectPropsSchemas[DEFAULT_FX_PLAYGROUND_EFFECT].parse({}), null, 2,
-      ),
+      testEffectsPropsMap: {
+        [DEFAULT_FX_PLAYGROUND_EFFECT]: JSON.stringify(
+          effectPropsSchemas[DEFAULT_FX_PLAYGROUND_EFFECT].parse({}), null, 2,
+        ),
+      },
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
       simulatorRows: Array.from({ length: 6 }, () => ({
@@ -85,9 +87,24 @@ describe('useUiStore', () => {
 
       const state = useUiStore.getState();
       expect(state.testEffectsSelectedEffect).toBe('wipe');
-      expect(state.testEffectsPropsJson).toBe('{"direction": "left"}');
+      expect(state.testEffectsPropsMap.wipe).toBe('{"direction": "left"}');
       expect(state.testEffectsSelectedDrivers).toEqual(['driver-1', 'driver-2']);
       expect(state.testEffectsSelectAll).toBe(true);
+    });
+
+    it('should retain props for each effect when switching', () => {
+      const { setTestEffectsState } = useUiStore.getState();
+
+      // Set props for pulse effect
+      setTestEffectsState('pulse', '{"color": "red"}', new Set(['d1']), false);
+
+      // Set props for wipe effect
+      setTestEffectsState('wipe', '{"direction": "up"}', new Set(['d1']), false);
+
+      // Both should be retained
+      const state = useUiStore.getState();
+      expect(state.testEffectsPropsMap.pulse).toBe('{"color": "red"}');
+      expect(state.testEffectsPropsMap.wipe).toBe('{"direction": "up"}');
     });
 
     it('should convert Set to array for selectedDrivers', () => {
