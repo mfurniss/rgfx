@@ -54,6 +54,11 @@ using String = std::string;
 
 using namespace test_helpers;
 
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+
+using namespace test_helpers;
+
 void setUp(void) {
 	hal::test::setTime(0);
 	hal::test::seedRandom(12345);
@@ -91,6 +96,7 @@ void test_background_add_enables() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FF0000";  // Red
 
 	effect.add(props);
@@ -108,6 +114,7 @@ void test_background_reset_disables() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	effect.add(props);
 
@@ -158,6 +165,7 @@ void test_background_multiple_add_calls() {
 	// Add multiple times
 	for (int i = 0; i < 10; i++) {
 		JsonDocument props;
+	setDefaultBackgroundProps(props);
 		props["color"] = "#FFFFFF";
 		effect.add(props);
 	}
@@ -181,6 +189,7 @@ void test_background_color_red() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FF0000";
 	effect.add(props);
 
@@ -198,6 +207,7 @@ void test_background_color_green() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#00FF00";
 	effect.add(props);
 
@@ -214,6 +224,7 @@ void test_background_color_blue() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#0000FF";
 	effect.add(props);
 
@@ -230,6 +241,7 @@ void test_background_color_black_default() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	// No color specified - should default to black
 	effect.add(props);
 
@@ -248,6 +260,7 @@ void test_background_white() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	effect.add(props);
 
@@ -271,6 +284,7 @@ void test_background_enabled_on() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FF0000";
 	props["enabled"] = "on";
 	effect.add(props);
@@ -367,6 +381,7 @@ void test_background_update_does_nothing_when_on() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "on";
 	effect.add(props);
@@ -395,6 +410,7 @@ void test_background_fadeIn_starts_dark() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "fadeIn";
 	effect.add(props);
@@ -415,6 +431,7 @@ void test_background_fadeIn_brightens() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "fadeIn";
 	effect.add(props);
@@ -446,6 +463,7 @@ void test_background_fadeIn_transitions_to_on() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "fadeIn";
 	effect.add(props);
@@ -476,6 +494,7 @@ void test_background_fadeOut_starts_bright() {
 
 	// First enable the effect at full brightness
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "on";
 	effect.add(props);
@@ -499,6 +518,7 @@ void test_background_fadeOut_dims() {
 
 	// First enable the effect at full brightness
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "on";
 	effect.add(props);
@@ -535,6 +555,7 @@ void test_background_fadeOut_transitions_to_off() {
 
 	// First enable the effect at full brightness
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FFFFFF";
 	props["enabled"] = "on";
 	effect.add(props);
@@ -569,6 +590,7 @@ void test_background_fills_entire_canvas() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#808080";  // Gray
 	effect.add(props);
 
@@ -590,6 +612,7 @@ void test_background_large_matrix() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#123456";
 	effect.add(props);
 
@@ -607,6 +630,7 @@ void test_background_strip_layout() {
 	BackgroundEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBackgroundProps(props);
 	props["color"] = "#FF00FF";  // Magenta
 	effect.add(props);
 

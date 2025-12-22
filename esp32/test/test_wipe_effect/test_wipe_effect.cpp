@@ -48,10 +48,12 @@ using String = std::string;
 #include "effects/wipe.h"
 #include "effects/wipe.cpp"
 
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+
+using namespace test_helpers;
+
 // Helper to check if a pixel is non-black
-static bool isNonBlack(const CRGB& p) {
-	return p.r != 0 || p.g != 0 || p.b != 0;
-}
 
 void setUp(void) {
 	hal::test::setTime(0);
@@ -66,7 +68,9 @@ void test_wipe_creation_default_values() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["direction"] = "right";
+	props["duration"] = 100;  // Short duration so 0.01f update shows pixels
 	effect.add(props);
 	effect.update(0.01f);
 	canvas.clear();
@@ -92,6 +96,7 @@ void test_wipe_creation_with_color() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["direction"] = "right";
@@ -121,6 +126,7 @@ void test_wipe_progresses_over_time() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 2000;
 	props["direction"] = "right";
@@ -166,6 +172,7 @@ void test_wipe_completes() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#0000FF";
 	props["duration"] = 1000;
 	effect.add(props);
@@ -194,6 +201,7 @@ void test_wipe_reset_clears_all() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#FF0000";
 	effect.add(props);
 
@@ -230,6 +238,7 @@ void test_wipe_column_calculation() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["duration"] = 1000;
 	props["direction"] = "right";
 	effect.add(props);
@@ -258,6 +267,7 @@ void test_wipe_direction_left() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["direction"] = "left";
@@ -288,6 +298,7 @@ void test_wipe_direction_down() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 1000;
 	props["direction"] = "down";
@@ -318,6 +329,7 @@ void test_wipe_direction_up() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#0000FF";
 	props["duration"] = 1000;
 	props["direction"] = "up";
@@ -353,6 +365,7 @@ void test_wipe_fill_then_clear_phases() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;  // 500ms fill, 500ms clear
 	props["direction"] = "right";
@@ -416,6 +429,7 @@ void test_wipe_direction_random() {
 	hal::test::seedRandom(12345);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["direction"] = "random";
@@ -446,6 +460,7 @@ void test_wipe_strip_vertical_maps_to_horizontal() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 1000;
 	props["direction"] = "down";  // Should become "right" on strip
@@ -472,6 +487,7 @@ void test_wipe_strip_up_maps_to_left() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#0000FF";
 	props["duration"] = 1000;
 	props["direction"] = "up";  // Should become "left" on strip
@@ -535,6 +551,7 @@ void test_wipe_duration_very_short() {
 	WipeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 10;  // 10ms duration
 	props["direction"] = "right";

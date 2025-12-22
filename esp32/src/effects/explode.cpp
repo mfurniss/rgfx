@@ -7,15 +7,6 @@
 #include <algorithm>
 #include <cmath>
 
-// Default color is generated randomly per explosion (see add() method)
-static const uint32_t DEFAULT_PARTICLE_COUNT = 100;
-static const float DEFAULT_POWER = 50.0f;
-static const uint32_t DEFAULT_LIFESPAN = 800;
-static const float DEFAULT_POWER_SPREAD = 60.0f;
-static const uint32_t DEFAULT_PARTICLE_SIZE = 6;
-static const uint32_t DEFAULT_HUE_SPREAD = 90;
-static const float DEFAULT_FRICTION = 2.0f;
-static const float DEFAULT_LIFESPAN_SPREAD = 30.0f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
 ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {
@@ -24,16 +15,15 @@ ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) 
 }
 
 void ExplodeEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : randomColor();
-	uint32_t particleCount = props["particleCount"] | DEFAULT_PARTICLE_COUNT;
-	particleCount = min(particleCount, MAX_PARTICLE_POOL_SIZE);
-	float power = props["power"] | DEFAULT_POWER;
-	uint32_t lifespan = props["lifespan"] | DEFAULT_LIFESPAN;
-	float powerSpread = props["powerSpread"] | DEFAULT_POWER_SPREAD;
-	uint32_t particleSize = props["particleSize"] | DEFAULT_PARTICLE_SIZE;
-	uint32_t hueSpread = min(static_cast<uint32_t>(props["hueSpread"] | DEFAULT_HUE_SPREAD), 359u);
-	float friction = props["friction"] | DEFAULT_FRICTION;
-	float lifespanSpread = props["lifespanSpread"] | DEFAULT_LIFESPAN_SPREAD;
+	uint32_t color = parseColor(props["color"]);
+	uint32_t particleCount = min(static_cast<uint32_t>(props["particleCount"]), MAX_PARTICLE_POOL_SIZE);
+	float power = props["power"];
+	uint32_t lifespan = props["lifespan"];
+	float powerSpread = props["powerSpread"];
+	uint32_t particleSize = props["particleSize"];
+	uint32_t hueSpread = min(static_cast<uint32_t>(props["hueSpread"]), 359u);
+	float friction = props["friction"];
+	float lifespanSpread = props["lifespanSpread"];
 
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 

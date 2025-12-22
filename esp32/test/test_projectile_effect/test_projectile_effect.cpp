@@ -53,71 +53,22 @@ using String = std::string;
 #include "effects/projectile.h"
 #include "effects/projectile.cpp"
 
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+
+using namespace test_helpers;
+
 // Helper to check if pixel is non-black
-static bool isNonBlack(const CRGB& p) {
-	return p.r != 0 || p.g != 0 || p.b != 0;
-}
 
 // Helper to count non-black pixels in canvas
-static int countNonBlackPixels(Canvas& canvas) {
-	int count = 0;
-	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
-		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (isNonBlack(canvas.getPixel(x, y))) {
-				count++;
-			}
-		}
-	}
-	return count;
-}
 
 // Helper to find leftmost non-black pixel x coordinate
-static int findLeftmostPixelX(Canvas& canvas) {
-	for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-		for (uint16_t y = 0; y < canvas.getHeight(); y++) {
-			if (isNonBlack(canvas.getPixel(x, y))) {
-				return x;
-			}
-		}
-	}
-	return -1;
-}
 
 // Helper to find rightmost non-black pixel x coordinate
-static int findRightmostPixelX(Canvas& canvas) {
-	for (int x = canvas.getWidth() - 1; x >= 0; x--) {
-		for (uint16_t y = 0; y < canvas.getHeight(); y++) {
-			if (isNonBlack(canvas.getPixel(x, y))) {
-				return x;
-			}
-		}
-	}
-	return -1;
-}
 
 // Helper to find topmost non-black pixel y coordinate
-static int findTopmostPixelY(Canvas& canvas) {
-	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
-		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (isNonBlack(canvas.getPixel(x, y))) {
-				return y;
-			}
-		}
-	}
-	return -1;
-}
 
 // Helper to find bottommost non-black pixel y coordinate
-static int findBottommostPixelY(Canvas& canvas) {
-	for (int y = canvas.getHeight() - 1; y >= 0; y--) {
-		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
-			if (isNonBlack(canvas.getPixel(x, y))) {
-				return y;
-			}
-		}
-	}
-	return -1;
-}
 
 void setUp(void) {
 	hal::test::setTime(0);
@@ -136,6 +87,7 @@ void test_projectile_creation_default_values() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	effect.add(props);
 
 	// After adding with defaults, update slightly and render
@@ -153,6 +105,7 @@ void test_projectile_creation_with_color() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#FF0000";
 	props["direction"] = "right";
 	props["velocity"] = 200;
@@ -182,6 +135,7 @@ void test_projectile_reset_clears_all() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 200;
 	effect.add(props);
@@ -209,10 +163,12 @@ void test_projectile_direction_right() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 100;
 	props["width"] = 4;
 	props["height"] = 4;
+	props["friction"] = 0;  // No friction for consistent movement
 	effect.add(props);
 
 	// At t=0, projectile starts at x=-width (off-screen left)
@@ -239,10 +195,12 @@ void test_projectile_direction_left() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "left";
 	props["velocity"] = 100;
 	props["width"] = 4;
 	props["height"] = 4;
+	props["friction"] = 0;  // No friction for consistent movement
 	effect.add(props);
 
 	// Left direction starts at x=canvasWidth (off-screen right)
@@ -268,6 +226,7 @@ void test_projectile_direction_down() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "down";
 	props["velocity"] = 100;
 	props["width"] = 4;
@@ -296,6 +255,7 @@ void test_projectile_direction_up() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "up";
 	props["velocity"] = 100;
 	props["width"] = 4;
@@ -326,6 +286,7 @@ void test_projectile_direction_random() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#FFFFFF";
 	props["direction"] = "random";
 	props["velocity"] = 500;
@@ -350,10 +311,12 @@ void test_projectile_1d_strip_vertical_maps_to_horizontal() {
 
 	// On 1D strip, "up" should map to "left" and "down" should map to "right"
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "up";
 	props["velocity"] = 100;
 	props["width"] = 4;
 	props["height"] = 4;
+	props["friction"] = 0;  // No friction for consistent movement
 	effect.add(props);
 
 	effect.update(0.1f);
@@ -386,6 +349,7 @@ void test_projectile_position_over_time() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 100;  // 100 pixels/second
 	props["friction"] = 0;
@@ -410,6 +374,7 @@ void test_projectile_friction_zero() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 100;
 	props["friction"] = 0;
@@ -446,6 +411,7 @@ void test_projectile_friction_positive() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 200;
 	props["friction"] = 2.0f;  // High friction
@@ -482,6 +448,7 @@ void test_projectile_friction_negative() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 50;
 	props["friction"] = -1.0f;  // Negative = acceleration
@@ -517,6 +484,7 @@ void test_projectile_friction_high_clamps_decay() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 100;
 	props["friction"] = 100.0f;  // Very high friction
@@ -543,6 +511,7 @@ void test_projectile_trail_zero_no_trail() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 100;
 	props["trail"] = 0;
@@ -566,6 +535,7 @@ void test_projectile_trail_renders_segments() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 200;
 	props["trail"] = 0.5f;  // Trail = 50% of velocity
@@ -588,6 +558,7 @@ void test_projectile_trail_alpha_gradient() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#FFFFFF";
 	props["direction"] = "right";
 	props["velocity"] = 200;
@@ -661,6 +632,7 @@ void test_projectile_removed_when_off_canvas_right() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 500;
 	props["trail"] = 0;
@@ -687,6 +659,7 @@ void test_projectile_removed_when_off_canvas_left() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "left";
 	props["velocity"] = 500;
 	props["trail"] = 0;
@@ -711,6 +684,7 @@ void test_projectile_removed_when_expired() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 10;  // Slow - won't exit canvas
 	props["lifespan"] = 500;  // 500ms lifespan
@@ -733,6 +707,7 @@ void test_projectile_trail_considered_for_bounds() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 200;
 	props["trail"] = 0.5f;  // Has trail
@@ -868,6 +843,7 @@ void test_projectile_uses_additive_blending() {
 	canvas.fill(CRGB(50, 50, 50));
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#646464";  // RGB(100, 100, 100)
 	props["direction"] = "right";
 	props["velocity"] = 200;
@@ -891,6 +867,7 @@ void test_projectile_1d_strip_height_forced_to_1() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["direction"] = "right";
 	props["velocity"] = 100;
 	props["width"] = 8;
@@ -926,6 +903,7 @@ void test_projectile_snapshot_right_t0() {
 	hal::test::seedRandom(12345);  // Deterministic
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#FFFFFF";
 	props["direction"] = "right";
 	props["velocity"] = 100;
@@ -952,6 +930,7 @@ void test_projectile_snapshot_right_t100ms() {
 	hal::test::seedRandom(12345);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#FFFFFF";
 	props["direction"] = "right";
 	props["velocity"] = 100;  // 100 px/s
@@ -984,6 +963,7 @@ void test_projectile_snapshot_with_trail() {
 	hal::test::seedRandom(12345);
 
 	JsonDocument props;
+	setDefaultProjectileProps(props);
 	props["color"] = "#FFFFFF";
 	props["direction"] = "right";
 	props["velocity"] = 200;
