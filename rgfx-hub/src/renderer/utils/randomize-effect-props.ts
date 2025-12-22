@@ -51,13 +51,13 @@ function randomizeExplode(): Record<string, unknown> {
     reset: false,
     centerX: 50,
     centerY: 50,
-    friction: randomInt(0, 20),
+    friction: randomInt(0, 15),
     hueSpread: randomInt(0, 359),
     lifespan: randomInt(100, 3000),
     lifespanSpread: randomInt(0, 100),
     particleCount: randomInt(10, 500),
-    particleSize: randomInt(1, 16),
-    power: randomInt(0, 1000),
+    particleSize: randomInt(2, 8),
+    power: randomInt(0, 200),
     powerSpread: randomInt(0, 100),
   };
 }
