@@ -32,7 +32,7 @@ interface UiState {
 
   // Test effects page state
   testEffectsSelectedEffect: string;
-  testEffectsPropsJson: string;
+  testEffectsPropsMap: Record<string, string>; // Effect name -> props JSON
   testEffectsSelectedDrivers: string[]; // Set serialized as array
   testEffectsSelectAll: boolean;
 
@@ -79,7 +79,9 @@ export const useUiStore = create<UiState>()(
 
       // Test effects defaults
       testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
-      testEffectsPropsJson: getDefaultPropsJson(DEFAULT_FX_PLAYGROUND_EFFECT),
+      testEffectsPropsMap: {
+        [DEFAULT_FX_PLAYGROUND_EFFECT]: getDefaultPropsJson(DEFAULT_FX_PLAYGROUND_EFFECT),
+      },
       testEffectsSelectedDrivers: [],
       testEffectsSelectAll: false,
 
@@ -109,12 +111,15 @@ export const useUiStore = create<UiState>()(
       },
 
       setTestEffectsState: (selectedEffect, propsJson, selectedDrivers, selectAll) => {
-        set({
+        set((state) => ({
           testEffectsSelectedEffect: selectedEffect,
-          testEffectsPropsJson: propsJson,
+          testEffectsPropsMap: {
+            ...state.testEffectsPropsMap,
+            [selectedEffect]: propsJson,
+          },
           testEffectsSelectedDrivers: Array.from(selectedDrivers),
           testEffectsSelectAll: selectAll,
-        });
+        }));
       },
 
       setSimulatorRow: (index, eventLine, autoInterval) => {
@@ -154,7 +159,7 @@ export const useUiStore = create<UiState>()(
         rgfxConfigDirectory: state.rgfxConfigDirectory,
         mameRomsDirectory: state.mameRomsDirectory,
         testEffectsSelectedEffect: state.testEffectsSelectedEffect,
-        testEffectsPropsJson: state.testEffectsPropsJson,
+        testEffectsPropsMap: state.testEffectsPropsMap,
         testEffectsSelectedDrivers: state.testEffectsSelectedDrivers,
         testEffectsSelectAll: state.testEffectsSelectAll,
       }),
