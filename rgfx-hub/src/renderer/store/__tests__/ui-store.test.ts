@@ -23,7 +23,6 @@ describe('useUiStore', () => {
         ),
       },
       testEffectsSelectedDrivers: [],
-      testEffectsSelectAll: false,
       simulatorRows: Array.from({ length: 6 }, () => ({
         eventLine: '',
         autoInterval: 'off' as const,
@@ -39,11 +38,10 @@ describe('useUiStore', () => {
     });
 
     it('should have default test effects state', () => {
-      const { testEffectsSelectedEffect, testEffectsSelectedDrivers, testEffectsSelectAll } =
+      const { testEffectsSelectedEffect, testEffectsSelectedDrivers } =
         useUiStore.getState();
       expect(testEffectsSelectedEffect).toBe(DEFAULT_FX_PLAYGROUND_EFFECT);
       expect(testEffectsSelectedDrivers).toEqual([]);
-      expect(testEffectsSelectAll).toBe(false);
     });
 
     it('should have 6 empty simulator rows', () => {
@@ -83,23 +81,22 @@ describe('useUiStore', () => {
       const { setTestEffectsState } = useUiStore.getState();
       const selectedDrivers = new Set(['driver-1', 'driver-2']);
 
-      setTestEffectsState('wipe', '{"direction": "left"}', selectedDrivers, true);
+      setTestEffectsState('wipe', '{"direction": "left"}', selectedDrivers);
 
       const state = useUiStore.getState();
       expect(state.testEffectsSelectedEffect).toBe('wipe');
       expect(state.testEffectsPropsMap.wipe).toBe('{"direction": "left"}');
       expect(state.testEffectsSelectedDrivers).toEqual(['driver-1', 'driver-2']);
-      expect(state.testEffectsSelectAll).toBe(true);
     });
 
     it('should retain props for each effect when switching', () => {
       const { setTestEffectsState } = useUiStore.getState();
 
       // Set props for pulse effect
-      setTestEffectsState('pulse', '{"color": "red"}', new Set(['d1']), false);
+      setTestEffectsState('pulse', '{"color": "red"}', new Set(['d1']));
 
       // Set props for wipe effect
-      setTestEffectsState('wipe', '{"direction": "up"}', new Set(['d1']), false);
+      setTestEffectsState('wipe', '{"direction": "up"}', new Set(['d1']));
 
       // Both should be retained
       const state = useUiStore.getState();
@@ -111,7 +108,7 @@ describe('useUiStore', () => {
       const { setTestEffectsState } = useUiStore.getState();
       const selectedDrivers = new Set(['a', 'b', 'c']);
 
-      setTestEffectsState('pulse', '{}', selectedDrivers, false);
+      setTestEffectsState('pulse', '{}', selectedDrivers);
 
       const { testEffectsSelectedDrivers } = useUiStore.getState();
       expect(Array.isArray(testEffectsSelectedDrivers)).toBe(true);
@@ -121,7 +118,7 @@ describe('useUiStore', () => {
     it('should handle empty set', () => {
       const { setTestEffectsState } = useUiStore.getState();
 
-      setTestEffectsState('explode', '{}', new Set(), false);
+      setTestEffectsState('explode', '{}', new Set());
 
       expect(useUiStore.getState().testEffectsSelectedDrivers).toEqual([]);
     });

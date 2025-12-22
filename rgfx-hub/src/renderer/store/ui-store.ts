@@ -34,7 +34,6 @@ interface UiState {
   testEffectsSelectedEffect: string;
   testEffectsPropsMap: Record<string, string>; // Effect name -> props JSON
   testEffectsSelectedDrivers: string[]; // Set serialized as array
-  testEffectsSelectAll: boolean;
 
   // Simulator page state
   simulatorRows: SimulatorRow[];
@@ -56,8 +55,7 @@ interface UiState {
   setTestEffectsState: (
     selectedEffect: string,
     propsJson: string,
-    selectedDrivers: Set<string>,
-    selectAll: boolean
+    selectedDrivers: Set<string>
   ) => void;
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
@@ -83,7 +81,6 @@ export const useUiStore = create<UiState>()(
         [DEFAULT_FX_PLAYGROUND_EFFECT]: getDefaultPropsJson(DEFAULT_FX_PLAYGROUND_EFFECT),
       },
       testEffectsSelectedDrivers: [],
-      testEffectsSelectAll: false,
 
       // Simulator defaults (6 empty rows)
       simulatorRows: Array.from({ length: SIMULATOR_ROW_COUNT }, () => ({
@@ -110,7 +107,7 @@ export const useUiStore = create<UiState>()(
         set({ isFlashingFirmware: isFlashing });
       },
 
-      setTestEffectsState: (selectedEffect, propsJson, selectedDrivers, selectAll) => {
+      setTestEffectsState: (selectedEffect, propsJson, selectedDrivers) => {
         set((state) => ({
           testEffectsSelectedEffect: selectedEffect,
           testEffectsPropsMap: {
@@ -118,7 +115,6 @@ export const useUiStore = create<UiState>()(
             [selectedEffect]: propsJson,
           },
           testEffectsSelectedDrivers: Array.from(selectedDrivers),
-          testEffectsSelectAll: selectAll,
         }));
       },
 
@@ -161,7 +157,6 @@ export const useUiStore = create<UiState>()(
         testEffectsSelectedEffect: state.testEffectsSelectedEffect,
         testEffectsPropsMap: state.testEffectsPropsMap,
         testEffectsSelectedDrivers: state.testEffectsSelectedDrivers,
-        testEffectsSelectAll: state.testEffectsSelectAll,
       }),
     },
   ),
