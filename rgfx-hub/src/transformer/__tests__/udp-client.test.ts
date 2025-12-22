@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UdpClientImpl } from '../udp-client';
 import { DriverRegistry } from '@/driver-registry';
-import { Driver } from '@/types';
+import { createDriver, type Driver } from '@/types';
 import type { EffectPayload } from '@/types/transformer-types';
 
 // Create mock socket
@@ -42,64 +42,28 @@ describe('UdpClientImpl', () => {
     driverRegistry = new DriverRegistry();
 
     // Register test drivers
-    const driver1 = new Driver({
+    const driver1 = createDriver({
       id: 'rgfx-driver-0001',
       ip: '192.168.1.101',
       state: 'connected',
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      stats: {
-        telemetryEventsReceived: 0,
-        mqttMessagesReceived: 0,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
     });
 
-    const driver2 = new Driver({
+    const driver2 = createDriver({
       id: 'rgfx-driver-0002',
       ip: '192.168.1.102',
       state: 'connected',
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      stats: {
-        telemetryEventsReceived: 0,
-        mqttMessagesReceived: 0,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
     });
 
-    const driver3 = new Driver({
+    const driver3 = createDriver({
       id: 'rgfx-driver-0003',
       ip: '192.168.1.103',
       state: 'disconnected',
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      stats: {
-        telemetryEventsReceived: 0,
-        mqttMessagesReceived: 0,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
     });
 
-    const driver4 = new Driver({
+    const driver4 = createDriver({
       id: 'rgfx-driver-0004',
-      ip: undefined, // No IP
+      ip: undefined,
       state: 'connected',
-      lastSeen: Date.now(),
-      failedHeartbeats: 0,
-      stats: {
-        telemetryEventsReceived: 0,
-        mqttMessagesReceived: 0,
-        mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-      },
     });
 
     // Manually add drivers to registry (bypass registerDriver which requires telemetry)
@@ -439,45 +403,25 @@ describe('UdpClientImpl', () => {
       stripMatrixRegistry = new DriverRegistry();
 
       // Create strip drivers
-      const strip1 = new Driver({
+      const strip1 = createDriver({
         id: 'strip-1',
         ip: '192.168.1.201',
         state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
         resolvedHardware: { name: 'Strip 1', sku: null, layout: 'strip', count: 60 },
-        stats: {
-          telemetryEventsReceived: 0,
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
       });
 
-      const strip2 = new Driver({
+      const strip2 = createDriver({
         id: 'strip-2',
         ip: '192.168.1.202',
         state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
         resolvedHardware: { name: 'Strip 2', sku: null, layout: 'strip', count: 60 },
-        stats: {
-          telemetryEventsReceived: 0,
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
       });
 
       // Create matrix drivers
-      const matrix1 = new Driver({
+      const matrix1 = createDriver({
         id: 'matrix-1',
         ip: '192.168.1.203',
         state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
         resolvedHardware: {
           name: 'Matrix 1',
           sku: null,
@@ -486,21 +430,12 @@ describe('UdpClientImpl', () => {
           width: 16,
           height: 16,
         },
-        stats: {
-          telemetryEventsReceived: 0,
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
       });
 
-      const matrix2 = new Driver({
+      const matrix2 = createDriver({
         id: 'matrix-2',
         ip: '192.168.1.204',
         state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
         resolvedHardware: {
           name: 'Matrix 2',
           sku: null,
@@ -509,29 +444,13 @@ describe('UdpClientImpl', () => {
           width: 16,
           height: 16,
         },
-        stats: {
-          telemetryEventsReceived: 0,
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
       });
 
       // Driver with no resolvedHardware (unknown type)
-      const unknown1 = new Driver({
+      const unknown1 = createDriver({
         id: 'unknown-1',
         ip: '192.168.1.205',
         state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
-        stats: {
-          telemetryEventsReceived: 0,
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
-        },
       });
 
       // Add drivers to registry
@@ -641,12 +560,10 @@ describe('UdpClientImpl', () => {
     it('should return empty when *S requested but no strip drivers exist', () => {
       // Create registry with only matrix drivers
       const matrixOnlyRegistry = new DriverRegistry();
-      const matrix = new Driver({
+      const matrix = createDriver({
         id: 'matrix-only',
         ip: '192.168.1.210',
         state: 'connected',
-        lastSeen: Date.now(),
-        failedHeartbeats: 0,
         resolvedHardware: {
           name: 'Matrix',
           sku: null,
@@ -654,13 +571,6 @@ describe('UdpClientImpl', () => {
           count: 256,
           width: 16,
           height: 16,
-        },
-        stats: {
-          telemetryEventsReceived: 0,
-          mqttMessagesReceived: 0,
-          mqttMessagesFailed: 0,
-          udpMessagesSent: 0,
-          udpMessagesFailed: 0,
         },
       });
       (matrixOnlyRegistry as unknown as { drivers: Map<string, Driver> }).drivers.set(
