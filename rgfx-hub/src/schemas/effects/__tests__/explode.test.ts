@@ -27,8 +27,9 @@ describe('explodeSchema', () => {
         expect(result.data.lifespanSpread).toBe(50);
         expect(result.data.particleCount).toBe(100);
         expect(result.data.particleSize).toBe(6);
-        expect(result.data.power).toBe(60);
+        expect(result.data.power).toBe(100);
         expect(result.data.powerSpread).toBe(80);
+        expect(result.data.scalePower).toBe(true);
       }
     });
 
@@ -209,6 +210,50 @@ describe('explodeSchema', () => {
     it('should accept positive lifespan', () => {
       const result = explodeSchema.safeParse({ lifespan: 500 });
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('scalePower validation', () => {
+    it('should accept scalePower true', () => {
+      const result = explodeSchema.safeParse({ scalePower: true });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.scalePower).toBe(true);
+      }
+    });
+
+    it('should accept scalePower false', () => {
+      const result = explodeSchema.safeParse({ scalePower: false });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.scalePower).toBe(false);
+      }
+    });
+
+    it('should default to true when scalePower omitted', () => {
+      const result = explodeSchema.safeParse({});
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.scalePower).toBe(true);
+      }
+    });
+
+    it('should reject scalePower as string', () => {
+      const result = explodeSchema.safeParse({ scalePower: 'true' });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject scalePower as number', () => {
+      const result = explodeSchema.safeParse({ scalePower: 1 });
+
+      expect(result.success).toBe(false);
     });
   });
 

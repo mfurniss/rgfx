@@ -19,10 +19,13 @@ import {
   Tab,
   IconButton,
   Tooltip,
+  Button,
 } from '@mui/material';
 import {
   Science as ScienceIcon,
   ContentCopy as CopyIcon,
+  RestartAlt as ResetIcon,
+  Shuffle as ShuffleIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
@@ -32,6 +35,7 @@ import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
 import { effectSchemas, effectPropsSchemas, isEffectName } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
+import { randomizeEffectProps } from '../utils/randomize-effect-props';
 
 // Build map of effect keys to display names from schema literals
 // Extract literal value from z.literal() schema via internal _zod.def.values
@@ -250,6 +254,13 @@ export default function TestEffectsPage() {
     }
   };
 
+  const handleResetToDefaults = () => {
+    if (isEffectName(selectedEffect)) {
+      const defaultProps = JSON.stringify(effectPropsSchemas[selectedEffect].parse({}), null, 2);
+      setTestEffectsState(selectedEffect, defaultProps, selectedDrivers);
+    }
+  };
+
   const handleTriggerEffect = () => {
     if (selectedDrivers.size === 0) {
       return;
@@ -260,6 +271,35 @@ export default function TestEffectsPage() {
         const payload: EffectPayload = {
           effect: selectedEffect,
           props,
+          drivers: Array.from(selectedDrivers),
+        };
+
+        await window.rgfx.triggerEffect(payload);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  };
+
+  const handleRandomTrigger = () => {
+    if (selectedDrivers.size === 0) {
+      return;
+    }
+
+    if (!isEffectName(selectedEffect)) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        const randomProps = randomizeEffectProps(effectPropsSchemas[selectedEffect]);
+        const randomPropsJson = JSON.stringify(randomProps, null, 2);
+
+        setTestEffectsState(selectedEffect, randomPropsJson, selectedDrivers);
+
+        const payload: EffectPayload = {
+          effect: selectedEffect,
+          props: randomProps,
           drivers: Array.from(selectedDrivers),
         };
 
@@ -309,22 +349,32 @@ export default function TestEffectsPage() {
 
         <TabPanel value={tabIndex} index={0}>
           <Stack spacing={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Effect</InputLabel>
-              <Select
-                value={selectedEffect}
-                label="Effect"
-                onChange={(e) => {
-                  handleEffectChange(e.target.value);
-                }}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Effect</InputLabel>
+                <Select
+                  value={selectedEffect}
+                  label="Effect"
+                  onChange={(e) => {
+                    handleEffectChange(e.target.value);
+                  }}
+                >
+                  {formEffects.map((effect) => (
+                    <MenuItem key={effect} value={effect}>
+                      {effectDisplayNames[effect]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant="outlined"
+                startIcon={<ResetIcon />}
+                onClick={handleResetToDefaults}
+                sx={{ minWidth: 120, height: 40 }}
               >
-                {formEffects.map((effect) => (
-                  <MenuItem key={effect} value={effect}>
-                    {effectDisplayNames[effect]}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                Reset
+              </Button>
+            </Box>
 
             {currentSchema && (
               <EffectForm
@@ -342,14 +392,24 @@ export default function TestEffectsPage() {
               onSelectAll={handleSelectAll}
             />
 
-            <SuperButton
-              variant="contained"
-              color="primary"
-              onClick={handleTriggerEffect}
-              icon={<ScienceIcon />}
-            >
-              Trigger Effect
-            </SuperButton>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <SuperButton
+                variant="contained"
+                color="primary"
+                onClick={handleTriggerEffect}
+                icon={<ScienceIcon />}
+              >
+                Trigger Effect
+              </SuperButton>
+              <SuperButton
+                variant="outlined"
+                color="primary"
+                onClick={handleRandomTrigger}
+                icon={<ShuffleIcon />}
+              >
+                Random Trigger
+              </SuperButton>
+            </Box>
           </Stack>
         </TabPanel>
 
