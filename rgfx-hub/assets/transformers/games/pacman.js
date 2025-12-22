@@ -215,11 +215,11 @@ export function handle(
         friction: 3,
         hueSpread: 40,
         lifespan: 2000,
-        lifespanSpread: 1.6,
+        lifespanSpread: 60,
         particleCount: 200,
         particleSize: 4,
         power: 70,
-        powerSpread: 1.6,
+        powerSpread: 60,
       },
     });
   }
@@ -298,11 +298,11 @@ export function handle(
           friction: 3,
           hueSpread: 0,
           lifespan: 2000,
-          lifespanSpread: 1.6,
+          lifespanSpread: 60,
           particleCount: 300,
           particleSize: 4,
           power: 70,
-          powerSpread: 1,
+          powerSpread: 0,
         },
       });
     }

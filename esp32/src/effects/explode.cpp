@@ -11,11 +11,11 @@
 static const uint32_t DEFAULT_PARTICLE_COUNT = 100;
 static const float DEFAULT_POWER = 50.0f;
 static const uint32_t DEFAULT_LIFESPAN = 800;
-static const float DEFAULT_POWER_SPREAD = 1.6f;
+static const float DEFAULT_POWER_SPREAD = 60.0f;
 static const uint32_t DEFAULT_PARTICLE_SIZE = 6;
 static const uint32_t DEFAULT_HUE_SPREAD = 90;
 static const float DEFAULT_FRICTION = 2.0f;
-static const float DEFAULT_LIFESPAN_SPREAD = 1.3f;
+static const float DEFAULT_LIFESPAN_SPREAD = 30.0f;
 static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
 
 ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {
@@ -100,10 +100,10 @@ void ExplodeEffect::add(JsonDocument& props) {
 		p.friction = friction;
 		p.particleSize = static_cast<uint8_t>(min(particleSize, 255u));
 
-		// Calculate velocity with power variation based on powerSpread
+		// Calculate velocity with power variation based on powerSpread (percentage)
 		float powerVariation =
 			scaledPower *
-			(1.0f + (static_cast<float>(hal::random(-100, 100)) / 100.0f) * (powerSpread - 1.0f));
+			(1.0f + (static_cast<float>(hal::random(-100, 100)) / 100.0f) * (powerSpread / 100.0f));
 
 		if (isStrip) {
 			// Strip: Only horizontal movement (half go left, half go right)
@@ -154,11 +154,11 @@ void ExplodeEffect::add(JsonDocument& props) {
 		p.alpha = 255;
 		p.age = 0;
 
-		// Apply lifespan variation symmetrically around lifespan (±spread%)
-		if (lifespanSpread < 1.01f) {
+		// Apply lifespan variation symmetrically around lifespan (percentage: 0=none, 100=±100%)
+		if (lifespanSpread < 0.01f) {
 			p.lifespan = lifespan;
 		} else {
-			float spreadAmount = lifespan * (lifespanSpread - 1.0f);
+			float spreadAmount = lifespan * (lifespanSpread / 100.0f);
 			float variation = (static_cast<float>(hal::random(0, 200)) / 100.0f) - 1.0f;  // -1.0 to 1.0
 			float calculatedLifespan = lifespan + variation * spreadAmount;
 			p.lifespan = static_cast<uint32_t>(max(50.0f, calculatedLifespan));
