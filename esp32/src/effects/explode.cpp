@@ -27,6 +27,11 @@ void ExplodeEffect::add(JsonDocument& props) {
 
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
+	// Scale velocity based on largest dimension (normalized to 60px reference)
+	uint16_t largestDimension =
+		isStrip ? canvas.getWidth() : max(canvas.getWidth(), canvas.getHeight());
+	float velocityScale = largestDimension / 60.0f;
+
 	// Parse center position as percentage (0-100), "random", or default to center (50%)
 	float centerXPercent = 50.0f;
 	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
@@ -93,15 +98,15 @@ void ExplodeEffect::add(JsonDocument& props) {
 		if (isStrip) {
 			// Strip: Only horizontal movement (half go left, half go right)
 			float direction = (i < particleCount / 2) ? -1.0f : 1.0f;
-			p.vx = direction * powerVariation;
+			p.vx = direction * powerVariation * velocityScale;
 			p.vy = 0.0f;
 		} else {
 			// Matrix: Full 2D explosion with radial distribution
 			float angle = (static_cast<float>(i) / particleCount) * 2.0f * PI;
 			angle += (static_cast<float>(hal::random(-100, 100)) / 100.0f) * 0.3f;
 			// Apply uniform scaling to maintain circular shape
-			p.vx = cos(angle) * powerVariation;
-			p.vy = sin(angle) * powerVariation;
+			p.vx = cos(angle) * powerVariation * velocityScale;
+			p.vy = sin(angle) * powerVariation * velocityScale;
 		}
 
 		// Apply hue spread if non-zero

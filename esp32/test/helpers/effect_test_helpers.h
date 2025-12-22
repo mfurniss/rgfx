@@ -307,7 +307,7 @@ inline void setDefaultExplodeProps(JsonDocument& props) {
 	props["lifespanSpread"] = 50.0f;
 	props["particleCount"] = 100;
 	props["particleSize"] = 6;
-	props["power"] = 60.0f;
+	props["power"] = 50.0f;
 	props["powerSpread"] = 80.0f;
 }
 
