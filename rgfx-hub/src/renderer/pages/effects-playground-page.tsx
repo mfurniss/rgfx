@@ -151,7 +151,6 @@ export default function TestEffectsPage() {
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsMap = useUiStore((state) => state.testEffectsPropsMap);
-  const selectAll = useUiStore((state) => state.testEffectsSelectAll);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
 
   // Get props JSON for current effect, falling back to defaults if not in map
@@ -171,6 +170,12 @@ export default function TestEffectsPage() {
 
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     new Set(connectedDrivers.map((d) => d.id)),
+  );
+
+  // Derive selectAll from current state - fixes bug where stored selectAll could become stale
+  const selectAll = useMemo(
+    () => connectedDrivers.length > 0 && connectedDrivers.every((d) => selectedDrivers.has(d.id)),
+    [connectedDrivers, selectedDrivers],
   );
 
   // Parse current props from JSON
@@ -200,8 +205,7 @@ export default function TestEffectsPage() {
     // Only update if selection actually changed (driver disconnected)
     if (stillConnected.size !== selectedDrivers.size) {
       setSelectedDrivers(stillConnected);
-      const newSelectAll = stillConnected.size === connectedIds.size && connectedIds.size > 0;
-      setTestEffectsState(selectedEffect, propsJson, stillConnected, newSelectAll);
+      setTestEffectsState(selectedEffect, propsJson, stillConnected);
     }
   }, [connectedDriverIds, selectedEffect, propsJson, selectedDrivers, setTestEffectsState]);
 
@@ -210,16 +214,16 @@ export default function TestEffectsPage() {
       // Get saved props for this effect, or use defaults
       const savedProps = propsMap[effect];
       const defaultProps = JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
-      setTestEffectsState(effect, savedProps || defaultProps, selectedDrivers, selectAll);
+      setTestEffectsState(effect, savedProps || defaultProps, selectedDrivers);
     }
   };
 
   const handlePropsChange = useCallback(
     (values: Record<string, unknown>) => {
       const newPropsJson = JSON.stringify(values, null, 2);
-      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers, selectAll);
+      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers);
     },
-    [selectedEffect, selectedDrivers, selectAll, setTestEffectsState],
+    [selectedEffect, selectedDrivers, setTestEffectsState],
   );
 
   const handleDriverToggle = (driverId: string) => {
@@ -231,19 +235,18 @@ export default function TestEffectsPage() {
       newSelected.add(driverId);
     }
     setSelectedDrivers(newSelected);
-    const newSelectAll = newSelected.size === connectedDrivers.length;
-    setTestEffectsState(selectedEffect, propsJson, newSelected, newSelectAll);
+    setTestEffectsState(selectedEffect, propsJson, newSelected);
   };
 
   const handleSelectAll = () => {
     if (selectAll) {
       const emptySet = new Set<string>();
       setSelectedDrivers(emptySet);
-      setTestEffectsState(selectedEffect, propsJson, emptySet, false);
+      setTestEffectsState(selectedEffect, propsJson, emptySet);
     } else {
       const allSelected = new Set(connectedDrivers.map((d) => d.id));
       setSelectedDrivers(allSelected);
-      setTestEffectsState(selectedEffect, propsJson, allSelected, true);
+      setTestEffectsState(selectedEffect, propsJson, allSelected);
     }
   };
 
