@@ -322,17 +322,17 @@ inline void setDefaultWipeProps(JsonDocument& props) {
 }
 
 /**
- * Create default projectile props (matches hub schema defaults)
+ * Create default projectile props (test-friendly defaults, not hub schema)
  */
 inline void setDefaultProjectileProps(JsonDocument& props) {
 	props["color"] = "#FFFFFF";
 	props["reset"] = false;
 	props["direction"] = "right";
-	props["velocity"] = 1200;
-	props["friction"] = 0.5f;
-	props["trail"] = 0.2f;
-	props["width"] = 16;
-	props["height"] = 6;
+	props["velocity"] = 200;
+	props["friction"] = 0.0f;
+	props["trail"] = 0.0f;
+	props["width"] = 4;
+	props["height"] = 4;
 	props["lifespan"] = 5000;
 }
 

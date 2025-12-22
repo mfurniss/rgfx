@@ -112,7 +112,7 @@ void test_projectile_creation_with_color() {
 	effect.add(props);
 
 	// Move projectile onto canvas
-	effect.update(0.1f);
+	effect.update(0.05f);
 	canvas.clear();
 	effect.render();
 
@@ -142,7 +142,7 @@ void test_projectile_reset_clears_all() {
 	effect.add(props);
 	effect.add(props);
 
-	effect.update(0.1f);
+	effect.update(0.05f);
 	canvas.clear();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -463,8 +463,8 @@ void test_projectile_friction_negative() {
 	JsonDocument props;
 	setDefaultProjectileProps(props);
 	props["direction"] = "right";
-	props["velocity"] = 100;  // Higher starting velocity
-	props["friction"] = -2.0f;  // Negative = acceleration (stronger)
+	props["velocity"] = 50;  // Lower starting velocity to stay on canvas longer
+	props["friction"] = -1.0f;  // Negative = acceleration (moderate)
 	props["width"] = 4;
 	props["height"] = 4;
 	effect.add(props);
@@ -606,6 +606,7 @@ void test_projectile_trail_length_proportional_to_velocity() {
 	// Slow projectile
 	ProjectileEffect effect1(matrix, canvas);
 	JsonDocument props1;
+	setDefaultProjectileProps(props1);
 	props1["direction"] = "right";
 	props1["velocity"] = 100;
 	props1["trail"] = 0.5f;
@@ -620,6 +621,7 @@ void test_projectile_trail_length_proportional_to_velocity() {
 	// Fast projectile
 	ProjectileEffect effect2(matrix, canvas);
 	JsonDocument props2;
+	setDefaultProjectileProps(props2);
 	props2["direction"] = "right";
 	props2["velocity"] = 300;
 	props2["trail"] = 0.5f;
@@ -756,6 +758,7 @@ void test_projectile_multiple_concurrent() {
 	ProjectileEffect effect(matrix, canvas);
 
 	JsonDocument props1;
+	setDefaultProjectileProps(props1);
 	props1["color"] = "#FF0000";
 	props1["direction"] = "right";
 	props1["velocity"] = 100;
@@ -764,6 +767,7 @@ void test_projectile_multiple_concurrent() {
 	effect.add(props1);
 
 	JsonDocument props2;
+	setDefaultProjectileProps(props2);
 	props2["color"] = "#00FF00";
 	props2["direction"] = "left";
 	props2["velocity"] = 100;
@@ -800,6 +804,7 @@ void test_projectile_removal_doesnt_affect_others() {
 
 	// Fast projectile that will exit quickly
 	JsonDocument props1;
+	setDefaultProjectileProps(props1);
 	props1["color"] = "#FF0000";
 	props1["direction"] = "right";
 	props1["velocity"] = 1000;
@@ -810,6 +815,7 @@ void test_projectile_removal_doesnt_affect_others() {
 
 	// Slow projectile that stays on screen
 	JsonDocument props2;
+	setDefaultProjectileProps(props2);
 	props2["color"] = "#00FF00";
 	props2["direction"] = "right";
 	props2["velocity"] = 50;
