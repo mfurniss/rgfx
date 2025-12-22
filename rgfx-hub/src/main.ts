@@ -169,6 +169,9 @@ const networkManager = new NetworkManager(mqtt, () => {
 // Start MQTT broker
 mqtt.start();
 
+// Start connection timeout monitor (checks for drivers that stop responding)
+driverRegistry.startConnectionMonitor();
+
 // Install default transformers and interceptors to user config directory (async)
 void installDefaultTransformers()
   .then(() => {
@@ -387,6 +390,9 @@ app.on('window-all-closed', () => {
 // Cleanup on app quit
 app.on('before-quit', () => {
   log.info('Shutting down...');
+
+  // Stop connection monitor
+  driverRegistry.stopConnectionMonitor();
 
   // Clear effects on all connected drivers before shutdown, then stop services
   clearEffectsOnAllDrivers(driverRegistry, mqtt)

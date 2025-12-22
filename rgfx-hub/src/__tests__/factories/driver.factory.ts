@@ -6,20 +6,20 @@
  */
 
 import { merge } from 'lodash-es';
-import { Driver } from '../../types';
+import { createDriver, type Driver, type DriverInput } from '../../types';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-const defaultDriverData = {
+const defaultDriverData: DriverInput = {
   id: 'rgfx-driver-0001',
   mac: 'AA:BB:CC:DD:EE:FF',
   ip: '192.168.1.100',
   hostname: 'test-host',
   ssid: 'TestNetwork',
   rssi: -50,
-  state: 'connected' as const,
+  state: 'connected',
   lastSeen: Date.now(),
   failedHeartbeats: 0,
   testActive: false,
@@ -39,6 +39,7 @@ const defaultDriverData = {
     flashSize: 4194304,
     flashSpeed: 40000000,
     heapSize: 327680,
+    maxAllocHeap: 100000,
     psramSize: 0,
     freePsram: 0,
     hasDisplay: false,
@@ -52,7 +53,7 @@ const defaultDriverData = {
 };
 
 /**
- * Factory function to create mock Driver instances for testing.
+ * Factory function to create mock Driver objects for testing.
  * Supports deep partial overrides - only specify the fields you want to change.
  *
  * @example
@@ -65,11 +66,9 @@ const defaultDriverData = {
  * // Deep override (only currentFps changes, rest of telemetry preserved)
  * const slowDriver = createMockDriver({ telemetry: { currentFps: 60 } })
  */
-type DriverConstructorParams = ConstructorParameters<typeof Driver>[0];
-
 export function createMockDriver(
-  overrides?: DeepPartial<DriverConstructorParams>,
+  overrides?: DeepPartial<DriverInput>,
 ): Driver {
-  const mergedData = merge({}, defaultDriverData, overrides);
-  return new Driver(mergedData);
+  const mergedData = merge({}, defaultDriverData, overrides) as DriverInput;
+  return createDriver(mergedData);
 }
