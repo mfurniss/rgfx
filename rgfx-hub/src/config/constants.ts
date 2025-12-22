@@ -84,6 +84,18 @@ export const EVENT_BUS_LOGGING = true;
 /** Version identifier for configuration file format */
 export const CONFIG_VERSION = '1.0';
 
+/**
+ * Polling interval for firmware file watcher (milliseconds).
+ * Used when native fs.watch is not available or fails.
+ */
+export const FIRMWARE_WATCHER_POLL_INTERVAL_MS = 5000;
+
+/**
+ * Supported ROM file extensions for game detection.
+ * Used to identify ROM files in the MAME ROMs directory.
+ */
+export const ROM_EXTENSIONS = ['.zip', '.nes', '.smc', '.sfc', '.bin', '.rom'];
+
 // ============================================================================
 // Event File Reader Configuration
 // ============================================================================
@@ -149,6 +161,26 @@ export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
  * Long enough to read, short enough not to annoy.
  */
 export const TOAST_AUTO_HIDE_DURATION_MS = 5000;
+
+/**
+ * Number of event simulator rows to display on the Simulator page.
+ */
+export const SIMULATOR_ROW_COUNT = 12;
+
+/**
+ * Width of the application sidebar drawer (pixels).
+ */
+export const DRAWER_WIDTH = 220;
+
+/**
+ * Height of telemetry chart components (pixels).
+ */
+export const CHART_HEIGHT = 144;
+
+/**
+ * Width of chart Y-axis area (pixels).
+ */
+export const CHART_AXIS_WIDTH = 65;
 
 // ============================================================================
 // Telemetry History Configuration

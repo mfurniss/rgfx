@@ -17,6 +17,7 @@ import {
   type TooltipProps,
 } from 'recharts';
 import { format } from 'date-fns';
+import { CHART_HEIGHT, CHART_AXIS_WIDTH } from '@/config/constants';
 
 const formatTime = (timestamp: number): string => format(timestamp, 'h:mm a');
 const formatTimeWithSeconds = (timestamp: number): string => format(timestamp, 'h:mm:ss a');
@@ -57,9 +58,6 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, f
 const getCssVar = (varName: string): string => {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 };
-
-const CHART_HEIGHT = 144;
-const AXIS_WIDTH = 65;
 
 interface LineChartProps<T> {
   title: string;
@@ -103,7 +101,7 @@ export function LineChart<T extends { time: number }>({
           <YAxis
             domain={domain}
             tickFormatter={tickFormatter}
-            width={AXIS_WIDTH}
+            width={CHART_AXIS_WIDTH}
             tick={tickStyle}
             stroke={axisColor}
             tickLine={false}

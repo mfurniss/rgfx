@@ -12,8 +12,7 @@ import log from 'electron-log/main';
 import type { GameInfo } from '../types';
 import { CONFIG_DIRECTORY } from '../config/paths';
 import { expandPath } from '../utils/expand-path';
-
-const ROM_EXTENSIONS = ['.zip', '.nes', '.smc', '.sfc', '.bin', '.rom'];
+import { ROM_EXTENSIONS } from '../config/constants';
 
 function getRomBaseName(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
