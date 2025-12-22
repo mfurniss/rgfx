@@ -4,11 +4,6 @@
 #include <cmath>
 #include <cstring>
 
-namespace {
-	constexpr uint32_t TEXT_DEFAULT_COLOR = 0xFFFFFF;
-	constexpr float DEFAULT_SCROLL_SPEED = 60.0f;  // Canvas pixels per second
-}  // namespace
-
 ScrollTextEffect::ScrollTextEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	instances.reserve(4);
 }
@@ -23,10 +18,10 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	uint32_t color = props["color"] ? parseColor(props["color"]) : TEXT_DEFAULT_COLOR;
-	int16_t y = props["y"] | 0;
-	float speed = props["speed"] | DEFAULT_SCROLL_SPEED;
-	bool repeat = props["repeat"] | true;
+	uint32_t color = parseColor(props["color"]);
+	int16_t y = props["y"];
+	float speed = props["speed"];
+	bool repeat = props["repeat"].as<bool>();
 
 	ScrollInstance instance;
 	instance.textLen = static_cast<uint8_t>(strlen(text));
@@ -56,7 +51,7 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.scrollX = static_cast<float>(canvas.getWidth());
 	instance.speed = speed;
 	instance.repeat = repeat;
-	instance.snapToLed = props["snapToLed"] | true;
+	instance.snapToLed = props["snapToLed"].as<bool>();
 
 	instances.push_back(instance);
 }

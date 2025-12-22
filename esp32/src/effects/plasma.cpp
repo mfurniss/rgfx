@@ -3,17 +3,13 @@
 #include <cmath>
 #include <cstring>
 
-static const float DEFAULT_SCALE = 3.0f;
-static const float DEFAULT_SPEED = 2.0f;
-
 PlasmaEffect::PlasmaEffect(const Matrix& m, Canvas& c)
-	: state{0.0f, DEFAULT_SCALE, DEFAULT_SPEED, EnabledState::OFF, 0.0f, 0, {}}, canvas(c) {
+	: state{0.0f, 0.0f, 0.0f, EnabledState::OFF, 0.0f, 0, {}}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 	generateDefaultRainbowLut();
 }
 
 PlasmaEffect::EnabledState PlasmaEffect::parseEnabledState(const char* str) {
-	if (str == nullptr) return EnabledState::ON;
 	if (strcmp(str, "off") == 0) return EnabledState::OFF;
 	if (strcmp(str, "on") == 0) return EnabledState::ON;
 	if (strcmp(str, "fadeIn") == 0) return EnabledState::FADE_IN;
@@ -118,19 +114,13 @@ void PlasmaEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse scale (0.1-10.0, default 3.0)
-	float scale = DEFAULT_SCALE;
-	if (!props["scale"].isNull()) {
-		scale = props["scale"].as<float>();
-		if (scale < 0.1f) scale = 0.1f;
-		if (scale > 10.0f) scale = 10.0f;
-	}
+	// Parse scale (0.1-10.0)
+	float scale = props["scale"];
+	if (scale < 0.1f) scale = 0.1f;
+	if (scale > 10.0f) scale = 10.0f;
 
 	// Parse speed
-	float speed = DEFAULT_SPEED;
-	if (!props["speed"].isNull()) {
-		speed = props["speed"].as<float>();
-	}
+	float speed = props["speed"];
 
 	// Parse gradient array (array of hex color strings)
 	if (!props["gradient"].isNull() && props["gradient"].is<JsonArray>()) {
@@ -264,8 +254,8 @@ void PlasmaEffect::render() {
 void PlasmaEffect::reset() {
 	state.enabledState = EnabledState::OFF;
 	state.time = 0.0f;
-	state.scale = DEFAULT_SCALE;
-	state.speed = DEFAULT_SPEED;
+	state.scale = 0.0f;
+	state.speed = 0.0f;
 	state.fadeTime = 0.0f;
 	state.currentAlpha = 0;
 	generateDefaultRainbowLut();
