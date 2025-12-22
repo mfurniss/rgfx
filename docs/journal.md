@@ -262,5 +262,25 @@ Added Star Wars (Atari 1983) interceptor and transformer. Implemented FX Playgro
 - Transformers: 1,033 lines
 - **Total: ~47,553 lines of code**
 
-**Total Development Time:** 68 days (October 11 - December 17, 2025)
-**Total Commits:** 558
+## December 18, 2025
+
+Implemented plasma effect using Perlin noise with configurable gradients and animation speed. Added per-RGB floor cutoff values to driver configuration, preventing dim red LED bleed at low brightness levels. Fixed critical OTA race condition where effects weren't clearing during firmware updates due to cross-core FastLED access. Optimized rendering with fillBlock4x4() inline method for 4x4 block fills. Fixed effects playground broadcasting to all drivers when none selected. Enhanced driver detail page to display gamma correction, floor cutoff values, and multi-panel layout configuration. Updated firmware terminology from "Flash" to "Update" throughout Hub UI.
+
+## December 19, 2025
+
+Added Galaga 88 interceptor with BCD score reading via C117 memory controller. Implemented event monitor persistence to localStorage with reset functionality and confirmation dialog. Added console output for all MAME events. Set plasma effect defaults to match Rainbow preset. Simplified firmware version system to use content hash only, removing commit count from dev builds.
+
+## December 20, 2025
+
+Implemented MAME shutdown event to stop all effects when MAME quits. Hub now clears effects on all connected drivers during app shutdown. Added test coverage for previously untested modules including network-utils, firmware-version-service, firmware-watcher, and system-monitor. Refactored test mocks using vitest-mock-extended, eliminating ~130 type casts. Created test mock factories to reduce duplication. Added telemetry history charts with animated line graphs for Free Heap, FPS, and RSSI using Recharts library. Implemented ring buffer for 1-hour telemetry retention. Reorganized Hub components into logical subfolders. Added code quality tools: cppcheck, depcheck, license-checker, and AddressSanitizer. Implemented text effect auto-wrapping to next row when exceeding canvas width.
+
+## December 21, 2025
+
+Changed background and plasma effects from boolean enabled flag to string enum supporting fade-in/fade-out states. Refactored Driver from class to plain object with centralized timeout logic. Fixed FX Playground losing settings when switching effects. Changed projectile effect lifespanSpread and powerSpread to percentage semantics for more intuitive configuration. Fixed driver selector "All" checkbox incorrectly showing checked state with no actual selections.
+
+## December 22, 2025
+
+Fixed projectile effect tests by adding proper default values and missing initializers. Removed effect defaults from ESP32 firmware in favor of Hub-side defaults. Added test helper functions for creating effect payloads in native tests.
+
+**Total Development Time:** 73 days (October 11 - December 22, 2025)
+**Total Commits:** 608
