@@ -144,34 +144,69 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // LED configuration from Hub's resolved hardware + driver settings
   const { resolvedHardware: hardware, ledConfig } = driver;
 
-  // Always show LED Configuration section (with message if not configured)
-  const ledRows: InfoRowData[] = hardware
+  // LED Hardware section - static properties from hardware JSON file
+  const ledHardwareRows: InfoRowData[] = hardware
     ? [
-      ['Hardware', hardware.name],
+      ['Name', hardware.name],
       ['Description', hardware.description ?? 'Not set'],
       ['SKU', hardware.sku ?? 'Not set'],
       ...(hardware.asin ? [['ASIN', hardware.asin] as InfoRowData] : []),
       ['Layout', hardware.layout],
       ['LED Count', formatNumber(hardware.count)],
-      ['Matrix Size', hardware.layout !== 'strip'
-        ? `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`
-        : 'N/A'],
-      ...(ledConfig ? [['Data Pin', formatNumber(ledConfig.pin)] as InfoRowData] : []),
+      ...(hardware.layout !== 'strip'
+        ? [['Panel Size', `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`] as InfoRowData]
+        : []),
       ['Chipset', hardware.chipset ?? 'Unknown'],
       ['Color Order', hardware.colorOrder ?? 'Unknown'],
-      ...(ledConfig
+    ]
+    : [];
+
+  // LED Configuration section - driver-specific settings from drivers.json
+  // Calculate actual dimensions accounting for unified multi-panel layout and rotation
+  // Rotation codes: a=0°, b=90°, c=180°, d=270° (b and d swap width/height)
+  const getRotatedDimensions = (
+    panelWidth: number,
+    panelHeight: number,
+    rotation: string,
+  ): { width: number; height: number } => {
+    const isRotated90or270 = rotation === 'b' || rotation === 'd';
+    return isRotated90or270
+      ? { width: panelHeight, height: panelWidth }
+      : { width: panelWidth, height: panelHeight };
+  };
+
+  // For unified layouts, check first panel's rotation to determine effective dimensions
+  const firstPanelRotation = ledConfig?.unified?.[0]?.[0]?.slice(-1) ?? 'a';
+  const rotatedDims = getRotatedDimensions(
+    hardware?.width ?? 0,
+    hardware?.height ?? 0,
+    firstPanelRotation,
+  );
+  const actualWidth = ledConfig?.unified
+    ? rotatedDims.width * (ledConfig.unified[0]?.length ?? 1)
+    : hardware?.width ?? 0;
+  const actualHeight = ledConfig?.unified
+    ? rotatedDims.height * ledConfig.unified.length
+    : hardware?.height ?? 0;
+
+  const ledConfigRows: InfoRowData[] = ledConfig
+    ? [
+      ['Data Pin', formatNumber(ledConfig.pin)],
+      ...(hardware && hardware.layout !== 'strip'
         ? [
-          ['Max Brightness', ledConfig.maxBrightness != null ? formatNumber(ledConfig.maxBrightness) : 'Not set'] as InfoRowData,
-          ['Brightness Limit', ledConfig.globalBrightnessLimit != null ? formatNumber(ledConfig.globalBrightnessLimit) : 'Not set'] as InfoRowData,
-          ['Dithering', ledConfig.dithering ? 'Yes' : 'No'] as InfoRowData,
-          ['Gamma Correction', `R: ${ledConfig.gamma?.r ?? 2.8}, G: ${ledConfig.gamma?.g ?? 2.8}, B: ${ledConfig.gamma?.b ?? 2.8}`] as InfoRowData,
-          ...(ledConfig.floor.r > 0 || ledConfig.floor.g > 0 || ledConfig.floor.b > 0
-            ? [['Floor Cutoff', `R: ${ledConfig.floor.r}, G: ${ledConfig.floor.g}, B: ${ledConfig.floor.b}`] as InfoRowData]
-            : []),
-          ...(ledConfig.unified
-            ? [['Multi-Panel Layout', `${ledConfig.unified.length} ${ledConfig.unified.length === 1 ? 'row' : 'rows'} x ${ledConfig.unified[0]?.length ?? 0} ${(ledConfig.unified[0]?.length ?? 0) === 1 ? 'col' : 'cols'} (${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0)} ${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0) === 1 ? 'panel' : 'panels'})`] as InfoRowData]
-            : []),
+          ['Actual Dimensions', `${formatNumber(actualWidth)} × ${formatNumber(actualHeight)}`] as InfoRowData,
+          ['Total LED Count', formatNumber(actualWidth * actualHeight)] as InfoRowData,
         ]
+        : []),
+      ['Max Brightness', ledConfig.maxBrightness != null ? formatNumber(ledConfig.maxBrightness) : 'Not set'],
+      ['Brightness Limit', ledConfig.globalBrightnessLimit != null ? formatNumber(ledConfig.globalBrightnessLimit) : 'Not set'],
+      ['Dithering', ledConfig.dithering ? 'Yes' : 'No'],
+      ['Gamma Correction', `R: ${ledConfig.gamma?.r ?? 2.8}, G: ${ledConfig.gamma?.g ?? 2.8}, B: ${ledConfig.gamma?.b ?? 2.8}`],
+      ...(ledConfig.floor.r > 0 || ledConfig.floor.g > 0 || ledConfig.floor.b > 0
+        ? [['Floor Cutoff', `R: ${ledConfig.floor.r}, G: ${ledConfig.floor.g}, B: ${ledConfig.floor.b}`] as InfoRowData]
+        : []),
+      ...(ledConfig.unified
+        ? [['Multi-Panel Layout', `${ledConfig.unified.length} ${ledConfig.unified.length === 1 ? 'row' : 'rows'} × ${ledConfig.unified[0]?.length ?? 0} ${(ledConfig.unified[0]?.length ?? 0) === 1 ? 'col' : 'cols'} (${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0)} ${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0) === 1 ? 'panel' : 'panels'})`] as InfoRowData]
         : []),
     ]
     : [];
@@ -244,15 +279,15 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       {/* Scrollable Content */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
         {/* Information Sections */}
-        {/* LED Configuration Section - Always shown at top */}
+        {/* LED Hardware Section - static properties from hardware JSON */}
         <InfoSection
-          title="LED Configuration"
+          title="LED Hardware"
           icon={<LightbulbIcon fontSize="small" color="action" />}
-          rows={ledRows}
+          rows={ledHardwareRows}
         >
-          {!driver.ledConfig && (
+          {!driver.resolvedHardware && (
             <Alert severity="warning">
-              This driver needs LED configuration.
+              No LED hardware configured for this driver.
               <br />
               Edit&nbsp;
               <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
@@ -260,6 +295,20 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               </Typography>
               &nbsp; to configure LED hardware.
             </Alert>
+          )}
+        </InfoSection>
+
+        {/* LED Configuration Section - driver-specific settings */}
+        <InfoSection
+          title="LED Configuration"
+          icon={<SettingsIcon fontSize="small" color="action" />}
+          rows={ledConfigRows}
+          showDivider
+        >
+          {!driver.ledConfig && (
+            <Typography variant="body2" color="text.secondary">
+              Configuration will be displayed when LED hardware is configured.
+            </Typography>
           )}
         </InfoSection>
 
