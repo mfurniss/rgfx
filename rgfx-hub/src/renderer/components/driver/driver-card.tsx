@@ -87,7 +87,16 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ? [['Frame Rate', `${telemetry.currentFps.toFixed(1)} FPS (min: ${telemetry.minFps.toFixed(1)}, max: ${telemetry.maxFps.toFixed(1)})`] as InfoRowData]
       : []),
     ...(telemetry?.frameTiming
-      ? [['Frame Timing', `clear: ${telemetry.frameTiming.clearUs}µs\neffects: ${telemetry.frameTiming.effectsUs}µs\ndownsample: ${telemetry.frameTiming.downsampleUs}µs\nshow: ${telemetry.frameTiming.showUs}µs\ntotal: ${telemetry.frameTiming.totalUs}µs`] as InfoRowData]
+      ? [[
+        'Frame Timing',
+        [
+          `clear: ${formatNumber(telemetry.frameTiming.clearUs)}µs`,
+          `effects: ${formatNumber(telemetry.frameTiming.effectsUs)}µs`,
+          `downsample: ${formatNumber(telemetry.frameTiming.downsampleUs)}µs`,
+          `show: ${formatNumber(telemetry.frameTiming.showUs)}µs`,
+          `total: ${formatNumber(telemetry.frameTiming.totalUs)}µs`,
+        ].join('\n'),
+      ] as InfoRowData]
       : []),
     ...(telemetry?.lastResetReason
       ? [['Last Reset Reason', telemetry.lastResetReason] as InfoRowData]
