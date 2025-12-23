@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Frame timing instrumentation in driver telemetry
+  - Measures canvas clear, effects render, downsample, and FastLED.show() times (microseconds)
+  - Averaged every second and reported via MQTT telemetry
+  - New `frameTiming` object in telemetry with `clearUs`, `effectsUs`, `downsampleUs`, `showUs`, `totalUs`
+
+### Changed
+- Explode effect now uses a fixed-size ring buffer instead of std::vector
+  - O(1) particle add and removal (no heap allocations during gameplay)
+  - Dead particles marked with alpha=0 and skipped in render/update
+  - Improves cache locality with contiguous memory layout
+- Canvas blending now uses `>>8` instead of `/255` for ~15% faster blending
+  - Imperceptible ~0.4% color error (254 instead of 255 at full alpha)
+  - Updated tests to expect the new behavior
+
+### Added (continued)
 - Random Trigger button in FX Playground - randomizes all effect parameters and triggers immediately
   - Positioned next to Trigger Effect button with shuffle icon
   - Intelligently randomizes based on field type: numbers respect min/max/integer constraints, enums pick from valid values, colors use weighted distribution (70% named colors, 20% hex, 10% 'random')

@@ -16,6 +16,18 @@
 #include "hal/display.h"
 #include <ArduinoJson.h>
 
+// Frame timing metrics (updated per-frame, averaged every second)
+struct FrameTimingMetrics {
+	uint32_t clearUs;       // Canvas clear time
+	uint32_t effectsUs;     // All effects render + update
+	uint32_t downsampleUs;  // Downsample to matrix
+	uint32_t showUs;        // FastLED.show() time
+	uint32_t totalUs;       // Total frame time
+};
+
+// Get averaged frame timing metrics (call from telemetry)
+FrameTimingMetrics getFrameTimingMetrics();
+
 /**
  * Effect Processor
  *
