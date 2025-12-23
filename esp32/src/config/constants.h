@@ -85,6 +85,12 @@ constexpr const char* MQTT_TOPIC_STATUS = "led/status";
  */
 constexpr unsigned long TELEMETRY_INTERVAL_MS = 10000;
 
+/**
+ * Delay after publishing MQTT message before reboot (milliseconds).
+ * Ensures message is transmitted before device restarts.
+ */
+constexpr unsigned long MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS = 1000;
+
 // ============================================================================
 // Timing & Update Configuration
 // ============================================================================
