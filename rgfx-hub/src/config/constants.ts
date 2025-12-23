@@ -163,6 +163,12 @@ export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
 export const TOAST_AUTO_HIDE_DURATION_MS = 5000;
 
 /**
+ * Delay between OTA WiFi credential updates when updating multiple drivers (milliseconds).
+ * Prevents overwhelming the network and ensures each driver processes before the next.
+ */
+export const WIFI_UPDATE_DELAY_MS = 1000;
+
+/**
  * Number of event simulator rows to display on the Simulator page.
  */
 export const SIMULATOR_ROW_COUNT = 12;

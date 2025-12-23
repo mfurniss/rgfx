@@ -92,3 +92,13 @@ export const formatTimestamp = (timestamp: number): string => {
 export const formatNumber = (value: number): string => {
   return value.toLocaleString();
 };
+
+/**
+ * Pluralize a word based on count
+ * @param count - The number to check
+ * @param singular - The singular form of the word
+ * @param pluralForm - Optional irregular plural form (defaults to singular + 's')
+ */
+export const plural = (count: number, singular: string, pluralForm?: string): string => {
+  return count === 1 ? singular : (pluralForm ?? `${singular}s`);
+};

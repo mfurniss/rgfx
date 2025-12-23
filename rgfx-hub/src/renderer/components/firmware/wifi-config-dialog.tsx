@@ -16,6 +16,7 @@ import {
   Box,
   CircularProgress,
   Alert,
+  Typography,
 } from '@mui/material';
 
 interface WifiConfigDialogProps {
@@ -24,6 +25,9 @@ interface WifiConfigDialogProps {
   onSubmit: (ssid: string, password: string) => Promise<void>;
   isSending: boolean;
   error: string | null;
+  description?: string;
+  submitLabel?: string;
+  sendingLabel?: string;
 }
 
 const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
@@ -32,6 +36,9 @@ const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
   onSubmit,
   isSending,
   error,
+  description,
+  submitLabel = 'Send to Device',
+  sendingLabel = 'Sending...',
 }) => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
@@ -57,6 +64,11 @@ const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
       <DialogTitle>Configure WiFi</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>
+          {description && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {description}
+            </Typography>
+          )}
           <TextField
             autoFocus
             label="SSID (Network Name)"
@@ -106,7 +118,7 @@ const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
           disabled={!canSubmit}
           startIcon={isSending ? <CircularProgress size={16} /> : null}
         >
-          {isSending ? 'Sending...' : 'Send to Device'}
+          {isSending ? sendingLabel : submitLabel}
         </Button>
       </DialogActions>
     </Dialog>
