@@ -300,6 +300,30 @@ void ConfigPortal::resetSettings() {
 	ESP.restart();
 }
 
+String ConfigPortal::getWiFiSsid() {
+	if (!iotWebConf) {
+		return "";
+	}
+	iotwebconf::TextParameter* ssidParam =
+		(iotwebconf::TextParameter*)iotWebConf->getWifiSsidParameter();
+	if (!ssidParam) {
+		return "";
+	}
+	return String(ssidParam->valueBuffer);
+}
+
+String ConfigPortal::getWiFiPassword() {
+	if (!iotWebConf) {
+		return "";
+	}
+	iotwebconf::PasswordParameter* passParam =
+		(iotwebconf::PasswordParameter*)iotWebConf->getWifiPasswordParameter();
+	if (!passParam) {
+		return "";
+	}
+	return String(passParam->valueBuffer);
+}
+
 bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password) {
 	if (!iotWebConf) {
 		log("ERROR: IotWebConf not initialized");
@@ -308,7 +332,7 @@ bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password
 
 	log("Setting WiFi credentials via serial...");
 	log("SSID: " + ssid);
-	log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
+	log("Password: " + password);
 
 	// Get the WiFi SSID and password parameters from IotWebConf
 	iotwebconf::TextParameter* ssidParam =

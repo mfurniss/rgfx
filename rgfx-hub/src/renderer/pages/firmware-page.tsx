@@ -12,6 +12,7 @@ import LogDisplay from '../components/common/log-display';
 import FlashResultDialog from '../components/firmware/flash-result-dialog';
 import ConfirmFlashDialog from '../components/firmware/confirm-flash-dialog';
 import SerialPortSelector from '../components/firmware/serial-port-selector';
+import WifiConfigButton from '../components/firmware/wifi-config-button';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
 import SuperButton from '../components/common/super-button';
 import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as FirmwareIcon } from '@mui/icons-material';
@@ -586,6 +587,12 @@ const FirmwarePage: React.FC = () => {
               >
                 {isFlashing ? 'Updating...' : 'Update via USB'}
               </SuperButton>
+
+              <WifiConfigButton
+                getPort={getPort}
+                disabled={isFlashing}
+                onLog={addLog}
+              />
             </Box>
           </>
         )}

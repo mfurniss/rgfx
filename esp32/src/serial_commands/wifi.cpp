@@ -16,9 +16,25 @@ namespace Commands {
 		// Format: SSID PASSWORD
 		// Example: MyNetwork MyPassword123
 		// Example: "My Network" "My Password 123"
+		// No args: show current WiFi credentials
 
 		String params = args;
 		params.trim();
+
+		// No arguments - show current credentials
+		if (params.length() == 0) {
+			String currentSsid = ConfigPortal::getWiFiSsid();
+			String currentPassword = ConfigPortal::getWiFiPassword();
+
+			if (currentSsid.length() > 0) {
+				log("Current WiFi credentials:");
+				log("SSID: " + currentSsid);
+				log("Password: " + currentPassword);
+			} else {
+				log("No WiFi credentials configured");
+			}
+			return;
+		}
 
 		// Parse SSID and password (supports quoted strings with spaces)
 		String ssid = "";
@@ -60,7 +76,7 @@ namespace Commands {
 		if (ssid.length() > 0) {
 			log("Setting WiFi credentials from serial command...");
 			log("SSID: " + ssid);
-			log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
+			log("Password: " + password);
 
 			if (ConfigPortal::setWiFiCredentials(ssid, password)) {
 				log("WiFi credentials saved! Restarting in 2 seconds...");
