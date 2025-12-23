@@ -81,6 +81,7 @@ void test_explode_add_creates_particles() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FF0000";
 	props["particleCount"] = 10;
 
@@ -91,13 +92,13 @@ void test_explode_add_creates_particles() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
-void test_explode_default_values() {
+void test_explode_with_defaults() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	// Empty props - all defaults
+	setDefaultExplodeProps(props);
 
 	effect.add(props);
 	canvas.clear();
@@ -113,6 +114,7 @@ void test_explode_reset_clears_all() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 100;
 	effect.add(props);
 
@@ -136,6 +138,7 @@ void test_explode_center_0_percent() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["particleSize"] = 4;
 	props["centerX"] = 0;
@@ -159,6 +162,7 @@ void test_explode_center_100_percent() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["particleSize"] = 4;
 	props["centerX"] = 100;
@@ -182,6 +186,7 @@ void test_explode_center_50_percent() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 100;
 	props["particleSize"] = 4;
 	props["centerX"] = 50;
@@ -205,6 +210,7 @@ void test_explode_center_random() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["centerX"] = "random";
 	props["centerY"] = "random";
@@ -223,6 +229,7 @@ void test_explode_strip_ignores_centerY() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["centerX"] = 25;
 	props["centerY"] = 75;  // Should be ignored for strip
@@ -248,6 +255,7 @@ void test_explode_power_affects_spread() {
 	// Low power explosion
 	ExplodeEffect effect1(matrix, canvas);
 	JsonDocument props1;
+	setDefaultExplodeProps(props1);
 	props1["particleCount"] = 50;
 	props1["power"] = 10;
 	props1["friction"] = 0.5;
@@ -262,6 +270,7 @@ void test_explode_power_affects_spread() {
 	hal::test::seedRandom(12345);  // Reset random for comparison
 	ExplodeEffect effect2(matrix, canvas);
 	JsonDocument props2;
+	setDefaultExplodeProps(props2);
 	props2["particleCount"] = 50;
 	props2["power"] = 100;
 	props2["friction"] = 0.5;
@@ -284,6 +293,7 @@ void test_explode_friction_zero() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 20;
 	props["power"] = 50;
 	props["friction"] = 0;
@@ -310,6 +320,7 @@ void test_explode_friction_high() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["power"] = 50;
 	props["friction"] = 10.0;  // Very high friction
@@ -334,9 +345,10 @@ void test_explode_power_spread_affects_velocity_variation() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["power"] = 30;
-	props["powerSpread"] = 2.0;  // Large variation
+	props["powerSpread"] = 100;  // Large variation (±100%)
 	props["friction"] = 1.0;
 	props["lifespan"] = 5000;
 
@@ -359,6 +371,7 @@ void test_explode_particle_size_small() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 10;
 	props["particleSize"] = 2;
 
@@ -376,6 +389,7 @@ void test_explode_particle_size_large() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 10;
 	props["particleSize"] = 8;  // Large particles
 
@@ -393,6 +407,7 @@ void test_explode_alpha_decay_over_lifespan() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FFFFFF";
 	props["particleCount"] = 10;  // Fewer particles to avoid saturation
 	props["particleSize"] = 2;
@@ -422,6 +437,7 @@ void test_explode_hue_spread_zero() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FF0000";  // Pure red
 	props["particleCount"] = 50;
 	props["hueSpread"] = 0;
@@ -446,6 +462,7 @@ void test_explode_hue_spread_90() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FF0000";  // Base red
 	props["particleCount"] = 100;
 	props["hueSpread"] = 90;  // +/-45 degrees
@@ -464,6 +481,7 @@ void test_explode_hue_spread_180() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#00FF00";  // Base green
 	props["particleCount"] = 100;
 	props["hueSpread"] = 180;  // Wide range
@@ -487,6 +505,7 @@ void test_explode_fifo_eviction_when_pool_exceeds_max() {
 
 	// Add first explosion with 400 particles
 	JsonDocument props1;
+	setDefaultExplodeProps(props1);
 	props1["color"] = "#FF0000";
 	props1["particleCount"] = 400;
 	props1["lifespan"] = 10000;
@@ -495,6 +514,7 @@ void test_explode_fifo_eviction_when_pool_exceeds_max() {
 	// Add second explosion with 200 more particles
 	// Total would be 600, but max is 500
 	JsonDocument props2;
+	setDefaultExplodeProps(props2);
 	props2["color"] = "#00FF00";
 	props2["particleCount"] = 200;
 	props2["lifespan"] = 10000;
@@ -512,6 +532,7 @@ void test_explode_particle_count_capped_at_max() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 1000;  // Above MAX_PARTICLE_POOL_SIZE (500)
 	props["lifespan"] = 10000;
 
@@ -531,6 +552,7 @@ void test_explode_multiple_explosions_share_pool() {
 	// Add multiple small explosions
 	for (int i = 0; i < 5; i++) {
 		JsonDocument props;
+		setDefaultExplodeProps(props);
 		props["particleCount"] = 50;
 		props["centerX"] = (i * 20);  // Different positions
 		props["lifespan"] = 10000;
@@ -554,6 +576,7 @@ void test_explode_strip_horizontal_only() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["power"] = 50;
 	props["friction"] = 1.0;
@@ -574,12 +597,14 @@ void test_explode_matrix_2d_radial() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 100;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
 	props["power"] = 30;
 	props["friction"] = 1.0;
 	props["lifespan"] = 5000;
+	props["scalePower"] = false;  // Disable scaling for predictable spread
 
 	effect.add(props);
 	effect.update(0.1f);
@@ -603,6 +628,7 @@ void test_explode_flash_renders_on_strip() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FF0000";
 	props["particleCount"] = 0;  // No particles, only flash
 	props["power"] = 50;
@@ -630,6 +656,7 @@ void test_explode_flash_collapses_over_time() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 20;
 	props["power"] = 50;
 	props["lifespan"] = 1000;
@@ -656,6 +683,7 @@ void test_explode_no_flash_on_matrix() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FF0000";  // Red particles
 	props["particleCount"] = 50;
 	props["hueSpread"] = 0;  // Keep pure red
@@ -679,6 +707,7 @@ void test_explode_particles_removed_when_expired() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["lifespan"] = 100;  // 100ms lifespan
 
@@ -703,10 +732,12 @@ void test_explode_particles_removed_when_off_canvas() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["power"] = 200;  // High power to exit canvas quickly
 	props["friction"] = 0;
 	props["lifespan"] = 10000;
+	props["scalePower"] = false;  // Disable scaling for predictable exit velocity
 
 	effect.add(props);
 
@@ -728,6 +759,7 @@ void test_explode_lifespan_very_short() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["lifespan"] = 10;  // Very short lifespan (10ms)
 
@@ -752,9 +784,10 @@ void test_explode_lifespan_spread_affects_expiration() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 100;
 	props["lifespan"] = 500;
-	props["lifespanSpread"] = 2.0;  // Wide variation
+	props["lifespanSpread"] = 100;  // Wide variation (±100%)
 
 	effect.add(props);
 
@@ -778,6 +811,7 @@ void test_explode_explosion_removed_when_all_particles_gone() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 20;
 	props["lifespan"] = 50;
 
@@ -794,6 +828,7 @@ void test_explode_explosion_removed_when_all_particles_gone() {
 
 	// Adding new explosion should work
 	JsonDocument props2;
+	setDefaultExplodeProps(props2);
 	props2["particleCount"] = 50;
 	props2["lifespan"] = 5000;
 	effect.add(props2);
@@ -810,6 +845,7 @@ void test_explode_multiple_explosions_independent_cleanup() {
 
 	// Short-lived explosion
 	JsonDocument props1;
+	setDefaultExplodeProps(props1);
 	props1["color"] = "#FF0000";
 	props1["particleCount"] = 30;
 	props1["lifespan"] = 50;
@@ -818,6 +854,7 @@ void test_explode_multiple_explosions_independent_cleanup() {
 
 	// Long-lived explosion
 	JsonDocument props2;
+	setDefaultExplodeProps(props2);
 	props2["color"] = "#00FF00";
 	props2["particleCount"] = 30;
 	props2["lifespan"] = 5000;
@@ -846,6 +883,7 @@ void test_explode_snapshot_deterministic_positions() {
 	hal::test::seedRandom(54321);
 	ExplodeEffect effect1(matrix, canvas);
 	JsonDocument props1;
+	setDefaultExplodeProps(props1);
 	props1["color"] = "#FFFFFF";
 	props1["particleCount"] = 20;
 	props1["power"] = 30;
@@ -862,6 +900,7 @@ void test_explode_snapshot_deterministic_positions() {
 	hal::test::seedRandom(54321);
 	ExplodeEffect effect2(matrix, canvas);
 	JsonDocument props2;
+	setDefaultExplodeProps(props2);
 	props2["color"] = "#FFFFFF";
 	props2["particleCount"] = 20;
 	props2["power"] = 30;
@@ -890,6 +929,7 @@ void test_explode_snapshot_t0() {
 	hal::test::seedRandom(12345);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FFFFFF";
 	props["particleCount"] = 50;
 	props["particleSize"] = 4;
@@ -919,6 +959,7 @@ void test_explode_snapshot_after_spread() {
 	hal::test::seedRandom(12345);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FFFFFF";
 	props["particleCount"] = 100;
 	props["particleSize"] = 2;
@@ -927,6 +968,7 @@ void test_explode_snapshot_after_spread() {
 	props["lifespan"] = 5000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
+	props["scalePower"] = false;  // Disable scaling for predictable spread
 
 	effect.add(props);
 	effect.update(0.2f);  // Allow spread
@@ -953,6 +995,7 @@ void test_explode_zero_particles() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 0;
 
 	effect.add(props);
@@ -969,6 +1012,7 @@ void test_explode_power_zero() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
 	props["power"] = 0;
 	props["particleSize"] = 4;
@@ -993,6 +1037,7 @@ void test_explode_very_long_lifespan() {
 	ExplodeEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["particleCount"] = 20;
 	props["lifespan"] = 100000;  // 100 seconds
 	props["friction"] = 5.0;
@@ -1014,6 +1059,7 @@ void test_explode_rapid_add_calls() {
 	// Rapidly add many explosions
 	for (int i = 0; i < 20; i++) {
 		JsonDocument props;
+		setDefaultExplodeProps(props);
 		props["particleCount"] = 30;
 		props["lifespan"] = 5000;
 		effect.add(props);
@@ -1038,7 +1084,7 @@ int main(int argc, char** argv) {
 	// 1. Basic Creation & Defaults
 	RUN_TEST(test_explode_creation);
 	RUN_TEST(test_explode_add_creates_particles);
-	RUN_TEST(test_explode_default_values);
+	RUN_TEST(test_explode_with_defaults);
 	RUN_TEST(test_explode_reset_clears_all);
 
 	// 2. Center Position Tests

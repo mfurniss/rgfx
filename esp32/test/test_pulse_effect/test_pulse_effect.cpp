@@ -51,10 +51,10 @@ using String = std::string;
 #include "effects/pulse.h"
 #include "effects/pulse.cpp"
 
-// Helper to check if pixel is non-black
-static bool isNonBlack(const CRGB& p) {
-	return p.r != 0 || p.g != 0 || p.b != 0;
-}
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+
+using namespace test_helpers;
 
 void setUp(void) {
 	hal::test::setTime(0);
@@ -69,15 +69,17 @@ void test_pulse_creation_default_values() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	effect.add(props);
 	effect.render();
 
 	CRGB pixel = canvas.getPixel(0, 0);
 
 	// Default color is white (#FFFFFF)
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.b);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.b);
 }
 
 void test_pulse_creation_with_color() {
@@ -86,6 +88,7 @@ void test_pulse_creation_with_color() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["collapse"] = "none";
 	effect.add(props);
@@ -94,7 +97,8 @@ void test_pulse_creation_with_color() {
 
 	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.r);
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
@@ -105,6 +109,7 @@ void test_pulse_fade_over_time() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = true;
@@ -128,6 +133,7 @@ void test_pulse_fade_completes() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = true;
@@ -152,6 +158,7 @@ void test_pulse_non_fading_stays_full_brightness() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 2000;
 	props["fade"] = false;
@@ -164,8 +171,9 @@ void test_pulse_non_fading_stays_full_brightness() {
 
 	CRGB pixel = canvas.getPixel(0, 0);
 
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.g);
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
@@ -175,6 +183,7 @@ void test_pulse_non_fading_expires() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -198,12 +207,14 @@ void test_pulse_multiple_pulses_exist() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props1;
+	setDefaultPulseProps(props1);
 	props1["color"] = "#FF0000";
 	props1["fade"] = false;
 	props1["collapse"] = "none";
 	effect.add(props1);
 
 	JsonDocument props2;
+	setDefaultPulseProps(props2);
 	props2["color"] = "#0000FF";
 	props2["fade"] = false;
 	props2["collapse"] = "none";
@@ -224,6 +235,7 @@ void test_pulse_reset_clears_all() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["collapse"] = "none";
 	effect.add(props);
@@ -254,6 +266,7 @@ void test_pulse_collapse_none_fills_canvas() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -265,10 +278,11 @@ void test_pulse_collapse_none_fills_canvas() {
 	effect.render();
 
 	// All corners should be filled (canvas is 16x16 for 4x4 matrix)
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 0).r);
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(15, 0).r);
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 15).r);
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(15, 15).r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(0, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(15, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(0, 15).r);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(15, 15).r);
 }
 
 void test_pulse_collapse_horizontal_shrinks_height() {
@@ -277,6 +291,7 @@ void test_pulse_collapse_horizontal_shrinks_height() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -288,7 +303,8 @@ void test_pulse_collapse_horizontal_shrinks_height() {
 	effect.render();
 
 	// Center should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 8).r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(8, 8).r);
 
 	// Top and bottom edges should be empty (shrunk toward center)
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(8, 0).r);
@@ -301,6 +317,7 @@ void test_pulse_collapse_vertical_shrinks_width() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -312,7 +329,8 @@ void test_pulse_collapse_vertical_shrinks_width() {
 	effect.render();
 
 	// Center should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 8).r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(8, 8).r);
 
 	// Left and right edges should be empty (shrunk toward center)
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 8).r);
@@ -332,6 +350,7 @@ void test_pulse_collapse_random_selects_one() {
 	hal::test::seedRandom(12345);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -358,6 +377,7 @@ void test_pulse_strip_layout() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -369,8 +389,9 @@ void test_pulse_strip_layout() {
 	effect.render();
 
 	// Center should still be filled
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	uint16_t midX = canvas.getWidth() / 2;
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(midX, 0).g);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(midX, 0).g);
 
 	// Edges should be shrunk toward center
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 0).g);
@@ -384,6 +405,7 @@ void test_pulse_duration_zero() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 0;  // Immediate expiration
 	props["collapse"] = "none";
@@ -406,6 +428,7 @@ void test_pulse_multiple_sorted_by_remaining() {
 
 	// First pulse: longer duration, red
 	JsonDocument props1;
+	setDefaultPulseProps(props1);
 	props1["color"] = "#FF0000";
 	props1["duration"] = 2000;
 	props1["fade"] = false;
@@ -414,6 +437,7 @@ void test_pulse_multiple_sorted_by_remaining() {
 
 	// Second pulse: shorter duration, green
 	JsonDocument props2;
+	setDefaultPulseProps(props2);
 	props2["color"] = "#00FF00";
 	props2["duration"] = 500;
 	props2["fade"] = false;
@@ -437,6 +461,7 @@ void test_pulse_easing_linear() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = true;
@@ -460,6 +485,7 @@ void test_pulse_easing_quinticOut_default() {
 	PulseEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = true;

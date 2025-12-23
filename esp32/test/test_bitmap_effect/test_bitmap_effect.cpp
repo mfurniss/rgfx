@@ -54,6 +54,11 @@ using String = std::string;
 
 using namespace test_helpers;
 
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+
+using namespace test_helpers;
+
 void setUp(void) {
 	hal::test::setTime(0);
 	hal::test::seedRandom(12345);
@@ -78,6 +83,7 @@ void test_bitmap_add_simple_image() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -99,6 +105,7 @@ void test_bitmap_default_color() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	// No color specified - should use default (yellow)
 	props["duration"] = 1000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -119,6 +126,7 @@ void test_bitmap_reset_clears_all() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 5000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -146,6 +154,7 @@ void test_bitmap_center_position_default() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	// Default center is 50%, 50%
@@ -174,6 +183,7 @@ void test_bitmap_position_top_left() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	props["centerX"] = 0;
@@ -199,6 +209,7 @@ void test_bitmap_position_bottom_right() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	props["centerX"] = 100;
@@ -223,6 +234,7 @@ void test_bitmap_position_random() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	props["centerX"] = "random";
@@ -245,6 +257,7 @@ void test_bitmap_off_canvas_not_rendered() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	props["centerX"] = -100;  // Far off-canvas
@@ -270,6 +283,7 @@ void test_bitmap_spaces_are_transparent() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	props["centerX"] = 50;
@@ -299,6 +313,7 @@ void test_bitmap_alpha_blending() {
 	canvas.fill(CRGB(100, 0, 0));
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#00FF00";  // Green bitmap
 	props["duration"] = 1000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -322,6 +337,7 @@ void test_bitmap_expires_after_duration() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 100;  // 100ms
 	JsonArray image = props["image"].to<JsonArray>();
@@ -349,21 +365,22 @@ void test_bitmap_default_duration() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
-	// No duration - should use default (1000ms)
+	// No duration override - should use default (400ms)
 	JsonArray image = props["image"].to<JsonArray>();
 	image.add("X");
 
 	effect.add(props);
 
-	// At 500ms, should still be visible
-	effect.update(0.5f);
+	// At 200ms, should still be visible
+	effect.update(0.2f);
 	canvas.clear();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 
-	// At 1200ms, should be expired
-	effect.update(0.7f);
+	// At 500ms, should be expired
+	effect.update(0.3f);
 	canvas.clear();
 	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
@@ -454,6 +471,7 @@ void test_bitmap_empty_image() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	// No image array
@@ -472,6 +490,7 @@ void test_bitmap_single_pixel() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -493,6 +512,7 @@ void test_bitmap_varying_row_lengths() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -518,6 +538,7 @@ void test_bitmap_specific_color() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#0000FF";  // Blue
 	props["duration"] = 1000;
 	JsonArray image = props["image"].to<JsonArray>();
@@ -550,6 +571,7 @@ void test_bitmap_on_strip() {
 	// This test verifies the effect doesn't crash on strips.
 
 	JsonDocument props;
+	setDefaultBitmapProps(props);
 	props["color"] = "#FFFFFF";
 	props["duration"] = 1000;
 	props["centerX"] = 50;

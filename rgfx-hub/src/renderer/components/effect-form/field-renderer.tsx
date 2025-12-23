@@ -29,6 +29,8 @@ interface FieldRendererProps<T extends FieldValues> {
 
 const labelOverrides: Record<string, string> = {
   gradient: 'Preset',
+  lifespanSpread: 'Lifespan Spread %',
+  powerSpread: 'Power Spread %',
 };
 
 function formatLabel(name: string): string {

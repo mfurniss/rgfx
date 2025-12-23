@@ -32,5 +32,6 @@ export const DriverTelemetrySchema = TelemetryPayloadSchema.pick({
   currentFps: true,
   minFps: true,
   maxFps: true,
+  frameTiming: true,
 });
 

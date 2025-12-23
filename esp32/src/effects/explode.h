@@ -7,11 +7,13 @@
 
 class ExplodeEffect : public IEffect {
    private:
+	static constexpr uint32_t MAX_PARTICLES = 500;
+
 	struct Particle {
 		float x, y;              // Position (float for sub-pixel precision)
 		float vx, vy;            // Velocity (constant direction)
 		uint8_t r, g, b;         // RGB color
-		uint8_t alpha;           // Alpha channel: 255 (full) → 0 (transparent)
+		uint8_t alpha;           // Alpha channel: 255 (full) → 0 (transparent), 0 = dead
 		uint32_t lifespan;       // Total duration in milliseconds
 		uint32_t age;            // Current age in milliseconds
 		float friction;          // Velocity decay per second (denormalized from explosion)
@@ -29,7 +31,8 @@ class ExplodeEffect : public IEffect {
 
 	Canvas& canvas;
 	const Matrix& matrix;
-	std::vector<Particle> particlePool;     // Shared FIFO particle pool
+	Particle particlePool[MAX_PARTICLES];   // Fixed ring buffer
+	uint32_t head = 0;                      // Next write position (wraps around)
 	std::vector<Flash> flashes;             // Active flash effects (strips only)
 
    public:

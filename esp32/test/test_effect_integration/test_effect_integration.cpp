@@ -63,6 +63,11 @@ namespace {
 #include "effects/wipe.h"
 #include "effects/wipe.cpp"
 
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+
+using namespace test_helpers;
+
 // Test display instance
 static hal::test::HeadlessDisplay* testDisplay = nullptr;
 
@@ -145,6 +150,7 @@ void test_pulse_effect_renders_red() {
 
 	// Add red pulse
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 1000;
 	props["fade"] = false;
@@ -181,6 +187,7 @@ void test_pulse_fades_over_time() {
 
 	// Add fading red pulse
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FF0000";
 	props["duration"] = 500;
 	props["fade"] = true;
@@ -216,6 +223,7 @@ void test_wipe_effect_renders() {
 
 	// Add green wipe
 	JsonDocument props;
+	setDefaultWipeProps(props);
 	props["color"] = "#00FF00";
 	props["duration"] = 500;
 	props["direction"] = "right";
@@ -247,6 +255,7 @@ void test_multiple_pulses_blend() {
 
 	// Add red pulse
 	JsonDocument props1;
+	setDefaultPulseProps(props1);
 	props1["color"] = "#FF0000";
 	props1["fade"] = false;
 	props1["collapse"] = "none";
@@ -254,6 +263,7 @@ void test_multiple_pulses_blend() {
 
 	// Add green pulse (will blend)
 	JsonDocument props2;
+	setDefaultPulseProps(props2);
 	props2["color"] = "#00FF00";
 	props2["fade"] = false;
 	props2["collapse"] = "none";
@@ -283,6 +293,7 @@ void test_strip_layout_renders() {
 	PulseEffect pulse(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#0000FF";
 	props["fade"] = false;
 	pulse.add(props);
@@ -314,6 +325,7 @@ void test_large_matrix_renders() {
 	PulseEffect pulse(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FFFF00";
 	props["fade"] = false;
 	props["collapse"] = "none";
@@ -344,6 +356,7 @@ void test_reset_clears_effect() {
 	PulseEffect pulse(matrix, canvas);
 
 	JsonDocument props;
+	setDefaultPulseProps(props);
 	props["color"] = "#FFFFFF";
 	props["fade"] = false;
 	props["collapse"] = "none";

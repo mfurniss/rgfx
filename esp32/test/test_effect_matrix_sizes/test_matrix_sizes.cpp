@@ -126,6 +126,7 @@ void test_pulse_on_all_matrix_sizes() {
 		PulseEffect effect(matrix, canvas);
 
 		JsonDocument props;
+		setDefaultPulseProps(props);
 		props["color"] = "#FF0000";
 		props["duration"] = 1000;
 		props["fade"] = false;
@@ -151,6 +152,7 @@ void test_pulse_collapse_on_all_sizes() {
 		PulseEffect effect(matrix, canvas);
 
 		JsonDocument props;
+		setDefaultPulseProps(props);
 		props["color"] = "#00FF00";
 		props["duration"] = 1000;
 		props["fade"] = false;
@@ -182,6 +184,7 @@ void test_wipe_on_all_matrix_sizes() {
 		WipeEffect effect(matrix, canvas);
 
 		JsonDocument props;
+		setDefaultWipeProps(props);
 		props["color"] = "#0000FF";
 		props["duration"] = 1000;
 		props["direction"] = "right";
@@ -235,6 +238,7 @@ void test_explode_on_all_matrix_sizes() {
 		ExplodeEffect effect(matrix, canvas);
 
 		JsonDocument props;
+		setDefaultExplodeProps(props);
 		props["color"] = "#FF00FF";
 		props["particleCount"] = 50;
 		props["power"] = 30;
@@ -263,6 +267,7 @@ void test_explode_power_scales_with_matrix_size() {
 	ExplodeEffect largeEffect(largeMatrix, largeCanvas);
 
 	JsonDocument props;
+	setDefaultExplodeProps(props);
 	props["color"] = "#FFFFFF";
 	props["particleCount"] = 50;
 	props["power"] = 50;
@@ -302,6 +307,7 @@ void test_projectile_on_all_matrix_sizes() {
 		ProjectileEffect effect(matrix, canvas);
 
 		JsonDocument props;
+		setDefaultProjectileProps(props);
 		props["color"] = "#FFFF00";
 		props["velocity"] = 100;
 		props["direction"] = "right";
@@ -362,6 +368,7 @@ void test_background_on_all_matrix_sizes() {
 		BackgroundEffect effect(matrix, canvas);
 
 		JsonDocument props;
+		setDefaultBackgroundProps(props);
 		props["color"] = "#FF8800";
 		effect.add(props);
 

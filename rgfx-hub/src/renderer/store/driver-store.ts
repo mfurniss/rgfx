@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Driver, type SystemStatus, type DriverState as DriverStateType } from '@/types';
-import { DRIVER_CONNECTION_TIMEOUT_MS, DRIVER_CONNECTION_CHECK_INTERVAL_MS } from '@/config/constants';
+import { type Driver, type SystemStatus, type DriverState as DriverStateType } from '@/types';
 import { notify } from './notification-store';
 import { useTelemetryHistoryStore } from './telemetry-history-store';
 
@@ -50,66 +49,8 @@ interface DriverStoreState {
 export const useDriverStore = create<DriverStoreState>()(
   devtools(
     (set, get) => {
-      // Start connection timeout monitor
-      // Checks every 5 seconds for drivers that haven't sent telemetry in >30s
-      setInterval(() => {
-        const now = Date.now();
-        const currentDrivers = get().drivers;
-
-        const updatedDrivers = currentDrivers.map((driver) => {
-          // If driver is connected but hasn't sent telemetry within timeout window
-          const timedOut = now - (driver.lastSeenAt ?? 0) > DRIVER_CONNECTION_TIMEOUT_MS;
-
-          if (driver.state === 'connected' && driver.lastSeenAt && timedOut) {
-            // Create new Driver instance with state='disconnected'
-            return new Driver({
-              id: driver.id,
-              description: driver.description,
-              ip: driver.ip,
-              mac: driver.mac,
-              hostname: driver.hostname,
-              ssid: driver.ssid,
-              rssi: driver.rssi,
-              freeHeap: driver.freeHeap,
-              minFreeHeap: driver.minFreeHeap,
-              uptimeMs: driver.uptimeMs,
-              lastSeen: driver.lastSeen,
-              failedHeartbeats: driver.failedHeartbeats,
-              lastHeartbeat: driver.lastHeartbeat,
-              lastSeenAt: driver.lastSeenAt,
-              telemetry: driver.telemetry,
-              ledConfig: driver.ledConfig,
-              resolvedHardware: driver.resolvedHardware,
-              stats: driver.stats,
-              updateRate: driver.updateRate,
-              testActive: driver.testActive,
-              state: 'disconnected',
-              disabled: driver.disabled,
-            });
-          }
-
-          return driver;
-        });
-
-        // Find drivers that changed state and notify
-        updatedDrivers.forEach((driver, index) => {
-          const oldState = currentDrivers[index]?.state;
-          notifyStateChange(driver.id, oldState, driver.state);
-        });
-
-        // Only update store if at least one driver changed state
-        const hasChanges = updatedDrivers.some(
-          (driver, index) => driver.state !== currentDrivers[index]?.state,
-        );
-
-        if (hasChanges) {
-          set({ drivers: updatedDrivers });
-        }
-      }, DRIVER_CONNECTION_CHECK_INTERVAL_MS);
-
-      // Note: In a browser environment, this interval will be automatically
-      // cleaned up when the page unloads. In development with HMR, Zustand's
-      // devtools middleware handles cleanup.
+      // Connection timeout monitoring is now handled by the main process (DriverRegistry)
+      // The renderer just reflects state changes received via IPC events
 
       return {
         // Initial state
@@ -238,31 +179,7 @@ export const useDriverStore = create<DriverStoreState>()(
           set((state) => ({
             drivers: state.drivers.map((d) =>
               d.id === driver.id || d.mac === driver.mac
-                ? new Driver({
-                  id: d.id,
-                  description: d.description,
-                  ip: d.ip,
-                  mac: d.mac,
-                  hostname: d.hostname,
-                  ssid: d.ssid,
-                  rssi: d.rssi,
-                  freeHeap: d.freeHeap,
-                  minFreeHeap: d.minFreeHeap,
-                  uptimeMs: d.uptimeMs,
-                  lastSeen: d.lastSeen,
-                  failedHeartbeats: d.failedHeartbeats,
-                  lastHeartbeat: d.lastHeartbeat,
-                  lastSeenAt: d.lastSeenAt,
-                  telemetry: d.telemetry,
-                  ledConfig: d.ledConfig,
-                  resolvedHardware: d.resolvedHardware,
-                  stats: d.stats,
-                  updateRate: d.updateRate,
-                  testActive: d.testActive,
-                  remoteLogging: d.remoteLogging,
-                  state: 'updating',
-                  disabled: d.disabled,
-                })
+                ? { ...d, state: 'updating' as const }
                 : d,
             ),
           }));

@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Frame timing instrumentation in driver telemetry
+  - Measures canvas clear, effects render, downsample, and FastLED.show() times (microseconds)
+  - Averaged every second and reported via MQTT telemetry
+  - New `frameTiming` object in telemetry with `clearUs`, `effectsUs`, `downsampleUs`, `showUs`, `totalUs`
+
+### Changed
+- Explode effect now uses a fixed-size ring buffer instead of std::vector
+  - O(1) particle add and removal (no heap allocations during gameplay)
+  - Dead particles marked with alpha=0 and skipped in render/update
+  - Improves cache locality with contiguous memory layout
+- Canvas blending now uses `>>8` instead of `/255` for ~15% faster blending
+  - Imperceptible ~0.4% color error (254 instead of 255 at full alpha)
+  - Updated tests to expect the new behavior
+
+### Added (continued)
+- Random Trigger button in FX Playground - randomizes all effect parameters and triggers immediately
+  - Positioned next to Trigger Effect button with shuffle icon
+  - Intelligently randomizes based on field type: numbers respect min/max/integer constraints, enums pick from valid values, colors use weighted distribution (70% named colors, 20% hex, 10% 'random')
+  - Updates form to show randomized values after triggering
+  - Provides quick way to experiment with random effect variations on hardware
+- Reset button in FX Playground form to restore current effect to default values
+  - Positioned next to effect selector dropdown
+  - Uses RestartAlt icon for clear visual indication
 - Text effect auto-wrapping - text now wraps to the next row when it exceeds canvas width
   - Character-level wrapping (wraps at any character, not word boundaries)
   - First row respects starting x position, subsequent rows use full width
@@ -79,6 +102,11 @@ All notable changes to this project will be documented in this file.
   - `processEvent()` in `main.ts` now emits via event bus instead of direct IPC
 
 ### Fixed
+- Explode effect particles wrapping to wrong canvas edges on non-square matrices
+  - Root cause: Manual clipping had integer wraparound bugs (negative coords wrapped to ~65000)
+  - Solution: Removed manual clipping, use Canvas signed drawRectangle API (handles all edge cases)
+  - Removed `scalePower` parameter entirely - power values are now raw (no automatic scaling)
+  - Users should adjust power values based on their specific LED matrix configuration
 - Effects playground broadcasting to all drivers when none selected
   - Now requires at least one driver to be selected before triggering effects
 - Driver selector now auto-selects on each page visit

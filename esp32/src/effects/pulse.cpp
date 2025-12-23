@@ -5,23 +5,16 @@
 #include <algorithm>
 #include <cstring>
 
-namespace {
-	constexpr uint32_t PULSE_DEFAULT_COLOR = 0xFFFFFF;
-	constexpr float PULSE_DEFAULT_DURATION = 0.8f;  // Duration in seconds
-	constexpr bool PULSE_DEFAULT_FADE = true;
-}  // namespace
-
 PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {
 	pulses.reserve(16);
 }
 
 void PulseEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : PULSE_DEFAULT_COLOR;
-	// Duration comes in as milliseconds, convert to seconds
-	uint32_t durationMs = props["duration"] | static_cast<uint32_t>(PULSE_DEFAULT_DURATION * 1000);
-	bool fade = props["fade"].is<bool>() ? props["fade"].as<bool>() : PULSE_DEFAULT_FADE;
-	const char* easingName = props["easing"] | "quinticOut";
-	const char* collapseStr = props["collapse"] | "random";
+	uint32_t color = parseColor(props["color"]);
+	uint32_t durationMs = props["duration"];
+	bool fade = props["fade"].as<bool>();
+	const char* easingName = props["easing"] | "";
+	const char* collapseStr = props["collapse"] | "";
 
 	CollapseMode collapse;
 	if (strcmp(collapseStr, "random") == 0) {
