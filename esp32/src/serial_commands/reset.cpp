@@ -9,7 +9,7 @@
 #include "config/config_nvs.h"
 #include "config/config_portal.h"
 #include "log.h"
-#include <Arduino.h>
+#include "safe_restart.h"
 
 namespace Commands {
 
@@ -22,8 +22,7 @@ namespace Commands {
 		// Clear WiFi credentials (IotWebConf)
 		ConfigPortal::resetSettings();
 
-		delay(1000);
-		ESP.restart();
+		safeRestart();
 	}
 
 }  // namespace Commands

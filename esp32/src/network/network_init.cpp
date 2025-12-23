@@ -116,8 +116,8 @@ void setupNetworkServices(Matrix& matrix) {
 void cleanupNetworkServices(Matrix& matrix) {
 	log("WiFi not connected - entering AP mode");
 
-	// Don't show purple LEDs if OTA is in progress (reset is imminent)
-	if (!otaInProgress) {
+	// Don't show purple LEDs if OTA or restart is in progress
+	if (!otaInProgress && !pendingRestart) {
 		fill_solid(matrix.leds, matrix.size, CRGB::Purple);
 		hal::getLedController().show();
 	}
