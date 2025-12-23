@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { effectPropsSchemas } from '@/schemas';
-import { DEFAULT_FX_PLAYGROUND_EFFECT } from '@/config/constants';
+import { DEFAULT_FX_PLAYGROUND_EFFECT, SIMULATOR_ROW_COUNT } from '@/config/constants';
 
 function getDefaultPropsJson(effect: keyof typeof effectPropsSchemas): string {
   return JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
@@ -23,8 +23,6 @@ interface SimulatorRow {
   autoInterval: SimulatorAutoInterval;
 }
 
-const SIMULATOR_ROW_COUNT = 6;
-
 interface UiState {
   // Driver table sort preferences
   driverTableSortField: SortField;
@@ -32,9 +30,8 @@ interface UiState {
 
   // Test effects page state
   testEffectsSelectedEffect: string;
-  testEffectsPropsJson: string;
+  testEffectsPropsMap: Record<string, string>; // Effect name -> props JSON
   testEffectsSelectedDrivers: string[]; // Set serialized as array
-  testEffectsSelectAll: boolean;
 
   // Simulator page state
   simulatorRows: SimulatorRow[];
@@ -56,8 +53,7 @@ interface UiState {
   setTestEffectsState: (
     selectedEffect: string,
     propsJson: string,
-    selectedDrivers: Set<string>,
-    selectAll: boolean
+    selectedDrivers: Set<string>
   ) => void;
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
@@ -79,11 +75,12 @@ export const useUiStore = create<UiState>()(
 
       // Test effects defaults
       testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
-      testEffectsPropsJson: getDefaultPropsJson(DEFAULT_FX_PLAYGROUND_EFFECT),
+      testEffectsPropsMap: {
+        [DEFAULT_FX_PLAYGROUND_EFFECT]: getDefaultPropsJson(DEFAULT_FX_PLAYGROUND_EFFECT),
+      },
       testEffectsSelectedDrivers: [],
-      testEffectsSelectAll: false,
 
-      // Simulator defaults (6 empty rows)
+      // Simulator defaults
       simulatorRows: Array.from({ length: SIMULATOR_ROW_COUNT }, () => ({
         eventLine: '',
         autoInterval: 'off' as SimulatorAutoInterval,
@@ -108,13 +105,15 @@ export const useUiStore = create<UiState>()(
         set({ isFlashingFirmware: isFlashing });
       },
 
-      setTestEffectsState: (selectedEffect, propsJson, selectedDrivers, selectAll) => {
-        set({
+      setTestEffectsState: (selectedEffect, propsJson, selectedDrivers) => {
+        set((state) => ({
           testEffectsSelectedEffect: selectedEffect,
-          testEffectsPropsJson: propsJson,
+          testEffectsPropsMap: {
+            ...state.testEffectsPropsMap,
+            [selectedEffect]: propsJson,
+          },
           testEffectsSelectedDrivers: Array.from(selectedDrivers),
-          testEffectsSelectAll: selectAll,
-        });
+        }));
       },
 
       setSimulatorRow: (index, eventLine, autoInterval) => {
@@ -147,6 +146,7 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'rgfx-ui-preferences',
+      version: 1,
       partialize: (state) => ({
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
@@ -154,10 +154,27 @@ export const useUiStore = create<UiState>()(
         rgfxConfigDirectory: state.rgfxConfigDirectory,
         mameRomsDirectory: state.mameRomsDirectory,
         testEffectsSelectedEffect: state.testEffectsSelectedEffect,
-        testEffectsPropsJson: state.testEffectsPropsJson,
+        testEffectsPropsMap: state.testEffectsPropsMap,
         testEffectsSelectedDrivers: state.testEffectsSelectedDrivers,
-        testEffectsSelectAll: state.testEffectsSelectAll,
       }),
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as Partial<UiState>;
+
+        // Migrate simulator rows to match SIMULATOR_ROW_COUNT
+        if (state.simulatorRows && state.simulatorRows.length < SIMULATOR_ROW_COUNT) {
+          const additionalRows = SIMULATOR_ROW_COUNT - state.simulatorRows.length;
+          const newRows = [
+            ...state.simulatorRows,
+            ...Array.from({ length: additionalRows }, () => ({
+              eventLine: '',
+              autoInterval: 'off' as SimulatorAutoInterval,
+            })),
+          ];
+          state.simulatorRows = newRows;
+        }
+
+        return state as UiState;
+      },
     },
   ),
 );

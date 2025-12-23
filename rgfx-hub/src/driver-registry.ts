@@ -6,14 +6,19 @@
  */
 
 import log from 'electron-log/main';
-import { Driver, type DriverTelemetry, type LEDHardware } from './types';
+import { createDriver, type Driver, type DriverTelemetry, type LEDHardware } from './types';
 import type { DriverPersistence, PersistedDriver } from './driver-persistence';
 import type { LEDHardwareManager } from './led-hardware-manager';
 import { eventBus } from './services/event-bus';
+import {
+  DRIVER_CONNECTION_TIMEOUT_MS,
+  DRIVER_CONNECTION_CHECK_INTERVAL_MS,
+} from './config/constants';
 
 export class DriverRegistry {
   private drivers = new Map<string, Driver>();
   private persistence?: DriverPersistence;
+  private connectionMonitorInterval?: NodeJS.Timeout;
 
   constructor(persistence?: DriverPersistence, ledHardwareManager?: LEDHardwareManager) {
     this.persistence = persistence;
@@ -38,23 +43,14 @@ export class DriverRegistry {
           }
         }
 
-        const driver = new Driver({
+        const driver = createDriver({
           id: pd.id,
           mac: pd.macAddress,
           description: pd.description,
           remoteLogging: pd.remoteLogging,
-          lastSeen: 0,
-          failedHeartbeats: 0,
           ledConfig: pd.ledConfig,
           resolvedHardware,
-          stats: {
-            telemetryEventsReceived: 0,
-            mqttMessagesReceived: 0,
-            mqttMessagesFailed: 0,
-            udpMessagesSent: 0,
-            udpMessagesFailed: 0,
-          },
-          state: 'disconnected', // Persisted drivers start as disconnected
+          state: 'disconnected',
           disabled: pd.disabled,
         });
         this.drivers.set(driver.id, driver);
@@ -220,35 +216,27 @@ export class DriverRegistry {
   ): Driver {
     const now = Date.now();
 
-    return new Driver({
+    return createDriver({
       id: driverId,
       description: persistedDriver?.description,
       remoteLogging: persistedDriver?.remoteLogging,
-      // Network information
       ip: telemetryData.ip,
       mac: telemetryData.mac,
       hostname: telemetryData.hostname,
       ssid: telemetryData.ssid,
-      // Runtime metrics
       rssi: telemetryData.rssi,
       freeHeap: telemetryData.freeHeap,
       minFreeHeap: telemetryData.minFreeHeap,
       uptimeMs: telemetryData.uptimeMs,
-      // Connection tracking
       lastSeen: now,
       failedHeartbeats: 0,
       lastHeartbeat: now,
-      lastSeenAt: now, // Timestamp for connection detection
-      // Hardware/firmware telemetry
+      lastSeenAt: now,
       telemetry: telemetryData.telemetry,
-      // LED configuration
       ledConfig: persistedDriver?.ledConfig,
       resolvedHardware: existingDriver?.resolvedHardware,
-      // Statistics
       stats,
-      // Runtime state
       testActive: telemetryData.testActive,
-      // Driver is connected if it has a valid IP address
       state: telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected',
       disabled: persistedDriver?.disabled ?? existingDriver?.disabled ?? false,
     });
@@ -353,6 +341,57 @@ export class DriverRegistry {
   }
 
   /**
+   * Start monitoring driver connections for timeouts.
+   * Checks every 5 seconds for drivers that haven't sent telemetry in >30 seconds.
+   * This is the single source of truth for connection state - renderer should not
+   * independently monitor timeouts.
+   */
+  startConnectionMonitor(): void {
+    if (this.connectionMonitorInterval) {
+      log.warn('Connection monitor already running');
+      return;
+    }
+
+    log.info('Starting driver connection monitor');
+    this.connectionMonitorInterval = setInterval(() => {
+      const now = Date.now();
+
+      for (const driver of this.drivers.values()) {
+        // Skip drivers that aren't connected or don't have lastSeenAt
+        if (driver.state !== 'connected' || !driver.lastSeenAt) {
+          continue;
+        }
+
+        const timeSinceLastSeen = now - driver.lastSeenAt;
+
+        if (timeSinceLastSeen > DRIVER_CONNECTION_TIMEOUT_MS) {
+          log.info(
+            `Driver ${driver.id} timed out (last seen ${Math.round(timeSinceLastSeen / 1000)}s ago)`,
+          );
+
+          // Update driver state to disconnected
+          const updatedDriver = { ...driver, state: 'disconnected' as const };
+          this.drivers.set(driver.id, updatedDriver);
+
+          // Emit disconnect event with 'timeout' reason
+          eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'timeout' });
+        }
+      }
+    }, DRIVER_CONNECTION_CHECK_INTERVAL_MS);
+  }
+
+  /**
+   * Stop the connection monitor (for cleanup)
+   */
+  stopConnectionMonitor(): void {
+    if (this.connectionMonitorInterval) {
+      clearInterval(this.connectionMonitorInterval);
+      this.connectionMonitorInterval = undefined;
+      log.info('Stopped driver connection monitor');
+    }
+  }
+
+  /**
    * Refresh a driver from persistence after config changes (e.g., rename)
    * Updates the runtime driver and returns the updated driver for IPC notification
    */
@@ -395,29 +434,13 @@ export class DriverRegistry {
     }
 
     // Create updated driver with new ID and config
-    const updatedDriver = new Driver({
+    const updatedDriver = createDriver({
+      ...existingDriver,
       id: newId,
       description: persistedDriver.description,
-      ip: existingDriver.ip,
-      mac: existingDriver.mac,
-      hostname: existingDriver.hostname,
-      ssid: existingDriver.ssid,
       remoteLogging: persistedDriver.remoteLogging,
-      rssi: existingDriver.rssi,
-      freeHeap: existingDriver.freeHeap,
-      minFreeHeap: existingDriver.minFreeHeap,
-      uptimeMs: existingDriver.uptimeMs,
-      lastSeen: existingDriver.lastSeen,
-      failedHeartbeats: existingDriver.failedHeartbeats,
-      lastHeartbeat: existingDriver.lastHeartbeat,
-      lastSeenAt: existingDriver.lastSeenAt,
-      telemetry: existingDriver.telemetry,
       ledConfig: persistedDriver.ledConfig,
       resolvedHardware,
-      stats: existingDriver.stats,
-      updateRate: existingDriver.updateRate,
-      testActive: existingDriver.testActive,
-      state: existingDriver.state,
       disabled: persistedDriver.disabled,
     });
 

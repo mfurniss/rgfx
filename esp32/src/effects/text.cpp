@@ -4,8 +4,6 @@
 #include <cstring>
 
 namespace {
-	constexpr uint32_t TEXT_DEFAULT_COLOR = 0xFFFFFF;
-
 	// Calculate wrapped position for character at given index
 	void getWrappedPosition(int16_t startX, int16_t startY,
 	                        uint8_t charIndex, uint16_t canvasWidth,
@@ -44,10 +42,10 @@ void TextEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	uint32_t color = props["color"] ? parseColor(props["color"]) : TEXT_DEFAULT_COLOR;
-	int16_t x = props["x"] | 0;
-	int16_t y = props["y"] | 0;
-	uint32_t durationMs = props["duration"] | 0;
+	uint32_t color = parseColor(props["color"]);
+	int16_t x = props["x"];
+	int16_t y = props["y"];
+	uint32_t durationMs = props["duration"];
 
 	TextInstance instance;
 	instance.textLen = static_cast<uint8_t>(strlen(text));

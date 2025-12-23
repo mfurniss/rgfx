@@ -140,10 +140,27 @@ export interface DriverTelemetry {
   minFps: number;
   maxFps: number;
 
+  // Frame timing metrics (microseconds per frame, averaged)
+  frameTiming?: {
+    clearUs: number;
+    effectsUs: number;
+    downsampleUs: number;
+    showUs: number;
+    totalUs: number;
+  };
+
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
   // and pushed to drivers via MQTT - not reported in telemetry
 }
 
+/**
+ * Driver connection state enum
+ */
+export type DriverState = 'connected' | 'disconnected' | 'updating';
+
+/**
+ * Driver Statistics - accumulated counters
+ */
 interface DriverStats {
   telemetryEventsReceived: number;
   mqttMessagesReceived: number;
@@ -152,128 +169,136 @@ interface DriverStats {
   udpMessagesFailed: number;
 }
 
-export class Driver {
-  // Driver identity
+/**
+ * Driver Identity - immutable after creation
+ */
+interface DriverIdentity {
   id: string;
-  description?: string;
-
-  // Network information (hub-observable)
-  ip?: string;
   mac?: string;
-  hostname?: string;
-  ssid?: string;
-
-  // Configuration
-  remoteLogging?: RemoteLoggingLevel;
-
-  // Runtime metrics (updated via telemetry)
-  rssi?: number;
-  freeHeap?: number;
-  minFreeHeap?: number;
-  uptimeMs?: number;
-
-  // Connection tracking
-  lastSeen: number;
-  failedHeartbeats: number;
-  lastHeartbeat?: number;
-  lastSeenAt?: number; // Timestamp when last telemetry was received
-
-  // Hardware/firmware telemetry (static info from driver)
-  telemetry?: DriverTelemetry;
-
-  // LED configuration and hardware
-  ledConfig?: DriverLEDConfig | null;
-  resolvedHardware?: LEDHardware;
-
-  // Statistics
-  stats: DriverStats;
-  updateRate?: number;
-
-  // Runtime state
-  testActive?: boolean;
-  state: DriverState;
-  disabled: boolean;
-
-  constructor(data: {
-    id: string;
-    description?: string;
-    ip?: string;
-    mac?: string;
-    hostname?: string;
-    ssid?: string;
-    remoteLogging?: RemoteLoggingLevel;
-    rssi?: number;
-    freeHeap?: number;
-    minFreeHeap?: number;
-    uptimeMs?: number;
-    lastSeen: number;
-    failedHeartbeats: number;
-    lastHeartbeat?: number;
-    lastSeenAt?: number;
-    telemetry?: DriverTelemetry;
-    ledConfig?: DriverLEDConfig | null;
-    resolvedHardware?: LEDHardware;
-    stats: DriverStats;
-    updateRate?: number;
-    testActive?: boolean;
-    state: DriverState;
-    disabled?: boolean;
-  }) {
-    this.id = data.id;
-    this.description = data.description;
-    this.ip = data.ip;
-    this.mac = data.mac;
-    this.hostname = data.hostname;
-    this.ssid = data.ssid;
-    this.remoteLogging = data.remoteLogging;
-    this.rssi = data.rssi;
-    this.freeHeap = data.freeHeap;
-    this.minFreeHeap = data.minFreeHeap;
-    this.uptimeMs = data.uptimeMs;
-    this.lastSeen = data.lastSeen;
-    this.failedHeartbeats = data.failedHeartbeats;
-    this.lastHeartbeat = data.lastHeartbeat;
-    this.lastSeenAt = data.lastSeenAt;
-    this.telemetry = data.telemetry;
-    this.ledConfig = data.ledConfig;
-    this.resolvedHardware = data.resolvedHardware;
-    this.stats = data.stats;
-    this.updateRate = data.updateRate;
-    this.testActive = data.testActive;
-    this.state = data.state;
-    this.disabled = data.disabled ?? false;
-  }
+  description?: string;
 }
 
 /**
- * Serialize a Driver instance for IPC transmission to renderer process
+ * Driver Network State - changes when driver connects
  */
-export function serializeDriverForIPC(driver: Driver) {
+interface DriverNetworkState {
+  ip?: string;
+  hostname?: string;
+  ssid?: string;
+  rssi?: number;
+}
+
+/**
+ * Driver Metrics - updated every telemetry message
+ */
+interface DriverMetrics {
+  freeHeap?: number;
+  minFreeHeap?: number;
+  uptimeMs?: number;
+  lastSeenAt?: number;
+}
+
+/**
+ * Driver Config - user-defined, persisted
+ */
+interface DriverConfigData {
+  remoteLogging?: RemoteLoggingLevel;
+  ledConfig?: DriverLEDConfig | null;
+  resolvedHardware?: LEDHardware;
+  disabled: boolean;
+}
+
+/**
+ * Driver Hardware Info - semi-static, from device
+ */
+interface DriverHardwareInfo {
+  telemetry?: DriverTelemetry;
+}
+
+/**
+ * Driver Connection State - internal state tracking
+ */
+interface DriverConnectionState {
+  state: DriverState;
+  lastSeen: number;
+  failedHeartbeats: number;
+  lastHeartbeat?: number;
+  testActive?: boolean;
+  updateRate?: number;
+}
+
+/**
+ * Driver - composite type combining all driver-related interfaces
+ * This is a plain object, not a class - use createDriver() to construct
+ */
+export type Driver = DriverIdentity
+  & DriverNetworkState
+  & DriverMetrics
+  & DriverConfigData
+  & DriverHardwareInfo
+  & { stats: DriverStats }
+  & DriverConnectionState;
+
+/**
+ * Input type for createDriver - all fields optional except id
+ */
+export type DriverInput = Partial<Driver> & { id: string };
+
+/**
+ * Default values for Driver fields
+ */
+const defaultDriverStats: DriverStats = {
+  telemetryEventsReceived: 0,
+  mqttMessagesReceived: 0,
+  mqttMessagesFailed: 0,
+  udpMessagesSent: 0,
+  udpMessagesFailed: 0,
+};
+
+/**
+ * Factory function to create a Driver object with defaults
+ */
+export function createDriver(data: DriverInput): Driver {
   return {
-    id: driver.id,
-    description: driver.description,
-    ip: driver.ip,
-    mac: driver.mac,
-    hostname: driver.hostname,
-    ssid: driver.ssid,
-    remoteLogging: driver.remoteLogging,
-    rssi: driver.rssi,
-    freeHeap: driver.freeHeap,
-    minFreeHeap: driver.minFreeHeap,
-    uptimeMs: driver.uptimeMs,
-    lastSeen: driver.lastSeen,
-    failedHeartbeats: driver.failedHeartbeats,
-    lastHeartbeat: driver.lastHeartbeat,
-    lastSeenAt: driver.lastSeenAt,
-    telemetry: driver.telemetry,
-    ledConfig: driver.ledConfig,
-    resolvedHardware: driver.resolvedHardware,
-    stats: driver.stats,
-    updateRate: driver.updateRate,
-    testActive: driver.testActive,
-    state: driver.state,
-    disabled: driver.disabled,
+    // Identity
+    id: data.id,
+    mac: data.mac,
+    description: data.description,
+    // Network
+    ip: data.ip,
+    hostname: data.hostname,
+    ssid: data.ssid,
+    rssi: data.rssi,
+    // Metrics
+    freeHeap: data.freeHeap,
+    minFreeHeap: data.minFreeHeap,
+    uptimeMs: data.uptimeMs,
+    lastSeenAt: data.lastSeenAt,
+    // Config
+    remoteLogging: data.remoteLogging,
+    ledConfig: data.ledConfig,
+    resolvedHardware: data.resolvedHardware,
+    disabled: data.disabled ?? false,
+    // Hardware
+    telemetry: data.telemetry,
+    // Stats
+    stats: data.stats ?? { ...defaultDriverStats },
+    // Connection
+    state: data.state ?? 'disconnected',
+    lastSeen: data.lastSeen ?? 0,
+    failedHeartbeats: data.failedHeartbeats ?? 0,
+    lastHeartbeat: data.lastHeartbeat,
+    testActive: data.testActive,
+    updateRate: data.updateRate,
   };
+}
+
+/**
+ * Serialize a Driver for IPC transmission to renderer process
+ * Since Driver is now a plain object, this is just a shallow copy
+ */
+export function serializeDriverForIPC(driver: Driver): Driver {
+  return { ...driver };
 }
 
 export interface SystemStatus {
@@ -294,9 +319,7 @@ export interface EventTopicData {
   lastValue?: string;
 }
 
-export type DisconnectReason = 'disconnected' | 'restarting';
-
-export type DriverState = 'connected' | 'disconnected' | 'updating';
+export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';
 
 // Extend Window interface for TypeScript
 declare global {

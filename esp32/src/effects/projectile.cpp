@@ -6,12 +6,6 @@
 #include <cstring>
 
 namespace {
-	constexpr uint32_t PROJECTILE_DEFAULT_VELOCITY = 100;
-	constexpr uint32_t PROJECTILE_DEFAULT_WIDTH = 16;
-	constexpr uint32_t PROJECTILE_DEFAULT_HEIGHT = 16;
-	constexpr uint32_t PROJECTILE_DEFAULT_LIFESPAN_MS = 5000;
-	constexpr float PROJECTILE_DEFAULT_FRICTION = 0.0f;
-	constexpr float PROJECTILE_DEFAULT_TRAIL = 0.0f;
 	constexpr float PROJECTILE_MIN_SEGMENT_WIDTH = 4.0f;
 	constexpr uint8_t PROJECTILE_TRAIL_ALPHA_MIN = 25;
 	constexpr uint8_t PROJECTILE_TRAIL_ALPHA_MAX = 120;
@@ -20,7 +14,7 @@ namespace {
 static ProjectileDirection parseDirection(const char* dir, bool is1D) {
 	ProjectileDirection result;
 
-	if (dir == nullptr || strcmp(dir, "random") == 0) {
+	if (strcmp(dir, "random") == 0 || strcmp(dir, "") == 0) {
 		result = static_cast<ProjectileDirection>(hal::random(4));
 	} else if (strcmp(dir, "left") == 0) {
 		result = ProjectileDirection::LEFT;
@@ -52,15 +46,14 @@ ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c)
 }
 
 void ProjectileEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : randomColor();
-	uint32_t velocity = props["velocity"] | PROJECTILE_DEFAULT_VELOCITY;
-	float friction =
-		props["friction"].isNull() ? PROJECTILE_DEFAULT_FRICTION : props["friction"].as<float>();
-	float trail = props["trail"].isNull() ? PROJECTILE_DEFAULT_TRAIL : props["trail"].as<float>();
-	uint8_t width = props["width"] | PROJECTILE_DEFAULT_WIDTH;
-	uint8_t height = props["height"] | PROJECTILE_DEFAULT_HEIGHT;
-	uint32_t lifespanMs = props["lifespan"] | PROJECTILE_DEFAULT_LIFESPAN_MS;
-	const char* dirStr = props["direction"] | "random";
+	uint32_t color = parseColor(props["color"]);
+	uint32_t velocity = props["velocity"];
+	float friction = props["friction"];
+	float trail = props["trail"];
+	uint8_t width = props["width"];
+	uint8_t height = props["height"];
+	uint32_t lifespanMs = props["lifespan"];
+	const char* dirStr = props["direction"] | "";
 
 	bool is1D = canvas.getHeight() == 1;
 	ProjectileDirection direction = parseDirection(dirStr, is1D);

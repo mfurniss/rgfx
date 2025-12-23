@@ -4,16 +4,13 @@
 #include "graphics/canvas.h"
 #include <algorithm>
 
-static const uint32_t DEFAULT_COLOR = 0xFFFF00;
-static const uint32_t DEFAULT_DURATION = 1000;
-
 BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	bitmaps.reserve(8);
 }
 
 void BitmapEffect::add(JsonDocument& props) {
-	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
-	uint32_t duration = props["duration"] | DEFAULT_DURATION;
+	uint32_t color = parseColor(props["color"]);
+	uint32_t duration = props["duration"];
 
 	// Parse center position as percentage (0-100), "random", or default to center (50%)
 	float centerXPercent = 50.0f;

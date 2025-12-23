@@ -4,6 +4,22 @@
 #include "effects/effect_utils.h"
 #include "hal/platform.h"
 
+// Frame timing accumulator (reset every second when FPS is calculated)
+static uint32_t g_clearUsAccum = 0;
+static uint32_t g_effectsUsAccum = 0;
+static uint32_t g_downsampleUsAccum = 0;
+static uint32_t g_showUsAccum = 0;
+static uint32_t g_totalUsAccum = 0;
+static uint32_t g_timingFrameCount = 0;
+static uint32_t g_lastTimingCalcTime = 0;
+
+// Averaged metrics (updated once per second)
+static FrameTimingMetrics g_avgMetrics = {0, 0, 0, 0, 0};
+
+FrameTimingMetrics getFrameTimingMetrics() {
+	return g_avgMetrics;
+}
+
 EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	: matrix(matrix),
 	  display(display),
@@ -28,11 +44,12 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  } {}
 
 void EffectProcessor::update() {
-	uint32_t now = hal::micros();
+	uint32_t frameStart = hal::micros();
 
 	// First frame: initialize timing, skip rendering
 	if (lastFrameTime == 0) {
-		lastFrameTime = now;
+		lastFrameTime = frameStart;
+		g_lastTimingCalcTime = hal::millis();
 		return;
 	}
 
@@ -44,16 +61,18 @@ void EffectProcessor::update() {
 		testLedsEffect.render();
 		downsampleToMatrix(canvas, &matrix);
 		display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
-		lastFrameTime = now;
+		lastFrameTime = frameStart;
 		return;
 	}
 
 	// Normal mode: calculate delta time with microsecond precision
-	float deltaTime = (now - lastFrameTime) / 1000000.0f;
-	lastFrameTime = now;
+	float deltaTime = (frameStart - lastFrameTime) / 1000000.0f;
+	lastFrameTime = frameStart;
 
-	// Clear canvas once per frame
+	// --- TIMING: Canvas clear ---
+	uint32_t t0 = hal::micros();
 	canvas.clear();
+	uint32_t t1 = hal::micros();
 
 	// Skip background if plasma is fully opaque (optimization)
 	if (!plasmaEffect.isFullyOpaque()) {
@@ -74,12 +93,42 @@ void EffectProcessor::update() {
 			entry.effect->update(deltaTime);
 		}
 	}
+	uint32_t t2 = hal::micros();
 
-	// Downsample shared canvas to matrix
+	// --- TIMING: Downsample ---
 	downsampleToMatrix(canvas, &matrix);
+	uint32_t t3 = hal::micros();
 
-	// Display the frame
+	// --- TIMING: Display ---
 	display.show(matrix.leds, matrix.size, matrix.width, matrix.height);
+	uint32_t t4 = hal::micros();
+
+	// Accumulate timing data
+	g_clearUsAccum += (t1 - t0);
+	g_effectsUsAccum += (t2 - t1);
+	g_downsampleUsAccum += (t3 - t2);
+	g_showUsAccum += (t4 - t3);
+	g_totalUsAccum += (t4 - frameStart);
+	g_timingFrameCount++;
+
+	// Calculate averages every second
+	uint32_t nowMs = hal::millis();
+	if (nowMs - g_lastTimingCalcTime >= 1000 && g_timingFrameCount > 0) {
+		g_avgMetrics.clearUs = g_clearUsAccum / g_timingFrameCount;
+		g_avgMetrics.effectsUs = g_effectsUsAccum / g_timingFrameCount;
+		g_avgMetrics.downsampleUs = g_downsampleUsAccum / g_timingFrameCount;
+		g_avgMetrics.showUs = g_showUsAccum / g_timingFrameCount;
+		g_avgMetrics.totalUs = g_totalUsAccum / g_timingFrameCount;
+
+		// Reset accumulators
+		g_clearUsAccum = 0;
+		g_effectsUsAccum = 0;
+		g_downsampleUsAccum = 0;
+		g_showUsAccum = 0;
+		g_totalUsAccum = 0;
+		g_timingFrameCount = 0;
+		g_lastTimingCalcTime = nowMs;
+	}
 }
 
 void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {

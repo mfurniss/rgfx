@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <ArduinoJson.h>
 #include "graphics/canvas.h"
 #include "hal/types.h"
 
@@ -272,6 +273,258 @@ inline int countPixelsInQuadrant(Canvas& canvas, int quadrant) {
 		}
 	}
 	return count;
+}
+
+// =============================================================================
+// Default Props Helpers
+// These create complete payloads matching the hub's Zod schema defaults.
+// Use these when testing effects to ensure all required fields are present.
+// =============================================================================
+
+/**
+ * Create default pulse props (matches hub schema defaults)
+ */
+inline void setDefaultPulseProps(JsonDocument& props) {
+	props["color"] = "#FFFFFF";
+	props["reset"] = false;
+	props["duration"] = 800;
+	props["easing"] = "quinticOut";
+	props["fade"] = true;
+	props["collapse"] = "random";
+}
+
+/**
+ * Create default explode props (matches hub schema defaults)
+ */
+inline void setDefaultExplodeProps(JsonDocument& props) {
+	props["color"] = "#FFFFFF";
+	props["reset"] = false;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["friction"] = 3.0f;
+	props["hueSpread"] = 0;
+	props["lifespan"] = 700;
+	props["lifespanSpread"] = 50.0f;
+	props["particleCount"] = 100;
+	props["particleSize"] = 6;
+	props["power"] = 50.0f;
+	props["powerSpread"] = 80.0f;
+}
+
+/**
+ * Create default wipe props (matches hub schema defaults)
+ */
+inline void setDefaultWipeProps(JsonDocument& props) {
+	props["color"] = "#FFFFFF";
+	props["reset"] = false;
+	props["direction"] = "random";
+	props["duration"] = 500;
+}
+
+/**
+ * Create default projectile props (test-friendly defaults, not hub schema)
+ */
+inline void setDefaultProjectileProps(JsonDocument& props) {
+	props["color"] = "#FFFFFF";
+	props["reset"] = false;
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["friction"] = 0.0f;
+	props["trail"] = 0.0f;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["lifespan"] = 5000;
+}
+
+/**
+ * Create default plasma props (matches hub schema defaults)
+ */
+inline void setDefaultPlasmaProps(JsonDocument& props) {
+	props["speed"] = 3.0f;
+	props["scale"] = 4.0f;
+	props["enabled"] = "on";
+}
+
+/**
+ * Create default background props (matches hub schema defaults)
+ */
+inline void setDefaultBackgroundProps(JsonDocument& props) {
+	props["color"] = "#000000";
+	props["enabled"] = "on";
+}
+
+/**
+ * Create default text props (matches hub schema defaults)
+ */
+inline void setDefaultTextProps(JsonDocument& props) {
+	props["reset"] = true;
+	props["text"] = "Hello you!";
+	props["color"] = "#008888";
+	props["accentColor"] = "#004444";
+	props["x"] = 0;
+	props["y"] = 0;
+	props["duration"] = 3000;
+}
+
+/**
+ * Create default scroll text props (matches hub schema defaults)
+ */
+inline void setDefaultScrollTextProps(JsonDocument& props) {
+	props["reset"] = true;
+	props["text"] = "Hidey Ho! It's the RGFX Show!";
+	props["color"] = "#808000";
+	props["accentColor"] = "#006060";
+	props["y"] = 0;
+	props["speed"] = 150.0f;
+	props["repeat"] = true;
+	props["snapToLed"] = true;
+}
+
+/**
+ * Create default bitmap props (matches hub schema defaults)
+ */
+inline void setDefaultBitmapProps(JsonDocument& props) {
+	props["color"] = "#FFFF00";
+	props["reset"] = false;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["duration"] = 400;
+	// Note: image array would need to be set separately if testing image rendering
+}
+
+// =============================================================================
+// Mock Props Factory Functions
+// Convenience functions that return a pre-configured JsonDocument.
+// Use when you need a complete mock payload for testing.
+// =============================================================================
+
+/**
+ * Create a mock pulse effect payload
+ * @param color Hex color string (default: "#FF0000")
+ * @param duration Duration in ms (default: 800)
+ */
+inline JsonDocument mockPulseProps(const char* color = "#FF0000", uint32_t duration = 800) {
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = color;
+	props["duration"] = duration;
+	return props;
+}
+
+/**
+ * Create a mock explode effect payload
+ * @param color Hex color string (default: "#FF0000")
+ * @param particleCount Number of particles (default: 100)
+ * @param power Initial velocity (default: 60)
+ */
+inline JsonDocument mockExplodeProps(const char* color = "#FF0000", uint32_t particleCount = 100, float power = 60.0f) {
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["color"] = color;
+	props["particleCount"] = particleCount;
+	props["power"] = power;
+	return props;
+}
+
+/**
+ * Create a mock wipe effect payload
+ * @param color Hex color string (default: "#FF0000")
+ * @param direction Direction string (default: "right")
+ * @param duration Duration in ms (default: 500)
+ */
+inline JsonDocument mockWipeProps(const char* color = "#FF0000", const char* direction = "right", uint32_t duration = 500) {
+	JsonDocument props;
+	setDefaultWipeProps(props);
+	props["color"] = color;
+	props["direction"] = direction;
+	props["duration"] = duration;
+	return props;
+}
+
+/**
+ * Create a mock projectile effect payload
+ * @param color Hex color string (default: "#FF0000")
+ * @param direction Direction string (default: "right")
+ * @param velocity Initial velocity (default: 1200)
+ */
+inline JsonDocument mockProjectileProps(const char* color = "#FF0000", const char* direction = "right", uint32_t velocity = 1200) {
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = color;
+	props["direction"] = direction;
+	props["velocity"] = velocity;
+	return props;
+}
+
+/**
+ * Create a mock plasma effect payload
+ * @param enabled Enable state (default: "on")
+ * @param speed Animation speed (default: 3.0)
+ * @param scale Pattern scale (default: 4.0)
+ */
+inline JsonDocument mockPlasmaProps(const char* enabled = "on", float speed = 3.0f, float scale = 4.0f) {
+	JsonDocument props;
+	setDefaultPlasmaProps(props);
+	props["enabled"] = enabled;
+	props["speed"] = speed;
+	props["scale"] = scale;
+	return props;
+}
+
+/**
+ * Create a mock background effect payload
+ * @param color Hex color string (default: "#0000FF")
+ * @param enabled Enable state (default: "on")
+ */
+inline JsonDocument mockBackgroundProps(const char* color = "#0000FF", const char* enabled = "on") {
+	JsonDocument props;
+	setDefaultBackgroundProps(props);
+	props["color"] = color;
+	props["enabled"] = enabled;
+	return props;
+}
+
+/**
+ * Create a mock text effect payload
+ * @param text Text to display (default: "Test")
+ * @param color Hex color string (default: "#FFFFFF")
+ * @param duration Duration in ms (default: 3000)
+ */
+inline JsonDocument mockTextProps(const char* text = "Test", const char* color = "#FFFFFF", uint32_t duration = 3000) {
+	JsonDocument props;
+	setDefaultTextProps(props);
+	props["text"] = text;
+	props["color"] = color;
+	props["duration"] = duration;
+	return props;
+}
+
+/**
+ * Create a mock scroll text effect payload
+ * @param text Text to scroll (default: "Scrolling")
+ * @param color Hex color string (default: "#FFFFFF")
+ * @param speed Scroll speed (default: 150)
+ */
+inline JsonDocument mockScrollTextProps(const char* text = "Scrolling", const char* color = "#FFFFFF", float speed = 150.0f) {
+	JsonDocument props;
+	setDefaultScrollTextProps(props);
+	props["text"] = text;
+	props["color"] = color;
+	props["speed"] = speed;
+	return props;
+}
+
+/**
+ * Create a mock bitmap effect payload
+ * @param color Hex color string (default: "#FFFF00")
+ * @param duration Duration in ms (default: 400)
+ */
+inline JsonDocument mockBitmapProps(const char* color = "#FFFF00", uint32_t duration = 400) {
+	JsonDocument props;
+	setDefaultBitmapProps(props);
+	props["color"] = color;
+	props["duration"] = duration;
+	return props;
 }
 
 }  // namespace test_helpers

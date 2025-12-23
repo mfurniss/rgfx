@@ -57,11 +57,11 @@ export function handle(
         friction: 3,
         hueSpread: 0,
         lifespan: 1200,
-        lifespanSpread: 2,
+        lifespanSpread: 100,
         particleCount: 200,
         particleSize: 4,
         power: 70,
-        powerSpread: 2,
+        powerSpread: 100,
       },
     });
     return broadcast({
@@ -86,11 +86,11 @@ export function handle(
         friction: 2,
         hueSpread: 120,
         lifespan: 1500,
-        lifespanSpread: 1.8,
+        lifespanSpread: 80,
         particleCount: 200,
         particleSize: 4,
         power: 150,
-        powerSpread: 1.6,
+        powerSpread: 60,
       },
     });
   }
@@ -130,11 +130,11 @@ export function handle(
           friction: 3,
           hueSpread: 60,
           lifespan: 1000,
-          lifespanSpread: 1.4,
+          lifespanSpread: 40,
           particleCount: 100,
           particleSize: 3,
           power: 80,
-          powerSpread: 1.5,
+          powerSpread: 50,
         },
       });
     }
@@ -182,11 +182,11 @@ export function handle(
           friction: 4,
           hueSpread: 0,
           lifespan: 400,
-          lifespanSpread: 1.3,
+          lifespanSpread: 30,
           particleCount: 30,
           particleSize: 3,
           power: 40,
-          powerSpread: 1.2,
+          powerSpread: 20,
         },
       });
     }

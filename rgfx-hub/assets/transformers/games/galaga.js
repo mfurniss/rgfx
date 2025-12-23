@@ -55,11 +55,11 @@ export function handle({ subject, property }, payload, { broadcast }) {
         particleCount: 80,
         power: 120,
         lifespan: 380,
-        powerSpread: 1.4,
+        powerSpread: 40,
         particleSize: 4,
         hueSpread: 40,
         friction: 3,
-        lifespanSpread: 1.4,
+        lifespanSpread: 40,
       },
     });
   }

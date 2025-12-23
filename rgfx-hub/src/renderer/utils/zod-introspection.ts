@@ -20,6 +20,7 @@ type FieldType =
 interface FieldConstraints {
   min?: number;
   max?: number;
+  isInteger?: boolean;
   enumValues?: readonly string[];
 }
 
@@ -317,7 +318,7 @@ function extractColorNames(schema: z.ZodType): readonly string[] | undefined {
 }
 
 /**
- * Extract min/max constraints from a ZodNumber schema
+ * Extract min/max/integer constraints from a ZodNumber schema
  */
 function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefined {
   if (!hasZodDef(schema)) {
@@ -339,6 +340,12 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
 
     if (check.kind === 'max') {
       constraints.max = check.value;
+    }
+
+    // Zod 3: check.kind === 'int'
+    // Zod 4: check.isInt === true
+    if (check.kind === 'int' || ('isInt' in check && check.isInt === true)) {
+      constraints.isInteger = true;
     }
   }
 

@@ -3,15 +3,12 @@
 #include "graphics/canvas.h"
 #include <cstring>
 
-static const uint32_t DEFAULT_COLOR = 0x000000;  // Black default
-
 BackgroundEffect::BackgroundEffect(const Matrix& m, Canvas& c)
 	: state{0, 0, 0, EnabledState::OFF, 0.0f}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 }
 
 BackgroundEffect::EnabledState BackgroundEffect::parseEnabledState(const char* str) {
-	if (str == nullptr) return EnabledState::ON;
 	if (strcmp(str, "off") == 0) return EnabledState::OFF;
 	if (strcmp(str, "on") == 0) return EnabledState::ON;
 	if (strcmp(str, "fadeIn") == 0) return EnabledState::FADE_IN;
@@ -56,8 +53,8 @@ void BackgroundEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse color (use default black if not provided)
-	uint32_t color = props["color"] ? parseColor(props["color"]) : DEFAULT_COLOR;
+	// Parse color
+	uint32_t color = parseColor(props["color"]);
 
 	// Replace state (singleton behavior)
 	state.r = (color >> 16) & 0xFF;
