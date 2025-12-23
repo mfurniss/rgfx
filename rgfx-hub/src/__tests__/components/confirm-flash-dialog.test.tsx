@@ -59,7 +59,7 @@ describe('ConfirmFlashDialog', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Start Flashing'));
+    fireEvent.click(screen.getByText('Start Update'));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 

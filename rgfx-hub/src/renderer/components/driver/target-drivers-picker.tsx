@@ -51,7 +51,6 @@ export function TargetDriversPicker({
     <>
       <Button
         variant="outlined"
-        size="small"
         onClick={(e) => {
           setAnchorEl(e.currentTarget);
         }}
