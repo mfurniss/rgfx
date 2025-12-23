@@ -131,6 +131,19 @@ void ConfigPortal::begin() {
 
 	boolean validConfig = iotWebConf->init();
 
+	// Update IotWebConf's thing name to match our device ID from NVS
+	// IotWebConf caches the thing name at construction, but we may have loaded
+	// the correct device ID from NVS after that. Update it now before WiFi connects.
+	// See: https://github.com/prampec/IotWebConf/issues/174
+	String deviceId = Utils::getDeviceId();
+	iotwebconf::TextParameter* thingNameParam =
+		(iotwebconf::TextParameter*)iotWebConf->getThingNameParameter();
+	if (thingNameParam) {
+		strncpy(thingNameParam->valueBuffer, deviceId.c_str(), thingNameParam->getLength());
+		thingNameParam->valueBuffer[thingNameParam->getLength() - 1] = '\0';
+		log("Updated IotWebConf thing name to: " + deviceId);
+	}
+
 	// Check for corrupted configuration data
 	// IotWebConf loads values from EEPROM but doesn't validate them
 	// Corrupted EEPROM can cause WiFi.softAP() to fail and trigger boot loop
