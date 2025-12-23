@@ -15,7 +15,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
     <Typography variant="body2" color="text.secondary">
       {label}:
     </Typography>
-    <Typography variant="body2" fontWeight="medium" sx={{ maxWidth: '70%', textAlign: 'right' }}>
+    <Typography variant="body2" fontWeight="medium" sx={{ maxWidth: '70%', textAlign: 'right', whiteSpace: 'pre-line' }}>
       {value}
     </Typography>
   </Box>

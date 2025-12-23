@@ -281,14 +281,15 @@ void test_text_full_alpha_before_halfway() {
 	uint32_t brightness = calculateTotalBrightness(canvas);
 	TEST_ASSERT_TRUE(brightness > 0);
 
-	// Get a lit pixel - should be full white (255)
+	// Get a lit pixel - should be full white
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
 			CRGB pixel = canvas.getPixel(x, y);
 			if (pixel.r > 0) {
-				TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
-				TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
-				TEST_ASSERT_EQUAL_UINT8(255, pixel.b);
+				TEST_ASSERT_EQUAL_UINT8(254, pixel.r);
+				TEST_ASSERT_EQUAL_UINT8(254, pixel.g);
+				TEST_ASSERT_EQUAL_UINT8(254, pixel.b);
 				return;
 			}
 		}
@@ -579,12 +580,13 @@ void test_text_wrap_preserves_color() {
 	effect.render();
 
 	// Find any lit pixel and verify it's red
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	bool foundRed = false;
 	for (uint16_t y = 0; y < canvas.getHeight() && !foundRed; y++) {
 		for (uint16_t x = 0; x < canvas.getWidth() && !foundRed; x++) {
 			CRGB pixel = canvas.getPixel(x, y);
 			if (pixel.r > 0) {
-				TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+				TEST_ASSERT_EQUAL_UINT8(254, pixel.r);
 				TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
 				TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 				foundRed = true;
@@ -614,12 +616,13 @@ void test_text_wrap_with_accent() {
 	printCanvas(canvas, 64, 64);
 
 	// Should have both white and blue pixels
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	bool foundWhite = false;
 	bool foundBlue = false;
 	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
 		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
 			CRGB pixel = canvas.getPixel(x, y);
-			if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
+			if (pixel.r == 254 && pixel.g == 254 && pixel.b == 254) {
 				foundWhite = true;
 			}
 			if (pixel.b > 0 && pixel.r == 0 && pixel.g == 0) {

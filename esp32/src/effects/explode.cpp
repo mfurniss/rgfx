@@ -6,17 +6,17 @@
 #include "utils/easing.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
-static const uint32_t MAX_PARTICLE_POOL_SIZE = 500;
-
-ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m) {
-	particlePool.reserve(MAX_PARTICLE_POOL_SIZE);
+ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m), head(0) {
+	// Initialize all particles as dead (alpha = 0)
+	memset(particlePool, 0, sizeof(particlePool));
 	flashes.reserve(16);
 }
 
 void ExplodeEffect::add(JsonDocument& props) {
 	uint32_t color = parseColor(props["color"]);
-	uint32_t particleCount = min(static_cast<uint32_t>(props["particleCount"]), MAX_PARTICLE_POOL_SIZE);
+	uint32_t particleCount = min(static_cast<uint32_t>(props["particleCount"]), MAX_PARTICLES);
 	float power = props["power"];
 	uint32_t lifespan = props["lifespan"];
 	float powerSpread = props["powerSpread"];
@@ -73,18 +73,10 @@ void ExplodeEffect::add(JsonDocument& props) {
 		flashes.push_back(flash);
 	}
 
-	// FIFO eviction: if adding particleCount would exceed max, remove oldest particles first
-	if (particlePool.size() + particleCount > MAX_PARTICLE_POOL_SIZE) {
-		uint32_t toRemove = (particlePool.size() + particleCount) - MAX_PARTICLE_POOL_SIZE;
-		toRemove = min(toRemove, static_cast<uint32_t>(particlePool.size()));
-		if (toRemove > 0) {
-			particlePool.erase(particlePool.begin(), particlePool.begin() + toRemove);
-		}
-	}
-
-	// Generate particles with randomized velocities and hues
+	// Ring buffer: write particles at head, wrapping around (overwrites oldest)
 	for (uint32_t i = 0; i < particleCount; i++) {
-		Particle p;
+		Particle& p = particlePool[head];
+
 		p.x = centerX;
 		p.y = centerY;
 		p.friction = friction;
@@ -154,7 +146,9 @@ void ExplodeEffect::add(JsonDocument& props) {
 			float calculatedLifespan = lifespan + variation * spreadAmount;
 			p.lifespan = static_cast<uint32_t>(max(50.0f, calculatedLifespan));
 		}
-		particlePool.push_back(p);
+
+		// Advance head (ring buffer wrap)
+		head = (head + 1) % MAX_PARTICLES;
 	}
 }
 
@@ -175,35 +169,43 @@ void ExplodeEffect::update(float deltaTime) {
 		}
 	}
 
-	// Update all particles in the shared pool
-	for (auto p = particlePool.begin(); p != particlePool.end();) {
+	// Update all particles in the ring buffer (skip dead particles with alpha=0)
+	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
+		Particle& p = particlePool[i];
+
+		// Skip dead particles
+		if (p.alpha == 0) {
+			continue;
+		}
+
 		// Update X position (always) - friction is stored per-particle
-		p->x += p->vx * deltaTime;
-		p->vx *= (1.0f - (p->friction * deltaTime));
+		p.x += p.vx * deltaTime;
+		p.vx *= (1.0f - (p.friction * deltaTime));
 
 		// Update Y position (only for matrices)
 		if (!isStrip) {
-			p->y += p->vy * deltaTime;
-			p->vy *= (1.0f - (p->friction * deltaTime));
+			p.y += p.vy * deltaTime;
+			p.vy *= (1.0f - (p.friction * deltaTime));
 		}
 
 		// Age the particle
-		p->age += deltaTimeMs;
+		p.age += deltaTimeMs;
 
-		// Remove particles that are dead or out of bounds
+		// Check if particle is dead or out of bounds
 		bool outOfBounds;
 		if (isStrip) {
-			outOfBounds = (p->x < 0 || p->x >= width);
+			outOfBounds = (p.x < 0 || p.x >= width);
 		} else {
-			outOfBounds = (p->x < 0 || p->x >= width || p->y < 0 || p->y >= height);
+			outOfBounds = (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height);
 		}
 
-		if (p->age >= p->lifespan || outOfBounds) {
-			p = particlePool.erase(p);
+		if (p.age >= p.lifespan || outOfBounds) {
+			// Mark as dead (will be skipped in render, overwritten by new particles)
+			p.alpha = 0;
 		} else {
-			float lifeProgress = static_cast<float>(p->age) / p->lifespan;
-			p->alpha = static_cast<uint8_t>(255.0f * (1.0f - lifeProgress));
-			++p;
+			// Fade based on age
+			float lifeProgress = static_cast<float>(p.age) / p.lifespan;
+			p.alpha = static_cast<uint8_t>(255.0f * (1.0f - lifeProgress));
 		}
 	}
 }
@@ -246,8 +248,15 @@ void ExplodeEffect::render() {
 		}
 	}
 
-	// Render all particles from the shared pool - particleSize is stored per-particle
-	for (const auto& particle : particlePool) {
+	// Render all live particles from the ring buffer (skip dead particles with alpha=0)
+	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
+		const Particle& particle = particlePool[i];
+
+		// Skip dead particles
+		if (particle.alpha == 0) {
+			continue;
+		}
+
 		uint8_t size = particle.particleSize;
 		int16_t halfSize = size / 2;
 
@@ -282,6 +291,10 @@ void ExplodeEffect::render() {
 }
 
 void ExplodeEffect::reset() {
-	particlePool.clear();
+	// Mark all particles as dead by setting alpha=0
+	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
+		particlePool[i].alpha = 0;
+	}
+	head = 0;
 	flashes.clear();
 }

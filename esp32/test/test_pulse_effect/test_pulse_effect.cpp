@@ -76,9 +76,10 @@ void test_pulse_creation_default_values() {
 	CRGB pixel = canvas.getPixel(0, 0);
 
 	// Default color is white (#FFFFFF)
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.b);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.r);
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.b);
 }
 
 void test_pulse_creation_with_color() {
@@ -96,7 +97,8 @@ void test_pulse_creation_with_color() {
 
 	CRGB pixel = canvas.getPixel(0, 0);
 
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.r);
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.g);
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
@@ -169,8 +171,9 @@ void test_pulse_non_fading_stays_full_brightness() {
 
 	CRGB pixel = canvas.getPixel(0, 0);
 
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.r);
-	TEST_ASSERT_EQUAL_UINT8(255, pixel.g);
+	TEST_ASSERT_EQUAL_UINT8(254, pixel.g);
 	TEST_ASSERT_EQUAL_UINT8(0, pixel.b);
 }
 
@@ -275,10 +278,11 @@ void test_pulse_collapse_none_fills_canvas() {
 	effect.render();
 
 	// All corners should be filled (canvas is 16x16 for 4x4 matrix)
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 0).r);
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(15, 0).r);
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(0, 15).r);
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(15, 15).r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(0, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(15, 0).r);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(0, 15).r);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(15, 15).r);
 }
 
 void test_pulse_collapse_horizontal_shrinks_height() {
@@ -299,7 +303,8 @@ void test_pulse_collapse_horizontal_shrinks_height() {
 	effect.render();
 
 	// Center should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 8).r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(8, 8).r);
 
 	// Top and bottom edges should be empty (shrunk toward center)
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(8, 0).r);
@@ -324,7 +329,8 @@ void test_pulse_collapse_vertical_shrinks_width() {
 	effect.render();
 
 	// Center should be filled
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(8, 8).r);
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(8, 8).r);
 
 	// Left and right edges should be empty (shrunk toward center)
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 8).r);
@@ -383,8 +389,9 @@ void test_pulse_strip_layout() {
 	effect.render();
 
 	// Center should still be filled
+	// Note: blending uses >>8 approximation, so (255*255)>>8 = 254
 	uint16_t midX = canvas.getWidth() / 2;
-	TEST_ASSERT_EQUAL_UINT8(255, canvas.getPixel(midX, 0).g);
+	TEST_ASSERT_EQUAL_UINT8(254, canvas.getPixel(midX, 0).g);
 
 	// Edges should be shrunk toward center
 	TEST_ASSERT_EQUAL_UINT8(0, canvas.getPixel(0, 0).g);

@@ -273,22 +273,24 @@ void Canvas::fill(const CRGB& color) {
 }
 
 inline void Canvas::blendAlpha(CRGB& existing, const CRGBA& incoming) const {
-    // result = src * alpha + dst * (255 - alpha)
-    uint8_t alpha = incoming.a;
-    uint8_t invAlpha = 255 - alpha;
+    // result = src * alpha + dst * (256 - alpha) >> 8
+    // Using >>8 instead of /255 for speed (~0.4% error, imperceptible)
+    uint16_t alpha = incoming.a;
+    uint16_t invAlpha = 256 - alpha;
 
-    existing.r = ((existing.r * invAlpha) + (incoming.r * alpha)) / 255;
-    existing.g = ((existing.g * invAlpha) + (incoming.g * alpha)) / 255;
-    existing.b = ((existing.b * invAlpha) + (incoming.b * alpha)) / 255;
+    existing.r = ((existing.r * invAlpha) + (incoming.r * alpha)) >> 8;
+    existing.g = ((existing.g * invAlpha) + (incoming.g * alpha)) >> 8;
+    existing.b = ((existing.b * invAlpha) + (incoming.b * alpha)) >> 8;
 }
 
 inline void Canvas::blendAdditive(CRGB& existing, const CRGBA& incoming) const {
-    // result = dst + src * alpha
-    uint8_t alpha = incoming.a;
+    // result = dst + src * alpha >> 8
+    // Using >>8 instead of /255 for speed (~0.4% error, imperceptible)
+    uint16_t alpha = incoming.a;
 
-    uint16_t newR = existing.r + ((incoming.r * alpha) / 255);
-    uint16_t newG = existing.g + ((incoming.g * alpha) / 255);
-    uint16_t newB = existing.b + ((incoming.b * alpha) / 255);
+    uint16_t newR = existing.r + ((incoming.r * alpha) >> 8);
+    uint16_t newG = existing.g + ((incoming.g * alpha) >> 8);
+    uint16_t newB = existing.b + ((incoming.b * alpha) >> 8);
 
     existing.r = (newR > 255) ? 255 : newR;
     existing.g = (newG > 255) ? 255 : newG;

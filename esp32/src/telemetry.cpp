@@ -5,6 +5,7 @@
 #include "crash_handler.h"
 #include "network/mqtt.h"
 #include "network/udp.h"
+#include "effects/effect_processor.h"
 #include <WiFi.h>
 #include <Arduino.h>
 
@@ -61,6 +62,15 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	doc["currentFps"] = getCurrentFps();
 	doc["minFps"] = getMinFps();
 	doc["maxFps"] = getMaxFps();
+
+	// Frame timing metrics (microseconds per frame, averaged)
+	FrameTimingMetrics timing = getFrameTimingMetrics();
+	JsonObject frameTiming = doc["frameTiming"].to<JsonObject>();
+	frameTiming["clearUs"] = timing.clearUs;
+	frameTiming["effectsUs"] = timing.effectsUs;
+	frameTiming["downsampleUs"] = timing.downsampleUs;
+	frameTiming["showUs"] = timing.showUs;
+	frameTiming["totalUs"] = timing.totalUs;
 
 	// Note: LED config is NOT included in telemetry - Hub already has it
 	// Including it would exceed the 1024 byte MQTT buffer limit

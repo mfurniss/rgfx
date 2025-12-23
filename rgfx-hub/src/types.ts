@@ -140,6 +140,15 @@ export interface DriverTelemetry {
   minFps: number;
   maxFps: number;
 
+  // Frame timing metrics (microseconds per frame, averaged)
+  frameTiming?: {
+    clearUs: number;
+    effectsUs: number;
+    downsampleUs: number;
+    showUs: number;
+    totalUs: number;
+  };
+
   // Note: LED configuration is managed by Hub (in Driver.ledConfig)
   // and pushed to drivers via MQTT - not reported in telemetry
 }

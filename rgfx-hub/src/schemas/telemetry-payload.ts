@@ -50,5 +50,15 @@ export const TelemetryPayloadSchema = z.object({
   currentFps: z.number(),
   minFps: z.number(),
   maxFps: z.number(),
+  // Frame timing metrics (microseconds per frame, averaged)
+  frameTiming: z
+    .object({
+      clearUs: z.number(),
+      effectsUs: z.number(),
+      downsampleUs: z.number(),
+      showUs: z.number(),
+      totalUs: z.number(),
+    })
+    .optional(),
 });
 
