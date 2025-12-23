@@ -5,13 +5,10 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-#include "commands.h"
-#include "safe_restart.h"
+#pragma once
 
-namespace Commands {
-
-	void reboot(const String& args) {
-		safeRestart();
-	}
-
-}  // namespace Commands
+/**
+ * Safely restart the ESP32 by first signaling Core 1 to clear effects.
+ * This prevents corrupted LED state from mid-frame ESP.restart().
+ */
+void safeRestart();

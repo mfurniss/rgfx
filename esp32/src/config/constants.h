@@ -91,6 +91,14 @@ constexpr unsigned long TELEMETRY_INTERVAL_MS = 10000;
  */
 constexpr unsigned long MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS = 1000;
 
+/**
+ * Delay before restart to allow Core 1 to stop LED operations (milliseconds).
+ * Must be long enough for Core 1's main loop to check g_configUpdateInProgress flag
+ * and for any in-progress FastLED.show() to complete.
+ * WS2812B takes ~30µs per LED, so 1000 LEDs = 30ms. 1 second provides safe margin.
+ */
+constexpr unsigned long SAFE_RESTART_CORE1_STOP_DELAY_MS = 1000;
+
 // ============================================================================
 // Timing & Update Configuration
 // ============================================================================

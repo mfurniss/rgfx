@@ -2,6 +2,7 @@
 #include "network/udp.h"
 #include "telemetry.h"
 #include "log.h"
+#include "safe_restart.h"
 #include "utils.h"
 #include "driver_config.h"
 #include "oled/oled_display.h"
@@ -525,11 +526,7 @@ void processPendingMqttOperations() {
 		log("Setting WiFi credentials via MQTT...");
 
 		if (ConfigPortal::setWiFiCredentials(ssid, password)) {
-			log("WiFi credentials saved! Restarting in 2 seconds...");
-
-			// Request Core 1 to clear effects before reboot
-			// Prevents corrupted LED state from mid-frame ESP.restart()
-			pendingClearEffects = true;
+			log("WiFi credentials saved!");
 
 			// Publish confirmation before rebooting
 			String deviceId = Utils::getDeviceId();
@@ -538,8 +535,7 @@ void processPendingMqttOperations() {
 			mqttClient.loop();  // Ensure message is sent
 			delay(MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS);
 
-			delay(2000);
-			ESP.restart();
+			safeRestart();
 		} else {
 			log("ERROR: Failed to set WiFi credentials", LogLevel::ERROR);
 

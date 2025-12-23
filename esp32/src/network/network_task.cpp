@@ -56,8 +56,8 @@ void networkTask(void* parameter) {
 		// Handle MQTT independently (only needs WiFi)
 		bool isConnected = ConfigPortal::isWiFiConnected();
 
-		// Skip MQTT/UDP processing during OTA
-		if (isConnected && mqttSetupDone && !otaInProgress) {
+		// Skip MQTT/UDP processing during OTA or pending restart
+		if (isConnected && mqttSetupDone && !otaInProgress && !pendingRestart) {
 			unsigned long now = millis();
 
 			// Poll for MQTT broker via SSDP every 3 seconds (until found)
@@ -88,8 +88,8 @@ void networkTask(void* parameter) {
 			ArduinoOTA.handle();
 		}
 
-		// Skip OLED updates during OTA
-		if (hasDisplay && isConnected && !otaInProgress) {
+		// Skip OLED updates during OTA or pending restart
+		if (hasDisplay && isConnected && !otaInProgress && !pendingRestart) {
 			unsigned long now = millis();
 			if (now - lastUptimeUpdate >= UPTIME_UPDATE_INTERVAL) {
 				Display::updateUptime(now / 1000);

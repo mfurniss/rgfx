@@ -3,6 +3,7 @@
 #include "config_timeout.h"
 #include "constants.h"
 #include "log.h"
+#include "safe_restart.h"
 #include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
@@ -180,9 +181,8 @@ void ConfigPortal::begin() {
 		EEPROM.commit();
 		EEPROM.end();
 
-		log("EEPROM config version cleared. Restarting device...");
-		delay(2000);
-		ESP.restart();
+		log("EEPROM config version cleared.");
+		safeRestart();
 	}
 
 	if (validConfig) {
@@ -308,9 +308,8 @@ void ConfigPortal::resetSettings() {
 	EEPROM.commit();
 	EEPROM.end();
 
-	log("All configuration erased (NVS + EEPROM) - restarting...");
-	delay(1000);
-	ESP.restart();
+	log("All configuration erased (NVS + EEPROM)");
+	safeRestart();
 }
 
 String ConfigPortal::getWiFiSsid() {

@@ -8,7 +8,7 @@
 #include "commands.h"
 #include "config/config_portal.h"
 #include "log.h"
-#include <Arduino.h>
+#include "safe_restart.h"
 
 namespace Commands {
 
@@ -79,9 +79,8 @@ namespace Commands {
 			log("Password: " + password);
 
 			if (ConfigPortal::setWiFiCredentials(ssid, password)) {
-				log("WiFi credentials saved! Restarting in 2 seconds...");
-				delay(2000);
-				ESP.restart();
+				log("WiFi credentials saved!");
+				safeRestart();
 			} else {
 				log("ERROR: Failed to set WiFi credentials");
 			}
