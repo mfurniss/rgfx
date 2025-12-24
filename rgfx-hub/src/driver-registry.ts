@@ -94,7 +94,7 @@ export class DriverRegistry {
     this.handleIdMigration(existingDriver, driverId);
 
     // Phase 4: Calculate stats
-    const stats = this.calculateDriverStats(telemetryData, existingDriver);
+    const stats = this.calculateDriverStats(existingDriver);
 
     // Phase 5: Construct and store driver
     const driver = this.constructDriver(
@@ -166,23 +166,16 @@ export class DriverRegistry {
   }
 
   /**
-   * Calculate driver statistics (initialize for new drivers, increment for existing)
+   * Calculate driver statistics for a telemetry event.
+   * Hub maintains authoritative counters - we don't use driver-reported counts
+   * because telemetry arrives periodically while hub counters update in real-time.
    */
-  private calculateDriverStats(
-    telemetryData: {
-      mqttMessagesReceived?: number;
-      udpMessagesReceived?: number;
-    },
-    existingDriver?: Driver,
-  ) {
+  private calculateDriverStats(existingDriver?: Driver) {
     return {
       telemetryEventsReceived: (existingDriver?.stats.telemetryEventsReceived ?? 0) + 1,
-      mqttMessagesReceived:
-        telemetryData.mqttMessagesReceived ??
-        (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
+      mqttMessagesReceived: (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
       mqttMessagesFailed: existingDriver?.stats.mqttMessagesFailed ?? 0,
-      udpMessagesSent:
-        telemetryData.udpMessagesReceived ?? existingDriver?.stats.udpMessagesSent ?? 0,
+      udpMessagesSent: existingDriver?.stats.udpMessagesSent ?? 0,
       udpMessagesFailed: existingDriver?.stats.udpMessagesFailed ?? 0,
     };
   }
@@ -296,10 +289,6 @@ export class DriverRegistry {
     } else {
       driver.stats.udpMessagesFailed++;
     }
-
-    const statType = success ? 'sent' : 'failed';
-    const statCount = success ? driver.stats.udpMessagesSent : driver.stats.udpMessagesFailed;
-    log.info(`UDP ${statType} to ${driver.id}: ${statCount} total`);
 
     this.drivers.set(driver.id, driver);
 

@@ -23,6 +23,9 @@ import { useAppInfoStore } from './store/app-info-store';
 import { useSimulatorAutoTrigger } from './hooks/use-simulator-auto-trigger';
 import { theme } from './theme';
 
+// Import serial-wifi utility to expose sendWifiCommand to DevTools console
+import './utils/serial-wifi';
+
 // Flag to ensure rendererReady is only called once per app lifecycle
 let rendererReadyCalled = false;
 

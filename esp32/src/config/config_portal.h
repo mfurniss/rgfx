@@ -36,6 +36,12 @@ class ConfigPortal {
 	// Returns true if credentials were set successfully
 	static bool setWiFiCredentials(const String& ssid, const String& password);
 
+	// Get current WiFi SSID from configuration
+	static String getWiFiSsid();
+
+	// Get current WiFi password from configuration
+	static String getWiFiPassword();
+
    private:
 	// Validate that a configuration string contains only printable characters
 	// Returns false if string is empty, too long, or contains non-printable chars

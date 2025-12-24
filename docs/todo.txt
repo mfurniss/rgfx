@@ -97,7 +97,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] Initial install with no drivers
 [ ] FX Playground randomizer
 [X] Animated route transitions
-[ ] Common effect defaults for hub and esp32
+[X] Common effect defaults
 [X] Hardware abstraction layer
 [X] Headless effect rendering tests
 [X] Unified LED options in Hub app configure driver
@@ -117,3 +117,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Optional fade in/out on background and plasma
 [ ] Waiting to connect glow
 [X] Bug - FX Playground should retain settings when switching effects
+[X] Update WiFi on all connected drivers via OTA
+[X] Event counts chart on status page
+[ ] WiFi form validation
+[ ] Driver DNS names bug

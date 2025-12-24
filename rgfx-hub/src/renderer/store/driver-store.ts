@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { type Driver, type SystemStatus, type DriverState as DriverStateType } from '@/types';
 import { notify } from './notification-store';
 import { useTelemetryHistoryStore } from './telemetry-history-store';
+import { useEventsRateHistoryStore } from './events-rate-history-store';
 
 /**
  * Centralized notification for driver state changes.
@@ -140,6 +141,13 @@ export const useDriverStore = create<DriverStoreState>()(
               rssi: driver.rssi ?? -100,
             });
           }
+
+          // Record stats for events rate chart
+          useEventsRateHistoryStore.getState().recordDriverStats(
+            driver.id,
+            driver.stats,
+            driver.state === 'connected',
+          );
 
           set((state) => {
             const existsById = state.drivers.find((d) => d.id === driver.id);

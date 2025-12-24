@@ -163,6 +163,12 @@ export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
 export const TOAST_AUTO_HIDE_DURATION_MS = 5000;
 
 /**
+ * Delay between OTA WiFi credential updates when updating multiple drivers (milliseconds).
+ * Prevents overwhelming the network and ensures each driver processes before the next.
+ */
+export const WIFI_UPDATE_DELAY_MS = 1000;
+
+/**
  * Number of event simulator rows to display on the Simulator page.
  */
 export const SIMULATOR_ROW_COUNT = 12;
@@ -178,9 +184,9 @@ export const DRAWER_WIDTH = 220;
 export const CHART_HEIGHT = 144;
 
 /**
- * Width of chart Y-axis area (pixels).
+ * Default width of chart Y-axis area (pixels).
  */
-export const CHART_AXIS_WIDTH = 65;
+export const DEFAULT_CHART_Y_AXIS_WIDTH = 35;
 
 // ============================================================================
 // Telemetry History Configuration
@@ -191,6 +197,47 @@ export const CHART_AXIS_WIDTH = 65;
  * Based on ~5 second telemetry intervals over 1 hour (~720 points).
  */
 export const TELEMETRY_HISTORY_MAX_POINTS = 720;
+
+// ============================================================================
+// Events Rate Chart Configuration
+// ============================================================================
+
+/**
+ * Sampling interval for events rate calculation (milliseconds).
+ * Determines how often we sample and calculate events/second.
+ */
+export const EVENTS_RATE_SAMPLE_INTERVAL_MS = 5000;
+
+/**
+ * Duration of events rate history to retain (milliseconds).
+ * 10 minutes of history.
+ */
+const EVENTS_RATE_HISTORY_DURATION_MS = 10 * 60 * 1000;
+
+/**
+ * Maximum number of events rate data points to retain.
+ * Calculated from history duration and sample interval.
+ */
+export const EVENTS_RATE_MAX_POINTS = Math.ceil(
+  EVENTS_RATE_HISTORY_DURATION_MS / EVENTS_RATE_SAMPLE_INTERVAL_MS,
+);
+
+/**
+ * Color palette for driver lines in multi-driver charts.
+ * Colors are assigned in order and cycle if more drivers than colors.
+ */
+export const DRIVER_CHART_COLORS = [
+  '#2196f3', // blue
+  '#4caf50', // green
+  '#ff9800', // orange
+  '#e91e63', // pink
+  '#9c27b0', // purple
+  '#00bcd4', // cyan
+  '#f57c00', // deep orange
+  '#795548', // brown
+  '#607d8b', // blue-grey
+  '#f44336', // red
+];
 
 // ============================================================================
 // Test Configuration

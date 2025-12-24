@@ -16,15 +16,15 @@ The VSCode workspace contains three key projects.
 
 **YOU MUST FOLLOW THESE INSTRUCTIONS. NO EXCEPTIONS.**
 
-1. **Read CHANGELOG.md before starting work.** Understand what has changed recently.
+1. **Read `docs/journal.md` before starting work.** Understand what has been done recently.
 
-2. **Update CHANGELOG.md after every commit.** The file is `/CHANGELOG.md`. If it does not exist, create it. This is mandatory, not optional.
+2. **Update local CLAUDE.md files** in folders where you make changes. These provide critical context for future sessions.
 
-3. **Update local CLAUDE.md files** in folders where you make changes. These provide critical context for future sessions.
+3. **Run `./rgfx-hub/scripts/check-code.sh` as the final step** after implementing any plan. Don't wait for the pre-commit hook to catch issues.
 
-4. **Run `./rgfx-hub/scripts/check-code.sh` as the final step** after implementing any plan. Don't wait for the pre-commit hook to catch issues.
+4. **NEVER use --no-verify to bypass pre-commit hooks.** Pre-commit hooks exist to maintain code quality and enforce standards. They must not be skipped under any circumstances.
 
-5. **NEVER use --no-verify to bypass pre-commit hooks.** Pre-commit hooks exist to maintain code quality and enforce standards. They must not be skipped under any circumstances.
+5. **Do NOT automatically update `docs/journal.md`.** Only update when explicitly asked by the user.
 
 ## Core Principles
 

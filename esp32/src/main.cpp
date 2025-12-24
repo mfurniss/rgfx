@@ -69,6 +69,7 @@ std::atomic<bool> udpSetupDone(false);        // Extern in network_init.h
 std::atomic<bool> otaSetupDone(false);        // Extern in network_init.h
 std::atomic<bool> otaInProgress(false);       // Extern in network_init.h - Track OTA upload state
 std::atomic<bool> pendingClearEffects(false); // Extern in network_init.h - Clear effects from Core 1
+std::atomic<bool> pendingRestart(false);      // Extern in network_init.h - Restart requested
 static bool initialConnectionAttemptDone = false;
 
 void setup() {
@@ -237,9 +238,9 @@ void loop() {
 
 	// Process UDP FIRST - outside frame rate gate for lowest latency
 	// This ensures UDP packets are processed immediately without waiting for frame timing
-	// Pause UDP effect processing during OTA
+	// Pause UDP effect processing during OTA or pending restart
 	bool isConnected = ConfigPortal::isWiFiConnected();
-	if (isConnected && udpSetupDone && !otaInProgress) {
+	if (isConnected && udpSetupDone && !otaInProgress && !pendingRestart) {
 		processUDP();
 	}
 
@@ -335,9 +336,8 @@ void loop() {
 	// Core 1: Process LED effects (time-critical tasks)
 	// MQTT, OTA, and web server are handled on Core 0 by networkTask
 	// UDP is processed at top of loop() for lowest latency
-	// Skip effect processing during OTA to prevent clearing progress indicator
-	// Skip during config update to prevent race conditions with Core 0
-	if (isConnected && udpSetupDone && !otaInProgress && !g_configUpdateInProgress) {
+	// Skip effect processing during OTA, config update, or pending restart
+	if (isConnected && udpSetupDone && !otaInProgress && !g_configUpdateInProgress && !pendingRestart) {
 		// Create Matrix lazily when FastLED is ready (only happens once)
 		createMatrixIfNeeded();
 
