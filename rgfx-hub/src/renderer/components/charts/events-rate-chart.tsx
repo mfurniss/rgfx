@@ -6,7 +6,6 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { Paper } from '@mui/material';
 import { MultiLineChart } from './multi-line-chart';
 import {
   useEventsRateHistoryStore,
@@ -26,9 +25,8 @@ const EVENTS_RATE_CHART_HEIGHT = CHART_HEIGHT * 1.5;
 export const EventsRateChart: React.FC = () => {
   const history = useEventsRateHistoryStore((state) => state.history);
   const knownDrivers = useEventsRateHistoryStore((state) => state.knownDrivers);
-  const version = useEventsRateHistoryStore((state) => state.version);
 
-  const historyArray = useMemo(() => history.toArray(), [history, version]);
+  const historyArray = useMemo(() => history.toArray(), [history]);
   const driverIds = useMemo(() => Array.from(knownDrivers).sort(), [knownDrivers]);
 
   useEffect(() => {
@@ -46,15 +44,13 @@ export const EventsRateChart: React.FC = () => {
   }
 
   return (
-    <Paper sx={{ p: 2 }}>
-      <MultiLineChart<EventsRateDataPoint>
-        title="Events Per Second"
-        data={historyArray}
-        lines={lines}
-        tickFormatter={(v) => v.toFixed(0)}
-        tooltipFormatter={(v) => `${v.toFixed(1)} events/s`}
-        height={EVENTS_RATE_CHART_HEIGHT}
-      />
-    </Paper>
+    <MultiLineChart<EventsRateDataPoint>
+      title="Events Per Second"
+      data={historyArray}
+      lines={lines}
+      tickFormatter={(v) => v.toFixed(0)}
+      tooltipFormatter={(v) => `${v.toFixed(1)} events/s`}
+      height={EVENTS_RATE_CHART_HEIGHT}
+    />
   );
 };
