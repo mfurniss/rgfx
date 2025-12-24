@@ -12,6 +12,8 @@ import LogDisplay from '../components/common/log-display';
 import FlashResultDialog from '../components/firmware/flash-result-dialog';
 import ConfirmFlashDialog from '../components/firmware/confirm-flash-dialog';
 import SerialPortSelector from '../components/firmware/serial-port-selector';
+import WifiConfigButton from '../components/firmware/wifi-config-button';
+import WifiConfigOtaButton from '../components/firmware/wifi-config-ota-button';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
 import SuperButton from '../components/common/super-button';
 import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as FirmwareIcon } from '@mui/icons-material';
@@ -552,8 +554,15 @@ const FirmwarePage: React.FC = () => {
                 busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                {isFlashing ? 'Updating...' : 'Update via OTA'}
+                {isFlashing ? 'Updating...' : 'Update Firmware'}
               </SuperButton>
+
+              <WifiConfigOtaButton
+                drivers={drivers}
+                selectedDrivers={selectedDrivers}
+                disabled={isFlashing}
+                onLog={addLog}
+              />
             </Box>
           </>
         )}
@@ -584,8 +593,14 @@ const FirmwarePage: React.FC = () => {
                 busy={isFlashing}
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                {isFlashing ? 'Updating...' : 'Update via USB'}
+                {isFlashing ? 'Updating...' : 'Update Firmware'}
               </SuperButton>
+
+              <WifiConfigButton
+                getPort={getPort}
+                disabled={isFlashing}
+                onLog={addLog}
+              />
             </Box>
           </>
         )}

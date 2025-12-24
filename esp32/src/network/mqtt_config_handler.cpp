@@ -7,6 +7,8 @@
 #include "utils.h"
 #include "oled/oled_display.h"
 #include "network/mqtt.h"
+#include <ArduinoOTA.h>
+#include <ESPmDNS.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <freertos/FreeRTOS.h>
@@ -44,6 +46,17 @@ void handleDriverConfig(const String& payload) {
 			if (oldDeviceId != newDeviceId) {
 				log("Setting device ID: " + newDeviceId);
 				Utils::setDeviceId(newDeviceId);
+
+				// Update mDNS hostname to match new device ID
+				MDNS.end();
+				if (MDNS.begin(newDeviceId.c_str())) {
+					log("mDNS hostname updated to: " + newDeviceId);
+				} else {
+					log("ERROR: Failed to update mDNS hostname");
+				}
+
+				// Update OTA hostname
+				ArduinoOTA.setHostname(newDeviceId.c_str());
 
 				// Resubscribe to test topic with new ID
 				extern MQTTClient mqttClient;

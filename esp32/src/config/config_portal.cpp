@@ -3,6 +3,7 @@
 #include "config_timeout.h"
 #include "constants.h"
 #include "log.h"
+#include "safe_restart.h"
 #include "utils.h"
 #include <IotWebConf.h>
 #include <IotWebConfUsing.h>
@@ -131,6 +132,19 @@ void ConfigPortal::begin() {
 
 	boolean validConfig = iotWebConf->init();
 
+	// Update IotWebConf's thing name to match our device ID from NVS
+	// IotWebConf caches the thing name at construction, but we may have loaded
+	// the correct device ID from NVS after that. Update it now before WiFi connects.
+	// See: https://github.com/prampec/IotWebConf/issues/174
+	String deviceId = Utils::getDeviceId();
+	iotwebconf::TextParameter* thingNameParam =
+		(iotwebconf::TextParameter*)iotWebConf->getThingNameParameter();
+	if (thingNameParam) {
+		strncpy(thingNameParam->valueBuffer, deviceId.c_str(), thingNameParam->getLength());
+		thingNameParam->valueBuffer[thingNameParam->getLength() - 1] = '\0';
+		log("Updated IotWebConf thing name to: " + deviceId);
+	}
+
 	// Check for corrupted configuration data
 	// IotWebConf loads values from EEPROM but doesn't validate them
 	// Corrupted EEPROM can cause WiFi.softAP() to fail and trigger boot loop
@@ -167,9 +181,8 @@ void ConfigPortal::begin() {
 		EEPROM.commit();
 		EEPROM.end();
 
-		log("EEPROM config version cleared. Restarting device...");
-		delay(2000);
-		ESP.restart();
+		log("EEPROM config version cleared.");
+		safeRestart();
 	}
 
 	if (validConfig) {
@@ -295,9 +308,32 @@ void ConfigPortal::resetSettings() {
 	EEPROM.commit();
 	EEPROM.end();
 
-	log("All configuration erased (NVS + EEPROM) - restarting...");
-	delay(1000);
-	ESP.restart();
+	log("All configuration erased (NVS + EEPROM)");
+	safeRestart();
+}
+
+String ConfigPortal::getWiFiSsid() {
+	if (!iotWebConf) {
+		return "";
+	}
+	iotwebconf::TextParameter* ssidParam =
+		(iotwebconf::TextParameter*)iotWebConf->getWifiSsidParameter();
+	if (!ssidParam) {
+		return "";
+	}
+	return String(ssidParam->valueBuffer);
+}
+
+String ConfigPortal::getWiFiPassword() {
+	if (!iotWebConf) {
+		return "";
+	}
+	iotwebconf::PasswordParameter* passParam =
+		(iotwebconf::PasswordParameter*)iotWebConf->getWifiPasswordParameter();
+	if (!passParam) {
+		return "";
+	}
+	return String(passParam->valueBuffer);
 }
 
 bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password) {
@@ -308,7 +344,7 @@ bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password
 
 	log("Setting WiFi credentials via serial...");
 	log("SSID: " + ssid);
-	log("Password: " + String(password.length() > 0 ? "***" : "(empty)"));
+	log("Password: " + password);
 
 	// Get the WiFi SSID and password parameters from IotWebConf
 	iotwebconf::TextParameter* ssidParam =

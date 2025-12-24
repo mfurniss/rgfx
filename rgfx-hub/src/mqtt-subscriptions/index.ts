@@ -15,6 +15,7 @@ import { subscribeDriverTelemetry } from './driver-telemetry';
 import { subscribeDriverStatus } from './driver-status';
 import { subscribeDriverTestState } from './driver-test-state';
 import { subscribeDriverLog } from './driver-log';
+import { subscribeDriverWifiResponse } from './driver-wifi-response';
 
 interface MqttSubscriptionsDeps {
   mqtt: MqttBroker;
@@ -31,4 +32,5 @@ export function registerMqttSubscriptions(deps: MqttSubscriptionsDeps): void {
   subscribeDriverStatus(deps);
   subscribeDriverTestState(deps);
   subscribeDriverLog(deps);
+  subscribeDriverWifiResponse(deps);
 }

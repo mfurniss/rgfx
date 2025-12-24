@@ -52,7 +52,7 @@ const ConfirmFlashDialog: React.FC<ConfirmFlashDialogProps> = ({
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>
         <Button onClick={onConfirm} variant="contained" color="warning">
-          Start Flashing
+          Start Update
         </Button>
       </DialogActions>
     </Dialog>

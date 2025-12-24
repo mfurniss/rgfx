@@ -2,12 +2,15 @@
 #include "network/udp.h"
 #include "telemetry.h"
 #include "log.h"
+#include "safe_restart.h"
 #include "utils.h"
 #include "driver_config.h"
 #include "oled/oled_display.h"
 #include "config/constants.h"
 #include "config/config_nvs.h"
+#include "config/config_portal.h"
 #include "effects/effect_processor.h"
+#include "network/network_init.h"
 #include "serial_commands/commands.h"
 #include "crash_handler.h"
 #include <WiFi.h>
@@ -43,6 +46,7 @@ static char topicReset[TOPIC_BUFFER_SIZE];       // rgfx/driver/{id}/reset
 static char topicReboot[TOPIC_BUFFER_SIZE];      // rgfx/driver/{id}/reboot
 static char topicLogging[TOPIC_BUFFER_SIZE];     // rgfx/driver/{mac}/logging
 static char topicClearEffects[TOPIC_BUFFER_SIZE]; // rgfx/driver/{id}/clear-effects
+static char topicWifi[TOPIC_BUFFER_SIZE];        // rgfx/driver/{id}/wifi
 static char clientId[32];                        // Device ID as client ID
 static bool topicsInitialized = false;
 
@@ -58,6 +62,9 @@ static bool pendingTestModeChange = false;
 static bool pendingTestModeValue = false;
 static bool pendingLoggingConfig = false;
 static String pendingLoggingPayload;
+static bool pendingWifiConfig = false;
+static String pendingWifiSsid;
+static String pendingWifiPassword;
 
 // Initialize MQTT topic strings (called once when device ID is known)
 static void initMQTTTopics() {
@@ -73,6 +80,7 @@ static void initMQTTTopics() {
 	snprintf(topicReboot, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reboot", deviceId.c_str());
 	snprintf(topicLogging, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/logging", macAddress.c_str());
 	snprintf(topicClearEffects, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/clear-effects", deviceId.c_str());
+	snprintf(topicWifi, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/wifi", deviceId.c_str());
 	strncpy(clientId, deviceId.c_str(), sizeof(clientId) - 1);
 	clientId[sizeof(clientId) - 1] = '\0';
 
@@ -136,6 +144,28 @@ void mqttCallback(String& topic, String& payload) {
 		log("Queuing logging configuration for processing");
 		pendingLoggingConfig = true;
 		pendingLoggingPayload = payload;
+	}
+
+	// Handle WiFi configuration - queue for deferred processing
+	// WiFi config does NVS writes and triggers reboot
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/wifi")) {
+		log("Queuing WiFi configuration for processing");
+		JsonDocument doc;
+		DeserializationError error = deserializeJson(doc, payload);
+
+		if (error) {
+			log("ERROR: Failed to parse WiFi config JSON: " + String(error.c_str()));
+			return;
+		}
+
+		if (!doc["ssid"].is<const char*>()) {
+			log("ERROR: WiFi config missing 'ssid' field");
+			return;
+		}
+
+		pendingWifiSsid = doc["ssid"].as<String>();
+		pendingWifiPassword = doc["password"].as<String>();
+		pendingWifiConfig = true;
 	}
 }
 
@@ -290,6 +320,7 @@ void reconnectMQTT() {
 		mqttClient.subscribe(topicReboot, 2);
 		mqttClient.subscribe(topicLogging, 2);
 		mqttClient.subscribe(topicClearEffects, 2);
+		mqttClient.subscribe(topicWifi, 2);
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));
@@ -299,6 +330,7 @@ void reconnectMQTT() {
 		log("  - " + String(topicReset));
 		log("  - " + String(topicReboot));
 		log("  - " + String(topicClearEffects));
+		log("  - " + String(topicWifi));
 
 		// Load saved remote logging level from NVS
 		String savedLoggingLevel = ConfigNVS::loadLoggingLevel();
@@ -480,6 +512,37 @@ void processPendingMqttOperations() {
 			setRemoteLoggingLevel(levelStr);
 			ConfigNVS::saveLoggingLevel(levelStr);
 			log("Remote logging level set to: " + levelStr);
+		}
+	}
+
+	// Process pending WiFi configuration
+	if (pendingWifiConfig) {
+		pendingWifiConfig = false;
+		String ssid = pendingWifiSsid;
+		String password = pendingWifiPassword;
+		pendingWifiSsid = "";
+		pendingWifiPassword = "";
+
+		log("Setting WiFi credentials via MQTT...");
+
+		if (ConfigPortal::setWiFiCredentials(ssid, password)) {
+			log("WiFi credentials saved!");
+
+			// Publish confirmation before rebooting
+			String deviceId = Utils::getDeviceId();
+			String responseTopic = "rgfx/driver/" + deviceId + "/wifi/response";
+			mqttClient.publish(responseTopic.c_str(), R"({"success":true})", false, 2);
+			mqttClient.loop();  // Ensure message is sent
+			delay(MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS);
+
+			safeRestart();
+		} else {
+			log("ERROR: Failed to set WiFi credentials", LogLevel::ERROR);
+
+			// Publish failure response
+			String deviceId = Utils::getDeviceId();
+			String responseTopic = "rgfx/driver/" + deviceId + "/wifi/response";
+			mqttClient.publish(responseTopic.c_str(), R"({"success":false,"error":"Failed to save credentials"})", false, 2);
 		}
 	}
 }

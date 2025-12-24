@@ -158,15 +158,19 @@ export class UdpClientImpl implements UdpClient {
    * Send pre-serialized buffer to a driver (used by broadcast for efficiency)
    */
   private sendBufferToDriver(driver: Driver, buffer: Buffer): void {
-    if (!driver.ip) {
+    const { ip } = driver;
+
+    if (!ip) {
       return;
     }
 
-    this.socket.send(buffer, UDP_PORT, driver.ip, (err) => {
+    this.socket.send(buffer, UDP_PORT, ip, (err) => {
+      this.driverRegistry.trackUdpSent(ip, !err);
+
       if (err) {
-        log.error(`UDP send to ${driver.ip} failed: ${err.message}`);
+        log.error(`UDP send to ${ip} failed: ${err.message}`);
       } else {
-        log.debug(`Sent effect to driver ${driver.id} (${driver.ip})`);
+        log.debug(`Sent effect to driver ${driver.id} (${ip})`);
       }
     });
   }

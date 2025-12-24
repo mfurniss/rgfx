@@ -17,7 +17,7 @@ import {
   type TooltipProps,
 } from 'recharts';
 import { format } from 'date-fns';
-import { CHART_HEIGHT, CHART_AXIS_WIDTH } from '@/config/constants';
+import { CHART_HEIGHT, DEFAULT_CHART_Y_AXIS_WIDTH } from '@/config/constants';
 
 const formatTime = (timestamp: number): string => format(timestamp, 'h:mm a');
 const formatTimeWithSeconds = (timestamp: number): string => format(timestamp, 'h:mm:ss a');
@@ -101,7 +101,7 @@ export function LineChart<T extends { time: number }>({
           <YAxis
             domain={domain}
             tickFormatter={tickFormatter}
-            width={CHART_AXIS_WIDTH}
+            width={DEFAULT_CHART_Y_AXIS_WIDTH}
             tick={tickStyle}
             stroke={axisColor}
             tickLine={false}
