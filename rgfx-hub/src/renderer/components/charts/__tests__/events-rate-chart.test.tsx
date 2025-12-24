@@ -20,17 +20,7 @@ vi.mock('../../../store/events-rate-history-store', async (importOriginal) => {
   };
 });
 
-// Mock ResizeObserver for Recharts ResponsiveContainer
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
-
-// Mock getComputedStyle for CSS variable resolution
-vi.stubGlobal('getComputedStyle', vi.fn().mockReturnValue({
-  getPropertyValue: vi.fn().mockReturnValue('#000000'),
-}));
+// ResizeObserver and getComputedStyle are provided by the global test setup
 
 describe('EventsRateChart', () => {
   beforeEach(() => {
