@@ -37,6 +37,10 @@ WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
 }
 
 void WipeEffect::add(JsonDocument& props) {
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: wipe missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	uint32_t duration = props["duration"];
 	const char* dirStr = props["direction"] | "";

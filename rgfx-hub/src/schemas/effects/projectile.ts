@@ -17,7 +17,7 @@ export default baseEffect
   .extend({
     name: z.literal('Projectile'),
     description: z.literal('Animated projectile moving across display'),
-    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('right').describe('Direction of travel'),
+    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random').describe('Direction of travel'),
     velocity: z.number().min(1).max(5000).optional().default(1200).describe('Initial speed in pixels/second'),
     friction: z.number().optional().default(0.5).describe('Friction (0=none, positive=decel, negative=accel)'),
     trail: z.number().min(0).optional().default(0.2).describe('Trail multiplier (0=none, 1=velocity length)'),

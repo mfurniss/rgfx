@@ -15,6 +15,10 @@ ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m),
 }
 
 void ExplodeEffect::add(JsonDocument& props) {
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: explode missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	uint32_t particleCount = min(static_cast<uint32_t>(props["particleCount"]), MAX_PARTICLES);
 	float power = props["power"];

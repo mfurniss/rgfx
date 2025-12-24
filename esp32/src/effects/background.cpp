@@ -1,6 +1,7 @@
 #include "background.h"
 #include "effect_utils.h"
 #include "graphics/canvas.h"
+#include "hal/platform.h"
 #include <cstring>
 
 BackgroundEffect::BackgroundEffect(const Matrix& m, Canvas& c)
@@ -50,6 +51,12 @@ void BackgroundEffect::add(JsonDocument& props) {
 	// If turning off instantly, just set state and return
 	if (enabledState == EnabledState::OFF) {
 		state.enabledState = EnabledState::OFF;
+		return;
+	}
+
+	// Validate color prop
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: background missing or invalid 'color' prop");
 		return;
 	}
 
