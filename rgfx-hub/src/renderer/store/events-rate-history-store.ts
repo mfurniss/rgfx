@@ -116,10 +116,9 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()(
             // First sample for this driver, no rate yet
             dataPoint[driverId] = 0;
           } else {
-            const currTotal = current.udpMessagesSent + current.mqttMessagesReceived;
-            const prevTotal = previous.udpMessagesSent + previous.mqttMessagesReceived;
-            // Use fixed sample interval instead of timestamp-based delta
-            dataPoint[driverId] = (currTotal - prevTotal) / sampleIntervalSec;
+            // Only count UDP events (actual game events sent to drivers)
+            dataPoint[driverId] =
+              (current.udpMessagesSent - previous.udpMessagesSent) / sampleIntervalSec;
           }
 
           // Save current as previous for next sample

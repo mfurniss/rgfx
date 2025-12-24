@@ -33,11 +33,10 @@ describe('EventsRateChart', () => {
   });
 
   describe('empty state', () => {
-    it('shows "No driver data yet" when no drivers are known', () => {
-      render(<EventsRateChart />);
+    it('renders nothing when no drivers are known', () => {
+      const { container } = render(<EventsRateChart />);
 
-      expect(screen.getByText('Events Per Second')).toBeDefined();
-      expect(screen.getByText('No driver data yet')).toBeDefined();
+      expect(container.firstChild).toBeNull();
     });
   });
 

@@ -21,9 +21,7 @@ const SystemStatusPage: React.FC = () => {
       <Paper sx={{ mb: 3 }}>
         <SystemStatus status={systemStatus} />
       </Paper>
-      <Paper sx={{ p: 2 }}>
-        <EventsRateChart />
-      </Paper>
+      <EventsRateChart />
     </Box>
   );
 };
