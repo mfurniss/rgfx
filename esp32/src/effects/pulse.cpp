@@ -10,6 +10,10 @@ PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {
 }
 
 void PulseEffect::add(JsonDocument& props) {
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: pulse missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	uint32_t durationMs = props["duration"];
 	bool fade = props["fade"].as<bool>();

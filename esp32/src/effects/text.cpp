@@ -1,6 +1,7 @@
 #include "text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
 #include <cstring>
 
 namespace {
@@ -42,6 +43,10 @@ void TextEffect::add(JsonDocument& props) {
 		return;
 	}
 
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: text missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	int16_t x = props["x"];
 	int16_t y = props["y"];
