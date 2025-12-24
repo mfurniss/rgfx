@@ -157,6 +157,12 @@ export const DEFAULT_FX_PLAYGROUND_EFFECT = 'background';
 export const UI_TIMESTAMP_UPDATE_INTERVAL_MS = 1000;
 
 /**
+ * Interval for sending system status updates to renderer (milliseconds).
+ * Includes event counts and other system metrics.
+ */
+export const SYSTEM_STATUS_UPDATE_INTERVAL_MS = 1000;
+
+/**
  * Duration for toast notifications to auto-hide (milliseconds).
  * Long enough to read, short enough not to annoy.
  */

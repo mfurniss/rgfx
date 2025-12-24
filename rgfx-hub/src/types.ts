@@ -311,12 +311,7 @@ export interface SystemStatus {
   eventsProcessed: number;
   hubStartTime: number;
   currentFirmwareVersion?: string;
-}
-
-export interface EventTopicData {
-  topic: string;
-  count: number;
-  lastValue?: string;
+  eventTopics: Record<string, number>;
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';
@@ -334,8 +329,6 @@ declare global {
       onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
       onDriverRestarting: (callback: (driver: Driver) => void) => () => void;
       onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
-      onEventCount: (callback: (count: number) => void) => () => void;
-      onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
       onFlashOtaState: (
         callback: (data: { driverId: string; state: string }) => void,
       ) => () => void;

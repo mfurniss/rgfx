@@ -25,6 +25,7 @@ interface MqttSubscriptionsDeps {
   driverLogPersistence: DriverLogPersistence;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
+  getEventTopics: () => Record<string, number>;
 }
 
 export function registerMqttSubscriptions(deps: MqttSubscriptionsDeps): void {

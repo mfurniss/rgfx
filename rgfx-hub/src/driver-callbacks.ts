@@ -21,6 +21,7 @@ interface DriverEventHandlersDeps {
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
+  getEventTopics: () => Record<string, number>;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
 }
 
@@ -36,6 +37,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     mqtt,
     getMainWindow,
     getEventsProcessed,
+    getEventTopics,
     uploadConfigToDriver,
   } = deps;
 
@@ -54,6 +56,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       driverRegistry.getConnectedCount(),
       driverRegistry.getAllDrivers().length,
       getEventsProcessed(),
+      getEventTopics(),
     );
     mainWindow.webContents.send('system:status', status);
   }
@@ -122,15 +125,6 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       mainWindow.webContents.send('driver:restarting', serializeDriverForIPC(driver));
       log.info(`Sent driver:restarting event to renderer for ${driver.id}`);
       sendSystemStatus();
-    }
-  });
-
-  // Handle game event statistics
-  eventBus.on('event:topic', (data) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('event:topic', data);
     }
   });
 

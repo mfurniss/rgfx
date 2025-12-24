@@ -57,8 +57,6 @@ beforeEach(() => {
     onDriverUpdated: vi.fn(() => vi.fn()),
     onDriverRestarting: vi.fn(() => vi.fn()),
     onSystemStatus: vi.fn(() => vi.fn()),
-    onEventCount: vi.fn(() => vi.fn()),
-    onEventTopic: vi.fn(() => vi.fn()),
     onFlashOtaState: vi.fn(() => vi.fn()),
     onFlashOtaProgress: vi.fn(() => vi.fn()),
     rendererReady: vi.fn(),
