@@ -24,13 +24,13 @@ import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
 import { installDefaultTransformers } from './transformer-installer';
 import { installDefaultInterceptors } from './interceptor-installer';
-import { eventBus } from './services/event-bus';
 import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
   MAIN_WINDOW_HEIGHT,
   MAIN_WINDOW_ZOOM_FACTOR,
   OPEN_DEVTOOLS_IN_DEV,
+  SYSTEM_STATUS_UPDATE_INTERVAL_MS,
 } from './config/constants';
 import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
@@ -64,6 +64,9 @@ log.info(`RGFX Hub ${pkg.version} starting...`);
 
 // Window reference
 let mainWindow: BrowserWindow | null = null;
+
+// System status update interval reference
+let statusUpdateInterval: NodeJS.Timeout | null = null;
 
 // Initialize services (persistence first, then registry)
 const configPath = path.join(app.getPath('home'), '.rgfx');
@@ -146,6 +149,7 @@ function sendSystemStatus() {
     driverRegistry.getConnectedCount(),
     driverRegistry.getAllDrivers().length,
     eventsProcessed,
+    Object.fromEntries(eventTopicCounts),
   );
   mainWindow.webContents.send('system:status', status);
 }
@@ -158,6 +162,7 @@ setupDriverEventHandlers({
   mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
+  getEventTopics: () => Object.fromEntries(eventTopicCounts),
   uploadConfigToDriver,
 });
 
@@ -189,30 +194,18 @@ void installDefaultInterceptors()
 
 // Track event topics and their counts
 const eventTopicCounts = new Map<string, number>();
-const eventTopicLastValues = new Map<string, string>();
 
 // Handle event processing (used by both event file reader and simulator)
-function processEvent(topic: string, payload: string): void {
+function processEvent(topic: string, _payload: string): void {
   eventsProcessed++;
-
-  // Track event topic count and last value
   const currentCount = eventTopicCounts.get(topic) ?? 0;
   eventTopicCounts.set(topic, currentCount + 1);
-  eventTopicLastValues.set(topic, payload);
-
-  // Emit via event bus (handler in event-callbacks.ts sends to renderer)
-  eventBus.emit('event:topic', {
-    topic,
-    count: currentCount + 1,
-    lastValue: payload.length > 0 ? payload : undefined,
-  });
 }
 
 // Reset all event counts and statistics
 function resetEventCounts(): void {
   eventsProcessed = 0;
   eventTopicCounts.clear();
-  eventTopicLastValues.clear();
   sendSystemStatus();
 }
 
@@ -245,6 +238,7 @@ registerMqttSubscriptions({
   driverLogPersistence,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
+  getEventTopics: () => Object.fromEntries(eventTopicCounts),
 });
 
 // Start reading events and send to transformer engine for processing
@@ -321,19 +315,14 @@ const createWindow = () => {
         mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
       }
     });
-    // Send system status
+    // Send system status (includes event topic counts)
     sendSystemStatus();
 
-    // Send all accumulated event topic counts
-    eventTopicCounts.forEach((count, topic) => {
-      if (isWindowAvailable() && mainWindow) {
-        mainWindow.webContents.send('event:topic', {
-          topic,
-          count,
-          lastValue: eventTopicLastValues.get(topic),
-        });
-      }
-    });
+    // Start periodic system status updates (for event counts during gameplay)
+    if (statusUpdateInterval) {
+      clearInterval(statusUpdateInterval);
+    }
+    statusUpdateInterval = setInterval(sendSystemStatus, SYSTEM_STATUS_UPDATE_INTERVAL_MS);
   });
 
   return mainWindow;
@@ -390,6 +379,12 @@ app.on('window-all-closed', () => {
 // Cleanup on app quit
 app.on('before-quit', () => {
   log.info('Shutting down...');
+
+  // Stop periodic status updates
+  if (statusUpdateInterval) {
+    clearInterval(statusUpdateInterval);
+    statusUpdateInterval = null;
+  }
 
   // Stop connection monitor
   driverRegistry.stopConnectionMonitor();

@@ -85,7 +85,7 @@ describe('SystemMonitor', () => {
       mockGetLocalIP.mockReturnValue('192.168.1.100');
       mockGetCurrentVersion.mockReturnValue('2.0.0');
 
-      const status = systemMonitor.getSystemStatus(5, 10, 1000);
+      const status = systemMonitor.getSystemStatus(5, 10, 1000, { 'pacman/score': 42 });
 
       expect(status).toEqual({
         mqttBroker: 'running',
@@ -97,13 +97,14 @@ describe('SystemMonitor', () => {
         eventsProcessed: 1000,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '2.0.0',
+        eventTopics: { 'pacman/score': 42 },
       });
     });
 
     it('should show stopped/inactive services when network is unavailable', () => {
       mockGetLocalIP.mockReturnValue('127.0.0.1');
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, {});
 
       expect(status).toEqual({
         mqttBroker: 'stopped',
@@ -115,20 +116,21 @@ describe('SystemMonitor', () => {
         eventsProcessed: 0,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '1.0.0', // From beforeEach default
+        eventTopics: {},
       });
     });
 
     it('should omit firmwareVersion when getCurrentVersion returns null', () => {
       mockGetCurrentVersion.mockReturnValue(null);
 
-      const status = systemMonitor.getSystemStatus(1, 2, 50);
+      const status = systemMonitor.getSystemStatus(1, 2, 50, {});
 
       expect(status.currentFirmwareVersion).toBeUndefined();
     });
 
     it('should preserve hubStartTime across calls', () => {
-      const status1 = systemMonitor.getSystemStatus(1, 2, 100);
-      const status2 = systemMonitor.getSystemStatus(2, 3, 200);
+      const status1 = systemMonitor.getSystemStatus(1, 2, 100, {});
+      const status2 = systemMonitor.getSystemStatus(2, 3, 200, {});
 
       expect(status1.hubStartTime).toBe(status2.hubStartTime);
     });

@@ -57,6 +57,7 @@ export class SystemMonitor {
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
+    eventTopics: Record<string, number>,
   ): SystemStatus {
     const hubIp = this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
@@ -71,6 +72,7 @@ export class SystemMonitor {
       eventsProcessed,
       hubStartTime: this.hubStartTime,
       currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
+      eventTopics,
     };
   }
 }

@@ -11,128 +11,80 @@ import { useEventStore } from '../event-store';
 describe('useEventStore', () => {
   beforeEach(() => {
     // Reset store state between tests
-    useEventStore.setState({ topics: new Map() });
+    useEventStore.setState({ topics: {} });
   });
 
   describe('initial state', () => {
-    it('should start with empty topics map', () => {
+    it('should start with empty topics object', () => {
       const { topics } = useEventStore.getState();
-      expect(topics.size).toBe(0);
+      expect(Object.keys(topics).length).toBe(0);
     });
   });
 
-  describe('onEventTopic', () => {
-    it('should add a new topic', () => {
-      const { onEventTopic } = useEventStore.getState();
+  describe('setTopics', () => {
+    it('should set topics from Record', () => {
+      const { setTopics } = useEventStore.getState();
 
-      onEventTopic('game/score', 1, '1000');
-
-      const { topics } = useEventStore.getState();
-      expect(topics.size).toBe(1);
-      expect(topics.get('game/score')).toEqual({
-        topic: 'game/score',
-        count: 1,
-        lastValue: '1000',
-      });
-    });
-
-    it('should update existing topic count', () => {
-      const { onEventTopic } = useEventStore.getState();
-
-      onEventTopic('game/score', 1, '1000');
-      onEventTopic('game/score', 5, '5000');
+      setTopics({ 'game/score': 10, 'game/lives': 3 });
 
       const { topics } = useEventStore.getState();
-      expect(topics.size).toBe(1);
-      expect(topics.get('game/score')).toEqual({
-        topic: 'game/score',
-        count: 5,
-        lastValue: '5000',
-      });
+      expect(topics['game/score']).toBe(10);
+      expect(topics['game/lives']).toBe(3);
     });
 
-    it('should track multiple topics independently', () => {
-      const { onEventTopic } = useEventStore.getState();
+    it('should replace all topics', () => {
+      const { setTopics } = useEventStore.getState();
 
-      onEventTopic('game/score', 10, '10000');
-      onEventTopic('game/lives', 3, '3');
-      onEventTopic('game/level', 2, '2');
+      setTopics({ 'old/topic': 5 });
+      setTopics({ 'new/topic': 1 });
 
       const { topics } = useEventStore.getState();
-      expect(topics.size).toBe(3);
-      expect(topics.get('game/score')?.count).toBe(10);
-      expect(topics.get('game/lives')?.count).toBe(3);
-      expect(topics.get('game/level')?.count).toBe(2);
+      expect(topics['old/topic']).toBeUndefined();
+      expect(topics['new/topic']).toBe(1);
     });
 
-    it('should handle topic without lastValue', () => {
-      const { onEventTopic } = useEventStore.getState();
+    it('should handle empty object', () => {
+      const { setTopics } = useEventStore.getState();
 
-      onEventTopic('game/event', 1);
+      setTopics({ 'game/score': 10 });
+      setTopics({});
 
       const { topics } = useEventStore.getState();
-      expect(topics.get('game/event')).toEqual({
-        topic: 'game/event',
-        count: 1,
-        lastValue: undefined,
-      });
-    });
-
-    it('should preserve immutability of topics map', () => {
-      const { onEventTopic } = useEventStore.getState();
-      onEventTopic('topic1', 1);
-
-      const topicsBefore = useEventStore.getState().topics;
-      onEventTopic('topic2', 1);
-      const topicsAfter = useEventStore.getState().topics;
-
-      // Maps should be different references
-      expect(topicsBefore).not.toBe(topicsAfter);
+      expect(Object.keys(topics).length).toBe(0);
     });
   });
 
   describe('reset', () => {
     it('should clear all topics', () => {
-      const { onEventTopic, reset } = useEventStore.getState();
+      const { setTopics, reset } = useEventStore.getState();
 
-      // Add some topics
-      onEventTopic('game/score', 10, '10000');
-      onEventTopic('game/lives', 3, '3');
-      onEventTopic('game/level', 2, '2');
+      setTopics({ 'game/score': 10, 'game/lives': 3, 'game/level': 2 });
+      expect(Object.keys(useEventStore.getState().topics).length).toBe(3);
 
-      expect(useEventStore.getState().topics.size).toBe(3);
-
-      // Reset
       reset();
 
-      expect(useEventStore.getState().topics.size).toBe(0);
+      expect(Object.keys(useEventStore.getState().topics).length).toBe(0);
     });
 
-    it('should return empty map after reset', () => {
-      const { onEventTopic, reset } = useEventStore.getState();
+    it('should return empty object after reset', () => {
+      const { setTopics, reset } = useEventStore.getState();
 
-      onEventTopic('game/score', 1, '100');
+      setTopics({ 'game/score': 100 });
       reset();
 
       const { topics } = useEventStore.getState();
-      expect(topics).toBeInstanceOf(Map);
-      expect(topics.size).toBe(0);
+      expect(topics).toEqual({});
     });
 
-    it('should allow adding topics after reset', () => {
-      const { onEventTopic, reset } = useEventStore.getState();
+    it('should allow setting topics after reset', () => {
+      const { setTopics, reset } = useEventStore.getState();
 
-      onEventTopic('old/topic', 5, 'old');
+      setTopics({ 'old/topic': 5 });
       reset();
-      onEventTopic('new/topic', 1, 'new');
+      setTopics({ 'new/topic': 1 });
 
       const { topics } = useEventStore.getState();
-      expect(topics.size).toBe(1);
-      expect(topics.get('new/topic')).toEqual({
-        topic: 'new/topic',
-        count: 1,
-        lastValue: 'new',
-      });
+      expect(topics).toEqual({ 'new/topic': 1 });
     });
   });
 });
