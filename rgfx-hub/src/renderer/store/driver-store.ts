@@ -199,6 +199,13 @@ export const useDriverStore = create<DriverStoreState>()(
         },
 
         onSystemStatusUpdate: (status) => {
+          const currentIp = get().systemStatus.hubIp;
+
+          // Notify on IP change (skip initial load when hubIp is 'Unknown')
+          if (currentIp !== 'Unknown' && currentIp !== status.hubIp) {
+            notify(`Hub IP address changed to: ${status.hubIp}`, 'info');
+          }
+
           set({ systemStatus: status });
         },
 
