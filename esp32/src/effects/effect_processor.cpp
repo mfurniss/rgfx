@@ -132,24 +132,16 @@ void EffectProcessor::update() {
 }
 
 void EffectProcessor::addEffect(const String& effectName, JsonDocument& props) {
+	// Validate required color prop - reject if missing or wrong type
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: effect '%s' missing or invalid 'color' prop, rejecting", effectName.c_str());
+		return;
+	}
+
 	// Check for reset flag (common to all effects)
 	bool shouldReset = false;
 	if (!props["reset"].isNull() && props["reset"].is<bool>()) {
 		shouldReset = props["reset"].as<bool>();
-	}
-
-	// Validate color prop (common to all effects)
-	if (!props["color"].isNull()) {
-		if (!props["color"].is<const char*>()) {
-			hal::log("WARNING: 'color' prop wrong type (expected string), removing");
-			props.remove("color");
-		} else {
-			const char* colorStr = props["color"];
-			if (colorStr == nullptr) {
-				hal::log("WARNING: 'color' prop is null, removing");
-				props.remove("color");
-			}
-		}
 	}
 
 	// Route to the appropriate effect
