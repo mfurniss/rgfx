@@ -76,11 +76,11 @@ describe('useEventsRateHistoryStore', () => {
     it('should calculate rate correctly between samples using fixed interval', () => {
       const store = useEventsRateHistoryStore.getState();
 
-      // First sample: 100 UDP + 50 MQTT = 150 total
+      // First sample: 100 UDP (MQTT is ignored for rate calculation)
       store.recordDriverStats('driver-1', createStats(100, 50), true);
       store.sampleRates();
 
-      // Second sample: 200 UDP + 100 MQTT = 300 total (delta = 150)
+      // Second sample: 200 UDP (delta = 100)
       store.recordDriverStats('driver-1', createStats(200, 100), true);
       store.sampleRates();
 
@@ -88,9 +88,9 @@ describe('useEventsRateHistoryStore', () => {
       expect(history).toHaveLength(2);
       // First sample should be 0 (no previous)
       expect(history[0]['driver-1']).toBe(0);
-      // Second sample: delta of 150 messages / 5 second interval = 30 events/sec
+      // Second sample: UDP delta of 100 / 5 second interval = 20 events/sec
       // (EVENTS_RATE_SAMPLE_INTERVAL_MS = 5000)
-      expect(history[1]['driver-1']).toBe(30);
+      expect(history[1]['driver-1']).toBe(20);
     });
 
     it('should return 0 rate for disconnected driver', () => {
