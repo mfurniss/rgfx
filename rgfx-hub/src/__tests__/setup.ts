@@ -4,6 +4,45 @@ import React from 'react';
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
 
+// jsdom compatibility mocks (from Mantine's vitest guide)
+// These are required for MUI components and @testing-library to work correctly
+
+// Fix getComputedStyle for jsdom - prevents flaky tests with MUI Modal
+const { getComputedStyle } = window;
+window.getComputedStyle = (elt) => getComputedStyle(elt);
+
+// Mock scroll methods (not available in jsdom)
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+window.HTMLElement.prototype.scrollIntoView = () => {};
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+window.Element.prototype.scrollTo = () => {};
+
+// Mock matchMedia (required for MUI responsive components)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+// Mock ResizeObserver (required for Recharts and responsive components)
+class ResizeObserverMock {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  observe() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  disconnect() {}
+}
+window.ResizeObserver = ResizeObserverMock;
+
 // Track resources for cleanup (prevents hung processes)
 interface CleanupResource {
   stop?: () => void | Promise<void>;

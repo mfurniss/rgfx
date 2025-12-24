@@ -10,18 +10,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 import { MultiLineChart } from '../multi-line-chart';
 
-// Mock ResizeObserver for Recharts ResponsiveContainer
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
-
-// Mock getComputedStyle for CSS variable resolution
-const mockGetComputedStyle = vi.fn().mockReturnValue({
-  getPropertyValue: vi.fn().mockReturnValue('#000000'),
-});
-vi.stubGlobal('getComputedStyle', mockGetComputedStyle);
+// ResizeObserver and getComputedStyle are provided by the global test setup
 
 interface TestDataPoint {
   time: number;
@@ -149,6 +138,8 @@ describe('MultiLineChart', () => {
 
   describe('CSS variable resolution', () => {
     it('calls getComputedStyle for axis color', () => {
+      const getComputedStyleSpy = vi.spyOn(window, 'getComputedStyle');
+
       render(
         <MultiLineChart<TestDataPoint>
           title="CSS Test"
@@ -159,7 +150,7 @@ describe('MultiLineChart', () => {
         />,
       );
 
-      expect(mockGetComputedStyle).toHaveBeenCalledWith(document.documentElement);
+      expect(getComputedStyleSpy).toHaveBeenCalledWith(document.documentElement);
     });
   });
 });

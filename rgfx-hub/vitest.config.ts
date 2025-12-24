@@ -8,13 +8,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   test: {
     globals: true,
-    environment: "happy-dom",
+    environment: "jsdom",
     setupFiles: ["./src/__tests__/setup.ts"],
     include: ["src/**/*.{test,spec}.{js,ts,tsx}", "config/**/*.{test,spec}.{js,ts}"],
     exclude: ["node_modules", "dist", ".vite", "out"],
     testTimeout: 10000,
     hookTimeout: 10000,
     teardownTimeout: 5000,
+    // Auto-cleanup to prevent test isolation issues
+    unstubGlobals: true,
+    clearMocks: true,
     pool: "forks",
     poolOptions: {
       forks: {
