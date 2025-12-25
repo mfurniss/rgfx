@@ -165,8 +165,6 @@ interface DriverStats {
   telemetryEventsReceived: number;
   mqttMessagesReceived: number;
   mqttMessagesFailed: number;
-  udpMessagesSent: number;
-  udpMessagesFailed: number;
 }
 
 /**
@@ -251,8 +249,6 @@ const defaultDriverStats: DriverStats = {
   telemetryEventsReceived: 0,
   mqttMessagesReceived: 0,
   mqttMessagesFailed: 0,
-  udpMessagesSent: 0,
-  udpMessagesFailed: 0,
 };
 
 /**
@@ -317,6 +313,8 @@ export interface SystemStatus {
   hubStartTime: number;
   currentFirmwareVersion?: string;
   eventTopics: Record<string, EventTopicData>;
+  udpMessagesSent: number;
+  udpMessagesFailed: number;
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';

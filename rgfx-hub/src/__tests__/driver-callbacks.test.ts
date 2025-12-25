@@ -80,8 +80,6 @@ describe('setupDriverEventHandlers', () => {
         telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,
         mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
       },
       telemetry: {
         chipModel: 'ESP32',
@@ -124,6 +122,8 @@ describe('setupDriverEventHandlers', () => {
       hubStartTime: Date.now(),
       currentFirmwareVersion: '1.0.0',
       eventTopics: {},
+      udpMessagesSent: 0,
+      udpMessagesFailed: 0,
     };
 
     mockSystemMonitor = {

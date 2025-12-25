@@ -62,6 +62,8 @@ describe('subscribeDriverStatus', () => {
       hubStartTime: Date.now(),
       currentFirmwareVersion: '1.0.0',
       eventTopics: {},
+      udpMessagesSent: 0,
+      udpMessagesFailed: 0,
     };
 
     mockSystemMonitor = mock<SystemMonitor>();

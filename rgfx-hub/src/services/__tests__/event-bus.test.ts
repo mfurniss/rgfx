@@ -133,7 +133,7 @@ describe('eventBus', () => {
         id: 'driver-1',
         mac: '00:11:22:33:44:55',
         state: 'connected',
-        stats: { udpMessagesSent: 10 },
+        stats: { telemetryEventsReceived: 10 },
       };
 
       eventBus.on('driver:updated', handler);

@@ -18,6 +18,8 @@ const mockSystemStatus: SystemStatus = {
   eventsProcessed: 0,
   hubStartTime: Date.now(),
   eventTopics: {},
+  udpMessagesSent: 0,
+  udpMessagesFailed: 0,
 };
 
 vi.mock('../store/driver-store', () => ({
@@ -128,8 +130,6 @@ describe('App IPC Listener Registration', () => {
         telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
       },
     } as Driver;
     registeredCallback(mockDriver);

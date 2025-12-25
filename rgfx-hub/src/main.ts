@@ -86,7 +86,7 @@ const uploadConfigToDriver = createUploadConfigToDriver({
 });
 
 // Initialize mapping engine with context services
-const udpClient = new UdpClientImpl(driverRegistry);
+const udpClient = new UdpClientImpl(driverRegistry, systemMonitor);
 const mqttClient = new MqttClientWrapper(mqtt);
 const stateStore = new StateStoreImpl();
 const logger = new LoggerWrapper(log);

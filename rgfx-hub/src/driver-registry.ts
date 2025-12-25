@@ -175,8 +175,6 @@ export class DriverRegistry {
       telemetryEventsReceived: (existingDriver?.stats.telemetryEventsReceived ?? 0) + 1,
       mqttMessagesReceived: (existingDriver?.stats.mqttMessagesReceived ?? 0) + 1,
       mqttMessagesFailed: existingDriver?.stats.mqttMessagesFailed ?? 0,
-      udpMessagesSent: existingDriver?.stats.udpMessagesSent ?? 0,
-      udpMessagesFailed: existingDriver?.stats.udpMessagesFailed ?? 0,
     };
   }
 
@@ -203,8 +201,6 @@ export class DriverRegistry {
       telemetryEventsReceived: number;
       mqttMessagesReceived: number;
       mqttMessagesFailed: number;
-      udpMessagesSent: number;
-      udpMessagesFailed: number;
     },
   ): Driver {
     const now = Date.now();
@@ -272,30 +268,6 @@ export class DriverRegistry {
   // Find driver by IP address
   findByIp(ip: string): Driver | undefined {
     return Array.from(this.drivers.values()).find((driver) => driver.ip === ip);
-  }
-
-  // Track UDP message sent to driver
-  trackUdpSent(ip: string, success: boolean): Driver | undefined {
-    const driver = this.findByIp(ip);
-
-    if (!driver) {
-      log.warn(`trackUdpSent: No driver found with IP ${ip}`);
-      return undefined;
-    }
-
-    // Update stats based on success/failure
-    if (success) {
-      driver.stats.udpMessagesSent++;
-    } else {
-      driver.stats.udpMessagesFailed++;
-    }
-
-    this.drivers.set(driver.id, driver);
-
-    // Emit driver:updated event so main can update renderer
-    eventBus.emit('driver:updated', { driver });
-
-    return driver;
   }
 
   // Update lastSeenAt timestamp for a driver (keeps driver marked as connected)
