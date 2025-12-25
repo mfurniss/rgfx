@@ -5,6 +5,12 @@
 #include "effect.h"
 #include "graphics/canvas.h"
 
+enum class TextAlign : uint8_t {
+	LEFT = 0,
+	CENTER = 1,
+	RIGHT = 2
+};
+
 class TextEffect : public IEffect {
    private:
 	static constexpr uint8_t MAX_TEXT_LENGTH = 32;
@@ -16,6 +22,7 @@ class TextEffect : public IEffect {
 		uint8_t accentR, accentG, accentB;
 		bool hasAccent;
 		int16_t x, y;        // Position in canvas coords (top-left of first char)
+		TextAlign align;     // Horizontal alignment
 		float duration;      // Duration in seconds, 0 = permanent
 		float elapsedTime;   // Elapsed time in seconds
 	};

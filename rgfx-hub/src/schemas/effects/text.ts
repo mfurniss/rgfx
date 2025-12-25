@@ -23,6 +23,7 @@ export default baseEffect
     accentColor: z.string().optional().default('#0000A0').describe('Optional accent/shadow color (hex or named)'),
     x: z.number().int().optional().default(0).describe('X position in canvas coordinates'),
     y: z.number().int().optional().default(0).describe('Y position in canvas coordinates'),
+    align: z.enum(['left', 'center', 'right']).optional().default('left').describe('Horizontal alignment (overrides x when center or right)'),
     duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
   })
   .strict();
