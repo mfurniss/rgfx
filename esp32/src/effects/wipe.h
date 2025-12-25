@@ -14,6 +14,7 @@ class WipeEffect : public IEffect {
 		uint32_t elapsedTime;   // Elapsed time in milliseconds
 		uint8_t r, g, b;        // RGB color
 		WipeDirection direction;  // Resolved direction (never RANDOM at runtime)
+		BlendMode blendMode;    // Blend mode for rendering
 
 		// Calculate remaining duration
 		uint32_t remaining() const { return duration - elapsedTime; }

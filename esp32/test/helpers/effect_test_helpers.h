@@ -319,6 +319,7 @@ inline void setDefaultWipeProps(JsonDocument& props) {
 	props["reset"] = false;
 	props["direction"] = "random";
 	props["duration"] = 500;
+	props["blendMode"] = "additive";
 }
 
 /**
@@ -431,13 +432,15 @@ inline JsonDocument mockExplodeProps(const char* color = "#FF0000", uint32_t par
  * @param color Hex color string (default: "#FF0000")
  * @param direction Direction string (default: "right")
  * @param duration Duration in ms (default: 500)
+ * @param blendMode Blend mode (default: "additive")
  */
-inline JsonDocument mockWipeProps(const char* color = "#FF0000", const char* direction = "right", uint32_t duration = 500) {
+inline JsonDocument mockWipeProps(const char* color = "#FF0000", const char* direction = "right", uint32_t duration = 500, const char* blendMode = "additive") {
 	JsonDocument props;
 	setDefaultWipeProps(props);
 	props["color"] = color;
 	props["direction"] = direction;
 	props["duration"] = duration;
+	props["blendMode"] = blendMode;
 	return props;
 }
 
