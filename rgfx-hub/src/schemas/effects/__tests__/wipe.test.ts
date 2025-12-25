@@ -21,6 +21,7 @@ describe('wipeSchema', () => {
         expect(result.data.reset).toBe(false);
         expect(result.data.direction).toBe('random');
         expect(result.data.duration).toBe(500);
+        expect(result.data.blendMode).toBe('additive');
       }
     });
 
@@ -84,6 +85,23 @@ describe('wipeSchema', () => {
         direction: 'left',
         speed: 100,
       });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('blendMode validation', () => {
+    it('should accept additive blend mode', () => {
+      const result = wipeSchema.safeParse({ blendMode: 'additive' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept replace blend mode', () => {
+      const result = wipeSchema.safeParse({ blendMode: 'replace' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid blend mode', () => {
+      const result = wipeSchema.safeParse({ blendMode: 'multiply' });
       expect(result.success).toBe(false);
     });
   });
