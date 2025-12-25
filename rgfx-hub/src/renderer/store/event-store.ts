@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import type { EventTopicData } from '../../types';
 
 interface EventStore {
-  topics: Record<string, number>;
-  setTopics: (topics: Record<string, number>) => void;
+  topics: Record<string, EventTopicData>;
+  setTopics: (topics: Record<string, EventTopicData>) => void;
   reset: () => void;
 }
 
@@ -12,7 +13,7 @@ export const useEventStore = create<EventStore>()(
     (set) => ({
       topics: {},
 
-      setTopics: (topics: Record<string, number>) => {
+      setTopics: (topics: Record<string, EventTopicData>) => {
         set({ topics });
       },
 

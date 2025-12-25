@@ -1,0 +1,102 @@
+MUSIC OFF
+
+$F5 (MusicDataLow): 1C
+
+
+OVERWORLD THEME
+
+$F5 (MusicDataLow): F9
+$F5 (MusicDataLow): 01
+$F5 (MusicDataLow): 49
+$F5 (MusicDataLow): 75
+$F5 (MusicDataLow): 49
+$F5 (MusicDataLow): 9D
+$F5 (MusicDataLow): 49
+$F5 (MusicDataLow): 75
+$F5 (MusicDataLow): 49
+$F5 (MusicDataLow): 9D
+$F5 (MusicDataLow): C2
+$F5 (MusicDataLow): DB
+$F5 (MusicDataLow): C2
+$F5 (MusicDataLow): F9
+$F5 (MusicDataLow): 01
+$F5 (MusicDataLow): 25
+$F5 (MusicDataLow): 4B
+$F5 (MusicDataLow): 25
+$F5 (MusicDataLow): 74
+$F5 (MusicDataLow): 25
+$F5 (MusicDataLow): 4B
+$F5 (MusicDataLow): 25
+$F5 (MusicDataLow): 74
+$F5 (MusicDataLow): C2
+$F5 (MusicDataLow): DB
+$F5 (MusicDataLow): C2
+$F5 (MusicDataLow): F9
+$F5 (MusicDataLow): 25
+$F5 (MusicDataLow): 4B
+$F5 (MusicDataLow): 25
+$F5 (MusicDataLow): 74
+
+
+UNDERGROUND MUSIC
+
+$F5 (MusicDataLow): 11
+
+
+
+MARIO DIE (first part also used by time running out)
+
+$F5 (MusicDataLow): 72
+
+
+
+
+FLAG
+
+$FC (EventMusicQueue): 80
+$FC (EventMusicQueue): 00
+$F5 (MusicDataLow): 1C
+$F4 (AreaMusicBuffer): 00
+$FC (EventMusicQueue): 20
+$07B1 (EventMusicBuffer): 20
+$FC (EventMusicQueue): 00
+$F5 (MusicDataLow): B0
+
+
+FIRE STAGE
+$F5 (MusicDataLow): A4
+$F4 (AreaMusicBuffer): 08
+
+
+$FC (EventMusicQueue): 80
+$FC (EventMusicQueue): 08
+$F5 (MusicDataLow): 1C
+$F4 (AreaMusicBuffer): 00
+
+
+BEAT BOWSER
+
+$F5 (MusicDataLow): 51
+
+
+POWER STAR
+
+$F5 (MusicDataLow): B8
+
+
+SWIMMING
+
+$F5 (MusicDataLow): 52
+
+
+TIME RUNNING OUT (plays first part of 72, then goes back to other tune at faster speed)
+
+$F5 (MusicDataLow): 72
+
+
+
+
+
+
+
+

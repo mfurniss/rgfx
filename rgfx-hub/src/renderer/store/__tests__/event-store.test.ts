@@ -25,32 +25,44 @@ describe('useEventStore', () => {
     it('should set topics from Record', () => {
       const { setTopics } = useEventStore.getState();
 
-      setTopics({ 'game/score': 10, 'game/lives': 3 });
+      setTopics({
+        'game/score': { count: 10, lastValue: '1000' },
+        'game/lives': { count: 3, lastValue: '2' },
+      });
 
       const { topics } = useEventStore.getState();
-      expect(topics['game/score']).toBe(10);
-      expect(topics['game/lives']).toBe(3);
+      expect(topics['game/score']).toEqual({ count: 10, lastValue: '1000' });
+      expect(topics['game/lives']).toEqual({ count: 3, lastValue: '2' });
     });
 
     it('should replace all topics', () => {
       const { setTopics } = useEventStore.getState();
 
-      setTopics({ 'old/topic': 5 });
-      setTopics({ 'new/topic': 1 });
+      setTopics({ 'old/topic': { count: 5 } });
+      setTopics({ 'new/topic': { count: 1 } });
 
       const { topics } = useEventStore.getState();
       expect(topics['old/topic']).toBeUndefined();
-      expect(topics['new/topic']).toBe(1);
+      expect(topics['new/topic']).toEqual({ count: 1 });
     });
 
     it('should handle empty object', () => {
       const { setTopics } = useEventStore.getState();
 
-      setTopics({ 'game/score': 10 });
+      setTopics({ 'game/score': { count: 10 } });
       setTopics({});
 
       const { topics } = useEventStore.getState();
       expect(Object.keys(topics).length).toBe(0);
+    });
+
+    it('should preserve lastValue when provided', () => {
+      const { setTopics } = useEventStore.getState();
+
+      setTopics({ 'game/score': { count: 5, lastValue: '500' } });
+
+      const { topics } = useEventStore.getState();
+      expect(topics['game/score'].lastValue).toBe('500');
     });
   });
 
@@ -58,7 +70,11 @@ describe('useEventStore', () => {
     it('should clear all topics', () => {
       const { setTopics, reset } = useEventStore.getState();
 
-      setTopics({ 'game/score': 10, 'game/lives': 3, 'game/level': 2 });
+      setTopics({
+        'game/score': { count: 10 },
+        'game/lives': { count: 3 },
+        'game/level': { count: 2 },
+      });
       expect(Object.keys(useEventStore.getState().topics).length).toBe(3);
 
       reset();
@@ -69,7 +85,7 @@ describe('useEventStore', () => {
     it('should return empty object after reset', () => {
       const { setTopics, reset } = useEventStore.getState();
 
-      setTopics({ 'game/score': 100 });
+      setTopics({ 'game/score': { count: 100 } });
       reset();
 
       const { topics } = useEventStore.getState();
@@ -79,12 +95,12 @@ describe('useEventStore', () => {
     it('should allow setting topics after reset', () => {
       const { setTopics, reset } = useEventStore.getState();
 
-      setTopics({ 'old/topic': 5 });
+      setTopics({ 'old/topic': { count: 5 } });
       reset();
-      setTopics({ 'new/topic': 1 });
+      setTopics({ 'new/topic': { count: 1 } });
 
       const { topics } = useEventStore.getState();
-      expect(topics).toEqual({ 'new/topic': 1 });
+      expect(topics).toEqual({ 'new/topic': { count: 1 } });
     });
   });
 });

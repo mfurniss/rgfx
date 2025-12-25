@@ -301,6 +301,11 @@ export function serializeDriverForIPC(driver: Driver): Driver {
   return { ...driver };
 }
 
+export interface EventTopicData {
+  count: number;
+  lastValue?: string;
+}
+
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -311,7 +316,7 @@ export interface SystemStatus {
   eventsProcessed: number;
   hubStartTime: number;
   currentFirmwareVersion?: string;
-  eventTopics: Record<string, number>;
+  eventTopics: Record<string, EventTopicData>;
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';

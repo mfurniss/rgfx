@@ -31,7 +31,27 @@ type SortOrder = 'asc' | 'desc';
 interface TopicEntry {
   topic: string;
   count: number;
+  lastValue?: string;
 }
+
+const formatValue = (value: string | undefined): string => {
+  if (value === undefined || value === '') {
+    return '';
+  }
+
+  const numValue = Number(value);
+
+  if (isNaN(numValue)) {
+    return value;
+  }
+
+  if (numValue >= 0 && numValue <= 65535 && Number.isInteger(numValue)) {
+    const hex = `0x${numValue.toString(16).toUpperCase().padStart(4, '0')}`;
+    return `${formatNumber(numValue)} (${hex})`;
+  }
+
+  return formatNumber(numValue);
+};
 
 const EventMonitorPage: React.FC = () => {
   const topics = useEventStore((state) => state.topics);
@@ -40,9 +60,10 @@ const EventMonitorPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const topicsArray: TopicEntry[] = Object.entries(topics).map(([topic, count]) => ({
+  const topicsArray: TopicEntry[] = Object.entries(topics).map(([topic, data]) => ({
     topic,
-    count,
+    count: data.count,
+    lastValue: data.lastValue,
   }));
 
   const handleSort = (field: SortField) => {
@@ -99,7 +120,7 @@ const EventMonitorPage: React.FC = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: 0.6}}>
+              <TableCell sx={{ width: 0.4 }}>
                 <TableSortLabel
                   active={sortField === 'topic'}
                   direction={sortField === 'topic' ? sortOrder : 'asc'}
@@ -110,7 +131,7 @@ const EventMonitorPage: React.FC = () => {
                   Event Topic
                 </TableSortLabel>
               </TableCell>
-              <TableCell sx={{ width: 0.4}} align="right">
+              <TableCell sx={{ width: 0.3 }} align="right">
                 <TableSortLabel
                   active={sortField === 'count'}
                   direction={sortField === 'count' ? sortOrder : 'asc'}
@@ -121,12 +142,13 @@ const EventMonitorPage: React.FC = () => {
                   Count
                 </TableSortLabel>
               </TableCell>
+              <TableCell sx={{ width: 0.3 }} align="right">Last Value</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedTopics.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={2} align="center">
+                <TableCell colSpan={3} align="center">
                   <Typography variant="body2" color="text.secondary">
                     No events received yet
                   </Typography>
@@ -137,6 +159,7 @@ const EventMonitorPage: React.FC = () => {
                 <TableRow key={entry.topic}>
                   <TableCell>{entry.topic}</TableCell>
                   <TableCell align="right">{formatNumber(entry.count)}</TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatValue(entry.lastValue)}</TableCell>
                 </TableRow>
               ))
             )}

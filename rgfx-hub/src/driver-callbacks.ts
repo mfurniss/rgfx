@@ -11,7 +11,7 @@ import type { DriverRegistry } from './driver-registry';
 import type { DriverPersistence } from './driver-persistence';
 import type { SystemMonitor } from './system-monitor';
 import type { MqttBroker } from './network';
-import { serializeDriverForIPC } from './types';
+import { serializeDriverForIPC, type EventTopicData } from './types';
 import { eventBus } from './services/event-bus';
 
 interface DriverEventHandlersDeps {
@@ -21,7 +21,7 @@ interface DriverEventHandlersDeps {
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
-  getEventTopics: () => Record<string, number>;
+  getEventTopics: () => Record<string, EventTopicData>;
   uploadConfigToDriver: (macAddress: string) => Promise<void>;
 }
 
