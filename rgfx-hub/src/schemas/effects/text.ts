@@ -19,10 +19,11 @@ export default baseEffect
     description: z.literal('Static text display'),
     reset: z.boolean().optional().default(true).describe('Clear existing text before rendering'),
     text: z.string().max(32).default('Hello you!').describe('Text to render (max 32 chars)'),
-    color: z.string().optional().default('#008888').describe('Text color (hex or named)'),
-    accentColor: z.string().optional().default('#004444').describe('Optional accent/shadow color (hex or named)'),
+    color: z.string().optional().default('#FF0000').describe('Text color (hex or named)'),
+    accentColor: z.string().optional().default('#0000A0').describe('Optional accent/shadow color (hex or named)'),
     x: z.number().int().optional().default(0).describe('X position in canvas coordinates'),
     y: z.number().int().optional().default(0).describe('Y position in canvas coordinates'),
+    align: z.enum(['left', 'center', 'right']).optional().default('left').describe('Horizontal alignment (overrides x when center or right)'),
     duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
   })
   .strict();

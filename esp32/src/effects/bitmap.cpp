@@ -9,6 +9,10 @@ BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 }
 
 void BitmapEffect::add(JsonDocument& props) {
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: bitmap missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	uint32_t duration = props["duration"];
 

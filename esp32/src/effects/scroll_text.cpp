@@ -1,6 +1,7 @@
 #include "scroll_text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
 #include <cmath>
 #include <cstring>
 
@@ -18,6 +19,10 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		return;
 	}
 
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: scroll_text missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	int16_t y = props["y"];
 	float speed = props["speed"];

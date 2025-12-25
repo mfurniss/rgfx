@@ -17,7 +17,6 @@ interface SystemStatusProps {
 const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
   const appInfo = useAppInfoStore((state) => state.appInfo);
   const [now, setNow] = useState(Date.now());
-  const [eventCount, setEventCount] = useState(status.eventsProcessed);
 
   // Update every second for live uptime
   useEffect(() => {
@@ -28,15 +27,6 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     return () => {
       clearInterval(interval);
     };
-  }, []);
-
-  // Listen for real-time event count updates
-  useEffect(() => {
-    const unsubscribe = window.rgfx.onEventCount((count) => {
-      setEventCount(count);
-    });
-
-    return unsubscribe;
   }, []);
 
   const currentUptime = now - status.hubStartTime;
@@ -52,7 +42,9 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
       name: 'Drivers Connected',
       value: `${formatNumber(status.driversConnected)} of ${formatNumber(status.driversTotal)}`,
     },
-    { name: 'Events Processed', value: formatNumber(eventCount) },
+    { name: 'Events Processed', value: formatNumber(status.eventsProcessed) },
+    { name: 'UDP Messages Sent', value: formatNumber(status.udpMessagesSent) },
+    { name: 'UDP Errors', value: formatNumber(status.udpMessagesFailed) },
   ];
 
   return (

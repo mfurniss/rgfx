@@ -17,6 +17,9 @@ const mockSystemStatus: SystemStatus = {
   hubIp: '192.168.1.100',
   eventsProcessed: 0,
   hubStartTime: Date.now(),
+  eventTopics: {},
+  udpMessagesSent: 0,
+  udpMessagesFailed: 0,
 };
 
 vi.mock('../store/driver-store', () => ({
@@ -55,8 +58,6 @@ describe('App IPC Listener Registration', () => {
       onDriverUpdated: mockIpcOnDriverUpdated,
       onDriverRestarting: vi.fn(() => vi.fn()),
       onSystemStatus: mockIpcOnSystemStatus,
-      onEventCount: vi.fn(() => vi.fn()),
-      onEventTopic: vi.fn(() => vi.fn()),
       onFlashOtaState: vi.fn(() => vi.fn()),
       onFlashOtaProgress: vi.fn(() => vi.fn()),
       rendererReady: mockRendererReady,
@@ -129,8 +130,6 @@ describe('App IPC Listener Registration', () => {
         telemetryEventsReceived: 0,
         mqttMessagesReceived: 0,
         mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
       },
     } as Driver;
     registeredCallback(mockDriver);

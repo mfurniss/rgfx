@@ -1,6 +1,7 @@
 #include "text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "hal/platform.h"
 #include <cstring>
 
 namespace {
@@ -42,6 +43,10 @@ void TextEffect::add(JsonDocument& props) {
 		return;
 	}
 
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: text missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	int16_t x = props["x"];
 	int16_t y = props["y"];
@@ -76,6 +81,14 @@ void TextEffect::add(JsonDocument& props) {
 	instance.duration = durationMs / 1000.0f;
 	instance.elapsedTime = 0.0f;
 
+	const char* alignStr = props["align"] | "left";
+	instance.align = TextAlign::LEFT;
+	if (strcmp(alignStr, "center") == 0) {
+		instance.align = TextAlign::CENTER;
+	} else if (strcmp(alignStr, "right") == 0) {
+		instance.align = TextAlign::RIGHT;
+	}
+
 	instances.push_back(instance);
 }
 
@@ -107,11 +120,24 @@ void TextEffect::render() {
 			}
 		}
 
+		// Calculate effective x position based on alignment
+		int16_t effectiveX = inst.x;
+		if (inst.align != TextAlign::LEFT) {
+			int16_t textWidthCanvas = inst.textLen * CHAR_WIDTH;
+			if (inst.align == TextAlign::CENTER) {
+				effectiveX = (static_cast<int16_t>(canvasWidth) - textWidthCanvas) / 2;
+			} else {  // RIGHT
+				effectiveX = static_cast<int16_t>(canvasWidth) - textWidthCanvas;
+			}
+			// Snap to LED boundary for crisp rendering
+			effectiveX = (effectiveX / TEXT_SCALE) * TEXT_SCALE;
+		}
+
 		// Pass 1: Accent (if present)
 		if (inst.hasAccent) {
 			for (uint8_t i = 0; i < inst.textLen; i++) {
 				int16_t charX, charY;
-				getWrappedPosition(inst.x, inst.y, i, canvasWidth, charX, charY);
+				getWrappedPosition(effectiveX, inst.y, i, canvasWidth, charX, charY);
 				renderChar(canvas, inst.text[i], charX + ACCENT_OFFSET, charY + ACCENT_OFFSET,
 				           inst.accentR, inst.accentG, inst.accentB, alpha, BlendMode::ALPHA);
 			}
@@ -120,7 +146,7 @@ void TextEffect::render() {
 		// Pass 2: Main text
 		for (uint8_t i = 0; i < inst.textLen; i++) {
 			int16_t charX, charY;
-			getWrappedPosition(inst.x, inst.y, i, canvasWidth, charX, charY);
+			getWrappedPosition(effectiveX, inst.y, i, canvasWidth, charX, charY);
 			renderChar(canvas, inst.text[i], charX, charY, inst.r, inst.g, inst.b, alpha, BlendMode::ALPHA);
 		}
 	}

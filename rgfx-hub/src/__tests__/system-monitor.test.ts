@@ -85,7 +85,9 @@ describe('SystemMonitor', () => {
       mockGetLocalIP.mockReturnValue('192.168.1.100');
       mockGetCurrentVersion.mockReturnValue('2.0.0');
 
-      const status = systemMonitor.getSystemStatus(5, 10, 1000);
+      const status = systemMonitor.getSystemStatus(5, 10, 1000, {
+        'pacman/score': { count: 42, lastValue: '1000' },
+      });
 
       expect(status).toEqual({
         mqttBroker: 'running',
@@ -97,13 +99,16 @@ describe('SystemMonitor', () => {
         eventsProcessed: 1000,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '2.0.0',
+        eventTopics: { 'pacman/score': { count: 42, lastValue: '1000' } },
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
       });
     });
 
     it('should show stopped/inactive services when network is unavailable', () => {
       mockGetLocalIP.mockReturnValue('127.0.0.1');
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, {});
 
       expect(status).toEqual({
         mqttBroker: 'stopped',
@@ -115,20 +120,23 @@ describe('SystemMonitor', () => {
         eventsProcessed: 0,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '1.0.0', // From beforeEach default
+        eventTopics: {},
+        udpMessagesSent: 0,
+        udpMessagesFailed: 0,
       });
     });
 
     it('should omit firmwareVersion when getCurrentVersion returns null', () => {
       mockGetCurrentVersion.mockReturnValue(null);
 
-      const status = systemMonitor.getSystemStatus(1, 2, 50);
+      const status = systemMonitor.getSystemStatus(1, 2, 50, {});
 
       expect(status.currentFirmwareVersion).toBeUndefined();
     });
 
     it('should preserve hubStartTime across calls', () => {
-      const status1 = systemMonitor.getSystemStatus(1, 2, 100);
-      const status2 = systemMonitor.getSystemStatus(2, 3, 200);
+      const status1 = systemMonitor.getSystemStatus(1, 2, 100, {});
+      const status2 = systemMonitor.getSystemStatus(2, 3, 200, {});
 
       expect(status1.hubStartTime).toBe(status2.hubStartTime);
     });
@@ -177,6 +185,61 @@ describe('SystemMonitor', () => {
       systemMonitor.stopFirmwareMonitoring();
 
       expect(mockFirmwareWatcher.stop).toHaveBeenCalled();
+    });
+  });
+
+  describe('trackUdpSent', () => {
+    it('should increment sent count on success', () => {
+      systemMonitor.trackUdpSent('192.168.1.100', true);
+      systemMonitor.trackUdpSent('192.168.1.100', true);
+      systemMonitor.trackUdpSent('192.168.1.100', true);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, {});
+
+      expect(status.udpMessagesSent).toBe(3);
+      expect(status.udpMessagesFailed).toBe(0);
+    });
+
+    it('should increment failed count on failure', () => {
+      systemMonitor.trackUdpSent('192.168.1.100', false);
+      systemMonitor.trackUdpSent('192.168.1.100', false);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, {});
+
+      expect(status.udpMessagesSent).toBe(0);
+      expect(status.udpMessagesFailed).toBe(2);
+    });
+
+    it('should track stats per IP address', () => {
+      systemMonitor.trackUdpSent('192.168.1.100', true);
+      systemMonitor.trackUdpSent('192.168.1.100', true);
+      systemMonitor.trackUdpSent('192.168.1.101', true);
+      systemMonitor.trackUdpSent('192.168.1.101', false);
+
+      const stats100 = systemMonitor.getUdpStatsForIp('192.168.1.100');
+      const stats101 = systemMonitor.getUdpStatsForIp('192.168.1.101');
+
+      expect(stats100).toEqual({ sent: 2, failed: 0 });
+      expect(stats101).toEqual({ sent: 1, failed: 1 });
+    });
+
+    it('should aggregate totals across all IPs in system status', () => {
+      systemMonitor.trackUdpSent('192.168.1.100', true);
+      systemMonitor.trackUdpSent('192.168.1.100', false);
+      systemMonitor.trackUdpSent('192.168.1.101', true);
+      systemMonitor.trackUdpSent('192.168.1.101', true);
+      systemMonitor.trackUdpSent('192.168.1.102', false);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, {});
+
+      expect(status.udpMessagesSent).toBe(3);
+      expect(status.udpMessagesFailed).toBe(2);
+    });
+
+    it('should return empty stats for unknown IP', () => {
+      const stats = systemMonitor.getUdpStatsForIp('192.168.1.999');
+
+      expect(stats).toEqual({ sent: 0, failed: 0 });
     });
   });
 });

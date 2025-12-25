@@ -165,8 +165,6 @@ interface DriverStats {
   telemetryEventsReceived: number;
   mqttMessagesReceived: number;
   mqttMessagesFailed: number;
-  udpMessagesSent: number;
-  udpMessagesFailed: number;
 }
 
 /**
@@ -251,8 +249,6 @@ const defaultDriverStats: DriverStats = {
   telemetryEventsReceived: 0,
   mqttMessagesReceived: 0,
   mqttMessagesFailed: 0,
-  udpMessagesSent: 0,
-  udpMessagesFailed: 0,
 };
 
 /**
@@ -301,6 +297,11 @@ export function serializeDriverForIPC(driver: Driver): Driver {
   return { ...driver };
 }
 
+export interface EventTopicData {
+  count: number;
+  lastValue?: string;
+}
+
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -311,12 +312,9 @@ export interface SystemStatus {
   eventsProcessed: number;
   hubStartTime: number;
   currentFirmwareVersion?: string;
-}
-
-export interface EventTopicData {
-  topic: string;
-  count: number;
-  lastValue?: string;
+  eventTopics: Record<string, EventTopicData>;
+  udpMessagesSent: number;
+  udpMessagesFailed: number;
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';
@@ -334,8 +332,6 @@ declare global {
       onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
       onDriverRestarting: (callback: (driver: Driver) => void) => () => void;
       onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
-      onEventCount: (callback: (count: number) => void) => () => void;
-      onEventTopic: (callback: (data: EventTopicData) => void) => () => void;
       onFlashOtaState: (
         callback: (data: { driverId: string; state: string }) => void,
       ) => () => void;

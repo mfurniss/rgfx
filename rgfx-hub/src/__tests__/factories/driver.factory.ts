@@ -28,8 +28,6 @@ const defaultDriverData: DriverInput = {
     telemetryEventsReceived: 1,
     mqttMessagesReceived: 1,
     mqttMessagesFailed: 0,
-    udpMessagesSent: 0,
-    udpMessagesFailed: 0,
   },
   telemetry: {
     chipModel: 'ESP32',

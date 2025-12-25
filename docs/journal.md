@@ -280,7 +280,11 @@ Changed background and plasma effects from boolean enabled flag to string enum s
 
 ## December 22, 2025
 
-Fixed projectile effect tests by adding proper default values and missing initializers. Removed effect defaults from ESP32 firmware in favor of Hub-side defaults. Added test helper functions for creating effect payloads in native tests.
+Fixed projectile effect tests by adding proper default values and missing initializers. Removed effect defaults from ESP32 firmware in favor of Hub-side defaults. Added test helper functions for creating effect payloads in native tests. Added Random Trigger button to FX Playground for quick effect testing. Fixed explode effect boundary bug and removed unused scalePower parameter. Implemented automatic explosion velocity scaling based on device dimensions. Split LED Configuration page into separate Hardware and Configuration sections. Added frame timing instrumentation to ESP32 driver and optimized explode effect rendering. Reorganized sidebar navigation with section dividers for better organization. Consolidated configuration constants and expanded LED simulator rows.
 
-**Total Development Time:** 73 days (October 11 - December 22, 2025)
-**Total Commits:** 608
+## December 23, 2025
+
+Implemented WiFi credential configuration system allowing credentials to be set via USB serial or OTA for multiple drivers. Added events per second chart to system status page showing real-time UDP event rates. Fixed driver DNS hostnames to match configured IDs for proper network identification. Added safeRestart() function to prevent LED corruption during driver restarts. Fixed flaky tests by switching to jsdom environment and improving test isolation. Improved event rate chart to show only UDP events and auto-hide when no data. Added centralized color prop validation to prevent null pointer crashes in effects, then refactored validation to individual effects for better modularity. Added Galaga 88 transformer template and updated documentation. Removed CHANGELOG.md in favor of the development journal.
+
+**Total Development Time:** 75 days (October 11 - December 23, 2025)
+**Total Commits:** 632

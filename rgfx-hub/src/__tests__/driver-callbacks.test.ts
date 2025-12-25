@@ -80,8 +80,6 @@ describe('setupDriverEventHandlers', () => {
         telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,
         mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
       },
       telemetry: {
         chipModel: 'ESP32',
@@ -123,6 +121,9 @@ describe('setupDriverEventHandlers', () => {
       eventsProcessed: 100,
       hubStartTime: Date.now(),
       currentFirmwareVersion: '1.0.0',
+      eventTopics: {},
+      udpMessagesSent: 0,
+      udpMessagesFailed: 0,
     };
 
     mockSystemMonitor = {
@@ -151,6 +152,7 @@ describe('setupDriverEventHandlers', () => {
       mqtt: mockMqtt as unknown as MqttBroker,
       getMainWindow: mockGetMainWindow,
       getEventsProcessed: mockGetEventsProcessed,
+      getEventTopics: vi.fn(() => ({})),
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });
@@ -310,7 +312,7 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500, {});
       });
     });
   });
@@ -377,7 +379,7 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200, {});
       });
     });
   });
@@ -434,35 +436,6 @@ describe('setupDriverEventHandlers', () => {
 
       expect(sentDriver.id).toBe('rgfx-driver-0001');
       expect(sentDriver.mac).toBe('AA:BB:CC:DD:EE:FF');
-    });
-  });
-
-  describe('event:topic event', () => {
-    it('should subscribe to event:topic event', () => {
-      expect(eventBus.on).toHaveBeenCalledWith('event:topic', expect.any(Function));
-    });
-
-    it('should send event:topic IPC message', () => {
-      const eventData = { topic: 'pacman/score', count: 5, lastValue: '1000' };
-      eventBus.emit('event:topic', eventData);
-
-      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith('event:topic', eventData);
-    });
-
-    it('should not send IPC if window is destroyed', () => {
-      mockMainWindow.isDestroyed.mockReturnValue(true);
-
-      eventBus.emit('event:topic', { topic: 'pacman/score', count: 5, lastValue: '1000' });
-
-      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
-    });
-
-    it('should not send IPC if window is null', () => {
-      mockGetMainWindow.mockReturnValue(null);
-
-      eventBus.emit('event:topic', { topic: 'pacman/score', count: 5, lastValue: '1000' });
-
-      expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
   });
 

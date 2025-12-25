@@ -17,7 +17,7 @@ describe('projectileSchema', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.direction).toBe('right');
+        expect(result.data.direction).toBe('random');
         expect(result.data.velocity).toBe(1200);
         expect(result.data.friction).toBe(0.5);
         expect(result.data.trail).toBe(0.2);

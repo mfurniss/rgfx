@@ -76,8 +76,6 @@ describe('DriverRegistry', () => {
         telemetryEventsReceived: 1,
         mqttMessagesReceived: 1,
         mqttMessagesFailed: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
       });
     });
 
@@ -164,45 +162,6 @@ describe('DriverRegistry', () => {
 
       const found = registry.findByIp('192.168.1.101');
       expect(found?.ip).toBe('192.168.1.101');
-    });
-  });
-
-  describe('trackUdpSent', () => {
-    it('should increment udpMessagesSent on success', () => {
-      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
-      registry.registerDriver(telemetryData);
-
-      const device = registry.trackUdpSent('192.168.1.100', true);
-
-      expect(device?.stats.udpMessagesSent).toBe(1);
-      expect(device?.stats.udpMessagesFailed).toBe(0);
-    });
-
-    it('should increment udpMessagesFailed on failure', () => {
-      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
-      registry.registerDriver(telemetryData);
-
-      const device = registry.trackUdpSent('192.168.1.100', false);
-
-      expect(device?.stats.udpMessagesSent).toBe(0);
-      expect(device?.stats.udpMessagesFailed).toBe(1);
-    });
-
-    it('should return undefined for non-existent IP', () => {
-      const device = registry.trackUdpSent('192.168.1.200', true);
-      expect(device).toBeUndefined();
-    });
-
-    it('should emit driver:updated event after tracking', () => {
-      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
-      registry.registerDriver(telemetryData);
-
-      // Clear emitSpy to only count trackUdpSent event
-      emitSpy.mockClear();
-
-      const driver = registry.trackUdpSent('192.168.1.100', true);
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      expect(emitSpy).toHaveBeenCalledWith('driver:updated', { driver });
     });
   });
 
@@ -294,8 +253,6 @@ describe('DriverRegistry', () => {
 
       expect(driver.stats.mqttMessagesReceived).toBe(1);
       expect(driver.stats.mqttMessagesFailed).toBe(0);
-      expect(driver.stats.udpMessagesSent).toBe(0);
-      expect(driver.stats.udpMessagesFailed).toBe(0);
     });
 
     it('should increment mqttMessagesReceived on subsequent registrations', () => {

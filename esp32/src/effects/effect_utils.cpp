@@ -57,23 +57,6 @@ uint32_t parseColor(const char* colorHex) {
 	return (uint32_t)strtol(colorHex, NULL, 16);
 }
 
-uint32_t validateColor(JsonDocument& props, const char* propName, uint32_t defaultColor) {
-	if (!props[propName].is<const char*>()) {
-		if (!props[propName].isNull()) {
-			hal::log("WARNING: '%s' prop wrong type (expected string), using default", propName);
-		}
-		return defaultColor;
-	}
-
-	const char* colorStr = props[propName];
-	if (colorStr == nullptr) {
-		hal::log("WARNING: '%s' prop is null, using default", propName);
-		return defaultColor;
-	}
-
-	return parseColor(colorStr);
-}
-
 uint32_t randomColor() {
 	uint8_t randomHue = random8();
 	CHSV hsv(randomHue, 255, 255);
