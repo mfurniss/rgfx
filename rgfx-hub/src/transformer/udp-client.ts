@@ -22,6 +22,7 @@ import { UDP_PORT } from '../config/constants';
  */
 export class UdpClientImpl implements UdpClient {
   private socket: dgram.Socket;
+  private closed = false;
 
   constructor(
     private driverRegistry: DriverRegistry,
@@ -40,6 +41,10 @@ export class UdpClientImpl implements UdpClient {
    * @returns true (for mapper return convenience)
    */
   broadcast(payload: EffectPayload): boolean {
+    if (this.closed) {
+      return false;
+    }
+
     // Extract drivers property for routing, don't send it in UDP payload
     const { drivers: targetDriverIds, ...effectData } = payload;
 
@@ -183,6 +188,7 @@ export class UdpClientImpl implements UdpClient {
    * Stop the UDP client and close the socket
    */
   stop(): void {
+    this.closed = true;
     this.socket.close();
     log.debug('UDP client socket closed');
   }
