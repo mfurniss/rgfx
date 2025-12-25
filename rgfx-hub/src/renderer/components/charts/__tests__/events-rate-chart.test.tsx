@@ -33,18 +33,17 @@ describe('EventsRateChart', () => {
   });
 
   describe('empty state', () => {
-    it('shows "No driver data yet" when no drivers are known', () => {
-      render(<EventsRateChart />);
+    it('renders nothing when no drivers are known', () => {
+      const { container } = render(<EventsRateChart />);
 
-      expect(screen.getByText('Events Per Second')).toBeDefined();
-      expect(screen.getByText('No driver data yet')).toBeDefined();
+      expect(container.firstChild).toBeNull();
     });
   });
 
   describe('with driver data', () => {
     it('renders chart when drivers are known', () => {
       const store = useEventsRateHistoryStore.getState();
-      store.recordDriverStats('driver-1', { udpMessagesSent: 10, mqttMessagesReceived: 5 }, true);
+      store.recordDriverStats('driver-1', { udpSent: 10, mqttMessagesReceived: 5 }, true);
       store.sampleRates();
 
       render(<EventsRateChart />);
@@ -55,8 +54,8 @@ describe('EventsRateChart', () => {
 
     it('renders with multiple drivers', () => {
       const store = useEventsRateHistoryStore.getState();
-      store.recordDriverStats('driver-1', { udpMessagesSent: 10, mqttMessagesReceived: 5 }, true);
-      store.recordDriverStats('driver-2', { udpMessagesSent: 20, mqttMessagesReceived: 10 }, true);
+      store.recordDriverStats('driver-1', { udpSent: 10, mqttMessagesReceived: 5 }, true);
+      store.recordDriverStats('driver-2', { udpSent: 20, mqttMessagesReceived: 10 }, true);
       store.sampleRates();
 
       const { container } = render(<EventsRateChart />);

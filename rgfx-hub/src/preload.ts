@@ -1,7 +1,7 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
 import { exposeElectronTRPC } from 'electron-trpc/main';
-import type { Driver, SystemStatus, EventTopicData, AppInfo, DisconnectReason } from './types';
+import type { Driver, SystemStatus, AppInfo, DisconnectReason } from './types';
 import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
 
@@ -81,26 +81,6 @@ export const rgfxAPI = {
     return () => {
       console.log('[PRELOAD] Removing listener for system:status');
       ipcRenderer.removeListener('system:status', handler);
-    };
-  },
-
-  onEventCount: (callback: (count: number) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, count: number) => {
-      callback(count);
-    };
-    ipcRenderer.on('event:count', handler);
-    return () => {
-      ipcRenderer.removeListener('event:count', handler);
-    };
-  },
-
-  onEventTopic: (callback: (data: EventTopicData) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, data: EventTopicData) => {
-      callback(data);
-    };
-    ipcRenderer.on('event:topic', handler);
-    return () => {
-      ipcRenderer.removeListener('event:topic', handler);
     };
   },
 

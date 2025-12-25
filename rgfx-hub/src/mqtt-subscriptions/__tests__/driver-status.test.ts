@@ -61,6 +61,9 @@ describe('subscribeDriverStatus', () => {
       eventsProcessed: 100,
       hubStartTime: Date.now(),
       currentFirmwareVersion: '1.0.0',
+      eventTopics: {},
+      udpMessagesSent: 0,
+      udpMessagesFailed: 0,
     };
 
     mockSystemMonitor = mock<SystemMonitor>();
@@ -80,6 +83,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
 
       expect(mockMqtt.subscribe).toHaveBeenCalledWith(
@@ -97,6 +101,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -133,6 +138,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -179,7 +185,7 @@ describe('subscribeDriverStatus', () => {
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
-      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(2, 3, 500);
+      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(2, 3, 500, {});
     });
 
     it('should NOT process offline if driver was already disconnected', () => {
@@ -199,6 +205,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -225,6 +232,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -252,6 +260,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -271,6 +280,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => null,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
 
       const callback = mockMqtt.subscribe.mock.calls[1][1] as (
@@ -292,6 +302,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -322,6 +333,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 
@@ -361,6 +373,7 @@ describe('subscribeDriverStatus', () => {
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventTopics: vi.fn(() => ({})),
       });
     });
 

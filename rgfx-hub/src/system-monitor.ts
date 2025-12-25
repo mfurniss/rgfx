@@ -6,20 +6,45 @@
  */
 
 import log from 'electron-log/main';
-import type { SystemStatus } from './types';
+import type { EventTopicData, SystemStatus } from './types';
 import { firmwareVersionService } from './services/firmware-version-service';
 import { FirmwareWatcher } from './services/firmware-watcher';
 import { getLocalIP } from './network/network-utils';
+
+interface UdpStats {
+  sent: number;
+  failed: number;
+}
 
 export class SystemMonitor {
   private readonly hubStartTime: number;
   private readonly firmwareWatcher: FirmwareWatcher;
   private onFirmwareUpdatedCallback?: (version: string | null) => void;
+  private udpStatsByIp = new Map<string, UdpStats>();
 
   constructor() {
     this.hubStartTime = Date.now();
     this.firmwareWatcher = new FirmwareWatcher();
     this.setupFirmwareWatcher();
+  }
+
+  trackUdpSent(ip: string, success: boolean): void {
+    const stats = this.udpStatsByIp.get(ip) ?? { sent: 0, failed: 0 };
+
+    if (success) {
+      stats.sent++;
+    } else {
+      stats.failed++;
+    }
+    this.udpStatsByIp.set(ip, stats);
+  }
+
+  getUdpStatsByIp(): Map<string, UdpStats> {
+    return this.udpStatsByIp;
+  }
+
+  getUdpStatsForIp(ip: string): UdpStats {
+    return this.udpStatsByIp.get(ip) ?? { sent: 0, failed: 0 };
   }
 
   private setupFirmwareWatcher(): void {
@@ -57,9 +82,19 @@ export class SystemMonitor {
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
+    eventTopics: Record<string, EventTopicData>,
   ): SystemStatus {
     const hubIp = this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
+
+    // Aggregate UDP stats from all IPs
+    let udpMessagesSent = 0;
+    let udpMessagesFailed = 0;
+
+    for (const stats of this.udpStatsByIp.values()) {
+      udpMessagesSent += stats.sent;
+      udpMessagesFailed += stats.failed;
+    }
 
     return {
       mqttBroker: isNetworkAvailable ? 'running' : 'stopped',
@@ -71,6 +106,9 @@ export class SystemMonitor {
       eventsProcessed,
       hubStartTime: this.hubStartTime,
       currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
+      eventTopics,
+      udpMessagesSent,
+      udpMessagesFailed,
     };
   }
 }

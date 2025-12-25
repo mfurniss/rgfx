@@ -114,6 +114,13 @@ void PlasmaEffect::add(JsonDocument& props) {
 		return;
 	}
 
+	// Handle fadeOut - preserve existing state, just fade
+	if (enabledState == EnabledState::FADE_OUT) {
+		state.fadeTime = ((255 - state.currentAlpha) / 255.0f) * FADE_DURATION;
+		state.enabledState = EnabledState::FADE_OUT;
+		return;
+	}
+
 	// Parse scale (0.1-10.0)
 	float scale = props["scale"];
 	if (scale < 0.1f) scale = 0.1f;

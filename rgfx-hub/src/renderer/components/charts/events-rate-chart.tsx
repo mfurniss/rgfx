@@ -6,7 +6,6 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
 import { MultiLineChart } from './multi-line-chart';
 import {
   useEventsRateHistoryStore,
@@ -26,9 +25,8 @@ const EVENTS_RATE_CHART_HEIGHT = CHART_HEIGHT * 1.5;
 export const EventsRateChart: React.FC = () => {
   const history = useEventsRateHistoryStore((state) => state.history);
   const knownDrivers = useEventsRateHistoryStore((state) => state.knownDrivers);
-  const version = useEventsRateHistoryStore((state) => state.version);
 
-  const historyArray = useMemo(() => history.toArray(), [history, version]);
+  const historyArray = useMemo(() => history.toArray(), [history]);
   const driverIds = useMemo(() => Array.from(knownDrivers).sort(), [knownDrivers]);
 
   useEffect(() => {
@@ -41,28 +39,8 @@ export const EventsRateChart: React.FC = () => {
     color: DRIVER_CHART_COLORS[index % DRIVER_CHART_COLORS.length],
   }));
 
-  if (driverIds.length === 0) {
-    return (
-      <Box
-        sx={{
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          p: 2,
-          height: EVENTS_RATE_CHART_HEIGHT,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
-          Events Per Second
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          No driver data yet
-        </Typography>
-      </Box>
-    );
+  if (driverIds.length === 0 || historyArray.length === 0) {
+    return null;
   }
 
   return (

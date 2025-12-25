@@ -5,8 +5,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UdpClientImpl } from '../udp-client';
 import { DriverRegistry } from '@/driver-registry';
+import type { SystemMonitor } from '@/system-monitor';
 import { createDriver, type Driver } from '@/types';
 import type { EffectPayload } from '@/types/transformer-types';
+
+// Create mock SystemMonitor
+const mockSystemMonitor = {
+  trackUdpSent: vi.fn(),
+} as unknown as SystemMonitor;
 
 // Create mock socket
 const mockSocketSend = vi.fn(
@@ -84,12 +90,13 @@ describe('UdpClientImpl', () => {
       driver4,
     );
 
-    udpClient = new UdpClientImpl(driverRegistry);
+    udpClient = new UdpClientImpl(driverRegistry, mockSystemMonitor);
 
     // Clear mock call history after creating udpClient
     mockSocketSend.mockClear();
     mockSocketClose.mockClear();
     mockSocketOn.mockClear();
+    (mockSystemMonitor.trackUdpSent as ReturnType<typeof vi.fn>).mockClear();
   });
 
   afterEach(() => {
@@ -178,7 +185,7 @@ describe('UdpClientImpl', () => {
     it('should handle empty driver list', () => {
       // Create empty registry
       const emptyRegistry = new DriverRegistry();
-      const emptyClient = new UdpClientImpl(emptyRegistry);
+      const emptyClient = new UdpClientImpl(emptyRegistry, mockSystemMonitor);
 
       const payload: EffectPayload = { effect: 'test' };
 
@@ -378,7 +385,7 @@ describe('UdpClientImpl', () => {
       (dgram.default.createSocket as ReturnType<typeof vi.fn>).mockClear();
 
       // Create a new client
-      const client = new UdpClientImpl(driverRegistry);
+      const client = new UdpClientImpl(driverRegistry, mockSystemMonitor);
 
       // Socket created once in constructor
       expect(dgram.default.createSocket).toHaveBeenCalledTimes(1);
@@ -461,7 +468,7 @@ describe('UdpClientImpl', () => {
       drivers.drivers.set(matrix2.id, matrix2);
       drivers.drivers.set(unknown1.id, unknown1);
 
-      stripMatrixClient = new UdpClientImpl(stripMatrixRegistry);
+      stripMatrixClient = new UdpClientImpl(stripMatrixRegistry, mockSystemMonitor);
       mockSocketSend.mockClear();
     });
 
@@ -578,7 +585,7 @@ describe('UdpClientImpl', () => {
         matrix,
       );
 
-      const client = new UdpClientImpl(matrixOnlyRegistry);
+      const client = new UdpClientImpl(matrixOnlyRegistry, mockSystemMonitor);
       mockSocketSend.mockClear();
 
       const payload: EffectPayload = {

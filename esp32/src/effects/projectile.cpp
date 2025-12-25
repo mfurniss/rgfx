@@ -46,6 +46,10 @@ ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c)
 }
 
 void ProjectileEffect::add(JsonDocument& props) {
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: projectile missing or invalid 'color' prop");
+		return;
+	}
 	uint32_t color = parseColor(props["color"]);
 	uint32_t velocity = props["velocity"];
 	float friction = props["friction"];

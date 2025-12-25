@@ -72,8 +72,6 @@ describe('registerSaveDriverConfigHandler', () => {
       telemetryEventsReceived: 0,
       mqttMessagesReceived: 0,
       mqttMessagesFailed: 0,
-      udpMessagesSent: 0,
-      udpMessagesFailed: 0,
     },
   });
 

@@ -115,9 +115,10 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Clean up component directories
 [X] Wrap text effect to rows
 [X] Optional fade in/out on background and plasma
-[ ] Waiting to connect glow
 [X] Bug - FX Playground should retain settings when switching effects
 [X] Update WiFi on all connected drivers via OTA
 [X] Event counts chart on status page
-[ ] WiFi form validation
-[ ] Driver DNS names bug
+[X] WiFi form validation
+[X] Driver DNS names bug
+[ ] MAME / game shutdown event
+[ ] Horiztonal center text effect

@@ -1,6 +1,10 @@
 import { getWorldRecord } from '../utils/world-record.js';
 
-export async function handle({ namespace, subject }, payload, { http, broadcast, log }) {
+export async function handle(
+  { namespace, subject },
+  payload,
+  { http, broadcast, log }
+) {
   if (subject !== 'init') return false;
 
   // Async fetch - don't block, fire and forget
@@ -11,7 +15,13 @@ export async function handle({ namespace, subject }, payload, { http, broadcast,
         drivers: ['rgfx-driver-0005'],
         props: {
           text: `WR:${result.score}`,
-          color: '#FFD700',
+          color: '#808000',
+          reset: true,
+          accentColor: '#006060',
+          y: 0,
+          speed: 150,
+          repeat: false,
+          snapToLed: true,
         },
       });
     }

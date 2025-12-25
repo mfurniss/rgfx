@@ -10,7 +10,7 @@ import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
-import { serializeDriverForIPC } from '../types';
+import { serializeDriverForIPC, type EventTopicData } from '../types';
 
 interface DriverStatusDeps {
   mqtt: MqttBroker;
@@ -18,10 +18,13 @@ interface DriverStatusDeps {
   getMainWindow: () => BrowserWindow | null;
   systemMonitor: SystemMonitor;
   getEventsProcessed: () => number;
+  getEventTopics: () => Record<string, EventTopicData>;
 }
 
 export function subscribeDriverStatus(deps: DriverStatusDeps): void {
-  const { mqtt, driverRegistry, getMainWindow, systemMonitor, getEventsProcessed } = deps;
+  const {
+    mqtt, driverRegistry, getMainWindow, systemMonitor, getEventsProcessed, getEventTopics,
+  } = deps;
 
   mqtt.subscribe('rgfx/driver/+/status', (topic, payload) => {
     log.info(`Driver status change: ${topic} = ${payload}`);
@@ -61,6 +64,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
           driverRegistry.getConnectedCount(),
           driverRegistry.getAllDrivers().length,
           getEventsProcessed(),
+          getEventTopics(),
         );
         mainWindow.webContents.send('system:status', status);
       }

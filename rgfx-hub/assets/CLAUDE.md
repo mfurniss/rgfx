@@ -2,6 +2,16 @@
 
 This folder contains static assets bundled with the RGFX Hub application. These files are packaged into the Electron app at build time and accessed at runtime.
 
+## CRITICAL - Do NOT edit files here directly!
+
+**Interceptors and transformers are installed to `~/.rgfx/` on first run.**
+
+When creating or modifying interceptors/transformers:
+1. **Interceptors**: Edit files in `~/.rgfx/interceptors/`, NOT here
+2. **Transformers**: Edit files in `~/.rgfx/transformers/`, NOT here
+
+Files in this `assets/` folder are only copied to `~/.rgfx/` if they don't already exist. Editing here will NOT affect the running application until the user deletes their local copy.
+
 ## Subfolders
 
 ### esp32/firmware/
