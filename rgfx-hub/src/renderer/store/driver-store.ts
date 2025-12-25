@@ -66,6 +66,8 @@ export const useDriverStore = create<DriverStoreState>()(
           eventsProcessed: 0,
           hubStartTime: 0,
           eventTopics: {},
+          udpMessagesSent: 0,
+          udpMessagesFailed: 0,
         },
 
         // Actions (callbacks prefixed with 'on')
@@ -144,9 +146,12 @@ export const useDriverStore = create<DriverStoreState>()(
           }
 
           // Record stats for events rate chart
+          // Note: UDP stats are now tracked per-IP in SystemMonitor, not per-driver
+          // For now, we pass 0 for udpSent since driver.stats no longer has UDP fields
+          // TODO: Consider exposing per-IP UDP stats via IPC for per-driver rate tracking
           useEventsRateHistoryStore.getState().recordDriverStats(
             driver.id,
-            driver.stats,
+            { udpSent: 0, mqttMessagesReceived: driver.stats.mqttMessagesReceived },
             driver.state === 'connected',
           );
 

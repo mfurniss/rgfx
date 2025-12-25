@@ -127,8 +127,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     ['Telemetry Events', formatNumber(driver.stats.telemetryEventsReceived)],
     ['MQTT Messages Received', formatNumber(driver.stats.mqttMessagesReceived)],
     ['MQTT Errors', formatNumber(driver.stats.mqttMessagesFailed)],
-    ['UDP Messages Received', formatNumber(driver.stats.udpMessagesSent)],
-    ['UDP Send Errors', formatNumber(driver.stats.udpMessagesFailed)],
     ...(driver.lastHeartbeat
       ? [['Last Updated', `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`] as InfoRowData]
       : []),

@@ -10,6 +10,7 @@ import dgram from 'dgram';
 import log from 'electron-log/main';
 import type { UdpClient, EffectPayload } from '../types/transformer-types';
 import type { DriverRegistry } from '../driver-registry';
+import type { SystemMonitor } from '../system-monitor';
 import { type Driver } from '../types';
 import { UDP_PORT } from '../config/constants';
 
@@ -22,7 +23,10 @@ import { UDP_PORT } from '../config/constants';
 export class UdpClientImpl implements UdpClient {
   private socket: dgram.Socket;
 
-  constructor(private driverRegistry: DriverRegistry) {
+  constructor(
+    private driverRegistry: DriverRegistry,
+    private systemMonitor: SystemMonitor,
+  ) {
     this.socket = dgram.createSocket('udp4');
     this.socket.on('error', (err) => {
       log.error(`UDP client socket error: ${err.message}`);
@@ -165,7 +169,7 @@ export class UdpClientImpl implements UdpClient {
     }
 
     this.socket.send(buffer, UDP_PORT, ip, (err) => {
-      this.driverRegistry.trackUdpSent(ip, !err);
+      this.systemMonitor.trackUdpSent(ip, !err);
 
       if (err) {
         log.error(`UDP send to ${ip} failed: ${err.message}`);

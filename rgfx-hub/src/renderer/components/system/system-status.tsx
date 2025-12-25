@@ -43,6 +43,8 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
       value: `${formatNumber(status.driversConnected)} of ${formatNumber(status.driversTotal)}`,
     },
     { name: 'Events Processed', value: formatNumber(status.eventsProcessed) },
+    { name: 'UDP Messages Sent', value: formatNumber(status.udpMessagesSent) },
+    { name: 'UDP Errors', value: formatNumber(status.udpMessagesFailed) },
   ];
 
   return (

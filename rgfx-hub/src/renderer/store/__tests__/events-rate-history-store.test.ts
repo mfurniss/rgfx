@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useEventsRateHistoryStore } from '../events-rate-history-store';
 
 const createStats = (udp: number, mqtt: number) => ({
-  udpMessagesSent: udp,
+  udpSent: udp,
   mqttMessagesReceived: mqtt,
 });
 

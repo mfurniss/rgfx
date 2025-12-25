@@ -15,9 +15,10 @@ import {
 
 /**
  * Cumulative stats for a driver (no timestamp - we use fixed sample intervals).
+ * UDP stats come from SystemStatus (per-IP tracking in main process).
  */
 interface DriverStatsSnapshot {
-  udpMessagesSent: number;
+  udpSent: number;
   mqttMessagesReceived: number;
   isConnected: boolean;
 }
@@ -41,10 +42,11 @@ interface EventsRateHistoryState {
   /**
    * Record cumulative stats for a driver.
    * Called when driver updates are received.
+   * @param udpSent - UDP messages sent to this driver (from SystemStatus per-IP tracking)
    */
   recordDriverStats: (
     driverId: string,
-    stats: { udpMessagesSent: number; mqttMessagesReceived: number },
+    stats: { udpSent: number; mqttMessagesReceived: number },
     isConnected: boolean,
   ) => void;
 
@@ -83,7 +85,7 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()(
         const { currentStats, knownDrivers } = get();
 
         currentStats.set(driverId, {
-          udpMessagesSent: stats.udpMessagesSent,
+          udpSent: stats.udpSent,
           mqttMessagesReceived: stats.mqttMessagesReceived,
           isConnected,
         });
@@ -118,7 +120,7 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()(
           } else {
             // Only count UDP events (actual game events sent to drivers)
             dataPoint[driverId] =
-              (current.udpMessagesSent - previous.udpMessagesSent) / sampleIntervalSec;
+              (current.udpSent - previous.udpSent) / sampleIntervalSec;
           }
 
           // Save current as previous for next sample
