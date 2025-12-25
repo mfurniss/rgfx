@@ -54,6 +54,14 @@ void BackgroundEffect::add(JsonDocument& props) {
 		return;
 	}
 
+	// Handle fadeOut - preserve existing color, just fade
+	if (enabledState == EnabledState::FADE_OUT) {
+		uint8_t currentAlpha = calculateAlpha();
+		state.fadeTime = ((255 - currentAlpha) / 255.0f) * FADE_DURATION;
+		state.enabledState = EnabledState::FADE_OUT;
+		return;
+	}
+
 	// Validate color prop
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: background missing or invalid 'color' prop");
