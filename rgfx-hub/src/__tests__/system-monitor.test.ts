@@ -85,7 +85,9 @@ describe('SystemMonitor', () => {
       mockGetLocalIP.mockReturnValue('192.168.1.100');
       mockGetCurrentVersion.mockReturnValue('2.0.0');
 
-      const status = systemMonitor.getSystemStatus(5, 10, 1000, { 'pacman/score': 42 });
+      const status = systemMonitor.getSystemStatus(5, 10, 1000, {
+        'pacman/score': { count: 42, lastValue: '1000' },
+      });
 
       expect(status).toEqual({
         mqttBroker: 'running',
@@ -97,7 +99,7 @@ describe('SystemMonitor', () => {
         eventsProcessed: 1000,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '2.0.0',
-        eventTopics: { 'pacman/score': 42 },
+        eventTopics: { 'pacman/score': { count: 42, lastValue: '1000' } },
       });
     });
 

@@ -10,7 +10,7 @@ import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
-import { serializeDriverForIPC } from '../types';
+import { serializeDriverForIPC, type EventTopicData } from '../types';
 
 interface DriverStatusDeps {
   mqtt: MqttBroker;
@@ -18,7 +18,7 @@ interface DriverStatusDeps {
   getMainWindow: () => BrowserWindow | null;
   systemMonitor: SystemMonitor;
   getEventsProcessed: () => number;
-  getEventTopics: () => Record<string, number>;
+  getEventTopics: () => Record<string, EventTopicData>;
 }
 
 export function subscribeDriverStatus(deps: DriverStatusDeps): void {

@@ -149,7 +149,7 @@ function sendSystemStatus() {
     driverRegistry.getConnectedCount(),
     driverRegistry.getAllDrivers().length,
     eventsProcessed,
-    Object.fromEntries(eventTopicCounts),
+    Object.fromEntries(eventTopicData),
   );
   mainWindow.webContents.send('system:status', status);
 }
@@ -162,7 +162,7 @@ setupDriverEventHandlers({
   mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
-  getEventTopics: () => Object.fromEntries(eventTopicCounts),
+  getEventTopics: () => Object.fromEntries(eventTopicData),
   uploadConfigToDriver,
 });
 
@@ -192,20 +192,23 @@ void installDefaultInterceptors()
     log.error('Failed to install default interceptors:', error);
   });
 
-// Track event topics and their counts
-const eventTopicCounts = new Map<string, number>();
+// Track event topics and their counts/last values
+const eventTopicData = new Map<string, { count: number; lastValue?: string }>();
 
 // Handle event processing (used by both event file reader and simulator)
-function processEvent(topic: string, _payload: string): void {
+function processEvent(topic: string, payload: string): void {
   eventsProcessed++;
-  const currentCount = eventTopicCounts.get(topic) ?? 0;
-  eventTopicCounts.set(topic, currentCount + 1);
+  const current = eventTopicData.get(topic);
+  eventTopicData.set(topic, {
+    count: (current?.count ?? 0) + 1,
+    lastValue: payload || undefined,
+  });
 }
 
 // Reset all event counts and statistics
 function resetEventCounts(): void {
   eventsProcessed = 0;
-  eventTopicCounts.clear();
+  eventTopicData.clear();
   sendSystemStatus();
 }
 
@@ -238,7 +241,7 @@ registerMqttSubscriptions({
   driverLogPersistence,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
-  getEventTopics: () => Object.fromEntries(eventTopicCounts),
+  getEventTopics: () => Object.fromEntries(eventTopicData),
 });
 
 // Start reading events and send to transformer engine for processing
