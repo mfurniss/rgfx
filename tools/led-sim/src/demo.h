@@ -23,3 +23,13 @@
  * @param effectType Effect type (1-7)
  */
 void triggerDemoEffect(EffectProcessor& processor, int effectType);
+
+/**
+ * Update continuous spectrum demo animation.
+ * Sends animated FFT-like values to the spectrum effect.
+ *
+ * @param processor Effect processor to add effects to
+ * @param deltaTime Time since last frame in seconds
+ * @param enabled Whether spectrum demo mode is active
+ */
+void updateSpectrumDemo(EffectProcessor& processor, float deltaTime, bool enabled);

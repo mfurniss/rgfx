@@ -4,6 +4,7 @@
 #include "demo.h"
 #include "hal/platform.h"
 #include <ArduinoJson.h>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -113,4 +114,51 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			break;
 		}
 	}
+}
+
+// Spectrum demo state
+static float spectrumPhase = 0.0f;
+static constexpr int SPECTRUM_COLUMNS = 5;
+static constexpr float SPECTRUM_UPDATE_RATE = 15.0f;  // Updates per second (match FFT fps)
+static float spectrumTimer = 0.0f;
+
+void updateSpectrumDemo(EffectProcessor& processor, float deltaTime, bool enabled) {
+	if (!enabled) {
+		return;
+	}
+
+	spectrumTimer += deltaTime;
+	if (spectrumTimer < 1.0f / SPECTRUM_UPDATE_RATE) {
+		return;
+	}
+	spectrumTimer = 0.0f;
+
+	// Advance phase for animation
+	spectrumPhase += 0.15f;
+
+	JsonDocument props;
+	JsonArray values = props["values"].to<JsonArray>();
+
+	// Generate animated FFT-like values using multiple sine waves
+	for (int i = 0; i < SPECTRUM_COLUMNS; i++) {
+		// Each column has different frequency and phase offset
+		float freq1 = 1.0f + i * 0.3f;
+		float freq2 = 2.5f - i * 0.2f;
+		float phase1 = spectrumPhase * freq1 + i * 0.8f;
+		float phase2 = spectrumPhase * freq2 + i * 1.2f;
+
+		// Combine multiple waves for more organic movement
+		float wave1 = sinf(phase1) * 0.5f + 0.5f;
+		float wave2 = sinf(phase2) * 0.3f + 0.3f;
+		float noise = (hal::random(0, 100) / 100.0f) * 0.2f;
+
+		float value = (wave1 + wave2 + noise) * 0.6f;
+		value = fminf(1.0f, fmaxf(0.0f, value));
+
+		// Scale to 0-9 range
+		int intValue = static_cast<int>(value * 9.0f);
+		values.add(intValue);
+	}
+
+	processor.addEffect("spectrum", props);
 }

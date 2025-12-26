@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
 	printf("  5     - Projectile effect\n");
 	printf("  6     - Plasma effect (toggle)\n");
 	printf("  7     - Spectrum analyzer\n");
+	printf("  S     - Spectrum demo (toggle)\n");
 	printf("  C     - Clear all effects\n");
 	printf("  D     - Toggle auto-demo\n");
 	printf("  Q/ESC - Quit\n\n");
@@ -120,6 +121,7 @@ int main(int argc, char* argv[]) {
 	int autoEffectIndex = 1;
 	float timeSinceLastEffect = 0.0f;
 	bool autoDemo = false;
+	bool spectrumDemo = false;
 
 	// Main loop
 	while (!WindowShouldClose() && !hal::getDisplay().shouldQuit()) {
@@ -175,6 +177,10 @@ int main(int argc, char* argv[]) {
 			autoDemo = !autoDemo;
 			printf("Auto-demo: %s\n", autoDemo ? "ON" : "OFF");
 		}
+		if (IsKeyPressed(KEY_S)) {
+			spectrumDemo = !spectrumDemo;
+			printf("Spectrum demo: %s\n", spectrumDemo ? "ON" : "OFF");
+		}
 		if (IsKeyPressed(KEY_Q)) {
 			break;
 		}
@@ -185,6 +191,9 @@ int main(int argc, char* argv[]) {
 			autoEffectIndex = (autoEffectIndex % 5) + 1;
 			timeSinceLastEffect = 0.0f;
 		}
+
+		// Spectrum demo mode - continuous animated spectrum
+		updateSpectrumDemo(processor, deltaTime, spectrumDemo);
 
 		// Update effects
 		processor.update();
