@@ -113,6 +113,28 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			logEffect("spectrum", props);
 			break;
 		}
+		case 8: {
+			// Particle field effect - toggle on/off with random params
+			static bool particleFieldEnabled = false;
+			particleFieldEnabled = !particleFieldEnabled;
+			props["enabled"] = particleFieldEnabled;
+			if (particleFieldEnabled) {
+				// Random direction
+				const char* directions[] = {"up", "down", "left", "right"};
+				props["direction"] = directions[hal::random(0, 4)];
+				// Random density (10-50)
+				props["density"] = 10 + hal::random(0, 41);
+				// Random speed (30-100)
+				props["speed"] = 30 + hal::random(0, 71);
+				// Random size (2-6)
+				props["size"] = 2 + hal::random(0, 5);
+				// Random color
+				props["color"] = "random";
+			}
+			processor.addEffect("particle_field", props);
+			logEffect("particle_field", props);
+			break;
+		}
 	}
 }
 
