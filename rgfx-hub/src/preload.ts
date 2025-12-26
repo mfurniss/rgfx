@@ -214,6 +214,23 @@ export const rgfxAPI = {
   restartDriver: (driverId: string): Promise<{ success: boolean }> => {
     return ipcRenderer.invoke('driver:restart', driverId);
   },
+
+  deleteDriver: (driverId: string): Promise<{ success: boolean }> => {
+    return ipcRenderer.invoke('driver:delete', driverId);
+  },
+
+  onDriverDeleted: (callback: (driverId: string) => void): (() => void) => {
+    console.log('[PRELOAD] Registering listener for driver:deleted');
+    const handler = (_event: Electron.IpcRendererEvent, driverId: string) => {
+      console.log(`[PRELOAD] IPC event received: driver:deleted for ${driverId}`);
+      callback(driverId);
+    };
+    ipcRenderer.on('driver:deleted', handler);
+    return () => {
+      console.log('[PRELOAD] Removing listener for driver:deleted');
+      ipcRenderer.removeListener('driver:deleted', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

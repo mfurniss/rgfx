@@ -361,6 +361,8 @@ declare global {
       onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
       resetEventCounts: () => Promise<void>;
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
+      deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
+      onDriverDeleted: (callback: (driverId: string) => void) => () => void;
     };
   }
 }

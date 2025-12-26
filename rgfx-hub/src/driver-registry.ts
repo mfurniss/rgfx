@@ -284,6 +284,11 @@ export class DriverRegistry {
     return driver;
   }
 
+  // Delete a driver from the runtime registry
+  deleteDriver(driverId: string): boolean {
+    return this.drivers.delete(driverId);
+  }
+
   // Get count of connected drivers only
   getConnectedCount(): number {
     return Array.from(this.drivers.values()).reduce(

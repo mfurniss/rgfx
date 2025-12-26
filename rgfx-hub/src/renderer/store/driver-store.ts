@@ -39,6 +39,7 @@ interface DriverStoreState {
   onDriverDisconnected: (driver: Driver) => void;
   onDriverUpdated: (driver: Driver) => void;
   onDriverRestarting: (driver: Driver) => void;
+  onDriverDeleted: (driverId: string) => void;
   onSystemStatusUpdate: (status: SystemStatus) => void;
 
   // Selectors
@@ -199,6 +200,13 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
       setTimeout(() => {
         notify(`${driver.id} restarting...`, 'info');
       }, 1000);
+    },
+
+    onDriverDeleted: (driverId) => {
+      set((state) => ({
+        drivers: state.drivers.filter((d) => d.id !== driverId),
+      }));
+      notify(`${driverId} deleted`, 'info');
     },
 
     onSystemStatusUpdate: (status) => {
