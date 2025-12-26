@@ -25,6 +25,7 @@ export interface TelemetryDataPoint {
 
 interface TelemetryHistoryState {
   histories: Map<string, RingBuffer<TelemetryDataPoint>>;
+  version: number;
 
   /**
    * Add a telemetry data point for a driver.
@@ -51,6 +52,7 @@ interface TelemetryHistoryState {
 
 export const useTelemetryHistoryStore = create<TelemetryHistoryState>()((set, get) => ({
   histories: new Map(),
+  version: 0,
 
   addDataPoint: (driverId, dataPoint) => {
     const { histories } = get();
@@ -63,8 +65,8 @@ export const useTelemetryHistoryStore = create<TelemetryHistoryState>()((set, ge
 
     buffer.push(dataPoint);
 
-    // Trigger re-render by creating new Map reference
-    set({ histories: new Map(histories) });
+    // Increment version to trigger re-renders in subscribed components
+    set((state) => ({ version: state.version + 1 }));
   },
 
   getHistory: (driverId) => {
@@ -78,11 +80,11 @@ export const useTelemetryHistoryStore = create<TelemetryHistoryState>()((set, ge
 
     if (buffer) {
       buffer.clear();
-      set({ histories: new Map(histories) });
+      set((state) => ({ version: state.version + 1 }));
     }
   },
 
   clearAllHistory: () => {
-    set({ histories: new Map() });
+    set({ histories: new Map(), version: 0 });
   },
 }));
