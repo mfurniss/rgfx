@@ -11,7 +11,6 @@ import type { DriverRegistry } from '../driver-registry';
 import type { DriverPersistence } from '../driver-persistence';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverLogPersistence } from '../driver-log-persistence';
-import type { EventTopicData } from '../types';
 import { subscribeDriverTelemetry } from './driver-telemetry';
 import { subscribeDriverStatus } from './driver-status';
 import { subscribeDriverTestState } from './driver-test-state';
@@ -26,7 +25,6 @@ interface MqttSubscriptionsDeps {
   driverLogPersistence: DriverLogPersistence;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
-  getEventTopics: () => Record<string, EventTopicData>;
 }
 
 export function registerMqttSubscriptions(deps: MqttSubscriptionsDeps): void {

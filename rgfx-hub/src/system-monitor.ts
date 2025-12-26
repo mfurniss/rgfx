@@ -6,7 +6,7 @@
  */
 
 import log from 'electron-log/main';
-import type { EventTopicData, SystemStatus } from './types';
+import type { SystemStatus } from './types';
 import { firmwareVersionService } from './services/firmware-version-service';
 import { FirmwareWatcher } from './services/firmware-watcher';
 import { getLocalIP } from './network/network-utils';
@@ -82,7 +82,6 @@ export class SystemMonitor {
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
-    eventTopics: Record<string, EventTopicData>,
   ): SystemStatus {
     const hubIp = this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
@@ -106,7 +105,6 @@ export class SystemMonitor {
       eventsProcessed,
       hubStartTime: this.hubStartTime,
       currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
-      eventTopics,
       udpMessagesSent,
       udpMessagesFailed,
     };

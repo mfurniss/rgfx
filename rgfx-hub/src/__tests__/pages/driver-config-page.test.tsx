@@ -74,6 +74,7 @@ beforeEach(() => {
     getFirmwareManifest: vi.fn(),
     getFirmwareFile: vi.fn(),
     setDriverDisabled: vi.fn(),
+    onEvent: vi.fn(() => vi.fn()),
     resetEventCounts: vi.fn(),
     restartDriver: vi.fn(),
     getAppInfo: vi.fn().mockResolvedValue({

@@ -297,11 +297,6 @@ export function serializeDriverForIPC(driver: Driver): Driver {
   return { ...driver };
 }
 
-export interface EventTopicData {
-  count: number;
-  lastValue?: string;
-}
-
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -312,7 +307,6 @@ export interface SystemStatus {
   eventsProcessed: number;
   hubStartTime: number;
   currentFirmwareVersion?: string;
-  eventTopics: Record<string, EventTopicData>;
   udpMessagesSent: number;
   udpMessagesFailed: number;
 }
@@ -364,6 +358,7 @@ declare global {
       getFirmwareManifest: () => Promise<unknown>;
       getFirmwareFile: (filename: string) => Promise<Buffer>;
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
+      onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
       resetEventCounts: () => Promise<void>;
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
     };

@@ -149,7 +149,6 @@ function sendSystemStatus() {
     driverRegistry.getConnectedCount(),
     driverRegistry.getAllDrivers().length,
     eventsProcessed,
-    Object.fromEntries(eventTopicData),
   );
   mainWindow.webContents.send('system:status', status);
 }
@@ -162,7 +161,6 @@ setupDriverEventHandlers({
   mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
-  getEventTopics: () => Object.fromEntries(eventTopicData),
   uploadConfigToDriver,
 });
 
@@ -192,24 +190,14 @@ void installDefaultInterceptors()
     log.error('Failed to install default interceptors:', error);
   });
 
-// Track event topics and their counts/last values
-const eventTopicData = new Map<string, { count: number; lastValue?: string }>();
-
 // Handle event processing (used by both event file reader and simulator)
 function processEvent(topic: string, payload: string): void {
   eventsProcessed++;
-  const current = eventTopicData.get(topic);
-  eventTopicData.set(topic, {
-    count: (current?.count ?? 0) + 1,
-    lastValue: payload || undefined,
-  });
-}
 
-// Reset all event counts and statistics
-function resetEventCounts(): void {
-  eventsProcessed = 0;
-  eventTopicData.clear();
-  sendSystemStatus();
+  // Forward event to renderer for counting and persistence
+  if (isWindowAvailable() && mainWindow) {
+    mainWindow.webContents.send('event:received', topic, payload || undefined);
+  }
 }
 
 // Register IPC handlers
@@ -223,7 +211,9 @@ registerIpcHandlers({
   udpClient,
   transformerEngine,
   onEventProcessed: processEvent,
-  resetEventCounts,
+  resetEventsProcessed: () => {
+    eventsProcessed = 0;
+  },
   getMainWindow: () => {
     if (!mainWindow) {
       throw new Error('Main window not initialized');
@@ -241,7 +231,6 @@ registerMqttSubscriptions({
   driverLogPersistence,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
-  getEventTopics: () => Object.fromEntries(eventTopicData),
 });
 
 // Start reading events and send to transformer engine for processing

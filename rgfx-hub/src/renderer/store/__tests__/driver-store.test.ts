@@ -22,7 +22,6 @@ describe('driver-store', () => {
         hubIp: 'Unknown',
         eventsProcessed: 0,
         hubStartTime: 0,
-        eventTopics: {},
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
       },

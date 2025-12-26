@@ -42,7 +42,7 @@ interface IpcHandlersDeps {
   udpClient: UdpClient;
   transformerEngine: TransformerEngine;
   onEventProcessed: (topic: string, payload: string) => void;
-  resetEventCounts: () => void;
+  resetEventsProcessed: () => void;
   getMainWindow: () => BrowserWindow | null;
 }
 

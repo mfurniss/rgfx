@@ -63,7 +63,7 @@ const App: React.FC = () => {
   const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
   const onDriverRestarting = useDriverStore((state) => state.onDriverRestarting);
   const onSystemStatusUpdate = useDriverStore((state) => state.onSystemStatusUpdate);
-  const setEventTopics = useEventStore((state) => state.setTopics);
+  const onEvent = useEventStore((state) => state.onEvent);
 
   useEffect(() => {
     console.log('[APP] Registering IPC listeners');
@@ -103,7 +103,10 @@ const App: React.FC = () => {
 
     const unsubSystemStatus = window.rgfx.onSystemStatus((status) => {
       onSystemStatusUpdate(status);
-      setEventTopics(status.eventTopics);
+    });
+
+    const unsubEvent = window.rgfx.onEvent((topic, payload) => {
+      onEvent(topic, payload);
     });
 
     // Cleanup function to remove listeners
@@ -114,10 +117,11 @@ const App: React.FC = () => {
       unsubUpdated();
       unsubRestarting();
       unsubSystemStatus();
+      unsubEvent();
     };
   }, [
     onDriverConnected, onDriverDisconnected, onDriverUpdated, onDriverRestarting,
-    onSystemStatusUpdate, setEventTopics,
+    onSystemStatusUpdate, onEvent,
   ]);
 
   // Signal renderer ready and get app info only once per app lifecycle (not per mount)
