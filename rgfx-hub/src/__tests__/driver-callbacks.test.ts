@@ -121,7 +121,6 @@ describe('setupDriverEventHandlers', () => {
       eventsProcessed: 100,
       hubStartTime: Date.now(),
       currentFirmwareVersion: '1.0.0',
-      eventTopics: {},
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
     };
@@ -152,7 +151,6 @@ describe('setupDriverEventHandlers', () => {
       mqtt: mockMqtt as unknown as MqttBroker,
       getMainWindow: mockGetMainWindow,
       getEventsProcessed: mockGetEventsProcessed,
-      getEventTopics: vi.fn(() => ({})),
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });
@@ -312,7 +310,7 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500, {});
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500);
       });
     });
   });
@@ -379,7 +377,7 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200, {});
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200);
       });
     });
   });

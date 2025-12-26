@@ -197,6 +197,16 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:set-disabled', driverId, disabled);
   },
 
+  onEvent: (callback: (topic: string, payload?: string) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, topic: string, payload?: string) => {
+      callback(topic, payload);
+    };
+    ipcRenderer.on('event:received', handler);
+    return () => {
+      ipcRenderer.removeListener('event:received', handler);
+    };
+  },
+
   resetEventCounts: (): Promise<void> => {
     return ipcRenderer.invoke('event:reset');
   },
