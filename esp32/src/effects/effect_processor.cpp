@@ -38,12 +38,18 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  particleFieldEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
-		  {"pulse", &pulseEffect},           {"bitmap", &bitmapEffect},
-		  {"wipe", &wipeEffect},             {"explode", &explodeEffect},
-		  {"test_leds", &testLedsEffect},    {"background", &backgroundEffect},
-		  {"projectile", &projectileEffect}, {"text", &textEffect},
-		  {"scroll_text", &scrollTextEffect}, {"plasma", &plasmaEffect},
-		  {"spectrum", &spectrumEffect},     {"particle_field", &particleFieldEffect},
+		  {"particle_field", &particleFieldEffect},
+		  {"pulse", &pulseEffect},
+		  {"bitmap", &bitmapEffect},
+		  {"wipe", &wipeEffect},
+		  {"explode", &explodeEffect},
+		  {"test_leds", &testLedsEffect},
+		  {"background", &backgroundEffect},
+		  {"projectile", &projectileEffect},
+		  {"text", &textEffect},
+		  {"scroll_text", &scrollTextEffect},
+		  {"plasma", &plasmaEffect},
+		  {"spectrum", &spectrumEffect},
 	  } {}
 
 void EffectProcessor::update() {
@@ -91,7 +97,7 @@ void EffectProcessor::update() {
 	// Render first so initial state is visible on the frame the effect is added
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0 &&
-			strcmp(entry.name, "plasma") != 0) {
+		    strcmp(entry.name, "plasma") != 0) {
 			entry.effect->render();
 			entry.effect->update(deltaTime);
 		}
