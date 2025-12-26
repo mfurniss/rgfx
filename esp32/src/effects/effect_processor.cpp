@@ -34,6 +34,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  textEffect(matrix, canvas),
 	  scrollTextEffect(matrix, canvas),
 	  plasmaEffect(matrix, canvas),
+	  spectrumEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
 		  {"pulse", &pulseEffect},           {"bitmap", &bitmapEffect},
@@ -41,6 +42,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 		  {"test_leds", &testLedsEffect},    {"background", &backgroundEffect},
 		  {"projectile", &projectileEffect}, {"text", &textEffect},
 		  {"scroll_text", &scrollTextEffect}, {"plasma", &plasmaEffect},
+		  {"spectrum", &spectrumEffect},
 	  } {}
 
 void EffectProcessor::update() {

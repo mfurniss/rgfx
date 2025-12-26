@@ -52,11 +52,15 @@ struct DriverConfigData {
     float gammaR;
     float gammaG;
     float gammaB;
+    uint8_t floorR;
+    uint8_t floorG;
+    uint8_t floorB;
 
     DriverConfigData()
         : globalBrightnessLimit(255), dithering(true), updateRate(120),
           powerSupplyVolts(5), maxPowerMilliamps(2000), wifiTxPower(19.5f),
-          gammaR(1.0f), gammaG(1.0f), gammaB(1.0f) {}
+          gammaR(1.0f), gammaG(1.0f), gammaB(1.0f),
+          floorR(0), floorG(0), floorB(0) {}
 };
 
 extern DriverConfigData g_driverConfig;

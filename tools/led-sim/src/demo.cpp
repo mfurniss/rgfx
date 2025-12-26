@@ -102,5 +102,15 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			logEffect("plasma", props);
 			break;
 		}
+		case 7: {
+			// Spectrum analyzer - 5 random values 0-9
+			JsonArray values = props["values"].to<JsonArray>();
+			for (int i = 0; i < 5; i++) {
+				values.add(hal::random(0, 10));
+			}
+			processor.addEffect("spectrum", props);
+			logEffect("spectrum", props);
+			break;
+		}
 	}
 }
