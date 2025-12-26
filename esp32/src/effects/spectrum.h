@@ -20,7 +20,7 @@ class SpectrumEffect : public IEffect {
 		uint8_t r, g, b;     // Column color
 	};
 
-	static constexpr float HOLD_DURATION = 0.1f;  // Hold time before decay (seconds)
+	static constexpr float HOLD_DURATION = 0.05f;  // Hold time before decay (seconds)
 
 	std::vector<Column> columns;
 	Canvas& canvas;

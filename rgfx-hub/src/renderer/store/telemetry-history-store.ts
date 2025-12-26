@@ -6,7 +6,6 @@
  */
 
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
 import { RingBuffer } from '../utils/ring-buffer';
 import { TELEMETRY_HISTORY_MAX_POINTS } from '@/config/constants';
 
@@ -50,46 +49,40 @@ interface TelemetryHistoryState {
   clearAllHistory: () => void;
 }
 
-export const useTelemetryHistoryStore = create<TelemetryHistoryState>()(
-  devtools(
-    (set, get) => ({
-      histories: new Map(),
+export const useTelemetryHistoryStore = create<TelemetryHistoryState>()((set, get) => ({
+  histories: new Map(),
 
-      addDataPoint: (driverId, dataPoint) => {
-        const { histories } = get();
-        let buffer = histories.get(driverId);
+  addDataPoint: (driverId, dataPoint) => {
+    const { histories } = get();
+    let buffer = histories.get(driverId);
 
-        if (!buffer) {
-          buffer = new RingBuffer<TelemetryDataPoint>(TELEMETRY_HISTORY_MAX_POINTS);
-          histories.set(driverId, buffer);
-        }
+    if (!buffer) {
+      buffer = new RingBuffer<TelemetryDataPoint>(TELEMETRY_HISTORY_MAX_POINTS);
+      histories.set(driverId, buffer);
+    }
 
-        buffer.push(dataPoint);
+    buffer.push(dataPoint);
 
-        // Trigger re-render by creating new Map reference
-        set({ histories: new Map(histories) });
-      },
+    // Trigger re-render by creating new Map reference
+    set({ histories: new Map(histories) });
+  },
 
-      getHistory: (driverId) => {
-        const buffer = get().histories.get(driverId);
-        return buffer ? buffer.toArray() : [];
-      },
+  getHistory: (driverId) => {
+    const buffer = get().histories.get(driverId);
+    return buffer ? buffer.toArray() : [];
+  },
 
-      clearHistory: (driverId) => {
-        const { histories } = get();
-        const buffer = histories.get(driverId);
+  clearHistory: (driverId) => {
+    const { histories } = get();
+    const buffer = histories.get(driverId);
 
-        if (buffer) {
-          buffer.clear();
-          set({ histories: new Map(histories) });
-        }
-      },
+    if (buffer) {
+      buffer.clear();
+      set({ histories: new Map(histories) });
+    }
+  },
 
-      clearAllHistory: () => {
-        set({ histories: new Map() });
-      },
-    }),
-
-    { name: 'RGFX Telemetry History Store' },
-  ),
-);
+  clearAllHistory: () => {
+    set({ histories: new Map() });
+  },
+}));

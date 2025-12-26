@@ -23,6 +23,7 @@ constexpr int KEY_SPACE = 32;
 constexpr int KEY_C = 67;
 constexpr int KEY_D = 68;
 constexpr int KEY_Q = 81;
+constexpr int KEY_S = 83;
 constexpr int KEY_ONE = 49;
 constexpr int KEY_TWO = 50;
 constexpr int KEY_THREE = 51;

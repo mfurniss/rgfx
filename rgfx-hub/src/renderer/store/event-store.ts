@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 interface EventTopicData {
   count: number;
@@ -13,35 +13,32 @@ interface EventStore {
 }
 
 export const useEventStore = create<EventStore>()(
-  devtools(
-    persist(
-      (set, get) => ({
-        topics: {},
+  persist(
+    (set, get) => ({
+      topics: {},
 
-        onEvent: (topic: string, payload?: string) => {
-          const { topics } = get();
-          const existing = topics[topic];
-          const currentCount = existing ? existing.count : 0;
+      onEvent: (topic: string, payload?: string) => {
+        const { topics } = get();
+        const existing = topics[topic];
+        const currentCount = existing ? existing.count : 0;
 
-          set({
-            topics: {
-              ...topics,
-              [topic]: {
-                count: currentCount + 1,
-                lastValue: payload,
-              },
+        set({
+          topics: {
+            ...topics,
+            [topic]: {
+              count: currentCount + 1,
+              lastValue: payload,
             },
-          });
-        },
-
-        reset: () => {
-          set({ topics: {} });
-        },
-      }),
-      {
-        name: 'rgfx-event-monitor',
+          },
+        });
       },
-    ),
-    { name: 'event-store' },
+
+      reset: () => {
+        set({ topics: {} });
+      },
+    }),
+    {
+      name: 'rgfx-event-monitor',
+    },
   ),
 );
