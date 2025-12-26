@@ -67,9 +67,9 @@ void ParticleFieldEffect::spawnParticle(Particle& p) {
 	p.speed = state.baseSpeed * speedFactor;
 
 	// Alpha proportional to speed - slower = dimmer (simulates distance)
-	// Normalize speedFactor (0.25-1.0) to 0-1 range, then map to alpha 30-255
+	// Normalize speedFactor (0.25-1.0) to 0-1 range, then map to alpha 80-255
 	float normalizedSpeed = (speedFactor - 0.25f) / 0.75f;  // 0.0 to 1.0
-	p.alpha = static_cast<uint8_t>(30 + (normalizedSpeed * 225.0f));
+	p.alpha = static_cast<uint8_t>(80 + (normalizedSpeed * 175.0f));
 
 	// Length proportional to speed - slower = shorter (min 6, max state.size)
 	constexpr uint8_t MIN_LENGTH = 6;
@@ -110,9 +110,9 @@ void ParticleFieldEffect::respawnAtEdge(Particle& p) {
 	// Speed variation: 0.25x to 1.0x of max speed (param is max)
 	float speedFactor = 0.25f + (hal::random(0, 75) / 100.0f);  // 0.25 to 1.0
 	p.speed = state.baseSpeed * speedFactor;
-	// Normalize speedFactor (0.25-1.0) to 0-1 range, then map to alpha 30-255
+	// Normalize speedFactor (0.25-1.0) to 0-1 range, then map to alpha 80-255
 	float normalizedSpeed = (speedFactor - 0.25f) / 0.75f;  // 0.0 to 1.0
-	p.alpha = static_cast<uint8_t>(30 + (normalizedSpeed * 225.0f));
+	p.alpha = static_cast<uint8_t>(80 + (normalizedSpeed * 175.0f));
 
 	// Length proportional to speed - slower = shorter (min 6, max state.size)
 	constexpr uint8_t MIN_LENGTH = 6;
@@ -192,12 +192,12 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 		if (density > MAX_PARTICLES) density = MAX_PARTICLES;
 	}
 
-	// Parse speed (10-200 pixels/second)
+	// Parse speed (10-1000 pixels/second)
 	float speed = 50.0f;
 	if (props["speed"].is<float>() || props["speed"].is<int>()) {
 		speed = props["speed"].as<float>();
 		if (speed < 10.0f) speed = 10.0f;
-		if (speed > 200.0f) speed = 200.0f;
+		if (speed > 1000.0f) speed = 1000.0f;
 	}
 
 	// Parse size (1-16)

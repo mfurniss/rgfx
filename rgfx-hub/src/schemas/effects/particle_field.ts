@@ -38,7 +38,7 @@ export default z
     speed: z
       .number()
       .min(10)
-      .max(200)
+      .max(1000)
       .optional()
       .default(50)
       .describe('Base particle speed in pixels/second (individual particles vary)'),
