@@ -8,33 +8,23 @@ import { DriverRegistry } from '@/driver-registry';
 import type { SystemMonitor } from '@/system-monitor';
 import { createDriver, type Driver } from '@/types';
 import type { EffectPayload } from '@/types/transformer-types';
+import { createUdpSocketMock } from './udp-test-utils';
 
 // Create mock SystemMonitor
 const mockSystemMonitor = {
   trackUdpSent: vi.fn(),
 } as unknown as SystemMonitor;
 
-// Create mock socket
-const mockSocketSend = vi.fn(
-  (
-    _buffer: Buffer,
-    _port: number,
-    _ip: string,
-    callback: (err: Error | null) => void,
-  ) => {
-    callback(null);
-  },
-);
-const mockSocketClose = vi.fn();
-const mockSocketOn = vi.fn();
+// Create UDP socket mock with separate driver/localhost tracking
+const udpMock = createUdpSocketMock();
 
 // Mock dgram module
 vi.mock('dgram', () => ({
   default: {
     createSocket: vi.fn(() => ({
-      send: mockSocketSend,
-      close: mockSocketClose,
-      on: mockSocketOn,
+      send: udpMock.mockSocketSend,
+      close: udpMock.mockSocketClose,
+      on: udpMock.mockSocketOn,
     })),
   },
 }));
@@ -93,9 +83,7 @@ describe('UdpClientImpl', () => {
     udpClient = new UdpClientImpl(driverRegistry, mockSystemMonitor);
 
     // Clear mock call history after creating udpClient
-    mockSocketSend.mockClear();
-    mockSocketClose.mockClear();
-    mockSocketOn.mockClear();
+    udpMock.reset();
     (mockSystemMonitor.trackUdpSent as ReturnType<typeof vi.fn>).mockClear();
   });
 
@@ -113,7 +101,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should send to driver-0001 and driver-0002 only (connected with IPs)
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      expect(udpMock.driverSendCount).toBe(2);
     });
 
     it('should send correct JSON payload', () => {
@@ -125,7 +113,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Verify the buffer contains correct JSON
-      const sentBuffer = mockSocketSend.mock.calls[0][0];
+      const sentBuffer = udpMock.calls.driverCalls[0].buffer;
       const sentData = JSON.parse(sentBuffer.toString()) as Record<string, unknown>;
       expect(sentData).toEqual({ effect: 'score', value: 1000 });
     });
@@ -136,12 +124,12 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Check first call (driver-0001)
-      expect(mockSocketSend.mock.calls[0][1]).toBe(8888); // UDP_PORT
-      expect(mockSocketSend.mock.calls[0][2]).toBe('192.168.1.101');
+      expect(udpMock.calls.driverCalls[0].port).toBe(8888); // UDP_PORT
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
 
       // Check second call (driver-0002)
-      expect(mockSocketSend.mock.calls[1][1]).toBe(8888);
-      expect(mockSocketSend.mock.calls[1][2]).toBe('192.168.1.102');
+      expect(udpMock.calls.driverCalls[1].port).toBe(8888);
+      expect(udpMock.calls.driverCalls[1].ip).toBe('192.168.1.102');
     });
 
     it('should skip disconnected drivers', () => {
@@ -151,7 +139,7 @@ describe('UdpClientImpl', () => {
 
       // driver-0003 is disconnected, should be skipped
       // Only driver-0001 and driver-0002 should receive
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      expect(udpMock.driverSendCount).toBe(2);
     });
 
     it('should skip drivers without IP addresses', () => {
@@ -161,7 +149,7 @@ describe('UdpClientImpl', () => {
 
       // driver-0004 has no IP, should be skipped
       // Only driver-0001 and driver-0002 should receive
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      expect(udpMock.driverSendCount).toBe(2);
     });
 
     it('should skip disabled drivers', () => {
@@ -178,8 +166,8 @@ describe('UdpClientImpl', () => {
 
       // driver-0001 is disabled, should be skipped
       // Only driver-0002 should receive
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
-      expect(mockSocketSend.mock.calls[0][2]).toBe('192.168.1.102');
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.102');
     });
 
     it('should handle empty driver list', () => {
@@ -193,11 +181,11 @@ describe('UdpClientImpl', () => {
         emptyClient.broadcast(payload);
       }).not.toThrow();
 
-      // No UDP sends should occur (clear was called before this test)
+      // No driver sends should occur (clear was called before this test)
       // We need to account for sends before clearing
-      mockSocketSend.mockClear();
+      udpMock.reset();
       emptyClient.broadcast(payload);
-      expect(mockSocketSend).not.toHaveBeenCalled();
+      expect(udpMock.driverSendCount).toBe(0);
 
       emptyClient.stop();
     });
@@ -213,8 +201,8 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should only send to driver-0001
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
-      expect(mockSocketSend.mock.calls[0][2]).toBe('192.168.1.101');
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
     });
 
     it('should send to multiple specified drivers', () => {
@@ -226,7 +214,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should send to both driver-0001 and driver-0002
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      expect(udpMock.driverSendCount).toBe(2);
     });
 
     it('should send to all drivers when drivers array is empty', () => {
@@ -238,7 +226,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should send to all connected drivers with IPs
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      expect(udpMock.driverSendCount).toBe(2);
     });
 
     it('should send to all drivers when drivers property is undefined', () => {
@@ -250,7 +238,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should send to all connected drivers with IPs
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
+      expect(udpMock.driverSendCount).toBe(2);
     });
 
     it('should not send to any driver when no drivers match', () => {
@@ -261,8 +249,8 @@ describe('UdpClientImpl', () => {
 
       udpClient.broadcast(payload);
 
-      // No sends should occur
-      expect(mockSocketSend).not.toHaveBeenCalled();
+      // No driver sends should occur
+      expect(udpMock.driverSendCount).toBe(0);
     });
 
     it('should remove drivers property from UDP payload', () => {
@@ -275,7 +263,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Verify the buffer doesn't contain drivers property
-      const sentBuffer = mockSocketSend.mock.calls[0][0];
+      const sentBuffer = udpMock.calls.driverCalls[0].buffer;
       const sentData = JSON.parse(sentBuffer.toString()) as Record<string, unknown>;
       expect(sentData).not.toHaveProperty('drivers');
       expect(sentData).toHaveProperty('effect', 'test');
@@ -291,7 +279,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should only send to driver-0001 (0003 is disconnected)
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      expect(udpMock.driverSendCount).toBe(1);
     });
 
     it('should skip drivers without IP even when specified', () => {
@@ -303,7 +291,7 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Should only send to driver-0001 (0004 has no IP)
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      expect(udpMock.driverSendCount).toBe(1);
     });
   });
 
@@ -315,7 +303,7 @@ describe('UdpClientImpl', () => {
         udpClient.broadcast(payload);
       }).not.toThrow();
 
-      const sentBuffer = mockSocketSend.mock.calls[0][0];
+      const sentBuffer = udpMock.calls.driverCalls[0].buffer;
       const sentData = JSON.parse(sentBuffer.toString()) as Record<string, unknown>;
       expect(sentData).toEqual({ effect: 'generic' });
     });
@@ -333,7 +321,7 @@ describe('UdpClientImpl', () => {
         udpClient.broadcast(payload);
       }).not.toThrow();
 
-      const sentBuffer = mockSocketSend.mock.calls[0][0];
+      const sentBuffer = udpMock.calls.driverCalls[0].buffer;
       const sentData = JSON.parse(sentBuffer.toString()) as Record<string, unknown>;
       expect(sentData).toEqual({
         effect: 'ghost_vulnerable',
@@ -357,7 +345,7 @@ describe('UdpClientImpl', () => {
         udpClient.broadcast(payload);
       }).not.toThrow();
 
-      const sentBuffer = mockSocketSend.mock.calls[0][0];
+      const sentBuffer = udpMock.calls.driverCalls[0].buffer;
       const sentData = JSON.parse(sentBuffer.toString()) as Record<string, unknown>;
       expect(sentData).toEqual({
         effect: 'score',
@@ -373,7 +361,7 @@ describe('UdpClientImpl', () => {
     it('should close the socket', () => {
       udpClient.stop();
 
-      expect(mockSocketClose).toHaveBeenCalledTimes(1);
+      expect(udpMock.mockSocketClose).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -469,7 +457,7 @@ describe('UdpClientImpl', () => {
       drivers.drivers.set(unknown1.id, unknown1);
 
       stripMatrixClient = new UdpClientImpl(stripMatrixRegistry, mockSystemMonitor);
-      mockSocketSend.mockClear();
+      udpMock.reset();
     });
 
     afterEach(() => {
@@ -484,8 +472,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
-      const sentIp = mockSocketSend.mock.calls[0][2];
+      expect(udpMock.driverSendCount).toBe(1);
+      const sentIp = udpMock.calls.driverCalls[0].ip;
       expect(['192.168.1.201', '192.168.1.202']).toContain(sentIp);
     });
 
@@ -497,8 +485,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
-      const sentIp = mockSocketSend.mock.calls[0][2];
+      expect(udpMock.driverSendCount).toBe(1);
+      const sentIp = udpMock.calls.driverCalls[0].ip;
       expect(['192.168.1.203', '192.168.1.204']).toContain(sentIp);
     });
 
@@ -510,8 +498,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
-      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(udpMock.driverSendCount).toBe(2);
+      const sentIps = udpMock.calls.driverCalls.map((c) => c.ip);
       expect(sentIps).toContain('192.168.1.201');
       expect(sentIps).toContain('192.168.1.202');
     });
@@ -524,8 +512,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
-      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(udpMock.driverSendCount).toBe(2);
+      const sentIps = udpMock.calls.driverCalls.map((c) => c.ip);
       expect(sentIps).toContain('192.168.1.203');
       expect(sentIps).toContain('192.168.1.204');
     });
@@ -538,8 +526,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
-      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(udpMock.driverSendCount).toBe(2);
+      const sentIps = udpMock.calls.driverCalls.map((c) => c.ip);
       // One should be a strip IP, one should be a matrix IP
       const stripIps = ['192.168.1.201', '192.168.1.202'];
       const matrixIps = ['192.168.1.203', '192.168.1.204'];
@@ -555,8 +543,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
-      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(udpMock.driverSendCount).toBe(2);
+      const sentIps = udpMock.calls.driverCalls.map((c) => c.ip);
       // Should have 2 unique IPs (no duplicates)
       expect(new Set(sentIps).size).toBe(2);
       // One must be a strip
@@ -586,7 +574,7 @@ describe('UdpClientImpl', () => {
       );
 
       const client = new UdpClientImpl(matrixOnlyRegistry, mockSystemMonitor);
-      mockSocketSend.mockClear();
+      udpMock.reset();
 
       const payload: EffectPayload = {
         effect: 'test',
@@ -595,7 +583,7 @@ describe('UdpClientImpl', () => {
 
       client.broadcast(payload);
 
-      expect(mockSocketSend).not.toHaveBeenCalled();
+      expect(udpMock.driverSendCount).toBe(0);
       client.stop();
     });
 
@@ -607,8 +595,8 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(2);
-      const sentIps = [mockSocketSend.mock.calls[0][2], mockSocketSend.mock.calls[1][2]];
+      expect(udpMock.driverSendCount).toBe(2);
+      const sentIps = udpMock.calls.driverCalls.map((c) => c.ip);
       // Should include matrix-1 and one strip
       expect(sentIps).toContain('192.168.1.203'); // matrix-1
       const stripIps = ['192.168.1.201', '192.168.1.202'];
@@ -623,7 +611,7 @@ describe('UdpClientImpl', () => {
 
       stripMatrixClient.broadcast(payload);
 
-      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+      expect(udpMock.driverSendCount).toBe(1);
       // Could be any of the 5 drivers
       const allIps = [
         '192.168.1.201',
@@ -632,7 +620,7 @@ describe('UdpClientImpl', () => {
         '192.168.1.204',
         '192.168.1.205',
       ];
-      const sentIp = mockSocketSend.mock.calls[0][2];
+      const sentIp = udpMock.calls.driverCalls[0].ip;
       expect(allIps).toContain(sentIp);
     });
   });

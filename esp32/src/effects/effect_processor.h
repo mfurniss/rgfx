@@ -12,6 +12,7 @@
 #include "effects/text.h"
 #include "effects/scroll_text.h"
 #include "effects/plasma.h"
+#include "effects/spectrum.h"
 #include "effects/effect.h"
 #include "hal/display.h"
 #include <ArduinoJson.h>
@@ -61,9 +62,10 @@ class EffectProcessor {
 	TextEffect textEffect;
 	ScrollTextEffect scrollTextEffect;
 	PlasmaEffect plasmaEffect;
+	SpectrumEffect spectrumEffect;
 	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
-	EffectEntry effectMap[10];
+	EffectEntry effectMap[11];
 
    public:
 	EffectProcessor(Matrix& matrix, hal::IDisplay& display);

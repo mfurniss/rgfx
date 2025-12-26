@@ -530,4 +530,33 @@ inline JsonDocument mockBitmapProps(const char* color = "#FFFF00", uint32_t dura
 	return props;
 }
 
+/**
+ * Create default spectrum props
+ */
+inline void setDefaultSpectrumProps(JsonDocument& props) {
+	props["decayRate"] = 2.1f;
+	JsonArray values = props["values"].to<JsonArray>();
+	values.add(5);
+	values.add(5);
+	values.add(5);
+	values.add(5);
+	values.add(5);
+}
+
+/**
+ * Create a mock spectrum effect payload
+ * @param numColumns Number of columns to create (default: 5)
+ * @param value Value for all columns 0-9 (default: 5)
+ * @param decayRate Decay speed (default: 2.1)
+ */
+inline JsonDocument mockSpectrumProps(size_t numColumns = 5, int value = 5, float decayRate = 2.1f) {
+	JsonDocument props;
+	props["decayRate"] = decayRate;
+	JsonArray values = props["values"].to<JsonArray>();
+	for (size_t i = 0; i < numColumns; i++) {
+		values.add(value);
+	}
+	return props;
+}
+
 }  // namespace test_helpers

@@ -222,12 +222,14 @@ export class TransformerEngine {
       }
 
       // Auto-load game transformer on first event from game
-      if (namespace && !this.gameHandlers.has(namespace)) {
+      // Skip for 'rgfx' namespace - reserved for system-level events (audio, driver, etc.)
+      if (namespace && namespace !== 'rgfx' && !this.gameHandlers.has(namespace)) {
         await this.loadGameTransformer(namespace);
       }
 
       // 1. Try game-specific handler (highest priority)
-      if (namespace && this.gameHandlers.has(namespace)) {
+      // Skip for 'rgfx' namespace - goes directly to subject handlers
+      if (namespace && namespace !== 'rgfx' && this.gameHandlers.has(namespace)) {
         const handler = this.gameHandlers.get(namespace);
 
         if (!handler) {

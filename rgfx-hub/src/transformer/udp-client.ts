@@ -71,6 +71,13 @@ export class UdpClientImpl implements UdpClient {
       this.sendBufferToDriver(driver, buffer);
     }
 
+    // Always send to localhost for led-sim
+    this.socket.send(buffer, UDP_PORT, '127.0.0.1', (err) => {
+      if (err) {
+        log.error(`UDP send to localhost failed: ${err.message}`);
+      }
+    });
+
     return true;
   }
 
