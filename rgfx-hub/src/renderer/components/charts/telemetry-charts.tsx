@@ -8,7 +8,7 @@
 import React from 'react';
 import { Box, Typography, Divider, Stack, useColorScheme } from '@mui/material';
 import { Timeline as TimelineIcon } from '@mui/icons-material';
-import { useTelemetryHistoryStore, type TelemetryDataPoint } from '../../store/telemetry-history-store';
+import { useTelemetryHistoryStore } from '../../store/telemetry-history-store';
 import { formatBytes } from '../../utils/formatters';
 import { LineChart } from './line-chart';
 
@@ -31,9 +31,16 @@ const getCssVar = (varName: string): string => {
 
 const TelemetryCharts: React.FC<TelemetryChartsProps> = ({ driverId }) => {
   useColorScheme(); // Ensures component re-renders when color scheme changes
-  const histories = useTelemetryHistoryStore((state) => state.histories);
-  const buffer = histories.get(driverId);
-  const dataPoints: TelemetryDataPoint[] = buffer?.toArray() ?? [];
+
+  // Subscribe to version to trigger re-renders when data changes
+  const version = useTelemetryHistoryStore((state) => state.version);
+  const getHistory = useTelemetryHistoryStore((state) => state.getHistory);
+
+  // Get fresh data on each render (triggered by version changes)
+  const dataPoints = getHistory(driverId);
+
+  // Silence unused variable warning - version subscription triggers re-renders
+  void version;
 
   if (dataPoints.length < 2) {
     return null;
@@ -44,9 +51,10 @@ const TelemetryCharts: React.FC<TelemetryChartsProps> = ({ driverId }) => {
     // 0% = no fragmentation (all free memory is contiguous)
     // Higher % = more fragmented
     // Clamp to 0 if maxAllocHeap > freeHeap (can happen with timing differences)
-    const fragmentation = dp.freeHeap > 0 && dp.maxAllocHeap <= dp.freeHeap
-      ? Math.round((1 - dp.maxAllocHeap / dp.freeHeap) * 100)
-      : 0;
+    const fragmentation =
+      dp.freeHeap > 0 && dp.maxAllocHeap <= dp.freeHeap
+        ? Math.round((1 - dp.maxAllocHeap / dp.freeHeap) * 100)
+        : 0;
     return {
       time: dp.timestamp,
       usedHeap: dp.heapSize - dp.freeHeap,
