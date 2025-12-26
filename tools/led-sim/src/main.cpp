@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
 	printf("  5     - Projectile effect\n");
 	printf("  6     - Plasma effect (toggle)\n");
 	printf("  7     - Spectrum analyzer\n");
+	printf("  8     - Particle field (toggle)\n");
 	printf("  S     - Spectrum demo (toggle)\n");
 	printf("  C     - Clear all effects\n");
 	printf("  D     - Toggle auto-demo\n");
@@ -168,6 +169,9 @@ int main(int argc, char* argv[]) {
 		}
 		if (IsKeyPressed(KEY_SEVEN)) {
 			triggerDemoEffect(processor, 7);
+		}
+		if (IsKeyPressed(KEY_EIGHT)) {
+			triggerDemoEffect(processor, 8);
 		}
 		if (IsKeyPressed(KEY_C)) {
 			processor.clearEffects();
