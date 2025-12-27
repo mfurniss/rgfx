@@ -33,11 +33,16 @@ export function registerSetIdHandler(deps: SetIdHandlerDeps): void {
         throw new Error('Driver not found');
       }
 
-      const topic = `rgfx/driver/${driverId}/set-id`;
+      if (!driver.mac) {
+        throw new Error('Driver has no MAC address');
+      }
+
+      // Topics use MAC address as immutable identifier
+      const topic = `rgfx/driver/${driver.mac}/set-id`;
       const payload = JSON.stringify({ id: newId });
 
       await mqtt.publish(topic, payload);
-      log.info(`Sent set-id command to ${driverId}: ${newId}`);
+      log.info(`Sent set-id command to ${driverId} (${driver.mac}): ${newId}`);
 
       return { success: true };
     } catch (error) {

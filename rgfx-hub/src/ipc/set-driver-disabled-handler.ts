@@ -49,9 +49,9 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
 
       // When disabling, immediately clear effects on the driver
       if (disabled) {
-        const topic = `rgfx/driver/${driverId}/clear-effects`;
+        const topic = `rgfx/driver/${driver.mac}/clear-effects`;
         void mqtt.publish(topic, '');
-        log.info(`Sent clear-effects command to driver ${driverId}`);
+        log.info(`Sent clear-effects command to driver ${driverId} (${driver.mac})`);
       }
 
       // Refresh driver from persistence to update runtime state

@@ -24,6 +24,7 @@ import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
 import { installDefaultTransformers } from './transformer-installer';
 import { installDefaultInterceptors } from './interceptor-installer';
+import { installDefaultLedHardware } from './led-hardware-installer';
 import {
   MQTT_DEFAULT_PORT,
   MAIN_WINDOW_WIDTH,
@@ -185,10 +186,13 @@ void installDefaultTransformers()
     log.error('Failed to install default transformers:', error);
   });
 
-void installDefaultInterceptors()
-  .catch((error: unknown) => {
-    log.error('Failed to install default interceptors:', error);
-  });
+void installDefaultInterceptors().catch((error: unknown) => {
+  log.error('Failed to install default interceptors:', error);
+});
+
+void installDefaultLedHardware().catch((error: unknown) => {
+  log.error('Failed to install LED hardware definitions:', error);
+});
 
 // Handle event processing (used by both event file reader and simulator)
 function processEvent(topic: string, payload: string): void {
