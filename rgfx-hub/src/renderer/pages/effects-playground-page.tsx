@@ -26,6 +26,7 @@ import {
   ContentCopy as CopyIcon,
   RestartAlt as ResetIcon,
   Shuffle as ShuffleIcon,
+  LayersClear as LayersClearIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
@@ -331,9 +332,32 @@ export default function TestEffectsPage() {
     selectAll,
   );
 
+  const handleClearEffects = () => {
+    void (async () => {
+      for (const driver of connectedDrivers) {
+        try {
+          await window.rgfx.sendDriverCommand(driver.id, 'clear-effects', '');
+        } catch (err) {
+          console.error('Failed to clear effects on driver:', driver.id, err);
+        }
+      }
+    })();
+  };
+
   return (
     <Box>
-      <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
+        <Button
+          variant="outlined"
+          color="warning"
+          startIcon={<LayersClearIcon />}
+          onClick={handleClearEffects}
+          disabled={connectedDrivers.length === 0}
+        >
+          Clear All Effects
+        </Button>
+      </Box>
 
       <Paper sx={{ p: 3, mt: 2 }}>
         <Tabs
