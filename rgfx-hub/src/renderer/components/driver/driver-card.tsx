@@ -299,7 +299,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         >
           {!driver.resolvedHardware && (
             <Alert severity="warning">
-              No LED hardware configured for this driver. Use the Configure Drivers to set up
+              No LED hardware configured for this driver. Use the Configure Driver button to set up
               LED hardware.
             </Alert>
           )}
