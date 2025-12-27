@@ -104,8 +104,9 @@ local load_interceptor = function()
 		-- Use lookup_key (cart_name for consoles, rom_name for arcade) to match event prefixes
 		event(lookup_key .. "/init", lookup_key)
 	else
-		print("No interceptor found for: " .. lookup_key .. " (tried " .. game_script .. ".lua)")
-		print("Error: " .. tostring(err))
+		local error_msg = tostring(err)
+		print("Error loading interceptor: " .. error_msg)
+		event("rgfx/interceptor/error", error_msg)
 	end
 
 	-- Debug: Print first screen info (use pairs iterator to get first element from MAME enumerator)

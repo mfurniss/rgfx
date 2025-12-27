@@ -11,7 +11,7 @@ import type { DriverRegistry } from './driver-registry';
 import type { DriverPersistence } from './driver-persistence';
 import type { SystemMonitor } from './system-monitor';
 import type { MqttBroker } from './network';
-import { serializeDriverForIPC } from './types';
+import { serializeDriverForIPC, type SystemError } from './types';
 import { eventBus } from './services/event-bus';
 
 interface DriverEventHandlersDeps {
@@ -21,6 +21,7 @@ interface DriverEventHandlersDeps {
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
+  getSystemErrors: () => SystemError[];
   uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
 }
 
@@ -36,6 +37,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     mqtt,
     getMainWindow,
     getEventsProcessed,
+    getSystemErrors,
     uploadConfigToDriver,
   } = deps;
 
@@ -54,6 +56,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       driverRegistry.getConnectedCount(),
       driverRegistry.getAllDrivers().length,
       getEventsProcessed(),
+      getSystemErrors(),
     );
     mainWindow.webContents.send('system:status', status);
   }

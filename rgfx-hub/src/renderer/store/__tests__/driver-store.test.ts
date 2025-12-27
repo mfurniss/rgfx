@@ -24,6 +24,7 @@ describe('driver-store', () => {
         hubStartTime: 0,
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
+        systemErrors: [],
       },
     });
   });
