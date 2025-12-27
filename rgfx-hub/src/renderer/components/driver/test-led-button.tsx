@@ -55,7 +55,7 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
       color={driver.testActive ? 'success' : 'primary'}
       size="small"
       onClick={handleTestToggle}
-      disabled={driver.state !== 'connected'}
+      disabled={driver.state !== 'connected' || !driver.ledConfig}
       busy={testRequestPending}
       sx={{ height: 30, width: 140 }}
     >
