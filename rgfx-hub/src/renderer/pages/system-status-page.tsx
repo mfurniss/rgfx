@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, Box, Paper } from '@mui/material';
 import { Dashboard as DashboardIcon } from '@mui/icons-material';
 import SystemStatus from '../components/system/system-status';
+import { SystemErrors } from '../components/system/system-errors';
 import { EventsRateChart } from '../components/charts/events-rate-chart';
 import { useDriverStore } from '../store/driver-store';
 import { PageTitle } from '../components/layout/page-title';
@@ -21,6 +22,7 @@ const SystemStatusPage: React.FC = () => {
       <Paper sx={{ mb: 3 }}>
         <SystemStatus status={systemStatus} />
       </Paper>
+      <SystemErrors errors={systemStatus.systemErrors} />
       <EventsRateChart />
     </Box>
   );

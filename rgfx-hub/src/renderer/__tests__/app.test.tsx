@@ -19,6 +19,7 @@ const mockSystemStatus: SystemStatus = {
   hubStartTime: Date.now(),
   udpMessagesSent: 0,
   udpMessagesFailed: 0,
+  systemErrors: [],
 };
 
 vi.mock('../store/driver-store', () => ({

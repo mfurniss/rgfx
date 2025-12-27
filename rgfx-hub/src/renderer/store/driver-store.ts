@@ -63,9 +63,9 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
       hubIp: 'Unknown',
       eventsProcessed: 0,
       hubStartTime: 0,
-      eventTopics: {},
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
+      systemErrors: [],
     },
 
     // Actions (callbacks prefixed with 'on')

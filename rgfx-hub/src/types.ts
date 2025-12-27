@@ -303,6 +303,12 @@ export function serializeDriverForIPC(driver: Driver): Driver {
   return { ...driver };
 }
 
+export interface SystemError {
+  errorType: 'interceptor';
+  message: string;
+  timestamp: number;
+}
+
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -315,6 +321,7 @@ export interface SystemStatus {
   currentFirmwareVersion?: string;
   udpMessagesSent: number;
   udpMessagesFailed: number;
+  systemErrors: SystemError[];
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';

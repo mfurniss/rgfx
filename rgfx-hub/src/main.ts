@@ -39,7 +39,7 @@ import { createUploadConfigToDriver } from './upload-config-to-driver';
 import { configureSerialPort } from './serial-port-config';
 import { setupDriverEventHandlers } from './driver-callbacks';
 import { clearEffectsOnAllDrivers } from './shutdown';
-import { serializeDriverForIPC } from './types';
+import { serializeDriverForIPC, type SystemError } from './types';
 import { appRouter } from './trpc/router';
 import pkg from '../package.json';
 
@@ -136,6 +136,10 @@ const transformerEngine = new TransformerEngine({
 // Event statistics tracking
 let eventsProcessed = 0;
 
+// System error tracking (keep last 10 errors)
+const MAX_SYSTEM_ERRORS = 10;
+const systemErrors: SystemError[] = [];
+
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
   return mainWindow !== null && !mainWindow.isDestroyed();
@@ -150,6 +154,7 @@ function sendSystemStatus() {
     driverRegistry.getConnectedCount(),
     driverRegistry.getAllDrivers().length,
     eventsProcessed,
+    systemErrors,
   );
   mainWindow.webContents.send('system:status', status);
 }
@@ -162,6 +167,7 @@ setupDriverEventHandlers({
   mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
+  getSystemErrors: () => systemErrors,
   uploadConfigToDriver,
 });
 
@@ -239,6 +245,18 @@ registerMqttSubscriptions({
 
 // Start reading events and send to transformer engine for processing
 eventReader.start((topic, message) => {
+  // Check for interceptor error events
+  if (topic === 'rgfx/interceptor/error') {
+    log.error(`Interceptor error: ${message}`);
+    systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
+
+    if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+      systemErrors.shift();
+    }
+
+    sendSystemStatus();
+  }
+
   void transformerEngine.handleEvent(topic, message);
   processEvent(topic, message);
 });
