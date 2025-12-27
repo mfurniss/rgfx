@@ -38,6 +38,7 @@ import {
   type PersistedDriverFromSchema,
   type PersistedDriverInput,
 } from '@/schemas';
+import type { LEDHardware } from '@/types';
 
 // Extract display name from hardware ref (e.g., "led-hardware/foo.json" -> "foo")
 const getHardwareDisplayName = (ref: string): string =>
@@ -50,10 +51,14 @@ export default function DriverConfigPage() {
   // Get driver from store by MAC address (immutable identifier)
   const driver = useDriverStore((state) => state.drivers.find((d) => d.mac === mac));
 
-  // LED hardware options
+  // LED hardware options and selected hardware details
   const [ledHardwareOptions, setLedHardwareOptions] = useState<string[]>([]);
+  const [selectedHardware, setSelectedHardware] = useState<LEDHardware | null>(null);
   const [loadingHardware, setLoadingHardware] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Determine if selected hardware is a strip (for conditional UI)
+  const isStrip = selectedHardware?.layout === 'strip';
 
   // Track which driver ID we've initialized the form for
   const initializedForDriverId = useRef<string | null>(null);
@@ -95,6 +100,23 @@ export default function DriverConfigPage() {
   });
 
   const ledConfig = watch('ledConfig');
+
+  // Fetch hardware details when hardwareRef changes (to determine if it's a strip or matrix)
+  useEffect(() => {
+    if (ledConfig?.hardwareRef) {
+      void (async () => {
+        try {
+          const hardware = await window.rgfx.getLEDHardware(ledConfig.hardwareRef);
+          setSelectedHardware(hardware);
+        } catch (error) {
+          console.error('Failed to load hardware details:', error);
+          setSelectedHardware(null);
+        }
+      })();
+    } else {
+      setSelectedHardware(null);
+    }
+  }, [ledConfig?.hardwareRef]);
 
   // Reset form only on initial mount or when driver ID actually changes (e.g., after rename)
   // We don't want to reset on every driver update (heartbeats) as that would wipe user input
@@ -277,6 +299,7 @@ export default function DriverConfigPage() {
                             powerSupplyVolts: ledConfig?.powerSupplyVolts,
                             maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
                             unified: ledConfig?.unified,
+                            reverse: ledConfig?.reverse,
                             gamma: ledConfig?.gamma ?? null,
                             floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
                           },
@@ -436,15 +459,38 @@ export default function DriverConfigPage() {
                       max={255}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Controller
-                      name="ledConfig.unified"
-                      control={control}
-                      render={({ field }) => (
-                        <UnifiedPanelEditor value={field.value} onChange={field.onChange} />
-                      )}
-                    />
-                  </Grid>
+                  {/* Strip-specific: Reverse direction toggle */}
+                  {isStrip && (
+                    <Grid size={{ xs: 12 }}>
+                      <Controller
+                        name="ledConfig.reverse"
+                        control={control}
+                        render={({ field }) => (
+                          <Tooltip
+                            title="Reverse the LED direction so index 0 maps to the last physical LED"
+                            placement="right"
+                          >
+                            <FormControlLabel
+                              control={<Checkbox {...field} checked={field.value ?? false} />}
+                              label="Reverse Direction"
+                            />
+                          </Tooltip>
+                        )}
+                      />
+                    </Grid>
+                  )}
+                  {/* Matrix-specific: Unified panel layout editor */}
+                  {!isStrip && (
+                    <Grid size={{ xs: 12 }}>
+                      <Controller
+                        name="ledConfig.unified"
+                        control={control}
+                        render={({ field }) => (
+                          <UnifiedPanelEditor value={field.value} onChange={field.onChange} />
+                        )}
+                      />
+                    </Grid>
+                  )}
                 </>
               )}
             </Grid>

@@ -1,7 +1,7 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
 import { exposeElectronTRPC } from 'electron-trpc/main';
-import type { Driver, SystemStatus, AppInfo, DisconnectReason } from './types';
+import type { Driver, SystemStatus, AppInfo, DisconnectReason, LEDHardware } from './types';
 import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
 
@@ -153,6 +153,10 @@ export const rgfxAPI = {
 
   getLEDHardwareList: (): Promise<string[]> => {
     return ipcRenderer.invoke('led-hardware:list');
+  },
+
+  getLEDHardware: (hardwareRef: string): Promise<LEDHardware | null> => {
+    return ipcRenderer.invoke('led-hardware:get', hardwareRef);
   },
 
   openDriverLog: (driverId: string): Promise<{ success: boolean; error?: string }> => {

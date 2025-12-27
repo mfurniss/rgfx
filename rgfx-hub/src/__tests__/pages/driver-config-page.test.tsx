@@ -52,6 +52,7 @@ beforeEach(() => {
   (window as Window & { rgfx: unknown }).rgfx = {
     saveDriverConfig: mockSaveDriverConfig,
     getLEDHardwareList: mockGetLEDHardwareList,
+    getLEDHardware: vi.fn().mockResolvedValue(null),
     onDriverConnected: vi.fn(() => vi.fn()),
     onDriverDisconnected: vi.fn(() => vi.fn()),
     onDriverUpdated: vi.fn(() => vi.fn()),

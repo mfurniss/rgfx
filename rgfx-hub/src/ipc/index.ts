@@ -20,6 +20,7 @@ import { registerSendDriverCommandHandler } from './send-driver-command-handler'
 import { registerUpdateDriverConfigHandler } from './update-driver-config-handler';
 import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
 import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
+import { registerGetLEDHardwareHandler } from './get-led-hardware-handler';
 import { registerOpenDriverLogHandler } from './open-driver-log-handler';
 import { registerOpenFileHandler } from './open-file-handler';
 import { registerListGamesHandler } from './list-games-handler';
@@ -55,6 +56,7 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerUpdateDriverConfigHandler(deps);
   registerSaveDriverConfigHandler(deps);
   registerListLEDHardwareHandler(deps);
+  registerGetLEDHardwareHandler(deps);
   registerOpenDriverLogHandler(deps);
   registerOpenFileHandler();
   registerListGamesHandler();

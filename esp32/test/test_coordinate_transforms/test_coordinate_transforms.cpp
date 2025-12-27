@@ -630,6 +630,66 @@ void test_unified_nonsquare_panel_270_rotation() {
 	free(map);
 }
 
+// ============================================================================
+// Strip Reverse Tests
+// ============================================================================
+
+void test_strip_reverse_4x1() {
+	// 4-LED strip with reverse enabled
+	// Normal strip: 0, 1, 2, 3
+	// Reversed: 3, 2, 1, 0 (logical 0 maps to physical 3)
+	uint16_t* map = buildCoordinateMap(4, 1, "strip", true);
+	uint16_t expected[] = {3, 2, 1, 0};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
+
+	delete[] map;
+}
+
+void test_strip_reverse_8x1() {
+	// 8-LED strip with reverse enabled
+	uint16_t* map = buildCoordinateMap(8, 1, "strip", true);
+	uint16_t expected[] = {7, 6, 5, 4, 3, 2, 1, 0};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
+
+	delete[] map;
+}
+
+void test_strip_no_reverse_4x1() {
+	// 4-LED strip with reverse explicitly disabled (same as default)
+	uint16_t* map = buildCoordinateMap(4, 1, "strip", false);
+	uint16_t expected[] = {0, 1, 2, 3};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
+
+	delete[] map;
+}
+
+void test_strip_reverse_single_led() {
+	// Edge case: single LED strip with reverse
+	// Should still work (reversed single LED is still index 0)
+	uint16_t* map = buildCoordinateMap(1, 1, "strip", true);
+	uint16_t expected[] = {0};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 1);
+
+	delete[] map;
+}
+
+void test_matrix_reverse_ignored() {
+	// Reverse flag should work on matrices too (flips all indices)
+	// This tests the generic nature of the reverse implementation
+	uint16_t* map = buildCoordinateMap(2, 2, "matrix-tl-h", true);
+	// Normal matrix-tl-h: 0 1 / 2 3
+	// Reversed (size=4, maxIdx=3): 3-0=3, 3-1=2, 3-2=1, 3-3=0
+	uint16_t expected[] = {3, 2, 1, 0};
+
+	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
+
+	delete[] map;
+}
+
 int main(int /*argc*/, char** /*argv*/) {
 	UNITY_BEGIN();
 
@@ -666,6 +726,13 @@ int main(int /*argc*/, char** /*argv*/) {
 	RUN_TEST(test_unified_driver0003_config);
 	RUN_TEST(test_unified_nonsquare_panel_90_rotation);
 	RUN_TEST(test_unified_nonsquare_panel_270_rotation);
+
+	// Strip reverse tests
+	RUN_TEST(test_strip_reverse_4x1);
+	RUN_TEST(test_strip_reverse_8x1);
+	RUN_TEST(test_strip_no_reverse_4x1);
+	RUN_TEST(test_strip_reverse_single_led);
+	RUN_TEST(test_matrix_reverse_ignored);
 
 	return UNITY_END();
 }
