@@ -20,6 +20,7 @@ import { registerSendDriverCommandHandler } from './send-driver-command-handler'
 import { registerUpdateDriverConfigHandler } from './update-driver-config-handler';
 import { registerSaveDriverConfigHandler } from './save-driver-config-handler';
 import { registerListLEDHardwareHandler } from './list-led-hardware-handler';
+import { registerGetLEDHardwareHandler } from './get-led-hardware-handler';
 import { registerOpenDriverLogHandler } from './open-driver-log-handler';
 import { registerOpenFileHandler } from './open-file-handler';
 import { registerListGamesHandler } from './list-games-handler';
@@ -31,6 +32,7 @@ import { registerFirmwareFilesHandler } from './firmware-files-handler';
 import { registerSetDriverDisabledHandler } from './set-driver-disabled-handler';
 import { registerResetEventCountsHandler } from './reset-event-counts-handler';
 import { registerRestartDriverHandler } from './restart-driver-handler';
+import { registerDeleteDriverHandler } from './delete-driver-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -38,11 +40,11 @@ interface IpcHandlersDeps {
   driverLogPersistence: DriverLogPersistence;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
-  uploadConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
   udpClient: UdpClient;
   transformerEngine: TransformerEngine;
   onEventProcessed: (topic: string, payload: string) => void;
-  resetEventCounts: () => void;
+  resetEventsProcessed: () => void;
   getMainWindow: () => BrowserWindow | null;
 }
 
@@ -54,6 +56,7 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerUpdateDriverConfigHandler(deps);
   registerSaveDriverConfigHandler(deps);
   registerListLEDHardwareHandler(deps);
+  registerGetLEDHardwareHandler(deps);
   registerOpenDriverLogHandler(deps);
   registerOpenFileHandler();
   registerListGamesHandler();
@@ -65,4 +68,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerSetDriverDisabledHandler(deps);
   registerResetEventCountsHandler(deps);
   registerRestartDriverHandler(deps);
+  registerDeleteDriverHandler(deps);
 }

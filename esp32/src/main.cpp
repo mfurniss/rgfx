@@ -197,7 +197,7 @@ static void createMatrixIfNeeded() {
 		    newLayout
 		);
 	} else {
-		matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout);
+		matrix = new (std::nothrow) Matrix(newWidth, newHeight, newLayout, firstDevice.reverse);
 	}
 
 	if (!matrix) {

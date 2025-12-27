@@ -33,7 +33,8 @@ class Matrix {
 	LayoutType layoutType;
 
 	// Single panel constructor
-	Matrix(uint16_t w, uint16_t h, const String& layoutPattern = "matrix-br-v-snake");
+	// reverse: if true, flip LED indices so index 0 maps to last physical LED (strips only)
+	Matrix(uint16_t w, uint16_t h, const String& layoutPattern = "matrix-br-v-snake", bool reverse = false);
 
 	// Unified multi-panel constructor
 	Matrix(uint16_t panelWidth, uint16_t panelHeight,

@@ -190,8 +190,9 @@ describe('registerSetDriverDisabledHandler', () => {
     it('sends clear-effects command when disabling a driver', () => {
       registeredHandler({}, 'rgfx-driver-0001', true);
 
+      // Topics use MAC address (immutable) instead of driver ID
       expect(mockMqtt.publish).toHaveBeenCalledWith(
-        'rgfx/driver/rgfx-driver-0001/clear-effects',
+        `rgfx/driver/${mockDriver.mac}/clear-effects`,
         '',
       );
     });

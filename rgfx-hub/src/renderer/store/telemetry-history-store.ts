@@ -6,7 +6,6 @@
  */
 
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
 import { RingBuffer } from '../utils/ring-buffer';
 import { TELEMETRY_HISTORY_MAX_POINTS } from '@/config/constants';
 
@@ -26,6 +25,7 @@ export interface TelemetryDataPoint {
 
 interface TelemetryHistoryState {
   histories: Map<string, RingBuffer<TelemetryDataPoint>>;
+  version: number;
 
   /**
    * Add a telemetry data point for a driver.
@@ -50,46 +50,41 @@ interface TelemetryHistoryState {
   clearAllHistory: () => void;
 }
 
-export const useTelemetryHistoryStore = create<TelemetryHistoryState>()(
-  devtools(
-    (set, get) => ({
-      histories: new Map(),
+export const useTelemetryHistoryStore = create<TelemetryHistoryState>()((set, get) => ({
+  histories: new Map(),
+  version: 0,
 
-      addDataPoint: (driverId, dataPoint) => {
-        const { histories } = get();
-        let buffer = histories.get(driverId);
+  addDataPoint: (driverId, dataPoint) => {
+    const { histories } = get();
+    let buffer = histories.get(driverId);
 
-        if (!buffer) {
-          buffer = new RingBuffer<TelemetryDataPoint>(TELEMETRY_HISTORY_MAX_POINTS);
-          histories.set(driverId, buffer);
-        }
+    if (!buffer) {
+      buffer = new RingBuffer<TelemetryDataPoint>(TELEMETRY_HISTORY_MAX_POINTS);
+      histories.set(driverId, buffer);
+    }
 
-        buffer.push(dataPoint);
+    buffer.push(dataPoint);
 
-        // Trigger re-render by creating new Map reference
-        set({ histories: new Map(histories) });
-      },
+    // Increment version to trigger re-renders in subscribed components
+    set((state) => ({ version: state.version + 1 }));
+  },
 
-      getHistory: (driverId) => {
-        const buffer = get().histories.get(driverId);
-        return buffer ? buffer.toArray() : [];
-      },
+  getHistory: (driverId) => {
+    const buffer = get().histories.get(driverId);
+    return buffer ? buffer.toArray() : [];
+  },
 
-      clearHistory: (driverId) => {
-        const { histories } = get();
-        const buffer = histories.get(driverId);
+  clearHistory: (driverId) => {
+    const { histories } = get();
+    const buffer = histories.get(driverId);
 
-        if (buffer) {
-          buffer.clear();
-          set({ histories: new Map(histories) });
-        }
-      },
+    if (buffer) {
+      buffer.clear();
+      set((state) => ({ version: state.version + 1 }));
+    }
+  },
 
-      clearAllHistory: () => {
-        set({ histories: new Map() });
-      },
-    }),
-
-    { name: 'RGFX Telemetry History Store' },
-  ),
-);
+  clearAllHistory: () => {
+    set({ histories: new Map(), version: 0 });
+  },
+}));

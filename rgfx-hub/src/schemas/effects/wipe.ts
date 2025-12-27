@@ -19,5 +19,6 @@ export default baseEffect
     description: z.literal('Directional color wipe across the display'),
     direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random').describe('Direction of the wipe animation'),
     duration: z.number().positive().optional().default(500).describe('Effect duration in milliseconds'),
+    blendMode: z.enum(['additive', 'replace']).optional().default('additive').describe('Blend mode for rendering'),
   })
   .strict();

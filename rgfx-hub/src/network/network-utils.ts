@@ -13,6 +13,9 @@ interface NetworkInterface {
   address: string;
 }
 
+// Track last selected interface to avoid spammy logging
+let lastSelectedInterface: string | null = null;
+
 /**
  * Get the local IP address (IPv4, non-loopback, non-internal).
  * Prefers WiFi/Ethernet interfaces (en0, en1, eth0, etc.) over other interfaces.
@@ -36,29 +39,40 @@ export function getLocalIP(): string {
     }
   }
 
-  log.info(
-    `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`,
-  );
-
   // Prefer WiFi/Ethernet interfaces (en0, en1, eth0, etc.)
   const preferred = candidates.find(
     (c) => c.name.startsWith('en') || c.name.startsWith('eth'),
   );
 
   if (preferred) {
-    log.info(`Selected interface ${preferred.name} with IP ${preferred.address}`);
+    if (lastSelectedInterface !== preferred.address) {
+      log.info(
+        `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`,
+      );
+      log.info(`Selected interface ${preferred.name} with IP ${preferred.address}`);
+      lastSelectedInterface = preferred.address;
+    }
     return preferred.address;
   }
 
   // Fallback to first candidate or localhost
   if (candidates.length > 0) {
-    log.info(
-      `Using first available interface ${candidates[0].name} with IP ${candidates[0].address}`,
-    );
+    if (lastSelectedInterface !== candidates[0].address) {
+      log.info(
+        `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`,
+      );
+      log.info(
+        `Using first available interface ${candidates[0].name} with IP ${candidates[0].address}`,
+      );
+      lastSelectedInterface = candidates[0].address;
+    }
     return candidates[0].address;
   }
 
-  log.warn('No network interfaces found, using localhost');
+  if (lastSelectedInterface !== '127.0.0.1') {
+    log.warn('No network interfaces found, using localhost');
+    lastSelectedInterface = '127.0.0.1';
+  }
   return '127.0.0.1';
 }
 

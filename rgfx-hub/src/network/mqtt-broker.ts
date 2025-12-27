@@ -131,6 +131,64 @@ export class MqttBroker {
     log.info(`Subscribed to MQTT topic: ${topic}`);
   }
 
+  unsubscribe(topic: string) {
+    this.subscriptions.delete(topic);
+    log.info(`Unsubscribed from MQTT topic: ${topic}`);
+  }
+
+  /**
+   * Publish a message and wait for a response on a different topic.
+   * Follows the MQTT request-response pattern: subscribe to response topic,
+   * publish the request, wait for response with timeout.
+   *
+   * @returns The response payload, or null if timeout expires
+   */
+  async publishAndAwaitResponse(
+    requestTopic: string,
+    requestPayload: string,
+    responseTopic: string,
+    timeoutMs: number,
+  ): Promise<string | null> {
+    return new Promise((resolve) => {
+      let resolved = false;
+
+      const cleanup = () => {
+        this.unsubscribe(responseTopic);
+      };
+
+      const handler = (_matchedTopic: string, payload: string) => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(payload);
+        }
+      };
+
+      // Subscribe to response topic BEFORE publishing request
+      this.subscribe(responseTopic, handler);
+
+      // Set timeout for response
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          log.warn(`Timeout waiting for response on ${responseTopic}`);
+          resolve(null);
+        }
+      }, timeoutMs);
+
+      // Publish the request
+      this.publish(requestTopic, requestPayload).catch((err: unknown) => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          log.error(`Failed to publish request to ${requestTopic}:`, err);
+          resolve(null);
+        }
+      });
+    });
+  }
+
   publish(topic: string, payload: string): Promise<void> {
     return new Promise((resolve, reject) => {
       // Always use QoS 2 (exactly once delivery) for critical MQTT events

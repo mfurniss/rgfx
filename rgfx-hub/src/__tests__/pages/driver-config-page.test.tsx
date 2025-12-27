@@ -52,6 +52,7 @@ beforeEach(() => {
   (window as Window & { rgfx: unknown }).rgfx = {
     saveDriverConfig: mockSaveDriverConfig,
     getLEDHardwareList: mockGetLEDHardwareList,
+    getLEDHardware: vi.fn().mockResolvedValue(null),
     onDriverConnected: vi.fn(() => vi.fn()),
     onDriverDisconnected: vi.fn(() => vi.fn()),
     onDriverUpdated: vi.fn(() => vi.fn()),
@@ -74,8 +75,11 @@ beforeEach(() => {
     getFirmwareManifest: vi.fn(),
     getFirmwareFile: vi.fn(),
     setDriverDisabled: vi.fn(),
+    onEvent: vi.fn(() => vi.fn()),
     resetEventCounts: vi.fn(),
     restartDriver: vi.fn(),
+    deleteDriver: vi.fn(),
+    onDriverDeleted: vi.fn(() => vi.fn()),
     getAppInfo: vi.fn().mockResolvedValue({
       version: '0.0.1-test',
       licensePath: '/mock/LICENSE',

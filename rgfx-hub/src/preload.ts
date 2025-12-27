@@ -1,7 +1,7 @@
 // Preload script - bridges main and renderer processes with secure IPC API
 import { contextBridge, ipcRenderer } from 'electron';
 import { exposeElectronTRPC } from 'electron-trpc/main';
-import type { Driver, SystemStatus, AppInfo, DisconnectReason } from './types';
+import type { Driver, SystemStatus, AppInfo, DisconnectReason, LEDHardware } from './types';
 import type { EffectPayload } from './types/transformer-types';
 import type { PersistedDriverFromSchema } from './schemas';
 
@@ -155,6 +155,10 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('led-hardware:list');
   },
 
+  getLEDHardware: (hardwareRef: string): Promise<LEDHardware | null> => {
+    return ipcRenderer.invoke('led-hardware:get', hardwareRef);
+  },
+
   openDriverLog: (driverId: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('driver:open-log', driverId);
   },
@@ -197,12 +201,39 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:set-disabled', driverId, disabled);
   },
 
+  onEvent: (callback: (topic: string, payload?: string) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, topic: string, payload?: string) => {
+      callback(topic, payload);
+    };
+    ipcRenderer.on('event:received', handler);
+    return () => {
+      ipcRenderer.removeListener('event:received', handler);
+    };
+  },
+
   resetEventCounts: (): Promise<void> => {
     return ipcRenderer.invoke('event:reset');
   },
 
   restartDriver: (driverId: string): Promise<{ success: boolean }> => {
     return ipcRenderer.invoke('driver:restart', driverId);
+  },
+
+  deleteDriver: (driverId: string): Promise<{ success: boolean }> => {
+    return ipcRenderer.invoke('driver:delete', driverId);
+  },
+
+  onDriverDeleted: (callback: (driverId: string) => void): (() => void) => {
+    console.log('[PRELOAD] Registering listener for driver:deleted');
+    const handler = (_event: Electron.IpcRendererEvent, driverId: string) => {
+      console.log(`[PRELOAD] IPC event received: driver:deleted for ${driverId}`);
+      callback(driverId);
+    };
+    ipcRenderer.on('driver:deleted', handler);
+    return () => {
+      console.log('[PRELOAD] Removing listener for driver:deleted');
+      ipcRenderer.removeListener('driver:deleted', handler);
+    };
   },
 };
 

@@ -97,7 +97,7 @@ local load_interceptor = function()
 	print("Loading interceptor: " .. game_script .. ".lua")
 	-- Set game name in global scope so interceptor can use it for event prefixes
 	_G.rgfx.rom = lookup_key
-	local status = pcall(require, game_script)
+	local status, err = pcall(require, game_script)
 	if status then
 		print("Successfully loaded interceptor: " .. game_script .. ".lua")
 		-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
@@ -105,6 +105,7 @@ local load_interceptor = function()
 		event(lookup_key .. "/init", lookup_key)
 	else
 		print("No interceptor found for: " .. lookup_key .. " (tried " .. game_script .. ".lua)")
+		print("Error: " .. tostring(err))
 	end
 
 	-- Debug: Print first screen info (use pairs iterator to get first element from MAME enumerator)

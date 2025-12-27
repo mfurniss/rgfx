@@ -86,13 +86,19 @@ export interface DriverLEDConfig {
    */
   unified?: string[][] | null;
   /**
+   * Reverse LED direction for strips (default: false)
+   * When true, logical index 0 maps to the last physical LED.
+   * Only applicable to strip layouts, ignored for matrices.
+   */
+  reverse?: boolean | null;
+  /**
    * Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
    * Compensates for non-linear human brightness perception
    */
   gamma?: {
-    r?: number;
-    g?: number;
-    b?: number;
+    r?: number | null;
+    g?: number | null;
+    b?: number | null;
   } | null;
   /**
    * Floor cutoff per channel (0-255, default 0)
@@ -297,11 +303,6 @@ export function serializeDriverForIPC(driver: Driver): Driver {
   return { ...driver };
 }
 
-export interface EventTopicData {
-  count: number;
-  lastValue?: string;
-}
-
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -312,7 +313,6 @@ export interface SystemStatus {
   eventsProcessed: number;
   hubStartTime: number;
   currentFirmwareVersion?: string;
-  eventTopics: Record<string, EventTopicData>;
   udpMessagesSent: number;
   udpMessagesFailed: number;
 }
@@ -355,6 +355,7 @@ declare global {
         config: PersistedDriverFromSchema
       ) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
+      getLEDHardware: (hardwareRef: string) => Promise<LEDHardware | null>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
       listGames: (romsDirectory?: string) => Promise<GameInfo[]>;
@@ -364,8 +365,11 @@ declare global {
       getFirmwareManifest: () => Promise<unknown>;
       getFirmwareFile: (filename: string) => Promise<Buffer>;
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
+      onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
       resetEventCounts: () => Promise<void>;
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
+      deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
+      onDriverDeleted: (callback: (driverId: string) => void) => () => void;
     };
   }
 }

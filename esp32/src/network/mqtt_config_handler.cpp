@@ -58,23 +58,10 @@ void handleDriverConfig(const String& payload) {
 				// Update OTA hostname
 				ArduinoOTA.setHostname(newDeviceId.c_str());
 
-				// Resubscribe to test topic with new ID
-				extern MQTTClient mqttClient;
-				if (mqttClient.connected()) {
-					// Unsubscribe from old test topic if we had one
-					if (oldDeviceId.length() > 0) {
-						String oldTestTopic = "rgfx/driver/" + oldDeviceId + "/test";
-						mqttClient.unsubscribe(oldTestTopic.c_str());
-						log("Unsubscribed from old test topic: " + oldTestTopic);
-					}
-
-					// Subscribe to new test topic
-					String newTestTopic = "rgfx/driver/" + newDeviceId + "/test";
-					mqttClient.subscribe(newTestTopic.c_str(), 2);
-					log("Subscribed to new test topic: " + newTestTopic);
-				}
+				// MQTT topics use MAC address (immutable) - no resubscription needed
 
 				// Update OLED display
+				extern MQTTClient mqttClient;
 				if (Display::isAvailable()) {
 					Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
 					                       mqttClient.connected(), newDeviceId);
@@ -197,9 +184,15 @@ void handleDriverConfig(const String& payload) {
 				log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
 			}
 		} else {
+			// Strip-specific: parse reverse flag
+			devCfg.reverse = device["reverse"] | false;
+
 			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
 			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 			log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
+			if (devCfg.reverse) {
+				log("  Reverse: enabled");
+			}
 		}
 		log("  Chipset: " + devCfg.chipset + ", Color: " + devCfg.colorOrder);
 		log("  Max Brightness: " + String(devCfg.maxBrightness));
@@ -252,6 +245,13 @@ void handleDriverConfig(const String& payload) {
 	// Save configuration to NVS for persistence
 	if (ConfigNVS::saveLEDConfig(payload)) {
 		log("Configuration saved to NVS");
+
+		// Publish confirmation so Hub knows config is safely persisted
+		String macAddress = WiFi.macAddress();
+		String confirmTopic = "rgfx/driver/" + macAddress + "/config/saved";
+		mqttClient.publish(confirmTopic.c_str(), "ok", false, 2);
+		mqttClient.loop();  // Ensure message is sent
+		log("Published config saved confirmation to " + confirmTopic);
 	} else {
 		log("WARNING: Failed to save configuration to NVS");
 	}

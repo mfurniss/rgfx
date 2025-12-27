@@ -21,8 +21,8 @@ export async function clearEffectsOnAllDrivers(
   const connectedDrivers = driverRegistry.getConnectedDrivers();
 
   const publishPromises = connectedDrivers.map((driver) => {
-    const topic = `rgfx/driver/${driver.id}/clear-effects`;
-    log.info(`Sending clear-effects to driver ${driver.id}`);
+    const topic = `rgfx/driver/${driver.mac}/clear-effects`;
+    log.info(`Sending clear-effects to driver ${driver.id} (${driver.mac})`);
 
     return mqtt.publish(topic, '');
   });

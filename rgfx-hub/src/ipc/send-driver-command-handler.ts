@@ -29,7 +29,12 @@ export function registerSendDriverCommandHandler(deps: SendDriverCommandHandlerD
         throw new Error(`No driver found with ID ${driverId}`);
       }
 
-      const topic = `rgfx/driver/${driverId}/${command}`;
+      if (!driver.mac) {
+        throw new Error(`Driver ${driverId} has no MAC address`);
+      }
+
+      // Topics use MAC address as immutable identifier
+      const topic = `rgfx/driver/${driver.mac}/${command}`;
 
       if (payload !== undefined) {
         await mqtt.publish(topic, payload);
@@ -37,7 +42,7 @@ export function registerSendDriverCommandHandler(deps: SendDriverCommandHandlerD
         await mqtt.publish(topic, '');
       }
 
-      log.info(`Command '${command}' sent to driver ${driverId}`);
+      log.info(`Command '${command}' sent to driver ${driverId} (${driver.mac})`);
     },
   );
 }

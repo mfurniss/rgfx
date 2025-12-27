@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 // Single panel constructor
-Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern)
+Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern, bool reverse)
     : width(w),
       height(h),
       size(w * h),
@@ -25,7 +25,7 @@ Matrix::Matrix(uint16_t w, uint16_t h, const String& layoutPattern)
 		return;
 	}
 
-	coordinateMap = buildCoordinateMap(width, height, layout.c_str());
+	coordinateMap = buildCoordinateMap(width, height, layout.c_str(), reverse);
 	if (!coordinateMap) {
 #ifdef ESP32
 		log("ERROR: Failed to allocate coordinate map");

@@ -36,6 +36,13 @@ WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
 	wipes.reserve(8);
 }
 
+static BlendMode parseBlendMode(const char* mode) {
+	if (mode != nullptr && strcmp(mode, "replace") == 0) {
+		return BlendMode::REPLACE;
+	}
+	return BlendMode::ADDITIVE;
+}
+
 void WipeEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: wipe missing or invalid 'color' prop");
@@ -44,6 +51,7 @@ void WipeEffect::add(JsonDocument& props) {
 	uint32_t color = parseColor(props["color"]);
 	uint32_t duration = props["duration"];
 	const char* dirStr = props["direction"] | "";
+	const char* blendModeStr = props["blendMode"];
 	bool is1D = canvas.getHeight() == 1;
 
 	Wipe newWipe;
@@ -53,6 +61,7 @@ void WipeEffect::add(JsonDocument& props) {
 	newWipe.duration = duration;
 	newWipe.elapsedTime = 0;
 	newWipe.direction = parseDirection(dirStr, is1D);
+	newWipe.blendMode = parseBlendMode(blendModeStr);
 	wipes.push_back(newWipe);
 }
 
@@ -92,40 +101,40 @@ void WipeEffect::render() {
 			case WipeDirection::RIGHT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(0, 0, fillWidth, height, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(0, 0, fillWidth, height, CRGBA(color), wipe.blendMode);
 				} else {
 					uint16_t startX = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(startX, 0, width - startX, height, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(startX, 0, width - startX, height, CRGBA(color), wipe.blendMode);
 				}
 				break;
 			}
 			case WipeDirection::LEFT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, CRGBA(color), wipe.blendMode);
 				} else {
 					uint16_t clearWidth = static_cast<uint16_t>(progress * width);
-					canvas.drawRectangle(0, 0, width - clearWidth, height, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(0, 0, width - clearWidth, height, CRGBA(color), wipe.blendMode);
 				}
 				break;
 			}
 			case WipeDirection::DOWN: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, 0, width, fillHeight, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(0, 0, width, fillHeight, CRGBA(color), wipe.blendMode);
 				} else {
 					uint16_t startY = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, startY, width, height - startY, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(0, startY, width, height - startY, CRGBA(color), wipe.blendMode);
 				}
 				break;
 			}
 			case WipeDirection::UP: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, CRGBA(color), wipe.blendMode);
 				} else {
 					uint16_t clearHeight = static_cast<uint16_t>(progress * height);
-					canvas.drawRectangle(0, 0, width, height - clearHeight, CRGBA(color), BlendMode::ADDITIVE);
+					canvas.drawRectangle(0, 0, width, height - clearHeight, CRGBA(color), wipe.blendMode);
 				}
 				break;
 			}

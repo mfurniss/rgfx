@@ -915,8 +915,8 @@ describe('TransformerEngine', () => {
 
   describe('clearAllDriverEffects', () => {
     it('should clear effects on init event', async () => {
-      const mockDriver1 = { id: 'driver-1', disabled: false };
-      const mockDriver2 = { id: 'driver-2', disabled: false };
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      const mockDriver2 = { id: 'driver-2', mac: 'AA:BB:CC:DD:EE:02', disabled: false };
       mockContext.drivers = {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2]),
       } as any;
@@ -926,13 +926,14 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('game/init', '');
 
+      // Topics use MAC address (immutable) instead of driver ID
       expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
-      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-1/clear-effects', '', 2);
-      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-2/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:02/clear-effects', '', 2);
     });
 
     it('should clear effects on shutdown event', async () => {
-      const mockDriver1 = { id: 'driver-1', disabled: false };
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
       mockContext.drivers = {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
       } as any;
@@ -942,13 +943,13 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('game/shutdown', '');
 
-      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-1/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
     });
 
     it('should skip disabled drivers when clearing effects', async () => {
-      const mockDriver1 = { id: 'driver-1', disabled: false };
-      const mockDriver2 = { id: 'driver-2', disabled: true };
-      const mockDriver3 = { id: 'driver-3', disabled: false };
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      const mockDriver2 = { id: 'driver-2', mac: 'AA:BB:CC:DD:EE:02', disabled: true };
+      const mockDriver3 = { id: 'driver-3', mac: 'AA:BB:CC:DD:EE:03', disabled: false };
       mockContext.drivers = {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2, mockDriver3]),
       } as any;
@@ -960,9 +961,9 @@ describe('TransformerEngine', () => {
 
       // Should only clear effects on enabled drivers (driver-1 and driver-3)
       expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
-      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-1/clear-effects', '', 2);
-      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/driver-3/clear-effects', '', 2);
-      expect(mockContext.mqtt.publish).not.toHaveBeenCalledWith('rgfx/driver/driver-2/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:03/clear-effects', '', 2);
+      expect(mockContext.mqtt.publish).not.toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:02/clear-effects', '', 2);
     });
 
     it('should not publish when no connected drivers', async () => {

@@ -16,12 +16,19 @@ interface UploadConfigDeps {
   mqtt: MqttBroker;
 }
 
+/** Config save confirmation timeout in milliseconds */
+const CONFIG_SAVE_TIMEOUT_MS = 5000;
+
 export function createUploadConfigToDriver(
   deps: UploadConfigDeps,
-): (macAddress: string) => Promise<void> {
+): (macAddress: string) => Promise<boolean> {
   const { driverPersistence, ledHardwareManager, mqtt } = deps;
 
-  return async function uploadConfigToDriver(macAddress: string): Promise<void> {
+  /**
+   * Upload LED configuration to driver and wait for save confirmation.
+   * @returns true if driver confirmed config saved, false if timeout
+   */
+  return async function uploadConfigToDriver(macAddress: string): Promise<boolean> {
     // Look up persisted driver by MAC (source of truth for config)
     const persistedDriver = driverPersistence.getDriverByMac(macAddress);
 
@@ -75,6 +82,8 @@ export function createUploadConfigToDriver(
           panel_width: unified ? hardware.width : undefined,
           panel_height: unified ? hardware.height : undefined,
           unified,
+          // Strip-specific: reverse LED direction
+          reverse: ledConfig.reverse ?? false,
         },
       ],
       settings: {
@@ -91,7 +100,8 @@ export function createUploadConfigToDriver(
       },
     };
 
-    const topic = `rgfx/driver/${macAddress}/config`;
+    const configTopic = `rgfx/driver/${macAddress}/config`;
+    const responseTopic = `rgfx/driver/${macAddress}/config/saved`;
     const payload = JSON.stringify(completeConfig);
 
     // Log the unified array being sent for debugging
@@ -99,8 +109,23 @@ export function createUploadConfigToDriver(
       log.info(`Uploading unified config: ${JSON.stringify(unified)}`);
     }
 
-    await mqtt.publish(topic, payload);
+    // Publish config and wait for driver to confirm it saved to NVS
+    const response = await mqtt.publishAndAwaitResponse(
+      configTopic,
+      payload,
+      responseTopic,
+      CONFIG_SAVE_TIMEOUT_MS,
+    );
+
     log.info(`Uploaded LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
     log.info(`  globalBrightnessLimit: ${ledConfig.globalBrightnessLimit}`);
+
+    if (response) {
+      log.info(`Driver ${driverId} confirmed config saved to NVS`);
+      return true;
+    }
+
+    log.warn(`Driver ${driverId} did not confirm config save within ${CONFIG_SAVE_TIMEOUT_MS}ms`);
+    return false;
   };
 }

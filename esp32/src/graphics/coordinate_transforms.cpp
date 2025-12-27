@@ -145,7 +145,7 @@ static CoordinateTransform findTransform(const char* layout) {
 }
 
 // Build coordinate lookup table using selected transform function
-uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout) {
+uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout, bool reverse) {
 	CoordinateTransform transform = findTransform(layout);
 
 	// Build coordinate map
@@ -158,6 +158,15 @@ uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; x++) {
 			map[y * width + x] = transform(x, y, width, height);
+		}
+	}
+
+	// Apply reverse transformation for strips: flip all LED indices
+	// so logical index 0 maps to last physical LED
+	if (reverse) {
+		uint16_t maxIdx = size - 1;
+		for (uint16_t i = 0; i < size; i++) {
+			map[i] = maxIdx - map[i];
 		}
 	}
 

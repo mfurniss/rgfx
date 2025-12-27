@@ -17,7 +17,6 @@ const mockSystemStatus: SystemStatus = {
   hubIp: '192.168.1.100',
   eventsProcessed: 0,
   hubStartTime: Date.now(),
-  eventTopics: {},
   udpMessagesSent: 0,
   udpMessagesFailed: 0,
 };
@@ -68,6 +67,7 @@ describe('App IPC Listener Registration', () => {
       triggerEffect: vi.fn(),
       saveDriverConfig: vi.fn(),
       getLEDHardwareList: vi.fn(),
+      getLEDHardware: vi.fn(),
       openDriverLog: vi.fn(),
       openFile: vi.fn(),
       listGames: vi.fn(),
@@ -77,8 +77,11 @@ describe('App IPC Listener Registration', () => {
       getFirmwareManifest: vi.fn(),
       getFirmwareFile: vi.fn(),
       setDriverDisabled: vi.fn(),
+      onEvent: vi.fn(() => vi.fn()),
       resetEventCounts: vi.fn(),
       restartDriver: vi.fn(),
+      deleteDriver: vi.fn(),
+      onDriverDeleted: vi.fn(() => vi.fn()),
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
         licensePath: '/mock/LICENSE',
