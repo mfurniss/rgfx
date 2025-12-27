@@ -273,7 +273,7 @@ export default function DriverConfigPage() {
                             pin: ledConfig?.pin ?? 16,
                             offset: ledConfig?.offset,
                             globalBrightnessLimit: ledConfig?.globalBrightnessLimit,
-                            dithering: ledConfig?.dithering,
+                            dithering: ledConfig?.dithering ?? true,
                             powerSupplyVolts: ledConfig?.powerSupplyVolts,
                             maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
                             unified: ledConfig?.unified,
