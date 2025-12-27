@@ -286,5 +286,17 @@ Fixed projectile effect tests by adding proper default values and missing initia
 
 Implemented WiFi credential configuration system allowing credentials to be set via USB serial or OTA for multiple drivers. Added events per second chart to system status page showing real-time UDP event rates. Fixed driver DNS hostnames to match configured IDs for proper network identification. Added safeRestart() function to prevent LED corruption during driver restarts. Fixed flaky tests by switching to jsdom environment and improving test isolation. Improved event rate chart to show only UDP events and auto-hide when no data. Added centralized color prop validation to prevent null pointer crashes in effects, then refactored validation to individual effects for better modularity. Added Galaga 88 transformer template and updated documentation. Removed CHANGELOG.md in favor of the development journal.
 
-**Total Development Time:** 75 days (October 11 - December 23, 2025)
-**Total Commits:** 632
+## December 24, 2025
+
+Reorganized game documentation and NES/SMB research notes. Moved UDP stats from Driver domain to SystemMonitor for cleaner architecture. Implemented minimal effect payload support for fadeOut transitions. Fixed SMB score reading to use correct one-byte-per-digit format. Added horizontal alignment support for text effect. Fixed UDP socket error on app quit. Improved network interface logging to only log on first detection or change. Added blendMode option to wipe effect for additive/replace modes. Fixed event monitor persistence between sessions.
+
+## December 25, 2025
+
+Implemented spectrum analyzer effect for FFT audio visualization using optimized Goertzel algorithm. Added particle field effect supporting starfield, rain, and snow patterns with configurable parameters. Improved test coverage with meaningful tests while removing low-value ones. Tuned particle field parameters with raised minimum alpha and speed limits. Fixed memory leak in chart components caused by mutable store object references.
+
+## December 26, 2025
+
+Reordered effects in schema. Added delete driver feature with confirmation modal. Updated driver config UX and defaults. Disabled Test LEDs button when driver has no LED configuration. Switched all MQTT topics to use MAC address instead of driver ID for consistency. Added LED hardware installer and WS2812B COB strip definition. Added Clear All Effects button to Effects Playground for turning off all driver LEDs. Added error logging when MAME interceptor fails to load.
+
+**Total Development Time:** 77 days (October 11 - December 26, 2025)
+**Total Commits:** 666
