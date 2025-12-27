@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
@@ -41,7 +41,21 @@ import { setupDriverEventHandlers } from './driver-callbacks';
 import { clearEffectsOnAllDrivers } from './shutdown';
 import { serializeDriverForIPC, type SystemError } from './types';
 import { appRouter } from './trpc/router';
+import { ConfigError } from './errors/config-error';
+import { z } from 'zod';
 import pkg from '../package.json';
+
+// Configure Zod for user-friendly error messages
+// In Zod v4, "Required" became "Invalid input: expected X, received undefined"
+// This restores clearer messages for missing required fields
+z.config({
+  customError: (issue) => {
+    if (issue.code === 'invalid_type' && issue.input === undefined) {
+      return 'Required field is missing';
+    }
+    return undefined; // Use default message for other errors
+  },
+});
 
 // Vite environment variables injected by Electron Forge
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -140,6 +154,24 @@ let eventsProcessed = 0;
 const MAX_SYSTEM_ERRORS = 10;
 const systemErrors: SystemError[] = [];
 
+// Load driver configuration - capture any config errors
+try {
+  driverPersistence.loadConfig();
+} catch (error) {
+  if (error instanceof ConfigError) {
+    log.error(`Critical config error: ${error.message}`);
+    log.error(`Details: ${error.details}`);
+    systemErrors.push(error.toSystemError());
+  } else {
+    throw error;
+  }
+}
+
+// Helper to check for critical errors that should block normal operation
+function hasCriticalError(): boolean {
+  return systemErrors.some((e) => e.errorType === 'config');
+}
+
 // Helper to safely check if window is available and not destroyed
 function isWindowAvailable(): boolean {
   return mainWindow !== null && !mainWindow.isDestroyed();
@@ -176,30 +208,6 @@ const networkManager = new NetworkManager(mqtt, () => {
   sendSystemStatus();
 });
 
-// Start MQTT broker
-mqtt.start();
-
-// Start connection timeout monitor (checks for drivers that stop responding)
-driverRegistry.startConnectionMonitor();
-
-// Install default transformers and interceptors to user config directory (async)
-void installDefaultTransformers()
-  .then(() => {
-    // Load transformer engine handlers after installing defaults
-    void transformerEngine.loadTransformers();
-  })
-  .catch((error: unknown) => {
-    log.error('Failed to install default transformers:', error);
-  });
-
-void installDefaultInterceptors().catch((error: unknown) => {
-  log.error('Failed to install default interceptors:', error);
-});
-
-void installDefaultLedHardware().catch((error: unknown) => {
-  log.error('Failed to install LED hardware definitions:', error);
-});
-
 // Handle event processing (used by both event file reader and simulator)
 function processEvent(topic: string, payload: string): void {
   eventsProcessed++;
@@ -210,61 +218,99 @@ function processEvent(topic: string, payload: string): void {
   }
 }
 
-// Register IPC handlers
-registerIpcHandlers({
-  driverRegistry,
-  driverPersistence,
-  driverLogPersistence,
-  ledHardwareManager,
-  mqtt,
-  uploadConfigToDriver,
-  udpClient,
-  transformerEngine,
-  onEventProcessed: processEvent,
-  resetEventsProcessed: () => {
-    eventsProcessed = 0;
-  },
-  getMainWindow: () => {
-    if (!mainWindow) {
-      throw new Error('Main window not initialized');
+// Only start services if no critical errors (corrupt config files)
+if (!hasCriticalError()) {
+  // Start MQTT broker
+  mqtt.start();
+
+  // Start connection timeout monitor (checks for drivers that stop responding)
+  driverRegistry.startConnectionMonitor();
+
+  // Install default transformers and interceptors to user config directory (async)
+  void installDefaultTransformers()
+    .then(() => {
+      // Load transformer engine handlers after installing defaults
+      void transformerEngine.loadTransformers();
+    })
+    .catch((error: unknown) => {
+      log.error('Failed to install default transformers:', error);
+    });
+
+  void installDefaultInterceptors().catch((error: unknown) => {
+    log.error('Failed to install default interceptors:', error);
+  });
+
+  void installDefaultLedHardware().catch((error: unknown) => {
+    log.error('Failed to install LED hardware definitions:', error);
+  });
+
+  // Register IPC handlers
+  registerIpcHandlers({
+    driverRegistry,
+    driverPersistence,
+    driverLogPersistence,
+    ledHardwareManager,
+    mqtt,
+    uploadConfigToDriver,
+    udpClient,
+    transformerEngine,
+    onEventProcessed: processEvent,
+    resetEventsProcessed: () => {
+      eventsProcessed = 0;
+    },
+    getMainWindow: () => {
+      if (!mainWindow) {
+        throw new Error('Main window not initialized');
+      }
+      return mainWindow;
+    },
+  });
+
+  // Register MQTT subscriptions
+  registerMqttSubscriptions({
+    mqtt,
+    driverRegistry,
+    driverPersistence,
+    systemMonitor,
+    driverLogPersistence,
+    getMainWindow: () => mainWindow,
+    getEventsProcessed: () => eventsProcessed,
+  });
+
+  // Start reading events and send to transformer engine for processing
+  eventReader.start((topic, message) => {
+    // Check for interceptor error events
+    if (topic === 'rgfx/interceptor/error') {
+      log.error(`Interceptor error: ${message}`);
+      systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
+
+      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+        systemErrors.shift();
+      }
+
+      sendSystemStatus();
     }
-    return mainWindow;
-  },
-});
 
-// Register MQTT subscriptions
-registerMqttSubscriptions({
-  mqtt,
-  driverRegistry,
-  driverPersistence,
-  systemMonitor,
-  driverLogPersistence,
-  getMainWindow: () => mainWindow,
-  getEventsProcessed: () => eventsProcessed,
-});
+    void transformerEngine.handleEvent(topic, message);
+    processEvent(topic, message);
+  });
 
-// Start reading events and send to transformer engine for processing
-eventReader.start((topic, message) => {
-  // Check for interceptor error events
-  if (topic === 'rgfx/interceptor/error') {
-    log.error(`Interceptor error: ${message}`);
-    systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
-
-    if (systemErrors.length > MAX_SYSTEM_ERRORS) {
-      systemErrors.shift();
-    }
-
+  // Start firmware monitoring
+  systemMonitor.startFirmwareMonitoring((_version: string | null) => {
+    log.info('[main] Firmware version updated, broadcasting new system status');
     sendSystemStatus();
-  }
+  });
+} else {
+  log.error('Critical config error detected - services not started');
+}
 
-  void transformerEngine.handleEvent(topic, message);
-  processEvent(topic, message);
+// Register critical error IPC handlers (always available, even in error state)
+ipcMain.handle('file:show-in-folder', (_event, filePath: string) => {
+  shell.showItemInFolder(filePath);
 });
 
-// Start firmware monitoring
-systemMonitor.startFirmwareMonitoring((_version: string | null) => {
-  log.info('[main] Firmware version updated, broadcasting new system status');
-  sendSystemStatus();
+ipcMain.on('app:quit', () => {
+  app.quit();
 });
 
 const createWindow = () => {
@@ -323,14 +369,20 @@ const createWindow = () => {
       return;
     }
 
+    // Always send system status (includes critical errors if any)
+    sendSystemStatus();
+
+    // If critical error, don't send driver state or start updates
+    if (hasCriticalError()) {
+      return;
+    }
+
     // Send all drivers (both connected and disconnected)
     driverRegistry.getAllDrivers().forEach((driver) => {
       if (isWindowAvailable() && mainWindow) {
         mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
       }
     });
-    // Send system status (includes event topic counts)
-    sendSystemStatus();
 
     // Start periodic system status updates (for event counts during gameplay)
     if (statusUpdateInterval) {

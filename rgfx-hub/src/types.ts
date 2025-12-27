@@ -304,9 +304,11 @@ export function serializeDriverForIPC(driver: Driver): Driver {
 }
 
 export interface SystemError {
-  errorType: 'interceptor';
+  errorType: 'interceptor' | 'config';
   message: string;
   timestamp: number;
+  filePath?: string;
+  details?: string;
 }
 
 export interface SystemStatus {
@@ -377,6 +379,8 @@ declare global {
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
       deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
       onDriverDeleted: (callback: (driverId: string) => void) => () => void;
+      showInFolder: (filePath: string) => Promise<void>;
+      quitApp: () => void;
     };
   }
 }

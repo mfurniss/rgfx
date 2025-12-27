@@ -17,6 +17,7 @@ import {
   type PersistedDriverFromSchema,
   type DriversConfigFile,
 } from './schemas';
+import { ConfigError, formatZodError } from './errors/config-error';
 
 /**
  * Re-export the Zod-inferred type as PersistedDriver for backward compatibility
@@ -45,9 +46,6 @@ export class DriverPersistence {
 
     // Ensure config directory exists
     this.ensureDirectory(baseDir);
-
-    // Load existing configuration
-    this.loadConfig();
   }
 
   /**
@@ -61,47 +59,57 @@ export class DriverPersistence {
   }
 
   /**
-   * Load all drivers from unified config file
+   * Load all drivers from unified config file.
+   * Throws ConfigError if file exists but cannot be parsed or validated.
    */
-  private loadConfig(): void {
+  loadConfig(): void {
     if (!fs.existsSync(this.configFile)) {
       log.info(`No existing drivers config found at ${this.configFile} - starting fresh`);
       return;
     }
 
+    const data = fs.readFileSync(this.configFile, 'utf8');
+
+    let parsed: unknown;
+
     try {
-      const data = fs.readFileSync(this.configFile, 'utf8');
-      const parsed: unknown = JSON.parse(data);
-
-      // Validate config file structure (version + drivers array exists)
-      const result = DriversConfigFileRawSchema.safeParse(parsed);
-
-      if (!result.success) {
-        log.error(`Invalid drivers config: ${result.error.message}`);
-        return;
-      }
-
-      // Validate each driver entry individually for graceful skip of invalid entries
-      let validCount = 0;
-
-      for (const driver of result.data.drivers) {
-        const driverResult = PersistedDriverSchema.safeParse(driver);
-
-        if (driverResult.success) {
-          this.drivers.set(driverResult.data.id, driverResult.data);
-          validCount++;
-        } else {
-          log.error(`Skipping invalid driver entry: ${driverResult.error.message}`);
-        }
-      }
-
-      log.info(
-        `Loaded ${validCount} valid drivers from ${this.configFile} (${result.data.drivers.length - validCount} invalid entries skipped)`,
-      );
+      parsed = JSON.parse(data);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log.error(`Failed to load drivers config: ${errorMessage}`);
+      const details = error instanceof Error ? error.message : String(error);
+      throw new ConfigError(
+        'Failed to parse driver configuration file',
+        this.configFile,
+        details,
+      );
     }
+
+    // Validate config file structure (version + drivers array exists)
+    const result = DriversConfigFileRawSchema.safeParse(parsed);
+
+    if (!result.success) {
+      throw new ConfigError(
+        'Driver configuration file has invalid structure',
+        this.configFile,
+        formatZodError(result.error),
+      );
+    }
+
+    // Validate each driver entry - any invalid entry is a critical error
+    for (const driver of result.data.drivers) {
+      const driverResult = PersistedDriverSchema.safeParse(driver);
+
+      if (driverResult.success) {
+        this.drivers.set(driverResult.data.id, driverResult.data);
+      } else {
+        throw new ConfigError(
+          'Driver configuration file contains invalid driver entry',
+          this.configFile,
+          formatZodError(driverResult.error),
+        );
+      }
+    }
+
+    log.info(`Loaded ${this.drivers.size} drivers from ${this.configFile}`);
   }
 
   /**

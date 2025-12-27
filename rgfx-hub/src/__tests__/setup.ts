@@ -1,5 +1,6 @@
 import { afterEach, vi } from 'vitest';
 import React from 'react';
+import { cleanup } from '@testing-library/react';
 
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
@@ -63,6 +64,9 @@ export function trackResource(resource: any): void {
 
 // Global cleanup to prevent timer leaks and hung processes
 afterEach(async () => {
+  // Clean up rendered React components to prevent test isolation issues
+  cleanup();
+
   vi.clearAllTimers();
 
   // Force cleanup of all tracked resources

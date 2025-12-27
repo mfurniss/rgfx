@@ -4,6 +4,7 @@ import { CssBaseline, ThemeProvider, Box } from '@mui/material';
 import { AnimatePresence } from 'framer-motion';
 import { AppLayout } from './components/layout/app-layout';
 import { NotificationStack } from './components/common/notification-stack';
+import { CriticalErrorModal } from './components/common/critical-error-modal';
 import { PageTransition } from './components/layout/page-transition';
 import SystemStatusPage from './pages/system-status-page';
 import DriversPage from './pages/drivers-page';
@@ -56,6 +57,10 @@ const AnimatedRoutes: React.FC = () => {
 const App: React.FC = () => {
   // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
+  const systemStatus = useDriverStore((state) => state.systemStatus);
+
+  // Check for critical config errors
+  const configError = systemStatus.systemErrors.find((e) => e.errorType === 'config');
 
   // Run simulator auto-trigger at app level so it persists across navigation
   useSimulatorAutoTrigger();
@@ -144,6 +149,16 @@ const App: React.FC = () => {
       console.log('[APP] Skipping rendererReady - already called');
     }
   }, [getAppInfo]);
+
+  // If there's a critical config error, render only the error modal
+  if (configError) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <CriticalErrorModal error={configError} />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
