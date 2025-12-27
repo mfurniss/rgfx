@@ -74,10 +74,11 @@ const DriverLEDConfigSchema = z.object({
   maxPowerMilliamps: z.number().positive().max(10000).nullable().optional(),
   unified: UnifiedPanelLayoutSchema.nullable().optional(),
   // Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
+  // Inner fields use .nullable() to accept null from empty form inputs
   gamma: z.object({
-    r: z.number().min(1.0).max(5.0).optional(),
-    g: z.number().min(1.0).max(5.0).optional(),
-    b: z.number().min(1.0).max(5.0).optional(),
+    r: z.number().min(1.0).max(5.0).nullable().optional(),
+    g: z.number().min(1.0).max(5.0).nullable().optional(),
+    b: z.number().min(1.0).max(5.0).nullable().optional(),
   }).nullable().optional(),
   // Floor cutoff per channel (0-255, values at or below floor become 0)
   // Default ensures backwards compatibility with old persisted data

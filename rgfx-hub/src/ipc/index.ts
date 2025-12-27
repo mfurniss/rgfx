@@ -39,7 +39,7 @@ interface IpcHandlersDeps {
   driverLogPersistence: DriverLogPersistence;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
-  uploadConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
   udpClient: UdpClient;
   transformerEngine: TransformerEngine;
   onEventProcessed: (topic: string, payload: string) => void;

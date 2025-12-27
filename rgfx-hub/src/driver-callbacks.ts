@@ -21,7 +21,7 @@ interface DriverEventHandlersDeps {
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
-  uploadConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
 }
 
 /**

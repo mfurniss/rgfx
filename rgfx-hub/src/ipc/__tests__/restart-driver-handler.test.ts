@@ -100,11 +100,12 @@ describe('registerRestartDriverHandler', () => {
       expect(eventBus.emit).toHaveBeenCalledWith('driver:restarting', { driver: mockDriver });
     });
 
-    it('publishes reboot command to MQTT', async () => {
+    it('publishes reboot command to MQTT using MAC address', async () => {
       await registeredHandler({}, 'rgfx-driver-0001');
 
+      // Topics use MAC address (immutable) instead of driver ID
       expect(mockMqtt.publish).toHaveBeenCalledWith(
-        'rgfx/driver/rgfx-driver-0001/reboot',
+        `rgfx/driver/${mockDriver.mac}/reboot`,
         '',
       );
     });

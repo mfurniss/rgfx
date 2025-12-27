@@ -11,7 +11,7 @@ import type { DriverRegistry } from '../driver-registry';
 
 interface UploadDriverConfigHandlerDeps {
   driverRegistry: DriverRegistry;
-  uploadConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
 }
 
 export function registerUpdateDriverConfigHandler(deps: UploadDriverConfigHandlerDeps): void {

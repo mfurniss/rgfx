@@ -95,26 +95,21 @@ describe('registerSendDriverCommandHandler', () => {
   });
 
   describe('MQTT topic construction', () => {
-    it('should construct correct topic for command', async () => {
+    it('should construct correct topic using MAC address', async () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'restart');
 
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/restart', '');
-    });
-
-    it('should handle driver ID with special characters', async () => {
-      await registeredHandler({}, 'rgfx-driver-0001', 'test');
-
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/test', '');
+      // Topics use MAC address (immutable) instead of driver ID
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/restart`, '');
     });
 
     it('should handle various command names', async () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'led-test');
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/led-test', '');
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/led-test`, '');
 
       mockMqtt.publish.mockClear();
 
       await registeredHandler({}, 'rgfx-driver-0001', 'config/reload');
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/config/reload', '');
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/config/reload`, '');
     });
   });
 
@@ -122,26 +117,26 @@ describe('registerSendDriverCommandHandler', () => {
     it('should publish command without payload', async () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'restart');
 
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/restart', '');
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/restart`, '');
     });
 
     it('should publish command with payload', async () => {
       const payload = JSON.stringify({ brightness: 100 });
       await registeredHandler({}, 'rgfx-driver-0001', 'config', payload);
 
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/config', payload);
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/config`, payload);
     });
 
     it('should handle empty string payload', async () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'test', '');
 
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/test', '');
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/test`, '');
     });
 
     it('should handle undefined payload explicitly', async () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'test', undefined);
 
-      expect(mockMqtt.publish).toHaveBeenCalledWith('rgfx/driver/rgfx-driver-0001/test', '');
+      expect(mockMqtt.publish).toHaveBeenCalledWith(`rgfx/driver/${mockDriver.mac}/test`, '');
     });
 
     it('should preserve JSON payload structure', async () => {
@@ -152,7 +147,7 @@ describe('registerSendDriverCommandHandler', () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'config', complexPayload);
 
       expect(mockMqtt.publish).toHaveBeenCalledWith(
-        'rgfx/driver/rgfx-driver-0001/config',
+        `rgfx/driver/${mockDriver.mac}/config`,
         complexPayload,
       );
     });

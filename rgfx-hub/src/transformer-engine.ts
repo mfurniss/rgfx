@@ -171,7 +171,7 @@ export class TransformerEngine {
 
     for (const driver of connectedDrivers) {
       try {
-        await this.context.mqtt.publish(`rgfx/driver/${driver.id}/clear-effects`, '', 2);
+        await this.context.mqtt.publish(`rgfx/driver/${driver.mac}/clear-effects`, '', 2);
       } catch (error) {
         this.context.log.error(`Failed to clear effects on driver ${driver.id}:`, error);
       }

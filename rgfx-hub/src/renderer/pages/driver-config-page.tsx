@@ -78,7 +78,7 @@ export default function DriverConfigPage() {
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
     setValue,
     watch,
@@ -277,7 +277,7 @@ export default function DriverConfigPage() {
                             powerSupplyVolts: ledConfig?.powerSupplyVolts,
                             maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
                             unified: ledConfig?.unified,
-                            gamma: ledConfig?.gamma,
+                            gamma: ledConfig?.gamma ?? null,
                             floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
                           },
                           { shouldDirty: true, shouldValidate: true },
@@ -459,7 +459,7 @@ export default function DriverConfigPage() {
               variant="contained"
               icon={<SaveIcon />}
               busy={saving}
-              disabled={!isValid}
+              disabled={Object.keys(errors).length > 0}
             >
               {saving ? 'Saving...' : 'Save Configuration'}
             </SuperButton>

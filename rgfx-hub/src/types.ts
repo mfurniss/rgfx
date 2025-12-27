@@ -90,9 +90,9 @@ export interface DriverLEDConfig {
    * Compensates for non-linear human brightness perception
    */
   gamma?: {
-    r?: number;
-    g?: number;
-    b?: number;
+    r?: number | null;
+    g?: number | null;
+    b?: number | null;
   } | null;
   /**
    * Floor cutoff per channel (0-255, default 0)
