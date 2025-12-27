@@ -82,6 +82,8 @@ export function createUploadConfigToDriver(
           panel_width: unified ? hardware.width : undefined,
           panel_height: unified ? hardware.height : undefined,
           unified,
+          // Strip-specific: reverse LED direction
+          reverse: ledConfig.reverse ?? false,
         },
       ],
       settings: {

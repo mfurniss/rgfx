@@ -35,11 +35,14 @@ struct LEDDeviceConfig {
 	std::vector<uint8_t> panelOrder;    // Panel chain indices, row-major order
 	std::vector<uint8_t> panelRotation; // Rotation per panel: 0=0°, 1=90°, 2=180°, 3=270°
 
+	// Strip-specific: reverse LED direction (index 0 maps to last physical LED)
+	bool reverse;
+
 	// Constructor with defaults
 	LEDDeviceConfig()
 		: pin(0), count(0), offset(0), maxBrightness(255),
 		  width(0), height(0), panelWidth(0), panelHeight(0),
-		  unifiedRows(1), unifiedCols(1) {}
+		  unifiedRows(1), unifiedCols(1), reverse(false) {}
 };
 
 /**

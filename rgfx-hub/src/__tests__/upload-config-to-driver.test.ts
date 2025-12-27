@@ -470,4 +470,79 @@ describe('createUploadConfigToDriver', () => {
       expect(device.height).toBe(1);
     });
   });
+
+  describe('strip reverse configuration', () => {
+    it('should include reverse field in LED device config', async () => {
+      const driverWithReverse = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          reverse: true,
+        },
+      };
+
+      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithReverse);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.reverse).toBe(true);
+    });
+
+    it('should default reverse to false when not specified', async () => {
+      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.reverse).toBe(false);
+    });
+
+    it('should include reverse: false when explicitly set to false', async () => {
+      const driverWithReverseFalse = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          reverse: false,
+        },
+      };
+
+      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithReverseFalse);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.reverse).toBe(false);
+    });
+  });
 });

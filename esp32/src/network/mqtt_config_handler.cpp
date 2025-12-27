@@ -184,9 +184,15 @@ void handleDriverConfig(const String& payload) {
 				log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
 			}
 		} else {
+			// Strip-specific: parse reverse flag
+			devCfg.reverse = device["reverse"] | false;
+
 			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
 			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 			log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
+			if (devCfg.reverse) {
+				log("  Reverse: enabled");
+			}
 		}
 		log("  Chipset: " + devCfg.chipset + ", Color: " + devCfg.colorOrder);
 		log("  Max Brightness: " + String(devCfg.maxBrightness));

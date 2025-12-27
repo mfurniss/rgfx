@@ -86,6 +86,12 @@ export interface DriverLEDConfig {
    */
   unified?: string[][] | null;
   /**
+   * Reverse LED direction for strips (default: false)
+   * When true, logical index 0 maps to the last physical LED.
+   * Only applicable to strip layouts, ignored for matrices.
+   */
+  reverse?: boolean | null;
+  /**
    * Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
    * Compensates for non-linear human brightness perception
    */
@@ -349,6 +355,7 @@ declare global {
         config: PersistedDriverFromSchema
       ) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
+      getLEDHardware: (hardwareRef: string) => Promise<LEDHardware | null>;
       openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
       openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
       listGames: (romsDirectory?: string) => Promise<GameInfo[]>;
