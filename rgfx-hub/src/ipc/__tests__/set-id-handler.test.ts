@@ -135,11 +135,12 @@ describe('registerSetIdHandler', () => {
   });
 
   describe('MQTT publishing', () => {
-    it('should publish to correct topic', async () => {
+    it('should publish to correct topic using MAC address', async () => {
       await registeredHandler({}, 'rgfx-driver-0001', 'new-id');
 
+      // Topics use MAC address (immutable) instead of driver ID
       expect(mockMqtt.publish).toHaveBeenCalledWith(
-        'rgfx/driver/rgfx-driver-0001/set-id',
+        `rgfx/driver/${mockDriver.mac}/set-id`,
         expect.any(String),
       );
     });

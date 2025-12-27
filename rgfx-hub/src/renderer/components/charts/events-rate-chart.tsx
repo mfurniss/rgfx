@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { MultiLineChart } from './multi-line-chart';
 import {
   useEventsRateHistoryStore,
@@ -23,11 +23,17 @@ interface LineConfig {
 const EVENTS_RATE_CHART_HEIGHT = CHART_HEIGHT * 1.5;
 
 export const EventsRateChart: React.FC = () => {
-  const history = useEventsRateHistoryStore((state) => state.history);
-  const knownDrivers = useEventsRateHistoryStore((state) => state.knownDrivers);
+  // Subscribe to version to trigger re-renders when data changes
+  const version = useEventsRateHistoryStore((state) => state.version);
+  const getHistory = useEventsRateHistoryStore((state) => state.getHistory);
+  const getDriverIds = useEventsRateHistoryStore((state) => state.getDriverIds);
 
-  const historyArray = useMemo(() => history.toArray(), [history]);
-  const driverIds = useMemo(() => Array.from(knownDrivers).sort(), [knownDrivers]);
+  // Get fresh data on each render (triggered by version changes)
+  const historyArray = getHistory();
+  const driverIds = getDriverIds();
+
+  // Silence unused variable warning - version subscription triggers re-renders
+  void version;
 
   useEffect(() => {
     startEventsRateSampling();

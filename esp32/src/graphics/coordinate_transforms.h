@@ -5,7 +5,8 @@
 typedef uint16_t (*CoordinateTransform)(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 
 // Build coordinate lookup table for given layout (single panel)
-uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout);
+// reverse: if true, flip LED indices so index 0 maps to last physical LED (strips only)
+uint16_t* buildCoordinateMap(uint16_t width, uint16_t height, const char* layout, bool reverse = false);
 
 // Build coordinate lookup table for unified multi-panel display
 // panelOrder is a flat array of panel chain indices in row-major order

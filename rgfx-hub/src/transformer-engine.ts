@@ -171,7 +171,7 @@ export class TransformerEngine {
 
     for (const driver of connectedDrivers) {
       try {
-        await this.context.mqtt.publish(`rgfx/driver/${driver.id}/clear-effects`, '', 2);
+        await this.context.mqtt.publish(`rgfx/driver/${driver.mac}/clear-effects`, '', 2);
       } catch (error) {
         this.context.log.error(`Failed to clear effects on driver ${driver.id}:`, error);
       }
@@ -222,12 +222,14 @@ export class TransformerEngine {
       }
 
       // Auto-load game transformer on first event from game
-      if (namespace && !this.gameHandlers.has(namespace)) {
+      // Skip for 'rgfx' namespace - reserved for system-level events (audio, driver, etc.)
+      if (namespace && namespace !== 'rgfx' && !this.gameHandlers.has(namespace)) {
         await this.loadGameTransformer(namespace);
       }
 
       // 1. Try game-specific handler (highest priority)
-      if (namespace && this.gameHandlers.has(namespace)) {
+      // Skip for 'rgfx' namespace - goes directly to subject handlers
+      if (namespace && namespace !== 'rgfx' && this.gameHandlers.has(namespace)) {
         const handler = this.gameHandlers.get(namespace);
 
         if (!handler) {

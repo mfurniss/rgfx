@@ -42,17 +42,18 @@ describe('clearEffectsOnAllDrivers', () => {
 
     await clearEffectsOnAllDrivers(mockDriverRegistry, mockMqtt);
 
+    // Topics use MAC address (immutable) instead of driver ID
     expect(mockMqtt.publish).toHaveBeenCalledTimes(3);
     expect(mockMqtt.publish).toHaveBeenCalledWith(
-      'rgfx/driver/driver-001/clear-effects',
+      'rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects',
       '',
     );
     expect(mockMqtt.publish).toHaveBeenCalledWith(
-      'rgfx/driver/driver-002/clear-effects',
+      'rgfx/driver/AA:BB:CC:DD:EE:02/clear-effects',
       '',
     );
     expect(mockMqtt.publish).toHaveBeenCalledWith(
-      'rgfx/driver/driver-003/clear-effects',
+      'rgfx/driver/AA:BB:CC:DD:EE:03/clear-effects',
       '',
     );
   });
@@ -73,9 +74,10 @@ describe('clearEffectsOnAllDrivers', () => {
 
     await clearEffectsOnAllDrivers(mockDriverRegistry, mockMqtt);
 
+    // Topics use MAC address (immutable) instead of driver ID
     expect(mockMqtt.publish).toHaveBeenCalledTimes(1);
     expect(mockMqtt.publish).toHaveBeenCalledWith(
-      'rgfx/driver/solo-driver/clear-effects',
+      'rgfx/driver/AA:BB:CC:DD:EE:FF/clear-effects',
       '',
     );
   });

@@ -4,6 +4,7 @@
 #include "demo.h"
 #include "hal/platform.h"
 #include <ArduinoJson.h>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -102,5 +103,84 @@ void triggerDemoEffect(EffectProcessor& processor, int effectType) {
 			logEffect("plasma", props);
 			break;
 		}
+		case 7: {
+			// Spectrum analyzer - 5 random values 0-9
+			JsonArray values = props["values"].to<JsonArray>();
+			for (int i = 0; i < 5; i++) {
+				values.add(hal::random(0, 10));
+			}
+			processor.addEffect("spectrum", props);
+			logEffect("spectrum", props);
+			break;
+		}
+		case 8: {
+			// Particle field effect - toggle on/off with random params
+			static bool particleFieldEnabled = false;
+			particleFieldEnabled = !particleFieldEnabled;
+			props["enabled"] = particleFieldEnabled;
+			if (particleFieldEnabled) {
+				// Random direction
+				const char* directions[] = {"up", "down", "left", "right"};
+				props["direction"] = directions[hal::random(0, 4)];
+				// Random density (10-50)
+				props["density"] = 10 + hal::random(0, 41);
+				// Random speed (30-100)
+				props["speed"] = 30 + hal::random(0, 71);
+				// Random size (2-6)
+				props["size"] = 2 + hal::random(0, 5);
+				// Random color
+				props["color"] = "random";
+			}
+			processor.addEffect("particle_field", props);
+			logEffect("particle_field", props);
+			break;
+		}
 	}
+}
+
+// Spectrum demo state
+static float spectrumPhase = 0.0f;
+static constexpr int SPECTRUM_COLUMNS = 5;
+static constexpr float SPECTRUM_UPDATE_RATE = 15.0f;  // Updates per second (match FFT fps)
+static float spectrumTimer = 0.0f;
+
+void updateSpectrumDemo(EffectProcessor& processor, float deltaTime, bool enabled) {
+	if (!enabled) {
+		return;
+	}
+
+	spectrumTimer += deltaTime;
+	if (spectrumTimer < 1.0f / SPECTRUM_UPDATE_RATE) {
+		return;
+	}
+	spectrumTimer = 0.0f;
+
+	// Advance phase for animation
+	spectrumPhase += 0.15f;
+
+	JsonDocument props;
+	JsonArray values = props["values"].to<JsonArray>();
+
+	// Generate animated FFT-like values using multiple sine waves
+	for (int i = 0; i < SPECTRUM_COLUMNS; i++) {
+		// Each column has different frequency and phase offset
+		float freq1 = 1.0f + i * 0.3f;
+		float freq2 = 2.5f - i * 0.2f;
+		float phase1 = spectrumPhase * freq1 + i * 0.8f;
+		float phase2 = spectrumPhase * freq2 + i * 1.2f;
+
+		// Combine multiple waves for more organic movement
+		float wave1 = sinf(phase1) * 0.5f + 0.5f;
+		float wave2 = sinf(phase2) * 0.3f + 0.3f;
+		float noise = (hal::random(0, 100) / 100.0f) * 0.2f;
+
+		float value = (wave1 + wave2 + noise) * 0.6f;
+		value = fminf(1.0f, fmaxf(0.0f, value));
+
+		// Scale to 0-9 range
+		int intValue = static_cast<int>(value * 9.0f);
+		values.add(intValue);
+	}
+
+	processor.addEffect("spectrum", props);
 }

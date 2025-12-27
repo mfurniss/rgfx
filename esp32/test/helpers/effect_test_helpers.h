@@ -319,6 +319,7 @@ inline void setDefaultWipeProps(JsonDocument& props) {
 	props["reset"] = false;
 	props["direction"] = "random";
 	props["duration"] = 500;
+	props["blendMode"] = "additive";
 }
 
 /**
@@ -431,13 +432,15 @@ inline JsonDocument mockExplodeProps(const char* color = "#FF0000", uint32_t par
  * @param color Hex color string (default: "#FF0000")
  * @param direction Direction string (default: "right")
  * @param duration Duration in ms (default: 500)
+ * @param blendMode Blend mode (default: "additive")
  */
-inline JsonDocument mockWipeProps(const char* color = "#FF0000", const char* direction = "right", uint32_t duration = 500) {
+inline JsonDocument mockWipeProps(const char* color = "#FF0000", const char* direction = "right", uint32_t duration = 500, const char* blendMode = "additive") {
 	JsonDocument props;
 	setDefaultWipeProps(props);
 	props["color"] = color;
 	props["direction"] = direction;
 	props["duration"] = duration;
+	props["blendMode"] = blendMode;
 	return props;
 }
 
@@ -524,6 +527,35 @@ inline JsonDocument mockBitmapProps(const char* color = "#FFFF00", uint32_t dura
 	setDefaultBitmapProps(props);
 	props["color"] = color;
 	props["duration"] = duration;
+	return props;
+}
+
+/**
+ * Create default spectrum props
+ */
+inline void setDefaultSpectrumProps(JsonDocument& props) {
+	props["decayRate"] = 2.1f;
+	JsonArray values = props["values"].to<JsonArray>();
+	values.add(5);
+	values.add(5);
+	values.add(5);
+	values.add(5);
+	values.add(5);
+}
+
+/**
+ * Create a mock spectrum effect payload
+ * @param numColumns Number of columns to create (default: 5)
+ * @param value Value for all columns 0-9 (default: 5)
+ * @param decayRate Decay speed (default: 2.1)
+ */
+inline JsonDocument mockSpectrumProps(size_t numColumns = 5, int value = 5, float decayRate = 2.1f) {
+	JsonDocument props;
+	props["decayRate"] = decayRate;
+	JsonArray values = props["values"].to<JsonArray>();
+	for (size_t i = 0; i < numColumns; i++) {
+		values.add(value);
+	}
 	return props;
 }
 

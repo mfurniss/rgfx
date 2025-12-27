@@ -24,13 +24,13 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('registerResetEventCountsHandler', () => {
-  let mockResetEventCounts: ReturnType<typeof vi.fn>;
+  let mockResetEventsProcessed: ReturnType<typeof vi.fn>;
   let registeredHandler: () => void;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    mockResetEventCounts = vi.fn();
+    mockResetEventsProcessed = vi.fn();
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -40,7 +40,7 @@ describe('registerResetEventCountsHandler', () => {
     );
 
     registerResetEventCountsHandler({
-      resetEventCounts: mockResetEventCounts,
+      resetEventsProcessed: mockResetEventsProcessed,
     });
   });
 
@@ -50,10 +50,10 @@ describe('registerResetEventCountsHandler', () => {
   });
 
   describe('handler behavior', () => {
-    it('calls resetEventCounts when invoked', () => {
+    it('calls resetEventsProcessed when invoked', () => {
       registeredHandler();
 
-      expect(mockResetEventCounts).toHaveBeenCalledTimes(1);
+      expect(mockResetEventsProcessed).toHaveBeenCalledTimes(1);
     });
 
     it('can be called multiple times', () => {
@@ -61,7 +61,7 @@ describe('registerResetEventCountsHandler', () => {
       registeredHandler();
       registeredHandler();
 
-      expect(mockResetEventCounts).toHaveBeenCalledTimes(3);
+      expect(mockResetEventsProcessed).toHaveBeenCalledTimes(3);
     });
   });
 });

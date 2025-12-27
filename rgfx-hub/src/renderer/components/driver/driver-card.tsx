@@ -17,6 +17,7 @@ import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
 import RestartDriverButton from './restart-driver-button';
 import DisableDriverButton from './disable-driver-button';
+import DeleteDriverButton from './delete-driver-button';
 import TelemetryCharts from '../charts/telemetry-charts';
 import { formatBytes, formatUptime, formatNumber } from '../../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
@@ -282,6 +283,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             </SuperButton>
             <RestartDriverButton driver={driver} />
             <ResetDriverButton driver={driver} />
+            <DeleteDriverButton driver={driver} />
           </Box>
         </Box>
       </Paper>
@@ -297,13 +299,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         >
           {!driver.resolvedHardware && (
             <Alert severity="warning">
-              No LED hardware configured for this driver.
-              <br />
-              Edit&nbsp;
-              <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                ~/.rgfx/drivers.json
-              </Typography>
-              &nbsp; to configure LED hardware.
+              No LED hardware configured for this driver. Use the Configure Driver button to set up
+              LED hardware.
             </Alert>
           )}
         </InfoSection>

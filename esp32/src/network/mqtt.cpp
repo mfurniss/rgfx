@@ -38,16 +38,17 @@ uint32_t mqttMessagesReceived = 0;
 
 // Pre-allocated topic buffers (initialized once in initMQTTTopics)
 // Avoids heap fragmentation from repeated String allocations in reconnectMQTT()
+// All topics use MAC address as the immutable hardware identifier
 static const size_t TOPIC_BUFFER_SIZE = 64;
-static char topicStatus[TOPIC_BUFFER_SIZE];      // rgfx/driver/{id}/status
-static char topicConfig[TOPIC_BUFFER_SIZE];      // rgfx/driver/{mac}/config
-static char topicTest[TOPIC_BUFFER_SIZE];        // rgfx/driver/{id}/test
-static char topicReset[TOPIC_BUFFER_SIZE];       // rgfx/driver/{id}/reset
-static char topicReboot[TOPIC_BUFFER_SIZE];      // rgfx/driver/{id}/reboot
-static char topicLogging[TOPIC_BUFFER_SIZE];     // rgfx/driver/{mac}/logging
-static char topicClearEffects[TOPIC_BUFFER_SIZE]; // rgfx/driver/{id}/clear-effects
-static char topicWifi[TOPIC_BUFFER_SIZE];        // rgfx/driver/{id}/wifi
-static char clientId[32];                        // Device ID as client ID
+static char topicStatus[TOPIC_BUFFER_SIZE];       // rgfx/driver/{mac}/status
+static char topicConfig[TOPIC_BUFFER_SIZE];       // rgfx/driver/{mac}/config
+static char topicTest[TOPIC_BUFFER_SIZE];         // rgfx/driver/{mac}/test
+static char topicReset[TOPIC_BUFFER_SIZE];        // rgfx/driver/{mac}/reset
+static char topicReboot[TOPIC_BUFFER_SIZE];       // rgfx/driver/{mac}/reboot
+static char topicLogging[TOPIC_BUFFER_SIZE];      // rgfx/driver/{mac}/logging
+static char topicClearEffects[TOPIC_BUFFER_SIZE]; // rgfx/driver/{mac}/clear-effects
+static char topicWifi[TOPIC_BUFFER_SIZE];         // rgfx/driver/{mac}/wifi
+static char clientId[32];                         // Device ID as client ID
 static bool topicsInitialized = false;
 
 // Forward declarations
@@ -66,26 +67,27 @@ static bool pendingWifiConfig = false;
 static String pendingWifiSsid;
 static String pendingWifiPassword;
 
-// Initialize MQTT topic strings (called once when device ID is known)
+// Initialize MQTT topic strings using MAC address (immutable hardware identifier)
 static void initMQTTTopics() {
 	if (topicsInitialized) return;
 
 	String deviceId = Utils::getDeviceId();
 	String macAddress = WiFi.macAddress();
 
-	snprintf(topicStatus, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/status", deviceId.c_str());
+	// All topics use MAC address - no resubscription needed when driver ID changes
+	snprintf(topicStatus, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/status", macAddress.c_str());
 	snprintf(topicConfig, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/config", macAddress.c_str());
-	snprintf(topicTest, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/test", deviceId.c_str());
-	snprintf(topicReset, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reset", deviceId.c_str());
-	snprintf(topicReboot, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reboot", deviceId.c_str());
+	snprintf(topicTest, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/test", macAddress.c_str());
+	snprintf(topicReset, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reset", macAddress.c_str());
+	snprintf(topicReboot, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/reboot", macAddress.c_str());
 	snprintf(topicLogging, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/logging", macAddress.c_str());
-	snprintf(topicClearEffects, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/clear-effects", deviceId.c_str());
-	snprintf(topicWifi, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/wifi", deviceId.c_str());
+	snprintf(topicClearEffects, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/clear-effects", macAddress.c_str());
+	snprintf(topicWifi, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/wifi", macAddress.c_str());
 	strncpy(clientId, deviceId.c_str(), sizeof(clientId) - 1);
 	clientId[sizeof(clientId) - 1] = '\0';
 
 	topicsInitialized = true;
-	log("MQTT topics initialized for device: " + deviceId);
+	log("MQTT topics initialized for MAC: " + macAddress);
 }
 
 // MQTT callback function - called when a message is received

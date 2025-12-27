@@ -23,12 +23,15 @@ constexpr int KEY_SPACE = 32;
 constexpr int KEY_C = 67;
 constexpr int KEY_D = 68;
 constexpr int KEY_Q = 81;
+constexpr int KEY_S = 83;
 constexpr int KEY_ONE = 49;
 constexpr int KEY_TWO = 50;
 constexpr int KEY_THREE = 51;
 constexpr int KEY_FOUR = 52;
 constexpr int KEY_FIVE = 53;
 constexpr int KEY_SIX = 54;
+constexpr int KEY_SEVEN = 55;
+constexpr int KEY_EIGHT = 56;
 
 // Colors (ABGR format for raylib)
 constexpr uint32_t RAYLIB_BLACK = 0xFF000000;

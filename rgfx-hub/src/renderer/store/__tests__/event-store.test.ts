@@ -21,60 +21,66 @@ describe('useEventStore', () => {
     });
   });
 
-  describe('setTopics', () => {
-    it('should set topics from Record', () => {
-      const { setTopics } = useEventStore.getState();
+  describe('onEvent', () => {
+    it('should create new topic with count 1 on first event', () => {
+      const { onEvent } = useEventStore.getState();
 
-      setTopics({
-        'game/score': { count: 10, lastValue: '1000' },
-        'game/lives': { count: 3, lastValue: '2' },
-      });
+      onEvent('game/score', '1000');
 
       const { topics } = useEventStore.getState();
-      expect(topics['game/score']).toEqual({ count: 10, lastValue: '1000' });
-      expect(topics['game/lives']).toEqual({ count: 3, lastValue: '2' });
+      expect(topics['game/score']).toEqual({ count: 1, lastValue: '1000' });
     });
 
-    it('should replace all topics', () => {
-      const { setTopics } = useEventStore.getState();
+    it('should increment count on subsequent events', () => {
+      const { onEvent } = useEventStore.getState();
 
-      setTopics({ 'old/topic': { count: 5 } });
-      setTopics({ 'new/topic': { count: 1 } });
+      onEvent('game/score', '1000');
+      onEvent('game/score', '2000');
+      onEvent('game/score', '3000');
 
       const { topics } = useEventStore.getState();
-      expect(topics['old/topic']).toBeUndefined();
-      expect(topics['new/topic']).toEqual({ count: 1 });
+      expect(topics['game/score'].count).toBe(3);
     });
 
-    it('should handle empty object', () => {
-      const { setTopics } = useEventStore.getState();
+    it('should update lastValue on each event', () => {
+      const { onEvent } = useEventStore.getState();
 
-      setTopics({ 'game/score': { count: 10 } });
-      setTopics({});
+      onEvent('game/score', '1000');
+      expect(useEventStore.getState().topics['game/score'].lastValue).toBe('1000');
 
-      const { topics } = useEventStore.getState();
-      expect(Object.keys(topics).length).toBe(0);
+      onEvent('game/score', '2000');
+      expect(useEventStore.getState().topics['game/score'].lastValue).toBe('2000');
     });
 
-    it('should preserve lastValue when provided', () => {
-      const { setTopics } = useEventStore.getState();
+    it('should handle multiple topics independently', () => {
+      const { onEvent } = useEventStore.getState();
 
-      setTopics({ 'game/score': { count: 5, lastValue: '500' } });
+      onEvent('game/score', '1000');
+      onEvent('game/lives', '3');
+      onEvent('game/score', '2000');
 
       const { topics } = useEventStore.getState();
-      expect(topics['game/score'].lastValue).toBe('500');
+      expect(topics['game/score']).toEqual({ count: 2, lastValue: '2000' });
+      expect(topics['game/lives']).toEqual({ count: 1, lastValue: '3' });
+    });
+
+    it('should handle undefined payload', () => {
+      const { onEvent } = useEventStore.getState();
+
+      onEvent('game/event');
+
+      const { topics } = useEventStore.getState();
+      expect(topics['game/event']).toEqual({ count: 1, lastValue: undefined });
     });
   });
 
   describe('reset', () => {
     it('should clear all topics', () => {
-      const { setTopics, reset } = useEventStore.getState();
+      const { onEvent, reset } = useEventStore.getState();
 
-      setTopics({
-        'game/score': { count: 10 },
-        'game/lives': { count: 3 },
-        'game/level': { count: 2 },
-      });
+      onEvent('game/score', '1000');
+      onEvent('game/lives', '3');
+      onEvent('game/level', '1');
       expect(Object.keys(useEventStore.getState().topics).length).toBe(3);
 
       reset();
@@ -83,24 +89,24 @@ describe('useEventStore', () => {
     });
 
     it('should return empty object after reset', () => {
-      const { setTopics, reset } = useEventStore.getState();
+      const { onEvent, reset } = useEventStore.getState();
 
-      setTopics({ 'game/score': { count: 100 } });
+      onEvent('game/score', '1000');
       reset();
 
       const { topics } = useEventStore.getState();
       expect(topics).toEqual({});
     });
 
-    it('should allow setting topics after reset', () => {
-      const { setTopics, reset } = useEventStore.getState();
+    it('should allow receiving events after reset', () => {
+      const { onEvent, reset } = useEventStore.getState();
 
-      setTopics({ 'old/topic': { count: 5 } });
+      onEvent('old/topic', '5');
       reset();
-      setTopics({ 'new/topic': { count: 1 } });
+      onEvent('new/topic', '1');
 
       const { topics } = useEventStore.getState();
-      expect(topics).toEqual({ 'new/topic': { count: 1 } });
+      expect(topics).toEqual({ 'new/topic': { count: 1, lastValue: '1' } });
     });
   });
 });

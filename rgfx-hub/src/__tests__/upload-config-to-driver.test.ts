@@ -15,7 +15,9 @@ import type { MqttBroker } from '../network';
 vi.mock('electron-log/main', () => ({
   default: {
     info: vi.fn(),
+    warn: vi.fn(),
     error: vi.fn(),
+    debug: vi.fn(),
   },
 }));
 
@@ -65,7 +67,8 @@ describe('createUploadConfigToDriver', () => {
     mockDriverPersistence = mock<DriverPersistence>();
     mockLedHardwareManager = mock<LEDHardwareManager>();
     mockMqtt = mock<MqttBroker>();
-    mockMqtt.publish.mockResolvedValue(undefined);
+    // Mock publishAndAwaitResponse to simulate driver confirming config save
+    mockMqtt.publishAndAwaitResponse.mockResolvedValue('ok');
   });
 
   describe('successful upload', () => {
@@ -81,10 +84,12 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      expect(mockMqtt.publish).toHaveBeenCalledTimes(1);
-      expect(mockMqtt.publish).toHaveBeenCalledWith(
+      expect(mockMqtt.publishAndAwaitResponse).toHaveBeenCalledTimes(1);
+      expect(mockMqtt.publishAndAwaitResponse).toHaveBeenCalledWith(
         `rgfx/driver/${testMacAddress}/config`,
         expect.any(String),
+        `rgfx/driver/${testMacAddress}/config/saved`,
+        expect.any(Number),
       );
     });
 
@@ -100,7 +105,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
 
       expect(payload.id).toBe('rgfx-driver-0001');
@@ -118,7 +123,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
 
       expect(payload.led_devices).toHaveLength(1);
@@ -151,7 +156,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
 
       expect(payload.settings.global_brightness_limit).toBe(128);
@@ -183,7 +188,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
 
       expect(payload.settings.floor_r).toBe(10);
@@ -211,7 +216,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
 
       expect(payload.led_devices[0].offset).toBe(0);
@@ -231,7 +236,7 @@ describe('createUploadConfigToDriver', () => {
       await expect(uploadConfig(testMacAddress)).rejects.toThrow(
         `No driver found with MAC ${testMacAddress}`,
       );
-      expect(mockMqtt.publish).not.toHaveBeenCalled();
+      expect(mockMqtt.publishAndAwaitResponse).not.toHaveBeenCalled();
     });
 
     it('should throw when driver has no LED config', async () => {
@@ -251,7 +256,7 @@ describe('createUploadConfigToDriver', () => {
       await expect(uploadConfig(testMacAddress)).rejects.toThrow(
         'Driver rgfx-driver-0001 has no LED configuration',
       );
-      expect(mockMqtt.publish).not.toHaveBeenCalled();
+      expect(mockMqtt.publishAndAwaitResponse).not.toHaveBeenCalled();
     });
 
     it('should throw when LED hardware fails to load', async () => {
@@ -267,7 +272,7 @@ describe('createUploadConfigToDriver', () => {
       await expect(uploadConfig(testMacAddress)).rejects.toThrow(
         'Failed to load LED hardware: led-hardware/test-matrix.json',
       );
-      expect(mockMqtt.publish).not.toHaveBeenCalled();
+      expect(mockMqtt.publishAndAwaitResponse).not.toHaveBeenCalled();
     });
   });
 
@@ -320,7 +325,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
       const device = payload.led_devices[0];
 
@@ -355,7 +360,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
       const device = payload.led_devices[0];
 
@@ -391,7 +396,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
       const device = payload.led_devices[0];
 
@@ -421,7 +426,7 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
       const device = payload.led_devices[0];
 
@@ -456,13 +461,88 @@ describe('createUploadConfigToDriver', () => {
 
       await uploadConfig(testMacAddress);
 
-      const publishCall = mockMqtt.publish.mock.calls[0];
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
       const payload = JSON.parse(publishCall[1]);
       const device = payload.led_devices[0];
 
       // 1x2 grid of 60-LED strips = 120x1 display
       expect(device.width).toBe(120);
       expect(device.height).toBe(1);
+    });
+  });
+
+  describe('strip reverse configuration', () => {
+    it('should include reverse field in LED device config', async () => {
+      const driverWithReverse = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          reverse: true,
+        },
+      };
+
+      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithReverse);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.reverse).toBe(true);
+    });
+
+    it('should default reverse to false when not specified', async () => {
+      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.reverse).toBe(false);
+    });
+
+    it('should include reverse: false when explicitly set to false', async () => {
+      const driverWithReverseFalse = {
+        ...mockPersistedDriver,
+        ledConfig: {
+          ...mockPersistedDriver.ledConfig,
+          reverse: false,
+        },
+      };
+
+      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithReverseFalse);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverPersistence: mockDriverPersistence,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.reverse).toBe(false);
     });
   });
 });

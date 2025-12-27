@@ -44,6 +44,8 @@ set(ESP32_SOURCES
     ${ESP32_SRC_DIR}/effects/text.cpp
     ${ESP32_SRC_DIR}/effects/scroll_text.cpp
     ${ESP32_SRC_DIR}/effects/text_rendering.cpp
+    ${ESP32_SRC_DIR}/effects/spectrum.cpp
+    ${ESP32_SRC_DIR}/effects/particle_field.cpp
 
     # Fonts
     ${ESP32_SRC_DIR}/fonts/den_8x8.cpp

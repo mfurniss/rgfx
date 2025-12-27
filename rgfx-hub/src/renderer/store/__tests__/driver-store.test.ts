@@ -22,7 +22,6 @@ describe('driver-store', () => {
         hubIp: 'Unknown',
         eventsProcessed: 0,
         hubStartTime: 0,
-        eventTopics: {},
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
       },
@@ -282,6 +281,39 @@ describe('driver-store', () => {
       useDriverStore.getState().onDriverUpdated(sameDriver);
 
       expect(notificationStore.notify).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onDriverDeleted', () => {
+    it('should remove driver from store by ID', () => {
+      const driver1 = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF' });
+      const driver2 = createMockDriver({ id: 'rgfx-driver-0002', mac: '11:22:33:44:55:66' });
+      useDriverStore.getState().onDriverConnected(driver1);
+      useDriverStore.getState().onDriverConnected(driver2);
+
+      expect(useDriverStore.getState().drivers).toHaveLength(2);
+
+      useDriverStore.getState().onDriverDeleted('rgfx-driver-0001');
+
+      expect(useDriverStore.getState().drivers).toHaveLength(1);
+      expect(useDriverStore.getState().drivers[0].id).toBe('rgfx-driver-0002');
+    });
+
+    it('should show notification with driver ID', () => {
+      const driver = createMockDriver({ id: 'rgfx-driver-0001' });
+      useDriverStore.getState().onDriverConnected(driver);
+      vi.clearAllMocks();
+
+      useDriverStore.getState().onDriverDeleted('rgfx-driver-0001');
+
+      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 deleted', 'info');
+    });
+
+    it('should handle deleting non-existent driver gracefully', () => {
+      useDriverStore.getState().onDriverDeleted('nonexistent-driver');
+
+      expect(useDriverStore.getState().drivers).toHaveLength(0);
+      expect(notificationStore.notify).toHaveBeenCalledWith('nonexistent-driver deleted', 'info');
     });
   });
 });

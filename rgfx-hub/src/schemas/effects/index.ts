@@ -15,6 +15,7 @@ import projectileSchema from './projectile';
 import textSchema from './text';
 import scrollTextSchema from './scroll_text';
 import plasmaSchema from './plasma';
+import particleFieldSchema from './particle_field';
 
 /**
  * Map of effect names to their full schemas (includes name/description metadata)
@@ -29,6 +30,7 @@ export const effectSchemas = {
   text: textSchema,
   scroll_text: scrollTextSchema,
   plasma: plasmaSchema,
+  particle_field: particleFieldSchema,
 } as const;
 
 /**
@@ -45,6 +47,7 @@ export const effectPropsSchemas = {
   text: textSchema.omit({ name: true, description: true }),
   scroll_text: scrollTextSchema.omit({ name: true, description: true }),
   plasma: plasmaSchema.omit({ name: true, description: true }),
+  particle_field: particleFieldSchema.omit({ name: true, description: true }),
 } as const;
 
 type EffectName = keyof typeof effectSchemas;
@@ -59,7 +62,8 @@ type EffectProps =
   | z.infer<typeof projectileSchema>
   | z.infer<typeof textSchema>
   | z.infer<typeof scrollTextSchema>
-  | z.infer<typeof plasmaSchema>;
+  | z.infer<typeof plasmaSchema>
+  | z.infer<typeof particleFieldSchema>;
 
 /**
  * Check if a string is a valid effect name

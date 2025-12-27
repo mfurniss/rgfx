@@ -515,6 +515,7 @@ void test_wipe_multiple_concurrent() {
 
 	// First wipe: left to right, red
 	JsonDocument props1;
+	setDefaultWipeProps(props1);
 	props1["color"] = "#FF0000";
 	props1["duration"] = 2000;
 	props1["direction"] = "right";
@@ -522,6 +523,7 @@ void test_wipe_multiple_concurrent() {
 
 	// Second wipe: right to left, green
 	JsonDocument props2;
+	setDefaultWipeProps(props2);
 	props2["color"] = "#00FF00";
 	props2["duration"] = 2000;
 	props2["direction"] = "left";
@@ -592,6 +594,78 @@ void test_wipe_duration_very_short() {
 	TEST_ASSERT_FALSE(hasPixel);  // Should be gone
 }
 
+// =============================================================================
+// Blend Mode Tests
+// =============================================================================
+
+void test_wipe_blendmode_additive() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	// Set a base color on the canvas
+	canvas.drawRectangle(0, 0, canvas.getWidth(), canvas.getHeight(), CRGBA(100, 0, 0, 255), BlendMode::REPLACE);
+
+	JsonDocument props;
+	setDefaultWipeProps(props);
+	props["color"] = "#00FF00";  // Green
+	props["duration"] = 1000;
+	props["direction"] = "right";
+	props["blendMode"] = "additive";
+	effect.add(props);
+
+	effect.update(0.25f);  // 50% through fill phase
+	effect.render();
+
+	// With additive blending, pixels in the wipe area should have both red and green
+	bool hasAdditiveBlend = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth() / 2; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r > 0 && pixel.g > 0) {
+				hasAdditiveBlend = true;
+				break;
+			}
+		}
+		if (hasAdditiveBlend) break;
+	}
+	TEST_ASSERT_TRUE(hasAdditiveBlend);
+}
+
+void test_wipe_blendmode_replace() {
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	// Set a base color on the canvas
+	canvas.drawRectangle(0, 0, canvas.getWidth(), canvas.getHeight(), CRGBA(100, 0, 0, 255), BlendMode::REPLACE);
+
+	JsonDocument props;
+	setDefaultWipeProps(props);
+	props["color"] = "#00FF00";  // Green
+	props["duration"] = 1000;
+	props["direction"] = "right";
+	props["blendMode"] = "replace";
+	effect.add(props);
+
+	effect.update(0.25f);  // 50% through fill phase
+	effect.render();
+
+	// With replace blending, pixels in the wipe area should be pure green (no red)
+	bool foundPureGreen = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth() / 2; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.g > 0 && pixel.r == 0 && pixel.b == 0) {
+				foundPureGreen = true;
+				break;
+			}
+		}
+		if (foundPureGreen) break;
+	}
+	TEST_ASSERT_TRUE(foundPureGreen);
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -615,6 +689,10 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_wipe_strip_up_maps_to_left);
 	RUN_TEST(test_wipe_multiple_concurrent);
 	RUN_TEST(test_wipe_duration_very_short);
+
+	// Blend mode tests
+	RUN_TEST(test_wipe_blendmode_additive);
+	RUN_TEST(test_wipe_blendmode_replace);
 
 	return UNITY_END();
 }

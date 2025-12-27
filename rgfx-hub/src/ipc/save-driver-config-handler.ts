@@ -20,7 +20,7 @@ interface SaveDriverConfigHandlerDeps {
   driverRegistry: DriverRegistry;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
-  uploadConfigToDriver: (macAddress: string) => Promise<void>;
+  uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
 }
 
 export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDeps): void {
@@ -114,7 +114,14 @@ export function registerSaveDriverConfigHandler(deps: SaveDriverConfigHandlerDep
       // If driver is connected, push the new config to the device and reboot
       if (updatedDriver.state === 'connected') {
         log.info(`Driver ${currentId} is connected, uploading new config...`);
-        await uploadConfigToDriver(macAddress);
+
+        // Upload config and wait for driver to confirm it saved to NVS
+        const configSaved = await uploadConfigToDriver(macAddress);
+
+        if (configSaved) {
+          // Wait 1 second after confirmation to ensure config is fully persisted
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
 
         // Reboot the driver so it applies the new config (FastLED can't reinitialize)
         log.info(`Rebooting driver ${currentId} to apply new config...`);

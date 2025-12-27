@@ -24,10 +24,10 @@ export async function rebootDriver(driver: Driver, deps: RebootDriverDeps): Prom
   // Notify renderer that driver is restarting (suppresses disconnect notification)
   eventBus.emit('driver:restarting', { driver });
 
-  // Send reboot command
-  const rebootTopic = `rgfx/driver/${driver.id}/reboot`;
+  // Send reboot command (topics use MAC address as immutable identifier)
+  const rebootTopic = `rgfx/driver/${driver.mac}/reboot`;
   await mqtt.publish(rebootTopic, '');
-  log.info(`Reboot command sent to driver ${driver.id}`);
+  log.info(`Reboot command sent to driver ${driver.id} (${driver.mac})`);
 
   // Mark driver as disconnected
   driver.state = 'disconnected';
