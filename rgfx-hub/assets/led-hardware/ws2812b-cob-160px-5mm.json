@@ -1,0 +1,10 @@
+{
+  "name": "WS2812B COB LED Strip 160px/m 5mm DC5V",
+  "description": "1m WS2812B COB LED strip, 160 pixels/m, high density dreamcolor pixel light, 5mm FPCB width, DC5V, 12W/m",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 160,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}
