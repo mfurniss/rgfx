@@ -89,7 +89,7 @@ const DriverLEDConfigSchema = z.object({
     g: z.number().int().min(0).max(255),
     b: z.number().int().min(0).max(255),
   }).default({ r: 0, g: 0, b: 0 }),
-});
+}).strict();
 
 /**
  * Remote logging level for driver-to-hub log forwarding
@@ -112,7 +112,7 @@ export const PersistedDriverSchema = z.object({
   ledConfig: DriverLEDConfigSchema.nullable().optional(),
   remoteLogging: RemoteLoggingLevelSchema.optional().default('errors'),
   disabled: z.boolean().optional().default(false),
-});
+}).strict();
 
 export type PersistedDriverFromSchema = z.infer<typeof PersistedDriverSchema>;
 

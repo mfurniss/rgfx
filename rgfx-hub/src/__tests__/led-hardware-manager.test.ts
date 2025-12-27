@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import { LEDHardwareManager } from '../led-hardware-manager';
+import { ConfigError } from '../errors/config-error';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -85,17 +86,22 @@ describe('LEDHardwareManager', () => {
       expect(mockFs.readFileSync).not.toHaveBeenCalled();
     });
 
-    it('should return null for invalid JSON', () => {
+    it('should throw ConfigError for invalid JSON', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue('not valid json');
 
       const manager = new LEDHardwareManager('/config');
-      const hardware = manager.loadHardware('led-hardware/invalid.json');
+      expect(() => manager.loadHardware('led-hardware/invalid.json')).toThrow(ConfigError);
 
-      expect(hardware).toBeNull();
+      try {
+        manager.loadHardware('led-hardware/invalid.json');
+      } catch (error) {
+        expect((error as ConfigError).message).toContain('Failed to parse');
+        expect((error as ConfigError).filePath).toContain('invalid.json');
+      }
     });
 
-    it('should return null for JSON that fails schema validation', () => {
+    it('should throw ConfigError for JSON that fails schema validation', () => {
       mockFs.existsSync.mockReturnValue(true);
       // Missing required 'name' field
       mockFs.readFileSync.mockReturnValue(
@@ -107,21 +113,24 @@ describe('LEDHardwareManager', () => {
       );
 
       const manager = new LEDHardwareManager('/config');
-      const hardware = manager.loadHardware('led-hardware/invalid-schema.json');
+      expect(() => manager.loadHardware('led-hardware/invalid-schema.json')).toThrow(ConfigError);
 
-      expect(hardware).toBeNull();
+      try {
+        manager.loadHardware('led-hardware/invalid-schema.json');
+      } catch (error) {
+        expect((error as ConfigError).message).toContain('invalid structure');
+      }
     });
 
-    it('should handle file read errors', () => {
+    it('should propagate file read errors (not ConfigError)', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockImplementation(() => {
         throw new Error('Permission denied');
       });
 
       const manager = new LEDHardwareManager('/config');
-      const hardware = manager.loadHardware('led-hardware/no-access.json');
-
-      expect(hardware).toBeNull();
+      // File read errors are not caught - they propagate as-is
+      expect(() => manager.loadHardware('led-hardware/no-access.json')).toThrow('Permission denied');
     });
 
     it('should resolve path correctly with base directory', () => {
