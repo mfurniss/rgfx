@@ -299,13 +299,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         >
           {!driver.resolvedHardware && (
             <Alert severity="warning">
-              No LED hardware configured for this driver.
-              <br />
-              Edit&nbsp;
-              <Typography component="span" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                ~/.rgfx/drivers.json
-              </Typography>
-              &nbsp; to configure LED hardware.
+              No LED hardware configured for this driver. Use the Configure Drivers to set up
+              LED hardware.
             </Alert>
           )}
         </InfoSection>
