@@ -4,15 +4,32 @@ import { render, screen } from '@testing-library/react';
 import App from '../app';
 import type { Driver, SystemStatus, SystemError } from '@/types';
 
-// Mock Zustand store
+// Mock Zustand driver store
 const mockOnDriverConnected = vi.fn();
 const mockOnDriverDisconnected = vi.fn();
 const mockOnDriverUpdated = vi.fn();
 const mockOnDriverRestarting = vi.fn();
 const mockOnDriverDeleted = vi.fn();
-const mockOnSystemStatusUpdate = vi.fn();
 const mockConnectedDrivers = vi.fn().mockReturnValue([]);
 const mockGetDriverById = vi.fn().mockReturnValue(undefined);
+
+const createMockDriverState = () => ({
+  drivers: [],
+  onDriverConnected: mockOnDriverConnected,
+  onDriverDisconnected: mockOnDriverDisconnected,
+  onDriverUpdated: mockOnDriverUpdated,
+  onDriverRestarting: mockOnDriverRestarting,
+  onDriverDeleted: mockOnDriverDeleted,
+  connectedDrivers: mockConnectedDrivers,
+  getDriverById: mockGetDriverById,
+});
+
+vi.mock('../store/driver-store', () => ({
+  useDriverStore: vi.fn((selector) => selector(createMockDriverState())),
+}));
+
+// Mock Zustand system status store
+const mockOnSystemStatusUpdate = vi.fn();
 
 let mockSystemStatus: SystemStatus = {
   mqttBroker: 'running',
@@ -28,21 +45,13 @@ let mockSystemStatus: SystemStatus = {
   systemErrors: [],
 };
 
-const createMockState = () => ({
-  drivers: [],
+const createMockSystemStatusState = () => ({
   systemStatus: mockSystemStatus,
-  onDriverConnected: mockOnDriverConnected,
-  onDriverDisconnected: mockOnDriverDisconnected,
-  onDriverUpdated: mockOnDriverUpdated,
-  onDriverRestarting: mockOnDriverRestarting,
-  onDriverDeleted: mockOnDriverDeleted,
   onSystemStatusUpdate: mockOnSystemStatusUpdate,
-  connectedDrivers: mockConnectedDrivers,
-  getDriverById: mockGetDriverById,
 });
 
-vi.mock('../store/driver-store', () => ({
-  useDriverStore: vi.fn((selector) => selector(createMockState())),
+vi.mock('../store/system-status-store', () => ({
+  useSystemStatusStore: vi.fn((selector) => selector(createMockSystemStatusState())),
 }));
 
 describe('App IPC Listener Registration', () => {

@@ -883,7 +883,100 @@ void test_bitmap_easing_default_linear() {
 }
 
 // =============================================================================
-// 9. Strip Layout Tests
+// 9. LED Quantization Tests
+// =============================================================================
+
+void test_bitmap_random_x_snapped_to_led() {
+	// Random X positions should always be snapped to LED boundaries (multiples of 4)
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+
+	// Test multiple random seeds to verify snapping works
+	for (int seed = 0; seed < 10; seed++) {
+		hal::test::seedRandom(seed * 1000);
+		BitmapEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 1000;
+		props["centerX"] = "random";
+		props["centerY"] = 50;  // Fixed Y
+		JsonArray image = props["image"].to<JsonArray>();
+		image.add("7");  // Single pixel
+
+		effect.add(props);
+		canvas.clear();
+		effect.render();
+
+		BoundingBox box = findBoundingBox(canvas);
+		if (box.valid) {
+			// minX should be a multiple of 4 (LED boundary)
+			TEST_ASSERT_EQUAL_MESSAGE(0, box.minX % 4, "X position not snapped to LED boundary");
+		}
+	}
+}
+
+void test_bitmap_random_y_snapped_to_led() {
+	// Random Y positions should always be snapped to LED boundaries (multiples of 4)
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+
+	// Test multiple random seeds to verify snapping works
+	for (int seed = 0; seed < 10; seed++) {
+		hal::test::seedRandom(seed * 1000);
+		BitmapEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 1000;
+		props["centerX"] = 50;  // Fixed X
+		props["centerY"] = "random";
+		JsonArray image = props["image"].to<JsonArray>();
+		image.add("7");  // Single pixel
+
+		effect.add(props);
+		canvas.clear();
+		effect.render();
+
+		BoundingBox box = findBoundingBox(canvas);
+		if (box.valid) {
+			// minY should be a multiple of 4 (LED boundary)
+			TEST_ASSERT_EQUAL_MESSAGE(0, box.minY % 4, "Y position not snapped to LED boundary");
+		}
+	}
+}
+
+void test_bitmap_both_random_snapped_to_led() {
+	// Both random X and Y should be snapped to LED boundaries
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+
+	for (int seed = 0; seed < 10; seed++) {
+		hal::test::seedRandom(seed * 1000);
+		BitmapEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 1000;
+		props["centerX"] = "random";
+		props["centerY"] = "random";
+		JsonArray image = props["image"].to<JsonArray>();
+		image.add("7");
+
+		effect.add(props);
+		canvas.clear();
+		effect.render();
+
+		BoundingBox box = findBoundingBox(canvas);
+		if (box.valid) {
+			TEST_ASSERT_EQUAL_MESSAGE(0, box.minX % 4, "X position not snapped to LED boundary");
+			TEST_ASSERT_EQUAL_MESSAGE(0, box.minY % 4, "Y position not snapped to LED boundary");
+		}
+	}
+}
+
+// =============================================================================
+// 10. Strip Layout Tests
 // =============================================================================
 
 void test_bitmap_on_strip() {
@@ -967,7 +1060,12 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_easing_quadraticOut);
 	RUN_TEST(test_bitmap_easing_default_linear);
 
-	// 9. Strip Layout Tests
+	// 9. LED Quantization Tests
+	RUN_TEST(test_bitmap_random_x_snapped_to_led);
+	RUN_TEST(test_bitmap_random_y_snapped_to_led);
+	RUN_TEST(test_bitmap_both_random_snapped_to_led);
+
+	// 10. Strip Layout Tests
 	RUN_TEST(test_bitmap_on_strip);
 
 	return UNITY_END();

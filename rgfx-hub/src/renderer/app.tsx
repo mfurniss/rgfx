@@ -19,6 +19,7 @@ import SettingsPage from './pages/settings-page';
 import AboutPage from './pages/about-page';
 import SupportPage from './pages/support-page';
 import { useDriverStore } from './store/driver-store';
+import { useSystemStatusStore } from './store/system-status-store';
 import { useEventStore } from './store/event-store';
 import { useAppInfoStore } from './store/app-info-store';
 import { useSimulatorAutoTrigger } from './hooks/use-simulator-auto-trigger';
@@ -57,19 +58,19 @@ const AnimatedRoutes: React.FC = () => {
 const App: React.FC = () => {
   // Get actions from Zustand stores
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
-  const systemStatus = useDriverStore((state) => state.systemStatus);
+  const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
+  const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
+  const onDriverRestarting = useDriverStore((state) => state.onDriverRestarting);
+  const onDriverDeleted = useDriverStore((state) => state.onDriverDeleted);
+  const systemStatus = useSystemStatusStore((state) => state.systemStatus);
+  const onSystemStatusUpdate = useSystemStatusStore((state) => state.onSystemStatusUpdate);
+  const onEvent = useEventStore((state) => state.onEvent);
 
   // Check for critical config errors
   const configError = systemStatus.systemErrors.find((e) => e.errorType === 'config');
 
   // Run simulator auto-trigger at app level so it persists across navigation
   useSimulatorAutoTrigger();
-  const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
-  const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
-  const onDriverRestarting = useDriverStore((state) => state.onDriverRestarting);
-  const onDriverDeleted = useDriverStore((state) => state.onDriverDeleted);
-  const onSystemStatusUpdate = useDriverStore((state) => state.onSystemStatusUpdate);
-  const onEvent = useEventStore((state) => state.onEvent);
 
   useEffect(() => {
     console.log('[APP] Registering IPC listeners');

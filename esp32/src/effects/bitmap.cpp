@@ -25,19 +25,21 @@ CRGBA colorToRGBA(uint32_t color) {
 
 // Parse coordinate value as percentage (0-100) or "random", returns -1 if not present
 float parseCoordinate(JsonVariant prop, float canvasSize) {
-	if (prop.is<const char*>() && strcmp(prop.as<const char*>(), "random") == 0) {
-		float percent = static_cast<float>(hal::random(101));
-		return (percent / 100.0f) * canvasSize;
-	} else if (prop.is<float>() || prop.is<int>()) {
+	if (prop.is<const char*>()) {
+		const char* str = prop.as<const char*>();
+		if (str[0] == '\0') {
+			return -1.0f;  // Empty string = not present
+		}
+		if (strcmp(str, "random") == 0) {
+			float percent = static_cast<float>(hal::random(101));
+			return (percent / 100.0f) * canvasSize;
+		}
+	}
+	if (prop.is<float>() || prop.is<int>()) {
 		float percent = prop.as<float>();
 		return (percent / 100.0f) * canvasSize;
 	}
 	return -1.0f;  // Not present
-}
-
-// Snap coordinate to LED boundary (multiples of scale)
-float snapToLed(float coord, uint8_t scale) {
-	return static_cast<float>((static_cast<int16_t>(coord) / scale) * scale);
 }
 
 // Calculate fade alpha based on elapsed time and fade configuration (linear fade)
@@ -125,12 +127,6 @@ void BitmapEffect::add(JsonDocument& props) {
 	newBitmap.elapsedTime = 0;
 	newBitmap.imageWidth = 0;
 	newBitmap.imageHeight = 0;
-
-	// Snap all coordinates to LED boundaries at parse time
-	newBitmap.centerX = snapToLed(centerX, scale);
-	newBitmap.centerY = snapToLed(centerY, scale);
-	newBitmap.endX = hasEndPosition ? snapToLed(endX, scale) : newBitmap.centerX;
-	newBitmap.endY = hasEndPosition ? snapToLed(endY, scale) : newBitmap.centerY;
 	newBitmap.hasEndPosition = hasEndPosition;
 
 	// Parse easing function
@@ -185,6 +181,33 @@ void BitmapEffect::add(JsonDocument& props) {
 				}
 			}
 		}
+	}
+
+	// Now that we know the image dimensions, snap start/end coordinates to LED boundaries.
+	// We need to account for the centering offset: the bitmap's top-left corner is at
+	// (center - scaledDimension/2), so we snap that offset and work back to the center.
+	uint16_t scaledWidth = newBitmap.imageWidth * scale;
+	uint16_t scaledHeight = newBitmap.imageHeight * scale;
+
+	// Snap start position: compute offset, snap it, then convert back to center
+	int16_t offsetX = static_cast<int16_t>(centerX) - (scaledWidth / 2);
+	int16_t offsetY = static_cast<int16_t>(centerY) - (scaledHeight / 2);
+	offsetX = (offsetX / scale) * scale;
+	offsetY = (offsetY / scale) * scale;
+	newBitmap.centerX = static_cast<float>(offsetX + (scaledWidth / 2));
+	newBitmap.centerY = static_cast<float>(offsetY + (scaledHeight / 2));
+
+	// Snap end position (if specified)
+	if (hasEndPosition) {
+		offsetX = static_cast<int16_t>(endX) - (scaledWidth / 2);
+		offsetY = static_cast<int16_t>(endY) - (scaledHeight / 2);
+		offsetX = (offsetX / scale) * scale;
+		offsetY = (offsetY / scale) * scale;
+		newBitmap.endX = static_cast<float>(offsetX + (scaledWidth / 2));
+		newBitmap.endY = static_cast<float>(offsetY + (scaledHeight / 2));
+	} else {
+		newBitmap.endX = newBitmap.centerX;
+		newBitmap.endY = newBitmap.centerY;
 	}
 
 	bitmaps.push_back(std::move(newBitmap));
