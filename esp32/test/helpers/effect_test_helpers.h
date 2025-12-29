@@ -382,15 +382,26 @@ inline void setDefaultScrollTextProps(JsonDocument& props) {
 }
 
 /**
- * Create default bitmap props (matches hub schema defaults)
+ * Add PICO-8 palette to props (for bitmap effect tests)
  */
-inline void setDefaultBitmapProps(JsonDocument& props) {
-	props["color"] = "#FFFF00";
-	props["reset"] = false;
-	props["centerX"] = 50;
-	props["centerY"] = 50;
-	props["duration"] = 400;
-	// Note: image array would need to be set separately if testing image rendering
+inline void addPico8Palette(JsonDocument& props) {
+	JsonArray palette = props["palette"].to<JsonArray>();
+	palette.add("#000000");  // 0: Black
+	palette.add("#1D2B53");  // 1: Dark Blue
+	palette.add("#7E2553");  // 2: Dark Purple
+	palette.add("#008751");  // 3: Dark Green
+	palette.add("#AB5236");  // 4: Brown
+	palette.add("#5F574F");  // 5: Dark Gray
+	palette.add("#C2C3C7");  // 6: Light Gray
+	palette.add("#FFF1E8");  // 7: White
+	palette.add("#FF004D");  // 8: Red
+	palette.add("#FFA300");  // 9: Orange
+	palette.add("#FFEC27");  // A: Yellow
+	palette.add("#00E436");  // B: Green
+	palette.add("#29ADFF");  // C: Blue
+	palette.add("#83769C");  // D: Lavender
+	palette.add("#FF77A8");  // E: Pink
+	palette.add("#FFCCAA");  // F: Peach
 }
 
 // =============================================================================
@@ -517,18 +528,6 @@ inline JsonDocument mockScrollTextProps(const char* text = "Scrolling", const ch
 	return props;
 }
 
-/**
- * Create a mock bitmap effect payload
- * @param color Hex color string (default: "#FFFF00")
- * @param duration Duration in ms (default: 400)
- */
-inline JsonDocument mockBitmapProps(const char* color = "#FFFF00", uint32_t duration = 400) {
-	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = color;
-	props["duration"] = duration;
-	return props;
-}
 
 /**
  * Create default spectrum props

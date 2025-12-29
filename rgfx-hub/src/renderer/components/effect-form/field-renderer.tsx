@@ -144,6 +144,9 @@ export function FieldRenderer<T extends FieldValues>({
   const label = formatLabel(field.name);
 
   switch (field.type) {
+    case 'hidden':
+      return null;
+
     case 'enum':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>

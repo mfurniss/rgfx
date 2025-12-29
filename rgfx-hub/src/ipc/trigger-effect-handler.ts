@@ -10,6 +10,7 @@ import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import { UDP_PORT } from '../config/constants';
 import type { UdpClient, EffectPayload } from '../types/transformer-types';
+import { safeValidateEffectProps } from '../schemas';
 
 interface TriggerEffectHandlerDeps {
   udpClient: UdpClient;
@@ -24,16 +25,30 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
 
   ipcMain.handle('effect:trigger', (_event, payload: EffectPayload) => {
     try {
+      // Validate and apply schema defaults to props
+      const result = safeValidateEffectProps(payload.effect, payload.props);
+
+      if (!result.success) {
+        log.error('Invalid effect props:', result.error);
+        throw new Error(`Invalid effect props: ${result.error.message}`);
+      }
+
+      // Build payload with validated props (schema defaults now applied)
+      const validatedPayload: EffectPayload = {
+        ...payload,
+        props: result.data as Record<string, unknown>,
+      };
+
       // Send to registered drivers FIRST - minimize latency
-      udpClient.broadcast(payload);
+      udpClient.broadcast(validatedPayload);
 
       // Also send to localhost for led-sim
-      const { drivers: _targetDriverIds, ...effectData } = payload;
+      const { drivers: _targetDriverIds, ...effectData } = validatedPayload;
       const message = Buffer.from(JSON.stringify(effectData));
       localhostSocket.send(message, UDP_PORT, '127.0.0.1');
 
       // Log AFTER sending to avoid blocking the hot path
-      log.info(`Effect broadcast: ${payload.effect}`, payload);
+      log.info(`Effect broadcast: ${payload.effect}`, validatedPayload);
     } catch (error) {
       log.error('Failed to broadcast effect:', error);
       throw error;

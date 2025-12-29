@@ -41,7 +41,7 @@ export default z
       .max(20)
       .optional()
       .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
-      .describe('Gradient colors (2-20 hex colors)'),
+      .describe('fieldType:gradientPreset|Gradient colors (2-20 hex colors)'),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
