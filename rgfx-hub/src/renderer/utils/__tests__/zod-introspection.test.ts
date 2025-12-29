@@ -164,12 +164,19 @@ describe('zod-introspection', () => {
         }
       });
 
-      it('should extract default values for all fields', () => {
+      it('should extract default values for fields that have them', () => {
+        // Fields that are purely optional (no default) are allowed
+        const optionalFieldsWithoutDefaults = ['endX', 'endY'];
+
         for (const [schemaName, schema] of Object.entries(effectPropsSchemas)) {
           const fields = extractFieldMetadata(schema);
 
           for (const field of fields) {
-            // Every field should have a default value (since all props are optional with defaults)
+            if (optionalFieldsWithoutDefaults.includes(field.name)) {
+              continue;
+            }
+
+            // Most fields should have a default value
             expect(
               field.defaultValue,
               `${schemaName}.${field.name} should have a default value`,
@@ -204,8 +211,8 @@ describe('zod-introspection', () => {
       expect(easingField?.type).toBe('enum');
     });
 
-    it('should detect centerX/Y as centerXY type', () => {
-      // centerX/Y are unions of: 'random' literal | number
+    it('should detect centerX/Y as centerXY type via fieldType annotation', () => {
+      // centerX/Y must use explicit fieldType:centerXY annotation
       const fields = extractFieldMetadata(effectPropsSchemas.explode);
       const centerXField = fields.find((f) => f.name === 'centerX');
       const centerYField = fields.find((f) => f.name === 'centerY');
