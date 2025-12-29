@@ -15,7 +15,49 @@ type FieldType =
   | 'color'
   | 'centerXY'
   | 'spritePreset'
-  | 'gradientPreset';
+  | 'gradientPreset'
+  | 'hidden';
+
+const VALID_FIELD_TYPES: readonly FieldType[] = [
+  'enum',
+  'boolean',
+  'number',
+  'string',
+  'color',
+  'centerXY',
+  'spritePreset',
+  'gradientPreset',
+  'hidden',
+];
+
+/**
+ * Parse explicit field type from description string.
+ * Format: 'fieldType:typeName|Human readable description'
+ * Returns the field type and cleaned description (without prefix).
+ */
+function parseFieldType(description: string | undefined): {
+  fieldType: FieldType | null;
+  cleanDescription: string | undefined;
+} {
+  if (!description) {
+    return { fieldType: null, cleanDescription: undefined };
+  }
+
+  const match = /^fieldType:(\w+)\|(.*)$/.exec(description);
+
+  if (match) {
+    const [, type, desc] = match;
+
+    if (VALID_FIELD_TYPES.includes(type as FieldType)) {
+      return {
+        fieldType: type as FieldType,
+        cleanDescription: desc || undefined,
+      };
+    }
+  }
+
+  return { fieldType: null, cleanDescription: description };
+}
 
 interface FieldConstraints {
   min?: number;
@@ -180,102 +222,6 @@ function isCenterSchema(schema: z.ZodType): boolean {
 }
 
 /**
- * Zod 4 check object interface
- * In Zod 4, checks have _zod.def with check type and constraint value
- */
-interface Zod4Check {
-  _zod?: {
-    def?: {
-      check?: string;
-      minimum?: number;
-      maximum?: number;
-    };
-  };
-}
-
-/**
- * Check if array schema has a minimum length constraint >= threshold
- * Handles both Zod 3 (kind/value) and Zod 4 (_zod.def.check/minimum) formats
- */
-function hasMinLengthConstraint(checks: unknown[], threshold: number): boolean {
-  return checks.some((check) => {
-    // Zod 4 format: check._zod.def.check === 'min_length' and check._zod.def.minimum
-    const zod4Check = check as Zod4Check;
-
-    if (zod4Check._zod?.def?.check === 'min_length') {
-      return (zod4Check._zod.def.minimum ?? 0) >= threshold;
-    }
-
-    // Zod 3 format: check.kind === 'min' and check.value
-    const zod3Check = check as { kind?: string; value?: number };
-
-    if (zod3Check.kind === 'min') {
-      return (zod3Check.value ?? 0) >= threshold;
-    }
-
-    return false;
-  });
-}
-
-/**
- * Check if schema is an array of strings (sprite data)
- * Sprite arrays don't have min/max constraints
- */
-function isSpriteArraySchema(schema: z.ZodType): boolean {
-  if (!hasZodDef(schema)) {
-    return false;
-  }
-
-  const { def } = schema._zod;
-
-  if (def.type !== 'array') {
-    return false;
-  }
-
-  // Check if element type is string
-  const { element } = def as { element?: z.ZodType };
-
-  if (element && hasZodDef(element) && element._zod.def.type === 'string') {
-    // If it has min constraint >= 2, it's a gradient, not a sprite
-    if (def.checks && hasMinLengthConstraint(def.checks, 2)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Check if schema is an array of hex color strings (gradient data)
- * Gradient arrays have min constraint >= 2
- */
-function isGradientArraySchema(schema: z.ZodType): boolean {
-  if (!hasZodDef(schema)) {
-    return false;
-  }
-
-  const { def } = schema._zod;
-
-  if (def.type !== 'array') {
-    return false;
-  }
-
-  // Check if element type is string (hex colors are strings)
-  const { element } = def as { element?: z.ZodType };
-
-  if (element && hasZodDef(element) && element._zod.def.type === 'string') {
-    // Check for min constraint >= 2 (gradients need at least 2 colors)
-    if (def.checks && hasMinLengthConstraint(def.checks, 2)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
  * Extract enum values from a ZodEnum schema
  */
 function extractEnumValues(schema: z.ZodType): readonly string[] | undefined {
@@ -358,6 +304,19 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
 function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
   const { innerSchema, defaultValue, description } = unwrapSchema(schema);
 
+  // Check for explicit field type in description first
+  const { fieldType, cleanDescription } = parseFieldType(description);
+
+  if (fieldType) {
+    return {
+      name,
+      type: fieldType,
+      defaultValue,
+      description: cleanDescription,
+    };
+  }
+
+  // Fall back to inference for backwards compatibility
   if (isColorSchema(innerSchema)) {
     return {
       name,
@@ -372,24 +331,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     return {
       name,
       type: 'centerXY',
-      defaultValue,
-      description,
-    };
-  }
-
-  if (isGradientArraySchema(innerSchema)) {
-    return {
-      name,
-      type: 'gradientPreset',
-      defaultValue,
-      description,
-    };
-  }
-
-  if (isSpriteArraySchema(innerSchema)) {
-    return {
-      name,
-      type: 'spritePreset',
       defaultValue,
       description,
     };

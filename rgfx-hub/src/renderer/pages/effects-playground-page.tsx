@@ -422,6 +422,7 @@ export default function TestEffectsPage() {
                 color="primary"
                 onClick={handleTriggerEffect}
                 icon={<ScienceIcon />}
+                disabled={selectedDrivers.size === 0}
               >
                 Trigger Effect
               </SuperButton>
@@ -430,6 +431,7 @@ export default function TestEffectsPage() {
                 color="primary"
                 onClick={handleRandomTrigger}
                 icon={<ShuffleIcon />}
+                disabled={selectedDrivers.size === 0}
               >
                 Random Trigger
               </SuperButton>

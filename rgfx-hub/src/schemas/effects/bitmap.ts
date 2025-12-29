@@ -9,35 +9,74 @@ import { z } from 'zod';
 import { baseEffect, centerX, centerY } from './properties';
 
 /**
+ * PICO-8 default palette - 16 colors designed for retro games
+ * @see https://lospec.com/palette-list/pico-8
+ */
+const PICO8_PALETTE = [
+  '#000000', // 0: Black
+  '#1D2B53', // 1: Dark Blue
+  '#7E2553', // 2: Dark Purple
+  '#008751', // 3: Dark Green
+  '#AB5236', // 4: Brown
+  '#5F574F', // 5: Dark Gray
+  '#C2C3C7', // 6: Light Gray
+  '#FFF1E8', // 7: White
+  '#FF004D', // 8: Red
+  '#FFA300', // 9: Orange
+  '#FFEC27', // A: Yellow
+  '#00E436', // B: Green
+  '#29ADFF', // C: Blue
+  '#83769C', // D: Lavender
+  '#FF77A8', // E: Pink
+  '#FFCCAA', // F: Peach
+];
+
+// Hex color string for palette entries
+const paletteColorSchema = z.string().regex(/^#?[0-9a-fA-F]{6}$/, 'Invalid hex color format');
+
+/**
  * Bitmap effect props schema
  * Displays a bitmap image on the LED matrix
+ *
+ * Image format:
+ * - Space or '.' = transparent pixel
+ * - '0'-'9' = palette index 0-9
+ * - 'A'-'F' (case insensitive) = palette index 10-15
  */
 export default baseEffect
   .extend({
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
-    centerX,
-    centerY,
-    duration: z.number().positive().optional().default(400),
+    centerX: centerX.default('random'),
+    centerY: centerY.default('random'),
+    duration: z.number().positive().optional().default(600),
+    palette: z
+      .array(paletteColorSchema)
+      .min(1)
+      .max(16)
+      .optional()
+      .default(PICO8_PALETTE)
+      .describe('fieldType:hidden|Array of up to 16 hex colors for palette indices 0-F'),
     image: z
       .array(z.string())
+      .describe('fieldType:spritePreset|Sprite image data')
       .default([
-        '     XXXXXX     ',
-        '   XXXXXXXXXX   ',
-        '  XXXXXXXXXXXX  ',
-        ' XXXXXXXXXXX    ',
-        ' XXXXXXXXXX     ',
-        'XXXXXXXXX       ',
-        'XXXXXXXX        ',
-        'XXXXXXX         ',
-        'XXXXXXX         ',
-        'XXXXXXXX        ',
-        'XXXXXXXXX       ',
-        ' XXXXXXXXXX     ',
-        ' XXXXXXXXXXX    ',
-        '  XXXXXXXXXXXX  ',
-        '   XXXXXXXXXX   ',
-        '     XXXXXX     ',
+        '.......A........',
+        '......AAA.......',
+        '....BBBBBAAAA...',
+        '...BBBBBBBAA....',
+        '..B7B77BBBB.....',
+        '..70B077BBBAAA..',
+        '..70B077BBBBA...',
+        '.B70B077AABB....',
+        '.A70B077AAABAA..',
+        '.BB7B77BA0BBA...',
+        '..0070000BEB....',
+        '..BBBBBBBEEEB...',
+        '...7777BEEEEB...',
+        '..777777BEEBBA..',
+        'EEE777EEBBBBBBA.',
+        '.EE77EEEEEBBBBBB',
       ]),
   })
   .strict();
