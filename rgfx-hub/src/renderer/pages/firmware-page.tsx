@@ -20,6 +20,7 @@ import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as Firmwa
 import { PageTitle } from '../components/layout/page-title';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
+import { useSystemStatusStore } from '../store/system-status-store';
 import { useUiStore, type FlashMethod, type DriverFlashStatus } from '../store/ui-store';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
@@ -27,7 +28,7 @@ import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
 const FirmwarePage: React.FC = () => {
   // Driver store
   const drivers = useDriverStore((state) => state.drivers);
-  const currentFirmwareVersion = useDriverStore(
+  const currentFirmwareVersion = useSystemStatusStore(
     (state) => state.systemStatus.currentFirmwareVersion,
   );
   const connectedDrivers = drivers.filter((d) => d.state === 'connected');

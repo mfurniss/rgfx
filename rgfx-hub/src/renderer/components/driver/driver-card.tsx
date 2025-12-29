@@ -21,7 +21,7 @@ import DeleteDriverButton from './delete-driver-button';
 import TelemetryCharts from '../charts/telemetry-charts';
 import { formatBytes, formatUptime, formatNumber } from '../../utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
-import { useDriverStore } from '../../store/driver-store';
+import { useSystemStatusStore } from '../../store/system-status-store';
 
 interface DriverCardProps {
   driver: Driver;
@@ -32,7 +32,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const location = useLocation();
   const { telemetry } = driver;
   const [now, setNow] = useState(Date.now());
-  const { currentFirmwareVersion } = useDriverStore((state) => state.systemStatus);
+  const { currentFirmwareVersion } = useSystemStatusStore((state) => state.systemStatus);
 
   // Update every second for live timestamps and uptime - only when component is visible
   useEffect(() => {
