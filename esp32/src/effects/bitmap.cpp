@@ -41,18 +41,28 @@ void BitmapEffect::add(JsonDocument& props) {
 		}
 	}
 
-	// Parse center position as percentage (0-100) - hub must provide these
-	if (!props["centerX"].is<float>() && !props["centerX"].is<int>()) {
+	// Parse center position as percentage (0-100) or "random"
+	float centerXPercent;
+	if (props["centerX"].is<const char*>() &&
+	    strcmp(props["centerX"].as<const char*>(), "random") == 0) {
+		centerXPercent = static_cast<float>(hal::random(101));
+	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
+		centerXPercent = props["centerX"].as<float>();
+	} else {
 		hal::log("ERROR: bitmap missing required 'centerX' prop");
 		return;
 	}
-	float centerXPercent = props["centerX"].as<float>();
 
-	if (!props["centerY"].is<float>() && !props["centerY"].is<int>()) {
+	float centerYPercent;
+	if (props["centerY"].is<const char*>() &&
+	    strcmp(props["centerY"].as<const char*>(), "random") == 0) {
+		centerYPercent = static_cast<float>(hal::random(101));
+	} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
+		centerYPercent = props["centerY"].as<float>();
+	} else {
 		hal::log("ERROR: bitmap missing required 'centerY' prop");
 		return;
 	}
-	float centerYPercent = props["centerY"].as<float>();
 
 	Bitmap newBitmap;
 	newBitmap.duration = duration;
@@ -147,6 +157,10 @@ void BitmapEffect::render() {
 		// Position bitmap so its center is at the specified coordinates
 		int16_t offsetX = static_cast<int16_t>(bmp.centerX) - (scaledWidth / 2);
 		int16_t offsetY = static_cast<int16_t>(bmp.centerY) - (scaledHeight / 2);
+
+		// Quantize to LED boundaries (multiples of scale)
+		offsetX = (offsetX / scale) * scale;
+		offsetY = (offsetY / scale) * scale;
 
 		// Skip if bitmap is completely off-canvas
 		if (offsetX + scaledWidth <= 0 || offsetX >= canvasWidth ||
