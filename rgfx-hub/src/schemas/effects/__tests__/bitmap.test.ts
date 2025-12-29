@@ -20,10 +20,12 @@ describe('bitmapSchema', () => {
         expect(result.data.reset).toBe(false);
         expect(result.data.centerX).toBe('random');
         expect(result.data.centerY).toBe('random');
-        expect(result.data.endX).toBeUndefined();
-        expect(result.data.endY).toBeUndefined();
-        expect(result.data.duration).toBe(600);
-        expect(result.data.easing).toBe('linear');
+        expect(result.data.endX).toBe('random');
+        expect(result.data.endY).toBe('random');
+        expect(result.data.duration).toBe(1500);
+        expect(result.data.easing).toBe('quadraticInOut');
+        expect(result.data.fadeIn).toBe(300);
+        expect(result.data.fadeOut).toBe(300);
         expect(result.data.image).toHaveLength(16);
         expect(result.data.palette).toHaveLength(16);
       }
@@ -85,22 +87,22 @@ describe('bitmapSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept only endX without endY', () => {
+    it('should accept endX override while endY uses default', () => {
       const result = bitmapSchema.safeParse({ endX: 50 });
       expect(result.success).toBe(true);
 
       if (result.success) {
         expect(result.data.endX).toBe(50);
-        expect(result.data.endY).toBeUndefined();
+        expect(result.data.endY).toBe('random');
       }
     });
 
-    it('should accept only endY without endX', () => {
+    it('should accept endY override while endX uses default', () => {
       const result = bitmapSchema.safeParse({ endY: 50 });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.endX).toBeUndefined();
+        expect(result.data.endX).toBe('random');
         expect(result.data.endY).toBe(50);
       }
     });
@@ -112,12 +114,12 @@ describe('bitmapSchema', () => {
   });
 
   describe('easing validation', () => {
-    it('should default to linear', () => {
+    it('should default to quadraticInOut', () => {
       const result = bitmapSchema.safeParse({});
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.easing).toBe('linear');
+        expect(result.data.easing).toBe('quadraticInOut');
       }
     });
 
@@ -133,6 +135,64 @@ describe('bitmapSchema', () => {
     it('should reject invalid easing value', () => {
       const result = bitmapSchema.safeParse({ easing: 'invalid' });
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('fadeIn/fadeOut validation', () => {
+    it('should default fadeIn to 300', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeIn).toBe(300);
+      }
+    });
+
+    it('should default fadeOut to 300', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeOut).toBe(300);
+      }
+    });
+
+    it('should accept zero for fadeIn (disabled)', () => {
+      const result = bitmapSchema.safeParse({ fadeIn: 0 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeIn).toBe(0);
+      }
+    });
+
+    it('should accept zero for fadeOut (disabled)', () => {
+      const result = bitmapSchema.safeParse({ fadeOut: 0 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeOut).toBe(0);
+      }
+    });
+
+    it('should reject negative fadeIn', () => {
+      const result = bitmapSchema.safeParse({ fadeIn: -100 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject negative fadeOut', () => {
+      const result = bitmapSchema.safeParse({ fadeOut: -100 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept custom fade durations', () => {
+      const result = bitmapSchema.safeParse({ fadeIn: 500, fadeOut: 1000 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeIn).toBe(500);
+        expect(result.data.fadeOut).toBe(1000);
+      }
     });
   });
 

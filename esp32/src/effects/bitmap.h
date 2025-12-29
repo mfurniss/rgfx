@@ -20,6 +20,8 @@ class BitmapEffect : public IEffect {
 		float endY;                      // End Y position in canvas coords (snapped to LED)
 		bool hasEndPosition;             // True if movement animation enabled
 		EasingFunction easing;           // Easing function for movement
+		uint32_t fadeInMs;               // Fade in duration in milliseconds (0 = disabled)
+		uint32_t fadeOutMs;              // Fade out duration in milliseconds (0 = disabled)
 		uint32_t remaining() const { return duration - elapsedTime; }
 	};
 
