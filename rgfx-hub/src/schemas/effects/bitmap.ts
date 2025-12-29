@@ -44,6 +44,7 @@ const paletteColorSchema = z.string().regex(/^#?[0-9a-fA-F]{6}$/, 'Invalid hex c
  * - 'A'-'F' (case insensitive) = palette index 10-15
  */
 export default baseEffect
+  .omit({ color: true })
   .extend({
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
