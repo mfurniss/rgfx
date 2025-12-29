@@ -206,7 +206,8 @@ void test_bitmap_position_bottom_right() {
 	TEST_ASSERT_TRUE(countPixelsInQuadrant(canvas, 3) > 0);
 }
 
-void test_bitmap_position_random() {
+void test_bitmap_position_arbitrary() {
+	// Hub resolves "random" to numeric values before sending - ESP32 requires numeric
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
@@ -214,13 +215,12 @@ void test_bitmap_position_random() {
 	JsonDocument props;
 	addPico8Palette(props);
 	props["duration"] = 1000;
-	props["centerX"] = "random";
-	props["centerY"] = "random";
+	props["centerX"] = 25;  // Hub-resolved random value
+	props["centerY"] = 75;  // Hub-resolved random value
 	JsonArray image = props["image"].to<JsonArray>();
 	image.add("777");
 	image.add("777");
 
-	// Should not crash
 	effect.add(props);
 	canvas.clear();
 	effect.render();
@@ -688,7 +688,7 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_center_position);
 	RUN_TEST(test_bitmap_position_top_left);
 	RUN_TEST(test_bitmap_position_bottom_right);
-	RUN_TEST(test_bitmap_position_random);
+	RUN_TEST(test_bitmap_position_arbitrary);
 	RUN_TEST(test_bitmap_off_canvas_not_rendered);
 
 	// 3. Transparency Tests
