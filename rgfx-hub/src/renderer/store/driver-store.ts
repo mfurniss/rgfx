@@ -13,8 +13,8 @@ function notifyStateChange(
   oldState: DriverStateType | undefined,
   newState: DriverStateType,
 ): void {
-  // Don't notify on initial load (oldState is undefined) or if state unchanged
-  if (oldState === undefined || oldState === newState) {
+  // Don't notify if state unchanged
+  if (oldState === newState) {
     return;
   }
 
@@ -22,9 +22,10 @@ function notifyStateChange(
     notify(`${driverId} connected`, 'success');
   } else if (newState === 'updating') {
     notify(`${driverId} updating firmware...`, 'info');
-  } else if (oldState !== 'updating') {
+  } else if (oldState !== 'updating' && oldState !== undefined) {
     // newState must be 'disconnected' at this point
     // Don't notify disconnect if transitioning from 'updating' (expected reboot)
+    // Don't notify disconnect for drivers we haven't seen before (oldState undefined)
     notify(`${driverId} disconnected`, 'error');
   }
 }

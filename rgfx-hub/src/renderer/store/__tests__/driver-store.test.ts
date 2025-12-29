@@ -206,13 +206,13 @@ describe('driver-store', () => {
       vi.clearAllMocks();
     });
 
-    it('should not notify on initial driver load (prevents startup notification spam)', () => {
+    it('should notify on initial driver connection', () => {
       const driver = createMockDriver({ id: 'rgfx-driver-0001', mac: 'AA:BB:CC:DD:EE:FF', state: 'connected' });
 
-      // First time driver appears - should NOT notify (prevents startup spam)
+      // First time driver connects - should notify
       useDriverStore.getState().onDriverConnected(driver);
 
-      expect(notificationStore.notify).not.toHaveBeenCalled();
+      expect(notificationStore.notify).toHaveBeenCalledWith('rgfx-driver-0001 connected', 'success');
     });
 
     it('should notify when existing driver reconnects', () => {
