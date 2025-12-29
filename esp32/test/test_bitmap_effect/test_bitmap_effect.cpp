@@ -47,6 +47,8 @@ using String = std::string;
 // Include utils
 #include "effects/effect_utils.h"
 #include "effects/effect_utils.cpp"
+#include "utils/easing.h"
+#include "utils/easing_impl.cpp"
 
 // Include effects
 #include "effects/effect.h"
@@ -642,7 +644,246 @@ void test_bitmap_invalid_palette_index_transparent() {
 }
 
 // =============================================================================
-// 8. Strip Layout Tests
+// 8. Movement Animation Tests
+// =============================================================================
+
+void test_bitmap_movement_start_position() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;    // Start at left
+	props["centerY"] = 50;
+	props["endX"] = 100;     // End at right
+	props["endY"] = 50;
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");  // Single white pixel
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();  // At t=0, should be at start position
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// Should be on the left side of canvas
+	TEST_ASSERT_TRUE(box.maxX < canvas.getWidth() / 2);
+}
+
+void test_bitmap_movement_end_position() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;    // Start at left
+	props["centerY"] = 50;
+	props["endX"] = 100;     // End at right
+	props["endY"] = 50;
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// Update to near end of duration
+	effect.update(0.99f);  // 990ms of 1000ms
+
+	canvas.clear();
+	effect.render();
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// Should be on the right side of canvas
+	TEST_ASSERT_TRUE(box.minX >= canvas.getWidth() / 2);
+}
+
+void test_bitmap_movement_midpoint() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;    // Start at left
+	props["centerY"] = 50;
+	props["endX"] = 100;     // End at right
+	props["endY"] = 50;
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// Update to halfway
+	effect.update(0.5f);  // 500ms of 1000ms
+
+	canvas.clear();
+	effect.render();
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// Should be approximately centered
+	int centerX = (box.minX + box.maxX) / 2;
+	TEST_ASSERT_INT_WITHIN(8, canvas.getWidth() / 2, centerX);
+}
+
+void test_bitmap_movement_only_endX() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;
+	props["centerY"] = 50;
+	props["endX"] = 100;  // Only endX, no endY
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should have moved horizontally but stayed at same Y
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	int centerY = (box.minY + box.maxY) / 2;
+	TEST_ASSERT_INT_WITHIN(4, canvas.getHeight() / 2, centerY);
+}
+
+void test_bitmap_movement_only_endY() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 0;
+	props["endY"] = 100;  // Only endY, no endX
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+
+	// Should have moved vertically but stayed at same X
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	int centerX = (box.minX + box.maxX) / 2;
+	TEST_ASSERT_INT_WITHIN(4, canvas.getWidth() / 2, centerX);
+}
+
+void test_bitmap_no_movement_without_end_coords() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	// No endX/endY - should stay stationary
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// Capture initial position
+	canvas.clear();
+	effect.render();
+	BoundingBox box1 = findBoundingBox(canvas);
+
+	// Update halfway
+	effect.update(0.5f);
+
+	canvas.clear();
+	effect.render();
+	BoundingBox box2 = findBoundingBox(canvas);
+
+	// Position should be the same
+	TEST_ASSERT_EQUAL(box1.minX, box2.minX);
+	TEST_ASSERT_EQUAL(box1.minY, box2.minY);
+}
+
+void test_bitmap_easing_quadraticOut() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;
+	props["centerY"] = 50;
+	props["endX"] = 100;
+	props["endY"] = 50;
+	props["easing"] = "quadraticOut";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+	effect.update(0.5f);  // 50% time
+
+	canvas.clear();
+	effect.render();
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// With quadraticOut at 50% time, should be past 50% distance
+	// (easeOut starts fast, slows down)
+	int centerX = (box.minX + box.maxX) / 2;
+	TEST_ASSERT_TRUE(centerX > canvas.getWidth() / 2);
+}
+
+void test_bitmap_easing_default_linear() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;
+	props["centerY"] = 50;
+	props["endX"] = 100;
+	props["endY"] = 50;
+	// No easing specified - should default to linear
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+	effect.update(0.5f);  // 50% time
+
+	canvas.clear();
+	effect.render();
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// With linear at 50% time, should be at 50% distance
+	int centerX = (box.minX + box.maxX) / 2;
+	TEST_ASSERT_INT_WITHIN(8, canvas.getWidth() / 2, centerX);
+}
+
+// =============================================================================
+// 9. Strip Layout Tests
 // =============================================================================
 
 void test_bitmap_on_strip() {
@@ -716,7 +957,17 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_custom_palette);
 	RUN_TEST(test_bitmap_invalid_palette_index_transparent);
 
-	// 8. Strip Layout Tests
+	// 8. Movement Animation Tests
+	RUN_TEST(test_bitmap_movement_start_position);
+	RUN_TEST(test_bitmap_movement_end_position);
+	RUN_TEST(test_bitmap_movement_midpoint);
+	RUN_TEST(test_bitmap_movement_only_endX);
+	RUN_TEST(test_bitmap_movement_only_endY);
+	RUN_TEST(test_bitmap_no_movement_without_end_coords);
+	RUN_TEST(test_bitmap_easing_quadraticOut);
+	RUN_TEST(test_bitmap_easing_default_linear);
+
+	// 9. Strip Layout Tests
 	RUN_TEST(test_bitmap_on_strip);
 
 	return UNITY_END();

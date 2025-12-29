@@ -23,6 +23,23 @@ CRGBA colorToRGBA(uint32_t color) {
 	return CRGBA((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
 }
 
+// Parse coordinate value as percentage (0-100) or "random", returns -1 if not present
+float parseCoordinate(JsonVariant prop, float canvasSize) {
+	if (prop.is<const char*>() && strcmp(prop.as<const char*>(), "random") == 0) {
+		float percent = static_cast<float>(hal::random(101));
+		return (percent / 100.0f) * canvasSize;
+	} else if (prop.is<float>() || prop.is<int>()) {
+		float percent = prop.as<float>();
+		return (percent / 100.0f) * canvasSize;
+	}
+	return -1.0f;  // Not present
+}
+
+// Snap coordinate to LED boundary (multiples of scale)
+float snapToLed(float coord, uint8_t scale) {
+	return static_cast<float>((static_cast<int16_t>(coord) / scale) * scale);
+}
+
 }  // namespace
 
 void BitmapEffect::add(JsonDocument& props) {
@@ -41,27 +58,34 @@ void BitmapEffect::add(JsonDocument& props) {
 		}
 	}
 
+	const uint8_t scale = 4;
+	float canvasWidth = static_cast<float>(canvas.getWidth());
+	float canvasHeight = static_cast<float>(canvas.getHeight());
+
 	// Parse center position as percentage (0-100) or "random"
-	float centerXPercent;
-	if (props["centerX"].is<const char*>() &&
-	    strcmp(props["centerX"].as<const char*>(), "random") == 0) {
-		centerXPercent = static_cast<float>(hal::random(101));
-	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
-		centerXPercent = props["centerX"].as<float>();
-	} else {
+	float centerX = parseCoordinate(props["centerX"], canvasWidth);
+	if (centerX < 0) {
 		hal::log("ERROR: bitmap missing required 'centerX' prop");
 		return;
 	}
 
-	float centerYPercent;
-	if (props["centerY"].is<const char*>() &&
-	    strcmp(props["centerY"].as<const char*>(), "random") == 0) {
-		centerYPercent = static_cast<float>(hal::random(101));
-	} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
-		centerYPercent = props["centerY"].as<float>();
-	} else {
+	float centerY = parseCoordinate(props["centerY"], canvasHeight);
+	if (centerY < 0) {
 		hal::log("ERROR: bitmap missing required 'centerY' prop");
 		return;
+	}
+
+	// Parse optional end position
+	float endX = parseCoordinate(props["endX"], canvasWidth);
+	float endY = parseCoordinate(props["endY"], canvasHeight);
+	bool hasEndX = endX >= 0;
+	bool hasEndY = endY >= 0;
+	bool hasEndPosition = hasEndX || hasEndY;
+
+	// If only one end coord specified, use corresponding start coord for the other
+	if (hasEndPosition) {
+		if (!hasEndX) endX = centerX;
+		if (!hasEndY) endY = centerY;
 	}
 
 	Bitmap newBitmap;
@@ -69,8 +93,17 @@ void BitmapEffect::add(JsonDocument& props) {
 	newBitmap.elapsedTime = 0;
 	newBitmap.imageWidth = 0;
 	newBitmap.imageHeight = 0;
-	newBitmap.centerX = (centerXPercent / 100.0f) * canvas.getWidth();
-	newBitmap.centerY = (centerYPercent / 100.0f) * canvas.getHeight();
+
+	// Snap all coordinates to LED boundaries at parse time
+	newBitmap.centerX = snapToLed(centerX, scale);
+	newBitmap.centerY = snapToLed(centerY, scale);
+	newBitmap.endX = hasEndPosition ? snapToLed(endX, scale) : newBitmap.centerX;
+	newBitmap.endY = hasEndPosition ? snapToLed(endY, scale) : newBitmap.centerY;
+	newBitmap.hasEndPosition = hasEndPosition;
+
+	// Parse easing function
+	const char* easingName = props["easing"] | "linear";
+	newBitmap.easing = getEasingFunction(easingName);
 
 	// Parse image array and convert to RGBA pixels
 	if (props["image"].is<JsonArray>()) {
@@ -154,13 +187,20 @@ void BitmapEffect::render() {
 		uint16_t scaledWidth = bmp.imageWidth * scale;
 		uint16_t scaledHeight = bmp.imageHeight * scale;
 
-		// Position bitmap so its center is at the specified coordinates
-		int16_t offsetX = static_cast<int16_t>(bmp.centerX) - (scaledWidth / 2);
-		int16_t offsetY = static_cast<int16_t>(bmp.centerY) - (scaledHeight / 2);
+		// Calculate current position (with tweening if end position specified)
+		float currentX = bmp.centerX;
+		float currentY = bmp.centerY;
 
-		// Quantize to LED boundaries (multiples of scale)
-		offsetX = (offsetX / scale) * scale;
-		offsetY = (offsetY / scale) * scale;
+		if (bmp.hasEndPosition) {
+			float progress = static_cast<float>(bmp.elapsedTime) / bmp.duration;
+			float easedProgress = bmp.easing(progress);
+			currentX = bmp.centerX + (bmp.endX - bmp.centerX) * easedProgress;
+			currentY = bmp.centerY + (bmp.endY - bmp.centerY) * easedProgress;
+		}
+
+		// Position bitmap so its center is at the current coordinates
+		int16_t offsetX = static_cast<int16_t>(currentX) - (scaledWidth / 2);
+		int16_t offsetY = static_cast<int16_t>(currentY) - (scaledHeight / 2);
 
 		// Skip if bitmap is completely off-canvas
 		if (offsetX + scaledWidth <= 0 || offsetX >= canvasWidth ||

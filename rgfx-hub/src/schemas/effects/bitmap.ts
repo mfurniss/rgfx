@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { baseEffect, centerX, centerY } from './properties';
+import { baseEffect, centerX, centerY, easing } from './properties';
 
 /**
  * PICO-8 default palette - 16 colors designed for retro games
@@ -48,9 +48,12 @@ export default baseEffect
   .extend({
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
-    centerX: centerX.default('random'),
-    centerY: centerY.default('random'),
+    centerX: centerX.default('random').describe('fieldType:centerXY|Start X position (0-100 or random)'),
+    centerY: centerY.default('random').describe('fieldType:centerXY|Start Y position (0-100 or random)'),
+    endX: centerX.optional().describe('fieldType:centerXY|End X position (0-100 or random)'),
+    endY: centerY.optional().describe('fieldType:centerXY|End Y position (0-100 or random)'),
     duration: z.number().positive().optional().default(600),
+    easing: easing.optional().default('linear'),
     palette: z
       .array(paletteColorSchema)
       .min(1)
