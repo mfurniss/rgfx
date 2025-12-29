@@ -9,21 +9,19 @@ import type { BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
-import type { LEDHardwareManager } from '../led-hardware-manager';
+import type { DriverConfig } from '../driver-config';
 import type { MqttBroker } from '../network';
 import { serializeDriverForIPC } from '../types';
 
 interface SetDriverDisabledHandlerDeps {
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
-  ledHardwareManager: LEDHardwareManager;
+  driverConfig: DriverConfig;
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerDeps): void {
-  const { driverRegistry, driverPersistence, ledHardwareManager, mqtt, getMainWindow } = deps;
+  const { driverRegistry, driverConfig, mqtt, getMainWindow } = deps;
 
   ipcMain.handle(
     'driver:set-disabled',
@@ -41,7 +39,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
       }
 
       // Update persistence
-      const success = driverPersistence.setDisabled(driverId, disabled);
+      const success = driverConfig.setDisabled(driverId, disabled);
 
       if (!success) {
         throw new Error(`Failed to update disabled state for driver ${driverId}`);
@@ -55,10 +53,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
       }
 
       // Refresh driver from persistence to update runtime state
-      const updatedDriver = driverRegistry.refreshDriverFromPersistence(
-        driver.mac,
-        ledHardwareManager,
-      );
+      const updatedDriver = driverRegistry.refreshDriverFromConfig(driver.mac);
 
       if (updatedDriver) {
         // Notify renderer of updated driver

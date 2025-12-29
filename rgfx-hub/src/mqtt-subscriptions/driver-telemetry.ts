@@ -9,7 +9,7 @@ import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 import { serializeDriverForIPC } from '../types';
 import {
   TelemetryPayloadSchema,
@@ -24,7 +24,7 @@ import {
 interface DriverTelemetryDeps {
   mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   getMainWindow: () => BrowserWindow | null;
 }
 
@@ -73,7 +73,7 @@ function createMinimalRegistration(minimal: MinimalDriverRegistration) {
 }
 
 export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
-  const { mqtt, driverRegistry, driverPersistence, getMainWindow } = deps;
+  const { mqtt, driverRegistry, driverConfig, getMainWindow } = deps;
 
   mqtt.subscribe('rgfx/system/driver/telemetry', (_topic, payload) => {
     const mqttReceiveTime = Date.now();
@@ -90,7 +90,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         const parsed = fullParseResult.data;
         const macAddress = parsed.mac;
 
-        if (macAddress && driverPersistence.isDisabledByMac(macAddress)) {
+        if (macAddress && driverConfig.isDisabledByMac(macAddress)) {
           log.debug(`Ignoring telemetry from disabled driver: ${macAddress}`);
           return;
         }

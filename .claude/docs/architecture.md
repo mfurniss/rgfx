@@ -53,7 +53,7 @@ VSCode multi-root workspace with sub-projects:
 
 **Configuration File:** `rgfx-hub/config/drivers.json`
 
-Single unified configuration file managed by `DriverPersistence`:
+Single unified configuration file managed by `DriverConfig`:
 - Driver discovery metadata (id, name, type)
 - LED hardware configurations (inline `ledConfig` for each driver)
 

@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { registerDeleteDriverHandler } from '../delete-driver-handler';
 import type { DriverRegistry } from '@/driver-registry';
-import type { DriverPersistence } from '@/driver-persistence';
+import type { DriverConfig } from '@/driver-config';
 import type { BrowserWindow } from 'electron';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
@@ -31,7 +31,7 @@ vi.mock('electron-log/main', () => ({
 
 describe('registerDeleteDriverHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
-  let mockDriverPersistence: MockProxy<DriverPersistence>;
+  let mockDriverConfig: MockProxy<DriverConfig>;
   let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => { success: boolean };
@@ -45,8 +45,8 @@ describe('registerDeleteDriverHandler', () => {
     mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
     mockDriverRegistry.deleteDriver.mockReturnValue(true);
 
-    mockDriverPersistence = mock<DriverPersistence>();
-    mockDriverPersistence.deleteDriver.mockReturnValue(true);
+    mockDriverConfig = mock<DriverConfig>();
+    mockDriverConfig.deleteDriver.mockReturnValue(true);
 
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);
@@ -60,7 +60,7 @@ describe('registerDeleteDriverHandler', () => {
 
     registerDeleteDriverHandler({
       driverRegistry: mockDriverRegistry,
-      driverPersistence: mockDriverPersistence,
+      driverConfig: mockDriverConfig,
       getMainWindow: () => mockMainWindow,
     });
   });
@@ -82,11 +82,11 @@ describe('registerDeleteDriverHandler', () => {
     it('calls deleteDriver on persistence with correct driverId', () => {
       registeredHandler({}, 'rgfx-driver-0001');
 
-      expect(mockDriverPersistence.deleteDriver).toHaveBeenCalledWith('rgfx-driver-0001');
+      expect(mockDriverConfig.deleteDriver).toHaveBeenCalledWith('rgfx-driver-0001');
     });
 
     it('throws error when persistence delete fails', () => {
-      mockDriverPersistence.deleteDriver.mockReturnValue(false);
+      mockDriverConfig.deleteDriver.mockReturnValue(false);
 
       expect(() => registeredHandler({}, 'rgfx-driver-0001')).toThrow(
         'Failed to delete driver rgfx-driver-0001 from persistence',
@@ -119,7 +119,7 @@ describe('registerDeleteDriverHandler', () => {
     it('does not send IPC event when window is null', () => {
       registerDeleteDriverHandler({
         driverRegistry: mockDriverRegistry,
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         getMainWindow: () => null,
       });
 
@@ -136,7 +136,7 @@ describe('registerDeleteDriverHandler', () => {
 
     it('deletes from persistence before registry', () => {
       const callOrder: string[] = [];
-      mockDriverPersistence.deleteDriver.mockImplementation(() => {
+      mockDriverConfig.deleteDriver.mockImplementation(() => {
         callOrder.push('persistence');
         return true;
       });
@@ -151,7 +151,7 @@ describe('registerDeleteDriverHandler', () => {
     });
 
     it('does not delete from registry if persistence fails', () => {
-      mockDriverPersistence.deleteDriver.mockReturnValue(false);
+      mockDriverConfig.deleteDriver.mockReturnValue(false);
 
       expect(() => registeredHandler({}, 'rgfx-driver-0001')).toThrow();
       expect(mockDriverRegistry.deleteDriver).not.toHaveBeenCalled();

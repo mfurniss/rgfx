@@ -12,33 +12,33 @@ import type { DriverLEDConfig } from './types';
 import { CONFIG_VERSION } from './config/constants';
 import { CONFIG_DIRECTORY } from './config/paths';
 import {
-  PersistedDriverSchema,
+  ConfiguredDriverSchema,
   DriversConfigFileRawSchema,
-  type PersistedDriverFromSchema,
+  type ConfiguredDriverFromSchema,
   type DriversConfigFile,
 } from './schemas';
 import { ConfigError, formatZodError } from './errors/config-error';
 
 /**
- * Re-export the Zod-inferred type as PersistedDriver for backward compatibility
+ * Re-export the Zod-inferred type as ConfiguredDriver for external use
  */
-export type PersistedDriver = PersistedDriverFromSchema;
+export type ConfiguredDriver = ConfiguredDriverFromSchema;
 
 /**
- * Manages persistent driver data in unified JSON format
+ * Manages driver configuration in unified JSON format
  *
  * Responsibilities:
- * - Load/save all driver data from single JSON file
- * - Persist driver discovery (id, macAddress, description)
- * - Persist LED configurations (nested in each driver entry)
- * - Provide drivers to DriverRegistry for runtime tracking
+ * - Load/save all driver config from single JSON file
+ * - Store driver identity (id, macAddress, description)
+ * - Store LED configurations (nested in each driver entry)
+ * - Provide driver configs to DriverRegistry for runtime matching
  *
- * What gets persisted: id, macAddress, description, ledConfig
+ * What is stored: id, macAddress, description, ledConfig
  * What is runtime-only: ip, lastSeen, connected, stats
  */
-export class DriverPersistence {
+export class DriverConfig {
   private configFile: string;
-  private drivers = new Map<string, PersistedDriver>();
+  private drivers = new Map<string, ConfiguredDriver>();
   private readonly version = CONFIG_VERSION;
 
   constructor(baseDir = CONFIG_DIRECTORY) {
@@ -96,7 +96,7 @@ export class DriverPersistence {
 
     // Validate each driver entry - any invalid entry is a critical error
     for (const driver of result.data.drivers) {
-      const driverResult = PersistedDriverSchema.safeParse(driver);
+      const driverResult = ConfiguredDriverSchema.safeParse(driver);
 
       if (driverResult.success) {
         this.drivers.set(driverResult.data.id, driverResult.data);
@@ -148,7 +148,7 @@ export class DriverPersistence {
     };
 
     // Validate with Zod schema
-    const result = PersistedDriverSchema.safeParse(driver);
+    const result = ConfiguredDriverSchema.safeParse(driver);
 
     if (!result.success) {
       log.error(`Invalid driver data: ${result.error.message}`);
@@ -165,7 +165,7 @@ export class DriverPersistence {
    * Update driver metadata (description)
    * Does not update ledConfig - use setDriverLEDConfig for that
    */
-  updateDriver(id: string, updates: Partial<Pick<PersistedDriver, 'description'>>): boolean {
+  updateDriver(id: string, updates: Partial<Pick<ConfiguredDriver, 'description'>>): boolean {
     const driver = this.drivers.get(id);
 
     if (!driver) {
@@ -208,7 +208,7 @@ export class DriverPersistence {
   /**
    * Set remote logging level for a specific driver
    */
-  setRemoteLogging(id: string, level: PersistedDriver['remoteLogging']): boolean {
+  setRemoteLogging(id: string, level: ConfiguredDriver['remoteLogging']): boolean {
     const driver = this.drivers.get(id);
 
     if (!driver) {
@@ -258,14 +258,14 @@ export class DriverPersistence {
   /**
    * Get all known drivers (for UI and DriverRegistry initialization)
    */
-  getAllDrivers(): PersistedDriver[] {
+  getAllDrivers(): ConfiguredDriver[] {
     return Array.from(this.drivers.values());
   }
 
   /**
    * Get a specific driver by ID
    */
-  getDriver(id: string): PersistedDriver | undefined {
+  getDriver(id: string): ConfiguredDriver | undefined {
     return this.drivers.get(id);
   }
 
@@ -279,7 +279,7 @@ export class DriverPersistence {
   /**
    * Get a driver by its MAC address
    */
-  getDriverByMac(macAddress: string): PersistedDriver | undefined {
+  getDriverByMac(macAddress: string): ConfiguredDriver | undefined {
     for (const driver of this.drivers.values()) {
       if (driver.macAddress === macAddress) {
         return driver;

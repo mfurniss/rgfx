@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { UnifiedPanelLayoutSchema } from '../driver-persistence';
+import { UnifiedPanelLayoutSchema } from '../driver-config';
 
 describe('UnifiedPanelLayoutSchema', () => {
   describe('valid layouts', () => {

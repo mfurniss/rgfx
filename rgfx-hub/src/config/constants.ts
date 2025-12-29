@@ -261,3 +261,9 @@ export const TEST_FILE_WATCHER_RETRY_DELAY_MS = 50;
  * Default: 50ms × 40 = 2000ms (2 seconds)
  */
 export const TEST_FILE_WATCHER_MAX_RETRIES = 40;
+
+/**
+ * Maximum number of system errors to retain in memory.
+ * Older errors are discarded when this limit is exceeded.
+ */
+export const MAX_SYSTEM_ERRORS = 100;

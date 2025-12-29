@@ -245,7 +245,7 @@ if (effectProcessor != nullptr) {
 **Current Gap:** Unit tests exist but no integration tests between services.
 
 **Proposed:** Add integration test suite:
-- Test DriverRegistry + DriverPersistence together
+- Test DriverRegistry + DriverConfig together
 - Test EventProcessingService + MappingEngine together
 - Test MQTT subscriptions → DriverRegistry flow
 

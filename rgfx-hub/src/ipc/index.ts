@@ -7,7 +7,7 @@
 
 import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
@@ -36,7 +36,7 @@ import { registerDeleteDriverHandler } from './delete-driver-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   driverLogPersistence: DriverLogPersistence;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;

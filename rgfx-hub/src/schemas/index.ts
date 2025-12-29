@@ -11,15 +11,15 @@ export { DriverTelemetrySchema } from './driver-telemetry';
 export { DriverRegistrationSchema } from './driver-registration';
 export { LEDHardwareSchema } from './led-hardware';
 
-// Driver persistence schemas
+// Driver config schemas
 export {
-  PersistedDriverSchema,
-  type PersistedDriverFromSchema,
-  type PersistedDriverInput,
+  ConfiguredDriverSchema,
+  type ConfiguredDriverFromSchema,
+  type ConfiguredDriverInput,
   type RemoteLoggingLevel,
   DriversConfigFileRawSchema,
   type DriversConfigFile,
-} from './driver-persistence';
+} from './driver-config';
 
 // Firmware manifest schema
 export { FirmwareManifestSchema, type FirmwareManifest } from './firmware-manifest';
