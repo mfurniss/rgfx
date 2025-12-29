@@ -8,28 +8,51 @@ BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	bitmaps.reserve(8);
 }
 
+namespace {
+
+// Convert hex character to palette index (0-15), returns -1 for invalid
+int hexCharToIndex(char c) {
+	if (c >= '0' && c <= '9') return c - '0';
+	if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+	if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+	return -1;
+}
+
+// Convert color value to CRGBA
+CRGBA colorToRGBA(uint32_t color) {
+	return CRGBA((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
+}
+
+}  // namespace
+
 void BitmapEffect::add(JsonDocument& props) {
-	if (!props["color"].is<const char*>()) {
-		hal::log("ERROR: bitmap missing or invalid 'color' prop");
-		return;
-	}
-	uint32_t color = parseColor(props["color"]);
 	uint32_t duration = props["duration"];
 
-	// Parse center position as percentage (0-100), "random", or default to center (50%)
-	float centerXPercent = 50.0f;
-	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
-		centerXPercent = hal::random(0, 101);
-	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
-		centerXPercent = props["centerX"].as<float>();
+	// Parse palette array - hub always provides this with PICO-8 defaults
+	uint32_t palette[16] = {0};
+	uint8_t paletteSize = 0;
+	if (props["palette"].is<JsonArray>()) {
+		JsonArray paletteArray = props["palette"].as<JsonArray>();
+		for (JsonVariant colorVar : paletteArray) {
+			if (paletteSize >= 16) break;
+			if (colorVar.is<const char*>()) {
+				palette[paletteSize++] = parseColor(colorVar.as<const char*>());
+			}
+		}
 	}
 
-	float centerYPercent = 50.0f;
-	if (props["centerY"].is<const char*>() && strcmp(props["centerY"].as<const char*>(), "random") == 0) {
-		centerYPercent = hal::random(0, 101);
-	} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
-		centerYPercent = props["centerY"].as<float>();
+	// Parse center position as percentage (0-100) - hub must provide these
+	if (!props["centerX"].is<float>() && !props["centerX"].is<int>()) {
+		hal::log("ERROR: bitmap missing required 'centerX' prop");
+		return;
 	}
+	float centerXPercent = props["centerX"].as<float>();
+
+	if (!props["centerY"].is<float>() && !props["centerY"].is<int>()) {
+		hal::log("ERROR: bitmap missing required 'centerY' prop");
+		return;
+	}
+	float centerYPercent = props["centerY"].as<float>();
 
 	Bitmap newBitmap;
 	newBitmap.duration = duration;
@@ -58,20 +81,28 @@ void BitmapEffect::add(JsonDocument& props) {
 		// Pre-allocate pixel array
 		newBitmap.pixels.reserve(newBitmap.imageWidth * newBitmap.imageHeight);
 
-		// Extract RGB from color
-		uint8_t r = (color >> 16) & 0xFF;
-		uint8_t g = (color >> 8) & 0xFF;
-		uint8_t b = color & 0xFF;
-		CRGBA rgbaColor(r, g, b, 255);
-
 		// Second pass: convert strings to RGBA pixels
+		// Character mapping:
+		//   ' ' or '.' = transparent
+		//   '0'-'9'    = palette index 0-9
+		//   'A'-'F'    = palette index 10-15 (case insensitive)
 		for (JsonVariant row : imageArray) {
 			const char* rowStr = row.as<const char*>();
 			for (uint8_t col = 0; col < newBitmap.imageWidth; col++) {
-				if (rowStr && col < strlen(rowStr) && rowStr[col] != ' ') {
-					newBitmap.pixels.push_back(rgbaColor);
+				char c = (rowStr && col < strlen(rowStr)) ? rowStr[col] : ' ';
+
+				if (c == ' ' || c == '.') {
+					// Transparent
+					newBitmap.pixels.push_back(CRGBA(0, 0, 0, 0));
 				} else {
-					newBitmap.pixels.push_back(CRGBA(0, 0, 0, 0));  // Transparent
+					// Parse as hex palette index
+					int idx = hexCharToIndex(c);
+					if (idx >= 0 && idx < static_cast<int>(paletteSize)) {
+						newBitmap.pixels.push_back(colorToRGBA(palette[idx]));
+					} else {
+						// Unknown character - treat as transparent
+						newBitmap.pixels.push_back(CRGBA(0, 0, 0, 0));
+					}
 				}
 			}
 		}

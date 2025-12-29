@@ -204,7 +204,8 @@ void test_explode_center_50_percent() {
 	TEST_ASSERT_TRUE(total > 0);
 }
 
-void test_explode_center_random() {
+void test_explode_center_arbitrary() {
+	// Hub resolves "random" to numeric values before sending - ESP32 requires numeric
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
@@ -212,14 +213,13 @@ void test_explode_center_random() {
 	JsonDocument props;
 	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
-	props["centerX"] = "random";
-	props["centerY"] = "random";
+	props["centerX"] = 25;  // Hub-resolved random value
+	props["centerY"] = 75;  // Hub-resolved random value
 
 	effect.add(props);
 	canvas.clear();
 	effect.render();
 
-	// Should not crash and should render
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
@@ -1091,7 +1091,7 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_explode_center_0_percent);
 	RUN_TEST(test_explode_center_100_percent);
 	RUN_TEST(test_explode_center_50_percent);
-	RUN_TEST(test_explode_center_random);
+	RUN_TEST(test_explode_center_arbitrary);
 	RUN_TEST(test_explode_strip_ignores_centerY);
 
 	// 3. Particle Physics Tests

@@ -51,7 +51,7 @@ describe('registerTriggerEffectHandler', () => {
     expect(ipcMain.handle).toHaveBeenCalledWith('effect:trigger', expect.any(Function));
   });
 
-  it('should pass payload directly to udpClient.broadcast', () => {
+  it('should pass validated payload with schema defaults to udpClient.broadcast', () => {
     const payload: EffectPayload = {
       effect: 'pulse',
       props: { color: '#FF0000', duration: 500 },
@@ -59,9 +59,15 @@ describe('registerTriggerEffectHandler', () => {
 
     registeredHandler({}, payload);
 
-    // Verify exact same object reference passed through (no modification)
+    // Handler validates props and applies schema defaults
     expect(mockUdpClient.broadcast).toHaveBeenCalledTimes(1);
-    expect(mockUdpClient.broadcast.mock.calls[0][0]).toBe(payload);
+    const broadcastPayload = mockUdpClient.broadcast.mock.calls[0][0];
+    const props = broadcastPayload.props as Record<string, unknown>;
+    expect(broadcastPayload.effect).toBe('pulse');
+    expect(props.color).toBe('#FF0000');
+    expect(props.duration).toBe(500);
+    // Schema defaults are applied
+    expect(props.reset).toBe(false);
   });
 
   it('should propagate broadcast errors', () => {

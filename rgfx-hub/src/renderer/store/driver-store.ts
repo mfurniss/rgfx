@@ -63,9 +63,9 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
       hubIp: 'Unknown',
       eventsProcessed: 0,
       hubStartTime: 0,
-      eventTopics: {},
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
+      systemErrors: [],
     },
 
     // Actions (callbacks prefixed with 'on')
@@ -210,11 +210,16 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
     },
 
     onSystemStatusUpdate: (status) => {
-      const currentIp = get().systemStatus.hubIp;
+      const currentStatus = get().systemStatus;
 
       // Notify on IP change (skip initial load when hubIp is 'Unknown')
-      if (currentIp !== 'Unknown' && currentIp !== status.hubIp) {
+      if (currentStatus.hubIp !== 'Unknown' && currentStatus.hubIp !== status.hubIp) {
         notify(`Hub IP address changed to: ${status.hubIp}`, 'info');
+      }
+
+      // Notify on new system errors
+      if (status.systemErrors.length > currentStatus.systemErrors.length) {
+        notify('New system error detected. View details on System Status page.', 'error');
       }
 
       set({ systemStatus: status });

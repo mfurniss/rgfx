@@ -208,21 +208,23 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 		if (size > 16) size = 16;
 	}
 
-	// Parse color
-	uint8_t r = 255, g = 255, b = 255;
-	if (props["color"].is<const char*>()) {
-		const char* colorStr = props["color"].as<const char*>();
-		if (strcmp(colorStr, "random") == 0) {
-			uint32_t c = randomColor();
-			r = (c >> 16) & 0xFF;
-			g = (c >> 8) & 0xFF;
-			b = c & 0xFF;
-		} else {
-			uint32_t c = parseColor(colorStr);
-			r = (c >> 16) & 0xFF;
-			g = (c >> 8) & 0xFF;
-			b = c & 0xFF;
-		}
+	// Parse color - hub must provide this
+	if (!props["color"].is<const char*>()) {
+		hal::log("ERROR: particle_field missing required 'color' prop");
+		return;
+	}
+	const char* colorStr = props["color"].as<const char*>();
+	uint8_t r, g, b;
+	if (strcmp(colorStr, "random") == 0) {
+		uint32_t c = randomColor();
+		r = (c >> 16) & 0xFF;
+		g = (c >> 8) & 0xFF;
+		b = c & 0xFF;
+	} else {
+		uint32_t c = parseColor(colorStr);
+		r = (c >> 16) & 0xFF;
+		g = (c >> 8) & 0xFF;
+		b = c & 0xFF;
 	}
 
 	// Store state

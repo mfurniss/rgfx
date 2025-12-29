@@ -17,31 +17,29 @@ describe('bitmapSchema', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.color).toBe('random');
         expect(result.data.reset).toBe(false);
-        expect(result.data.centerX).toBe(50);
-        expect(result.data.centerY).toBe(50);
-        expect(result.data.duration).toBe(400);
+        expect(result.data.centerX).toBe('random');
+        expect(result.data.centerY).toBe('random');
+        expect(result.data.duration).toBe(600);
         expect(result.data.image).toHaveLength(16);
+        expect(result.data.palette).toHaveLength(16);
       }
     });
 
     it('should accept complete bitmap configuration', () => {
       const data = {
-        color: '#FF00FF',
         reset: true,
         centerX: 0,
         centerY: 100,
         duration: 1000,
-        image: ['XXX', ' X ', 'XXX'],
+        image: ['ABC', ' B ', 'ABC'],
       };
 
       const result = bitmapSchema.safeParse(data);
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.color).toBe('#FF00FF');
-        expect(result.data.image).toEqual(['XXX', ' X ', 'XXX']);
+        expect(result.data.image).toEqual(['ABC', ' B ', 'ABC']);
       }
     });
   });
@@ -88,7 +86,7 @@ describe('bitmapSchema', () => {
   describe('image validation', () => {
     it('should accept valid image array', () => {
       const result = bitmapSchema.safeParse({
-        image: ['X X', ' X ', 'X X'],
+        image: ['A B', ' A ', 'A B'],
       });
       expect(result.success).toBe(true);
     });
@@ -99,7 +97,7 @@ describe('bitmapSchema', () => {
     });
 
     it('should accept single row image', () => {
-      const result = bitmapSchema.safeParse({ image: ['XXXXXXXX'] });
+      const result = bitmapSchema.safeParse({ image: ['ABCDEF01'] });
       expect(result.success).toBe(true);
     });
 
@@ -108,21 +106,59 @@ describe('bitmapSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should use default Pac-Man ghost image when not specified', () => {
+    it('should use default Bub sprite image when not specified', () => {
       const result = bitmapSchema.safeParse({});
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.image[0]).toContain('XXXXXX');
+        expect(result.data.image[0]).toContain('A');
         expect(result.data.image).toHaveLength(16);
       }
+    });
+  });
+
+  describe('palette validation', () => {
+    it('should accept custom palette', () => {
+      const result = bitmapSchema.safeParse({
+        palette: ['#FF0000', '#00FF00', '#0000FF'],
+      });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.palette).toEqual(['#FF0000', '#00FF00', '#0000FF']);
+      }
+    });
+
+    it('should use PICO-8 palette by default', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.palette).toHaveLength(16);
+        expect(result.data.palette[0]).toBe('#000000'); // Black
+        expect(result.data.palette[8]).toBe('#FF004D'); // Red
+      }
+    });
+
+    it('should reject palette with more than 16 colors', () => {
+      const result = bitmapSchema.safeParse({
+        palette: Array(17).fill('#FFFFFF'),
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid hex color format', () => {
+      const result = bitmapSchema.safeParse({
+        palette: ['not-a-color'],
+      });
+      expect(result.success).toBe(false);
     });
   });
 
   describe('strict mode', () => {
     it('should reject unknown properties', () => {
       const result = bitmapSchema.safeParse({
-        image: ['XXX'],
+        image: ['ABC'],
         scale: 2,
       });
       expect(result.success).toBe(false);

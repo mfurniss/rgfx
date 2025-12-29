@@ -40,9 +40,9 @@ describe('PersistedDriverSchema', () => {
           dithering: true,
           powerSupplyVolts: 5,
           maxPowerMilliamps: 2000,
+          floor: { r: 0, g: 0, b: 0 },
         },
         remoteLogging: 'all',
-        wifiTxPower: 15,
       };
 
       const result = PersistedDriverSchema.safeParse(data);

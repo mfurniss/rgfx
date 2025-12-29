@@ -11,6 +11,7 @@ import log from 'electron-log/main';
 import type { LEDHardware } from './types';
 import { CONFIG_DIRECTORY } from './config/paths';
 import { LEDHardwareSchema } from './schemas';
+import { ConfigError, formatZodError } from './errors/config-error';
 
 /**
  * Manages LED hardware definition files
@@ -30,9 +31,10 @@ export class LEDHardwareManager {
   }
 
   /**
-   * Load LED hardware definition from file
+   * Load LED hardware definition from file.
    * @param hardwareRef - Relative path like "led-hardware/hjhx-8x8-matrix.json"
-   * @returns Parsed LEDHardware or null if not found/invalid
+   * @returns Parsed LEDHardware or null if file doesn't exist
+   * @throws ConfigError if file exists but cannot be parsed or validated
    */
   loadHardware(hardwareRef: string): LEDHardware | null {
     // Check cache first
@@ -50,30 +52,41 @@ export class LEDHardwareManager {
       return null;
     }
 
+    const data = fs.readFileSync(hardwarePath, 'utf8');
+
+    let parsed: unknown;
+
     try {
-      const data = fs.readFileSync(hardwarePath, 'utf8');
-      const parseResult = LEDHardwareSchema.safeParse(JSON.parse(data));
-
-      if (!parseResult.success) {
-        log.error(`Invalid LED hardware in ${hardwarePath}: ${parseResult.error.message}`);
-        return null;
-      }
-
-      const hardware = parseResult.data as LEDHardware;
-
-      // Cache it
-      this.cache.set(hardwareRef, hardware);
-      const identifier = hardware.asin ?? hardware.sku ?? 'no SKU/ASIN';
-      log.info(
-        `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`,
-      );
-
-      return hardware;
+      parsed = JSON.parse(data);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log.error(`Failed to load LED hardware from ${hardwarePath}: ${errorMessage}`);
-      return null;
+      const details = error instanceof Error ? error.message : String(error);
+      throw new ConfigError(
+        `Failed to parse LED hardware file: ${hardwareRef}`,
+        hardwarePath,
+        details,
+      );
     }
+
+    const parseResult = LEDHardwareSchema.safeParse(parsed);
+
+    if (!parseResult.success) {
+      throw new ConfigError(
+        `LED hardware file has invalid structure: ${hardwareRef}`,
+        hardwarePath,
+        formatZodError(parseResult.error),
+      );
+    }
+
+    const hardware = parseResult.data as LEDHardware;
+
+    // Cache it
+    this.cache.set(hardwareRef, hardware);
+    const identifier = hardware.asin ?? hardware.sku ?? 'no SKU/ASIN';
+    log.info(
+      `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`,
+    );
+
+    return hardware;
   }
 
   /**

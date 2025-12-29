@@ -80,6 +80,8 @@ beforeEach(() => {
     restartDriver: vi.fn(),
     deleteDriver: vi.fn(),
     onDriverDeleted: vi.fn(() => vi.fn()),
+    showInFolder: vi.fn(),
+    quitApp: vi.fn(),
     getAppInfo: vi.fn().mockResolvedValue({
       version: '0.0.1-test',
       licensePath: '/mock/LICENSE',

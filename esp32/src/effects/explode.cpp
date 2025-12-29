@@ -36,25 +36,23 @@ void ExplodeEffect::add(JsonDocument& props) {
 		isStrip ? canvas.getWidth() : max(canvas.getWidth(), canvas.getHeight());
 	float velocityScale = largestDimension / 60.0f;
 
-	// Parse center position as percentage (0-100), "random", or default to center (50%)
-	float centerXPercent = 50.0f;
-	if (props["centerX"].is<const char*>() && strcmp(props["centerX"].as<const char*>(), "random") == 0) {
-		centerXPercent = hal::random(0, 101);
-	} else if (props["centerX"].is<float>() || props["centerX"].is<int>()) {
-		centerXPercent = props["centerX"].as<float>();
+	// Parse center position as percentage (0-100) - hub must provide these
+	if (!props["centerX"].is<float>() && !props["centerX"].is<int>()) {
+		hal::log("ERROR: explode missing required 'centerX' prop");
+		return;
 	}
+	float centerXPercent = props["centerX"].as<float>();
 	float centerX = (centerXPercent / 100.0f) * canvas.getWidth();
 
 	float centerY;
 	if (isStrip) {
 		centerY = canvas.getHeight() / 2.0f;
 	} else {
-		float centerYPercent = 50.0f;
-		if (props["centerY"].is<const char*>() && strcmp(props["centerY"].as<const char*>(), "random") == 0) {
-			centerYPercent = hal::random(0, 101);
-		} else if (props["centerY"].is<float>() || props["centerY"].is<int>()) {
-			centerYPercent = props["centerY"].as<float>();
+		if (!props["centerY"].is<float>() && !props["centerY"].is<int>()) {
+			hal::log("ERROR: explode missing required 'centerY' prop");
+			return;
 		}
+		float centerYPercent = props["centerY"].as<float>();
 		centerY = (centerYPercent / 100.0f) * canvas.getHeight();
 	}
 
