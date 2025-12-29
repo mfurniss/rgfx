@@ -9,16 +9,16 @@ import type { BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 
 interface DeleteDriverHandlerDeps {
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   getMainWindow: () => BrowserWindow | null;
 }
 
 export function registerDeleteDriverHandler(deps: DeleteDriverHandlerDeps): void {
-  const { driverRegistry, driverPersistence, getMainWindow } = deps;
+  const { driverRegistry, driverConfig, getMainWindow } = deps;
 
   ipcMain.handle('driver:delete', (_event, driverId: string) => {
     log.info(`Deleting driver ${driverId}`);
@@ -30,7 +30,7 @@ export function registerDeleteDriverHandler(deps: DeleteDriverHandlerDeps): void
     }
 
     // Delete from persistence (drivers.json)
-    const persistenceSuccess = driverPersistence.deleteDriver(driverId);
+    const persistenceSuccess = driverConfig.deleteDriver(driverId);
 
     if (!persistenceSuccess) {
       throw new Error(`Failed to delete driver ${driverId} from persistence`);

@@ -6,9 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PersistedDriverSchema, DriversConfigFileRawSchema } from '../driver-persistence';
+import { ConfiguredDriverSchema, DriversConfigFileRawSchema } from '../driver-config';
 
-describe('PersistedDriverSchema', () => {
+describe('ConfiguredDriverSchema', () => {
   describe('valid data', () => {
     it('should accept minimal valid driver config', () => {
       const data = {
@@ -16,7 +16,7 @@ describe('PersistedDriverSchema', () => {
         macAddress: 'AA:BB:CC:DD:EE:FF',
       };
 
-      const result = PersistedDriverSchema.safeParse(data);
+      const result = ConfiguredDriverSchema.safeParse(data);
       expect(result.success).toBe(true);
 
       if (result.success) {
@@ -45,7 +45,7 @@ describe('PersistedDriverSchema', () => {
         remoteLogging: 'all',
       };
 
-      const result = PersistedDriverSchema.safeParse(data);
+      const result = ConfiguredDriverSchema.safeParse(data);
       expect(result.success).toBe(true);
 
       if (result.success) {
@@ -62,7 +62,7 @@ describe('PersistedDriverSchema', () => {
         ledConfig: null,
       };
 
-      const result = PersistedDriverSchema.safeParse(data);
+      const result = ConfiguredDriverSchema.safeParse(data);
       expect(result.success).toBe(true);
     });
   });
@@ -74,7 +74,7 @@ describe('PersistedDriverSchema', () => {
         macAddress: 'AA:BB:CC:DD:EE:FF',
       };
 
-      const result = PersistedDriverSchema.safeParse(data);
+      const result = ConfiguredDriverSchema.safeParse(data);
       expect(result.success).toBe(false);
     });
 
@@ -84,7 +84,7 @@ describe('PersistedDriverSchema', () => {
         macAddress: 'AA:BB:CC:DD:EE:FF',
       };
 
-      const result = PersistedDriverSchema.safeParse(data);
+      const result = ConfiguredDriverSchema.safeParse(data);
       expect(result.success).toBe(false);
     });
 
@@ -92,7 +92,7 @@ describe('PersistedDriverSchema', () => {
       const invalidIds = ['driver@home', 'driver name', 'driver.1', 'driver_1'];
 
       for (const id of invalidIds) {
-        const result = PersistedDriverSchema.safeParse({
+        const result = ConfiguredDriverSchema.safeParse({
           id,
           macAddress: 'AA:BB:CC:DD:EE:FF',
         });
@@ -104,7 +104,7 @@ describe('PersistedDriverSchema', () => {
       const validIds = ['driver-1', 'DRIVER-1', 'my-led-panel-01', 'rgfx-driver-0001'];
 
       for (const id of validIds) {
-        const result = PersistedDriverSchema.safeParse({
+        const result = ConfiguredDriverSchema.safeParse({
           id,
           macAddress: 'AA:BB:CC:DD:EE:FF',
         });
@@ -115,7 +115,7 @@ describe('PersistedDriverSchema', () => {
 
   describe('macAddress validation', () => {
     it('should accept uppercase MAC address', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         id: 'driver',
         macAddress: 'AA:BB:CC:DD:EE:FF',
       });
@@ -123,7 +123,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should accept lowercase MAC address', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         id: 'driver',
         macAddress: 'aa:bb:cc:dd:ee:ff',
       });
@@ -131,7 +131,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject MAC without colons', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         id: 'driver',
         macAddress: 'AABBCCDDEEFF',
       });
@@ -139,7 +139,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject MAC with wrong separator', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         id: 'driver',
         macAddress: 'AA-BB-CC-DD-EE-FF',
       });
@@ -147,7 +147,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject MAC with wrong length', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         id: 'driver',
         macAddress: 'AA:BB:CC:DD:EE',
       });
@@ -162,7 +162,7 @@ describe('PersistedDriverSchema', () => {
     };
 
     it('should reject pin below 0', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         ...baseDriver,
         ledConfig: { hardwareRef: 'led', pin: -1 },
       });
@@ -170,7 +170,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject pin above 39', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         ...baseDriver,
         ledConfig: { hardwareRef: 'led', pin: 40 },
       });
@@ -179,7 +179,7 @@ describe('PersistedDriverSchema', () => {
 
     it('should accept valid pin range 0-39', () => {
       for (const pin of [0, 5, 16, 39]) {
-        const result = PersistedDriverSchema.safeParse({
+        const result = ConfiguredDriverSchema.safeParse({
           ...baseDriver,
           ledConfig: { hardwareRef: 'led', pin },
         });
@@ -188,7 +188,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject maxBrightness above 255', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         ...baseDriver,
         ledConfig: { hardwareRef: 'led', pin: 5, maxBrightness: 256 },
       });
@@ -196,7 +196,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject powerSupplyVolts above 24', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         ...baseDriver,
         ledConfig: { hardwareRef: 'led', pin: 5, powerSupplyVolts: 25 },
       });
@@ -204,7 +204,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject maxPowerMilliamps above 10000', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         ...baseDriver,
         ledConfig: { hardwareRef: 'led', pin: 5, maxPowerMilliamps: 10001 },
       });
@@ -215,7 +215,7 @@ describe('PersistedDriverSchema', () => {
   describe('remoteLogging validation', () => {
     it('should accept valid logging levels', () => {
       for (const level of ['all', 'errors', 'off']) {
-        const result = PersistedDriverSchema.safeParse({
+        const result = ConfiguredDriverSchema.safeParse({
           id: 'driver',
           macAddress: 'AA:BB:CC:DD:EE:FF',
           remoteLogging: level,
@@ -225,7 +225,7 @@ describe('PersistedDriverSchema', () => {
     });
 
     it('should reject invalid logging level', () => {
-      const result = PersistedDriverSchema.safeParse({
+      const result = ConfiguredDriverSchema.safeParse({
         id: 'driver',
         macAddress: 'AA:BB:CC:DD:EE:FF',
         remoteLogging: 'debug',

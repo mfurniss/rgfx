@@ -8,7 +8,7 @@
 import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from './driver-registry';
-import type { DriverPersistence } from './driver-persistence';
+import type { DriverConfig } from './driver-config';
 import type { SystemMonitor } from './system-monitor';
 import type { MqttBroker } from './network';
 import { serializeDriverForIPC, type SystemError } from './types';
@@ -16,7 +16,7 @@ import { eventBus } from './services/event-bus';
 
 interface DriverEventHandlersDeps {
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   systemMonitor: SystemMonitor;
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
@@ -32,7 +32,7 @@ interface DriverEventHandlersDeps {
 export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
   const {
     driverRegistry,
-    driverPersistence,
+    driverConfig,
     systemMonitor,
     mqtt,
     getMainWindow,
@@ -82,8 +82,8 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       });
 
       // Send remote logging configuration to driver
-      const persistedDriver = driverPersistence.getDriver(driver.id);
-      const remoteLogging = persistedDriver?.remoteLogging ?? 'off';
+      const configuredDriver = driverConfig.getDriver(driver.id);
+      const remoteLogging = configuredDriver?.remoteLogging ?? 'off';
       const loggingTopic = `rgfx/driver/${driver.mac}/logging`;
       const loggingPayload = JSON.stringify({ level: remoteLogging });
 

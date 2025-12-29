@@ -1,7 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload } from './types/transformer-types';
-import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
+import type { ConfiguredDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
  * Static application information returned by a single IPC call at startup
@@ -361,7 +361,7 @@ declare global {
       triggerDiscovery: () => Promise<void>;
       triggerEffect: (payload: EffectPayload) => Promise<void>;
       saveDriverConfig: (
-        config: PersistedDriverFromSchema
+        config: ConfiguredDriverFromSchema
       ) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
       getLEDHardware: (hardwareRef: string) => Promise<LEDHardware | null>;

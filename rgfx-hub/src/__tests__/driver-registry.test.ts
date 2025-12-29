@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
-import { DriverPersistence } from '../driver-persistence';
+import { DriverConfig } from '../driver-config';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { createMockTelemetryData } from './factories';
 import { eventBus } from '../services/event-bus';
@@ -34,13 +34,13 @@ vi.mock('fs', () => ({
 
 describe('DriverRegistry', () => {
   let registry: DriverRegistry;
-  let persistence: DriverPersistence;
+  let persistence: DriverConfig;
 
   beforeEach(() => {
     vi.clearAllMocks();
     emitSpy.mockClear();
     // Initialize with a test persistence instance (will not actually write to disk due to mocks)
-    persistence = new DriverPersistence('test-config');
+    persistence = new DriverConfig('test-config');
     registry = new DriverRegistry(persistence);
   });
 
