@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DriverPersistence } from '../driver-persistence';
+import { ConfigError } from '../errors/config-error';
 
 // Mock electron-log
 vi.mock('electron-log/main', () => ({
@@ -56,6 +57,7 @@ describe('DriverPersistence', () => {
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
       const persistence = new DriverPersistence(testConfigDir);
+      persistence.loadConfig();
       const drivers = persistence.getAllDrivers();
 
       expect(drivers).toHaveLength(2);
@@ -65,17 +67,27 @@ describe('DriverPersistence', () => {
 
     it('should handle missing config file gracefully', () => {
       const persistence = new DriverPersistence(testConfigDir);
+      persistence.loadConfig();
       const drivers = persistence.getAllDrivers();
       expect(drivers).toHaveLength(0);
     });
 
-    it('should handle corrupted config file gracefully', () => {
+    it('should throw ConfigError for corrupted JSON file', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       fs.writeFileSync(testConfigFile, 'invalid json {{{', 'utf8');
 
       const persistence = new DriverPersistence(testConfigDir);
-      const drivers = persistence.getAllDrivers();
-      expect(drivers).toHaveLength(0);
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
+
+      try {
+        persistence.loadConfig();
+      } catch (error) {
+        expect(error).toBeInstanceOf(ConfigError);
+        expect((error as ConfigError).filePath).toBe(testConfigFile);
+        expect((error as ConfigError).message).toContain('Failed to parse');
+      }
     });
   });
 
@@ -280,31 +292,26 @@ describe('DriverPersistence', () => {
   });
 
   describe('Schema Validation on Load', () => {
-    it('should skip drivers with invalid ID format', () => {
+    it('should throw ConfigError for driver with invalid ID format', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       const testData = {
         version: '1.0',
         drivers: [
           {
-            id: 'AA:BB:CC:DD:EE:FF', // Invalid format (MAC address)
+            id: 'AA:BB:CC:DD:EE:FF', // Invalid format (MAC address has colons)
             macAddress: 'AA:BB:CC:DD:EE:FF',
-          },
-          {
-            id: 'rgfx-driver-0001',
-            macAddress: '11:22:33:44:55:66',
           },
         ],
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
       const persistence = new DriverPersistence(testConfigDir);
-      const drivers = persistence.getAllDrivers();
-
-      expect(drivers).toHaveLength(1);
-      expect(drivers[0].id).toBe('rgfx-driver-0001');
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
     });
 
-    it('should skip drivers with invalid MAC address format', () => {
+    it('should throw ConfigError for driver with invalid MAC address format', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       const testData = {
         version: '1.0',
@@ -313,22 +320,17 @@ describe('DriverPersistence', () => {
             id: 'rgfx-driver-0001',
             macAddress: 'invalid-mac',
           },
-          {
-            id: 'rgfx-driver-0002',
-            macAddress: '11:22:33:44:55:66',
-          },
         ],
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
       const persistence = new DriverPersistence(testConfigDir);
-      const drivers = persistence.getAllDrivers();
-
-      expect(drivers).toHaveLength(1);
-      expect(drivers[0].id).toBe('rgfx-driver-0002');
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
     });
 
-    it('should skip drivers missing required fields', () => {
+    it('should throw ConfigError for driver missing required id field', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       const testData = {
         version: '1.0',
@@ -337,34 +339,100 @@ describe('DriverPersistence', () => {
             // Missing id
             macAddress: 'AA:BB:CC:DD:EE:FF',
           },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
+    });
+
+    it('should throw ConfigError for driver missing required macAddress field', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
           {
             id: 'rgfx-driver-0001',
             // Missing macAddress
-          },
-          {
-            id: 'rgfx-driver-0002',
-            macAddress: '11:22:33:44:55:66',
           },
         ],
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
       const persistence = new DriverPersistence(testConfigDir);
-      const drivers = persistence.getAllDrivers();
-
-      expect(drivers).toHaveLength(1);
-      expect(drivers[0].id).toBe('rgfx-driver-0002');
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
     });
 
-    it('should load all valid drivers and skip all invalid ones', () => {
+    it('should throw ConfigError for driver with unrecognized key (strict mode)', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       const testData = {
         version: '1.0',
         drivers: [
           {
-            id: 'invalid-mac-format',
-            macAddress: 'not-a-mac',
+            id: 'rgfx-driver-0001',
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+            unknownField: 'should not be here',
           },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
+
+      try {
+        persistence.loadConfig();
+      } catch (error) {
+        expect((error as ConfigError).details).toContain('Unrecognized key');
+      }
+    });
+
+    it('should throw ConfigError for invalid file structure (missing version)', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        // Missing version field
+        drivers: [
+          {
+            id: 'rgfx-driver-0001',
+            macAddress: 'AA:BB:CC:DD:EE:FF',
+          },
+        ],
+      };
+      fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+      expect(() => {
+        persistence.loadConfig();
+      }).toThrow(ConfigError);
+    });
+
+    it('should include file path in ConfigError', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigFile, 'not valid json', 'utf8');
+
+      const persistence = new DriverPersistence(testConfigDir);
+
+      try {
+        persistence.loadConfig();
+        expect.fail('Should have thrown ConfigError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ConfigError);
+        expect((error as ConfigError).filePath).toBe(testConfigFile);
+      }
+    });
+
+    it('should load all valid drivers when config is correct', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      const testData = {
+        version: '1.0',
+        drivers: [
           {
             id: 'rgfx-driver-0001',
             macAddress: 'AA:BB:CC:DD:EE:FF',
@@ -382,6 +450,7 @@ describe('DriverPersistence', () => {
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
       const persistence = new DriverPersistence(testConfigDir);
+      persistence.loadConfig();
       const drivers = persistence.getAllDrivers();
 
       expect(drivers).toHaveLength(3);

@@ -123,3 +123,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [ ] MAME / game shutdown event
 [X] Horiztonal center text effect
 [X] Delete driver feature
+[ ] Hub bad config error state
+[X] Lua emit error event to Hub

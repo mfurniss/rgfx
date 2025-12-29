@@ -6,6 +6,10 @@
  * Unit Tests for BitmapEffect
  *
  * Tests bitmap rendering, positioning, transparency, and layering.
+ * Bitmaps use a 16-color palette (indices 0-F) where:
+ * - ' ' or '.' = transparent pixel
+ * - '0'-'9' = palette indices 0-9
+ * - 'A'-'F' (case insensitive) = palette indices 10-15
  */
 
 #include <unity.h>
@@ -54,11 +58,6 @@ using String = std::string;
 
 using namespace test_helpers;
 
-// Include test helpers
-#include "helpers/effect_test_helpers.h"
-
-using namespace test_helpers;
-
 void setUp(void) {
 	hal::test::setTime(0);
 	hal::test::seedRandom(12345);
@@ -83,12 +82,13 @@ void test_bitmap_add_simple_image() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FF0000";
+	addPico8Palette(props);
 	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XX");
-	image.add("XX");
+	image.add("88");  // Red pixels (palette index 8)
+	image.add("88");
 
 	effect.add(props);
 	canvas.clear();
@@ -99,39 +99,19 @@ void test_bitmap_add_simple_image() {
 	TEST_ASSERT_TRUE(pixelCount > 0);
 }
 
-void test_bitmap_default_color() {
-	Matrix matrix(8, 8);
-	Canvas canvas(matrix);
-	BitmapEffect effect(matrix, canvas);
-
-	JsonDocument props;
-	setDefaultBitmapProps(props);
-	// No color specified - should use default (yellow)
-	props["duration"] = 1000;
-	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X");
-
-	effect.add(props);
-	canvas.clear();
-	effect.render();
-
-	// Should have pixels
-	int pixelCount = countNonBlackPixels(canvas);
-	TEST_ASSERT_TRUE(pixelCount > 0);
-}
-
 void test_bitmap_reset_clears_all() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 5000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XXX");
-	image.add("XXX");
+	image.add("777");  // White pixels (palette index 7)
+	image.add("777");
 
 	effect.add(props);
 	canvas.clear();
@@ -148,19 +128,19 @@ void test_bitmap_reset_clears_all() {
 // 2. Positioning Tests
 // =============================================================================
 
-void test_bitmap_center_position_default() {
+void test_bitmap_center_position() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
-	// Default center is 50%, 50%
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XX");
-	image.add("XX");
+	image.add("77");
+	image.add("77");
 
 	effect.add(props);
 	canvas.clear();
@@ -183,14 +163,13 @@ void test_bitmap_position_top_left() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
 	props["centerX"] = 0;
 	props["centerY"] = 0;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XX");
-	image.add("XX");
+	image.add("77");
+	image.add("77");
 
 	effect.add(props);
 	canvas.clear();
@@ -209,14 +188,13 @@ void test_bitmap_position_bottom_right() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
 	props["centerX"] = 100;
 	props["centerY"] = 100;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XX");
-	image.add("XX");
+	image.add("77");
+	image.add("77");
 
 	effect.add(props);
 	canvas.clear();
@@ -228,22 +206,21 @@ void test_bitmap_position_bottom_right() {
 	TEST_ASSERT_TRUE(countPixelsInQuadrant(canvas, 3) > 0);
 }
 
-void test_bitmap_position_random() {
+void test_bitmap_position_arbitrary() {
+	// Hub resolves "random" to numeric values before sending - ESP32 requires numeric
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
-	props["centerX"] = "random";
-	props["centerY"] = "random";
+	props["centerX"] = 25;  // Hub-resolved random value
+	props["centerY"] = 75;  // Hub-resolved random value
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XXX");
-	image.add("XXX");
+	image.add("777");
+	image.add("777");
 
-	// Should not crash
 	effect.add(props);
 	canvas.clear();
 	effect.render();
@@ -257,13 +234,12 @@ void test_bitmap_off_canvas_not_rendered() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
 	props["centerX"] = -100;  // Far off-canvas
 	props["centerY"] = -100;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X");
+	image.add("7");
 
 	effect.add(props);
 	canvas.clear();
@@ -283,25 +259,48 @@ void test_bitmap_spaces_are_transparent() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X X");  // Space in middle
+	image.add("7 7");  // Space in middle
 	image.add("   ");  // All spaces
-	image.add("X X");
+	image.add("7 7");
 
 	effect.add(props);
 	canvas.clear();
 	effect.render();
 
-	// Should only render X pixels, not spaces
+	// Should only render corner pixels, not spaces
 	int pixelCount = countNonBlackPixels(canvas);
-	// 4 X's at 4x4 scale = ~64 pixels, but with some variation
 	TEST_ASSERT_TRUE(pixelCount > 0);
 	TEST_ASSERT_TRUE(pixelCount < 150);  // Not full image
+}
+
+void test_bitmap_period_transparent() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("8.8");  // Red, transparent, red
+	image.add("...");  // All transparent
+	image.add("8.8");
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should have 4 red pixels (corners), not 9
+	int redPixels = countRedDominantPixels(canvas);
+	TEST_ASSERT_TRUE(redPixels > 0);
+	TEST_ASSERT_TRUE(redPixels < 100);
 }
 
 void test_bitmap_alpha_blending() {
@@ -313,11 +312,12 @@ void test_bitmap_alpha_blending() {
 	canvas.fill(CRGB(100, 0, 0));
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#00FF00";  // Green bitmap
+	addPico8Palette(props);
 	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X");
+	image.add("B");  // Green from palette (index B)
 
 	effect.add(props);
 	effect.render();  // Don't clear - blend on top
@@ -337,12 +337,13 @@ void test_bitmap_expires_after_duration() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 100;  // 100ms
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XX");
-	image.add("XX");
+	image.add("77");
+	image.add("77");
 
 	effect.add(props);
 
@@ -359,33 +360,6 @@ void test_bitmap_expires_after_duration() {
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
 
-void test_bitmap_default_duration() {
-	Matrix matrix(8, 8);
-	Canvas canvas(matrix);
-	BitmapEffect effect(matrix, canvas);
-
-	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
-	// No duration override - should use default (400ms)
-	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X");
-
-	effect.add(props);
-
-	// At 200ms, should still be visible
-	effect.update(0.2f);
-	canvas.clear();
-	effect.render();
-	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
-
-	// At 500ms, should be expired
-	effect.update(0.3f);
-	canvas.clear();
-	effect.render();
-	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
-}
-
 // =============================================================================
 // 5. Multiple Bitmaps Tests
 // =============================================================================
@@ -397,22 +371,22 @@ void test_bitmap_multiple_concurrent() {
 
 	// First bitmap (red, left side)
 	JsonDocument props1;
-	props1["color"] = "#FF0000";
+	addPico8Palette(props1);
 	props1["duration"] = 5000;
 	props1["centerX"] = 25;
 	props1["centerY"] = 50;
 	JsonArray image1 = props1["image"].to<JsonArray>();
-	image1.add("X");
+	image1.add("8");  // Red (palette index 8)
 	effect.add(props1);
 
 	// Second bitmap (green, right side)
 	JsonDocument props2;
-	props2["color"] = "#00FF00";
+	addPico8Palette(props2);
 	props2["duration"] = 5000;
 	props2["centerX"] = 75;
 	props2["centerY"] = 50;
 	JsonArray image2 = props2["image"].to<JsonArray>();
-	image2.add("X");
+	image2.add("B");  // Green (palette index B)
 	effect.add(props2);
 
 	canvas.clear();
@@ -425,42 +399,6 @@ void test_bitmap_multiple_concurrent() {
 	TEST_ASSERT_TRUE(greenPixels > 0);
 }
 
-void test_bitmap_layering_order() {
-	Matrix matrix(4, 4);
-	Canvas canvas(matrix);
-	BitmapEffect effect(matrix, canvas);
-
-	// First bitmap (longer remaining)
-	JsonDocument props1;
-	props1["color"] = "#FF0000";
-	props1["duration"] = 5000;
-	props1["centerX"] = 50;
-	props1["centerY"] = 50;
-	JsonArray image1 = props1["image"].to<JsonArray>();
-	image1.add("XX");
-	image1.add("XX");
-	effect.add(props1);
-
-	// Second bitmap (shorter remaining)
-	JsonDocument props2;
-	props2["color"] = "#00FF00";
-	props2["duration"] = 1000;
-	props2["centerX"] = 50;
-	props2["centerY"] = 50;
-	JsonArray image2 = props2["image"].to<JsonArray>();
-	image2.add("XX");
-	image2.add("XX");
-	effect.add(props2);
-
-	canvas.clear();
-	effect.render();
-
-	// Both bitmaps render with ALPHA blend - verify both exist
-	// (actual layering depends on render order and blend mode)
-	int pixels = countNonBlackPixels(canvas);
-	TEST_ASSERT_TRUE(pixels > 0);
-}
-
 // =============================================================================
 // 6. Image Parsing Tests
 // =============================================================================
@@ -471,9 +409,10 @@ void test_bitmap_empty_image() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	// No image array
 
 	effect.add(props);
@@ -490,11 +429,12 @@ void test_bitmap_single_pixel() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X");  // Single pixel
+	image.add("7");  // Single white pixel
 
 	effect.add(props);
 	canvas.clear();
@@ -512,13 +452,14 @@ void test_bitmap_varying_row_lengths() {
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("X");      // 1 char
-	image.add("XXX");    // 3 chars
-	image.add("XX");     // 2 chars
+	image.add("7");      // 1 char
+	image.add("777");    // 3 chars
+	image.add("77");     // 2 chars
 
 	effect.add(props);
 	canvas.clear();
@@ -529,29 +470,175 @@ void test_bitmap_varying_row_lengths() {
 }
 
 // =============================================================================
-// 7. Color Tests
+// 7. Palette Tests
 // =============================================================================
 
-void test_bitmap_specific_color() {
+void test_bitmap_palette_index_0_black() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#0000FF";  // Blue
+	addPico8Palette(props);
 	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XX");
-	image.add("XX");
+	image.add("00");  // Use palette index 0 (black)
+	image.add("00");
 
 	effect.add(props);
 	canvas.clear();
 	effect.render();
 
-	// Should have blue pixels
+	// Palette index 0 is black (#000000), so pixels should be black
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_bitmap_palette_index_8_red() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("88");  // Use palette index 8 (PICO-8 red: #FF004D)
+	image.add("88");
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should have red-dominant pixels
+	int redPixels = countRedDominantPixels(canvas);
+	TEST_ASSERT_TRUE(redPixels > 0);
+}
+
+void test_bitmap_palette_index_B_green() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("BB");  // Use palette index B (PICO-8 green: #00E436)
+	image.add("BB");
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should have green-dominant pixels
+	int greenPixels = countGreenDominantPixels(canvas);
+	TEST_ASSERT_TRUE(greenPixels > 0);
+}
+
+void test_bitmap_palette_index_C_blue() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("CC");  // Use palette index C (PICO-8 blue: #29ADFF)
+	image.add("CC");
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should have blue-dominant pixels
 	int bluePixels = countBlueDominantPixels(canvas);
 	TEST_ASSERT_TRUE(bluePixels > 0);
+}
+
+void test_bitmap_palette_lowercase() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("bb");  // lowercase should work same as BB
+	image.add("bb");
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should have green-dominant pixels (same as uppercase)
+	int greenPixels = countGreenDominantPixels(canvas);
+	TEST_ASSERT_TRUE(greenPixels > 0);
+}
+
+void test_bitmap_custom_palette() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	// Custom 2-color palette
+	JsonArray palette = props["palette"].to<JsonArray>();
+	palette.add("#00FF00");  // 0: Green
+	palette.add("#FF0000");  // 1: Red
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("01");
+	image.add("10");
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should have both green and red pixels
+	int greenPixels = countGreenDominantPixels(canvas);
+	int redPixels = countRedDominantPixels(canvas);
+	TEST_ASSERT_TRUE(greenPixels > 0);
+	TEST_ASSERT_TRUE(redPixels > 0);
+}
+
+void test_bitmap_invalid_palette_index_transparent() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	// Only 2 colors in palette
+	JsonArray palette = props["palette"].to<JsonArray>();
+	palette.add("#FF0000");  // 0: Red
+	palette.add("#00FF00");  // 1: Green
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("0F");  // 0 valid, F invalid (out of range)
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should only render valid palette index (red)
+	int redPixels = countRedDominantPixels(canvas);
+	TEST_ASSERT_TRUE(redPixels > 0);
+	// Invalid index F should be transparent (no additional pixels)
 }
 
 // =============================================================================
@@ -563,20 +650,13 @@ void test_bitmap_on_strip() {
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
 
-	// Strip canvas has height=1, width=64
-	// Note: BitmapEffect uses 4x scaling which creates height-4 rectangles.
-	// For strip layouts (height=1), this means bitmaps will be mostly clipped.
-	// Additionally, drawRectangle takes uint16_t y, so negative offsets wrap
-	// to large positive values and fail bounds checks.
-	// This test verifies the effect doesn't crash on strips.
-
 	JsonDocument props;
-	setDefaultBitmapProps(props);
-	props["color"] = "#FFFFFF";
+	addPico8Palette(props);
 	props["duration"] = 1000;
 	props["centerX"] = 50;
+	props["centerY"] = 50;
 	JsonArray image = props["image"].to<JsonArray>();
-	image.add("XXX");
+	image.add("777");
 
 	// Should not crash
 	effect.add(props);
@@ -586,10 +666,6 @@ void test_bitmap_on_strip() {
 	// Verify strip canvas dimensions are correct
 	TEST_ASSERT_EQUAL(1, canvas.getHeight());
 	TEST_ASSERT_EQUAL(64, canvas.getWidth());
-
-	// Note: Bitmap may not be visible due to y-coordinate clipping issues
-	// with signed/unsigned conversion in drawRectangle. This is a known
-	// limitation of BitmapEffect on strips - it wasn't designed for 1D layouts.
 	TEST_PASS();
 }
 
@@ -606,35 +682,39 @@ int main(int argc, char** argv) {
 	// 1. Basic Creation & Defaults
 	RUN_TEST(test_bitmap_creation);
 	RUN_TEST(test_bitmap_add_simple_image);
-	RUN_TEST(test_bitmap_default_color);
 	RUN_TEST(test_bitmap_reset_clears_all);
 
 	// 2. Positioning Tests
-	RUN_TEST(test_bitmap_center_position_default);
+	RUN_TEST(test_bitmap_center_position);
 	RUN_TEST(test_bitmap_position_top_left);
 	RUN_TEST(test_bitmap_position_bottom_right);
-	RUN_TEST(test_bitmap_position_random);
+	RUN_TEST(test_bitmap_position_arbitrary);
 	RUN_TEST(test_bitmap_off_canvas_not_rendered);
 
 	// 3. Transparency Tests
 	RUN_TEST(test_bitmap_spaces_are_transparent);
+	RUN_TEST(test_bitmap_period_transparent);
 	RUN_TEST(test_bitmap_alpha_blending);
 
 	// 4. Duration & Expiration Tests
 	RUN_TEST(test_bitmap_expires_after_duration);
-	RUN_TEST(test_bitmap_default_duration);
 
 	// 5. Multiple Bitmaps Tests
 	RUN_TEST(test_bitmap_multiple_concurrent);
-	RUN_TEST(test_bitmap_layering_order);
 
 	// 6. Image Parsing Tests
 	RUN_TEST(test_bitmap_empty_image);
 	RUN_TEST(test_bitmap_single_pixel);
 	RUN_TEST(test_bitmap_varying_row_lengths);
 
-	// 7. Color Tests
-	RUN_TEST(test_bitmap_specific_color);
+	// 7. Palette Tests
+	RUN_TEST(test_bitmap_palette_index_0_black);
+	RUN_TEST(test_bitmap_palette_index_8_red);
+	RUN_TEST(test_bitmap_palette_index_B_green);
+	RUN_TEST(test_bitmap_palette_index_C_blue);
+	RUN_TEST(test_bitmap_palette_lowercase);
+	RUN_TEST(test_bitmap_custom_palette);
+	RUN_TEST(test_bitmap_invalid_palette_index_transparent);
 
 	// 8. Strip Layout Tests
 	RUN_TEST(test_bitmap_on_strip);

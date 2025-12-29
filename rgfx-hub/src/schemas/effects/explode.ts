@@ -17,8 +17,8 @@ export default baseEffect
   .extend({
     name: z.literal('Explode'),
     description: z.literal('Expanding particle burst from a center point'),
-    centerX,
-    centerY,
+    centerX: centerX.default(50),
+    centerY: centerY.default(50),
     friction: z.number().min(0).max(50).optional().default(3.0).describe('Air resistance slowing particles'),
     hueSpread: z.number().int().min(0).max(359).optional().default(0).describe('Color variation in degrees'),
     lifespan: z.number().positive().optional().default(700).describe('Particle lifetime in milliseconds'),

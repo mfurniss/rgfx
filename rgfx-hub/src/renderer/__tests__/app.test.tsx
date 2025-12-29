@@ -1,14 +1,20 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import App from '../app';
-import type { Driver, SystemStatus } from '@/types';
+import type { Driver, SystemStatus, SystemError } from '@/types';
 
 // Mock Zustand store
 const mockOnDriverConnected = vi.fn();
 const mockOnDriverDisconnected = vi.fn();
+const mockOnDriverUpdated = vi.fn();
+const mockOnDriverRestarting = vi.fn();
+const mockOnDriverDeleted = vi.fn();
 const mockOnSystemStatusUpdate = vi.fn();
-const mockSystemStatus: SystemStatus = {
+const mockConnectedDrivers = vi.fn().mockReturnValue([]);
+const mockGetDriverById = vi.fn().mockReturnValue(undefined);
+
+let mockSystemStatus: SystemStatus = {
   mqttBroker: 'running',
   udpServer: 'active',
   eventReader: 'monitoring',
@@ -19,19 +25,24 @@ const mockSystemStatus: SystemStatus = {
   hubStartTime: Date.now(),
   udpMessagesSent: 0,
   udpMessagesFailed: 0,
+  systemErrors: [],
 };
 
+const createMockState = () => ({
+  drivers: [],
+  systemStatus: mockSystemStatus,
+  onDriverConnected: mockOnDriverConnected,
+  onDriverDisconnected: mockOnDriverDisconnected,
+  onDriverUpdated: mockOnDriverUpdated,
+  onDriverRestarting: mockOnDriverRestarting,
+  onDriverDeleted: mockOnDriverDeleted,
+  onSystemStatusUpdate: mockOnSystemStatusUpdate,
+  connectedDrivers: mockConnectedDrivers,
+  getDriverById: mockGetDriverById,
+});
+
 vi.mock('../store/driver-store', () => ({
-  useDriverStore: vi.fn((selector) => {
-    const state = {
-      drivers: [],
-      systemStatus: mockSystemStatus,
-      onDriverConnected: mockOnDriverConnected,
-      onDriverDisconnected: mockOnDriverDisconnected,
-      onSystemStatusUpdate: mockOnSystemStatusUpdate,
-    };
-    return selector(state);
-  }),
+  useDriverStore: vi.fn((selector) => selector(createMockState())),
 }));
 
 describe('App IPC Listener Registration', () => {
@@ -82,6 +93,8 @@ describe('App IPC Listener Registration', () => {
       restartDriver: vi.fn(),
       deleteDriver: vi.fn(),
       onDriverDeleted: vi.fn(() => vi.fn()),
+      showInFolder: vi.fn(),
+      quitApp: vi.fn(),
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
         licensePath: '/mock/LICENSE',
@@ -140,5 +153,115 @@ describe('App IPC Listener Registration', () => {
     // Zustand action should be called exactly once
     expect(mockOnDriverConnected).toHaveBeenCalledTimes(1);
     expect(mockOnDriverConnected).toHaveBeenCalledWith(mockDriver);
+  });
+});
+
+describe('App Critical Error Handling', () => {
+  // Create a fresh system status for each test to avoid state bleeding
+  const createFreshSystemStatus = (): SystemStatus => ({
+    mqttBroker: 'running',
+    udpServer: 'active',
+    eventReader: 'monitoring',
+    driversConnected: 0,
+    driversTotal: 0,
+    hubIp: '192.168.1.100',
+    eventsProcessed: 0,
+    hubStartTime: Date.now(),
+    udpMessagesSent: 0,
+    udpMessagesFailed: 0,
+    systemErrors: [],
+  });
+
+  const createWindowMock = (): void => {
+    (window as Window & { rgfx: unknown }).rgfx = {
+      onDriverConnected: vi.fn(() => vi.fn()),
+      onDriverDisconnected: vi.fn(() => vi.fn()),
+      onDriverUpdated: vi.fn(() => vi.fn()),
+      onDriverRestarting: vi.fn(() => vi.fn()),
+      onSystemStatus: vi.fn(() => vi.fn()),
+      onFlashOtaState: vi.fn(() => vi.fn()),
+      onFlashOtaProgress: vi.fn(() => vi.fn()),
+      rendererReady: vi.fn(),
+      sendDriverCommand: vi.fn(),
+      updateDriverConfig: vi.fn(),
+      flashOTA: vi.fn(),
+      triggerDiscovery: vi.fn(),
+      triggerEffect: vi.fn(),
+      saveDriverConfig: vi.fn(),
+      getLEDHardwareList: vi.fn(),
+      getLEDHardware: vi.fn(),
+      openDriverLog: vi.fn(),
+      openFile: vi.fn(),
+      listGames: vi.fn(),
+      simulateEvent: vi.fn(),
+      selectDirectory: vi.fn(),
+      verifyDirectory: vi.fn(),
+      getFirmwareManifest: vi.fn(),
+      getFirmwareFile: vi.fn(),
+      setDriverDisabled: vi.fn(),
+      onEvent: vi.fn(() => vi.fn()),
+      resetEventCounts: vi.fn(),
+      restartDriver: vi.fn(),
+      deleteDriver: vi.fn(),
+      onDriverDeleted: vi.fn(() => vi.fn()),
+      showInFolder: vi.fn(),
+      quitApp: vi.fn(),
+      getAppInfo: vi.fn().mockResolvedValue({
+        version: '0.0.1-test',
+        licensePath: '/mock/LICENSE',
+        defaultRgfxConfigDir: '/mock/.rgfx',
+        defaultMameRomsDir: '/mock/mame-roms',
+      }),
+    };
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset mockSystemStatus to clean state for each test
+    mockSystemStatus = createFreshSystemStatus();
+    createWindowMock();
+  });
+
+  it('should render CriticalErrorModal when config error exists', () => {
+    const configError: SystemError = {
+      errorType: 'config',
+      message: 'Failed to parse configuration file',
+      filePath: '/home/user/.rgfx/drivers.json',
+      details: 'Unrecognized key: "foo"',
+      timestamp: Date.now(),
+    };
+
+    // Update mock to include config error - must set new object to trigger store update
+    mockSystemStatus = {
+      ...createFreshSystemStatus(),
+      systemErrors: [configError],
+    };
+
+    render(<App />);
+
+    // Should show the critical error modal
+    expect(screen.getByText('Configuration Error')).toBeDefined();
+    expect(screen.getByText(configError.message)).toBeDefined();
+    expect(screen.getByText(configError.filePath!)).toBeDefined();
+    expect(screen.getByText(configError.details!)).toBeDefined();
+  });
+
+  it('should not render CriticalErrorModal for interceptor errors', () => {
+    const interceptorError: SystemError = {
+      errorType: 'interceptor',
+      message: 'Interceptor failed to load',
+      timestamp: Date.now(),
+    };
+
+    // Set up fresh system status with only interceptor error
+    mockSystemStatus = {
+      ...createFreshSystemStatus(),
+      systemErrors: [interceptorError],
+    };
+
+    render(<App />);
+
+    // Should NOT show the critical error modal for interceptor errors
+    expect(screen.queryByText('Configuration Error')).toBeNull();
   });
 });

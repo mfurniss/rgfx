@@ -99,6 +99,7 @@ describe('SystemMonitor', () => {
         currentFirmwareVersion: '2.0.0',
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
+        systemErrors: [],
       });
     });
 
@@ -119,6 +120,7 @@ describe('SystemMonitor', () => {
         currentFirmwareVersion: '1.0.0', // From beforeEach default
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
+        systemErrors: [],
       });
     });
 
@@ -135,6 +137,24 @@ describe('SystemMonitor', () => {
       const status2 = systemMonitor.getSystemStatus(2, 3, 200);
 
       expect(status1.hubStartTime).toBe(status2.hubStartTime);
+    });
+
+    it('should include system errors when provided', () => {
+      const errors = [
+        { errorType: 'interceptor' as const, message: 'Test error 1', timestamp: 1000 },
+        { errorType: 'interceptor' as const, message: 'Test error 2', timestamp: 2000 },
+      ];
+
+      const status = systemMonitor.getSystemStatus(1, 2, 100, errors);
+
+      expect(status.systemErrors).toEqual(errors);
+      expect(status.systemErrors).toHaveLength(2);
+    });
+
+    it('should default to empty array when no errors provided', () => {
+      const status = systemMonitor.getSystemStatus(1, 2, 100);
+
+      expect(status.systemErrors).toEqual([]);
     });
   });
 

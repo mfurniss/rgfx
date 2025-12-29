@@ -123,6 +123,7 @@ describe('setupDriverEventHandlers', () => {
       currentFirmwareVersion: '1.0.0',
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
+      systemErrors: [],
     };
 
     mockSystemMonitor = {
@@ -151,6 +152,7 @@ describe('setupDriverEventHandlers', () => {
       mqtt: mockMqtt as unknown as MqttBroker,
       getMainWindow: mockGetMainWindow,
       getEventsProcessed: mockGetEventsProcessed,
+      getSystemErrors: vi.fn(() => []),
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });
@@ -302,7 +304,7 @@ describe('setupDriverEventHandlers', () => {
     });
 
     describe('system status', () => {
-      it('should call getSystemStatus with current counts', () => {
+      it('should call getSystemStatus with current counts and errors', () => {
         mockDriverRegistry.getConnectedCount.mockReturnValue(3);
         const fourDrivers = [mockDriver, mockDriver, mockDriver, mockDriver];
         mockDriverRegistry.getAllDrivers.mockReturnValue(fourDrivers);
@@ -310,8 +312,43 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500, []);
       });
+    });
+  });
+
+  describe('system errors', () => {
+    it('should pass system errors to getSystemStatus', () => {
+      // Clean up existing handlers
+      for (const { event, handler } of eventHandlers) {
+        eventBus.off(event as any, handler);
+      }
+      eventHandlers.length = 0;
+
+      const mockErrors = [
+        { errorType: 'interceptor' as const, message: 'Test error', timestamp: Date.now() },
+      ];
+      const mockGetSystemErrors = vi.fn(() => mockErrors);
+
+      setupDriverEventHandlers({
+        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
+        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
+        mqtt: mockMqtt as unknown as MqttBroker,
+        getMainWindow: mockGetMainWindow,
+        getEventsProcessed: mockGetEventsProcessed,
+        getSystemErrors: mockGetSystemErrors,
+        uploadConfigToDriver: mockUploadConfigToDriver,
+      });
+
+      eventBus.emit('driver:connected', { driver: mockDriver as any });
+
+      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.any(Number),
+        expect.any(Number),
+        mockErrors,
+      );
     });
   });
 
@@ -370,14 +407,14 @@ describe('setupDriverEventHandlers', () => {
     });
 
     describe('system status', () => {
-      it('should call getSystemStatus with current counts', () => {
+      it('should call getSystemStatus with current counts and errors', () => {
         mockDriverRegistry.getConnectedCount.mockReturnValue(0);
         mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver]);
         mockGetEventsProcessed.mockReturnValue(200);
 
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200, []);
       });
     });
   });

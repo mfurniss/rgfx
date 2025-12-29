@@ -9,13 +9,13 @@ import { describe, it, expect } from 'vitest';
 import centerX from '../../properties/centerX';
 
 describe('centerX schema', () => {
-  describe('default value', () => {
-    it('should default to 50 when undefined', () => {
+  describe('optional behavior', () => {
+    it('should accept undefined (optional)', () => {
       const result = centerX.safeParse(undefined);
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data).toBe(50);
+        expect(result.data).toBeUndefined();
       }
     });
   });

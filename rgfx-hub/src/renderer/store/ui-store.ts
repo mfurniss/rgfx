@@ -146,16 +146,13 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'rgfx-ui-preferences',
-      version: 1,
+      version: 2,
       partialize: (state) => ({
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
         simulatorRows: state.simulatorRows,
         rgfxConfigDirectory: state.rgfxConfigDirectory,
         mameRomsDirectory: state.mameRomsDirectory,
-        testEffectsSelectedEffect: state.testEffectsSelectedEffect,
-        testEffectsPropsMap: state.testEffectsPropsMap,
-        testEffectsSelectedDrivers: state.testEffectsSelectedDrivers,
       }),
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<UiState>;

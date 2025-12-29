@@ -235,6 +235,14 @@ export const rgfxAPI = {
       ipcRenderer.removeListener('driver:deleted', handler);
     };
   },
+
+  showInFolder: (filePath: string): Promise<void> => {
+    return ipcRenderer.invoke('file:show-in-folder', filePath);
+  },
+
+  quitApp: (): void => {
+    ipcRenderer.send('app:quit');
+  },
 };
 
 contextBridge.exposeInMainWorld('rgfx', rgfxAPI);

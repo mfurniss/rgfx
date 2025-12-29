@@ -303,6 +303,14 @@ export function serializeDriverForIPC(driver: Driver): Driver {
   return { ...driver };
 }
 
+export interface SystemError {
+  errorType: 'interceptor' | 'config';
+  message: string;
+  timestamp: number;
+  filePath?: string;
+  details?: string;
+}
+
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -315,6 +323,7 @@ export interface SystemStatus {
   currentFirmwareVersion?: string;
   udpMessagesSent: number;
   udpMessagesFailed: number;
+  systemErrors: SystemError[];
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';
@@ -370,6 +379,8 @@ declare global {
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
       deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
       onDriverDeleted: (callback: (driverId: string) => void) => () => void;
+      showInFolder: (filePath: string) => Promise<void>;
+      quitApp: () => void;
     };
   }
 }

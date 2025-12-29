@@ -29,6 +29,9 @@ export interface AppEventMap {
   'flash:ota:state': { driverId: string; state: string };
   'flash:ota:progress': { driverId: string; sent: number; total: number; percent: number };
   'flash:ota:error': { driverId: string; error: string };
+
+  // Interceptor events
+  'interceptor:error': { message: string; timestamp: number };
 }
 
 type AppEventName = keyof AppEventMap;

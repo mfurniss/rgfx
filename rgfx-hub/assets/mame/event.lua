@@ -101,7 +101,12 @@ function _G.event(topic, message)
 	local ok, result, err = pcall(function()
 		-- Lua's io.write() returns the file handle on success, nil + error on failure
 		-- Note: setvbuf("no") already disables buffering, so flush() is redundant
-		local line = message ~= nil and string.format("%s %s\n", topic, message) or string.format("%s\n", topic)
+		-- Replace newlines/tabs with spaces to keep event on single line
+		local sanitized_message = message
+		if sanitized_message ~= nil then
+			sanitized_message = tostring(sanitized_message):gsub("[\n\r\t]+", " ")
+		end
+		local line = sanitized_message ~= nil and string.format("%s %s\n", topic, sanitized_message) or string.format("%s\n", topic)
 		local handle, write_err = event_file:write(line)
 		if not handle then
 			return nil, write_err
