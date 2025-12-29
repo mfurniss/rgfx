@@ -48,12 +48,17 @@ export default baseEffect
   .extend({
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
+    reset: z.boolean().optional().default(false),
     centerX: centerX.default('random').describe('fieldType:centerXY|Start X position (0-100 or random)'),
     centerY: centerY.default('random').describe('fieldType:centerXY|Start Y position (0-100 or random)'),
-    endX: centerX.optional().describe('fieldType:centerXY|End X position (0-100 or random)'),
-    endY: centerY.optional().describe('fieldType:centerXY|End Y position (0-100 or random)'),
-    duration: z.number().positive().optional().default(600),
-    easing: easing.optional().default('linear'),
+    endX: centerX.default('random').describe('fieldType:centerXY|End X position (0-100 or random)'),
+    endY: centerY.default('random').describe('fieldType:centerXY|End Y position (0-100 or random)'),
+    duration: z.number().positive().optional().default(1500),
+    easing: easing.optional().default('quadraticInOut'),
+    fadeIn: z.number().int().nonnegative().optional().default(300)
+      .describe('Fade in duration in milliseconds'),
+    fadeOut: z.number().int().nonnegative().optional().default(300)
+      .describe('Fade out duration in milliseconds'),
     palette: z
       .array(paletteColorSchema)
       .min(1)
