@@ -5,10 +5,15 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, statSync, existsSync, mkdirSync } from 'node:fs';
+import { watch, readFileSync, statSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import log from 'electron-log/main';
-import { EVENT_LOG_FILENAME, EVENT_FILE_POLL_INTERVAL_MS } from './config/constants';
+import {
+  EVENT_LOG_FILENAME,
+  EVENT_FILE_POLL_INTERVAL_MS,
+  EVENT_LOG_MAX_SIZE_BYTES,
+  EVENT_LOG_TRIM_TARGET_BYTES,
+} from './config/constants';
 import { CONFIG_DIRECTORY } from './config/paths';
 
 export class EventFileReader {
@@ -122,6 +127,20 @@ export class EventFileReader {
     this.startPolling();
   }
 
+  private trimLogFile() {
+    try {
+      const content = readFileSync(this.filePath, 'utf-8');
+      const trimPoint = content.length - EVENT_LOG_TRIM_TARGET_BYTES;
+      const firstNewline = content.indexOf('\n', trimPoint);
+      const trimmedContent = content.substring(firstNewline + 1);
+      writeFileSync(this.filePath, trimmedContent);
+      this.filePosition = trimmedContent.length;
+      log.info(`Event log trimmed from ${content.length} to ${trimmedContent.length} bytes`);
+    } catch (err) {
+      log.error('Error trimming event log:', err);
+    }
+  }
+
   private readNewLines() {
     if (!this.onEventCallback) {
       return;
@@ -167,6 +186,10 @@ export class EventFileReader {
             log.debug(`Event read: ${line} (no payload)`);
             this.onEventCallback(line, '');
           }
+        }
+
+        if (this.filePosition > EVENT_LOG_MAX_SIZE_BYTES) {
+          this.trimLogFile();
         }
       }
     } catch (err) {
