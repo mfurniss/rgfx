@@ -1,5 +1,7 @@
 # Renderer Stores
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains Zustand stores for managing client-side state in the renderer process. Each store follows the Zustand pattern with state, actions, and optional selectors.
 
 ---

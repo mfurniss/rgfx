@@ -1,5 +1,7 @@
 # Hardware Abstraction Layer (HAL)
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains interfaces and implementations that abstract hardware-specific functionality, enabling the same effect code to run on ESP32, native simulator, and tests.
 
 ## Architecture

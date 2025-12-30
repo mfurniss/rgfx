@@ -1,5 +1,7 @@
 # Renderer Components
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains reusable React components for the RGFX Hub renderer process.
 
 ---

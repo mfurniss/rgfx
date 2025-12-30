@@ -1,5 +1,7 @@
 # Graphics Module
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains the core graphics primitives for the ESP32 driver firmware, including canvas rendering, matrix management, coordinate transforms, and downsampling.
 
 ## Architecture

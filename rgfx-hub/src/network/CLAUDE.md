@@ -1,5 +1,7 @@
 # Network Module
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This module handles MQTT broker management and network discovery services that allow ESP32 drivers to locate the Hub on the local network.
 
 ## Files

@@ -1,5 +1,7 @@
 # LED Simulator
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 Native desktop application that runs ESP32 LED effect code and renders to a window using raylib. Enables rapid effect development without flashing hardware.
 
 ## Purpose

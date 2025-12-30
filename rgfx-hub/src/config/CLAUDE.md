@@ -1,5 +1,7 @@
 # Configuration
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 Centralized configuration constants and paths.
 
 ## Files

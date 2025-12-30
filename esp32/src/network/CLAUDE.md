@@ -1,5 +1,7 @@
 # Network Module
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains all network communication code for the ESP32 driver firmware, including MQTT messaging, UDP effects transport, OTA updates, and network service initialization.
 
 ## Architecture
