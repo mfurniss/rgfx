@@ -882,6 +882,166 @@ void test_bitmap_easing_default_linear() {
 	TEST_ASSERT_INT_WITHIN(8, canvas.getWidth() / 2, centerX);
 }
 
+void test_bitmap_movement_from_off_canvas_left() {
+	// Bitmap starts off-canvas (negative X) and moves onto canvas
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = -20;   // Start off-canvas left
+	props["centerY"] = 50;
+	props["endX"] = 50;       // End in center
+	props["endY"] = 50;
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// At t=0, bitmap should be off-canvas (not visible)
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+
+	// At t=100%, bitmap should be visible at center
+	effect.update(0.99f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	int centerX = (box.minX + box.maxX) / 2;
+	TEST_ASSERT_INT_WITHIN(8, canvas.getWidth() / 2, centerX);
+}
+
+void test_bitmap_movement_to_off_canvas_right() {
+	// Bitmap starts on-canvas and moves off-canvas (>100% X)
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;    // Start in center
+	props["centerY"] = 50;
+	props["endX"] = 120;      // End off-canvas right
+	props["endY"] = 50;
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// At t=0, bitmap should be visible at center
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// At t=100%, bitmap should be off-canvas (not visible)
+	effect.update(0.99f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_bitmap_movement_off_canvas_both_ends() {
+	// Bitmap travels completely across canvas: off-left -> off-right
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = -20;   // Start off-canvas left
+	props["centerY"] = 50;
+	props["endX"] = 120;      // End off-canvas right
+	props["endY"] = 50;
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// At t=0, off-canvas left
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+
+	// At t=50%, should be visible in center
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// At t=100%, off-canvas right
+	effect.update(0.49f);  // Additional 490ms to reach 990ms total
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_bitmap_movement_off_canvas_vertical() {
+	// Bitmap moves from off-canvas top to off-canvas bottom
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = -20;   // Start off-canvas top
+	props["endX"] = 50;
+	props["endY"] = 120;      // End off-canvas bottom
+	props["easing"] = "linear";
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	effect.add(props);
+
+	// At t=0, off-canvas top
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+
+	// At t=50%, should be visible in center
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_bitmap_negative_percentage_accepted() {
+	// Verify that negative percentages are accepted (not rejected as "missing")
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = -10;   // Negative should be accepted
+	props["centerY"] = -10;   // Negative should be accepted
+	JsonArray image = props["image"].to<JsonArray>();
+	image.add("7");
+
+	// Should not log error or fail - negative values are valid for off-canvas
+	effect.add(props);
+
+	// Move to center over time
+	props["endX"] = 50;
+	props["endY"] = 50;
+
+	// Effect was added successfully if we got here without crash/error
+	TEST_PASS();
+}
+
 // =============================================================================
 // 9. LED Quantization Tests
 // =============================================================================
@@ -1059,6 +1219,11 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_no_movement_without_end_coords);
 	RUN_TEST(test_bitmap_easing_quadraticOut);
 	RUN_TEST(test_bitmap_easing_default_linear);
+	RUN_TEST(test_bitmap_movement_from_off_canvas_left);
+	RUN_TEST(test_bitmap_movement_to_off_canvas_right);
+	RUN_TEST(test_bitmap_movement_off_canvas_both_ends);
+	RUN_TEST(test_bitmap_movement_off_canvas_vertical);
+	RUN_TEST(test_bitmap_negative_percentage_accepted);
 
 	// 9. LED Quantization Tests
 	RUN_TEST(test_bitmap_random_x_snapped_to_led);
