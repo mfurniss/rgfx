@@ -1,5 +1,7 @@
 # MQTT Subscriptions
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains handlers for MQTT messages received from ESP32 drivers. Each subscription module listens to specific topics and updates application state accordingly.
 
 ---

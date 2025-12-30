@@ -1,5 +1,7 @@
 # Effects System
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains the visual effects system for the ESP32 driver. Effects are triggered by JSON messages from the Hub and rendered to the LED hardware.
 
 ---

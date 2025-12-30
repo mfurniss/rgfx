@@ -1,5 +1,7 @@
 # ESP32 Driver Source
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This is the main source directory for the RGFX ESP32 driver firmware. The driver receives effect commands from the Hub and renders visual effects on connected LED hardware.
 
 ---

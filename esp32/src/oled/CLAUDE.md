@@ -1,5 +1,7 @@
 # OLED Display
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 Optional SSD1306 128x64 OLED status display module.
 
 ## Hardware
