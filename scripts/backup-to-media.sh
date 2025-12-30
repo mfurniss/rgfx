@@ -13,6 +13,7 @@ SOURCE_DIR="/Users/matt/Workspace/rgfx"
 RGFX_CONFIG_DIR="$HOME/.rgfx"
 BACKUP_DEST="/Volumes/media/backups/rgfx"
 CONFIG_BACKUP_DEST="/Volumes/media/backups/rgfx-config"
+BUNDLE_DEST="/Volumes/media/backups/rgfx-bundles"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 LOG_FILE="$HOME/Library/Logs/rgfx-backup-media.log"
 
@@ -48,6 +49,7 @@ fi
 # Create backup directories if they don't exist
 mkdir -p "$BACKUP_DEST"
 mkdir -p "$CONFIG_BACKUP_DEST"
+mkdir -p "$BUNDLE_DEST"
 
 log "Starting RGFX backup to $BACKUP_DEST"
 log "Source: $SOURCE_DIR"
@@ -117,4 +119,23 @@ fi
 echo "Last backup: $(date)" > "$BACKUP_DEST/.last-backup"
 
 log "Backup marker created: $BACKUP_DEST/.last-backup"
+
+# Create git bundle with all branches and tags
+log "Creating git bundle..."
+
+BUNDLE_FILE="$BUNDLE_DEST/rgfx-$(date +"%Y-%m-%d").bundle"
+
+cd "$SOURCE_DIR"
+if git bundle create "$BUNDLE_FILE" --all 2>&1 | tee -a "$LOG_FILE"; then
+  BUNDLE_SIZE=$(du -sh "$BUNDLE_FILE" | cut -f1)
+  log_success "Git bundle created: $BUNDLE_FILE ($BUNDLE_SIZE)"
+
+  # Keep only the 5 most recent bundles
+  ls -t "$BUNDLE_DEST"/rgfx-*.bundle 2>/dev/null | tail -n +6 | xargs -r rm -f
+  BUNDLE_COUNT=$(ls -1 "$BUNDLE_DEST"/rgfx-*.bundle 2>/dev/null | wc -l | tr -d ' ')
+  log "Bundle retention: keeping $BUNDLE_COUNT most recent bundles"
+else
+  log_error "Git bundle creation failed"
+fi
+
 log "Log file: $LOG_FILE"
