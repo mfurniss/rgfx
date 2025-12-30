@@ -102,14 +102,14 @@ void BitmapEffect::add(JsonDocument& props) {
 	float centerX = parseCoordinate(props["centerX"], canvasWidth);
 	if (isnan(centerX)) {
 		hal::log("ERROR: bitmap missing required 'centerX' prop");
-		publishEffectError("bitmap", "missing required 'centerX' prop", props);
+		publishError("bitmap", "missing required 'centerX' prop", props);
 		return;
 	}
 
 	float centerY = parseCoordinate(props["centerY"], canvasHeight);
 	if (isnan(centerY)) {
 		hal::log("ERROR: bitmap missing required 'centerY' prop");
-		publishEffectError("bitmap", "missing required 'centerY' prop", props);
+		publishError("bitmap", "missing required 'centerY' prop", props);
 		return;
 	}
 

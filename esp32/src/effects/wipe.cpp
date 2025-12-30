@@ -47,7 +47,7 @@ static BlendMode parseBlendMode(const char* mode) {
 void WipeEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: wipe missing or invalid 'color' prop");
-		publishEffectError("wipe", "missing or invalid 'color' prop", props);
+		publishError("wipe", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);

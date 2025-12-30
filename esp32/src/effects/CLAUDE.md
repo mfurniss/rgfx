@@ -32,7 +32,7 @@ class IEffect {
 
 ### Error Reporting
 
-Effects call `publishEffectError(effectName, errorMessage, props)` when required properties are missing or invalid. Errors are published to `rgfx/system/driver/error` MQTT topic with effect name, message, and original props for debugging.
+Effects call `publishError(effectName, errorMessage, props)` when required properties are missing or invalid. Errors are published to `rgfx/system/driver/error` MQTT topic with source name, message, and original props for debugging.
 
 ---
 
@@ -147,7 +147,7 @@ Text and Scroll Text effects support animated color gradients:
 3. Add an instance to `EffectProcessor` class
 4. Add entry to `effectMap` in EffectProcessor constructor
 5. Add corresponding schema in Hub's `rgfx-hub/src/schemas/effects/`
-6. Use `publishEffectError()` for missing required properties
+6. Use `publishError()` for missing required properties
 
 ---
 

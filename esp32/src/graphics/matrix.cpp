@@ -115,16 +115,20 @@ void Matrix::updateLayout(const String& newLayout) {
 		return;
 	}
 
+	// Allocate new map first to avoid losing old map on allocation failure
+	uint16_t* newMap = buildCoordinateMap(width, height, newLayout.c_str());
+	if (!newMap) {
+#ifdef ESP32
+		log("ERROR: Failed to reallocate coordinate map - keeping old layout");
+#endif
+		return;
+	}
+
+	// Success - update state and free old map
+	free(coordinateMap);
+	coordinateMap = newMap;
 	layout = newLayout;
 	layoutType = (layout == "strip") ? LayoutType::STRIP : LayoutType::MATRIX;
-
-	free(coordinateMap);
-	coordinateMap = buildCoordinateMap(width, height, layout.c_str());
-#ifdef ESP32
-	if (!coordinateMap) {
-		log("ERROR: Failed to reallocate coordinate map");
-	}
-#endif
 }
 
 Matrix::~Matrix() {

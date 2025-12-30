@@ -23,7 +23,7 @@ void ScrollTextEffect::add(JsonDocument& props) {
 
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: scroll_text missing or invalid 'color' prop");
-		publishEffectError("scroll_text", "missing or invalid 'color' prop", props);
+		publishError("scroll_text", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);

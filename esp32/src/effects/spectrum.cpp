@@ -31,7 +31,7 @@ void SpectrumEffect::assignColumnColor(Column& col, size_t index, size_t totalCo
 void SpectrumEffect::add(JsonDocument& props) {
 	if (!props["values"].is<JsonArray>()) {
 		hal::log("ERROR: spectrum missing 'values' array");
-		publishEffectError("spectrum", "missing 'values' array", props);
+		publishError("spectrum", "missing 'values' array", props);
 		return;
 	}
 

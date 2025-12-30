@@ -13,7 +13,7 @@ PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {
 void PulseEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: pulse missing or invalid 'color' prop");
-		publishEffectError("pulse", "missing or invalid 'color' prop", props);
+		publishError("pulse", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
