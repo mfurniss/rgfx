@@ -8,6 +8,8 @@
 import { create } from 'zustand';
 import { type SystemStatus } from '@/types';
 import { notify } from './notification-store';
+import { useEventsRateHistoryStore } from './events-rate-history-store';
+import { useDriverStore } from './driver-store';
 
 interface SystemStatusStoreState {
   systemStatus: SystemStatus;
@@ -26,6 +28,7 @@ export const useSystemStatusStore = create<SystemStatusStoreState>()((set, get) 
     hubStartTime: 0,
     udpMessagesSent: 0,
     udpMessagesFailed: 0,
+    udpStatsByDriver: {},
     systemErrors: [],
   },
 
@@ -44,6 +47,17 @@ export const useSystemStatusStore = create<SystemStatusStoreState>()((set, get) 
     if (newStatus.systemErrors.length > prevStatus.systemErrors.length) {
       notify('New system error detected. View details on System Status page.', 'error');
     }
+
+    // Update events rate tracking with per-driver UDP stats
+    const connectedDriverIds = useDriverStore.getState()
+      .drivers
+      .filter((d) => d.state === 'connected')
+      .map((d) => d.id);
+
+    useEventsRateHistoryStore.getState().updateFromStatus(
+      newStatus.udpStatsByDriver,
+      connectedDriverIds,
+    );
 
     set({ systemStatus: newStatus });
   },

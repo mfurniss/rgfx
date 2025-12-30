@@ -63,6 +63,7 @@ describe('subscribeDriverStatus', () => {
       currentFirmwareVersion: '1.0.0',
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
+      udpStatsByDriver: {},
       systemErrors: [],
     };
 

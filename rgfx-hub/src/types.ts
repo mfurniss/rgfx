@@ -311,6 +311,11 @@ export interface SystemError {
   details?: string;
 }
 
+export interface UdpStats {
+  sent: number;
+  failed: number;
+}
+
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
   udpServer: 'active' | 'inactive' | 'error';
@@ -323,6 +328,7 @@ export interface SystemStatus {
   currentFirmwareVersion?: string;
   udpMessagesSent: number;
   udpMessagesFailed: number;
+  udpStatsByDriver: Record<string, UdpStats>;
   systemErrors: SystemError[];
 }
 

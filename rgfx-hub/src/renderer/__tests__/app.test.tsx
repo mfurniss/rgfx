@@ -42,6 +42,7 @@ let mockSystemStatus: SystemStatus = {
   hubStartTime: Date.now(),
   udpMessagesSent: 0,
   udpMessagesFailed: 0,
+  udpStatsByDriver: {},
   systemErrors: [],
 };
 
@@ -178,6 +179,7 @@ describe('App Critical Error Handling', () => {
     hubStartTime: Date.now(),
     udpMessagesSent: 0,
     udpMessagesFailed: 0,
+    udpStatsByDriver: {},
     systemErrors: [],
   });
 

@@ -7,6 +7,24 @@ vi.mock('../notification-store', () => ({
   notify: vi.fn(),
 }));
 
+// Mock the driver store
+vi.mock('../driver-store', () => ({
+  useDriverStore: {
+    getState: () => ({
+      drivers: [],
+    }),
+  },
+}));
+
+// Mock the events rate history store
+vi.mock('../events-rate-history-store', () => ({
+  useEventsRateHistoryStore: {
+    getState: () => ({
+      updateFromStatus: vi.fn(),
+    }),
+  },
+}));
+
 describe('system-status-store', () => {
   beforeEach(() => {
     // Reset store state before each test
@@ -22,6 +40,7 @@ describe('system-status-store', () => {
         hubStartTime: 0,
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
+        udpStatsByDriver: {},
         systemErrors: [],
       },
     });
@@ -41,6 +60,7 @@ describe('system-status-store', () => {
         hubStartTime: Date.now(),
         udpMessagesSent: 50,
         udpMessagesFailed: 0,
+        udpStatsByDriver: {},
         systemErrors: [{ errorType: 'interceptor' as const, message: 'Test error', timestamp: Date.now() }],
       };
 
