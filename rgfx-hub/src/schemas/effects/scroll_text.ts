@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 
-import { baseEffect } from './properties';
+import { baseEffect, colorGradient } from './properties';
 
 /**
  * Scroll text effect props schema
@@ -25,5 +25,6 @@ export default baseEffect
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(true).describe('Restart scrolling when text exits left edge'),
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
+    colorGradient,
   })
   .strict();

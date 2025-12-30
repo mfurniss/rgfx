@@ -1,4 +1,5 @@
 #include "plasma.h"
+#include "gradient_utils.h"
 #include "hal/types.h"
 #include <cmath>
 #include <cstring>
@@ -6,7 +7,7 @@
 PlasmaEffect::PlasmaEffect(const Matrix& m, Canvas& c)
 	: state{0.0f, 0.0f, 0.0f, EnabledState::OFF, 0.0f, 0, {}}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
-	generateDefaultRainbowLut();
+	generateDefaultRainbowLut(state.gradientLut);
 }
 
 PlasmaEffect::EnabledState PlasmaEffect::parseEnabledState(const char* str) {
@@ -37,62 +38,6 @@ void PlasmaEffect::updateAlpha() {
 			state.currentAlpha = static_cast<uint8_t>((1.0f - progress) * 255.0f);
 			break;
 		}
-	}
-}
-
-CRGB PlasmaEffect::parseHexColor(const char* hex) {
-	// Skip leading # if present
-	if (hex[0] == '#') {
-		hex++;
-	}
-	uint32_t rgb = strtoul(hex, nullptr, 16);
-	return CRGB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
-}
-
-void PlasmaEffect::generateDefaultRainbowLut() {
-	// Default rainbow: red -> orange -> yellow -> green -> blue -> indigo -> violet
-	CRGB rainbow[] = {
-		CRGB(0xFF, 0x00, 0x00),  // Red
-		CRGB(0xFF, 0x7F, 0x00),  // Orange
-		CRGB(0xFF, 0xFF, 0x00),  // Yellow
-		CRGB(0x00, 0xFF, 0x00),  // Green
-		CRGB(0x00, 0x00, 0xFF),  // Blue
-		CRGB(0x4B, 0x00, 0x82),  // Indigo
-		CRGB(0x94, 0x00, 0xD3)   // Violet
-	};
-	generateGradientLut(rainbow, 7);
-}
-
-void PlasmaEffect::generateGradientLut(const CRGB* colors, uint8_t colorCount) {
-	if (colorCount < 2) {
-		generateDefaultRainbowLut();
-		return;
-	}
-
-	// Linear interpolation to fill the LUT
-	for (uint8_t i = 0; i < GRADIENT_LUT_SIZE; i++) {
-		// Map LUT index to position in gradient (0.0 to 1.0)
-		float position = (float)i / (GRADIENT_LUT_SIZE - 1);
-
-		// Find which segment this position falls in
-		float segmentSize = 1.0f / (colorCount - 1);
-		uint8_t segmentIndex = (uint8_t)(position / segmentSize);
-		if (segmentIndex >= colorCount - 1) {
-			segmentIndex = colorCount - 2;
-		}
-
-		// Calculate position within segment (0.0 to 1.0)
-		float segmentPosition = (position - segmentIndex * segmentSize) / segmentSize;
-
-		// Blend between segment start and end colors
-		CRGB startColor = colors[segmentIndex];
-		CRGB endColor = colors[segmentIndex + 1];
-
-		state.gradientLut[i] = CRGB(
-			startColor.r + (uint8_t)((endColor.r - startColor.r) * segmentPosition),
-			startColor.g + (uint8_t)((endColor.g - startColor.g) * segmentPosition),
-			startColor.b + (uint8_t)((endColor.b - startColor.b) * segmentPosition)
-		);
 	}
 }
 
@@ -129,23 +74,8 @@ void PlasmaEffect::add(JsonDocument& props) {
 	// Parse speed
 	float speed = props["speed"];
 
-	// Parse gradient array (array of hex color strings)
-	if (!props["gradient"].isNull() && props["gradient"].is<JsonArray>()) {
-		JsonArray gradientArray = props["gradient"].as<JsonArray>();
-		uint8_t colorCount = gradientArray.size();
-		if (colorCount >= 2 && colorCount <= MAX_GRADIENT_COLORS) {
-			CRGB colors[MAX_GRADIENT_COLORS];
-			uint8_t validColors = 0;
-			for (JsonVariant colorVal : gradientArray) {
-				if (colorVal.is<const char*>() && validColors < MAX_GRADIENT_COLORS) {
-					colors[validColors++] = parseHexColor(colorVal.as<const char*>());
-				}
-			}
-			if (validColors >= 2) {
-				generateGradientLut(colors, validColors);
-			}
-		}
-	}
+	// Parse gradient array using shared utility
+	parseGradientFromJson(props, state.gradientLut);
 
 	state.scale = scale;
 	state.speed = speed;
@@ -265,7 +195,7 @@ void PlasmaEffect::reset() {
 	state.speed = 0.0f;
 	state.fadeTime = 0.0f;
 	state.currentAlpha = 0;
-	generateDefaultRainbowLut();
+	generateDefaultRainbowLut(state.gradientLut);
 }
 
 bool PlasmaEffect::isFullyOpaque() const {

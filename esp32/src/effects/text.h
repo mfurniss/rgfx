@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "effect.h"
 #include "graphics/canvas.h"
+#include "gradient_utils.h"
 
 enum class TextAlign : uint8_t {
 	LEFT = 0,
@@ -25,6 +26,12 @@ class TextEffect : public IEffect {
 		TextAlign align;     // Horizontal alignment
 		float duration;      // Duration in seconds, 0 = permanent
 		float elapsedTime;   // Elapsed time in seconds
+		// Gradient animation (optional)
+		bool hasGradient;
+		CRGB gradientLut[GRADIENT_LUT_SIZE];
+		float gradientSpeed;
+		float gradientScale;
+		float gradientTime;
 	};
 
 	std::vector<TextInstance> instances;

@@ -17,7 +17,7 @@ import {
   ColorField,
   CenterField,
   SpritePresetField,
-  PlasmaPresetField,
+  GradientPresetField,
   StringField,
 } from './fields';
 
@@ -226,7 +226,7 @@ export function FieldRenderer<T extends FieldValues>({
     case 'gradientPreset':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
-          <PlasmaPresetField
+          <GradientPresetField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}

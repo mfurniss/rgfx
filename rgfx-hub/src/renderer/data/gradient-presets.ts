@@ -5,14 +5,14 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-interface PlasmaPreset {
+interface GradientPreset {
   name: string;
   gradient: string[];
   speed: number;
   scale: number;
 }
 
-export const plasmaPresets: PlasmaPreset[] = [
+export const gradientPresets: GradientPreset[] = [
   {
     name: 'Acid Haus',
     gradient: ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'],
@@ -69,8 +69,8 @@ export const plasmaPresets: PlasmaPreset[] = [
   },
 ];
 
-export function findPresetByGradient(gradient: string[]): PlasmaPreset | undefined {
-  return plasmaPresets.find(
+export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {
+  return gradientPresets.find(
     (p) =>
       p.gradient.length === gradient.length &&
       p.gradient.every((color, i) => color === gradient[i]),
