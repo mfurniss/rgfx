@@ -1,6 +1,7 @@
 #include "scroll_text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "gradient_utils.h"
 #include "hal/platform.h"
 #include <cmath>
 #include <cstring>
@@ -58,6 +59,15 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.repeat = repeat;
 	instance.snapToLed = props["snapToLed"].as<bool>();
 
+	// Parse optional gradient animation
+	ColorGradientResult gradientResult = parseColorGradientFromJson(props, instance.gradientLut);
+	instance.hasGradient = gradientResult.hasGradient;
+	if (instance.hasGradient) {
+		instance.gradientSpeed = gradientResult.speed;
+		instance.gradientScale = gradientResult.scale;
+		instance.gradientTime = 0.0f;
+	}
+
 	instances.push_back(instance);
 }
 
@@ -72,9 +82,22 @@ void ScrollTextEffect::update(float deltaTime) {
 				++it;
 			} else {
 				it = instances.erase(it);
+				continue;
 			}
 		} else {
 			++it;
+		}
+		// Update gradient animation time (moved before ++it to avoid issues after erase)
+	}
+
+	// Update gradient animation time in a separate loop to avoid iterator invalidation
+	for (auto& inst : instances) {
+		if (inst.hasGradient) {
+			inst.gradientTime += deltaTime * (inst.gradientSpeed / 2.0f);
+			// Wrap at a reasonable value to prevent float precision issues
+			if (inst.gradientTime > 1000.0f) {
+				inst.gradientTime -= 1000.0f;
+			}
 		}
 	}
 }
@@ -104,7 +127,24 @@ void ScrollTextEffect::render() {
 		// Pass 2: Main text
 		int16_t x = baseX;
 		for (uint8_t i = 0; i < inst.textLen; i++) {
-			renderChar(canvas, inst.text[i], x, inst.y, inst.r, inst.g, inst.b, BlendMode::REPLACE);
+			uint8_t r, g, b;
+			if (inst.hasGradient) {
+				// Wave effect: each character offset by gradientScale, cycling over time
+				float charOffset = i * inst.gradientScale;
+				float position = inst.gradientTime + charOffset;
+				// Map position to LUT index (0-99), wrapping around
+				uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+				CRGB color = inst.gradientLut[lutIndex];
+				r = color.r;
+				g = color.g;
+				b = color.b;
+			} else {
+				r = inst.r;
+				g = inst.g;
+				b = inst.b;
+			}
+
+			renderChar(canvas, inst.text[i], x, inst.y, r, g, b, BlendMode::REPLACE);
 			x += CHAR_WIDTH;
 		}
 	}
