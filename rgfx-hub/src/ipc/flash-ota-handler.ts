@@ -109,10 +109,15 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       log.info(`OTA flash to ${driverId} completed successfully`);
 
-      // Mark driver as disconnected (it will reboot) with 'restarting' reason
-      driver.state = 'disconnected';
-      driver.ip = undefined;
-      eventBus.emit('driver:disconnected', { driver, reason: 'restarting' });
+      // Re-fetch driver from registry - the reference may have been replaced
+      // by telemetry events during OTA upload (race condition)
+      const updatedDriver = driverRegistry.getDriver(driverId);
+
+      if (updatedDriver) {
+        updatedDriver.state = 'disconnected';
+        updatedDriver.ip = undefined;
+        eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
+      }
 
       return { success: true };
     } catch (error) {

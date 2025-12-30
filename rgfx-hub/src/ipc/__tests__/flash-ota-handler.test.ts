@@ -238,4 +238,62 @@ describe('registerFlashOtaHandler', () => {
       );
     });
   });
+
+  describe('driver reference race condition', () => {
+    it('should re-fetch driver after OTA to avoid stale reference', async () => {
+      // Simulate race condition: telemetry arrives during OTA, replacing driver object
+      const originalDriver = createMockDriver({ id: 'rgfx-driver-0001' });
+      const replacedDriver = createMockDriver({ id: 'rgfx-driver-0001' });
+
+      // First call returns original, subsequent calls return replaced driver
+      mockDriverRegistry.getDriver
+        .mockReturnValueOnce(originalDriver)
+        .mockReturnValueOnce(replacedDriver);
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      // Handler should call getDriver twice: once at start, once after OTA completes
+      expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(2);
+
+      // The replaced driver should have state set to 'disconnected', not the original
+      expect(replacedDriver.state).toBe('disconnected');
+      expect(replacedDriver.ip).toBeUndefined();
+    });
+
+    it('should emit driver:disconnected with the fresh driver reference', async () => {
+      const originalDriver = createMockDriver({ id: 'rgfx-driver-0001' });
+      const replacedDriver = createMockDriver({ id: 'rgfx-driver-0001' });
+
+      mockDriverRegistry.getDriver
+        .mockReturnValueOnce(originalDriver)
+        .mockReturnValueOnce(replacedDriver);
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      // Should emit with the replaced driver, not original
+      expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
+        driver: replacedDriver,
+        reason: 'restarting',
+      });
+    });
+
+    it('should handle case where driver no longer exists after OTA', async () => {
+      const originalDriver = createMockDriver({ id: 'rgfx-driver-0001' });
+
+      // Driver exists at start but is removed during OTA
+      mockDriverRegistry.getDriver
+        .mockReturnValueOnce(originalDriver)
+        .mockReturnValueOnce(undefined);
+
+      const result = await registeredHandler({}, 'rgfx-driver-0001');
+
+      // Should still succeed (driver just disappeared)
+      expect(result.success).toBe(true);
+      // Should not emit driver:disconnected since driver no longer exists
+      expect(eventBus.emit).not.toHaveBeenCalledWith(
+        'driver:disconnected',
+        expect.any(Object),
+      );
+    });
+  });
 });
