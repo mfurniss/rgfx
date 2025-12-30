@@ -7,7 +7,7 @@ interface EventTopicData {
 }
 
 interface EventStore {
-  topics: Record<string, EventTopicData>;
+  topics: Partial<Record<string, EventTopicData>>;
   onEvent: (topic: string, payload?: string) => void;
   reset: () => void;
 }
