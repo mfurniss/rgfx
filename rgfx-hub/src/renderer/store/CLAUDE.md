@@ -4,23 +4,36 @@ This folder contains Zustand stores for managing client-side state in the render
 
 ---
 
+## Shared Patterns
+
+### RingBuffer
+
+Several stores use `RingBuffer<T>` from `../utils/ring-buffer` for memory-efficient time-series data. Old entries are automatically dropped when the buffer reaches capacity.
+
+### Store Integration
+
+Stores can call into each other:
+- `system-status-store` calls `notify()` from notification-store
+- `system-status-store` calls `updateFromStatus()` on events-rate-history-store
+- `system-status-store` reads connected drivers from driver-store
+
+---
+
 ## Stores
 
 ### Driver Store
 
 **File:** [driver-store.ts](driver-store.ts)
 
-**Purpose:** Manages the state of all ESP32 drivers and system status.
+**Purpose:** Manages the state of all ESP32 drivers.
 
 **State:**
 - `drivers: Driver[]` - Array of all known drivers (connected and disconnected)
-- `systemStatus: SystemStatus` - Hub system status (MQTT broker, UDP server, event reader, etc.)
 
 **Actions:**
 - `onDriverConnected(driver)` - Handles driver connection events. Adds new drivers or updates existing ones. Handles ID migration when a driver's MAC matches but ID differs.
 - `onDriverDisconnected(driver)` - Handles driver disconnection events
 - `onDriverUpdated(driver)` - Updates driver state (telemetry, config changes, etc.)
-- `onSystemStatusUpdate(status)` - Updates the system status
 
 **Selectors:**
 - `connectedDrivers()` - Returns only connected drivers
@@ -30,6 +43,89 @@ This folder contains Zustand stores for managing client-side state in the render
 - Automatic connection timeout monitoring (checks every 5s, marks drivers as disconnected after 30s without telemetry)
 - Integrates with notification store to show connect/disconnect notifications
 - Uses Zustand devtools for debugging
+
+---
+
+### System Status Store
+
+**File:** [system-status-store.ts](system-status-store.ts)
+
+**Purpose:** Manages hub system status (split from driver-store). Tracks component health and operational metrics.
+
+**State:**
+- `systemStatus: SystemStatus` - Hub status containing:
+  - `mqttBroker: string` - MQTT broker state
+  - `udpServer: string` - UDP server state
+  - `eventReader: string` - Event reader state
+  - `driversConnected: number` - Count of connected drivers
+  - `driversTotal: number` - Total drivers
+  - `hubIp: string` - Hub's IP address
+  - `eventsProcessed: number` - Total events processed
+  - `hubStartTime: number` - Timestamp of hub startup
+  - `udpMessagesSent: number` - Total UDP messages sent
+  - `udpMessagesFailed: number` - Failed UDP messages
+  - `udpStatsByDriver: Record<string, UdpStats>` - Per-driver UDP statistics
+  - `systemErrors: array` - Array of system errors
+
+**Actions:**
+- `onSystemStatusUpdate(newStatus)` - Updates status and triggers notifications for IP changes and new system errors; updates events-rate-history-store
+
+---
+
+### Events Rate History Store
+
+**File:** [events-rate-history-store.ts](events-rate-history-store.ts)
+
+**Purpose:** Tracks UDP event rates per driver over time for charting. Uses ring buffer for memory efficiency.
+
+**State:**
+- `history: RingBuffer<EventsRateDataPoint>` - Historical rate data (max from `EVENTS_RATE_MAX_POINTS`)
+- `currentStats: Map<string, DriverStatsSnapshot>` - Current UDP sent counts per driver
+- `previousStats: Map<string, DriverStatsSnapshot>` - Previous sample's stats for delta calculation
+- `knownDrivers: Set<string>` - Set of driver IDs we've seen
+- `version: number` - Incremented on changes to trigger re-renders
+
+**Actions:**
+- `updateFromStatus(udpStatsByDriver, connectedDriverIds)` - Updates current stats from SystemStatus
+- `sampleRates()` - Calculates rate deltas and pushes data point to history (called by interval timer)
+- `getHistory()` - Returns history as array for chart rendering
+- `getDriverIds()` - Returns sorted list of known driver IDs
+- `clear()` - Clears all history and stats
+
+**Exported Functions:**
+- `startEventsRateSampling()` - Starts periodic sampling (uses `EVENTS_RATE_SAMPLE_INTERVAL_MS`)
+
+---
+
+### Telemetry History Store
+
+**File:** [telemetry-history-store.ts](telemetry-history-store.ts)
+
+**Purpose:** Stores per-driver telemetry data points over time for health charts (heap, FPS, WiFi signal).
+
+**State:**
+- `histories: Map<string, RingBuffer<TelemetryDataPoint>>` - Per-driver ring buffers
+- `version: number` - Incremented on changes to trigger re-renders
+
+**TelemetryDataPoint Shape:**
+```typescript
+interface TelemetryDataPoint {
+  timestamp: number;
+  freeHeap: number;
+  heapSize: number;
+  maxAllocHeap: number;
+  fps: number;
+  minFps: number;
+  maxFps: number;
+  rssi: number;
+}
+```
+
+**Actions:**
+- `addDataPoint(driverId, dataPoint)` - Adds telemetry point; creates buffer lazily
+- `getHistory(driverId)` - Returns array of all telemetry points
+- `clearHistory(driverId)` - Clears telemetry for specific driver
+- `clearAllHistory()` - Clears all telemetry data
 
 ---
 
