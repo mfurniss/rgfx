@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { type Driver, type DriverState as DriverStateType } from '@/types';
 import { notify } from './notification-store';
 import { useTelemetryHistoryStore } from './telemetry-history-store';
-import { useEventsRateHistoryStore } from './events-rate-history-store';
 
 /**
  * Centralized notification for driver state changes.
@@ -128,16 +127,6 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
           rssi: driver.rssi ?? -100,
         });
       }
-
-      // Record stats for events rate chart
-      // Note: UDP stats are now tracked per-IP in SystemMonitor, not per-driver
-      // For now, we pass 0 for udpSent since driver.stats no longer has UDP fields
-      // TODO: Consider exposing per-IP UDP stats via IPC for per-driver rate tracking
-      useEventsRateHistoryStore.getState().recordDriverStats(
-        driver.id,
-        { udpSent: 0, mqttMessagesReceived: driver.stats.mqttMessagesReceived },
-        driver.state === 'connected',
-      );
 
       set((state) => {
         const existsById = state.drivers.find((d) => d.id === driver.id);

@@ -99,6 +99,7 @@ describe('SystemMonitor', () => {
         currentFirmwareVersion: '2.0.0',
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
+        udpStatsByDriver: {},
         systemErrors: [],
       });
     });
@@ -120,6 +121,7 @@ describe('SystemMonitor', () => {
         currentFirmwareVersion: '1.0.0', // From beforeEach default
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
+        udpStatsByDriver: {},
         systemErrors: [],
       });
     });
@@ -206,9 +208,9 @@ describe('SystemMonitor', () => {
 
   describe('trackUdpSent', () => {
     it('should increment sent count on success', () => {
-      systemMonitor.trackUdpSent('192.168.1.100', true);
-      systemMonitor.trackUdpSent('192.168.1.100', true);
-      systemMonitor.trackUdpSent('192.168.1.100', true);
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-1', true);
 
       const status = systemMonitor.getSystemStatus(0, 0, 0);
 
@@ -217,8 +219,8 @@ describe('SystemMonitor', () => {
     });
 
     it('should increment failed count on failure', () => {
-      systemMonitor.trackUdpSent('192.168.1.100', false);
-      systemMonitor.trackUdpSent('192.168.1.100', false);
+      systemMonitor.trackUdpSent('driver-1', false);
+      systemMonitor.trackUdpSent('driver-1', false);
 
       const status = systemMonitor.getSystemStatus(0, 0, 0);
 
@@ -226,25 +228,25 @@ describe('SystemMonitor', () => {
       expect(status.udpMessagesFailed).toBe(2);
     });
 
-    it('should track stats per IP address', () => {
-      systemMonitor.trackUdpSent('192.168.1.100', true);
-      systemMonitor.trackUdpSent('192.168.1.100', true);
-      systemMonitor.trackUdpSent('192.168.1.101', true);
-      systemMonitor.trackUdpSent('192.168.1.101', false);
+    it('should track stats per driver', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-2', true);
+      systemMonitor.trackUdpSent('driver-2', false);
 
-      const stats100 = systemMonitor.getUdpStatsForIp('192.168.1.100');
-      const stats101 = systemMonitor.getUdpStatsForIp('192.168.1.101');
+      const stats1 = systemMonitor.getUdpStatsForDriver('driver-1');
+      const stats2 = systemMonitor.getUdpStatsForDriver('driver-2');
 
-      expect(stats100).toEqual({ sent: 2, failed: 0 });
-      expect(stats101).toEqual({ sent: 1, failed: 1 });
+      expect(stats1).toEqual({ sent: 2, failed: 0 });
+      expect(stats2).toEqual({ sent: 1, failed: 1 });
     });
 
-    it('should aggregate totals across all IPs in system status', () => {
-      systemMonitor.trackUdpSent('192.168.1.100', true);
-      systemMonitor.trackUdpSent('192.168.1.100', false);
-      systemMonitor.trackUdpSent('192.168.1.101', true);
-      systemMonitor.trackUdpSent('192.168.1.101', true);
-      systemMonitor.trackUdpSent('192.168.1.102', false);
+    it('should aggregate totals across all drivers in system status', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-1', false);
+      systemMonitor.trackUdpSent('driver-2', true);
+      systemMonitor.trackUdpSent('driver-2', true);
+      systemMonitor.trackUdpSent('driver-3', false);
 
       const status = systemMonitor.getSystemStatus(0, 0, 0);
 
@@ -252,10 +254,24 @@ describe('SystemMonitor', () => {
       expect(status.udpMessagesFailed).toBe(2);
     });
 
-    it('should return empty stats for unknown IP', () => {
-      const stats = systemMonitor.getUdpStatsForIp('192.168.1.999');
+    it('should return empty stats for unknown driver', () => {
+      const stats = systemMonitor.getUdpStatsForDriver('unknown-driver');
 
       expect(stats).toEqual({ sent: 0, failed: 0 });
+    });
+
+    it('should include per-driver stats in system status', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-2', true);
+      systemMonitor.trackUdpSent('driver-2', false);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0);
+
+      expect(status.udpStatsByDriver).toEqual({
+        'driver-1': { sent: 2, failed: 0 },
+        'driver-2': { sent: 1, failed: 1 },
+      });
     });
   });
 });
