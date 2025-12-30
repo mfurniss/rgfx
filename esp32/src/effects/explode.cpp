@@ -35,7 +35,7 @@ ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m),
 void ExplodeEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: explode missing or invalid 'color' prop");
-		publishEffectError("explode", "missing or invalid 'color' prop", props);
+		publishError("explode", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
@@ -59,7 +59,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 	float centerXPercent = parseCoordPercent(props["centerX"]);
 	if (centerXPercent < 0) {
 		hal::log("ERROR: explode missing required 'centerX' prop");
-		publishEffectError("explode", "missing required 'centerX' prop (numeric 0-100 or \"random\")", props);
+		publishError("explode", "missing required 'centerX' prop (numeric 0-100 or \"random\")", props);
 		return;
 	}
 	float centerX = (centerXPercent / 100.0f) * canvas.getWidth();
@@ -71,7 +71,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		float centerYPercent = parseCoordPercent(props["centerY"]);
 		if (centerYPercent < 0) {
 			hal::log("ERROR: explode missing required 'centerY' prop");
-			publishEffectError("explode", "missing required 'centerY' prop (numeric 0-100 or \"random\")", props);
+			publishError("explode", "missing required 'centerY' prop (numeric 0-100 or \"random\")", props);
 			return;
 		}
 		centerY = (centerYPercent / 100.0f) * canvas.getHeight();

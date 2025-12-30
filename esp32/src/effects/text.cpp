@@ -47,7 +47,7 @@ void TextEffect::add(JsonDocument& props) {
 
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: text missing or invalid 'color' prop");
-		publishEffectError("text", "missing or invalid 'color' prop", props);
+		publishError("text", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);

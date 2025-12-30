@@ -49,7 +49,7 @@ ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c)
 void ProjectileEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: projectile missing or invalid 'color' prop");
-		publishEffectError("projectile", "missing or invalid 'color' prop", props);
+		publishError("projectile", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);

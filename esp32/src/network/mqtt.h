@@ -4,8 +4,9 @@
 #include <ArduinoJson.h>
 
 #ifdef UNIT_TEST
-// Unit test stub - provides no-op implementation for effects that call publishEffectError
-inline void publishEffectError(const char*, const char*, JsonDocument&) {}
+// Unit test stubs - no-op implementations for code that publishes errors
+inline void publishError(const char*, const char*, JsonDocument&) {}
+inline void publishError(const char*, const char*) {}
 #else
 
 #include <Arduino.h>
@@ -34,7 +35,8 @@ void reconnectMQTT();
 void mqttLoop();
 void sendDriverTelemetry();
 void publishTestState(const String& state);
-void publishEffectError(const char* effectName, const char* errorMessage, JsonDocument& props);
+void publishError(const char* source, const char* errorMessage, JsonDocument& props);
+void publishError(const char* source, const char* errorMessage);
 void processPendingMqttOperations();
 
 #endif  // UNIT_TEST

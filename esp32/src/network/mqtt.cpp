@@ -462,8 +462,8 @@ void publishTestState(const String& state) {
 	}
 }
 
-// Publish effect validation error to Hub
-void publishEffectError(const char* effectName, const char* errorMessage, JsonDocument& props) {
+// Publish error to Hub (with optional payload/props)
+void publishError(const char* source, const char* errorMessage, JsonDocument& props) {
 	if (!mqttClient.connected()) {
 		return;  // Silently skip if not connected
 	}
@@ -473,21 +473,49 @@ void publishEffectError(const char* effectName, const char* errorMessage, JsonDo
 	// Build JSON error message with nested props
 	JsonDocument doc;
 	doc["driverId"] = deviceId;
-	doc["effect"] = effectName;
+	doc["source"] = source;
 	doc["error"] = errorMessage;
 	doc["payload"] = props;
 
 	size_t len = serializeJson(doc, effectErrorBuffer, sizeof(effectErrorBuffer));
 
 	if (len >= sizeof(effectErrorBuffer)) {
-		log("Effect error payload too large, truncated");
+		log("Error payload too large, truncated");
 	}
 
 	// Publish to system error topic with QoS 0 (fire-and-forget)
 	bool result = mqttClient.publish("rgfx/system/driver/error", effectErrorBuffer, false, 0);
 
 	if (result) {
-		log("Published effect error: " + String(effectName) + " - " + String(errorMessage));
+		log("Published error: " + String(source) + " - " + String(errorMessage));
+	}
+}
+
+// Publish error to Hub (simple version without payload)
+void publishError(const char* source, const char* errorMessage) {
+	if (!mqttClient.connected()) {
+		return;  // Silently skip if not connected
+	}
+
+	String deviceId = Utils::getDeviceId();
+
+	// Build JSON error message
+	JsonDocument doc;
+	doc["driverId"] = deviceId;
+	doc["source"] = source;
+	doc["error"] = errorMessage;
+
+	size_t len = serializeJson(doc, effectErrorBuffer, sizeof(effectErrorBuffer));
+
+	if (len >= sizeof(effectErrorBuffer)) {
+		log("Error payload too large, truncated");
+	}
+
+	// Publish to system error topic with QoS 0 (fire-and-forget)
+	bool result = mqttClient.publish("rgfx/system/driver/error", effectErrorBuffer, false, 0);
+
+	if (result) {
+		log("Published error: " + String(source) + " - " + String(errorMessage));
 	}
 }
 

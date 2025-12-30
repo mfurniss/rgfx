@@ -66,7 +66,7 @@ void BackgroundEffect::add(JsonDocument& props) {
 	// Validate color prop
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: background missing or invalid 'color' prop");
-		publishEffectError("background", "missing or invalid 'color' prop", props);
+		publishError("background", "missing or invalid 'color' prop", props);
 		return;
 	}
 
