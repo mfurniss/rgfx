@@ -238,7 +238,10 @@ export class DriverRegistry {
       resolvedHardware: this.resolveHardware(configuredDriver?.ledConfig),
       stats,
       testActive: telemetryData.testActive,
-      state: telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected',
+      // Preserve 'updating' state during OTA - don't override with 'connected' from telemetry
+      state: existingDriver?.state === 'updating'
+        ? 'updating'
+        : (telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected'),
       disabled: configuredDriver?.disabled ?? existingDriver?.disabled ?? false,
     });
   }
@@ -256,15 +259,16 @@ export class DriverRegistry {
   }
 
   /**
-   * Detect new connection (returns true if driver wasn't previously connected)
+   * Detect new connection (returns true if driver wasn't previously connected or updating)
    */
   private isNewConnection(existingDriver?: Driver): boolean {
-    const wasConnected = existingDriver?.state === 'connected';
+    // Don't emit 'connected' if driver was already connected or is currently updating (OTA)
+    const wasActive = existingDriver?.state === 'connected' || existingDriver?.state === 'updating';
     log.debug(
       `Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
-        `wasConnected=${wasConnected}`,
+        `wasActive=${wasActive}, state=${existingDriver?.state}`,
     );
-    return !wasConnected;
+    return !wasActive;
   }
 
   // Get driver by ID
