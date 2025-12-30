@@ -93,7 +93,7 @@ export class DriverRegistry {
   }): Driver {
     const registerStartTime = Date.now();
     const macAddress = telemetryData.mac || 'unknown';
-    log.info(`[DEBUG] registerDriver called for MAC ${macAddress} at ${registerStartTime}`);
+    log.debug(`registerDriver called for MAC ${macAddress} at ${registerStartTime}`);
 
     // Phase 1: Identity resolution (creates driver in config if new)
     const { driverId, configuredDriver } = this.resolveDriverIdentity(macAddress);
@@ -113,17 +113,17 @@ export class DriverRegistry {
       driverId, telemetryData, configuredDriver, existingDriver, stats,
     );
     this.drivers.set(driver.id, driver);
-    log.info(
-      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
+    log.debug(
+      `Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
     );
 
     // Phase 7: Emit event if new connection
     if (this.isNewConnection(existingDriver)) {
       log.info(`Driver connected: ${driverId}`);
-      log.info(`[DEBUG] Emitting driver:connected event for ${driverId}`);
+      log.debug(`Emitting driver:connected event for ${driverId}`);
       eventBus.emit('driver:connected', { driver });
-      log.info(
-        `[DEBUG] driver:connected event emitted for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
+      log.debug(
+        `driver:connected event emitted for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
       );
     } else {
       log.debug(`Driver ${driverId} already connected - skipping driver:connected event`);
@@ -148,7 +148,7 @@ export class DriverRegistry {
     }
     let driverId: string = configuredDriver?.id ?? macAddress;
 
-    log.info(`[DEBUG] Using driver ID: ${driverId} (MAC: ${macAddress})`);
+    log.debug(`Using driver ID: ${driverId} (MAC: ${macAddress})`);
 
     // If this is a completely new driver (not in config), create it
     if (this.driverConfig && !configuredDriver) {
@@ -156,7 +156,7 @@ export class DriverRegistry {
       this.driverConfig.addDriver(newId, macAddress);
       configuredDriver = this.driverConfig.getDriver(newId);
       driverId = newId; // Update driverId to use the newly generated ID
-      log.info(`[DEBUG] Created new driver: ${newId} (MAC: ${macAddress})`);
+      log.info(`Created new driver: ${newId} (MAC: ${macAddress})`);
     }
 
     return { driverId, configuredDriver };
@@ -168,8 +168,8 @@ export class DriverRegistry {
   private findExistingDriverByMac(macAddress: string, currentId: string): Driver | undefined {
     for (const driver of this.drivers.values()) {
       if (driver.mac === macAddress && driver.id !== currentId) {
-        log.info(
-          `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`,
+        log.debug(
+          `Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`,
         );
         return driver;
       }
@@ -248,8 +248,8 @@ export class DriverRegistry {
    */
   private handleIdMigration(existingDriver: Driver | undefined, newDriverId: string): void {
     if (existingDriver && existingDriver.id !== newDriverId) {
-      log.info(
-        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`,
+      log.debug(
+        `Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`,
       );
       this.drivers.delete(existingDriver.id);
     }
@@ -260,8 +260,8 @@ export class DriverRegistry {
    */
   private isNewConnection(existingDriver?: Driver): boolean {
     const wasConnected = existingDriver?.state === 'connected';
-    log.info(
-      `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
+    log.debug(
+      `Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
         `wasConnected=${wasConnected}`,
     );
     return !wasConnected;
