@@ -1,6 +1,13 @@
 #ifndef MQTT_H
 #define MQTT_H
 
+#include <ArduinoJson.h>
+
+#ifdef UNIT_TEST
+// Unit test stub - provides no-op implementation for effects that call publishEffectError
+inline void publishEffectError(const char*, const char*, JsonDocument&) {}
+#else
+
 #include <Arduino.h>
 #include <atomic>
 #include <WiFi.h>
@@ -27,6 +34,8 @@ void reconnectMQTT();
 void mqttLoop();
 void sendDriverTelemetry();
 void publishTestState(const String& state);
+void publishEffectError(const char* effectName, const char* errorMessage, JsonDocument& props);
 void processPendingMqttOperations();
 
-#endif
+#endif  // UNIT_TEST
+#endif  // MQTT_H

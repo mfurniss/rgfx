@@ -3,6 +3,7 @@
 #include "effect_utils.h"
 #include "gradient_utils.h"
 #include "hal/platform.h"
+#include "network/mqtt.h"
 #include <cstring>
 
 namespace {
@@ -46,6 +47,7 @@ void TextEffect::add(JsonDocument& props) {
 
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: text missing or invalid 'color' prop");
+		publishEffectError("text", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);

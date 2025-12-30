@@ -10,6 +10,7 @@
 #include <string>
 #include <cstdint>
 #include <functional>
+#include <vector>
 
 /**
  * Mock MQTT Client for Unit Testing
@@ -44,10 +45,21 @@ class WiFiClient {
 	bool connected() { return true; }
 };
 
+// Structure to capture published messages for test assertions
+struct PublishedMessage {
+	std::string topic;
+	std::string payload;
+	bool retained;
+	int qos;
+};
+
 // Mock MQTTClient
 class MQTTClient {
    public:
 	using MessageCallback = std::function<void(std::string&, std::string&)>;
+
+	// Published messages (accessible for test assertions)
+	std::vector<PublishedMessage> publishedMessages;
 
    private:
 	MessageCallback callback;
@@ -58,6 +70,18 @@ class MQTTClient {
 	 * Constructor with buffer size
 	 */
 	MQTTClient(int bufferSize) : isConnected(false) { (void)bufferSize; }
+
+	/**
+	 * Clear published messages (call in setUp)
+	 */
+	void clearPublishedMessages() { publishedMessages.clear(); }
+
+	/**
+	 * Get last published message (for assertions)
+	 */
+	const PublishedMessage* getLastPublished() const {
+		return publishedMessages.empty() ? nullptr : &publishedMessages.back();
+	}
 
 	/**
 	 * Initialize with broker and client
@@ -113,13 +137,10 @@ class MQTTClient {
 	}
 
 	/**
-	 * Publish message (always succeeds in mock)
+	 * Publish message (captures for test assertions)
 	 */
 	bool publish(const char* topic, const char* payload, bool retained = false, int qos = 0) {
-		(void)topic;
-		(void)payload;
-		(void)retained;
-		(void)qos;
+		publishedMessages.push_back({topic, payload, retained, qos});
 		return true;
 	}
 

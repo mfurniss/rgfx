@@ -3,6 +3,7 @@
 #include "hal/platform.h"
 #include "hal/types.h"
 #include "graphics/canvas.h"
+#include "network/mqtt.h"
 #include <cstring>
 
 static WipeDirection parseDirection(const char* dir, bool is1D) {
@@ -46,6 +47,7 @@ static BlendMode parseBlendMode(const char* mode) {
 void WipeEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: wipe missing or invalid 'color' prop");
+		publishEffectError("wipe", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
