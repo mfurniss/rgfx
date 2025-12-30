@@ -77,7 +77,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
 
   mqtt.subscribe('rgfx/system/driver/telemetry', (_topic, payload) => {
     const mqttReceiveTime = Date.now();
-    log.info(`[DEBUG] Driver telemetry MQTT received at ${mqttReceiveTime}`);
+    log.debug(`Driver telemetry MQTT received at ${mqttReceiveTime}`);
 
     try {
       const parsedPayload: unknown = JSON.parse(payload);
@@ -95,8 +95,8 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           return;
         }
 
-        log.info(
-          `[DEBUG] Full telemetry validated, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+        log.debug(
+          `Full telemetry validated, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
 
         // Extract registration data using Zod schemas
@@ -106,19 +106,19 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         // Register or update driver
         const driver = driverRegistry.registerDriver(registrationData);
 
-        log.info(
-          `[DEBUG] registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+        log.debug(
+          `registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
 
         // Notify renderer of driver update
         const mainWindow = getMainWindow();
-        log.info(`[DEBUG] Sending driver:updated to renderer for ${driver.id}`);
+        log.debug(`Sending driver:updated to renderer for ${driver.id}`);
 
         if (mainWindow !== null && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-          log.info(`[DEBUG] driver:updated sent successfully for ${driver.id}`);
+          log.debug(`driver:updated sent successfully for ${driver.id}`);
         } else {
-          log.warn('[DEBUG] Cannot send driver:updated - mainWindow unavailable');
+          log.warn('Cannot send driver:updated - mainWindow unavailable');
         }
       } else {
         // Try minimal validation (old firmware fallback)
@@ -134,8 +134,8 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           const registrationData = createMinimalRegistration(minimalData);
           const driver = driverRegistry.registerDriver(registrationData);
 
-          log.info(
-            `[DEBUG] Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+          log.debug(
+            `Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
           );
 
           // Notify renderer of driver update (UI will show "Update Required" badge)
@@ -143,9 +143,9 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
 
           if (mainWindow !== null && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-            log.info(`[DEBUG] driver:updated sent successfully for ${driver.id} (minimal)`);
+            log.debug(`driver:updated sent successfully for ${driver.id} (minimal)`);
           } else {
-            log.warn('[DEBUG] Cannot send driver:updated - mainWindow unavailable');
+            log.warn('Cannot send driver:updated - mainWindow unavailable');
           }
         } else {
           // Completely invalid - reject
