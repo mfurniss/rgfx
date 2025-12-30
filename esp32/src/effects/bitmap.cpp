@@ -2,6 +2,7 @@
 #include "effect_utils.h"
 #include "hal/platform.h"
 #include "graphics/canvas.h"
+#include "network/mqtt.h"
 #include <algorithm>
 #include <cmath>
 
@@ -101,12 +102,14 @@ void BitmapEffect::add(JsonDocument& props) {
 	float centerX = parseCoordinate(props["centerX"], canvasWidth);
 	if (isnan(centerX)) {
 		hal::log("ERROR: bitmap missing required 'centerX' prop");
+		publishEffectError("bitmap", "missing required 'centerX' prop", props);
 		return;
 	}
 
 	float centerY = parseCoordinate(props["centerY"], canvasHeight);
 	if (isnan(centerY)) {
 		hal::log("ERROR: bitmap missing required 'centerY' prop");
+		publishEffectError("bitmap", "missing required 'centerY' prop", props);
 		return;
 	}
 

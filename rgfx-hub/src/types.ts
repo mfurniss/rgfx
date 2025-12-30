@@ -304,11 +304,12 @@ export function serializeDriverForIPC(driver: Driver): Driver {
 }
 
 export interface SystemError {
-  errorType: 'interceptor' | 'config';
+  errorType: 'interceptor' | 'config' | 'driver';
   message: string;
   timestamp: number;
   filePath?: string;
   details?: string;
+  driverId?: string;
 }
 
 export interface UdpStats {

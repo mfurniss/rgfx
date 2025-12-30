@@ -1,6 +1,7 @@
 #include "particle_field.h"
 #include "effect_utils.h"
 #include "hal/platform.h"
+#include "network/mqtt.h"
 #include <cstring>
 
 ParticleFieldEffect::ParticleFieldEffect(const Matrix& m, Canvas& c)
@@ -211,6 +212,7 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 	// Parse color - hub must provide this
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: particle_field missing required 'color' prop");
+		publishEffectError("particle_field", "missing required 'color' prop", props);
 		return;
 	}
 	const char* colorStr = props["color"].as<const char*>();

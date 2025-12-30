@@ -277,6 +277,14 @@ if (!hasCriticalError()) {
     driverLogPersistence,
     getMainWindow: () => mainWindow,
     getEventsProcessed: () => eventsProcessed,
+    addSystemError: (error) => {
+      systemErrors.push(error);
+
+      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+        systemErrors.shift();
+      }
+      sendSystemStatus();
+    },
   });
 
   // Start reading events and send to transformer engine for processing
