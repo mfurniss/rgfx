@@ -3,6 +3,7 @@
 #include "hal/platform.h"
 #include "graphics/canvas.h"
 #include <algorithm>
+#include <cmath>
 
 BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	bitmaps.reserve(8);
@@ -23,12 +24,12 @@ CRGBA colorToRGBA(uint32_t color) {
 	return CRGBA((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
 }
 
-// Parse coordinate value as percentage (0-100) or "random", returns -1 if not present
+// Parse coordinate value as percentage (0-100) or "random", returns NaN if not present
 float parseCoordinate(JsonVariant prop, float canvasSize) {
 	if (prop.is<const char*>()) {
 		const char* str = prop.as<const char*>();
 		if (str[0] == '\0') {
-			return -1.0f;  // Empty string = not present
+			return NAN;  // Empty string = not present
 		}
 		if (strcmp(str, "random") == 0) {
 			float percent = static_cast<float>(hal::random(101));
@@ -39,7 +40,7 @@ float parseCoordinate(JsonVariant prop, float canvasSize) {
 		float percent = prop.as<float>();
 		return (percent / 100.0f) * canvasSize;
 	}
-	return -1.0f;  // Not present
+	return NAN;  // Not present
 }
 
 // Calculate fade alpha based on elapsed time and fade configuration (linear fade)
@@ -98,13 +99,13 @@ void BitmapEffect::add(JsonDocument& props) {
 
 	// Parse center position as percentage (0-100) or "random"
 	float centerX = parseCoordinate(props["centerX"], canvasWidth);
-	if (centerX < 0) {
+	if (isnan(centerX)) {
 		hal::log("ERROR: bitmap missing required 'centerX' prop");
 		return;
 	}
 
 	float centerY = parseCoordinate(props["centerY"], canvasHeight);
-	if (centerY < 0) {
+	if (isnan(centerY)) {
 		hal::log("ERROR: bitmap missing required 'centerY' prop");
 		return;
 	}
@@ -112,8 +113,8 @@ void BitmapEffect::add(JsonDocument& props) {
 	// Parse optional end position
 	float endX = parseCoordinate(props["endX"], canvasWidth);
 	float endY = parseCoordinate(props["endY"], canvasHeight);
-	bool hasEndX = endX >= 0;
-	bool hasEndY = endY >= 0;
+	bool hasEndX = !isnan(endX);
+	bool hasEndY = !isnan(endY);
 	bool hasEndPosition = hasEndX || hasEndY;
 
 	// If only one end coord specified, use corresponding start coord for the other
