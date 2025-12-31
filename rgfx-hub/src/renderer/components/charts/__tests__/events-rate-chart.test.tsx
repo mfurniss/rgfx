@@ -9,11 +9,11 @@ import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 import { EventsRateChart } from '../events-rate-chart';
-import { useEventsRateHistoryStore } from '../../../store/events-rate-history-store';
+import { useEventsRateHistoryStore } from '@/renderer/store/events-rate-history-store';
 
 // Mock the sampling function to prevent interval from running in tests
-vi.mock('../../../store/events-rate-history-store', async (importOriginal) => {
-  const original = await importOriginal<typeof import('../../../store/events-rate-history-store')>();
+vi.mock('@/renderer/store/events-rate-history-store', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/renderer/store/events-rate-history-store')>();
   return {
     ...original,
     startEventsRateSampling: vi.fn(),

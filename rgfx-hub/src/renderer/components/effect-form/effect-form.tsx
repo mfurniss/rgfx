@@ -10,7 +10,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Grid } from '@mui/material';
 import { z } from 'zod';
-import { extractFieldMetadata } from '../../utils/zod-introspection';
+import { extractFieldMetadata } from '@/renderer/utils/zod-introspection';
 import { FieldRenderer } from './field-renderer';
 
 type ZodShape = Record<string, z.ZodType>;

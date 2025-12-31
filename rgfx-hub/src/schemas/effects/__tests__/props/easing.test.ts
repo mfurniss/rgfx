@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import easingSchema from '../../properties/easing';
+import easingSchema from '@/schemas/effects/properties/easing';
 
 describe('easingSchema', () => {
   describe('required field', () => {

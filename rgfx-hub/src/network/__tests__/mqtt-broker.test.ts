@@ -14,7 +14,7 @@ import type { DiscoveryService } from '../discovery-service';
 // Mock dependencies
 vi.mock('aedes');
 vi.mock('node:net');
-vi.mock('../../network/network-utils', () => ({
+vi.mock('@/network/network-utils', () => ({
   getLocalIP: vi.fn().mockReturnValue('192.168.1.100'),
   getBroadcastAddress: vi.fn().mockReturnValue('192.168.1.255'),
 }));

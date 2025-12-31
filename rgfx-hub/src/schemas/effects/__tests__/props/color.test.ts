@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import colorSchema from '../../properties/color';
+import colorSchema from '@/schemas/effects/properties/color';
 
 describe('colorSchema', () => {
   describe('default value', () => {
