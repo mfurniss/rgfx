@@ -12,6 +12,11 @@ import type { DriverRegistry } from '../driver-registry';
 import type { DriverConfig } from '../driver-config';
 import type { MqttBroker } from '../network';
 import { serializeDriverForIPC } from '../types';
+import {
+  requireDriverWithMac,
+  buildDriverTopic,
+  sendToRenderer,
+} from '../utils/driver-utils';
 
 interface SetDriverDisabledHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -28,15 +33,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
     (_event, driverId: string, disabled: boolean) => {
       log.info(`Setting disabled state for driver ${driverId}: ${disabled}`);
 
-      const driver = driverRegistry.getDriver(driverId);
-
-      if (!driver) {
-        throw new Error(`No driver found with ID ${driverId}`);
-      }
-
-      if (!driver.mac) {
-        throw new Error(`Driver ${driverId} has no MAC address`);
-      }
+      const driver = requireDriverWithMac(driverId, driverRegistry);
 
       // Update persistence
       const success = driverConfig.setDisabled(driverId, disabled);
@@ -47,7 +44,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
 
       // When disabling, immediately clear effects on the driver
       if (disabled) {
-        const topic = `rgfx/driver/${driver.mac}/clear-effects`;
+        const topic = buildDriverTopic(driver.mac, 'clear-effects');
         void mqtt.publish(topic, '');
         log.info(`Sent clear-effects command to driver ${driverId} (${driver.mac})`);
       }
@@ -56,12 +53,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
       const updatedDriver = driverRegistry.refreshDriverFromConfig(driver.mac);
 
       if (updatedDriver) {
-        // Notify renderer of updated driver
-        const mainWindow = getMainWindow();
-
-        if (mainWindow !== null && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('driver:updated', serializeDriverForIPC(updatedDriver));
-        }
+        sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(updatedDriver));
       }
 
       log.info(`Driver ${driverId} disabled state set to ${disabled}`);

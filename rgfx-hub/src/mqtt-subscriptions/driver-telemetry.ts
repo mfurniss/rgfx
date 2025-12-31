@@ -20,6 +20,7 @@ import {
   MinimalDriverRegistrationSchema,
   type MinimalDriverRegistration,
 } from '../schemas/minimal-driver-registration';
+import { sendToRenderer, getErrorMessage } from '../utils/driver-utils';
 
 interface DriverTelemetryDeps {
   mqtt: MqttBroker;
@@ -111,15 +112,9 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         );
 
         // Notify renderer of driver update
-        const mainWindow = getMainWindow();
         log.debug(`Sending driver:updated to renderer for ${driver.id}`);
-
-        if (mainWindow !== null && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-          log.debug(`driver:updated sent successfully for ${driver.id}`);
-        } else {
-          log.warn('Cannot send driver:updated - mainWindow unavailable');
-        }
+        sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+        log.debug(`driver:updated sent for ${driver.id}`);
       } else {
         // Try minimal validation (old firmware fallback)
         const minimalParseResult = MinimalDriverRegistrationSchema.safeParse(parsedPayload);
@@ -139,14 +134,8 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           );
 
           // Notify renderer of driver update (UI will show "Update Required" badge)
-          const mainWindow = getMainWindow();
-
-          if (mainWindow !== null && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-            log.debug(`driver:updated sent successfully for ${driver.id} (minimal)`);
-          } else {
-            log.warn('Cannot send driver:updated - mainWindow unavailable');
-          }
+          sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+          log.debug(`driver:updated sent for ${driver.id} (minimal)`);
         } else {
           // Completely invalid - reject
           log.error(
@@ -158,8 +147,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      log.error(`Failed to parse driver telemetry message: ${errorMessage}`);
+      log.error(`Failed to parse driver telemetry message: ${getErrorMessage(err)}`);
     }
   });
 }

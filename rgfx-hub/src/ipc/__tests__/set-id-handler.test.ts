@@ -124,7 +124,7 @@ describe('registerSetIdHandler', () => {
       const result = await registeredHandler({}, 'unknown-driver', 'new-id');
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Driver not found');
+      expect(result.error).toBe('No driver found with ID unknown-driver');
     });
 
     it('should look up driver by provided ID', async () => {
@@ -170,7 +170,7 @@ describe('registerSetIdHandler', () => {
 
       await expect(registeredHandler({}, 'unknown-driver', 'new-id')).resolves.toEqual({
         success: false,
-        error: 'Driver not found',
+        error: 'No driver found with ID unknown-driver',
       });
     });
   });

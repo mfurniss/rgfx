@@ -10,6 +10,7 @@ import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { eventBus } from '../services/event-bus';
+import { getErrorMessage } from '../utils/driver-utils';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -121,7 +122,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       return { success: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = getErrorMessage(error);
       log.error('OTA flash failed:', errorMessage);
 
       // On error, try to mark driver as disconnected (may not exist if initial lookup failed)

@@ -8,6 +8,7 @@
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
+import { requireDriverWithMac } from '../utils/driver-utils';
 
 interface UploadDriverConfigHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -20,15 +21,7 @@ export function registerUpdateDriverConfigHandler(deps: UploadDriverConfigHandle
   ipcMain.handle('driver:update-config', async (_event, driverId: string) => {
     log.info(`Update config requested for driver ${driverId}`);
 
-    const driver = driverRegistry.getDriver(driverId);
-
-    if (!driver) {
-      throw new Error(`No driver found with ID ${driverId}`);
-    }
-
-    if (!driver.mac) {
-      throw new Error(`Driver ${driverId} has no MAC address`);
-    }
+    const driver = requireDriverWithMac(driverId, driverRegistry);
 
     log.info(`Updating LED configuration for driver ${driverId}...`);
     await uploadConfigToDriver(driver.mac);

@@ -8,6 +8,7 @@
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { SystemError } from '../types';
+import { getErrorMessage } from '../utils/driver-utils';
 
 interface DriverErrorDeps {
   mqtt: MqttBroker;
@@ -40,8 +41,7 @@ export function subscribeDriverError(deps: DriverErrorDeps): void {
         details: JSON.stringify(parsed.payload, null, 2),
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      log.error(`Failed to parse driver error message: ${errorMessage}`);
+      log.error(`Failed to parse driver error message: ${getErrorMessage(err)}`);
     }
   });
 }
