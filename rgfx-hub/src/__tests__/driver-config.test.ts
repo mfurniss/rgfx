@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DriverPersistence } from '../driver-persistence';
+import { DriverConfig } from '../driver-config';
 import { ConfigError } from '../errors/config-error';
 
 // Mock electron-log
@@ -13,7 +13,7 @@ vi.mock('electron-log/main', () => ({
   },
 }));
 
-describe('DriverPersistence', () => {
+describe('DriverConfig', () => {
   const testConfigDir = path.join(__dirname, '../test-config');
   const testConfigFile = path.join(testConfigDir, 'drivers.json');
 
@@ -34,7 +34,7 @@ describe('DriverPersistence', () => {
   describe('Initialization', () => {
     it('should create config directory if it does not exist', () => {
       expect(fs.existsSync(testConfigDir)).toBe(false);
-      new DriverPersistence(testConfigDir);
+      new DriverConfig(testConfigDir);
       expect(fs.existsSync(testConfigDir)).toBe(true);
     });
 
@@ -56,7 +56,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.loadConfig();
       const drivers = persistence.getAllDrivers();
 
@@ -66,7 +66,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should handle missing config file gracefully', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.loadConfig();
       const drivers = persistence.getAllDrivers();
       expect(drivers).toHaveLength(0);
@@ -76,7 +76,7 @@ describe('DriverPersistence', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       fs.writeFileSync(testConfigFile, 'invalid json {{{', 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -93,7 +93,7 @@ describe('DriverPersistence', () => {
 
   describe('addDriver', () => {
     it('should add a new driver and persist to disk', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const added = persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
@@ -109,7 +109,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should not add duplicate driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const firstAdd = persistence.addDriver(
         'rgfx-driver-0001',
@@ -123,7 +123,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should reject invalid driver ID', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const added = persistence.addDriver('AA:BB:CC:DD:EE:FF', 'AA:BB:CC:DD:EE:FF');
 
@@ -132,7 +132,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should reject invalid MAC address format', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const added = persistence.addDriver('rgfx-driver-0001', 'invalid-mac');
 
@@ -143,7 +143,7 @@ describe('DriverPersistence', () => {
 
   describe('updateDriver', () => {
     it('should return false for non-existent driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const updated = persistence.updateDriver('nonexistent', {});
 
@@ -165,7 +165,7 @@ describe('DriverPersistence', () => {
     };
 
     it('should set LED config for driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
       const result = persistence.setLEDConfig('rgfx-driver-0001', sampleLEDConfig);
@@ -176,7 +176,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should persist LED config to disk', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
       persistence.setLEDConfig('rgfx-driver-0001', sampleLEDConfig);
@@ -186,7 +186,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should return false when setting LED config for non-existent driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const result = persistence.setLEDConfig('nonexistent', sampleLEDConfig);
 
@@ -194,7 +194,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should return undefined for non-existent driver LED config', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const ledConfig = persistence.getLEDConfig('nonexistent');
 
@@ -202,7 +202,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should return undefined when driver has no LED config', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
       const ledConfig = persistence.getLEDConfig('aa:bb:cc:dd:ee:ff');
@@ -213,7 +213,7 @@ describe('DriverPersistence', () => {
 
   describe('getDriver', () => {
     it('should return driver by id', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
       const driver = persistence.getDriver('rgfx-driver-0001');
@@ -223,7 +223,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should return undefined for non-existent driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const driver = persistence.getDriver('nonexistent');
 
@@ -233,14 +233,14 @@ describe('DriverPersistence', () => {
 
   describe('hasDriver', () => {
     it('should return true for existing driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
       expect(persistence.hasDriver('rgfx-driver-0001')).toBe(true);
     });
 
     it('should return false for non-existent driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       expect(persistence.hasDriver('nonexistent')).toBe(false);
     });
@@ -248,7 +248,7 @@ describe('DriverPersistence', () => {
 
   describe('deleteDriver', () => {
     it('should delete driver and persist to disk', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
 
       const deleted = persistence.deleteDriver('rgfx-driver-0001');
@@ -261,7 +261,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should return false when deleting non-existent driver', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const deleted = persistence.deleteDriver('nonexistent');
 
@@ -271,7 +271,7 @@ describe('DriverPersistence', () => {
 
   describe('getAllDrivers', () => {
     it('should return all drivers', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
       persistence.addDriver('rgfx-driver-0002', '11:22:33:44:55:66');
 
@@ -283,7 +283,7 @@ describe('DriverPersistence', () => {
     });
 
     it('should return empty array when no drivers exist', () => {
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       const drivers = persistence.getAllDrivers();
 
@@ -305,7 +305,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -324,7 +324,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -343,7 +343,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -362,7 +362,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -382,7 +382,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -407,7 +407,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       expect(() => {
         persistence.loadConfig();
       }).toThrow(ConfigError);
@@ -417,7 +417,7 @@ describe('DriverPersistence', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       fs.writeFileSync(testConfigFile, 'not valid json', 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
 
       try {
         persistence.loadConfig();
@@ -449,7 +449,7 @@ describe('DriverPersistence', () => {
       };
       fs.writeFileSync(testConfigFile, JSON.stringify(testData, null, 2), 'utf8');
 
-      const persistence = new DriverPersistence(testConfigDir);
+      const persistence = new DriverConfig(testConfigDir);
       persistence.loadConfig();
       const drivers = persistence.getAllDrivers();
 

@@ -138,11 +138,11 @@ describe('zod-introspection', () => {
     });
 
     describe('bitmap schema', () => {
-      it('should extract color and position fields with correct types', () => {
+      it('should extract position fields with correct types (no color - uses palette)', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.bitmap);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
-        expect(fieldMap.get('color')?.type).toBe('color');
+        expect(fieldMap.get('color')).toBeUndefined();
         expect(fieldMap.get('reset')?.type).toBe('boolean');
         expect(fieldMap.get('centerX')?.type).toBe('centerXY');
         expect(fieldMap.get('centerY')?.type).toBe('centerXY');
@@ -152,7 +152,7 @@ describe('zod-introspection', () => {
 
     describe('all effect schemas', () => {
       it('should have color field recognized as color type in all schemas that have it', () => {
-        const schemasWithColor = ['pulse', 'wipe', 'explode', 'bitmap', 'background'] as const;
+        const schemasWithColor = ['pulse', 'wipe', 'explode', 'background'] as const;
 
         for (const schemaName of schemasWithColor) {
           const schema = effectPropsSchemas[schemaName];
@@ -164,12 +164,19 @@ describe('zod-introspection', () => {
         }
       });
 
-      it('should extract default values for all fields', () => {
+      it('should extract default values for fields that have them', () => {
+        // Fields that are purely optional (no default) are allowed
+        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'colorGradient'];
+
         for (const [schemaName, schema] of Object.entries(effectPropsSchemas)) {
           const fields = extractFieldMetadata(schema);
 
           for (const field of fields) {
-            // Every field should have a default value (since all props are optional with defaults)
+            if (optionalFieldsWithoutDefaults.includes(field.name)) {
+              continue;
+            }
+
+            // Most fields should have a default value
             expect(
               field.defaultValue,
               `${schemaName}.${field.name} should have a default value`,
@@ -204,8 +211,8 @@ describe('zod-introspection', () => {
       expect(easingField?.type).toBe('enum');
     });
 
-    it('should detect centerX/Y as centerXY type', () => {
-      // centerX/Y are unions of: 'random' literal | number
+    it('should detect centerX/Y as centerXY type via fieldType annotation', () => {
+      // centerX/Y must use explicit fieldType:centerXY annotation
       const fields = extractFieldMetadata(effectPropsSchemas.explode);
       const centerXField = fields.find((f) => f.name === 'centerX');
       const centerYField = fields.find((f) => f.name === 'centerY');

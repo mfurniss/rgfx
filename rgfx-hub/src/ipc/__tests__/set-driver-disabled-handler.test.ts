@@ -9,8 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { registerSetDriverDisabledHandler } from '../set-driver-disabled-handler';
 import type { DriverRegistry } from '@/driver-registry';
-import type { DriverPersistence } from '@/driver-persistence';
-import type { LEDHardwareManager } from '@/led-hardware-manager';
+import type { DriverConfig } from '@/driver-config';
 import type { MqttBroker } from '@/network';
 import type { BrowserWindow } from 'electron';
 import { Driver } from '@/types';
@@ -33,8 +32,7 @@ vi.mock('electron-log/main', () => ({
 
 describe('registerSetDriverDisabledHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
-  let mockDriverPersistence: MockProxy<DriverPersistence>;
-  let mockLedHardwareManager: MockProxy<LEDHardwareManager>;
+  let mockDriverConfig: MockProxy<DriverConfig>;
   let mockMqtt: MockProxy<MqttBroker>;
   let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let mockDriver: Driver;
@@ -53,12 +51,10 @@ describe('registerSetDriverDisabledHandler', () => {
     mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
     const disabledDriver = structuredClone(mockDriver);
     disabledDriver.disabled = true;
-    mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(disabledDriver);
+    mockDriverRegistry.refreshDriverFromConfig.mockReturnValue(disabledDriver);
 
-    mockDriverPersistence = mock<DriverPersistence>();
-    mockDriverPersistence.setDisabled.mockReturnValue(true);
-
-    mockLedHardwareManager = mock<LEDHardwareManager>();
+    mockDriverConfig = mock<DriverConfig>();
+    mockDriverConfig.setDisabled.mockReturnValue(true);
 
     mockMqtt = mock<MqttBroker>();
     mockMqtt.publish.mockResolvedValue(undefined);
@@ -78,8 +74,7 @@ describe('registerSetDriverDisabledHandler', () => {
 
     registerSetDriverDisabledHandler({
       driverRegistry: mockDriverRegistry,
-      driverPersistence: mockDriverPersistence,
-      ledHardwareManager: mockLedHardwareManager,
+      driverConfig: mockDriverConfig,
       mqtt: mockMqtt,
       getMainWindow: () => mockMainWindow,
     });
@@ -112,11 +107,11 @@ describe('registerSetDriverDisabledHandler', () => {
     it('calls setDisabled on persistence with correct arguments', () => {
       registeredHandler({}, 'rgfx-driver-0001', true);
 
-      expect(mockDriverPersistence.setDisabled).toHaveBeenCalledWith('rgfx-driver-0001', true);
+      expect(mockDriverConfig.setDisabled).toHaveBeenCalledWith('rgfx-driver-0001', true);
     });
 
     it('throws error when persistence update fails', () => {
-      mockDriverPersistence.setDisabled.mockReturnValue(false);
+      mockDriverConfig.setDisabled.mockReturnValue(false);
 
       expect(() => registeredHandler({}, 'rgfx-driver-0001', true)).toThrow(
         'Failed to update disabled state for driver rgfx-driver-0001',
@@ -126,9 +121,8 @@ describe('registerSetDriverDisabledHandler', () => {
     it('refreshes driver from persistence after update', () => {
       registeredHandler({}, 'rgfx-driver-0001', true);
 
-      expect(mockDriverRegistry.refreshDriverFromPersistence).toHaveBeenCalledWith(
+      expect(mockDriverRegistry.refreshDriverFromConfig).toHaveBeenCalledWith(
         'AA:BB:CC:DD:EE:FF',
-        mockLedHardwareManager,
       );
     });
 
@@ -155,8 +149,7 @@ describe('registerSetDriverDisabledHandler', () => {
     it('does not send IPC event when window is null', () => {
       registerSetDriverDisabledHandler({
         driverRegistry: mockDriverRegistry,
-        driverPersistence: mockDriverPersistence,
-        ledHardwareManager: mockLedHardwareManager,
+        driverConfig: mockDriverConfig,
         mqtt: mockMqtt,
         getMainWindow: () => null,
       });
@@ -179,11 +172,11 @@ describe('registerSetDriverDisabledHandler', () => {
       mockDriverRegistry.getDriver.mockReturnValue(disabledDriver);
       const enabledDriver = structuredClone(disabledDriver);
       enabledDriver.disabled = false;
-      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(enabledDriver);
+      mockDriverRegistry.refreshDriverFromConfig.mockReturnValue(enabledDriver);
 
       const result = registeredHandler({}, 'rgfx-driver-0001', false);
 
-      expect(mockDriverPersistence.setDisabled).toHaveBeenCalledWith('rgfx-driver-0001', false);
+      expect(mockDriverConfig.setDisabled).toHaveBeenCalledWith('rgfx-driver-0001', false);
       expect(result).toEqual({ success: true });
     });
 
@@ -203,7 +196,7 @@ describe('registerSetDriverDisabledHandler', () => {
       mockDriverRegistry.getDriver.mockReturnValue(disabledDriver);
       const enabledDriver = structuredClone(disabledDriver);
       enabledDriver.disabled = false;
-      mockDriverRegistry.refreshDriverFromPersistence.mockReturnValue(enabledDriver);
+      mockDriverRegistry.refreshDriverFromConfig.mockReturnValue(enabledDriver);
 
       registeredHandler({}, 'rgfx-driver-0001', false);
 

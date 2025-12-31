@@ -8,23 +8,26 @@
 import type { BrowserWindow } from 'electron';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverLogPersistence } from '../driver-log-persistence';
+import type { SystemError } from '../types';
 import { subscribeDriverTelemetry } from './driver-telemetry';
 import { subscribeDriverStatus } from './driver-status';
 import { subscribeDriverTestState } from './driver-test-state';
 import { subscribeDriverLog } from './driver-log';
 import { subscribeDriverWifiResponse } from './driver-wifi-response';
+import { subscribeDriverError } from './driver-error';
 
 interface MqttSubscriptionsDeps {
   mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   systemMonitor: SystemMonitor;
   driverLogPersistence: DriverLogPersistence;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
+  addSystemError: (error: SystemError) => void;
 }
 
 export function registerMqttSubscriptions(deps: MqttSubscriptionsDeps): void {
@@ -33,4 +36,5 @@ export function registerMqttSubscriptions(deps: MqttSubscriptionsDeps): void {
   subscribeDriverTestState(deps);
   subscribeDriverLog(deps);
   subscribeDriverWifiResponse(deps);
+  subscribeDriverError(deps);
 }

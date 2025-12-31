@@ -11,14 +11,13 @@ import {
   EVENTS_RATE_SAMPLE_INTERVAL_MS,
   EVENTS_RATE_MAX_POINTS,
 } from '@/config/constants';
+import type { UdpStats } from '@/types';
 
 /**
- * Cumulative stats for a driver (no timestamp - we use fixed sample intervals).
- * UDP stats come from SystemStatus (per-IP tracking in main process).
+ * Cumulative UDP stats for a driver.
  */
 interface DriverStatsSnapshot {
   udpSent: number;
-  mqttMessagesReceived: number;
   isConnected: boolean;
 }
 
@@ -39,14 +38,11 @@ interface EventsRateHistoryState {
   version: number;
 
   /**
-   * Record cumulative stats for a driver.
-   * Called when driver updates are received.
-   * @param udpSent - UDP messages sent to this driver (from SystemStatus per-IP tracking)
+   * Update stats from SystemStatus UDP stats by driver.
    */
-  recordDriverStats: (
-    driverId: string,
-    stats: { udpSent: number; mqttMessagesReceived: number },
-    isConnected: boolean,
+  updateFromStatus: (
+    udpStatsByDriver: Record<string, UdpStats>,
+    connectedDriverIds: string[],
   ) => void;
 
   /**
@@ -78,18 +74,42 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()((set, 
   knownDrivers: new Set(),
   version: 0,
 
-  recordDriverStats: (driverId, stats, isConnected) => {
+  updateFromStatus: (udpStatsByDriver, connectedDriverIds) => {
     const { currentStats, knownDrivers } = get();
+    const connectedSet = new Set(connectedDriverIds);
+    let driversChanged = false;
 
-    currentStats.set(driverId, {
-      udpSent: stats.udpSent,
-      mqttMessagesReceived: stats.mqttMessagesReceived,
-      isConnected,
-    });
+    // Update stats for all drivers we have UDP data for
+    for (const [driverId, stats] of Object.entries(udpStatsByDriver)) {
+      currentStats.set(driverId, {
+        udpSent: stats.sent,
+        isConnected: connectedSet.has(driverId),
+      });
 
-    if (!knownDrivers.has(driverId)) {
-      const newKnownDrivers = new Set(knownDrivers);
-      newKnownDrivers.add(driverId);
+      if (!knownDrivers.has(driverId)) {
+        driversChanged = true;
+      }
+    }
+
+    // Also track connected drivers even if no UDP stats yet
+    for (const driverId of connectedDriverIds) {
+      if (!currentStats.has(driverId)) {
+        currentStats.set(driverId, {
+          udpSent: 0,
+          isConnected: true,
+        });
+
+        if (!knownDrivers.has(driverId)) {
+          driversChanged = true;
+        }
+      }
+    }
+
+    if (driversChanged) {
+      const newKnownDrivers = new Set([
+        ...Object.keys(udpStatsByDriver),
+        ...connectedDriverIds,
+      ]);
       set({ knownDrivers: newKnownDrivers });
     }
   },
@@ -115,7 +135,7 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()((set, 
         // First sample for this driver, no rate yet
         dataPoint[driverId] = 0;
       } else {
-        // Only count UDP events (actual game events sent to drivers)
+        // Calculate rate from UDP sent delta
         dataPoint[driverId] =
           (current.udpSent - previous.udpSent) / sampleIntervalSec;
       }

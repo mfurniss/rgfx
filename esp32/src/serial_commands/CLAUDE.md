@@ -1,5 +1,7 @@
 # Serial Commands
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains the serial command handlers for the ESP32 driver firmware. Commands are entered via the serial console for device configuration and debugging.
 
 ## Architecture

@@ -1,5 +1,7 @@
 # Assets
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains static assets bundled with the RGFX Hub application. These files are packaged into the Electron app at build time and accessed at runtime.
 
 ## CRITICAL - Do NOT edit files here directly!

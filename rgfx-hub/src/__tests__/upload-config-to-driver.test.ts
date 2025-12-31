@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { createUploadConfigToDriver } from '../upload-config-to-driver';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
 
@@ -22,13 +22,13 @@ vi.mock('electron-log/main', () => ({
 }));
 
 describe('createUploadConfigToDriver', () => {
-  let mockDriverPersistence: MockProxy<DriverPersistence>;
+  let mockDriverConfig: MockProxy<DriverConfig>;
   let mockLedHardwareManager: MockProxy<LEDHardwareManager>;
   let mockMqtt: MockProxy<MqttBroker>;
 
   const testMacAddress = 'AA:BB:CC:DD:EE:FF';
 
-  const mockPersistedDriver = {
+  const mockConfiguredDriver = {
     id: 'rgfx-driver-0001',
     macAddress: testMacAddress,
     description: 'Test driver',
@@ -64,7 +64,7 @@ describe('createUploadConfigToDriver', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockDriverPersistence = mock<DriverPersistence>();
+    mockDriverConfig = mock<DriverConfig>();
     mockLedHardwareManager = mock<LEDHardwareManager>();
     mockMqtt = mock<MqttBroker>();
     // Mock publishAndAwaitResponse to simulate driver confirming config save
@@ -73,11 +73,11 @@ describe('createUploadConfigToDriver', () => {
 
   describe('successful upload', () => {
     it('should build and publish complete config to driver', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -94,11 +94,11 @@ describe('createUploadConfigToDriver', () => {
     });
 
     it('should include driver ID in published config', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -112,11 +112,11 @@ describe('createUploadConfigToDriver', () => {
     });
 
     it('should build LED device config with hardware and driver settings', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -145,11 +145,11 @@ describe('createUploadConfigToDriver', () => {
     });
 
     it('should include settings from driver config', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -170,18 +170,18 @@ describe('createUploadConfigToDriver', () => {
 
     it('should include floor values in settings', async () => {
       const driverWithFloor = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           floor: { r: 10, g: 20, b: 30 },
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithFloor);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithFloor);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -198,18 +198,18 @@ describe('createUploadConfigToDriver', () => {
 
     it('should default offset to 0 when not specified', async () => {
       const driverWithoutOffset = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           offset: undefined,
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithoutOffset);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithoutOffset);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -225,10 +225,10 @@ describe('createUploadConfigToDriver', () => {
 
   describe('error handling', () => {
     it('should throw when driver not found', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(undefined);
+      mockDriverConfig.getDriverByMac.mockReturnValue(undefined);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -241,14 +241,14 @@ describe('createUploadConfigToDriver', () => {
 
     it('should throw when driver has no LED config', async () => {
       const driverWithoutLedConfig = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: undefined,
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithoutLedConfig);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithoutLedConfig);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -260,11 +260,11 @@ describe('createUploadConfigToDriver', () => {
     });
 
     it('should throw when LED hardware fails to load', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(null);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -278,11 +278,11 @@ describe('createUploadConfigToDriver', () => {
 
   describe('hardware ref lookup', () => {
     it('should look up hardware using ref from driver config', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -297,28 +297,28 @@ describe('createUploadConfigToDriver', () => {
 
   describe('driver lookup', () => {
     it('should look up driver by MAC address', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
 
       await uploadConfig(testMacAddress);
 
-      expect(mockDriverPersistence.getDriverByMac).toHaveBeenCalledWith(testMacAddress);
+      expect(mockDriverConfig.getDriverByMac).toHaveBeenCalledWith(testMacAddress);
     });
   });
 
   describe('unified panel configuration', () => {
     it('should use single panel dimensions when unified is undefined', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -339,9 +339,9 @@ describe('createUploadConfigToDriver', () => {
 
     it('should calculate dimensions for 2x2 unified grid', async () => {
       const driverWithUnified = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           unified: [
             ['0', '1'],
             ['3', '2'],
@@ -349,11 +349,11 @@ describe('createUploadConfigToDriver', () => {
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithUnified);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithUnified);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -378,18 +378,18 @@ describe('createUploadConfigToDriver', () => {
 
     it('should calculate dimensions for 1x3 horizontal strip of panels', async () => {
       const driverWithUnified = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           unified: [['0', '1', '2']],
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithUnified);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithUnified);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -408,18 +408,18 @@ describe('createUploadConfigToDriver', () => {
 
     it('should calculate dimensions for 3x1 vertical strip of panels', async () => {
       const driverWithUnified = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           unified: [['0'], ['1'], ['2']],
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithUnified);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithUnified);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -443,18 +443,18 @@ describe('createUploadConfigToDriver', () => {
         height: undefined,
       };
       const driverWithUnified = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           unified: [['0', '1']],
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithUnified);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithUnified);
       mockLedHardwareManager.loadHardware.mockReturnValue(stripHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -474,18 +474,18 @@ describe('createUploadConfigToDriver', () => {
   describe('strip reverse configuration', () => {
     it('should include reverse field in LED device config', async () => {
       const driverWithReverse = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           reverse: true,
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithReverse);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithReverse);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -500,11 +500,11 @@ describe('createUploadConfigToDriver', () => {
     });
 
     it('should default reverse to false when not specified', async () => {
-      mockDriverPersistence.getDriverByMac.mockReturnValue(mockPersistedDriver);
+      mockDriverConfig.getDriverByMac.mockReturnValue(mockConfiguredDriver);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });
@@ -520,18 +520,18 @@ describe('createUploadConfigToDriver', () => {
 
     it('should include reverse: false when explicitly set to false', async () => {
       const driverWithReverseFalse = {
-        ...mockPersistedDriver,
+        ...mockConfiguredDriver,
         ledConfig: {
-          ...mockPersistedDriver.ledConfig,
+          ...mockConfiguredDriver.ledConfig,
           reverse: false,
         },
       };
 
-      mockDriverPersistence.getDriverByMac.mockReturnValue(driverWithReverseFalse);
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithReverseFalse);
       mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
 
       const uploadConfig = createUploadConfigToDriver({
-        driverPersistence: mockDriverPersistence,
+        driverConfig: mockDriverConfig,
         ledHardwareManager: mockLedHardwareManager,
         mqtt: mockMqtt,
       });

@@ -3,7 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { exposeElectronTRPC } from 'electron-trpc/main';
 import type { Driver, SystemStatus, AppInfo, DisconnectReason, LEDHardware } from './types';
 import type { EffectPayload } from './types/transformer-types';
-import type { PersistedDriverFromSchema } from './schemas';
+import type { ConfiguredDriverFromSchema } from './schemas';
 
 // Expose electron-trpc for type-safe IPC communication
 process.once('loaded', () => {
@@ -146,7 +146,7 @@ export const rgfxAPI = {
   },
 
   saveDriverConfig: (
-    config: PersistedDriverFromSchema,
+    config: ConfiguredDriverFromSchema,
   ): Promise<{ success: boolean; driverRebooted: boolean }> => {
     return ipcRenderer.invoke('driver:save-config', config);
   },

@@ -10,6 +10,7 @@ import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { eventBus } from '../services/event-bus';
+import { getErrorMessage } from '../utils/driver-utils';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -109,14 +110,19 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       log.info(`OTA flash to ${driverId} completed successfully`);
 
-      // Mark driver as disconnected (it will reboot) with 'restarting' reason
-      driver.state = 'disconnected';
-      driver.ip = undefined;
-      eventBus.emit('driver:disconnected', { driver, reason: 'restarting' });
+      // Re-fetch driver from registry - the reference may have been replaced
+      // by telemetry events during OTA upload (race condition)
+      const updatedDriver = driverRegistry.getDriver(driverId);
+
+      if (updatedDriver) {
+        updatedDriver.state = 'disconnected';
+        updatedDriver.ip = undefined;
+        eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
+      }
 
       return { success: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = getErrorMessage(error);
       log.error('OTA flash failed:', errorMessage);
 
       // On error, try to mark driver as disconnected (may not exist if initial lookup failed)

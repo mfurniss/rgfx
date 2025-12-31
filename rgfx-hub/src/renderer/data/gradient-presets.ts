@@ -5,14 +5,14 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-interface PlasmaPreset {
+interface GradientPreset {
   name: string;
   gradient: string[];
   speed: number;
   scale: number;
 }
 
-export const plasmaPresets: PlasmaPreset[] = [
+export const gradientPresets: GradientPreset[] = [
   {
     name: 'Acid Haus',
     gradient: ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'],
@@ -67,10 +67,27 @@ export const plasmaPresets: PlasmaPreset[] = [
     speed: 15,
     scale: 10,
   },
+  {
+    name: 'Geode',
+    gradient: [
+      '#A00000','#A00000','#A00000','#A00000', '#FFA000', '#000000', '#000000', '#000000', '#000000', '#00FF80',
+      '#8000A0','#8000A0','#8000A0','#8000A0', '#A000FF', '#000000', '#000000', '#000000', '#00FF80', '#000000',
+    ],
+    speed: 2.5,
+    scale: 0.9,
+  },
+  {
+    name: 'Stained Glass',
+    gradient: [
+      '#000000', '#A08000','#000000',  '#707070', '#000000', '#6000C0', '#000000', '#00A050','#000000', '#C00000', '#000000',
+    ],
+    speed: 1.4,
+    scale: 1.9,
+  },
 ];
 
-export function findPresetByGradient(gradient: string[]): PlasmaPreset | undefined {
-  return plasmaPresets.find(
+export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {
+  return gradientPresets.find(
     (p) =>
       p.gradient.length === gradient.length &&
       p.gradient.every((color, i) => color === gradient[i]),

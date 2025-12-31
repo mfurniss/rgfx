@@ -9,6 +9,7 @@ import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
+import { requireDriverWithMac, buildDriverTopic } from '../utils/driver-utils';
 
 interface SendDriverCommandHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -23,18 +24,8 @@ export function registerSendDriverCommandHandler(deps: SendDriverCommandHandlerD
     async (_event, driverId: string, command: string, payload?: string) => {
       log.info(`Command '${command}' requested for driver ${driverId}${payload ? ` with payload: ${payload}` : ''}`);
 
-      const driver = driverRegistry.getDriver(driverId);
-
-      if (!driver) {
-        throw new Error(`No driver found with ID ${driverId}`);
-      }
-
-      if (!driver.mac) {
-        throw new Error(`Driver ${driverId} has no MAC address`);
-      }
-
-      // Topics use MAC address as immutable identifier
-      const topic = `rgfx/driver/${driver.mac}/${command}`;
+      const driver = requireDriverWithMac(driverId, driverRegistry);
+      const topic = buildDriverTopic(driver.mac, command);
 
       if (payload !== undefined) {
         await mqtt.publish(topic, payload);

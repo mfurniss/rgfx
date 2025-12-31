@@ -1,5 +1,7 @@
 # Services
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 Main process services for firmware management.
 
 ## Files

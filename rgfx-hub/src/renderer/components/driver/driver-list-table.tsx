@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import type { Driver } from '@/types';
 import { useUiStore, type SortField } from '../../store/ui-store';
-import { useDriverStore } from '../../store/driver-store';
+import { useSystemStatusStore } from '../../store/system-status-store';
 import TestLedButton from './test-led-button';
 import DriverState from './driver-state';
 
@@ -35,7 +35,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const sortOrder = useUiStore((state) => state.driverTableSortOrder);
   const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
   const currentFirmwareVersion =
-    useDriverStore((state) => state.systemStatus.currentFirmwareVersion);
+    useSystemStatusStore((state) => state.systemStatus.currentFirmwareVersion);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

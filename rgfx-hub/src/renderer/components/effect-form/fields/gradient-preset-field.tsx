@@ -8,9 +8,15 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box } from '@mui/material';
 import { Controller, useFormContext, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { plasmaPresets, findPresetByGradient } from '../../../data/plasma-presets';
+import { gradientPresets, findPresetByGradient } from '../../../data/gradient-presets';
 
-interface PlasmaPresetFieldProps<T extends FieldValues> {
+interface ColorGradient {
+  colors: string[];
+  speed: number;
+  scale: number;
+}
+
+interface GradientPresetFieldProps<T extends FieldValues> {
   name: Path<T>;
   control: Control<T>;
   label: string;
@@ -41,21 +47,32 @@ function GradientPreview({ gradient }: { gradient: string[] }) {
   );
 }
 
-export function PlasmaPresetField<T extends FieldValues>({
+export function GradientPresetField<T extends FieldValues>({
   name,
   control,
   label,
   error,
-}: PlasmaPresetFieldProps<T>) {
+}: GradientPresetFieldProps<T>) {
   const { setValue } = useFormContext<T>();
+  // Detect format based on field name: 'colorGradient' = nested object, 'gradient' = flat array
+  const isNestedFormat = name === 'colorGradient';
 
   return (
     <Controller
       name={name}
       control={control}
       render={({ field }) => {
-        const currentGradient = field.value as string[] | undefined;
-        const currentPreset = currentGradient ? findPresetByGradient(currentGradient) : undefined;
+        // Extract colors based on format
+        let colors: string[] | undefined;
+
+        if (isNestedFormat) {
+          const nested = field.value as ColorGradient | undefined;
+          colors = nested?.colors;
+        } else {
+          colors = field.value as string[] | undefined;
+        }
+
+        const currentPreset = colors ? findPresetByGradient(colors) : undefined;
         const selectedValue = currentPreset?.name ?? '';
 
         return (
@@ -65,16 +82,28 @@ export function PlasmaPresetField<T extends FieldValues>({
               value={selectedValue}
               label={label}
               onChange={(e) => {
-                const preset = plasmaPresets.find((p) => p.name === e.target.value);
+                const preset = gradientPresets.find((p) => p.name === e.target.value);
 
                 if (preset) {
-                  field.onChange(preset.gradient);
-                  setValue('speed' as Path<T>, preset.speed as T[keyof T]);
-                  setValue('scale' as Path<T>, preset.scale as T[keyof T]);
+                  if (isNestedFormat) {
+                    // Set entire colorGradient object (Text, Scroll Text)
+                    const colorGradient: ColorGradient = {
+                      colors: preset.gradient,
+                      speed: preset.speed,
+                      scale: preset.scale,
+                    };
+
+                    field.onChange(colorGradient);
+                  } else {
+                    // Set colors array and speed/scale separately (Plasma)
+                    field.onChange(preset.gradient);
+                    setValue('speed' as Path<T>, preset.speed as T[keyof T]);
+                    setValue('scale' as Path<T>, preset.scale as T[keyof T]);
+                  }
                 }
               }}
             >
-              {plasmaPresets.map((preset) => (
+              {gradientPresets.map((preset) => (
                 <MenuItem key={preset.name} value={preset.name}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <GradientPreview gradient={preset.gradient} />

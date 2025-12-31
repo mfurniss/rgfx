@@ -6,12 +6,12 @@
  */
 
 import log from 'electron-log/main';
-import type { DriverPersistence } from './driver-persistence';
+import type { DriverConfig } from './driver-config';
 import type { LEDHardwareManager } from './led-hardware-manager';
 import type { MqttBroker } from './network';
 
 interface UploadConfigDeps {
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
 }
@@ -22,7 +22,7 @@ const CONFIG_SAVE_TIMEOUT_MS = 5000;
 export function createUploadConfigToDriver(
   deps: UploadConfigDeps,
 ): (macAddress: string) => Promise<boolean> {
-  const { driverPersistence, ledHardwareManager, mqtt } = deps;
+  const { driverConfig, ledHardwareManager, mqtt } = deps;
 
   /**
    * Upload LED configuration to driver and wait for save confirmation.
@@ -30,13 +30,13 @@ export function createUploadConfigToDriver(
    */
   return async function uploadConfigToDriver(macAddress: string): Promise<boolean> {
     // Look up persisted driver by MAC (source of truth for config)
-    const persistedDriver = driverPersistence.getDriverByMac(macAddress);
+    const configuredDriver = driverConfig.getDriverByMac(macAddress);
 
-    if (!persistedDriver) {
+    if (!configuredDriver) {
       throw new Error(`No driver found with MAC ${macAddress}`);
     }
 
-    const { id: driverId, ledConfig } = persistedDriver;
+    const { id: driverId, ledConfig } = configuredDriver;
 
     if (!ledConfig) {
       throw new Error(`Driver ${driverId} has no LED configuration`);

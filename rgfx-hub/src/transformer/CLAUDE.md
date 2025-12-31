@@ -1,5 +1,7 @@
 # Transformer System
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains the bridge layer that provides interfaces for event transformers. Transformers convert game events (from MAME) into LED effects (sent to drivers).
 
 ---

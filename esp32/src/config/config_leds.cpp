@@ -2,6 +2,7 @@
 #include "driver_config.h"
 #include "hal/led_controller.h"
 #include "log.h"
+#include "network/mqtt.h"
 #include <map>
 
 // LED buffers for each pin
@@ -105,8 +106,9 @@ bool configLEDs() {
 
 	// Check pin count limit
 	if (pinLEDCounts.size() > MAX_PINS) {
-		log("ERROR: Too many pins configured (" + String(pinLEDCounts.size()) + " > " +
-		    String(MAX_PINS) + ")");
+		String errorMsg = "Too many pins configured (" + String(pinLEDCounts.size()) + " > " + String(MAX_PINS) + ")";
+		log("ERROR: " + errorMsg);
+		publishError("config", errorMsg.c_str());
 		return false;
 	}
 
@@ -155,8 +157,9 @@ bool configLEDs() {
 			ADD_FASTLED_FOR_PIN(22)
 			ADD_FASTLED_FOR_PIN(23)
 			default:
-				log("ERROR: Unsupported GPIO pin: " + String(pin));
-				log("Supported pins: 16, 17, 18, 19, 21, 22, 23");
+				String errorMsg = "GPIO pin " + String(pin) + " not configured (available: 16, 17, 18, 19, 21, 22, 23)";
+				log("ERROR: " + errorMsg);
+				publishError("config", errorMsg.c_str());
 				delete[] ledBuffers[pinIndex];
 				ledBuffers[pinIndex] = nullptr;
 				return false;
@@ -170,10 +173,14 @@ bool configLEDs() {
 	activePins = pinIndex;
 
 	// Create device mappings
+	uint8_t mappingFailures = 0;
 	for (const auto& dev : g_driverConfig.devices) {
 		int8_t pIdx = findPinIndex(dev.pin);
 		if (pIdx < 0) {
-			log("ERROR: Pin index not found for device " + dev.id);
+			String errorMsg = "Pin index not found for device " + dev.id + " (pin " + String(dev.pin) + ")";
+			log("ERROR: " + errorMsg);
+			publishError("config", errorMsg.c_str());
+			mappingFailures++;
 			continue;
 		}
 
@@ -188,6 +195,11 @@ bool configLEDs() {
 		log("Mapped device: " + dev.name + " (" + dev.id + ")");
 		log("  -> Pin " + String(dev.pin) + " [" + String(dev.offset) + ".." +
 		    String(dev.offset + dev.count - 1) + "]");
+	}
+
+	if (mappingFailures > 0) {
+		log("ERROR: " + String(mappingFailures) + " device(s) failed to map");
+		return false;
 	}
 
 	// Apply global settings

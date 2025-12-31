@@ -14,7 +14,7 @@ import { MqttBroker, NetworkManager } from './network';
 import { EventFileReader } from './event-file-reader';
 import { DriverRegistry } from './driver-registry';
 import { SystemMonitor } from './system-monitor';
-import { DriverPersistence } from './driver-persistence';
+import { DriverConfig } from './driver-config';
 import { DriverLogPersistence } from './driver-log-persistence';
 import { LEDHardwareManager } from './led-hardware-manager';
 import { TransformerEngine } from './transformer-engine';
@@ -32,6 +32,7 @@ import {
   MAIN_WINDOW_ZOOM_FACTOR,
   OPEN_DEVTOOLS_IN_DEV,
   SYSTEM_STATUS_UPDATE_INTERVAL_MS,
+  MAX_SYSTEM_ERRORS,
 } from './config/constants';
 import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
@@ -85,17 +86,35 @@ let statusUpdateInterval: NodeJS.Timeout | null = null;
 
 // Initialize services (persistence first, then registry)
 const configPath = path.join(app.getPath('home'), '.rgfx');
-const driverPersistence = new DriverPersistence(configPath);
+const driverConfig = new DriverConfig(configPath);
 const driverLogPersistence = new DriverLogPersistence(configPath);
 const ledHardwareManager = new LEDHardwareManager(configPath);
+
+// System error tracking
+const systemErrors: SystemError[] = [];
+
+// Load driver configuration BEFORE creating registry
+// Registry constructor reads from persistence to pre-populate known drivers
+try {
+  driverConfig.loadConfig();
+} catch (error) {
+  if (error instanceof ConfigError) {
+    log.error(`Critical config error: ${error.message}`);
+    log.error(`Details: ${error.details}`);
+    systemErrors.push(error.toSystemError());
+  } else {
+    throw error;
+  }
+}
+
 const mqtt = new MqttBroker(MQTT_DEFAULT_PORT);
 const eventReader = new EventFileReader();
-const driverRegistry = new DriverRegistry(driverPersistence, ledHardwareManager);
+const driverRegistry = new DriverRegistry(driverConfig, ledHardwareManager);
 const systemMonitor = new SystemMonitor();
 
 // Create uploadConfigToDriver function
 const uploadConfigToDriver = createUploadConfigToDriver({
-  driverPersistence,
+  driverConfig,
   ledHardwareManager,
   mqtt,
 });
@@ -150,23 +169,6 @@ const transformerEngine = new TransformerEngine({
 // Event statistics tracking
 let eventsProcessed = 0;
 
-// System error tracking (keep last 10 errors)
-const MAX_SYSTEM_ERRORS = 10;
-const systemErrors: SystemError[] = [];
-
-// Load driver configuration - capture any config errors
-try {
-  driverPersistence.loadConfig();
-} catch (error) {
-  if (error instanceof ConfigError) {
-    log.error(`Critical config error: ${error.message}`);
-    log.error(`Details: ${error.details}`);
-    systemErrors.push(error.toSystemError());
-  } else {
-    throw error;
-  }
-}
-
 // Helper to check for critical errors that should block normal operation
 function hasCriticalError(): boolean {
   return systemErrors.some((e) => e.errorType === 'config');
@@ -194,7 +196,7 @@ function sendSystemStatus() {
 // Register driver event handlers
 setupDriverEventHandlers({
   driverRegistry,
-  driverPersistence,
+  driverConfig,
   systemMonitor,
   mqtt,
   getMainWindow: () => mainWindow,
@@ -247,7 +249,7 @@ if (!hasCriticalError()) {
   // Register IPC handlers
   registerIpcHandlers({
     driverRegistry,
-    driverPersistence,
+    driverConfig,
     driverLogPersistence,
     ledHardwareManager,
     mqtt,
@@ -270,11 +272,19 @@ if (!hasCriticalError()) {
   registerMqttSubscriptions({
     mqtt,
     driverRegistry,
-    driverPersistence,
+    driverConfig,
     systemMonitor,
     driverLogPersistence,
     getMainWindow: () => mainWindow,
     getEventsProcessed: () => eventsProcessed,
+    addSystemError: (error) => {
+      systemErrors.push(error);
+
+      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+        systemErrors.shift();
+      }
+      sendSystemStatus();
+    },
   });
 
   // Start reading events and send to transformer engine for processing
@@ -377,10 +387,12 @@ const createWindow = () => {
       return;
     }
 
-    // Send all drivers (both connected and disconnected)
+    // Send initial driver state (both connected and disconnected)
+    // Use driver:updated, not driver:connected, since these are persisted drivers
+    // that haven't actually connected yet in this session
     driverRegistry.getAllDrivers().forEach((driver) => {
       if (isWindowAvailable() && mainWindow) {
-        mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
+        mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
       }
     });
 

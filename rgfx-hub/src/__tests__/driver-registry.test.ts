@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DriverRegistry } from '../driver-registry';
-import { DriverPersistence } from '../driver-persistence';
+import { DriverConfig } from '../driver-config';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { createMockTelemetryData } from './factories';
 import { eventBus } from '../services/event-bus';
@@ -34,13 +34,13 @@ vi.mock('fs', () => ({
 
 describe('DriverRegistry', () => {
   let registry: DriverRegistry;
-  let persistence: DriverPersistence;
+  let persistence: DriverConfig;
 
   beforeEach(() => {
     vi.clearAllMocks();
     emitSpy.mockClear();
     // Initialize with a test persistence instance (will not actually write to disk due to mocks)
-    persistence = new DriverPersistence('test-config');
+    persistence = new DriverConfig('test-config');
     registry = new DriverRegistry(persistence);
   });
 
@@ -308,6 +308,40 @@ describe('DriverRegistry', () => {
 
       // Note: IP validation happens, trim() ensures non-empty after whitespace removal
       expect(driver.state === 'connected').toBe(true);
+    });
+
+    it('should preserve updating state during OTA when telemetry arrives', () => {
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+
+      // First registration - driver connects
+      const driver1 = registry.registerDriver(telemetryData);
+      expect(driver1.state).toBe('connected');
+
+      // Simulate OTA start - set driver state to 'updating'
+      driver1.state = 'updating';
+
+      // Telemetry arrives during OTA (e.g., queued/stale message)
+      // This should NOT change state back to 'connected'
+      const driver2 = registry.registerDriver(telemetryData);
+      expect(driver2.state).toBe('updating');
+    });
+
+    it('should not emit driver:connected when driver is updating', () => {
+      const telemetryData = createMockTelemetryData({ ip: '192.168.1.100' });
+
+      // First registration - driver connects
+      const driver1 = registry.registerDriver(telemetryData);
+      expect(driver1.state).toBe('connected');
+      expect(emitSpy).toHaveBeenCalledWith('driver:connected', expect.any(Object));
+
+      emitSpy.mockClear();
+
+      // Simulate OTA start - set driver state to 'updating'
+      driver1.state = 'updating';
+
+      // Telemetry arrives during OTA - should NOT emit driver:connected
+      registry.registerDriver(telemetryData);
+      expect(emitSpy).not.toHaveBeenCalledWith('driver:connected', expect.any(Object));
     });
   });
 

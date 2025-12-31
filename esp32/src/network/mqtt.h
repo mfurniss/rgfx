@@ -1,6 +1,14 @@
 #ifndef MQTT_H
 #define MQTT_H
 
+#include <ArduinoJson.h>
+
+#ifdef UNIT_TEST
+// Unit test stubs - no-op implementations for code that publishes errors
+inline void publishError(const char*, const char*, JsonDocument&) {}
+inline void publishError(const char*, const char*) {}
+#else
+
 #include <Arduino.h>
 #include <atomic>
 #include <WiFi.h>
@@ -27,6 +35,9 @@ void reconnectMQTT();
 void mqttLoop();
 void sendDriverTelemetry();
 void publishTestState(const String& state);
+void publishError(const char* source, const char* errorMessage, JsonDocument& props);
+void publishError(const char* source, const char* errorMessage);
 void processPendingMqttOperations();
 
-#endif
+#endif  // UNIT_TEST
+#endif  // MQTT_H

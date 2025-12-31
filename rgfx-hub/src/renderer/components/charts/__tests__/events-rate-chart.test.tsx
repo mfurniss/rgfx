@@ -43,7 +43,8 @@ describe('EventsRateChart', () => {
   describe('with driver data', () => {
     it('renders chart when drivers are known', () => {
       const store = useEventsRateHistoryStore.getState();
-      store.recordDriverStats('driver-1', { udpSent: 10, mqttMessagesReceived: 5 }, true);
+      store.updateFromStatus({ 'driver-1': { sent: 10, failed: 0 } }, ['driver-1']);
+      store.sampleRates();
       store.sampleRates();
 
       render(<EventsRateChart />);
@@ -54,8 +55,14 @@ describe('EventsRateChart', () => {
 
     it('renders with multiple drivers', () => {
       const store = useEventsRateHistoryStore.getState();
-      store.recordDriverStats('driver-1', { udpSent: 10, mqttMessagesReceived: 5 }, true);
-      store.recordDriverStats('driver-2', { udpSent: 20, mqttMessagesReceived: 10 }, true);
+      store.updateFromStatus(
+        {
+          'driver-1': { sent: 10, failed: 0 },
+          'driver-2': { sent: 20, failed: 0 },
+        },
+        ['driver-1', 'driver-2'],
+      );
+      store.sampleRates();
       store.sampleRates();
 
       const { container } = render(<EventsRateChart />);

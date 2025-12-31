@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "effect.h"
 #include "graphics/canvas.h"
+#include "utils/easing.h"
 
 class BitmapEffect : public IEffect {
    private:
@@ -13,8 +14,14 @@ class BitmapEffect : public IEffect {
 		std::vector<CRGBA> pixels;       // Pre-computed RGBA pixels, row-major order
 		uint8_t imageWidth;              // Width in pixels
 		uint8_t imageHeight;             // Height in pixels
-		float centerX;                   // Center X position in canvas coords
-		float centerY;                   // Center Y position in canvas coords
+		float centerX;                   // Center X position in canvas coords (snapped to LED)
+		float centerY;                   // Center Y position in canvas coords (snapped to LED)
+		float endX;                      // End X position in canvas coords (snapped to LED)
+		float endY;                      // End Y position in canvas coords (snapped to LED)
+		bool hasEndPosition;             // True if movement animation enabled
+		EasingFunction easing;           // Easing function for movement
+		uint32_t fadeInMs;               // Fade in duration in milliseconds (0 = disabled)
+		uint32_t fadeOutMs;              // Fade out duration in milliseconds (0 = disabled)
 		uint32_t remaining() const { return duration - elapsedTime; }
 	};
 

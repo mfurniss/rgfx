@@ -1,5 +1,7 @@
 # Renderer Pages
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains the main page components for the RGFX Hub application. Each page is a React functional component that renders a full-page view accessible via React Router.
 
 ---

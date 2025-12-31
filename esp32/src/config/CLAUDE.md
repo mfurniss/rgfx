@@ -1,5 +1,7 @@
 # Configuration System
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder manages driver configuration, persistent storage, and WiFi setup for the ESP32 driver.
 
 ---

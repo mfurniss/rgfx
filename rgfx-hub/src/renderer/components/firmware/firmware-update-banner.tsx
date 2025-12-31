@@ -2,11 +2,12 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useDriverStore } from '../../store/driver-store';
+import { useSystemStatusStore } from '../../store/system-status-store';
 import { useUiStore } from '../../store/ui-store';
 
 export function FirmwareUpdateBanner() {
   const drivers = useDriverStore((state) => state.drivers);
-  const currentFirmwareVersion = useDriverStore(
+  const currentFirmwareVersion = useSystemStatusStore(
     (state) => state.systemStatus.currentFirmwareVersion,
   );
   const isFlashingFirmware = useUiStore((state) => state.isFlashingFirmware);

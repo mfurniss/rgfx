@@ -112,6 +112,18 @@ export const EVENT_LOG_FILENAME = 'interceptor_events.log';
  */
 export const EVENT_FILE_POLL_INTERVAL_MS = 5000;
 
+/**
+ * Maximum event log file size before trimming (bytes).
+ * When exceeded, the file is trimmed to EVENT_LOG_TRIM_TARGET_BYTES.
+ */
+export const EVENT_LOG_MAX_SIZE_BYTES = 1024 * 1024; // 1MB
+
+/**
+ * Target size after trimming event log file (bytes).
+ * Keeps the most recent logs for debugging purposes.
+ */
+export const EVENT_LOG_TRIM_TARGET_BYTES = 512 * 1024; // 500KB
+
 // ============================================================================
 // Driver ID Validation Configuration
 // ============================================================================
@@ -261,3 +273,9 @@ export const TEST_FILE_WATCHER_RETRY_DELAY_MS = 50;
  * Default: 50ms × 40 = 2000ms (2 seconds)
  */
 export const TEST_FILE_WATCHER_MAX_RETRIES = 40;
+
+/**
+ * Maximum number of system errors to retain in memory.
+ * Older errors are discarded when this limit is exceeded.
+ */
+export const MAX_SYSTEM_ERRORS = 100;

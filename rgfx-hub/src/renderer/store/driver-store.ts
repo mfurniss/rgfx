@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import { type Driver, type SystemStatus, type DriverState as DriverStateType } from '@/types';
+import { type Driver, type DriverState as DriverStateType } from '@/types';
 import { notify } from './notification-store';
 import { useTelemetryHistoryStore } from './telemetry-history-store';
-import { useEventsRateHistoryStore } from './events-rate-history-store';
 
 /**
  * Centralized notification for driver state changes.
@@ -13,8 +12,8 @@ function notifyStateChange(
   oldState: DriverStateType | undefined,
   newState: DriverStateType,
 ): void {
-  // Don't notify on initial load (oldState is undefined) or if state unchanged
-  if (oldState === undefined || oldState === newState) {
+  // Don't notify if state unchanged
+  if (oldState === newState) {
     return;
   }
 
@@ -22,9 +21,10 @@ function notifyStateChange(
     notify(`${driverId} connected`, 'success');
   } else if (newState === 'updating') {
     notify(`${driverId} updating firmware...`, 'info');
-  } else if (oldState !== 'updating') {
+  } else if (oldState !== 'updating' && oldState !== undefined) {
     // newState must be 'disconnected' at this point
     // Don't notify disconnect if transitioning from 'updating' (expected reboot)
+    // Don't notify disconnect for drivers we haven't seen before (oldState undefined)
     notify(`${driverId} disconnected`, 'error');
   }
 }
@@ -32,7 +32,6 @@ function notifyStateChange(
 interface DriverStoreState {
   // State
   drivers: Driver[];
-  systemStatus: SystemStatus;
 
   // Actions (callbacks prefixed with 'on')
   onDriverConnected: (driver: Driver) => void;
@@ -40,7 +39,6 @@ interface DriverStoreState {
   onDriverUpdated: (driver: Driver) => void;
   onDriverRestarting: (driver: Driver) => void;
   onDriverDeleted: (driverId: string) => void;
-  onSystemStatusUpdate: (status: SystemStatus) => void;
 
   // Selectors
   connectedDrivers: () => Driver[];
@@ -54,19 +52,6 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
   return {
     // Initial state
     drivers: [],
-    systemStatus: {
-      mqttBroker: 'stopped',
-      udpServer: 'inactive',
-      eventReader: 'stopped',
-      driversConnected: 0,
-      driversTotal: 0,
-      hubIp: 'Unknown',
-      eventsProcessed: 0,
-      hubStartTime: 0,
-      udpMessagesSent: 0,
-      udpMessagesFailed: 0,
-      systemErrors: [],
-    },
 
     // Actions (callbacks prefixed with 'on')
     onDriverConnected: (driver) => {
@@ -143,16 +128,6 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
         });
       }
 
-      // Record stats for events rate chart
-      // Note: UDP stats are now tracked per-IP in SystemMonitor, not per-driver
-      // For now, we pass 0 for udpSent since driver.stats no longer has UDP fields
-      // TODO: Consider exposing per-IP UDP stats via IPC for per-driver rate tracking
-      useEventsRateHistoryStore.getState().recordDriverStats(
-        driver.id,
-        { udpSent: 0, mqttMessagesReceived: driver.stats.mqttMessagesReceived },
-        driver.state === 'connected',
-      );
-
       set((state) => {
         const existsById = state.drivers.find((d) => d.id === driver.id);
 
@@ -207,22 +182,6 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
         drivers: state.drivers.filter((d) => d.id !== driverId),
       }));
       notify(`${driverId} deleted`, 'info');
-    },
-
-    onSystemStatusUpdate: (status) => {
-      const currentStatus = get().systemStatus;
-
-      // Notify on IP change (skip initial load when hubIp is 'Unknown')
-      if (currentStatus.hubIp !== 'Unknown' && currentStatus.hubIp !== status.hubIp) {
-        notify(`Hub IP address changed to: ${status.hubIp}`, 'info');
-      }
-
-      // Notify on new system errors
-      if (status.systemErrors.length > currentStatus.systemErrors.length) {
-        notify('New system error detected. View details on System Status page.', 'error');
-      }
-
-      set({ systemStatus: status });
     },
 
     // Selectors

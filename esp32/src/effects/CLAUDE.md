@@ -1,5 +1,7 @@
 # Effects System
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains the visual effects system for the ESP32 driver. Effects are triggered by JSON messages from the Hub and rendered to the LED hardware.
 
 ---
@@ -24,10 +26,15 @@ class IEffect {
 [effect_processor.h](effect_processor.h) manages all effects:
 
 - Owns a single shared `Canvas` used by all effects
-- Maintains an effect map (name → effect instance)
+- Maintains an effect map (name -> effect instance)
 - Handles frame timing and delta time calculation
 - Calls `update()` and `render()` on each effect every frame
 - Routes incoming effect commands to the appropriate effect
+- Reports effect errors to Hub via MQTT when required properties are missing
+
+### Error Reporting
+
+Effects call `publishError(effectName, errorMessage, props)` when required properties are missing or invalid. Errors are published to `rgfx/system/driver/error` MQTT topic with source name, message, and original props for debugging.
 
 ---
 
@@ -35,15 +42,68 @@ class IEffect {
 
 | Effect | File | Description |
 |--------|------|-------------|
-| **Background** | [background.h](background.h)/[background.cpp](background.cpp) | Singleton solid color background. Renders first as a base layer for other effects. |
-| **Bitmap** | [bitmap.h](bitmap.h)/[bitmap.cpp](bitmap.cpp) | Static image display. Used for sprites or icons. |
+| **Background** | [background.h](background.h)/[background.cpp](background.cpp) | Singleton solid color background. Renders first as a base layer. Supports fade states (enabled/fadeIn/fadeOut/disabled). |
+| **Bitmap** | [bitmap.h](bitmap.h)/[bitmap.cpp](bitmap.cpp) | Animated sprite display with 16-color palette, movement, and fade. |
 | **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
+| **Particle Field** | [particle_field.h](particle_field.h)/[particle_field.cpp](particle_field.cpp) | Field of animated particles with configurable behavior. |
+| **Plasma** | [plasma.h](plasma.h)/[plasma.cpp](plasma.cpp) | Animated plasma effect using Perlin noise with gradient colors. |
 | **Projectile** | [projectile.h](projectile.h)/[projectile.cpp](projectile.cpp) | Moving rectangular object with direction, velocity, friction, and optional trail. |
-| **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse (shrink horizontally/vertically), and duration. |
-| **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with configurable speed, color, and repeat count. |
-| **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text rendering using DEN 8x8 bitmap font. Font data in `fonts/den_8x8.h/cpp`. |
+| **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse modes, and duration. |
+| **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with gradient color animation. |
+| **Spectrum** | [spectrum.h](spectrum.h)/[spectrum.cpp](spectrum.cpp) | FFT spectrum analyzer visualization. |
+| **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
-| **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). Fills canvas with color sweeping from one edge. |
+| **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). |
+
+---
+
+## Bitmap Effect Details
+
+The bitmap effect supports animated sprites with these features:
+
+**Image Format:**
+- `image`: Array of strings, each string is a row of pixels
+- Each character maps to a palette index (0-9, A-F for 16 colors)
+- Spaces or dots represent transparency
+- `palette`: Array of 16 hex color strings (e.g., `["#000000", "#FF0000", ...]`)
+- Hub provides PICO-8 palette as default
+
+**Animation Properties:**
+- `x`, `y`: Start position (can be `"random"` for random placement)
+- `endX`, `endY`: Optional end position for movement animation
+- `easing`: Easing function name for movement (e.g., "easeInOutQuad")
+- `fadeInMs`, `fadeOutMs`: Fade in/out duration in milliseconds
+- `duration`: Total effect duration in milliseconds
+
+**Positioning:**
+- Positions are snapped to LED boundaries (4-pixel canvas intervals)
+- Off-canvas bitmaps are handled gracefully (no rendering if fully outside)
+
+---
+
+## Gradient Color Animation
+
+Text and Scroll Text effects support animated color gradients:
+
+**colorGradient Object:**
+```json
+{
+  "colorGradient": {
+    "colors": ["#FF0000", "#00FF00", "#0000FF"],
+    "speed": 3.0,
+    "scale": 1.0
+  }
+}
+```
+
+- `colors`: Array of hex color strings (2-20 colors)
+- `speed`: Animation speed multiplier
+- `scale`: How much color offset between adjacent characters (creates wave effect)
+
+**Implementation:**
+- 100-entry lookup table (LUT) pre-computed from gradient colors
+- Each character is offset in the LUT by `scale` amount
+- Animation time advances with `speed / 2.0` multiplier, wraps at 1000.0
 
 ---
 
@@ -65,14 +125,18 @@ class IEffect {
 | `effect.h` | Base `IEffect` interface |
 | `effect_processor.h/cpp` | Manages effects, frame timing, and rendering |
 | `effect_utils.h/cpp` | Shared utility functions for effects |
+| `gradient_utils.h/cpp` | Gradient LUT generation and color parsing |
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
 | `background.h/cpp` | Solid color background effect |
-| `bitmap.h/cpp` | Static image display |
+| `bitmap.h/cpp` | Animated sprite display |
 | `explode.h/cpp` | Radial explosion effect |
+| `particle_field.h/cpp` | Particle field effect |
+| `plasma.h/cpp` | Perlin noise plasma effect |
 | `projectile.h/cpp` | Moving object with velocity/friction |
 | `pulse.h/cpp` | Pulse effect with easing and collapse modes |
-| `scroll_text.h/cpp` | Horizontally scrolling text |
-| `text.h/cpp` | Static text rendering |
+| `scroll_text.h/cpp` | Horizontally scrolling text with gradient |
+| `spectrum.h/cpp` | FFT spectrum analyzer |
+| `text.h/cpp` | Static text rendering with gradient |
 | `test_leds.h/cpp` | Hardware test pattern |
 | `wipe.h/cpp` | Directional wipe effect |
 
@@ -85,6 +149,7 @@ class IEffect {
 3. Add an instance to `EffectProcessor` class
 4. Add entry to `effectMap` in EffectProcessor constructor
 5. Add corresponding schema in Hub's `rgfx-hub/src/schemas/effects/`
+6. Use `publishError()` for missing required properties
 
 ---
 
@@ -94,3 +159,4 @@ class IEffect {
 - **Delta Time:** Frame-independent animation using elapsed time in seconds
 - **Multiple Instances:** Each effect can have multiple active instances (e.g., overlapping pulses)
 - **Easing Functions:** Located in `utils/easing.h`, used for smooth animation curves
+- **Hub as Source of Truth:** All effect property defaults come from Hub; ESP32 expects complete props

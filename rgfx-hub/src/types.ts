@@ -1,7 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload } from './types/transformer-types';
-import type { PersistedDriverFromSchema, RemoteLoggingLevel } from './schemas';
+import type { ConfiguredDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
  * Static application information returned by a single IPC call at startup
@@ -304,11 +304,17 @@ export function serializeDriverForIPC(driver: Driver): Driver {
 }
 
 export interface SystemError {
-  errorType: 'interceptor' | 'config';
+  errorType: 'interceptor' | 'config' | 'driver';
   message: string;
   timestamp: number;
   filePath?: string;
   details?: string;
+  driverId?: string;
+}
+
+export interface UdpStats {
+  sent: number;
+  failed: number;
 }
 
 export interface SystemStatus {
@@ -323,6 +329,7 @@ export interface SystemStatus {
   currentFirmwareVersion?: string;
   udpMessagesSent: number;
   udpMessagesFailed: number;
+  udpStatsByDriver: Record<string, UdpStats>;
   systemErrors: SystemError[];
 }
 
@@ -361,7 +368,7 @@ declare global {
       triggerDiscovery: () => Promise<void>;
       triggerEffect: (payload: EffectPayload) => Promise<void>;
       saveDriverConfig: (
-        config: PersistedDriverFromSchema
+        config: ConfiguredDriverFromSchema
       ) => Promise<{ success: boolean }>;
       getLEDHardwareList: () => Promise<string[]>;
       getLEDHardware: (hardwareRef: string) => Promise<LEDHardware | null>;

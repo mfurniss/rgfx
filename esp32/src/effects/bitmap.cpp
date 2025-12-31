@@ -2,7 +2,9 @@
 #include "effect_utils.h"
 #include "hal/platform.h"
 #include "graphics/canvas.h"
+#include "network/mqtt.h"
 #include <algorithm>
+#include <cmath>
 
 BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	bitmaps.reserve(8);
@@ -23,6 +25,57 @@ CRGBA colorToRGBA(uint32_t color) {
 	return CRGBA((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
 }
 
+// Parse coordinate value as percentage (0-100) or "random", returns NaN if not present
+float parseCoordinate(JsonVariant prop, float canvasSize) {
+	if (prop.is<const char*>()) {
+		const char* str = prop.as<const char*>();
+		if (str[0] == '\0') {
+			return NAN;  // Empty string = not present
+		}
+		if (strcmp(str, "random") == 0) {
+			float percent = static_cast<float>(hal::random(101));
+			return (percent / 100.0f) * canvasSize;
+		}
+	}
+	if (prop.is<float>() || prop.is<int>()) {
+		float percent = prop.as<float>();
+		return (percent / 100.0f) * canvasSize;
+	}
+	return NAN;  // Not present
+}
+
+// Calculate fade alpha based on elapsed time and fade configuration (linear fade)
+uint8_t calculateFadeAlpha(uint32_t elapsed, uint32_t duration,
+                           uint32_t fadeInMs, uint32_t fadeOutMs) {
+	if (fadeInMs == 0 && fadeOutMs == 0) {
+		return 255;
+	}
+
+	uint32_t fadeInEnd = fadeInMs;
+	uint32_t fadeOutStart = duration > fadeOutMs ? duration - fadeOutMs : 0;
+
+	// Handle overlap - meet in middle
+	if (fadeInEnd > fadeOutStart) {
+		uint32_t midpoint = duration / 2;
+		fadeInEnd = midpoint;
+		fadeOutStart = midpoint;
+	}
+
+	float alpha = 1.0f;
+
+	if (fadeInMs > 0 && elapsed < fadeInEnd) {
+		alpha = static_cast<float>(elapsed) / fadeInEnd;
+	} else if (fadeOutMs > 0 && elapsed >= fadeOutStart) {
+		uint32_t fadeOutDuration = duration - fadeOutStart;
+		if (fadeOutDuration > 0) {
+			float progress = static_cast<float>(elapsed - fadeOutStart) / fadeOutDuration;
+			alpha = 1.0f - progress;
+		}
+	}
+
+	return static_cast<uint8_t>(alpha * 255.0f);
+}
+
 }  // namespace
 
 void BitmapEffect::add(JsonDocument& props) {
@@ -41,26 +94,52 @@ void BitmapEffect::add(JsonDocument& props) {
 		}
 	}
 
-	// Parse center position as percentage (0-100) - hub must provide these
-	if (!props["centerX"].is<float>() && !props["centerX"].is<int>()) {
-		hal::log("ERROR: bitmap missing required 'centerX' prop");
-		return;
-	}
-	float centerXPercent = props["centerX"].as<float>();
+	const uint8_t scale = 4;
+	float canvasWidth = static_cast<float>(canvas.getWidth());
+	float canvasHeight = static_cast<float>(canvas.getHeight());
 
-	if (!props["centerY"].is<float>() && !props["centerY"].is<int>()) {
-		hal::log("ERROR: bitmap missing required 'centerY' prop");
+	// Parse center position as percentage (0-100) or "random"
+	float centerX = parseCoordinate(props["centerX"], canvasWidth);
+	if (isnan(centerX)) {
+		hal::log("ERROR: bitmap missing required 'centerX' prop");
+		publishError("bitmap", "missing required 'centerX' prop", props);
 		return;
 	}
-	float centerYPercent = props["centerY"].as<float>();
+
+	float centerY = parseCoordinate(props["centerY"], canvasHeight);
+	if (isnan(centerY)) {
+		hal::log("ERROR: bitmap missing required 'centerY' prop");
+		publishError("bitmap", "missing required 'centerY' prop", props);
+		return;
+	}
+
+	// Parse optional end position
+	float endX = parseCoordinate(props["endX"], canvasWidth);
+	float endY = parseCoordinate(props["endY"], canvasHeight);
+	bool hasEndX = !isnan(endX);
+	bool hasEndY = !isnan(endY);
+	bool hasEndPosition = hasEndX || hasEndY;
+
+	// If only one end coord specified, use corresponding start coord for the other
+	if (hasEndPosition) {
+		if (!hasEndX) endX = centerX;
+		if (!hasEndY) endY = centerY;
+	}
 
 	Bitmap newBitmap;
 	newBitmap.duration = duration;
 	newBitmap.elapsedTime = 0;
 	newBitmap.imageWidth = 0;
 	newBitmap.imageHeight = 0;
-	newBitmap.centerX = (centerXPercent / 100.0f) * canvas.getWidth();
-	newBitmap.centerY = (centerYPercent / 100.0f) * canvas.getHeight();
+	newBitmap.hasEndPosition = hasEndPosition;
+
+	// Parse easing function
+	const char* easingName = props["easing"] | "linear";
+	newBitmap.easing = getEasingFunction(easingName);
+
+	// Parse fade configuration
+	newBitmap.fadeInMs = props["fadeIn"] | 0;
+	newBitmap.fadeOutMs = props["fadeOut"] | 0;
 
 	// Parse image array and convert to RGBA pixels
 	if (props["image"].is<JsonArray>()) {
@@ -108,6 +187,33 @@ void BitmapEffect::add(JsonDocument& props) {
 		}
 	}
 
+	// Now that we know the image dimensions, snap start/end coordinates to LED boundaries.
+	// We need to account for the centering offset: the bitmap's top-left corner is at
+	// (center - scaledDimension/2), so we snap that offset and work back to the center.
+	uint16_t scaledWidth = newBitmap.imageWidth * scale;
+	uint16_t scaledHeight = newBitmap.imageHeight * scale;
+
+	// Snap start position: compute offset, snap it, then convert back to center
+	int16_t offsetX = static_cast<int16_t>(centerX) - (scaledWidth / 2);
+	int16_t offsetY = static_cast<int16_t>(centerY) - (scaledHeight / 2);
+	offsetX = (offsetX / scale) * scale;
+	offsetY = (offsetY / scale) * scale;
+	newBitmap.centerX = static_cast<float>(offsetX + (scaledWidth / 2));
+	newBitmap.centerY = static_cast<float>(offsetY + (scaledHeight / 2));
+
+	// Snap end position (if specified)
+	if (hasEndPosition) {
+		offsetX = static_cast<int16_t>(endX) - (scaledWidth / 2);
+		offsetY = static_cast<int16_t>(endY) - (scaledHeight / 2);
+		offsetX = (offsetX / scale) * scale;
+		offsetY = (offsetY / scale) * scale;
+		newBitmap.endX = static_cast<float>(offsetX + (scaledWidth / 2));
+		newBitmap.endY = static_cast<float>(offsetY + (scaledHeight / 2));
+	} else {
+		newBitmap.endX = newBitmap.centerX;
+		newBitmap.endY = newBitmap.centerY;
+	}
+
 	bitmaps.push_back(std::move(newBitmap));
 }
 
@@ -144,9 +250,20 @@ void BitmapEffect::render() {
 		uint16_t scaledWidth = bmp.imageWidth * scale;
 		uint16_t scaledHeight = bmp.imageHeight * scale;
 
-		// Position bitmap so its center is at the specified coordinates
-		int16_t offsetX = static_cast<int16_t>(bmp.centerX) - (scaledWidth / 2);
-		int16_t offsetY = static_cast<int16_t>(bmp.centerY) - (scaledHeight / 2);
+		// Calculate current position (with tweening if end position specified)
+		float currentX = bmp.centerX;
+		float currentY = bmp.centerY;
+
+		if (bmp.hasEndPosition) {
+			float progress = static_cast<float>(bmp.elapsedTime) / bmp.duration;
+			float easedProgress = bmp.easing(progress);
+			currentX = bmp.centerX + (bmp.endX - bmp.centerX) * easedProgress;
+			currentY = bmp.centerY + (bmp.endY - bmp.centerY) * easedProgress;
+		}
+
+		// Position bitmap so its center is at the current coordinates
+		int16_t offsetX = static_cast<int16_t>(currentX) - (scaledWidth / 2);
+		int16_t offsetY = static_cast<int16_t>(currentY) - (scaledHeight / 2);
 
 		// Skip if bitmap is completely off-canvas
 		if (offsetX + scaledWidth <= 0 || offsetX >= canvasWidth ||
@@ -154,15 +271,24 @@ void BitmapEffect::render() {
 			continue;
 		}
 
+		// Calculate fade alpha (once per bitmap, not per pixel)
+		uint8_t fadeAlpha = calculateFadeAlpha(
+		    bmp.elapsedTime, bmp.duration, bmp.fadeInMs, bmp.fadeOutMs);
+
 		// Render pre-computed pixels, scaled up 4x
 		for (uint8_t row = 0; row < bmp.imageHeight; row++) {
 			for (uint8_t col = 0; col < bmp.imageWidth; col++) {
 				const CRGBA& pixel = bmp.pixels[row * bmp.imageWidth + col];
 				if (pixel.a != 0) {
-					// Draw a 4x4 block for each pixel
-					int16_t x = offsetX + col * scale;
-					int16_t y = offsetY + row * scale;
-					canvas.drawRectangle(x, y, scale, scale, pixel, BlendMode::ALPHA);
+					// Apply fade alpha to pixel alpha (multiplicative blend)
+					uint8_t effectiveAlpha = (pixel.a * fadeAlpha) / 255;
+					if (effectiveAlpha > 0) {
+						// Draw a 4x4 block for each pixel
+						int16_t x = offsetX + col * scale;
+						int16_t y = offsetY + row * scale;
+						canvas.drawRectangle(x, y, scale, scale,
+						    CRGBA(pixel.r, pixel.g, pixel.b, effectiveAlpha), BlendMode::ALPHA);
+					}
 				}
 			}
 		}

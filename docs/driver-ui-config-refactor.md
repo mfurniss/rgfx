@@ -65,7 +65,7 @@
 ### Update DriverRegistry
 
 **File:** `src/driver-registry.ts`
-- Constructor accepts `DriverPersistence` instance
+- Constructor accepts `DriverConfig` instance
 - On startup, loads all known drivers from persistence (all start as `connected: false`)
 - When driver connects/heartbeats:
   - If new driver: Add to persistence + memory
@@ -75,9 +75,9 @@
 ### Update Main Process
 
 **File:** `src/main.ts`
-- Initialize `DriverPersistence` first
+- Initialize `DriverConfig` first
 - Pass to `DriverRegistry` constructor
-- When new driver discovered: Persist via `DriverPersistence.addDriver()`
+- When new driver discovered: Persist via `DriverConfig.addDriver()`
 
 ---
 

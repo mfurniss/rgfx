@@ -4,9 +4,27 @@
 #include "hal/types.h"
 #include "graphics/canvas.h"
 #include "utils/easing.h"
+#include "network/mqtt.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+
+namespace {
+// Parse coordinate as percentage (0-100) or "random" string
+// Returns -1 if prop is missing/invalid
+float parseCoordPercent(JsonVariant prop) {
+	if (prop.is<const char*>()) {
+		const char* str = prop.as<const char*>();
+		if (strcmp(str, "random") == 0) {
+			return static_cast<float>(hal::random(101));  // 0-100
+		}
+	}
+	if (prop.is<float>() || prop.is<int>()) {
+		return prop.as<float>();
+	}
+	return -1.0f;  // Invalid
+}
+}  // namespace
 
 ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m), head(0) {
 	// Initialize all particles as dead (alpha = 0)
@@ -17,6 +35,7 @@ ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m),
 void ExplodeEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: explode missing or invalid 'color' prop");
+		publishError("explode", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
@@ -36,23 +55,25 @@ void ExplodeEffect::add(JsonDocument& props) {
 		isStrip ? canvas.getWidth() : max(canvas.getWidth(), canvas.getHeight());
 	float velocityScale = largestDimension / 60.0f;
 
-	// Parse center position as percentage (0-100) - hub must provide these
-	if (!props["centerX"].is<float>() && !props["centerX"].is<int>()) {
+	// Parse center position as percentage (0-100) or "random"
+	float centerXPercent = parseCoordPercent(props["centerX"]);
+	if (centerXPercent < 0) {
 		hal::log("ERROR: explode missing required 'centerX' prop");
+		publishError("explode", "missing required 'centerX' prop (numeric 0-100 or \"random\")", props);
 		return;
 	}
-	float centerXPercent = props["centerX"].as<float>();
 	float centerX = (centerXPercent / 100.0f) * canvas.getWidth();
 
 	float centerY;
 	if (isStrip) {
 		centerY = canvas.getHeight() / 2.0f;
 	} else {
-		if (!props["centerY"].is<float>() && !props["centerY"].is<int>()) {
+		float centerYPercent = parseCoordPercent(props["centerY"]);
+		if (centerYPercent < 0) {
 			hal::log("ERROR: explode missing required 'centerY' prop");
+			publishError("explode", "missing required 'centerY' prop (numeric 0-100 or \"random\")", props);
 			return;
 		}
-		float centerYPercent = props["centerY"].as<float>();
 		centerY = (centerYPercent / 100.0f) * canvas.getHeight();
 	}
 

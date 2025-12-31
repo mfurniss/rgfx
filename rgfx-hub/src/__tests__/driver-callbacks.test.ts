@@ -8,12 +8,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { setupDriverEventHandlers } from '../driver-callbacks';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 import type { SystemMonitor } from '../system-monitor';
 import type { MqttBroker } from '../network';
 import type { BrowserWindow } from 'electron';
 import type { Driver, SystemStatus } from '../types';
-import type { PersistedDriver } from '../driver-persistence';
+import type { ConfiguredDriver } from '../driver-config';
 import { eventBus } from '../services/event-bus';
 
 vi.mock('electron-log/main', () => ({
@@ -30,7 +30,7 @@ describe('setupDriverEventHandlers', () => {
     getConnectedCount: ReturnType<typeof vi.fn>;
     getAllDrivers: ReturnType<typeof vi.fn>;
   };
-  let mockDriverPersistence: {
+  let mockDriverConfig: {
     getDriver: ReturnType<typeof vi.fn>;
   };
   let mockSystemMonitor: {
@@ -107,7 +107,7 @@ describe('setupDriverEventHandlers', () => {
       getAllDrivers: vi.fn(() => [mockDriver]),
     };
 
-    mockDriverPersistence = {
+    mockDriverConfig = {
       getDriver: vi.fn(() => null),
     };
 
@@ -123,6 +123,7 @@ describe('setupDriverEventHandlers', () => {
       currentFirmwareVersion: '1.0.0',
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
+      udpStatsByDriver: {},
       systemErrors: [],
     };
 
@@ -147,7 +148,7 @@ describe('setupDriverEventHandlers', () => {
 
     setupDriverEventHandlers({
       driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-      driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+      driverConfig: mockDriverConfig as unknown as DriverConfig,
       systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
       mqtt: mockMqtt as unknown as MqttBroker,
       getMainWindow: mockGetMainWindow,
@@ -256,13 +257,13 @@ describe('setupDriverEventHandlers', () => {
       });
 
       it('should use persisted logging level if available', async () => {
-        const persistedDriver: PersistedDriver = {
+        const configuredDriver: ConfiguredDriver = {
           id: 'rgfx-driver-0001',
           macAddress: 'AA:BB:CC:DD:EE:FF',
           remoteLogging: 'all',
           disabled: false,
         };
-        mockDriverPersistence.getDriver.mockReturnValue(persistedDriver);
+        mockDriverConfig.getDriver.mockReturnValue(configuredDriver);
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
@@ -275,7 +276,7 @@ describe('setupDriverEventHandlers', () => {
       });
 
       it('should default to "off" if no persisted driver exists', async () => {
-        mockDriverPersistence.getDriver.mockReturnValue(null);
+        mockDriverConfig.getDriver.mockReturnValue(null);
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
@@ -332,7 +333,7 @@ describe('setupDriverEventHandlers', () => {
 
       setupDriverEventHandlers({
         driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverPersistence: mockDriverPersistence as unknown as DriverPersistence,
+        driverConfig: mockDriverConfig as unknown as DriverConfig,
         systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
         mqtt: mockMqtt as unknown as MqttBroker,
         getMainWindow: mockGetMainWindow,
