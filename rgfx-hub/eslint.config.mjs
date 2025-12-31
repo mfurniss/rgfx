@@ -5,6 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import importPlugin from 'eslint-plugin-import';
 import stylistic from '@stylistic/eslint-plugin';
+import checkFile from 'eslint-plugin-check-file';
 
 export default tseslint.config(
   // Base ESLint recommended rules
@@ -89,6 +90,31 @@ export default tseslint.config(
     rules: {
       // Disable import/no-unresolved - TypeScript handles this
       'import/no-unresolved': 'off',
+    },
+  },
+
+  // Filename and folder naming conventions
+  {
+    files: ['**/*.{ts,tsx}'],
+    plugins: {
+      'check-file': checkFile,
+    },
+    rules: {
+      // Enforce kebab-case for all TypeScript files
+      'check-file/filename-naming-convention': [
+        'error',
+        {
+          '**/*.{ts,tsx}': 'KEBAB_CASE',
+        },
+        { ignoreMiddleExtensions: true },
+      ],
+      // Enforce kebab-case for folders in src (except __tests__ which is a standard convention)
+      'check-file/folder-naming-convention': [
+        'error',
+        {
+          'src/**/!(__tests__)': 'KEBAB_CASE',
+        },
+      ],
     },
   },
 
