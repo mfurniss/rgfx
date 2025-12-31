@@ -288,22 +288,33 @@ if (!hasCriticalError()) {
   });
 
   // Start reading events and send to transformer engine for processing
-  eventReader.start((topic, message) => {
-    // Check for interceptor error events
-    if (topic === 'rgfx/interceptor/error') {
-      log.error(`Interceptor error: ${message}`);
-      systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
+  eventReader.start(
+    (topic, message) => {
+      // Check for interceptor error events
+      if (topic === 'rgfx/interceptor/error') {
+        log.error(`Interceptor error: ${message}`);
+        systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
+
+        if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+          systemErrors.shift();
+        }
+
+        sendSystemStatus();
+      }
+
+      void transformerEngine.handleEvent(topic, message);
+      processEvent(topic, message);
+    },
+    (errorMessage) => {
+      systemErrors.push({ errorType: 'interceptor', message: errorMessage, timestamp: Date.now() });
 
       if (systemErrors.length > MAX_SYSTEM_ERRORS) {
         systemErrors.shift();
       }
 
       sendSystemStatus();
-    }
-
-    void transformerEngine.handleEvent(topic, message);
-    processEvent(topic, message);
-  });
+    },
+  );
 
   // Start firmware monitoring
   systemMonitor.startFirmwareMonitoring((_version: string | null) => {
