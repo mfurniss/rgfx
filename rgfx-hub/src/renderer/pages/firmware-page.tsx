@@ -371,35 +371,32 @@ const FirmwarePage: React.FC = () => {
             return next;
           });
 
-          const result = await window.rgfx.flashOTA(driver.id);
-
-          if (result.success) {
+          try {
+            await window.rgfx.flashOTA(driver.id);
             setDriverFlashStatus((prev) => {
               const next = new Map(prev);
               next.set(driver.id, { status: 'success', progress: 100 });
               return next;
             });
             addLog(`[${driver.id}] Firmware flashed successfully!`);
-            return { driverId: driver.id, success: true };
-          } else {
-            const errorMsg = result.error ?? 'Unknown error';
+            return { driverId: driver.id };
+          } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Unknown error';
             setDriverFlashStatus((prev) => {
               const next = new Map(prev);
               next.set(driver.id, { status: 'error', progress: 0, error: errorMsg });
               return next;
             });
             addLog(`[${driver.id}] Flash failed: ${errorMsg}`);
-            return { driverId: driver.id, success: false, error: errorMsg };
+            throw new Error(`${driver.id}: ${errorMsg}`);
           }
         }),
       );
 
       // Process results
-      const successCount = results.filter(
-        (r) => r.status === 'fulfilled' && r.value.success,
-      ).length;
+      const successCount = results.filter((r) => r.status === 'fulfilled').length;
       const failedResults = results.filter(
-        (r) => r.status === 'rejected' || !r.value.success,
+        (r): r is PromiseRejectedResult => r.status === 'rejected',
       );
 
       setProgress(100);
@@ -412,12 +409,7 @@ const FirmwarePage: React.FC = () => {
         });
       } else if (successCount > 0) {
         const failedDrivers = failedResults
-          .map((r) => {
-            if (r.status === 'fulfilled') {
-              return `${r.value.driverId}: ${r.value.error}`;
-            }
-            return `Unknown: ${r.reason}`;
-          })
+          .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)))
           .join('\n');
         setResultModal({
           open: true,
@@ -426,12 +418,7 @@ const FirmwarePage: React.FC = () => {
         });
       } else {
         const failedDrivers = failedResults
-          .map((r) => {
-            if (r.status === 'fulfilled') {
-              return `${r.value.driverId}: ${r.value.error}`;
-            }
-            return `Unknown: ${r.reason}`;
-          })
+          .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)))
           .join('\n');
         setResultModal({
           open: true,
