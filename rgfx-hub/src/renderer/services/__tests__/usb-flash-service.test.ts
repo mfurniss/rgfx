@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { flashViaUSB, type FlashCallbacks } from '../usb-flash-service';
-import { sha256 } from '../../utils/binary';
+import { sha256 } from '@/renderer/utils/binary';
 
 // Mock esptool-js
 const mockWriteFlash = vi.fn();
@@ -25,7 +25,7 @@ vi.mock('esptool-js', () => ({
 }));
 
 // Mock binary utils
-vi.mock('../../utils/binary', () => ({
+vi.mock('@/renderer/utils/binary', () => ({
   arrayBufferToBinaryString: vi.fn(() => 'binary-data'),
   sha256: vi.fn(() => Promise.resolve('a'.repeat(64))),
 }));

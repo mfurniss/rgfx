@@ -10,7 +10,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
 import { useForm, FormProvider } from 'react-hook-form';
 import { FieldRenderer } from '../field-renderer';
-import type { FieldMetadata } from '../../../utils/zod-introspection';
+import type { FieldMetadata } from '@/renderer/utils/zod-introspection';
 
 /**
  * These tests verify that the FieldRenderer correctly renders the appropriate

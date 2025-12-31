@@ -8,7 +8,7 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box } from '@mui/material';
 import { Controller, useFormContext, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { gradientPresets, findPresetByGradient } from '../../../data/gradient-presets';
+import { gradientPresets, findPresetByGradient } from '@/renderer/data/gradient-presets';
 
 interface ColorGradient {
   colors: string[];

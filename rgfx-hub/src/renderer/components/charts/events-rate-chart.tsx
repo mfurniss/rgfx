@@ -11,7 +11,7 @@ import {
   useEventsRateHistoryStore,
   startEventsRateSampling,
   type EventsRateDataPoint,
-} from '../../store/events-rate-history-store';
+} from '@/renderer/store/events-rate-history-store';
 import { DRIVER_CHART_COLORS, CHART_HEIGHT } from '@/config/constants';
 
 interface LineConfig {

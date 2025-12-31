@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFlashState } from '../use-flash-state';
-import type { DriverFlashStatus } from '../../store/ui-store';
+import type { DriverFlashStatus } from '@/renderer/store/ui-store';
 
 // Mock console.log to avoid noise in tests
 beforeEach(() => {

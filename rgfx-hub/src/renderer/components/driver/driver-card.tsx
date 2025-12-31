@@ -19,9 +19,9 @@ import RestartDriverButton from './restart-driver-button';
 import DisableDriverButton from './disable-driver-button';
 import DeleteDriverButton from './delete-driver-button';
 import TelemetryCharts from '../charts/telemetry-charts';
-import { formatBytes, formatUptime, formatNumber } from '../../utils/formatters';
+import { formatBytes, formatUptime, formatNumber } from '@/renderer/utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
-import { useSystemStatusStore } from '../../store/system-status-store';
+import { useSystemStatusStore } from '@/renderer/store/system-status-store';
 
 interface DriverCardProps {
   driver: Driver;

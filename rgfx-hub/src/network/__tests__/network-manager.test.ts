@@ -26,7 +26,7 @@ const createMockEventBus = () => {
 
 let mockEventBus: ReturnType<typeof createMockEventBus>;
 
-vi.mock('../../services/event-bus', () => ({
+vi.mock('@/services/event-bus', () => ({
   get eventBus() {
     return mockEventBus;
   },

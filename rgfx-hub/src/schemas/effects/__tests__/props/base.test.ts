@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import baseEffect from '../../properties/base';
+import baseEffect from '@/schemas/effects/properties/base';
 
 describe('baseEffect schema', () => {
   describe('default values', () => {
