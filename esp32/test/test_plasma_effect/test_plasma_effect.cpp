@@ -46,6 +46,8 @@ using String = std::string;
 
 // Include effects
 #include "effects/effect.h"
+#include "effects/gradient_utils.h"
+#include "effects/gradient_utils.cpp"
 #include "effects/plasma.h"
 #include "effects/plasma.cpp"
 

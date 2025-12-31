@@ -20,7 +20,12 @@ describe('bitmapSchema', () => {
         expect(result.data.reset).toBe(false);
         expect(result.data.centerX).toBe('random');
         expect(result.data.centerY).toBe('random');
-        expect(result.data.duration).toBe(600);
+        expect(result.data.endX).toBe('random');
+        expect(result.data.endY).toBe('random');
+        expect(result.data.duration).toBe(1500);
+        expect(result.data.easing).toBe('quadraticInOut');
+        expect(result.data.fadeIn).toBe(300);
+        expect(result.data.fadeOut).toBe(300);
         expect(result.data.image).toHaveLength(16);
         expect(result.data.palette).toHaveLength(16);
       }
@@ -63,6 +68,131 @@ describe('bitmapSchema', () => {
     it('should reject non-random string', () => {
       const result = bitmapSchema.safeParse({ centerX: 'left' });
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('endX/endY validation', () => {
+    it('should accept random as endX', () => {
+      const result = bitmapSchema.safeParse({ endX: 'random' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept random as endY', () => {
+      const result = bitmapSchema.safeParse({ endY: 'random' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept numeric endX/endY values', () => {
+      const result = bitmapSchema.safeParse({ endX: 0, endY: 100 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept endX override while endY uses default', () => {
+      const result = bitmapSchema.safeParse({ endX: 50 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.endX).toBe(50);
+        expect(result.data.endY).toBe('random');
+      }
+    });
+
+    it('should accept endY override while endX uses default', () => {
+      const result = bitmapSchema.safeParse({ endY: 50 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.endX).toBe('random');
+        expect(result.data.endY).toBe(50);
+      }
+    });
+
+    it('should reject non-random string for endX', () => {
+      const result = bitmapSchema.safeParse({ endX: 'left' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('easing validation', () => {
+    it('should default to quadraticInOut', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.easing).toBe('quadraticInOut');
+      }
+    });
+
+    it('should accept valid easing values', () => {
+      const easings = ['linear', 'quadraticIn', 'quadraticOut', 'bounceOut'];
+
+      for (const easing of easings) {
+        const result = bitmapSchema.safeParse({ easing });
+        expect(result.success).toBe(true);
+      }
+    });
+
+    it('should reject invalid easing value', () => {
+      const result = bitmapSchema.safeParse({ easing: 'invalid' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('fadeIn/fadeOut validation', () => {
+    it('should default fadeIn to 300', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeIn).toBe(300);
+      }
+    });
+
+    it('should default fadeOut to 300', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeOut).toBe(300);
+      }
+    });
+
+    it('should accept zero for fadeIn (disabled)', () => {
+      const result = bitmapSchema.safeParse({ fadeIn: 0 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeIn).toBe(0);
+      }
+    });
+
+    it('should accept zero for fadeOut (disabled)', () => {
+      const result = bitmapSchema.safeParse({ fadeOut: 0 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeOut).toBe(0);
+      }
+    });
+
+    it('should reject negative fadeIn', () => {
+      const result = bitmapSchema.safeParse({ fadeIn: -100 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject negative fadeOut', () => {
+      const result = bitmapSchema.safeParse({ fadeOut: -100 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept custom fade durations', () => {
+      const result = bitmapSchema.safeParse({ fadeIn: 500, fadeOut: 1000 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.fadeIn).toBe(500);
+        expect(result.data.fadeOut).toBe(1000);
+      }
     });
   });
 

@@ -10,6 +10,11 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
 import { validateDriverId } from '../driver-id-validator';
+import {
+  requireDriverWithMac,
+  buildDriverTopic,
+  getErrorMessage,
+} from '../utils/driver-utils';
 
 interface SetIdHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -27,18 +32,8 @@ export function registerSetIdHandler(deps: SetIdHandlerDeps): void {
         throw new Error(validation.error ?? 'Invalid driver ID');
       }
 
-      const driver = driverRegistry.getDriver(driverId);
-
-      if (!driver) {
-        throw new Error('Driver not found');
-      }
-
-      if (!driver.mac) {
-        throw new Error('Driver has no MAC address');
-      }
-
-      // Topics use MAC address as immutable identifier
-      const topic = `rgfx/driver/${driver.mac}/set-id`;
+      const driver = requireDriverWithMac(driverId, driverRegistry);
+      const topic = buildDriverTopic(driver.mac, 'set-id');
       const payload = JSON.stringify({ id: newId });
 
       await mqtt.publish(topic, payload);
@@ -46,7 +41,7 @@ export function registerSetIdHandler(deps: SetIdHandlerDeps): void {
 
       return { success: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = getErrorMessage(error);
       log.error('Failed to set driver ID:', errorMessage);
       return { success: false, error: errorMessage };
     }

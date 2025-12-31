@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "effect.h"
 #include "graphics/canvas.h"
+#include "gradient_utils.h"
 
 class ScrollTextEffect : public IEffect {
    private:
@@ -20,6 +21,12 @@ class ScrollTextEffect : public IEffect {
 		float speed;     // Scroll speed in canvas pixels per second
 		bool repeat;     // Whether to restart when text exits left edge
 		bool snapToLed;  // Snap to LED boundaries to reduce shimmer
+		// Gradient animation (optional)
+		bool hasGradient;
+		CRGB gradientLut[GRADIENT_LUT_SIZE];
+		float gradientSpeed;
+		float gradientScale;
+		float gradientTime;
 	};
 
 	std::vector<ScrollInstance> instances;

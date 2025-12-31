@@ -1,5 +1,7 @@
 # Utils
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 Math and animation utilities for the ESP32 driver.
 
 ## Files

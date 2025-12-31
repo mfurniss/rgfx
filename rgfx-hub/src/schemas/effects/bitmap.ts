@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { baseEffect, centerX, centerY } from './properties';
+import { baseEffect, centerX, centerY, easing } from './properties';
 
 /**
  * PICO-8 default palette - 16 colors designed for retro games
@@ -44,12 +44,21 @@ const paletteColorSchema = z.string().regex(/^#?[0-9a-fA-F]{6}$/, 'Invalid hex c
  * - 'A'-'F' (case insensitive) = palette index 10-15
  */
 export default baseEffect
+  .omit({ color: true })
   .extend({
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
-    centerX: centerX.default('random'),
-    centerY: centerY.default('random'),
-    duration: z.number().positive().optional().default(600),
+    reset: z.boolean().optional().default(false),
+    centerX: centerX.default('random').describe('fieldType:centerXY|Start X position (0-100 or random)'),
+    centerY: centerY.default('random').describe('fieldType:centerXY|Start Y position (0-100 or random)'),
+    endX: centerX.default('random').describe('fieldType:centerXY|End X position (0-100 or random)'),
+    endY: centerY.default('random').describe('fieldType:centerXY|End Y position (0-100 or random)'),
+    duration: z.number().positive().optional().default(1500),
+    easing: easing.optional().default('quadraticInOut'),
+    fadeIn: z.number().int().nonnegative().optional().default(300)
+      .describe('Fade in duration in milliseconds'),
+    fadeOut: z.number().int().nonnegative().optional().default(300)
+      .describe('Fade out duration in milliseconds'),
     palette: z
       .array(paletteColorSchema)
       .min(1)

@@ -4,11 +4,11 @@ import { Dashboard as DashboardIcon } from '@mui/icons-material';
 import SystemStatus from '../components/system/system-status';
 import { SystemErrors } from '../components/system/system-errors';
 import { EventsRateChart } from '../components/charts/events-rate-chart';
-import { useDriverStore } from '../store/driver-store';
+import { useSystemStatusStore } from '../store/system-status-store';
 import { PageTitle } from '../components/layout/page-title';
 
 const SystemStatusPage: React.FC = () => {
-  const systemStatus = useDriverStore((state) => state.systemStatus);
+  const systemStatus = useSystemStatusStore((state) => state.systemStatus);
   const isOffline = systemStatus.hubIp === 'Unknown';
 
   return (

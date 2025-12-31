@@ -2,6 +2,7 @@
 #include "effect_utils.h"
 #include "hal/platform.h"
 #include "graphics/canvas.h"
+#include "network/mqtt.h"
 #include <cmath>
 #include <cstring>
 
@@ -48,6 +49,7 @@ ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c)
 void ProjectileEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
 		hal::log("ERROR: projectile missing or invalid 'color' prop");
+		publishError("projectile", "missing or invalid 'color' prop", props);
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);

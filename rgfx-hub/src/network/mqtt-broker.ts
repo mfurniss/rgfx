@@ -75,7 +75,7 @@ export class MqttBroker {
 
     this.aedes.on('publish', (packet, client) => {
       if (client) {
-        log.info(`MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`);
+        log.debug(`MQTT publish from ${client.id}: ${packet.topic} - ${packet.payload.toString()}`);
 
         // Match topic against all subscription patterns (including wildcards)
         for (const [pattern, handler] of this.subscriptions) {

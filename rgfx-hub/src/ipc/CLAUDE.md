@@ -1,5 +1,7 @@
 # IPC Handlers
 
+> **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
+
 This folder contains Electron IPC (Inter-Process Communication) handlers that enable communication between the renderer process (UI) and the main process. Each handler is registered via `ipcMain.handle()` and can be invoked from the renderer using `ipcRenderer.invoke()`.
 
 ## Handler Registration

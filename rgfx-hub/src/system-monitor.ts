@@ -20,7 +20,7 @@ export class SystemMonitor {
   private readonly hubStartTime: number;
   private readonly firmwareWatcher: FirmwareWatcher;
   private onFirmwareUpdatedCallback?: (version: string | null) => void;
-  private udpStatsByIp = new Map<string, UdpStats>();
+  private udpStatsByDriver = new Map<string, UdpStats>();
 
   constructor() {
     this.hubStartTime = Date.now();
@@ -28,23 +28,23 @@ export class SystemMonitor {
     this.setupFirmwareWatcher();
   }
 
-  trackUdpSent(ip: string, success: boolean): void {
-    const stats = this.udpStatsByIp.get(ip) ?? { sent: 0, failed: 0 };
+  trackUdpSent(driverId: string, success: boolean): void {
+    const stats = this.udpStatsByDriver.get(driverId) ?? { sent: 0, failed: 0 };
 
     if (success) {
       stats.sent++;
     } else {
       stats.failed++;
     }
-    this.udpStatsByIp.set(ip, stats);
+    this.udpStatsByDriver.set(driverId, stats);
   }
 
-  getUdpStatsByIp(): Map<string, UdpStats> {
-    return this.udpStatsByIp;
+  getUdpStatsByDriver(): Map<string, UdpStats> {
+    return this.udpStatsByDriver;
   }
 
-  getUdpStatsForIp(ip: string): UdpStats {
-    return this.udpStatsByIp.get(ip) ?? { sent: 0, failed: 0 };
+  getUdpStatsForDriver(driverId: string): UdpStats {
+    return this.udpStatsByDriver.get(driverId) ?? { sent: 0, failed: 0 };
   }
 
   private setupFirmwareWatcher(): void {
@@ -87,11 +87,11 @@ export class SystemMonitor {
     const hubIp = this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
 
-    // Aggregate UDP stats from all IPs
+    // Aggregate UDP stats from all drivers
     let udpMessagesSent = 0;
     let udpMessagesFailed = 0;
 
-    for (const stats of this.udpStatsByIp.values()) {
+    for (const stats of this.udpStatsByDriver.values()) {
       udpMessagesSent += stats.sent;
       udpMessagesFailed += stats.failed;
     }
@@ -108,6 +108,7 @@ export class SystemMonitor {
       currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
       udpMessagesSent,
       udpMessagesFailed,
+      udpStatsByDriver: Object.fromEntries(this.udpStatsByDriver),
       systemErrors: errors,
     };
   }

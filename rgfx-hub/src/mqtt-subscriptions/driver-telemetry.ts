@@ -9,7 +9,7 @@ import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
-import type { DriverPersistence } from '../driver-persistence';
+import type { DriverConfig } from '../driver-config';
 import { serializeDriverForIPC } from '../types';
 import {
   TelemetryPayloadSchema,
@@ -20,11 +20,12 @@ import {
   MinimalDriverRegistrationSchema,
   type MinimalDriverRegistration,
 } from '../schemas/minimal-driver-registration';
+import { sendToRenderer, getErrorMessage } from '../utils/driver-utils';
 
 interface DriverTelemetryDeps {
   mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
-  driverPersistence: DriverPersistence;
+  driverConfig: DriverConfig;
   getMainWindow: () => BrowserWindow | null;
 }
 
@@ -73,11 +74,11 @@ function createMinimalRegistration(minimal: MinimalDriverRegistration) {
 }
 
 export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
-  const { mqtt, driverRegistry, driverPersistence, getMainWindow } = deps;
+  const { mqtt, driverRegistry, driverConfig, getMainWindow } = deps;
 
   mqtt.subscribe('rgfx/system/driver/telemetry', (_topic, payload) => {
     const mqttReceiveTime = Date.now();
-    log.info(`[DEBUG] Driver telemetry MQTT received at ${mqttReceiveTime}`);
+    log.debug(`Driver telemetry MQTT received at ${mqttReceiveTime}`);
 
     try {
       const parsedPayload: unknown = JSON.parse(payload);
@@ -90,13 +91,13 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         const parsed = fullParseResult.data;
         const macAddress = parsed.mac;
 
-        if (macAddress && driverPersistence.isDisabledByMac(macAddress)) {
+        if (macAddress && driverConfig.isDisabledByMac(macAddress)) {
           log.debug(`Ignoring telemetry from disabled driver: ${macAddress}`);
           return;
         }
 
-        log.info(
-          `[DEBUG] Full telemetry validated, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+        log.debug(
+          `Full telemetry validated, calling registerDriver for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
 
         // Extract registration data using Zod schemas
@@ -106,20 +107,14 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         // Register or update driver
         const driver = driverRegistry.registerDriver(registrationData);
 
-        log.info(
-          `[DEBUG] registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+        log.debug(
+          `registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
 
         // Notify renderer of driver update
-        const mainWindow = getMainWindow();
-        log.info(`[DEBUG] Sending driver:updated to renderer for ${driver.id}`);
-
-        if (mainWindow !== null && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-          log.info(`[DEBUG] driver:updated sent successfully for ${driver.id}`);
-        } else {
-          log.warn('[DEBUG] Cannot send driver:updated - mainWindow unavailable');
-        }
+        log.debug(`Sending driver:updated to renderer for ${driver.id}`);
+        sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+        log.debug(`driver:updated sent for ${driver.id}`);
       } else {
         // Try minimal validation (old firmware fallback)
         const minimalParseResult = MinimalDriverRegistrationSchema.safeParse(parsedPayload);
@@ -134,19 +129,13 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           const registrationData = createMinimalRegistration(minimalData);
           const driver = driverRegistry.registerDriver(registrationData);
 
-          log.info(
-            `[DEBUG] Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+          log.debug(
+            `Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
           );
 
           // Notify renderer of driver update (UI will show "Update Required" badge)
-          const mainWindow = getMainWindow();
-
-          if (mainWindow !== null && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-            log.info(`[DEBUG] driver:updated sent successfully for ${driver.id} (minimal)`);
-          } else {
-            log.warn('[DEBUG] Cannot send driver:updated - mainWindow unavailable');
-          }
+          sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+          log.debug(`driver:updated sent for ${driver.id} (minimal)`);
         } else {
           // Completely invalid - reject
           log.error(
@@ -158,8 +147,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      log.error(`Failed to parse driver telemetry message: ${errorMessage}`);
+      log.error(`Failed to parse driver telemetry message: ${getErrorMessage(err)}`);
     }
   });
 }

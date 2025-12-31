@@ -205,7 +205,6 @@ void test_explode_center_50_percent() {
 }
 
 void test_explode_center_arbitrary() {
-	// Hub resolves "random" to numeric values before sending - ESP32 requires numeric
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
@@ -213,8 +212,63 @@ void test_explode_center_arbitrary() {
 	JsonDocument props;
 	setDefaultExplodeProps(props);
 	props["particleCount"] = 50;
-	props["centerX"] = 25;  // Hub-resolved random value
-	props["centerY"] = 75;  // Hub-resolved random value
+	props["centerX"] = 25;
+	props["centerY"] = 75;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_explode_center_random_string_x() {
+	// ESP32 now handles "random" string directly
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ExplodeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["particleCount"] = 50;
+	props["centerX"] = "random";  // String "random" should work
+	props["centerY"] = 50;
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_explode_center_random_string_y() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ExplodeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["particleCount"] = 50;
+	props["centerX"] = 50;
+	props["centerY"] = "random";  // String "random" should work
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_explode_center_random_string_both() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ExplodeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["particleCount"] = 50;
+	props["centerX"] = "random";
+	props["centerY"] = "random";
 
 	effect.add(props);
 	canvas.clear();
@@ -1092,6 +1146,9 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_explode_center_100_percent);
 	RUN_TEST(test_explode_center_50_percent);
 	RUN_TEST(test_explode_center_arbitrary);
+	RUN_TEST(test_explode_center_random_string_x);
+	RUN_TEST(test_explode_center_random_string_y);
+	RUN_TEST(test_explode_center_random_string_both);
 	RUN_TEST(test_explode_strip_ignores_centerY);
 
 	// 3. Particle Physics Tests

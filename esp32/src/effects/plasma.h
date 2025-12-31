@@ -3,9 +3,7 @@
 #include <ArduinoJson.h>
 #include "effect.h"
 #include "graphics/canvas.h"
-
-static const uint8_t GRADIENT_LUT_SIZE = 100;
-static const uint8_t MAX_GRADIENT_COLORS = 20;
+#include "gradient_utils.h"
 
 /**
  * Plasma Effect
@@ -33,9 +31,6 @@ class PlasmaEffect : public IEffect {
 	PlasmaState state;
 	Canvas& canvas;
 
-	void generateGradientLut(const CRGB* colors, uint8_t colorCount);
-	void generateDefaultRainbowLut();
-	CRGB parseHexColor(const char* hex);
 	static EnabledState parseEnabledState(const char* str);
 	void updateAlpha();
 

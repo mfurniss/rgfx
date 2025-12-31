@@ -60,11 +60,13 @@ const EventMonitorPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const topicsArray: TopicEntry[] = Object.entries(topics).map(([topic, data]) => ({
-    topic,
-    count: data.count,
-    lastValue: data.lastValue,
-  }));
+  const topicsArray: TopicEntry[] = Object.entries(topics)
+    .filter((entry): entry is [string, NonNullable<typeof entry[1]>] => entry[1] !== undefined)
+    .map(([topic, data]) => ({
+      topic,
+      count: data.count,
+      lastValue: data.lastValue,
+    }));
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

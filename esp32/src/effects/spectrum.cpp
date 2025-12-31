@@ -7,6 +7,7 @@
 
 #include "spectrum.h"
 #include "hal/platform.h"
+#include "network/mqtt.h"
 
 // Define static constexpr member
 constexpr uint32_t SpectrumEffect::COLUMN_COLORS[];
@@ -30,6 +31,7 @@ void SpectrumEffect::assignColumnColor(Column& col, size_t index, size_t totalCo
 void SpectrumEffect::add(JsonDocument& props) {
 	if (!props["values"].is<JsonArray>()) {
 		hal::log("ERROR: spectrum missing 'values' array");
+		publishError("spectrum", "missing 'values' array", props);
 		return;
 	}
 

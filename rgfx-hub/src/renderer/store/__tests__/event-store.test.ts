@@ -39,17 +39,17 @@ describe('useEventStore', () => {
       onEvent('game/score', '3000');
 
       const { topics } = useEventStore.getState();
-      expect(topics['game/score'].count).toBe(3);
+      expect(topics['game/score']?.count).toBe(3);
     });
 
     it('should update lastValue on each event', () => {
       const { onEvent } = useEventStore.getState();
 
       onEvent('game/score', '1000');
-      expect(useEventStore.getState().topics['game/score'].lastValue).toBe('1000');
+      expect(useEventStore.getState().topics['game/score']?.lastValue).toBe('1000');
 
       onEvent('game/score', '2000');
-      expect(useEventStore.getState().topics['game/score'].lastValue).toBe('2000');
+      expect(useEventStore.getState().topics['game/score']?.lastValue).toBe('2000');
     });
 
     it('should handle multiple topics independently', () => {

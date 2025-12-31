@@ -6,8 +6,14 @@
  */
 
 import log from 'electron-log/main';
-import { createDriver, type Driver, type DriverTelemetry, type LEDHardware } from './types';
-import type { DriverPersistence, PersistedDriver } from './driver-persistence';
+import {
+  createDriver,
+  type Driver,
+  type DriverLEDConfig,
+  type DriverTelemetry,
+  type LEDHardware,
+} from './types';
+import type { DriverConfig, ConfiguredDriver } from './driver-config';
 import type { LEDHardwareManager } from './led-hardware-manager';
 import { eventBus } from './services/event-bus';
 import {
@@ -17,46 +23,52 @@ import {
 
 export class DriverRegistry {
   private drivers = new Map<string, Driver>();
-  private persistence?: DriverPersistence;
+  private driverConfig?: DriverConfig;
+  private ledHardwareManager?: LEDHardwareManager;
   private connectionMonitorInterval?: NodeJS.Timeout;
 
-  constructor(persistence?: DriverPersistence, ledHardwareManager?: LEDHardwareManager) {
-    this.persistence = persistence;
+  constructor(driverConfig?: DriverConfig, ledHardwareManager?: LEDHardwareManager) {
+    this.driverConfig = driverConfig;
+    this.ledHardwareManager = ledHardwareManager;
 
-    // Load all known drivers from persistence (all start as disconnected)
-    if (persistence && ledHardwareManager) {
-      const persistedDrivers = persistence.getAllDrivers();
+    // Load all known drivers from config (all start as disconnected)
+    if (driverConfig) {
+      const configuredDrivers = driverConfig.getAllDrivers();
 
-      for (const pd of persistedDrivers) {
-        // Resolve LED hardware if config exists
-        let resolvedHardware: LEDHardware | undefined = undefined;
-
-        if (pd.ledConfig?.hardwareRef) {
-          const hardware = ledHardwareManager.loadHardware(pd.ledConfig.hardwareRef);
-
-          if (hardware) {
-            resolvedHardware = hardware;
-          } else {
-            log.warn(
-              `Failed to resolve LED hardware for driver ${pd.id}: ${pd.ledConfig.hardwareRef}`,
-            );
-          }
-        }
-
+      for (const pd of configuredDrivers) {
         const driver = createDriver({
           id: pd.id,
           mac: pd.macAddress,
           description: pd.description,
           remoteLogging: pd.remoteLogging,
           ledConfig: pd.ledConfig,
-          resolvedHardware,
+          resolvedHardware: this.resolveHardware(pd.ledConfig),
           state: 'disconnected',
           disabled: pd.disabled,
         });
         this.drivers.set(driver.id, driver);
       }
-      log.info(`Loaded ${persistedDrivers.length} known drivers from persistence`);
+      log.info(`Loaded ${configuredDrivers.length} drivers from config`);
     }
+  }
+
+  /**
+   * Resolve LED hardware from a ledConfig's hardwareRef.
+   * Single source of truth for hardware resolution - used by constructor,
+   * registerDriver, and refreshDriverFromConfig.
+   */
+  private resolveHardware(ledConfig?: DriverLEDConfig | null): LEDHardware | undefined {
+    if (!ledConfig?.hardwareRef || !this.ledHardwareManager) {
+      return undefined;
+    }
+
+    const hardware = this.ledHardwareManager.loadHardware(ledConfig.hardwareRef);
+
+    if (!hardware) {
+      log.warn(`Failed to resolve LED hardware: ${ledConfig.hardwareRef}`);
+    }
+
+    return hardware ?? undefined;
   }
 
   // Register or update a driver from MQTT telemetry message
@@ -81,10 +93,10 @@ export class DriverRegistry {
   }): Driver {
     const registerStartTime = Date.now();
     const macAddress = telemetryData.mac || 'unknown';
-    log.info(`[DEBUG] registerDriver called for MAC ${macAddress} at ${registerStartTime}`);
+    log.debug(`registerDriver called for MAC ${macAddress} at ${registerStartTime}`);
 
-    // Phase 1: Identity resolution (creates driver in persistence if new)
-    const { driverId, persistedDriver } = this.resolveDriverIdentity(macAddress);
+    // Phase 1: Identity resolution (creates driver in config if new)
+    const { driverId, configuredDriver } = this.resolveDriverIdentity(macAddress);
 
     // Phase 2: Find existing in registry
     const existingDriver =
@@ -98,20 +110,20 @@ export class DriverRegistry {
 
     // Phase 5: Construct and store driver
     const driver = this.constructDriver(
-      driverId, telemetryData, persistedDriver, existingDriver, stats,
+      driverId, telemetryData, configuredDriver, existingDriver, stats,
     );
     this.drivers.set(driver.id, driver);
-    log.info(
-      `[DEBUG] Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
+    log.debug(
+      `Driver object created and stored in registry for ${driverId} (elapsed: ${Date.now() - registerStartTime}ms)`,
     );
 
     // Phase 7: Emit event if new connection
     if (this.isNewConnection(existingDriver)) {
       log.info(`Driver connected: ${driverId}`);
-      log.info(`[DEBUG] Emitting driver:connected event for ${driverId}`);
+      log.debug(`Emitting driver:connected event for ${driverId}`);
       eventBus.emit('driver:connected', { driver });
-      log.info(
-        `[DEBUG] driver:connected event emitted for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
+      log.debug(
+        `driver:connected event emitted for ${driverId} (total elapsed: ${Date.now() - registerStartTime}ms)`,
       );
     } else {
       log.debug(`Driver ${driverId} already connected - skipping driver:connected event`);
@@ -121,33 +133,33 @@ export class DriverRegistry {
   }
 
   /**
-   * Resolve driver identity and persistence
-   * Returns the driver ID and persisted data, creating new driver in persistence if needed
+   * Resolve driver identity from config
+   * Returns the driver ID and config data, creating new driver in config if needed
    */
   private resolveDriverIdentity(macAddress: string): {
     driverId: string;
-    persistedDriver?: PersistedDriver;
+    configuredDriver?: ConfiguredDriver;
   } {
-    // Try to find existing driver by MAC address in persistence
-    let persistedDriver: PersistedDriver | undefined;
+    // Try to find existing driver by MAC address in config
+    let configuredDriver: ConfiguredDriver | undefined;
 
-    if (this.persistence) {
-      persistedDriver = this.persistence.getDriverByMac(macAddress);
+    if (this.driverConfig) {
+      configuredDriver = this.driverConfig.getDriverByMac(macAddress);
     }
-    let driverId: string = persistedDriver?.id ?? macAddress;
+    let driverId: string = configuredDriver?.id ?? macAddress;
 
-    log.info(`[DEBUG] Using driver ID: ${driverId} (MAC: ${macAddress})`);
+    log.debug(`Using driver ID: ${driverId} (MAC: ${macAddress})`);
 
-    // If this is a completely new driver (not in persistence), create it
-    if (this.persistence && !persistedDriver) {
-      const newId = this.persistence.generateNextDriverId();
-      this.persistence.addDriver(newId, macAddress);
-      persistedDriver = this.persistence.getDriver(newId);
+    // If this is a completely new driver (not in config), create it
+    if (this.driverConfig && !configuredDriver) {
+      const newId = this.driverConfig.generateNextDriverId();
+      this.driverConfig.addDriver(newId, macAddress);
+      configuredDriver = this.driverConfig.getDriver(newId);
       driverId = newId; // Update driverId to use the newly generated ID
-      log.info(`[DEBUG] Created new driver: ${newId} (MAC: ${macAddress})`);
+      log.info(`Created new driver: ${newId} (MAC: ${macAddress})`);
     }
 
-    return { driverId, persistedDriver };
+    return { driverId, configuredDriver };
   }
 
   /**
@@ -156,8 +168,8 @@ export class DriverRegistry {
   private findExistingDriverByMac(macAddress: string, currentId: string): Driver | undefined {
     for (const driver of this.drivers.values()) {
       if (driver.mac === macAddress && driver.id !== currentId) {
-        log.info(
-          `[DEBUG] Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`,
+        log.debug(
+          `Found existing driver by MAC with different ID: ${driver.id} (will migrate to ${currentId})`,
         );
         return driver;
       }
@@ -195,7 +207,7 @@ export class DriverRegistry {
       telemetry: DriverTelemetry;
       testActive?: boolean;
     },
-    persistedDriver: PersistedDriver | undefined,
+    configuredDriver: ConfiguredDriver | undefined,
     existingDriver: Driver | undefined,
     stats: {
       telemetryEventsReceived: number;
@@ -207,8 +219,8 @@ export class DriverRegistry {
 
     return createDriver({
       id: driverId,
-      description: persistedDriver?.description,
-      remoteLogging: persistedDriver?.remoteLogging,
+      description: configuredDriver?.description,
+      remoteLogging: configuredDriver?.remoteLogging,
       ip: telemetryData.ip,
       mac: telemetryData.mac,
       hostname: telemetryData.hostname,
@@ -222,12 +234,15 @@ export class DriverRegistry {
       lastHeartbeat: now,
       lastSeenAt: now,
       telemetry: telemetryData.telemetry,
-      ledConfig: persistedDriver?.ledConfig,
-      resolvedHardware: existingDriver?.resolvedHardware,
+      ledConfig: configuredDriver?.ledConfig,
+      resolvedHardware: this.resolveHardware(configuredDriver?.ledConfig),
       stats,
       testActive: telemetryData.testActive,
-      state: telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected',
-      disabled: persistedDriver?.disabled ?? existingDriver?.disabled ?? false,
+      // Preserve 'updating' state during OTA - don't override with 'connected' from telemetry
+      state: existingDriver?.state === 'updating'
+        ? 'updating'
+        : (telemetryData.ip && telemetryData.ip.trim().length > 0 ? 'connected' : 'disconnected'),
+      disabled: configuredDriver?.disabled ?? existingDriver?.disabled ?? false,
     });
   }
 
@@ -236,23 +251,24 @@ export class DriverRegistry {
    */
   private handleIdMigration(existingDriver: Driver | undefined, newDriverId: string): void {
     if (existingDriver && existingDriver.id !== newDriverId) {
-      log.info(
-        `[DEBUG] Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`,
+      log.debug(
+        `Driver ID changed: ${existingDriver.id} → ${newDriverId}. Removing old registry entry.`,
       );
       this.drivers.delete(existingDriver.id);
     }
   }
 
   /**
-   * Detect new connection (returns true if driver wasn't previously connected)
+   * Detect new connection (returns true if driver wasn't previously connected or updating)
    */
   private isNewConnection(existingDriver?: Driver): boolean {
-    const wasConnected = existingDriver?.state === 'connected';
-    log.info(
-      `[DEBUG] Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
-        `wasConnected=${wasConnected}`,
+    // Don't emit 'connected' if driver was already connected or is currently updating (OTA)
+    const wasActive = existingDriver?.state === 'connected' || existingDriver?.state === 'updating';
+    log.debug(
+      `Connection check: existingDriver=${existingDriver ? 'found' : 'not found'}, ` +
+        `wasActive=${wasActive}, state=${existingDriver?.state}`,
     );
-    return !wasConnected;
+    return !wasActive;
   }
 
   // Get driver by ID
@@ -358,21 +374,18 @@ export class DriverRegistry {
   }
 
   /**
-   * Refresh a driver from persistence after config changes (e.g., rename)
+   * Refresh a driver from config after config changes (e.g., rename)
    * Updates the runtime driver and returns the updated driver for IPC notification
    */
-  refreshDriverFromPersistence(
-    macAddress: string,
-    ledHardwareManager: LEDHardwareManager,
-  ): Driver | undefined {
-    if (!this.persistence) {
+  refreshDriverFromConfig(macAddress: string): Driver | undefined {
+    if (!this.driverConfig) {
       return undefined;
     }
 
-    const persistedDriver = this.persistence.getDriverByMac(macAddress);
+    const configuredDriver = this.driverConfig.getDriverByMac(macAddress);
 
-    if (!persistedDriver) {
-      log.warn(`Cannot refresh driver: no persisted driver found for MAC ${macAddress}`);
+    if (!configuredDriver) {
+      log.warn(`Cannot refresh driver: no configured driver found for MAC ${macAddress}`);
       return undefined;
     }
 
@@ -385,29 +398,17 @@ export class DriverRegistry {
     }
 
     const oldId = existingDriver.id;
-    const newId = persistedDriver.id;
-
-    // Resolve LED hardware if config exists
-    const { resolvedHardware: existingHardware } = existingDriver;
-    let resolvedHardware: LEDHardware | undefined = existingHardware;
-
-    if (persistedDriver.ledConfig?.hardwareRef) {
-      const hardware = ledHardwareManager.loadHardware(persistedDriver.ledConfig.hardwareRef);
-
-      if (hardware) {
-        resolvedHardware = hardware;
-      }
-    }
+    const newId = configuredDriver.id;
 
     // Create updated driver with new ID and config
     const updatedDriver = createDriver({
       ...existingDriver,
       id: newId,
-      description: persistedDriver.description,
-      remoteLogging: persistedDriver.remoteLogging,
-      ledConfig: persistedDriver.ledConfig,
-      resolvedHardware,
-      disabled: persistedDriver.disabled,
+      description: configuredDriver.description,
+      remoteLogging: configuredDriver.remoteLogging,
+      ledConfig: configuredDriver.ledConfig,
+      resolvedHardware: this.resolveHardware(configuredDriver.ledConfig),
+      disabled: configuredDriver.disabled,
     });
 
     // Remove old entry if ID changed
@@ -418,7 +419,7 @@ export class DriverRegistry {
 
     // Store updated driver
     this.drivers.set(newId, updatedDriver);
-    log.info(`Refreshed driver ${newId} from persistence`);
+    log.info(`Refreshed driver ${newId} from config`);
 
     return updatedDriver;
   }

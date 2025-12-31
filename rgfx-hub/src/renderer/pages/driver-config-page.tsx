@@ -34,9 +34,9 @@ import { NumberField } from '../components/common/number-field';
 import SuperButton from '../components/common/super-button';
 import { UnifiedPanelEditor } from '../components/editors/unified-panel-editor';
 import {
-  PersistedDriverSchema,
-  type PersistedDriverFromSchema,
-  type PersistedDriverInput,
+  ConfiguredDriverSchema,
+  type ConfiguredDriverFromSchema,
+  type ConfiguredDriverInput,
 } from '@/schemas';
 import type { LEDHardware } from '@/types';
 
@@ -78,8 +78,8 @@ export default function DriverConfigPage() {
   }, []);
 
   // Form setup with Zod validation
-  // Use PersistedDriverInput for form state (input type before defaults)
-  // The zodResolver will produce PersistedDriverFromSchema (output type) on submit
+  // Use ConfiguredDriverInput for form state (input type before defaults)
+  // The zodResolver will produce ConfiguredDriverFromSchema (output type) on submit
   const {
     control,
     handleSubmit,
@@ -87,8 +87,8 @@ export default function DriverConfigPage() {
     reset,
     setValue,
     watch,
-  } = useForm<PersistedDriverInput, unknown, PersistedDriverFromSchema>({
-    resolver: zodResolver(PersistedDriverSchema),
+  } = useForm<ConfiguredDriverInput, unknown, ConfiguredDriverFromSchema>({
+    resolver: zodResolver(ConfiguredDriverSchema),
     defaultValues: {
       id: driver?.id ?? '',
       macAddress: driver?.mac ?? '',
@@ -152,7 +152,7 @@ export default function DriverConfigPage() {
     );
   }
 
-  const onSubmit = async (data: PersistedDriverFromSchema) => {
+  const onSubmit = async (data: ConfiguredDriverFromSchema) => {
     setSaving(true);
 
     try {

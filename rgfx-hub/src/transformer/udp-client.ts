@@ -181,7 +181,7 @@ export class UdpClientImpl implements UdpClient {
     }
 
     this.socket.send(buffer, UDP_PORT, ip, (err) => {
-      this.systemMonitor.trackUdpSent(ip, !err);
+      this.systemMonitor.trackUdpSent(driver.id, !err);
 
       if (err) {
         log.error(`UDP send to ${ip} failed: ${err.message}`);

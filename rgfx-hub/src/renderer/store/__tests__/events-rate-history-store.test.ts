@@ -7,11 +7,17 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useEventsRateHistoryStore } from '../events-rate-history-store';
+import type { UdpStats } from '@/types';
 
-const createStats = (udp: number, mqtt: number) => ({
-  udpSent: udp,
-  mqttMessagesReceived: mqtt,
-});
+const createUdpStats = (drivers: Record<string, number>): Record<string, UdpStats> => {
+  const result: Record<string, UdpStats> = {};
+
+  for (const [id, sent] of Object.entries(drivers)) {
+    result[id] = { sent, failed: 0 };
+  }
+
+  return result;
+};
 
 describe('useEventsRateHistoryStore', () => {
   beforeEach(() => {
@@ -30,22 +36,32 @@ describe('useEventsRateHistoryStore', () => {
     });
   });
 
-  describe('recordDriverStats', () => {
-    it('should track a new driver', () => {
-      const { recordDriverStats, getDriverIds } = useEventsRateHistoryStore.getState();
+  describe('updateFromStatus', () => {
+    it('should track a new driver from UDP stats', () => {
+      const { updateFromStatus, getDriverIds } = useEventsRateHistoryStore.getState();
 
-      recordDriverStats('driver-1', createStats(10, 5), true);
+      updateFromStatus(createUdpStats({ 'driver-1': 10 }), ['driver-1']);
+
+      const driverIds = getDriverIds();
+      expect(driverIds).toContain('driver-1');
+    });
+
+    it('should track connected driver even without UDP stats', () => {
+      const { updateFromStatus, getDriverIds } = useEventsRateHistoryStore.getState();
+
+      updateFromStatus({}, ['driver-1']);
 
       const driverIds = getDriverIds();
       expect(driverIds).toContain('driver-1');
     });
 
     it('should track multiple drivers', () => {
-      const { recordDriverStats, getDriverIds } = useEventsRateHistoryStore.getState();
+      const { updateFromStatus, getDriverIds } = useEventsRateHistoryStore.getState();
 
-      recordDriverStats('driver-1', createStats(10, 5), true);
-      recordDriverStats('driver-2', createStats(20, 10), true);
-      recordDriverStats('driver-3', createStats(30, 15), false);
+      updateFromStatus(
+        createUdpStats({ 'driver-1': 10, 'driver-2': 20, 'driver-3': 30 }),
+        ['driver-1', 'driver-2', 'driver-3'],
+      );
 
       const driverIds = getDriverIds();
       expect(driverIds).toHaveLength(3);
@@ -63,9 +79,9 @@ describe('useEventsRateHistoryStore', () => {
     });
 
     it('should return 0 rate for first sample (no previous stats)', () => {
-      const { recordDriverStats, sampleRates, getHistory } = useEventsRateHistoryStore.getState();
+      const { updateFromStatus, sampleRates, getHistory } = useEventsRateHistoryStore.getState();
 
-      recordDriverStats('driver-1', createStats(100, 50), true);
+      updateFromStatus(createUdpStats({ 'driver-1': 100 }), ['driver-1']);
       sampleRates();
 
       const history = getHistory();
@@ -76,12 +92,12 @@ describe('useEventsRateHistoryStore', () => {
     it('should calculate rate correctly between samples using fixed interval', () => {
       const store = useEventsRateHistoryStore.getState();
 
-      // First sample: 100 UDP (MQTT is ignored for rate calculation)
-      store.recordDriverStats('driver-1', createStats(100, 50), true);
+      // First sample: 100 UDP sent
+      store.updateFromStatus(createUdpStats({ 'driver-1': 100 }), ['driver-1']);
       store.sampleRates();
 
-      // Second sample: 200 UDP (delta = 100)
-      store.recordDriverStats('driver-1', createStats(200, 100), true);
+      // Second sample: 200 UDP sent (delta = 100)
+      store.updateFromStatus(createUdpStats({ 'driver-1': 200 }), ['driver-1']);
       store.sampleRates();
 
       const history = store.getHistory();
@@ -97,11 +113,11 @@ describe('useEventsRateHistoryStore', () => {
       const store = useEventsRateHistoryStore.getState();
 
       // First sample: connected with stats
-      store.recordDriverStats('driver-1', createStats(100, 50), true);
+      store.updateFromStatus(createUdpStats({ 'driver-1': 100 }), ['driver-1']);
       store.sampleRates();
 
-      // Second sample: disconnected
-      store.recordDriverStats('driver-1', createStats(100, 50), false);
+      // Second sample: disconnected (not in connected list)
+      store.updateFromStatus(createUdpStats({ 'driver-1': 100 }), []);
       store.sampleRates();
 
       const history = store.getHistory();
@@ -112,9 +128,10 @@ describe('useEventsRateHistoryStore', () => {
     it('should track multiple drivers independently', () => {
       const store = useEventsRateHistoryStore.getState();
 
-      // Record stats for two drivers
-      store.recordDriverStats('driver-1', createStats(100, 50), true);
-      store.recordDriverStats('driver-2', createStats(200, 100), true);
+      store.updateFromStatus(
+        createUdpStats({ 'driver-1': 100, 'driver-2': 200 }),
+        ['driver-1', 'driver-2'],
+      );
       store.sampleRates();
 
       const history = store.getHistory();
@@ -126,11 +143,12 @@ describe('useEventsRateHistoryStore', () => {
 
   describe('getDriverIds', () => {
     it('should return sorted driver IDs', () => {
-      const { recordDriverStats, getDriverIds } = useEventsRateHistoryStore.getState();
+      const { updateFromStatus, getDriverIds } = useEventsRateHistoryStore.getState();
 
-      recordDriverStats('zebra', createStats(10, 5), true);
-      recordDriverStats('alpha', createStats(20, 10), true);
-      recordDriverStats('beta', createStats(30, 15), true);
+      updateFromStatus(
+        createUdpStats({ zebra: 10, alpha: 20, beta: 30 }),
+        ['zebra', 'alpha', 'beta'],
+      );
 
       const driverIds = getDriverIds();
       expect(driverIds).toEqual(['alpha', 'beta', 'zebra']);
@@ -141,7 +159,7 @@ describe('useEventsRateHistoryStore', () => {
     it('should clear all history and stats', () => {
       const store = useEventsRateHistoryStore.getState();
 
-      store.recordDriverStats('driver-1', createStats(100, 50), true);
+      store.updateFromStatus(createUdpStats({ 'driver-1': 100 }), ['driver-1']);
       store.sampleRates();
       store.clear();
 
@@ -154,7 +172,7 @@ describe('useEventsRateHistoryStore', () => {
     it('should include time property in data points', () => {
       const store = useEventsRateHistoryStore.getState();
 
-      store.recordDriverStats('driver-1', createStats(100, 50), true);
+      store.updateFromStatus(createUdpStats({ 'driver-1': 100 }), ['driver-1']);
       store.sampleRates();
 
       const history = store.getHistory();

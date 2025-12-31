@@ -187,39 +187,6 @@ function isColorSchema(schema: z.ZodType): boolean {
   return hasEnum && hasString && hasNumber;
 }
 
-/**
- * Check if schema is a centerX/Y union ('random' literal | number)
- */
-function isCenterSchema(schema: z.ZodType): boolean {
-  if (!hasZodDef(schema)) {
-    return false;
-  }
-
-  const { def } = schema._zod;
-
-  if (def.type !== 'union' || !def.options?.length || def.options.length !== 2) {
-    return false;
-  }
-
-  let hasRandomLiteral = false;
-  let hasNumber = false;
-
-  for (const option of def.options) {
-    if (hasZodDef(option)) {
-      const optDef = option._zod.def;
-
-      if (optDef.type === 'literal' && optDef.values?.[0] === 'random') {
-        hasRandomLiteral = true;
-      }
-
-      if (optDef.type === 'number') {
-        hasNumber = true;
-      }
-    }
-  }
-
-  return hasRandomLiteral && hasNumber;
-}
 
 /**
  * Extract enum values from a ZodEnum schema
@@ -327,14 +294,6 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
     };
   }
 
-  if (isCenterSchema(innerSchema)) {
-    return {
-      name,
-      type: 'centerXY',
-      defaultValue,
-      description,
-    };
-  }
 
   if (!hasZodDef(innerSchema)) {
     return { name, type: 'enum', defaultValue, description };

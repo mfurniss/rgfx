@@ -98,10 +98,10 @@ const RemoteLoggingLevelSchema = z.enum(['all', 'errors', 'off']);
 export type RemoteLoggingLevel = z.infer<typeof RemoteLoggingLevelSchema>;
 
 /**
- * Persisted driver schema
+ * Configured driver schema
  * Stores static configuration and metadata, excludes runtime state
  */
-export const PersistedDriverSchema = z.object({
+export const ConfiguredDriverSchema = z.object({
   id: z
     .string()
     .min(1)
@@ -114,10 +114,10 @@ export const PersistedDriverSchema = z.object({
   disabled: z.boolean().optional().default(false),
 }).strict();
 
-export type PersistedDriverFromSchema = z.infer<typeof PersistedDriverSchema>;
+export type ConfiguredDriverFromSchema = z.infer<typeof ConfiguredDriverSchema>;
 
 // Input type for forms (before defaults are applied)
-export type PersistedDriverInput = z.input<typeof PersistedDriverSchema>;
+export type ConfiguredDriverInput = z.input<typeof ConfiguredDriverSchema>;
 
 /**
  * Raw driver configuration file schema (for initial parsing)
@@ -130,5 +130,5 @@ export const DriversConfigFileRawSchema = z.object({
 
 export interface DriversConfigFile {
   version: string;
-  drivers: PersistedDriverFromSchema[];
+  drivers: ConfiguredDriverFromSchema[];
 }
