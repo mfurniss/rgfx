@@ -45,7 +45,7 @@ export const EventsRateChart: React.FC = () => {
     color: DRIVER_CHART_COLORS[index % DRIVER_CHART_COLORS.length],
   }));
 
-  if (driverIds.length === 0 || historyArray.length === 0) {
+  if (driverIds.length === 0 || historyArray.length < 2) {
     return null;
   }
 

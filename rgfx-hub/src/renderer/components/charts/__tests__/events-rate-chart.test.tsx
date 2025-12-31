@@ -45,6 +45,7 @@ describe('EventsRateChart', () => {
       const store = useEventsRateHistoryStore.getState();
       store.updateFromStatus({ 'driver-1': { sent: 10, failed: 0 } }, ['driver-1']);
       store.sampleRates();
+      store.sampleRates();
 
       render(<EventsRateChart />);
 
@@ -61,6 +62,7 @@ describe('EventsRateChart', () => {
         },
         ['driver-1', 'driver-2'],
       );
+      store.sampleRates();
       store.sampleRates();
 
       const { container } = render(<EventsRateChart />);
