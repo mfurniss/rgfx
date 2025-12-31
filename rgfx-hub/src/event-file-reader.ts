@@ -16,12 +16,21 @@ import {
 } from './config/constants';
 import { CONFIG_DIRECTORY } from './config/paths';
 
+// Valid topic: 1-4 segments of lowercase alphanumeric, hyphens, underscores
+// Examples: "pacman/player/score", "smb/sfx/jump", "rgfx/interceptor/error"
+const VALID_TOPIC_REGEX = /^[a-z0-9_-]+(?:\/[a-z0-9_-]+){0,3}$/;
+
+export function isValidTopic(topic: string): boolean {
+  return VALID_TOPIC_REGEX.test(topic);
+}
+
 export class EventFileReader {
   private filePath: string;
   private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
   private pollInterval?: NodeJS.Timeout;
   private onEventCallback?: (topic: string, message: string) => void;
+  private onErrorCallback?: (message: string) => void;
 
   constructor(customFilePath?: string) {
     if (customFilePath) {
@@ -37,9 +46,10 @@ export class EventFileReader {
     log.info(`Event file path: ${this.filePath}`);
   }
 
-  start(onEvent: (topic: string, message: string) => void) {
+  start(onEvent: (topic: string, message: string) => void, onError?: (message: string) => void) {
     log.info('Starting event file reader...');
     this.onEventCallback = onEvent;
+    this.onErrorCallback = onError;
     this.checkForFile();
   }
 
@@ -176,16 +186,21 @@ export class EventFileReader {
 
         for (const line of lines) {
           const firstSpaceIndex = line.indexOf(' ');
+          const topic = firstSpaceIndex > 0 ? line.substring(0, firstSpaceIndex) : line;
+          const message = firstSpaceIndex > 0 ? line.substring(firstSpaceIndex + 1) : '';
 
-          if (firstSpaceIndex > 0) {
-            const topic = line.substring(0, firstSpaceIndex);
-            const message = line.substring(firstSpaceIndex + 1);
-            log.debug(`Event read: ${topic} = ${message}`);
-            this.onEventCallback(topic, message);
-          } else {
-            log.debug(`Event read: ${line} (no payload)`);
-            this.onEventCallback(line, '');
+          if (!isValidTopic(topic)) {
+            const errorMsg = `Invalid topic in event log: "${topic}"`;
+            log.error(errorMsg);
+
+            if (this.onErrorCallback) {
+              this.onErrorCallback(errorMsg);
+            }
+            continue;
           }
+
+          log.debug(`Event read: ${topic}${message ? ` = ${message}` : ' (no payload)'}`);
+          this.onEventCallback(topic, message);
         }
 
         if (this.filePosition > EVENT_LOG_MAX_SIZE_BYTES) {
