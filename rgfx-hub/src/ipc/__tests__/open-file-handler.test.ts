@@ -1,0 +1,138 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+ */
+
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { openFile, registerOpenFileHandler } from '../open-file-handler';
+
+vi.mock('electron', () => ({
+  ipcMain: {
+    handle: vi.fn(),
+  },
+  shell: {
+    openPath: vi.fn(),
+  },
+}));
+
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+}));
+
+vi.mock('electron-log/main', () => ({
+  default: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+describe('openFile', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('file validation', () => {
+    it('should throw error if file does not exist', async () => {
+      const fs = await import('fs');
+      (fs.existsSync as Mock).mockReturnValue(false);
+
+      await expect(openFile('/path/to/nonexistent.txt')).rejects.toThrow(
+        'File does not exist',
+      );
+    });
+
+    it('should check if file exists before opening', async () => {
+      const fs = await import('fs');
+      const { shell } = await import('electron');
+      (fs.existsSync as Mock).mockReturnValue(true);
+      (shell.openPath as Mock).mockResolvedValue('');
+
+      await openFile('/path/to/file.txt');
+
+      expect(fs.existsSync).toHaveBeenCalledWith('/path/to/file.txt');
+    });
+  });
+
+  describe('opening files', () => {
+    it('should complete without throwing when file opens successfully', async () => {
+      const fs = await import('fs');
+      const { shell } = await import('electron');
+      (fs.existsSync as Mock).mockReturnValue(true);
+      (shell.openPath as Mock).mockResolvedValue('');
+
+      await expect(openFile('/path/to/file.txt')).resolves.toBeUndefined();
+    });
+
+    it('should call shell.openPath with the file path', async () => {
+      const fs = await import('fs');
+      const { shell } = await import('electron');
+      (fs.existsSync as Mock).mockReturnValue(true);
+      (shell.openPath as Mock).mockResolvedValue('');
+
+      await openFile('/path/to/file.txt');
+
+      expect(shell.openPath).toHaveBeenCalledWith('/path/to/file.txt');
+    });
+
+    it('should throw error when shell.openPath returns an error string', async () => {
+      const fs = await import('fs');
+      const { shell } = await import('electron');
+      (fs.existsSync as Mock).mockReturnValue(true);
+      (shell.openPath as Mock).mockResolvedValue('No application set to open this file type');
+
+      await expect(openFile('/path/to/file.txt')).rejects.toThrow(
+        'No application set to open this file type',
+      );
+    });
+  });
+});
+
+describe('registerOpenFileHandler', () => {
+  let registeredHandler: (event: unknown, filePath: string) => Promise<void>;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+
+    const { ipcMain } = await import('electron');
+    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
+      (_channel: string, handler: (event: unknown, filePath: string) => Promise<void>) => {
+        registeredHandler = handler;
+      },
+    );
+
+    registerOpenFileHandler();
+  });
+
+  describe('handler registration', () => {
+    it('should register handler for file:open channel', async () => {
+      const { ipcMain } = await import('electron');
+      expect(ipcMain.handle).toHaveBeenCalledWith('file:open', expect.any(Function));
+    });
+  });
+
+  describe('handler execution', () => {
+    it('should call openFile with provided path', async () => {
+      const fs = await import('fs');
+      const { shell } = await import('electron');
+      (fs.existsSync as Mock).mockReturnValue(true);
+      (shell.openPath as Mock).mockResolvedValue('');
+
+      await registeredHandler({}, '/path/to/file.txt');
+
+      expect(shell.openPath).toHaveBeenCalledWith('/path/to/file.txt');
+    });
+
+    it('should propagate errors from openFile', async () => {
+      const fs = await import('fs');
+      (fs.existsSync as Mock).mockReturnValue(false);
+
+      await expect(registeredHandler({}, '/nonexistent/file.txt')).rejects.toThrow(
+        'File does not exist',
+      );
+    });
+  });
+});

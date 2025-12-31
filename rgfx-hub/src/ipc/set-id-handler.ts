@@ -10,11 +10,7 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
 import { validateDriverId } from '../driver-id-validator';
-import {
-  requireDriverWithMac,
-  buildDriverTopic,
-  getErrorMessage,
-} from '../utils/driver-utils';
+import { requireDriverWithMac, buildDriverTopic } from '../utils/driver-utils';
 
 interface SetIdHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -24,26 +20,18 @@ interface SetIdHandlerDeps {
 export function registerSetIdHandler(deps: SetIdHandlerDeps): void {
   const { driverRegistry, mqtt } = deps;
 
-  ipcMain.handle('driver:set-id', async (_event, driverId: string, newId: string) => {
-    try {
-      const validation = validateDriverId(newId);
+  ipcMain.handle('driver:set-id', async (_event, driverId: string, newId: string): Promise<void> => {
+    const validation = validateDriverId(newId);
 
-      if (!validation.valid) {
-        throw new Error(validation.error ?? 'Invalid driver ID');
-      }
-
-      const driver = requireDriverWithMac(driverId, driverRegistry);
-      const topic = buildDriverTopic(driver.mac, 'set-id');
-      const payload = JSON.stringify({ id: newId });
-
-      await mqtt.publish(topic, payload);
-      log.info(`Sent set-id command to ${driverId} (${driver.mac}): ${newId}`);
-
-      return { success: true };
-    } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      log.error('Failed to set driver ID:', errorMessage);
-      return { success: false, error: errorMessage };
+    if (!validation.valid) {
+      throw new Error(validation.error ?? 'Invalid driver ID');
     }
+
+    const driver = requireDriverWithMac(driverId, driverRegistry);
+    const topic = buildDriverTopic(driver.mac, 'set-id');
+    const payload = JSON.stringify({ id: newId });
+
+    await mqtt.publish(topic, payload);
+    log.info(`Sent set-id command to ${driverId} (${driver.mac}): ${newId}`);
   });
 }
