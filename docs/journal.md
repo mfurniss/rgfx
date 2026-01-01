@@ -254,14 +254,6 @@ Reduced effect trigger latency by ~6ms. Improved firmware update UX with spinner
 
 Added Star Wars (Atari 1983) interceptor and transformer. Implemented FX Playground state persistence between reloads. Created UnifiedPanelEditor with drag-and-drop panel swapping and click-to-rotate interactions for multi-panel LED matrix configuration.
 
-**Codebase Statistics:**
-- ESP32 Driver: 9,242 lines
-- RGFX Hub: 31,153 lines
-- LED Simulator: 2,219 lines
-- MAME Lua Scripts: 3,906 lines
-- Transformers: 1,033 lines
-- **Total: ~47,553 lines of code**
-
 ## December 18, 2025
 
 Implemented plasma effect using Perlin noise with configurable gradients and animation speed. Added per-RGB floor cutoff values to driver configuration, preventing dim red LED bleed at low brightness levels. Fixed critical OTA race condition where effects weren't clearing during firmware updates due to cross-core FastLED access. Optimized rendering with fillBlock4x4() inline method for 4x4 block fills. Fixed effects playground broadcasting to all drivers when none selected. Enhanced driver detail page to display gamma correction, floor cutoff values, and multi-panel layout configuration. Updated firmware terminology from "Flash" to "Update" throughout Hub UI.
@@ -280,15 +272,15 @@ Changed background and plasma effects from boolean enabled flag to string enum s
 
 ## December 22, 2025
 
-Fixed projectile effect tests by adding proper default values and missing initializers. Removed effect defaults from ESP32 firmware in favor of Hub-side defaults. Added test helper functions for creating effect payloads in native tests. Added Random Trigger button to FX Playground for quick effect testing. Fixed explode effect boundary bug and removed unused scalePower parameter. Implemented automatic explosion velocity scaling based on device dimensions. Split LED Configuration page into separate Hardware and Configuration sections. Added frame timing instrumentation to ESP32 driver and optimized explode effect rendering. Reorganized sidebar navigation with section dividers for better organization. Consolidated configuration constants and expanded LED simulator rows.
+Fixed explode effect boundary bug with automatic velocity scaling based on device dimensions. Added Random Trigger button to FX Playground and split LED Configuration into Hardware and Configuration sections. Reorganized sidebar navigation with section dividers and optimized effect rendering.
 
 ## December 23, 2025
 
-Implemented WiFi credential configuration system allowing credentials to be set via USB serial or OTA for multiple drivers. Added events per second chart to system status page showing real-time UDP event rates. Fixed driver DNS hostnames to match configured IDs for proper network identification. Added safeRestart() function to prevent LED corruption during driver restarts. Fixed flaky tests by switching to jsdom environment and improving test isolation. Improved event rate chart to show only UDP events and auto-hide when no data. Added centralized color prop validation to prevent null pointer crashes in effects, then refactored validation to individual effects for better modularity. Added Galaga 88 transformer template and updated documentation. Removed CHANGELOG.md in favor of the development journal.
+Implemented WiFi credential configuration via USB serial or OTA for multiple drivers. Added events per second chart to system status showing real-time UDP rates. Fixed driver DNS hostnames and added safeRestart() to prevent LED corruption during restarts. Removed CHANGELOG.md in favor of the development journal.
 
 ## December 24, 2025
 
-Reorganized game documentation and NES/SMB research notes. Moved UDP stats from Driver domain to SystemMonitor for cleaner architecture. Implemented minimal effect payload support for fadeOut transitions. Fixed SMB score reading to use correct one-byte-per-digit format. Added horizontal alignment support for text effect. Fixed UDP socket error on app quit. Improved network interface logging to only log on first detection or change. Added blendMode option to wipe effect for additive/replace modes. Fixed event monitor persistence between sessions.
+Implemented minimal effect payload support for fadeOut transitions. Added horizontal alignment support for text effect and blendMode option for wipe effect. Fixed SMB score reading to use correct one-byte-per-digit format. Moved UDP stats from Driver domain to SystemMonitor for cleaner architecture. Fixed UDP socket error on app quit and event monitor persistence between sessions.
 
 ## December 25, 2025
 
@@ -296,7 +288,27 @@ Implemented spectrum analyzer effect for FFT audio visualization using optimized
 
 ## December 26, 2025
 
-Reordered effects in schema. Added delete driver feature with confirmation modal. Updated driver config UX and defaults. Disabled Test LEDs button when driver has no LED configuration. Switched all MQTT topics to use MAC address instead of driver ID for consistency. Added LED hardware installer and WS2812B COB strip definition. Added Clear All Effects button to Effects Playground for turning off all driver LEDs. Added error logging when MAME interceptor fails to load.
+Added delete driver feature with confirmation modal and updated driver config UX. Switched all MQTT topics to use MAC address instead of driver ID for consistency. Added LED hardware installer with WS2812B COB strip definition. Added Clear All Effects button to Effects Playground for turning off all driver LEDs.
 
-**Total Development Time:** 77 days (October 11 - December 26, 2025)
-**Total Commits:** 666
+## December 27, 2025
+
+Added system error handling with notification display for interceptor load failures and corrupt config files. Errors now appear in the Hub UI with toast notifications for immediate visibility.
+
+## December 28, 2025
+
+Implemented 16-color palette bitmap sprites using PICO-8 color palette as defaults. Removed effect defaults from ESP32 firmware, establishing Hub as the single source of truth for effect parameters.
+
+## December 29, 2025
+
+Enhanced bitmap effect with random position support, LED quantization, movement animation, and fade transitions. Added gradient color animation to Text and Scroll Text effects. Added notification when drivers initially connect. Renamed DriverPersistence to DriverConfig and split systemStatus into separate store. Fixed Events Per Second chart update issues.
+
+## December 30, 2025
+
+Fixed bitmap effect to support off-canvas coordinates with negative x/y positioning. Added driver effect error reporting via MQTT for centralized error visibility. Implemented threshold-based event log trimming to prevent unbounded file growth. Fixed OTA update state issues including incorrect notifications and drivers stuck in 'Updating' state. Added driver-utils module and git bundle backup integration.
+
+## December 31, 2025
+
+Code quality improvements: standardized IPC error handling, enforced kebab-case filenames via eslint-plugin-check-file, and added macOS notifications to pre-commit script. Extracted god functions from FirmwarePage and replaced remaining relative imports with @/ path alias. Increased max gradient colors to 64 and added event log size display to hub status page. Implemented onboard LED status indicator for ESP32 drivers showing connection state.
+
+**Total Development Time:** 82 days (October 11 - December 31, 2025)
+**Total Commits:** 712
