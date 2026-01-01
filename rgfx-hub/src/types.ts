@@ -325,6 +325,7 @@ export interface SystemStatus {
   driversTotal: number;
   hubIp: string;
   eventsProcessed: number;
+  eventLogSizeBytes: number;
   hubStartTime: number;
   currentFirmwareVersion?: string;
   udpMessagesSent: number;

@@ -219,4 +219,15 @@ export class EventFileReader {
     this.stopPolling();
     log.info('Event file reader stopped');
   }
+
+  getFileSizeBytes(): number {
+    try {
+      if (existsSync(this.filePath)) {
+        return statSync(this.filePath).size;
+      }
+    } catch {
+      // File doesn't exist or can't be read
+    }
+    return 0;
+  }
 }

@@ -27,6 +27,7 @@ interface MqttSubscriptionsDeps {
   driverLogPersistence: DriverLogPersistence;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
+  getEventLogSizeBytes: () => number;
   addSystemError: (error: SystemError) => void;
 }
 

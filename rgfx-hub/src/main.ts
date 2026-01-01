@@ -188,6 +188,7 @@ function sendSystemStatus() {
     driverRegistry.getConnectedCount(),
     driverRegistry.getAllDrivers().length,
     eventsProcessed,
+    eventReader.getFileSizeBytes(),
     systemErrors,
   );
   mainWindow.webContents.send('system:status', status);
@@ -201,6 +202,7 @@ setupDriverEventHandlers({
   mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
+  getEventLogSizeBytes: () => eventReader.getFileSizeBytes(),
   getSystemErrors: () => systemErrors,
   uploadConfigToDriver,
 });
@@ -277,6 +279,7 @@ if (!hasCriticalError()) {
     driverLogPersistence,
     getMainWindow: () => mainWindow,
     getEventsProcessed: () => eventsProcessed,
+    getEventLogSizeBytes: () => eventReader.getFileSizeBytes(),
     addSystemError: (error) => {
       systemErrors.push(error);
 

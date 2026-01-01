@@ -21,6 +21,7 @@ interface DriverEventHandlersDeps {
   mqtt: MqttBroker;
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
+  getEventLogSizeBytes: () => number;
   getSystemErrors: () => SystemError[];
   uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
 }
@@ -37,6 +38,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     mqtt,
     getMainWindow,
     getEventsProcessed,
+    getEventLogSizeBytes,
     getSystemErrors,
     uploadConfigToDriver,
   } = deps;
@@ -56,6 +58,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       driverRegistry.getConnectedCount(),
       driverRegistry.getAllDrivers().length,
       getEventsProcessed(),
+      getEventLogSizeBytes(),
       getSystemErrors(),
     );
     mainWindow.webContents.send('system:status', status);
