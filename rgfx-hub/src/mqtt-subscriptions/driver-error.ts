@@ -7,12 +7,11 @@
 
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
-import type { SystemError } from '../types';
 import { getErrorMessage } from '../utils/driver-utils';
+import { eventBus } from '../services/event-bus';
 
 interface DriverErrorDeps {
   mqtt: MqttBroker;
-  addSystemError: (error: SystemError) => void;
 }
 
 interface DriverErrorPayload {
@@ -23,7 +22,7 @@ interface DriverErrorPayload {
 }
 
 export function subscribeDriverError(deps: DriverErrorDeps): void {
-  const { mqtt, addSystemError } = deps;
+  const { mqtt } = deps;
 
   mqtt.subscribe('rgfx/system/driver/error', (_topic, message) => {
     try {
@@ -33,7 +32,7 @@ export function subscribeDriverError(deps: DriverErrorDeps): void {
       log.error(`Driver error: ${errorMessage}`);
       log.debug(`Driver error payload: ${JSON.stringify(parsed.payload)}`);
 
-      addSystemError({
+      eventBus.emit('system:error', {
         errorType: 'driver',
         message: errorMessage,
         timestamp: Date.now(),

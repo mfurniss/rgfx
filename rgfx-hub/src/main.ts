@@ -45,6 +45,7 @@ import { clearEffectsOnAllDrivers } from './shutdown';
 import { serializeDriverForIPC, type SystemError } from './types';
 import { appRouter } from './trpc/router';
 import { ConfigError } from './errors/config-error';
+import { eventBus } from './services/event-bus';
 import { z } from 'zod';
 import pkg from '../package.json';
 
@@ -94,6 +95,15 @@ const ledHardwareManager = new LEDHardwareManager(configPath);
 
 // System error tracking
 const systemErrors: SystemError[] = [];
+
+// Subscribe to system errors from event bus
+eventBus.on('system:error', (error) => {
+  systemErrors.push(error);
+
+  if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+    systemErrors.shift();
+  }
+});
 
 // Load driver configuration BEFORE creating registry
 // Registry constructor reads from persistence to pre-populate known drivers
@@ -282,14 +292,6 @@ if (!hasCriticalError()) {
     getMainWindow: () => mainWindow,
     getEventsProcessed: () => eventsProcessed,
     getEventLogSizeBytes: () => eventReader.getFileSizeBytes(),
-    addSystemError: (error) => {
-      systemErrors.push(error);
-
-      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
-        systemErrors.shift();
-      }
-      sendSystemStatus();
-    },
   });
 
   // Start reading events and send to transformer engine for processing
@@ -298,26 +300,18 @@ if (!hasCriticalError()) {
       // Check for interceptor error events
       if (topic === 'rgfx/interceptor/error') {
         log.error(`Interceptor error: ${message}`);
-        systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
-
-        if (systemErrors.length > MAX_SYSTEM_ERRORS) {
-          systemErrors.shift();
-        }
-
-        sendSystemStatus();
+        eventBus.emit('system:error', { errorType: 'interceptor', message, timestamp: Date.now() });
       }
 
       void transformerEngine.handleEvent(topic, message);
       processEvent(topic, message);
     },
     (errorMessage) => {
-      systemErrors.push({ errorType: 'interceptor', message: errorMessage, timestamp: Date.now() });
-
-      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
-        systemErrors.shift();
-      }
-
-      sendSystemStatus();
+      eventBus.emit('system:error', {
+        errorType: 'interceptor',
+        message: errorMessage,
+        timestamp: Date.now(),
+      });
     },
   );
 
