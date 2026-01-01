@@ -18,11 +18,12 @@ interface DriverStatusDeps {
   getMainWindow: () => BrowserWindow | null;
   systemMonitor: SystemMonitor;
   getEventsProcessed: () => number;
+  getEventLogSizeBytes: () => number;
 }
 
 export function subscribeDriverStatus(deps: DriverStatusDeps): void {
   const {
-    mqtt, driverRegistry, getMainWindow, systemMonitor, getEventsProcessed,
+    mqtt, driverRegistry, getMainWindow, systemMonitor, getEventsProcessed, getEventLogSizeBytes,
   } = deps;
 
   mqtt.subscribe('rgfx/driver/+/status', (topic, payload) => {
@@ -63,6 +64,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
           driverRegistry.getConnectedCount(),
           driverRegistry.getAllDrivers().length,
           getEventsProcessed(),
+          getEventLogSizeBytes(),
         );
         mainWindow.webContents.send('system:status', status);
       }

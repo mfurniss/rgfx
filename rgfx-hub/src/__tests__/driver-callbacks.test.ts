@@ -119,6 +119,7 @@ describe('setupDriverEventHandlers', () => {
       driversTotal: 1,
       hubIp: '192.168.1.1',
       eventsProcessed: 100,
+      eventLogSizeBytes: 0,
       hubStartTime: Date.now(),
       currentFirmwareVersion: '1.0.0',
       udpMessagesSent: 0,
@@ -153,6 +154,7 @@ describe('setupDriverEventHandlers', () => {
       mqtt: mockMqtt as unknown as MqttBroker,
       getMainWindow: mockGetMainWindow,
       getEventsProcessed: mockGetEventsProcessed,
+      getEventLogSizeBytes: vi.fn(() => 0),
       getSystemErrors: vi.fn(() => []),
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
@@ -313,7 +315,7 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500, []);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500, 0, []);
       });
     });
   });
@@ -338,6 +340,7 @@ describe('setupDriverEventHandlers', () => {
         mqtt: mockMqtt as unknown as MqttBroker,
         getMainWindow: mockGetMainWindow,
         getEventsProcessed: mockGetEventsProcessed,
+        getEventLogSizeBytes: vi.fn(() => 0),
         getSystemErrors: mockGetSystemErrors,
         uploadConfigToDriver: mockUploadConfigToDriver,
       });
@@ -345,6 +348,7 @@ describe('setupDriverEventHandlers', () => {
       eventBus.emit('driver:connected', { driver: mockDriver as any });
 
       expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(
+        expect.any(Number),
         expect.any(Number),
         expect.any(Number),
         expect.any(Number),
@@ -415,7 +419,7 @@ describe('setupDriverEventHandlers', () => {
 
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200, []);
+        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200, 0, []);
       });
     });
   });

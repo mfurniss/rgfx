@@ -25,6 +25,7 @@ export const useSystemStatusStore = create<SystemStatusStoreState>()((set, get) 
     driversTotal: 0,
     hubIp: 'Unknown',
     eventsProcessed: 0,
+    eventLogSizeBytes: 0,
     hubStartTime: 0,
     udpMessagesSent: 0,
     udpMessagesFailed: 0,
