@@ -70,11 +70,36 @@ std::atomic<bool> otaSetupDone(false);        // Extern in network_init.h
 std::atomic<bool> otaInProgress(false);       // Extern in network_init.h - Track OTA upload state
 std::atomic<bool> pendingClearEffects(false); // Extern in network_init.h - Clear effects from Core 1
 std::atomic<bool> pendingRestart(false);      // Extern in network_init.h - Restart requested
+std::atomic<bool> mqttEventReceived(false);   // Signal from Core 0 when MQTT message received
 static bool initialConnectionAttemptDone = false;
+
+// Onboard LED indicator state
+static unsigned long indicatorOffTime = 0;
+
+/**
+ * Control the onboard status LED.
+ * @param duration  0 = turn off, >0 = flash for duration ms, <0 = solid on
+ */
+void setIndicator(long duration) {
+	if (duration == 0) {
+		digitalWrite(ONBOARD_LED_PIN, LOW);
+		indicatorOffTime = 0;
+	} else if (duration > 0) {
+		digitalWrite(ONBOARD_LED_PIN, HIGH);
+		indicatorOffTime = millis() + duration;
+	} else {
+		digitalWrite(ONBOARD_LED_PIN, HIGH);
+		indicatorOffTime = 0;
+	}
+}
 
 void setup() {
 	Serial.begin(115200);
 	delay(200);
+
+	// Initialize onboard LED indicator
+	pinMode(ONBOARD_LED_PIN, OUTPUT);
+	digitalWrite(ONBOARD_LED_PIN, LOW);
 
 	// Initialize serial command system (must be done before any log() calls)
 	SerialCommand::begin();
@@ -259,6 +284,26 @@ void loop() {
 	// Note: isConnected already declared at top of loop() for UDP processing
 	String state = ConfigPortal::getStateName();
 
+	// Onboard LED indicator: solid in AP mode, blink while connecting, flash on network events
+	bool isApMode = (state == "ApMode" || state == "NotConfigured");
+	bool isConnecting = (state == "Connecting");
+	if (isApMode) {
+		setIndicator(-1);  // Solid on
+	} else if (isConnecting) {
+		// Blink 500ms on, 500ms off while connecting
+		bool ledOn = (millis() / 500) % 2 == 0;
+		setIndicator(ledOn ? -1 : 0);
+	} else {
+		// Check for MQTT event from Core 0
+		if (mqttEventReceived.exchange(false)) {
+			setIndicator(INDICATOR_FLASH_MS);
+		}
+		// Auto-off after flash duration
+		if (indicatorOffTime > 0 && millis() >= indicatorOffTime) {
+			setIndicator(0);
+		}
+	}
+
 	// Check if in AP mode (NotConfigured or ApMode states)
 	static bool inApMode = false;
 	static unsigned long apModeStartTime = 0;
@@ -352,6 +397,7 @@ void loop() {
 		// Process all queued UDP messages
 		UDPMessage message;
 		while (checkUDPMessage(&message) && effectProcessor != nullptr) {
+			setIndicator(INDICATOR_FLASH_MS);
 			effectProcessor->addEffect(String(message.effect), message.props);
 			log("UDP RX from Hub: effect=" + String(message.effect));
 		}
