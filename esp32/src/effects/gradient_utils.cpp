@@ -1,5 +1,6 @@
 #include "gradient_utils.h"
 #include <cstdlib>
+#include "network/mqtt.h"
 
 CRGB parseHexColor(const char* hex) {
 	// Skip leading # if present
@@ -99,7 +100,13 @@ bool parseGradientFromJson(JsonDocument& props, CRGB* lut) {
 	if (!props["gradient"].isNull() && props["gradient"].is<JsonArray>()) {
 		JsonArray gradientArray = props["gradient"].as<JsonArray>();
 		uint8_t colorCount = gradientArray.size();
-		if (colorCount >= 2 && colorCount <= MAX_GRADIENT_COLORS) {
+
+		if (colorCount > MAX_GRADIENT_COLORS) {
+			publishError("plasma", "gradient exceeds MAX_GRADIENT_COLORS");
+			return false;
+		}
+
+		if (colorCount >= 2) {
 			CRGB colors[MAX_GRADIENT_COLORS];
 			uint8_t validColors = 0;
 			for (JsonVariant colorVal : gradientArray) {
@@ -113,6 +120,5 @@ bool parseGradientFromJson(JsonDocument& props, CRGB* lut) {
 			}
 		}
 	}
-	generateDefaultRainbowLut(lut);
 	return false;
 }

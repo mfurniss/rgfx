@@ -150,8 +150,13 @@ export const MAX_DRIVER_ID_LENGTH = 32;
 
 
 // ============================================================================
-// Effects Playground Configuration
+// Effects Configuration
 // ============================================================================
+
+/**
+ * Maximum number of colors allowed in a gradient effect.
+ */
+export const MAX_GRADIENT_COLORS = 64;
 
 /**
  * Default effect selected in the Effects Playground page.

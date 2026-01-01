@@ -7,6 +7,8 @@
 
 import { z } from 'zod';
 
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
+
 /**
  * Plasma effect props schema
  * Classic demoscene plasma effect using Perlin noise.
@@ -38,10 +40,10 @@ export default z
     gradient: z
       .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
       .min(2)
-      .max(20)
+      .max(MAX_GRADIENT_COLORS)
       .optional()
       .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
-      .describe('fieldType:gradientPreset|Gradient colors (2-20 hex colors)'),
+      .describe(`fieldType:gradientPreset|Gradient colors (2-${MAX_GRADIENT_COLORS} hex colors)`),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
