@@ -20,7 +20,7 @@ The VSCode workspace contains three key projects.
 
 2. **Update local CLAUDE.md files** in folders where you make changes. These provide critical context for future sessions.
 
-3. **Run `./rgfx-hub/scripts/check-code.sh` as the final step** after implementing any plan. Don't wait for the pre-commit hook to catch issues.
+3. **Run `scripts/check-code.sh` as the final step** after implementing any plan. Don't wait for the pre-commit hook to catch issues.
 
 4. **NEVER use --no-verify to bypass pre-commit hooks.** Pre-commit hooks exist to maintain code quality and enforce standards. They must not be skipped under any circumstances.
 
@@ -54,7 +54,7 @@ Do not drop out of plan mode without the user's explicit permission.
 - Variable and function names should be camel case
 - Interface names, class names and type names should be Pascal case
 
-After modifying files in the hub project always run `./rgfx-hub/scripts/check-code.sh`
+After modifying files in the hub project always run `scripts/check-code.sh`
 
 After modifying files in the esp32 project always run `pio run -e rgfx-driver` to verify the build compiles successfully. Do not report the task as complete until the build passes.
 
