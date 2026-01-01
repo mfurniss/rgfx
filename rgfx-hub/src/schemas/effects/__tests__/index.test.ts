@@ -7,6 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { effectSchemas, isEffectName, safeValidateEffectProps } from '../index';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
 
 describe('effectSchemas', () => {
   it('should export all effect schemas', () => {
@@ -99,6 +100,25 @@ describe('safeValidateEffectProps', () => {
 
     it('should fail for unknown props due to strict mode', () => {
       const result = safeValidateEffectProps('pulse', { unknownProp: 'value' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('plasma gradient limits', () => {
+    it('should accept gradient with MAX_GRADIENT_COLORS colors', () => {
+      const colors = Array(MAX_GRADIENT_COLORS).fill('#FF0000');
+      const result = safeValidateEffectProps('plasma', { gradient: colors });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject gradient exceeding MAX_GRADIENT_COLORS', () => {
+      const colors = Array(MAX_GRADIENT_COLORS + 1).fill('#FF0000');
+      const result = safeValidateEffectProps('plasma', { gradient: colors });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject gradient with fewer than 2 colors', () => {
+      const result = safeValidateEffectProps('plasma', { gradient: ['#FF0000'] });
       expect(result.success).toBe(false);
     });
   });

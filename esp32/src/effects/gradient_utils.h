@@ -4,7 +4,7 @@
 #include "hal/types.h"
 
 static constexpr uint8_t GRADIENT_LUT_SIZE = 100;
-static constexpr uint8_t MAX_GRADIENT_COLORS = 20;
+static constexpr uint8_t MAX_GRADIENT_COLORS = 64;
 
 /**
  * Parse a hex color string (e.g., "#FF0000" or "FF0000") to CRGB
