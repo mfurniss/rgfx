@@ -9,6 +9,8 @@ import type { SystemMonitor } from '@/system-monitor';
 import { createDriver, type Driver } from '@/types';
 import type { EffectPayload } from '@/types/transformer-types';
 import { createUdpSocketMock } from './udp-test-utils';
+import { eventBus } from '@/services/event-bus';
+import { UDP_BUFFER_SIZE } from '@/config/constants';
 
 // Create mock SystemMonitor
 const mockSystemMonitor = {
@@ -622,6 +624,71 @@ describe('UdpClientImpl', () => {
       ];
       const sentIp = udpMock.calls.driverCalls[0].ip;
       expect(allIps).toContain(sentIp);
+    });
+  });
+
+  describe('packet size validation', () => {
+    it('should reject packets larger than UDP_BUFFER_SIZE', () => {
+      const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
+
+      // Create a payload that exceeds UDP_BUFFER_SIZE (1024 bytes)
+      const largePayload: EffectPayload = {
+        effect: 'bitmap',
+        image: Array(100).fill('X'.repeat(20)), // Large image data
+      };
+
+      const result = udpClient.broadcast(largePayload);
+
+      expect(result).toBe(false);
+      expect(udpMock.driverSendCount).toBe(0);
+      expect(eventBusEmitSpy).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'network',
+          message: expect.stringContaining('UDP packet too large'),
+          details: expect.stringContaining('bitmap'),
+        }),
+      );
+
+      eventBusEmitSpy.mockRestore();
+    });
+
+    it('should send packets within UDP_BUFFER_SIZE limit', () => {
+      const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
+
+      const normalPayload: EffectPayload = {
+        effect: 'test',
+        value: 100,
+      };
+
+      const result = udpClient.broadcast(normalPayload);
+
+      expect(result).toBe(true);
+      expect(udpMock.driverSendCount).toBe(2); // Sends to connected drivers
+      expect(eventBusEmitSpy).not.toHaveBeenCalledWith('system:error', expect.anything());
+
+      eventBusEmitSpy.mockRestore();
+    });
+
+    it('should include packet size in error message', () => {
+      const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
+
+      // Create oversized payload
+      const largePayload: EffectPayload = {
+        effect: 'test',
+        data: 'X'.repeat(UDP_BUFFER_SIZE + 100),
+      };
+
+      udpClient.broadcast(largePayload);
+
+      expect(eventBusEmitSpy).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          message: expect.stringMatching(/\d+ bytes.*max 1024/),
+        }),
+      );
+
+      eventBusEmitSpy.mockRestore();
     });
   });
 });
