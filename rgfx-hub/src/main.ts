@@ -9,6 +9,7 @@ import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
+import windowStateKeeper from 'electron-window-state';
 import { createIPCHandler } from 'electron-trpc/main';
 import { MqttBroker, NetworkManager } from './network';
 import { EventFileReader } from './event-file-reader';
@@ -34,6 +35,7 @@ import {
   SYSTEM_STATUS_UPDATE_INTERVAL_MS,
   MAX_SYSTEM_ERRORS,
 } from './config/constants';
+import { CONFIG_DIRECTORY } from './config/paths';
 import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
 import { createUploadConfigToDriver } from './upload-config-to-driver';
@@ -338,9 +340,19 @@ ipcMain.on('app:quit', () => {
 });
 
 const createWindow = () => {
+  // Load saved window state (position, size, maximized)
+  const mainWindowState = windowStateKeeper({
+    defaultWidth: MAIN_WINDOW_WIDTH,
+    defaultHeight: MAIN_WINDOW_HEIGHT,
+    path: CONFIG_DIRECTORY,
+    file: 'window-state.json',
+  });
+
   mainWindow = new BrowserWindow({
-    width: MAIN_WINDOW_WIDTH,
-    height: MAIN_WINDOW_HEIGHT,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     title: '',
     backgroundColor: '#121212',
     webPreferences: {
@@ -350,6 +362,9 @@ const createWindow = () => {
       backgroundThrottling: false,
     },
   });
+
+  // Register window state manager to track resize/move and save on close
+  mainWindowState.manage(mainWindow);
 
   // Load the index.html of the app
   // In development, MAIN_WINDOW_VITE_DEV_SERVER_URL will be set by Electron Forge
