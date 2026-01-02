@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AppInfo } from '../../types';
+import type { AppInfo } from '@/types';
 
 interface AppInfoState {
   appInfo: AppInfo | null;

@@ -8,7 +8,7 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { spritePresets, findPresetByImage } from '../../../data/sprite-presets';
+import { spritePresets, findPresetByImage } from '@/renderer/data/sprite-presets';
 
 interface SpritePresetFieldProps<T extends FieldValues> {
   name: Path<T>;

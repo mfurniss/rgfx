@@ -127,9 +127,7 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:update-config', driverId);
   },
 
-  flashOTA: (
-    driverId: string,
-  ): Promise<{ success: boolean; error?: string; output?: string }> => {
+  flashOTA: (driverId: string): Promise<void> => {
     return ipcRenderer.invoke('driver:flash-ota', driverId);
   },
 
@@ -159,11 +157,11 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('led-hardware:get', hardwareRef);
   },
 
-  openDriverLog: (driverId: string): Promise<{ success: boolean; error?: string }> => {
+  openDriverLog: (driverId: string): Promise<void> => {
     return ipcRenderer.invoke('driver:open-log', driverId);
   },
 
-  openFile: (filePath: string): Promise<{ success: boolean; error?: string }> => {
+  openFile: (filePath: string): Promise<void> => {
     return ipcRenderer.invoke('file:open', filePath);
   },
 

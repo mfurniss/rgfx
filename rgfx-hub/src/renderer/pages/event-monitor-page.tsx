@@ -34,6 +34,15 @@ interface TopicEntry {
   lastValue?: string;
 }
 
+const truncateValue = (value: string): string => {
+  const maxLength = 25;
+
+  if (value.length <= maxLength) {
+    return value;
+  }
+  return `${value.slice(0, maxLength)}…`;
+};
+
 const formatValue = (value: string | undefined): string => {
   if (value === undefined || value === '') {
     return '';
@@ -42,7 +51,7 @@ const formatValue = (value: string | undefined): string => {
   const numValue = Number(value);
 
   if (isNaN(numValue)) {
-    return value;
+    return truncateValue(value);
   }
 
   if (numValue >= 0 && numValue <= 65535 && Number.isInteger(numValue)) {

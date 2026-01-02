@@ -32,9 +32,9 @@ using String = std::string;
 #include "hal/platform.h"
 
 // Include HAL implementations
-#include "hal/test/display.cpp"
 #include "hal/test/platform.cpp"
-#include "hal/test/led_controller.cpp"
+#define HAL_TEST_DISPLAY_NO_GLOBAL  // Skip static global to avoid teardown issues
+#include "hal/test/display.cpp"
 
 // Constants needed by matrix.h (used by included headers)
 namespace {

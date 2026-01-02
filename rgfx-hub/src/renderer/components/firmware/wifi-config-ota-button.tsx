@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { SettingsInputAntenna as ConfigWifiIcon } from '@mui/icons-material';
 import SuperButton from '../common/super-button';
 import WifiConfigDialog from './wifi-config-dialog';
-import { plural } from '../../utils/formatters';
+import { plural } from '@/renderer/utils/formatters';
 import { WIFI_UPDATE_DELAY_MS } from '@/config/constants';
 import type { Driver } from '@/types';
 

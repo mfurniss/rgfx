@@ -23,6 +23,13 @@ export const MQTT_QOS_LEVEL = 2;
 /** UDP port for sending LED effects to drivers */
 export const UDP_PORT = 8888;
 
+/**
+ * Maximum UDP packet size for driver communication (bytes).
+ * Must match ESP32 UDP_BUFFER_SIZE in esp32/src/config/constants.h.
+ * Packets exceeding this size will be truncated by the driver.
+ */
+export const UDP_BUFFER_SIZE = 1024;
+
 /** SSDP multicast port for service discovery */
 export const SSDP_PORT = 1900;
 
@@ -150,8 +157,13 @@ export const MAX_DRIVER_ID_LENGTH = 32;
 
 
 // ============================================================================
-// Effects Playground Configuration
+// Effects Configuration
 // ============================================================================
+
+/**
+ * Maximum number of colors allowed in a gradient effect.
+ */
+export const MAX_GRADIENT_COLORS = 64;
 
 /**
  * Default effect selected in the Effects Playground page.

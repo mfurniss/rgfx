@@ -6,6 +6,15 @@ set -e
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
+# macOS notification helper (requires: brew install terminal-notifier)
+notify() {
+    terminal-notifier -title "RGFX Pre-commit" -message "$1" 2>/dev/null || true
+}
+
+# Notify on failure
+trap 'notify "Pre-commit checks failed!"' ERR
+
+notify "Starting pre-commit checks..."
 echo "🔍 Running code quality checks..."
 echo ""
 
@@ -15,14 +24,17 @@ echo "📦 rgfx-hub"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$ROOT_DIR/rgfx-hub"
 
+notify "Checking dependencies..."
 echo "🔒 Checking for dependency vulnerabilities..."
 npm audit --audit-level=critical
 echo "✅ No critical vulnerabilities found"
 
+notify "TypeScript type checking..."
 echo "📝 TypeScript type checking..."
 npm run typecheck
 echo "✅ TypeScript passed"
 
+notify "Running ESLint..."
 echo "🔧 Running ESLint..."
 npm run lint
 echo "✅ ESLint passed"
@@ -31,6 +43,7 @@ echo "🔍 Checking for unused exports..."
 npm run unused-exports
 echo "✅ No unused exports found"
 
+notify "Running Hub tests..."
 echo "🧪 Running tests..."
 npm test
 echo "✅ Tests passed"
@@ -52,10 +65,12 @@ echo "🔌 esp32"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$ROOT_DIR/esp32"
 
+notify "Building ESP32 firmware..."
 echo "🔨 Building esp32 firmware..."
 pio run -e rgfx-driver
 echo "✅ esp32 build passed"
 
+notify "Running ESP32 tests..."
 echo "🧪 Running esp32 tests..."
 pio test -e native
 echo "✅ esp32 tests passed"
@@ -68,9 +83,11 @@ echo "🎮 mame lua scripts"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$ROOT_DIR/rgfx-hub/assets/mame"
 
+notify "Running Lua checks..."
 echo "🔍 Running luacheck..."
 luacheck *.lua
 echo "✅ Lua checks passed"
 
+notify "All checks passed!"
 echo ""
 echo "✨ All code quality checks passed!"

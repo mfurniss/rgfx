@@ -85,7 +85,7 @@ describe('SystemMonitor', () => {
       mockGetLocalIP.mockReturnValue('192.168.1.100');
       mockGetCurrentVersion.mockReturnValue('2.0.0');
 
-      const status = systemMonitor.getSystemStatus(5, 10, 1000);
+      const status = systemMonitor.getSystemStatus(5, 10, 1000, 2048);
 
       expect(status).toEqual({
         mqttBroker: 'running',
@@ -95,6 +95,7 @@ describe('SystemMonitor', () => {
         driversTotal: 10,
         hubIp: '192.168.1.100',
         eventsProcessed: 1000,
+        eventLogSizeBytes: 2048,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '2.0.0',
         udpMessagesSent: 0,
@@ -107,7 +108,7 @@ describe('SystemMonitor', () => {
     it('should show stopped/inactive services when network is unavailable', () => {
       mockGetLocalIP.mockReturnValue('127.0.0.1');
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status).toEqual({
         mqttBroker: 'stopped',
@@ -117,6 +118,7 @@ describe('SystemMonitor', () => {
         driversTotal: 0,
         hubIp: 'Unknown',
         eventsProcessed: 0,
+        eventLogSizeBytes: 0,
         hubStartTime: expect.any(Number),
         currentFirmwareVersion: '1.0.0', // From beforeEach default
         udpMessagesSent: 0,
@@ -129,14 +131,14 @@ describe('SystemMonitor', () => {
     it('should omit firmwareVersion when getCurrentVersion returns null', () => {
       mockGetCurrentVersion.mockReturnValue(null);
 
-      const status = systemMonitor.getSystemStatus(1, 2, 50);
+      const status = systemMonitor.getSystemStatus(1, 2, 50, 0);
 
       expect(status.currentFirmwareVersion).toBeUndefined();
     });
 
     it('should preserve hubStartTime across calls', () => {
-      const status1 = systemMonitor.getSystemStatus(1, 2, 100);
-      const status2 = systemMonitor.getSystemStatus(2, 3, 200);
+      const status1 = systemMonitor.getSystemStatus(1, 2, 100, 0);
+      const status2 = systemMonitor.getSystemStatus(2, 3, 200, 0);
 
       expect(status1.hubStartTime).toBe(status2.hubStartTime);
     });
@@ -147,14 +149,14 @@ describe('SystemMonitor', () => {
         { errorType: 'interceptor' as const, message: 'Test error 2', timestamp: 2000 },
       ];
 
-      const status = systemMonitor.getSystemStatus(1, 2, 100, errors);
+      const status = systemMonitor.getSystemStatus(1, 2, 100, 0, errors);
 
       expect(status.systemErrors).toEqual(errors);
       expect(status.systemErrors).toHaveLength(2);
     });
 
     it('should default to empty array when no errors provided', () => {
-      const status = systemMonitor.getSystemStatus(1, 2, 100);
+      const status = systemMonitor.getSystemStatus(1, 2, 100, 0);
 
       expect(status.systemErrors).toEqual([]);
     });
@@ -212,7 +214,7 @@ describe('SystemMonitor', () => {
       systemMonitor.trackUdpSent('driver-1', true);
       systemMonitor.trackUdpSent('driver-1', true);
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpMessagesSent).toBe(3);
       expect(status.udpMessagesFailed).toBe(0);
@@ -222,7 +224,7 @@ describe('SystemMonitor', () => {
       systemMonitor.trackUdpSent('driver-1', false);
       systemMonitor.trackUdpSent('driver-1', false);
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpMessagesSent).toBe(0);
       expect(status.udpMessagesFailed).toBe(2);
@@ -248,7 +250,7 @@ describe('SystemMonitor', () => {
       systemMonitor.trackUdpSent('driver-2', true);
       systemMonitor.trackUdpSent('driver-3', false);
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpMessagesSent).toBe(3);
       expect(status.udpMessagesFailed).toBe(2);
@@ -266,7 +268,7 @@ describe('SystemMonitor', () => {
       systemMonitor.trackUdpSent('driver-2', true);
       systemMonitor.trackUdpSent('driver-2', false);
 
-      const status = systemMonitor.getSystemStatus(0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpStatsByDriver).toEqual({
         'driver-1': { sent: 2, failed: 0 },

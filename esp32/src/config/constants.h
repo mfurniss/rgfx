@@ -129,6 +129,12 @@ constexpr unsigned long UPTIME_UPDATE_INTERVAL = 5000;  // 5 seconds
  */
 constexpr unsigned long FLASH_DURATION_MS = 10;  // 10 milliseconds
 
+/** Onboard LED GPIO pin for status indication */
+constexpr int ONBOARD_LED_PIN = 2;
+
+/** Onboard LED flash duration for network events (milliseconds) */
+constexpr unsigned long INDICATOR_FLASH_MS = 20;
+
 // ============================================================================
 // Hardware Limits Configuration
 // ============================================================================

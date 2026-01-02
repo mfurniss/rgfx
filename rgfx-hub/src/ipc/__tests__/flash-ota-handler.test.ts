@@ -57,10 +57,7 @@ vi.mock('esp-ota', () => ({
 describe('registerFlashOtaHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockDriver: Driver;
-  let registeredHandler: (
-    event: unknown,
-    driverId: string,
-  ) => Promise<{ success: boolean; error?: string }>;
+  let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -76,13 +73,7 @@ describe('registerFlashOtaHandler', () => {
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (
-        _channel: string,
-        handler: (
-          event: unknown,
-          driverId: string,
-        ) => Promise<{ success: boolean; error?: string }>,
-      ) => {
+      (_channel: string, handler: (event: unknown, driverId: string) => Promise<void>) => {
         registeredHandler = handler;
       },
     );
@@ -100,53 +91,45 @@ describe('registerFlashOtaHandler', () => {
   });
 
   describe('driver validation', () => {
-    it('should return error for non-existent driver', async () => {
+    it('should throw error for non-existent driver', async () => {
       mockDriverRegistry.getDriver.mockReturnValue(undefined);
 
-      const result = await registeredHandler({}, 'unknown-driver');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Driver not found');
+      await expect(registeredHandler({}, 'unknown-driver')).rejects.toThrow('Driver not found');
     });
 
-    it('should return error for disconnected driver', async () => {
+    it('should throw error for disconnected driver', async () => {
       mockDriver.state = 'disconnected';
       mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-      const result = await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Driver is not connected');
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
+        'Driver is not connected',
+      );
     });
 
-    it('should return error if driver has no IP address', async () => {
+    it('should throw error if driver has no IP address', async () => {
       mockDriver.ip = undefined;
       mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-      const result = await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Driver IP address not available');
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
+        'Driver IP address not available',
+      );
     });
   });
 
   describe('firmware file validation', () => {
-    it('should return error if firmware file not found', async () => {
+    it('should throw error if firmware file not found', async () => {
       const fs = await import('fs');
       (fs.existsSync as Mock).mockReturnValue(false);
 
-      const result = await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Firmware file not found');
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
+        'Firmware file not found',
+      );
     });
   });
 
   describe('OTA upload', () => {
-    it('should return success on successful upload', async () => {
-      const result = await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(result.success).toBe(true);
+    it('should complete without throwing on successful upload', async () => {
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
     });
 
     it('should emit driver:disconnected with restarting reason on success', async () => {
@@ -182,24 +165,20 @@ describe('registerFlashOtaHandler', () => {
   });
 
   describe('error handling', () => {
-    it('should not throw, returns error object instead', async () => {
+    it('should throw for non-existent driver', async () => {
       mockDriverRegistry.getDriver.mockReturnValue(undefined);
 
-      await expect(registeredHandler({}, 'unknown-driver')).resolves.toEqual({
-        success: false,
-        error: 'Driver not found',
-      });
+      await expect(registeredHandler({}, 'unknown-driver')).rejects.toThrow('Driver not found');
     });
 
-    it('should handle Error objects correctly', async () => {
+    it('should propagate Error objects correctly', async () => {
       mockDriverRegistry.getDriver.mockImplementation(() => {
         throw new Error('Custom error message');
       });
 
-      const result = await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Custom error message');
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
+        'Custom error message',
+      );
     });
   });
 
@@ -285,10 +264,8 @@ describe('registerFlashOtaHandler', () => {
         .mockReturnValueOnce(originalDriver)
         .mockReturnValueOnce(undefined);
 
-      const result = await registeredHandler({}, 'rgfx-driver-0001');
-
-      // Should still succeed (driver just disappeared)
-      expect(result.success).toBe(true);
+      // Should still complete without throwing (driver just disappeared)
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
       // Should not emit driver:disconnected since driver no longer exists
       expect(eventBus.emit).not.toHaveBeenCalledWith(
         'driver:disconnected',

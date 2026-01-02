@@ -50,8 +50,42 @@ local function file_exists(path)
 	return false
 end
 
+-- Valid topic: 1-4 segments of lowercase alphanumeric, hyphens, underscores
+-- Examples: "pacman/player/score", "smb/sfx/jump", "rgfx/interceptor/error"
+local function is_valid_topic(topic)
+	if type(topic) ~= "string" or topic == "" then
+		return false
+	end
+	-- Pattern: one or more segments separated by /
+	-- Each segment: lowercase letters, numbers, hyphens, underscores
+	-- Max 4 segments
+	local segment_count = 0
+	for segment in string.gmatch(topic, "[^/]+") do
+		segment_count = segment_count + 1
+		-- Check segment only contains valid characters (lowercase, numbers, hyphen, underscore)
+		if not string.match(segment, "^[a-z0-9_%-]+$") then
+			return false
+		end
+	end
+	-- Must have 1-4 segments and no empty segments (double slashes)
+	if segment_count < 1 or segment_count > 4 then
+		return false
+	end
+	-- Check for leading/trailing slashes or double slashes
+	if string.match(topic, "^/") or string.match(topic, "/$") or string.match(topic, "//") then
+		return false
+	end
+	return true
+end
+
 -- Global event function for use in game scripts
 function _G.event(topic, message)
+	-- Validate topic format before writing
+	if not is_valid_topic(topic) then
+		print(string.format("ERROR: Invalid topic format: %s", tostring(topic)))
+		return
+	end
+
 	-- Periodically verify file still exists on disk
 	local now = os.time()
 	if now - last_file_check >= FILE_CHECK_INTERVAL then

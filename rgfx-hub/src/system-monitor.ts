@@ -82,6 +82,7 @@ export class SystemMonitor {
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
+    eventLogSizeBytes: number,
     errors: SystemError[] = [],
   ): SystemStatus {
     const hubIp = this.getLocalIpAddress();
@@ -104,6 +105,7 @@ export class SystemMonitor {
       driversTotal: totalDriverCount,
       hubIp,
       eventsProcessed,
+      eventLogSizeBytes,
       hubStartTime: this.hubStartTime,
       currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
       udpMessagesSent,

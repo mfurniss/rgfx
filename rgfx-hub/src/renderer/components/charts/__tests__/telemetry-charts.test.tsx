@@ -9,7 +9,7 @@ import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TelemetryCharts from '../telemetry-charts';
-import { useTelemetryHistoryStore, type TelemetryDataPoint } from '../../../store/telemetry-history-store';
+import { useTelemetryHistoryStore, type TelemetryDataPoint } from '@/renderer/store/telemetry-history-store';
 
 // ResizeObserver and getComputedStyle are provided by the global test setup
 

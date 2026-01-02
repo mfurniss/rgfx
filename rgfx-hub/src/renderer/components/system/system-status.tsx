@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Paper, Grid } from '@mui/material';
 import type { SystemStatus as SystemStatusType } from '@/types';
 import SystemStatusItem from './system-status-item';
-import { formatNumber, formatUptime } from '../../utils/formatters';
+import { formatBytes, formatNumber, formatUptime } from '@/renderer/utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
-import { useAppInfoStore } from '../../store/app-info-store';
+import { useAppInfoStore } from '@/renderer/store/app-info-store';
 
 interface SystemStatusProps {
   status: SystemStatusType;
@@ -38,6 +38,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     { name: 'MQTT Broker', value: status.mqttBroker },
     { name: 'UDP Server', value: status.udpServer },
     { name: 'Event Reader', value: status.eventReader },
+    { name: 'Event Log', value: formatBytes(status.eventLogSizeBytes) },
     {
       name: 'Drivers Connected',
       value: `${formatNumber(status.driversConnected)} of ${formatNumber(status.driversTotal)}`,

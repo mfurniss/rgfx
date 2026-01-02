@@ -6,7 +6,7 @@
  */
 
 import { merge } from 'lodash-es';
-import { createDriver, type Driver, type DriverInput } from '../../types';
+import { createDriver, type Driver, type DriverInput } from '@/types';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
