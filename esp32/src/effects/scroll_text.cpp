@@ -77,7 +77,7 @@ void ScrollTextEffect::update(float deltaTime) {
 	for (auto it = instances.begin(); it != instances.end();) {
 		it->scrollX -= it->speed * deltaTime;
 
-		int16_t textWidth = it->textLen * CHAR_WIDTH;
+		int16_t textWidth = it->textLen * TEXT_CHAR_WIDTH;
 		if (it->scrollX + textWidth < 0) {
 			if (it->repeat) {
 				it->scrollX = static_cast<float>(canvas.getWidth());
@@ -122,7 +122,7 @@ void ScrollTextEffect::render() {
 			for (uint8_t i = 0; i < inst.textLen; i++) {
 				renderChar(canvas, inst.text[i], ax + ACCENT_OFFSET, inst.y + ACCENT_OFFSET,
 				           inst.accentR, inst.accentG, inst.accentB, BlendMode::REPLACE);
-				ax += CHAR_WIDTH;
+				ax += TEXT_CHAR_WIDTH;
 			}
 		}
 
@@ -147,7 +147,7 @@ void ScrollTextEffect::render() {
 			}
 
 			renderChar(canvas, inst.text[i], x, inst.y, r, g, b, BlendMode::REPLACE);
-			x += CHAR_WIDTH;
+			x += TEXT_CHAR_WIDTH;
 		}
 	}
 }
