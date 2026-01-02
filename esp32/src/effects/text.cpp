@@ -11,22 +11,22 @@ namespace {
 	void getWrappedPosition(int16_t startX, int16_t startY,
 	                        uint8_t charIndex, uint16_t canvasWidth,
 	                        int16_t& outX, int16_t& outY) {
-		int16_t firstRowChars = (canvasWidth - startX) / CHAR_WIDTH;
+		int16_t firstRowChars = (canvasWidth - startX) / TEXT_CHAR_WIDTH;
 		if (firstRowChars < 0) firstRowChars = 0;
 
 		if (charIndex < firstRowChars) {
-			outX = startX + (charIndex * CHAR_WIDTH);
+			outX = startX + (charIndex * TEXT_CHAR_WIDTH);
 			outY = startY;
 		} else {
-			int16_t charsPerFullRow = canvasWidth / CHAR_WIDTH;
+			int16_t charsPerFullRow = canvasWidth / TEXT_CHAR_WIDTH;
 			if (charsPerFullRow < 1) charsPerFullRow = 1;
 
 			int16_t remainingChars = charIndex - firstRowChars;
 			int16_t additionalRows = 1 + (remainingChars / charsPerFullRow);
 			int16_t colInRow = remainingChars % charsPerFullRow;
 
-			outX = colInRow * CHAR_WIDTH;
-			outY = startY + (additionalRows * CHAR_HEIGHT);
+			outX = colInRow * TEXT_CHAR_WIDTH;
+			outY = startY + (additionalRows * TEXT_CHAR_HEIGHT);
 		}
 	}
 }  // namespace
@@ -143,7 +143,7 @@ void TextEffect::render() {
 		// Calculate effective x position based on alignment
 		int16_t effectiveX = inst.x;
 		if (inst.align != TextAlign::LEFT) {
-			int16_t textWidthCanvas = inst.textLen * CHAR_WIDTH;
+			int16_t textWidthCanvas = inst.textLen * TEXT_CHAR_WIDTH;
 			if (inst.align == TextAlign::CENTER) {
 				effectiveX = (static_cast<int16_t>(canvasWidth) - textWidthCanvas) / 2;
 			} else {  // RIGHT
