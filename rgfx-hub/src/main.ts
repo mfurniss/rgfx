@@ -24,6 +24,7 @@ import { MqttClientWrapper } from './transformer/mqtt-client-wrapper';
 import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
 import { installDefaultTransformers } from './transformer-installer';
+import { loadGif } from './gif-loader';
 import { installDefaultInterceptors } from './interceptor-installer';
 import { installDefaultLedHardware } from './led-hardware-installer';
 import {
@@ -176,6 +177,7 @@ const transformerEngine = new TransformerEngine({
   state: stateStore,
   log: logger,
   drivers: driverRegistry,
+  loadGif,
 });
 
 // Event statistics tracking

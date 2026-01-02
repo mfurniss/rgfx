@@ -70,13 +70,10 @@ function TabPanel({ children, value, index }: TabPanelProps) {
   );
 }
 
-function generateBroadcastCode(
-  effect: string,
-  props: Record<string, unknown>,
-  drivers: string[],
-  isAllDrivers: boolean,
-): string {
-  const formatValue = (value: unknown, indent: number): string => {
+type ValueFormatter = (value: unknown, indent: number) => string;
+
+function createValueFormatter(): ValueFormatter {
+  const formatValue: ValueFormatter = (value: unknown, indent: number): string => {
     const spaces = '  '.repeat(indent);
 
     if (value === null) {
@@ -123,6 +120,85 @@ function generateBroadcastCode(
     return JSON.stringify(value);
   };
 
+  return formatValue;
+}
+
+function generateGifBitmapCode(
+  gifPath: string,
+  props: Record<string, unknown>,
+  drivers: string[],
+  isAllDrivers: boolean,
+  formatValue: ValueFormatter,
+): string {
+  // Get other props excluding images, palette, frameRate, and __gifPath (which come from GIF)
+  const otherProps: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(props)) {
+    if (!['images', 'palette', 'frameRate', '__gifPath'].includes(key)) {
+      otherProps[key] = value;
+    }
+  }
+
+  const lines = [
+    '// Load the GIF sprite (cache at module level for performance)',
+    'let sprite = null;',
+    '',
+    'export async function handle({ subject, property }, payload, { broadcast, loadGif }) {',
+    '  // Lazy load the sprite',
+    '  if (!sprite) {',
+    `    sprite = await loadGif('${gifPath}');`,
+    '  }',
+    '',
+    '  // Example: trigger on a specific event',
+    '  if (subject === \'player\' && property === \'powerup\') {',
+    '    return broadcast({',
+    "      effect: 'bitmap',",
+  ];
+
+  // Add drivers if targeting specific drivers
+  if (!isAllDrivers && drivers.length > 0) {
+    lines.push(`      drivers: ${formatValue(drivers, 2)},`);
+  }
+
+  lines.push('      props: {');
+  lines.push('        images: sprite.images,');
+  lines.push('        palette: sprite.palette,');
+  lines.push('        ...(sprite.frameRate && { frameRate: sprite.frameRate }),');
+
+  // Add other props
+  for (const [key, value] of Object.entries(otherProps)) {
+    lines.push(`        ${key}: ${formatValue(value, 3)},`);
+  }
+
+  lines.push('      },');
+  lines.push('    });');
+  lines.push('  }');
+  lines.push('}');
+
+  return lines.join('\n');
+}
+
+function generateBroadcastCode(
+  effect: string,
+  props: Record<string, unknown>,
+  drivers: string[],
+  isAllDrivers: boolean,
+): string {
+  const formatValue = createValueFormatter();
+
+  // Check if this is a bitmap effect with a loaded GIF
+  const gifPath = props.__gifPath as string | undefined;
+  const isGifBitmap = effect === 'bitmap' && gifPath;
+
+  if (isGifBitmap) {
+    // Generate loadGif-based code for GIF bitmaps
+    return generateGifBitmapCode(gifPath, props, drivers, isAllDrivers, formatValue);
+  }
+
+  // Strip internal markers before generating code
+  const cleanProps = { ...props };
+  delete cleanProps.__gifPath;
+
   const lines = [
     'broadcast({',
     `  effect: '${effect}',`,
@@ -133,7 +209,7 @@ function generateBroadcastCode(
     lines.push(`  drivers: ${formatValue(drivers, 1)},`);
   }
 
-  lines.push(`  props: ${formatValue(props, 1)},`);
+  lines.push(`  props: ${formatValue(cleanProps, 1)},`);
   lines.push('});');
 
   return lines.join('\n');
@@ -269,9 +345,13 @@ export default function TestEffectsPage() {
     void (async () => {
       try {
         const props = JSON.parse(propsJson) as Record<string, unknown>;
+        // Strip internal markers before sending to driver
+        const cleanProps = { ...props };
+        delete cleanProps.__gifPath;
+
         const payload: EffectPayload = {
           effect: selectedEffect,
-          props,
+          props: cleanProps,
           drivers: Array.from(selectedDrivers),
         };
 
