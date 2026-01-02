@@ -11,10 +11,10 @@ import log from 'electron-log/main';
 
 const FILE_NOT_FOUND_ERROR = 'File does not exist';
 
-export async function openFile(filePath: string): Promise<{ success: boolean; error?: string }> {
+export async function openFile(filePath: string): Promise<void> {
   if (!fs.existsSync(filePath)) {
     log.warn(`${FILE_NOT_FOUND_ERROR}: ${filePath}`);
-    return { success: false, error: FILE_NOT_FOUND_ERROR };
+    throw new Error(FILE_NOT_FOUND_ERROR);
   }
 
   log.info(`Opening file: ${filePath}`);
@@ -22,10 +22,8 @@ export async function openFile(filePath: string): Promise<{ success: boolean; er
 
   if (result) {
     log.error(`Failed to open file: ${result}`);
-    return { success: false, error: result };
+    throw new Error(result);
   }
-
-  return { success: true };
 }
 
 export function registerOpenFileHandler(): void {

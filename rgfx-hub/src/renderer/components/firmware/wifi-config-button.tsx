@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { SettingsInputAntenna as ConfigWifiIcon } from '@mui/icons-material';
 import SuperButton from '../common/super-button';
 import WifiConfigDialog from './wifi-config-dialog';
-import { sendWifiCommandToPort } from '../../utils/serial-wifi';
+import { sendWifiCommandToPort } from '@/renderer/utils/serial-wifi';
 
 interface WifiConfigButtonProps {
   getPort: (() => Promise<SerialPort>) | null;

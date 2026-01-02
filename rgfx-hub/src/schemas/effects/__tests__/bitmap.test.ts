@@ -26,7 +26,9 @@ describe('bitmapSchema', () => {
         expect(result.data.easing).toBe('quadraticInOut');
         expect(result.data.fadeIn).toBe(300);
         expect(result.data.fadeOut).toBe(300);
-        expect(result.data.image).toHaveLength(16);
+        expect(result.data.frameRate).toBe(2);
+        expect(result.data.images).toHaveLength(1);
+        expect(result.data.images[0]).toHaveLength(16);
         expect(result.data.palette).toHaveLength(16);
       }
     });
@@ -37,14 +39,16 @@ describe('bitmapSchema', () => {
         centerX: 0,
         centerY: 100,
         duration: 1000,
-        image: ['ABC', ' B ', 'ABC'],
+        frameRate: 4,
+        images: [['ABC', ' B ', 'ABC']],
       };
 
       const result = bitmapSchema.safeParse(data);
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.image).toEqual(['ABC', ' B ', 'ABC']);
+        expect(result.data.images).toEqual([['ABC', ' B ', 'ABC']]);
+        expect(result.data.frameRate).toBe(4);
       }
     });
   });
@@ -213,36 +217,105 @@ describe('bitmapSchema', () => {
     });
   });
 
-  describe('image validation', () => {
-    it('should accept valid image array', () => {
+  describe('images validation', () => {
+    it('should accept single frame array', () => {
       const result = bitmapSchema.safeParse({
-        image: ['A B', ' A ', 'A B'],
+        images: [['A B', ' A ', 'A B']],
+      });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.images).toHaveLength(1);
+        expect(result.data.images[0]).toEqual(['A B', ' A ', 'A B']);
+      }
+    });
+
+    it('should accept multiple frames', () => {
+      const result = bitmapSchema.safeParse({
+        images: [
+          ['ABC', 'DEF'],
+          ['123', '456'],
+        ],
+      });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.images).toHaveLength(2);
+      }
+    });
+
+    it('should accept frames with different sizes', () => {
+      const result = bitmapSchema.safeParse({
+        images: [
+          ['A', 'B'],
+          ['ABCDEF', 'GHIJKL'],
+        ],
       });
       expect(result.success).toBe(true);
     });
 
-    it('should accept empty image array', () => {
-      const result = bitmapSchema.safeParse({ image: [] });
+    it('should accept empty images array', () => {
+      const result = bitmapSchema.safeParse({ images: [] });
       expect(result.success).toBe(true);
     });
 
-    it('should accept single row image', () => {
-      const result = bitmapSchema.safeParse({ image: ['ABCDEF01'] });
+    it('should accept single row frame', () => {
+      const result = bitmapSchema.safeParse({ images: [['ABCDEF01']] });
       expect(result.success).toBe(true);
     });
 
-    it('should reject non-string array elements', () => {
-      const result = bitmapSchema.safeParse({ image: [123, 456] });
+    it('should reject non-string array elements in frame', () => {
+      const result = bitmapSchema.safeParse({ images: [[123, 456]] });
       expect(result.success).toBe(false);
     });
 
-    it('should use default Bub sprite image when not specified', () => {
+    it('should use default Bub sprite wrapped in array when not specified', () => {
       const result = bitmapSchema.safeParse({});
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.image[0]).toContain('A');
-        expect(result.data.image).toHaveLength(16);
+        expect(result.data.images).toHaveLength(1);
+        expect(result.data.images[0]).toHaveLength(16);
+        expect(result.data.images[0][0]).toContain('A');
+      }
+    });
+  });
+
+  describe('frameRate validation', () => {
+    it('should default to 2 FPS', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.frameRate).toBe(2);
+      }
+    });
+
+    it('should accept custom frame rate', () => {
+      const result = bitmapSchema.safeParse({ frameRate: 10 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.frameRate).toBe(10);
+      }
+    });
+
+    it('should reject zero frame rate', () => {
+      const result = bitmapSchema.safeParse({ frameRate: 0 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject negative frame rate', () => {
+      const result = bitmapSchema.safeParse({ frameRate: -1 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept fractional frame rate', () => {
+      const result = bitmapSchema.safeParse({ frameRate: 0.5 });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.frameRate).toBe(0.5);
       }
     });
   });
@@ -288,7 +361,7 @@ describe('bitmapSchema', () => {
   describe('strict mode', () => {
     it('should reject unknown properties', () => {
       const result = bitmapSchema.safeParse({
-        image: ['ABC'],
+        images: [['ABC']],
         scale: 2,
       });
       expect(result.success).toBe(false);

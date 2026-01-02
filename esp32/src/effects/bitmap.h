@@ -8,12 +8,18 @@
 
 class BitmapEffect : public IEffect {
    private:
+	// Animation frame with its own pixel data and dimensions
+	struct Frame {
+		std::vector<CRGBA> pixels;  // Pre-computed RGBA pixels, row-major order
+		uint8_t width;              // Frame width in pixels
+		uint8_t height;             // Frame height in pixels
+	};
+
 	struct Bitmap {
 		uint32_t duration;               // Total duration in milliseconds
 		uint32_t elapsedTime;            // Elapsed time in milliseconds
-		std::vector<CRGBA> pixels;       // Pre-computed RGBA pixels, row-major order
-		uint8_t imageWidth;              // Width in pixels
-		uint8_t imageHeight;             // Height in pixels
+		std::vector<Frame> frames;       // Animation frames
+		uint8_t frameRate;               // Frames per second (default 2)
 		float centerX;                   // Center X position in canvas coords (snapped to LED)
 		float centerY;                   // Center Y position in canvas coords (snapped to LED)
 		float endX;                      // End X position in canvas coords (snapped to LED)
@@ -23,6 +29,13 @@ class BitmapEffect : public IEffect {
 		uint32_t fadeInMs;               // Fade in duration in milliseconds (0 = disabled)
 		uint32_t fadeOutMs;              // Fade out duration in milliseconds (0 = disabled)
 		uint32_t remaining() const { return duration - elapsedTime; }
+
+		// Get current frame index based on elapsed time and frame rate
+		size_t currentFrameIndex() const {
+			if (frames.size() <= 1 || frameRate == 0) return 0;
+			uint32_t frameDurationMs = 1000 / frameRate;
+			return (elapsedTime / frameDurationMs) % frames.size();
+		}
 	};
 
 	std::vector<Bitmap> bitmaps;

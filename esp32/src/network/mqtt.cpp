@@ -54,6 +54,7 @@ static bool topicsInitialized = false;
 // Forward declarations
 void handleDriverConfig(const String& payload);
 extern EffectProcessor* effectProcessor;
+extern std::atomic<bool> mqttEventReceived;
 
 // Pending operations for deferred processing (set in callback, processed in loop)
 // The arduino-mqtt library is not reentrant - heavy operations in callbacks corrupt state
@@ -97,6 +98,7 @@ static void initMQTTTopics() {
 // Queue work here, process it in processPendingMqttOperations().
 void mqttCallback(String& topic, String& payload) {
 	mqttMessagesReceived++;  // Increment counter for ALL MQTT messages
+	mqttEventReceived = true;  // Signal Core 1 to flash indicator
 	log("MQTT RX: " + topic + " (length: " + String(payload.length()) + " bytes)");
 
 	// Handle driver configuration - queue for deferred processing

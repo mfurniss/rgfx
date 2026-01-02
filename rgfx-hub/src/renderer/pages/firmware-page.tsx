@@ -1,3 +1,10 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -16,14 +23,23 @@ import WifiConfigButton from '../components/firmware/wifi-config-button';
 import WifiConfigOtaButton from '../components/firmware/wifi-config-ota-button';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
 import SuperButton from '../components/common/super-button';
-import { Upload as FlashIcon, Usb as UsbIcon, Wifi as WifiIcon, Memory as FirmwareIcon } from '@mui/icons-material';
+import {
+  Upload as FlashIcon,
+  Usb as UsbIcon,
+  Wifi as WifiIcon,
+  Memory as FirmwareIcon,
+} from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
-import { ESPLoader, Transport } from 'esptool-js';
 import { useDriverStore } from '../store/driver-store';
 import { useSystemStatusStore } from '../store/system-status-store';
 import { useUiStore, type FlashMethod, type DriverFlashStatus } from '../store/ui-store';
-import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
-import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
+import { useFlashState } from '../hooks/use-flash-state';
+import { flashViaUSB } from '../services/usb-flash-service';
+import {
+  flashViaOTA,
+  getDriversToFlash,
+  generateResultMessage,
+} from '../services/ota-flash-service';
 
 const FirmwarePage: React.FC = () => {
   // Driver store
@@ -46,38 +62,25 @@ const FirmwarePage: React.FC = () => {
   const isFlashing = useUiStore((state) => state.isFlashingFirmware);
   const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
 
-  // Local state
+  // Flash state from hook
+  const flashState = useFlashState(new Map(Object.entries(storedDriverFlashStatus)));
+
+  // Local UI state
   const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(() =>
-    new Set(driversNeedingUpdate.map((d) => d.id)),
+  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
+    () => new Set(driversNeedingUpdate.map((d) => d.id)),
   );
   const [selectAll, setSelectAll] = useState(
     () => driversNeedingUpdate.length === connectedDrivers.length && connectedDrivers.length > 0,
   );
-  const [progress, setProgress] = useState(0);
-  const [driverFlashStatus, setDriverFlashStatus] = useState<Map<string, DriverFlashStatus>>(
-    () => new Map(Object.entries(storedDriverFlashStatus)),
-  );
-  const [logMessages, setLogMessages] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [resultModal, setResultModal] = useState<{
-    open: boolean;
-    success: boolean;
-    message: string;
-  }>({ open: false, success: false, message: '' });
   const [confirmModal, setConfirmModal] = useState(false);
-
-  const addLog = (message: string) => {
-    console.log('>', message);
-    setLogMessages((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
-  };
 
   // Subscribe to OTA flash events
   useEffect(() => {
     const unsubscribeState = window.rgfx.onFlashOtaState(
       ({ driverId, state }: { driverId: string; state: string }): void => {
-        addLog(`[${driverId}] OTA state: ${state}`);
+        flashState.addLog(`[${driverId}] OTA state: ${state}`);
       },
     );
 
@@ -90,7 +93,7 @@ const FirmwarePage: React.FC = () => {
       }): void => {
         const { driverId, percent, sent, total } = progressData;
 
-        setDriverFlashStatus((prev) => {
+        flashState.setDriverFlashStatus((prev) => {
           const next = new Map(prev);
           const current = next.get(driverId);
 
@@ -99,7 +102,7 @@ const FirmwarePage: React.FC = () => {
           }
           return next;
         });
-        addLog(`[${driverId}] OTA progress: ${percent}% (${sent}/${total} bytes)`);
+        flashState.addLog(`[${driverId}] OTA progress: ${percent}% (${sent}/${total} bytes)`);
       },
     );
 
@@ -107,7 +110,7 @@ const FirmwarePage: React.FC = () => {
       unsubscribeState();
       unsubscribeProgress();
     };
-  }, []);
+  }, [flashState]);
 
   // Reset port selection when switching methods
   useEffect(() => {
@@ -123,331 +126,81 @@ const FirmwarePage: React.FC = () => {
 
   // Sync driver flash status to store
   useEffect(() => {
-    setFirmwareDriverFlashStatus(Object.fromEntries(driverFlashStatus));
-  }, [driverFlashStatus, setFirmwareDriverFlashStatus]);
+    setFirmwareDriverFlashStatus(Object.fromEntries(flashState.driverFlashStatus));
+  }, [flashState.driverFlashStatus, setFirmwareDriverFlashStatus]);
 
   const handlePortSelect = (portGetter: (() => Promise<SerialPort>) | null) => {
     setGetPort(() => portGetter);
   };
 
-  const flashViaUSB = async () => {
+  const handleFlashViaUSB = async () => {
     if (!getPort) {
-      setError('No port selected');
+      flashState.setError('No port selected');
       return;
     }
 
-    let portToFlash: SerialPort | undefined;
-    let transport: Transport | null = null;
+    setIsFlashing(true);
+    flashState.resetForNewFlash();
 
-    try {
-      setIsFlashing(true);
-      setError(null);
-      setProgress(0);
-      setLogMessages([]);
+    const result = await flashViaUSB(getPort, {
+      onLog: flashState.addLog,
+      onProgress: flashState.setProgress,
+    });
 
-      // Load firmware manifest via IPC
-      addLog('Loading firmware manifest...');
-      const manifestJson: unknown = await window.rgfx.getFirmwareManifest();
-      const manifestResult = FirmwareManifestSchema.safeParse(manifestJson);
-
-      if (!manifestResult.success) {
-        throw new Error(`Invalid firmware manifest: ${manifestResult.error.message}`);
-      }
-      const manifest: FirmwareManifest = manifestResult.data;
-      const firmwareVersion = manifest.version;
-      addLog(`Firmware version: ${firmwareVersion}`);
-      addLog(`Files to flash: ${manifest.files.length}`);
-
-      // Load and verify firmware files
-      addLog('Loading and verifying firmware files...');
-      const fileArray: { data: string; address: number }[] = [];
-
-      for (const fileInfo of manifest.files) {
-        // Load firmware file via IPC (returns Node.js Buffer)
-        const nodeBuffer = await window.rgfx.getFirmwareFile(fileInfo.name);
-        // Convert Node.js Buffer to Uint8Array then to ArrayBuffer
-        const uint8Array = new Uint8Array(nodeBuffer);
-        const { buffer } = uint8Array;
-
-        // Verify size
-        if (buffer.byteLength !== fileInfo.size) {
-          throw new Error(
-            `Size mismatch for ${fileInfo.name}: expected ${fileInfo.size}, got ${buffer.byteLength}`,
-          );
-        }
-
-        // Verify checksum
-        const checksum = await sha256(buffer);
-
-        if (checksum !== fileInfo.sha256) {
-          throw new Error(
-            `Checksum mismatch for ${fileInfo.name}: expected ${fileInfo.sha256.substring(0, 16)}..., got ${checksum.substring(0, 16)}...`,
-          );
-        }
-
-        addLog(`  ✓ ${fileInfo.name} (${fileInfo.size} bytes, checksum verified)`);
-
-        // Convert to binary string for esptool-js
-        const binaryString = arrayBufferToBinaryString(buffer);
-        fileArray.push({
-          data: binaryString,
-          address: fileInfo.address,
-        });
-      }
-
-      addLog('All files verified successfully');
-
-      // Find the largest file (app binary) for progress reporting
-      const largestFileIndex = fileArray.reduce(
-        (maxIdx, file, idx, arr) => (file.data.length > arr[maxIdx].data.length ? idx : maxIdx),
-        0,
+    if (result.success) {
+      flashState.setProgress(100);
+      flashState.showResult(
+        true,
+        `Firmware v${result.firmwareVersion} flashed successfully! The device has been reset.`,
       );
-
-      // Get fresh, clean port from selector
-      portToFlash = await getPort();
-
-      addLog('Initializing ESP loader (will open port)...');
-      transport = new Transport(portToFlash, true);
-
-      const loader = new ESPLoader({
-        transport,
-        baudrate: 921600,
-        romBaudrate: 115200,
-        terminal: {
-          clean() {
-            // Terminal clean
-          },
-          writeLine(data: string) {
-            // Filter out verbose logs
-            if (
-              data.startsWith('TRACE') ||
-              data.startsWith('Write bytes') ||
-              data.includes('bytes:') ||
-              /^\s*[0-9a-f]{16}\s+[0-9a-f]{16}\s+\|/.test(data) // hex dump lines
-            ) {
-              return;
-            }
-            addLog(data);
-          },
-          write(data: string) {
-            // Filter out verbose logs
-            if (
-              data.startsWith('TRACE') ||
-              data.startsWith('Write bytes') ||
-              data.includes('bytes:') ||
-              /^\s*[0-9a-f]{16}\s+[0-9a-f]{16}\s+\|/.test(data) // hex dump lines
-            ) {
-              return;
-            }
-            addLog(data);
-          },
-        },
-      });
-
-      addLog('Connecting to device...');
-      const chip = await loader.main();
-      addLog(`Connected to ${chip}`);
-
-      addLog('Starting flash operation...');
-      await loader.writeFlash({
-        fileArray,
-        flashSize: 'keep',
-        flashMode: 'dio',
-        flashFreq: '40m',
-        eraseAll: false,
-        compress: true,
-        reportProgress: (fileIndex, written, total) => {
-          // Only report progress for the largest file (app binary)
-          if (fileIndex === largestFileIndex) {
-            const progressPct = (written / total) * 100;
-            setProgress(Math.round(progressPct));
-          }
-
-          if (written === total) {
-            addLog(`File ${fileIndex + 1}/${fileArray.length} complete`);
-          }
-        },
-      });
-
-      addLog('Flash complete! Resetting device...');
-
-      // Manual hard reset with proper timing
-      // RTS is active-low and connected to EN via transistor circuit
-      // Setting RTS true (active) pulls EN low (chip in reset)
-      // Setting RTS false (inactive) releases EN high (chip boots)
-      await portToFlash.setSignals({ requestToSend: true });
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      await portToFlash.setSignals({ requestToSend: false });
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      addLog('Device reset complete');
-      addLog('Firmware flashed successfully via USB!');
-      setProgress(100);
-      setResultModal({
-        open: true,
-        success: true,
-        message: `Firmware v${firmwareVersion} flashed successfully! The device has been reset.`,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Flash failed: ${message}`);
-      addLog(`Error: ${message}`);
-      setResultModal({
-        open: true,
-        success: false,
-        message: `Flash failed: ${message}`,
-      });
-    } finally {
-      // Clean up transport and port to release serial port lock
-      try {
-        if (transport) {
-          addLog('Disconnecting transport...');
-          await transport.disconnect();
-        }
-      } catch {
-        // Ignore disconnect errors
-      }
-
-      try {
-        if (portToFlash) {
-          // Check if port is still open before closing
-          if (portToFlash.readable || portToFlash.writable) {
-            addLog('Closing serial port...');
-            await portToFlash.close();
-            addLog('Serial port closed');
-          }
-        }
-      } catch {
-        // Ignore close errors
-      }
-      setIsFlashing(false);
+    } else {
+      flashState.setError(`Flash failed: ${result.error}`);
+      flashState.showResult(false, `Flash failed: ${result.error}`);
     }
+
+    setIsFlashing(false);
   };
 
-  const flashViaOTA = async () => {
+  const handleFlashViaOTA = async () => {
     if (selectedDrivers.size === 0) {
-      setError('No drivers selected');
+      flashState.setError('No drivers selected');
       return;
     }
 
-    const driversToFlash = Array.from(selectedDrivers)
-      .map((id) => drivers.find((d) => d.id === id))
-      .filter((d): d is (typeof drivers)[0] => d?.state === 'connected');
+    const driversToFlash = getDriversToFlash(selectedDrivers, drivers);
 
     if (driversToFlash.length === 0) {
-      setError('No connected drivers selected');
+      flashState.setError('No connected drivers selected');
       return;
     }
 
+    if (!currentFirmwareVersion) {
+      flashState.setError('Firmware version not available');
+      return;
+    }
+
+    setIsFlashing(true);
+    flashState.resetForNewFlash();
+
     try {
-      setIsFlashing(true);
-      setError(null);
-      setProgress(0);
-      setLogMessages([]);
-
-      // Initialize status for all drivers
-      const initialStatus = new Map<string, DriverFlashStatus>();
-      driversToFlash.forEach((d) => {
-        initialStatus.set(d.id, { status: 'pending', progress: 0 });
-      });
-      setDriverFlashStatus(initialStatus);
-
-      if (!currentFirmwareVersion) {
-        throw new Error('Firmware version not available');
-      }
-      addLog(`Firmware version: ${currentFirmwareVersion}`);
-
-      addLog(`Starting OTA flash to ${driversToFlash.length} driver(s) in parallel...`);
-      driversToFlash.forEach((driver) => {
-        addLog(`  - ${driver.id} (${driver.ip})`);
-      });
-
-      // Flash all drivers in parallel
-      const results = await Promise.allSettled(
-        driversToFlash.map(async (driver) => {
-          setDriverFlashStatus((prev) => {
+      const result = await flashViaOTA(driversToFlash, currentFirmwareVersion, {
+        onLog: flashState.addLog,
+        onDriverStatusChange: (driverId: string, status: DriverFlashStatus) => {
+          flashState.setDriverFlashStatus((prev) => {
             const next = new Map(prev);
-            next.set(driver.id, { status: 'flashing', progress: 0 });
+            next.set(driverId, status);
             return next;
           });
+        },
+      });
 
-          const result = await window.rgfx.flashOTA(driver.id);
-
-          if (result.success) {
-            setDriverFlashStatus((prev) => {
-              const next = new Map(prev);
-              next.set(driver.id, { status: 'success', progress: 100 });
-              return next;
-            });
-            addLog(`[${driver.id}] Firmware flashed successfully!`);
-            return { driverId: driver.id, success: true };
-          } else {
-            const errorMsg = result.error ?? 'Unknown error';
-            setDriverFlashStatus((prev) => {
-              const next = new Map(prev);
-              next.set(driver.id, { status: 'error', progress: 0, error: errorMsg });
-              return next;
-            });
-            addLog(`[${driver.id}] Flash failed: ${errorMsg}`);
-            return { driverId: driver.id, success: false, error: errorMsg };
-          }
-        }),
-      );
-
-      // Process results
-      const successCount = results.filter(
-        (r) => r.status === 'fulfilled' && r.value.success,
-      ).length;
-      const failedResults = results.filter(
-        (r) => r.status === 'rejected' || !r.value.success,
-      );
-
-      setProgress(100);
-
-      if (failedResults.length === 0) {
-        setResultModal({
-          open: true,
-          success: true,
-          message: `Firmware v${currentFirmwareVersion} flashed successfully to ${successCount} driver(s)!`,
-        });
-      } else if (successCount > 0) {
-        const failedDrivers = failedResults
-          .map((r) => {
-            if (r.status === 'fulfilled') {
-              return `${r.value.driverId}: ${r.value.error}`;
-            }
-            return `Unknown: ${r.reason}`;
-          })
-          .join('\n');
-        setResultModal({
-          open: true,
-          success: false,
-          message: `Partial success: ${successCount} of ${driversToFlash.length} driver(s) flashed.\n\nFailed:\n${failedDrivers}`,
-        });
-      } else {
-        const failedDrivers = failedResults
-          .map((r) => {
-            if (r.status === 'fulfilled') {
-              return `${r.value.driverId}: ${r.value.error}`;
-            }
-            return `Unknown: ${r.reason}`;
-          })
-          .join('\n');
-        setResultModal({
-          open: true,
-          success: false,
-          message: `OTA flash failed for all drivers:\n${failedDrivers}`,
-        });
-      }
+      flashState.setProgress(100);
+      const { success, message } = generateResultMessage(result, currentFirmwareVersion);
+      flashState.showResult(success, message);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`OTA flash failed: ${message}`);
-      addLog(`Error: ${message}`);
-      setResultModal({
-        open: true,
-        success: false,
-        message: `OTA flash failed: ${message}`,
-      });
+      flashState.setError(`OTA flash failed: ${message}`);
+      flashState.showResult(false, `OTA flash failed: ${message}`);
     } finally {
       setIsFlashing(false);
     }
@@ -461,9 +214,9 @@ const FirmwarePage: React.FC = () => {
     setConfirmModal(false);
 
     if (flashMethod === 'usb') {
-      void flashViaUSB();
+      void handleFlashViaUSB();
     } else {
-      void flashViaOTA();
+      void handleFlashViaOTA();
     }
   };
 
@@ -511,7 +264,7 @@ const FirmwarePage: React.FC = () => {
           onChange={(_event, newMethod: FlashMethod | null) => {
             if (newMethod !== null) {
               setFlashMethod(newMethod);
-              setError(null);
+              flashState.setError(null);
             }
           }}
           fullWidth
@@ -562,7 +315,7 @@ const FirmwarePage: React.FC = () => {
                 drivers={drivers}
                 selectedDrivers={selectedDrivers}
                 disabled={isFlashing}
-                onLog={addLog}
+                onLog={flashState.addLog}
               />
             </Box>
           </>
@@ -579,8 +332,8 @@ const FirmwarePage: React.FC = () => {
                 <SerialPortSelector
                   disabled={isFlashing}
                   onPortSelect={handlePortSelect}
-                  onLog={addLog}
-                  onError={setError}
+                  onLog={flashState.addLog}
+                  onError={flashState.setError}
                 />
               </Box>
 
@@ -597,33 +350,29 @@ const FirmwarePage: React.FC = () => {
                 {isFlashing ? 'Updating...' : 'Update Firmware'}
               </SuperButton>
 
-              <WifiConfigButton
-                getPort={getPort}
-                disabled={isFlashing}
-                onLog={addLog}
-              />
+              <WifiConfigButton getPort={getPort} disabled={isFlashing} onLog={flashState.addLog} />
             </Box>
           </>
         )}
 
-        {error && (
+        {flashState.error && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {flashState.error}
           </Alert>
         )}
 
         {isFlashing && flashMethod === 'usb' && (
           <Box sx={{ mt: 2 }}>
-            <LinearProgress variant="determinate" value={progress} />
+            <LinearProgress variant="determinate" value={flashState.progress} />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {progress}%
+              {flashState.progress}%
             </Typography>
           </Box>
         )}
 
-        {isFlashing && flashMethod === 'ota' && driverFlashStatus.size > 0 && (
+        {isFlashing && flashMethod === 'ota' && flashState.driverFlashStatus.size > 0 && (
           <Box sx={{ mt: 2 }}>
-            {Array.from(driverFlashStatus.entries()).map(([driverId, status]) => (
+            {Array.from(flashState.driverFlashStatus.entries()).map(([driverId, status]) => (
               <Box key={driverId} sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                   <Typography variant="body2" sx={{ minWidth: 120 }}>
@@ -663,14 +412,14 @@ const FirmwarePage: React.FC = () => {
         )}
       </Paper>
 
-      <LogDisplay messages={logMessages} />
+      <LogDisplay messages={flashState.logMessages} />
 
       <FlashResultDialog
-        open={resultModal.open}
-        success={resultModal.success}
-        message={resultModal.message}
+        open={flashState.resultModal.open}
+        success={flashState.resultModal.success}
+        message={flashState.resultModal.message}
         onClose={() => {
-          setResultModal({ ...resultModal, open: false });
+          flashState.closeResult();
         }}
       />
 
@@ -683,7 +432,6 @@ const FirmwarePage: React.FC = () => {
           setConfirmModal(false);
         }}
       />
-
     </Box>
   );
 };

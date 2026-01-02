@@ -13,9 +13,9 @@ import bitmapSchema from './bitmap';
 import backgroundSchema from './background';
 import projectileSchema from './projectile';
 import textSchema from './text';
-import scrollTextSchema from './scroll_text';
+import scrollTextSchema from './scroll-text';
 import plasmaSchema from './plasma';
-import particleFieldSchema from './particle_field';
+import particleFieldSchema from './particle-field';
 
 /**
  * Map of effect names to their full schemas (includes name/description metadata)

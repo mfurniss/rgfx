@@ -9,6 +9,7 @@ import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
+import windowStateKeeper from 'electron-window-state';
 import { createIPCHandler } from 'electron-trpc/main';
 import { MqttBroker, NetworkManager } from './network';
 import { EventFileReader } from './event-file-reader';
@@ -34,6 +35,7 @@ import {
   SYSTEM_STATUS_UPDATE_INTERVAL_MS,
   MAX_SYSTEM_ERRORS,
 } from './config/constants';
+import { CONFIG_DIRECTORY } from './config/paths';
 import { registerIpcHandlers } from './ipc';
 import { registerMqttSubscriptions } from './mqtt-subscriptions';
 import { createUploadConfigToDriver } from './upload-config-to-driver';
@@ -43,6 +45,7 @@ import { clearEffectsOnAllDrivers } from './shutdown';
 import { serializeDriverForIPC, type SystemError } from './types';
 import { appRouter } from './trpc/router';
 import { ConfigError } from './errors/config-error';
+import { eventBus } from './services/event-bus';
 import { z } from 'zod';
 import pkg from '../package.json';
 
@@ -92,6 +95,15 @@ const ledHardwareManager = new LEDHardwareManager(configPath);
 
 // System error tracking
 const systemErrors: SystemError[] = [];
+
+// Subscribe to system errors from event bus
+eventBus.on('system:error', (error) => {
+  systemErrors.push(error);
+
+  if (systemErrors.length > MAX_SYSTEM_ERRORS) {
+    systemErrors.shift();
+  }
+});
 
 // Load driver configuration BEFORE creating registry
 // Registry constructor reads from persistence to pre-populate known drivers
@@ -188,6 +200,7 @@ function sendSystemStatus() {
     driverRegistry.getConnectedCount(),
     driverRegistry.getAllDrivers().length,
     eventsProcessed,
+    eventReader.getFileSizeBytes(),
     systemErrors,
   );
   mainWindow.webContents.send('system:status', status);
@@ -201,6 +214,7 @@ setupDriverEventHandlers({
   mqtt,
   getMainWindow: () => mainWindow,
   getEventsProcessed: () => eventsProcessed,
+  getEventLogSizeBytes: () => eventReader.getFileSizeBytes(),
   getSystemErrors: () => systemErrors,
   uploadConfigToDriver,
 });
@@ -277,33 +291,29 @@ if (!hasCriticalError()) {
     driverLogPersistence,
     getMainWindow: () => mainWindow,
     getEventsProcessed: () => eventsProcessed,
-    addSystemError: (error) => {
-      systemErrors.push(error);
-
-      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
-        systemErrors.shift();
-      }
-      sendSystemStatus();
-    },
+    getEventLogSizeBytes: () => eventReader.getFileSizeBytes(),
   });
 
   // Start reading events and send to transformer engine for processing
-  eventReader.start((topic, message) => {
-    // Check for interceptor error events
-    if (topic === 'rgfx/interceptor/error') {
-      log.error(`Interceptor error: ${message}`);
-      systemErrors.push({ errorType: 'interceptor', message, timestamp: Date.now() });
-
-      if (systemErrors.length > MAX_SYSTEM_ERRORS) {
-        systemErrors.shift();
+  eventReader.start(
+    (topic, message) => {
+      // Check for interceptor error events
+      if (topic === 'rgfx/interceptor/error') {
+        log.error(`Interceptor error: ${message}`);
+        eventBus.emit('system:error', { errorType: 'interceptor', message, timestamp: Date.now() });
       }
 
-      sendSystemStatus();
-    }
-
-    void transformerEngine.handleEvent(topic, message);
-    processEvent(topic, message);
-  });
+      void transformerEngine.handleEvent(topic, message);
+      processEvent(topic, message);
+    },
+    (errorMessage) => {
+      eventBus.emit('system:error', {
+        errorType: 'interceptor',
+        message: errorMessage,
+        timestamp: Date.now(),
+      });
+    },
+  );
 
   // Start firmware monitoring
   systemMonitor.startFirmwareMonitoring((_version: string | null) => {
@@ -324,9 +334,19 @@ ipcMain.on('app:quit', () => {
 });
 
 const createWindow = () => {
+  // Load saved window state (position, size, maximized)
+  const mainWindowState = windowStateKeeper({
+    defaultWidth: MAIN_WINDOW_WIDTH,
+    defaultHeight: MAIN_WINDOW_HEIGHT,
+    path: CONFIG_DIRECTORY,
+    file: 'window-state.json',
+  });
+
   mainWindow = new BrowserWindow({
-    width: MAIN_WINDOW_WIDTH,
-    height: MAIN_WINDOW_HEIGHT,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     title: '',
     backgroundColor: '#121212',
     webPreferences: {
@@ -336,6 +356,9 @@ const createWindow = () => {
       backgroundThrottling: false,
     },
   });
+
+  // Register window state manager to track resize/move and save on close
+  mainWindowState.manage(mainWindow);
 
   // Load the index.html of the app
   // In development, MAIN_WINDOW_VITE_DEV_SERVER_URL will be set by Electron Forge

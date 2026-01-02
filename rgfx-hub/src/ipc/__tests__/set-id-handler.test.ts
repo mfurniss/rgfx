@@ -32,11 +32,7 @@ describe('registerSetIdHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockMqtt: MockProxy<MqttBroker>;
   let mockDriver: Driver;
-  let registeredHandler: (
-    event: unknown,
-    driverId: string,
-    newId: string,
-  ) => Promise<{ success: boolean; error?: string }>;
+  let registeredHandler: (event: unknown, driverId: string, newId: string) => Promise<void>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -53,11 +49,7 @@ describe('registerSetIdHandler', () => {
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
       (
         _channel: string,
-        handler: (
-          event: unknown,
-          driverId: string,
-          newId: string,
-        ) => Promise<{ success: boolean; error?: string }>,
+        handler: (event: unknown, driverId: string, newId: string) => Promise<void>,
       ) => {
         registeredHandler = handler;
       },
@@ -77,54 +69,46 @@ describe('registerSetIdHandler', () => {
   });
 
   describe('ID validation', () => {
-    it('should reject empty ID', async () => {
-      const result = await registeredHandler({}, 'rgfx-driver-0001', '');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+    it('should throw for empty ID', async () => {
+      await expect(registeredHandler({}, 'rgfx-driver-0001', '')).rejects.toThrow();
       expect(mockMqtt.publish).not.toHaveBeenCalled();
     });
 
-    it('should reject ID with spaces', async () => {
-      const result = await registeredHandler({}, 'rgfx-driver-0001', 'driver with spaces');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+    it('should throw for ID with spaces', async () => {
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001', 'driver with spaces'),
+      ).rejects.toThrow();
       expect(mockMqtt.publish).not.toHaveBeenCalled();
     });
 
-    it('should reject ID that is too long', async () => {
+    it('should throw for ID that is too long', async () => {
       const longId = 'a'.repeat(33);
-      const result = await registeredHandler({}, 'rgfx-driver-0001', longId);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      await expect(registeredHandler({}, 'rgfx-driver-0001', longId)).rejects.toThrow();
       expect(mockMqtt.publish).not.toHaveBeenCalled();
     });
 
     it('should accept valid ID with hyphens', async () => {
-      const result = await registeredHandler({}, 'rgfx-driver-0001', 'rgfx-driver-0002');
-
-      expect(result.success).toBe(true);
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001', 'rgfx-driver-0002'),
+      ).resolves.toBeUndefined();
       expect(mockMqtt.publish).toHaveBeenCalled();
     });
 
     it('should accept valid alphanumeric ID', async () => {
-      const result = await registeredHandler({}, 'rgfx-driver-0001', 'mydriver123');
-
-      expect(result.success).toBe(true);
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001', 'mydriver123'),
+      ).resolves.toBeUndefined();
       expect(mockMqtt.publish).toHaveBeenCalled();
     });
   });
 
   describe('driver validation', () => {
-    it('should return error for non-existent driver', async () => {
+    it('should throw for non-existent driver', async () => {
       mockDriverRegistry.getDriver.mockReturnValue(undefined);
 
-      const result = await registeredHandler({}, 'unknown-driver', 'new-id');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('No driver found with ID unknown-driver');
+      await expect(registeredHandler({}, 'unknown-driver', 'new-id')).rejects.toThrow(
+        'No driver found with ID unknown-driver',
+      );
     });
 
     it('should look up driver by provided ID', async () => {
@@ -156,30 +140,26 @@ describe('registerSetIdHandler', () => {
   });
 
   describe('error handling', () => {
-    it('should return error when MQTT publish fails', async () => {
+    it('should throw when MQTT publish fails', async () => {
       mockMqtt.publish.mockRejectedValue(new Error('MQTT error'));
 
-      const result = await registeredHandler({}, 'rgfx-driver-0001', 'new-id');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('MQTT error');
+      await expect(registeredHandler({}, 'rgfx-driver-0001', 'new-id')).rejects.toThrow(
+        'MQTT error',
+      );
     });
 
-    it('should not throw on error (returns error object instead)', async () => {
+    it('should throw for non-existent driver', async () => {
       mockDriverRegistry.getDriver.mockReturnValue(undefined);
 
-      await expect(registeredHandler({}, 'unknown-driver', 'new-id')).resolves.toEqual({
-        success: false,
-        error: 'No driver found with ID unknown-driver',
-      });
+      await expect(registeredHandler({}, 'unknown-driver', 'new-id')).rejects.toThrow(
+        'No driver found with ID unknown-driver',
+      );
     });
   });
 
   describe('success response', () => {
-    it('should return success:true on successful ID change', async () => {
-      const result = await registeredHandler({}, 'rgfx-driver-0001', 'new-id');
-
-      expect(result).toEqual({ success: true });
+    it('should complete without throwing on successful ID change', async () => {
+      await expect(registeredHandler({}, 'rgfx-driver-0001', 'new-id')).resolves.toBeUndefined();
     });
 
     it('should complete validation before publish', async () => {

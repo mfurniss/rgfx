@@ -11,8 +11,9 @@ import log from 'electron-log/main';
 import type { UdpClient, EffectPayload } from '../types/transformer-types';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
-import { type Driver } from '../types';
-import { UDP_PORT } from '../config/constants';
+import type { Driver } from '../types';
+import { UDP_PORT, UDP_BUFFER_SIZE } from '../config/constants';
+import { eventBus } from '../services/event-bus';
 
 /**
  * UDP client implementation for broadcasting effects to drivers
@@ -66,6 +67,21 @@ export class UdpClientImpl implements UdpClient {
 
     // Pre-serialize JSON once for all drivers (avoid repeated stringify)
     const buffer = Buffer.from(JSON.stringify(effectData));
+
+    // Validate packet size before sending
+    if (buffer.length > UDP_BUFFER_SIZE) {
+      const { effect } = effectData;
+      log.warn(
+        `UDP packet too large: ${buffer.length} bytes (max ${UDP_BUFFER_SIZE}), effect: ${effect}`,
+      );
+      eventBus.emit('system:error', {
+        errorType: 'network',
+        message: `UDP packet too large: ${buffer.length} bytes (max ${UDP_BUFFER_SIZE})`,
+        timestamp: Date.now(),
+        details: `Effect: ${effect}`,
+      });
+      return false;
+    }
 
     for (const driver of drivers) {
       this.sendBufferToDriver(driver, buffer);

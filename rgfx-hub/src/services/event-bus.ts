@@ -7,7 +7,7 @@
 
 import { EventEmitter } from 'node:events';
 import log from 'electron-log/main';
-import type { Driver, DisconnectReason, SystemStatus } from '../types';
+import type { Driver, DisconnectReason, SystemStatus, SystemError } from '../types';
 import { EVENT_BUS_LOGGING } from '../config/constants';
 
 /**
@@ -24,6 +24,7 @@ export interface AppEventMap {
 
   // System events
   'system:status': SystemStatus;
+  'system:error': SystemError;
 
   // OTA flash events
   'flash:ota:state': { driverId: string; state: string };

@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ipcLink } from 'electron-trpc/renderer';
-import { trpc } from '../../trpc';
+import { trpc } from '@/renderer/trpc';
 
 interface TRPCProviderProps {
   children: React.ReactNode;

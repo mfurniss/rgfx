@@ -1,9 +1,9 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { useDriverStore } from '../../store/driver-store';
-import { useSystemStatusStore } from '../../store/system-status-store';
-import { useUiStore } from '../../store/ui-store';
+import { useDriverStore } from '@/renderer/store/driver-store';
+import { useSystemStatusStore } from '@/renderer/store/system-status-store';
+import { useUiStore } from '@/renderer/store/ui-store';
 
 export function FirmwareUpdateBanner() {
   const drivers = useDriverStore((state) => state.drivers);
