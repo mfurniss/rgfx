@@ -33,16 +33,16 @@ export function handle({ subject, property }, payload, { broadcast }) {
         reset: true,
         centerY: Math.floor(shipPositionScale(Number(payload))),
         duration: 400,
-        image: [
-          '   XX   ',
-          '   XX   ',
-          '   XX   ',
-          'X XXXX X',
-          'X XXXX X',
-          'XXXXXXXX',
-          'X XXXX X',
-          'X  XX  X',
-        ],
+        images: [[
+          '   AA   ',
+          '   AA   ',
+          '   AA   ',
+          'A AAAA A',
+          'A AAAA A',
+          'AAAAAAAA',
+          'A AAAA A',
+          'A  AA  A',
+        ]],
       },
     });
   }

@@ -558,4 +558,33 @@ inline JsonDocument mockSpectrumProps(size_t numColumns = 5, int value = 5, floa
 	return props;
 }
 
+/**
+ * Add a single-frame image to props["images"]
+ * This creates the images array with one frame containing the provided rows
+ * @param props JsonDocument to add the image to
+ * @param rows Vector of row strings
+ */
+inline void addSingleFrameImage(JsonDocument& props, std::initializer_list<const char*> rows) {
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	for (const char* row : rows) {
+		frame.add(row);
+	}
+}
+
+/**
+ * Add multiple frames to props["images"]
+ * @param props JsonDocument to add images to
+ * @param frames Vector of frames, each frame is a vector of row strings
+ */
+inline void addMultiFrameImages(JsonDocument& props, std::initializer_list<std::initializer_list<const char*>> frames) {
+	JsonArray images = props["images"].to<JsonArray>();
+	for (auto& frameRows : frames) {
+		JsonArray frame = images.add<JsonArray>();
+		for (const char* row : frameRows) {
+			frame.add(row);
+		}
+	}
+}
+
 }  // namespace test_helpers

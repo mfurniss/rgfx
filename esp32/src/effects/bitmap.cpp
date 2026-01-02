@@ -129,8 +129,6 @@ void BitmapEffect::add(JsonDocument& props) {
 	Bitmap newBitmap;
 	newBitmap.duration = duration;
 	newBitmap.elapsedTime = 0;
-	newBitmap.imageWidth = 0;
-	newBitmap.imageHeight = 0;
 	newBitmap.hasEndPosition = hasEndPosition;
 
 	// Parse easing function
@@ -141,57 +139,79 @@ void BitmapEffect::add(JsonDocument& props) {
 	newBitmap.fadeInMs = props["fadeIn"] | 0;
 	newBitmap.fadeOutMs = props["fadeOut"] | 0;
 
-	// Parse image array and convert to RGBA pixels
-	if (props["image"].is<JsonArray>()) {
-		JsonArray imageArray = props["image"].as<JsonArray>();
-		newBitmap.imageHeight = imageArray.size();
+	// Parse frame rate (default 2 FPS)
+	newBitmap.frameRate = props["frameRate"] | 2;
 
-		// First pass: determine max width
-		for (JsonVariant row : imageArray) {
-			const char* rowStr = row.as<const char*>();
-			if (rowStr) {
-				size_t len = strlen(rowStr);
-				if (len > newBitmap.imageWidth) {
-					newBitmap.imageWidth = len;
-				}
-			}
-		}
+	// Parse images array (array of frames, each frame is array of row strings)
+	if (props["images"].is<JsonArray>()) {
+		JsonArray imagesArray = props["images"].as<JsonArray>();
+		newBitmap.frames.reserve(imagesArray.size());
 
-		// Pre-allocate pixel array
-		newBitmap.pixels.reserve(newBitmap.imageWidth * newBitmap.imageHeight);
+		for (JsonVariant frameVar : imagesArray) {
+			if (!frameVar.is<JsonArray>()) continue;
 
-		// Second pass: convert strings to RGBA pixels
-		// Character mapping:
-		//   ' ' or '.' = transparent
-		//   '0'-'9'    = palette index 0-9
-		//   'A'-'F'    = palette index 10-15 (case insensitive)
-		for (JsonVariant row : imageArray) {
-			const char* rowStr = row.as<const char*>();
-			for (uint8_t col = 0; col < newBitmap.imageWidth; col++) {
-				char c = (rowStr && col < strlen(rowStr)) ? rowStr[col] : ' ';
+			Frame frame;
+			frame.width = 0;
+			frame.height = 0;
 
-				if (c == ' ' || c == '.') {
-					// Transparent
-					newBitmap.pixels.push_back(CRGBA(0, 0, 0, 0));
-				} else {
-					// Parse as hex palette index
-					int idx = hexCharToIndex(c);
-					if (idx >= 0 && idx < static_cast<int>(paletteSize)) {
-						newBitmap.pixels.push_back(colorToRGBA(palette[idx]));
-					} else {
-						// Unknown character - treat as transparent
-						newBitmap.pixels.push_back(CRGBA(0, 0, 0, 0));
+			JsonArray frameArray = frameVar.as<JsonArray>();
+			frame.height = frameArray.size();
+
+			// First pass: determine max width for this frame
+			for (JsonVariant row : frameArray) {
+				const char* rowStr = row.as<const char*>();
+				if (rowStr) {
+					size_t len = strlen(rowStr);
+					if (len > frame.width) {
+						frame.width = len;
 					}
 				}
 			}
+
+			// Pre-allocate pixel array
+			frame.pixels.reserve(frame.width * frame.height);
+
+			// Second pass: convert strings to RGBA pixels
+			// Character mapping:
+			//   ' ' or '.' = transparent
+			//   '0'-'9'    = palette index 0-9
+			//   'A'-'F'    = palette index 10-15 (case insensitive)
+			for (JsonVariant row : frameArray) {
+				const char* rowStr = row.as<const char*>();
+				for (uint8_t col = 0; col < frame.width; col++) {
+					char c = (rowStr && col < strlen(rowStr)) ? rowStr[col] : ' ';
+
+					if (c == ' ' || c == '.') {
+						// Transparent
+						frame.pixels.push_back(CRGBA(0, 0, 0, 0));
+					} else {
+						// Parse as hex palette index
+						int idx = hexCharToIndex(c);
+						if (idx >= 0 && idx < static_cast<int>(paletteSize)) {
+							frame.pixels.push_back(colorToRGBA(palette[idx]));
+						} else {
+							// Unknown character - treat as transparent
+							frame.pixels.push_back(CRGBA(0, 0, 0, 0));
+						}
+					}
+				}
+			}
+
+			newBitmap.frames.push_back(std::move(frame));
 		}
 	}
 
-	// Now that we know the image dimensions, snap start/end coordinates to LED boundaries.
+	// Skip if no valid frames
+	if (newBitmap.frames.empty()) {
+		return;
+	}
+
+	// Snap start/end coordinates to LED boundaries based on FIRST frame's dimensions.
 	// We need to account for the centering offset: the bitmap's top-left corner is at
 	// (center - scaledDimension/2), so we snap that offset and work back to the center.
-	uint16_t scaledWidth = newBitmap.imageWidth * scale;
-	uint16_t scaledHeight = newBitmap.imageHeight * scale;
+	const Frame& firstFrame = newBitmap.frames[0];
+	uint16_t scaledWidth = firstFrame.width * scale;
+	uint16_t scaledHeight = firstFrame.height * scale;
 
 	// Snap start position: compute offset, snap it, then convert back to center
 	int16_t offsetX = static_cast<int16_t>(centerX) - (scaledWidth / 2);
@@ -239,16 +259,24 @@ void BitmapEffect::render() {
 	          [](const Bitmap& a, const Bitmap& b) { return a.remaining() < b.remaining(); });
 
 	for (const auto& bmp : bitmaps) {
-		if (bmp.imageHeight == 0 || bmp.imageWidth == 0) {
+		if (bmp.frames.empty()) {
+			continue;
+		}
+
+		// Get current animation frame
+		size_t frameIndex = bmp.currentFrameIndex();
+		const Frame& currentFrame = bmp.frames[frameIndex];
+
+		if (currentFrame.height == 0 || currentFrame.width == 0) {
 			continue;
 		}
 
 		// Scale factor: canvas is 4x the matrix resolution
 		const uint8_t scale = 4;
 
-		// Calculate scaled dimensions
-		uint16_t scaledWidth = bmp.imageWidth * scale;
-		uint16_t scaledHeight = bmp.imageHeight * scale;
+		// Calculate scaled dimensions for current frame
+		uint16_t scaledWidth = currentFrame.width * scale;
+		uint16_t scaledHeight = currentFrame.height * scale;
 
 		// Calculate current position (with tweening if end position specified)
 		float currentX = bmp.centerX;
@@ -261,11 +289,11 @@ void BitmapEffect::render() {
 			currentY = bmp.centerY + (bmp.endY - bmp.centerY) * easedProgress;
 		}
 
-		// Position bitmap so its center is at the current coordinates
+		// Position current frame so its center is at the current coordinates
 		int16_t offsetX = static_cast<int16_t>(currentX) - (scaledWidth / 2);
 		int16_t offsetY = static_cast<int16_t>(currentY) - (scaledHeight / 2);
 
-		// Skip if bitmap is completely off-canvas
+		// Skip if frame is completely off-canvas
 		if (offsetX + scaledWidth <= 0 || offsetX >= canvasWidth ||
 		    offsetY + scaledHeight <= 0 || offsetY >= canvasHeight) {
 			continue;
@@ -275,10 +303,10 @@ void BitmapEffect::render() {
 		uint8_t fadeAlpha = calculateFadeAlpha(
 		    bmp.elapsedTime, bmp.duration, bmp.fadeInMs, bmp.fadeOutMs);
 
-		// Render pre-computed pixels, scaled up 4x
-		for (uint8_t row = 0; row < bmp.imageHeight; row++) {
-			for (uint8_t col = 0; col < bmp.imageWidth; col++) {
-				const CRGBA& pixel = bmp.pixels[row * bmp.imageWidth + col];
+		// Render current frame's pre-computed pixels, scaled up 4x
+		for (uint8_t row = 0; row < currentFrame.height; row++) {
+			for (uint8_t col = 0; col < currentFrame.width; col++) {
+				const CRGBA& pixel = currentFrame.pixels[row * currentFrame.width + col];
 				if (pixel.a != 0) {
 					// Apply fade alpha to pixel alpha (multiplicative blend)
 					uint8_t effectiveAlpha = (pixel.a * fadeAlpha) / 255;

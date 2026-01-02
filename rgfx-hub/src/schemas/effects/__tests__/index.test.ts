@@ -64,11 +64,11 @@ describe('safeValidateEffectProps', () => {
     });
 
     it('should validate bitmap props', () => {
-      const result = safeValidateEffectProps('bitmap', { image: ['XXX'] });
+      const result = safeValidateEffectProps('bitmap', { images: [['AAA']] });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect((result.data as { image: string[] }).image).toEqual(['XXX']);
+        expect((result.data as { images: string[][] }).images).toEqual([['AAA']]);
       }
     });
 
