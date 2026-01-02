@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   FormControl,
   InputLabel,
@@ -20,6 +20,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import {
   Controller,
   useFormContext,
+  useWatch,
   type Control,
   type FieldValues,
   type Path,
@@ -47,7 +48,28 @@ export function SpritePresetField<T extends FieldValues>({
     frameCount: number;
     width: number;
     height: number;
+    filePath: string;
   } | null>(null);
+
+  // Watch for __gifPath to detect if a GIF was previously loaded
+  const gifPath = useWatch({ control, name: '__gifPath' as Path<T> }) as string | undefined;
+  const images = useWatch({ control, name }) as string[][] | undefined;
+
+  // Restore loadedGifInfo state when component mounts with existing GIF data
+  useEffect(() => {
+    if (gifPath && images && images.length > 0 && !loadedGifInfo) {
+      // GIF was previously loaded - restore display info from form data
+      const frameCount = images.length;
+      const firstFrame = images[0];
+      // Estimate dimensions from first frame (assumes rectangular grid)
+      const height = firstFrame.length;
+      const width = firstFrame[0]?.length ?? 0;
+      setLoadedGifInfo({ frameCount, width, height, filePath: gifPath });
+    } else if (!gifPath && loadedGifInfo) {
+      // GIF path was cleared (e.g., preset selected)
+      setLoadedGifInfo(null);
+    }
+  }, [gifPath, images, loadedGifInfo]);
 
   const handleLoadGif = useCallback(async () => {
     try {
@@ -78,6 +100,7 @@ export function SpritePresetField<T extends FieldValues>({
         frameCount: result.frameCount,
         width: result.width,
         height: result.height,
+        filePath: result.filePath ?? '',
       });
     } catch (err) {
       console.error('Failed to load GIF:', err);
