@@ -36,9 +36,14 @@ const paletteColorSchema = z.string().regex(/^#?[0-9a-fA-F]{6}$/, 'Invalid hex c
 
 /**
  * Bitmap effect props schema
- * Displays a bitmap image on the LED matrix
+ * Displays animated bitmap sprites on the LED matrix
  *
- * Image format:
+ * Images format:
+ * - Array of frames, each frame is an array of row strings
+ * - If multiple frames provided, cycles through them at frameRate FPS
+ * - Each frame can have different dimensions (always centered on coords)
+ *
+ * Pixel format:
  * - Space or '.' = transparent pixel
  * - '0'-'9' = palette index 0-9
  * - 'A'-'F' (case insensitive) = palette index 10-15
@@ -66,10 +71,12 @@ export default baseEffect
       .optional()
       .default(PICO8_PALETTE)
       .describe('fieldType:hidden|Array of up to 16 hex colors for palette indices 0-F'),
-    image: z
-      .array(z.string())
-      .describe('fieldType:spritePreset|Sprite image data')
-      .default([
+    frameRate: z.number().positive().optional().default(2)
+      .describe('Animation frame rate in frames per second'),
+    images: z
+      .array(z.array(z.string()))
+      .describe('fieldType:spritePreset|Sprite animation frames')
+      .default([[
         '.......A........',
         '......AAA.......',
         '....BBBBBAAAA...',
@@ -86,6 +93,6 @@ export default baseEffect
         '..777777BEEBBA..',
         'EEE777EEBBBBBBA.',
         '.EE77EEEEEBBBBBB',
-      ]),
+      ]]),
   })
   .strict();

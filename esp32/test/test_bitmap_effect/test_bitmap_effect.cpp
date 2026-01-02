@@ -88,9 +88,10 @@ void test_bitmap_add_simple_image() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
-	image.add("88");  // Red pixels (palette index 8)
-	image.add("88");
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	frame.add("88");  // Red pixels (palette index 8)
+	frame.add("88");
 
 	effect.add(props);
 	canvas.clear();
@@ -111,9 +112,10 @@ void test_bitmap_reset_clears_all() {
 	props["duration"] = 5000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
-	image.add("777");  // White pixels (palette index 7)
-	image.add("777");
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	frame.add("777");  // White pixels (palette index 7)
+	frame.add("777");
 
 	effect.add(props);
 	canvas.clear();
@@ -140,9 +142,10 @@ void test_bitmap_center_position() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
-	image.add("77");
-	image.add("77");
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	frame.add("77");
+	frame.add("77");
 
 	effect.add(props);
 	canvas.clear();
@@ -169,7 +172,7 @@ void test_bitmap_position_top_left() {
 	props["duration"] = 1000;
 	props["centerX"] = 0;
 	props["centerY"] = 0;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("77");
 	image.add("77");
 
@@ -194,7 +197,7 @@ void test_bitmap_position_bottom_right() {
 	props["duration"] = 1000;
 	props["centerX"] = 100;
 	props["centerY"] = 100;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("77");
 	image.add("77");
 
@@ -219,7 +222,7 @@ void test_bitmap_position_arbitrary() {
 	props["duration"] = 1000;
 	props["centerX"] = 25;  // Hub-resolved random value
 	props["centerY"] = 75;  // Hub-resolved random value
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("777");
 	image.add("777");
 
@@ -240,7 +243,7 @@ void test_bitmap_off_canvas_not_rendered() {
 	props["duration"] = 1000;
 	props["centerX"] = -100;  // Far off-canvas
 	props["centerY"] = -100;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -265,7 +268,7 @@ void test_bitmap_spaces_are_transparent() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7 7");  // Space in middle
 	image.add("   ");  // All spaces
 	image.add("7 7");
@@ -290,7 +293,7 @@ void test_bitmap_period_transparent() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("8.8");  // Red, transparent, red
 	image.add("...");  // All transparent
 	image.add("8.8");
@@ -318,7 +321,7 @@ void test_bitmap_alpha_blending() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("B");  // Green from palette (index B)
 
 	effect.add(props);
@@ -343,7 +346,7 @@ void test_bitmap_expires_after_duration() {
 	props["duration"] = 100;  // 100ms
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("77");
 	image.add("77");
 
@@ -377,7 +380,7 @@ void test_bitmap_multiple_concurrent() {
 	props1["duration"] = 5000;
 	props1["centerX"] = 25;
 	props1["centerY"] = 50;
-	JsonArray image1 = props1["image"].to<JsonArray>();
+	JsonArray images1 = props1["images"].to<JsonArray>(); JsonArray image1 = images1.add<JsonArray>();
 	image1.add("8");  // Red (palette index 8)
 	effect.add(props1);
 
@@ -387,7 +390,7 @@ void test_bitmap_multiple_concurrent() {
 	props2["duration"] = 5000;
 	props2["centerX"] = 75;
 	props2["centerY"] = 50;
-	JsonArray image2 = props2["image"].to<JsonArray>();
+	JsonArray images2 = props2["images"].to<JsonArray>(); JsonArray image2 = images2.add<JsonArray>();
 	image2.add("B");  // Green (palette index B)
 	effect.add(props2);
 
@@ -435,7 +438,7 @@ void test_bitmap_single_pixel() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");  // Single white pixel
 
 	effect.add(props);
@@ -458,7 +461,7 @@ void test_bitmap_varying_row_lengths() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");      // 1 char
 	image.add("777");    // 3 chars
 	image.add("77");     // 2 chars
@@ -485,7 +488,7 @@ void test_bitmap_palette_index_0_black() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("00");  // Use palette index 0 (black)
 	image.add("00");
 
@@ -507,7 +510,7 @@ void test_bitmap_palette_index_8_red() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("88");  // Use palette index 8 (PICO-8 red: #FF004D)
 	image.add("88");
 
@@ -530,7 +533,7 @@ void test_bitmap_palette_index_B_green() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("BB");  // Use palette index B (PICO-8 green: #00E436)
 	image.add("BB");
 
@@ -553,7 +556,7 @@ void test_bitmap_palette_index_C_blue() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("CC");  // Use palette index C (PICO-8 blue: #29ADFF)
 	image.add("CC");
 
@@ -576,7 +579,7 @@ void test_bitmap_palette_lowercase() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("bb");  // lowercase should work same as BB
 	image.add("bb");
 
@@ -602,7 +605,7 @@ void test_bitmap_custom_palette() {
 	JsonArray palette = props["palette"].to<JsonArray>();
 	palette.add("#00FF00");  // 0: Green
 	palette.add("#FF0000");  // 1: Red
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("01");
 	image.add("10");
 
@@ -630,7 +633,7 @@ void test_bitmap_invalid_palette_index_transparent() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("0F");  // 0 valid, F invalid (out of range)
 
 	effect.add(props);
@@ -660,7 +663,7 @@ void test_bitmap_movement_start_position() {
 	props["endX"] = 100;     // End at right
 	props["endY"] = 50;
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");  // Single white pixel
 
 	effect.add(props);
@@ -686,7 +689,7 @@ void test_bitmap_movement_end_position() {
 	props["endX"] = 100;     // End at right
 	props["endY"] = 50;
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -716,7 +719,7 @@ void test_bitmap_movement_midpoint() {
 	props["endX"] = 100;     // End at right
 	props["endY"] = 50;
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -746,7 +749,7 @@ void test_bitmap_movement_only_endX() {
 	props["centerY"] = 50;
 	props["endX"] = 100;  // Only endX, no endY
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -774,7 +777,7 @@ void test_bitmap_movement_only_endY() {
 	props["centerY"] = 0;
 	props["endY"] = 100;  // Only endY, no endX
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -801,7 +804,7 @@ void test_bitmap_no_movement_without_end_coords() {
 	props["centerX"] = 50;
 	props["centerY"] = 50;
 	// No endX/endY - should stay stationary
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -836,7 +839,7 @@ void test_bitmap_easing_quadraticOut() {
 	props["endX"] = 100;
 	props["endY"] = 50;
 	props["easing"] = "quadraticOut";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -866,7 +869,7 @@ void test_bitmap_easing_default_linear() {
 	props["endX"] = 100;
 	props["endY"] = 50;
 	// No easing specified - should default to linear
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -896,7 +899,7 @@ void test_bitmap_movement_from_off_canvas_left() {
 	props["endX"] = 50;       // End in center
 	props["endY"] = 50;
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -932,7 +935,7 @@ void test_bitmap_movement_to_off_canvas_right() {
 	props["endX"] = 120;      // End off-canvas right
 	props["endY"] = 50;
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -963,7 +966,7 @@ void test_bitmap_movement_off_canvas_both_ends() {
 	props["endX"] = 120;      // End off-canvas right
 	props["endY"] = 50;
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -1000,7 +1003,7 @@ void test_bitmap_movement_off_canvas_vertical() {
 	props["endX"] = 50;
 	props["endY"] = 120;      // End off-canvas bottom
 	props["easing"] = "linear";
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	effect.add(props);
@@ -1028,7 +1031,7 @@ void test_bitmap_negative_percentage_accepted() {
 	props["duration"] = 1000;
 	props["centerX"] = -10;   // Negative should be accepted
 	props["centerY"] = -10;   // Negative should be accepted
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
 	// Should not log error or fail - negative values are valid for off-canvas
@@ -1061,7 +1064,7 @@ void test_bitmap_random_x_snapped_to_led() {
 		props["duration"] = 1000;
 		props["centerX"] = "random";
 		props["centerY"] = 50;  // Fixed Y
-		JsonArray image = props["image"].to<JsonArray>();
+		JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 		image.add("7");  // Single pixel
 
 		effect.add(props);
@@ -1091,7 +1094,7 @@ void test_bitmap_random_y_snapped_to_led() {
 		props["duration"] = 1000;
 		props["centerX"] = 50;  // Fixed X
 		props["centerY"] = "random";
-		JsonArray image = props["image"].to<JsonArray>();
+		JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 		image.add("7");  // Single pixel
 
 		effect.add(props);
@@ -1120,7 +1123,7 @@ void test_bitmap_both_random_snapped_to_led() {
 		props["duration"] = 1000;
 		props["centerX"] = "random";
 		props["centerY"] = "random";
-		JsonArray image = props["image"].to<JsonArray>();
+		JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 		image.add("7");
 
 		effect.add(props);
@@ -1149,7 +1152,7 @@ void test_bitmap_on_strip() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
-	JsonArray image = props["image"].to<JsonArray>();
+	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("777");
 
 	// Should not crash
@@ -1161,6 +1164,266 @@ void test_bitmap_on_strip() {
 	TEST_ASSERT_EQUAL(1, canvas.getHeight());
 	TEST_ASSERT_EQUAL(64, canvas.getWidth());
 	TEST_PASS();
+}
+
+// =============================================================================
+// 11. Animation Frame Tests
+// =============================================================================
+
+void test_bitmap_single_frame_animation() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["frameRate"] = 2;
+	addSingleFrameImage(props, {"88", "88"});
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_bitmap_two_frame_animation() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["frameRate"] = 2;  // 500ms per frame
+	addMultiFrameImages(props, {{"88", "88"}, {"BB", "BB"}});
+
+	effect.add(props);
+
+	// At t=0, should show frame 0 (red)
+	canvas.clear();
+	effect.render();
+	int redPixels1 = countRedDominantPixels(canvas);
+	int greenPixels1 = countGreenDominantPixels(canvas);
+	TEST_ASSERT_TRUE(redPixels1 > 0);
+	TEST_ASSERT_EQUAL(0, greenPixels1);
+
+	// At t=500ms, should show frame 1 (green)
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	int redPixels2 = countRedDominantPixels(canvas);
+	int greenPixels2 = countGreenDominantPixels(canvas);
+	TEST_ASSERT_EQUAL(0, redPixels2);
+	TEST_ASSERT_TRUE(greenPixels2 > 0);
+
+	// At t=1000ms, should cycle back to frame 0 (red)
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	int redPixels3 = countRedDominantPixels(canvas);
+	int greenPixels3 = countGreenDominantPixels(canvas);
+	TEST_ASSERT_TRUE(redPixels3 > 0);
+	TEST_ASSERT_EQUAL(0, greenPixels3);
+}
+
+void test_bitmap_frame_rate_10fps() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["frameRate"] = 10;  // 100ms per frame
+	addMultiFrameImages(props, {{"88"}, {"BB"}, {"CC"}});
+
+	effect.add(props);
+
+	// At t=0, frame 0 (red)
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countRedDominantPixels(canvas) > 0);
+
+	// At t=100ms, frame 1 (green)
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countGreenDominantPixels(canvas) > 0);
+
+	// At t=200ms, frame 2 (blue)
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countBlueDominantPixels(canvas) > 0);
+
+	// At t=300ms, back to frame 0 (red)
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countRedDominantPixels(canvas) > 0);
+}
+
+void test_bitmap_variable_frame_sizes() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["frameRate"] = 2;
+	// Frame 1: 2x2, Frame 2: 3x3
+	addMultiFrameImages(props, {{"88", "88"}, {"BBB", "BBB", "BBB"}});
+
+	effect.add(props);
+
+	// Both frames should render without crash
+	canvas.clear();
+	effect.render();
+	int pixels1 = countNonBlackPixels(canvas);
+	TEST_ASSERT_TRUE(pixels1 > 0);
+
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	int pixels2 = countNonBlackPixels(canvas);
+	TEST_ASSERT_TRUE(pixels2 > 0);
+
+	// Larger frame should have more pixels
+	TEST_ASSERT_TRUE(pixels2 > pixels1);
+}
+
+void test_bitmap_animation_with_movement() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 0;
+	props["centerY"] = 50;
+	props["endX"] = 100;
+	props["endY"] = 50;
+	props["frameRate"] = 4;  // 250ms per frame
+	props["easing"] = "linear";
+	addMultiFrameImages(props, {{"88"}, {"BB"}});
+
+	effect.add(props);
+
+	// At t=0: frame 0, left side
+	canvas.clear();
+	effect.render();
+	BoundingBox box1 = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box1.valid);
+	TEST_ASSERT_TRUE(box1.maxX < static_cast<int16_t>(canvas.getWidth() / 2));
+	TEST_ASSERT_TRUE(countRedDominantPixels(canvas) > 0);
+
+	// At t=500ms: frame 0 (cycled), center
+	// At 500ms with 250ms frames: 500/250 = 2 -> frame 0 (2 % 2 = 0)
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	BoundingBox box2 = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box2.valid);
+	int centerX = (box2.minX + box2.maxX) / 2;
+	TEST_ASSERT_INT_WITHIN(8, canvas.getWidth() / 2, centerX);
+	TEST_ASSERT_TRUE(countRedDominantPixels(canvas) > 0);
+}
+
+void test_bitmap_empty_images_array() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["images"].to<JsonArray>();  // Empty array
+
+	effect.add(props);
+	canvas.clear();
+	effect.render();
+
+	// Should render nothing (no crash)
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_bitmap_default_frame_rate() {
+	// Verify default 2 FPS when frameRate not specified
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	// No frameRate specified - should default to 2 FPS
+	addMultiFrameImages(props, {{"88"}, {"BB"}});
+
+	effect.add(props);
+
+	// At t=0, frame 0 (red)
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countRedDominantPixels(canvas) > 0);
+
+	// At t=499ms, still frame 0 (default 2 FPS = 500ms per frame)
+	effect.update(0.499f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countRedDominantPixels(canvas) > 0);
+
+	// At t=501ms, frame 1 (green)
+	effect.update(0.002f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countGreenDominantPixels(canvas) > 0);
+}
+
+void test_bitmap_fade_with_animation() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["fadeIn"] = 200;
+	props["fadeOut"] = 200;
+	props["frameRate"] = 4;
+	addMultiFrameImages(props, {{"77"}, {"77"}});
+
+	effect.add(props);
+
+	// At t=0, fading in (low brightness)
+	canvas.clear();
+	effect.render();
+	uint64_t brightness1 = calculateTotalBrightness(canvas);
+
+	// At t=200ms, fully visible (higher brightness)
+	effect.update(0.2f);
+	canvas.clear();
+	effect.render();
+	uint64_t brightness2 = calculateTotalBrightness(canvas);
+
+	TEST_ASSERT_TRUE(brightness2 > brightness1);
 }
 
 // =============================================================================
@@ -1232,6 +1495,16 @@ int main(int argc, char** argv) {
 
 	// 10. Strip Layout Tests
 	RUN_TEST(test_bitmap_on_strip);
+
+	// 11. Animation Frame Tests
+	RUN_TEST(test_bitmap_single_frame_animation);
+	RUN_TEST(test_bitmap_two_frame_animation);
+	RUN_TEST(test_bitmap_frame_rate_10fps);
+	RUN_TEST(test_bitmap_variable_frame_sizes);
+	RUN_TEST(test_bitmap_animation_with_movement);
+	RUN_TEST(test_bitmap_empty_images_array);
+	RUN_TEST(test_bitmap_default_frame_rate);
+	RUN_TEST(test_bitmap_fade_with_animation);
 
 	return UNITY_END();
 }
