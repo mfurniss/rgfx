@@ -1,6 +1,6 @@
 // Shared types for IPC communication between main and renderer processes
 
-import type { EffectPayload } from './types/transformer-types';
+import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
 import type { ConfiguredDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
@@ -304,7 +304,7 @@ export function serializeDriverForIPC(driver: Driver): Driver {
 }
 
 export interface SystemError {
-  errorType: 'interceptor' | 'config' | 'driver' | 'network';
+  errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'general';
   message: string;
   timestamp: number;
   filePath?: string;
@@ -384,6 +384,7 @@ declare global {
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
       onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
       resetEventCounts: () => Promise<void>;
+      loadGif: () => Promise<GifBitmapResult | null>;
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
       deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
       onDriverDeleted: (callback: (driverId: string) => void) => () => void;

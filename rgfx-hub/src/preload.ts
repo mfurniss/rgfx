@@ -2,7 +2,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { exposeElectronTRPC } from 'electron-trpc/main';
 import type { Driver, SystemStatus, AppInfo, DisconnectReason, LEDHardware } from './types';
-import type { EffectPayload } from './types/transformer-types';
+import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
 import type { ConfiguredDriverFromSchema } from './schemas';
 
 // Expose electron-trpc for type-safe IPC communication
@@ -211,6 +211,10 @@ export const rgfxAPI = {
 
   resetEventCounts: (): Promise<void> => {
     return ipcRenderer.invoke('event:reset');
+  },
+
+  loadGif: (): Promise<GifBitmapResult | null> => {
+    return ipcRenderer.invoke('dialog:load-gif');
   },
 
   restartDriver: (driverId: string): Promise<{ success: boolean }> => {

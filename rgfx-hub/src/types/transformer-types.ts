@@ -8,6 +8,32 @@
 import type { DriverRegistry } from '../driver-registry';
 
 /**
+ * Result from loading an animated GIF for use with bitmap effects
+ */
+export interface GifBitmapResult {
+  /** Array of frames, each frame is array of row strings using hex chars (0-F) */
+  images: string[][];
+
+  /** Array of up to 16 hex color strings extracted from the GIF */
+  palette: string[];
+
+  /** Width of the GIF in pixels */
+  width: number;
+
+  /** Height of the GIF in pixels */
+  height: number;
+
+  /** Number of frames in the GIF */
+  frameCount: number;
+
+  /** Frames per second from GIF delay timing (only present when frameCount > 1) */
+  frameRate?: number;
+
+  /** File path (only present when loaded via dialog) */
+  filePath?: string;
+}
+
+/**
  * Effect payload sent to LED drivers via UDP
  *
  * Flexible record structure with required effect name and arbitrary effect-specific properties.
@@ -220,6 +246,9 @@ export interface TransformerContext {
 
   /** Driver registry for querying connected drivers */
   drivers: DriverRegistry;
+
+  /** Load an animated GIF and convert to bitmap effect format */
+  loadGif(path: string): Promise<GifBitmapResult>;
 }
 
 /**
