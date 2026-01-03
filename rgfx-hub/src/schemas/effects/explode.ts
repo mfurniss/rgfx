@@ -8,6 +8,25 @@
 import { z } from 'zod';
 
 import { baseEffect, centerX, centerY } from './properties';
+import { randomInt } from '@/utils/random';
+
+export function randomize(): Record<string, unknown> {
+  return {
+    color: 'random',
+    reset: false,
+    centerX: 'random',
+    centerY: 'random',
+    friction: randomInt(0, 15),
+    gravity: randomInt(-100, 100),
+    hueSpread: randomInt(0, 359),
+    lifespan: randomInt(200, 3000),
+    lifespanSpread: randomInt(0, 100),
+    particleCount: randomInt(10, 500),
+    particleSize: randomInt(2, 12),
+    power: randomInt(0, 200),
+    powerSpread: randomInt(0, 100),
+  };
+}
 
 /**
  * Explode effect props schema
@@ -20,6 +39,7 @@ export default baseEffect
     centerX: centerX.default(50).describe('fieldType:centerXY|Explosion center X (0-100 or random)'),
     centerY: centerY.default(50).describe('fieldType:centerXY|Explosion center Y (0-100 or random)'),
     friction: z.number().min(0).max(50).optional().default(3.0).describe('Air resistance slowing particles'),
+    gravity: z.number().min(-100).max(100).optional().default(0).describe('Vertical acceleration (positive = down, negative = up)'),
     hueSpread: z.number().int().min(0).max(359).optional().default(0).describe('Color variation in degrees'),
     lifespan: z.number().positive().optional().default(700).describe('Particle lifetime in milliseconds'),
     lifespanSpread: z.number().min(0).optional().default(50).describe('Lifespan variation percentage (0=none, 100=±100%)'),

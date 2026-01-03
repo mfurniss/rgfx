@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Plasma effect props schema
  * Classic demoscene plasma effect using Perlin noise.

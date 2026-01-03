@@ -17,6 +17,7 @@ class ExplodeEffect : public IEffect {
 		uint32_t lifespan;       // Total duration in milliseconds
 		uint32_t age;            // Current age in milliseconds
 		float friction;          // Velocity decay per second (denormalized from explosion)
+		float gravity;           // Vertical acceleration (pixels/sec²)
 		uint8_t particleSize;    // Render size in pixels (denormalized from explosion)
 	};
 

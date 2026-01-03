@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 import { baseEffect, colorGradient } from './properties';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Scroll text effect props schema
  * Renders scrolling text from right to left using an 8x8 bitmap font
