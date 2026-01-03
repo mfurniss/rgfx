@@ -140,8 +140,10 @@ export function SpritePresetField<T extends FieldValues>({
                       // Wrap single-frame preset in array to match string[][] format
                       field.onChange([preset.image]);
                       setLoadedGifInfo(null); // Clear GIF info when selecting preset
-                      // Clear the GIF path marker
+                      // Clear GIF-specific fields so schema defaults take effect
                       setValue('__gifPath' as Path<T>, undefined as never);
+                      setValue('palette' as Path<T>, undefined as never);
+                      setValue('frameRate' as Path<T>, undefined as never);
                     }
                   }}
                 >
