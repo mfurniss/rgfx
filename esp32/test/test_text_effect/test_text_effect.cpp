@@ -405,12 +405,12 @@ bool isPixelLit(Canvas& canvas, int16_t x, int16_t y) {
 // Helper to check if any pixel in a character cell is lit
 // charX/charY are in character units (not canvas pixels)
 bool isCharCellLit(Canvas& canvas, int charX, int charY) {
-	// Each character is CHAR_WIDTH x CHAR_HEIGHT canvas pixels (32x32)
-	int16_t startX = charX * CHAR_WIDTH;
-	int16_t startY = charY * CHAR_HEIGHT;
+	// Each character is TEXT_CHAR_WIDTH x TEXT_CHAR_HEIGHT canvas pixels (32x32)
+	int16_t startX = charX * TEXT_CHAR_WIDTH;
+	int16_t startY = charY * TEXT_CHAR_HEIGHT;
 
-	for (int16_t y = startY; y < startY + CHAR_HEIGHT && y < canvas.getHeight(); y++) {
-		for (int16_t x = startX; x < startX + CHAR_WIDTH && x < canvas.getWidth(); x++) {
+	for (int16_t y = startY; y < startY + TEXT_CHAR_HEIGHT && y < canvas.getHeight(); y++) {
+		for (int16_t x = startX; x < startX + TEXT_CHAR_WIDTH && x < canvas.getWidth(); x++) {
 			if (isPixelLit(canvas, x, y)) {
 				return true;
 			}

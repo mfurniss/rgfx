@@ -19,6 +19,10 @@ static uint32_t g_mockTimeUs = 0;
 // Seeded RNG for reproducible tests
 static uint16_t g_seed = 12345;
 
+// Mock heap memory for testing memory limits
+static size_t g_mockFreeHeap = 320000;
+static size_t g_mockLargestBlock = 100000;
+
 uint32_t millis() {
 	return g_mockTimeMs;
 }
@@ -50,6 +54,14 @@ void log(const char* fmt, ...) {
 	va_end(args);
 }
 
+size_t getFreeHeap() {
+	return g_mockFreeHeap;
+}
+
+size_t getLargestFreeBlock() {
+	return g_mockLargestBlock;
+}
+
 // Test helpers (not part of HAL interface)
 namespace test {
 
@@ -76,6 +88,14 @@ void advanceTimeMicros(uint32_t us) {
 void seedRandom(uint16_t seed) {
 	g_seed = seed;
 	srand(seed);
+}
+
+void setFreeHeap(size_t bytes) {
+	g_mockFreeHeap = bytes;
+}
+
+void setLargestFreeBlock(size_t bytes) {
+	g_mockLargestBlock = bytes;
 }
 
 }  // namespace test

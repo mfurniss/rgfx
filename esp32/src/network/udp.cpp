@@ -68,23 +68,24 @@ void processUDP() {
 			return;
 		}
 
-		char buffer[UDP_BUFFER_SIZE];
-		int len = udp.read(buffer, UDP_BUFFER_SIZE - 1);
-		if (len > 0) {
-			buffer[len] = '\0';  // Null terminate
-
-			// Enqueue raw JSON string (parse later when dequeuing)
-			if (messageQueue.count < UDP_QUEUE_SIZE) {
-				uint8_t idx = messageQueue.head;
-				memcpy(messageQueue.messages[idx].buffer, buffer, len + 1);
+		// Read directly into queue slot to avoid stack allocation
+		// (4KB temp buffer would overflow ESP32's ~8KB stack)
+		if (messageQueue.count < UDP_QUEUE_SIZE) {
+			uint8_t idx = messageQueue.head;
+			int len = udp.read(messageQueue.messages[idx].buffer, UDP_BUFFER_SIZE - 1);
+			if (len > 0) {
+				messageQueue.messages[idx].buffer[len] = '\0';
 				messageQueue.messages[idx].length = static_cast<uint16_t>(len);
 				messageQueue.head = (messageQueue.head + 1) % UDP_QUEUE_SIZE;
 				messageQueue.count++;
 				udpMessagesReceived++;
-			} else {
-				log("UDP RX: Queue full, dropping message");
-				udpMessagesDropped++;
 			}
+		} else {
+			// Queue full - must consume packet to clear it from UDP buffer
+			char discard[1];
+			udp.read(discard, 1);
+			log("UDP RX: Queue full, dropping message");
+			udpMessagesDropped++;
 		}
 	}
 }

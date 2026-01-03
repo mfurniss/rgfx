@@ -34,110 +34,15 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectSchemas, effectPropsSchemas, isEffectName } from '@/schemas';
+import { effectPropsSchemas, isEffectName } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 import { randomizeEffectProps } from '../utils/randomize-effect-props';
-
-// Build map of effect keys to display names from schema literals
-// Extract literal value from z.literal() schema via internal _zod.def.values
-const effectDisplayNames = Object.fromEntries(
-  Object.entries(effectSchemas).map(([key, schema]) => {
-    const nameSchema = schema.shape.name as { _zod: { def: { values: string[] } } };
-    return [key, nameSchema._zod.def.values[0]];
-  }),
-);
-
-// Sort by display name for a more intuitive list
-const formEffects = Object.keys(effectSchemas).sort((a, b) =>
-  effectDisplayNames[a].localeCompare(effectDisplayNames[b]),
-);
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel({ children, value, index }: TabPanelProps) {
-  return (
-    <Box
-      role="tabpanel"
-      hidden={value !== index}
-      sx={{ pt: 3 }}
-    >
-      {value === index && children}
-    </Box>
-  );
-}
-
-function generateBroadcastCode(
-  effect: string,
-  props: Record<string, unknown>,
-  drivers: string[],
-  isAllDrivers: boolean,
-): string {
-  const formatValue = (value: unknown, indent: number): string => {
-    const spaces = '  '.repeat(indent);
-
-    if (value === null) {
-      return 'null';
-    }
-
-    if (typeof value === 'string') {
-      return `'${value}'`;
-    }
-
-    if (typeof value === 'number' || typeof value === 'boolean') {
-      return String(value);
-    }
-
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return '[]';
-      }
-
-      // Format short arrays inline, longer arrays on multiple lines
-      if (value.length <= 3) {
-        const items = value.map((v) => formatValue(v, 0)).join(', ');
-
-        return `[${items}]`;
-      }
-
-      const items = value.map((v) => `${spaces}  ${formatValue(v, indent + 1)},`);
-
-      return `[\n${items.join('\n')}\n${spaces}]`;
-    }
-
-    if (typeof value === 'object') {
-      const entries = Object.entries(value as Record<string, unknown>);
-
-      if (entries.length === 0) {
-        return '{}';
-      }
-
-      const lines = entries.map(([k, v]) => `${spaces}  ${k}: ${formatValue(v, indent + 1)},`);
-
-      return `{\n${lines.join('\n')}\n${spaces}}`;
-    }
-
-    return JSON.stringify(value);
-  };
-
-  const lines = [
-    'broadcast({',
-    `  effect: '${effect}',`,
-  ];
-
-  // Only include drivers if targeting specific drivers (not all)
-  if (!isAllDrivers && drivers.length > 0) {
-    lines.push(`  drivers: ${formatValue(drivers, 1)},`);
-  }
-
-  lines.push(`  props: ${formatValue(props, 1)},`);
-  lines.push('});');
-
-  return lines.join('\n');
-}
+import {
+  effectDisplayNames,
+  formEffects,
+  TabPanel,
+  generateBroadcastCode,
+} from './effects-playground';
 
 export default function TestEffectsPage() {
   const [tabIndex, setTabIndex] = useState(0);
@@ -269,9 +174,13 @@ export default function TestEffectsPage() {
     void (async () => {
       try {
         const props = JSON.parse(propsJson) as Record<string, unknown>;
+        // Strip internal markers before sending to driver
+        const cleanProps = { ...props };
+        delete cleanProps.__gifPath;
+
         const payload: EffectPayload = {
           effect: selectedEffect,
-          props,
+          props: cleanProps,
           drivers: Array.from(selectedDrivers),
         };
 
