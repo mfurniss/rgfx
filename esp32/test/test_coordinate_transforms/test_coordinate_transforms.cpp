@@ -18,7 +18,7 @@ void test_strip_layout_4x1() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_tl_h_4x4() {
@@ -32,7 +32,7 @@ void test_matrix_tl_h_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_tl_h_snake_4x4() {
@@ -46,7 +46,7 @@ void test_matrix_tl_h_snake_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_tr_h_4x4() {
@@ -60,7 +60,7 @@ void test_matrix_tr_h_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_bl_h_4x4() {
@@ -74,7 +74,7 @@ void test_matrix_bl_h_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_br_h_4x4() {
@@ -88,7 +88,7 @@ void test_matrix_br_h_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_tl_v_4x4() {
@@ -102,7 +102,7 @@ void test_matrix_tl_v_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_tl_v_snake_4x4() {
@@ -116,7 +116,7 @@ void test_matrix_tl_v_snake_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_tr_v_4x4() {
@@ -130,7 +130,7 @@ void test_matrix_tr_v_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_bl_v_4x4() {
@@ -144,7 +144,7 @@ void test_matrix_bl_v_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_br_v_4x4() {
@@ -158,7 +158,7 @@ void test_matrix_br_v_4x4() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
 
-	delete[] map;
+	free(map);
 }
 
 void test_unknown_layout_defaults_to_strip() {
@@ -167,7 +167,7 @@ void test_unknown_layout_defaults_to_strip() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
 
-	delete[] map;
+	free(map);
 }
 
 void test_8x8_matrix_corners() {
@@ -178,7 +178,7 @@ void test_8x8_matrix_corners() {
 	TEST_ASSERT_EQUAL_UINT16(56, map[56]);  // Bottom-left
 	TEST_ASSERT_EQUAL_UINT16(63, map[63]);  // Bottom-right
 
-	delete[] map;
+	free(map);
 }
 
 void test_8x32_matrix_corners() {
@@ -189,7 +189,7 @@ void test_8x32_matrix_corners() {
 	TEST_ASSERT_EQUAL_UINT16(248, map[248]); // Bottom-left
 	TEST_ASSERT_EQUAL_UINT16(255, map[255]); // Bottom-right
 
-	delete[] map;
+	free(map);
 }
 
 // ============================================================================
@@ -643,7 +643,7 @@ void test_strip_reverse_4x1() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
 
-	delete[] map;
+	free(map);
 }
 
 void test_strip_reverse_8x1() {
@@ -653,7 +653,7 @@ void test_strip_reverse_8x1() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
 
-	delete[] map;
+	free(map);
 }
 
 void test_strip_no_reverse_4x1() {
@@ -663,7 +663,7 @@ void test_strip_no_reverse_4x1() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
 
-	delete[] map;
+	free(map);
 }
 
 void test_strip_reverse_single_led() {
@@ -674,7 +674,7 @@ void test_strip_reverse_single_led() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 1);
 
-	delete[] map;
+	free(map);
 }
 
 void test_matrix_reverse_ignored() {
@@ -687,7 +687,7 @@ void test_matrix_reverse_ignored() {
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
 
-	delete[] map;
+	free(map);
 }
 
 int main(int /*argc*/, char** /*argv*/) {
