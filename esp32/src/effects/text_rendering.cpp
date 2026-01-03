@@ -10,7 +10,7 @@ void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t
 
 	// Fast path: entire character within canvas bounds
 	if (x >= 0 && y >= 0 &&
-		x + CHAR_WIDTH <= canvas.getWidth() && y + CHAR_HEIGHT <= canvas.getHeight()) {
+		x + TEXT_CHAR_WIDTH <= canvas.getWidth() && y + TEXT_CHAR_HEIGHT <= canvas.getHeight()) {
 		for (uint8_t row = 0; row < FONT_CHAR_HEIGHT; row++) {
 			uint8_t rowData = pgm_read_byte(&glyph[row]);
 			for (uint8_t col = 0; col < FONT_CHAR_WIDTH; col++) {

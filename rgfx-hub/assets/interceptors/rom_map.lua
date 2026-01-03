@@ -32,6 +32,16 @@ return {
 	-- Star Wars (Atari 1983)
 	starwars = "starwars_rgfx",
 
+	-- Super Street Fighter II (CPS2)
+	ssf2 = "ssf2_rgfx",
+	ssf2u = "ssf2_rgfx",
+	ssf2a = "ssf2_rgfx",
+	ssf2j = "ssf2_rgfx",
+	ssf2t = "ssf2_rgfx",
+	ssf2tu = "ssf2_rgfx",
+	ssf2ta = "ssf2_rgfx",
+	ssf2tj = "ssf2_rgfx",
+
 	-- ============================================================================
 	-- NES Games (cartridge filename → interceptor)
 	-- ============================================================================

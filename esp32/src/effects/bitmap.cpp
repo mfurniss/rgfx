@@ -12,6 +12,9 @@ BitmapEffect::BitmapEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 
 namespace {
 
+// Palette index for transparent pixels
+constexpr uint8_t TRANSPARENT_INDEX = 0xFF;
+
 // Convert hex character to palette index (0-15), returns -1 for invalid
 int hexCharToIndex(char c) {
 	if (c >= '0' && c <= '9') return c - '0';
@@ -78,7 +81,59 @@ uint8_t calculateFadeAlpha(uint32_t elapsed, uint32_t duration,
 
 }  // namespace
 
+size_t BitmapEffect::estimateBitmapMemory(JsonDocument& props) {
+	size_t totalPixels = 0;
+
+	if (props["images"].is<JsonArray>()) {
+		JsonArray images = props["images"].as<JsonArray>();
+		for (JsonVariant frame : images) {
+			if (frame.is<JsonArray>()) {
+				JsonArray rows = frame.as<JsonArray>();
+				size_t height = rows.size();
+				size_t width = 0;
+				for (JsonVariant row : rows) {
+					if (row.is<const char*>()) {
+						size_t len = strlen(row.as<const char*>());
+						if (len > width) width = len;
+					}
+				}
+				totalPixels += width * height;
+			}
+		}
+	}
+
+	// Estimate: 1 byte per pixel (palettized) + Bitmap struct overhead
+	return totalPixels + sizeof(Bitmap) + 128;
+}
+
+size_t BitmapEffect::calculateBitmapMemory(const Bitmap& bitmap) {
+	size_t total = sizeof(Bitmap);
+	for (const auto& frame : bitmap.frames) {
+		total += frame.indices.size() + sizeof(Frame);
+	}
+	return total;
+}
+
 void BitmapEffect::add(JsonDocument& props) {
+	// Memory validation: estimate required memory before parsing
+	size_t requiredMemory = estimateBitmapMemory(props);
+
+	// Check against bitmap memory budget
+	if (totalMemoryUsed + requiredMemory > MAX_BITMAP_MEMORY) {
+		hal::log("ERROR: bitmap memory budget exceeded (%zu + %zu > %zu)",
+		         totalMemoryUsed, requiredMemory, MAX_BITMAP_MEMORY);
+		publishError("bitmap", "memory budget exceeded", props);
+		return;
+	}
+
+	// Check against system heap
+	if (hal::getFreeHeap() < requiredMemory + MIN_FREE_HEAP) {
+		hal::log("ERROR: insufficient heap for bitmap (%zu required, %zu available)",
+		         requiredMemory, hal::getFreeHeap());
+		publishError("bitmap", "insufficient memory", props);
+		return;
+	}
+
 	uint32_t duration = props["duration"];
 
 	// Parse palette array - hub always provides this with PICO-8 defaults
@@ -130,6 +185,12 @@ void BitmapEffect::add(JsonDocument& props) {
 	newBitmap.duration = duration;
 	newBitmap.elapsedTime = 0;
 	newBitmap.hasEndPosition = hasEndPosition;
+	newBitmap.paletteSize = paletteSize;
+
+	// Copy palette to bitmap for render-time lookup
+	for (uint8_t i = 0; i < paletteSize && i < 16; i++) {
+		newBitmap.palette[i] = colorToRGBA(palette[i]);
+	}
 
 	// Parse easing function
 	const char* easingName = props["easing"] | "linear";
@@ -150,6 +211,13 @@ void BitmapEffect::add(JsonDocument& props) {
 		for (JsonVariant frameVar : imagesArray) {
 			if (!frameVar.is<JsonArray>()) continue;
 
+			// Enforce frame limit
+			if (newBitmap.frames.size() >= MAX_FRAMES_PER_BITMAP) {
+				hal::log("WARN: bitmap frame limit reached (%d), truncating",
+				         MAX_FRAMES_PER_BITMAP);
+				break;
+			}
+
 			Frame frame;
 			frame.width = 0;
 			frame.height = 0;
@@ -168,12 +236,20 @@ void BitmapEffect::add(JsonDocument& props) {
 				}
 			}
 
-			// Pre-allocate pixel array
-			frame.pixels.reserve(frame.width * frame.height);
+			// Enforce dimension limits
+			if (frame.width > MAX_FRAME_DIMENSION || frame.height > MAX_FRAME_DIMENSION) {
+				hal::log("ERROR: bitmap frame too large (%dx%d, max %d)",
+				         frame.width, frame.height, MAX_FRAME_DIMENSION);
+				publishError("bitmap", "frame dimensions exceed limit", props);
+				return;
+			}
 
-			// Second pass: convert strings to RGBA pixels
+			// Pre-allocate index array
+			frame.indices.reserve(frame.width * frame.height);
+
+			// Second pass: convert strings to palette indices
 			// Character mapping:
-			//   ' ' or '.' = transparent
+			//   ' ' or '.' = transparent (0xFF)
 			//   '0'-'9'    = palette index 0-9
 			//   'A'-'F'    = palette index 10-15 (case insensitive)
 			for (JsonVariant row : frameArray) {
@@ -183,15 +259,15 @@ void BitmapEffect::add(JsonDocument& props) {
 
 					if (c == ' ' || c == '.') {
 						// Transparent
-						frame.pixels.push_back(CRGBA(0, 0, 0, 0));
+						frame.indices.push_back(TRANSPARENT_INDEX);
 					} else {
 						// Parse as hex palette index
 						int idx = hexCharToIndex(c);
 						if (idx >= 0 && idx < static_cast<int>(paletteSize)) {
-							frame.pixels.push_back(colorToRGBA(palette[idx]));
+							frame.indices.push_back(static_cast<uint8_t>(idx));
 						} else {
 							// Unknown character - treat as transparent
-							frame.pixels.push_back(CRGBA(0, 0, 0, 0));
+							frame.indices.push_back(TRANSPARENT_INDEX);
 						}
 					}
 				}
@@ -234,6 +310,10 @@ void BitmapEffect::add(JsonDocument& props) {
 		newBitmap.endY = newBitmap.centerY;
 	}
 
+	// Calculate and track memory usage
+	newBitmap.memoryUsed = calculateBitmapMemory(newBitmap);
+	totalMemoryUsed += newBitmap.memoryUsed;
+
 	bitmaps.push_back(std::move(newBitmap));
 }
 
@@ -244,6 +324,8 @@ void BitmapEffect::update(float deltaTime) {
 		p->elapsedTime += deltaTimeMs;
 
 		if (p->elapsedTime >= p->duration) {
+			// Decrement memory tracking before erasing
+			totalMemoryUsed -= p->memoryUsed;
 			p = bitmaps.erase(p);
 		} else {
 			++p;
@@ -303,12 +385,13 @@ void BitmapEffect::render() {
 		uint8_t fadeAlpha = calculateFadeAlpha(
 		    bmp.elapsedTime, bmp.duration, bmp.fadeInMs, bmp.fadeOutMs);
 
-		// Render current frame's pre-computed pixels, scaled up 4x
+		// Render current frame using palette lookup
 		for (uint8_t row = 0; row < currentFrame.height; row++) {
 			for (uint8_t col = 0; col < currentFrame.width; col++) {
-				const CRGBA& pixel = currentFrame.pixels[row * currentFrame.width + col];
-				if (pixel.a != 0) {
-					// Apply fade alpha to pixel alpha (multiplicative blend)
+				uint8_t idx = currentFrame.indices[row * currentFrame.width + col];
+				if (idx != TRANSPARENT_INDEX && idx < bmp.paletteSize) {
+					const CRGBA& pixel = bmp.palette[idx];
+					// Apply fade alpha (palette colors have alpha=255)
 					uint8_t effectiveAlpha = (pixel.a * fadeAlpha) / 255;
 					if (effectiveAlpha > 0) {
 						// Draw a 4x4 block for each pixel
@@ -325,4 +408,5 @@ void BitmapEffect::render() {
 
 void BitmapEffect::reset() {
 	bitmaps.clear();
+	totalMemoryUsed = 0;
 }

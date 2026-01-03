@@ -13,7 +13,7 @@
 #include <string>
 
 // Test configuration - must match production values
-static const int UDP_BUFFER_SIZE = 1024;
+static const int UDP_BUFFER_SIZE = 1472;  // Max UDP payload without IP fragmentation
 static const uint8_t UDP_QUEUE_SIZE = 8;
 
 // Mock Arduino String class

@@ -40,4 +40,12 @@ void log(const char* fmt, ...) {
 	va_end(args);
 }
 
+size_t getFreeHeap() {
+	return ESP.getFreeHeap();
+}
+
+size_t getLargestFreeBlock() {
+	return ESP.getMaxAllocHeap();
+}
+
 }  // namespace hal

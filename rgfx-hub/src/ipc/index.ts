@@ -33,6 +33,7 @@ import { registerSetDriverDisabledHandler } from './set-driver-disabled-handler'
 import { registerResetEventCountsHandler } from './reset-event-counts-handler';
 import { registerRestartDriverHandler } from './restart-driver-handler';
 import { registerDeleteDriverHandler } from './delete-driver-handler';
+import { registerLoadGifHandler } from './load-gif-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -69,4 +70,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerResetEventCountsHandler(deps);
   registerRestartDriverHandler(deps);
   registerDeleteDriverHandler(deps);
+  registerLoadGifHandler();
 }

@@ -22,10 +22,9 @@ constexpr int UDP_PORT = 8888;
 
 /**
  * UDP buffer size for incoming messages.
- * Sized to accommodate bitmap effect payloads: 32x32 RGB = 3072 bytes max.
- * Current value handles typical effect messages with room to spare.
+ * Sized to accommodate typical effect payloads with room to spare.
  */
-constexpr int UDP_BUFFER_SIZE = 1024;
+constexpr int UDP_BUFFER_SIZE = 1472;  // Max UDP payload without IP fragmentation
 
 /** Serial command buffer size for user input (longest command ~50 chars) */
 constexpr int SERIAL_BUFFER_SIZE = 128;

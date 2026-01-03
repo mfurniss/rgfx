@@ -62,6 +62,7 @@ describe('TransformerEngine', () => {
         error: vi.fn(),
       },
       drivers: {} as any,
+      loadGif: vi.fn(),
     };
 
     engine = new TransformerEngine(mockContext);

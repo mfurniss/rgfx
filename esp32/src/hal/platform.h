@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace hal {
@@ -44,5 +45,15 @@ int32_t random(int32_t min, int32_t max);
  * May be no-op on release builds or resource-constrained platforms
  */
 void log(const char* fmt, ...);
+
+/**
+ * Get available heap memory in bytes
+ */
+size_t getFreeHeap();
+
+/**
+ * Get largest contiguous free block in bytes
+ */
+size_t getLargestFreeBlock();
 
 }  // namespace hal

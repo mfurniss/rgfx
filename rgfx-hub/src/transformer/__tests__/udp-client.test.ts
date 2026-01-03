@@ -631,10 +631,10 @@ describe('UdpClientImpl', () => {
     it('should reject packets larger than UDP_BUFFER_SIZE', () => {
       const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
 
-      // Create a payload that exceeds UDP_BUFFER_SIZE (1024 bytes)
+      // Create a payload that exceeds UDP_BUFFER_SIZE (1472 bytes)
       const largePayload: EffectPayload = {
         effect: 'bitmap',
-        image: Array(100).fill('X'.repeat(20)), // Large image data
+        image: Array(50).fill('X'.repeat(40)), // Large image data
       };
 
       const result = udpClient.broadcast(largePayload);
@@ -684,7 +684,7 @@ describe('UdpClientImpl', () => {
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
         expect.objectContaining({
-          message: expect.stringMatching(/\d+ bytes.*max 1024/),
+          message: expect.stringMatching(/\d+ bytes.*max 1472/),
         }),
       );
 

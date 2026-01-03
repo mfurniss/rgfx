@@ -105,6 +105,10 @@ test:driver:
     - pio run --project-dir esp32
 
     # Run native tests (hardware-independent)
+    # PIE flags fix ASAN+ASLR conflict in Docker/CI (LLVM bug #164989)
+    # Disable LeakSanitizer - it has issues with Docker/ptrace and causes spurious SIGHUP
+    - export CFLAGS="-fno-pie" CXXFLAGS="-fno-pie" LDFLAGS="-no-pie"
+    - export ASAN_OPTIONS="detect_leaks=0"
     - pio test -e native --project-dir esp32
 
     # Note: Native tests run in CI. Embedded tests require hardware and must be run locally.
