@@ -28,7 +28,7 @@ export const UDP_PORT = 8888;
  * Must match ESP32 UDP_BUFFER_SIZE in esp32/src/config/constants.h.
  * Packets exceeding this size will be truncated by the driver.
  */
-export const UDP_BUFFER_SIZE = 1024;
+export const UDP_BUFFER_SIZE = 1472; // Max UDP payload without IP fragmentation
 
 /** SSDP multicast port for service discovery */
 export const SSDP_PORT = 1900;
