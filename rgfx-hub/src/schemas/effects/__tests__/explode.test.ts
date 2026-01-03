@@ -19,15 +19,15 @@ describe('explodeSchema', () => {
       if (result.success) {
         expect(result.data.color).toBe('random');
         expect(result.data.reset).toBe(false);
-        expect(result.data.centerX).toBe(50);
-        expect(result.data.centerY).toBe(50);
+        expect(result.data.centerX).toBe('random');
+        expect(result.data.centerY).toBe('random');
         expect(result.data.friction).toBe(3.0);
         expect(result.data.hueSpread).toBe(0);
         expect(result.data.lifespan).toBe(700);
         expect(result.data.lifespanSpread).toBe(50);
         expect(result.data.particleCount).toBe(100);
         expect(result.data.particleSize).toBe(6);
-        expect(result.data.power).toBe(50);
+        expect(result.data.power).toBe(120);
         expect(result.data.powerSpread).toBe(80);
         expect(result.data.gravity).toBe(0);
       }
@@ -231,22 +231,22 @@ describe('explodeSchema', () => {
     });
 
     it('should accept max gravity', () => {
-      const result = explodeSchema.safeParse({ gravity: 100 });
+      const result = explodeSchema.safeParse({ gravity: 500 });
       expect(result.success).toBe(true);
     });
 
     it('should accept min gravity', () => {
-      const result = explodeSchema.safeParse({ gravity: -100 });
+      const result = explodeSchema.safeParse({ gravity: -500 });
       expect(result.success).toBe(true);
     });
 
     it('should reject gravity above max', () => {
-      const result = explodeSchema.safeParse({ gravity: 101 });
+      const result = explodeSchema.safeParse({ gravity: 501 });
       expect(result.success).toBe(false);
     });
 
     it('should reject gravity below min', () => {
-      const result = explodeSchema.safeParse({ gravity: -101 });
+      const result = explodeSchema.safeParse({ gravity: -501 });
       expect(result.success).toBe(false);
     });
   });

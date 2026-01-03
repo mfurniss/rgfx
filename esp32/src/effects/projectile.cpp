@@ -122,13 +122,9 @@ void ProjectileEffect::update(float deltaTime) {
 		// Update elapsed time
 		p.elapsedTime += deltaTime;
 
-		// Apply friction to velocity (exponential decay model)
-		// friction=0: no slowdown, friction=1: moderate, friction=2: fast
-		// Formula: velocity *= (1 - friction * deltaTime), clamped to prevent reversal
+		// Apply friction using true exponential decay (frame-rate independent)
 		if (p.friction != 0.0f) {
-			float decay = 1.0f - (p.friction * deltaTime);
-			if (decay < 0.0f)
-				decay = 0.0f;
+			float decay = expf(-p.friction * deltaTime);
 			p.velocityX *= decay;
 			p.velocityY *= decay;
 		}
