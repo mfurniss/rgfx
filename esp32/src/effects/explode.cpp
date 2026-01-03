@@ -51,11 +51,6 @@ void ExplodeEffect::add(JsonDocument& props) {
 
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
-	// Scale velocity based on largest dimension (normalized to 60px reference)
-	uint16_t largestDimension =
-		isStrip ? canvas.getWidth() : max(canvas.getWidth(), canvas.getHeight());
-	float velocityScale = largestDimension / 60.0f;
-
 	// Parse center position as percentage (0-100) or "random"
 	float centerXPercent = parseCoordPercent(props["centerX"]);
 	if (centerXPercent < 0) {
@@ -104,7 +99,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		p.x = centerX;
 		p.y = centerY;
 		p.friction = friction;
-		p.gravity = gravity * velocityScale * 2.0f;
+		p.gravity = gravity;
 		p.particleSize = static_cast<uint8_t>(min(particleSize, 255u));
 
 		// Calculate power with optional variation based on powerSpread (percentage)
@@ -115,15 +110,14 @@ void ExplodeEffect::add(JsonDocument& props) {
 		if (isStrip) {
 			// Strip: Only horizontal movement (half go left, half go right)
 			float direction = (i < particleCount / 2) ? -1.0f : 1.0f;
-			p.vx = direction * powerVariation * velocityScale;
+			p.vx = direction * powerVariation;
 			p.vy = 0.0f;
 		} else {
 			// Matrix: Full 2D explosion with radial distribution
 			float angle = (static_cast<float>(i) / particleCount) * 2.0f * PI;
 			angle += (static_cast<float>(hal::random(-100, 100)) / 100.0f) * 0.3f;
-			// Apply uniform scaling to maintain circular shape
-			p.vx = cos(angle) * powerVariation * velocityScale;
-			p.vy = sin(angle) * powerVariation * velocityScale;
+			p.vx = cos(angle) * powerVariation;
+			p.vy = sin(angle) * powerVariation;
 		}
 
 		// Apply hue spread if non-zero
@@ -205,24 +199,28 @@ void ExplodeEffect::update(float deltaTime) {
 
 		// Update X position (always) - friction is stored per-particle
 		p.x += p.vx * deltaTime;
-		p.vx *= (1.0f - (p.friction * deltaTime));
+		p.vx *= expf(-p.friction * deltaTime);
 
 		// Update Y position (only for matrices)
 		if (!isStrip) {
 			p.vy += p.gravity * deltaTime;  // Apply gravity acceleration
 			p.y += p.vy * deltaTime;
-			p.vy *= (1.0f - (p.friction * deltaTime));
+			p.vy *= expf(-p.friction * deltaTime);
 		}
 
 		// Age the particle
 		p.age += deltaTimeMs;
 
 		// Check if particle is dead or out of bounds
+		// Allow particles to exit on the gravity side (they may arc back)
 		bool outOfBounds;
 		if (isStrip) {
 			outOfBounds = (p.x < 0 || p.x >= width);
 		} else {
-			outOfBounds = (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height);
+			bool outX = (p.x < 0 || p.x >= width);
+			bool outTop = (p.y < 0) && (p.gravity >= 0);     // Only kill at top if gravity pulls down
+			bool outBottom = (p.y >= height) && (p.gravity <= 0);  // Only kill at bottom if gravity pulls up
+			outOfBounds = outX || outTop || outBottom;
 		}
 
 		if (p.age >= p.lifespan || outOfBounds) {
