@@ -42,5 +42,17 @@ void advanceTimeMicros(uint32_t us);
  */
 void seedRandom(uint16_t seed);
 
+/**
+ * Set the mock free heap size for testing memory limits.
+ * hal::getFreeHeap() will return this value.
+ */
+void setFreeHeap(size_t bytes);
+
+/**
+ * Set the mock largest free block size for testing memory limits.
+ * hal::getLargestFreeBlock() will return this value.
+ */
+void setLargestFreeBlock(size_t bytes);
+
 }  // namespace test
 }  // namespace hal
