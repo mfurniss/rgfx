@@ -7,6 +7,17 @@
 
 import { z } from 'zod';
 import color from './properties/color';
+import { randomString, randomInt, randomFloat, randomColor } from '@/utils/random';
+
+export function randomize(): Record<string, unknown> {
+  return {
+    color: randomColor(),
+    direction: randomString(['up', 'down', 'left', 'right']),
+    density: randomInt(5, 100),
+    speed: randomFloat(10, 500),
+    size: randomInt(4, 16),
+  };
+}
 
 /**
  * Particle Field effect props schema
@@ -25,7 +36,7 @@ export default z
     direction: z
       .enum(['up', 'down', 'left', 'right'])
       .optional()
-      .default('down')
+      .default('left')
       .describe('Particle movement direction (up/down maps to left/right on strips)'),
     density: z
       .number()

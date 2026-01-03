@@ -46,6 +46,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 	uint32_t particleSize = props["particleSize"];
 	uint32_t hueSpread = min(static_cast<uint32_t>(props["hueSpread"]), 359u);
 	float friction = props["friction"];
+	float gravity = props["gravity"];
 	float lifespanSpread = props["lifespanSpread"];
 
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
@@ -103,6 +104,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		p.x = centerX;
 		p.y = centerY;
 		p.friction = friction;
+		p.gravity = gravity * velocityScale * 2.0f;
 		p.particleSize = static_cast<uint8_t>(min(particleSize, 255u));
 
 		// Calculate power with optional variation based on powerSpread (percentage)
@@ -207,6 +209,7 @@ void ExplodeEffect::update(float deltaTime) {
 
 		// Update Y position (only for matrices)
 		if (!isStrip) {
+			p.vy += p.gravity * deltaTime;  // Apply gravity acceleration
 			p.y += p.vy * deltaTime;
 			p.vy *= (1.0f - (p.friction * deltaTime));
 		}

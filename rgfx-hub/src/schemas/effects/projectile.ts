@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 import { baseEffect } from './properties';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Projectile effect props schema
  * Creates a rectangular object that moves from one edge to the opposite edge

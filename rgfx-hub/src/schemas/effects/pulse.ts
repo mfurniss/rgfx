@@ -8,6 +8,10 @@
 import { z } from 'zod';
 import { baseEffect, easing } from './properties';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Pulse effect props schema
  * Creates a full-screen color pulse that fades out over time

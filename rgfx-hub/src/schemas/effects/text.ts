@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 import { baseEffect, colorGradient } from './properties';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Text effect props schema
  * Renders text using an 8x8 bitmap font

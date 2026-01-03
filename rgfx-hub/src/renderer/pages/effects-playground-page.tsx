@@ -34,9 +34,8 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, isEffectName } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
-import { randomizeEffectProps } from '../utils/randomize-effect-props';
 import {
   effectDisplayNames,
   formEffects,
@@ -202,14 +201,15 @@ export default function TestEffectsPage() {
 
     void (async () => {
       try {
-        const randomProps = randomizeEffectProps(effectPropsSchemas[selectedEffect]);
-        const randomPropsJson = JSON.stringify(randomProps, null, 2);
+        const randomizedProps = effectRandomizers[selectedEffect]();
+        const mergedProps = { ...currentProps, ...randomizedProps };
+        const mergedPropsJson = JSON.stringify(mergedProps, null, 2);
 
-        setTestEffectsState(selectedEffect, randomPropsJson, selectedDrivers);
+        setTestEffectsState(selectedEffect, mergedPropsJson, selectedDrivers);
 
         const payload: EffectPayload = {
           effect: selectedEffect,
-          props: randomProps,
+          props: mergedProps,
           drivers: Array.from(selectedDrivers),
         };
 

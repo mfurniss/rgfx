@@ -8,6 +8,10 @@
 import { z } from 'zod';
 import { baseEffect, centerX, centerY, easing } from './properties';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * PICO-8 default palette - 16 colors designed for retro games
  * @see https://lospec.com/palette-list/pico-8
