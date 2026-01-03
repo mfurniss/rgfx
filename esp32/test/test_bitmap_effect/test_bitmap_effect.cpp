@@ -1427,6 +1427,229 @@ void test_bitmap_fade_with_animation() {
 }
 
 // =============================================================================
+// 12. Memory Management Tests
+// =============================================================================
+
+void test_bitmap_memory_tracking() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	// Initially no memory used
+	TEST_ASSERT_EQUAL(0, effect.getTotalMemoryUsed());
+
+	// Add a bitmap
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	addSingleFrameImage(props, {"77", "77"});
+	effect.add(props);
+
+	// Memory should be tracked
+	TEST_ASSERT_TRUE(effect.getTotalMemoryUsed() > 0);
+	size_t memoryAfterAdd = effect.getTotalMemoryUsed();
+
+	// Expire the bitmap
+	effect.update(1.1f);
+
+	// Memory should be released
+	TEST_ASSERT_EQUAL(0, effect.getTotalMemoryUsed());
+	(void)memoryAfterAdd;  // Suppress unused warning
+}
+
+void test_bitmap_memory_budget_enforced() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	// Add bitmaps until budget is exceeded
+	// Each 8x8 bitmap uses ~(64 + overhead) bytes
+	int addedCount = 0;
+	for (int i = 0; i < 5000; i++) {
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 10000;
+		props["centerX"] = 50;
+		props["centerY"] = 50;
+		// 8x8 = 64 pixels = 64 bytes + overhead
+		addSingleFrameImage(props, {"77777777", "77777777", "77777777", "77777777",
+		                            "77777777", "77777777", "77777777", "77777777"});
+		size_t beforeAdd = effect.getBitmapCount();
+		effect.add(props);
+		if (effect.getBitmapCount() > beforeAdd) {
+			addedCount++;
+		}
+	}
+
+	// Should have stopped adding due to budget (128KB = 131072 bytes)
+	// Each bitmap is ~200-300 bytes, so we should be able to add 400-600
+	TEST_ASSERT_TRUE(addedCount > 100);    // Should add many
+	TEST_ASSERT_TRUE(addedCount < 5000);   // But not all
+}
+
+void test_bitmap_oversized_frame_rejected() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+
+	// Create 33x33 frame (exceeds 32x32 limit)
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	std::string longRow(33, '7');
+	for (int i = 0; i < 33; i++) {
+		frame.add(longRow.c_str());
+	}
+
+	effect.add(props);
+
+	// Should have been rejected
+	TEST_ASSERT_EQUAL(0, effect.getBitmapCount());
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_bitmap_low_heap_rejected() {
+	// Set mock heap to very low value
+	hal::test::setFreeHeap(16384);  // 16KB - below MIN_FREE_HEAP + any bitmap
+
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	addSingleFrameImage(props, {"77", "77"});
+
+	effect.add(props);
+
+	// Should have been rejected due to low heap
+	TEST_ASSERT_EQUAL(0, effect.getBitmapCount());
+
+	// Reset heap to normal
+	hal::test::setFreeHeap(320000);
+}
+
+void test_bitmap_memory_reclaimed_on_expiration() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	// Add bitmap with short duration
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 100;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	addSingleFrameImage(props, {"77777777", "77777777", "77777777", "77777777",
+	                            "77777777", "77777777", "77777777", "77777777"});
+	effect.add(props);
+
+	size_t memoryAfterAdd = effect.getTotalMemoryUsed();
+	TEST_ASSERT_TRUE(memoryAfterAdd > 0);
+	TEST_ASSERT_EQUAL(1, effect.getBitmapCount());
+
+	// Expire it
+	effect.update(0.2f);
+
+	// Memory should be reclaimed
+	TEST_ASSERT_EQUAL(0, effect.getTotalMemoryUsed());
+	TEST_ASSERT_EQUAL(0, effect.getBitmapCount());
+}
+
+void test_bitmap_reset_clears_memory_tracking() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	// Add several bitmaps
+	for (int i = 0; i < 5; i++) {
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 10000;
+		props["centerX"] = 50;
+		props["centerY"] = 50;
+		addSingleFrameImage(props, {"77", "77"});
+		effect.add(props);
+	}
+
+	TEST_ASSERT_TRUE(effect.getTotalMemoryUsed() > 0);
+	TEST_ASSERT_EQUAL(5, effect.getBitmapCount());
+
+	// Reset
+	effect.reset();
+
+	// All memory should be cleared
+	TEST_ASSERT_EQUAL(0, effect.getTotalMemoryUsed());
+	TEST_ASSERT_EQUAL(0, effect.getBitmapCount());
+}
+
+void test_bitmap_no_leak_after_cycles() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	// Rapidly add and expire many bitmaps
+	for (int cycle = 0; cycle < 100; cycle++) {
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 10;  // Very short
+		props["centerX"] = 50;
+		props["centerY"] = 50;
+		addSingleFrameImage(props, {"77", "77"});
+		effect.add(props);
+		effect.update(0.02f);  // Expire it
+	}
+
+	// All bitmaps should be expired, memory should be zero
+	TEST_ASSERT_EQUAL(0, effect.getTotalMemoryUsed());
+	TEST_ASSERT_EQUAL(0, effect.getBitmapCount());
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_bitmap_frame_limit_enforced() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+
+	// Create 40 frames (exceeds MAX_FRAMES_PER_BITMAP = 32)
+	JsonArray images = props["images"].to<JsonArray>();
+	for (int i = 0; i < 40; i++) {
+		JsonArray frame = images.add<JsonArray>();
+		frame.add("77");
+	}
+
+	effect.add(props);
+
+	// Bitmap should be added, but truncated to 32 frames
+	TEST_ASSERT_EQUAL(1, effect.getBitmapCount());
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -1505,6 +1728,16 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_empty_images_array);
 	RUN_TEST(test_bitmap_default_frame_rate);
 	RUN_TEST(test_bitmap_fade_with_animation);
+
+	// 12. Memory Management Tests
+	RUN_TEST(test_bitmap_memory_tracking);
+	RUN_TEST(test_bitmap_memory_budget_enforced);
+	RUN_TEST(test_bitmap_oversized_frame_rejected);
+	RUN_TEST(test_bitmap_low_heap_rejected);
+	RUN_TEST(test_bitmap_memory_reclaimed_on_expiration);
+	RUN_TEST(test_bitmap_reset_clears_memory_tracking);
+	RUN_TEST(test_bitmap_no_leak_after_cycles);
+	RUN_TEST(test_bitmap_frame_limit_enforced);
 
 	return UNITY_END();
 }

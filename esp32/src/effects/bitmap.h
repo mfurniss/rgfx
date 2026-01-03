@@ -8,11 +8,17 @@
 
 class BitmapEffect : public IEffect {
    private:
-	// Animation frame with its own pixel data and dimensions
+	// Memory limits
+	static constexpr uint8_t MAX_FRAMES_PER_BITMAP = 32;
+	static constexpr uint8_t MAX_FRAME_DIMENSION = 32;
+	static constexpr size_t MAX_BITMAP_MEMORY = 131072;  // 128KB total budget
+	static constexpr size_t MIN_FREE_HEAP = 32768;       // 32KB safety margin
+
+	// Animation frame with palettized pixel data
 	struct Frame {
-		std::vector<CRGBA> pixels;  // Pre-computed RGBA pixels, row-major order
-		uint8_t width;              // Frame width in pixels
-		uint8_t height;             // Frame height in pixels
+		std::vector<uint8_t> indices;  // Palette indices, row-major (0xFF = transparent)
+		uint8_t width;                 // Frame width in pixels
+		uint8_t height;                // Frame height in pixels
 	};
 
 	struct Bitmap {
@@ -28,6 +34,9 @@ class BitmapEffect : public IEffect {
 		EasingFunction easing;           // Easing function for movement
 		uint32_t fadeInMs;               // Fade in duration in milliseconds (0 = disabled)
 		uint32_t fadeOutMs;              // Fade out duration in milliseconds (0 = disabled)
+		CRGBA palette[16];               // Color palette for this bitmap
+		uint8_t paletteSize;             // Number of colors in palette
+		size_t memoryUsed;               // Memory used by this bitmap (for tracking)
 		uint32_t remaining() const { return duration - elapsedTime; }
 
 		// Get current frame index based on elapsed time and frame rate
@@ -41,6 +50,13 @@ class BitmapEffect : public IEffect {
 	std::vector<Bitmap> bitmaps;
 	const Matrix& matrix;
 	Canvas& canvas;
+	size_t totalMemoryUsed = 0;  // Track total memory used by all bitmaps
+
+	// Helper to estimate memory needed for a bitmap before parsing
+	size_t estimateBitmapMemory(JsonDocument& props);
+
+	// Helper to calculate actual memory used by a parsed bitmap
+	size_t calculateBitmapMemory(const Bitmap& bitmap);
 
    public:
 	BitmapEffect(const Matrix& matrix, Canvas& canvas);
@@ -48,4 +64,8 @@ class BitmapEffect : public IEffect {
 	void update(float deltaTime) override;
 	void render() override;
 	void reset() override;
+
+	// Expose for testing
+	size_t getTotalMemoryUsed() const { return totalMemoryUsed; }
+	size_t getBitmapCount() const { return bitmaps.size(); }
 };
