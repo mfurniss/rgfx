@@ -136,6 +136,21 @@ export const gradientPresets: GradientPreset[] = [
     speed: 2,
     scale: 0.35,
   },
+  {
+    name: 'Hive Mind',
+    gradient: [
+      '#18617b',
+      '#090a05',
+      '#d96330',
+      '#6d396f',
+      '#211e25',
+      '#161313',
+      '#308aa1',
+      '#18617b',
+    ],
+    speed: 3.25,
+    scale: 7.83,
+  },
 ];
 
 export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {

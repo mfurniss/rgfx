@@ -22,7 +22,7 @@ export function randomize(): Record<string, unknown> {
     lifespanSpread: randomInt(0, 100),
     particleCount: randomInt(10, 500),
     particleSize: randomInt(2, 12),
-    power: randomInt(0, 200),
+    power: randomInt(50, 700),
     powerSpread: randomInt(0, 100),
   };
 }

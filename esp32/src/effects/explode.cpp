@@ -109,8 +109,9 @@ void ExplodeEffect::add(JsonDocument& props) {
 
 		if (isStrip) {
 			// Strip: Only horizontal movement (half go left, half go right)
+			// 2x power since strips are typically longer than matrix dimensions
 			float direction = (i < particleCount / 2) ? -1.0f : 1.0f;
-			p.vx = direction * powerVariation;
+			p.vx = direction * powerVariation * 2.0f;
 			p.vy = 0.0f;
 		} else {
 			// Matrix: Full 2D explosion with radial distribution
