@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Drawer, Toolbar, Typography } from '@mui/material';
 import { SidebarNav } from './sidebar-nav';
+import { NoDriversBanner } from '../firmware/no-drivers-banner';
 import { FirmwareUpdateBanner } from '../firmware/firmware-update-banner';
 import { DRAWER_WIDTH } from '@/config/constants';
 
@@ -40,6 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           flexDirection: 'column',
         }}
       >
+        <NoDriversBanner />
         <FirmwareUpdateBanner />
         <Box sx={{ p: 3, flexGrow: 1 }}>
           {children}
