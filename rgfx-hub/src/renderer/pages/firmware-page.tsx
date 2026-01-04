@@ -65,8 +65,10 @@ const FirmwarePage: React.FC = () => {
   // Flash state from hook
   const flashState = useFlashState(new Map(Object.entries(storedDriverFlashStatus)));
 
-  // Local UI state
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>(storedFlashMethod);
+  // Local UI state - default to USB when no drivers exist
+  const [flashMethod, setFlashMethod] = useState<FlashMethod>(
+    drivers.length === 0 ? 'usb' : storedFlashMethod,
+  );
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     () => new Set(driversNeedingUpdate.map((d) => d.id)),
