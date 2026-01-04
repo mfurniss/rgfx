@@ -374,42 +374,44 @@ const FirmwarePage: React.FC = () => {
 
         {isFlashing && flashMethod === 'ota' && flashState.driverFlashStatus.size > 0 && (
           <Box sx={{ mt: 2 }}>
-            {Array.from(flashState.driverFlashStatus.entries()).map(([driverId, status]) => (
-              <Box key={driverId} sx={{ mb: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ minWidth: 120 }}>
-                    {driverId}
-                  </Typography>
-                  <Typography
-                    variant="body2"
+            {Array.from(flashState.driverFlashStatus.entries())
+              .filter(([driverId]) => selectedDrivers.has(driverId))
+              .map(([driverId, status]) => (
+                <Box key={driverId} sx={{ mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ minWidth: 120 }}>
+                      {driverId}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color={
+                        status.status === 'success'
+                          ? 'success.main'
+                          : status.status === 'error'
+                            ? 'error.main'
+                            : 'text.secondary'
+                      }
+                      sx={{ minWidth: 60 }}
+                    >
+                      {status.status === 'pending' && 'Waiting...'}
+                      {status.status === 'flashing' && `${status.progress}%`}
+                      {status.status === 'success' && 'Done'}
+                      {status.status === 'error' && 'Failed'}
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={status.progress}
                     color={
                       status.status === 'success'
-                        ? 'success.main'
+                        ? 'success'
                         : status.status === 'error'
-                          ? 'error.main'
-                          : 'text.secondary'
+                          ? 'error'
+                          : 'primary'
                     }
-                    sx={{ minWidth: 60 }}
-                  >
-                    {status.status === 'pending' && 'Waiting...'}
-                    {status.status === 'flashing' && `${status.progress}%`}
-                    {status.status === 'success' && 'Done'}
-                    {status.status === 'error' && 'Failed'}
-                  </Typography>
+                  />
                 </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={status.progress}
-                  color={
-                    status.status === 'success'
-                      ? 'success'
-                      : status.status === 'error'
-                        ? 'error'
-                        : 'primary'
-                  }
-                />
-              </Box>
-            ))}
+              ))}
           </Box>
         )}
       </Paper>

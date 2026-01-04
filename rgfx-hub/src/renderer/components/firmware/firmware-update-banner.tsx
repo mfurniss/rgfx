@@ -44,7 +44,7 @@ export function FirmwareUpdateBanner() {
 
   return (
     <PageBanner color="warning">
-      New driver firmware is available for {driverText}, see the
+      New driver firmware is available for {driverText}, see the&nbsp;
       <Link to="/firmware">Firmware Update</Link> page.
     </PageBanner>
   );
