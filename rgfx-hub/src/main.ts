@@ -23,7 +23,7 @@ import { UdpClientImpl } from './transformer/udp-client';
 import { MqttClientWrapper } from './transformer/mqtt-client-wrapper';
 import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
-import { installDefaultTransformers } from './transformer-installer';
+import { installDefaultTransformers, getTransformersDir } from './transformer-installer';
 import { loadGif } from './gif-loader';
 import { installDefaultInterceptors } from './interceptor-installer';
 import { installDefaultLedHardware } from './led-hardware-installer';
@@ -177,7 +177,13 @@ const transformerEngine = new TransformerEngine({
   state: stateStore,
   log: logger,
   drivers: driverRegistry,
-  loadGif,
+  loadGif: (gifPath: string) => {
+    // Resolve relative paths from transformers directory
+    const resolvedPath = path.isAbsolute(gifPath)
+      ? gifPath
+      : path.resolve(getTransformersDir(), gifPath);
+    return loadGif(resolvedPath);
+  },
 });
 
 // Event statistics tracking
@@ -253,7 +259,6 @@ if (!hasCriticalError()) {
     .catch((error: unknown) => {
       log.error('Failed to install default transformers:', error);
     });
-
   void installDefaultInterceptors().catch((error: unknown) => {
     log.error('Failed to install default interceptors:', error);
   });
