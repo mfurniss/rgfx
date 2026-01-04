@@ -12,16 +12,16 @@ export function randomInt(min: number, max: number): number {
 }
 
 export function randomFloat(min: number, max: number): number {
-  return min + Math.random() * (max - min);
+  return Math.round((min + Math.random() * (max - min)) * 100) / 100;
 }
 
 export function randomString<T extends string>(options: T[]): T {
   return options[randomInt(0, options.length - 1)];
 }
 
-export function randomColor(): string {
+export function randomColor(minL = 0.2): string {
   const h = randomInt(0, 359);
   const s = randomFloat(0, 1);
-  const l = randomFloat(0.2, 1);
+  const l = randomFloat(minL, 1);
   return hslToHex(h, s, l);
 }
