@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, session, shell, powerSaveBlocker } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
@@ -96,6 +96,9 @@ const ledHardwareManager = new LEDHardwareManager(configPath);
 
 // System error tracking
 const systemErrors: SystemError[] = [];
+
+// Power save blocker to prevent macOS App Nap from suspending background services
+let powerSaveBlockerId: number | null = null;
 
 // Subscribe to system errors from event bus
 eventBus.on('system:error', (error) => {
@@ -244,6 +247,10 @@ function processEvent(topic: string, payload: string): void {
 
 // Only start services if no critical errors (corrupt config files)
 if (!hasCriticalError()) {
+  // Prevent macOS App Nap from suspending background network services
+  powerSaveBlockerId = powerSaveBlocker.start('prevent-app-suspension');
+  log.info(`Power save blocker started (id: ${powerSaveBlockerId})`);
+
   // Start MQTT broker
   mqtt.start();
 
@@ -487,6 +494,12 @@ app.on('window-all-closed', () => {
 // Cleanup on app quit
 app.on('before-quit', () => {
   log.info('Shutting down...');
+
+  // Stop power save blocker
+  if (powerSaveBlockerId !== null && powerSaveBlocker.isStarted(powerSaveBlockerId)) {
+    powerSaveBlocker.stop(powerSaveBlockerId);
+    log.info('Power save blocker stopped');
+  }
 
   // Stop periodic status updates
   if (statusUpdateInterval) {
