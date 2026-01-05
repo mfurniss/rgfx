@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 import { baseEffect } from './properties';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Wipe effect props schema
  * Creates a color wipe that sweeps across the display

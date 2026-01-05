@@ -18,13 +18,11 @@ import { ConfigError, formatZodError } from './errors/config-error';
  *
  * Responsibilities:
  * - Load LED hardware definitions from external JSON files
- * - Cache hardware definitions for performance
  * - Validate hardware definition structure
  * - List available hardware definitions
  */
 export class LEDHardwareManager {
   private configDir: string;
-  private cache = new Map<string, LEDHardware>();
 
   constructor(baseDir = CONFIG_DIRECTORY) {
     this.configDir = path.resolve(baseDir);
@@ -32,19 +30,12 @@ export class LEDHardwareManager {
 
   /**
    * Load LED hardware definition from file.
+   * Always reads from disk - the JSON file is the source of truth.
    * @param hardwareRef - Relative path like "led-hardware/hjhx-8x8-matrix.json"
    * @returns Parsed LEDHardware or null if file doesn't exist
    * @throws ConfigError if file exists but cannot be parsed or validated
    */
   loadHardware(hardwareRef: string): LEDHardware | null {
-    // Check cache first
-    const cached = this.cache.get(hardwareRef);
-
-    if (cached) {
-      log.debug(`LED hardware loaded from cache: ${hardwareRef}`);
-      return cached;
-    }
-
     const hardwarePath = path.join(this.configDir, hardwareRef);
 
     if (!fs.existsSync(hardwarePath)) {
@@ -79,10 +70,8 @@ export class LEDHardwareManager {
 
     const hardware = parseResult.data as LEDHardware;
 
-    // Cache it
-    this.cache.set(hardwareRef, hardware);
     const identifier = hardware.asin ?? hardware.sku ?? 'no SKU/ASIN';
-    log.info(
+    log.debug(
       `Loaded LED hardware: ${hardware.name} (${identifier}) from ${hardwareRef} - ${hardware.count} LEDs`,
     );
 
@@ -95,15 +84,6 @@ export class LEDHardwareManager {
   hasHardware(hardwareRef: string): boolean {
     const hardwarePath = path.join(this.configDir, hardwareRef);
     return fs.existsSync(hardwarePath);
-  }
-
-  /**
-   * Clear cache (useful for hot-reload)
-   */
-  clearCache(): void {
-    const { size } = this.cache;
-    this.cache.clear();
-    log.info(`Cleared LED hardware cache (${size} entries)`);
   }
 
   /**

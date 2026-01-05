@@ -360,6 +360,9 @@ declare global {
           percent: number;
         }) => void,
       ) => () => void;
+      onFlashOtaError: (
+        callback: (data: { driverId: string; error: string }) => void,
+      ) => () => void;
       sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
       updateDriverConfig: (driverId: string) => Promise<void>;
       flashOTA: (

@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, session, shell, powerSaveBlocker } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import log from 'electron-log/main';
@@ -23,7 +23,7 @@ import { UdpClientImpl } from './transformer/udp-client';
 import { MqttClientWrapper } from './transformer/mqtt-client-wrapper';
 import { StateStoreImpl } from './transformer/state-store';
 import { LoggerWrapper } from './transformer/logger-wrapper';
-import { installDefaultTransformers } from './transformer-installer';
+import { installDefaultTransformers, getTransformersDir } from './transformer-installer';
 import { loadGif } from './gif-loader';
 import { installDefaultInterceptors } from './interceptor-installer';
 import { installDefaultLedHardware } from './led-hardware-installer';
@@ -96,6 +96,9 @@ const ledHardwareManager = new LEDHardwareManager(configPath);
 
 // System error tracking
 const systemErrors: SystemError[] = [];
+
+// Power save blocker to prevent macOS App Nap from suspending background services
+let powerSaveBlockerId: number | null = null;
 
 // Subscribe to system errors from event bus
 eventBus.on('system:error', (error) => {
@@ -177,7 +180,13 @@ const transformerEngine = new TransformerEngine({
   state: stateStore,
   log: logger,
   drivers: driverRegistry,
-  loadGif,
+  loadGif: (gifPath: string) => {
+    // Resolve relative paths from transformers directory
+    const resolvedPath = path.isAbsolute(gifPath)
+      ? gifPath
+      : path.resolve(getTransformersDir(), gifPath);
+    return loadGif(resolvedPath);
+  },
 });
 
 // Event statistics tracking
@@ -238,6 +247,10 @@ function processEvent(topic: string, payload: string): void {
 
 // Only start services if no critical errors (corrupt config files)
 if (!hasCriticalError()) {
+  // Prevent macOS App Nap from suspending background network services
+  powerSaveBlockerId = powerSaveBlocker.start('prevent-app-suspension');
+  log.info(`Power save blocker started (id: ${powerSaveBlockerId})`);
+
   // Start MQTT broker
   mqtt.start();
 
@@ -253,7 +266,6 @@ if (!hasCriticalError()) {
     .catch((error: unknown) => {
       log.error('Failed to install default transformers:', error);
     });
-
   void installDefaultInterceptors().catch((error: unknown) => {
     log.error('Failed to install default interceptors:', error);
   });
@@ -482,6 +494,12 @@ app.on('window-all-closed', () => {
 // Cleanup on app quit
 app.on('before-quit', () => {
   log.info('Shutting down...');
+
+  // Stop power save blocker
+  if (powerSaveBlockerId !== null && powerSaveBlocker.isStarted(powerSaveBlockerId)) {
+    powerSaveBlocker.stop(powerSaveBlockerId);
+    log.info('Power save blocker stopped');
+  }
 
   // Stop periodic status updates
   if (statusUpdateInterval) {

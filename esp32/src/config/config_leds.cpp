@@ -3,6 +3,7 @@
 #include "hal/led_controller.h"
 #include "log.h"
 #include "network/mqtt.h"
+#include <fl/rgbw.h>
 #include <map>
 
 // LED buffers for each pin
@@ -50,6 +51,54 @@ static uint32_t getColorCorrection(const String& correction) {
 }
 
 /**
+ * Helper: Check if color order indicates RGBW (4-channel) LED
+ */
+static bool isRGBWColorOrder(const String& colorOrder) {
+	return colorOrder.length() == 4 && colorOrder.indexOf('W') >= 0;
+}
+
+/**
+ * Helper: Get white channel position from color order string
+ * Returns EOrderW enum value (W0, W1, W2, W3) based on position of 'W' in the string
+ */
+static fl::EOrderW getWhitePosition(const String& colorOrder) {
+	int pos = colorOrder.indexOf('W');
+	if (pos < 0) return fl::W3;  // Default: white last
+	switch (pos) {
+		case 0: return fl::W0;
+		case 1: return fl::W1;
+		case 2: return fl::W2;
+		case 3: return fl::W3;
+		default: return fl::W3;
+	}
+}
+
+/**
+ * Helper: Get FastLED EOrder from color order string
+ * Extracts RGB portion, ignoring W position
+ */
+static EOrder getColorOrder(const String& colorOrder) {
+	// Build RGB-only string by removing W
+	String rgbPart = "";
+	for (size_t i = 0; i < colorOrder.length() && rgbPart.length() < 3; i++) {
+		char c = colorOrder.charAt(i);
+		if (c != 'W' && c != 'w') {
+			rgbPart += c;
+		}
+	}
+
+	if (rgbPart == "RGB") return RGB;
+	if (rgbPart == "RBG") return RBG;
+	if (rgbPart == "GRB") return GRB;
+	if (rgbPart == "GBR") return GBR;
+	if (rgbPart == "BRG") return BRG;
+	if (rgbPart == "BGR") return BGR;
+
+	// Default to GRB (most common for WS2812B)
+	return GRB;
+}
+
+/**
  * Initialize FastLED based on configuration
  * FastLED.addLeds() can only be called once per pin - subsequent calls corrupt RMT channels
  */
@@ -88,15 +137,19 @@ bool configLEDs() {
 	activePins = 0;
 
 	// Group devices by pin and calculate buffer sizes
-	// Also store the first device's color correction for each pin
+	// Also store the first device's settings for each pin
 	std::map<uint8_t, uint16_t> pinLEDCounts;
 	std::map<uint8_t, String> pinColorCorrection;
+	std::map<uint8_t, String> pinChipset;
+	std::map<uint8_t, String> pinColorOrder;
 
 	for (const auto& dev : g_driverConfig.devices) {
 		uint16_t needed = dev.offset + dev.count;
 		if (pinLEDCounts.find(dev.pin) == pinLEDCounts.end()) {
 			pinLEDCounts[dev.pin] = needed;
 			pinColorCorrection[dev.pin] = dev.colorCorrection;
+			pinChipset[dev.pin] = dev.chipset.length() > 0 ? dev.chipset : "WS2812B";
+			pinColorOrder[dev.pin] = dev.colorOrder.length() > 0 ? dev.colorOrder : "GRB";
 		} else {
 			if (needed > pinLEDCounts[dev.pin]) {
 				pinLEDCounts[dev.pin] = needed;
@@ -119,10 +172,14 @@ bool configLEDs() {
 	for (const auto& pair : pinLEDCounts) {
 		uint8_t pin = pair.first;
 		uint16_t count = pair.second;
+		String chipset = pinChipset[pin];
+		String colorOrder = pinColorOrder[pin];
+		bool isRGBW = isRGBWColorOrder(colorOrder);
 
-		log("Pin " + String(pin) + ": allocating " + String(count) + " LEDs");
+		log("Pin " + String(pin) + ": " + String(count) + " LEDs, chipset=" + chipset +
+		    ", colorOrder=" + colorOrder + (isRGBW ? " (RGBW)" : ""));
 
-		// Allocate buffer
+		// Allocate CRGB buffer - FastLED handles RGBW internally via setRgbw()
 		ledBuffers[pinIndex] = new CRGB[count];
 		if (!ledBuffers[pinIndex]) {
 			log("ERROR: Failed to allocate LED buffer for pin " + String(pin));
@@ -135,17 +192,51 @@ bool configLEDs() {
 		// Initialize LEDs to black
 		fill_solid(ledBuffers[pinIndex], count, CRGB::Black);
 
-		// Get color correction for this pin
+		// Get color correction and order for this pin
 		uint32_t correction = getColorCorrection(pinColorCorrection[pin]);
+		EOrder order = getColorOrder(colorOrder);
 
-// Add to FastLED - template requires compile-time pin specification
-// Using macro to eliminate code duplication while maintaining template requirements
+		// Get RGBW config if applicable
+		fl::EOrderW wPos = isRGBW ? getWhitePosition(colorOrder) : fl::W3;
+
+// Macro to add LEDs with setRgbw() for RGBW strips
+#define ADD_LEDS_WITH_ORDER(CHIPSET, PIN_NUM, ORDER)                                            \
+	do {                                                                                        \
+		auto& controller = FastLED.addLeds<CHIPSET, PIN_NUM, ORDER>(ledBuffers[pinIndex], count); \
+		controller.setCorrection(correction);                                                   \
+		if (isRGBW) {                                                                           \
+			controller.setRgbw(fl::Rgbw(fl::kRGBWDefaultColorTemp, fl::kRGBWExactColors, wPos)); \
+		}                                                                                       \
+	} while(0)
+
+#define ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, ORDER)                                               \
+	if (chipset == "WS2812B" || chipset == "WS2812" || chipset == "NEOPIXEL") {                 \
+		ADD_LEDS_WITH_ORDER(WS2812B, PIN_NUM, ORDER);                                           \
+	} else if (chipset == "WS2811") {                                                           \
+		ADD_LEDS_WITH_ORDER(WS2811, PIN_NUM, ORDER);                                            \
+	} else if (chipset == "WS2813") {                                                           \
+		ADD_LEDS_WITH_ORDER(WS2813, PIN_NUM, ORDER);                                            \
+	} else if (chipset == "WS2814" || chipset == "SK6812") {                                    \
+		ADD_LEDS_WITH_ORDER(SK6812, PIN_NUM, ORDER); /* WS2814/SK6812 RGBW - needs SK6812 timing */  \
+	} else if (chipset == "APA102" || chipset == "DOTSTAR") {                                   \
+		ADD_LEDS_WITH_ORDER(WS2812B, PIN_NUM, ORDER); /* APA102 needs clock pin - fallback */   \
+	} else {                                                                                    \
+		ADD_LEDS_WITH_ORDER(WS2812B, PIN_NUM, ORDER); /* Default fallback */                    \
+		log("WARNING: Unknown chipset '" + chipset + "', using WS2812B");                       \
+	}
+
 #define ADD_FASTLED_FOR_PIN(PIN_NUM)                                                            \
 	case PIN_NUM:                                                                               \
-		FastLED.addLeds<WS2812B, PIN_NUM, GRB>(ledBuffers[pinIndex], count)                    \
-		    .setCorrection(correction);                                                         \
-		log("Added FastLED for GPIO" #PIN_NUM " with " + pinColorCorrection[pin] +             \
-		    " color correction");                                                               \
+		switch (order) {                                                                        \
+			case RGB: ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, RGB); break;                           \
+			case RBG: ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, RBG); break;                           \
+			case GRB: ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, GRB); break;                           \
+			case GBR: ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, GBR); break;                           \
+			case BRG: ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, BRG); break;                           \
+			case BGR: ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, BGR); break;                           \
+			default:  ADD_FASTLED_FOR_PIN_ORDER(PIN_NUM, GRB); break;                           \
+		}                                                                                       \
+		log("Added FastLED for GPIO" #PIN_NUM);                                                 \
 		break;
 
 		switch (pin) {
@@ -166,6 +257,8 @@ bool configLEDs() {
 		}
 
 #undef ADD_FASTLED_FOR_PIN
+#undef ADD_FASTLED_FOR_PIN_ORDER
+#undef ADD_LEDS_WITH_ORDER
 
 		pinIndex++;
 	}

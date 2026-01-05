@@ -456,7 +456,9 @@ void test_explode_particle_size_large() {
 }
 
 void test_explode_alpha_decay_over_lifespan() {
-	Matrix matrix(8, 8);
+	// Use larger canvas to prevent particles from going out of bounds
+	// (rand() produces different sequences on Linux vs macOS)
+	Matrix matrix(32, 32);
 	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 
@@ -1086,7 +1088,9 @@ void test_explode_power_zero() {
 }
 
 void test_explode_very_long_lifespan() {
-	Matrix matrix(8, 8);
+	// Use larger canvas to prevent particles from going out of bounds
+	// (rand() produces different sequences on Linux vs macOS)
+	Matrix matrix(32, 32);
 	Canvas canvas(matrix);
 	ExplodeEffect effect(matrix, canvas);
 

@@ -61,7 +61,7 @@ const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Configure WiFi</DialogTitle>
+      <DialogTitle>Configure Driver WiFi</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           {description && (

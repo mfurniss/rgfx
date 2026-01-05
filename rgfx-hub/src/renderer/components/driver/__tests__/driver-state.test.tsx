@@ -17,11 +17,18 @@ vi.mock('react-router-dom', async () => {
 
 const createMockDriver = (overrides: Partial<Driver> = {}): Driver => ({
   id: '44:1D:64:F8:9A:58',
+  mac: '44:1D:64:F8:9A:58',
   state: 'connected',
   lastSeen: Date.now(),
   failedHeartbeats: 0,
   ip: '192.168.1.50',
   disabled: false,
+  ledConfig: {
+    hardwareRef: 'test-hardware',
+    pin: 16,
+    dithering: false,
+    floor: { r: 0, g: 0, b: 0 },
+  },
   stats: {
     telemetryEventsReceived: 0,
     mqttMessagesReceived: 0,
@@ -184,6 +191,56 @@ describe('DriverState', () => {
       fireEvent.click(warningButton!);
 
       expect(handleParentClick).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('LED config warning indicator', () => {
+    it('shows warning icon when driver has no LED config', () => {
+      const driver = createMockDriver({
+        state: 'connected',
+        ledConfig: undefined,
+      });
+      renderWithRouter(<DriverState driver={driver} />);
+
+      const warningButton = screen.getByRole('button');
+      expect(warningButton).toBeDefined();
+    });
+
+    it('does not show LED config warning when driver is disconnected', () => {
+      const driver = createMockDriver({
+        state: 'disconnected',
+        ledConfig: undefined,
+      });
+      renderWithRouter(<DriverState driver={driver} />);
+
+      expect(screen.queryByRole('button')).toBeNull();
+    });
+
+    it('navigates to config page when LED config warning is clicked', () => {
+      const driver = createMockDriver({
+        state: 'connected',
+        ledConfig: undefined,
+      });
+      renderWithRouter(<DriverState driver={driver} />);
+
+      const warningButton = screen.getByRole('button');
+      fireEvent.click(warningButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/drivers/44:1D:64:F8:9A:58/config');
+    });
+
+    it('navigates to firmware page when both warnings exist (firmware takes priority)', () => {
+      const driver = createMockDriver({
+        state: 'connected',
+        ledConfig: undefined,
+        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+      });
+      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+
+      const warningButton = screen.getByRole('button');
+      fireEvent.click(warningButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/firmware');
     });
   });
 });

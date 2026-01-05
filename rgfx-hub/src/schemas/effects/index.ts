@@ -6,16 +6,16 @@
  */
 
 import { z } from 'zod';
-import pulseSchema from './pulse';
-import wipeSchema from './wipe';
-import explodeSchema from './explode';
-import bitmapSchema from './bitmap';
-import backgroundSchema from './background';
-import projectileSchema from './projectile';
-import textSchema from './text';
-import scrollTextSchema from './scroll-text';
-import plasmaSchema from './plasma';
-import particleFieldSchema from './particle-field';
+import pulseSchema, { randomize as randomizePulse } from './pulse';
+import wipeSchema, { randomize as randomizeWipe } from './wipe';
+import explodeSchema, { randomize as randomizeExplode } from './explode';
+import bitmapSchema, { randomize as randomizeBitmap } from './bitmap';
+import backgroundSchema, { randomize as randomizeBackground } from './background';
+import projectileSchema, { randomize as randomizeProjectile } from './projectile';
+import textSchema, { randomize as randomizeText } from './text';
+import scrollTextSchema, { randomize as randomizeScrollText } from './scroll-text';
+import plasmaSchema, { randomize as randomizePlasma } from './plasma';
+import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
 
 /**
  * Map of effect names to their full schemas (includes name/description metadata)
@@ -48,6 +48,19 @@ export const effectPropsSchemas = {
   scroll_text: scrollTextSchema.omit({ name: true, description: true }),
   plasma: plasmaSchema.omit({ name: true, description: true }),
   particle_field: particleFieldSchema.omit({ name: true, description: true }),
+} as const;
+
+export const effectRandomizers = {
+  pulse: randomizePulse,
+  wipe: randomizeWipe,
+  explode: randomizeExplode,
+  bitmap: randomizeBitmap,
+  background: randomizeBackground,
+  projectile: randomizeProjectile,
+  text: randomizeText,
+  scroll_text: randomizeScrollText,
+  plasma: randomizePlasma,
+  particle_field: randomizeParticleField,
 } as const;
 
 type EffectName = keyof typeof effectSchemas;

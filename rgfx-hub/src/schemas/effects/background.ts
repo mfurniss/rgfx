@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 import color from './properties/color';
 
+export function randomize(): Record<string, unknown> {
+  return {};
+}
+
 /**
  * Background effect props schema
  * Creates a solid color background that fills the entire canvas.
