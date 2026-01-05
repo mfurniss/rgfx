@@ -44,9 +44,18 @@ vi.mock('@/services/event-bus', () => ({
   },
 }));
 
+// Static control for mock behavior
+let mockUploadShouldFail = false;
+let mockUploadError: Error | null = null;
+
 class MockEspOTA {
   static FLASH = 'flash';
-  uploadFile = vi.fn(() => Promise.resolve());
+  uploadFile = vi.fn(() => {
+    if (mockUploadShouldFail && mockUploadError) {
+      return Promise.reject(mockUploadError);
+    }
+    return Promise.resolve();
+  });
   on = vi.fn(() => this);
 }
 
@@ -61,6 +70,10 @@ describe('registerFlashOtaHandler', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+
+    // Reset mock control flags
+    mockUploadShouldFail = false;
+    mockUploadError = null;
 
     const fs = await import('fs');
     (fs.existsSync as Mock).mockReturnValue(true);
@@ -215,6 +228,45 @@ describe('registerFlashOtaHandler', () => {
       expect(existsSyncMock).toHaveBeenCalledWith(
         expect.stringContaining('assets/esp32/firmware/firmware.bin'),
       );
+    });
+  });
+
+  describe('uncaught exception handling', () => {
+    it('should register uncaughtException handler during OTA', async () => {
+      const processOnSpy = vi.spyOn(process, 'on');
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(processOnSpy).toHaveBeenCalledWith('uncaughtException', expect.any(Function));
+      processOnSpy.mockRestore();
+    });
+
+    it('should remove uncaughtException handler after successful OTA', async () => {
+      const processRemoveListenerSpy = vi.spyOn(process, 'removeListener');
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(processRemoveListenerSpy).toHaveBeenCalledWith(
+        'uncaughtException',
+        expect.any(Function),
+      );
+      processRemoveListenerSpy.mockRestore();
+    });
+
+    it('should remove uncaughtException handler even when OTA fails', async () => {
+      const processRemoveListenerSpy = vi.spyOn(process, 'removeListener');
+
+      // Configure mock to fail
+      mockUploadShouldFail = true;
+      mockUploadError = new Error('Upload failed');
+
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow('Upload failed');
+
+      expect(processRemoveListenerSpy).toHaveBeenCalledWith(
+        'uncaughtException',
+        expect.any(Function),
+      );
+      processRemoveListenerSpy.mockRestore();
     });
   });
 

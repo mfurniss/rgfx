@@ -108,9 +108,25 @@ const FirmwarePage: React.FC = () => {
       },
     );
 
+    const unsubscribeError = window.rgfx.onFlashOtaError(
+      ({ driverId, error }: { driverId: string; error: string }): void => {
+        flashState.addLog(`[${driverId}] OTA error: ${error}`);
+        flashState.setDriverFlashStatus((prev) => {
+          const next = new Map(prev);
+          const current = next.get(driverId);
+
+          if (current) {
+            next.set(driverId, { ...current, status: 'error', error });
+          }
+          return next;
+        });
+      },
+    );
+
     return (): void => {
       unsubscribeState();
       unsubscribeProgress();
+      unsubscribeError();
     };
   }, [flashState]);
 
