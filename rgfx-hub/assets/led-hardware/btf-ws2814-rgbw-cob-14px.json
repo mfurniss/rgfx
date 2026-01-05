@@ -1,0 +1,10 @@
+{
+  "name": "BTF-LIGHTING WS2814 RGBW COB 784px/m 3000K",
+  "description": "1m FCOB WS2814 RGBW LED strip, 784 LEDs/m, 14 addressable pixels, warm white 3000K, DC24V",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 14,
+  "chipset": "WS2814",
+  "colorOrder": "WRGB"
+}

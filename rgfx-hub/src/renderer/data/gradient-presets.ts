@@ -136,6 +136,34 @@ export const gradientPresets: GradientPreset[] = [
     speed: 2,
     scale: 0.35,
   },
+  {
+    name: 'Hive Mind',
+    gradient: [
+      '#18617b',
+      '#090a05',
+      '#d96330',
+      '#6d396f',
+      '#211e25',
+      '#161313',
+      '#308aa1',
+      '#18617b',
+    ],
+    speed: 3.25,
+    scale: 7.83,
+  },
+  {
+    name: 'Deaky-Freaky',
+    speed: 11.30,
+    scale: 1.2,
+    gradient: [
+      '#89bb3e',
+      '#970279',
+      '#172719',
+      '#5970f3',
+      '#b0d9a5',
+      '#89bb3e',
+    ],
+  },
 ];
 
 export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {

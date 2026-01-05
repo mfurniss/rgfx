@@ -127,5 +127,5 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Lua emit error event to Hub
 [ ] Add hub setting to squash notifications
 [X] Validate event topics in Lua and Hub
-[ ] Display event log size in system status
-[ ] Persist hub windows position and size
+[X] Display event log size in system status
+[X] Persist hub windows position and size
