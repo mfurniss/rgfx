@@ -60,20 +60,19 @@ describe('LEDHardwareManager', () => {
       expect(hardware?.layout).toBe('matrix');
     });
 
-    it('should cache loaded hardware', () => {
+    it('should always read from disk (no caching)', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue(validHardwareJson);
 
       const manager = new LEDHardwareManager('/config');
 
       // First load
-      const hardware1 = manager.loadHardware('led-hardware/test-matrix.json');
+      manager.loadHardware('led-hardware/test-matrix.json');
       expect(mockFs.readFileSync).toHaveBeenCalledTimes(1);
 
-      // Second load should come from cache
-      const hardware2 = manager.loadHardware('led-hardware/test-matrix.json');
-      expect(mockFs.readFileSync).toHaveBeenCalledTimes(1);
-      expect(hardware1).toBe(hardware2);
+      // Second load should also read from disk
+      manager.loadHardware('led-hardware/test-matrix.json');
+      expect(mockFs.readFileSync).toHaveBeenCalledTimes(2);
     });
 
     it('should return null for non-existent file', () => {
@@ -161,27 +160,6 @@ describe('LEDHardwareManager', () => {
       const exists = manager.hasHardware('led-hardware/missing.json');
 
       expect(exists).toBe(false);
-    });
-  });
-
-  describe('clearCache', () => {
-    it('should clear all cached entries', () => {
-      mockFs.existsSync.mockReturnValue(true);
-      mockFs.readFileSync.mockReturnValue(validHardwareJson);
-
-      const manager = new LEDHardwareManager('/config');
-
-      // Load and cache
-      manager.loadHardware('led-hardware/test1.json');
-      manager.loadHardware('led-hardware/test2.json');
-      expect(mockFs.readFileSync).toHaveBeenCalledTimes(2);
-
-      // Clear cache
-      manager.clearCache();
-
-      // Should reload from file
-      manager.loadHardware('led-hardware/test1.json');
-      expect(mockFs.readFileSync).toHaveBeenCalledTimes(3);
     });
   });
 
