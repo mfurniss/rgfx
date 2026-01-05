@@ -119,6 +119,21 @@ export const rgfxAPI = {
     };
   },
 
+  onFlashOtaError: (
+    callback: (data: { driverId: string; error: string }) => void,
+  ): (() => void) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      data: { driverId: string; error: string },
+    ): void => {
+      callback(data);
+    };
+    ipcRenderer.on('flash:ota:error', handler);
+    return () => {
+      ipcRenderer.removeListener('flash:ota:error', handler);
+    };
+  },
+
   sendDriverCommand: (driverId: string, command: string, payload?: string): Promise<void> => {
     return ipcRenderer.invoke('driver:send-command', driverId, command, payload);
   },
