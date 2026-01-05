@@ -151,6 +151,19 @@ export const gradientPresets: GradientPreset[] = [
     speed: 3.25,
     scale: 7.83,
   },
+  {
+    name: 'Deaky-Freaky',
+    speed: 11.30,
+    scale: 1.2,
+    gradient: [
+      '#89bb3e',
+      '#970279',
+      '#172719',
+      '#5970f3',
+      '#b0d9a5',
+      '#89bb3e',
+    ],
+  },
 ];
 
 export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {
