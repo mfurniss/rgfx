@@ -18,6 +18,17 @@ const SOCKET_ERRORS = [
   'ENETUNREACH',
 ];
 
+// Track which driver is currently being OTA updated (for error context)
+let activeOtaDriverId: string | undefined;
+
+export function setActiveOtaDriver(driverId: string): void {
+  activeOtaDriverId = driverId;
+}
+
+export function clearActiveOtaDriver(): void {
+  activeOtaDriverId = undefined;
+}
+
 /**
  * Registers global error handlers to prevent crashes from socket errors.
  * Socket errors during OTA updates are expected and should not crash the app.
@@ -34,6 +45,7 @@ export function registerGlobalErrorHandlers(log: Logger): void {
         message: `Socket error: ${err.message}`,
         timestamp: Date.now(),
         details: 'OTA update connection failed - driver may be unreachable',
+        driverId: activeOtaDriverId,
       };
       eventBus.emit('system:error', systemError);
     } else {
@@ -43,6 +55,7 @@ export function registerGlobalErrorHandlers(log: Logger): void {
         message: err.message,
         timestamp: Date.now(),
         details: err.stack,
+        driverId: activeOtaDriverId,
       };
       eventBus.emit('system:error', systemError);
     }
@@ -60,6 +73,7 @@ export function registerGlobalErrorHandlers(log: Logger): void {
         message: `Socket error: ${message}`,
         timestamp: Date.now(),
         details: 'OTA update connection failed - driver may be unreachable',
+        driverId: activeOtaDriverId,
       };
       eventBus.emit('system:error', systemError);
     } else {
@@ -69,6 +83,7 @@ export function registerGlobalErrorHandlers(log: Logger): void {
         message,
         timestamp: Date.now(),
         details: stack,
+        driverId: activeOtaDriverId,
       };
       eventBus.emit('system:error', systemError);
     }
