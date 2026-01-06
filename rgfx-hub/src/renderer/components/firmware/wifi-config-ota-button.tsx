@@ -11,6 +11,7 @@ import SuperButton from '../common/super-button';
 import WifiConfigDialog from './wifi-config-dialog';
 import { plural } from '@/renderer/utils/formatters';
 import { WIFI_UPDATE_DELAY_MS } from '@/config/constants';
+import { useUiStore } from '@/renderer/store/ui-store';
 import type { Driver } from '@/types';
 
 interface WifiConfigOtaButtonProps {
@@ -29,6 +30,10 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const lastWifiSsid = useUiStore((state) => state.lastWifiSsid);
+  const lastWifiPassword = useUiStore((state) => state.lastWifiPassword);
+  const setLastWifiCredentials = useUiStore((state) => state.setLastWifiCredentials);
 
   const connectedSelectedDrivers = drivers.filter(
     (d) => selectedDrivers.has(d.id) && d.state === 'connected',
@@ -116,6 +121,9 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
         description={description}
         submitLabel={driverCount === 1 ? 'Update Driver' : `Update ${driverCount} Drivers`}
         sendingLabel="Updating..."
+        initialSsid={lastWifiSsid}
+        initialPassword={lastWifiPassword}
+        onCredentialsSave={setLastWifiCredentials}
       />
     </>
   );
