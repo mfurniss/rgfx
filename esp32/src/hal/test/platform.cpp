@@ -8,7 +8,6 @@
 #include "hal/test/test_platform.h"
 #include <cstdarg>
 #include <cstdio>
-#include <cstdlib>
 
 namespace hal {
 
@@ -16,8 +15,9 @@ namespace hal {
 static uint32_t g_mockTimeMs = 0;
 static uint32_t g_mockTimeUs = 0;
 
-// Seeded RNG for reproducible tests
-static uint16_t g_seed = 12345;
+// Portable xorshift32 RNG for cross-platform reproducibility
+// Unlike srand/rand, this produces identical sequences on macOS and Linux
+static uint32_t g_xorshift_state = 12345;
 
 // Mock heap memory for testing memory limits
 static size_t g_mockFreeHeap = 320000;
@@ -36,14 +36,22 @@ void delay(uint32_t ms) {
 	g_mockTimeUs += ms * 1000;
 }
 
+// xorshift32 step - produces next random value
+static uint32_t xorshift32() {
+	g_xorshift_state ^= g_xorshift_state << 13;
+	g_xorshift_state ^= g_xorshift_state >> 17;
+	g_xorshift_state ^= g_xorshift_state << 5;
+	return g_xorshift_state;
+}
+
 int32_t random(int32_t max) {
 	if (max <= 0) return 0;
-	return rand() % max;
+	return static_cast<int32_t>(xorshift32() % static_cast<uint32_t>(max));
 }
 
 int32_t random(int32_t min, int32_t max) {
 	if (max <= min) return min;
-	return min + (rand() % (max - min));
+	return min + static_cast<int32_t>(xorshift32() % static_cast<uint32_t>(max - min));
 }
 
 void log(const char* fmt, ...) {
@@ -86,8 +94,8 @@ void advanceTimeMicros(uint32_t us) {
 }
 
 void seedRandom(uint16_t seed) {
-	g_seed = seed;
-	srand(seed);
+	// xorshift32 cannot have zero state, so use 1 as fallback
+	g_xorshift_state = seed ? seed : 1;
 }
 
 void setFreeHeap(size_t bytes) {

@@ -246,6 +246,94 @@ TEST_ASSERT_TRUE_MESSAGE(condition, "Custom message")
 
 See [Unity documentation](https://github.com/ThrowTheSwitch/Unity) for full list.
 
+## Pixel Digest Tests (Snapshot Testing)
+
+Digest tests validate the exact pixel output of effects through the full rendering pipeline using FNV-1a 64-bit hashes. This catches unintended rendering changes.
+
+### Test Structure
+
+Digest tests follow this pattern:
+
+```cpp
+#include "helpers/pixel_digest.h"
+
+void test_effect_digest() {
+    hal::test::setTime(0);
+    hal::test::seedRandom(12345);      // Deterministic RNG
+    initTestGammaLUT();                // Identity gamma for reproducibility
+
+    Matrix matrix(16, 16);
+    Canvas canvas(matrix);
+    MyEffect effect(matrix, canvas);
+
+    // Configure and run effect
+    JsonDocument props;
+    props["color"] = "#FF0000";
+    effect.add(props);
+    effect.update(0.0f);
+    canvas.clear();
+    effect.render();
+    downsampleToMatrix(canvas, &matrix);
+
+    // Assert digest matches expected value
+    uint64_t digest = computeFrameDigest(matrix);
+    assertDigest(0x3F06C5B3B369A725ull, digest, "effect_16x16_t0");
+}
+```
+
+### Regenerating Digests
+
+When intentionally changing effect rendering behavior, regenerate digest values:
+
+```bash
+make test-generate-digests
+```
+
+This outputs new digest values to copy into your test assertions:
+
+```
+DIGEST: pulse_16x16_t0_none = 0x3F06C5B3B369A725ull
+DIGEST: pulse_16x16_t400_horizontal = 0xF71F1460E87F54C5ull
+...
+```
+
+### Test Configurations
+
+Effects are tested on three display configurations:
+
+| Config | Size | Use Case |
+|--------|------|----------|
+| strip_300 | 300×1 | LED strip (1D) |
+| matrix_16x16 | 16×16 | Square matrix |
+| matrix_96x8 | 96×8 | Wide panel |
+
+### Property-Based Tests
+
+In addition to exact digest matching, use property-based tests for behavioral invariants:
+
+```cpp
+void test_pulse_property_fades_to_black() {
+    // Setup effect...
+    effect.update(1.2f);  // Past duration
+    downsampleToMatrix(canvas, &matrix);
+
+    FrameProperties fp = analyzeFrame(matrix);
+    TEST_ASSERT_EQUAL_MESSAGE(0, fp.nonBlackPixels,
+        "Pulse should be black after duration expires");
+}
+```
+
+Property tests remain stable when visual appearance changes but behavior stays correct.
+
+### Helper Functions
+
+From `test/helpers/pixel_digest.h`:
+
+- `computeFrameDigest(matrix)` - FNV-1a 64-bit hash of LED buffer
+- `assertDigest(expected, actual, label)` - Assert hash matches with clear error message
+- `analyzeFrame(matrix)` - Returns `FrameProperties` (nonBlackPixels, boundingBox, brightness stats)
+- `initTestGammaLUT()` - Sets gamma=1.0 for test reproducibility
+
 ## CI/CD Integration
 
 These tools are designed to integrate easily with CI/CD pipelines:
