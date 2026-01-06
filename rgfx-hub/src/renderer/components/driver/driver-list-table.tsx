@@ -1,26 +1,20 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TableSortLabel,
-} from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper } from '@mui/material';
 import type { Driver } from '@/types';
-import { useUiStore, type SortField } from '@/renderer/store/ui-store';
 import { useSystemStatusStore } from '@/renderer/store/system-status-store';
+import { useSortableTable } from '@/renderer/hooks/use-sortable-table';
+import { SortableTableHead, type SortableColumn } from '@/renderer/components/common/sortable-table-head';
 import TestLedButton from './test-led-button';
 import DriverState from './driver-state';
+
+type SortField = 'id' | 'ip' | 'status';
 
 interface DriverListTableProps {
   drivers: Driver[];
 }
 
-const SORT_COLUMNS: { field: SortField; label: string }[] = [
+const COLUMNS: SortableColumn<SortField>[] = [
   { field: 'id', label: 'Driver ID' },
   { field: 'ip', label: 'IP Address' },
   { field: 'status', label: 'Status' },
@@ -31,59 +25,57 @@ const SORT_COLUMNS: { field: SortField; label: string }[] = [
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const navigate = useNavigate();
-  const sortField = useUiStore((state) => state.driverTableSortField);
-  const sortOrder = useUiStore((state) => state.driverTableSortOrder);
-  const setDriverTableSort = useUiStore((state) => state.setDriverTableSort);
-  const currentFirmwareVersion =
-    useSystemStatusStore((state) => state.systemStatus.currentFirmwareVersion);
+  const currentFirmwareVersion = useSystemStatusStore(
+    (state) => state.systemStatus.currentFirmwareVersion,
+  );
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setDriverTableSort(field, sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setDriverTableSort(field, 'asc');
-    }
-  };
-
-  const sortedDrivers = [...drivers].sort((a: Driver, b: Driver) => {
-    let compareValue = 0;
-
-    switch (sortField) {
-      case 'id':
-        compareValue = a.id.localeCompare(b.id);
-        break;
-      case 'ip':
-        compareValue = (a.ip ?? '').localeCompare(b.ip ?? '');
-        break;
-      case 'status':
-        compareValue = (a.state === 'connected' ? 1 : 0) - (b.state === 'connected' ? 1 : 0);
-        break;
-    }
-
-    return sortOrder === 'asc' ? compareValue : -compareValue;
+  const { sortField, sortOrder, handleSort, sortData } = useSortableTable<SortField>({
+    storageKey: 'driverList',
+    defaultField: 'id',
   });
+
+  // Custom comparator for driver-specific fields
+  const driverComparator = useCallback((a: Driver, b: Driver, field: SortField): number => {
+    switch (field) {
+      case 'id':
+        return a.id.localeCompare(b.id);
+      case 'ip':
+        return (a.ip ?? '').localeCompare(b.ip ?? '');
+      case 'status': {
+        // Sort order: connected (3) > updating (2) > disconnected (1) > disabled (0)
+        const statusOrder = (d: Driver): number => {
+          if (d.disabled) {
+            return 0;
+          }
+
+          if (d.state === 'connected') {
+            return 3;
+          }
+
+          if (d.state === 'updating') {
+            return 2;
+          }
+
+          return 1; // disconnected
+        };
+
+        return statusOrder(a) - statusOrder(b);
+      }
+    }
+  }, []);
+
+  const sortedDrivers = sortData(drivers, driverComparator);
 
   return (
     <TableContainer component={Paper}>
       <Table>
-        <TableHead>
-          <TableRow>
-            {SORT_COLUMNS.map((column) => (
-              <TableCell key={column.field}>
-                <TableSortLabel
-                  active={sortField === column.field}
-                  direction={sortField === column.field ? sortOrder : 'asc'}
-                  onClick={() => {
-                    handleSort(column.field);
-                  }}
-                >
-                  {column.label}
-                </TableSortLabel>
-              </TableCell>
-            ))}
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
+        <SortableTableHead
+          columns={COLUMNS}
+          sortField={sortField}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          extraColumns={<TableCell>Actions</TableCell>}
+        />
         <TableBody>
           {sortedDrivers.map((driver: Driver) => (
             <TableRow

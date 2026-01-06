@@ -33,6 +33,8 @@ vi.mock('../store/ui-store', () => ({
       driverTableSortField: 'id',
       driverTableSortOrder: 'asc',
       setDriverTableSort: vi.fn(),
+      tableSortPreferences: {},
+      setTableSort: vi.fn(),
     };
     return selector(state);
   }),
