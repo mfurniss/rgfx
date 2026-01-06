@@ -7,8 +7,13 @@ function getDefaultPropsJson(effect: keyof typeof effectPropsSchemas): string {
   return JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
 }
 
-export type SortField = 'id' | 'name' | 'ip' | 'status';
+type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
+
+interface TableSortPreference {
+  field: string;
+  order: SortOrder;
+}
 export type SimulatorAutoInterval = 'off' | '1s' | '5s';
 export type FlashMethod = 'usb' | 'ota';
 
@@ -24,7 +29,10 @@ interface SimulatorRow {
 }
 
 interface UiState {
-  // Driver table sort preferences
+  // Generic table sort preferences (for useSortableTable hook)
+  tableSortPreferences: Record<string, TableSortPreference>;
+
+  // Legacy driver table sort preferences (kept for backward compatibility)
   driverTableSortField: SortField;
   driverTableSortOrder: SortOrder;
 
@@ -48,6 +56,7 @@ interface UiState {
   firmwareDriverFlashStatus: Record<string, DriverFlashStatus>;
 
   // Actions
+  setTableSort: (key: string, field: string, order: SortOrder) => void;
   setDriverTableSort: (field: SortField, order: SortOrder) => void;
   setIsFlashingFirmware: (isFlashing: boolean) => void;
   setTestEffectsState: (
@@ -69,7 +78,10 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      // Default: Driver ID ascending
+      // Generic table sort preferences
+      tableSortPreferences: {},
+
+      // Legacy: Driver ID ascending (kept for backward compatibility)
       driverTableSortField: 'id',
       driverTableSortOrder: 'asc',
 
@@ -96,6 +108,15 @@ export const useUiStore = create<UiState>()(
       firmwareSelectedDrivers: [],
       firmwareSelectAll: false,
       firmwareDriverFlashStatus: {},
+
+      setTableSort: (key, field, order) => {
+        set((state) => ({
+          tableSortPreferences: {
+            ...state.tableSortPreferences,
+            [key]: { field, order },
+          },
+        }));
+      },
 
       setDriverTableSort: (field, order) => {
         set({ driverTableSortField: field, driverTableSortOrder: order });
@@ -148,6 +169,7 @@ export const useUiStore = create<UiState>()(
       name: 'rgfx-ui-preferences',
       version: 2,
       partialize: (state) => ({
+        tableSortPreferences: state.tableSortPreferences,
         driverTableSortField: state.driverTableSortField,
         driverTableSortOrder: state.driverTableSortOrder,
         simulatorRows: state.simulatorRows,

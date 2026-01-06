@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Typography,
   Box,
@@ -6,9 +6,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
-  TableSortLabel,
   Paper,
   Link,
   FormControlLabel,
@@ -20,18 +18,34 @@ import { Link as RouterLink } from 'react-router-dom';
 import type { GameInfo } from '@/types';
 import { PageTitle } from '../components/layout/page-title';
 import { useUiStore } from '../store/ui-store';
+import { useSortableTable } from '../hooks/use-sortable-table';
+import { SortableTableHead, type SortableColumn } from '../components/common/sortable-table-head';
 
 type SortField = 'romName' | 'interceptorName' | 'transformerName';
-type SortOrder = 'asc' | 'desc';
 
 const GamesPage: React.FC = () => {
   const [games, setGames] = useState<GameInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortField, setSortField] = useState<SortField>('interceptorName');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [hideUnconfigured, setHideUnconfigured] = useState(true);
   const mameRomsDirectory = useUiStore((state) => state.mameRomsDirectory);
   const hasMameRomsDirectory = Boolean(mameRomsDirectory);
+
+  const { sortField, sortOrder, handleSort, sortData } = useSortableTable<SortField>({
+    storageKey: 'games',
+    defaultField: 'interceptorName',
+  });
+
+  // Build columns dynamically based on whether MAME ROMs directory is configured
+  const columns = useMemo<SortableColumn<SortField>[]>(() => {
+    const cols: SortableColumn<SortField>[] = [];
+
+    if (hasMameRomsDirectory) {
+      cols.push({ field: 'romName', label: 'MAME ROM File' });
+    }
+    cols.push({ field: 'interceptorName', label: 'MAME Interceptor' });
+    cols.push({ field: 'transformerName', label: 'RGFX Hub Transformer' });
+    return cols;
+  }, [hasMameRomsDirectory]);
 
   useEffect(() => {
     const loadGames = async () => {
@@ -50,29 +64,11 @@ const GamesPage: React.FC = () => {
     }
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
-  };
-
   const isConfigured = (game: GameInfo) => Boolean(game.interceptorName ?? game.transformerName);
 
   const filteredGames = hideUnconfigured ? games.filter(isConfigured) : games;
 
-  const sortedGames = [...filteredGames].sort((a, b) => {
-    const aValue = (a[sortField] ?? '').toLowerCase();
-    const bValue = (b[sortField] ?? '').toLowerCase();
-
-    if (sortOrder === 'asc') {
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-    }
-
-    return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-  });
+  const sortedGames = sortData(filteredGames);
 
   if (loading) {
     return (
@@ -111,45 +107,12 @@ const GamesPage: React.FC = () => {
       ) : null}
       <TableContainer component={Paper}>
         <Table size="small">
-          <TableHead>
-            <TableRow>
-              {hasMameRomsDirectory ? (
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === 'romName'}
-                    direction={sortField === 'romName' ? sortOrder : 'asc'}
-                    onClick={() => {
-                      handleSort('romName');
-                    }}
-                  >
-                    MAME ROM File
-                  </TableSortLabel>
-                </TableCell>
-              ) : null}
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === 'interceptorName'}
-                  direction={sortField === 'interceptorName' ? sortOrder : 'asc'}
-                  onClick={() => {
-                    handleSort('interceptorName');
-                  }}
-                >
-                  MAME Interceptor
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === 'transformerName'}
-                  direction={sortField === 'transformerName' ? sortOrder : 'asc'}
-                  onClick={() => {
-                    handleSort('transformerName');
-                  }}
-                >
-                  RGFX Hub Transformer
-                </TableSortLabel>
-              </TableCell>
-            </TableRow>
-          </TableHead>
+          <SortableTableHead
+            columns={columns}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
           <TableBody>
             {sortedGames.length === 0 ? (
               <TableRow>
