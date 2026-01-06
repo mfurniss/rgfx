@@ -48,6 +48,10 @@ interface UiState {
   rgfxConfigDirectory: string;
   mameRomsDirectory: string;
 
+  // WiFi configuration persistence
+  lastWifiSsid: string;
+  lastWifiPassword: string;
+
   // Firmware update state (transient, not persisted)
   isFlashingFirmware: boolean;
   firmwareFlashMethod: FlashMethod;
@@ -73,6 +77,7 @@ interface UiState {
     selectAll: boolean
   ) => void;
   setFirmwareDriverFlashStatus: (status: Record<string, DriverFlashStatus>) => void;
+  setLastWifiCredentials: (ssid: string, password: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -101,6 +106,10 @@ export const useUiStore = create<UiState>()(
       // Settings defaults
       rgfxConfigDirectory: '',
       mameRomsDirectory: '',
+
+      // WiFi configuration defaults
+      lastWifiSsid: '',
+      lastWifiPassword: '',
 
       // Firmware update state
       isFlashingFirmware: false,
@@ -164,10 +173,14 @@ export const useUiStore = create<UiState>()(
       setFirmwareDriverFlashStatus: (status) => {
         set({ firmwareDriverFlashStatus: status });
       },
+
+      setLastWifiCredentials: (ssid, password) => {
+        set({ lastWifiSsid: ssid, lastWifiPassword: password });
+      },
     }),
     {
       name: 'rgfx-ui-preferences',
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         tableSortPreferences: state.tableSortPreferences,
         driverTableSortField: state.driverTableSortField,
@@ -175,6 +188,8 @@ export const useUiStore = create<UiState>()(
         simulatorRows: state.simulatorRows,
         rgfxConfigDirectory: state.rgfxConfigDirectory,
         mameRomsDirectory: state.mameRomsDirectory,
+        lastWifiSsid: state.lastWifiSsid,
+        lastWifiPassword: state.lastWifiPassword,
       }),
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<UiState>;

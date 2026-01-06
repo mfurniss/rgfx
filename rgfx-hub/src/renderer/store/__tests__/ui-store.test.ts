@@ -335,4 +335,64 @@ describe('useUiStore', () => {
       });
     });
   });
+
+  describe('WiFi credentials persistence', () => {
+    beforeEach(() => {
+      useUiStore.setState({
+        lastWifiSsid: '',
+        lastWifiPassword: '',
+      });
+    });
+
+    describe('initial state', () => {
+      it('should have empty WiFi credentials by default', () => {
+        const state = useUiStore.getState();
+        expect(state.lastWifiSsid).toBe('');
+        expect(state.lastWifiPassword).toBe('');
+      });
+    });
+
+    describe('setLastWifiCredentials', () => {
+      it('should update both SSID and password', () => {
+        const { setLastWifiCredentials } = useUiStore.getState();
+
+        setLastWifiCredentials('MyNetwork', 'MyPassword123');
+
+        const state = useUiStore.getState();
+        expect(state.lastWifiSsid).toBe('MyNetwork');
+        expect(state.lastWifiPassword).toBe('MyPassword123');
+      });
+
+      it('should handle empty password (open network)', () => {
+        const { setLastWifiCredentials } = useUiStore.getState();
+
+        setLastWifiCredentials('OpenNetwork', '');
+
+        const state = useUiStore.getState();
+        expect(state.lastWifiSsid).toBe('OpenNetwork');
+        expect(state.lastWifiPassword).toBe('');
+      });
+
+      it('should handle SSID with special characters', () => {
+        const { setLastWifiCredentials } = useUiStore.getState();
+
+        setLastWifiCredentials('My Network! @#$', 'pass word');
+
+        const state = useUiStore.getState();
+        expect(state.lastWifiSsid).toBe('My Network! @#$');
+        expect(state.lastWifiPassword).toBe('pass word');
+      });
+
+      it('should overwrite previous credentials', () => {
+        const { setLastWifiCredentials } = useUiStore.getState();
+
+        setLastWifiCredentials('Network1', 'Pass1');
+        setLastWifiCredentials('Network2', 'Pass2');
+
+        const state = useUiStore.getState();
+        expect(state.lastWifiSsid).toBe('Network2');
+        expect(state.lastWifiPassword).toBe('Pass2');
+      });
+    });
+  });
 });
