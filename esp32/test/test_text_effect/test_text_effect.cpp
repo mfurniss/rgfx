@@ -57,11 +57,8 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
-
-using namespace test_helpers;
-
-// Include test helpers
-#include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
 
@@ -637,6 +634,118 @@ void test_text_wrap_with_accent() {
 }
 
 // =============================================================================
+// Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runTextDigest(const TestConfig& config, float updateTime, const char* text = "HI") {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultTextProps(props);
+	props["text"] = text;
+	props["color"] = "#00FFFF";
+	props["x"] = 0;
+	props["y"] = 0;
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_text_digest_16x16_t100() {
+	uint64_t digest = runTextDigest(TEST_CONFIGS[1], 0.1f);
+	assertDigest(0xBB749FD27E6D8E03ull, digest, "text_16x16_t100");
+}
+
+void test_text_digest_16x16_t200_different_text() {
+	uint64_t digest = runTextDigest(TEST_CONFIGS[1], 0.2f, "AB");
+	assertDigest(0xB71A2C94C24D4735ull, digest, "text_16x16_t200_AB");
+}
+
+void test_text_digest_strip_t150() {
+	uint64_t digest = runTextDigest(TEST_CONFIGS[0], 0.15f);
+	assertDigest(0x07337C7D7090F9F5ull, digest, "text_strip_t150");
+}
+
+void test_text_digest_96x8_t100() {
+	uint64_t digest = runTextDigest(TEST_CONFIGS[2], 0.1f);
+	assertDigest(0x7A87DEE4044D5083ull, digest, "text_96x8_t100");
+}
+
+void test_text_property_static_permanent() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultTextProps(props);
+	props["text"] = "X";
+	props["color"] = "#FFFFFF";
+	props["duration"] = 0;  // Permanent
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash1 = computeFrameDigest(matrix);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash2 = computeFrameDigest(matrix);
+
+	// Permanent text should not change between frames
+	TEST_ASSERT_EQUAL_HEX64_MESSAGE(hash1, hash2, "Permanent text should not change");
+}
+
+void test_text_property_all_configs_render() {
+	// Skip strip config (index 0) - text effect needs height >= 8 for the font
+	for (size_t i = 1; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		TextEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		setDefaultTextProps(props);
+		props["text"] = "X";
+		props["color"] = "#FFFFFF";
+		effect.add(props);
+
+		effect.update(0.1f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[64];
+		snprintf(msg, sizeof(msg), "Config %zu should have pixels", i);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -666,6 +775,14 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_text_wrap_first_row_empty_when_x_exceeds_width);
 	RUN_TEST(test_text_wrap_preserves_color);
 	RUN_TEST(test_text_wrap_with_accent);
+
+	// Pixel Digest Tests
+	RUN_TEST(test_text_digest_16x16_t100);
+	RUN_TEST(test_text_digest_16x16_t200_different_text);
+	RUN_TEST(test_text_digest_strip_t150);
+	RUN_TEST(test_text_digest_96x8_t100);
+	RUN_TEST(test_text_property_static_permanent);
+	RUN_TEST(test_text_property_all_configs_render);
 
 	return UNITY_END();
 }
