@@ -21,7 +21,7 @@ function formatTimestamp(timestamp: number): string {
 }
 
 interface SystemErrorsProps {
-  errors: SystemError[];
+  errors: readonly SystemError[];
 }
 
 export const SystemErrors: React.FC<SystemErrorsProps> = ({ errors }) => {

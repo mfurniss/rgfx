@@ -5,6 +5,11 @@ import { cleanup } from '@testing-library/react';
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
 
+// Define Vite globals injected by Electron Forge at build time
+// These must be defined for tests that import window-manager
+(globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
+(globalThis as any).MAIN_WINDOW_VITE_NAME = 'main_window';
+
 // jsdom compatibility mocks (from Mantine's vitest guide)
 // These are required for MUI components and @testing-library to work correctly
 

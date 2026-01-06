@@ -22,7 +22,7 @@ interface DriverEventHandlersDeps {
   getMainWindow: () => BrowserWindow | null;
   getEventsProcessed: () => number;
   getEventLogSizeBytes: () => number;
-  getSystemErrors: () => SystemError[];
+  getSystemErrors: () => readonly SystemError[];
   uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
 }
 

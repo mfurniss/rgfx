@@ -15,6 +15,7 @@ import { EVENT_BUS_LOGGING } from '../config/constants';
  */
 export interface AppEventMap {
   'network:error': { code: string };
+  'network:changed': undefined;
 
   // Driver lifecycle events
   'driver:connected': { driver: Driver };
