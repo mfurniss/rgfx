@@ -58,19 +58,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     const EspOTA = (await import('esp-ota')).default;
     const esp = new EspOTA();
 
-    // Handle uncaught socket errors (ECONNRESET) from esp-ota library
-    // The library's error handling has gaps that can cause uncaught exceptions
-    const uncaughtHandler = (err: Error): void => {
-      if (err.message.includes('ECONNRESET') || err.message.includes('EPIPE')) {
-        log.error(`OTA socket error for ${driverId}:`, err.message);
-        eventBus.emit('flash:ota:error', { driverId, error: err.message });
-        // Don't re-throw - this prevents process crash when ESP32 resets during OTA
-      } else {
-        // Re-throw non-OTA errors
-        throw err;
-      }
-    };
-    process.on('uncaughtException', uncaughtHandler);
+    // Note: Socket errors (ECONNRESET, etc.) are handled by the global error handler
+    // in global-error-handler.ts. The esp.on('error') handler below handles errors
+    // emitted by the esp-ota library for UI feedback.
 
     esp.on('state', (state: string) => {
       log.info(`OTA state: ${state}`);
@@ -142,9 +132,6 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
 
       throw error;
-    } finally {
-      // Always clean up the uncaught exception handler
-      process.removeListener('uncaughtException', uncaughtHandler);
     }
   });
 }

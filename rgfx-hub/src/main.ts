@@ -12,6 +12,7 @@ import pkg from '../package.json';
 
 import { configureZod } from './config/zod-config';
 import { initializeLogging } from './config/logging';
+import { registerGlobalErrorHandlers } from './services/global-error-handler';
 import { createSystemErrorTracker } from './services/system-error-tracker';
 import { createEventStats } from './services/event-stats';
 import { createServices } from './services/service-factory';
@@ -33,6 +34,9 @@ configureZod();
 // Initialize logging
 const log = initializeLogging();
 log.info(`RGFX Hub ${pkg.version} starting...`);
+
+// Register global error handlers to prevent crashes from socket errors
+registerGlobalErrorHandlers(log);
 
 // Create system error tracker and event stats
 const systemErrorTracker = createSystemErrorTracker(MAX_SYSTEM_ERRORS);
