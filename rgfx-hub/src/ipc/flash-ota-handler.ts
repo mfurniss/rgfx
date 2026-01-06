@@ -10,6 +10,7 @@ import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { eventBus } from '../services/event-bus';
+import { setActiveOtaDriver, clearActiveOtaDriver } from '../services/global-error-handler';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -36,6 +37,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     }
 
     log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
+
+    // Track active OTA driver for error context in global error handler
+    setActiveOtaDriver(driverId);
 
     // Mark driver as updating - this prevents LWT "offline" from disconnecting it
     // and shows "Updating" state in the UI
@@ -132,6 +136,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
 
       throw error;
+    } finally {
+      // Clear active OTA driver tracking regardless of success/failure
+      clearActiveOtaDriver();
     }
   });
 }
