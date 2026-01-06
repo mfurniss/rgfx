@@ -6,3 +6,4 @@
 
 # Generated files
 src/generated/
+compile_commands.json

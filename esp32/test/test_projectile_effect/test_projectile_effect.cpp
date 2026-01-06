@@ -55,20 +55,10 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
-
-// Helper to check if pixel is non-black
-
-// Helper to count non-black pixels in canvas
-
-// Helper to find leftmost non-black pixel x coordinate
-
-// Helper to find rightmost non-black pixel x coordinate
-
-// Helper to find topmost non-black pixel y coordinate
-
-// Helper to find bottommost non-black pixel y coordinate
 
 void setUp(void) {
 	hal::test::setTime(0);
@@ -1012,6 +1002,127 @@ void test_projectile_snapshot_with_trail() {
 }
 
 // =============================================================================
+// 9. Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runProjectileDigest(const TestConfig& config, float updateTime,
+                                     const char* direction = "right") {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	ProjectileEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = "#00FFFF";
+	props["direction"] = direction;
+	props["velocity"] = 150;
+	props["friction"] = 0;
+	props["trail"] = 0.3f;
+	props["width"] = 8;
+	props["height"] = 8;
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_projectile_digest_16x16_t100_right() {
+	uint64_t digest = runProjectileDigest(TEST_CONFIGS[1], 0.1f, "right");
+	assertDigest(0x5972A63446BD4865ull, digest, "projectile_16x16_t100_right");
+}
+
+void test_projectile_digest_16x16_t200_down() {
+	uint64_t digest = runProjectileDigest(TEST_CONFIGS[1], 0.2f, "down");
+	assertDigest(0x320DC324B3F64EB5ull, digest, "projectile_16x16_t200_down");
+}
+
+void test_projectile_digest_strip_t150_right() {
+	uint64_t digest = runProjectileDigest(TEST_CONFIGS[0], 0.15f, "right");
+	assertDigest(0xFCEADCDDC53E73EBull, digest, "projectile_strip_t150_right");
+}
+
+void test_projectile_digest_96x8_t100_right() {
+	uint64_t digest = runProjectileDigest(TEST_CONFIGS[2], 0.1f, "right");
+	assertDigest(0xCB0680C34F6ECEE5ull, digest, "projectile_96x8_t100_right");
+}
+
+void test_projectile_property_moves_over_time() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ProjectileEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = "#FFFFFF";
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["friction"] = 0;
+	props["width"] = 4;
+	props["height"] = 4;
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp1 = analyzeFrame(matrix);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp2 = analyzeFrame(matrix);
+
+	TEST_ASSERT_GREATER_THAN_MESSAGE(fp1.boundingBox.minX, fp2.boundingBox.minX,
+	                                 "Projectile should move right over time");
+}
+
+void test_projectile_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		ProjectileEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		setDefaultProjectileProps(props);
+		props["color"] = "#FF0000";
+		props["direction"] = "right";
+		props["velocity"] = 200;
+		props["width"] = 4;
+		props["height"] = 4;
+		effect.add(props);
+
+		effect.update(0.1f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[128];
+		snprintf(msg, sizeof(msg), "Config %s should render projectile", TEST_CONFIGS[i].name);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -1065,6 +1176,14 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_projectile_snapshot_right_t0);
 	RUN_TEST(test_projectile_snapshot_right_t100ms);
 	RUN_TEST(test_projectile_snapshot_with_trail);
+
+	// 9. Pixel Digest Tests
+	RUN_TEST(test_projectile_digest_16x16_t100_right);
+	RUN_TEST(test_projectile_digest_16x16_t200_down);
+	RUN_TEST(test_projectile_digest_strip_t150_right);
+	RUN_TEST(test_projectile_digest_96x8_t100_right);
+	RUN_TEST(test_projectile_property_moves_over_time);
+	RUN_TEST(test_projectile_property_all_configs_render);
 
 	return UNITY_END();
 }

@@ -50,10 +50,10 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
-
-// Helper to check if a pixel is non-black
 
 void setUp(void) {
 	hal::test::setTime(0);
@@ -666,6 +666,144 @@ void test_wipe_blendmode_replace() {
 	TEST_ASSERT_TRUE(foundPureGreen);
 }
 
+// =============================================================================
+// Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runWipeDigest(const TestConfig& config, float updateTime,
+                               const char* direction = "right") {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultWipeProps(props);
+	props["color"] = "#00FF00";
+	props["duration"] = 1000;
+	props["direction"] = direction;
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_wipe_digest_16x16_t0_right() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[1], 0.0f, "right");
+	assertDigest(0x9FA9E040E0EEDF25ull, digest, "wipe_16x16_t0_right");
+}
+
+void test_wipe_digest_16x16_t250_right() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[1], 0.25f, "right");
+	assertDigest(0xF5F09D47DE3EBF25ull, digest, "wipe_16x16_t250_right");
+}
+
+void test_wipe_digest_16x16_t500_right() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[1], 0.5f, "right");
+	assertDigest(0x95F160E34ACE9F25ull, digest, "wipe_16x16_t500_right");
+}
+
+void test_wipe_digest_16x16_t250_down() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[1], 0.25f, "down");
+	assertDigest(0x3390FCFED9D74725ull, digest, "wipe_16x16_t250_down");
+}
+
+void test_wipe_digest_strip_t250_right() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[0], 0.25f, "right");
+	assertDigest(0x940EA8A7509F21F5ull, digest, "wipe_strip_t250_right");
+}
+
+void test_wipe_digest_strip_t500_left() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[0], 0.5f, "left");
+	assertDigest(0x638AEAECCDCDB7F5ull, digest, "wipe_strip_t500_left");
+}
+
+void test_wipe_digest_96x8_t250_right() {
+	uint64_t digest = runWipeDigest(TEST_CONFIGS[2], 0.25f, "right");
+	assertDigest(0xE77304E666A7F725ull, digest, "wipe_96x8_t250_right");
+}
+
+// Property tests
+void test_wipe_property_fill_then_clear() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	WipeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultWipeProps(props);
+	props["color"] = "#FFFFFF";
+	props["duration"] = 1000;
+	props["direction"] = "right";
+	effect.add(props);
+
+	// At 25% (fill phase), should have some pixels
+	effect.update(0.25f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp25 = analyzeFrame(matrix);
+	TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp25.nonBlackPixels, "Should have pixels at 25%");
+
+	// At 50% (peak), should have max pixels
+	effect.update(0.25f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp50 = analyzeFrame(matrix);
+	TEST_ASSERT_GREATER_OR_EQUAL_MESSAGE(fp25.nonBlackPixels, fp50.nonBlackPixels,
+	                                     "Should have more pixels at 50%");
+
+	// At 100%+, should be empty
+	effect.update(0.6f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp100 = analyzeFrame(matrix);
+	TEST_ASSERT_EQUAL_MESSAGE(0, fp100.nonBlackPixels, "Should be empty after duration");
+}
+
+void test_wipe_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		WipeEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		setDefaultWipeProps(props);
+		props["color"] = "#FF0000";
+		props["duration"] = 1000;
+		props["direction"] = "right";
+		effect.add(props);
+
+		effect.update(0.25f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[128];
+		snprintf(msg, sizeof(msg), "Config %s should render wipe", TEST_CONFIGS[i].name);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -693,6 +831,19 @@ int main(int argc, char** argv) {
 	// Blend mode tests
 	RUN_TEST(test_wipe_blendmode_additive);
 	RUN_TEST(test_wipe_blendmode_replace);
+
+	// Pixel digest tests
+	RUN_TEST(test_wipe_digest_16x16_t0_right);
+	RUN_TEST(test_wipe_digest_16x16_t250_right);
+	RUN_TEST(test_wipe_digest_16x16_t500_right);
+	RUN_TEST(test_wipe_digest_16x16_t250_down);
+	RUN_TEST(test_wipe_digest_strip_t250_right);
+	RUN_TEST(test_wipe_digest_strip_t500_left);
+	RUN_TEST(test_wipe_digest_96x8_t250_right);
+
+	// Property-based tests
+	RUN_TEST(test_wipe_property_fill_then_clear);
+	RUN_TEST(test_wipe_property_all_configs_render);
 
 	return UNITY_END();
 }

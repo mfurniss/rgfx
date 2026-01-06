@@ -41,6 +41,13 @@ using String = std::string;
 #include "effects/test_leds.h"
 #include "effects/test_leds.cpp"
 
+// Include test helpers
+#include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
+
+using namespace test_helpers;
+
 void setUp(void) {
 	hal::test::setTime(0);
 	hal::test::seedRandom(12345);
@@ -144,6 +151,87 @@ void test_strip_segments_correct_colors() {
 	TEST_ASSERT_EQUAL_UINT8(0, s3.b);
 }
 
+// =============================================================================
+// Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runTestLedsDigest(const TestConfig& config) {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	TestLedsEffect effect(matrix, canvas);
+
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_test_leds_digest_16x16() {
+	uint64_t digest = runTestLedsDigest(TEST_CONFIGS[1]);
+	assertDigest(0x209A2B7D3F14C95Bull, digest, "test_leds_16x16");
+}
+
+void test_test_leds_digest_strip() {
+	uint64_t digest = runTestLedsDigest(TEST_CONFIGS[0]);
+	assertDigest(0xFA23543FE0AD7AA0ull, digest, "test_leds_strip");
+}
+
+void test_test_leds_digest_96x8() {
+	uint64_t digest = runTestLedsDigest(TEST_CONFIGS[2]);
+	assertDigest(0x6A9B204FCE9D24DBull, digest, "test_leds_96x8");
+}
+
+void test_test_leds_property_static_pattern() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	TestLedsEffect effect(matrix, canvas);
+
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash1 = computeFrameDigest(matrix);
+
+	// Render again - should be identical (static pattern)
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash2 = computeFrameDigest(matrix);
+
+	TEST_ASSERT_EQUAL_HEX64_MESSAGE(hash1, hash2, "Test LEDs pattern should be static");
+}
+
+void test_test_leds_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		TestLedsEffect effect(matrix, canvas);
+
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[64];
+		snprintf(msg, sizeof(msg), "Config %zu should have pixels", i);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -153,5 +241,13 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_strip_layout_has_white_marker_at_start);
 	RUN_TEST(test_matrix_quadrants_correct_colors);
 	RUN_TEST(test_strip_segments_correct_colors);
+
+	// Pixel Digest Tests
+	RUN_TEST(test_test_leds_digest_16x16);
+	RUN_TEST(test_test_leds_digest_strip);
+	RUN_TEST(test_test_leds_digest_96x8);
+	RUN_TEST(test_test_leds_property_static_pattern);
+	RUN_TEST(test_test_leds_property_all_configs_render);
+
 	return UNITY_END();
 }

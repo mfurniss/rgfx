@@ -50,6 +50,8 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
 
@@ -550,6 +552,119 @@ void test_spectrum_strip_layout() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
+// =============================================================================
+// Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runSpectrumDigest(const TestConfig& config, float updateTime,
+                                   const std::vector<int>& spectrumValues = {9, 5, 3, 7, 1}) {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	SpectrumEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	JsonArray values = props["values"].to<JsonArray>();
+	for (int val : spectrumValues) {
+		values.add(val);
+	}
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_spectrum_digest_16x16_t100() {
+	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[1], 0.1f);
+	assertDigest(0x52927041B2DDF199ull, digest, "spectrum_16x16_t100");
+}
+
+void test_spectrum_digest_16x16_t200_different_values() {
+	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[1], 0.2f, {9, 9, 9, 9, 9});
+	assertDigest(0x9D01BB169C65B0E5ull, digest, "spectrum_16x16_t200_full");
+}
+
+void test_spectrum_digest_strip_t150() {
+	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[0], 0.15f);
+	assertDigest(0xEEEB423BD1618C06ull, digest, "spectrum_strip_t150");
+}
+
+void test_spectrum_digest_96x8_t100() {
+	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[2], 0.1f);
+	assertDigest(0x2CF0E2A6AD04A3CDull, digest, "spectrum_96x8_t100");
+}
+
+void test_spectrum_property_decay_changes() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	SpectrumEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	JsonArray values = props["values"].to<JsonArray>();
+	values.add(9);
+	values.add(9);
+	values.add(9);
+	effect.add(props);
+
+	effect.update(0.0f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash1 = computeFrameDigest(matrix);
+
+	// Exhaust hold time (100ms default) then decay over time
+	effect.update(0.1f);   // Exhaust hold time
+	effect.update(0.3f);   // Then decay
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash2 = computeFrameDigest(matrix);
+
+	TEST_ASSERT_NOT_EQUAL_MESSAGE(hash1, hash2, "Spectrum should decay over time");
+}
+
+void test_spectrum_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		SpectrumEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		JsonArray values = props["values"].to<JsonArray>();
+		values.add(9);
+		values.add(5);
+		values.add(3);
+		effect.add(props);
+
+		effect.update(0.0f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[64];
+		snprintf(msg, sizeof(msg), "Config %zu should have pixels", i);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -593,6 +708,14 @@ int main(int argc, char** argv) {
 
 	// Strip layout
 	RUN_TEST(test_spectrum_strip_layout);
+
+	// Pixel Digest Tests
+	RUN_TEST(test_spectrum_digest_16x16_t100);
+	RUN_TEST(test_spectrum_digest_16x16_t200_different_values);
+	RUN_TEST(test_spectrum_digest_strip_t150);
+	RUN_TEST(test_spectrum_digest_96x8_t100);
+	RUN_TEST(test_spectrum_property_decay_changes);
+	RUN_TEST(test_spectrum_property_all_configs_render);
 
 	return UNITY_END();
 }

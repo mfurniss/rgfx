@@ -54,6 +54,8 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
 
@@ -1130,6 +1132,190 @@ void test_explode_rapid_add_calls() {
 }
 
 // =============================================================================
+// Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runExplodeDigest(const TestConfig& config, float updateTime,
+                                  int particleCount = 50, int power = 30) {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	ExplodeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["color"] = "#FF8800";
+	props["particleCount"] = particleCount;
+	props["particleSize"] = 4;
+	props["power"] = power;
+	props["friction"] = 2.0;
+	props["lifespan"] = 1000;
+	props["hueSpread"] = 0;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_explode_digest_16x16_t0() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[1], 0.0f);
+	assertDigest(0x3829D5C1AE081AB5ull, digest, "explode_16x16_t0");
+}
+
+void test_explode_digest_16x16_t200() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[1], 0.2f);
+	assertDigest(0x110FA2A4AF155216ull, digest, "explode_16x16_t200");
+}
+
+void test_explode_digest_16x16_t500() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[1], 0.5f);
+	assertDigest(0xAB33B327AA989487ull, digest, "explode_16x16_t500");
+}
+
+void test_explode_digest_strip_t0() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[0], 0.0f);
+	assertDigest(0xAF7AD32BF16338B3ull, digest, "explode_strip_t0");
+}
+
+void test_explode_digest_strip_t300() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[0], 0.3f);
+	assertDigest(0xA2A15EFEE95098DBull, digest, "explode_strip_t300");
+}
+
+void test_explode_digest_96x8_t0() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[2], 0.0f);
+	assertDigest(0xB17D3C7F702C8DB5ull, digest, "explode_96x8_t0");
+}
+
+void test_explode_digest_96x8_t200() {
+	uint64_t digest = runExplodeDigest(TEST_CONFIGS[2], 0.2f);
+	assertDigest(0x3E9ADC4B14AC6CA6ull, digest, "explode_96x8_t200");
+}
+
+// Property tests
+void test_explode_property_particles_spread_over_time() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ExplodeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["color"] = "#FFFFFF";
+	props["particleCount"] = 50;
+	props["power"] = 50;
+	props["friction"] = 1.0;
+	props["lifespan"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	effect.add(props);
+
+	// Capture at t=0
+	effect.update(0.0f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp0 = analyzeFrame(matrix);
+
+	// Capture at t=300ms
+	effect.update(0.3f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp300 = analyzeFrame(matrix);
+
+	// Bounding box should expand as particles spread
+	int spread0 = (fp0.boundingBox.maxX - fp0.boundingBox.minX) +
+	              (fp0.boundingBox.maxY - fp0.boundingBox.minY);
+	int spread300 = (fp300.boundingBox.maxX - fp300.boundingBox.minX) +
+	                (fp300.boundingBox.maxY - fp300.boundingBox.minY);
+
+	TEST_ASSERT_GREATER_THAN_MESSAGE(spread0, spread300,
+	                                 "Particles should spread over time");
+}
+
+void test_explode_property_expires_after_lifespan() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ExplodeEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultExplodeProps(props);
+	props["color"] = "#FFFFFF";
+	props["particleCount"] = 50;
+	props["power"] = 20;
+	props["friction"] = 5.0;
+	props["lifespan"] = 500;
+	effect.add(props);
+
+	// Particles should exist initially
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fpEarly = analyzeFrame(matrix);
+	TEST_ASSERT_GREATER_THAN_MESSAGE(0, fpEarly.nonBlackPixels,
+	                                 "Should have visible particles early");
+
+	// After lifespan + buffer, particles should be gone
+	effect.update(1.0f);  // Cumulative: 100ms + 1000ms = 1100ms >> 500ms lifespan
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fpLate = analyzeFrame(matrix);
+	TEST_ASSERT_EQUAL_MESSAGE(0, fpLate.nonBlackPixels,
+	                          "Particles should expire after lifespan");
+}
+
+void test_explode_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		ExplodeEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		setDefaultExplodeProps(props);
+		props["color"] = "#FF0000";
+		props["particleCount"] = 30;
+		props["power"] = 30;
+		props["lifespan"] = 2000;
+		effect.add(props);
+
+		effect.update(0.0f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[128];
+		snprintf(msg, sizeof(msg), "Config %s should render particles", TEST_CONFIGS[i].name);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -1203,6 +1389,20 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_explode_power_zero);
 	RUN_TEST(test_explode_very_long_lifespan);
 	RUN_TEST(test_explode_rapid_add_calls);
+
+	// 12. Pixel Digest Tests
+	RUN_TEST(test_explode_digest_16x16_t0);
+	RUN_TEST(test_explode_digest_16x16_t200);
+	RUN_TEST(test_explode_digest_16x16_t500);
+	RUN_TEST(test_explode_digest_strip_t0);
+	RUN_TEST(test_explode_digest_strip_t300);
+	RUN_TEST(test_explode_digest_96x8_t0);
+	RUN_TEST(test_explode_digest_96x8_t200);
+
+	// 13. Property-Based Tests
+	RUN_TEST(test_explode_property_particles_spread_over_time);
+	RUN_TEST(test_explode_property_expires_after_lifespan);
+	RUN_TEST(test_explode_property_all_configs_render);
 
 	return UNITY_END();
 }
