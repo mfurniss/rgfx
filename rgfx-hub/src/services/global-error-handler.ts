@@ -42,9 +42,13 @@ export function registerGlobalErrorHandlers(log: Logger): void {
       log.warn('Socket error (recovered):', err.message);
       const systemError: SystemError = {
         errorType: 'network',
-        message: `Socket error: ${err.message}`,
+        message: activeOtaDriverId
+          ? `OTA update failed: ${err.message}`
+          : `Socket error: ${err.message}`,
         timestamp: Date.now(),
-        details: 'OTA update connection failed - driver may be unreachable',
+        details: activeOtaDriverId
+          ? 'Connection to driver was lost during firmware update'
+          : 'Network connection failed',
         driverId: activeOtaDriverId,
       };
       eventBus.emit('system:error', systemError);
@@ -70,9 +74,13 @@ export function registerGlobalErrorHandlers(log: Logger): void {
       log.warn('Unhandled rejection (recovered):', message);
       const systemError: SystemError = {
         errorType: 'network',
-        message: `Socket error: ${message}`,
+        message: activeOtaDriverId
+          ? `OTA update failed: ${message}`
+          : `Socket error: ${message}`,
         timestamp: Date.now(),
-        details: 'OTA update connection failed - driver may be unreachable',
+        details: activeOtaDriverId
+          ? 'Connection to driver was lost during firmware update'
+          : 'Network connection failed',
         driverId: activeOtaDriverId,
       };
       eventBus.emit('system:error', systemError);
