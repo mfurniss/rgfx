@@ -171,6 +171,9 @@ void setup() {
 	);
 
 	log("Network task created on Core 0");
+
+	// Initialize FPS calculation timer to avoid incorrect first reading
+	g_lastFpsCalcTime = millis();
 }
 
 /**
@@ -270,12 +273,16 @@ void loop() {
 	}
 
 	// FPS calculation (update every second)
+	// Note: g_frameCount is incremented only when effectProcessor->update() is called
 	uint32_t now = millis();
-	g_frameCount++;
 	if (now - g_lastFpsCalcTime >= 1000) {
 		g_currentFps = g_frameCount * 1000.0f / (now - g_lastFpsCalcTime);
-		if (g_currentFps > 0 && g_currentFps < g_minFps) g_minFps = g_currentFps;
-		if (g_currentFps > g_maxFps) g_maxFps = g_currentFps;
+		// Only update min/max after we have meaningful data (at least 10 FPS)
+		// This avoids bogus values during startup before effect processor is running
+		if (g_currentFps >= 10.0f) {
+			if (g_currentFps < g_minFps) g_minFps = g_currentFps;
+			if (g_currentFps > g_maxFps) g_maxFps = g_currentFps;
+		}
 		g_frameCount = 0;
 		g_lastFpsCalcTime = now;
 	}
@@ -405,6 +412,7 @@ void loop() {
 		// Update and render continuous effects
 		if (effectProcessor != nullptr) {
 			effectProcessor->update();
+			g_frameCount++;  // Count actual rendered frames for FPS calculation
 		}
 	}
 

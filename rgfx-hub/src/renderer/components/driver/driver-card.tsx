@@ -10,6 +10,7 @@ import {
   ArrowBack as ArrowBackIcon,
   Settings as SettingsIcon,
   Description as DescriptionIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import type { Driver } from '@/types';
 import InfoSection, { type InfoRowData } from '../common/info-section';
@@ -112,9 +113,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     ...(telemetry
       ? [
         ['Free Heap', `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`] as InfoRowData,
+        ['Max Allocatable Heap', formatBytes(telemetry.maxAllocHeap)] as InfoRowData,
         ...(telemetry.psramSize > 0
           ? [['Free PSRAM', `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`] as InfoRowData]
           : []),
+        ['Sketch Size', formatBytes(telemetry.sketchSize)] as InfoRowData,
         ['Free Sketch Space', formatBytes(telemetry.freeSketchSpace)] as InfoRowData,
         ['SDK Version', telemetry.sdkVersion] as InfoRowData,
       ]
@@ -219,8 +222,33 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ...(ledConfig.unified
         ? [['Multi-Panel Layout', `${ledConfig.unified.length} ${ledConfig.unified.length === 1 ? 'row' : 'rows'} × ${ledConfig.unified[0]?.length ?? 0} ${(ledConfig.unified[0]?.length ?? 0) === 1 ? 'col' : 'cols'} (${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0)} ${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0) === 1 ? 'panel' : 'panels'})`] as InfoRowData]
         : []),
+      ['LED Offset', formatNumber(ledConfig.offset ?? 0)],
+      ['Reverse Direction', ledConfig.reverse ? 'Yes' : 'No'],
+      ...(ledConfig.powerSupplyVolts != null
+        ? [['Power Supply', `${ledConfig.powerSupplyVolts}V`] as InfoRowData]
+        : []),
+      ...(ledConfig.maxPowerMilliamps != null
+        ? [['Max Power', `${formatNumber(ledConfig.maxPowerMilliamps)} mA`] as InfoRowData]
+        : []),
     ]
     : [];
+
+  // Driver status - metadata and connection health
+  const driverStatusRows: InfoRowData[] = [
+    ...(driver.description
+      ? [['Description', driver.description] as InfoRowData]
+      : []),
+    ['Status', driver.disabled ? 'Disabled' : 'Enabled'],
+    ...(driver.remoteLogging
+      ? [['Remote Logging', driver.remoteLogging === 'all' ? 'All Messages' : driver.remoteLogging === 'errors' ? 'Errors Only' : 'Off'] as InfoRowData]
+      : []),
+    ...(driver.updateRate !== undefined
+      ? [['Update Rate', `${formatNumber(driver.updateRate)} Hz`] as InfoRowData]
+      : []),
+    ...(driver.failedHeartbeats > 0
+      ? [['Failed Heartbeats', formatNumber(driver.failedHeartbeats)] as InfoRowData]
+      : []),
+  ];
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -318,6 +346,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             </Typography>
           )}
         </InfoSection>
+
+        {/* Driver Status Section - metadata and connection health */}
+        <InfoSection
+          title="Driver Status"
+          icon={<InfoIcon fontSize="small" color="action" />}
+          rows={driverStatusRows}
+          showDivider
+        />
 
         <InfoSection
           title="Driver Hardware"
