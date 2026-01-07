@@ -137,7 +137,19 @@ const EventMonitorPage: React.FC = () => {
               </TableRow>
             ) : (
               sortedTopics.map((entry) => (
-                <TableRow key={entry.topic}>
+                <TableRow
+                  key={entry.topic}
+                  onClick={() => {
+                    const eventLine = entry.lastValue
+                      ? `${entry.topic} ${entry.lastValue}`
+                      : entry.topic;
+                    void window.rgfx.simulateEvent(eventLine);
+                  }}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'action.hover' },
+                  }}
+                >
                   <TableCell>{entry.topic}</TableCell>
                   <TableCell align="right">{formatNumber(entry.count)}</TableCell>
                   <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatValue(entry.lastValue)}</TableCell>
