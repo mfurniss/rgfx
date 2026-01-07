@@ -96,7 +96,8 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
     });
 
-    // Handle socket/connection errors to prevent uncaught exceptions
+    // Handle errors from esp-ota library for UI feedback (modal dialog)
+    // SystemErrors for the System Errors panel are emitted by global-error-handler.ts
     const errorState = { error: null as Error | null };
     esp.on('error', (error: Error) => {
       log.error(`OTA error for ${driverId}:`, error.message);
