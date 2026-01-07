@@ -7,18 +7,16 @@
 
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
-import type { TransformerEngine } from '../transformer-engine';
 
 interface SimulateEventHandlerDeps {
-  transformerEngine: TransformerEngine;
   onEventProcessed: (topic: string, payload: string) => void;
 }
 
 export function registerSimulateEventHandler(deps: SimulateEventHandlerDeps): void {
-  const { transformerEngine, onEventProcessed } = deps;
+  const { onEventProcessed } = deps;
   log.info('[SimulateEventHandler] Registering event:simulate IPC handler');
 
-  ipcMain.handle('event:simulate', async (_event, eventLine: string) => {
+  ipcMain.handle('event:simulate', (_event, eventLine: string) => {
     log.info(`[SimulateEventHandler] Simulating event: ${eventLine}`);
 
     // Parse event line: format is "topic payload" (space-delimited)
@@ -39,10 +37,8 @@ export function registerSimulateEventHandler(deps: SimulateEventHandlerDeps): vo
       throw new Error('Invalid event line: topic is required');
     }
 
-    // Process the event through the transformer engine
-    await transformerEngine.handleEvent(topic, payload);
-
-    // Update event statistics
+    // Process the event through the transformer engine and update statistics
+    // Note: onEventProcessed already calls transformerEngine.handleEvent()
     onEventProcessed(topic, payload);
 
     log.info(`[SimulateEventHandler] Event simulated successfully: ${topic} ${payload}`);
