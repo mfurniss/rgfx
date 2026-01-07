@@ -53,6 +53,8 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
 
@@ -503,6 +505,294 @@ void test_pulse_easing_quinticOut_default() {
 	TEST_ASSERT_INT_WITHIN(20, 127, pixel.r);
 }
 
+// =============================================================================
+// Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+// Helper to run pulse through full pipeline and return digest
+static uint64_t runPulseDigest(const TestConfig& config, float updateTime,
+                               const char* collapse = "none", bool fade = false) {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	// Handle null layout (use default matrix pattern)
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#FF0000";
+	props["duration"] = 800;
+	props["easing"] = "quinticOut";
+	props["fade"] = fade;
+	props["collapse"] = collapse;
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+// Digest tests for 16x16 matrix (primary test config)
+void test_pulse_digest_16x16_t0_collapse_none() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[1], 0.0f, "none", false);
+	assertDigest(0x3F06C5B3B369A725ull, digest, "pulse_16x16_t0_none");
+}
+
+void test_pulse_digest_16x16_t400_collapse_none_fade() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[1], 0.5f, "none", true);
+	assertDigest(0x0609CAA478C92725ull, digest, "pulse_16x16_t400_none_fade");
+}
+
+void test_pulse_digest_16x16_t800_collapse_none_fade() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[1], 1.0f, "none", true);
+	assertDigest(0x9FA9E040E0EEDF25ull, digest, "pulse_16x16_t800_none_fade");
+}
+
+void test_pulse_digest_16x16_t400_collapse_horizontal() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[1], 0.5f, "horizontal", false);
+	assertDigest(0xF71F1460E87F54C5ull, digest, "pulse_16x16_t400_horizontal");
+}
+
+void test_pulse_digest_16x16_t400_collapse_vertical() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[1], 0.5f, "vertical", false);
+	assertDigest(0x5B188C4D34104785ull, digest, "pulse_16x16_t400_vertical");
+}
+
+// Digest tests for 300-LED strip
+void test_pulse_digest_strip_t0() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[0], 0.0f, "none", false);
+	assertDigest(0x457DA90F8045D7F5ull, digest, "pulse_strip_t0");
+}
+
+void test_pulse_digest_strip_t400_fade() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[0], 0.5f, "none", true);
+	assertDigest(0xBB8698E56AA7E135ull, digest, "pulse_strip_t400_fade");
+}
+
+// Digest tests for 96x8 wide matrix
+void test_pulse_digest_96x8_t0() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[2], 0.0f, "none", false);
+	assertDigest(0xDCC495A22488AF25ull, digest, "pulse_96x8_t0");
+}
+
+void test_pulse_digest_96x8_t400_horizontal() {
+	uint64_t digest = runPulseDigest(TEST_CONFIGS[2], 0.5f, "horizontal", false);
+	assertDigest(0x1E97CCA2FFBAFF65ull, digest, "pulse_96x8_t400_horizontal");
+}
+
+// =============================================================================
+// Property-Based Invariant Tests
+// =============================================================================
+
+void test_pulse_property_nonblack_at_start() {
+	// Property: pulse at t=0 must have non-zero pixels
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#FF0000";
+	props["duration"] = 800;
+	props["collapse"] = "none";
+	effect.add(props);
+
+	effect.update(0.0f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	FrameProperties fp = analyzeFrame(matrix);
+	TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels,
+	                                 "Pulse at t=0 should have non-black pixels");
+}
+
+void test_pulse_property_fades_to_black() {
+	// Property: pulse with fade=true must be black after duration expires
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#FF0000";
+	props["duration"] = 500;
+	props["fade"] = true;
+	props["collapse"] = "none";
+	effect.add(props);
+
+	// Advance past duration
+	effect.update(0.6f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	FrameProperties fp = analyzeFrame(matrix);
+	TEST_ASSERT_EQUAL_MESSAGE(0, fp.nonBlackPixels,
+	                          "Pulse with fade=true should be black after duration");
+}
+
+void test_pulse_property_brightness_decreases_with_fade() {
+	// Property: with fade=true, totalBrightness(t+dt) <= totalBrightness(t)
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#FFFFFF";
+	props["duration"] = 1000;
+	props["fade"] = true;
+	props["collapse"] = "none";
+	effect.add(props);
+
+	// Capture brightness at t=0
+	effect.update(0.0f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp0 = analyzeFrame(matrix);
+
+	// Capture brightness at t=500ms
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp500 = analyzeFrame(matrix);
+
+	TEST_ASSERT_LESS_OR_EQUAL_MESSAGE(fp0.totalBrightness, fp500.totalBrightness,
+	                                  "Brightness should decrease over time with fade=true");
+}
+
+void test_pulse_property_collapse_horizontal_shrinks_bbox() {
+	// Property: horizontal collapse reduces bounding box height over time
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#00FF00";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "horizontal";
+	effect.add(props);
+
+	// Capture bbox at t=0
+	effect.update(0.0f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp0 = analyzeFrame(matrix);
+
+	// Capture bbox at t=500ms
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp500 = analyzeFrame(matrix);
+
+	int height0 = fp0.boundingBox.maxY - fp0.boundingBox.minY + 1;
+	int height500 = fp500.boundingBox.maxY - fp500.boundingBox.minY + 1;
+
+	TEST_ASSERT_LESS_THAN_MESSAGE(height0, height500,
+	                              "Horizontal collapse should reduce bbox height");
+}
+
+void test_pulse_property_collapse_vertical_shrinks_bbox() {
+	// Property: vertical collapse reduces bounding box width over time
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#0000FF";
+	props["duration"] = 1000;
+	props["fade"] = false;
+	props["collapse"] = "vertical";
+	effect.add(props);
+
+	// Capture bbox at t=0
+	effect.update(0.0f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp0 = analyzeFrame(matrix);
+
+	// Capture bbox at t=500ms
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	FrameProperties fp500 = analyzeFrame(matrix);
+
+	int width0 = fp0.boundingBox.maxX - fp0.boundingBox.minX + 1;
+	int width500 = fp500.boundingBox.maxX - fp500.boundingBox.minX + 1;
+
+	TEST_ASSERT_LESS_THAN_MESSAGE(width0, width500,
+	                              "Vertical collapse should reduce bbox width");
+}
+
+void test_pulse_property_all_configs_nonblack_at_start() {
+	// Property: pulse renders non-black pixels on all three test configs
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		PulseEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		setDefaultPulseProps(props);
+		props["color"] = "#FF0000";
+		props["duration"] = 800;
+		props["collapse"] = "none";
+		effect.add(props);
+
+		effect.update(0.0f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[128];
+		snprintf(msg, sizeof(msg), "Config %s should have non-black pixels at t=0",
+		         TEST_CONFIGS[i].name);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -528,6 +818,25 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_pulse_multiple_sorted_by_remaining);
 	RUN_TEST(test_pulse_easing_linear);
 	RUN_TEST(test_pulse_easing_quinticOut_default);
+
+	// Pixel digest tests - full pipeline validation
+	RUN_TEST(test_pulse_digest_16x16_t0_collapse_none);
+	RUN_TEST(test_pulse_digest_16x16_t400_collapse_none_fade);
+	RUN_TEST(test_pulse_digest_16x16_t800_collapse_none_fade);
+	RUN_TEST(test_pulse_digest_16x16_t400_collapse_horizontal);
+	RUN_TEST(test_pulse_digest_16x16_t400_collapse_vertical);
+	RUN_TEST(test_pulse_digest_strip_t0);
+	RUN_TEST(test_pulse_digest_strip_t400_fade);
+	RUN_TEST(test_pulse_digest_96x8_t0);
+	RUN_TEST(test_pulse_digest_96x8_t400_horizontal);
+
+	// Property-based invariant tests
+	RUN_TEST(test_pulse_property_nonblack_at_start);
+	RUN_TEST(test_pulse_property_fades_to_black);
+	RUN_TEST(test_pulse_property_brightness_decreases_with_fade);
+	RUN_TEST(test_pulse_property_collapse_horizontal_shrinks_bbox);
+	RUN_TEST(test_pulse_property_collapse_vertical_shrinks_bbox);
+	RUN_TEST(test_pulse_property_all_configs_nonblack_at_start);
 
 	return UNITY_END();
 }

@@ -25,12 +25,10 @@ export class NetworkManager {
   private mqtt: DiscoveryController;
   private debounceTimer?: NodeJS.Timeout;
   private ipCheckInterval?: NodeJS.Timeout;
-  private onNetworkChanged?: () => void;
   private currentIP: string;
 
-  constructor(mqtt: DiscoveryController, onNetworkChanged?: () => void) {
+  constructor(mqtt: DiscoveryController) {
     this.mqtt = mqtt;
-    this.onNetworkChanged = onNetworkChanged;
     this.currentIP = getLocalIP();
     this.setupEventListeners();
     this.startIPMonitoring();
@@ -70,7 +68,7 @@ export class NetworkManager {
         log.info(`Network changed, restarting discovery with IP: ${newIP}`);
         this.mqtt.stopDiscovery();
         this.mqtt.restartDiscovery(newIP);
-        this.onNetworkChanged?.();
+        eventBus.emit('network:changed', undefined);
       }
     }
   }
@@ -82,7 +80,7 @@ export class NetworkManager {
 
     // Stop discovery immediately to prevent stale broadcasts
     this.mqtt.stopDiscovery();
-    this.onNetworkChanged?.();
+    eventBus.emit('network:changed', undefined);
 
     log.info(
       `Network unreachable, discovery stopped. Will check for recovery in ${DISCOVERY_RESTART_DEBOUNCE_MS / 1000}s`,
@@ -105,7 +103,7 @@ export class NetworkManager {
       this.currentIP = newIP;
       log.info(`Network recovered, restarting discovery with IP: ${newIP}`);
       this.mqtt.restartDiscovery(newIP);
-      this.onNetworkChanged?.();
+      eventBus.emit('network:changed', undefined);
     }, DISCOVERY_RESTART_DEBOUNCE_MS);
   }
 

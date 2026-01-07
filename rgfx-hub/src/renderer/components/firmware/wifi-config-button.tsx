@@ -10,6 +10,7 @@ import { SettingsInputAntenna as ConfigWifiIcon } from '@mui/icons-material';
 import SuperButton from '../common/super-button';
 import WifiConfigDialog from './wifi-config-dialog';
 import { sendWifiCommandToPort } from '@/renderer/utils/serial-wifi';
+import { useUiStore } from '@/renderer/store/ui-store';
 
 interface WifiConfigButtonProps {
   getPort: (() => Promise<SerialPort>) | null;
@@ -25,6 +26,10 @@ const WifiConfigButton: React.FC<WifiConfigButtonProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const lastWifiSsid = useUiStore((state) => state.lastWifiSsid);
+  const lastWifiPassword = useUiStore((state) => state.lastWifiPassword);
+  const setLastWifiCredentials = useUiStore((state) => state.setLastWifiCredentials);
 
   const handleOpen = () => {
     setError(null);
@@ -87,6 +92,9 @@ const WifiConfigButton: React.FC<WifiConfigButtonProps> = ({
         onSubmit={handleSubmit}
         isSending={isSending}
         error={error}
+        initialSsid={lastWifiSsid}
+        initialPassword={lastWifiPassword}
+        onCredentialsSave={setLastWifiCredentials}
       />
     </>
   );

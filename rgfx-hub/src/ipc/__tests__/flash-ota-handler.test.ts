@@ -231,44 +231,8 @@ describe('registerFlashOtaHandler', () => {
     });
   });
 
-  describe('uncaught exception handling', () => {
-    it('should register uncaughtException handler during OTA', async () => {
-      const processOnSpy = vi.spyOn(process, 'on');
-
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(processOnSpy).toHaveBeenCalledWith('uncaughtException', expect.any(Function));
-      processOnSpy.mockRestore();
-    });
-
-    it('should remove uncaughtException handler after successful OTA', async () => {
-      const processRemoveListenerSpy = vi.spyOn(process, 'removeListener');
-
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(processRemoveListenerSpy).toHaveBeenCalledWith(
-        'uncaughtException',
-        expect.any(Function),
-      );
-      processRemoveListenerSpy.mockRestore();
-    });
-
-    it('should remove uncaughtException handler even when OTA fails', async () => {
-      const processRemoveListenerSpy = vi.spyOn(process, 'removeListener');
-
-      // Configure mock to fail
-      mockUploadShouldFail = true;
-      mockUploadError = new Error('Upload failed');
-
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow('Upload failed');
-
-      expect(processRemoveListenerSpy).toHaveBeenCalledWith(
-        'uncaughtException',
-        expect.any(Function),
-      );
-      processRemoveListenerSpy.mockRestore();
-    });
-  });
+  // Note: uncaughtException handling is now done globally in global-error-handler.ts
+  // Tests for that functionality are in global-error-handler.test.ts
 
   describe('driver reference race condition', () => {
     it('should re-fetch driver after OTA to avoid stale reference', async () => {

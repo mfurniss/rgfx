@@ -10,6 +10,7 @@ import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { eventBus } from '../services/event-bus';
+import { setActiveOtaDriver, clearActiveOtaDriver } from '../services/global-error-handler';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -37,6 +38,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
     log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
 
+    // Track active OTA driver for error context in global error handler
+    setActiveOtaDriver(driverId);
+
     // Mark driver as updating - this prevents LWT "offline" from disconnecting it
     // and shows "Updating" state in the UI
     driver.state = 'updating';
@@ -58,19 +62,9 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     const EspOTA = (await import('esp-ota')).default;
     const esp = new EspOTA();
 
-    // Handle uncaught socket errors (ECONNRESET) from esp-ota library
-    // The library's error handling has gaps that can cause uncaught exceptions
-    const uncaughtHandler = (err: Error): void => {
-      if (err.message.includes('ECONNRESET') || err.message.includes('EPIPE')) {
-        log.error(`OTA socket error for ${driverId}:`, err.message);
-        eventBus.emit('flash:ota:error', { driverId, error: err.message });
-        // Don't re-throw - this prevents process crash when ESP32 resets during OTA
-      } else {
-        // Re-throw non-OTA errors
-        throw err;
-      }
-    };
-    process.on('uncaughtException', uncaughtHandler);
+    // Note: Socket errors (ECONNRESET, etc.) are handled by the global error handler
+    // in global-error-handler.ts. The esp.on('error') handler below handles errors
+    // emitted by the esp-ota library for UI feedback.
 
     esp.on('state', (state: string) => {
       log.info(`OTA state: ${state}`);
@@ -102,7 +96,8 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       }
     });
 
-    // Handle socket/connection errors to prevent uncaught exceptions
+    // Handle errors from esp-ota library for UI feedback (modal dialog)
+    // SystemErrors for the System Errors panel are emitted by global-error-handler.ts
     const errorState = { error: null as Error | null };
     esp.on('error', (error: Error) => {
       log.error(`OTA error for ${driverId}:`, error.message);
@@ -143,8 +138,8 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       throw error;
     } finally {
-      // Always clean up the uncaught exception handler
-      process.removeListener('uncaughtException', uncaughtHandler);
+      // Clear active OTA driver tracking regardless of success/failure
+      clearActiveOtaDriver();
     }
   });
 }

@@ -203,8 +203,14 @@ inline uint8_t random8(uint8_t min, uint8_t lim) {
 	return min + random8(lim - min);
 }
 
+// Forward declaration of hal::random for use in random16
+namespace hal {
+int32_t random(int32_t max);
+}
+
 inline uint16_t random16() {
-	return static_cast<uint16_t>(rand() & 0xFFFF);
+	// Use hal::random for portable cross-platform determinism with seeded xorshift32
+	return static_cast<uint16_t>(hal::random(0x10000));
 }
 
 inline uint16_t random16(uint16_t lim) {

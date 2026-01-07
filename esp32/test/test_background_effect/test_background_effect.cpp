@@ -51,11 +51,8 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
-
-using namespace test_helpers;
-
-// Include test helpers
-#include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
 
@@ -644,6 +641,112 @@ void test_background_strip_layout() {
 }
 
 // =============================================================================
+// 8. Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runBackgroundDigest(const TestConfig& config, float updateTime,
+                                     const char* color = "#00FFFF") {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultBackgroundProps(props);
+	props["color"] = color;
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_background_digest_16x16_t100() {
+	uint64_t digest = runBackgroundDigest(TEST_CONFIGS[1], 0.1f);
+	assertDigest(0x449F87B310EE9325ull, digest, "background_16x16_t100");
+}
+
+void test_background_digest_16x16_t200_different_color() {
+	uint64_t digest = runBackgroundDigest(TEST_CONFIGS[1], 0.2f, "#FF00FF");
+	assertDigest(0x838E1B28F1BC7F25ull, digest, "background_16x16_t200_magenta");
+}
+
+void test_background_digest_strip_t150() {
+	uint64_t digest = runBackgroundDigest(TEST_CONFIGS[0], 0.15f);
+	assertDigest(0x87B8F27F94FBAE65ull, digest, "background_strip_t150");
+}
+
+void test_background_digest_96x8_t100() {
+	uint64_t digest = runBackgroundDigest(TEST_CONFIGS[2], 0.1f);
+	assertDigest(0xC025E4EF5A477325ull, digest, "background_96x8_t100");
+}
+
+void test_background_property_static_no_change() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	BackgroundEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultBackgroundProps(props);
+	props["color"] = "#FFFFFF";
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash1 = computeFrameDigest(matrix);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash2 = computeFrameDigest(matrix);
+
+	// Static background should not change between frames
+	TEST_ASSERT_EQUAL_HEX64_MESSAGE(hash1, hash2, "Static background should not change");
+}
+
+void test_background_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		BackgroundEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		setDefaultBackgroundProps(props);
+		props["color"] = "#808080";
+		effect.add(props);
+
+		effect.update(0.1f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[64];
+		snprintf(msg, sizeof(msg), "Config %zu should have pixels", i);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -691,6 +794,14 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_background_fills_entire_canvas);
 	RUN_TEST(test_background_large_matrix);
 	RUN_TEST(test_background_strip_layout);
+
+	// 8. Pixel Digest Tests
+	RUN_TEST(test_background_digest_16x16_t100);
+	RUN_TEST(test_background_digest_16x16_t200_different_color);
+	RUN_TEST(test_background_digest_strip_t150);
+	RUN_TEST(test_background_digest_96x8_t100);
+	RUN_TEST(test_background_property_static_no_change);
+	RUN_TEST(test_background_property_all_configs_render);
 
 	return UNITY_END();
 }

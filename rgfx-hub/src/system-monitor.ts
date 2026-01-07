@@ -83,7 +83,7 @@ export class SystemMonitor {
     totalDriverCount: number,
     eventsProcessed: number,
     eventLogSizeBytes: number,
-    errors: SystemError[] = [],
+    errors: readonly SystemError[] = [],
   ): SystemStatus {
     const hubIp = this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
