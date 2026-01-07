@@ -57,6 +57,8 @@ using String = std::string;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"
+#include "helpers/downsample_test_helpers.h"
+#include "helpers/pixel_digest.h"
 
 using namespace test_helpers;
 
@@ -1650,6 +1652,131 @@ void test_bitmap_frame_limit_enforced() {
 }
 
 // =============================================================================
+// 13. Pixel Digest Tests - Full Pipeline Validation
+// =============================================================================
+
+static uint64_t runBitmapDigest(const TestConfig& config, float updateTime,
+                                 const std::vector<std::string>& image = {"88", "88"}) {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	for (const auto& row : image) {
+		frame.add(row.c_str());
+	}
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+void test_bitmap_digest_16x16_t100() {
+	uint64_t digest = runBitmapDigest(TEST_CONFIGS[1], 0.1f);
+	assertDigest(0x27CEF60B4FB84255ull, digest, "bitmap_16x16_t100");
+}
+
+void test_bitmap_digest_16x16_t200_larger() {
+	uint64_t digest = runBitmapDigest(TEST_CONFIGS[1], 0.2f, {"8888", "8888", "8888", "8888"});
+	assertDigest(0x603E6E7047109465ull, digest, "bitmap_16x16_t200_larger");
+}
+
+void test_bitmap_digest_strip_t150() {
+	uint64_t digest = runBitmapDigest(TEST_CONFIGS[0], 0.15f);
+	assertDigest(0x5BE2E5E462E1D77Dull, digest, "bitmap_strip_t150");
+}
+
+void test_bitmap_digest_96x8_t100() {
+	uint64_t digest = runBitmapDigest(TEST_CONFIGS[2], 0.1f);
+	assertDigest(0x5E6D3FB4DC49F9D5ull, digest, "bitmap_96x8_t100");
+}
+
+void test_bitmap_property_static_no_change() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 5000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	frame.add("77");
+	frame.add("77");
+	effect.add(props);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash1 = computeFrameDigest(matrix);
+
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t hash2 = computeFrameDigest(matrix);
+
+	// Static bitmap (no animation, no movement) should not change
+	TEST_ASSERT_EQUAL_HEX64_MESSAGE(hash1, hash2, "Static bitmap should not change between frames");
+}
+
+void test_bitmap_property_all_configs_render() {
+	for (size_t i = 0; i < TEST_CONFIG_COUNT; i++) {
+		hal::test::setTime(0);
+		hal::test::seedRandom(12345);
+		initTestGammaLUT();
+
+		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
+		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
+		Canvas canvas(matrix);
+		BitmapEffect effect(matrix, canvas);
+
+		JsonDocument props;
+		addPico8Palette(props);
+		props["duration"] = 5000;
+		props["centerX"] = 50;
+		props["centerY"] = 50;
+		JsonArray images = props["images"].to<JsonArray>();
+		JsonArray frame = images.add<JsonArray>();
+		frame.add("77");
+		frame.add("77");
+		effect.add(props);
+
+		effect.update(0.1f);
+		canvas.clear();
+		effect.render();
+		downsampleToMatrix(canvas, &matrix);
+
+		FrameProperties fp = analyzeFrame(matrix);
+		char msg[64];
+		snprintf(msg, sizeof(msg), "Config %zu should have pixels", i);
+		TEST_ASSERT_GREATER_THAN_MESSAGE(0, fp.nonBlackPixels, msg);
+	}
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -1738,6 +1865,14 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_reset_clears_memory_tracking);
 	RUN_TEST(test_bitmap_no_leak_after_cycles);
 	RUN_TEST(test_bitmap_frame_limit_enforced);
+
+	// 13. Pixel Digest Tests
+	RUN_TEST(test_bitmap_digest_16x16_t100);
+	RUN_TEST(test_bitmap_digest_16x16_t200_larger);
+	RUN_TEST(test_bitmap_digest_strip_t150);
+	RUN_TEST(test_bitmap_digest_96x8_t100);
+	RUN_TEST(test_bitmap_property_static_no_change);
+	RUN_TEST(test_bitmap_property_all_configs_render);
 
 	return UNITY_END();
 }

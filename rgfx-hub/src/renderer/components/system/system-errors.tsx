@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Alert,
   Paper,
@@ -6,47 +6,38 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
-  TableSortLabel,
   Typography,
 } from '@mui/material';
 import type { SystemError } from '@/types';
+import { useSortableTable } from '@/renderer/hooks/use-sortable-table';
+import { SortableTableHead, type SortableColumn } from '@/renderer/components/common/sortable-table-head';
 
 type SortField = 'timestamp' | 'errorType' | 'message';
-type SortOrder = 'asc' | 'desc';
 
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString();
 }
 
+const COLUMNS: SortableColumn<SortField>[] = [
+  { field: 'timestamp', label: 'Time', width: 0.15 },
+  { field: 'errorType', label: 'Error Type', width: 0.2 },
+  { field: 'message', label: 'Message' },
+];
+
 interface SystemErrorsProps {
-  errors: SystemError[];
+  errors: readonly SystemError[];
 }
 
 export const SystemErrors: React.FC<SystemErrorsProps> = ({ errors }) => {
-  const [sortField, setSortField] = useState<SortField>('timestamp');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder(field === 'timestamp' ? 'desc' : 'asc');
-    }
-  };
-
-  const sortedErrors = [...errors].sort((a: SystemError, b: SystemError) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-
-    if (sortOrder === 'asc') {
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-    }
-
-    return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+  const { sortField, sortOrder, handleSort, sortData } = useSortableTable<SortField>({
+    storageKey: 'systemErrors',
+    defaultField: 'timestamp',
+    defaultOrder: 'desc',
+    defaultDescFields: ['timestamp'],
   });
+
+  const sortedErrors = sortData([...errors] as SystemError[]);
 
   if (errors.length === 0) {
     return (
@@ -66,43 +57,12 @@ export const SystemErrors: React.FC<SystemErrorsProps> = ({ errors }) => {
         sx={{ mb: 3, border: 1, borderColor: 'error.main' }}
       >
         <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ width: 0.15 }}>
-                <TableSortLabel
-                  active={sortField === 'timestamp'}
-                  direction={sortField === 'timestamp' ? sortOrder : 'desc'}
-                  onClick={() => {
-                    handleSort('timestamp');
-                  }}
-                >
-                  Time
-                </TableSortLabel>
-              </TableCell>
-              <TableCell sx={{ width: 0.2 }}>
-                <TableSortLabel
-                  active={sortField === 'errorType'}
-                  direction={sortField === 'errorType' ? sortOrder : 'asc'}
-                  onClick={() => {
-                    handleSort('errorType');
-                  }}
-                >
-                  Error Type
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === 'message'}
-                  direction={sortField === 'message' ? sortOrder : 'asc'}
-                  onClick={() => {
-                    handleSort('message');
-                  }}
-                >
-                  Message
-                </TableSortLabel>
-              </TableCell>
-            </TableRow>
-          </TableHead>
+          <SortableTableHead
+            columns={COLUMNS}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
           <TableBody>
             {sortedErrors.map((err, i) => (
               <TableRow key={i} sx={{ verticalAlign: 'top' }}>

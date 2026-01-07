@@ -34,7 +34,6 @@ vi.mock('@/services/event-bus', () => ({
 
 describe('NetworkManager', () => {
   let mockMqtt: DiscoveryController;
-  let mockOnNetworkChanged: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -47,8 +46,6 @@ describe('NetworkManager', () => {
       restartDiscovery: vi.fn(),
     };
 
-    mockOnNetworkChanged = vi.fn();
-
     vi.mocked(networkUtils.getLocalIP).mockReturnValue('192.168.1.100');
   });
 
@@ -60,7 +57,7 @@ describe('NetworkManager', () => {
   describe('network:error event handling', () => {
     it('should stop discovery when ENETUNREACH error occurs', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
 
@@ -68,19 +65,20 @@ describe('NetworkManager', () => {
       networkManager.stop();
     });
 
-    it('should call onNetworkChanged callback when network becomes unreachable', async () => {
+    it('should emit network:changed event when network becomes unreachable', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
+      const emitSpy = vi.spyOn(mockEventBus, 'emit');
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
 
-      expect(mockOnNetworkChanged).toHaveBeenCalled();
+      expect(emitSpy).toHaveBeenCalledWith('network:changed', undefined);
       networkManager.stop();
     });
 
     it('should ignore non-ENETUNREACH errors', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ECONNREFUSED' });
 
@@ -90,7 +88,7 @@ describe('NetworkManager', () => {
 
     it('should debounce multiple ENETUNREACH errors', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
@@ -104,7 +102,7 @@ describe('NetworkManager', () => {
   describe('network recovery', () => {
     it('should restart discovery after 5 seconds when network recovers', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
 
@@ -114,16 +112,17 @@ describe('NetworkManager', () => {
       networkManager.stop();
     });
 
-    it('should call onNetworkChanged when network recovers', async () => {
+    it('should emit network:changed when network recovers', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
+      const emitSpy = vi.spyOn(mockEventBus, 'emit');
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
-      mockOnNetworkChanged.mockClear();
+      emitSpy.mockClear();
 
       vi.advanceTimersByTime(5000);
 
-      expect(mockOnNetworkChanged).toHaveBeenCalled();
+      expect(emitSpy).toHaveBeenCalledWith('network:changed', undefined);
       networkManager.stop();
     });
 
@@ -131,7 +130,7 @@ describe('NetworkManager', () => {
       vi.mocked(networkUtils.getLocalIP).mockReturnValue('127.0.0.1');
 
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
 
@@ -170,7 +169,7 @@ describe('NetworkManager', () => {
       });
 
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
 
@@ -192,7 +191,8 @@ describe('NetworkManager', () => {
   describe('IP change detection', () => {
     it('should restart discovery when IP changes to different address', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
+      const emitSpy = vi.spyOn(mockEventBus, 'emit');
 
       // IP changes after 5 seconds
       vi.mocked(networkUtils.getLocalIP).mockReturnValue('192.168.2.50');
@@ -200,13 +200,13 @@ describe('NetworkManager', () => {
 
       expect(mockMqtt.stopDiscovery).toHaveBeenCalled();
       expect(mockMqtt.restartDiscovery).toHaveBeenCalledWith('192.168.2.50');
-      expect(mockOnNetworkChanged).toHaveBeenCalled();
+      expect(emitSpy).toHaveBeenCalledWith('network:changed', undefined);
       networkManager.stop();
     });
 
     it('should handle IP changing to localhost (network down)', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       // IP changes to localhost (no network)
       vi.mocked(networkUtils.getLocalIP).mockReturnValue('127.0.0.1');
@@ -219,7 +219,7 @@ describe('NetworkManager', () => {
 
     it('should not trigger if IP stays the same', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       // IP stays the same
       vi.advanceTimersByTime(5000);
@@ -232,7 +232,7 @@ describe('NetworkManager', () => {
 
     it('should skip IP check while recovery is in progress', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       // Trigger network unreachable
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
@@ -250,7 +250,7 @@ describe('NetworkManager', () => {
   describe('stop', () => {
     it('should clear pending recovery timer', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       mockEventBus.emit('network:error', { code: 'ENETUNREACH' });
 
@@ -262,7 +262,7 @@ describe('NetworkManager', () => {
 
     it('should clear IP check interval', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       networkManager.stop();
 
@@ -275,7 +275,7 @@ describe('NetworkManager', () => {
 
     it('should handle stop when no timer is pending', async () => {
       const { NetworkManager } = await import('../network-manager.js');
-      const networkManager = new NetworkManager(mockMqtt, mockOnNetworkChanged);
+      const networkManager = new NetworkManager(mockMqtt);
 
       expect(() => {
         networkManager.stop();

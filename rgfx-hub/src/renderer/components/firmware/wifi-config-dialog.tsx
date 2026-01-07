@@ -28,6 +28,9 @@ interface WifiConfigDialogProps {
   description?: string;
   submitLabel?: string;
   sendingLabel?: string;
+  initialSsid?: string;
+  initialPassword?: string;
+  onCredentialsSave?: (ssid: string, password: string) => void;
 }
 
 const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
@@ -39,20 +42,22 @@ const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
   description,
   submitLabel = 'Send to Device',
   sendingLabel = 'Sending...',
+  initialSsid = '',
+  initialPassword = '',
+  onCredentialsSave,
 }) => {
-  const [ssid, setSsid] = useState('');
-  const [password, setPassword] = useState('');
+  const [ssid, setSsid] = useState(initialSsid);
+  const [password, setPassword] = useState(initialPassword);
 
   const handleSubmit = () => {
     if (ssid.trim()) {
+      onCredentialsSave?.(ssid.trim(), password);
       void onSubmit(ssid.trim(), password);
     }
   };
 
   const handleClose = () => {
     if (!isSending) {
-      setSsid('');
-      setPassword('');
       onClose();
     }
   };

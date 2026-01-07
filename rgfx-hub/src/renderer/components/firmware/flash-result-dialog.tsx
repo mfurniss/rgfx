@@ -36,7 +36,8 @@ const FlashResultDialog: React.FC<FlashResultDialogProps> = ({
         {success ? 'Flash Complete' : 'Flash Failed'}
       </DialogTitle>
       <DialogContent>
-        <Typography>{message}</Typography>
+        <Typography sx={{pb: 2}}>{message}</Typography>
+        <Typography>If this OTA error persists try updating via USB serial.</Typography>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} variant="contained" autoFocus>

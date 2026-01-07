@@ -331,7 +331,7 @@ export interface SystemStatus {
   udpMessagesSent: number;
   udpMessagesFailed: number;
   udpStatsByDriver: Record<string, UdpStats>;
-  systemErrors: SystemError[];
+  systemErrors: readonly SystemError[];
 }
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';

@@ -1,7 +1,7 @@
 # RGFX ESP32 Driver - Development Commands
 # Provides convenient shortcuts for formatting, linting, and testing
 
-.PHONY: help format format-check lint cppcheck test test-native compile clean check-tools all ci
+.PHONY: help format format-check lint cppcheck test test-native test-generate-digests compile clean check-tools all ci
 
 # Tool detection
 CLANG_FORMAT := $(shell command -v clang-format 2> /dev/null)
@@ -18,6 +18,7 @@ help:
 	@echo "  make cppcheck      - Run cppcheck static analysis"
 	@echo "  make test          - Run all unit tests (native)"
 	@echo "  make test-native   - Run unit tests on host machine (fast)"
+	@echo "  make test-generate-digests - Generate new digest hashes for snapshot tests"
 	@echo "  make compile       - Compile firmware for ESP32"
 	@echo "  make clean         - Clean build artifacts"
 	@echo "  make check-tools   - Verify required tools are installed"
@@ -82,6 +83,17 @@ test-native:
 
 # Alias for test-native
 test: test-native
+
+# Generate new digest hashes for snapshot tests
+# Use when intentionally changing effect rendering behavior
+# Note: PlatformIO filters stdout, so we use verbose mode and grep for DIGEST lines
+test-generate-digests:
+	@echo "Running tests with GENERATE_DIGESTS flag..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "DIGEST HASHES (copy to test assertions):"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@pio test -e native-generate-digests -vvv 2>&1 | grep "^DIGEST:" | sort -u || echo "  (no digest tests found - add tests with assertDigest)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Compile firmware for ESP32
 compile:
