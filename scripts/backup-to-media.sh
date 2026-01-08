@@ -62,7 +62,7 @@ log "Config source: $RGFX_CONFIG_DIR"
 # --exclude : exclude patterns (build artifacts, temp files, etc.)
 # --info=progress2 : show overall progress with percentage (requires brew rsync)
 
-rsync -ah --delete \
+rsync -avh --delete \
   --exclude='.DS_Store' \
   --exclude='node_modules/' \
   --exclude='.pio/' \
@@ -77,10 +77,10 @@ rsync -ah --delete \
   --exclude='rgfx-hub/.vite/' \
   --exclude='*.log' \
   --exclude='.git/logs/' \
-  --info=progress2 \
-  "$SOURCE_DIR/" "$BACKUP_DEST/" 2>&1 | tee -a "$LOG_FILE"
+  --exclude='.gitlab-ci-local/' \
+  "$SOURCE_DIR/" "$BACKUP_DEST/"
 
-if [ ${PIPESTATUS[0]} -eq 0 ]; then
+if [ $? -eq 0 ]; then
   log_success "Project backup completed successfully"
 else
   log_error "Project backup failed"
@@ -91,12 +91,11 @@ fi
 log "Backing up ~/.rgfx config directory..."
 
 if [ -d "$RGFX_CONFIG_DIR" ]; then
-  rsync -ah --delete \
+  rsync -avh --delete \
     --exclude='.DS_Store' \
-    --info=progress2 \
-    "$RGFX_CONFIG_DIR/" "$CONFIG_BACKUP_DEST/" 2>&1 | tee -a "$LOG_FILE"
+    "$RGFX_CONFIG_DIR/" "$CONFIG_BACKUP_DEST/"
 
-  if [ ${PIPESTATUS[0]} -eq 0 ]; then
+  if [ $? -eq 0 ]; then
     log_success "Config backup completed successfully"
   else
     log_error "Config backup failed"
