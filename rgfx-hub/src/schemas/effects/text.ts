@@ -23,6 +23,8 @@ export function randomize(): Record<string, unknown> {
       speed: randomFloat(0.1, 20),
       scale: randomFloat(0.1, 10),
     };
+  } else {
+    delete props.colorGradient;
   }
 
   return props;

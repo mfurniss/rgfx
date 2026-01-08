@@ -6,11 +6,26 @@
  */
 
 import { z } from 'zod';
-
 import { baseEffect, colorGradient } from './properties';
+import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
-  return {};
+  const props: Record<string, unknown> = {
+    color: randomColor(0.2),
+    accentColor: randomInt(1) ? randomColor() : null,
+  };
+
+  if (randomInt(1)) {
+    props.colorGradient = {
+      colors: randomGradient(0.2),
+      speed: randomFloat(0.1, 20),
+      scale: randomFloat(0.1, 10),
+    };
+  } else {
+    delete props.colorGradient;
+  }
+
+  return props;
 }
 
 /**
@@ -24,8 +39,7 @@ export default baseEffect
     reset: z.boolean().optional().default(true).describe('Clear existing scroll text before adding new'),
     text: z.string().max(64).default("Hidey Ho! It's the Super-Happy-Fun-Time-Show!").describe('Text to scroll (max 64 chars)'),
     color: z.string().optional().default('#808000').describe('Text color (hex or named)'),
-    accentColor: z.string().optional().describe('Optional accent/shadow color (hex or named)'),
-    y: z.number().int().optional().default(0).describe('Y position in canvas coordinates'),
+    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
