@@ -41,6 +41,7 @@ describe('createUploadConfigToDriver', () => {
       dithering: true,
       powerSupplyVolts: 5,
       maxPowerMilliamps: 2000,
+      gamma: { r: 2.8, g: 2.8, b: 2.8 },
       floor: { r: 0, g: 0, b: 0 },
     },
     remoteLogging: 'errors' as const,

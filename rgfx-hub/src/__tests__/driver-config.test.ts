@@ -157,10 +157,10 @@ describe('DriverConfig', () => {
       pin: 16,
       offset: 0,
       globalBrightnessLimit: 128,
-      gammaCorrection: 2.5,
       dithering: true,
       powerSupplyVolts: 5,
       maxPowerMilliamps: 500,
+      gamma: { r: 2.8, g: 2.8, b: 2.8 },
       floor: { r: 0, g: 0, b: 0 },
     };
 
