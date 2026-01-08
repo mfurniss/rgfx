@@ -43,6 +43,8 @@ using String = std::string;
 // Include utils
 #include "effects/effect_utils.h"
 #include "effects/effect_utils.cpp"
+#include "effects/gradient_utils.h"
+#include "effects/gradient_utils.cpp"
 
 // Include effects
 #include "effects/effect.h"

@@ -51,6 +51,8 @@ using String = std::string;
 #include "utils/easing_impl.cpp"
 #include "effects/effect_utils.h"
 #include "effects/effect_utils.cpp"
+#include "effects/gradient_utils.h"
+#include "effects/gradient_utils.cpp"
 
 // Include effects
 // Note: wipe.cpp and projectile.cpp both define static parseDirection()

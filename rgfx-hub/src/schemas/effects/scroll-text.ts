@@ -6,26 +6,18 @@
  */
 
 import { z } from 'zod';
-import { baseEffect, colorGradient } from './properties';
+import { baseEffect } from './properties';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
-  const props: Record<string, unknown> = {
+  return {
     color: randomColor(0.2),
     accentColor: randomInt(1) ? randomColor() : null,
+    gradient: randomGradient(0.2),
+    gradientSpeed: randomFloat(0.1, 20),
+    gradientScale: randomFloat(0.1, 10),
   };
-
-  if (randomInt(1)) {
-    props.colorGradient = {
-      colors: randomGradient(0.2),
-      speed: randomFloat(0.1, 20),
-      scale: randomFloat(0.1, 10),
-    };
-  } else {
-    delete props.colorGradient;
-  }
-
-  return props;
 }
 
 /**
@@ -43,6 +35,25 @@ export default baseEffect
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
-    colorGradient,
+    gradient: z
+      .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
+      .min(2)
+      .max(MAX_GRADIENT_COLORS)
+      .optional()
+      .describe('fieldType:gradientPreset|Gradient colors for text animation'),
+    gradientSpeed: z
+      .number()
+      .min(0.1)
+      .max(20)
+      .optional()
+      .default(3)
+      .describe('Gradient animation speed'),
+    gradientScale: z
+      .number()
+      .min(0.1)
+      .max(10)
+      .optional()
+      .default(4)
+      .describe('Gradient pattern scale'),
   })
   .strict();

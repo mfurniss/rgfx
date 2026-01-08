@@ -186,23 +186,23 @@ void test_publish_effect_error_special_characters_in_error() {
 void test_publish_effect_error_nested_props() {
 	JsonDocument props;
 	props["color"] = "#FF0000";
-	JsonArray gradient = props["colorGradient"]["colors"].to<JsonArray>();
+	JsonArray gradient = props["gradient"].to<JsonArray>();
 	gradient.add("#FF0000");
 	gradient.add("#00FF00");
 	gradient.add("#0000FF");
-	props["colorGradient"]["speed"] = 1.5;
+	props["gradientSpeed"] = 1.5;
 
 	publishEffectError("text", "gradient parse error", props);
 
 	JsonDocument published;
 	deserializeJson(published, mqttClient.publishedMessages[0].payload);
 
-	// Verify nested structure is preserved
+	// Verify array structure is preserved
 	TEST_ASSERT_EQUAL_STRING("#FF0000",
-	                         published["payload"]["colorGradient"]["colors"][0].as<const char*>());
+	                         published["payload"]["gradient"][0].as<const char*>());
 	TEST_ASSERT_EQUAL_STRING("#00FF00",
-	                         published["payload"]["colorGradient"]["colors"][1].as<const char*>());
-	TEST_ASSERT_FLOAT_WITHIN(0.01, 1.5, published["payload"]["colorGradient"]["speed"].as<float>());
+	                         published["payload"]["gradient"][1].as<const char*>());
+	TEST_ASSERT_FLOAT_WITHIN(0.01, 1.5, published["payload"]["gradientSpeed"].as<float>());
 }
 
 // =============================================================================

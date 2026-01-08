@@ -83,27 +83,30 @@ The bitmap effect supports animated sprites with these features:
 
 ## Gradient Color Animation
 
-Text and Scroll Text effects support animated color gradients:
+Text, Scroll Text, and Plasma effects support gradient colors:
 
-**colorGradient Object:**
+**Gradient Properties:**
 ```json
 {
-  "colorGradient": {
-    "colors": ["#FF0000", "#00FF00", "#0000FF"],
-    "speed": 3.0,
-    "scale": 1.0
-  }
+  "gradient": ["#FF0000", "#00FF00", "#0000FF"],
+  "gradientSpeed": 3.0,
+  "gradientScale": 1.0
 }
 ```
 
-- `colors`: Array of hex color strings (2-20 colors)
-- `speed`: Animation speed multiplier
-- `scale`: How much color offset between adjacent characters (creates wave effect)
+- `gradient`: Array of hex color strings (2-64 colors)
+- `gradientSpeed`: Animation speed multiplier (Text/Scroll Text only)
+- `gradientScale`: Color offset between adjacent characters (Text/Scroll Text only)
+
+**Static Gradients (Background):**
+- `gradient`: Array of hex color strings
+- `orientation`: "horizontal" or "vertical"
+- No animation - colors mapped directly to position
 
 **Implementation:**
 - 100-entry lookup table (LUT) pre-computed from gradient colors
-- Each character is offset in the LUT by `scale` amount
-- Animation time advances with `speed / 2.0` multiplier, wraps at 1000.0
+- For animated gradients: each character offset in LUT by `gradientScale`
+- Animation time advances with `gradientSpeed / 2.0` multiplier, wraps at 1000.0
 
 ---
 

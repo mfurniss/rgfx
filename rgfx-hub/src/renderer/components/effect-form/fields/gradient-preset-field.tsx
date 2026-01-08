@@ -7,14 +7,8 @@
 
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box } from '@mui/material';
-import { Controller, useFormContext, type Control, type FieldValues, type Path } from 'react-hook-form';
+import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { gradientPresets, findPresetByGradient } from '@/renderer/data/gradient-presets';
-
-interface ColorGradient {
-  colors: string[];
-  speed: number;
-  scale: number;
-}
 
 interface GradientPresetFieldProps<T extends FieldValues> {
   name: Path<T>;
@@ -53,25 +47,12 @@ export function GradientPresetField<T extends FieldValues>({
   label,
   error,
 }: GradientPresetFieldProps<T>) {
-  const { setValue } = useFormContext<T>();
-  // Detect format based on field name: 'colorGradient' = nested object, 'gradient' = flat array
-  const isNestedFormat = name === 'colorGradient';
-
   return (
     <Controller
       name={name}
       control={control}
       render={({ field }) => {
-        // Extract colors based on format
-        let colors: string[] | undefined;
-
-        if (isNestedFormat) {
-          const nested = field.value as ColorGradient | undefined;
-          colors = nested?.colors;
-        } else {
-          colors = field.value as string[] | undefined;
-        }
-
+        const colors = field.value as string[] | undefined;
         const currentPreset = colors ? findPresetByGradient(colors) : undefined;
         const selectedValue = currentPreset?.name ?? '';
 
@@ -82,27 +63,24 @@ export function GradientPresetField<T extends FieldValues>({
               value={selectedValue}
               label={label}
               onChange={(e) => {
-                const preset = gradientPresets.find((p) => p.name === e.target.value);
+                const { value } = e.target;
 
-                if (preset) {
-                  if (isNestedFormat) {
-                    // Set entire colorGradient object (Text, Scroll Text)
-                    const colorGradient: ColorGradient = {
-                      colors: preset.gradient,
-                      speed: preset.speed,
-                      scale: preset.scale,
-                    };
+                if (value === '') {
+                  field.onChange(undefined);
+                } else {
+                  const preset = gradientPresets.find((p) => p.name === value);
 
-                    field.onChange(colorGradient);
-                  } else {
-                    // Set colors array and speed/scale separately (Plasma)
+                  if (preset) {
                     field.onChange(preset.gradient);
-                    setValue('speed' as Path<T>, preset.speed as T[keyof T]);
-                    setValue('scale' as Path<T>, preset.scale as T[keyof T]);
                   }
                 }
               }}
             >
+              <MenuItem value="">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'text.secondary' }}>
+                  None
+                </Box>
+              </MenuItem>
               {gradientPresets.map((preset) => (
                 <MenuItem key={preset.name} value={preset.name}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
