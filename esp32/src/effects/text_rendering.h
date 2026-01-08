@@ -11,3 +11,7 @@ constexpr int16_t TEXT_CHAR_HEIGHT = FONT_CHAR_HEIGHT * TEXT_SCALE;  // 32
 void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b);
 void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b, BlendMode mode);
 void renderChar(Canvas& canvas, char c, int16_t x, int16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha, BlendMode mode);
+void renderCharWithAccent(Canvas& canvas, char c, int16_t x, int16_t y,
+                          uint8_t r, uint8_t g, uint8_t b,
+                          uint8_t accentR, uint8_t accentG, uint8_t accentB,
+                          uint8_t alpha, BlendMode mode);
