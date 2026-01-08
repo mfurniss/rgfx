@@ -29,11 +29,17 @@ export function StringField<T extends FieldValues>({
       render={({ field }) => (
         <TextField
           {...field}
+          value={field.value ?? ''}
           label={label}
           size="small"
           fullWidth
           error={!!error}
           helperText={error}
+          slotProps={{
+            inputLabel: {
+              shrink: field.value != null && field.value !== '',
+            },
+          }}
         />
       )}
     />

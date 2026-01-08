@@ -51,6 +51,7 @@ export function requireDriver(driverId: string, driverRegistry: DriverRegistry):
 
 /**
  * Sends an IPC message to the renderer process if the window exists and isn't destroyed.
+ * Gracefully handles "Render frame was disposed" errors during shutdown.
  */
 export function sendToRenderer(
   getMainWindow: () => BrowserWindow | null,
@@ -60,7 +61,15 @@ export function sendToRenderer(
   const mainWindow = getMainWindow();
 
   if (mainWindow !== null && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(channel, ...args);
+    try {
+      mainWindow.webContents.send(channel, ...args);
+    } catch (error) {
+      // Ignore "Render frame was disposed" errors during shutdown
+      if (error instanceof Error && error.message.includes('Render frame was disposed')) {
+        return;
+      }
+      throw error;
+    }
   }
 }
 

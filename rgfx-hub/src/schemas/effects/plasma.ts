@@ -7,24 +7,14 @@
 
 import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
-import { randomColor, randomFloat, randomInt } from '@/utils/random';
+import { randomFloat, randomGradient } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
-  const gradient = [];
-
-  for (let i = 0; i < randomInt(1, 20); i++ ) {
-    gradient.push(randomColor(0));
-  }
-
-  if (gradient.length > 2) {
-    gradient.push(gradient[0]);
-  }
-
   return {
     speed: randomFloat(0.1, 20),
     scale: randomFloat(0.1, 10),
     enabled: 'fadeIn',
-    gradient,
+    gradient: randomGradient(),
   };
 }
 

@@ -97,6 +97,9 @@ export function ColorField<T extends FieldValues>({
             fullWidth
             size="small"
             slotProps={{
+              inputLabel: {
+                shrink: field.value != null && field.value !== '',
+              },
               input: {
                 startAdornment: (
                   <InputAdornment position="start">

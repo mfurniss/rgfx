@@ -6,31 +6,6 @@
 #include "network/mqtt.h"
 #include <cstring>
 
-namespace {
-	// Calculate wrapped position for character at given index
-	void getWrappedPosition(int16_t startX, int16_t startY,
-	                        uint8_t charIndex, uint16_t canvasWidth,
-	                        int16_t& outX, int16_t& outY) {
-		int16_t firstRowChars = (canvasWidth - startX) / TEXT_CHAR_WIDTH;
-		if (firstRowChars < 0) firstRowChars = 0;
-
-		if (charIndex < firstRowChars) {
-			outX = startX + (charIndex * TEXT_CHAR_WIDTH);
-			outY = startY;
-		} else {
-			int16_t charsPerFullRow = canvasWidth / TEXT_CHAR_WIDTH;
-			if (charsPerFullRow < 1) charsPerFullRow = 1;
-
-			int16_t remainingChars = charIndex - firstRowChars;
-			int16_t additionalRows = 1 + (remainingChars / charsPerFullRow);
-			int16_t colInRow = remainingChars % charsPerFullRow;
-
-			outX = colInRow * TEXT_CHAR_WIDTH;
-			outY = startY + (additionalRows * TEXT_CHAR_HEIGHT);
-		}
-	}
-}  // namespace
-
 TextEffect::TextEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	instances.reserve(8);
 }
@@ -51,8 +26,6 @@ void TextEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	int16_t x = props["x"];
-	int16_t y = props["y"];
 	uint32_t durationMs = props["duration"];
 
 	TextInstance instance;
@@ -79,18 +52,8 @@ void TextEffect::add(JsonDocument& props) {
 		instance.accentB = 0;
 	}
 
-	instance.x = x;
-	instance.y = y;
 	instance.duration = durationMs / 1000.0f;
 	instance.elapsedTime = 0.0f;
-
-	const char* alignStr = props["align"] | "left";
-	instance.align = TextAlign::LEFT;
-	if (strcmp(alignStr, "center") == 0) {
-		instance.align = TextAlign::CENTER;
-	} else if (strcmp(alignStr, "right") == 0) {
-		instance.align = TextAlign::RIGHT;
-	}
 
 	// Parse optional gradient animation
 	ColorGradientResult gradientResult = parseColorGradientFromJson(props, instance.gradientLut);
@@ -128,6 +91,7 @@ void TextEffect::update(float deltaTime) {
 void TextEffect::render() {
 	constexpr int16_t ACCENT_OFFSET = 4;
 	uint16_t canvasWidth = canvas.getWidth();
+	uint16_t canvasHeight = canvas.getHeight();
 
 	for (const auto& inst : instances) {
 		// Calculate alpha for fade-out during last half of duration
@@ -140,33 +104,27 @@ void TextEffect::render() {
 			}
 		}
 
-		// Calculate effective x position based on alignment
-		int16_t effectiveX = inst.x;
-		if (inst.align != TextAlign::LEFT) {
-			int16_t textWidthCanvas = inst.textLen * TEXT_CHAR_WIDTH;
-			if (inst.align == TextAlign::CENTER) {
-				effectiveX = (static_cast<int16_t>(canvasWidth) - textWidthCanvas) / 2;
-			} else {  // RIGHT
-				effectiveX = static_cast<int16_t>(canvasWidth) - textWidthCanvas;
-			}
-			// Snap to LED boundary for crisp rendering
-			effectiveX = (effectiveX / TEXT_SCALE) * TEXT_SCALE;
-		}
+		// Center horizontally (snapped to LED boundary)
+		int16_t textWidthCanvas = inst.textLen * TEXT_CHAR_WIDTH;
+		int16_t effectiveX = (static_cast<int16_t>(canvasWidth) - textWidthCanvas) / 2;
+		effectiveX = (effectiveX / TEXT_SCALE) * TEXT_SCALE;
+
+		// Center vertically (snapped to LED boundary)
+		int16_t effectiveY = (static_cast<int16_t>(canvasHeight) - TEXT_CHAR_HEIGHT) / 2;
+		effectiveY = (effectiveY / TEXT_SCALE) * TEXT_SCALE;
 
 		// Pass 1: Accent (if present)
 		if (inst.hasAccent) {
 			for (uint8_t i = 0; i < inst.textLen; i++) {
-				int16_t charX, charY;
-				getWrappedPosition(effectiveX, inst.y, i, canvasWidth, charX, charY);
-				renderChar(canvas, inst.text[i], charX + ACCENT_OFFSET, charY + ACCENT_OFFSET,
+				int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
+				renderChar(canvas, inst.text[i], charX + ACCENT_OFFSET, effectiveY + ACCENT_OFFSET,
 				           inst.accentR, inst.accentG, inst.accentB, alpha, BlendMode::ALPHA);
 			}
 		}
 
 		// Pass 2: Main text
 		for (uint8_t i = 0; i < inst.textLen; i++) {
-			int16_t charX, charY;
-			getWrappedPosition(effectiveX, inst.y, i, canvasWidth, charX, charY);
+			int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
 
 			uint8_t r, g, b;
 			if (inst.hasGradient) {
@@ -185,7 +143,7 @@ void TextEffect::render() {
 				b = inst.b;
 			}
 
-			renderChar(canvas, inst.text[i], charX, charY, r, g, b, alpha, BlendMode::ALPHA);
+			renderChar(canvas, inst.text[i], charX, effectiveY, r, g, b, alpha, BlendMode::ALPHA);
 		}
 	}
 }
