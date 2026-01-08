@@ -116,7 +116,7 @@ function extractDescription(schema: z.ZodType): string | undefined {
 }
 
 /**
- * Unwrap ZodDefault and ZodOptional wrappers to get the inner type
+ * Unwrap ZodDefault, ZodOptional, and ZodNullable wrappers to get the inner type
  */
 function unwrapSchema(schema: z.ZodType): UnwrapResult {
   let current = schema;
@@ -141,6 +141,12 @@ function unwrapSchema(schema: z.ZodType): UnwrapResult {
   if (hasZodDef(current) && current._zod.def.innerType && !('defaultValue' in current._zod.def)) {
     current = current._zod.def.innerType;
     // Check for description on inner type if not found on wrapper
+    description ??= extractDescription(current);
+  }
+
+  // Unwrap ZodNullable - check for _zod.def.type === 'nullable'
+  if (hasZodDef(current) && current._zod.def.type === 'nullable' && current._zod.def.innerType) {
+    current = current._zod.def.innerType;
     description ??= extractDescription(current);
   }
 

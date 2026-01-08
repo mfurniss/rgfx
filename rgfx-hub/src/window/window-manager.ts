@@ -59,8 +59,24 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
     return mainWindow !== null && !mainWindow.isDestroyed();
   }
 
-  function sendSystemStatus(): void {
+  function safeSend(channel: string, ...args: unknown[]): void {
     if (!isAvailable() || !mainWindow) {
+      return;
+    }
+
+    try {
+      mainWindow.webContents.send(channel, ...args);
+    } catch (error) {
+      // Ignore "Render frame was disposed" errors during shutdown
+      if (error instanceof Error && error.message.includes('Render frame was disposed')) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  function sendSystemStatus(): void {
+    if (!isAvailable()) {
       return;
     }
     const status = systemMonitor.getSystemStatus(
@@ -70,7 +86,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
       eventReader.getFileSizeBytes(),
       systemErrorTracker.errors,
     );
-    mainWindow.webContents.send('system:status', status);
+    safeSend('system:status', status);
   }
 
   function createWindow(): BrowserWindow {
@@ -150,9 +166,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
 
       // Send initial driver state (both connected and disconnected)
       driverRegistry.getAllDrivers().forEach((driver) => {
-        if (isAvailable() && mainWindow) {
-          mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-        }
+        safeSend('driver:updated', serializeDriverForIPC(driver));
       });
 
       // Start periodic system status updates
@@ -172,9 +186,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
     sendSystemStatus,
 
     sendEventToRenderer(channel: string, ...args: unknown[]): void {
-      if (isAvailable() && mainWindow) {
-        mainWindow.webContents.send(channel, ...args);
-      }
+      safeSend(channel, ...args);
     },
 
     startStatusUpdates(): void {

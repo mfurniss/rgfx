@@ -362,8 +362,6 @@ inline void setDefaultTextProps(JsonDocument& props) {
 	props["text"] = "Hello you!";
 	props["color"] = "#008888";
 	props["accentColor"] = "#004444";
-	props["x"] = 0;
-	props["y"] = 0;
 	props["duration"] = 3000;
 }
 
