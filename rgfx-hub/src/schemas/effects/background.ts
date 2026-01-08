@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import color from './properties/color';
 
 export function randomize(): Record<string, unknown> {
@@ -27,7 +28,18 @@ export default z
   .object({
     name: z.literal('Background'),
     description: z.literal('Solid color background fill'),
-    color: color.describe('Background color (not needed when enabled is off)'),
+    color: color.describe('Background color (used when gradient is not provided)'),
+    gradient: z
+      .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
+      .min(2)
+      .max(MAX_GRADIENT_COLORS)
+      .optional()
+      .describe('fieldType:gradientPreset|Gradient colors (overrides solid color when provided)'),
+    orientation: z
+      .enum(['horizontal', 'vertical'])
+      .optional()
+      .default('horizontal')
+      .describe('Gradient direction (horizontal or vertical)'),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()

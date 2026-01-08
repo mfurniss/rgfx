@@ -59,12 +59,11 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.repeat = repeat;
 	instance.snapToLed = props["snapToLed"].as<bool>();
 
-	// Parse optional gradient animation
-	ColorGradientResult gradientResult = parseColorGradientFromJson(props, instance.gradientLut);
-	instance.hasGradient = gradientResult.hasGradient;
+	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
+	instance.hasGradient = parseGradientFromJson(props, instance.gradientLut);
 	if (instance.hasGradient) {
-		instance.gradientSpeed = gradientResult.speed;
-		instance.gradientScale = gradientResult.scale;
+		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;
+		instance.gradientScale = props["gradientScale"] | 4.0f;
 		instance.gradientTime = 0.0f;
 	}
 

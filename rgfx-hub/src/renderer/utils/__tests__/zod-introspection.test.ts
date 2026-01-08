@@ -131,9 +131,9 @@ describe('zod-introspection', () => {
         expect(colorField?.constraints?.enumValues).toContain('blue');
       });
 
-      it('should have exactly 2 fields', () => {
+      it('should have exactly 4 fields', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        expect(fields).toHaveLength(2);
+        expect(fields).toHaveLength(4);
       });
     });
 
@@ -166,7 +166,7 @@ describe('zod-introspection', () => {
 
       it('should extract default values for fields that have them', () => {
         // Fields that are purely optional (no default) are allowed
-        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'colorGradient', 'accentColor'];
+        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'accentColor', 'gradient'];
 
         for (const [schemaName, schema] of Object.entries(effectPropsSchemas)) {
           const fields = extractFieldMetadata(schema);

@@ -2,6 +2,7 @@
 
 #include <ArduinoJson.h>
 #include "effect.h"
+#include "gradient_utils.h"
 #include "graphics/canvas.h"
 
 /**
@@ -21,6 +22,9 @@ class BackgroundEffect : public IEffect {
 		uint8_t r, g, b;
 		EnabledState enabledState;
 		float fadeTime;
+		CRGB gradientLut[GRADIENT_LUT_SIZE];
+		bool hasGradient;
+		bool isVertical;
 	};
 
 	BackgroundState state;

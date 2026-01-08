@@ -6,7 +6,7 @@
 #include <cstring>
 
 BackgroundEffect::BackgroundEffect(const Matrix& m, Canvas& c)
-	: state{0, 0, 0, EnabledState::OFF, 0.0f}, canvas(c) {
+	: state{0, 0, 0, EnabledState::OFF, 0.0f, {}, false, false}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 }
 
@@ -70,13 +70,40 @@ void BackgroundEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse color
+	// Parse color (fallback when no gradient)
 	uint32_t color = parseColor(props["color"]);
 
 	// Replace state (singleton behavior)
 	state.r = (color >> 16) & 0xFF;
 	state.g = (color >> 8) & 0xFF;
 	state.b = color & 0xFF;
+
+	// Parse gradient (overrides solid color when provided)
+	state.hasGradient = false;
+	if (!props["gradient"].isNull() && props["gradient"].is<JsonArray>()) {
+		JsonArray gradientArray = props["gradient"].as<JsonArray>();
+		uint8_t colorCount = gradientArray.size();
+
+		if (colorCount >= 2 && colorCount <= MAX_GRADIENT_COLORS) {
+			CRGB colors[MAX_GRADIENT_COLORS];
+			uint8_t validColors = 0;
+			for (JsonVariant colorVal : gradientArray) {
+				if (colorVal.is<const char*>() && validColors < MAX_GRADIENT_COLORS) {
+					colors[validColors++] = parseHexColor(colorVal.as<const char*>());
+				}
+			}
+			if (validColors >= 2) {
+				generateGradientLut(colors, validColors, state.gradientLut);
+				state.hasGradient = true;
+			}
+		}
+	}
+
+	// Parse orientation (horizontal or vertical)
+	state.isVertical = false;
+	if (!props["orientation"].isNull() && props["orientation"].is<const char*>()) {
+		state.isVertical = strcmp(props["orientation"].as<const char*>(), "vertical") == 0;
+	}
 
 	// For fades, calculate starting fadeTime based on current alpha
 	// This allows smooth transitions from any alpha level
@@ -123,11 +150,33 @@ void BackgroundEffect::render() {
 		return;
 	}
 
-	uint8_t r = (state.r * alpha) / 255;
-	uint8_t g = (state.g * alpha) / 255;
-	uint8_t b = (state.b * alpha) / 255;
+	if (state.hasGradient) {
+		uint16_t width = canvas.getWidth();
+		uint16_t height = canvas.getHeight();
 
-	canvas.fill(CRGB(r, g, b));
+		for (uint16_t y = 0; y < height; y++) {
+			for (uint16_t x = 0; x < width; x++) {
+				// Sample gradient based on orientation
+				uint8_t lutIndex;
+				if (state.isVertical) {
+					lutIndex = (height > 1) ? (y * (GRADIENT_LUT_SIZE - 1)) / (height - 1) : 0;
+				} else {
+					lutIndex = (width > 1) ? (x * (GRADIENT_LUT_SIZE - 1)) / (width - 1) : 0;
+				}
+
+				CRGB gradientColor = state.gradientLut[lutIndex];
+				uint8_t r = (gradientColor.r * alpha) / 255;
+				uint8_t g = (gradientColor.g * alpha) / 255;
+				uint8_t b = (gradientColor.b * alpha) / 255;
+				canvas.drawPixel(x, y, CRGB(r, g, b));
+			}
+		}
+	} else {
+		uint8_t r = (state.r * alpha) / 255;
+		uint8_t g = (state.g * alpha) / 255;
+		uint8_t b = (state.b * alpha) / 255;
+		canvas.fill(CRGB(r, g, b));
+	}
 }
 
 void BackgroundEffect::reset() {
@@ -136,4 +185,6 @@ void BackgroundEffect::reset() {
 	state.g = 0;
 	state.b = 0;
 	state.fadeTime = 0.0f;
+	state.hasGradient = false;
+	state.isVertical = false;
 }

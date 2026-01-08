@@ -8,22 +8,16 @@
 interface GradientPreset {
   name: string;
   gradient: string[];
-  speed: number;
-  scale: number;
 }
 
 export const gradientPresets: GradientPreset[] = [
   {
     name: 'Acid Haus',
     gradient: ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'],
-    speed: 3,
-    scale: 4,
   },
   {
     name: 'The Deep',
     gradient: ['#002851', '#003e74', '#12706d', '#00424a', '#00473c', '#002851'],
-    speed: 1.5,
-    scale: 1.5,
   },
   {
     name: 'Alien Goo',
@@ -31,32 +25,22 @@ export const gradientPresets: GradientPreset[] = [
       '#000000', '#000000', '#000000', '#000000', '#00FF00', '#000000', '#000000',
       '#000000', '#000000', '#000000', '#000000', '#FF00FF', '#000000',
     ],
-    speed: 4,
-    scale: 2,
   },
   {
     name: 'McLeod\'s Clouds',
     gradient: ['#408080', '#408080', '#B0B0B0', '#408080', '#408080'],
-    speed: 0.8,
-    scale: 1,
   },
   {
     name: 'Lime Dream',
     gradient: ['#700070', '#B0FF00', '#300050', '#700070'],
-    speed: 6,
-    scale: 5,
   },
   {
     name: 'Lavarama',
     gradient: ['#400000', '#400000', '#FF4500', '#FFD700', '#400000'],
-    speed: 3,
-    scale: 4,
   },
   {
     name: 'Hot Fuzz',
     gradient: ['#FF0000', '#000000', '#000000', '#0000FF'],
-    speed: 17,
-    scale: 0.5,
   },
   {
     name: 'Statictastic',
@@ -64,8 +48,6 @@ export const gradientPresets: GradientPreset[] = [
       '#000000', '#808080', '#000000', '#000000', '#B0B0B0', '#000000', '#000000', '#707070',
       '#000000', '#000000', '#808080', '#000000', '#000000', '#A0A0A0', '#000000',
     ],
-    speed: 15,
-    scale: 10,
   },
   {
     name: 'Geode',
@@ -73,22 +55,16 @@ export const gradientPresets: GradientPreset[] = [
       '#A00000','#A00000','#A00000','#A00000', '#FFA000', '#000000', '#000000', '#000000', '#000000', '#00FF80',
       '#8000A0','#8000A0','#8000A0','#8000A0', '#A000FF', '#000000', '#000000', '#000000', '#00FF80', '#000000',
     ],
-    speed: 2.5,
-    scale: 0.9,
   },
   {
     name: 'Stained Glass',
     gradient: [
       '#000000', '#A08000','#000000',  '#707070', '#000000', '#6000C0', '#000000', '#00A050','#000000', '#C00000', '#000000',
     ],
-    speed: 1.4,
-    scale: 1.9,
   },
   {
     name: 'Demoszene',
     gradient: ['#600060', '#0000FF', '#00FFFF', '#FFFFFF', '#FFFF00', '#FF0000', '#600060'],
-    speed: 2.9,
-    scale: 0.8,
   },
   {
     name: 'Call me Vic',
@@ -110,8 +86,6 @@ export const gradientPresets: GradientPreset[] = [
       '#0088FF', '#0088FF',
       '#BBBBBB', '#BBBBBB',
     ],
-    speed: 2,
-    scale: 0.35,
   },
   {
     name: 'Speculation',
@@ -133,8 +107,6 @@ export const gradientPresets: GradientPreset[] = [
       '#707000', '#707000',
       '#707070', '#707070',
     ],
-    speed: 2,
-    scale: 0.35,
   },
   {
     name: 'Hive Mind',
@@ -148,13 +120,9 @@ export const gradientPresets: GradientPreset[] = [
       '#308aa1',
       '#18617b',
     ],
-    speed: 3.25,
-    scale: 7.83,
   },
   {
     name: 'Deaky-Freaky',
-    speed: 11.30,
-    scale: 1.2,
     gradient: [
       '#89bb3e',
       '#970279',
