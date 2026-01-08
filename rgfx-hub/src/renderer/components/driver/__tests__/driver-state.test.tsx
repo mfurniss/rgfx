@@ -27,6 +27,7 @@ const createMockDriver = (overrides: Partial<Driver> = {}): Driver => ({
     hardwareRef: 'test-hardware',
     pin: 16,
     dithering: false,
+    gamma: { r: 2.8, g: 2.8, b: 2.8 },
     floor: { r: 0, g: 0, b: 0 },
   },
   stats: {

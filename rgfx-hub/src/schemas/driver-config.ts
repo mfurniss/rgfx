@@ -81,7 +81,7 @@ const DriverLEDConfigSchema = z.object({
     r: z.number().min(1.0).max(5.0).nullable().optional(),
     g: z.number().min(1.0).max(5.0).nullable().optional(),
     b: z.number().min(1.0).max(5.0).nullable().optional(),
-  }).nullable().optional(),
+  }).default({ r: 2.8, g: 2.8, b: 2.8 }),
   // Floor cutoff per channel (0-255, values at or below floor become 0)
   // Default ensures backwards compatibility with old persisted data
   floor: z.object({
