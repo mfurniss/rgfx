@@ -89,7 +89,6 @@ void TextEffect::update(float deltaTime) {
 }
 
 void TextEffect::render() {
-	constexpr int16_t ACCENT_OFFSET = 4;
 	uint16_t canvasWidth = canvas.getWidth();
 	uint16_t canvasHeight = canvas.getHeight();
 
@@ -113,37 +112,52 @@ void TextEffect::render() {
 		int16_t effectiveY = (static_cast<int16_t>(canvasHeight) - TEXT_CHAR_HEIGHT) / 2;
 		effectiveY = (effectiveY / TEXT_SCALE) * TEXT_SCALE;
 
-		// Pass 1: Accent (if present)
+		// Render text - use optimized path when no accent
 		if (inst.hasAccent) {
 			for (uint8_t i = 0; i < inst.textLen; i++) {
 				int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
-				renderChar(canvas, inst.text[i], charX + ACCENT_OFFSET, effectiveY + ACCENT_OFFSET,
-				           inst.accentR, inst.accentG, inst.accentB, alpha, BlendMode::ALPHA);
+
+				uint8_t r, g, b;
+				if (inst.hasGradient) {
+					float charOffset = i * inst.gradientScale;
+					float position = inst.gradientTime + charOffset;
+					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					CRGB color = inst.gradientLut[lutIndex];
+					r = color.r;
+					g = color.g;
+					b = color.b;
+				} else {
+					r = inst.r;
+					g = inst.g;
+					b = inst.b;
+				}
+
+				renderCharWithAccent(canvas, inst.text[i], charX, effectiveY,
+				                     r, g, b,
+				                     inst.accentR, inst.accentG, inst.accentB,
+				                     alpha, BlendMode::ALPHA);
 			}
-		}
+		} else {
+			for (uint8_t i = 0; i < inst.textLen; i++) {
+				int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
 
-		// Pass 2: Main text
-		for (uint8_t i = 0; i < inst.textLen; i++) {
-			int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
+				uint8_t r, g, b;
+				if (inst.hasGradient) {
+					float charOffset = i * inst.gradientScale;
+					float position = inst.gradientTime + charOffset;
+					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					CRGB color = inst.gradientLut[lutIndex];
+					r = color.r;
+					g = color.g;
+					b = color.b;
+				} else {
+					r = inst.r;
+					g = inst.g;
+					b = inst.b;
+				}
 
-			uint8_t r, g, b;
-			if (inst.hasGradient) {
-				// Wave effect: each character offset by gradientScale, cycling over time
-				float charOffset = i * inst.gradientScale;
-				float position = inst.gradientTime + charOffset;
-				// Map position to LUT index (0-99), wrapping around
-				uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
-				CRGB color = inst.gradientLut[lutIndex];
-				r = color.r;
-				g = color.g;
-				b = color.b;
-			} else {
-				r = inst.r;
-				g = inst.g;
-				b = inst.b;
+				renderChar(canvas, inst.text[i], charX, effectiveY, r, g, b, alpha, BlendMode::ALPHA);
 			}
-
-			renderChar(canvas, inst.text[i], charX, effectiveY, r, g, b, alpha, BlendMode::ALPHA);
 		}
 	}
 }
