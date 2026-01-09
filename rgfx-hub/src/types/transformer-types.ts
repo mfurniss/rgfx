@@ -88,6 +88,9 @@ export interface RgfxTopic {
 
   /** All topic segments (for custom parsing or advanced use) */
   parts: string[];
+
+  /** Event payload string */
+  payload: string;
 }
 
 /**
@@ -254,13 +257,11 @@ export interface TransformerContext {
 /**
  * Transformer handler function signature
  *
- * @param topic Parsed topic with pre-split segments
- * @param payload Event payload (e.g., "12450" or JSON string)
+ * @param topic Parsed topic with pre-split segments and payload
  * @param context Transformer context with services
  * @returns true if event was handled (stops cascade), false to continue
  */
 export type TransformerHandler = (
   topic: RgfxTopic,
-  payload: string,
   context: TransformerContext,
 ) => boolean | Promise<boolean>;

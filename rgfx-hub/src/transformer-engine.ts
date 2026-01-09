@@ -121,7 +121,7 @@ export class TransformerEngine {
         const subjectName = basename(filename, '.js');
         this.subjectHandlers.delete(subjectName);
         const module = await this.importModule(filePath);
-        const handler = this.extractHandler(module);
+        const handler = this.extractTransformer(module);
 
         if (handler) {
           this.subjectHandlers.set(subjectName, handler);
@@ -181,9 +181,10 @@ export class TransformerEngine {
   /**
    * Parse raw topic string into RgfxTopic structure
    * @param raw Raw topic string (e.g., "pacman/player/score/p1")
-   * @returns Parsed topic with pre-split segments
+   * @param payload Event payload string
+   * @returns Parsed topic with pre-split segments and payload
    */
-  private parseTopic(raw: string): RgfxTopic {
+  private parseTopic(raw: string, payload: string): RgfxTopic {
     const parts = raw.split('/');
     const [namespace, subject, property, qualifier] = parts;
 
@@ -194,6 +195,7 @@ export class TransformerEngine {
       property,
       qualifier,
       parts,
+      payload,
     };
   }
 
@@ -204,11 +206,8 @@ export class TransformerEngine {
    */
   async handleEvent(topic: string, payload: string): Promise<void> {
     try {
-      // Parse payload for potential future use
-      this.parsePayload(payload);
-
-      // Parse topic once into structured object
-      const topicObj = this.parseTopic(topic);
+      // Parse topic once into structured object (includes payload)
+      const topicObj = this.parseTopic(topic, payload);
       const { namespace, subject } = topicObj;
 
       // Clear effects on all drivers when a game init event is received
@@ -235,7 +234,7 @@ export class TransformerEngine {
         if (!handler) {
           return;
         }
-        const handled = await handler(topicObj, payload, this.context);
+        const handled = await handler(topicObj, this.context);
 
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
@@ -251,7 +250,7 @@ export class TransformerEngine {
         if (!handler) {
           return;
         }
-        const handled = await handler(topicObj, payload, this.context);
+        const handled = await handler(topicObj, this.context);
 
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
@@ -262,7 +261,7 @@ export class TransformerEngine {
 
       // 3. Try pattern handlers (lower priority)
       for (const handler of this.patternHandlers) {
-        const handled = await handler(topicObj, payload, this.context);
+        const handled = await handler(topicObj, this.context);
 
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
@@ -273,7 +272,7 @@ export class TransformerEngine {
 
       // 4. Default handler (always handles)
       if (this.defaultHandler) {
-        await this.defaultHandler(topicObj, payload, this.context);
+        await this.defaultHandler(topicObj, this.context);
         this.context.log.debug(`Event handled by default transformer: ${topic}`);
       } else {
         this.context.log.warn(`No handler found for event: ${topic}`);
@@ -281,35 +280,6 @@ export class TransformerEngine {
     } catch (error) {
       this.context.log.error(`Error handling event ${topic}:`, error);
     }
-  }
-
-  /**
-   * Parse payload string to appropriate type
-   * Auto-detects JSON, numbers, or returns string
-   */
-  private parsePayload(payload: string): string | number | object {
-    // Detect JSON
-    if (payload.startsWith('{') || payload.startsWith('[')) {
-      try {
-        return JSON.parse(payload) as object;
-      } catch {
-        return payload; // Return as string if JSON parsing fails
-      }
-    }
-
-    // Try number
-    const trimmed = payload.trim();
-
-    if (trimmed !== '') {
-      const num = Number(trimmed);
-
-      if (!isNaN(num)) {
-        return num;
-      }
-    }
-
-    // Return as string
-    return payload;
   }
 
   /**
@@ -325,13 +295,13 @@ export class TransformerEngine {
       const filePath = join(transformersDir, 'games', `${gameName}.js`);
 
       const module = await this.importModule(filePath);
-      const handler = this.extractHandler(module);
+      const handler = this.extractTransformer(module);
 
       if (handler) {
         this.gameHandlers.set(gameName, handler);
         this.context.log.info(`Loaded game transformer: ${gameName}`);
       } else {
-        this.context.log.warn(`Game transformer ${gameName}.js has no valid handler function`);
+        this.context.log.warn(`Game transformer ${gameName}.js has no valid transform function`);
       }
     } catch (error) {
       // Log error for debugging but don't crash
@@ -359,7 +329,7 @@ export class TransformerEngine {
 
         try {
           const module = await this.importModule(filePath);
-          const handler = this.extractHandler(module);
+          const handler = this.extractTransformer(module);
 
           if (handler) {
             this.subjectHandlers.set(subjectName, handler);
@@ -391,7 +361,7 @@ export class TransformerEngine {
 
         try {
           const module = await this.importModule(filePath);
-          const handler = this.extractHandler(module);
+          const handler = this.extractTransformer(module);
 
           if (handler) {
             this.patternHandlers.push(handler);
@@ -413,7 +383,7 @@ export class TransformerEngine {
   private async loadDefaultTransformer(filePath: string): Promise<void> {
     try {
       const module = await this.importModule(filePath);
-      const handler = this.extractHandler(module);
+      const handler = this.extractTransformer(module);
 
       if (handler) {
         this.defaultHandler = handler;
@@ -426,20 +396,20 @@ export class TransformerEngine {
   }
 
   /**
-   * Extract handler function from transformer module
+   * Extract transform function from transformer module
    * Supports both named export and default export patterns
    */
-  private extractHandler(module: Record<string, unknown>): TransformerHandler | null {
-    // Try named export 'handle'
-    if (typeof module.handle === 'function') {
-      return module.handle as TransformerHandler;
+  private extractTransformer(module: Record<string, unknown>): TransformerHandler | null {
+    // Try named export 'transform'
+    if (typeof module.transform === 'function') {
+      return module.transform as TransformerHandler;
     }
 
-    // Try default export with handle property
+    // Try default export with transform property
     const defaultExport = module.default as Record<string, unknown> | undefined;
 
-    if (defaultExport && typeof defaultExport.handle === 'function') {
-      return defaultExport.handle as TransformerHandler;
+    if (defaultExport && typeof defaultExport.transform === 'function') {
+      return defaultExport.transform as TransformerHandler;
     }
 
     // Try default export as function
