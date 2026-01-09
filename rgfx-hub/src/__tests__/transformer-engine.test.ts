@@ -11,10 +11,10 @@ import * as fsSync from 'node:fs';
 /**
  * Helper to create expected RgfxTopic object for test assertions
  */
-function createTopic(raw: string): RgfxTopic {
+function createTopic(raw: string, payload = ''): RgfxTopic {
   const parts = raw.split('/');
   const [namespace, subject, property, qualifier] = parts;
-  return { raw, namespace, subject, property, qualifier, parts };
+  return { raw, namespace, subject, property, qualifier, parts, payload };
 }
 
 // Mock filesystem modules
@@ -68,78 +68,51 @@ describe('TransformerEngine', () => {
     engine = new TransformerEngine(mockContext);
   });
 
-  describe('parsePayload', () => {
-    it('should parse JSON objects', async () => {
+  describe('payload handling', () => {
+    it('should pass JSON object payload in topic', async () => {
       const handler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = handler;
 
       await engine.handleEvent('test/topic', '{"key": "value"}');
 
-      // Handler receives parsed topic object and original payload string
-      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '{"key": "value"}', mockContext);
+      // Handler receives topic object (with payload) and context
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic', '{"key": "value"}'), mockContext);
     });
 
-    it('should parse JSON arrays', async () => {
+    it('should pass JSON array payload in topic', async () => {
       const handler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = handler;
 
       await engine.handleEvent('test/topic', '[1, 2, 3]');
 
-      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '[1, 2, 3]', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic', '[1, 2, 3]'), mockContext);
     });
 
-    it('should parse numbers', async () => {
+    it('should pass number payload in topic', async () => {
       const handler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = handler;
 
       await engine.handleEvent('test/topic', '42');
 
-      expect(handler).toHaveBeenCalled();
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic', '42'), mockContext);
     });
 
-    it('should parse negative numbers', async () => {
-      const handler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = handler;
-
-      await engine.handleEvent('test/topic', '-100');
-
-      expect(handler).toHaveBeenCalled();
-    });
-
-    it('should parse decimal numbers', async () => {
-      const handler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = handler;
-
-      await engine.handleEvent('test/topic', '3.14');
-
-      expect(handler).toHaveBeenCalled();
-    });
-
-    it('should keep strings as strings', async () => {
+    it('should pass string payload in topic', async () => {
       const handler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = handler;
 
       await engine.handleEvent('test/topic', 'hello world');
 
-      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), 'hello world', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic', 'hello world'), mockContext);
     });
 
-    it('should handle empty strings', async () => {
+    it('should pass empty string payload in topic', async () => {
       const handler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = handler;
 
       await engine.handleEvent('test/topic', '');
 
-      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '', mockContext);
-    });
-
-    it('should handle invalid JSON gracefully', async () => {
-      const handler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = handler;
-
-      await engine.handleEvent('test/topic', '{invalid json}');
-
-      expect(handler).toHaveBeenCalledWith(createTopic('test/topic'), '{invalid json}', mockContext);
+      expect(handler).toHaveBeenCalledWith(createTopic('test/topic', ''), mockContext);
     });
   });
 
@@ -430,21 +403,21 @@ describe('TransformerEngine', () => {
     });
   });
 
-  describe('extractHandler', () => {
-    it('should extract named export "handle"', () => {
+  describe('extractTransformer', () => {
+    it('should extract named export "transform"', () => {
       const handleFn = vi.fn();
-      const module = { handle: handleFn };
+      const module = { transform: handleFn };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBe(handleFn);
     });
 
-    it('should extract default export with handle property', () => {
+    it('should extract default export with transform property', () => {
       const handleFn = vi.fn();
-      const module = { default: { handle: handleFn } };
+      const module = { default: { transform: handleFn } };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBe(handleFn);
     });
@@ -453,7 +426,7 @@ describe('TransformerEngine', () => {
       const defaultFn = vi.fn();
       const module = { default: defaultFn };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBe(defaultFn);
     });
@@ -461,7 +434,7 @@ describe('TransformerEngine', () => {
     it('should return null if no handler found', () => {
       const module = { someOtherExport: 'value' };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBeNull();
     });
@@ -469,9 +442,9 @@ describe('TransformerEngine', () => {
     it('should prefer named export over default', () => {
       const namedHandle = vi.fn();
       const defaultHandle = vi.fn();
-      const module = { handle: namedHandle, default: { handle: defaultHandle } };
+      const module = { transform: namedHandle, default: { transform: defaultHandle } };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBe(namedHandle);
     });
@@ -479,23 +452,23 @@ describe('TransformerEngine', () => {
     it('should return null for empty module', () => {
       const module = {};
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBeNull();
     });
 
-    it('should return null if handle is not a function', () => {
-      const module = { handle: 'not a function' };
+    it('should return null if transform is not a function', () => {
+      const module = { transform: 'not a function' };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBeNull();
     });
 
-    it('should return null if default.handle is not a function', () => {
-      const module = { default: { handle: 42 } };
+    it('should return null if default.transform is not a function', () => {
+      const module = { default: { transform: 42 } };
 
-      const handler = (engine as any).extractHandler(module);
+      const handler = (engine as any).extractTransformer(module);
 
       expect(handler).toBeNull();
     });
@@ -574,7 +547,7 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('pacman/player/score/p1', '1000');
 
-      expect(gameHandler).toHaveBeenCalledWith(createTopic('pacman/player/score/p1'), '1000', mockContext);
+      expect(gameHandler).toHaveBeenCalledWith(createTopic('pacman/player/score/p1', '1000'), mockContext);
     });
 
     it('should handle topic with only game', async () => {
@@ -704,7 +677,7 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('test/topic', longPayload);
 
-      expect(defaultHandler).toHaveBeenCalledWith(createTopic('test/topic'), longPayload, mockContext);
+      expect(defaultHandler).toHaveBeenCalledWith(createTopic('test/topic', longPayload), mockContext);
     });
 
     it('should handle special characters in topic', async () => {
@@ -740,7 +713,7 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('test/topic', '你好世界 🎮');
 
-      expect(defaultHandler).toHaveBeenCalledWith(createTopic('test/topic'), '你好世界 🎮', mockContext);
+      expect(defaultHandler).toHaveBeenCalledWith(createTopic('test/topic', '你好世界 🎮'), mockContext);
     });
   });
 
@@ -823,7 +796,7 @@ describe('TransformerEngine', () => {
     it('should load game transformer via importModule', async () => {
       const mockHandler = vi.fn().mockReturnValue(true);
       const mockImportModule = vi.fn().mockResolvedValue({
-        handle: mockHandler,
+        transform: mockHandler,
       });
 
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
@@ -861,7 +834,7 @@ describe('TransformerEngine', () => {
       await (testEngine as any).loadGameTransformer('broken');
 
       expect(mockContext.log.warn).toHaveBeenCalledWith(
-        'Game transformer broken.js has no valid handler function',
+        'Game transformer broken.js has no valid transform function',
       );
       expect((testEngine as any).gameHandlers.has('broken')).toBe(false);
     });
@@ -870,7 +843,7 @@ describe('TransformerEngine', () => {
     it('should load default transformer', async () => {
       const mockHandler = vi.fn();
       const mockImportModule = vi.fn().mockResolvedValue({
-        handle: mockHandler,
+        transform: mockHandler,
       });
 
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
@@ -995,6 +968,75 @@ describe('TransformerEngine', () => {
 
       expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
       expect(mockContext.log.debug).toHaveBeenCalledWith('No connected drivers to clear effects');
+    });
+  });
+
+  describe('context method invocation', () => {
+    it('should call broadcast when transformer invokes it', async () => {
+      const transformFn = vi.fn().mockImplementation((_topic, ctx) => {
+        ctx.broadcast({
+          effect: 'pulse',
+          props: { color: '#FF0000', duration: 500 },
+        });
+        return true;
+      });
+
+      const testEngine = new TransformerEngine(mockContext, {
+        importModule: (path: string) => {
+          if (path.includes('games/testgame')) {
+            return Promise.resolve({ transform: transformFn });
+          }
+
+          return Promise.reject(new Error(`Module not found: ${path}`));
+        },
+      });
+
+      await testEngine.handleEvent('testgame/player/die', '1');
+
+      expect(mockContext.broadcast).toHaveBeenCalledTimes(1);
+      expect(mockContext.broadcast).toHaveBeenCalledWith({
+        effect: 'pulse',
+        props: { color: '#FF0000', duration: 500 },
+      });
+    });
+
+    it('should call loadGif when transformer invokes it', async () => {
+      const mockGifResult = {
+        images: [['AA', 'AA']],
+        palette: ['#000000', '#FFFFFF'],
+        width: 8,
+        height: 8,
+        frameCount: 1,
+      };
+      mockContext.loadGif = vi.fn().mockResolvedValue(mockGifResult);
+
+      const transformFn = vi.fn().mockImplementation(async (_topic, ctx) => {
+        const gif = await ctx.loadGif('bitmaps/test.gif');
+        ctx.broadcast({
+          effect: 'bitmap',
+          props: { images: gif.images, palette: gif.palette },
+        });
+        return true;
+      });
+
+      const testEngine = new TransformerEngine(mockContext, {
+        importModule: (path: string) => {
+          if (path.includes('games/testgame')) {
+            return Promise.resolve({ transform: transformFn });
+          }
+
+          return Promise.reject(new Error(`Module not found: ${path}`));
+        },
+      });
+
+      await testEngine.handleEvent('testgame/bonus/collected', 'cherry');
+
+      expect(mockContext.loadGif).toHaveBeenCalledTimes(1);
+      expect(mockContext.loadGif).toHaveBeenCalledWith('bitmaps/test.gif');
+      expect(mockContext.broadcast).toHaveBeenCalledWith({
+        effect: 'bitmap',
+        props: { images: [['AA', 'AA']], palette: ['#000000', '#FFFFFF'] },
+      });
     });
   });
 });
