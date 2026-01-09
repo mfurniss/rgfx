@@ -129,10 +129,10 @@ if git bundle create "$BUNDLE_FILE" --all 2>&1 | tee -a "$LOG_FILE"; then
   BUNDLE_SIZE=$(du -sh "$BUNDLE_FILE" | cut -f1)
   log_success "Git bundle created: $BUNDLE_FILE ($BUNDLE_SIZE)"
 
-  # Keep only the 5 most recent bundles
-  ls -t "$BUNDLE_DEST"/rgfx-*.bundle 2>/dev/null | tail -n +6 | xargs -r rm -f
+  # Keep only the 50 most recent bundles
+  ls -t "$BUNDLE_DEST"/rgfx-*.bundle 2>/dev/null | tail -n +51 | xargs -r rm -f
   BUNDLE_COUNT=$(ls -1 "$BUNDLE_DEST"/rgfx-*.bundle 2>/dev/null | wc -l | tr -d ' ')
-  log "Bundle retention: keeping $BUNDLE_COUNT most recent bundles"
+  log "Bundle retention: $BUNDLE_COUNT bundles stored (max 50)"
 else
   log_error "Git bundle creation failed"
 fi
