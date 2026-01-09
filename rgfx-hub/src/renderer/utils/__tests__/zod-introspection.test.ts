@@ -102,7 +102,7 @@ describe('zod-introspection', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
-        expect(fieldMap.get('color')?.type).toBe('color');
+        expect(fieldMap.get('gradient')?.type).toBe('backgroundGradient');
         expect(fieldMap.get('enabled')?.type).toBe('enum');
       });
 
@@ -117,23 +117,18 @@ describe('zod-introspection', () => {
         );
       });
 
-      it('should extract color field as color type (not enum)', () => {
+      it('should extract gradient field as backgroundGradient type', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        const colorField = fields.find((f) => f.name === 'color');
+        const gradientField = fields.find((f) => f.name === 'gradient');
 
-        // This test ensures the color field is recognized as a color union,
-        // not just an enum dropdown. This was a bug when color was double-wrapped
-        // with .optional()
-        expect(colorField).toBeDefined();
-        expect(colorField?.type).toBe('color');
-        expect(colorField?.constraints?.enumValues).toContain('random');
-        expect(colorField?.constraints?.enumValues).toContain('red');
-        expect(colorField?.constraints?.enumValues).toContain('blue');
+        // Background uses gradient only (no color field)
+        expect(gradientField).toBeDefined();
+        expect(gradientField?.type).toBe('backgroundGradient');
       });
 
-      it('should have exactly 4 fields', () => {
+      it('should have exactly 2 fields (gradient and enabled)', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        expect(fields).toHaveLength(4);
+        expect(fields).toHaveLength(2);
       });
     });
 
@@ -152,7 +147,8 @@ describe('zod-introspection', () => {
 
     describe('all effect schemas', () => {
       it('should have color field recognized as color type in all schemas that have it', () => {
-        const schemasWithColor = ['pulse', 'wipe', 'explode', 'background'] as const;
+        // Note: background no longer has a color field (uses gradient only)
+        const schemasWithColor = ['pulse', 'wipe', 'explode'] as const;
 
         for (const schemaName of schemasWithColor) {
           const schema = effectPropsSchemas[schemaName];
@@ -187,10 +183,10 @@ describe('zod-introspection', () => {
 
       it('should extract descriptions for fields that have them', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        const colorField = fields.find((f) => f.name === 'color');
+        const gradientField = fields.find((f) => f.name === 'gradient');
         const enabledField = fields.find((f) => f.name === 'enabled');
 
-        expect(colorField?.description).toContain('Background color');
+        expect(gradientField?.description).toContain('Gradient');
         expect(enabledField?.description).toContain('fadeIn');
       });
     });

@@ -348,10 +348,25 @@ inline void setDefaultPlasmaProps(JsonDocument& props) {
 
 /**
  * Create default background props (matches hub schema defaults)
+ * Uses gradient object format: { colors: string[], orientation: string }
  */
 inline void setDefaultBackgroundProps(JsonDocument& props) {
-	props["color"] = "#000000";
+	JsonObject gradient = props["gradient"].to<JsonObject>();
+	JsonArray colors = gradient["colors"].to<JsonArray>();
+	colors.add("#000000");
+	gradient["orientation"] = "horizontal";
 	props["enabled"] = "on";
+}
+
+/**
+ * Set background gradient with a single color (solid fill)
+ */
+inline void setBackgroundGradientColor(JsonDocument& props, const char* color) {
+	JsonObject gradient = props["gradient"].to<JsonObject>();
+	JsonArray colors = gradient["colors"].to<JsonArray>();
+	colors.clear();
+	colors.add(color);
+	gradient["orientation"] = "horizontal";
 }
 
 /**
@@ -485,13 +500,13 @@ inline JsonDocument mockPlasmaProps(const char* enabled = "on", float speed = 3.
 
 /**
  * Create a mock background effect payload
- * @param color Hex color string (default: "#0000FF")
+ * @param color Hex color string (default: "#0000FF") - used as single-color gradient
  * @param enabled Enable state (default: "on")
  */
 inline JsonDocument mockBackgroundProps(const char* color = "#0000FF", const char* enabled = "on") {
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
-	props["color"] = color;
+	setBackgroundGradientColor(props, color);
 	props["enabled"] = enabled;
 	return props;
 }

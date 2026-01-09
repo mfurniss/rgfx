@@ -8,7 +8,7 @@
 import { z } from 'zod';
 
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
-import color from './properties/color';
+import type { PresetConfig } from './preset-config';
 
 export function randomize(): Record<string, unknown> {
   return {};
@@ -16,7 +16,8 @@ export function randomize(): Record<string, unknown> {
 
 /**
  * Background effect props schema
- * Creates a solid color background that fills the entire canvas.
+ * Creates a gradient background that fills the entire canvas.
+ * For solid colors, use a single-color gradient.
  * Singleton behavior: new background replaces any existing one.
  * Renders FIRST, before all other effects.
  *
@@ -27,19 +28,17 @@ export function randomize(): Record<string, unknown> {
 export default z
   .object({
     name: z.literal('Background'),
-    description: z.literal('Solid color background fill'),
-    color: color.describe('Background color (used when gradient is not provided)'),
+    description: z.literal('Gradient background fill'),
     gradient: z
-      .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
-      .min(2)
-      .max(MAX_GRADIENT_COLORS)
-      .optional()
-      .describe('fieldType:gradientPreset|Gradient colors (overrides solid color when provided)'),
-    orientation: z
-      .enum(['horizontal', 'vertical'])
-      .optional()
-      .default('horizontal')
-      .describe('Gradient direction (horizontal or vertical)'),
+      .object({
+        colors: z
+          .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
+          .max(MAX_GRADIENT_COLORS)
+          .default(['#FF0000', '#00FF00', '#0000FF']),
+        orientation: z.enum(['horizontal', 'vertical']).default('horizontal'),
+      })
+      .default({ colors: ['#FF0000', '#00FF00', '#0000FF'], orientation: 'horizontal' })
+      .describe('fieldType:backgroundGradient|Gradient colors'),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
@@ -47,3 +46,23 @@ export default z
       .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();
+
+interface GradientValue {
+  colors?: string[];
+  orientation?: string;
+}
+
+export const presetConfig: PresetConfig = {
+  type: 'gradient',
+  apply: (data, values) => {
+    const currentGradient = values.gradient as GradientValue | undefined;
+
+    return {
+      ...values,
+      gradient: {
+        colors: data.gradient,
+        orientation: currentGradient?.orientation ?? 'horizontal',
+      },
+    };
+  },
+};

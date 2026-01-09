@@ -370,8 +370,7 @@ void test_background_on_all_matrix_sizes() {
 		BackgroundEffect effect(matrix, canvas);
 
 		JsonDocument props;
-		setDefaultBackgroundProps(props);
-		props["color"] = "#FF8800";
+		setBackgroundGradientColor(props, "#FF8800");
 		effect.add(props);
 
 		canvas.clear();

@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { baseEffect } from './properties';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
+import type { PresetConfig } from './preset-config';
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -37,10 +38,9 @@ export default baseEffect
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
     gradient: z
       .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
-      .min(2)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .describe('fieldType:gradientPreset|Gradient colors for text animation'),
+      .describe('fieldType:gradientArray|Gradient colors for text animation'),
     gradientSpeed: z
       .number()
       .min(0.1)
@@ -57,3 +57,13 @@ export default baseEffect
       .describe('Gradient pattern scale'),
   })
   .strict();
+
+export const presetConfig: PresetConfig = {
+  type: 'plasma',
+  apply: (data, values) => ({
+    ...values,
+    gradient: data.gradient,
+    gradientSpeed: data.speed,
+    gradientScale: data.scale,
+  }),
+};
