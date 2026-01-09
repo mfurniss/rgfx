@@ -25,5 +25,13 @@ export {
 export { FirmwareManifestSchema, type FirmwareManifest } from './firmware-manifest';
 
 // Effect props schemas and validation
-export { effectSchemas, effectPropsSchemas, effectRandomizers, isEffectName, safeValidateEffectProps } from './effects';
+export {
+  effectSchemas,
+  effectPropsSchemas,
+  effectRandomizers,
+  effectPresetConfigs,
+  isEffectName,
+  safeValidateEffectProps,
+} from './effects';
+export type { PresetData, PresetType } from './effects';
 

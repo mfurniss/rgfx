@@ -53,12 +53,20 @@ export function EffectForm({ schema, defaultValues, onChange }: EffectFormProps)
     };
   }, [watch, onChange]);
 
+  // Watch all form values for conditional field rendering
+  const formValues = watch();
+
   return (
     <FormProvider {...methods}>
       <Grid container spacing={3}>
         {fields.map((field) => (
           <Grid key={field.name} size={{ xs: 12, md: 6 }}>
-            <FieldRenderer field={field} control={control} errors={errors} />
+            <FieldRenderer
+              field={field}
+              control={control}
+              errors={errors}
+              formValues={formValues}
+            />
           </Grid>
         ))}
       </Grid>

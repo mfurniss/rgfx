@@ -117,9 +117,9 @@ describe('safeValidateEffectProps', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject gradient with fewer than 2 colors', () => {
+    it('should accept gradient with single color', () => {
       const result = safeValidateEffectProps('plasma', { gradient: ['#FF0000'] });
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
   });
 });

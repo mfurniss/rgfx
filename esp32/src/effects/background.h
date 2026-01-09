@@ -8,7 +8,8 @@
 /**
  * Background Effect
  *
- * Singleton solid color background that fills the entire canvas.
+ * Singleton gradient background that fills the entire canvas.
+ * For solid colors, use a single-color gradient.
  * New calls to add() replace the previous background state.
  * Renders FIRST, before all other effects, so other effects composite on top.
  */
@@ -19,11 +20,9 @@ class BackgroundEffect : public IEffect {
 	static constexpr float FADE_DURATION = 1.0f;  // 1 second
 
 	struct BackgroundState {
-		uint8_t r, g, b;
 		EnabledState enabledState;
 		float fadeTime;
 		CRGB gradientLut[GRADIENT_LUT_SIZE];
-		bool hasGradient;
 		bool isVertical;
 	};
 

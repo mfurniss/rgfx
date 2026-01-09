@@ -133,11 +133,3 @@ export const gradientPresets: GradientPreset[] = [
     ],
   },
 ];
-
-export function findPresetByGradient(gradient: string[]): GradientPreset | undefined {
-  return gradientPresets.find(
-    (p) =>
-      p.gradient.length === gradient.length &&
-      p.gradient.every((color, i) => color === gradient[i]),
-  );
-}

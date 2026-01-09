@@ -27,6 +27,7 @@ import {
   RestartAlt as ResetIcon,
   Shuffle as ShuffleIcon,
   LayersClear as LayersClearIcon,
+  Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
@@ -34,8 +35,10 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, effectRandomizers, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, isEffectName } from '@/schemas';
+import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
+import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
 import {
   effectDisplayNames,
   formEffects,
@@ -46,6 +49,7 @@ import {
 export default function TestEffectsPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
 
   const connectedDriverIds = useDriverStore((state) =>
     state.drivers
@@ -100,6 +104,14 @@ export default function TestEffectsPage() {
   const currentSchema = useMemo(() => {
     if (isEffectName(selectedEffect)) {
       return effectPropsSchemas[selectedEffect];
+    }
+    return null;
+  }, [selectedEffect]);
+
+  // Get preset config for selected effect (if it has one)
+  const presetConfig = useMemo(() => {
+    if (isEffectName(selectedEffect)) {
+      return effectPresetConfigs[selectedEffect] ?? null;
     }
     return null;
   }, [selectedEffect]);
@@ -165,6 +177,18 @@ export default function TestEffectsPage() {
       setTestEffectsState(selectedEffect, defaultProps, selectedDrivers);
     }
   };
+
+  const handlePresetSelect = useCallback(
+    (data: PresetData) => {
+      if (!presetConfig) {
+        return;
+      }
+      const newProps = presetConfig.apply(data, currentProps);
+      const newPropsJson = JSON.stringify(newProps, null, 2);
+      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers);
+    },
+    [presetConfig, currentProps, selectedEffect, selectedDrivers, setTestEffectsState],
+  );
 
   const handleTriggerEffect = () => {
     if (selectedDrivers.size === 0) {
@@ -299,6 +323,19 @@ export default function TestEffectsPage() {
                   ))}
                 </Select>
               </FormControl>
+              {/* Show preset button except for background (has its own in gradient field) */}
+              {presetConfig && selectedEffect !== 'background' && (
+                <Button
+                  variant="outlined"
+                  startIcon={<PaletteIcon />}
+                  onClick={() => {
+                    setPresetModalOpen(true);
+                  }}
+                  sx={{ minWidth: 160, height: 40 }}
+                >
+                  Select Preset
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 startIcon={<ResetIcon />}
@@ -308,6 +345,17 @@ export default function TestEffectsPage() {
                 Reset
               </Button>
             </Box>
+
+            {presetConfig && (
+              <PresetSelectorModal
+                open={presetModalOpen}
+                type={presetConfig.type}
+                onClose={() => {
+                  setPresetModalOpen(false);
+                }}
+                onSelect={handlePresetSelect}
+              />
+            )}
 
             {currentSchema && (
               <EffectForm

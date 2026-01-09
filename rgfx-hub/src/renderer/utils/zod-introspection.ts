@@ -15,8 +15,8 @@ type FieldType =
   | 'color'
   | 'centerXY'
   | 'spritePreset'
-  | 'gradientPreset'
-  | 'hidden';
+  | 'gradientArray'
+  | 'backgroundGradient';
 
 const VALID_FIELD_TYPES: readonly FieldType[] = [
   'enum',
@@ -26,8 +26,8 @@ const VALID_FIELD_TYPES: readonly FieldType[] = [
   'color',
   'centerXY',
   'spritePreset',
-  'gradientPreset',
-  'hidden',
+  'gradientArray',
+  'backgroundGradient',
 ];
 
 /**
