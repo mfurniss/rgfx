@@ -23,3 +23,50 @@ export function scaleLinear(domainMin, domainMax, rangeMin, rangeMax) {
     return rangeMin + ratio * (rangeMax - rangeMin);
   };
 }
+
+/**
+ * Sleep for a specified duration.
+ *
+ * @param {number} ms - Duration in milliseconds
+ * @returns {Promise<void>}
+ *
+ * @example
+ * await sleep(100);
+ */
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Return a random integer between a and b (inclusive).
+ * If only one argument is passed, returns 0 to a.
+ *
+ * @param {number} a - Minimum value (or max if only arg)
+ * @param {number} [b] - Maximum value
+ * @returns {number}
+ *
+ * @example
+ * randomInt(10);    // returns 0-10
+ * randomInt(1, 10); // returns 1-10
+ */
+export function randomInt(a, b) {
+  if (b === undefined) {
+    return Math.floor(Math.random() * (a + 1));
+  }
+  return Math.floor(Math.random() * (b - a + 1)) + a;
+}
+
+/**
+ * Format a number with locale-appropriate thousands separators.
+ *
+ * @param {number|string} value - Number to format
+ * @returns {string} Formatted number (e.g., "12,340")
+ *
+ * @example
+ * formatNumber(12340);   // returns "12,340"
+ * formatNumber("99850"); // returns "99,850"
+ */
+export function formatNumber(value) {
+  return Number(value).toLocaleString();
+}
+

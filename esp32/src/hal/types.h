@@ -182,6 +182,18 @@ inline void fill_solid(CRGB* leds, int count, const CRGB& color) {
 }
 
 /**
+ * FastLED-compatible blend function
+ * Blends from color1 toward color2 by amount (0-255)
+ * amount=0 returns color1, amount=255 returns color2
+ */
+inline CRGB blend(const CRGB& color1, const CRGB& color2, uint8_t amount) {
+	uint8_t r = color1.r + (((color2.r - color1.r) * amount) >> 8);
+	uint8_t g = color1.g + (((color2.g - color1.g) * amount) >> 8);
+	uint8_t b = color1.b + (((color2.b - color1.b) * amount) >> 8);
+	return CRGB(r, g, b);
+}
+
+/**
  * FastLED-compatible alias for rgb2hsv
  */
 inline CHSV rgb2hsv_approximate(const CRGB& rgb) {

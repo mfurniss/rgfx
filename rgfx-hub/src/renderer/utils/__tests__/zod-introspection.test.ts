@@ -103,18 +103,16 @@ describe('zod-introspection', () => {
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('gradient')?.type).toBe('backgroundGradient');
-        expect(fieldMap.get('enabled')?.type).toBe('enum');
+        expect(fieldMap.get('fadeDuration')?.type).toBe('number');
       });
 
-      it('should extract enabled field with all state options', () => {
+      it('should extract fadeDuration field', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        const enabledField = fields.find((f) => f.name === 'enabled');
+        const fadeDurationField = fields.find((f) => f.name === 'fadeDuration');
 
-        expect(enabledField).toBeDefined();
-        expect(enabledField?.type).toBe('enum');
-        expect(enabledField?.constraints?.enumValues).toEqual(
-          expect.arrayContaining(['off', 'on', 'fadeIn', 'fadeOut']),
-        );
+        expect(fadeDurationField).toBeDefined();
+        expect(fadeDurationField?.type).toBe('number');
+        expect(fadeDurationField?.defaultValue).toBe(1000);
       });
 
       it('should extract gradient field as backgroundGradient type', () => {
@@ -126,7 +124,7 @@ describe('zod-introspection', () => {
         expect(gradientField?.type).toBe('backgroundGradient');
       });
 
-      it('should have exactly 2 fields (gradient and enabled)', () => {
+      it('should have exactly 2 fields (gradient and fadeDuration)', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
         expect(fields).toHaveLength(2);
       });
@@ -184,10 +182,10 @@ describe('zod-introspection', () => {
       it('should extract descriptions for fields that have them', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
         const gradientField = fields.find((f) => f.name === 'gradient');
-        const enabledField = fields.find((f) => f.name === 'enabled');
+        const fadeDurationField = fields.find((f) => f.name === 'fadeDuration');
 
         expect(gradientField?.description).toContain('Gradient');
-        expect(enabledField?.description).toContain('fadeIn');
+        expect(fadeDurationField?.description).toContain('cross-fade');
       });
     });
   });

@@ -179,14 +179,83 @@ local map = {
 	},
 }
 
-ram.install_monitors(map, mem)
+-- ram.install_monitors(map, mem)
 
--- NOTE: Direct sound detection is not possible with MAME's Lua API.
+-- Sound detection via RAM tap
 -- The Williams sound board uses PIA registers ($C80E) which are memory-mapped I/O.
 -- MAME's install_write_tap only works on RAM, not device-mapped I/O regions.
+-- However, we can tap the RAM variables used by the sound priority routine.
+--
+-- From disassembly of the sound routine at $D3C7:
+-- - DP register is set to $98, so direct page addresses are $98XX
+-- - $9854-$9855: Sound data pointer (written when new sound starts)
+-- - $9856: Current sound priority (written when new sound starts)
+-- - $9857: Sound timer
+-- - $9858: Sound frame counter
+--
 -- The existing gameplay events provide equivalent coverage for LED effects:
 --   - robotron/player/fire (laser sound)
 --   - robotron/player/die (death sound)
 --   - robotron/enemy/*/destroy (explosion sounds)
 --   - robotron/wave/complete (level transition sound)
 --   - robotron/family/rescue (rescue sound)
+
+-- Sound detection: DP=$98 confirmed via MAME debugger
+-- Using polling (like ram.lua) since install_write_tap doesn't work on this region
+-- Addresses: $9854-$9855 (sound pointer), $9856 (priority)
+
+-- Sound pointer to name lookup table
+-- TODO: Play through game to identify all sound start addresses
+local sound_lut = {
+	[0x001A] = "shoot-hulk",
+	[0x001D] = "shoot-hulk",
+	[0x0024] = "rescue-human",
+	[0x0027] = "rescue-human",
+	[0x114D] = "enforcer-spawn",
+	[0x114F] = "destroy-spheroid",
+	[0x4141] = "spawn-brains",
+	[0x26EE] = "laser",
+	[0x26F1] = "laser",
+	[0x26D7] = "player_death",
+	[0x26DA] = "player_death",
+	[0x26E9] = "next-wave",
+	[0x26EC] = "next-wave",
+	[0x26DF] = "game-start",
+	[0x26E2] = "wave_start",
+	[0x3896] = "explosion",
+	[0x3899] = "explosion",
+	[0x389E] = "grunt_move",
+	[0x38A1] = "explosion",
+	[0x38A3] = "destroy-electrode",
+	[0x38A6] = "destroy-electrode",
+	[0xD0DE] = "wave",
+	[0xD0E3] = "wave",
+	[0xD0EF] = "huge-explosion",
+	[0xD0F2] = "wave",
+	[0xEF08] = "sine-wave-boom",
+	[0xEF6E] = "attract",
+}
+
+local last_sound_ptr = 0
+
+emu.register_frame_done(function()
+	local ptr_hi = mem:read_u8(0x9854)
+	local ptr_lo = mem:read_u8(0x9855)
+	local ptr = (ptr_hi << 8) | ptr_lo
+
+	if ptr ~= last_sound_ptr and ptr > 0 then
+		-- Sound data advances by 3 bytes per frame
+		-- A new sound starts if pointer didn't just advance by 3
+		local is_new_sound = (ptr ~= last_sound_ptr + 3)
+
+		if is_new_sound then
+			local name = sound_lut[ptr]
+			if not name then
+				print(string.format("[ROBOTRON] Sound: UNKNOWN ($%04X)", ptr))
+			end
+		end
+		last_sound_ptr = ptr
+	end
+end, "sound_monitor")
+
+print("[ROBOTRON] Sound polling monitor installed for $9854-$9856")

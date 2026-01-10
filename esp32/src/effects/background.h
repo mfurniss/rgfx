@@ -15,22 +15,20 @@
  */
 class BackgroundEffect : public IEffect {
    private:
-	enum class EnabledState : uint8_t { OFF, ON, FADE_IN, FADE_OUT };
-
-	static constexpr float FADE_DURATION = 1.0f;  // 1 second
-
 	struct BackgroundState {
-		EnabledState enabledState;
-		float fadeTime;
-		CRGB gradientLut[GRADIENT_LUT_SIZE];
+		float fadeTime;                        // Current fade progress
+		float fadeDuration;                    // Fade duration in seconds (0 = immediate)
+		CRGB gradientLut[GRADIENT_LUT_SIZE];   // Current/source gradient
+		CRGB targetLut[GRADIENT_LUT_SIZE];     // Target gradient for cross-fade
+		bool targetIsBlack;                    // True when target is all-black
 		bool isVertical;
 	};
 
 	BackgroundState state;
 	Canvas& canvas;
 
-	static EnabledState parseEnabledState(const char* str);
-	uint8_t calculateAlpha() const;
+	void snapshotCurrentState();
+	static bool isAllBlack(const CRGB* colors, uint8_t count);
 
    public:
 	BackgroundEffect(const Matrix& matrix, Canvas& canvas);

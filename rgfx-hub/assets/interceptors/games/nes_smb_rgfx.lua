@@ -12,13 +12,44 @@ local ram = require("ram")
 -- Disassembly: https://6502disassembly.com/nes-smb/
 --
 -- This interceptor is shared by multiple SMB variants (smb, smw)
--- The game prefix is passed via _G.game_name
+-- The game prefix is passed via _G.rgfx.rom
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 
 -- Get the game name from global (set by rgfx.lua before loading interceptor)
 local game_name = _G.game_name or "smb"
+
+-- Sound effect value maps (from SMB disassembly)
+-- Reference: https://gist.github.com/1wErt3r/4048722
+local sfx_square1_map = {
+	[0x80] = "jump",
+	[0x40] = "flagpole",
+	[0x20] = "mario-fireball",
+	[0x10] = "enter-pipe",
+	[0x08] = "kick-shell",
+	[0x04] = "stomp-or-swim",
+	[0x02] = "block-bump",
+	[0x01] = "jump",
+}
+
+local sfx_square2_map = {
+	[0x01] = "coin",
+	[0x02] = "powerup-appear",
+	[0x04] = "climb-beanstalk",
+	[0x08] = "firework",
+	[0x10] = "flagpole",
+	[0x20] = "powerup-collect",
+	[0x40] = "1up",
+	[0x80] = "blast",
+}
+
+local sfx_noise_map = {
+	[0x01] = "block-smash",
+	[0x02] = "bowser-flame",
+	[0x04] = "fire",
+	[0x08] = "explosion",
+}
 
 -- Helper function to read score (6 digits)
 -- Score layout: 0x07DE-0x07E2 stores 5 digits as one byte per digit (ones digit is always 0)
@@ -71,31 +102,29 @@ local map = {
 	-- 	end,
 	-- },
 
-	-- Square Wave 2 Queue ($FE) - melody/harmony notes, coin sound (0x01)
-	sound_square2 = {
-		addr_start = 0x00FE,
-		callback = function(_, current, previous)
-			-- Log every read to see what's happening
+	-- Sound Effect Detection via Sound Queues
+	-- Reference: https://gist.github.com/1wErt3r/4048722
+	sfx = {
+		addr_start = 0x00FD,
+		addr_end = 0x00FF,
+		callback = function(address, current, previous)
 			if current ~= 0x00 and current ~= previous then
-				-- _G.event(game_name .. "/sound/square2", current)
-				-- Special handling for coin pickup
-				if current == 0x01 then
-					_G.event(game_name .. "/player/coin")
+				local sfx_map = address == 0x00FF and sfx_square1_map
+					or address == 0x00FE and sfx_square2_map
+					or sfx_noise_map
+				local sfx = sfx_map[current]
+				if sfx then
+					_G.event(game_name .. "/sfx/" .. sfx)
+				else
+					-- Debug: log unknown SFX values
+					local channel = address == 0x00FF and "sq1"
+						or address == 0x00FE and "sq2"
+						or "noise"
+					print(string.format("SFX %s: 0x%02X", channel, current))
 				end
 			end
 		end,
 	},
-
-	-- Noise Queue ($FD) - percussion/sound effects
-	-- sound_noise = {
-	-- 	addr_start = 0x00FD,
-	-- 	callback = function(_, current, previous)
-	-- 		-- Log every read to see what's happening
-	-- 		if current ~= 0x00 and current ~= previous then
-	-- 			_G.event(game_name .. "/sound/noise", current)
-	-- 		end
-	-- 	end,
-	-- },
 
 	-- Music track - area music buffer (persistent state, unlike the queue at $FB)
 	-- 0x01 = Overworld, 0x02 = Underwater, 0x04 = Underground, 0x08 = Castle, 0x10 = Star, 0x20 = Overworld (transition)
@@ -123,7 +152,7 @@ local map = {
 			[0x1C] = "off",
 			[0xF9] = "overworld",
 			[0x11] = "underworld",
-			[0x72] = "death", -- Also used for time warning intro
+			[0x72] = "timer-warning",
 			[0xB0] = "flag",
 			[0xA4] = "castle",
 			[0x51] = "castle-victory",
@@ -143,15 +172,15 @@ local map = {
 	end)(),
 
 	-- Fireball - counter increments when Mario shoots a fireball
-	fireball = {
-		addr_start = 0x06CE,
-		callback = function(_, current, previous)
-			-- Trigger event when counter increments (fireball shot)
-			if previous and current > previous then
-				_G.event(game_name .. "/player/fireball", "1")
-			end
-		end,
-	},
+	-- fireball = {
+	-- 	addr_start = 0x06CE,
+	-- 	callback = function(_, current, previous)
+	-- 		-- Trigger event when counter increments (fireball shot)
+	-- 		if previous and current > previous then
+	-- 			_G.event(game_name .. "/player/fireball", "1")
+	-- 		end
+	-- 	end,
+	-- },
 
 	-- APU Status Register - detect channel enable/disable for FFT simulation
 	-- Reference: https://www.nesdev.org/wiki/APU_registers
