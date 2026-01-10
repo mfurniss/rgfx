@@ -63,6 +63,7 @@ describe('TransformerEngine', () => {
       },
       drivers: {} as any,
       loadGif: vi.fn(),
+      parseAmbilight: vi.fn().mockReturnValue({ colors: [], orientation: 'horizontal' }),
     };
 
     engine = new TransformerEngine(mockContext);

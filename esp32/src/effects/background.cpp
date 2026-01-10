@@ -165,12 +165,15 @@ void BackgroundEffect::render() {
 	uint16_t width = canvas.getWidth();
 	uint16_t height = canvas.getHeight();
 
+	// For strips (height=1), always use horizontal gradient regardless of orientation setting
+	bool useVertical = state.isVertical && height > 1;
+
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; x++) {
 			// Sample gradient based on orientation
 			uint8_t lutIndex;
-			if (state.isVertical) {
-				lutIndex = (height > 1) ? (y * (GRADIENT_LUT_SIZE - 1)) / (height - 1) : 0;
+			if (useVertical) {
+				lutIndex = (y * (GRADIENT_LUT_SIZE - 1)) / (height - 1);
 			} else {
 				lutIndex = (width > 1) ? (x * (GRADIENT_LUT_SIZE - 1)) / (width - 1) : 0;
 			}

@@ -223,6 +223,16 @@ export interface Logger {
 }
 
 /**
+ * Result from parsing ambilight payload for background effect
+ */
+export interface AmbilightGradient {
+  /** Array of 24-bit hex colors (e.g., "#FF0000") */
+  colors: string[];
+  /** Gradient orientation */
+  orientation: 'horizontal' | 'vertical';
+}
+
+/**
  * Context provided to all transformer handlers
  *
  * Contains all services and utilities transformers can use to interact with
@@ -252,6 +262,17 @@ export interface TransformerContext {
 
   /** Load an animated GIF and convert to bitmap effect format */
   loadGif(path: string): Promise<GifBitmapResult>;
+
+  /**
+   * Parse ambilight payload (12-bit colors) to background effect gradient props
+   * @param payload Comma-separated 12-bit hex colors (e.g., "F00,0F0,00F")
+   * @param orientation Gradient orientation ('horizontal' or 'vertical')
+   * @returns Gradient object for background effect props
+   */
+  parseAmbilight(
+    payload: string,
+    orientation?: 'horizontal' | 'vertical',
+  ): AmbilightGradient;
 }
 
 /**
