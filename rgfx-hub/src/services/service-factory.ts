@@ -23,6 +23,7 @@ import { getTransformersDir } from '../transformer-installer';
 import { loadGif } from '../gif-loader';
 import { createUploadConfigToDriver } from '../upload-config-to-driver';
 import { MQTT_DEFAULT_PORT } from '../config/constants';
+import type { AmbilightGradient } from '../types/transformer-types';
 
 export type Logger = ElectronLogger;
 
@@ -110,6 +111,29 @@ function createGifLoader() {
 }
 
 /**
+ * Parse ambilight payload (12-bit colors) to background effect gradient props.
+ * Converts compact 12-bit hex colors (e.g., "F00,0F0,00F") to full 24-bit colors.
+ *
+ * @param payload Comma-separated 12-bit hex colors
+ * @param orientation Gradient orientation ('horizontal' or 'vertical')
+ * @returns Gradient object for background effect props
+ */
+function parseAmbilight(
+  payload: string,
+  orientation: 'horizontal' | 'vertical' = 'horizontal',
+): AmbilightGradient {
+  const colors = payload.split(',').map((c) => {
+    // Expand 12-bit to 24-bit: F0A -> #FF00AA
+    const r = c[0] || '0';
+    const g = c[1] || '0';
+    const b = c[2] || '0';
+    return `#${r}${r}${g}${g}${b}${b}`;
+  });
+
+  return { colors, orientation };
+}
+
+/**
  * Creates all application services and wires them together.
  *
  * @param configPath Path to the RGFX config directory
@@ -158,6 +182,7 @@ export function createServices(
     log: loggerWrapper,
     drivers: driverRegistry,
     loadGif: createGifLoader(),
+    parseAmbilight,
   });
 
   // Network manager to handle network changes (emits network:changed events)
