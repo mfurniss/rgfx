@@ -4,73 +4,95 @@
 --
 -- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
 
--- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
 
--- Set boot delay to skip RAM test phase (16 seconds)
+-- Optional: Enable FFT audio analysis for visual effects
+local fft = require("fft")
+fft.init({
+	emit_events = true,
+	log_bars = false,
+	fps = 15,
+	boot_delay = 3,
+  devices = { "ymsnd" },
+})
+
+
 ram.set_boot_delay(3)
 
-local cpu = manager.machine.devices[":maincpu"]
-local mem = cpu.spaces["program"]
+-- Access RAM via C117's program space (not maincpu which goes through bank switching)
+local c117 = manager.machine.devices[":c117"]
+local c117_mem = c117.spaces["program"]
 
-local function get_galaga_score(start_addr)
-	local score = 0
-	-- Galaga score in video RAM (6 digits)
-	-- start_addr = ones place, ascending addresses for higher digits
-	-- Values 0-9 map to themselves, 36 = blank
-	-- Read from high to low: start at highest address, work down
-	for i = 5, 0, -1 do
-		local digit = mem:read_u8(start_addr + i)
-		if digit >= 0 and digit <= 9 then
-			score = score * 10 + digit
-		elseif digit == 36 and score > 0 then
-			-- blank in middle of number, treat as 0
-			score = score * 10
-		end
-		-- Skip leading blanks (digit == 36 and score == 0)
-	end
-	return score
+-- Score at virtual address 0x300a14 in C117's address space
+-- Format: unpacked BCD, 6 digits
+local SCORE_ADDR = 0x300a14
+
+local function read_score()
+	local b0 = c117_mem:read_u8(SCORE_ADDR)     -- hundred-thousands
+	local b1 = c117_mem:read_u8(SCORE_ADDR + 1) -- ten-thousands
+	local b2 = c117_mem:read_u8(SCORE_ADDR + 2) -- thousands
+	local b3 = c117_mem:read_u8(SCORE_ADDR + 3) -- hundreds
+	local b4 = c117_mem:read_u8(SCORE_ADDR + 4) -- tens
+	local b5 = c117_mem:read_u8(SCORE_ADDR + 5) -- ones
+	return b0 * 100000 + b1 * 10000 + b2 * 1000 + b3 * 100 + b4 * 10 + b5
 end
 
--- Galaga Player 1 current score in video RAM at 0x83F8 - 0x83FD
--- Player ship X position at 0x9362 (gameplay buffer, verified via runtime analysis)
---   Range: 0x11 (left edge) to 0xE1 (right edge)
--- Shot counter at 0x9846 (16-bit word, increments when player fires)
--- Hit counter at 0x9844 (increments when enemy destroyed)
-local map = {
-	-- player_one_score = {
-	-- 	addr_start = 0x83F8,
-	-- 	addr_end = 0x83FD,
-	-- 	callback = function(_, _, _)
-	-- 		local score = get_galaga_score(0x83F8)
-	-- 		_G.event("galaga/player/score/p1", score)
-	-- 	end,
-	-- },
-	-- player_ship_x = {
-	-- 	addr_start = 0x9362,
-	-- 	callback = function(_, current, _)
-	-- 		_G.event("galaga/player/ship/x", current)
-	-- 	end,
-	-- },
-	-- player_fire = {
-	-- 	addr_start = 0x9846,
-	-- 	size = 2, -- 16-bit word (little-endian)
-	-- 	callback = function(_, current, previous)
-	-- 		-- Shot counter increments when player fires
-	-- 		if current > previous then
-	-- 			_G.event("galaga/player/fire", current)
-	-- 		end
-	-- 	end,
-	-- },
-	-- enemy_destroy = {
-	-- 	addr_start = 0x9844,
-	-- 	callback = function(_, current, previous)
-	-- 		-- Hit counter increments when enemy is destroyed
-	-- 		if current > previous then
-	-- 			_G.event("galaga/enemy/destroy", current)
-	-- 		end
-	-- 	end,
-	-- },
-}
+-- Monitor score changes
+local last_score = -1
 
-ram.install_monitors(map, mem)
+emu.register_frame_done(function()
+	local score = read_score()
+	if score ~= last_score then
+		_G.event("galaga88/player/score/p1", score)
+		last_score = score
+	end
+end)
+
+print("\nGalaga 88 - Score monitoring active")
+
+-- Sound command addresses discovered via research:
+-- 0x2ff027: Player fire (bit 0x10 = fire sound)
+-- 0x2ff02c: Enemy explosion (bit 0x80 = explosion)
+-- 0x2ff026: Various sounds (0x01, 0x02, 0x10 = different effects)
+
+local prev_fire = 0
+local prev_explosion = 0
+local prev_sound = 0
+
+emu.register_frame_done(function()
+	-- Player fire detection (0x2ff027 bit 0x10)
+	local fire = c117_mem:read_u8(0x2ff027)
+	if (fire & 0x10) ~= 0 and (prev_fire & 0x10) == 0 then
+		_G.event("galaga88/player/fire")
+	end
+	prev_fire = fire
+
+	-- Enemy explosion detection (0x2ff02c bit 0x80)
+	local explosion = c117_mem:read_u8(0x2ff02c)
+	if (explosion & 0x80) ~= 0 and (prev_explosion & 0x80) == 0 then
+		_G.event("galaga88/enemy/destroy")
+	end
+	prev_explosion = explosion
+
+	-- Other sound effects (0x2ff026)
+	-- Note: bit 0x10 is fire input, not a sound effect
+	local sound = c117_mem:read_u8(0x2ff026)
+	if sound ~= prev_sound then
+		if (sound & 0x80) ~= 0 and (prev_sound & 0x80) == 0 then
+			print("EVENT: galaga88/sound/music_start")
+			_G.event("galaga88/sound/music_start")
+		end
+		if (sound & 0x02) ~= 0 and (prev_sound & 0x02) == 0 then
+			print("EVENT: galaga88/sound/effect 2")
+			_G.event("galaga88/sound/effect", 2)
+		end
+		if (sound & 0x01) ~= 0 and (prev_sound & 0x01) == 0 then
+			print("EVENT: galaga88/sound/effect 3")
+			_G.event("galaga88/sound/effect", 3)
+		end
+	end
+	prev_sound = sound
+end, "galaga88_sound")
+
+print("Sound event monitoring active")
+

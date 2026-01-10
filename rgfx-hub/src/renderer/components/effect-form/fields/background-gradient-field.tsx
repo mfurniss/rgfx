@@ -57,11 +57,8 @@ export function BackgroundGradientField<T extends FieldValues>({
         const orientation = value?.orientation ?? 'horizontal';
 
         const updateValue = (newColors: string[], newOrientation: string) => {
-          if (newColors.length === 0) {
-            field.onChange(null);
-          } else {
-            field.onChange({ colors: newColors, orientation: newOrientation });
-          }
+          // Always send object format - empty colors array is valid (turns off background)
+          field.onChange({ colors: newColors, orientation: newOrientation });
         };
 
         const handleColorChange = (index: number, newColor: string) => {

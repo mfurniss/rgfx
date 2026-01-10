@@ -355,7 +355,7 @@ inline void setDefaultBackgroundProps(JsonDocument& props) {
 	JsonArray colors = gradient["colors"].to<JsonArray>();
 	colors.add("#000000");
 	gradient["orientation"] = "horizontal";
-	props["enabled"] = "on";
+	props["fadeDuration"] = 0;  // Immediate for tests
 }
 
 /**
@@ -501,13 +501,13 @@ inline JsonDocument mockPlasmaProps(const char* enabled = "on", float speed = 3.
 /**
  * Create a mock background effect payload
  * @param color Hex color string (default: "#0000FF") - used as single-color gradient
- * @param enabled Enable state (default: "on")
+ * @param fadeDuration Fade duration in ms (default: 0 for immediate)
  */
-inline JsonDocument mockBackgroundProps(const char* color = "#0000FF", const char* enabled = "on") {
+inline JsonDocument mockBackgroundProps(const char* color = "#0000FF", uint32_t fadeDuration = 0) {
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
 	setBackgroundGradientColor(props, color);
-	props["enabled"] = enabled;
+	props["fadeDuration"] = fadeDuration;
 	return props;
 }
 

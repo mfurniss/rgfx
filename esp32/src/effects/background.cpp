@@ -6,65 +6,44 @@
 #include <cstring>
 
 BackgroundEffect::BackgroundEffect(const Matrix& m, Canvas& c)
-	: state{EnabledState::OFF, 0.0f, {}, false}, canvas(c) {
+	: state{0.0f, 0.0f, {}, {}, true, false}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
+	// Initialize both LUTs to black
+	fill_solid(state.gradientLut, GRADIENT_LUT_SIZE, CRGB::Black);
+	fill_solid(state.targetLut, GRADIENT_LUT_SIZE, CRGB::Black);
 }
 
-BackgroundEffect::EnabledState BackgroundEffect::parseEnabledState(const char* str) {
-	if (strcmp(str, "off") == 0) return EnabledState::OFF;
-	if (strcmp(str, "on") == 0) return EnabledState::ON;
-	if (strcmp(str, "fadeIn") == 0) return EnabledState::FADE_IN;
-	if (strcmp(str, "fadeOut") == 0) return EnabledState::FADE_OUT;
-	return EnabledState::ON;
+bool BackgroundEffect::isAllBlack(const CRGB* colors, uint8_t count) {
+	for (uint8_t i = 0; i < count; i++) {
+		if (colors[i] != CRGB::Black) return false;
+	}
+	return true;
 }
 
-uint8_t BackgroundEffect::calculateAlpha() const {
-	switch (state.enabledState) {
-		case EnabledState::OFF:
-			return 0;
-		case EnabledState::ON:
-			return 255;
-		case EnabledState::FADE_IN: {
-			float progress = state.fadeTime / FADE_DURATION;
-			if (progress > 1.0f) progress = 1.0f;
-			return static_cast<uint8_t>(progress * 255.0f);
-		}
-		case EnabledState::FADE_OUT: {
-			float progress = state.fadeTime / FADE_DURATION;
-			if (progress > 1.0f) progress = 1.0f;
-			return static_cast<uint8_t>((1.0f - progress) * 255.0f);
+void BackgroundEffect::snapshotCurrentState() {
+	// Blend gradientLut and targetLut at current progress into gradientLut
+	if (state.fadeDuration <= 0.0f) return;
+
+	float t = state.fadeTime / state.fadeDuration;
+	if (t >= 1.0f) {
+		// Fade was complete, targetLut is current state
+		memcpy(state.gradientLut, state.targetLut, sizeof(state.gradientLut));
+	} else {
+		// Interpolate current state
+		for (int i = 0; i < GRADIENT_LUT_SIZE; i++) {
+			state.gradientLut[i] = blend(state.gradientLut[i], state.targetLut[i], (uint8_t)(t * 255));
 		}
 	}
-	return 255;
 }
 
 void BackgroundEffect::add(JsonDocument& props) {
-	// Parse enabled - support both string and bool for backwards compat
-	EnabledState enabledState = EnabledState::ON;
-	if (!props["enabled"].isNull()) {
-		if (props["enabled"].is<bool>()) {
-			enabledState = props["enabled"].as<bool>() ? EnabledState::ON : EnabledState::OFF;
-		} else if (props["enabled"].is<const char*>()) {
-			enabledState = parseEnabledState(props["enabled"].as<const char*>());
-		}
-	}
-
-	// If turning off instantly, just set state and return
-	if (enabledState == EnabledState::OFF) {
-		state.enabledState = EnabledState::OFF;
-		return;
-	}
-
-	// Handle fadeOut - preserve existing gradient, just fade
-	if (enabledState == EnabledState::FADE_OUT) {
-		uint8_t currentAlpha = calculateAlpha();
-		state.fadeTime = ((255 - currentAlpha) / 255.0f) * FADE_DURATION;
-		state.enabledState = EnabledState::FADE_OUT;
-		return;
+	// Parse fadeDuration (default 1000ms, convert to seconds)
+	float newFadeDuration = 1.0f;
+	if (!props["fadeDuration"].isNull()) {
+		newFadeDuration = props["fadeDuration"].as<float>() / 1000.0f;
 	}
 
 	// Parse gradient object { colors: string[], orientation: 'horizontal' | 'vertical' }
-	// Gradient is required - no color fallback
 	if (props["gradient"].isNull() || !props["gradient"].is<JsonObject>()) {
 		hal::log("ERROR: background missing or invalid 'gradient' prop");
 		publishError("background", "missing or invalid 'gradient' prop", props);
@@ -73,43 +52,45 @@ void BackgroundEffect::add(JsonDocument& props) {
 
 	JsonObject gradientObj = props["gradient"].as<JsonObject>();
 
-	// Parse colors array (required, at least 1 color)
-	if (gradientObj["colors"].isNull() || !gradientObj["colors"].is<JsonArray>()) {
-		hal::log("ERROR: background gradient missing 'colors' array");
-		publishError("background", "gradient missing 'colors' array", props);
-		return;
-	}
-
-	JsonArray colorsArray = gradientObj["colors"].as<JsonArray>();
-	uint8_t colorCount = colorsArray.size();
-
-	// Empty colors array means no background - turn off
-	if (colorCount == 0) {
-		state.enabledState = EnabledState::OFF;
-		return;
-	}
-
-	if (colorCount > MAX_GRADIENT_COLORS) {
-		hal::log("ERROR: background gradient colors exceeds max %d", MAX_GRADIENT_COLORS);
-		publishError("background", "gradient colors out of range", props);
-		return;
-	}
-
+	// Parse colors array
 	CRGB colors[MAX_GRADIENT_COLORS];
-	uint8_t validColors = 0;
-	for (JsonVariant colorVal : colorsArray) {
-		if (colorVal.is<const char*>() && validColors < MAX_GRADIENT_COLORS) {
-			colors[validColors++] = parseHexColor(colorVal.as<const char*>());
+	uint8_t colorCount = 0;
+
+	if (!gradientObj["colors"].isNull() && gradientObj["colors"].is<JsonArray>()) {
+		JsonArray colorsArray = gradientObj["colors"].as<JsonArray>();
+
+		if (colorsArray.size() > MAX_GRADIENT_COLORS) {
+			hal::log("ERROR: background gradient colors exceeds max %d", MAX_GRADIENT_COLORS);
+			publishError("background", "gradient colors out of range", props);
+			return;
+		}
+
+		for (JsonVariant colorVal : colorsArray) {
+			if (colorVal.is<const char*>() && colorCount < MAX_GRADIENT_COLORS) {
+				colors[colorCount++] = parseHexColor(colorVal.as<const char*>());
+			}
 		}
 	}
 
-	if (validColors < 1) {
-		// All colors were invalid - turn off
-		state.enabledState = EnabledState::OFF;
-		return;
+	// Check if all colors are black (empty array counts as black)
+	bool targetIsBlack = (colorCount == 0) || isAllBlack(colors, colorCount);
+
+	// Snapshot current state before generating new target
+	// - If mid-fade: blend current progress into gradientLut
+	// - If fade complete: copy targetLut to gradientLut (it's now the "current" state)
+	if (state.fadeTime < state.fadeDuration && state.fadeDuration > 0.0f) {
+		snapshotCurrentState();
+	} else if (state.fadeDuration > 0.0f) {
+		// Fade was complete, targetLut is the current visible state
+		memcpy(state.gradientLut, state.targetLut, sizeof(state.gradientLut));
 	}
 
-	generateGradientLut(colors, validColors, state.gradientLut);
+	// Generate new gradient into targetLut
+	if (colorCount == 0) {
+		fill_solid(state.targetLut, GRADIENT_LUT_SIZE, CRGB::Black);
+	} else {
+		generateGradientLut(colors, colorCount, state.targetLut);
+	}
 
 	// Parse orientation (defaults to horizontal)
 	state.isVertical = false;
@@ -117,48 +98,38 @@ void BackgroundEffect::add(JsonDocument& props) {
 		state.isVertical = strcmp(gradientObj["orientation"].as<const char*>(), "vertical") == 0;
 	}
 
-	// For fades, calculate starting fadeTime based on current alpha
-	// This allows smooth transitions from any alpha level
-	uint8_t currentAlpha = calculateAlpha();
-	if (enabledState == EnabledState::FADE_IN) {
-		// fadeTime should represent how far along we already are
-		// alpha=0 -> fadeTime=0, alpha=255 -> fadeTime=FADE_DURATION
-		state.fadeTime = (currentAlpha / 255.0f) * FADE_DURATION;
-	} else if (enabledState == EnabledState::FADE_OUT) {
-		// alpha=255 -> fadeTime=0, alpha=0 -> fadeTime=FADE_DURATION
-		state.fadeTime = ((255 - currentAlpha) / 255.0f) * FADE_DURATION;
+	// Store new fade duration and reset fade time
+	state.fadeDuration = newFadeDuration;
+	state.targetIsBlack = targetIsBlack;
+
+	if (newFadeDuration <= 0.0f) {
+		// Immediate: copy target to current
+		memcpy(state.gradientLut, state.targetLut, sizeof(state.gradientLut));
+		state.fadeTime = 0.0f;
 	} else {
+		// Start cross-fade
 		state.fadeTime = 0.0f;
 	}
-
-	state.enabledState = enabledState;
 }
 
 void BackgroundEffect::update(float deltaTime) {
-	if (state.enabledState == EnabledState::OFF) {
+	// Skip update if target is black and fade is complete
+	if (state.targetIsBlack && state.fadeTime >= state.fadeDuration) {
 		return;
 	}
 
-	// Handle fade transitions
-	if (state.enabledState == EnabledState::FADE_IN || state.enabledState == EnabledState::FADE_OUT) {
+	// Update fade progress
+	if (state.fadeTime < state.fadeDuration) {
 		state.fadeTime += deltaTime;
-
-		if (state.fadeTime >= FADE_DURATION) {
-			// Transition to final state
-			state.enabledState =
-				(state.enabledState == EnabledState::FADE_IN) ? EnabledState::ON : EnabledState::OFF;
-			state.fadeTime = 0.0f;
+		if (state.fadeTime > state.fadeDuration) {
+			state.fadeTime = state.fadeDuration;
 		}
 	}
 }
 
 void BackgroundEffect::render() {
-	if (state.enabledState == EnabledState::OFF) {
-		return;
-	}
-
-	uint8_t alpha = calculateAlpha();
-	if (alpha == 0) {
+	// Skip render if target is black and fade is complete
+	if (state.targetIsBlack && state.fadeTime >= state.fadeDuration) {
 		return;
 	}
 
@@ -167,6 +138,11 @@ void BackgroundEffect::render() {
 
 	// For strips (height=1), always use horizontal gradient regardless of orientation setting
 	bool useVertical = state.isVertical && height > 1;
+
+	// Determine if we're cross-fading
+	bool isFading = state.fadeTime < state.fadeDuration && state.fadeDuration > 0.0f;
+	float t = isFading ? (state.fadeTime / state.fadeDuration) : 1.0f;
+	uint8_t blendAmount = (uint8_t)(t * 255);
 
 	for (uint16_t y = 0; y < height; y++) {
 		for (uint16_t x = 0; x < width; x++) {
@@ -178,17 +154,25 @@ void BackgroundEffect::render() {
 				lutIndex = (width > 1) ? (x * (GRADIENT_LUT_SIZE - 1)) / (width - 1) : 0;
 			}
 
-			CRGB gradientColor = state.gradientLut[lutIndex];
-			uint8_t r = (gradientColor.r * alpha) / 255;
-			uint8_t g = (gradientColor.g * alpha) / 255;
-			uint8_t b = (gradientColor.b * alpha) / 255;
-			canvas.drawPixel(x, y, CRGB(r, g, b));
+			CRGB color;
+			if (isFading) {
+				// Interpolate between source and target
+				color = blend(state.gradientLut[lutIndex], state.targetLut[lutIndex], blendAmount);
+			} else {
+				// Fade complete, use target directly
+				color = state.targetLut[lutIndex];
+			}
+
+			canvas.drawPixel(x, y, color);
 		}
 	}
 }
 
 void BackgroundEffect::reset() {
-	state.enabledState = EnabledState::OFF;
 	state.fadeTime = 0.0f;
+	state.fadeDuration = 0.0f;
+	state.targetIsBlack = true;
 	state.isVertical = false;
+	fill_solid(state.gradientLut, GRADIENT_LUT_SIZE, CRGB::Black);
+	fill_solid(state.targetLut, GRADIENT_LUT_SIZE, CRGB::Black);
 }

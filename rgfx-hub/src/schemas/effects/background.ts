@@ -39,11 +39,13 @@ export default z
       })
       .default({ colors: ['#FF0000', '#00FF00', '#0000FF'], orientation: 'horizontal' })
       .describe('fieldType:backgroundGradient|Gradient colors'),
-    enabled: z
-      .enum(['off', 'on', 'fadeIn', 'fadeOut'])
-      .optional()
-      .default('on')
-      .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
+    fadeDuration: z
+      .number()
+      .int()
+      .min(0)
+      .max(10000)
+      .default(1000)
+      .describe('Duration in ms to cross-fade to new gradient'),
   })
   .strict();
 

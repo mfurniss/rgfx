@@ -43,6 +43,7 @@ local initialized = false
 local frame_count = 0
 local smoothing_buffer = {} -- [edge][zone][frame_idx] = {r, g, b}
 local edge_set = {} -- Quick lookup for enabled edges
+local last_payload = {} -- [edge] = last payload string (for change detection)
 
 --------------------------------------------------------------------------------
 -- Pre-computed LUTs (built at init time)
@@ -314,7 +315,11 @@ local function on_frame()
 			if zones then
 				local smoothed = apply_smoothing(edge, zones, frame_count)
 				local payload = zones_to_payload(smoothed)
-				_G.event(EDGE_TOPICS[edge], payload)
+				-- Only emit if payload changed
+				if payload ~= last_payload[edge] then
+					last_payload[edge] = payload
+					_G.event(EDGE_TOPICS[edge], payload)
+				end
 			end
 		end
 	end

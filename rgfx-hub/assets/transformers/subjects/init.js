@@ -1,31 +1,31 @@
-import { getWorldRecord } from '../utils/world-record.js';
+import { getWorldRecord } from "../utils/world-record.js";
 
-export async function handle(
-  { namespace, subject },
-  payload,
-  { http, broadcast, log }
-) {
-  if (subject !== 'init') return false;
+export async function transform({ namespace, subject, payload }, ctx) {
+  if (subject !== "init") {
+    return false;
+  }
 
-  // Async fetch - don't block, fire and forget
-  getWorldRecord(namespace, http, log).then((result) => {
-    if (result) {
-      broadcast({
-        effect: 'text',
-        drivers: ['rgfx-driver-0005'],
+  ctx.broadcast({ effect: "clear" });
+
+  getWorldRecord(namespace, ctx).then((wr) => {
+    if (wr) {
+      ctx.broadcast({
+        effect: "scroll_text",
+        drivers: ["rgfx-driver-0005"],
         props: {
-          text: `WR:${result.score}`,
-          color: '#808000',
           reset: true,
-          accentColor: '#006060',
-          y: 0,
-          speed: 150,
+          text: `${wr.romName.toUpperCase()} WR: ${wr.score} by ${wr.player}, ${
+            wr.date
+          }`,
           repeat: false,
-          snapToLed: true,
+          color: "#808000",
+          accentColor: "#006060",
+          speed: 250,
+          snapToLed: false,
         },
       });
     }
   });
 
-  return false; // Let other handlers continue (e.g., clear effects)
+  return false;
 }

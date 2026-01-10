@@ -10,7 +10,7 @@
  * @param {import('../../../src/types/mapping-types').MappingContext} context
  * @returns {boolean}
  */
-export function handle({ subject, property }, _payload, { broadcast }) {
+export function transform({ subject, property, payload: _payload }, { broadcast }) {
   return false;
   if (subject !== 'enemy') return false;
 

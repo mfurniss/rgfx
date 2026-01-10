@@ -21,7 +21,7 @@ describe('backgroundSchema', () => {
       if (result.success) {
         expect(result.data.gradient.colors).toEqual(['#FF0000']);
         expect(result.data.gradient.orientation).toBe('horizontal');
-        expect(result.data.enabled).toBe('on');
+        expect(result.data.fadeDuration).toBe(1000);
       }
     });
 
@@ -31,7 +31,7 @@ describe('backgroundSchema', () => {
           colors: ['#FF0000', '#00FF00', '#0000FF'],
           orientation: 'vertical' as const,
         },
-        enabled: 'on' as const,
+        fadeDuration: 2000,
       };
 
       const result = backgroundSchema.safeParse(data);
@@ -40,7 +40,7 @@ describe('backgroundSchema', () => {
       if (result.success) {
         expect(result.data.gradient.colors).toEqual(['#FF0000', '#00FF00', '#0000FF']);
         expect(result.data.gradient.orientation).toBe('vertical');
-        expect(result.data.enabled).toBe('on');
+        expect(result.data.fadeDuration).toBe(2000);
       }
     });
 
@@ -116,67 +116,74 @@ describe('backgroundSchema', () => {
     });
   });
 
-  describe('enabled validation', () => {
-    it('should accept enabled: off', () => {
+  describe('fadeDuration validation', () => {
+    it('should accept fadeDuration: 0 (immediate)', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
-        enabled: 'off',
+        fadeDuration: 0,
       });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe('off');
+        expect(result.data.fadeDuration).toBe(0);
       }
     });
 
-    it('should accept enabled: on', () => {
+    it('should accept fadeDuration: 5000', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
-        enabled: 'on',
+        fadeDuration: 5000,
       });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe('on');
+        expect(result.data.fadeDuration).toBe(5000);
       }
     });
 
-    it('should accept enabled: fadeIn', () => {
+    it('should accept fadeDuration: 10000 (max)', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
-        enabled: 'fadeIn',
+        fadeDuration: 10000,
       });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe('fadeIn');
+        expect(result.data.fadeDuration).toBe(10000);
       }
     });
 
-    it('should accept enabled: fadeOut', () => {
+    it('should default fadeDuration to 1000', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
-        enabled: 'fadeOut',
       });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.enabled).toBe('fadeOut');
+        expect(result.data.fadeDuration).toBe(1000);
       }
     });
 
-    it('should reject invalid enabled string', () => {
+    it('should reject negative fadeDuration', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
-        enabled: 'yes',
+        fadeDuration: -100,
       });
       expect(result.success).toBe(false);
     });
 
-    it('should reject boolean enabled', () => {
+    it('should reject fadeDuration > 10000', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
-        enabled: true,
+        fadeDuration: 15000,
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject non-integer fadeDuration', () => {
+      const result = backgroundSchema.safeParse({
+        gradient: { colors: ['#FF0000'] },
+        fadeDuration: 1000.5,
       });
       expect(result.success).toBe(false);
     });
@@ -203,6 +210,14 @@ describe('backgroundSchema', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['#FF0000'] },
         reset: true,
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject enabled property (no longer supported)', () => {
+      const result = backgroundSchema.safeParse({
+        gradient: { colors: ['#FF0000'] },
+        enabled: 'on',
       });
       expect(result.success).toBe(false);
     });
