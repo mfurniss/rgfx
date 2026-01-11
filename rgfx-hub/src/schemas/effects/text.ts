@@ -15,7 +15,7 @@ export function randomize(): Record<string, unknown> {
   return {
     text: randomString(['Hello You!', 'AaBbCcDd', '0123456789', '*** RGFX ***']),
     color: randomColor(0.2),
-    accentColor: randomInt(1) ? randomColor() : null,
+    accentColor: randomInt(1) ? randomColor(0.2) : null,
     duration: randomInt(3, 5) * 1000,
     gradient: randomGradient(0.2),
     gradientSpeed: randomFloat(0.1, 20),
