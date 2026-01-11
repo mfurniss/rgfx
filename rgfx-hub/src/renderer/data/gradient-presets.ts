@@ -132,4 +132,24 @@ export const gradientPresets: GradientPreset[] = [
       '#89bb3e',
     ],
   },
+  {
+    name: 'Candy Apple',
+    gradient: [
+      '#099a4a',
+      '#8a2a0a',
+      '#d5b7ae',
+      '#099a4a',
+    ],
+  },
+  {
+    name: 'We ❤️ The 80s',
+    gradient: [
+      '#213631',
+      '#4f8c89',
+      '#c0b354',
+      '#f67e9a',
+      '#bcaaca',
+      '#0f2305',
+    ],
+  },
 ];

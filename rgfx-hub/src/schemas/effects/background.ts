@@ -6,12 +6,17 @@
  */
 
 import { z } from 'zod';
-
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import type { PresetConfig } from './preset-config';
+import { randomGradient, randomInt } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
-  return {};
+  return {
+    gradient: {
+      colors: randomGradient(0, 6),
+    },
+    fadeDuration: randomInt(200, 2000),
+  };
 }
 
 /**

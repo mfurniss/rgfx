@@ -104,7 +104,7 @@ describe('driver-utils', () => {
       const mockSend = vi.fn();
       const mockWindow = {
         isDestroyed: () => false,
-        webContents: { send: mockSend } as unknown as WebContents,
+        webContents: { send: mockSend, isDestroyed: () => false } as unknown as WebContents,
       } as BrowserWindow;
 
       sendToRenderer(() => mockWindow, 'test-channel', 'arg1', 'arg2');
@@ -136,7 +136,7 @@ describe('driver-utils', () => {
       const mockSend = vi.fn();
       const mockWindow = {
         isDestroyed: () => false,
-        webContents: { send: mockSend } as unknown as WebContents,
+        webContents: { send: mockSend, isDestroyed: () => false } as unknown as WebContents,
       } as BrowserWindow;
 
       sendToRenderer(() => mockWindow, 'driver:updated', { id: '1' }, { extra: true });

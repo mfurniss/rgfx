@@ -43,6 +43,7 @@ describe('setupDriverEventHandlers', () => {
     isDestroyed: ReturnType<typeof vi.fn>;
     webContents: {
       send: ReturnType<typeof vi.fn>;
+      isDestroyed: ReturnType<typeof vi.fn>;
     };
   };
   let mockGetMainWindow: ReturnType<typeof vi.fn>;
@@ -140,6 +141,7 @@ describe('setupDriverEventHandlers', () => {
       isDestroyed: vi.fn(() => false),
       webContents: {
         send: vi.fn(),
+        isDestroyed: vi.fn(() => false),
       },
     };
 
