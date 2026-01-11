@@ -360,6 +360,7 @@ inline void setDefaultBackgroundProps(JsonDocument& props) {
 
 /**
  * Set background gradient with a single color (solid fill)
+ * Sets fadeDuration=0 for immediate effect (no cross-fade)
  */
 inline void setBackgroundGradientColor(JsonDocument& props, const char* color) {
 	JsonObject gradient = props["gradient"].to<JsonObject>();
@@ -367,6 +368,7 @@ inline void setBackgroundGradientColor(JsonDocument& props, const char* color) {
 	colors.clear();
 	colors.add(color);
 	gradient["orientation"] = "horizontal";
+	props["fadeDuration"] = 0;
 }
 
 /**

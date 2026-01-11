@@ -65,6 +65,7 @@ export default function TestEffectsPage() {
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsMap = useUiStore((state) => state.testEffectsPropsMap);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
+  const stripLifespanScale = useUiStore((state) => state.stripLifespanScale);
 
   // Get props JSON for current effect, falling back to defaults if not in map
   const propsJson = useMemo(() => {
@@ -193,11 +194,15 @@ export default function TestEffectsPage() {
           effect: selectedEffect,
           props: newProps,
           drivers: Array.from(selectedDrivers),
+          stripLifespanScale,
         };
         void window.rgfx.triggerEffect(payload);
       }
     },
-    [presetConfig, currentProps, selectedEffect, selectedDrivers, setTestEffectsState],
+    [
+      presetConfig, currentProps, selectedEffect, selectedDrivers, setTestEffectsState,
+      stripLifespanScale,
+    ],
   );
 
   const handleTriggerEffect = () => {
@@ -215,6 +220,7 @@ export default function TestEffectsPage() {
           effect: selectedEffect,
           props: cleanProps,
           drivers: Array.from(selectedDrivers),
+          stripLifespanScale,
         };
 
         await window.rgfx.triggerEffect(payload);
@@ -245,6 +251,7 @@ export default function TestEffectsPage() {
           effect: selectedEffect,
           props: mergedProps,
           drivers: Array.from(selectedDrivers),
+          stripLifespanScale,
         };
 
         await window.rgfx.triggerEffect(payload);
