@@ -22,7 +22,7 @@ export function randomString<T extends string>(options: T[]): T {
   return options[randomInt(0, options.length - 1)];
 }
 
-export function randomColor(minL = 0.2): string {
+export function randomColor(minL = 0): string {
   const h = randomInt(0, 359);
   const s = randomFloat(0, 1);
   const l = randomFloat(minL, 1);
