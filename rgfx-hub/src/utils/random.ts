@@ -29,11 +29,11 @@ export function randomColor(minL = 0.2): string {
   return hslToHex(h, s, l);
 }
 
-export function randomGradient(minL = 0): string[] {
+export function randomGradient(minLume = 0, maxColors = 20): string[] {
   const gradient = [];
 
-  for (let i = 0; i < randomInt(1, 20); i++ ) {
-    gradient.push(randomColor(minL));
+  for (let i = 0; i < randomInt(1, maxColors); i++ ) {
+    gradient.push(randomColor(minLume));
   }
 
   if (gradient.length > 2) {

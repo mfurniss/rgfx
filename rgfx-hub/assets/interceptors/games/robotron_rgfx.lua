@@ -179,7 +179,9 @@ local map = {
 	},
 }
 
--- ram.install_monitors(map, mem)
+print("About to install monitors...")
+ram.install_monitors(map, mem)
+print("Monitors installed")
 
 -- Sound detection via RAM tap
 -- The Williams sound board uses PIA registers ($C80E) which are memory-mapped I/O.

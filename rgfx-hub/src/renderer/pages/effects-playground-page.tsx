@@ -186,6 +186,16 @@ export default function TestEffectsPage() {
       const newProps = presetConfig.apply(data, currentProps);
       const newPropsJson = JSON.stringify(newProps, null, 2);
       setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers);
+
+      // Trigger effect with preset
+      if (selectedDrivers.size > 0) {
+        const payload: EffectPayload = {
+          effect: selectedEffect,
+          props: newProps,
+          drivers: Array.from(selectedDrivers),
+        };
+        void window.rgfx.triggerEffect(payload);
+      }
     },
     [presetConfig, currentProps, selectedEffect, selectedDrivers, setTestEffectsState],
   );
@@ -304,6 +314,34 @@ export default function TestEffectsPage() {
           <Tab label="Transformer Code" />
         </Tabs>
 
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+          <TargetDriversPicker
+            drivers={drivers}
+            selectedDrivers={selectedDrivers}
+            selectAll={selectAll}
+            onDriverToggle={handleDriverToggle}
+            onSelectAll={handleSelectAll}
+          />
+          <SuperButton
+            variant="contained"
+            color="primary"
+            onClick={handleTriggerEffect}
+            icon={<ScienceIcon />}
+            disabled={selectedDrivers.size === 0}
+          >
+            Trigger Effect
+          </SuperButton>
+          <SuperButton
+            variant="outlined"
+            color="primary"
+            onClick={handleRandomTrigger}
+            icon={<ShuffleIcon />}
+            disabled={selectedDrivers.size === 0}
+          >
+            Random Trigger
+          </SuperButton>
+        </Box>
+
         <TabPanel value={tabIndex} index={0}>
           <Stack spacing={3}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
@@ -364,35 +402,6 @@ export default function TestEffectsPage() {
                 onChange={handlePropsChange}
               />
             )}
-
-            <TargetDriversPicker
-              drivers={drivers}
-              selectedDrivers={selectedDrivers}
-              selectAll={selectAll}
-              onDriverToggle={handleDriverToggle}
-              onSelectAll={handleSelectAll}
-            />
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <SuperButton
-                variant="contained"
-                color="primary"
-                onClick={handleTriggerEffect}
-                icon={<ScienceIcon />}
-                disabled={selectedDrivers.size === 0}
-              >
-                Trigger Effect
-              </SuperButton>
-              <SuperButton
-                variant="outlined"
-                color="primary"
-                onClick={handleRandomTrigger}
-                icon={<ShuffleIcon />}
-                disabled={selectedDrivers.size === 0}
-              >
-                Random Trigger
-              </SuperButton>
-            </Box>
           </Stack>
         </TabPanel>
 

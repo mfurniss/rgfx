@@ -61,6 +61,11 @@ export function sendToRenderer(
   const mainWindow = getMainWindow();
 
   if (mainWindow !== null && !mainWindow.isDestroyed()) {
+    // webContents can be destroyed even if window isn't (e.g., during renderer crash)
+    if (mainWindow.webContents.isDestroyed()) {
+      return;
+    }
+
     try {
       mainWindow.webContents.send(channel, ...args);
     } catch (error) {

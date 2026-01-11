@@ -61,8 +61,10 @@ type MockFn = ReturnType<typeof vi.fn>;
 interface MockWebContents {
   send: MockFn;
   on: MockFn;
+  once: MockFn;
   setZoomFactor: MockFn;
   openDevTools: MockFn;
+  isDestroyed: MockFn;
 }
 
 interface MockWindow {
@@ -85,8 +87,10 @@ describe('createWindowManager', () => {
     mockWebContents = {
       send: vi.fn(),
       on: vi.fn(),
+      once: vi.fn(),
       setZoomFactor: vi.fn(),
       openDevTools: vi.fn(),
+      isDestroyed: vi.fn().mockReturnValue(false),
     };
 
     mockWindow = {

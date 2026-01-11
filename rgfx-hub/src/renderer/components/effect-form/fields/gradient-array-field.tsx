@@ -111,10 +111,13 @@ export function GradientArrayField<T extends FieldValues>({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       handleColorChange(index, e.target.value);
                     }}
-                    sx={{ width: 100 }}
-                    slotProps={{
-                      input: {
-                        sx: { fontFamily: 'monospace', fontSize: '0.875rem' },
+                    sx={{
+                      width: 100,
+                      '& .MuiInputBase-input': {
+                        fontFamily: 'monospace',
+                        fontSize: '0.875rem',
+                        py: 0.75,
+                        px: 1,
                       },
                     }}
                   />

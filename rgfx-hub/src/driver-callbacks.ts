@@ -55,6 +55,11 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       return;
     }
 
+    // webContents can be destroyed even if window isn't (e.g., during renderer crash)
+    if (mainWindow.webContents.isDestroyed()) {
+      return;
+    }
+
     try {
       mainWindow.webContents.send(channel, ...args);
     } catch (error) {
