@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerTriggerEffectHandler } from '../trigger-effect-handler';
 import type { UdpClient, EffectPayload } from '@/types/transformer-types';
+import type { DriverRegistry } from '@/driver-registry';
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -27,12 +28,14 @@ vi.mock('electron-log/main', () => ({
 
 describe('registerTriggerEffectHandler', () => {
   let mockUdpClient: MockProxy<UdpClient>;
+  let mockDriverRegistry: MockProxy<DriverRegistry>;
   let registeredHandler: (event: unknown, payload: EffectPayload) => void;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     mockUdpClient = mock<UdpClient>();
+    mockDriverRegistry = mock<DriverRegistry>();
 
     const { ipcMain } = await import('electron');
     (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
@@ -43,6 +46,7 @@ describe('registerTriggerEffectHandler', () => {
 
     registerTriggerEffectHandler({
       udpClient: mockUdpClient,
+      driverRegistry: mockDriverRegistry,
     });
   });
 
