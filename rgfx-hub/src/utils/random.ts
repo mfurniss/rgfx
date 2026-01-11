@@ -14,7 +14,10 @@ export function randomInt(min: number, max?: number): number {
   return Math.round(randomFloat(min, max));
 }
 
-export function randomFloat(min: number, max: number): number {
+export function randomFloat(min: number, max?: number): number {
+  if (max === undefined) {
+    return Math.round(Math.random() * min * 100) / 100;
+  }
   return Math.round((min + Math.random() * (max - min)) * 100) / 100;
 }
 
