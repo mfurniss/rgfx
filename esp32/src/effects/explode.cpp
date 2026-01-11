@@ -124,29 +124,22 @@ void ExplodeEffect::add(JsonDocument& props) {
 		// Apply hue spread if non-zero
 		if (hueSpread > 0) {
 			// Convert to HSV for hue manipulation
-			// Use raw array to avoid GRB layout confusion
-			CRGB baseRgb;
-			baseRgb.raw[0] = baseG;
-			baseRgb.raw[1] = baseR;
-			baseRgb.raw[2] = baseB;
-			CHSV baseHsv = rgb2hsv_approximate(baseRgb);
+			CRGB baseRgb(baseR, baseG, baseB);
+			CHSV baseHsv = rgbToHsv(baseRgb);
 
-			// Convert hueSpread from degrees (0-360) to 8-bit (0-255) for FastLED
+			// Convert hueSpread from degrees (0-360) to 8-bit (0-255)
 			uint8_t hueSpread8bit = (hueSpread * 255) / 360;
 
-			// Apply hue spread: shift base hue by -hueSpread/2, then add random offset
-			uint8_t randomOffset = random8(hueSpread8bit + 1);
-			uint8_t particleHue = baseHsv.hue - (hueSpread8bit / 2) + randomOffset;
+			// Apply hue spread symmetrically: random value from -spread/2 to +spread/2
+			int16_t offset = static_cast<int16_t>(random8(hueSpread8bit + 1)) - (hueSpread8bit / 2);
+			uint8_t particleHue = static_cast<uint8_t>(baseHsv.hue + offset);
 
-			// Create HSV color with modified hue
+			// Create HSV color with modified hue and convert back to RGB
 			CHSV particleHsv(particleHue, baseHsv.sat, baseHsv.val);
-
-			// Convert back to RGB
-			CRGB particleRgb = particleHsv;
-			// FastLED stores in GRB order internally, so read accordingly
-			p.g = particleRgb.raw[0];
-			p.r = particleRgb.raw[1];
-			p.b = particleRgb.raw[2];
+			CRGB particleRgb = hsvToRgb(particleHsv);
+			p.r = particleRgb.r;
+			p.g = particleRgb.g;
+			p.b = particleRgb.b;
 		} else {
 			// No hue spread - use original RGB color directly
 			p.r = baseR;

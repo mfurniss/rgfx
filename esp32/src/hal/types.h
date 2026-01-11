@@ -13,6 +13,62 @@
 #include <FastLED.h>
 // FastLED provides CRGB, CHSV, fill_solid, hsv2rgb_rainbow, etc.
 
+// Accurate RGB to HSV conversion (FastLED's rgb2hsv_approximate is inaccurate)
+inline CHSV rgbToHsv(const CRGB& rgb) {
+	uint8_t maxVal = rgb.r > rgb.g ? (rgb.r > rgb.b ? rgb.r : rgb.b) : (rgb.g > rgb.b ? rgb.g : rgb.b);
+	uint8_t minVal = rgb.r < rgb.g ? (rgb.r < rgb.b ? rgb.r : rgb.b) : (rgb.g < rgb.b ? rgb.g : rgb.b);
+
+	CHSV hsv;
+	hsv.val = maxVal;
+
+	if (maxVal == 0) {
+		hsv.sat = 0;
+		hsv.hue = 0;
+		return hsv;
+	}
+
+	hsv.sat = 255 * (maxVal - minVal) / maxVal;
+
+	if (hsv.sat == 0) {
+		hsv.hue = 0;
+		return hsv;
+	}
+
+	int32_t delta = maxVal - minVal;
+	if (rgb.r == maxVal) {
+		hsv.hue = 43 * (rgb.g - rgb.b) / delta;
+	} else if (rgb.g == maxVal) {
+		hsv.hue = 85 + 43 * (rgb.b - rgb.r) / delta;
+	} else {
+		hsv.hue = 171 + 43 * (rgb.r - rgb.g) / delta;
+	}
+
+	return hsv;
+}
+
+// Accurate HSV to RGB conversion
+inline CRGB hsvToRgb(const CHSV& hsv) {
+	if (hsv.sat == 0) {
+		return CRGB(hsv.val, hsv.val, hsv.val);
+	}
+
+	uint8_t region = hsv.hue / 43;
+	uint8_t remainder = (hsv.hue - (region * 43)) * 6;
+
+	uint8_t p = (hsv.val * (255 - hsv.sat)) >> 8;
+	uint8_t q = (hsv.val * (255 - ((hsv.sat * remainder) >> 8))) >> 8;
+	uint8_t t = (hsv.val * (255 - ((hsv.sat * (255 - remainder)) >> 8))) >> 8;
+
+	switch (region) {
+		case 0:  return CRGB(hsv.val, t, p);
+		case 1:  return CRGB(q, hsv.val, p);
+		case 2:  return CRGB(p, hsv.val, t);
+		case 3:  return CRGB(p, q, hsv.val);
+		case 4:  return CRGB(t, p, hsv.val);
+		default: return CRGB(hsv.val, p, q);
+	}
+}
+
 #else
 // On native/test platforms, provide our own compatible types
 #include <cstdint>
@@ -198,6 +254,20 @@ inline CRGB blend(const CRGB& color1, const CRGB& color2, uint8_t amount) {
  */
 inline CHSV rgb2hsv_approximate(const CRGB& rgb) {
 	return rgb2hsv(rgb);
+}
+
+/**
+ * Accurate RGB to HSV (same as rgb2hsv, named for consistency with ESP32 build)
+ */
+inline CHSV rgbToHsv(const CRGB& rgb) {
+	return rgb2hsv(rgb);
+}
+
+/**
+ * Accurate HSV to RGB (same as hsv2rgb, named for consistency with ESP32 build)
+ */
+inline CRGB hsvToRgb(const CHSV& hsv) {
+	return hsv2rgb(hsv);
 }
 
 /**
