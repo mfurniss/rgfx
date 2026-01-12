@@ -114,8 +114,6 @@ void test_text_render_single_char() {
 	setDefaultTextProps(props);
 	props["text"] = "H";
 	props["color"] = "#FFFFFF";
-	props["x"] = 0;
-	props["y"] = 0;
 
 	effect.add(props);
 	canvas.clear();
@@ -127,22 +125,6 @@ void test_text_render_single_char() {
 	int pixelCount = countNonBlackPixels(canvas);
 	printf("Pixel count: %d\n", pixelCount);
 	TEST_ASSERT_TRUE(pixelCount > 0);
-
-	// Check corners of a 4x4 block - row 0, col 0-3 should all be lit (first font pixel)
-	CRGB row0_col0 = canvas.getPixel(0, 0);
-	CRGB row0_col3 = canvas.getPixel(3, 0);
-	printf("Row 0, col 0: r=%d g=%d b=%d\n", row0_col0.r, row0_col0.g, row0_col0.b);
-	printf("Row 0, col 3: r=%d g=%d b=%d (same 4x4 block)\n", row0_col3.r, row0_col3.g, row0_col3.b);
-
-	// Both should be white (part of same 4x4 block for first font pixel)
-	TEST_ASSERT_TRUE(row0_col0.r > 0 || row0_col0.g > 0 || row0_col0.b > 0);
-
-	// Middle gap of H starts at canvas col 8 (font col 2 * 4)
-	CRGB gap = canvas.getPixel(8, 0);
-	printf("Row 0, col 8 (gap): r=%d g=%d b=%d (should be black)\n", gap.r, gap.g, gap.b);
-	TEST_ASSERT_EQUAL(0, gap.r);
-	TEST_ASSERT_EQUAL(0, gap.g);
-	TEST_ASSERT_EQUAL(0, gap.b);
 }
 
 void test_text_render_hello() {
@@ -156,8 +138,6 @@ void test_text_render_hello() {
 	setDefaultTextProps(props);
 	props["text"] = "HELLO";
 	props["color"] = "#FFFFFF";
-	props["x"] = 0;
-	props["y"] = 0;
 
 	effect.add(props);
 	canvas.clear();
@@ -358,67 +338,12 @@ void test_text_permanent_no_fade() {
 }
 
 // =============================================================================
-// 3. Position Tests
+// 3. Centering Tests
 // =============================================================================
 
-void test_text_position_offset() {
-	Matrix matrix(16, 8);  // 64x32 canvas
-	Canvas canvas(matrix);
-	TextEffect effect(matrix, canvas);
-
-	JsonDocument props;
-	setDefaultTextProps(props);
-	props["text"] = "X";
-	props["x"] = 8;
-	props["y"] = 4;
-
-	effect.add(props);
-	canvas.clear();
-	effect.render();
-
-	printCanvas(canvas, 32, 16);
-
-	// Pixel at (8, 4) should be set (X has pixels in first row)
-	// Actually check bounding box
-	BoundingBox box = findBoundingBox(canvas);
-	TEST_ASSERT_TRUE(box.valid);
-	TEST_ASSERT_EQUAL(8, box.minX);
-	TEST_ASSERT_EQUAL(4, box.minY);
-}
-
-// =============================================================================
-// 4. Text Wrapping Tests
-// =============================================================================
-
-// Helper to check if pixel is lit at a given canvas coordinate
-bool isPixelLit(Canvas& canvas, int16_t x, int16_t y) {
-	if (x < 0 || y < 0 || x >= canvas.getWidth() || y >= canvas.getHeight()) {
-		return false;
-	}
-	CRGB pixel = canvas.getPixel(x, y);
-	return pixel.r > 0 || pixel.g > 0 || pixel.b > 0;
-}
-
-// Helper to check if any pixel in a character cell is lit
-// charX/charY are in character units (not canvas pixels)
-bool isCharCellLit(Canvas& canvas, int charX, int charY) {
-	// Each character is TEXT_CHAR_WIDTH x TEXT_CHAR_HEIGHT canvas pixels (32x32)
-	int16_t startX = charX * TEXT_CHAR_WIDTH;
-	int16_t startY = charY * TEXT_CHAR_HEIGHT;
-
-	for (int16_t y = startY; y < startY + TEXT_CHAR_HEIGHT && y < canvas.getHeight(); y++) {
-		for (int16_t x = startX; x < startX + TEXT_CHAR_WIDTH && x < canvas.getWidth(); x++) {
-			if (isPixelLit(canvas, x, y)) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-void test_text_no_wrap_when_fits() {
+void test_text_centered_horizontally() {
 	// 4 characters wide canvas (4 * 32 = 128 canvas pixels)
-	// Text "AB" (2 chars) should fit on one row
+	// Text "AB" (2 chars = 64 canvas pixels) should be centered
 	Matrix matrix(32, 8);  // 128x32 canvas
 	Canvas canvas(matrix);
 	TextEffect effect(matrix, canvas);
@@ -426,36 +351,32 @@ void test_text_no_wrap_when_fits() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "AB";
-	props["x"] = 0;
-	props["y"] = 0;
+	props["color"] = "#FFFFFF";
 
 	effect.add(props);
 	canvas.clear();
 	effect.render();
 
-	printCanvas(canvas, 128, 64);
+	printCanvas(canvas, 128, 32);
 
-	// Both characters should be on row 0
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 0));  // 'A' at char position (0,0)
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));  // 'B' at char position (1,0)
-
-	// Row 1 should be empty
-	TEST_ASSERT_FALSE(isCharCellLit(canvas, 0, 1));
-	TEST_ASSERT_FALSE(isCharCellLit(canvas, 1, 1));
+	// Text is 64 pixels wide, canvas is 128, so centered at x=32
+	// Snapped to LED boundary (TEXT_SCALE=4), so x=32 is valid
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	TEST_ASSERT_EQUAL(32, box.minX);  // Centered: (128-64)/2 = 32
 }
 
-void test_text_wraps_to_next_row() {
-	// 2 characters wide canvas (2 * 32 = 64 canvas pixels)
-	// Text "ABC" (3 chars) should wrap: "AB" on row 0, "C" on row 1
-	Matrix matrix(16, 16);  // 64x64 canvas (2 chars wide, 2 chars tall)
+void test_text_centered_vertically() {
+	// 16x16 matrix = 64x64 canvas
+	// Single char is 32 pixels tall, so centered at y=16
+	Matrix matrix(16, 16);  // 64x64 canvas
 	Canvas canvas(matrix);
 	TextEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	setDefaultTextProps(props);
-	props["text"] = "ABC";
-	props["x"] = 0;
-	props["y"] = 0;
+	props["text"] = "X";
+	props["color"] = "#FFFFFF";
 
 	effect.add(props);
 	canvas.clear();
@@ -463,116 +384,46 @@ void test_text_wraps_to_next_row() {
 
 	printCanvas(canvas, 64, 64);
 
-	// Row 0: 'A' and 'B'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 0));  // 'A'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));  // 'B'
-
-	// Row 1: 'C' at x=0
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));  // 'C'
-	TEST_ASSERT_FALSE(isCharCellLit(canvas, 1, 1));  // Empty
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// Vertical center: (64-32)/2 = 16, snapped to LED boundary
+	TEST_ASSERT_EQUAL(16, box.minY);
 }
 
-void test_text_wraps_multiple_rows() {
-	// 2 characters wide canvas
-	// Text "ABCDEF" (6 chars) should wrap: "AB" row 0, "CD" row 1, "EF" row 2
-	Matrix matrix(16, 24);  // 64x96 canvas (2 chars wide, 3 chars tall)
+void test_text_snapped_to_led_boundary() {
+	// 10x10 matrix = 40x40 canvas
+	// Single char is 32x32, so centered at (4, 4)
+	// But snapped to LED boundary (TEXT_SCALE=4), so (4, 4) rounds to (4, 4)
+	Matrix matrix(10, 10);  // 40x40 canvas
 	Canvas canvas(matrix);
 	TextEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	setDefaultTextProps(props);
-	props["text"] = "ABCDEF";
-	props["x"] = 0;
-	props["y"] = 0;
+	props["text"] = "X";
+	props["color"] = "#FFFFFF";
 
 	effect.add(props);
 	canvas.clear();
 	effect.render();
 
-	printCanvas(canvas, 64, 96);
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
 
-	// Row 0: 'A' and 'B'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 0));
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));
-
-	// Row 1: 'C' and 'D'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 1));
-
-	// Row 2: 'E' and 'F'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 2));
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 2));
+	// Position should be snapped to multiples of TEXT_SCALE (4)
+	TEST_ASSERT_EQUAL(0, box.minX % 4);
+	TEST_ASSERT_EQUAL(0, box.minY % 4);
 }
 
-void test_text_wrap_with_starting_offset() {
-	// 2 characters wide canvas (64 canvas pixels)
-	// Starting at x=32 means only 1 char fits on first row
-	// Text "ABC" should wrap: "A" row 0 at x=32, "BC" row 1 at x=0
+void test_text_color_preserved() {
 	Matrix matrix(16, 16);  // 64x64 canvas
 	Canvas canvas(matrix);
 	TextEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	setDefaultTextProps(props);
-	props["text"] = "ABC";
-	props["x"] = 32;  // Start at 1 char offset
-	props["y"] = 0;
-
-	effect.add(props);
-	canvas.clear();
-	effect.render();
-
-	printCanvas(canvas, 64, 64);
-
-	// Row 0: 'A' at x=32 (char position 1)
-	TEST_ASSERT_FALSE(isCharCellLit(canvas, 0, 0));  // x=0 empty
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 0));   // 'A' at x=32
-
-	// Row 1: 'B' at x=0, 'C' at x=32 (uses full width)
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));   // 'B'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 1));   // 'C'
-}
-
-void test_text_wrap_first_row_empty_when_x_exceeds_width() {
-	// 2 characters wide canvas (64 canvas pixels)
-	// Starting at x=64 means 0 chars fit on first row
-	// Text "AB" should wrap: nothing on row 0, "AB" on row 1
-	Matrix matrix(16, 16);  // 64x64 canvas
-	Canvas canvas(matrix);
-	TextEffect effect(matrix, canvas);
-
-	JsonDocument props;
-	setDefaultTextProps(props);
-	props["text"] = "AB";
-	props["x"] = 64;  // Start at canvas edge
-	props["y"] = 0;
-
-	effect.add(props);
-	canvas.clear();
-	effect.render();
-
-	printCanvas(canvas, 64, 64);
-
-	// Row 0: empty (x=64 leaves no room)
-	TEST_ASSERT_FALSE(isCharCellLit(canvas, 0, 0));
-	TEST_ASSERT_FALSE(isCharCellLit(canvas, 1, 0));
-
-	// Row 1: 'A' at x=0, 'B' at x=32
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 0, 1));   // 'A'
-	TEST_ASSERT_TRUE(isCharCellLit(canvas, 1, 1));   // 'B'
-}
-
-void test_text_wrap_preserves_color() {
-	Matrix matrix(16, 16);  // 64x64 canvas
-	Canvas canvas(matrix);
-	TextEffect effect(matrix, canvas);
-
-	JsonDocument props;
-	setDefaultTextProps(props);
-	props["text"] = "AB";
+	props["text"] = "X";
 	props["color"] = "#FF0000";  // Red
-	props["x"] = 32;  // Force wrap
-	props["y"] = 0;
 
 	effect.add(props);
 	canvas.clear();
@@ -595,18 +446,16 @@ void test_text_wrap_preserves_color() {
 	TEST_ASSERT_TRUE(foundRed);
 }
 
-void test_text_wrap_with_accent() {
+void test_text_with_accent() {
 	Matrix matrix(16, 16);  // 64x64 canvas
 	Canvas canvas(matrix);
 	TextEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	setDefaultTextProps(props);
-	props["text"] = "AB";
+	props["text"] = "X";
 	props["color"] = "#FFFFFF";
 	props["accentColor"] = "#0000FF";  // Blue accent
-	props["x"] = 32;  // Force wrap
-	props["y"] = 0;
 
 	effect.add(props);
 	canvas.clear();
@@ -651,8 +500,6 @@ static uint64_t runTextDigest(const TestConfig& config, float updateTime, const 
 	setDefaultTextProps(props);
 	props["text"] = text;
 	props["color"] = "#00FFFF";
-	props["x"] = 0;
-	props["y"] = 0;
 	effect.add(props);
 
 	effect.update(updateTime);
@@ -665,12 +512,12 @@ static uint64_t runTextDigest(const TestConfig& config, float updateTime, const 
 
 void test_text_digest_16x16_t100() {
 	uint64_t digest = runTextDigest(TEST_CONFIGS[1], 0.1f);
-	assertDigest(0xBB749FD27E6D8E03ull, digest, "text_16x16_t100");
+	assertDigest(0x8CBBD2377EE6E7A3ull, digest, "text_16x16_t100");
 }
 
 void test_text_digest_16x16_t200_different_text() {
 	uint64_t digest = runTextDigest(TEST_CONFIGS[1], 0.2f, "AB");
-	assertDigest(0xB71A2C94C24D4735ull, digest, "text_16x16_t200_AB");
+	assertDigest(0x759B8DD92AC50BB5ull, digest, "text_16x16_t200_AB");
 }
 
 void test_text_digest_strip_t150() {
@@ -680,7 +527,7 @@ void test_text_digest_strip_t150() {
 
 void test_text_digest_96x8_t100() {
 	uint64_t digest = runTextDigest(TEST_CONFIGS[2], 0.1f);
-	assertDigest(0x7A87DEE4044D5083ull, digest, "text_96x8_t100");
+	assertDigest(0x083C168051315283ull, digest, "text_96x8_t100");
 }
 
 void test_text_property_static_permanent() {
@@ -765,16 +612,13 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_text_full_alpha_before_halfway);
 	RUN_TEST(test_text_fades_after_halfway);
 	RUN_TEST(test_text_permanent_no_fade);
-	RUN_TEST(test_text_position_offset);
 
-	// Text wrapping tests
-	RUN_TEST(test_text_no_wrap_when_fits);
-	RUN_TEST(test_text_wraps_to_next_row);
-	RUN_TEST(test_text_wraps_multiple_rows);
-	RUN_TEST(test_text_wrap_with_starting_offset);
-	RUN_TEST(test_text_wrap_first_row_empty_when_x_exceeds_width);
-	RUN_TEST(test_text_wrap_preserves_color);
-	RUN_TEST(test_text_wrap_with_accent);
+	// Centering tests
+	RUN_TEST(test_text_centered_horizontally);
+	RUN_TEST(test_text_centered_vertically);
+	RUN_TEST(test_text_snapped_to_led_boundary);
+	RUN_TEST(test_text_color_preserved);
+	RUN_TEST(test_text_with_accent);
 
 	// Pixel Digest Tests
 	RUN_TEST(test_text_digest_16x16_t100);

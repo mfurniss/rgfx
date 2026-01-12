@@ -7,24 +7,15 @@
 
 import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
-import { randomColor, randomFloat, randomInt } from '@/utils/random';
+import { randomFloat, randomGradient } from '@/utils/random';
+import type { PresetConfig } from './preset-config';
 
 export function randomize(): Record<string, unknown> {
-  const gradient = [];
-
-  for (let i = 0; i < randomInt(1, 20); i++ ) {
-    gradient.push(randomColor(0));
-  }
-
-  if (gradient.length > 2) {
-    gradient.push(gradient[0]);
-  }
-
   return {
     speed: randomFloat(0.1, 20),
     scale: randomFloat(0.1, 10),
     enabled: 'fadeIn',
-    gradient,
+    gradient: randomGradient(),
   };
 }
 
@@ -58,11 +49,10 @@ export default z
       .describe('Pattern frequency (0.1-10, higher = more detailed)'),
     gradient: z
       .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
-      .min(2)
       .max(MAX_GRADIENT_COLORS)
       .optional()
       .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
-      .describe(`fieldType:gradientPreset|Gradient colors (2-${MAX_GRADIENT_COLORS} hex colors)`),
+      .describe(`fieldType:gradientArray|Gradient colors (up to ${MAX_GRADIENT_COLORS} hex colors)`),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
@@ -70,3 +60,13 @@ export default z
       .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();
+
+export const presetConfig: PresetConfig = {
+  type: 'plasma',
+  apply: (data, values) => ({
+    ...values,
+    gradient: data.gradient,
+    speed: data.speed,
+    scale: data.scale,
+  }),
+};

@@ -17,18 +17,21 @@ import {
   ColorField,
   CenterField,
   SpritePresetField,
-  GradientPresetField,
   StringField,
+  GradientArrayField,
+  BackgroundGradientField,
 } from './fields';
 
 interface FieldRendererProps<T extends FieldValues> {
   field: FieldMetadata;
   control: Control<T>;
   errors: FieldErrors<T>;
+  formValues: Partial<T>;
 }
 
 const labelOverrides: Record<string, string> = {
-  gradient: 'Preset',
+  gradient: 'Gradient',
+  orientation: 'Gradient Orientation',
   lifespanSpread: 'Lifespan Spread %',
   powerSpread: 'Power Spread %',
 };
@@ -138,15 +141,24 @@ export function FieldRenderer<T extends FieldValues>({
   field,
   control,
   errors,
+  formValues,
 }: FieldRendererProps<T>) {
   const error = errors[field.name as keyof T];
   const errorMessage = error?.message as string | undefined;
   const label = formatLabel(field.name);
 
-  switch (field.type) {
-    case 'hidden':
-      return null;
+  // Determine if color field should be disabled when gradient has values
+  // Handle both array format (plasma, text) and object format (background)
+  const gradientValue = formValues.gradient as
+    | string[]
+    | { colors?: string[] }
+    | undefined;
+  const hasGradient = Array.isArray(gradientValue)
+    ? gradientValue.length > 0
+    : Array.isArray(gradientValue?.colors) && gradientValue.colors.length > 0;
+  const isColorDisabledByGradient = field.name === 'color' && hasGradient;
 
+  switch (field.type) {
     case 'enum':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
@@ -196,6 +208,7 @@ export function FieldRenderer<T extends FieldValues>({
             label={label}
             namedColors={field.constraints?.enumValues ?? []}
             error={errorMessage}
+            disabled={isColorDisabledByGradient}
           />
         </FieldWithHelp>
       );
@@ -223,10 +236,10 @@ export function FieldRenderer<T extends FieldValues>({
         </FieldWithHelp>
       );
 
-    case 'gradientPreset':
+    case 'string':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
-          <GradientPresetField
+          <StringField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}
@@ -235,10 +248,22 @@ export function FieldRenderer<T extends FieldValues>({
         </FieldWithHelp>
       );
 
-    case 'string':
+    case 'gradientArray':
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
-          <StringField
+          <GradientArrayField
+            name={field.name as FieldPath<T>}
+            control={control}
+            label={label}
+            error={errorMessage}
+          />
+        </FieldWithHelp>
+      );
+
+    case 'backgroundGradient':
+      return (
+        <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
+          <BackgroundGradientField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}

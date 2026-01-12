@@ -11,7 +11,7 @@ import { randomString, randomInt, randomFloat, randomColor } from '@/utils/rando
 
 export function randomize(): Record<string, unknown> {
   return {
-    color: randomColor(),
+    color: randomColor(0.25),
     direction: randomString(['up', 'down', 'left', 'right']),
     density: randomInt(5, 100),
     speed: randomFloat(10, 500),

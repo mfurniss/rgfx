@@ -6,11 +6,15 @@
  */
 
 import { z } from 'zod';
-
 import { baseEffect } from './properties';
+import { randomColor, randomInt, randomString } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
-  return {};
+  return {
+    color: randomColor(0.3),
+    duration: randomInt(300, 2000),
+    direction: randomString(['left', 'right', 'up', 'down', 'random']),
+  };
 }
 
 /**

@@ -12,6 +12,26 @@ ram.set_boot_delay(6)
 
 local cpu = manager.machine.devices[":maincpu"]
 
+local SCORE_EVENTS = {
+	[10] = "dot",
+	[50] = "energizer",
+	[200] = "ghost1",
+	[400] = "ghost2",
+	[800] = "ghost3",
+	[1600] = "ghost4",
+  [100] = "cherry",
+  [300] = "strawberry",
+  [500] = "orange",
+  [700] = "apple",
+  [1000] = "pineapple",
+  [2000] = "galaxian",
+  [3000] = "bell",
+  [5000] = "key"
+}
+
+-- Track previous score for delta detection
+local last_score = 0
+
 local function get_player_score(dword)
 	local score = 0
 	-- Process 4 bytes (32 bits) as BCD
@@ -28,10 +48,32 @@ end
 -- https://github.com/BleuLlama/GameDocs/blob/master/disassemble/mspac.asm
 
 local map = {
+  	player_eat = {
+		addr_start = 0x4E80,
+		size = 4,
+		callback_changed = function(value, _)
+      -- print(string.format("*** player_score: +%d", value))
+			local score = get_player_score(value)
+			local delta = score - last_score
+
+			if delta > 0 then
+				local event = SCORE_EVENTS[delta] or SCORE_EVENTS[delta - 10]
+				if event then
+					print(string.format("DELTA: +%d", delta))
+					_G.event("pacman/player/eat", event)
+				else
+					print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
+				end
+			end
+
+			last_score = score
+		end,
+	},
+
 	player_one_score = {
 		addr_start = 0x4E80,
 		size = 4,
-		callback = function(value, _, _)
+		callback_changed = function(value, _)
 			local current_score = get_player_score(value)
 			_G.event("pacman/player/score/p1", current_score)
 		end,
@@ -100,29 +142,29 @@ local map = {
 			end
 		end,
 	},
-	sound_ch2_cmd = {
-		addr_start = 0x4EAC,
-		callback_changed = function(value, _)
-			if value == 0x21 then
-				_G.event("pacman/player/eat/power-pill")
-			elseif value == 0x61 then
-				_G.event("pacman/player/ghost/eyes")
-			end
-		end,
-	},
+	-- sound_ch2_cmd = {
+	-- 	addr_start = 0x4EAC,
+	-- 	callback_changed = function(value, _)
+	-- 		if value == 0x21 then
+	-- 			_G.event("pacman/player/eat/power-pill")
+	-- 		elseif value == 0x61 then
+	-- 			_G.event("pacman/ghost/eyes")
+	-- 		end
+	-- 	end,
+	-- },
 	sound_ch3_cmd = {
 		addr_start = 0x4EBC,
 		callback_changed = function(value, _)
 			if value == 0x01 or value == 0x02 then
-				_G.event("pacman/player/eat/pill", value)
+	--			_G.event("pacman/player/eat/pill", value)
 			elseif value == 0x10 then
 				_G.event("pacman/player/die", 1)
 			elseif value == 0x20 then
 				_G.event("pacman/player/die", 2)
 			elseif value == 0x04 then
-				_G.event("pacman/player/eat/bonus")
+--				_G.event("pacman/player/eat/bonus")
 			elseif value == 0x08 then
-				_G.event("pacman/player/eat/ghost")
+--				_G.event("pacman/player/eat/ghost")
 			end
 		end,
 	},
@@ -135,8 +177,11 @@ local map = {
 	},
 	dots_remaining = {
 		addr_start = 0x4E0E,
-		callback_changed = function(value, _)
+		callback_changed = function(value, prev_value)
 			_G.event("pacman/player/dots-remaining", 244 - value)
+			if value == 244 and prev_value == 243 then
+				_G.event("pacman/level/complete")
+			end
 		end,
 	},
 }

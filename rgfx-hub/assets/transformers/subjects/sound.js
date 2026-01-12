@@ -12,7 +12,7 @@
  * @param {import('../../../src/types/mapping-types').MappingContext} context
  * @returns {boolean}
  */
-export function handle({ subject, property, qualifier }, payload, { broadcast }) {
+export function transform({ subject, property, qualifier, payload }, { broadcast }) {
   if (subject !== 'sound') return false;
 
   // Handle sound channel events for FFT simulation

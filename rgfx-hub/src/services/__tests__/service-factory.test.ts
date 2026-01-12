@@ -198,6 +198,7 @@ describe('createServices', () => {
       log: expect.anything(),
       drivers: expect.anything(),
       loadGif: expect.any(Function),
+      parseAmbilight: expect.any(Function),
     });
   });
 

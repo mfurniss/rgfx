@@ -48,10 +48,31 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     return mainWindow !== null && !mainWindow.isDestroyed();
   }
 
-  function sendSystemStatus() {
+  function safeSend(channel: string, ...args: unknown[]): void {
     const mainWindow = getMainWindow();
 
     if (!isWindowAvailable() || !mainWindow) {
+      return;
+    }
+
+    // webContents can be destroyed even if window isn't (e.g., during renderer crash)
+    if (mainWindow.webContents.isDestroyed()) {
+      return;
+    }
+
+    try {
+      mainWindow.webContents.send(channel, ...args);
+    } catch (error) {
+      // Ignore "Render frame was disposed" errors during shutdown
+      if (error instanceof Error && error.message.includes('Render frame was disposed')) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  function sendSystemStatus() {
+    if (!isWindowAvailable()) {
       return;
     }
     const status = systemMonitor.getSystemStatus(
@@ -61,7 +82,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       getEventLogSizeBytes(),
       getSystemErrors(),
     );
-    mainWindow.webContents.send('system:status', status);
+    safeSend('system:status', status);
   }
 
   // Handle driver connected events
@@ -69,10 +90,8 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     const eventTime = Date.now();
     log.info(`[DEBUG] driver:connected event received for ${driver.id} at ${eventTime}`);
 
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:connected', serializeDriverForIPC(driver));
+    if (isWindowAvailable()) {
+      safeSend('driver:connected', serializeDriverForIPC(driver));
       log.info(
         `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - eventTime}ms)`,
       );
@@ -102,10 +121,8 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
 
   // Handle driver disconnected events
   eventBus.on('driver:disconnected', ({ driver, reason }) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver), reason);
+    if (isWindowAvailable()) {
+      safeSend('driver:disconnected', serializeDriverForIPC(driver), reason);
       log.info(`Sent driver:disconnected event to renderer (reason: ${reason})`);
       sendSystemStatus();
     }
@@ -113,19 +130,13 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
 
   // Handle driver updated events (stats changes, telemetry updates)
   eventBus.on('driver:updated', ({ driver }) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-    }
+    safeSend('driver:updated', serializeDriverForIPC(driver));
   });
 
   // Handle driver restarting events (config save, expected reboot)
   eventBus.on('driver:restarting', ({ driver }) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('driver:restarting', serializeDriverForIPC(driver));
+    if (isWindowAvailable()) {
+      safeSend('driver:restarting', serializeDriverForIPC(driver));
       log.info(`Sent driver:restarting event to renderer for ${driver.id}`);
       sendSystemStatus();
     }
@@ -133,26 +144,14 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
 
   // Handle OTA flash events
   eventBus.on('flash:ota:state', (data) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('flash:ota:state', data);
-    }
+    safeSend('flash:ota:state', data);
   });
 
   eventBus.on('flash:ota:progress', (data) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('flash:ota:progress', data);
-    }
+    safeSend('flash:ota:progress', data);
   });
 
   eventBus.on('flash:ota:error', (data) => {
-    const mainWindow = getMainWindow();
-
-    if (isWindowAvailable() && mainWindow) {
-      mainWindow.webContents.send('flash:ota:error', data);
-    }
+    safeSend('flash:ota:error', data);
   });
 }

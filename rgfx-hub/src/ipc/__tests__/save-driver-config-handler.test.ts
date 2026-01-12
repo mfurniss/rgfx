@@ -58,6 +58,7 @@ describe('registerSaveDriverConfigHandler', () => {
       hardwareRef: 'ws2812b-strip',
       pin: 16,
       offset: 0,
+      gamma: { r: 2.8, g: 2.8, b: 2.8 },
       floor: { r: 0, g: 0, b: 0 },
     },
     remoteLogging: 'errors',
@@ -342,9 +343,10 @@ describe('registerSaveDriverConfigHandler', () => {
 
       await registeredHandler({}, config);
 
-      // Zod applies default floor values during validation
+      // Zod applies default gamma and floor values during validation
       expect(mockDriverConfig.setLEDConfig).toHaveBeenCalledWith('old-driver-id', {
         ...newLedConfig,
+        gamma: { r: 2.8, g: 2.8, b: 2.8 },
         floor: { r: 0, g: 0, b: 0 },
       });
     });

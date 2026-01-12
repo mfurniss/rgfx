@@ -10,12 +10,15 @@ import pulseSchema, { randomize as randomizePulse } from './pulse';
 import wipeSchema, { randomize as randomizeWipe } from './wipe';
 import explodeSchema, { randomize as randomizeExplode } from './explode';
 import bitmapSchema, { randomize as randomizeBitmap } from './bitmap';
-import backgroundSchema, { randomize as randomizeBackground } from './background';
+import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig } from './background';
 import projectileSchema, { randomize as randomizeProjectile } from './projectile';
-import textSchema, { randomize as randomizeText } from './text';
-import scrollTextSchema, { randomize as randomizeScrollText } from './scroll-text';
-import plasmaSchema, { randomize as randomizePlasma } from './plasma';
+import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig } from './text';
+import scrollTextSchema, { randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig } from './scroll-text';
+import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig } from './plasma';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
+import type { PresetConfig } from './preset-config';
+
+export type { PresetData, PresetType } from './preset-config';
 
 /**
  * Map of effect names to their full schemas (includes name/description metadata)
@@ -112,3 +115,14 @@ export function safeValidateEffectProps(
   }
   return { success: false, error: result.error };
 }
+
+/**
+ * Map of effect names to their preset configurations.
+ * Only effects with gradient/plasma preset support are included.
+ */
+export const effectPresetConfigs: Record<string, PresetConfig> = {
+  plasma: plasmaPresetConfig,
+  background: backgroundPresetConfig,
+  text: textPresetConfig,
+  scroll_text: scrollTextPresetConfig,
+};

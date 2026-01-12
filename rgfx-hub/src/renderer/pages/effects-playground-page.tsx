@@ -27,6 +27,7 @@ import {
   RestartAlt as ResetIcon,
   Shuffle as ShuffleIcon,
   LayersClear as LayersClearIcon,
+  Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
@@ -34,8 +35,10 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, effectRandomizers, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, isEffectName } from '@/schemas';
+import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
+import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
 import {
   effectDisplayNames,
   formEffects,
@@ -46,6 +49,7 @@ import {
 export default function TestEffectsPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
 
   const connectedDriverIds = useDriverStore((state) =>
     state.drivers
@@ -61,6 +65,7 @@ export default function TestEffectsPage() {
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsMap = useUiStore((state) => state.testEffectsPropsMap);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
+  const stripLifespanScale = useUiStore((state) => state.stripLifespanScale);
 
   // Get props JSON for current effect, falling back to defaults if not in map
   const propsJson = useMemo(() => {
@@ -100,6 +105,14 @@ export default function TestEffectsPage() {
   const currentSchema = useMemo(() => {
     if (isEffectName(selectedEffect)) {
       return effectPropsSchemas[selectedEffect];
+    }
+    return null;
+  }, [selectedEffect]);
+
+  // Get preset config for selected effect (if it has one)
+  const presetConfig = useMemo(() => {
+    if (isEffectName(selectedEffect)) {
+      return effectPresetConfigs[selectedEffect] ?? null;
     }
     return null;
   }, [selectedEffect]);
@@ -166,6 +179,32 @@ export default function TestEffectsPage() {
     }
   };
 
+  const handlePresetSelect = useCallback(
+    (data: PresetData) => {
+      if (!presetConfig) {
+        return;
+      }
+      const newProps = presetConfig.apply(data, currentProps);
+      const newPropsJson = JSON.stringify(newProps, null, 2);
+      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers);
+
+      // Trigger effect with preset
+      if (selectedDrivers.size > 0) {
+        const payload: EffectPayload = {
+          effect: selectedEffect,
+          props: newProps,
+          drivers: Array.from(selectedDrivers),
+          stripLifespanScale,
+        };
+        void window.rgfx.triggerEffect(payload);
+      }
+    },
+    [
+      presetConfig, currentProps, selectedEffect, selectedDrivers, setTestEffectsState,
+      stripLifespanScale,
+    ],
+  );
+
   const handleTriggerEffect = () => {
     if (selectedDrivers.size === 0) {
       return;
@@ -181,6 +220,7 @@ export default function TestEffectsPage() {
           effect: selectedEffect,
           props: cleanProps,
           drivers: Array.from(selectedDrivers),
+          stripLifespanScale,
         };
 
         await window.rgfx.triggerEffect(payload);
@@ -211,6 +251,7 @@ export default function TestEffectsPage() {
           effect: selectedEffect,
           props: mergedProps,
           drivers: Array.from(selectedDrivers),
+          stripLifespanScale,
         };
 
         await window.rgfx.triggerEffect(payload);
@@ -280,6 +321,34 @@ export default function TestEffectsPage() {
           <Tab label="Transformer Code" />
         </Tabs>
 
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+          <TargetDriversPicker
+            drivers={drivers}
+            selectedDrivers={selectedDrivers}
+            selectAll={selectAll}
+            onDriverToggle={handleDriverToggle}
+            onSelectAll={handleSelectAll}
+          />
+          <SuperButton
+            variant="contained"
+            color="primary"
+            onClick={handleTriggerEffect}
+            icon={<ScienceIcon />}
+            disabled={selectedDrivers.size === 0}
+          >
+            Trigger Effect
+          </SuperButton>
+          <SuperButton
+            variant="outlined"
+            color="primary"
+            onClick={handleRandomTrigger}
+            icon={<ShuffleIcon />}
+            disabled={selectedDrivers.size === 0}
+          >
+            Random Trigger
+          </SuperButton>
+        </Box>
+
         <TabPanel value={tabIndex} index={0}>
           <Stack spacing={3}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
@@ -299,6 +368,18 @@ export default function TestEffectsPage() {
                   ))}
                 </Select>
               </FormControl>
+              {presetConfig && (
+                <Button
+                  variant="outlined"
+                  startIcon={<PaletteIcon />}
+                  onClick={() => {
+                    setPresetModalOpen(true);
+                  }}
+                  sx={{ minWidth: 160, height: 40 }}
+                >
+                  Select Preset
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 startIcon={<ResetIcon />}
@@ -309,6 +390,17 @@ export default function TestEffectsPage() {
               </Button>
             </Box>
 
+            {presetConfig && (
+              <PresetSelectorModal
+                open={presetModalOpen}
+                type={presetConfig.type}
+                onClose={() => {
+                  setPresetModalOpen(false);
+                }}
+                onSelect={handlePresetSelect}
+              />
+            )}
+
             {currentSchema && (
               <EffectForm
                 schema={currentSchema}
@@ -316,35 +408,6 @@ export default function TestEffectsPage() {
                 onChange={handlePropsChange}
               />
             )}
-
-            <TargetDriversPicker
-              drivers={drivers}
-              selectedDrivers={selectedDrivers}
-              selectAll={selectAll}
-              onDriverToggle={handleDriverToggle}
-              onSelectAll={handleSelectAll}
-            />
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <SuperButton
-                variant="contained"
-                color="primary"
-                onClick={handleTriggerEffect}
-                icon={<ScienceIcon />}
-                disabled={selectedDrivers.size === 0}
-              >
-                Trigger Effect
-              </SuperButton>
-              <SuperButton
-                variant="outlined"
-                color="primary"
-                onClick={handleRandomTrigger}
-                icon={<ShuffleIcon />}
-                disabled={selectedDrivers.size === 0}
-              >
-                Random Trigger
-              </SuperButton>
-            </Box>
           </Stack>
         </TabPanel>
 

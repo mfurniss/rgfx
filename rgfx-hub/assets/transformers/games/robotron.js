@@ -29,9 +29,8 @@
 // Track score for milestone detection
 let lastScore = 0;
 
-export function handle(
-  { subject, property, qualifier },
-  payload,
+export function transform(
+  { subject, property, qualifier, payload },
   { broadcast }
 ) {
   // Player fire - directional green wipe
@@ -57,11 +56,11 @@ export function handle(
         friction: 3,
         hueSpread: 0,
         lifespan: 1200,
-        lifespanSpread: 100,
+        lifespanSpread: 2,
         particleCount: 200,
         particleSize: 4,
         power: 70,
-        powerSpread: 100,
+        powerSpread: 2,
       },
     });
     return broadcast({
@@ -86,11 +85,11 @@ export function handle(
         friction: 2,
         hueSpread: 120,
         lifespan: 1500,
-        lifespanSpread: 80,
+        lifespanSpread: 1.8,
         particleCount: 200,
         particleSize: 4,
         power: 150,
-        powerSpread: 60,
+        powerSpread: 1.6,
       },
     });
   }
@@ -130,11 +129,11 @@ export function handle(
           friction: 3,
           hueSpread: 60,
           lifespan: 1000,
-          lifespanSpread: 40,
+          lifespanSpread: 1.4,
           particleCount: 100,
           particleSize: 3,
           power: 80,
-          powerSpread: 50,
+          powerSpread: 1.5,
         },
       });
     }
@@ -182,11 +181,11 @@ export function handle(
           friction: 4,
           hueSpread: 0,
           lifespan: 400,
-          lifespanSpread: 30,
+          lifespanSpread: 1.3,
           particleCount: 30,
           particleSize: 3,
           power: 40,
-          powerSpread: 20,
+          powerSpread: 1.2,
         },
       });
     }

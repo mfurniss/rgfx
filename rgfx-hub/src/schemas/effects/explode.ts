@@ -11,7 +11,7 @@ import { randomInt, randomColor } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
   return {
-    color: randomColor(),
+    color: randomColor(0.25),
     reset: false,
     centerX: 'random',
     centerY: 'random',

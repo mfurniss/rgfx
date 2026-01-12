@@ -310,5 +310,33 @@ Fixed bitmap effect to support off-canvas coordinates with negative x/y position
 
 Code quality improvements: standardized IPC error handling, enforced kebab-case filenames via eslint-plugin-check-file, and added macOS notifications to pre-commit script. Extracted god functions from FirmwarePage and replaced remaining relative imports with @/ path alias. Increased max gradient colors to 64 and added event log size display to hub status page. Implemented onboard LED status indicator for ESP32 drivers showing connection state.
 
-**Total Development Time:** 82 days (October 11 - December 31, 2025)
-**Total Commits:** 712
+## January 1, 2026
+
+Added UDP packet size validation with event-driven error reporting to prevent buffer overflows. Implemented bitmap animation frame support for multi-frame sprite sequences.
+
+## January 2, 2026
+
+Major GIF integration work. Implemented GIF loader for bitmap effects, enabling animated sprites from GIF files. Added Super Street Fighter II interceptor for QSound monitoring. Fixed multiple CI issues including PIE flags for Unity framework and native test failures on Linux/Docker. Optimized BitmapEffect memory with palettized storage and size limits. Fixed UDP stack overflow by setting buffer to MTU limit. Enabled source maps for main process debugging. Refactored effects playground and fixed GIF dropdown bugs.
+
+## January 3, 2026
+
+Fixed bitmap effect presets breaking after GIF load. Added per-effect randomize functions with shared random utilities for consistent randomization across effects. Fixed frame-rate independent physics and absolute pixel scaling. Fixed loadGif to resolve relative paths from transformers directory.
+
+## January 4, 2026
+
+Added no-drivers banner, LED config warnings, and reusable PageBanner component for consistent warning displays. Implemented RGBW LED support and removed hardware caching. Improved OTA error handling to prevent Electron crashes. Prevented macOS App Nap from suspending background services, ensuring consistent network operations.
+
+## January 5, 2026
+
+Refactored main.ts into modular service architecture for better code organization. Consolidated sortable table logic with useSortableTable hook. Added pixel digest testing framework for effect validation, enabling deterministic visual testing of LED effects. Fixed explode effect tests failing in CI due to platform RNG differences.
+
+## January 6, 2026
+
+Implemented dual OTA partition scheme to fix OTA updates. Added global error handler to prevent OTA crash on ECONNRESET. Persisted WiFi credentials in Configure Driver WiFi dialog. Centralized OTA error handling with driver ID tracking. Fixed simulator triggering effects twice on drivers. Added missing fields to driver detail page and fixed FPS calculation.
+
+## January 7, 2026
+
+Added click-to-simulate feature on event monitor for easier effect testing. Skip plasma digest tests due to non-deterministic noise generation. Ignored missing CMakeLists.txt warning in VSCode.
+
+**Total Development Time:** 89 days (October 11, 2025 - January 7, 2026)
+**Total Commits:** 759

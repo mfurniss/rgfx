@@ -1,0 +1,113 @@
+export const PACMAN_SPRITE_OPEN_MOUTH = [
+  "    AAAAA   ",
+  "  AAAAAAAAA ",
+  " AAAAAAAAAAA",
+  " AAAAAAAAAAA",
+  "AAAAAAAAA   ",
+  "AAAAAA      ",
+  "AAA         ",
+  "AAAAAA      ",
+  "AAAAAAAAA   ",
+  " AAAAAAAAAAA",
+  " AAAAAAAAAAA",
+  "  AAAAAAAAA ",
+  "    AAAAA   ",
+];
+
+export const PACMAN_SPRITE_CLOSED_MOUTH = [
+  "    AAAAA    ",
+  "  AAAAAAAAA  ",
+  " AAAAAAAAAAA ",
+  " AAAAAAAAAAA ",
+  "AAAAAAAAAAAAA",
+  "AAAAAAAAAAAAA",
+  "AAAAAAAAAAAAA",
+  "AAAAAAAAAAAAA",
+  "AAAAAAAAAAAAA",
+  " AAAAAAAAAAA ",
+  " AAAAAAAAAAA ",
+  "  AAAAAAAAA  ",
+  "    AAAAA    ",
+];
+
+export const PACMAN_SPRITE_DIM_OPEN_MOUTH = [
+  "    55555   ",
+  "  555555555 ",
+  " 55555555555",
+  " 55555555555",
+  "555555555   ",
+  "555555      ",
+  "555         ",
+  "555555      ",
+  "555555555   ",
+  " 55555555555",
+  " 55555555555",
+  "  555555555 ",
+  "    55555   ",
+];
+
+export const PACMAN_SPRITE_DIM_CLOSED_MOUTH = [
+  "    55555    ",
+  "  555555555  ",
+  " 55555555555 ",
+  " 55555555555 ",
+  "5555555555555",
+  "5555555555555",
+  "5555555555555",
+  "5555555555555",
+  "5555555555555",
+  " 55555555555 ",
+  " 55555555555 ",
+  "  555555555  ",
+  "    55555    ",
+];
+
+export const GHOST_SCARED_BLUE = [
+  "     CCCC     ",
+  "   CCCCCCCC   ",
+  "  CCCCCCCCCC  ",
+  " CCCCCCCCCCCC ",
+  " CCCCCCCCCCCC ",
+  " CCCFFCCFFCCC ",
+  "CCCCFFCCFFCCCC",
+  "CCCCCCCCCCCCCC",
+  "CCCCCCCCCCCCCC",
+  "CCFFCCFFCCFFCC",
+  "CFCCFFCCFFCCFC",
+  "CCCCCCCCCCCCCC",
+  "CCCC CCCC CCCC",
+  " CC   CC   CC ",
+];
+
+export const GHOST_SCARED_WHITE = [
+  "     6666     ",
+  "   66666666   ",
+  "  6666666666  ",
+  " 666666666666 ",
+  " 666666666666 ",
+  " 666886688666 ",
+  "66668866886666",
+  "66666666666666",
+  "66666666666666",
+  "66886688668866",
+  "68668866886686",
+  "66666666666666",
+  "66 666  666 66",
+  "6   66  66   6",
+];
+
+export const GHOST_EYES_RIGHT = [
+  " 77    77",
+  "7777  7777",
+  "77CC  77CC",
+  "77CC  77CC",
+  " 77    77",
+];
+
+export const GHOST_EYES_LEFT = [
+  " 77    77",
+  "7777  7777",
+  "CC77  CC77",
+  "CC77  CC77",
+  " 77    77",
+];

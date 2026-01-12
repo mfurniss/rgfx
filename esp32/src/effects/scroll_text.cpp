@@ -27,7 +27,6 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	int16_t y = props["y"];
 	float speed = props["speed"];
 	bool repeat = props["repeat"].as<bool>();
 
@@ -55,18 +54,16 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		instance.accentB = 0;
 	}
 
-	instance.y = y;
 	instance.scrollX = static_cast<float>(canvas.getWidth());
 	instance.speed = speed;
 	instance.repeat = repeat;
 	instance.snapToLed = props["snapToLed"].as<bool>();
 
-	// Parse optional gradient animation
-	ColorGradientResult gradientResult = parseColorGradientFromJson(props, instance.gradientLut);
-	instance.hasGradient = gradientResult.hasGradient;
+	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
+	instance.hasGradient = parseGradientFromJson(props, instance.gradientLut);
 	if (instance.hasGradient) {
-		instance.gradientSpeed = gradientResult.speed;
-		instance.gradientScale = gradientResult.scale;
+		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;
+		instance.gradientScale = props["gradientScale"] | 4.0f;
 		instance.gradientTime = 0.0f;
 	}
 
@@ -107,6 +104,10 @@ void ScrollTextEffect::update(float deltaTime) {
 void ScrollTextEffect::render() {
 	constexpr int16_t ACCENT_OFFSET = 4;
 
+	// Center vertically (snapped to LED boundary)
+	int16_t centeredY = (static_cast<int16_t>(canvas.getHeight()) - TEXT_CHAR_HEIGHT) / 2;
+	centeredY = (centeredY / TEXT_SCALE) * TEXT_SCALE;
+
 	for (const auto& inst : instances) {
 		int16_t baseX;
 		if (inst.snapToLed) {
@@ -120,7 +121,7 @@ void ScrollTextEffect::render() {
 		if (inst.hasAccent) {
 			int16_t ax = baseX;
 			for (uint8_t i = 0; i < inst.textLen; i++) {
-				renderChar(canvas, inst.text[i], ax + ACCENT_OFFSET, inst.y + ACCENT_OFFSET,
+				renderChar(canvas, inst.text[i], ax + ACCENT_OFFSET, centeredY + ACCENT_OFFSET,
 				           inst.accentR, inst.accentG, inst.accentB, BlendMode::REPLACE);
 				ax += TEXT_CHAR_WIDTH;
 			}
@@ -146,7 +147,7 @@ void ScrollTextEffect::render() {
 				b = inst.b;
 			}
 
-			renderChar(canvas, inst.text[i], x, inst.y, r, g, b, BlendMode::REPLACE);
+			renderChar(canvas, inst.text[i], x, centeredY, r, g, b, BlendMode::REPLACE);
 			x += TEXT_CHAR_WIDTH;
 		}
 	}

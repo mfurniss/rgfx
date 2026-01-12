@@ -348,10 +348,27 @@ inline void setDefaultPlasmaProps(JsonDocument& props) {
 
 /**
  * Create default background props (matches hub schema defaults)
+ * Uses gradient object format: { colors: string[], orientation: string }
  */
 inline void setDefaultBackgroundProps(JsonDocument& props) {
-	props["color"] = "#000000";
-	props["enabled"] = "on";
+	JsonObject gradient = props["gradient"].to<JsonObject>();
+	JsonArray colors = gradient["colors"].to<JsonArray>();
+	colors.add("#000000");
+	gradient["orientation"] = "horizontal";
+	props["fadeDuration"] = 0;  // Immediate for tests
+}
+
+/**
+ * Set background gradient with a single color (solid fill)
+ * Sets fadeDuration=0 for immediate effect (no cross-fade)
+ */
+inline void setBackgroundGradientColor(JsonDocument& props, const char* color) {
+	JsonObject gradient = props["gradient"].to<JsonObject>();
+	JsonArray colors = gradient["colors"].to<JsonArray>();
+	colors.clear();
+	colors.add(color);
+	gradient["orientation"] = "horizontal";
+	props["fadeDuration"] = 0;
 }
 
 /**
@@ -362,8 +379,6 @@ inline void setDefaultTextProps(JsonDocument& props) {
 	props["text"] = "Hello you!";
 	props["color"] = "#008888";
 	props["accentColor"] = "#004444";
-	props["x"] = 0;
-	props["y"] = 0;
 	props["duration"] = 3000;
 }
 
@@ -487,14 +502,14 @@ inline JsonDocument mockPlasmaProps(const char* enabled = "on", float speed = 3.
 
 /**
  * Create a mock background effect payload
- * @param color Hex color string (default: "#0000FF")
- * @param enabled Enable state (default: "on")
+ * @param color Hex color string (default: "#0000FF") - used as single-color gradient
+ * @param fadeDuration Fade duration in ms (default: 0 for immediate)
  */
-inline JsonDocument mockBackgroundProps(const char* color = "#0000FF", const char* enabled = "on") {
+inline JsonDocument mockBackgroundProps(const char* color = "#0000FF", uint32_t fadeDuration = 0) {
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
-	props["color"] = color;
-	props["enabled"] = enabled;
+	setBackgroundGradientColor(props, color);
+	props["fadeDuration"] = fadeDuration;
 	return props;
 }
 

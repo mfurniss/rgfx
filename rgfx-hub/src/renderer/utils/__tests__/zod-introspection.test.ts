@@ -102,36 +102,29 @@ describe('zod-introspection', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
-        expect(fieldMap.get('color')?.type).toBe('color');
-        expect(fieldMap.get('enabled')?.type).toBe('enum');
+        expect(fieldMap.get('gradient')?.type).toBe('backgroundGradient');
+        expect(fieldMap.get('fadeDuration')?.type).toBe('number');
       });
 
-      it('should extract enabled field with all state options', () => {
+      it('should extract fadeDuration field', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        const enabledField = fields.find((f) => f.name === 'enabled');
+        const fadeDurationField = fields.find((f) => f.name === 'fadeDuration');
 
-        expect(enabledField).toBeDefined();
-        expect(enabledField?.type).toBe('enum');
-        expect(enabledField?.constraints?.enumValues).toEqual(
-          expect.arrayContaining(['off', 'on', 'fadeIn', 'fadeOut']),
-        );
+        expect(fadeDurationField).toBeDefined();
+        expect(fadeDurationField?.type).toBe('number');
+        expect(fadeDurationField?.defaultValue).toBe(1000);
       });
 
-      it('should extract color field as color type (not enum)', () => {
+      it('should extract gradient field as backgroundGradient type', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        const colorField = fields.find((f) => f.name === 'color');
+        const gradientField = fields.find((f) => f.name === 'gradient');
 
-        // This test ensures the color field is recognized as a color union,
-        // not just an enum dropdown. This was a bug when color was double-wrapped
-        // with .optional()
-        expect(colorField).toBeDefined();
-        expect(colorField?.type).toBe('color');
-        expect(colorField?.constraints?.enumValues).toContain('random');
-        expect(colorField?.constraints?.enumValues).toContain('red');
-        expect(colorField?.constraints?.enumValues).toContain('blue');
+        // Background uses gradient only (no color field)
+        expect(gradientField).toBeDefined();
+        expect(gradientField?.type).toBe('backgroundGradient');
       });
 
-      it('should have exactly 2 fields', () => {
+      it('should have exactly 2 fields (gradient and fadeDuration)', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
         expect(fields).toHaveLength(2);
       });
@@ -152,7 +145,8 @@ describe('zod-introspection', () => {
 
     describe('all effect schemas', () => {
       it('should have color field recognized as color type in all schemas that have it', () => {
-        const schemasWithColor = ['pulse', 'wipe', 'explode', 'background'] as const;
+        // Note: background no longer has a color field (uses gradient only)
+        const schemasWithColor = ['pulse', 'wipe', 'explode'] as const;
 
         for (const schemaName of schemasWithColor) {
           const schema = effectPropsSchemas[schemaName];
@@ -166,7 +160,7 @@ describe('zod-introspection', () => {
 
       it('should extract default values for fields that have them', () => {
         // Fields that are purely optional (no default) are allowed
-        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'colorGradient', 'accentColor'];
+        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'accentColor', 'gradient'];
 
         for (const [schemaName, schema] of Object.entries(effectPropsSchemas)) {
           const fields = extractFieldMetadata(schema);
@@ -187,11 +181,11 @@ describe('zod-introspection', () => {
 
       it('should extract descriptions for fields that have them', () => {
         const fields = extractFieldMetadata(effectPropsSchemas.background);
-        const colorField = fields.find((f) => f.name === 'color');
-        const enabledField = fields.find((f) => f.name === 'enabled');
+        const gradientField = fields.find((f) => f.name === 'gradient');
+        const fadeDurationField = fields.find((f) => f.name === 'fadeDuration');
 
-        expect(colorField?.description).toContain('Background color');
-        expect(enabledField?.description).toContain('fadeIn');
+        expect(gradientField?.description).toContain('Gradient');
+        expect(fadeDurationField?.description).toContain('cross-fade');
       });
     });
   });

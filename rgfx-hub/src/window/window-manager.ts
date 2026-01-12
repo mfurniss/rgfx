@@ -59,8 +59,29 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
     return mainWindow !== null && !mainWindow.isDestroyed();
   }
 
-  function sendSystemStatus(): void {
+  function safeSend(channel: string, ...args: unknown[]): void {
     if (!isAvailable() || !mainWindow) {
+      return;
+    }
+
+    // webContents can be destroyed even if window isn't (e.g., during renderer crash)
+    if (mainWindow.webContents.isDestroyed()) {
+      return;
+    }
+
+    try {
+      mainWindow.webContents.send(channel, ...args);
+    } catch (error) {
+      // Ignore "Render frame was disposed" errors during shutdown
+      if (error instanceof Error && error.message.includes('Render frame was disposed')) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  function sendSystemStatus(): void {
+    if (!isAvailable()) {
       return;
     }
     const status = systemMonitor.getSystemStatus(
@@ -70,7 +91,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
       eventReader.getFileSizeBytes(),
       systemErrorTracker.errors,
     );
-    mainWindow.webContents.send('system:status', status);
+    safeSend('system:status', status);
   }
 
   function createWindow(): BrowserWindow {
@@ -126,8 +147,54 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
 
     // Quit app when window is closed
     mainWindow.on('close', () => {
-      log.info('Main window closing, quitting app...');
+      log.info('Main window closing, stopping updates...');
+
+      if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+        statusUpdateInterval = null;
+      }
+
       app.quit();
+    });
+
+    // Handle renderer process crashes - reload to recover
+    mainWindow.webContents.on('render-process-gone', (_event, details) => {
+      log.error(`Renderer process gone: ${details.reason}`, details);
+
+      // Stop trying to send to dead renderer
+      if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+        statusUpdateInterval = null;
+      }
+
+      // Reload the window after a brief delay (allows crash logs to flush)
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          log.info('Reloading window after renderer crash...');
+          mainWindow.reload();
+
+          // Reopen DevTools in development mode after reload
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (OPEN_DEVTOOLS_IN_DEV && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+            mainWindow.webContents.once('did-finish-load', () => {
+              mainWindow?.webContents.openDevTools();
+            });
+          }
+        }
+      }, 500);
+    });
+
+    // Handle load failures - retry loading
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+      log.error(`Failed to load: ${errorDescription} (${errorCode}) at ${validatedURL}`);
+
+      // Retry loading after a delay
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          log.info('Retrying load after failure...');
+          mainWindow.reload();
+        }
+      }, 1000);
     });
 
     // Setup tRPC IPC handler for type-safe cross-process communication
@@ -150,9 +217,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
 
       // Send initial driver state (both connected and disconnected)
       driverRegistry.getAllDrivers().forEach((driver) => {
-        if (isAvailable() && mainWindow) {
-          mainWindow.webContents.send('driver:updated', serializeDriverForIPC(driver));
-        }
+        safeSend('driver:updated', serializeDriverForIPC(driver));
       });
 
       // Start periodic system status updates
@@ -172,9 +237,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
     sendSystemStatus,
 
     sendEventToRenderer(channel: string, ...args: unknown[]): void {
-      if (isAvailable() && mainWindow) {
-        mainWindow.webContents.send(channel, ...args);
-      }
+      safeSend(channel, ...args);
     },
 
     startStatusUpdates(): void {

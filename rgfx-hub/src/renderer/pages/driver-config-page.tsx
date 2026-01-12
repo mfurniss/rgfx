@@ -300,7 +300,7 @@ export default function DriverConfigPage() {
                             maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
                             unified: ledConfig?.unified,
                             reverse: ledConfig?.reverse,
-                            gamma: ledConfig?.gamma ?? null,
+                            gamma: ledConfig?.gamma ?? { r: 2.8, g: 2.8, b: 2.8 },
                             floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
                           },
                           { shouldDirty: true, shouldValidate: true },

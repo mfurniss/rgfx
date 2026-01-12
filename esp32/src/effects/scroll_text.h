@@ -16,7 +16,6 @@ class ScrollTextEffect : public IEffect {
 		uint8_t r, g, b;
 		uint8_t accentR, accentG, accentB;
 		bool hasAccent;
-		int16_t y;       // Vertical position (fixed)
 		float scrollX;   // Current x position (float for smooth scrolling)
 		float speed;     // Scroll speed in canvas pixels per second
 		bool repeat;     // Whether to restart when text exits left edge

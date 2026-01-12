@@ -5,17 +5,17 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import type { SystemMonitor } from '../system-monitor';
 import { serializeDriverForIPC } from '../types';
+import { sendToRenderer } from '../utils/driver-utils';
 
 interface DriverStatusDeps {
   mqtt: MqttBroker;
   driverRegistry: DriverRegistry;
-  getMainWindow: () => BrowserWindow | null;
+  getMainWindow: () => Electron.BrowserWindow | null;
   systemMonitor: SystemMonitor;
   getEventsProcessed: () => number;
   getEventLogSizeBytes: () => number;
@@ -44,8 +44,6 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       return;
     }
 
-    const mainWindow = getMainWindow();
-
     if (payload === 'offline' && driver.state !== 'disconnected') {
       // Ignore LWT offline messages during OTA updates - the ESP32 disconnects
       // from MQTT to receive firmware, but we don't want to mark it as disconnected
@@ -58,16 +56,14 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       driver.ip = undefined;
       driver.state = 'disconnected';
 
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('driver:disconnected', serializeDriverForIPC(driver));
-        const status = systemMonitor.getSystemStatus(
-          driverRegistry.getConnectedCount(),
-          driverRegistry.getAllDrivers().length,
-          getEventsProcessed(),
-          getEventLogSizeBytes(),
-        );
-        mainWindow.webContents.send('system:status', status);
-      }
+      sendToRenderer(getMainWindow, 'driver:disconnected', serializeDriverForIPC(driver));
+      const status = systemMonitor.getSystemStatus(
+        driverRegistry.getConnectedCount(),
+        driverRegistry.getAllDrivers().length,
+        getEventsProcessed(),
+        getEventLogSizeBytes(),
+      );
+      sendToRenderer(getMainWindow, 'system:status', status);
     } else if (payload === 'online') {
       log.info(`Driver ${driverId} LWT status: online (waiting for connect message)`);
     }

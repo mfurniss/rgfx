@@ -88,6 +88,9 @@ export interface RgfxTopic {
 
   /** All topic segments (for custom parsing or advanced use) */
   parts: string[];
+
+  /** Event payload string */
+  payload: string;
 }
 
 /**
@@ -220,6 +223,16 @@ export interface Logger {
 }
 
 /**
+ * Result from parsing ambilight payload for background effect
+ */
+export interface AmbilightGradient {
+  /** Array of 24-bit hex colors (e.g., "#FF0000") */
+  colors: string[];
+  /** Gradient orientation */
+  orientation: 'horizontal' | 'vertical';
+}
+
+/**
  * Context provided to all transformer handlers
  *
  * Contains all services and utilities transformers can use to interact with
@@ -249,18 +262,27 @@ export interface TransformerContext {
 
   /** Load an animated GIF and convert to bitmap effect format */
   loadGif(path: string): Promise<GifBitmapResult>;
+
+  /**
+   * Parse ambilight payload (12-bit colors) to background effect gradient props
+   * @param payload Comma-separated 12-bit hex colors (e.g., "F00,0F0,00F")
+   * @param orientation Gradient orientation ('horizontal' or 'vertical')
+   * @returns Gradient object for background effect props
+   */
+  parseAmbilight(
+    payload: string,
+    orientation?: 'horizontal' | 'vertical',
+  ): AmbilightGradient;
 }
 
 /**
  * Transformer handler function signature
  *
- * @param topic Parsed topic with pre-split segments
- * @param payload Event payload (e.g., "12450" or JSON string)
+ * @param topic Parsed topic with pre-split segments and payload
  * @param context Transformer context with services
  * @returns true if event was handled (stops cascade), false to continue
  */
 export type TransformerHandler = (
   topic: RgfxTopic,
-  payload: string,
   context: TransformerContext,
 ) => boolean | Promise<boolean>;
