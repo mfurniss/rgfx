@@ -1,331 +1,319 @@
-/**
- * Pac-Man game-specific mapper
- *
- * Handles Pac-Man/Ms. Pac-Man specific events:
- * - pacman/player/score/p1 - Player score (brown wipe effect)
- * - pacman/player/pill/state - Power pill state (blue when active, red when inactive)
- * - pacman/player/insert-coin - Coin inserted (yellow pulse)
- * - pacman/player/eat/power-pill - Power pill eaten (blue explosion)
- * - pacman/player/eat/pill - Regular pill eaten, wakka sound (quick yellow pulse)
- * - pacman/player/eat/bonus - Bonus fruit eaten (magenta pulse)
- * - pacman/player/eat/ghost - Ghost eaten (cyan pulse)
- * - pacman/player/die - Player death animation (red pulse, part 1 or 2)
- * - pacman/player/ghost/eyes - Ghost eyes returning home (white pulse)
- * - pacman/player/dots-remaining - Dots remaining (explosion when level complete)
- * - pacman/game/mode - Game mode changes (demo/select/playing with different colors)
- * - pacman/ghost/{color}/state - Individual ghost states with color-coded effects
- *
- * Selective Driver Routing:
- * You can optionally target specific drivers by adding a "drivers" array to the broadcast payload:
- *   broadcast({
- *     effect: "pulse",
- *     props: { color: "#FF0000" },
- *     drivers: ["rgfx-driver-0001", "rgfx-driver-0002"]  // Driver IDs
- *   })
- *
- * If no "drivers" array is provided, the effect broadcasts to all connected drivers.
- *
- * @param {import('../../../src/types/mapping-types').RgfxTopic} topic - Parsed topic with pre-split segments
- * @param {string} payload - Event payload (e.g., "100")
- * @param {import('../../../src/types/mapping-types').MappingContext} context - Mapping context with services
- * @returns {boolean} - True if event was handled, false otherwise
- */
+import { sleep, formatNumber, randomInt } from "../utils.js";
+import { PICO8_PALETTE } from "../palettes.js";
+import {
+  PACMAN_SPRITE_OPEN_MOUTH,
+  PACMAN_SPRITE_CLOSED_MOUTH,
+  PACMAN_SPRITE_DIM_OPEN_MOUTH,
+  PACMAN_SPRITE_DIM_CLOSED_MOUTH,
+  GHOST_SCARED_BLUE,
+  GHOST_SCARED_WHITE,
+  GHOST_EYES_RIGHT,
+  GHOST_EYES_LEFT,
+} from "../bitmaps/pacman-sprites.js";
 
-broadcast({
-  effect: 'bitmap',
-  props: {
-    color: 'random',
-    reset: false,
-    centerX: 'random',
-    centerY: 'random',
-    duration: 400,
-    images: [[
-      '    AAAAA   ',
-      '  AAAAAAAAA ',
-      ' AAAAAAAAAAA',
-      ' AAAAAAAAAAA',
-      'AAAAAAAAA   ',
-      'AAAAAA      ',
-      'AAA         ',
-      'AAAAAA      ',
-      'AAAAAAAAA   ',
-      ' AAAAAAAAAAA',
-      ' AAAAAAAAAAA',
-      '  AAAAAAAAA ',
-      '    AAAAA   ',
-    ]],
-  },
-});
+const BONUS_ITEMS = {
+  cherry: { score: 100, file: "pac-bonus-1-cherry.gif" },
+  strawberry: { score: 300, file: "pac-bonus-2-strawberry.gif" },
+  orange: { score: 500, file: "pac-bonus-3-orange.gif" },
+  apple: { score: 700, file: "pac-bonus-4-apple.gif" },
+  melon: { score: 1000, file: "pac-bonus-5-melon.gif" },
+  galaxian: { score: 2000, file: "pac-bonus-6-galaxian.gif" },
+  bell: { score: 3000, file: "pac-bonus-7-bell.gif" },
+  key: { score: 5000, file: "pac-bonus-8-key.gif" },
+};
 
-const PACMAN_SPRITE_OPEN_MOUTH = [
-  '    AAAAA   ',
-  '  AAAAAAAAA ',
-  ' AAAAAAAAAAA',
-  ' AAAAAAAAAAA',
-  'AAAAAAAAA   ',
-  'AAAAAA      ',
-  'AAA         ',
-  'AAAAAA      ',
-  'AAAAAAAAA   ',
-  ' AAAAAAAAAAA',
-  ' AAAAAAAAAAA',
-  '  AAAAAAAAA ',
-  '    AAAAA   ',
+const MATRIX_DRIVERS = ["rgfx-driver-0001", "rgfx-driver-0005"];
+
+const STRIP_DRIVERS = [
+  "rgfx-driver-0002",
+  "rgfx-driver-0004",
+  "rgfx-driver-0006",
+  "rgfx-driver-0003",
 ];
 
-const PACMAN_SPRITE_CLOSED_MOUTH = [
-  '    AAAAA    ',
-  '  AAAAAAAAA  ',
-  ' AAAAAAAAAAA ',
-  ' AAAAAAAAAAA ',
-  'AAAAAAAAAAAAA',
-  'AAAAAAAAAAAAA',
-  'AAAAAAAAAAAAA',
-  'AAAAAAAAAAAAA',
-  'AAAAAAAAAAAAA',
-  ' AAAAAAAAAAA ',
-  ' AAAAAAAAAAA ',
-  '  AAAAAAAAA  ',
-  '    AAAAA    ',
-];
+let dotCount = 0;
+let bonusLatch = false;
 
-const GHOST_STATE = {
-  NORMAL: [0x01, 0x03, 0x05, 0x07], // Red, pink, cyan, orange (normal)
-  VULNERABLE: 0x11, // Blue (power pill active)
-  FLASHING: 0x12, // White (power pill wearing off)
-  EATEN: 0x18, // Score display (200/400/800/1600)
-  EYES: 0x19, // Eyes returning to ghost home
-  CUTSCENE: 0x1d, // Cutscene color (intermissions)
-};
-
-const GHOST_COLORS = {
-  red: '#FF0000',
-  pink: '#FFB8FF',
-  cyan: '#00FFFF',
-  orange: '#FFB852',
-};
-
-// Lookup table for ghost state colors
-const GHOST_STATE_COLORS = {
-  [GHOST_STATE.VULNERABLE]: '#0000FF',
-  [GHOST_STATE.FLASHING]: '#FFFFFF',
-  [GHOST_STATE.EATEN]: '#00FFFF',
-  [GHOST_STATE.EYES]: '#FFFFFF',
-};
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export function handle(
-  { subject, property, qualifier },
-  payload,
-  { broadcast }
+export async function transform(
+  { subject, property, payload },
+  { broadcast, loadGif }
 ) {
-  // Score changes - disabled for now to test bitmap effect
-  // if (subject === 'player' && property === 'score') {
-  //   broadcast({
-  //     effect: 'wipe',
-  //     props: {
-  //       color: '#705014',
-  //       duration: 500,
-  //     },
-  //     drivers: ['rgfx-driver-0001', 'rgfx-driver-0003'],
-  //   });
-  //   return broadcast({
-  //     effect: 'explode',
-  //     drivers: ['rgfx-driver-0002', 'rgfx-driver-0004'],
-  //   });
-  // }
-
-  // Power pill state - blue when active, red when inactive
-  if (subject === 'player' && property === 'pill') {
-    const state = parseInt(payload);
-    const isActive = state > 0;
-
+  if (bonusLatch === false && subject === "player" && property === "score") {
     return broadcast({
-      effect: 'pulse',
+      effect: "text",
+      drivers: ["rgfx-driver-0005"],
       props: {
-        color: isActive ? '#0000FF' : '#FF0000',
+        text: formatNumber(payload),
+        color: "#A0A000",
+        accentColor: "#000080",
+        duration: 5000,
+        reset: true,
       },
     });
   }
 
-  // Coin inserted
-  if (subject === 'player' && property === 'insert-coin') {
-    return broadcast({
-      effect: 'pulse',
-      props: {
-        color: '#FFFF00',
-        duration: 300,
-      },
-    });
-  }
-
-  // Power pill eaten
-  if (
-    subject === 'player' &&
-    property === 'eat' &&
-    qualifier === 'power-pill'
-  ) {
+  if (subject === "player" && property === "insert-coin") {
     broadcast({
-      effect: 'pulse',
+      effect: "scroll_text",
       props: {
-        color: '#0000FF',
-        duration: 8000,
-        collapse: 'none',
+        reset: true,
+        text: "",
+        repeat: false,
       },
     });
-  }
 
-  // Wakka wakka - eating regular pills
-  if (subject === 'player' && property === 'eat' && qualifier === 'pill') {
-    broadcast({
-      effect: 'wipe',
-      drivers: ['*'],
-      props: {
-        color: '#402020',
-        duration: 300,
-      },
-    });
     return broadcast({
-      effect: 'bitmap',
-      drivers: ['rgfx-driver-0001', 'rgfx-driver-0003', 'rgfx-driver-0005'],
+      effect: "text",
+      drivers: ["rgfx-driver-0005"],
       props: {
-        color: 'random',
-        reset: false,
-        centerX: 'random',
-        centerY: 'random',
-        duration: 400,
-        images: [
-          payload == 1 ? PACMAN_SPRITE_OPEN_MOUTH : PACMAN_SPRITE_CLOSED_MOUTH,
+        color: "#f4f6f5",
+        reset: true,
+        text: "+ Credit +",
+        duration: 1000,
+        gradientSpeed: 12,
+        gradientScale: 10,
+        gradient: [
+          "#f19f5f",
+          "#38a7ad",
+          "#8f9e9d",
+          "#f39044",
+          "#b3b5cc",
+          "#73bade",
+          "#659f78",
+          "#f19f5f",
         ],
       },
     });
   }
 
-  // Bonus fruit eaten
-  if (subject === 'player' && property === 'eat' && qualifier === 'bonus') {
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: 'purple',
-        reset: false,
-        centerX: 50,
-        centerY: 50,
-        friction: 3,
-        hueSpread: 40,
-        lifespan: 2000,
-        lifespanSpread: 60,
-        particleCount: 200,
-        particleSize: 4,
-        power: 70,
-        powerSpread: 60,
-      },
-    });
-  }
+  if (subject === "player" && property === "eat") {
+    if (payload === "dot") {
+      dotCount++;
 
-  // Ghost eaten
-  if (subject === 'player' && property === 'eat' && qualifier === 'ghost') {
-    return broadcast({
-      effect: 'pulse',
-      props: {
-        color: '#00A0FF',
-        duration: 2000,
-      },
-    });
-  }
-
-  // Player death (part 1 or 2)
-  if (subject === 'player' && property === 'die') {
-    const part = parseInt(payload);
-    return broadcast({
-      effect: 'pulse',
-      props: {
-        color: '#FFFF00',
-        duration: part === 1 ? 1700 : 300,
-      },
-    });
-  }
-
-  // Ghost eyes (after being eaten, returning to home)
-  if (subject === 'player' && property === 'ghost' && qualifier === 'eyes') {
-    (async () => {
-      for (var i = 0; i < 8; i++) {
-        broadcast({
-          effect: 'wipe',
-          props: {
-            color: '#FFFFFF',
-            duration: 500,
-          },
-        });
-        await sleep(500);
-      }
-    })();
-
-    return true;
-  }
-
-  // Game mode changes (1=demo, 2=select game, 3=playing)
-  if (subject === 'game' && property === 'mode') {
-    const mode = parseInt(payload);
-    const colors = {
-      1: '#888888', // Demo
-      2: '#00FF00', // Game select
-      3: '#FFFF00', // Playing
-    };
-
-    return broadcast({
-      effect: 'pulse',
-      props: {
-        color: colors[mode] || '#FFFFFF',
-        duration: 500,
-      },
-    });
-  }
-
-  // Dots remaining counter
-  if (subject === 'player' && property === 'dots-remaining') {
-    const remaining = parseInt(payload);
-
-    if (remaining === 0) {
-      return broadcast({
-        effect: 'explode',
+      broadcast({
+        effect: "wipe",
+        drivers: ["*S"],
         props: {
-          color: 'blue',
-          reset: true,
-          centerX: 50,
-          centerY: 50,
-          friction: 3,
-          hueSpread: 0,
-          lifespan: 2000,
-          lifespanSpread: 60,
-          particleCount: 300,
-          particleSize: 4,
-          power: 70,
-          powerSpread: 0,
+          color: "#856e4f",
+          duration: 300,
+          direction: "random",
+          blendMode: "additive",
+          reset: false,
+        },
+      });
+
+      return broadcast({
+        effect: "bitmap",
+        drivers: MATRIX_DRIVERS,
+        props: {
+          reset: false,
+          centerX: "random",
+          centerY: "random",
+          endX: "",
+          endY: "",
+          duration: 500,
+          easing: "quadraticInOut",
+          fadeIn: 200,
+          fadeOut: 200,
+          palette: PICO8_PALETTE,
+          images: [
+            dotCount & 1
+              ? PACMAN_SPRITE_DIM_OPEN_MOUTH
+              : PACMAN_SPRITE_DIM_CLOSED_MOUTH,
+          ],
         },
       });
     }
+
+    if (payload === "energizer") {
+      broadcast({
+        effect: "pulse",
+        drivers: STRIP_DRIVERS,
+        props: {
+          color: "#0000FF",
+          reset: false,
+          duration: 8000,
+          easing: "quarticInOut",
+          fade: true,
+          collapse: "random",
+        },
+      });
+
+      broadcast({
+        effect: "bitmap",
+        drivers: MATRIX_DRIVERS,
+        props: {
+          reset: false,
+          centerX: -30,
+          centerY: 50,
+          endX: 130,
+          endY: 50,
+          duration: 3000,
+          easing: "linear",
+          fadeIn: 300,
+          fadeOut: 300,
+          palette: PICO8_PALETTE,
+          images: [GHOST_SCARED_BLUE, GHOST_SCARED_WHITE],
+          frameRate: 3,
+        },
+      });
+
+      await sleep(1500);
+
+      broadcast({
+        effect: "bitmap",
+        drivers: MATRIX_DRIVERS,
+        props: {
+          reset: false,
+          centerX: -30,
+          centerY: 50,
+          endX: 130,
+          endY: 50,
+          duration: 2000,
+          easing: "linear",
+          fadeIn: 300,
+          fadeOut: 300,
+          palette: PICO8_PALETTE,
+          images: [PACMAN_SPRITE_OPEN_MOUTH, PACMAN_SPRITE_CLOSED_MOUTH],
+          frameRate: 7,
+        },
+      });
+    }
+
+    if (payload.startsWith("ghost")) {
+      bonusLatch = true;
+
+      setTimeout(() => {
+        bonusLatch = false;
+      }, 3000);
+
+      const score = {
+        ghost1: "200",
+        ghost2: "400",
+        ghost3: "800",
+        ghost4: "1600",
+      }[payload];
+
+      broadcast({
+        effect: "pulse",
+        props: {
+          color: "#FF0000",
+          reset: false,
+          duration: 1200,
+          easing: "quarticInOut",
+          fade: true,
+          collapse: "random",
+        },
+      });
+
+      broadcast({
+        effect: "text",
+        drivers: MATRIX_DRIVERS,
+        props: {
+          text: score,
+          color: "#FFFF70",
+          accentColor: "#0000A0",
+          align: "center",
+          duration: 2000,
+          reset: true,
+        },
+      });
+
+      await sleep(300);
+
+      const i = randomInt(1);
+
+      broadcast({
+        effect: "bitmap",
+        drivers: MATRIX_DRIVERS,
+        props: {
+          reset: false,
+          centerX: i ? -10 : 110,
+          centerY: randomInt(100),
+          endX: i ? 110 : -10,
+          endY: randomInt(100),
+          duration: randomInt(2000, 3000),
+          easing: "linear",
+          fadeIn: 300,
+          fadeOut: 300,
+          palette: PICO8_PALETTE,
+          images: [i ? GHOST_EYES_RIGHT : GHOST_EYES_LEFT],
+          frameRate: 3,
+        },
+      });
+    }
+
+    const bonusItem = BONUS_ITEMS[payload];
+
+    if (bonusItem) {
+      if (!bonusItem.sprite) {
+        try {
+          bonusItem.sprite = await loadGif(`bitmaps/${bonusItem.file}`);
+        } catch (err) {
+          console.error(`Failed to load bonus sprite ${payload}:`, err);
+        }
+      }
+
+      if (bonusItem.sprite) {
+        for (let i = 0; i < 10; i++) {
+          broadcast({
+            effect: "bitmap",
+            drivers: MATRIX_DRIVERS,
+            props: {
+              reset: false,
+              centerX: randomInt(100),
+              centerY: randomInt(100),
+              endX: i & 1 ? 140 : -140,
+              endY: randomInt(-200, 200),
+              duration: 2000,
+              easing: "quadraticInOut",
+              fadeIn: 200,
+              fadeOut: 300,
+              images: bonusItem.sprite.images,
+              palette: bonusItem.sprite.palette,
+            },
+          });
+          await sleep(200);
+        }
+      }
+    }
   }
 
-  // Ghost state changes - color-coded effects
-  // Topic format: pacman/ghost/{color}/state
-  if (subject === 'ghost' && qualifier) {
-    const ghostColor = property;
-    const state = parseInt(payload);
-
-    // Look up color by state, or use ghost's normal color
-    const color =
-      GHOST_STATE_COLORS[state] || GHOST_COLORS[ghostColor] || '#FFFFFF';
-
+  if (subject === "player" && property === "die") {
+    const part = parseInt(payload);
     return broadcast({
-      effect: 'pulse',
-      drivers: ['*'],
+      effect: "pulse",
       props: {
-        color,
-        duration: 1500,
+        color: "#FFFF00",
+        duration: part === 1 ? 1700 : 300,
+        easing: "quinticOut",
         fade: true,
+        collapse: "random",
+        reset: false,
+      },
+    });
+  }
+
+  if (subject === "level" && property === "complete") {
+    await sleep(2000);
+
+    for (let i = 0; i < 8; i++) {
+      broadcast({
+        effect: "background",
+        props: {
+          gradient: { colors: [i & 1 ? "#0000A0" : "#909090"] },
+          fadeDuration: 0,
+        },
+      });
+      await sleep(180);
+    }
+
+    // Empty gradient turns off background
+    broadcast({
+      effect: "background",
+      props: {
+        gradient: { colors: [] },
+        fadeDuration: 0,
       },
     });
   }

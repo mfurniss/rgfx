@@ -3,35 +3,16 @@
 
 ---@meta
 
----@class MameEmu
----@field app_name fun(): string
----@field app_version fun(): string
----@field romname fun(): string
----@field register_prestart fun(callback: function)
----@field add_machine_frame_notifier fun(callback: function)
----@field add_machine_stop_notifier fun(callback: function)
-emu = {}
-
 ---@class MameManager
 ---@field machine MameMachine
 manager = {}
 
 ---@class MameMachine
 ---@field devices table<string, MameDevice>
----@field images table<string, MameImage>
----@field screens table<string, MameScreen>
+---@field ioport MameIoport
 
 ---@class MameDevice
 ---@field spaces table<string, MameMemorySpace>
-
----@class MameImage
----@field exists boolean
----@field filename string|nil
-
----@class MameScreen
----@field width integer
----@field height integer
----@field refresh number
 
 ---@class MameMemorySpace
 ---@field read_u8 fun(self: MameMemorySpace, addr: integer): integer
@@ -41,6 +22,27 @@ manager = {}
 ---@field write_u16 fun(self: MameMemorySpace, addr: integer, value: integer)
 ---@field write_u32 fun(self: MameMemorySpace, addr: integer, value: integer)
 
+---@class MameIoport
+---@field ports table<string, MameIoportPort>
+
+---@class MameIoportPort
+---@field read fun(self: MameIoportPort): integer
+
+---@class MameEmu
+emu = {}
+
+---@param callback fun()
+---@param name string
+function emu.register_frame_done(callback, name) end
+
+---@param callback fun()
+---@param name string
+function emu.register_frame(callback, name) end
+
+---@param callback fun()
+---@param name string
+function emu.register_periodic(callback, name) end
+
 -- RGFX globals injected by rgfx.lua
 _G.event = function(topic, value) end
-_G.rgfx = { rom = "" }
+_G.game_name = ""

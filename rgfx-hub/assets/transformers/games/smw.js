@@ -16,7 +16,7 @@ import { duration } from '@mui/material';
  * @param {import('../../../src/types/mapping-types').MappingContext} context
  * @returns {boolean}
  */
-export function handle({ subject, property, qualifier }, payload, { broadcast }) {
+export function transform({ subject, property, qualifier, payload }, { broadcast }) {
   // Player score - red pulse (Mario's signature color)
   if (subject === 'player' && property === 'score') {
     return broadcast({

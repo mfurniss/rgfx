@@ -15,6 +15,7 @@ interface ColorFieldProps<T extends FieldValues> {
   label: string;
   namedColors: readonly string[];
   error?: string;
+  disabled?: boolean;
 }
 
 const colorSwatchMap: Record<string, string> = {
@@ -70,6 +71,7 @@ export function ColorField<T extends FieldValues>({
   control,
   label,
   error,
+  disabled,
 }: ColorFieldProps<T>) {
   return (
     <Controller
@@ -96,7 +98,11 @@ export function ColorField<T extends FieldValues>({
             helperText={error ?? "Named color (e.g. 'red', 'random') or hex (#RRGGBB)"}
             fullWidth
             size="small"
+            disabled={disabled}
             slotProps={{
+              inputLabel: {
+                shrink: field.value != null && field.value !== '',
+              },
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
@@ -105,13 +111,15 @@ export function ColorField<T extends FieldValues>({
                       type="color"
                       value={hexValue}
                       onChange={handleColorChange}
+                      disabled={disabled}
                       sx={{
                         width: 24,
                         height: 24,
                         border: 'none',
                         padding: 0,
-                        cursor: 'pointer',
+                        cursor: disabled ? 'not-allowed' : 'pointer',
                         backgroundColor: 'transparent',
+                        opacity: disabled ? 0.5 : 1,
                         '&::-webkit-color-swatch-wrapper': {
                           padding: 0,
                         },

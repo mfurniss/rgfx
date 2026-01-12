@@ -94,12 +94,13 @@ export interface DriverLEDConfig {
   /**
    * Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)
    * Compensates for non-linear human brightness perception
+   * Defaults to { r: 2.8, g: 2.8, b: 2.8 }
    */
-  gamma?: {
+  gamma: {
     r?: number | null;
     g?: number | null;
     b?: number | null;
-  } | null;
+  };
   /**
    * Floor cutoff per channel (0-255, default 0)
    * Values at or below floor are cut off to 0 after gamma correction

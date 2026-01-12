@@ -6,31 +6,6 @@
 #include "network/mqtt.h"
 #include <cstring>
 
-namespace {
-	// Calculate wrapped position for character at given index
-	void getWrappedPosition(int16_t startX, int16_t startY,
-	                        uint8_t charIndex, uint16_t canvasWidth,
-	                        int16_t& outX, int16_t& outY) {
-		int16_t firstRowChars = (canvasWidth - startX) / TEXT_CHAR_WIDTH;
-		if (firstRowChars < 0) firstRowChars = 0;
-
-		if (charIndex < firstRowChars) {
-			outX = startX + (charIndex * TEXT_CHAR_WIDTH);
-			outY = startY;
-		} else {
-			int16_t charsPerFullRow = canvasWidth / TEXT_CHAR_WIDTH;
-			if (charsPerFullRow < 1) charsPerFullRow = 1;
-
-			int16_t remainingChars = charIndex - firstRowChars;
-			int16_t additionalRows = 1 + (remainingChars / charsPerFullRow);
-			int16_t colInRow = remainingChars % charsPerFullRow;
-
-			outX = colInRow * TEXT_CHAR_WIDTH;
-			outY = startY + (additionalRows * TEXT_CHAR_HEIGHT);
-		}
-	}
-}  // namespace
-
 TextEffect::TextEffect(const Matrix& m, Canvas& c) : matrix(m), canvas(c) {
 	instances.reserve(8);
 }
@@ -51,8 +26,6 @@ void TextEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	int16_t x = props["x"];
-	int16_t y = props["y"];
 	uint32_t durationMs = props["duration"];
 
 	TextInstance instance;
@@ -79,25 +52,14 @@ void TextEffect::add(JsonDocument& props) {
 		instance.accentB = 0;
 	}
 
-	instance.x = x;
-	instance.y = y;
 	instance.duration = durationMs / 1000.0f;
 	instance.elapsedTime = 0.0f;
 
-	const char* alignStr = props["align"] | "left";
-	instance.align = TextAlign::LEFT;
-	if (strcmp(alignStr, "center") == 0) {
-		instance.align = TextAlign::CENTER;
-	} else if (strcmp(alignStr, "right") == 0) {
-		instance.align = TextAlign::RIGHT;
-	}
-
-	// Parse optional gradient animation
-	ColorGradientResult gradientResult = parseColorGradientFromJson(props, instance.gradientLut);
-	instance.hasGradient = gradientResult.hasGradient;
+	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
+	instance.hasGradient = parseGradientFromJson(props, instance.gradientLut);
 	if (instance.hasGradient) {
-		instance.gradientSpeed = gradientResult.speed;
-		instance.gradientScale = gradientResult.scale;
+		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;
+		instance.gradientScale = props["gradientScale"] | 4.0f;
 		instance.gradientTime = 0.0f;
 	}
 
@@ -126,8 +88,8 @@ void TextEffect::update(float deltaTime) {
 }
 
 void TextEffect::render() {
-	constexpr int16_t ACCENT_OFFSET = 4;
 	uint16_t canvasWidth = canvas.getWidth();
+	uint16_t canvasHeight = canvas.getHeight();
 
 	for (const auto& inst : instances) {
 		// Calculate alpha for fade-out during last half of duration
@@ -140,52 +102,61 @@ void TextEffect::render() {
 			}
 		}
 
-		// Calculate effective x position based on alignment
-		int16_t effectiveX = inst.x;
-		if (inst.align != TextAlign::LEFT) {
-			int16_t textWidthCanvas = inst.textLen * TEXT_CHAR_WIDTH;
-			if (inst.align == TextAlign::CENTER) {
-				effectiveX = (static_cast<int16_t>(canvasWidth) - textWidthCanvas) / 2;
-			} else {  // RIGHT
-				effectiveX = static_cast<int16_t>(canvasWidth) - textWidthCanvas;
-			}
-			// Snap to LED boundary for crisp rendering
-			effectiveX = (effectiveX / TEXT_SCALE) * TEXT_SCALE;
-		}
+		// Center horizontally (snapped to LED boundary)
+		int16_t textWidthCanvas = inst.textLen * TEXT_CHAR_WIDTH;
+		int16_t effectiveX = (static_cast<int16_t>(canvasWidth) - textWidthCanvas) / 2;
+		effectiveX = (effectiveX / TEXT_SCALE) * TEXT_SCALE;
 
-		// Pass 1: Accent (if present)
+		// Center vertically (snapped to LED boundary)
+		int16_t effectiveY = (static_cast<int16_t>(canvasHeight) - TEXT_CHAR_HEIGHT) / 2;
+		effectiveY = (effectiveY / TEXT_SCALE) * TEXT_SCALE;
+
+		// Render text - use optimized path when no accent
 		if (inst.hasAccent) {
 			for (uint8_t i = 0; i < inst.textLen; i++) {
-				int16_t charX, charY;
-				getWrappedPosition(effectiveX, inst.y, i, canvasWidth, charX, charY);
-				renderChar(canvas, inst.text[i], charX + ACCENT_OFFSET, charY + ACCENT_OFFSET,
-				           inst.accentR, inst.accentG, inst.accentB, alpha, BlendMode::ALPHA);
+				int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
+
+				uint8_t r, g, b;
+				if (inst.hasGradient) {
+					float charOffset = i * inst.gradientScale;
+					float position = inst.gradientTime + charOffset;
+					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					CRGB color = inst.gradientLut[lutIndex];
+					r = color.r;
+					g = color.g;
+					b = color.b;
+				} else {
+					r = inst.r;
+					g = inst.g;
+					b = inst.b;
+				}
+
+				renderCharWithAccent(canvas, inst.text[i], charX, effectiveY,
+				                     r, g, b,
+				                     inst.accentR, inst.accentG, inst.accentB,
+				                     alpha, BlendMode::ALPHA);
 			}
-		}
+		} else {
+			for (uint8_t i = 0; i < inst.textLen; i++) {
+				int16_t charX = effectiveX + (i * TEXT_CHAR_WIDTH);
 
-		// Pass 2: Main text
-		for (uint8_t i = 0; i < inst.textLen; i++) {
-			int16_t charX, charY;
-			getWrappedPosition(effectiveX, inst.y, i, canvasWidth, charX, charY);
+				uint8_t r, g, b;
+				if (inst.hasGradient) {
+					float charOffset = i * inst.gradientScale;
+					float position = inst.gradientTime + charOffset;
+					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					CRGB color = inst.gradientLut[lutIndex];
+					r = color.r;
+					g = color.g;
+					b = color.b;
+				} else {
+					r = inst.r;
+					g = inst.g;
+					b = inst.b;
+				}
 
-			uint8_t r, g, b;
-			if (inst.hasGradient) {
-				// Wave effect: each character offset by gradientScale, cycling over time
-				float charOffset = i * inst.gradientScale;
-				float position = inst.gradientTime + charOffset;
-				// Map position to LUT index (0-99), wrapping around
-				uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
-				CRGB color = inst.gradientLut[lutIndex];
-				r = color.r;
-				g = color.g;
-				b = color.b;
-			} else {
-				r = inst.r;
-				g = inst.g;
-				b = inst.b;
+				renderChar(canvas, inst.text[i], charX, effectiveY, r, g, b, alpha, BlendMode::ALPHA);
 			}
-
-			renderChar(canvas, inst.text[i], charX, charY, r, g, b, alpha, BlendMode::ALPHA);
 		}
 	}
 }

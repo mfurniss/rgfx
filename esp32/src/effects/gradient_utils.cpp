@@ -12,8 +12,19 @@ CRGB parseHexColor(const char* hex) {
 }
 
 void generateGradientLut(const CRGB* colors, uint8_t colorCount, CRGB* lut) {
-	if (colorCount < 2) {
-		generateDefaultRainbowLut(lut);
+	if (colorCount == 0) {
+		// No colors - fill with black
+		for (uint8_t i = 0; i < GRADIENT_LUT_SIZE; i++) {
+			lut[i] = CRGB(0, 0, 0);
+		}
+		return;
+	}
+
+	if (colorCount == 1) {
+		// Single color - fill entire LUT with that color
+		for (uint8_t i = 0; i < GRADIENT_LUT_SIZE; i++) {
+			lut[i] = colors[0];
+		}
 		return;
 	}
 

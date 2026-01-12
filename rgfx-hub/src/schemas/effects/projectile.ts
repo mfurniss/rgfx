@@ -6,11 +6,19 @@
  */
 
 import { z } from 'zod';
-
 import { baseEffect } from './properties';
+import { randomColor, randomFloat, randomInt, randomString } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
-  return {};
+  return {
+    color: randomColor(0.5),
+    direction: randomString(['left', 'right']),
+    velocity: randomInt(500, 3000),
+    friction: randomFloat(5),
+    trail: randomFloat(4),
+    width: randomInt(4, 64),
+    height: randomInt(4, 64),
+  };
 }
 
 /**

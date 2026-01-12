@@ -73,6 +73,20 @@ export function generateBroadcastCode(
   const cleanProps = { ...props };
   delete cleanProps.__gifPath;
 
+  // Exclude color when gradient is present (gradient overrides color)
+  // Handle both array format (plasma, text) and object format (background)
+  const gradient = cleanProps.gradient as
+    | string[]
+    | { colors?: string[] }
+    | undefined;
+  const hasGradient = Array.isArray(gradient)
+    ? gradient.length > 0
+    : Array.isArray(gradient?.colors) && gradient.colors.length > 0;
+
+  if (hasGradient) {
+    delete cleanProps.color;
+  }
+
   const lines = [
     'broadcast({',
     `  effect: '${effect}',`,

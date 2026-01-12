@@ -24,6 +24,8 @@ function exports.set_boot_delay(seconds)
 		delay_start_time = 0 -- Will be set on first frame
 		delay_duration_seconds = seconds
 		print(string.format("RAM monitoring delayed: %d seconds", seconds))
+	else
+		print("RAM monitoring: no delay")
 	end
 end
 
@@ -160,17 +162,35 @@ end
 -- Install monitors from a map table
 -- Each entry should have addr_start and optionally addr_end, callback, callback_changed, size
 function exports.install_monitors(map, mem)
-	for name, config in pairs(map) do
-		exports.install_ram_monitor({
-			mem = mem,
-			start_addr = config.addr_start,
-			end_addr = config.addr_end,
-			name = name,
-			callback = config.callback,
-			callback_changed = config.callback_changed,
-			size = config.size,
-		})
+	print("install_monitors called")
+	if not map then
+		print("ERROR: map is nil")
+		return
 	end
+	if not mem then
+		print("ERROR: mem is nil")
+		return
+	end
+	local count = 0
+	for name, config in pairs(map) do
+		local ok, err = pcall(function()
+			exports.install_ram_monitor({
+				mem = mem,
+				start_addr = config.addr_start,
+				end_addr = config.addr_end,
+				name = nil, -- Suppress verbose per-monitor logging
+				callback = config.callback,
+				callback_changed = config.callback_changed,
+				size = config.size,
+			})
+		end)
+		if ok then
+			count = count + 1
+		else
+			print(string.format("ERROR installing monitor '%s': %s", name, tostring(err)))
+		end
+	end
+	print(string.format("Installed %d RAM monitors", count))
 end
 
 return exports

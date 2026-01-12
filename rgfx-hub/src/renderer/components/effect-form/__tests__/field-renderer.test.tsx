@@ -40,6 +40,7 @@ function TestWrapper({ field, defaultValue }: TestWrapperProps) {
         field={field}
         control={methods.control}
         errors={{}}
+        formValues={{ testField: defaultValue ?? field.defaultValue }}
       />
     </FormProvider>
   );

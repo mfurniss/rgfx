@@ -9,7 +9,7 @@
  * @param {import('../../../src/types/mapping-types').MappingContext} context
  * @returns {boolean}
  */
-export function handle() {
+export function transform() {
   // Disabled - let game-specific handlers manage score events
   return false;
 }
