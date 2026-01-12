@@ -368,8 +368,7 @@ export default function TestEffectsPage() {
                   ))}
                 </Select>
               </FormControl>
-              {/* Show preset button except for background (has its own in gradient field) */}
-              {presetConfig && selectedEffect !== 'background' && (
+              {presetConfig && (
                 <Button
                   variant="outlined"
                   startIcon={<PaletteIcon />}

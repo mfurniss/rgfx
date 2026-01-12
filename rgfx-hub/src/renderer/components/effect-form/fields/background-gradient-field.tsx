@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   IconButton,
@@ -16,16 +16,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Button,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import PaletteIcon from '@mui/icons-material/Palette';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import SuperButton from '@/renderer/components/common/super-button';
-import { PresetSelectorModal } from '../preset-selector-modal';
-import type { PresetData } from '@/schemas';
 
 interface GradientValue {
   colors: string[];
@@ -45,8 +41,6 @@ export function BackgroundGradientField<T extends FieldValues>({
   label,
   error,
 }: BackgroundGradientFieldProps<T>) {
-  const [presetModalOpen, setPresetModalOpen] = useState(false);
-
   return (
     <Controller
       name={name}
@@ -83,36 +77,11 @@ export function BackgroundGradientField<T extends FieldValues>({
           updateValue(colors, newOrientation);
         };
 
-        const handlePresetSelect = (data: PresetData) => {
-          // Apply preset gradient, preserve current orientation
-          updateValue(data.gradient, orientation);
-        };
-
         return (
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               {label} ({colors.length}/{MAX_GRADIENT_COLORS})
             </Typography>
-
-            <Button
-              variant="outlined"
-              startIcon={<PaletteIcon />}
-              onClick={() => {
-                setPresetModalOpen(true);
-              }}
-              sx={{ mb: 1 }}
-            >
-              Select Preset
-            </Button>
-
-            <PresetSelectorModal
-              open={presetModalOpen}
-              type="gradient"
-              onClose={() => {
-                setPresetModalOpen(false);
-              }}
-              onSelect={handlePresetSelect}
-            />
 
             {/* Gradient preview bar */}
             {colors.length > 0 && (
