@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "effect.h"
 #include "graphics/canvas.h"
+#include "particle_system.h"
 
 enum class ProjectileDirection : uint8_t { LEFT, RIGHT, UP, DOWN };
 
@@ -20,15 +21,17 @@ class ProjectileEffect : public IEffect {
 		uint8_t r, g, b;      // RGB color
 		float elapsedTime;    // Time since creation (seconds)
 		float maxLifespan;    // Auto-removal timeout (seconds)
+		float particleDensity;      // % chance per frame to emit particle (0-100)
 	};
 
 	std::vector<Projectile> projectiles;
 	Canvas& canvas;
+	ParticleSystem& particleSystem;
 	uint16_t canvasWidth;
 	uint16_t canvasHeight;
 
    public:
-	ProjectileEffect(const Matrix& matrix, Canvas& canvas);
+	ProjectileEffect(const Matrix& matrix, Canvas& canvas, ParticleSystem& particleSystem);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "network/network_task.h"
+#include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "config/config_portal.h"
 #include "config/constants.h"
@@ -12,6 +13,14 @@
 #include "oled/oled_display.h"
 #include "telemetry.h"
 #include "utils.h"
+
+// Frame watchdog atomics (defined in main.cpp)
+extern std::atomic<bool> watchdogPing;
+extern std::atomic<bool> watchdogPong;
+
+// Frame watchdog constants
+static constexpr uint32_t WATCHDOG_PING_INTERVAL_MS = 2000;
+static constexpr uint32_t WATCHDOG_TIMEOUT_MS = 2000;
 
 // Forward declaration for log queue processing (defined in log.cpp)
 void processLogQueue();
@@ -47,6 +56,11 @@ void networkTask(void* parameter) {
 	unsigned long lastStackCheck = 0;
 	const unsigned long STACK_CHECK_INTERVAL_MS = 30000;  // Check every 30 seconds
 	const UBaseType_t STACK_WARNING_THRESHOLD = 1024;     // Warn if below 1KB remaining
+
+	// Frame watchdog state
+	unsigned long lastWatchdogPing = 0;
+	bool watchdogWaitingForPong = false;
+	bool watchdogClearRequested = false;
 
 	// Main network task loop
 	while (true) {
@@ -107,6 +121,44 @@ void networkTask(void* parameter) {
 					    " bytes remaining", LogLevel::ERROR);
 				}
 				lastStackCheck = now;
+			}
+		}
+
+		// Frame watchdog: ping Core 1 and check for response
+		// Only run when connected and not during OTA
+		if (isConnected && !otaInProgress && !pendingRestart) {
+			unsigned long now = millis();
+
+			// Check for pong response
+			if (watchdogWaitingForPong && watchdogPong.exchange(false)) {
+				// Got pong - Core 1 is alive
+				watchdogWaitingForPong = false;
+				watchdogClearRequested = false;
+			}
+
+			// Check for timeout
+			if (watchdogWaitingForPong && (now - lastWatchdogPing >= WATCHDOG_TIMEOUT_MS)) {
+				if (!watchdogClearRequested) {
+					// First timeout: request effect clear
+					log("Frame watchdog: Core 1 not responding, requesting clear", LogLevel::ERROR);
+					publishError("frame_watchdog", "Core 1 not responding - clearing effects");
+					pendingClearEffects.store(true);
+					watchdogClearRequested = true;
+					lastWatchdogPing = now;  // Reset timer for second chance
+				} else {
+					// Second timeout: Core 1 still stuck, restart
+					log("Frame watchdog: Core 1 still stuck, restarting...", LogLevel::ERROR);
+					publishError("frame_watchdog", "Core 1 stuck - restarting driver");
+					delay(100);  // Allow error to be published
+					ESP.restart();
+				}
+			}
+
+			// Send periodic ping
+			if (!watchdogWaitingForPong && (now - lastWatchdogPing >= WATCHDOG_PING_INTERVAL_MS)) {
+				watchdogPing.store(true);
+				watchdogWaitingForPong = true;
+				lastWatchdogPing = now;
 			}
 		}
 

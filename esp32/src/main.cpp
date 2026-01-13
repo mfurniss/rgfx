@@ -50,6 +50,12 @@ static float g_maxFps = 0.0f;
 static uint32_t g_frameCount = 0;
 static uint32_t g_lastFpsCalcTime = 0;
 
+// Frame watchdog - Core 0 pings, Core 1 responds
+// If Core 1 doesn't respond, Core 0 requests clear, then restarts if still stuck
+std::atomic<bool> watchdogPing(false);            // Core 0 sets to request pong
+std::atomic<bool> watchdogPong(false);            // Core 1 sets to respond
+static constexpr uint32_t FRAME_WATCHDOG_TIMEOUT_MS = 2000;
+
 // FPS getters for telemetry
 float getCurrentFps() { return g_currentFps; }
 float getMinFps() { return g_minFps; }
@@ -412,7 +418,13 @@ void loop() {
 		// Update and render continuous effects
 		if (effectProcessor != nullptr) {
 			effectProcessor->update();
-			g_frameCount++;  // Count actual rendered frames for FPS calculation
+			g_frameCount++;
+
+			// Respond to watchdog ping from Core 0
+			if (watchdogPing.load()) {
+				watchdogPing.store(false);
+				watchdogPong.store(true);
+			}
 		}
 	}
 

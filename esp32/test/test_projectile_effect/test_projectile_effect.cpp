@@ -50,6 +50,8 @@ using String = std::string;
 
 // Include effects
 #include "effects/effect.h"
+#include "effects/particle_system.h"
+#include "effects/particle_system.cpp"
 #include "effects/projectile.h"
 #include "effects/projectile.cpp"
 
@@ -74,7 +76,8 @@ void tearDown(void) {}
 void test_projectile_creation_default_values() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -92,7 +95,8 @@ void test_projectile_creation_default_values() {
 void test_projectile_creation_with_color() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -122,7 +126,8 @@ void test_projectile_creation_with_color() {
 void test_projectile_reset_clears_all() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -150,7 +155,8 @@ void test_projectile_reset_clears_all() {
 void test_projectile_direction_right() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -185,7 +191,8 @@ void test_projectile_direction_right() {
 void test_projectile_direction_left() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -220,7 +227,8 @@ void test_projectile_direction_left() {
 void test_projectile_direction_down() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -249,7 +257,8 @@ void test_projectile_direction_down() {
 void test_projectile_direction_up() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -280,7 +289,8 @@ void test_projectile_direction_random() {
 	// Individual direction tests verify each direction works correctly
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -304,7 +314,8 @@ void test_projectile_1d_strip_vertical_maps_to_horizontal() {
 	// 1D strip: height=1
 	Matrix matrix(16, 1, "strip");
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	// On 1D strip, "up" should map to "left" and "down" should map to "right"
 	JsonDocument props;
@@ -343,7 +354,8 @@ void test_projectile_1d_strip_vertical_maps_to_horizontal() {
 void test_projectile_position_over_time() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -370,7 +382,8 @@ void test_projectile_position_over_time() {
 void test_projectile_friction_zero() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -407,7 +420,8 @@ void test_projectile_friction_zero() {
 void test_projectile_friction_positive() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -448,7 +462,8 @@ void test_projectile_friction_positive() {
 void test_projectile_friction_negative() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -484,7 +499,8 @@ void test_projectile_friction_negative() {
 void test_projectile_friction_high_clamps_decay() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -504,6 +520,60 @@ void test_projectile_friction_high_clamps_decay() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) >= 0);
 }
 
+void test_projectile_negative_friction_velocity_capped() {
+	// Test that velocity doesn't overflow with negative friction (acceleration)
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "right";
+	props["velocity"] = 100;
+	props["friction"] = -5.0f;  // Strong acceleration
+	props["width"] = 4;
+	props["height"] = 4;
+	props["lifespan"] = 60000;  // Long lifespan to prevent timeout
+	effect.add(props);
+
+	// Run many updates - velocity should be capped, not overflow
+	for (int i = 0; i < 100; i++) {
+		effect.update(0.1f);  // 10 seconds total
+	}
+
+	// Should not crash - test passes if we get here
+	canvas.clear();
+	effect.render();
+	TEST_PASS();
+}
+
+void test_projectile_extreme_negative_friction_no_crash() {
+	// Test extreme negative friction doesn't crash
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "left";
+	props["velocity"] = 1000;
+	props["friction"] = -10.0f;  // Very strong acceleration
+	props["width"] = 58;  // Large width (edge case from bug report)
+	props["height"] = 22;
+	props["lifespan"] = 5000;
+	effect.add(props);
+
+	// Run until lifespan expires
+	for (int i = 0; i < 60; i++) {
+		effect.update(0.1f);
+	}
+
+	// Should not crash
+	TEST_PASS();
+}
+
 // =============================================================================
 // 4. Trail Rendering
 // =============================================================================
@@ -511,7 +581,8 @@ void test_projectile_friction_high_clamps_decay() {
 void test_projectile_trail_zero_no_trail() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -535,7 +606,8 @@ void test_projectile_trail_zero_no_trail() {
 void test_projectile_trail_renders_segments() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -558,7 +630,8 @@ void test_projectile_trail_renders_segments() {
 void test_projectile_trail_alpha_gradient() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -594,7 +667,8 @@ void test_projectile_trail_length_proportional_to_velocity() {
 	Canvas canvas(matrix);
 
 	// Slow projectile
-	ProjectileEffect effect1(matrix, canvas);
+	ParticleSystem particleSystem1(matrix, canvas);
+	ProjectileEffect effect1(matrix, canvas, particleSystem1);
 	JsonDocument props1;
 	setDefaultProjectileProps(props1);
 	props1["direction"] = "right";
@@ -609,7 +683,8 @@ void test_projectile_trail_length_proportional_to_velocity() {
 	int width1 = findRightmostPixelX(canvas) - findLeftmostPixelX(canvas);
 
 	// Fast projectile
-	ProjectileEffect effect2(matrix, canvas);
+	ParticleSystem particleSystem2(matrix, canvas);
+	ProjectileEffect effect2(matrix, canvas, particleSystem2);
 	JsonDocument props2;
 	setDefaultProjectileProps(props2);
 	props2["direction"] = "right";
@@ -634,7 +709,8 @@ void test_projectile_trail_length_proportional_to_velocity() {
 void test_projectile_removed_when_off_canvas_right() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -661,7 +737,8 @@ void test_projectile_removed_when_off_canvas_right() {
 void test_projectile_removed_when_off_canvas_left() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -686,7 +763,8 @@ void test_projectile_removed_when_off_canvas_left() {
 void test_projectile_removed_when_expired() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -709,7 +787,8 @@ void test_projectile_removed_when_expired() {
 void test_projectile_trail_considered_for_bounds() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -745,7 +824,8 @@ void test_projectile_trail_considered_for_bounds() {
 void test_projectile_multiple_concurrent() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props1;
 	setDefaultProjectileProps(props1);
@@ -790,7 +870,8 @@ void test_projectile_multiple_concurrent() {
 void test_projectile_removal_doesnt_affect_others() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	// Fast projectile that will exit quickly
 	JsonDocument props1;
@@ -846,7 +927,8 @@ void test_projectile_removal_doesnt_affect_others() {
 void test_projectile_uses_additive_blending() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	// Pre-fill canvas with some color
 	canvas.fill(CRGB(50, 50, 50));
@@ -873,7 +955,8 @@ void test_projectile_uses_additive_blending() {
 void test_projectile_1d_strip_height_forced_to_1() {
 	Matrix matrix(16, 1, "strip");
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -907,7 +990,8 @@ void test_projectile_1d_strip_height_forced_to_1() {
 void test_projectile_snapshot_right_t0() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	hal::test::seedRandom(12345);  // Deterministic
 
@@ -934,7 +1018,8 @@ void test_projectile_snapshot_right_t0() {
 void test_projectile_snapshot_right_t100ms() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	hal::test::seedRandom(12345);
 
@@ -967,7 +1052,8 @@ void test_projectile_snapshot_right_t100ms() {
 void test_projectile_snapshot_with_trail() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	hal::test::seedRandom(12345);
 
@@ -1002,7 +1088,143 @@ void test_projectile_snapshot_with_trail() {
 }
 
 // =============================================================================
-// 9. Pixel Digest Tests - Full Pipeline Validation
+// 9. Particle Emission Tests
+// =============================================================================
+
+void test_projectile_particle_density_zero_no_particles() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 0;  // No particles
+	effect.add(props);
+
+	// Run updates
+	for (int i = 0; i < 10; i++) {
+		effect.update(0.05f);
+	}
+
+	// Only render particle system (not projectile)
+	canvas.clear();
+	particleSystem.render();
+
+	// Should have no particles
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_projectile_particle_density_emits_particles() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = "#FF0000";
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["friction"] = 0;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 100;  // 100% chance per frame
+	effect.add(props);
+
+	// Run updates to emit particles
+	for (int i = 0; i < 20; i++) {
+		effect.update(0.05f);
+	}
+
+	// Render only particle system
+	canvas.clear();
+	particleSystem.render();
+
+	// Should have particles
+	TEST_ASSERT_GREATER_THAN(0, countNonBlackPixels(canvas));
+}
+
+void test_projectile_particle_velocity_capped() {
+	// Test that particle velocity is capped even with high projectile velocity
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "right";
+	props["velocity"] = 50000;  // Extremely high velocity
+	props["friction"] = -5.0f;  // Accelerating
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 100;
+	props["lifespan"] = 60000;
+	effect.add(props);
+
+	// Run many updates with particle emission
+	for (int i = 0; i < 50; i++) {
+		effect.update(0.1f);
+	}
+
+	// Should not crash
+	canvas.clear();
+	particleSystem.render();
+	TEST_PASS();
+}
+
+void test_projectile_particle_same_color_as_projectile() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = "#00FF00";  // Green
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["friction"] = 0;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 100;
+	effect.add(props);
+
+	// Emit particles
+	for (int i = 0; i < 10; i++) {
+		effect.update(0.05f);
+	}
+
+	// Render particles only
+	canvas.clear();
+	particleSystem.render();
+
+	// Find any non-black pixel and verify it's greenish
+	bool foundGreen = false;
+	for (uint16_t y = 0; y < canvas.getHeight() && !foundGreen; y++) {
+		for (uint16_t x = 0; x < canvas.getWidth() && !foundGreen; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.g > 0 && pixel.r == 0 && pixel.b == 0) {
+				foundGreen = true;
+			}
+		}
+	}
+	TEST_ASSERT_TRUE(foundGreen);
+}
+
+// =============================================================================
+// 10. Pixel Digest Tests - Full Pipeline Validation
 // =============================================================================
 
 static uint64_t runProjectileDigest(const TestConfig& config, float updateTime,
@@ -1014,7 +1236,8 @@ static uint64_t runProjectileDigest(const TestConfig& config, float updateTime,
 	String layout = config.layout ? config.layout : "matrix-br-v-snake";
 	Matrix matrix(config.width, config.height, layout);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -1062,7 +1285,8 @@ void test_projectile_property_moves_over_time() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultProjectileProps(props);
@@ -1099,7 +1323,8 @@ void test_projectile_property_all_configs_render() {
 		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
 		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
 		Canvas canvas(matrix);
-		ProjectileEffect effect(matrix, canvas);
+		ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 		JsonDocument props;
 		setDefaultProjectileProps(props);
@@ -1151,6 +1376,8 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_projectile_friction_positive);
 	RUN_TEST(test_projectile_friction_negative);
 	RUN_TEST(test_projectile_friction_high_clamps_decay);
+	RUN_TEST(test_projectile_negative_friction_velocity_capped);
+	RUN_TEST(test_projectile_extreme_negative_friction_no_crash);
 
 	// 4. Trail Rendering
 	RUN_TEST(test_projectile_trail_zero_no_trail);
@@ -1177,7 +1404,13 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_projectile_snapshot_right_t100ms);
 	RUN_TEST(test_projectile_snapshot_with_trail);
 
-	// 9. Pixel Digest Tests
+	// 9. Particle Emission Tests
+	RUN_TEST(test_projectile_particle_density_zero_no_particles);
+	RUN_TEST(test_projectile_particle_density_emits_particles);
+	RUN_TEST(test_projectile_particle_velocity_capped);
+	RUN_TEST(test_projectile_particle_same_color_as_projectile);
+
+	// 10. Pixel Digest Tests
 	RUN_TEST(test_projectile_digest_16x16_t100_right);
 	RUN_TEST(test_projectile_digest_16x16_t200_down);
 	RUN_TEST(test_projectile_digest_strip_t150_right);
