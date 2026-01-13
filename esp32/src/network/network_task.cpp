@@ -5,7 +5,6 @@
 #include "network/network_task.h"
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <ESP.h>
 #include "config/config_portal.h"
 #include "config/constants.h"
 #include "log.h"
