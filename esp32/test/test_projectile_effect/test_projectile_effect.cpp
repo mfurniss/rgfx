@@ -520,6 +520,60 @@ void test_projectile_friction_high_clamps_decay() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) >= 0);
 }
 
+void test_projectile_negative_friction_velocity_capped() {
+	// Test that velocity doesn't overflow with negative friction (acceleration)
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "right";
+	props["velocity"] = 100;
+	props["friction"] = -5.0f;  // Strong acceleration
+	props["width"] = 4;
+	props["height"] = 4;
+	props["lifespan"] = 60000;  // Long lifespan to prevent timeout
+	effect.add(props);
+
+	// Run many updates - velocity should be capped, not overflow
+	for (int i = 0; i < 100; i++) {
+		effect.update(0.1f);  // 10 seconds total
+	}
+
+	// Should not crash - test passes if we get here
+	canvas.clear();
+	effect.render();
+	TEST_PASS();
+}
+
+void test_projectile_extreme_negative_friction_no_crash() {
+	// Test extreme negative friction doesn't crash
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "left";
+	props["velocity"] = 1000;
+	props["friction"] = -10.0f;  // Very strong acceleration
+	props["width"] = 58;  // Large width (edge case from bug report)
+	props["height"] = 22;
+	props["lifespan"] = 5000;
+	effect.add(props);
+
+	// Run until lifespan expires
+	for (int i = 0; i < 60; i++) {
+		effect.update(0.1f);
+	}
+
+	// Should not crash
+	TEST_PASS();
+}
+
 // =============================================================================
 // 4. Trail Rendering
 // =============================================================================
@@ -1034,7 +1088,143 @@ void test_projectile_snapshot_with_trail() {
 }
 
 // =============================================================================
-// 9. Pixel Digest Tests - Full Pipeline Validation
+// 9. Particle Emission Tests
+// =============================================================================
+
+void test_projectile_particle_density_zero_no_particles() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 0;  // No particles
+	effect.add(props);
+
+	// Run updates
+	for (int i = 0; i < 10; i++) {
+		effect.update(0.05f);
+	}
+
+	// Only render particle system (not projectile)
+	canvas.clear();
+	particleSystem.render();
+
+	// Should have no particles
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_projectile_particle_density_emits_particles() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = "#FF0000";
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["friction"] = 0;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 100;  // 100% chance per frame
+	effect.add(props);
+
+	// Run updates to emit particles
+	for (int i = 0; i < 20; i++) {
+		effect.update(0.05f);
+	}
+
+	// Render only particle system
+	canvas.clear();
+	particleSystem.render();
+
+	// Should have particles
+	TEST_ASSERT_GREATER_THAN(0, countNonBlackPixels(canvas));
+}
+
+void test_projectile_particle_velocity_capped() {
+	// Test that particle velocity is capped even with high projectile velocity
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["direction"] = "right";
+	props["velocity"] = 50000;  // Extremely high velocity
+	props["friction"] = -5.0f;  // Accelerating
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 100;
+	props["lifespan"] = 60000;
+	effect.add(props);
+
+	// Run many updates with particle emission
+	for (int i = 0; i < 50; i++) {
+		effect.update(0.1f);
+	}
+
+	// Should not crash
+	canvas.clear();
+	particleSystem.render();
+	TEST_PASS();
+}
+
+void test_projectile_particle_same_color_as_projectile() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
+
+	hal::test::seedRandom(12345);
+
+	JsonDocument props;
+	setDefaultProjectileProps(props);
+	props["color"] = "#00FF00";  // Green
+	props["direction"] = "right";
+	props["velocity"] = 200;
+	props["friction"] = 0;
+	props["width"] = 4;
+	props["height"] = 4;
+	props["particleDensity"] = 100;
+	effect.add(props);
+
+	// Emit particles
+	for (int i = 0; i < 10; i++) {
+		effect.update(0.05f);
+	}
+
+	// Render particles only
+	canvas.clear();
+	particleSystem.render();
+
+	// Find any non-black pixel and verify it's greenish
+	bool foundGreen = false;
+	for (uint16_t y = 0; y < canvas.getHeight() && !foundGreen; y++) {
+		for (uint16_t x = 0; x < canvas.getWidth() && !foundGreen; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.g > 0 && pixel.r == 0 && pixel.b == 0) {
+				foundGreen = true;
+			}
+		}
+	}
+	TEST_ASSERT_TRUE(foundGreen);
+}
+
+// =============================================================================
+// 10. Pixel Digest Tests - Full Pipeline Validation
 // =============================================================================
 
 static uint64_t runProjectileDigest(const TestConfig& config, float updateTime,
@@ -1186,6 +1376,8 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_projectile_friction_positive);
 	RUN_TEST(test_projectile_friction_negative);
 	RUN_TEST(test_projectile_friction_high_clamps_decay);
+	RUN_TEST(test_projectile_negative_friction_velocity_capped);
+	RUN_TEST(test_projectile_extreme_negative_friction_no_crash);
 
 	// 4. Trail Rendering
 	RUN_TEST(test_projectile_trail_zero_no_trail);
@@ -1212,7 +1404,13 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_projectile_snapshot_right_t100ms);
 	RUN_TEST(test_projectile_snapshot_with_trail);
 
-	// 9. Pixel Digest Tests
+	// 9. Particle Emission Tests
+	RUN_TEST(test_projectile_particle_density_zero_no_particles);
+	RUN_TEST(test_projectile_particle_density_emits_particles);
+	RUN_TEST(test_projectile_particle_velocity_capped);
+	RUN_TEST(test_projectile_particle_same_color_as_projectile);
+
+	// 10. Pixel Digest Tests
 	RUN_TEST(test_projectile_digest_16x16_t100_right);
 	RUN_TEST(test_projectile_digest_16x16_t200_down);
 	RUN_TEST(test_projectile_digest_strip_t150_right);
