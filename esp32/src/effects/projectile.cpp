@@ -40,9 +40,9 @@ static ProjectileDirection parseDirection(const char* dir, bool is1D) {
 	return result;
 }
 
-ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c)
-    : canvas(c), canvasWidth(c.getWidth()), canvasHeight(c.getHeight()) {
-	(void)m;  // Matrix not needed, but kept for API consistency
+ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c, ParticleSystem& ps)
+	: canvas(c), particleSystem(ps), canvasWidth(c.getWidth()), canvasHeight(c.getHeight()) {
+	(void)m;                  // Matrix not needed, but kept for API consistency
 	projectiles.reserve(16);  // Pre-allocate to avoid heap fragmentation
 }
 
@@ -80,6 +80,7 @@ void ProjectileEffect::add(JsonDocument& props) {
 	newProjectile.trail = trail;
 	newProjectile.elapsedTime = 0.0f;
 	newProjectile.maxLifespan = lifespanMs / 1000.0f;
+	newProjectile.particleDensity = props["particleDensity"] | 0.0f;
 
 	// Calculate start position and velocity based on direction
 	switch (direction) {
@@ -113,7 +114,8 @@ void ProjectileEffect::add(JsonDocument& props) {
 }
 
 void ProjectileEffect::update(float deltaTime) {
-	if (projectiles.empty()) return;
+	if (projectiles.empty())
+		return;
 
 	// Use index-based loop with swap-and-pop for O(1) removal
 	for (size_t i = 0; i < projectiles.size();) {
@@ -123,15 +125,56 @@ void ProjectileEffect::update(float deltaTime) {
 		p.elapsedTime += deltaTime;
 
 		// Apply friction using true exponential decay (frame-rate independent)
+		// Negative friction = acceleration, positive = deceleration
 		if (p.friction != 0.0f) {
 			float decay = expf(-p.friction * deltaTime);
 			p.velocityX *= decay;
 			p.velocityY *= decay;
+			// Cap velocity to prevent overflow with negative friction
+			constexpr float MAX_VELOCITY = 10000.0f;
+			if (p.velocityX > MAX_VELOCITY) p.velocityX = MAX_VELOCITY;
+			if (p.velocityX < -MAX_VELOCITY) p.velocityX = -MAX_VELOCITY;
+			if (p.velocityY > MAX_VELOCITY) p.velocityY = MAX_VELOCITY;
+			if (p.velocityY < -MAX_VELOCITY) p.velocityY = -MAX_VELOCITY;
 		}
 
 		// Update position
 		p.x += p.velocityX * deltaTime;
 		p.y += p.velocityY * deltaTime;
+
+		// Emit particle with % chance each frame
+		if (p.particleDensity > 0 && hal::random(100) < static_cast<int>(p.particleDensity)) {
+			Particle particle;
+			particle.x = p.x + p.width / 2.0f;
+			particle.y = p.y + p.height / 2.0f;
+			// Drift along projectile axis (5-15% of projectile velocity)
+			float driftFactor = 0.05f + (hal::random(100) / 1000.0f);
+			float vx = p.velocityX * driftFactor;
+			float vy = p.velocityY * driftFactor;
+			// Cap particle velocity
+			constexpr float MAX_PARTICLE_VEL = 1000.0f;
+			if (vx > MAX_PARTICLE_VEL) vx = MAX_PARTICLE_VEL;
+			if (vx < -MAX_PARTICLE_VEL) vx = -MAX_PARTICLE_VEL;
+			if (vy > MAX_PARTICLE_VEL) vy = MAX_PARTICLE_VEL;
+			if (vy < -MAX_PARTICLE_VEL) vy = -MAX_PARTICLE_VEL;
+			particle.vx = vx;
+			particle.vy = vy;
+			particle.r = p.r;
+			particle.g = p.g;
+			particle.b = p.b;
+			particle.alpha = hal::random(160, 255);
+			particle.age = 0;
+			particle.lifespan = hal::random(300, 1200);  // 500-1500ms
+			particle.friction = 3.0f;
+			particle.gravity = 0;
+			// Size: 50-100% of projectile width, capped at 16
+			particle.size = static_cast<uint8_t>(p.width * (0.5f + hal::random(51) / 100.0f));
+			if (particle.size < 1)
+				particle.size = 1;
+			if (particle.size > 16)
+				particle.size = 16;
+			particleSystem.add(particle);
+		}
 
 		// Check if projectile should be removed
 		// Calculate actual trail length in pixels (velocity * trail multiplier)
@@ -156,7 +199,8 @@ void ProjectileEffect::update(float deltaTime) {
 }
 
 void ProjectileEffect::render() {
-	if (projectiles.empty()) return;
+	if (projectiles.empty())
+		return;
 
 	for (const auto& proj : projectiles) {
 		// Render trail: tail position = current position - (velocity * trail multiplier)
@@ -188,9 +232,9 @@ void ProjectileEffect::render() {
 					                    : static_cast<uint8_t>(PROJECTILE_TRAIL_ALPHA_MIN +
 					                                           (i * alphaRange / alphaDivisor));
 					canvas.drawRectangle(
-					    static_cast<int16_t>(segX), static_cast<int16_t>(proj.y),
-					    static_cast<uint8_t>(segmentWidth + 1),  // +1 to avoid gaps
-					    proj.height, CRGBA(proj.r, proj.g, proj.b, alpha), BlendMode::ADDITIVE);
+						static_cast<int16_t>(segX), static_cast<int16_t>(proj.y),
+						static_cast<uint8_t>(segmentWidth + 1),  // +1 to avoid gaps
+						proj.height, CRGBA(proj.r, proj.g, proj.b, alpha), BlendMode::ADDITIVE);
 					segX += segDelta;  // Additive increment instead of multiplication
 				}
 			}

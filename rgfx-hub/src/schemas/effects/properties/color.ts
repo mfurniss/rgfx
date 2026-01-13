@@ -35,4 +35,10 @@ const colorSchema = z.union([
   z.number().int().min(0).max(0xffffff),
 ]);
 
-export default colorSchema.optional().default('random').describe('Named color, hex value, or random');
+// Transform empty string to undefined so it gets the default value
+const colorSchemaWithEmptyString = z.preprocess(
+  (val) => (val === '' ? undefined : val),
+  colorSchema.optional().default('random'),
+);
+
+export default colorSchemaWithEmptyString.describe('fieldType:color|Named color, hex value, or random');

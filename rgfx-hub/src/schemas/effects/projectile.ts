@@ -8,16 +8,18 @@
 import { z } from 'zod';
 import { baseEffect } from './properties';
 import { randomColor, randomFloat, randomInt, randomString } from '@/utils/random';
+import { roundFloat } from '@/utils/math';
 
 export function randomize(): Record<string, unknown> {
   return {
     color: randomColor(0.5),
     direction: randomString(['left', 'right']),
     velocity: randomInt(500, 3000),
-    friction: randomFloat(5),
-    trail: randomFloat(4),
+    friction: roundFloat(randomFloat(8) - 4),
+    trail: randomInt(1) ? randomFloat(4) : 0,
     width: randomInt(4, 64),
     height: randomInt(4, 64),
+    particleDensity: randomInt(1) ? randomInt(30, 80) : 0,
   };
 }
 
@@ -36,5 +38,6 @@ export default baseEffect
     width: z.number().int().min(1).max(64).optional().default(16).describe('Width in pixels'),
     height: z.number().int().min(1).max(64).optional().default(6).describe('Height in pixels'),
     lifespan: z.number().min(100).max(30000).optional().default(5000).describe('Max duration in milliseconds'),
+    particleDensity: z.number().min(0).max(100).optional().default(0).describe('% chance per frame to emit particle (0 = disabled)'),
   })
   .strict();

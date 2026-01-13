@@ -49,6 +49,8 @@ using String = std::string;
 
 // Include effects
 #include "effects/effect.h"
+#include "effects/particle_system.h"
+#include "effects/particle_system.cpp"
 #include "effects/explode.h"
 #include "effects/explode.cpp"
 
@@ -73,14 +75,16 @@ void tearDown(void) {}
 void test_explode_creation() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 	TEST_PASS();
 }
 
 void test_explode_add_creates_particles() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -89,6 +93,7 @@ void test_explode_add_creates_particles() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -97,13 +102,15 @@ void test_explode_add_creates_particles() {
 void test_explode_with_defaults() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Default particleCount=100, should render something
@@ -113,7 +120,8 @@ void test_explode_with_defaults() {
 void test_explode_reset_clears_all() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -121,11 +129,14 @@ void test_explode_reset_clears_all() {
 	effect.add(props);
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 
 	effect.reset();
+	particleSystem.reset();
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
@@ -137,7 +148,8 @@ void test_explode_reset_clears_all() {
 void test_explode_center_0_percent() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -151,6 +163,7 @@ void test_explode_center_0_percent() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should be concentrated in top-left quadrant
@@ -161,7 +174,8 @@ void test_explode_center_0_percent() {
 void test_explode_center_100_percent() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -175,6 +189,7 @@ void test_explode_center_100_percent() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should be concentrated in bottom-right quadrant
@@ -185,7 +200,8 @@ void test_explode_center_100_percent() {
 void test_explode_center_50_percent() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -199,6 +215,7 @@ void test_explode_center_50_percent() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should be spread across all quadrants from center
@@ -209,7 +226,8 @@ void test_explode_center_50_percent() {
 void test_explode_center_arbitrary() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -219,6 +237,7 @@ void test_explode_center_arbitrary() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -228,7 +247,8 @@ void test_explode_center_random_string_x() {
 	// ESP32 now handles "random" string directly
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -238,6 +258,7 @@ void test_explode_center_random_string_x() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -246,7 +267,8 @@ void test_explode_center_random_string_x() {
 void test_explode_center_random_string_y() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -256,6 +278,7 @@ void test_explode_center_random_string_y() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -264,7 +287,8 @@ void test_explode_center_random_string_y() {
 void test_explode_center_random_string_both() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -274,6 +298,7 @@ void test_explode_center_random_string_both() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -282,7 +307,8 @@ void test_explode_center_random_string_both() {
 void test_explode_strip_ignores_centerY() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -291,8 +317,10 @@ void test_explode_strip_ignores_centerY() {
 	props["centerY"] = 75;  // Should be ignored for strip
 
 	effect.add(props);
+	particleSystem.update(0.01f);
 	effect.update(0.01f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Strip only has height=1, should still render
@@ -307,9 +335,10 @@ void test_explode_strip_ignores_centerY() {
 void test_explode_power_affects_spread() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
 
 	// Low power explosion
-	ExplodeEffect effect1(matrix, canvas);
+	ExplodeEffect effect1(matrix, canvas, particleSystem);
 	JsonDocument props1;
 	setDefaultExplodeProps(props1);
 	props1["particleCount"] = 50;
@@ -317,14 +346,15 @@ void test_explode_power_affects_spread() {
 	props1["friction"] = 0.5;
 	props1["lifespan"] = 5000;
 	effect1.add(props1);
-	effect1.update(0.1f);
+	particleSystem.update(0.1f);
 	canvas.clear();
-	effect1.render();
+	particleSystem.render();
 	BoundingBox box1 = findBoundingBox(canvas);
 
 	// High power explosion
+	particleSystem.reset();
 	hal::test::seedRandom(12345);  // Reset random for comparison
-	ExplodeEffect effect2(matrix, canvas);
+	ExplodeEffect effect2(matrix, canvas, particleSystem);
 	JsonDocument props2;
 	setDefaultExplodeProps(props2);
 	props2["particleCount"] = 50;
@@ -332,9 +362,9 @@ void test_explode_power_affects_spread() {
 	props2["friction"] = 0.5;
 	props2["lifespan"] = 5000;
 	effect2.add(props2);
-	effect2.update(0.1f);
+	particleSystem.update(0.1f);
 	canvas.clear();
-	effect2.render();
+	particleSystem.render();
 	BoundingBox box2 = findBoundingBox(canvas);
 
 	// Higher power should spread further
@@ -346,7 +376,8 @@ void test_explode_power_affects_spread() {
 void test_explode_friction_zero() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -359,10 +390,12 @@ void test_explode_friction_zero() {
 
 	// Update multiple times - particles should keep moving
 	for (int i = 0; i < 10; i++) {
-		effect.update(0.05f);
+		particleSystem.update(0.05f);
+	effect.update(0.05f);
 	}
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// With zero friction, particles move continuously
@@ -373,7 +406,8 @@ void test_explode_friction_zero() {
 void test_explode_friction_high() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -385,9 +419,11 @@ void test_explode_friction_high() {
 	effect.add(props);
 
 	// Update - particles should slow down quickly
+	particleSystem.update(0.5f);
 	effect.update(0.5f);
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should still render, particles slow but present
@@ -398,7 +434,8 @@ void test_explode_friction_high() {
 void test_explode_power_spread_affects_velocity_variation() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -409,8 +446,10 @@ void test_explode_power_spread_affects_velocity_variation() {
 	props["lifespan"] = 5000;
 
 	effect.add(props);
+	particleSystem.update(0.1f);
 	effect.update(0.1f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should render particles with varied positions
@@ -424,7 +463,8 @@ void test_explode_power_spread_affects_velocity_variation() {
 void test_explode_particle_size_small() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -433,6 +473,7 @@ void test_explode_particle_size_small() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	int pixelCount = countNonBlackPixels(canvas);
@@ -442,7 +483,8 @@ void test_explode_particle_size_small() {
 void test_explode_particle_size_large() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -451,6 +493,7 @@ void test_explode_particle_size_large() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	int pixelCount = countNonBlackPixels(canvas);
@@ -462,7 +505,8 @@ void test_explode_alpha_decay_over_lifespan() {
 	// (rand() produces different sequences on Linux vs macOS)
 	Matrix matrix(32, 32);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -475,8 +519,10 @@ void test_explode_alpha_decay_over_lifespan() {
 	effect.add(props);
 
 	// After 90% lifespan, particles should have very low alpha
+	particleSystem.update(0.9f);
 	effect.update(0.9f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should still exist (haven't hit 100% yet)
@@ -492,7 +538,8 @@ void test_explode_alpha_decay_over_lifespan() {
 void test_explode_hue_spread_zero() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -502,6 +549,7 @@ void test_explode_hue_spread_zero() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// All particles should be red (no green/blue dominant)
@@ -517,7 +565,8 @@ void test_explode_hue_spread_zero() {
 void test_explode_hue_spread_90() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -527,6 +576,7 @@ void test_explode_hue_spread_90() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should have color variation
@@ -536,7 +586,8 @@ void test_explode_hue_spread_90() {
 void test_explode_hue_spread_180() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -546,6 +597,7 @@ void test_explode_hue_spread_180() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should have diverse colors
@@ -559,7 +611,8 @@ void test_explode_hue_spread_180() {
 void test_explode_fifo_eviction_when_pool_exceeds_max() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	// Add first explosion with 400 particles
 	JsonDocument props1;
@@ -580,6 +633,7 @@ void test_explode_fifo_eviction_when_pool_exceeds_max() {
 
 	// Should not crash, oldest particles evicted
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
@@ -587,7 +641,8 @@ void test_explode_fifo_eviction_when_pool_exceeds_max() {
 void test_explode_particle_count_capped_at_max() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -596,6 +651,7 @@ void test_explode_particle_count_capped_at_max() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should render, capped at 500
@@ -605,7 +661,8 @@ void test_explode_particle_count_capped_at_max() {
 void test_explode_multiple_explosions_share_pool() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	// Add multiple small explosions
 	for (int i = 0; i < 5; i++) {
@@ -618,6 +675,7 @@ void test_explode_multiple_explosions_share_pool() {
 	}
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// All 250 particles should render (under 500 limit)
@@ -631,7 +689,8 @@ void test_explode_multiple_explosions_share_pool() {
 void test_explode_strip_horizontal_only() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -640,8 +699,10 @@ void test_explode_strip_horizontal_only() {
 	props["friction"] = 1.0;
 
 	effect.add(props);
+	particleSystem.update(0.1f);
 	effect.update(0.1f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Canvas should be 1D
@@ -652,7 +713,8 @@ void test_explode_strip_horizontal_only() {
 void test_explode_matrix_2d_radial() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -665,8 +727,10 @@ void test_explode_matrix_2d_radial() {
 	props["scalePower"] = false;  // Disable scaling for predictable spread
 
 	effect.add(props);
+	particleSystem.update(0.1f);
 	effect.update(0.1f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should have particles in multiple quadrants (radial spread)
@@ -683,7 +747,8 @@ void test_explode_matrix_2d_radial() {
 void test_explode_flash_renders_on_strip() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -696,6 +761,7 @@ void test_explode_flash_renders_on_strip() {
 
 	// Render immediately - flash should be visible
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Flash should be visible
@@ -711,7 +777,8 @@ void test_explode_flash_renders_on_strip() {
 void test_explode_flash_collapses_over_time() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -723,12 +790,15 @@ void test_explode_flash_collapses_over_time() {
 
 	// Initial render
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	int initialPixels = countNonBlackPixels(canvas);
 
 	// After flash duration (35% of lifespan = 350ms)
+	particleSystem.update(0.4f);
 	effect.update(0.4f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Flash should have collapsed, particles may remain
@@ -738,7 +808,8 @@ void test_explode_flash_collapses_over_time() {
 void test_explode_no_flash_on_matrix() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -748,6 +819,7 @@ void test_explode_no_flash_on_matrix() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Matrix should have red particles, no white flash
@@ -762,7 +834,8 @@ void test_explode_no_flash_on_matrix() {
 void test_explode_particles_removed_when_expired() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -773,13 +846,16 @@ void test_explode_particles_removed_when_expired() {
 
 	// Initial render
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 
 	// Update past lifespan
+	particleSystem.update(0.2f);
 	effect.update(0.2f);  // 200ms
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
@@ -787,7 +863,8 @@ void test_explode_particles_removed_when_expired() {
 void test_explode_particles_removed_when_off_canvas() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -801,10 +878,12 @@ void test_explode_particles_removed_when_off_canvas() {
 
 	// Update until particles exit
 	for (int i = 0; i < 20; i++) {
-		effect.update(0.05f);
+		particleSystem.update(0.05f);
+	effect.update(0.05f);
 	}
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should have left canvas
@@ -814,7 +893,8 @@ void test_explode_particles_removed_when_off_canvas() {
 void test_explode_lifespan_very_short() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -825,13 +905,16 @@ void test_explode_lifespan_very_short() {
 
 	// Particles exist initially
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	int initial = countNonBlackPixels(canvas);
 	TEST_ASSERT_TRUE(initial > 0);
 
 	// Update past lifespan expires them
+	particleSystem.update(0.05f);
 	effect.update(0.05f);  // 50ms - well past 10ms lifespan
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 }
@@ -839,7 +922,8 @@ void test_explode_lifespan_very_short() {
 void test_explode_lifespan_spread_affects_expiration() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -850,8 +934,10 @@ void test_explode_lifespan_spread_affects_expiration() {
 	effect.add(props);
 
 	// After base lifespan, some should remain (due to spread)
+	particleSystem.update(0.5f);
 	effect.update(0.5f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Some particles may still exist due to spread
@@ -866,7 +952,8 @@ void test_explode_lifespan_spread_affects_expiration() {
 void test_explode_explosion_removed_when_all_particles_gone() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -877,10 +964,12 @@ void test_explode_explosion_removed_when_all_particles_gone() {
 
 	// Update until all particles expire
 	for (int i = 0; i < 5; i++) {
-		effect.update(0.1f);
+		particleSystem.update(0.1f);
+	effect.update(0.1f);
 	}
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
 
@@ -892,6 +981,7 @@ void test_explode_explosion_removed_when_all_particles_gone() {
 	effect.add(props2);
 
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
@@ -899,7 +989,8 @@ void test_explode_explosion_removed_when_all_particles_gone() {
 void test_explode_multiple_explosions_independent_cleanup() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	// Short-lived explosion
 	JsonDocument props1;
@@ -920,8 +1011,10 @@ void test_explode_multiple_explosions_independent_cleanup() {
 	effect.add(props2);
 
 	// First expires, second remains
+	particleSystem.update(0.2f);
 	effect.update(0.2f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should still have green particles
@@ -936,10 +1029,11 @@ void test_explode_multiple_explosions_independent_cleanup() {
 void test_explode_snapshot_deterministic_positions() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
+	ParticleSystem particleSystem(matrix, canvas);
 
 	// First render
 	hal::test::seedRandom(54321);
-	ExplodeEffect effect1(matrix, canvas);
+	ExplodeEffect effect1(matrix, canvas, particleSystem);
 	JsonDocument props1;
 	setDefaultExplodeProps(props1);
 	props1["color"] = "#FFFFFF";
@@ -948,15 +1042,16 @@ void test_explode_snapshot_deterministic_positions() {
 	props1["friction"] = 2.0;
 	props1["lifespan"] = 5000;
 	effect1.add(props1);
-	effect1.update(0.1f);
+	particleSystem.update(0.1f);
 	canvas.clear();
-	effect1.render();
+	particleSystem.render();
 	int count1 = countNonBlackPixels(canvas);
 	BoundingBox box1 = findBoundingBox(canvas);
 
 	// Second render with same seed
+	particleSystem.reset();
 	hal::test::seedRandom(54321);
-	ExplodeEffect effect2(matrix, canvas);
+	ExplodeEffect effect2(matrix, canvas, particleSystem);
 	JsonDocument props2;
 	setDefaultExplodeProps(props2);
 	props2["color"] = "#FFFFFF";
@@ -965,9 +1060,9 @@ void test_explode_snapshot_deterministic_positions() {
 	props2["friction"] = 2.0;
 	props2["lifespan"] = 5000;
 	effect2.add(props2);
-	effect2.update(0.1f);
+	particleSystem.update(0.1f);
 	canvas.clear();
-	effect2.render();
+	particleSystem.render();
 	int count2 = countNonBlackPixels(canvas);
 	BoundingBox box2 = findBoundingBox(canvas);
 
@@ -982,7 +1077,8 @@ void test_explode_snapshot_deterministic_positions() {
 void test_explode_snapshot_t0() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	hal::test::seedRandom(12345);
 
@@ -996,6 +1092,7 @@ void test_explode_snapshot_t0() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// At t=0, particles at center
@@ -1012,7 +1109,8 @@ void test_explode_snapshot_t0() {
 void test_explode_snapshot_after_spread() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	hal::test::seedRandom(12345);
 
@@ -1029,8 +1127,10 @@ void test_explode_snapshot_after_spread() {
 	props["scalePower"] = false;  // Disable scaling for predictable spread
 
 	effect.add(props);
+	particleSystem.update(0.2f);
 	effect.update(0.2f);  // Allow spread
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	BoundingBox box = findBoundingBox(canvas);
@@ -1050,7 +1150,8 @@ void test_explode_snapshot_after_spread() {
 void test_explode_zero_particles() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -1058,6 +1159,7 @@ void test_explode_zero_particles() {
 
 	effect.add(props);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Should render nothing (no crash)
@@ -1067,7 +1169,8 @@ void test_explode_zero_particles() {
 void test_explode_power_zero() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -1076,8 +1179,10 @@ void test_explode_power_zero() {
 	props["particleSize"] = 4;
 
 	effect.add(props);
+	particleSystem.update(0.1f);
 	effect.update(0.1f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should stay at center (no velocity)
@@ -1094,7 +1199,8 @@ void test_explode_very_long_lifespan() {
 	// (rand() produces different sequences on Linux vs macOS)
 	Matrix matrix(32, 32);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -1103,8 +1209,10 @@ void test_explode_very_long_lifespan() {
 	props["friction"] = 5.0;
 
 	effect.add(props);
+	particleSystem.update(1.0f);
 	effect.update(1.0f);  // 1 second
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 
 	// Particles should still exist
@@ -1114,7 +1222,8 @@ void test_explode_very_long_lifespan() {
 void test_explode_rapid_add_calls() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	// Rapidly add many explosions
 	for (int i = 0; i < 20; i++) {
@@ -1127,6 +1236,7 @@ void test_explode_rapid_add_calls() {
 
 	// Should handle FIFO eviction gracefully
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
@@ -1144,7 +1254,8 @@ static uint64_t runExplodeDigest(const TestConfig& config, float updateTime,
 	String layout = config.layout ? config.layout : "matrix-br-v-snake";
 	Matrix matrix(config.width, config.height, layout);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -1159,8 +1270,10 @@ static uint64_t runExplodeDigest(const TestConfig& config, float updateTime,
 	props["centerY"] = 50;
 	effect.add(props);
 
+	particleSystem.update(updateTime);
 	effect.update(updateTime);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	downsampleToMatrix(canvas, &matrix);
 
@@ -1210,7 +1323,8 @@ void test_explode_property_particles_spread_over_time() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -1224,15 +1338,19 @@ void test_explode_property_particles_spread_over_time() {
 	effect.add(props);
 
 	// Capture at t=0
+	particleSystem.update(0.0f);
 	effect.update(0.0f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	downsampleToMatrix(canvas, &matrix);
 	FrameProperties fp0 = analyzeFrame(matrix);
 
 	// Capture at t=300ms
+	particleSystem.update(0.3f);
 	effect.update(0.3f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	downsampleToMatrix(canvas, &matrix);
 	FrameProperties fp300 = analyzeFrame(matrix);
@@ -1254,7 +1372,8 @@ void test_explode_property_expires_after_lifespan() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	ExplodeEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -1266,8 +1385,10 @@ void test_explode_property_expires_after_lifespan() {
 	effect.add(props);
 
 	// Particles should exist initially
+	particleSystem.update(0.1f);
 	effect.update(0.1f);
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	downsampleToMatrix(canvas, &matrix);
 	FrameProperties fpEarly = analyzeFrame(matrix);
@@ -1275,8 +1396,10 @@ void test_explode_property_expires_after_lifespan() {
 	                                 "Should have visible particles early");
 
 	// After lifespan + buffer, particles should be gone
+	particleSystem.update(1.0f);
 	effect.update(1.0f);  // Cumulative: 100ms + 1000ms = 1100ms >> 500ms lifespan
 	canvas.clear();
+	particleSystem.render();
 	effect.render();
 	downsampleToMatrix(canvas, &matrix);
 	FrameProperties fpLate = analyzeFrame(matrix);
@@ -1293,7 +1416,8 @@ void test_explode_property_all_configs_render() {
 		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
 		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
 		Canvas canvas(matrix);
-		ExplodeEffect effect(matrix, canvas);
+		ParticleSystem particleSystem(matrix, canvas);
+	ExplodeEffect effect(matrix, canvas, particleSystem);
 
 		JsonDocument props;
 		setDefaultExplodeProps(props);
@@ -1303,9 +1427,11 @@ void test_explode_property_all_configs_render() {
 		props["lifespan"] = 2000;
 		effect.add(props);
 
-		effect.update(0.0f);
+		particleSystem.update(0.0f);
+	effect.update(0.0f);
 		canvas.clear();
-		effect.render();
+		particleSystem.render();
+	effect.render();
 		downsampleToMatrix(canvas, &matrix);
 
 		FrameProperties fp = analyzeFrame(matrix);
