@@ -167,10 +167,12 @@ void ProjectileEffect::update(float deltaTime) {
 			particle.lifespan = hal::random(300, 1200);  // 500-1500ms
 			particle.friction = 3.0f;
 			particle.gravity = 0;
-			// Size: 50-100% of projectile width
+			// Size: 50-100% of projectile width, capped at 16
 			particle.size = static_cast<uint8_t>(p.width * (0.5f + hal::random(51) / 100.0f));
 			if (particle.size < 1)
 				particle.size = 1;
+			if (particle.size > 16)
+				particle.size = 16;
 			particleSystem.add(particle);
 		}
 
