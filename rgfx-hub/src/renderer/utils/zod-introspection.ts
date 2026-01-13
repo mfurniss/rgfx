@@ -116,38 +116,57 @@ function extractDescription(schema: z.ZodType): string | undefined {
 }
 
 /**
- * Unwrap ZodDefault, ZodOptional, and ZodNullable wrappers to get the inner type
+ * Unwrap ZodDefault, ZodOptional, ZodNullable, and ZodPipe wrappers
  */
 function unwrapSchema(schema: z.ZodType): UnwrapResult {
   let current = schema;
   let defaultValue: unknown = undefined;
   let description = extractDescription(schema);
 
-  // Unwrap ZodDefault - check for _zod.def.defaultValue
-  if (hasZodDef(current) && 'defaultValue' in current._zod.def) {
+  // Keep unwrapping until we reach a non-wrapper type
+  // Use a loop to handle nested wrappers like pipe(transform, default(optional(union)))
+  let maxIterations = 10; // Safety limit
+
+  while (maxIterations-- > 0 && hasZodDef(current)) {
     const { def } = current._zod;
-    defaultValue = typeof def.defaultValue === 'function'
-      ? (def.defaultValue as () => unknown)()
-      : def.defaultValue;
 
-    if (def.innerType) {
-      current = def.innerType;
-      // Check for description on inner type if not found on wrapper
+    // Unwrap ZodPipe (Zod 4) - def.type === 'pipe' with def.in and def.out
+    // The 'out' contains the actual schema structure we want to unwrap
+    if (def.type === 'pipe' && 'out' in def && def.out) {
+      current = def.out as z.ZodType;
       description ??= extractDescription(current);
+      continue;
     }
-  }
 
-  // Unwrap ZodOptional - check for _zod.def.innerType without defaultValue
-  if (hasZodDef(current) && current._zod.def.innerType && !('defaultValue' in current._zod.def)) {
-    current = current._zod.def.innerType;
-    // Check for description on inner type if not found on wrapper
-    description ??= extractDescription(current);
-  }
+    // Unwrap ZodDefault - check for _zod.def.defaultValue
+    if ('defaultValue' in def) {
+      defaultValue ??= typeof def.defaultValue === 'function'
+        ? (def.defaultValue as () => unknown)()
+        : def.defaultValue;
 
-  // Unwrap ZodNullable - check for _zod.def.type === 'nullable'
-  if (hasZodDef(current) && current._zod.def.type === 'nullable' && current._zod.def.innerType) {
-    current = current._zod.def.innerType;
-    description ??= extractDescription(current);
+      if (def.innerType) {
+        current = def.innerType;
+        description ??= extractDescription(current);
+        continue;
+      }
+    }
+
+    // Unwrap ZodOptional - check for _zod.def.innerType without defaultValue
+    if (def.innerType && !('defaultValue' in def)) {
+      current = def.innerType;
+      description ??= extractDescription(current);
+      continue;
+    }
+
+    // Unwrap ZodNullable - check for _zod.def.type === 'nullable'
+    if (def.type === 'nullable' && def.innerType) {
+      current = def.innerType;
+      description ??= extractDescription(current);
+      continue;
+    }
+
+    // No more wrappers to unwrap
+    break;
   }
 
   return { innerSchema: current, defaultValue, description };
@@ -281,6 +300,17 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
   const { fieldType, cleanDescription } = parseFieldType(description);
 
   if (fieldType) {
+    // For explicit color type, still extract named colors from the inner schema
+    if (fieldType === 'color') {
+      return {
+        name,
+        type: 'color',
+        defaultValue,
+        constraints: { enumValues: extractColorNames(innerSchema) },
+        description: cleanDescription,
+      };
+    }
+
     return {
       name,
       type: fieldType,

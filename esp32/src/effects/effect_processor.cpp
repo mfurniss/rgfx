@@ -24,13 +24,14 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	: matrix(matrix),
 	  display(display),
 	  canvas(matrix),
+	  particleSystem(matrix, canvas),
 	  pulseEffect(matrix, canvas),
 	  bitmapEffect(matrix, canvas),
 	  wipeEffect(matrix, canvas),
-	  explodeEffect(matrix, canvas),
+	  explodeEffect(matrix, canvas, particleSystem),
 	  testLedsEffect(matrix, canvas),
 	  backgroundEffect(matrix, canvas),
-	  projectileEffect(matrix, canvas),
+	  projectileEffect(matrix, canvas, particleSystem),
 	  textEffect(matrix, canvas),
 	  scrollTextEffect(matrix, canvas),
 	  plasmaEffect(matrix, canvas),
@@ -102,6 +103,11 @@ void EffectProcessor::update() {
 			entry.effect->update(deltaTime);
 		}
 	}
+
+	// Render and update shared particle system (on top of all effects)
+	particleSystem.render();
+	particleSystem.update(deltaTime);
+
 	uint32_t t2 = hal::micros();
 
 	// --- TIMING: Downsample ---
@@ -163,6 +169,9 @@ void EffectProcessor::clearEffects() {
 	for (const auto& entry : effectMap) {
 		entry.effect->reset();
 	}
+
+	// Clear shared particle system
+	particleSystem.reset();
 
 	// Clear the canvas (prevents re-render showing old state)
 	canvas.clear();
