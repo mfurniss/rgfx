@@ -14,6 +14,7 @@
 #include "effects/plasma.h"
 #include "effects/spectrum.h"
 #include "effects/particle_field.h"
+#include "effects/particle_system.h"
 #include "effects/effect.h"
 #include "hal/display.h"
 #include <ArduinoJson.h>
@@ -53,6 +54,7 @@ class EffectProcessor {
 	Matrix& matrix;
 	hal::IDisplay& display;	 // Injected display backend
 	Canvas canvas;			 // Single shared canvas (must be declared before effects)
+	ParticleSystem particleSystem;  // Shared particle system (must be declared before effects that use it)
 	PulseEffect pulseEffect;
 	BitmapEffect bitmapEffect;
 	WipeEffect wipeEffect;

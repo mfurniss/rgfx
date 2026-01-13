@@ -26,9 +26,8 @@ float parseCoordPercent(JsonVariant prop) {
 }
 }  // namespace
 
-ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c) : canvas(c), matrix(m), head(0) {
-	// Initialize all particles as dead (alpha = 0)
-	memset(particlePool, 0, sizeof(particlePool));
+ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c, ParticleSystem& ps)
+    : canvas(c), matrix(m), particleSystem(ps) {
 	flashes.reserve(16);
 }
 
@@ -39,7 +38,7 @@ void ExplodeEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	uint32_t particleCount = min(static_cast<uint32_t>(props["particleCount"]), MAX_PARTICLES);
+	uint32_t particleCount = props["particleCount"];
 	float power = props["power"];
 	uint32_t lifespan = props["lifespan"];
 	float powerSpread = props["powerSpread"];
@@ -92,15 +91,15 @@ void ExplodeEffect::add(JsonDocument& props) {
 		flashes.push_back(flash);
 	}
 
-	// Ring buffer: write particles at head, wrapping around (overwrites oldest)
+	// Add particles to the shared particle system
 	for (uint32_t i = 0; i < particleCount; i++) {
-		Particle& p = particlePool[head];
+		Particle p;
 
 		p.x = centerX;
 		p.y = centerY;
 		p.friction = friction;
 		p.gravity = gravity;
-		p.particleSize = static_cast<uint8_t>(min(particleSize, 255u));
+		p.size = static_cast<uint8_t>(min(particleSize, 255u));
 
 		// Calculate power with optional variation based on powerSpread (percentage)
 		float powerVariation =
@@ -160,17 +159,11 @@ void ExplodeEffect::add(JsonDocument& props) {
 			p.lifespan = static_cast<uint32_t>(max(50.0f, calculatedLifespan));
 		}
 
-		// Advance head (ring buffer wrap)
-		head = (head + 1) % MAX_PARTICLES;
+		particleSystem.add(p);
 	}
 }
 
 void ExplodeEffect::update(float deltaTime) {
-	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
-	uint16_t width = canvas.getWidth();
-	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
-
 	// Update and remove expired flashes (swap-and-pop for O(1) removal)
 	for (size_t i = 0; i < flashes.size();) {
 		flashes[i].age += deltaTime;
@@ -181,59 +174,13 @@ void ExplodeEffect::update(float deltaTime) {
 			++i;
 		}
 	}
-
-	// Update all particles in the ring buffer (skip dead particles with alpha=0)
-	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
-		Particle& p = particlePool[i];
-
-		// Skip dead particles
-		if (p.alpha == 0) {
-			continue;
-		}
-
-		// Update X position (always) - friction is stored per-particle
-		p.x += p.vx * deltaTime;
-		p.vx *= expf(-p.friction * deltaTime);
-
-		// Update Y position (only for matrices)
-		if (!isStrip) {
-			p.vy += p.gravity * deltaTime;  // Apply gravity acceleration
-			p.y += p.vy * deltaTime;
-			p.vy *= expf(-p.friction * deltaTime);
-		}
-
-		// Age the particle
-		p.age += deltaTimeMs;
-
-		// Check if particle is dead or out of bounds
-		// Allow particles to exit on the gravity side (they may arc back)
-		bool outOfBounds;
-		if (isStrip) {
-			outOfBounds = (p.x < 0 || p.x >= width);
-		} else {
-			bool outX = (p.x < 0 || p.x >= width);
-			bool outTop = (p.y < 0) && (p.gravity >= 0);     // Only kill at top if gravity pulls down
-			bool outBottom = (p.y >= height) && (p.gravity <= 0);  // Only kill at bottom if gravity pulls up
-			outOfBounds = outX || outTop || outBottom;
-		}
-
-		if (p.age >= p.lifespan || outOfBounds) {
-			// Mark as dead (will be skipped in render, overwritten by new particles)
-			p.alpha = 0;
-		} else {
-			// Fade based on age
-			float lifeProgress = static_cast<float>(p.age) / p.lifespan;
-			p.alpha = static_cast<uint8_t>(255.0f * (1.0f - lifeProgress));
-		}
-	}
+	// Particles are updated by ParticleSystem
 }
 
 void ExplodeEffect::render() {
 	uint16_t width = canvas.getWidth();
-	uint16_t height = canvas.getHeight();
-	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 
-	// Render flashes first for LED strips (white pulse that collapses inward)
+	// Render flashes for LED strips (colored pulse that collapses inward)
 	for (const auto& flash : flashes) {
 		if (flash.initialWidth <= 0.0f) {
 			continue;
@@ -265,54 +212,10 @@ void ExplodeEffect::render() {
 			}
 		}
 	}
-
-	// Render all live particles from the ring buffer (skip dead particles with alpha=0)
-	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
-		const Particle& particle = particlePool[i];
-
-		// Skip dead particles
-		if (particle.alpha == 0) {
-			continue;
-		}
-
-		uint8_t size = particle.particleSize;
-		int16_t halfSize = size / 2;
-
-		// Convert float position to integer canvas coordinates (center of particle)
-		int16_t centerX = static_cast<int16_t>(particle.x);
-		int16_t centerY = static_cast<int16_t>(particle.y);
-
-		if (isStrip) {
-			// Strip: Render full-height column for particle
-			for (uint32_t dx = 0; dx < size; dx++) {
-				int16_t x = centerX - halfSize + dx;
-
-				if (x >= 0 && x < width) {
-					canvas.drawRectangle(x, static_cast<int16_t>(0), static_cast<int16_t>(1),
-					                     static_cast<int16_t>(height),
-					                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
-					                     BlendMode::ADDITIVE);
-				}
-			}
-		} else {
-			// Matrix: Render NxN block centered around position
-			int16_t x = centerX - halfSize;
-			int16_t y = centerY - halfSize;
-			int16_t sizeS = static_cast<int16_t>(size);
-
-			// Canvas handles all clipping safely via signed drawRectangle API
-			canvas.drawRectangle(x, y, sizeS, sizeS,
-			                     CRGBA(particle.r, particle.g, particle.b, particle.alpha),
-			                     BlendMode::ADDITIVE);
-		}
-	}
+	// Particles are rendered by ParticleSystem
 }
 
 void ExplodeEffect::reset() {
-	// Mark all particles as dead by setting alpha=0
-	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
-		particlePool[i].alpha = 0;
-	}
-	head = 0;
 	flashes.clear();
+	// Particles are reset by EffectProcessor calling particleSystem.reset()
 }

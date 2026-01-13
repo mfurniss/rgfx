@@ -65,6 +65,9 @@ using String = std::string;
 #include "effects/background.h"
 #include "effects/background.cpp"
 
+#include "effects/particle_system.h"
+#include "effects/particle_system.cpp"
+
 #include "effects/explode.h"
 #include "effects/explode.cpp"
 
@@ -237,7 +240,8 @@ void test_explode_on_all_matrix_sizes() {
 		const MatrixConfig& cfg = MATRIX_CONFIGS[i];
 		Matrix matrix(cfg.width, cfg.height, cfg.layout);
 		Canvas canvas(matrix);
-		ExplodeEffect effect(matrix, canvas);
+		ParticleSystem particleSystem(matrix, canvas);
+		ExplodeEffect effect(matrix, canvas, particleSystem);
 
 		JsonDocument props;
 		setDefaultExplodeProps(props);
@@ -249,8 +253,10 @@ void test_explode_on_all_matrix_sizes() {
 		props["centerY"] = 50;
 		effect.add(props);
 
+		particleSystem.update(0.1f);
 		effect.update(0.1f);
 		canvas.clear();
+		particleSystem.render();
 		effect.render();
 
 		int pixels = countNonBlackPixels(canvas);
@@ -262,11 +268,13 @@ void test_explode_power_scales_with_matrix_size() {
 	// Larger matrices should spread particles further
 	Matrix smallMatrix(8, 8);
 	Canvas smallCanvas(smallMatrix);
-	ExplodeEffect smallEffect(smallMatrix, smallCanvas);
+	ParticleSystem smallParticleSystem(smallMatrix, smallCanvas);
+	ExplodeEffect smallEffect(smallMatrix, smallCanvas, smallParticleSystem);
 
 	Matrix largeMatrix(32, 8);
 	Canvas largeCanvas(largeMatrix);
-	ExplodeEffect largeEffect(largeMatrix, largeCanvas);
+	ParticleSystem largeParticleSystem(largeMatrix, largeCanvas);
+	ExplodeEffect largeEffect(largeMatrix, largeCanvas, largeParticleSystem);
 
 	JsonDocument props;
 	setDefaultExplodeProps(props);
@@ -280,13 +288,17 @@ void test_explode_power_scales_with_matrix_size() {
 	smallEffect.add(props);
 	largeEffect.add(props);
 
+	smallParticleSystem.update(0.2f);
 	smallEffect.update(0.2f);
+	largeParticleSystem.update(0.2f);
 	largeEffect.update(0.2f);
 
 	smallCanvas.clear();
+	smallParticleSystem.render();
 	smallEffect.render();
 
 	largeCanvas.clear();
+	largeParticleSystem.render();
 	largeEffect.render();
 
 	// Both should render particles
@@ -306,7 +318,8 @@ void test_projectile_on_all_matrix_sizes() {
 		const MatrixConfig& cfg = MATRIX_CONFIGS[i];
 		Matrix matrix(cfg.width, cfg.height, cfg.layout);
 		Canvas canvas(matrix);
-		ProjectileEffect effect(matrix, canvas);
+		ParticleSystem particleSystem(matrix, canvas);
+		ProjectileEffect effect(matrix, canvas, particleSystem);
 
 		JsonDocument props;
 		setDefaultProjectileProps(props);
@@ -333,7 +346,8 @@ void test_projectile_on_all_matrix_sizes() {
 void test_projectile_trail_on_strips() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	ProjectileEffect effect(matrix, canvas);
+	ParticleSystem particleSystem(matrix, canvas);
+	ProjectileEffect effect(matrix, canvas, particleSystem);
 
 	JsonDocument props;
 	props["color"] = "#00FFFF";
@@ -440,11 +454,13 @@ void test_all_effects_reset_on_all_sizes() {
 
 		// Test Explode reset
 		{
-			ExplodeEffect effect(matrix, canvas);
+			ParticleSystem particleSystem(matrix, canvas);
+			ExplodeEffect effect(matrix, canvas, particleSystem);
 			JsonDocument props;
 			props["color"] = "#0000FF";
 			effect.add(props);
 			effect.reset();
+			particleSystem.reset();
 			canvas.clear();
 			effect.render();
 			TEST_ASSERT_EQUAL_MESSAGE(0, countNonBlackPixels(canvas), cfg.name);
@@ -452,7 +468,8 @@ void test_all_effects_reset_on_all_sizes() {
 
 		// Test Projectile reset
 		{
-			ProjectileEffect effect(matrix, canvas);
+			ParticleSystem particleSystem(matrix, canvas);
+			ProjectileEffect effect(matrix, canvas, particleSystem);
 			JsonDocument props;
 			props["color"] = "#FFFF00";
 			effect.add(props);

@@ -18,6 +18,15 @@ describe('colorSchema', () => {
         expect(result.data).toBe('random');
       }
     });
+
+    it('should default to random when empty string', () => {
+      const result = colorSchema.safeParse('');
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data).toBe('random');
+      }
+    });
   });
 
   describe('named colors', () => {

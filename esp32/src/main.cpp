@@ -50,6 +50,9 @@ static float g_maxFps = 0.0f;
 static uint32_t g_frameCount = 0;
 static uint32_t g_lastFpsCalcTime = 0;
 
+// Frame watchdog timeout - detect stuck effect loops
+static constexpr uint32_t FRAME_WATCHDOG_TIMEOUT_MS = 2000;
+
 // FPS getters for telemetry
 float getCurrentFps() { return g_currentFps; }
 float getMinFps() { return g_minFps; }
@@ -411,8 +414,20 @@ void loop() {
 
 		// Update and render continuous effects
 		if (effectProcessor != nullptr) {
+			uint32_t frameStart = millis();
 			effectProcessor->update();
-			g_frameCount++;  // Count actual rendered frames for FPS calculation
+			uint32_t frameTime = millis() - frameStart;
+
+			// Frame watchdog: detect if frame took too long (effect loop stuck)
+			if (frameTime > FRAME_WATCHDOG_TIMEOUT_MS) {
+				log("ERROR: Frame watchdog triggered (" + String(frameTime) + "ms)", LogLevel::ERROR);
+				char errorMsg[64];
+				snprintf(errorMsg, sizeof(errorMsg), "Frame took %ums - clearing effects", frameTime);
+				publishError("frame_watchdog", errorMsg);
+				effectProcessor->clearEffects();
+			}
+
+			g_frameCount++;
 		}
 	}
 
