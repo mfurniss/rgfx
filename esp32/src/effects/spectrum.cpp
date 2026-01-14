@@ -12,15 +12,15 @@
 // Define static constexpr member
 constexpr uint32_t SpectrumEffect::COLUMN_COLORS[];
 
-SpectrumEffect::SpectrumEffect(const Matrix& /* m */, Canvas& c)
-    : canvas(c), decayRate(2.1f) {
+SpectrumEffect::SpectrumEffect(const Matrix& /* m */, Canvas& c) : canvas(c), decayRate(2.1f) {
 	columns.reserve(16);
 }
 
 void SpectrumEffect::assignColumnColor(Column& col, size_t index, size_t totalColumns) {
 	// Spread colors across available palette based on column position
 	size_t colorIndex = (index * COLOR_COUNT) / totalColumns;
-	if (colorIndex >= COLOR_COUNT) colorIndex = COLOR_COUNT - 1;
+	if (colorIndex >= COLOR_COUNT)
+		colorIndex = COLOR_COUNT - 1;
 
 	uint32_t color = COLUMN_COLORS[colorIndex];
 	col.r = (color >> 16) & 0xFF;
@@ -66,12 +66,15 @@ void SpectrumEffect::add(JsonDocument& props) {
 	// Update column values - only increase if new value is higher
 	size_t i = 0;
 	for (JsonVariant val : values) {
-		if (i >= columns.size()) break;
+		if (i >= columns.size())
+			break;
 
 		// Convert 0-9 to 0.0-1.0 (normalized height)
 		int rawValue = val.as<int>();
-		if (rawValue < 0) rawValue = 0;
-		if (rawValue > 9) rawValue = 9;
+		if (rawValue < 0)
+			rawValue = 0;
+		if (rawValue > 9)
+			rawValue = 9;
 		float normalizedValue = rawValue / 9.0f;
 
 		// Only update if new value is higher (peak hold behavior)
@@ -111,7 +114,8 @@ void SpectrumEffect::render() {
 	// Calculate column width snapped to LED boundaries
 	// Canvas is at 4x resolution, so divide to get physical LED width, then multiply back
 	uint16_t colWidthPixels = (canvasWidth / columnCount / 4) * 4;
-	if (colWidthPixels < 4) colWidthPixels = 4;  // Minimum 1 physical LED
+	if (colWidthPixels < 4)
+		colWidthPixels = 4;  // Minimum 1 physical LED
 
 	// Draw width leaves 1 LED (4 pixels) for black separator on right
 	uint16_t drawWidth = (colWidthPixels > 4) ? colWidthPixels - 4 : colWidthPixels;
@@ -124,20 +128,16 @@ void SpectrumEffect::render() {
 
 		// Calculate column height based on normalized value
 		uint16_t colHeight = static_cast<uint16_t>(col.currentValue * canvasHeight);
-		if (colHeight == 0) continue;
+
+		if (colHeight == 0)
+			continue;
 
 		// Draw from bottom up (y=0 is top in canvas coordinates)
 		uint16_t y = canvasHeight - colHeight;
 
-		// Draw the colored column (70% luminosity)
-		CRGBA color(col.r * 0.7f, col.g * 0.7f, col.b * 0.7f, 255);
+		// Draw the colored column (60% luminosity)
+		CRGBA color(col.r * 0.6f, col.g * 0.6f, col.b * 0.6f, 200);
 		canvas.drawRectangle(x, y, drawWidth, colHeight, color, BlendMode::ADDITIVE);
-
-		// Draw black separator on right edge (1 LED wide)
-		if (colWidthPixels > 4) {
-			CRGBA black(0, 0, 0, 255);
-			canvas.drawRectangle(x + drawWidth, y, 4, colHeight, black, BlendMode::REPLACE);
-		}
 	}
 }
 
