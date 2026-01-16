@@ -335,6 +335,7 @@ export default function TestEffectsPage() {
             onClick={handleTriggerEffect}
             icon={<ScienceIcon />}
             disabled={selectedDrivers.size === 0}
+            data-testid="trigger-effect-btn"
           >
             Trigger Effect
           </SuperButton>
