@@ -28,9 +28,9 @@ flowchart TB
 
     Log --> Hub
 
-    subgraph Drivers["ESP32 Drivers"]
-      D1["Driver 1 (LED Strip)"]
-      D2["Driver 2 (LED Matrix)"]
+    subgraph Drivers["ESP32 + LED hardware"]
+      D1["RGFX Driver 1 (LED Strip)"]
+      D2["RGFX Driver 2 (LED Matrix)"]
     end
 
     Hub -->|Network| Drivers

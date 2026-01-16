@@ -33,7 +33,8 @@
   "scripts": {
     "postinstall": "echo 'RGFX workspace initialized. See README.md for setup instructions.'",
     "esp32:copy-firmware": "cd esp32 && python3 copy_firmware.py",
-    "docs:build": "./public-docs/build.sh"
+    "docs:build": "./public-docs/build.sh",
+    "docs:serve": "cd public-docs && mkdocs serve"
   },
   "engines": {
     "node": ">=18.0.0"
