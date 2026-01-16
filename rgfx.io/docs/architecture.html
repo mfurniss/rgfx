@@ -465,7 +465,7 @@
 <h1 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h1>
 <p>RGFX is a distributed system that monitors retro arcade games and translates game events into LED effects across physical devices.</p>
 <h2 id="component-overview">Component Overview<a class="headerlink" href="#component-overview" title="Permanent link">&para;</a></h2>
-<p>In this example we have three games connected to two drivers.</p>
+<p>In this example we have three games creating effects on two drivers.</p>
 <pre class="mermaid"><code>flowchart TB
     subgraph MAME["MAME emulator + rgfx.lua"]
         subgraph Interceptors[User Lua Interceptors]
@@ -487,9 +487,9 @@
 
     Log --&gt; Hub
 
-    subgraph Drivers["ESP32 Drivers"]
-      D1["Driver 1 (LED Strip)"]
-      D2["Driver 2 (LED Matrix)"]
+    subgraph Drivers["ESP32 + LED hardware"]
+      D1["RGFX Driver 1 (LED Strip)"]
+      D2["RGFX Driver 2 (LED Matrix)"]
     end
 
     Hub --&gt;|Network| Drivers</code></pre>
