@@ -130,3 +130,4 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Persist hub windows position and size
 [X] Fix FX Playground random trigger
 [X] Ambilight
+[X] Add Mermaid support to docs

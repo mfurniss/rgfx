@@ -26,14 +26,22 @@ use_directory_urls: false
 
 nav:
   - Home: index.md
+  - Architecture: architecture.md
   - Getting Started: getting-started.md
 
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - toc:
       permalink: true
+
+extra_javascript:
+  - assets/js/mermaid.min.js

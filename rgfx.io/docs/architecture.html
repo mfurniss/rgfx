@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://rgfx.io/index.html">
+        <link rel="canonical" href="https://rgfx.io/architecture.html">
       
       
+        <link rel="prev" href="index.html">
       
-        <link rel="next" href="architecture.html">
+      
+        <link rel="next" href="getting-started.html">
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>RGFX Documentation</title>
+        <title>Architecture - RGFX Documentation</title>
       
     
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rgfx-documentation" class="md-skip">
+        <a href="#system-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Architecture
             
           </span>
         </div>
@@ -205,6 +207,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -224,7 +253,7 @@
   <span class="md-ellipsis">
     
   
-    Home
+    Architecture
   
 
     
@@ -235,14 +264,14 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="index.html" class="md-nav__link md-nav__link--active">
+      <a href="architecture.html" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    Home
+    Architecture
   
 
     
@@ -268,10 +297,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-rgfx" class="md-nav__link">
+  <a href="#component-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is RGFX?
+        Component Overview
       
     </span>
   </a>
@@ -279,10 +308,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#components" class="md-nav__link">
+  <a href="#data-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Components
+        Data Flow
       
     </span>
   </a>
@@ -290,10 +319,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#communication-protocols" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting Started
+        Communication Protocols
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learn-more" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learn More
       
     </span>
   </a>
@@ -304,33 +344,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="architecture.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -389,10 +402,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-rgfx" class="md-nav__link">
+  <a href="#component-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is RGFX?
+        Component Overview
       
     </span>
   </a>
@@ -400,10 +413,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#components" class="md-nav__link">
+  <a href="#data-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Components
+        Data Flow
       
     </span>
   </a>
@@ -411,10 +424,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#communication-protocols" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting Started
+        Communication Protocols
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learn-more" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learn More
       
     </span>
   </a>
@@ -438,19 +462,82 @@
 
 
 
-<h1 id="rgfx-documentation">RGFX Documentation<a class="headerlink" href="#rgfx-documentation" title="Permanent link">&para;</a></h1>
-<p>Welcome to the RGFX documentation. RGFX (Retro Game Effects) is a framework that creates external visual effects for retro video games.</p>
-<h2 id="what-is-rgfx">What is RGFX?<a class="headerlink" href="#what-is-rgfx" title="Permanent link">&para;</a></h2>
-<p>RGFX connects your retro gaming setup to LED lighting effects. When you play classic arcade games in MAME, game events like scoring points, losing lives, or defeating enemies trigger real-world LED effects on strips and matrices connected to ESP32 microcontrollers.</p>
-<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
-<p>The RGFX system consists of three main components:</p>
+<h1 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h1>
+<p>RGFX is a distributed system that monitors retro arcade games and translates game events into LED effects across physical devices.</p>
+<h2 id="component-overview">Component Overview<a class="headerlink" href="#component-overview" title="Permanent link">&para;</a></h2>
+<p>In this example we have three games connected to two drivers.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph MAME["MAME emulator + rgfx.lua"]
+        subgraph Interceptors[User Lua Interceptors]
+            I1[Pac-Man]
+            I2[Star Wars]
+            I3[Mario Bros]
+        end
+    end
+
+    MAME --&gt; Log[Events Log File]
+
+    subgraph Hub["RGFX Hub"]
+        subgraph Transformers[User JS Transformers]
+            T1[Pac-Man]
+            T2[Star Wars]
+            T3[Mario Bros]
+        end
+    end
+
+    Log --&gt; Hub
+
+    subgraph Drivers["ESP32 Drivers"]
+      D1["Driver 1 (LED Strip)"]
+      D2["Driver 2 (LED Matrix)"]
+    end
+
+    Hub --&gt;|Network| Drivers</code></pre>
+<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>MAME</strong> runs a retro game with a Lua interceptor loaded</li>
+<li><strong>Lua Interceptor</strong> monitors game memory and writes events to a log file</li>
+<li><strong>RGFX Hub</strong> watches the log file and maps events to LED effects</li>
+<li><strong>UDP messages</strong> deliver effect commands to ESP32 drivers in real-time</li>
+<li><strong>MQTT</strong> handles configuration, status reporting, and firmware updates</li>
+<li><strong>ESP32 Drivers</strong> render effects on connected LED hardware</li>
+</ol>
+<h2 id="communication-protocols">Communication Protocols<a class="headerlink" href="#communication-protocols" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Purpose</th>
+<th>Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UDP</td>
+<td>Real-time effect delivery</td>
+<td>Low (~1ms)</td>
+</tr>
+<tr>
+<td>MQTT (QoS 2)</td>
+<td>Configuration, logging, OTA</td>
+<td>Reliable</td>
+</tr>
+<tr>
+<td>SSDP</td>
+<td>Broker discovery</td>
+<td>One-time</td>
+</tr>
+<tr>
+<td>mDNS</td>
+<td>OTA hostname resolution</td>
+<td>One-time</td>
+</tr>
+</tbody>
+</table>
+<h2 id="learn-more">Learn More<a class="headerlink" href="#learn-more" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>RGFX Hub</strong> - The desktop application that coordinates everything</li>
-<li><strong>ESP32 Drivers</strong> - Microcontroller firmware that controls LED hardware</li>
-<li><strong>MAME Interceptors</strong> - Lua scripts that monitor game state and generate events</li>
+<li><a href="getting-started.html">Getting Started</a> - Set up your first RGFX installation</li>
 </ul>
-<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<p>Ready to set up your own retro gaming light show? Head to the <a href="getting-started.html">Getting Started</a> guide.</p>
 
 
 
