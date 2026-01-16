@@ -1,9 +1,14 @@
 #!/bin/bash
-# Build docs and copy to both locations
+set -e
 
 cd "$(dirname "$0")"
 
+# Download latest stable Mermaid
+echo "Updating Mermaid..."
+curl -sL https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js -o docs/assets/js/mermaid.min.js
+
 # Build to site/
+echo "Building docs..."
 mkdocs build
 
 # Copy to website folder
