@@ -7,6 +7,12 @@ RGFX is a distributed system that monitors retro arcade games and translates gam
 In this example we have three games creating effects on two drivers.
 
 ```mermaid
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 10
+---
 flowchart TB
     subgraph MAME["MAME emulator + rgfx.lua"]
         subgraph Interceptors[User Lua Interceptors]
