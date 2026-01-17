@@ -262,3 +262,30 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 - `path: string` - Path to verify (supports `~` expansion)
 
 **Returns:** `boolean` - True if path exists and is a directory
+
+---
+
+### `gif:load`
+
+**File:** [load-gif-handler.ts](load-gif-handler.ts)
+
+**Purpose:** Loads and parses a GIF file for bitmap effects.
+
+**Parameters:**
+- `path: string` - Path to GIF file (relative to transformers directory)
+
+**Returns:** Parsed GIF data with frames and palette
+
+**Behavior:**
+1. Resolves relative paths from transformers directory
+2. Uses `gif-frames` library to extract frames
+3. Returns frame data compatible with bitmap effect schema
+
+---
+
+## Error Handling
+
+All handlers follow a standardized error handling pattern:
+- Validation errors return `{ success: false, error: string }`
+- Unexpected errors are logged and re-thrown
+- OTA errors are tracked via global error handler with driver ID context

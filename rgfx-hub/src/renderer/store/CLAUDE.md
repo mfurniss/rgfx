@@ -196,15 +196,20 @@ interface EventTopic {
 - `testEffectsSelectedDrivers: string[]` - Selected driver IDs for testing
 - `testEffectsSelectAll: boolean` - Whether "select all" is checked
 - `simulatorRows: SimulatorRow[]` - Array of 6 simulator row configurations
+- `wifiSsid: string` - Persisted WiFi SSID for driver configuration
+- `wifiPassword: string` - Persisted WiFi password for driver configuration
+- `stripExplosionLifespanScale: number` - Scaling factor for explosion effect lifespan on strips
 
 **Actions:**
 - `setDriverTableSort(field, order)` - Updates driver table sort preferences
 - `setTestEffectsState(effect, props, drivers, selectAll)` - Saves test effects page state
 - `setSimulatorRow(index, eventLine, autoInterval)` - Updates a simulator row
+- `setWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
+- `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
 
 **Features:**
 - Uses Zustand persist middleware to save preferences to localStorage
-- Only persists sort preferences and simulator rows (not test effects state)
+- Persists sort preferences, simulator rows, and WiFi credentials
 - Storage key: `rgfx-ui-preferences`
 
 ---

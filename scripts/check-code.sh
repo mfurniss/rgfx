@@ -61,6 +61,77 @@ if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES
     exit 0
 fi
 
+# Check for unstaged CLAUDE.md files in directories with staged changes
+check_claude_md_updates() {
+    local staged_files="$1"
+    local unstaged_claude_files=""
+    local checked_dirs=""
+
+    # Get list of staged CLAUDE.md files
+    local staged_claude_files=$(echo "$staged_files" | grep "CLAUDE.md" || true)
+
+    for file in $staged_files; do
+        # Skip non-source files
+        case "$file" in
+            *.ts|*.tsx|*.js|*.jsx|*.cpp|*.h|*.lua)
+                ;;
+            *)
+                continue
+                ;;
+        esac
+
+        # Get directory of the file
+        local dir=$(dirname "$file")
+
+        # Walk up directory tree looking for CLAUDE.md
+        while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+            # Skip if we already checked this directory
+            if echo "$checked_dirs" | grep -q "^${dir}$"; then
+                break
+            fi
+
+            local claude_file="$dir/CLAUDE.md"
+
+            # Check if CLAUDE.md exists in this directory
+            if [ -f "$ROOT_DIR/$claude_file" ]; then
+                # Check if it's staged
+                if ! echo "$staged_claude_files" | grep -q "^${claude_file}$"; then
+                    # Not staged - add to warning list (if not already there)
+                    if ! echo "$unstaged_claude_files" | grep -q "^${claude_file}$"; then
+                        unstaged_claude_files="$unstaged_claude_files
+$claude_file"
+                    fi
+                fi
+                checked_dirs="$checked_dirs
+$dir"
+                break
+            fi
+
+            dir=$(dirname "$dir")
+        done
+    done
+
+    # Print warning if any unstaged CLAUDE.md files found
+    if [ -n "$(echo "$unstaged_claude_files" | tr -d '[:space:]')" ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "⚠️  CLAUDE.md Update Reminder"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "The following CLAUDE.md files may need updates based on your changes:"
+        echo "$unstaged_claude_files" | grep -v "^$" | while read -r f; do
+            echo "  📝 $f"
+        done
+        echo ""
+        echo "Consider updating these files to reflect your changes."
+        echo "To stage: git add <file>"
+        echo ""
+    fi
+}
+
+# Run CLAUDE.md check if we have staged files
+if [ -n "$STAGED_FILES" ]; then
+    check_claude_md_updates "$STAGED_FILES"
+fi
+
 notify "Starting pre-commit checks..."
 echo "🔍 Running code quality checks..."
 echo ""
