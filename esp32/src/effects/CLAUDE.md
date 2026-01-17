@@ -130,18 +130,19 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `effect_utils.h/cpp` | Shared utility functions for effects |
 | `gradient_utils.h/cpp` | Gradient LUT generation and color parsing |
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
-| `background.h/cpp` | Solid color background effect |
-| `bitmap.h/cpp` | Animated sprite display |
-| `explode.h/cpp` | Radial explosion effect |
+| `particle_system.h/cpp` | Shared particle system used by explode and projectile effects |
+| `background.h/cpp` | Gradient background effect with fade transitions |
+| `bitmap.h/cpp` | Animated sprite display with palettized memory storage |
+| `explode.h/cpp` | Radial explosion effect with hueSpread color variation |
 | `particle_field.h/cpp` | Particle field effect |
 | `plasma.h/cpp` | Perlin noise plasma effect |
-| `projectile.h/cpp` | Moving object with velocity/friction |
+| `projectile.h/cpp` | Moving object with velocity capping and cross-core watchdog |
 | `pulse.h/cpp` | Pulse effect with easing and collapse modes |
-| `scroll_text.h/cpp` | Horizontally scrolling text with gradient |
-| `spectrum.h/cpp` | FFT spectrum analyzer |
-| `text.h/cpp` | Static text rendering with gradient |
+| `scroll_text.h/cpp` | Horizontally scrolling text with gradient (auto-centered vertically) |
+| `spectrum.h/cpp` | FFT spectrum analyzer (renders behind text effects) |
+| `text.h/cpp` | Static text rendering with gradient and optional accent color |
 | `test_leds.h/cpp` | Hardware test pattern |
-| `wipe.h/cpp` | Directional wipe effect |
+| `wipe.h/cpp` | Directional wipe effect
 
 ---
 

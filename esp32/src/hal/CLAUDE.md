@@ -11,7 +11,7 @@ hal/
 ├── display.h           # IDisplay interface - output rendering
 ├── led_controller.h    # ILedController interface - FastLED abstraction
 ├── platform.h          # Platform utilities (millis, etc.)
-├── types.h             # CRGB, CHSV, fill_solid (FastLED types for non-ESP32)
+├── types.h             # CRGB, CHSV, fill_solid, RGB/HSV conversion (FastLED types for non-ESP32)
 ├── esp32/              # ESP32 implementations
 │   ├── display.cpp     # FastLED.show() wrapper
 │   ├── led_controller.cpp  # Real FastLED operations
@@ -66,3 +66,16 @@ hal::getDisplay().show(pixels, count, width, height);
 ### Test (`test/`)
 - `led_controller.cpp` - Counters for assertions
 - `display.cpp` - Frame capture for pixel verification
+
+## types.h Color Functions
+
+The types.h file includes RGB/HSV conversion functions for non-ESP32 builds:
+- `rgb2hsv_approximate(CRGB)` - Convert RGB to HSV
+- `hsv2rgb_rainbow(CHSV)` - Convert HSV to RGB with rainbow hue mapping
+
+## PSRAM Functions
+
+Platform functions for bitmap memory management:
+- `psramAvailable()` - Check if PSRAM is present
+- `psramMalloc(size)` - Allocate from PSRAM (falls back to regular heap)
+- Used by bitmap effect for storing sprite data
