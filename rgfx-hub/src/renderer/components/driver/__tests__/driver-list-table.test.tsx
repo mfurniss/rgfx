@@ -56,7 +56,7 @@ const getDriverIdsInOrder = (): string[] => {
   return rows.map((row) => {
     const cells = within(row).getAllByRole('cell');
 
-    return cells[0].textContent ?? '';
+    return cells[0].textContent || '';
   });
 };
 
