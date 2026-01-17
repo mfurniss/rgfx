@@ -338,5 +338,41 @@ Implemented dual OTA partition scheme to fix OTA updates. Added global error han
 
 Added click-to-simulate feature on event monitor for easier effect testing. Skip plasma digest tests due to non-deterministic noise generation. Ignored missing CMakeLists.txt warning in VSCode.
 
-**Total Development Time:** 89 days (October 11, 2025 - January 7, 2026)
-**Total Commits:** 759
+## January 8, 2026
+
+Refactored transformer signature to include payload in topic object for cleaner API design.
+
+## January 9, 2026
+
+Added ambilight effect support with parseAmbilight helper function. Refactored MQTT subscriptions to use sendToRenderer utility. Removed color field from background effect in favor of gradient-only model for consistency.
+
+## January 10, 2026
+
+Added gradient cross-fade to background effect with configurable fadeDuration parameter. Fixed hueSpread color conversion using accurate RGB/HSV functions. Improved Effects Playground UX and fixed Robotron interceptor issues.
+
+## January 11, 2026
+
+Added projectile effect randomize function and single-arg randomFloat utility. Added strip explosion lifespan scaling setting. Improved randomColor usage across effects and added wipe randomize. Effects now trigger when selecting a preset for any effect type.
+
+## January 12, 2026
+
+Implemented shared particle system with cross-core watchdog and velocity capping for projectile effects. Fixed color field empty string handling. Added ESP32 safety improvements to prevent runaway particles from causing watchdog resets.
+
+## January 13, 2026
+
+Improved random trail behavior for projectile effects. Merged projectile watchdog improvements.
+
+## January 14, 2026
+
+Changed spectrum effect to render behind text effects for better layering. Fixed miscellaneous typos.
+
+## January 15, 2026
+
+Added Mermaid diagram support to documentation for visual architecture diagrams.
+
+## January 16, 2026
+
+Major test coverage improvements. Added ESP32 test coverage infrastructure achieving 85% coverage. Added Hub test coverage for utils, IPC handlers, MQTT subscriptions, and effect schemas. Updated Electron Forge to 7.11.1 and fixed react-router vulnerability. Added random blend mode to wipe effect. Enhanced pre-commit hook with intelligent file detection and CLAUDE.md update reminders. Fixed Effects Playground bitmap form issues. Added docs:serve script for local documentation preview.
+
+**Total Development Time:** 98 days (October 11, 2025 - January 16, 2026)
+**Total Commits:** 801
