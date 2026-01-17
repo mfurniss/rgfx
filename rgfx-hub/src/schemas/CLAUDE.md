@@ -42,25 +42,40 @@ Effect property schemas for LED visual effects sent to drivers.
 - `effectSchemas` - Map of effect names to their Zod schemas
 - `isEffectName()` - Type guard for valid effect names
 - `safeValidateEffectProps()` - Validates props for a given effect type
+- Per-effect `randomize()` functions exported for Effects Playground
+
+### effects/preset-config.ts
+Schema for effect preset configurations, used by preset selector modal.
 
 ### effects/properties/
-Reusable property schemas shared across effects:
+Reusable property schemas shared across effects (kebab-case filenames):
 - `index.ts` - Re-exports all property schemas
 - `base.ts` - Base schema all effects extend (`color`, `reset`)
-- `color.ts` - RGB color validation
-- `centerX.ts` / `centerY.ts` - Center point for radial effects
+- `color.ts` - RGB color validation with empty string handling
+- `center-x.ts` / `center-y.ts` - Center point for radial effects
 - `easing.ts` - Animation easing function names
 
+Note: `color-gradient.ts` was removed - gradient colors are now in effect schemas directly.
+
 ### Effect Schemas
-Each effect has its own schema extending `baseEffect`:
-- `background.ts` - Solid color background (singleton, renders first as base layer)
-- `bitmap.ts` - Display a bitmap image on the LED matrix
-- `explode.ts` - Particle explosion from a center point
-- `projectile.ts` - Moving rectangle with direction, velocity, friction, and trail
+Each effect has its own schema extending `baseEffect` (kebab-case filenames):
+- `background.ts` - Gradient-only background (color field removed, uses gradient array)
+- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix
+- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize
+- `particle-field.ts` - Particle field effect with configurable behavior
+- `plasma.ts` - Perlin noise plasma with gradient colors
+- `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog
 - `pulse.ts` - Full-screen color pulse with fade and collapse options
-- `scroll_text.ts` - Horizontally scrolling text with speed and repeat options
-- `text.ts` - Static text rendering at a position
-- `wipe.ts` - Color wipe sweeping across the display
+- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered)
+- `text.ts` - Static text rendering with gradient and optional accent color
+- `wipe.ts` - Color wipe sweeping across the display with random blend mode option
+
+### Per-Effect Randomize Functions
+Each effect schema exports a `randomize()` function that generates randomized props:
+```typescript
+import { randomizeExplode } from './schemas/effects/explode';
+const props = randomizeExplode(); // Returns randomized explode props
+```
 
 ## Design Patterns
 
@@ -68,3 +83,4 @@ Each effect has its own schema extending `baseEffect`:
 - **Strict Mode**: Effect schemas use `.strict()` to reject unknown properties
 - **Defaults**: Schemas define sensible defaults where appropriate
 - **Type Export**: Each schema exports inferred TypeScript types via `z.infer<>`
+- **Kebab-Case Filenames**: All effect files use kebab-case (enforced by eslint-plugin-check-file)

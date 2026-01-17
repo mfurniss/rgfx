@@ -1,6 +1,7 @@
-import { afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import React from 'react';
 import { cleanup } from '@testing-library/react';
+import { seedRandom } from '../utils/random';
 
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
@@ -48,6 +49,12 @@ class ResizeObserverMock {
   disconnect() {}
 }
 window.ResizeObserver = ResizeObserverMock;
+
+// Seed random number generator for deterministic tests
+const TEST_SEED = 12345;
+beforeEach(() => {
+  seedRandom(TEST_SEED);
+});
 
 // Track resources for cleanup (prevents hung processes)
 interface CleanupResource {

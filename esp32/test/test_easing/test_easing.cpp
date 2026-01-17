@@ -14,6 +14,7 @@ void tearDown(void) {}
 
 // Tolerance for floating point comparisons
 #define EPSILON 0.0001f
+#define EPSILON_D 0.0001
 
 // =============================================================================
 // Helper macros for boundary testing
@@ -22,6 +23,10 @@ void tearDown(void) {}
 #define TEST_EASING_BOUNDARIES(func) \
 	TEST_ASSERT_FLOAT_WITHIN(EPSILON, 0.0f, func(0.0f)); \
 	TEST_ASSERT_FLOAT_WITHIN(EPSILON, 1.0f, func(1.0f));
+
+#define TEST_EASING_BOUNDARIES_D(func) \
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.0, func(0.0)); \
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 1.0, func(1.0));
 
 // =============================================================================
 // Linear interpolation
@@ -378,6 +383,328 @@ void test_quadratic_ease_out_is_monotonic() {
 	}
 }
 
+// =============================================================================
+// Double-precision easing functions (suffix 'd')
+// =============================================================================
+
+// Linear
+void test_linear_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(linearInterpolationd);
+}
+
+void test_linear_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, linearInterpolationd(0.5));
+}
+
+// Quadratic
+void test_quadratic_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quadraticEaseInd);
+}
+
+void test_quadratic_ease_in_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.25, quadraticEaseInd(0.5));
+}
+
+void test_quadratic_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quadraticEaseOutd);
+}
+
+void test_quadratic_ease_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.75, quadraticEaseOutd(0.5));
+}
+
+void test_quadratic_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quadraticEaseInOutd);
+}
+
+void test_quadratic_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, quadraticEaseInOutd(0.5));
+}
+
+// Test both branches of InOut
+void test_quadratic_ease_in_out_d_first_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.125, quadraticEaseInOutd(0.25));
+}
+
+void test_quadratic_ease_in_out_d_second_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.875, quadraticEaseInOutd(0.75));
+}
+
+// Cubic
+void test_cubic_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(cubicEaseInd);
+}
+
+void test_cubic_ease_in_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.125, cubicEaseInd(0.5));
+}
+
+void test_cubic_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(cubicEaseOutd);
+}
+
+void test_cubic_ease_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.875, cubicEaseOutd(0.5));
+}
+
+void test_cubic_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(cubicEaseInOutd);
+}
+
+void test_cubic_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, cubicEaseInOutd(0.5));
+}
+
+void test_cubic_ease_in_out_d_both_branches() {
+	// First half: 4 * 0.25^3 = 0.0625
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.0625, cubicEaseInOutd(0.25));
+	// Second half: 0.5 * (-0.5)^3 + 1 = 0.9375
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.9375, cubicEaseInOutd(0.75));
+}
+
+// Quartic
+void test_quartic_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quarticEaseInd);
+}
+
+void test_quartic_ease_in_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.0625, quarticEaseInd(0.5));
+}
+
+void test_quartic_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quarticEaseOutd);
+}
+
+void test_quartic_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quarticEaseInOutd);
+}
+
+void test_quartic_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, quarticEaseInOutd(0.5));
+}
+
+void test_quartic_ease_in_out_d_both_branches() {
+	// First half: 8 * 0.25^4 = 0.03125
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.03125, quarticEaseInOutd(0.25));
+	// Second half: -8 * (-0.25)^4 + 1 = 0.96875
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.96875, quarticEaseInOutd(0.75));
+}
+
+// Quintic
+void test_quintic_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quinticEaseInd);
+}
+
+void test_quintic_ease_in_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.03125, quinticEaseInd(0.5));
+}
+
+void test_quintic_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quinticEaseOutd);
+}
+
+void test_quintic_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(quinticEaseInOutd);
+}
+
+void test_quintic_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, quinticEaseInOutd(0.5));
+}
+
+void test_quintic_ease_in_out_d_both_branches() {
+	// First half: 16 * 0.25^5 = 0.015625
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.015625, quinticEaseInOutd(0.25));
+	// Second half: 0.5 * (-0.5)^5 + 1 = 0.984375
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.984375, quinticEaseInOutd(0.75));
+}
+
+// Sine
+void test_sine_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(sineEaseInd);
+}
+
+void test_sine_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(sineEaseOutd);
+}
+
+void test_sine_ease_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.7071, sineEaseOutd(0.5));
+}
+
+void test_sine_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(sineEaseInOutd);
+}
+
+void test_sine_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, sineEaseInOutd(0.5));
+}
+
+// Circular
+void test_circular_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(circularEaseInd);
+}
+
+void test_circular_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(circularEaseOutd);
+}
+
+void test_circular_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(circularEaseInOutd);
+}
+
+void test_circular_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, circularEaseInOutd(0.5));
+}
+
+void test_circular_ease_in_out_d_both_branches() {
+	// Test first half branch (p < 0.5)
+	double val1 = circularEaseInd(0.25);
+	TEST_ASSERT_TRUE(val1 > 0.0 && val1 < 0.5);
+	// Test second half branch (p >= 0.5)
+	double val2 = circularEaseInOutd(0.75);
+	TEST_ASSERT_TRUE(val2 > 0.5 && val2 < 1.0);
+}
+
+// Exponential
+void test_exponential_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(exponentialEaseInd);
+}
+
+void test_exponential_ease_in_d_at_zero_exact() {
+	// Special case: p == 0.0 returns p
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.0, exponentialEaseInd(0.0));
+}
+
+void test_exponential_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(exponentialEaseOutd);
+}
+
+void test_exponential_ease_out_d_at_one_exact() {
+	// Special case: p == 1.0 returns p
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 1.0, exponentialEaseOutd(1.0));
+}
+
+void test_exponential_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(exponentialEaseInOutd);
+}
+
+void test_exponential_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, exponentialEaseInOutd(0.5));
+}
+
+void test_exponential_ease_in_out_d_both_branches() {
+	// Test first half (p < 0.5)
+	double val1 = exponentialEaseInOutd(0.25);
+	TEST_ASSERT_TRUE(val1 > 0.0 && val1 < 0.5);
+	// Test second half (p > 0.5)
+	double val2 = exponentialEaseInOutd(0.75);
+	TEST_ASSERT_TRUE(val2 > 0.5 && val2 < 1.0);
+}
+
+// Elastic
+void test_elastic_ease_in_d_at_zero() {
+	TEST_ASSERT_DOUBLE_WITHIN(0.01, 0.0, elasticEaseInd(0.0));
+}
+
+void test_elastic_ease_in_d_at_one() {
+	TEST_ASSERT_DOUBLE_WITHIN(0.01, 1.0, elasticEaseInd(1.0));
+}
+
+void test_elastic_ease_out_d_at_zero() {
+	TEST_ASSERT_DOUBLE_WITHIN(0.01, 0.0, elasticEaseOutd(0.0));
+}
+
+void test_elastic_ease_out_d_at_one() {
+	TEST_ASSERT_DOUBLE_WITHIN(0.01, 1.0, elasticEaseOutd(1.0));
+}
+
+void test_elastic_ease_in_out_d_boundaries() {
+	TEST_ASSERT_DOUBLE_WITHIN(0.01, 0.0, elasticEaseInOutd(0.0));
+	TEST_ASSERT_DOUBLE_WITHIN(0.01, 1.0, elasticEaseInOutd(1.0));
+}
+
+void test_elastic_ease_in_out_d_both_branches() {
+	// First half - value should be small
+	double val1 = elasticEaseInOutd(0.25);
+	TEST_ASSERT_TRUE(val1 < 0.5);
+	// Second half - value should approach 1
+	double val2 = elasticEaseInOutd(0.75);
+	TEST_ASSERT_TRUE(val2 > 0.5);
+}
+
+// Back
+void test_back_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(backEaseInd);
+}
+
+void test_back_ease_in_d_overshoots() {
+	double val = backEaseInd(0.3);
+	TEST_ASSERT_TRUE(val < 0.0);
+}
+
+void test_back_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(backEaseOutd);
+}
+
+void test_back_ease_out_d_overshoots() {
+	double val = backEaseOutd(0.7);
+	TEST_ASSERT_TRUE(val > 1.0);
+}
+
+void test_back_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(backEaseInOutd);
+}
+
+void test_back_ease_in_out_d_both_branches() {
+	// First half - can go negative
+	double val1 = backEaseInOutd(0.25);
+	TEST_ASSERT_TRUE(val1 < 0.25);
+	// Second half - can exceed target
+	double val2 = backEaseInOutd(0.75);
+	TEST_ASSERT_TRUE(val2 > 0.75);
+}
+
+// Bounce
+void test_bounce_ease_in_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(bounceEaseInd);
+}
+
+void test_bounce_ease_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(bounceEaseOutd);
+}
+
+void test_bounce_ease_out_d_all_branches() {
+	// p < 4/11.0 (~0.364)
+	double val1 = bounceEaseOutd(0.2);
+	TEST_ASSERT_TRUE(val1 > 0.0 && val1 < 1.0);
+	// p < 8/11.0 (~0.727)
+	double val2 = bounceEaseOutd(0.5);
+	TEST_ASSERT_TRUE(val2 > 0.0 && val2 < 1.0);
+	// p < 9/10.0 (0.9)
+	double val3 = bounceEaseOutd(0.85);
+	TEST_ASSERT_TRUE(val3 > 0.0 && val3 < 1.0);
+	// p >= 9/10.0
+	double val4 = bounceEaseOutd(0.95);
+	TEST_ASSERT_TRUE(val4 > 0.0 && val4 <= 1.0);
+}
+
+void test_bounce_ease_in_out_d_boundaries() {
+	TEST_EASING_BOUNDARIES_D(bounceEaseInOutd);
+}
+
+void test_bounce_ease_in_out_d_at_half() {
+	TEST_ASSERT_DOUBLE_WITHIN(EPSILON_D, 0.5, bounceEaseInOutd(0.5));
+}
+
+void test_bounce_ease_in_out_d_both_branches() {
+	// First half
+	double val1 = bounceEaseInOutd(0.25);
+	TEST_ASSERT_TRUE(val1 > 0.0 && val1 < 0.5);
+	// Second half
+	double val2 = bounceEaseInOutd(0.75);
+	TEST_ASSERT_TRUE(val2 > 0.5 && val2 < 1.0);
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -471,6 +798,96 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_linear_is_monotonic);
 	RUN_TEST(test_quadratic_ease_in_is_monotonic);
 	RUN_TEST(test_quadratic_ease_out_is_monotonic);
+
+	// =================================================================
+	// Double-precision easing functions (suffix 'd')
+	// =================================================================
+
+	// Linear (double)
+	RUN_TEST(test_linear_d_boundaries);
+	RUN_TEST(test_linear_d_at_half);
+
+	// Quadratic (double)
+	RUN_TEST(test_quadratic_ease_in_d_boundaries);
+	RUN_TEST(test_quadratic_ease_in_d_at_half);
+	RUN_TEST(test_quadratic_ease_out_d_boundaries);
+	RUN_TEST(test_quadratic_ease_out_d_at_half);
+	RUN_TEST(test_quadratic_ease_in_out_d_boundaries);
+	RUN_TEST(test_quadratic_ease_in_out_d_at_half);
+	RUN_TEST(test_quadratic_ease_in_out_d_first_half);
+	RUN_TEST(test_quadratic_ease_in_out_d_second_half);
+
+	// Cubic (double)
+	RUN_TEST(test_cubic_ease_in_d_boundaries);
+	RUN_TEST(test_cubic_ease_in_d_at_half);
+	RUN_TEST(test_cubic_ease_out_d_boundaries);
+	RUN_TEST(test_cubic_ease_out_d_at_half);
+	RUN_TEST(test_cubic_ease_in_out_d_boundaries);
+	RUN_TEST(test_cubic_ease_in_out_d_at_half);
+	RUN_TEST(test_cubic_ease_in_out_d_both_branches);
+
+	// Quartic (double)
+	RUN_TEST(test_quartic_ease_in_d_boundaries);
+	RUN_TEST(test_quartic_ease_in_d_at_half);
+	RUN_TEST(test_quartic_ease_out_d_boundaries);
+	RUN_TEST(test_quartic_ease_in_out_d_boundaries);
+	RUN_TEST(test_quartic_ease_in_out_d_at_half);
+	RUN_TEST(test_quartic_ease_in_out_d_both_branches);
+
+	// Quintic (double)
+	RUN_TEST(test_quintic_ease_in_d_boundaries);
+	RUN_TEST(test_quintic_ease_in_d_at_half);
+	RUN_TEST(test_quintic_ease_out_d_boundaries);
+	RUN_TEST(test_quintic_ease_in_out_d_boundaries);
+	RUN_TEST(test_quintic_ease_in_out_d_at_half);
+	RUN_TEST(test_quintic_ease_in_out_d_both_branches);
+
+	// Sine (double)
+	RUN_TEST(test_sine_ease_in_d_boundaries);
+	RUN_TEST(test_sine_ease_out_d_boundaries);
+	RUN_TEST(test_sine_ease_out_d_at_half);
+	RUN_TEST(test_sine_ease_in_out_d_boundaries);
+	RUN_TEST(test_sine_ease_in_out_d_at_half);
+
+	// Circular (double)
+	RUN_TEST(test_circular_ease_in_d_boundaries);
+	RUN_TEST(test_circular_ease_out_d_boundaries);
+	RUN_TEST(test_circular_ease_in_out_d_boundaries);
+	RUN_TEST(test_circular_ease_in_out_d_at_half);
+	RUN_TEST(test_circular_ease_in_out_d_both_branches);
+
+	// Exponential (double)
+	RUN_TEST(test_exponential_ease_in_d_boundaries);
+	RUN_TEST(test_exponential_ease_in_d_at_zero_exact);
+	RUN_TEST(test_exponential_ease_out_d_boundaries);
+	RUN_TEST(test_exponential_ease_out_d_at_one_exact);
+	RUN_TEST(test_exponential_ease_in_out_d_boundaries);
+	RUN_TEST(test_exponential_ease_in_out_d_at_half);
+	RUN_TEST(test_exponential_ease_in_out_d_both_branches);
+
+	// Elastic (double)
+	RUN_TEST(test_elastic_ease_in_d_at_zero);
+	RUN_TEST(test_elastic_ease_in_d_at_one);
+	RUN_TEST(test_elastic_ease_out_d_at_zero);
+	RUN_TEST(test_elastic_ease_out_d_at_one);
+	RUN_TEST(test_elastic_ease_in_out_d_boundaries);
+	RUN_TEST(test_elastic_ease_in_out_d_both_branches);
+
+	// Back (double)
+	RUN_TEST(test_back_ease_in_d_boundaries);
+	RUN_TEST(test_back_ease_in_d_overshoots);
+	RUN_TEST(test_back_ease_out_d_boundaries);
+	RUN_TEST(test_back_ease_out_d_overshoots);
+	RUN_TEST(test_back_ease_in_out_d_boundaries);
+	RUN_TEST(test_back_ease_in_out_d_both_branches);
+
+	// Bounce (double)
+	RUN_TEST(test_bounce_ease_in_d_boundaries);
+	RUN_TEST(test_bounce_ease_out_d_boundaries);
+	RUN_TEST(test_bounce_ease_out_d_all_branches);
+	RUN_TEST(test_bounce_ease_in_out_d_boundaries);
+	RUN_TEST(test_bounce_ease_in_out_d_at_half);
+	RUN_TEST(test_bounce_ease_in_out_d_both_branches);
 
 	return UNITY_END();
 }

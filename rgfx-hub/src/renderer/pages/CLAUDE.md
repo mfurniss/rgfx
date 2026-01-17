@@ -69,6 +69,7 @@ This folder contains the main page components for the RGFX Hub application. Each
 - Columns: topic name, occurrence count, last value
 - Formats numeric values with hex representation for 16-bit values
 - Uses `EventStore` for reactive updates
+- Click-to-simulate: clicking a row triggers that event through the simulator
 
 ---
 
@@ -82,10 +83,26 @@ This folder contains the main page components for the RGFX Hub application. Each
 
 **Features:**
 - Dropdown to select effect type (pulse, wipe, explode, etc.)
-- JSON editor for effect properties with real-time Zod validation
+- Dynamic form generated from Zod schemas with `EffectForm` component
+- Per-effect randomize functions for quick testing
 - Driver selection checkboxes with "select all" option
 - Triggers effects via UDP broadcast to selected drivers
+- Preset selection modal for gradient and plasma effects
 - State persisted in `UiStore` across navigation
+- Code generation tab showing JavaScript code for transformers
+
+### Effects Playground Subdirectory
+
+**Directory:** [effects-playground/](effects-playground/)
+
+Refactored components and utilities extracted from the main page:
+
+| File | Purpose |
+|------|---------|
+| `components/tab-panel.tsx` | Tab panel wrapper for tabbed interface |
+| `effect-helpers.ts` | Effect manipulation helpers (randomize, defaults) |
+| `utils/code-generator.ts` | Generates JavaScript code from effect props |
+| `utils/value-formatter.ts` | Formats values for display and code output |
 
 ---
 
@@ -147,6 +164,7 @@ This folder contains the main page components for the RGFX Hub application. Each
 - Directory validation with folder picker dialogs
 - Saves to `UiStore` (localStorage persistence)
 - Gets default paths from `AppInfoStore`
+- **Effects:** Strip explosion lifespan scaling setting for LED strips
 
 ---
 

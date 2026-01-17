@@ -48,6 +48,7 @@ WiFi credentials are managed separately by IotWebConf.
 - Supports multiple devices per pin (via offset)
 - Configures chipset, color order, brightness
 - Maximum 4 GPIO pins (MAX_PINS constant)
+- **RGBW LED support** via SK6812-based chipsets (4-byte color)
 
 **Key Functions:**
 ```cpp
@@ -56,6 +57,11 @@ CRGB* leds = getLEDsForDevice("marquee");  // Get LED array by device ID
 showAllLEDs();                         // Trigger FastLED output
 clearAllLEDs();                        // Set all LEDs to black
 ```
+
+**RGBW Notes:**
+- RGBW strips use 4 bytes per pixel (R, G, B, W)
+- W channel derived from color temperature or explicit setting
+- Requires specific chipset configuration in hardware definition
 
 ---
 

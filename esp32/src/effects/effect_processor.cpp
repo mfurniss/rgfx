@@ -47,10 +47,10 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 		  {"test_leds", &testLedsEffect},
 		  {"background", &backgroundEffect},
 		  {"projectile", &projectileEffect},
+		  {"spectrum", &spectrumEffect},
+		  {"plasma", &plasmaEffect},
 		  {"text", &textEffect},
 		  {"scroll_text", &scrollTextEffect},
-		  {"plasma", &plasmaEffect},
-		  {"spectrum", &spectrumEffect},
 	  } {}
 
 void EffectProcessor::update() {

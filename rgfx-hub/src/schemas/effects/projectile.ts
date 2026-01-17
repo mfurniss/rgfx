@@ -16,7 +16,7 @@ export function randomize(): Record<string, unknown> {
     direction: randomString(['left', 'right']),
     velocity: randomInt(500, 3000),
     friction: roundFloat(randomFloat(8) - 4),
-    trail: randomInt(1) ? randomFloat(4) : 0,
+    trail: randomInt(1) ? randomFloat(0, 1) : 0,
     width: randomInt(4, 64),
     height: randomInt(4, 64),
     particleDensity: randomInt(1) ? randomInt(30, 80) : 0,

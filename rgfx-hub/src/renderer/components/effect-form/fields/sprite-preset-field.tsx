@@ -102,6 +102,10 @@ export function SpritePresetField<T extends FieldValues>({
         height: result.height,
         filePath: result.filePath ?? '',
       });
+
+      // Trigger the effect after React state updates
+      await Promise.resolve();
+      document.querySelector<HTMLButtonElement>('[data-testid="trigger-effect-btn"]')?.click();
     } catch (err) {
       console.error('Failed to load GIF:', err);
     }
@@ -123,8 +127,8 @@ export function SpritePresetField<T extends FieldValues>({
 
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <FormControl fullWidth error={!!error} size="small">
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <FormControl error={!!error} size="small" sx={{ flex: 1, minWidth: 150 }}>
                 <InputLabel>{label}</InputLabel>
                 <Select
                   value={selectedValue}

@@ -2,7 +2,7 @@
 
 > **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
 
-Main process services for firmware management.
+Main process services for firmware management, application lifecycle, and error handling.
 
 ## Files
 
@@ -31,11 +31,63 @@ Key methods:
 - `stop()`: cleanup for app quit
 - `getCurrentVersion()`: cached version string
 
+### global-error-handler.ts
+
+Centralized error handling for uncaught exceptions and unhandled rejections.
+
+- Prevents app crashes from OTA ECONNRESET errors
+- Sends error events to renderer via `system:error` IPC channel
+- Logs all errors via electron-log
+- Tracks driver ID context for OTA-related errors
+
+Key methods:
+- `setupGlobalErrorHandler(mainWindow)`: installs process error handlers
+- `setOtaDriverId(driverId)`: sets context for OTA error attribution
+
+### service-factory.ts
+
+Factory for creating and wiring up all main process services.
+
+- Creates instances of all services with dependency injection
+- Provides `ServiceContainer` interface for accessing services
+- Used by `service-startup.ts` for initialization
+
+### service-startup.ts
+
+Orchestrates service initialization on app startup.
+
+- Initializes services in correct order with dependency resolution
+- Handles async initialization (MQTT broker, UDP server, etc.)
+- Returns `ServiceContainer` for use throughout app lifecycle
+
+### system-error-tracker.ts
+
+Tracks and aggregates system errors for display in UI.
+
+- Maintains array of recent errors with timestamps
+- Deduplicates repeated errors
+- Provides errors to SystemStatus for renderer display
+
+### event-stats.ts
+
+Tracks event processing statistics.
+
+- Counts events processed per topic
+- Provides stats for system status display
+
+### event-bus.ts
+
+Simple pub/sub event bus for inter-service communication.
+
+- Decouples services from direct dependencies
+- Used for system-wide events like errors, status updates
+
 ## Usage
 
 ```typescript
 import { firmwareVersionService } from './services/firmware-version-service';
 import { FirmwareWatcher } from './services/firmware-watcher';
+import { setupGlobalErrorHandler } from './services/global-error-handler';
 
 // Check if driver needs update
 const needsUpdate = firmwareVersionService.needsUpdate(driver.version);
@@ -46,4 +98,7 @@ watcher.on('firmware-updated', (newVersion) => {
   // Handle new firmware available
 });
 watcher.start();
+
+// Setup global error handling
+setupGlobalErrorHandler(mainWindow);
 ```
