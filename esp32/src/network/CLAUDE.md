@@ -60,6 +60,13 @@ The `log()` function uses a FreeRTOS queue to safely pass log messages from any 
 
 When adding new MQTT publish calls, always use the log queue pattern or ensure the call is made from the network task.
 
+## Cross-Core Watchdog
+
+For effects running on Core 1 (like projectile), a cross-core watchdog mechanism is used:
+- Core 1 writes effect completion status to a shared flag
+- Core 0 monitors this flag and can terminate runaway effects
+- Prevents infinite animation loops from blocking rendering
+
 ## Network Initialization Flow
 
 1. WiFi connects (via IotWebConf portal or saved credentials)

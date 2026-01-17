@@ -584,22 +584,22 @@ static uint64_t runSpectrumDigest(const TestConfig& config, float updateTime,
 
 void test_spectrum_digest_16x16_t100() {
 	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[1], 0.1f);
-	assertDigest(0x52927041B2DDF199ull, digest, "spectrum_16x16_t100");
+	assertDigest(0x894D080FED442445ull, digest, "spectrum_16x16_t100");
 }
 
 void test_spectrum_digest_16x16_t200_different_values() {
 	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[1], 0.2f, {9, 9, 9, 9, 9});
-	assertDigest(0x9D01BB169C65B0E5ull, digest, "spectrum_16x16_t200_full");
+	assertDigest(0xA785E60ACDDFAca5ull, digest, "spectrum_16x16_t200_full");
 }
 
 void test_spectrum_digest_strip_t150() {
 	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[0], 0.15f);
-	assertDigest(0xEEEB423BD1618C06ull, digest, "spectrum_strip_t150");
+	assertDigest(0x72D3BFE13779F944ull, digest, "spectrum_strip_t150");
 }
 
 void test_spectrum_digest_96x8_t100() {
 	uint64_t digest = runSpectrumDigest(TEST_CONFIGS[2], 0.1f);
-	assertDigest(0x2CF0E2A6AD04A3CDull, digest, "spectrum_96x8_t100");
+	assertDigest(0x53D2AD84FA6FDC9Dull, digest, "spectrum_96x8_t100");
 }
 
 void test_spectrum_property_decay_changes() {

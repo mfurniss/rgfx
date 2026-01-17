@@ -2,7 +2,7 @@
 
 > **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
 
-Centralized configuration constants and paths.
+Centralized configuration constants, paths, and initialization.
 
 ## Files
 
@@ -14,6 +14,7 @@ All tunable constants in one place. Categories:
 - `MQTT_DEFAULT_PORT`: 1883
 - `MQTT_QOS_LEVEL`: 2 (exactly once)
 - `UDP_PORT`: 8888 (LED effects)
+- `UDP_MAX_PACKET_SIZE`: 1472 (MTU limit for UDP)
 - `SSDP_PORT`: 1900, `SSDP_SERVICE_URN`: broker discovery
 - `UDP_DISCOVERY_PORT`: 8889, `UDP_DISCOVERY_INTERVAL_MS`: 5000
 
@@ -39,6 +40,9 @@ All tunable constants in one place. Categories:
 - `TOAST_AUTO_HIDE_DURATION_MS`: 5000
 - `DEFAULT_FX_PLAYGROUND_EFFECT`: 'background'
 
+**Gradients**
+- `MAX_GRADIENT_COLORS`: 64 (maximum colors in gradient array)
+
 ### paths.ts
 
 File system paths (main process only).
@@ -48,3 +52,18 @@ File system paths (main process only).
 - `INTERCEPTORS_DIRECTORY`: `~/.rgfx/interceptors`
 
 **Important**: Do not import paths.ts from renderer process (uses Node.js `os.homedir()`).
+
+### logging.ts
+
+Configures electron-log for the application.
+
+- Sets log file location
+- Configures log levels
+- Formats log output
+
+### zod-config.ts
+
+Configures Zod for consistent error messages across the app.
+
+- Sets custom error map
+- Standardizes validation messages

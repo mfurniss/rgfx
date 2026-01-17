@@ -86,6 +86,8 @@ interface UdpClient {
 - Supports `*` wildcard for random driver selection
 - Maintains a single reusable UDP socket
 - Uses DriverRegistry to discover driver IPs
+- Validates packet size against MTU limit (1472 bytes)
+- Reports oversized packets via event bus for error tracking
 
 **Effect Payload:**
 ```typescript
@@ -93,6 +95,15 @@ interface EffectPayload {
   effect: string;       // "pulse", "wipe", "explode", etc.
   props: Record<string, unknown>;  // Effect-specific properties
   drivers?: string[];   // Optional selective routing
+}
+```
+
+**Transformer Context:**
+The context object passed to transformers now includes `payload` in the topic object:
+```typescript
+interface TransformerTopic {
+  topic: string;
+  payload: string;  // Raw payload from event
 }
 ```
 

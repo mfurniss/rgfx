@@ -334,6 +334,50 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### NoDriversBanner
+
+**File:** [firmware/no-drivers-banner.tsx](firmware/no-drivers-banner.tsx)
+
+**Purpose:** Banner shown on firmware page when no drivers are connected.
+
+**Features:**
+- Guides user to connect a driver before flashing
+- Links to documentation
+
+---
+
+### PageBanner
+
+**File:** [common/page-banner.tsx](common/page-banner.tsx)
+
+**Purpose:** Reusable banner component for page-level notifications.
+
+**Props:**
+- `severity: 'info' | 'warning' | 'error'` - Banner type
+- `message: string` - Banner text
+- `action?: ReactNode` - Optional action button
+
+---
+
+### SortableTableHead
+
+**File:** [common/sortable-table-head.tsx](common/sortable-table-head.tsx)
+
+**Purpose:** Reusable table header with sortable columns.
+
+**Props:**
+- `columns: Column[]` - Column definitions with id, label, sortable flag
+- `sortField: string` - Current sort field
+- `sortOrder: 'asc' | 'desc'` - Sort direction
+- `onSort: (field) => void` - Sort callback
+
+**Features:**
+- Sort direction indicators
+- Accessible keyboard navigation
+- Used by DriverListTable and EventMonitorPage
+
+---
+
 ### PageTitle
 
 **File:** [page-title.tsx](page-title.tsx)
@@ -423,3 +467,36 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Supports text, number, boolean, enum, and color field types
 - Integrates with react-hook-form Controller
 - Shows validation errors from form state
+
+### BackgroundGradientField
+
+**File:** [effect-form/fields/background-gradient-field.tsx](effect-form/fields/background-gradient-field.tsx)
+
+**Purpose:** Specialized field for background effect gradient configuration.
+
+**Features:**
+- Gradient preset selector with preview
+- Custom gradient color editing
+- Orientation toggle (horizontal/vertical)
+
+### GradientArrayField
+
+**File:** [effect-form/fields/gradient-array-field.tsx](effect-form/fields/gradient-array-field.tsx)
+
+**Purpose:** Editable array field for gradient color stops.
+
+**Features:**
+- Add/remove color stops
+- Color picker for each stop
+- Drag to reorder colors
+
+### PresetSelectorModal
+
+**File:** [effect-form/preset-selector-modal.tsx](effect-form/preset-selector-modal.tsx)
+
+**Purpose:** Modal dialog for selecting effect presets.
+
+**Features:**
+- Grid of preset thumbnails
+- Search/filter functionality
+- Preview on hover

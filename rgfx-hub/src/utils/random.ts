@@ -7,6 +7,28 @@
 
 import { hslToHex } from './color';
 
+// Mulberry32 PRNG - fast, simple, good distribution
+// Returns a function that generates numbers in [0, 1)
+function mulberry32(seed: number): () => number {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+let rng: () => number = Math.random;
+
+/**
+ * Seed the random number generator for deterministic output.
+ * Call with no argument to reset to Math.random.
+ */
+export function seedRandom(seed?: number): void {
+  rng = seed !== undefined ? mulberry32(seed) : Math.random;
+}
+
 export function randomInt(min: number, max?: number): number {
   if (max === undefined) {
     return Math.round(randomFloat(0, min));
@@ -16,9 +38,9 @@ export function randomInt(min: number, max?: number): number {
 
 export function randomFloat(min: number, max?: number): number {
   if (max === undefined) {
-    return Math.round(Math.random() * min * 100) / 100;
+    return Math.round(rng() * min * 100) / 100;
   }
-  return Math.round((min + Math.random() * (max - min)) * 100) / 100;
+  return Math.round((min + rng() * (max - min)) * 100) / 100;
 }
 
 export function randomString<T extends string>(options: T[]): T {

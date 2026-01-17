@@ -48,6 +48,18 @@ MAME event handling utilities:
 JavaScript modules that transform game events into LED effects:
 - `default.js` - Default transformer for unmapped events
 - `utils.js` - Shared utility functions
-- `games/` - Game-specific transformer modules
+- `palettes.js` - Color palette definitions (retro game palettes, gradients)
+- `games/` - Game-specific transformer modules (galaga.js, pacman.js, smb.js, etc.)
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting
+  - `ambilight.js` - Ambilight effect subject
+  - `audio.js` - Audio-reactive effect subject
+- `bitmaps/` - Sprite bitmaps for bitmap effects
+  - Pac-Man bonus fruit sprites (pac-bonus-*.gif)
+  - Mario coin sprite (mario-coin.gif)
+  - `pacman-sprites.js` - Pac-Man sprite definitions
+
+### led-hardware/
+LED hardware definition files (JSON):
+- Define physical LED products with name, SKU, layout, pixel count, chipset
+- Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json)

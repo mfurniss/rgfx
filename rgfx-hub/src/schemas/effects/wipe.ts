@@ -14,6 +14,7 @@ export function randomize(): Record<string, unknown> {
     color: randomColor(0.3),
     duration: randomInt(300, 2000),
     direction: randomString(['left', 'right', 'up', 'down', 'random']),
+    blendMode: randomString(['additive', 'replace']),
   };
 }
 

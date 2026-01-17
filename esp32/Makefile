@@ -1,7 +1,8 @@
 # RGFX ESP32 Driver - Development Commands
 # Provides convenient shortcuts for formatting, linting, and testing
 
-.PHONY: help format format-check lint cppcheck test test-native test-generate-digests compile clean check-tools all ci
+.PHONY: help format format-check lint cppcheck test test-native test-generate-digests compile clean check-tools all ci \
+        test-coverage coverage-report coverage-json coverage-html coverage coverage-clean
 
 # Tool detection
 CLANG_FORMAT := $(shell command -v clang-format 2> /dev/null)
@@ -22,6 +23,12 @@ help:
 	@echo "  make compile       - Compile firmware for ESP32"
 	@echo "  make clean         - Clean build artifacts"
 	@echo "  make check-tools   - Verify required tools are installed"
+	@echo ""
+	@echo "Coverage Commands:"
+	@echo "  make coverage        - Run tests with coverage (text + JSON reports)"
+	@echo "  make coverage-json   - Generate JSON coverage report"
+	@echo "  make coverage-html   - Generate HTML coverage report"
+	@echo "  make coverage-clean  - Remove coverage data"
 	@echo ""
 	@echo "Setup Instructions:"
 	@echo "  brew install clang-format   # Install clang-format for code formatting"
@@ -116,3 +123,104 @@ all: format lint test compile
 ci: format-check lint cppcheck test compile
 	@echo ""
 	@echo "✅ CI pipeline completed successfully!"
+
+# ============================================================================
+# Code Coverage (using LLVM instrumentation)
+# Reference: https://alastairs-place.net/blog/2016/05/20/code-coverage-from-the-command-line-with-clang/
+# ============================================================================
+
+COVERAGE_DIR := .pio/build/native-coverage/coverage
+PROFDATA := $(COVERAGE_DIR)/coverage.profdata
+
+# Exclusion patterns for coverage reports
+COVERAGE_EXCLUDE := \
+    --ignore-filename-regex='.*test.*' \
+    --ignore-filename-regex='.*\.pio.*' \
+    --ignore-filename-regex='.*/hal/esp32/.*' \
+    --ignore-filename-regex='.*/hal/test/.*'
+
+# Run tests with coverage instrumentation, preserving binaries
+test-coverage: coverage-clean
+	@echo "Running tests with coverage instrumentation..."
+	@mkdir -p $(COVERAGE_DIR)
+	@mkdir -p $(COVERAGE_DIR)/binaries
+	@for test_dir in test/test_*/; do \
+		test_name=$$(basename $$test_dir); \
+		echo ""; \
+		echo "=== Testing $$test_name ==="; \
+		LLVM_PROFILE_FILE="$(COVERAGE_DIR)/$$test_name.profraw" pio test -e native-coverage -f $$test_name && \
+		cp .pio/build/native-coverage/program $(COVERAGE_DIR)/binaries/$$test_name 2>/dev/null || true; \
+	done
+	@echo ""
+	@echo "Coverage data collected."
+
+# Merge profraw files into profdata
+$(PROFDATA): test-coverage
+	@echo "Merging coverage data..."
+	@xcrun llvm-profdata merge -sparse $(COVERAGE_DIR)/*.profraw -o $(PROFDATA)
+
+# Build list of all preserved binaries for llvm-cov
+BINARY_OBJECTS = $(shell find $(COVERAGE_DIR)/binaries -type f 2>/dev/null | sed 's/^/-object /')
+
+# Generate text coverage report (summary)
+coverage-report: $(PROFDATA)
+	@echo "Generating coverage report..."
+	@BINARIES=$$(find $(COVERAGE_DIR)/binaries -type f 2>/dev/null | head -1); \
+	if [ -z "$$BINARIES" ]; then echo "Error: No test binaries found"; exit 1; fi; \
+	OBJECTS=$$(find $(COVERAGE_DIR)/binaries -type f | sed 's/^/-object /' | tr '\n' ' '); \
+	xcrun llvm-cov report \
+		$$(find $(COVERAGE_DIR)/binaries -type f | head -1) \
+		$$(find $(COVERAGE_DIR)/binaries -type f | tail -n +2 | sed 's/^/-object /') \
+		-instr-profile=$(PROFDATA) \
+		$(COVERAGE_EXCLUDE) \
+		| tee $(COVERAGE_DIR)/coverage.txt
+	@echo ""
+	@echo "Coverage report saved to $(COVERAGE_DIR)/coverage.txt"
+
+# Generate JSON coverage report (for programmatic analysis)
+coverage-json: $(PROFDATA)
+	@echo "Generating JSON coverage report..."
+	@BINARIES=$$(find $(COVERAGE_DIR)/binaries -type f 2>/dev/null | head -1); \
+	if [ -z "$$BINARIES" ]; then echo "Error: No test binaries found"; exit 1; fi; \
+	xcrun llvm-cov export \
+		$$(find $(COVERAGE_DIR)/binaries -type f | head -1) \
+		$$(find $(COVERAGE_DIR)/binaries -type f | tail -n +2 | sed 's/^/-object /') \
+		-instr-profile=$(PROFDATA) \
+		$(COVERAGE_EXCLUDE) \
+		> $(COVERAGE_DIR)/coverage.json
+	@echo "JSON report: $(COVERAGE_DIR)/coverage.json"
+
+# Generate HTML coverage report
+coverage-html: $(PROFDATA)
+	@echo "Generating HTML coverage report..."
+	@BINARIES=$$(find $(COVERAGE_DIR)/binaries -type f 2>/dev/null | head -1); \
+	if [ -z "$$BINARIES" ]; then echo "Error: No test binaries found"; exit 1; fi; \
+	xcrun llvm-cov show \
+		$$(find $(COVERAGE_DIR)/binaries -type f | head -1) \
+		$$(find $(COVERAGE_DIR)/binaries -type f | tail -n +2 | sed 's/^/-object /') \
+		-instr-profile=$(PROFDATA) \
+		-format=html \
+		-output-dir=$(COVERAGE_DIR)/html \
+		$(COVERAGE_EXCLUDE) \
+		-show-line-counts-or-regions \
+		-show-instantiations=false
+	@echo ""
+	@echo "HTML report: $(COVERAGE_DIR)/html/index.html"
+	@echo "Open with: open $(COVERAGE_DIR)/html/index.html"
+
+# Run all coverage steps (text + JSON reports)
+coverage: coverage-report coverage-json
+	@echo ""
+	@echo "=============================================="
+	@echo "Coverage complete!"
+	@echo "  Text report: $(COVERAGE_DIR)/coverage.txt"
+	@echo "  JSON report: $(COVERAGE_DIR)/coverage.json"
+	@echo "=============================================="
+
+# Clean coverage artifacts
+coverage-clean:
+	@echo "Cleaning coverage data..."
+	@rm -rf $(COVERAGE_DIR)
+	@rm -rf .pio/build/native-coverage
+	@find . -name "*.profraw" -delete 2>/dev/null || true
+	@find . -name "*.profdata" -delete 2>/dev/null || true

@@ -62,7 +62,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] ESLint enforce let / const
 [X] Custom app icon
 [X] Research Bluetooth - not feasible
-[ ] Create Hub app error message dialog
+[X] Create Hub app error message dialog
 [X] Make Hub app fully quit via window close button
 [X] Move example configs to assets
 [ ] Mappers for Tempest and Defender
@@ -75,27 +75,26 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Ensure Hub and firmware versions are syncronized
 [X] Look into Global Event Bus instead of individual IPC handlers
 [X] Driver telemetry displayed in Hub
-[ ] Store WiFi creds in hub and auto set for newly flashed drivers
+[X] Store WiFi creds in hub and auto set for newly flashed drivers
 [X] Optimize canvas for 1D LED strips
 [X] Fix flash via OTA "no progress bar" bug
 [X] ESP-Now POC
 [X] Bitmap effect
-[ ] Starfield effect
-[ ] Missile effect
-[ ] Driver reboot command and Hub button
+[X] Starfield effect
+[X] Missile effect
+[X] Driver reboot command and Hub button
 [X] Hub route effects to random devices
 [X] Driver WiFi power config option
 [X] Common effect reset property
 [X] Hub game event simulator
 [X] Open driver log file directly from Hub
-[ ] Infinite Canvas wrap-around for strips
 [X] FX Playground form and JSON tabs
 [X] Fix disconnected driver detail page bug
 [X] Open Lua interceptors from Hub
 [X] LED panel dot in top left corner
 [X] Unified rotation per-panel (0A, 1B, 2C, 3D, etc)
 [ ] Initial install with no drivers
-[ ] FX Playground randomizer
+[X] FX Playground randomizer
 [X] Animated route transitions
 [X] Common effect defaults
 [X] Hardware abstraction layer
@@ -105,7 +104,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Fix firmware update manifest
 [X] Change updating firmware notify to info
 [X] Stop effects when MAME / Hub is quit
-[ ] Revisit effect defaults, scaling and min / max limits
+[X] Revisit effect defaults, scaling and min / max limits
 [X] Optimize rendering for background and text - downsampling not needed
 [X] Normalize hub language for flashing / updating
 [X] Persist event monitor between sessions and add reset button
@@ -129,5 +128,7 @@ https://claude.ai/share/47b313e7-ec39-49f6-ae05-942e21fa0200
 [X] Validate event topics in Lua and Hub
 [X] Display event log size in system status
 [X] Persist hub windows position and size
-[ ] Fix FX Playground random trigger
-[X] Amibilight
+[X] Fix FX Playground random trigger
+[X] Ambilight
+[X] Add Mermaid support to docs
+[X] Docs build watcher
