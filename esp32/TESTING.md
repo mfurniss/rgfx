@@ -334,6 +334,58 @@ From `test/helpers/pixel_digest.h`:
 - `analyzeFrame(matrix)` - Returns `FrameProperties` (nonBlackPixels, boundingBox, brightness stats)
 - `initTestGammaLUT()` - Sets gamma=1.0 for test reproducibility
 
+## Code Coverage
+
+### Quick Start
+
+```bash
+# Generate coverage report (text + JSON)
+make coverage
+
+# View JSON report (for programmatic analysis)
+cat .pio/build/native-coverage/coverage/coverage.json
+
+# Optionally generate HTML report
+make coverage-html
+open .pio/build/native-coverage/coverage/html/index.html
+```
+
+### Coverage Commands
+
+```bash
+make coverage          # Run tests with coverage (text + JSON reports)
+make coverage-json     # Generate JSON report only
+make coverage-html     # Generate HTML report for browsing
+make coverage-clean    # Remove all coverage data
+```
+
+### Prerequisites
+
+Coverage uses LLVM tools included with Xcode Command Line Tools:
+
+```bash
+# Verify tools are available
+xcrun llvm-cov --version
+xcrun llvm-profdata --version
+```
+
+### Excluded from Coverage
+
+The following are excluded from coverage metrics:
+- Test files (`test/` directory)
+- Test HAL implementations (`hal/test/`)
+- ESP32-specific HAL (`hal/esp32/`)
+- PlatformIO libraries (`.pio/`)
+
+### Notes
+
+- Coverage runs use a separate PlatformIO environment (`native-coverage`)
+- Uses Clang's `-fprofile-instr-generate -fcoverage-mapping` instrumentation
+- AddressSanitizer is disabled in the coverage environment to prevent conflicts
+- Each test binary is preserved to enable comprehensive coverage merging
+- The "mismatched data" warning is expected due to different code paths per test
+- JSON output is ideal for programmatic analysis; HTML is for human browsing
+
 ## CI/CD Integration
 
 These tools are designed to integrate easily with CI/CD pipelines:
