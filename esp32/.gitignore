@@ -7,3 +7,7 @@
 # Generated files
 src/generated/
 compile_commands.json
+
+# Coverage data (LLVM)
+*.profraw
+*.profdata
