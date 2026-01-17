@@ -215,7 +215,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ['Max Brightness', ledConfig.maxBrightness != null ? formatNumber(ledConfig.maxBrightness) : 'Not set'],
       ['Brightness Limit', ledConfig.globalBrightnessLimit != null ? formatNumber(ledConfig.globalBrightnessLimit) : 'Not set'],
       ['Dithering', ledConfig.dithering ? 'Yes' : 'No'],
-      ['Gamma Correction', `R: ${ledConfig.gamma?.r ?? 2.8}, G: ${ledConfig.gamma?.g ?? 2.8}, B: ${ledConfig.gamma?.b ?? 2.8}`],
+      ['Gamma Correction', `R: ${ledConfig.gamma.r ?? 2.8}, G: ${ledConfig.gamma.g ?? 2.8}, B: ${ledConfig.gamma.b ?? 2.8}`],
       ...(ledConfig.floor.r > 0 || ledConfig.floor.g > 0 || ledConfig.floor.b > 0
         ? [['Floor Cutoff', `R: ${ledConfig.floor.r}, G: ${ledConfig.floor.g}, B: ${ledConfig.floor.b}`] as InfoRowData]
         : []),
