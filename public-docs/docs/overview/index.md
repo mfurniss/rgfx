@@ -16,4 +16,4 @@ The RGFX system consists of three main components:
 
 ## Getting Started
 
-Ready to set up your own retro gaming light show? Head to the [Getting Started](overview/getting-started.md) guide.
+Ready to set up your own retro gaming light show? Head to the [Getting Started](getting-started.md) guide.
