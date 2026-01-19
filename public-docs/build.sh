@@ -9,7 +9,7 @@ curl -sL https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js -o docs/assets
 
 # Build to site/
 echo "Building docs..."
-mkdocs build
+.venv/bin/mkdocs build
 
 # Copy to website folder
 rm -rf ../rgfx.io/docs

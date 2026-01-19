@@ -1,4 +1,4 @@
-# FFT Audio Analysis
+# FFT Audio Analysis / Spectrum Analyzer
 
 The FFT module performs real-time frequency analysis of game audio, enabling sound-reactive lighting effects.
 
@@ -10,7 +10,6 @@ local fft = require("fft")
 
 ```lua
 fft.init({
-    emit_events = true,
     log_bars = false,
     fps = 10,
     devices = { "ym2151" },
@@ -22,7 +21,6 @@ fft.init({
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `emit_events` | false | Send FFT data as events |
 | `log_bars` | false | Print bar graph to console (debugging) |
 | `fps` | 10 | Update rate |
 | `devices` | all | Array of audio device patterns to monitor |
@@ -36,13 +34,13 @@ Each band is a value from 0-9, auto-adjusted based on the game's audio character
 
 ## Frequency Bands
 
-| Band | Frequency | Typical Content |
-|------|-----------|-----------------|
-| Bass | 110 Hz | Explosions, deep sounds |
-| Low | 330 Hz | Music bass lines |
-| Mid | 660 Hz | Melody, most sound effects |
-| High | 1320 Hz | High notes, laser sounds |
-| Treble | 2640 Hz | Coin sounds, high-pitched effects |
+| Band | Frequency |
+|------|-----------|
+| Bass | 110 Hz |
+| Low | 330 Hz |
+| Mid | 660 Hz |
+| High | 1320 Hz |
+| Treble | 2640 Hz |
 
 ## Device Filtering
 
@@ -50,9 +48,27 @@ By default, FFT analyzes all audio devices. To focus on specific chips:
 
 ```lua
 fft.init({
-    emit_events = true,
     devices = { "ym2151", "ym2203" },
 })
 ```
 
 Device names are matched as patterns, so `"ym"` would match any Yamaha chip.
+
+### Finding Available Devices
+
+To see what audio devices a game uses, add this code to your interceptor:
+
+```lua
+print("Available audio devices:")
+for tag, device in pairs(manager.machine.sounds) do
+    print(string.format("  %s (outputs: %d)", tag, device.outputs or 0))
+end
+```
+
+This prints to the MAME console when the game loads. Common device names include:
+
+- `ym2151`, `ym2203`, `ym2612` — Yamaha FM synthesizers
+- `sn76496` — TI sound chip (used in many early games)
+- `namco` — Namco custom sound
+- `pokey` — Atari POKEY
+- `speaker` — Simple speaker/beeper output
