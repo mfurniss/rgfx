@@ -64,7 +64,9 @@ log "Config source: $RGFX_CONFIG_DIR"
 
 rsync -avh --delete \
   --exclude='.DS_Store' \
+  --exclude='._*' \
   --exclude='node_modules/' \
+  --exclude='.venv/' \
   --exclude='.pio/' \
   --exclude='.cache/' \
   --exclude='.vscode/.browse.c_cpp.db*' \
