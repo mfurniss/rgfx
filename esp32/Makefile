@@ -105,7 +105,7 @@ test-generate-digests:
 # Compile firmware for ESP32
 compile:
 	@echo "Compiling firmware for ESP32..."
-	@pio run --project-dir /Users/matt/Workspace/rgfx/esp32
+	@pio run
 	@echo "Compilation complete!"
 
 # Clean build artifacts
