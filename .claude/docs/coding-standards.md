@@ -81,10 +81,11 @@ const onDriverDisconnected = (driver: Driver) => { /* ... */ };
 - Simple, maintainable, and aligns with modern best practices (2024-2025)
 - Trade-off: No autocomplete for specific class names (acceptable for small number of CSS modules)
 
-### mame/lua/ (Lua)
+### rgfx-hub/assets/mame/ and interceptors/ (Lua)
 
 **Standard: snake_case for all files**
-- Examples: `rgfx.lua`, `event.lua`, `pacman_rgfx.lua`
+- Core modules: `rgfx.lua`, `event.lua`, `ram.lua`
+- Game interceptors: `pacman_rgfx.lua`, `galaga_rgfx.lua`, `nes_smb_rgfx.lua`
 
 **Lua Code Formatting and Linting:**
 - **Formatter**: StyLua (`brew install stylua`)
@@ -92,7 +93,7 @@ const onDriverDisconnected = (driver: Driver) => { /* ... */ };
 
 **CRITICAL - ALWAYS format and lint Lua files after editing:**
 ```bash
-cd mame/lua && stylua . && luacheck .
+cd rgfx-hub/assets && stylua mame interceptors && luacheck mame interceptors
 ```
 
 ## Code Quality Standards
