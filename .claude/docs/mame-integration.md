@@ -1,56 +1,20 @@
 # MAME Integration
 
-## Documentation - READ FIRST
-
-**CRITICAL - START EVERY NEW CHAT SESSION BY REVIEWING LOCAL DOCS:**
-
-Before starting ANY conversation or implementing features, ALWAYS review local documentation in `docs/` directory.
-
-**Available local docs:**
-1. **MAME Lua API** - `docs/mame_docs/` (comprehensive EPUB extraction)
-2. **arduino-mqtt library** - `docs/arduino-mqtt.md`
-3. **Aedes MQTT broker** - `docs/aedes.md`
-4. **Zustand state management** - `docs/zustand.md`
-5. **ESP32 Preferences library** - `docs/esp32-preferences.md`
-6. **Vitest testing framework** - `docs/vitest.md`
-
-**Documentation lookup priority:**
-1. **FIRST**: Read local documentation files
-2. **SECOND**: Use WebSearch/WebFetch only if local docs are insufficient
-3. **NEVER**: Guess or make assumptions
-
-## MAME Documentation Protocol
-
-**CRITICAL - READ THIS SECTION FULLY BEFORE ANSWERING ANY MAME QUESTIONS:**
-
-When asked about MAME (Lua APIs, command-line options, features, configuration):
-
-1. **NEVER use Grep to search for keywords** - This leads to incomplete understanding
-2. **ALWAYS use the Read tool to read the complete relevant documentation files**
-3. **READ AND UNDERSTAND the full context** before providing answers
-4. **DO NOT guess or make assumptions**
-
-The documentation in `docs/mame_docs/` is comprehensive and authoritative.
-
 ## MAME Lua API Reference
 
-The extracted MAME EPUB documentation contains comprehensive API reference:
-
-- `docs/mame_docs/luascript/index.xhtml` - Lua scripting overview
-- `docs/mame_docs/luascript/ref-core.xhtml` - Core APIs
-- `docs/mame_docs/luascript/ref-mem.xhtml` - Memory system
-- `docs/mame_docs/luascript/ref-devices.xhtml` - Device APIs
-- `docs/mame_docs/commandline/commandline-all.xhtml` - Command-line options
+For comprehensive MAME Lua API documentation, refer to the official docs:
+- **Lua scripting overview**: https://docs.mamedev.org/luascript/
+- **Core APIs**: https://docs.mamedev.org/luascript/ref-core.html
+- **Memory system**: https://docs.mamedev.org/luascript/ref-mem.html
+- **Device APIs**: https://docs.mamedev.org/luascript/ref-devices.html
+- **Command-line options**: https://docs.mamedev.org/commandline/commandline-all.html
 
 The embedded Lua environment is **Lua 5.4** with Sol3 bindings.
 
 ## MAME ROMs Location
 
-**Path:** `/Users/matt/Workspace/mame0281-arm64/roms`
-
-**Current ROMs:**
-- **Arcade**: `pacman.zip`, `mspacman.zip`, `galaga.zip`
-- **NES**: `smb.nes`, `smw.nes`, `castlevania_3.nes`
+Configure your MAME ROMs directory via MAME's `rompath` option or the `launch-mame.sh` script.
+Common locations: `~/mame/roms`, `~/.mame/roms`
 
 ## MAME Lua Scripts
 
