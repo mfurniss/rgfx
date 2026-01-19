@@ -56,13 +56,15 @@ log "Source: $SOURCE_DIR"
 log "Config source: $RGFX_CONFIG_DIR"
 
 # rsync options:
-# -a  : archive mode (recursive, preserve permissions, timestamps, etc.)
+# -r  : recursive
+# -l  : copy symlinks as symlinks
+# -t  : preserve modification times
 # -h  : human-readable sizes
 # --delete : delete files in destination that don't exist in source
 # --exclude : exclude patterns (build artifacts, temp files, etc.)
-# --info=progress2 : show overall progress with percentage (requires brew rsync)
+# --chmod : ensure destination directories are writable (needed for .git/objects)
 
-rsync -avh --delete \
+rsync -rlth --delete --chmod=Du+rwx \
   --exclude='.DS_Store' \
   --exclude='._*' \
   --exclude='node_modules/' \
