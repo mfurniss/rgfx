@@ -4,8 +4,18 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FuseV1Options, flipFuses, FuseVersion } from "@electron/fuses";
 import path from "path";
 import fs from "fs";
+import { execSync } from "child_process";
 
 const config: ForgeConfig = {
+  hooks: {
+    generateAssets: async () => {
+      console.log("Building documentation...");
+      execSync("npm run docs:build", {
+        cwd: path.join(__dirname, ".."),
+        stdio: "inherit",
+      });
+    },
+  },
   packagerConfig: {
     appBundleId: "com.rgfx.hub",
     asar: true,

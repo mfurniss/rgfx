@@ -10,25 +10,31 @@
       
       
       
+        <link rel="canonical" href="https://rgfx.io/interceptors/fft.html">
       
+      
+        <link rel="prev" href="ambilight.html">
+      
+      
+        <link rel="next" href="writing-interceptors.html">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>RGFX Documentation</title>
+        <title>FFT Audio - RGFX Documentation</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -49,9 +55,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/css/custom.css">
+      <link rel="stylesheet" href="../assets/css/custom.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#fft-audio-analysis-spectrum-analyzer" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +96,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="RGFX Documentation" class="md-header__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
+    <a href=".." title="RGFX Documentation" class="md-header__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              FFT Audio
             
           </span>
         </div>
@@ -183,7 +194,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="RGFX Documentation" class="md-nav__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
+    <a href=".." title="RGFX Documentation" class="md-nav__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -248,7 +259,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/overview/index.html" class="md-nav__link">
+      <a href="../overview/index.html" class="md-nav__link">
         
   
   
@@ -276,7 +287,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/overview/requirements.html" class="md-nav__link">
+      <a href="../overview/requirements.html" class="md-nav__link">
         
   
   
@@ -304,7 +315,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/overview/getting-started.html" class="md-nav__link">
+      <a href="../overview/getting-started.html" class="md-nav__link">
         
   
   
@@ -332,7 +343,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/overview/architecture.html" class="md-nav__link">
+      <a href="../overview/architecture.html" class="md-nav__link">
         
   
   
@@ -364,18 +375,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -396,7 +409,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -414,7 +427,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/interceptors/index.html" class="md-nav__link">
+      <a href="index.html" class="md-nav__link">
         
   
   
@@ -442,7 +455,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/interceptors/events.html" class="md-nav__link">
+      <a href="events.html" class="md-nav__link">
         
   
   
@@ -470,7 +483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/interceptors/ram.html" class="md-nav__link">
+      <a href="ram.html" class="md-nav__link">
         
   
   
@@ -498,7 +511,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/interceptors/ambilight.html" class="md-nav__link">
+      <a href="ambilight.html" class="md-nav__link">
         
   
   
@@ -523,10 +536,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/interceptors/fft.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FFT Audio
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="fft.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -542,6 +582,98 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events-emitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events Emitted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frequency-bands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frequency Bands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#device-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Filtering
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Filtering">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-available-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Available Devices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -554,7 +686,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/interceptors/writing-interceptors.html" class="md-nav__link">
+      <a href="writing-interceptors.html" class="md-nav__link">
         
   
   
@@ -582,7 +714,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/interceptors/mame-api.html" class="md-nav__link">
+      <a href="mame-api.html" class="md-nav__link">
         
   
   
@@ -664,7 +796,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/transformers/index.html" class="md-nav__link">
+      <a href="../transformers/index.html" class="md-nav__link">
         
   
   
@@ -746,7 +878,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/esp32/index.html" class="md-nav__link">
+      <a href="../esp32/index.html" class="md-nav__link">
         
   
   
@@ -791,6 +923,88 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events-emitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events Emitted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frequency-bands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frequency Bands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#device-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Filtering
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Filtering">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-available-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Available Devices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -803,8 +1017,125 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="fft-audio-analysis-spectrum-analyzer">FFT Audio Analysis / Spectrum Analyzer<a class="headerlink" href="#fft-audio-analysis-spectrum-analyzer" title="Permanent link">&para;</a></h1>
+<p>The FFT module performs real-time frequency analysis of game audio, enabling sound-reactive lighting effects.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">fft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;fft&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">fft</span><span class="p">.</span><span class="nf">init</span><span class="p">({</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nv">log_bars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nv">fps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nv">devices</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;ym2151&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nv">boot_delay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">})</span>
+</code></pre></div>
+<h2 id="options">Options<a class="headerlink" href="#options" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log_bars</code></td>
+<td>false</td>
+<td>Print bar graph to console (debugging)</td>
+</tr>
+<tr>
+<td><code>fps</code></td>
+<td>10</td>
+<td>Update rate</td>
+</tr>
+<tr>
+<td><code>devices</code></td>
+<td>all</td>
+<td>Array of audio device patterns to monitor</td>
+</tr>
+<tr>
+<td><code>boot_delay</code></td>
+<td>0</td>
+<td>Seconds to wait before starting</td>
+</tr>
+</tbody>
+</table>
+<h2 id="events-emitted">Events Emitted<a class="headerlink" href="#events-emitted" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>rgfx/audio/fft</code> — Array of 5 normalized bands: <code>[bass, low, mid, high, treble]</code></li>
+</ul>
+<p>Each band is a value from 0-9, auto-adjusted based on the game's audio characteristics.</p>
+<h2 id="frequency-bands">Frequency Bands<a class="headerlink" href="#frequency-bands" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Band</th>
+<th>Frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bass</td>
+<td>110 Hz</td>
+</tr>
+<tr>
+<td>Low</td>
+<td>330 Hz</td>
+</tr>
+<tr>
+<td>Mid</td>
+<td>660 Hz</td>
+</tr>
+<tr>
+<td>High</td>
+<td>1320 Hz</td>
+</tr>
+<tr>
+<td>Treble</td>
+<td>2640 Hz</td>
+</tr>
+</tbody>
+</table>
+<h2 id="device-filtering">Device Filtering<a class="headerlink" href="#device-filtering" title="Permanent link">&para;</a></h2>
+<p>By default, FFT analyzes all audio devices. To focus on specific chips:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">fft</span><span class="p">.</span><span class="nf">init</span><span class="p">({</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nv">devices</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;ym2151&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ym2203&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">})</span>
+</code></pre></div>
+<p>Device names are matched as patterns, so <code>"ym"</code> would match any Yamaha chip.</p>
+<h3 id="finding-available-devices">Finding Available Devices<a class="headerlink" href="#finding-available-devices" title="Permanent link">&para;</a></h3>
+<p>To see what audio devices a game uses, add this code to your interceptor:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available audio devices:&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kr">for</span><span class="w"> </span><span class="nv">tag</span><span class="p">,</span><span class="w"> </span><span class="nv">device</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">pairs</span><span class="p">(</span><span class="nv">manager</span><span class="p">.</span><span class="py">machine</span><span class="p">.</span><span class="py">sounds</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nb">print</span><span class="p">(</span><span class="nb">string.format</span><span class="p">(</span><span class="s2">&quot;  %s (outputs: %d)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">tag</span><span class="p">,</span><span class="w"> </span><span class="nv">device</span><span class="p">.</span><span class="py">outputs</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kr">end</span>
+</code></pre></div>
+<p>This prints to the MAME console when the game loads. Common device names include:</p>
+<ul>
+<li><code>ym2151</code>, <code>ym2203</code>, <code>ym2612</code> — Yamaha FM synthesizers</li>
+<li><code>sn76496</code> — TI sound chip (used in many early games)</li>
+<li><code>namco</code> — Namco custom sound</li>
+<li><code>pokey</code> — Atari POKEY</li>
+<li><code>speaker</code> — Simple speaker/beeper output</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -847,14 +1178,14 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.top", "search.highlight", "content.code.copy"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="/assets/js/mermaid.min.js"></script>
+        <script src="../assets/js/mermaid.min.js"></script>
       
-        <script src="/js/open_in_new_tab.js"></script>
+        <script src="../js/open_in_new_tab.js"></script>
       
     
   </body>
