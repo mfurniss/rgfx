@@ -9,10 +9,9 @@
 --
 -- Usage:
 --   local fft = require("fft")
---   fft.init({ emit_events = true, devices = { "ym2151" } })
+--   fft.init({ devices = { "ym2151" } })
 --
 -- Options:
---   emit_events   - Send FFT data via _G.event() (default: false)
 --   log_bars      - Print bar graph to console (default: false)
 --   fps           - Target update rate (default: 10)
 --   on_update     - Callback function(bands) called each update with normalized 0-9 values
@@ -24,7 +23,6 @@ local M = {}
 -- Configuration
 local config = {
 	game_name = nil,
-	emit_events = false,
 	log_bars = false,
 	fps = 10,
 	on_update = nil,
@@ -150,10 +148,8 @@ local function process_buffer(buffer)
 	end
 	last_was_zero = is_zero
 
-	-- Emit event if configured
-	if config.emit_events then
-		_G.event("rgfx/audio/fft", "[" .. table.concat(bands, ", ") .. "]")
-	end
+	-- Emit event
+	_G.event("rgfx/audio/fft", "[" .. table.concat(bands, ", ") .. "]")
 
 	-- Log bar graph if configured
 	if config.log_bars then

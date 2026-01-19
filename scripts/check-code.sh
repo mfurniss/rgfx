@@ -3,8 +3,8 @@
 # Runs checks for: rgfx-hub (TypeScript), esp32 (PlatformIO), mame (Lua)
 #
 # Usage:
-#   ./check-code.sh        # Run checks only for staged files
-#   ./check-code.sh --all  # Run all checks regardless of staged files
+#   ./check-code.sh        # Run checks for staged files, or unstaged changes if nothing staged
+#   ./check-code.sh --all  # Run all checks regardless of changed files
 
 set -e
 
@@ -23,6 +23,24 @@ HUB_CHANGES=false
 ESP32_CHANGES=false
 LUA_CHANGES=false
 
+# Helper function to classify files and set change flags
+classify_files() {
+    local files="$1"
+    for file in $files; do
+        case "$file" in
+            rgfx-hub/assets/mame/*.lua|rgfx-hub/assets/interceptors/*.lua)
+                LUA_CHANGES=true
+                ;;
+            rgfx-hub/*.ts|rgfx-hub/*.tsx|rgfx-hub/*.js|rgfx-hub/*.jsx|rgfx-hub/*.json)
+                HUB_CHANGES=true
+                ;;
+            esp32/*.cpp|esp32/*.h|esp32/*.c|esp32/*.ini)
+                ESP32_CHANGES=true
+                ;;
+        esac
+    done
+}
+
 if [ "$1" = "--all" ]; then
     # Force all checks
     HUB_CHANGES=true
@@ -32,26 +50,20 @@ else
     # Get staged files (if any)
     STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
 
-    if [ -z "$STAGED_FILES" ]; then
-        # No staged files (running manually) - run all checks
-        HUB_CHANGES=true
-        ESP32_CHANGES=true
-        LUA_CHANGES=true
+    if [ -n "$STAGED_FILES" ]; then
+        # Have staged files - use those
+        classify_files "$STAGED_FILES"
     else
-        # Check each staged file to determine which checks to run
-        for file in $STAGED_FILES; do
-            case "$file" in
-                rgfx-hub/assets/mame/*.lua|rgfx-hub/assets/interceptors/*.lua)
-                    LUA_CHANGES=true
-                    ;;
-                rgfx-hub/*)
-                    HUB_CHANGES=true
-                    ;;
-                esp32/*)
-                    ESP32_CHANGES=true
-                    ;;
-            esac
-        done
+        # No staged files - check unstaged changes instead
+        UNSTAGED_FILES=$(git diff --name-only 2>/dev/null || echo "")
+        if [ -n "$UNSTAGED_FILES" ]; then
+            echo "📋 No staged files, checking unstaged changes..."
+            classify_files "$UNSTAGED_FILES"
+        else
+            # No changes at all
+            echo "📄 No changes detected, nothing to check"
+            exit 0
+        fi
     fi
 fi
 
