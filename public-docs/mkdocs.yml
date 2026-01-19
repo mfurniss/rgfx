@@ -7,12 +7,12 @@ site_description: Retro Game Effects - External visual effects for retro video g
 
 theme:
   name: material
+  favicon: assets/images/favicon.png
   palette:
     scheme: slate
-    primary: red
+    primary: grey
     accent: light blue
   features:
-    - navigation.sections
     - navigation.top
     - search.highlight
     - content.code.copy
@@ -20,16 +20,33 @@ theme:
 plugins:
   - search
   - offline
+  - open-in-new-tab
 
 # Disable features incompatible with file:// protocol
 use_directory_urls: false
 
 nav:
-  - Home: index.md
-  - Architecture: architecture.md
-  - Getting Started: getting-started.md
+  - Overview:
+    - Introduction: overview/index.md
+    - Requirements: overview/requirements.md
+    - Getting Started: overview/getting-started.md
+    - Architecture: overview/architecture.md
+  - Interceptors:
+    - Introduction: interceptors/index.md
+    - Event System: interceptors/events.md
+    - RAM Monitoring: interceptors/ram.md
+    - Ambilight: interceptors/ambilight.md
+    - FFT Audio: interceptors/fft.md
+    - Writing Interceptors: interceptors/writing-interceptors.md
+    - MAME API: interceptors/mame-api.md
+  - Transformers:
+    - Introduction: transformers/index.md
+  - ESP32 Hardware:
+    - Introduction: esp32/index.md
 
 markdown_extensions:
+  - attr_list
+  - mdx_truly_sane_lists
   - admonition
   - pymdownx.details
   - pymdownx.superfences:
@@ -42,6 +59,9 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - toc:
       permalink: true
+
+extra_css:
+  - assets/css/custom.css
 
 extra_javascript:
   - assets/js/mermaid.min.js

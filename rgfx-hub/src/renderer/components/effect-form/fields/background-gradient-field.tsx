@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import SuperButton from '@/renderer/components/common/super-button';
+import { isValidHex, normalizeHex } from '@/renderer/utils/color';
 
 interface GradientValue {
   colors: string[];
@@ -112,7 +113,7 @@ export function BackgroundGradientField<T extends FieldValues>({
                   <Box
                     component="input"
                     type="color"
-                    value={color}
+                    value={isValidHex(color) ? color : '#808080'}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       handleColorChange(index, e.target.value);
                     }}
@@ -138,6 +139,14 @@ export function BackgroundGradientField<T extends FieldValues>({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       handleColorChange(index, e.target.value);
                     }}
+                    onBlur={() => {
+                      const normalized = normalizeHex(color);
+
+                      if (normalized !== color) {
+                        handleColorChange(index, normalized);
+                      }
+                    }}
+                    error={!isValidHex(color)}
                     sx={{ width: 100 }}
                     slotProps={{
                       input: {

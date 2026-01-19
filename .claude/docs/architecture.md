@@ -38,8 +38,9 @@ RGFX intercepts memory changes in MAME-emulated arcade games and publishes game 
 
 VSCode multi-root workspace with sub-projects:
 - **rgfx-hub** - Main Electron application (TypeScript/React)
-- **mame** - MAME Lua scripts and configuration
 - **esp32** - ESP32 firmware (PlatformIO project)
+
+MAME Lua scripts are bundled within `rgfx-hub/assets/` in the `mame/` and `interceptors/` subdirectories.
 
 ## RGFX Hub (`rgfx-hub/`)
 
@@ -95,8 +96,7 @@ Examples:
 - Events must be broadcast **as fast as possible** for lowest latency
 - **NO debouncing** - each event triggers immediately
 - **NO batching delays** - events are processed the moment they're detected
-- `EventFileReader` uses `fs.watch()` only (no polling backup)
-- If `fs.watch()` misses an event due to OS limitations, that's acceptable
+- `EventFileReader` uses `fs.watch()` with polling fallback when file doesn't exist or watch fails
 - Latency is prioritized over reliability - LED effects must be instant
 
 ## Research and Web Search
