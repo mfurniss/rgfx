@@ -24,3 +24,6 @@ esp32/src/version.h
 
 # CMake build directories
 tools/led-sim/build/
+
+# Claude Code local settings (user-specific permissions)
+.claude/settings.local.json

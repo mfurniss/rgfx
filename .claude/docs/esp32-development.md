@@ -14,7 +14,7 @@
 **CRITICAL - BUILD AND DEPLOYMENT WORKFLOW:**
 
 When modifying ESP32 code:
-1. **Build firmware**: `pio run --project-dir /Users/matt/Workspace/rgfx/esp32`
+1. **Build firmware**: `cd esp32 && pio run`
 2. **Check for compilation errors** and fix immediately
 3. **Deploy to Hub** (when ready): `npm run esp32:copy-firmware` (from project root)
    - Copies firmware binaries from `esp32/.pio/build/` to `rgfx-hub/assets/esp32/firmware/`
