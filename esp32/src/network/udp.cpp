@@ -38,14 +38,20 @@ void processUDP() {
 	if (!udpInitialized) {
 		return;
 	}
-	int packetSize = udp.parsePacket();
-	if (packetSize > 0) {
+
+	int packetsProcessed = 0;
+	int packetSize;
+
+	// Drain all available packets (up to queue size) to batch them before rendering
+	// This prevents visible latency when multiple effects are broadcast in quick succession
+	while ((packetSize = udp.parsePacket()) > 0 && packetsProcessed < UDP_QUEUE_SIZE) {
 		// Bounds check: reject packets larger than our buffer
 		if (packetSize > UDP_BUFFER_SIZE - 1) {
 			log("UDP RX: Packet too large (" + String(packetSize) +
 			    " bytes, max " + String(UDP_BUFFER_SIZE - 1) + "), dropping");
 			udpMessagesDropped++;
-			return;
+			packetsProcessed++;
+			continue;
 		}
 
 		// Get source IP of the packet
@@ -59,13 +65,15 @@ void processUDP() {
 				if (sourceIP != hubIP) {
 					log("UDP RX: Rejected packet from unauthorized source " + sourceIP.toString() +
 					    " (expected " + hubIP.toString() + ")");
-					return;
+					packetsProcessed++;
+					continue;
 				}
 			}
 		} else {
 			// Hub not discovered yet - reject all UDP packets for security
 			log("UDP RX: Rejected packet from " + sourceIP.toString() + " (Hub not discovered yet)");
-			return;
+			packetsProcessed++;
+			continue;
 		}
 
 		// Read directly into queue slot to avoid stack allocation
@@ -87,6 +95,7 @@ void processUDP() {
 			log("UDP RX: Queue full, dropping message");
 			udpMessagesDropped++;
 		}
+		packetsProcessed++;
 	}
 }
 

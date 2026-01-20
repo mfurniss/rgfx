@@ -305,7 +305,7 @@ export function serializeDriverForIPC(driver: Driver): Driver {
 }
 
 export interface SystemError {
-  errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'general';
+  errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'transformer' | 'general';
   message: string;
   timestamp: number;
   filePath?: string;
