@@ -44,7 +44,6 @@ describe('MinimalDriverRegistrationSchema', () => {
         heapSize: 327680,
         psramSize: 8388608,
         freePsram: 8000000,
-        hasDisplay: true,
         sdkVersion: 'v5.1.1',
         sketchSize: 1500000,
         freeSketchSpace: 2500000,
@@ -180,14 +179,6 @@ describe('MinimalDriverRegistrationSchema', () => {
       const result = MinimalDriverRegistrationSchema.safeParse({
         ...base,
         rssi: '-65',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject non-boolean hasDisplay', () => {
-      const result = MinimalDriverRegistrationSchema.safeParse({
-        ...base,
-        hasDisplay: 'true',
       });
       expect(result.success).toBe(false);
     });

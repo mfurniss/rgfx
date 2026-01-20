@@ -44,7 +44,6 @@ export const MinimalDriverRegistrationSchema = z.object({
   heapSize: z.number().optional(),
   psramSize: z.number().optional(),
   freePsram: z.number().optional(),
-  hasDisplay: z.boolean().optional(),
   sdkVersion: z.string().optional(),
   sketchSize: z.number().optional(),
   freeSketchSpace: z.number().optional(),

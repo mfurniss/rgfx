@@ -33,7 +33,6 @@ export const TelemetryPayloadSchema = z.object({
   maxAllocHeap: z.number(),
   psramSize: z.number(),
   freePsram: z.number(),
-  hasDisplay: z.boolean(),
   firmwareVersion: z.string().optional(),
   sdkVersion: z.string(),
   sketchSize: z.number(),

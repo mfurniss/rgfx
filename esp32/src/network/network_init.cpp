@@ -10,7 +10,6 @@
 #include "network/mqtt.h"
 #include "network/ota_update.h"
 #include "network/udp.h"
-#include "oled/oled_display.h"
 #include "utils.h"
 
 // Forward declarations from main.cpp
@@ -60,11 +59,6 @@ void setupNetworkServices(Matrix& matrix) {
 	WiFi.setTxPower(WIFI_TX_POWER);
 	log("WiFi power saving disabled, TX power set to max");
 
-	// Update display to show connecting
-	if (Display::isAvailable()) {
-		Display::showConnecting(WiFi.SSID(), Utils::getDeviceId());
-	}
-
 	delay(500);
 
 	// Initialize mDNS FIRST (before ArduinoOTA)
@@ -98,12 +92,6 @@ void setupNetworkServices(Matrix& matrix) {
 	setupUDP();
 	udpSetupDone = true;
 
-	// Update display to show connected status with actual MQTT status
-	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(),
-		                       Utils::getDeviceId());
-	}
-
 	// Go dark for normal operation
 	// NOTE: Use global matrix pointer, not the reference parameter, because
 	// handleDriverConfig() may have deleted and recreated the matrix
@@ -120,11 +108,6 @@ void cleanupNetworkServices(Matrix& matrix) {
 	if (!otaInProgress && !pendingRestart) {
 		fill_solid(matrix.leds, matrix.size, CRGB::Purple);
 		hal::getLedController().show();
-	}
-
-	// Update display to show AP mode
-	if (Display::isAvailable()) {
-		Display::showAPMode(Utils::getDeviceId());
 	}
 
 	mqttSetupDone = false;
@@ -162,11 +145,6 @@ void setupNetworkServices() {
 	WiFi.setTxPower(WIFI_TX_POWER);
 	log("WiFi power saving disabled, TX power set to max");
 
-	// Update display to show connecting
-	if (Display::isAvailable()) {
-		Display::showConnecting(WiFi.SSID(), Utils::getDeviceId());
-	}
-
 	delay(500);
 
 	// Initialize mDNS FIRST (before ArduinoOTA)
@@ -196,23 +174,12 @@ void setupNetworkServices() {
 
 	setupUDP();
 	udpSetupDone = true;
-
-	// Update display
-	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(), mqttClient.connected(),
-		                       Utils::getDeviceId());
-	}
 }
 
 void cleanupNetworkServices() {
 	log("WiFi not connected - entering AP mode (no LED feedback yet)");
 
 	// Don't clear LEDs if OTA is in progress (green success indicator should stay)
-	// Update display to show AP mode
-	if (Display::isAvailable()) {
-		Display::showAPMode(Utils::getDeviceId());
-	}
-
 	mqttSetupDone = false;
 	udpSetupDone = false;
 	otaSetupDone = false;

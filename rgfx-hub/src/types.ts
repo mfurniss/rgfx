@@ -130,7 +130,6 @@ export interface DriverTelemetry {
   maxAllocHeap: number;
   psramSize: number;
   freePsram: number;
-  hasDisplay: boolean;
 
   // Firmware information
   firmwareVersion?: string;

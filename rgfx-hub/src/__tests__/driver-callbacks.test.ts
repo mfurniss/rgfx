@@ -93,7 +93,6 @@ describe('setupDriverEventHandlers', () => {
         maxAllocHeap: 200000,
         psramSize: 0,
         freePsram: 0,
-        hasDisplay: false,
         sdkVersion: 'v4.4',
         sketchSize: 1000000,
         freeSketchSpace: 2000000,

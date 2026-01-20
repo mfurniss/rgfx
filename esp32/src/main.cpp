@@ -20,7 +20,6 @@
 #include "network/udp.h"
 #include "network/mqtt.h"
 #include "log.h"
-#include "oled/oled_display.h"
 #include "utils.h"
 #include "version.h"
 #include "serial.h"
@@ -319,9 +318,6 @@ void loop() {
 
 	// Check if in AP mode (NotConfigured or ApMode states)
 	static bool inApMode = false;
-	static unsigned long apModeStartTime = 0;
-	static unsigned long lastCountdownUpdate = 0;
-	const uint16_t AP_TIMEOUT_SECONDS = AP_TIMEOUT_MS / 1000;  // Derived from config_timeout.h
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
 	if (nowInApMode && !inApMode) {
@@ -334,26 +330,8 @@ void loop() {
 		}
 		inApMode = true;
 		initialConnectionAttemptDone = true;
-		apModeStartTime = millis();
-
-		// Update display to show AP mode
-		if (Display::isAvailable()) {
-			Display::showAPMode(Utils::getDeviceId());
-		}
 
 		return;
-	}
-
-	// Update AP mode countdown every second
-	if (nowInApMode && Display::isAvailable()) {
-		unsigned long now = millis();
-		if (now - lastCountdownUpdate >= 1000) {
-			uint16_t elapsed = (now - apModeStartTime) / 1000;
-			uint16_t remaining =
-				(elapsed < AP_TIMEOUT_SECONDS) ? (AP_TIMEOUT_SECONDS - elapsed) : 0;
-			Display::updateAPModeCountdown(remaining);
-			lastCountdownUpdate = now;
-		}
 	}
 
 	inApMode = nowInApMode;

@@ -5,7 +5,6 @@
 #include "hal/led_controller.h"
 #include "log.h"
 #include "utils.h"
-#include "oled/oled_display.h"
 #include "network/mqtt.h"
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
@@ -45,13 +44,6 @@ static void applyDeviceId(JsonDocument& doc) {
 
 	// Update OTA hostname
 	ArduinoOTA.setHostname(newDeviceId.c_str());
-
-	// Update OLED display
-	extern MQTTClient mqttClient;
-	if (Display::isAvailable()) {
-		Display::showConnected(WiFi.SSID(), WiFi.localIP().toString(),
-		                       mqttClient.connected(), newDeviceId);
-	}
 }
 
 /**

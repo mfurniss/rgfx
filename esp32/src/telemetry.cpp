@@ -1,6 +1,5 @@
 #include "telemetry.h"
 #include "utils.h"
-#include "oled/oled_display.h"
 #include "version.h"
 #include "crash_handler.h"
 #include "network/mqtt.h"
@@ -46,9 +45,6 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	const CrashInfo& crash = getCrashInfo();
 	doc["lastResetReason"] = getResetReasonString(crash.lastResetReason);
 	doc["crashCount"] = crash.crashCount;
-
-	// Display information
-	doc["hasDisplay"] = Display::isAvailable();
 
 	// Test mode state
 	doc["testActive"] = testModeActive.load();
