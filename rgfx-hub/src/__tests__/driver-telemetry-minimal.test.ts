@@ -204,7 +204,6 @@ describe('MinimalDriverRegistrationSchema', () => {
       const minimal = {
         ip: '192.168.1.100',
         mac: 'AA:BB:CC:DD:EE:FF',
-        hasDisplay: true,
         testActive: false,
       };
 
@@ -213,7 +212,6 @@ describe('MinimalDriverRegistrationSchema', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.hasDisplay).toBe(true);
         expect(result.data.testActive).toBe(false);
       }
     });

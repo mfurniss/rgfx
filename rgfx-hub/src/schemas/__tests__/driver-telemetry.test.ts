@@ -21,7 +21,6 @@ describe('DriverTelemetrySchema', () => {
     maxAllocHeap: 200000,
     psramSize: 8388608,
     freePsram: 8000000,
-    hasDisplay: true,
     firmwareVersion: '1.2.3',
     sdkVersion: 'v5.1.1',
     sketchSize: 1500000,
@@ -125,11 +124,6 @@ describe('DriverTelemetrySchema', () => {
       expect(DriverTelemetrySchema.safeParse(data).success).toBe(false);
     });
 
-    it('should reject when hasDisplay is missing', () => {
-      const { hasDisplay: _, ...data } = validTelemetry;
-      expect(DriverTelemetrySchema.safeParse(data).success).toBe(false);
-    });
-
     it('should reject when sdkVersion is missing', () => {
       const { sdkVersion: _, ...data } = validTelemetry;
       expect(DriverTelemetrySchema.safeParse(data).success).toBe(false);
@@ -151,14 +145,6 @@ describe('DriverTelemetrySchema', () => {
       const result = DriverTelemetrySchema.safeParse({
         ...validTelemetry,
         chipRevision: 'v1',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject non-boolean hasDisplay', () => {
-      const result = DriverTelemetrySchema.safeParse({
-        ...validTelemetry,
-        hasDisplay: 1,
       });
       expect(result.success).toBe(false);
     });

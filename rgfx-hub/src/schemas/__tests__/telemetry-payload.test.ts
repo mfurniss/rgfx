@@ -28,7 +28,6 @@ describe('TelemetryPayloadSchema', () => {
     maxAllocHeap: 200000,
     psramSize: 8388608,
     freePsram: 8000000,
-    hasDisplay: true,
     sdkVersion: 'v5.1.1',
     sketchSize: 1500000,
     freeSketchSpace: 2500000,
@@ -44,7 +43,6 @@ describe('TelemetryPayloadSchema', () => {
 
       if (result.success) {
         expect(result.data.chipModel).toBe('ESP32-S3');
-        expect(result.data.hasDisplay).toBe(true);
       }
     });
 
@@ -165,11 +163,6 @@ describe('TelemetryPayloadSchema', () => {
       expect(TelemetryPayloadSchema.safeParse(data).success).toBe(false);
     });
 
-    it('should reject when hasDisplay is missing', () => {
-      const { hasDisplay: _, ...data } = validTelemetry;
-      expect(TelemetryPayloadSchema.safeParse(data).success).toBe(false);
-    });
-
     it('should reject when sdkVersion is missing', () => {
       const { sdkVersion: _, ...data } = validTelemetry;
       expect(TelemetryPayloadSchema.safeParse(data).success).toBe(false);
@@ -199,14 +192,6 @@ describe('TelemetryPayloadSchema', () => {
       const result = TelemetryPayloadSchema.safeParse({
         ...validTelemetry,
         rssi: '-65',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject non-boolean hasDisplay', () => {
-      const result = TelemetryPayloadSchema.safeParse({
-        ...validTelemetry,
-        hasDisplay: 'yes',
       });
       expect(result.success).toBe(false);
     });

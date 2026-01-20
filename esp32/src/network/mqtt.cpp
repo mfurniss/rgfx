@@ -5,7 +5,6 @@
 #include "safe_restart.h"
 #include "utils.h"
 #include "driver_config.h"
-#include "oled/oled_display.h"
 #include "config/constants.h"
 #include "config/config_nvs.h"
 #include "config/config_portal.h"
@@ -341,11 +340,6 @@ void reconnectMQTT() {
 		setRemoteLoggingLevel(savedLoggingLevel);
 		log("Remote logging level loaded from NVS: " + savedLoggingLevel);
 
-		// Update display to show MQTT connected
-		if (Display::isAvailable()) {
-			Display::updateMQTTStatus(true);
-		}
-
 		// Publish "online" status (retained) - overrides LWT offline message
 		// QoS 1 is sufficient since LWT handles offline detection
 		mqttClient.publish(topicStatus, "online", true, 1);
@@ -382,10 +376,6 @@ void reconnectMQTT() {
 			mqttConsecutiveFailures = 0;
 		}
 
-		// Update display to show MQTT disconnected
-		if (Display::isAvailable()) {
-			Display::updateMQTTStatus(false);
-		}
 	}
 }
 
