@@ -22,7 +22,6 @@ export const DriverTelemetrySchema = TelemetryPayloadSchema.pick({
   maxAllocHeap: true,
   psramSize: true,
   freePsram: true,
-  hasDisplay: true,
   firmwareVersion: true,
   sdkVersion: true,
   sketchSize: true,

@@ -10,18 +10,36 @@ Services running in the renderer process for firmware flashing operations.
 
 **File:** [ota-flash-service.ts](ota-flash-service.ts)
 
-Handles Over-The-Air firmware updates:
-- Initiates OTA flash via IPC handler
-- Listens for progress events from main process
-- Reports flash state and progress to UI
+Handles Over-The-Air firmware updates to multiple drivers in parallel:
+- `flashViaOTA(driversToFlash, firmwareVersion, callbacks)` - Flash multiple drivers concurrently
+- `getDriversToFlash(selectedDriverIds, allDrivers)` - Filter to connected drivers only
+- `generateResultMessage(result, firmwareVersion)` - Format success/failure message
+
+**Callbacks:**
+- `onLog(message)` - Log messages for display
+- `onDriverStatusChange(driverId, status)` - Per-driver progress updates
+
+**Return:** `OtaFlashResult` with `successCount`, `totalCount`, `failedDrivers[]`
 
 ### USB Flash Service
 
 **File:** [usb-flash-service.ts](usb-flash-service.ts)
 
-Handles USB serial firmware flashing:
-- Uses Web Serial API to communicate with ESP32
-- Uses esptool-js for flashing protocol
-- Loads firmware files via IPC handlers
-- Verifies file checksums against manifest
-- Reports progress during flash operation
+Handles USB serial firmware flashing with automatic chip detection:
+- `flashViaUSB(getPort, callbacks)` - Flash single device via USB serial
+
+**Multi-chip Support:**
+- Automatically detects chip type (ESP32, ESP32-S3) via esptool-js
+- Maps detected chip to firmware variant using `mapChipNameToVariant()`
+- Loads correct firmware files from manifest variants
+- Rejects unsupported chip types with clear error message
+
+**Process:**
+1. Load and validate `manifest.json` with all chip variants
+2. Connect to device via Web Serial API (esptool-js)
+3. Detect chip type from device
+4. Load and verify firmware files for detected chip (size + SHA256)
+5. Flash all partition files with progress reporting
+6. Reset device after successful flash
+
+**Return:** `FlashResult` with `success`, `firmwareVersion`, `chipType`, `error?`

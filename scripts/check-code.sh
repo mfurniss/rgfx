@@ -74,6 +74,7 @@ if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES
 fi
 
 # Check for unstaged CLAUDE.md files in directories with staged changes
+# Returns 1 if unstaged CLAUDE.md files are found, 0 otherwise
 check_claude_md_updates() {
     local staged_files="$1"
     local unstaged_claude_files=""
@@ -108,7 +109,7 @@ check_claude_md_updates() {
             if [ -f "$ROOT_DIR/$claude_file" ]; then
                 # Check if it's staged
                 if ! echo "$staged_claude_files" | grep -q "^${claude_file}$"; then
-                    # Not staged - add to warning list (if not already there)
+                    # Not staged - add to error list (if not already there)
                     if ! echo "$unstaged_claude_files" | grep -q "^${claude_file}$"; then
                         unstaged_claude_files="$unstaged_claude_files
 $claude_file"
@@ -123,25 +124,28 @@ $dir"
         done
     done
 
-    # Print warning if any unstaged CLAUDE.md files found
+    # Fail if any unstaged CLAUDE.md files found
     if [ -n "$(echo "$unstaged_claude_files" | tr -d '[:space:]')" ]; then
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "⚠️  CLAUDE.md Update Reminder"
+        echo "❌ CLAUDE.md Update Required"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "The following CLAUDE.md files may need updates based on your changes:"
+        echo "The following CLAUDE.md files must be updated to reflect your changes:"
         echo "$unstaged_claude_files" | grep -v "^$" | while read -r f; do
             echo "  📝 $f"
         done
         echo ""
-        echo "Consider updating these files to reflect your changes."
-        echo "To stage: git add <file>"
+        echo "Update these files and stage them: git add <file>"
         echo ""
+        return 1
     fi
+    return 0
 }
 
-# Run CLAUDE.md check if we have staged files
+# Run CLAUDE.md check if we have staged files (required - fails build if not updated)
 if [ -n "$STAGED_FILES" ]; then
-    check_claude_md_updates "$STAGED_FILES"
+    if ! check_claude_md_updates "$STAGED_FILES"; then
+        exit 1
+    fi
 fi
 
 notify "Starting pre-commit checks..."

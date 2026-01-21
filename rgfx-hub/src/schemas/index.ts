@@ -22,7 +22,13 @@ export {
 } from './driver-config';
 
 // Firmware manifest schema
-export { FirmwareManifestSchema, type FirmwareManifest } from './firmware-manifest';
+export {
+  FirmwareManifestSchema,
+  type FirmwareManifest,
+  type FirmwareFile,
+  type SupportedChip,
+  mapChipNameToVariant,
+} from './firmware-manifest';
 
 // Effect props schemas and validation
 export {

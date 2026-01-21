@@ -32,7 +32,26 @@ Schemas for persisting driver configuration to disk:
 `LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (name, SKU, layout, count, chipset, color order).
 
 ### firmware-manifest.ts
-`FirmwareManifestSchema` - Validates firmware manifest files for USB serial flashing. Contains version, file list with addresses, sizes, and SHA256 checksums.
+`FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with variants for different ESP32 chip types.
+
+**Exports:**
+- `SUPPORTED_CHIPS` - Array of supported chip types: `['ESP32', 'ESP32-S3']`
+- `SupportedChip` - Type alias for supported chip names
+- `FirmwareManifestSchema` - Validates manifest structure with `version`, `generatedAt`, and `variants` object
+- `mapChipNameToVariant(chipName)` - Maps chip model names (e.g., "ESP32-D0WD-V3", "ESP32-S3-WROOM-1") to supported variant keys
+- `getOtaFirmwareFilename(chipType)` - Returns OTA firmware filename for a chip type (e.g., "firmware-esp32.bin")
+
+**Manifest Structure:**
+```json
+{
+  "version": "1.0.0",
+  "generatedAt": "...",
+  "variants": {
+    "ESP32": { "files": [{ "name": "...", "address": 0, "size": 123, "sha256": "..." }] },
+    "ESP32-S3": { "files": [...] }
+  }
+}
+```
 
 ## effects/ Subdirectory
 

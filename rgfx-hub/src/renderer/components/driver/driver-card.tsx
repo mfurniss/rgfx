@@ -148,7 +148,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ['CPU Frequency', `${formatNumber(telemetry.cpuFreqMHz)} MHz`],
       ['Flash Size', formatBytes(telemetry.flashSize)],
       ['Flash Speed', `${formatNumber(telemetry.flashSpeed / 1000000)} MHz`],
-      ['Display Connected', telemetry.hasDisplay ? 'Yes (OLED)' : 'No'],
       ...(telemetry.firmwareVersion
         ? [['Firmware Version', telemetry.firmwareVersion] as InfoRowData]
         : []),

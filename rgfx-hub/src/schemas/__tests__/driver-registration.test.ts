@@ -33,7 +33,6 @@ describe('DriverRegistrationSchema', () => {
       maxAllocHeap: 200000,
       psramSize: 8388608,
       freePsram: 8000000,
-      hasDisplay: true,
       firmwareVersion: '1.2.3',
       sdkVersion: 'v5.1.1',
       sketchSize: 1500000,

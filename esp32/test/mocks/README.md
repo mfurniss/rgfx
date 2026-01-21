@@ -30,13 +30,6 @@ Mock implementation of ESP32 Preferences (NVS)
 - Namespace support
 - Persists during test execution (not across test runs)
 
-### `mock_display.h`
-Mock implementation of OLED Display (SSD1306)
-- Mirrors API from `src/oled/oled_display.h`
-- All display update methods are no-ops (visual output not testable)
-- `begin()` and `isAvailable()` always return true
-- Allows code using Display to compile and run in native tests
-
 ## Usage
 
 Mocks are automatically activated when `UNIT_TEST` is defined (set in `platformio.ini` for native environment).

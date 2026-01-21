@@ -21,6 +21,7 @@ import {
   type MinimalDriverRegistration,
 } from '../schemas/minimal-driver-registration';
 import { sendToRenderer, getErrorMessage } from '../utils/driver-utils';
+import { eventBus } from '../services/event-bus';
 
 interface DriverTelemetryDeps {
   mqtt: MqttBroker;
@@ -49,7 +50,6 @@ function createMinimalRegistration(minimal: MinimalDriverRegistration) {
     maxAllocHeap: minimal.heapSize ?? 327680, // Use heapSize as fallback for old firmware
     psramSize: minimal.psramSize ?? 0,
     freePsram: minimal.freePsram ?? 0,
-    hasDisplay: minimal.hasDisplay ?? false,
     firmwareVersion: minimal.firmwareVersion, // Keep undefined if missing
     sdkVersion: minimal.sdkVersion ?? 'unknown',
     sketchSize: minimal.sketchSize ?? 0,
@@ -137,13 +137,19 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
           log.debug(`driver:updated sent for ${driver.id} (minimal)`);
         } else {
-          // Completely invalid - reject
-          log.error(
-            `Invalid telemetry payload (failed both full and minimal validation): ${JSON.stringify({
-              fullErrors: fullParseResult.error.issues.slice(0, 5), // Limit to first 5 errors
-              minimalErrors: minimalParseResult.error.issues,
-            })}`,
-          );
+          // Completely invalid - reject and surface as system error
+          const errorDetails = JSON.stringify({
+            fullErrors: fullParseResult.error.issues.slice(0, 5), // Limit to first 5 errors
+            minimalErrors: minimalParseResult.error.issues,
+          });
+          log.error(`Invalid telemetry payload (failed both full and minimal validation): ${errorDetails}`);
+
+          eventBus.emit('system:error', {
+            errorType: 'driver',
+            message: 'Received invalid telemetry payload from driver',
+            timestamp: Date.now(),
+            details: errorDetails,
+          });
         }
       }
     } catch (err) {

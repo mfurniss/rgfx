@@ -197,7 +197,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **File:** [target-drivers-picker.tsx](target-drivers-picker.tsx)
 
-**Purpose:** Dropdown popover for selecting which drivers to target for effects.
+**Purpose:** Dropdown popover for selecting which drivers to target for firmware flashing or effects.
 
 **Props:**
 - `drivers: Driver[]` - Available drivers
@@ -205,12 +205,15 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `selectAll: boolean` - Whether "select all" is checked
 - `onDriverToggle: (driverId) => void` - Toggle callback
 - `onSelectAll: () => void` - Select all callback
+- `disabled?: boolean` - Disable the picker (e.g., during flash)
 
 **Features:**
 - Popover with checkbox list
 - "All Drivers" option with indeterminate state
 - Shows driver IP or "disconnected"
+- Displays chip model badge (e.g., "ESP32-S3") from telemetry when available
 - Disables offline drivers
+- Alphabetically sorted driver list
 
 ---
 

@@ -12,6 +12,7 @@ import { join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
 import { getTransformersDir } from './transformer-installer';
+import { eventBus } from './services/event-bus';
 
 /**
  * Options for TransformerEngine constructor
@@ -278,7 +279,15 @@ export class TransformerEngine {
         this.context.log.warn(`No handler found for event: ${topic}`);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.context.log.error(`Error handling event ${topic}:`, error);
+      eventBus.emit('system:error', {
+        errorType: 'transformer',
+        message: `Transformer error for ${topic}: ${errorMessage}`,
+        timestamp: Date.now(),
+        details: errorStack,
+      });
     }
   }
 
