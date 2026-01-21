@@ -278,7 +278,21 @@ describe('generateResultMessage', () => {
 
     expect(message.success).toBe(true);
     expect(message.message).toContain('1.0.0');
-    expect(message.message).toContain('3 driver(s)');
+    expect(message.message).toContain('3 drivers');
+  });
+
+  it('should use singular "driver" when only one succeeds', () => {
+    const result: OtaFlashResult = {
+      successCount: 1,
+      totalCount: 1,
+      failedDrivers: [],
+    };
+
+    const message = generateResultMessage(result, '1.0.0');
+
+    expect(message.success).toBe(true);
+    expect(message.message).toContain('1 driver!');
+    expect(message.message).not.toContain('drivers');
   });
 
   it('should return partial success message when some fail', () => {

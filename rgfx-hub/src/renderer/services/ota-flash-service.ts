@@ -120,10 +120,12 @@ export function generateResultMessage(
 ): { success: boolean; message: string } {
   const { successCount, totalCount, failedDrivers } = result;
 
+  const driverWord = (count: number) => (count === 1 ? 'driver' : 'drivers');
+
   if (failedDrivers.length === 0) {
     return {
       success: true,
-      message: `Firmware v${firmwareVersion} flashed successfully to ${successCount} driver(s)!`,
+      message: `Firmware v${firmwareVersion} flashed successfully to ${successCount} ${driverWord(successCount)}!`,
     };
   }
 
@@ -131,7 +133,7 @@ export function generateResultMessage(
     const failedList = failedDrivers.join('\n');
     return {
       success: false,
-      message: `Partial success: ${successCount} of ${totalCount} driver(s) flashed.\n\nFailed:\n${failedList}`,
+      message: `Partial success: ${successCount} of ${totalCount} ${driverWord(totalCount)} flashed.\n\nFailed:\n${failedList}`,
     };
   }
 

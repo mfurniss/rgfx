@@ -11,9 +11,47 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { eventBus } from '../services/event-bus';
 import { setActiveOtaDriver, clearActiveOtaDriver } from '../services/global-error-handler';
+import {
+  type SupportedChip,
+  getOtaFirmwareFilename,
+  mapChipNameToVariant,
+} from '../schemas/firmware-manifest';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
+}
+
+/**
+ * Validate and map driver's chip model to supported chip type
+ */
+function getChipType(chipModel: string | undefined): SupportedChip {
+  if (!chipModel) {
+    throw new Error(
+      'Driver chip type unknown. Cannot determine correct firmware. ' +
+      'The driver may be running old firmware that does not report chip type.',
+    );
+  }
+
+  const chipType = mapChipNameToVariant(chipModel);
+
+  if (!chipType) {
+    throw new Error(
+      `Unsupported chip type: ${chipModel}. Supported: ESP32, ESP32-S3`,
+    );
+  }
+
+  return chipType;
+}
+
+/**
+ * Get the firmware file path for a specific chip type
+ */
+function getFirmwarePath(chipType: SupportedChip): string {
+  const filename = getOtaFirmwareFilename(chipType);
+
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'firmware', filename)
+    : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', filename);
 }
 
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
@@ -36,7 +74,11 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       throw new Error('Driver IP address not available');
     }
 
-    log.info(`Starting OTA flash to ${driverId} (${ipAddress})...`);
+    // Determine chip type and firmware path
+    const chipType = getChipType(driver.telemetry?.chipModel);
+    const firmwarePath = getFirmwarePath(chipType);
+
+    log.info(`Starting OTA flash to ${driverId} (${ipAddress}), chip: ${chipType}...`);
 
     // Track active OTA driver for error context in global error handler
     setActiveOtaDriver(driverId);
@@ -49,14 +91,10 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     // Touch driver immediately at OTA start to reset timeout
     driverRegistry.touchDriver(driverId);
 
-    const firmwarePath = app.isPackaged
-      ? path.join(process.resourcesPath, 'firmware', 'firmware.bin')
-      : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', 'firmware.bin');
-
     const fs = await import('fs');
 
     if (!fs.existsSync(firmwarePath)) {
-      throw new Error(`Firmware file not found: ${firmwarePath}`);
+      throw new Error(`Firmware file not found for ${chipType}: ${firmwarePath}`);
     }
 
     const EspOTA = (await import('esp-ota')).default;
@@ -116,7 +154,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         throw errorState.error;
       }
 
-      log.info(`OTA flash to ${driverId} completed successfully`);
+      log.info(`OTA flash to ${driverId} (${chipType}) completed successfully`);
 
       // Re-fetch driver from registry - the reference may have been replaced
       // by telemetry events during OTA upload (race condition)
