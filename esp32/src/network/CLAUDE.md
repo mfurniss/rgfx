@@ -84,7 +84,6 @@ For effects running on Core 1 (like projectile), a cross-core watchdog mechanism
    - Process log queue (publish queued log messages)
    - Send periodic telemetry (every 10s)
    - Handle OTA updates
-   - Update OLED display
 
 ## UDP Message Format
 

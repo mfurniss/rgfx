@@ -8,14 +8,14 @@ Main process services for firmware management, application lifecycle, and error 
 
 ### firmware-version-service.ts
 
-Singleton service that reads firmware version from bundled files.
+Singleton service that reads firmware version from `manifest.json` in the bundled firmware directory.
 
 - **Location**: `assets/esp32/firmware/` (dev) or `resources/firmware/` (packaged)
-- **Filename pattern**: `rgfx-firmware.{version}.bin`
-- **Version extraction**: strips prefix and `.bin` suffix
+- **Multi-chip support**: Firmware is available for ESP32 and ESP32-S3 variants
+- **Version source**: Reads `version` field from `manifest.json`
 
 Key methods:
-- `getCurrentVersion()`: reads firmware directory, extracts version from filename
+- `getCurrentVersion()`: reads manifest.json, returns version string
 - `needsUpdate(driverVersion)`: compares driver version with bundled firmware
 
 ### firmware-watcher.ts
