@@ -273,6 +273,15 @@ export interface TransformerContext {
     payload: string,
     orientation?: 'horizontal' | 'vertical',
   ): AmbilightGradient;
+
+  /**
+   * Convert HSL color to hex string
+   * @param h Hue (0-360)
+   * @param s Saturation (0-100)
+   * @param l Lightness (0-100)
+   * @returns Hex color string (e.g., "#FF77A8")
+   */
+  hslToHex(h: number, s: number, l: number): string;
 }
 
 /**

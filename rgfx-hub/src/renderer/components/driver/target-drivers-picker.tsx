@@ -14,6 +14,7 @@ import {
   Checkbox,
   Alert,
   Popover,
+  Chip,
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
@@ -21,6 +22,9 @@ interface Driver {
   id: string;
   ip?: string;
   state: 'connected' | 'disconnected' | 'updating';
+  telemetry?: {
+    chipModel?: string;
+  };
 }
 
 interface TargetDriversPickerProps {
@@ -68,7 +72,7 @@ export function TargetDriversPicker({
         }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Box sx={{ p: 2, minWidth: 280 }}>
+        <Box sx={{ p: 2, minWidth: 320 }}>
           <FormGroup>
             <FormControlLabel
               control={
@@ -99,9 +103,17 @@ export function TargetDriversPicker({
                   />
                 }
                 label={
-                  <Box component="span">
-                    {driver.id}
-                    <Box component="span" sx={{ color: 'text.secondary', ml: 0.5 }}>
+                  <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span>{driver.id}</span>
+                    {driver.telemetry?.chipModel && (
+                      <Chip
+                        label={driver.telemetry.chipModel}
+                        size="small"
+                        variant="outlined"
+                        sx={{ height: 18, fontSize: '0.7rem' }}
+                      />
+                    )}
+                    <Box component="span" sx={{ color: 'text.secondary' }}>
                       ({driver.ip ?? 'disconnected'})
                     </Box>
                   </Box>

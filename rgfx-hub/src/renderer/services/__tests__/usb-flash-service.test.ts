@@ -46,18 +46,32 @@ beforeEach(() => {
     getFirmwareFile: mockGetFirmwareFile,
   };
 
-  // Default mock implementations
+  // Default mock implementations with multi-chip variant structure
   mockGetFirmwareManifest.mockResolvedValue({
     version: '1.0.0',
     generatedAt: '2025-01-01T00:00:00Z',
-    files: [
-      {
-        name: 'firmware.bin',
-        address: 0x10000,
-        size: 100,
-        sha256: 'a'.repeat(64),
+    variants: {
+      ESP32: {
+        files: [
+          {
+            name: 'firmware-esp32.bin',
+            address: 0x10000,
+            size: 100,
+            sha256: 'a'.repeat(64),
+          },
+        ],
       },
-    ],
+      'ESP32-S3': {
+        files: [
+          {
+            name: 'firmware-esp32s3.bin',
+            address: 0x10000,
+            size: 100,
+            sha256: 'a'.repeat(64),
+          },
+        ],
+      },
+    },
   });
 
   mockGetFirmwareFile.mockResolvedValue(new Uint8Array(100));
@@ -89,7 +103,7 @@ describe('flashViaUSB', () => {
   });
 
   describe('successful flash', () => {
-    it('should return success with firmware version', async () => {
+    it('should return success with firmware version and chip type', async () => {
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
       const getPort = vi.fn().mockResolvedValue(mockPort);
@@ -98,7 +112,21 @@ describe('flashViaUSB', () => {
 
       expect(result.success).toBe(true);
       expect(result.firmwareVersion).toBe('1.0.0');
+      expect(result.chipType).toBe('ESP32');
       expect(result.error).toBeUndefined();
+    });
+
+    it('should detect and flash ESP32-S3', async () => {
+      mockMain.mockResolvedValue('ESP32-S3');
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const result = await flashViaUSB(getPort, callbacks);
+
+      expect(result.success).toBe(true);
+      expect(result.chipType).toBe('ESP32-S3');
     });
 
     it('should call progress callback with 0 at start', async () => {
@@ -155,6 +183,19 @@ describe('flashViaUSB', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Invalid firmware manifest');
+    });
+
+    it('should fail for unsupported chip type', async () => {
+      mockMain.mockResolvedValue('ESP32-C3'); // Not supported
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const result = await flashViaUSB(getPort, callbacks);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Unsupported chip type');
     });
   });
 

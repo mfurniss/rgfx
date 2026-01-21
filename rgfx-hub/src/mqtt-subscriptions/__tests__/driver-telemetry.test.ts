@@ -14,6 +14,7 @@ import type { DriverConfig } from '@/driver-config';
 import type { BrowserWindow } from 'electron';
 import { Driver } from '@/types';
 import { createMockDriver, createMockTelemetryPayload } from '@/__tests__/factories';
+import { eventBus } from '@/services/event-bus';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -21,6 +22,12 @@ vi.mock('electron-log/main', () => ({
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/event-bus', () => ({
+  eventBus: {
+    emit: vi.fn(),
   },
 }));
 
@@ -186,7 +193,6 @@ describe('subscribeDriverTelemetry', () => {
         heapSize: 327680,
         psramSize: 0,
         freePsram: 0,
-        hasDisplay: false,
         sdkVersion: 'v4.4',
         sketchSize: 1000000,
         freeSketchSpace: 2000000,
@@ -245,6 +251,24 @@ describe('subscribeDriverTelemetry', () => {
       subscribedCallback('rgfx/system/driver/telemetry', payload);
 
       expect(mockDriverRegistry.registerDriver).not.toHaveBeenCalled();
+    });
+
+    it('should emit system error when payload fails both full and minimal validation', () => {
+      const payload = JSON.stringify({
+        ip: '192.168.1.100',
+        mac: 'invalid-mac-format',
+      });
+      subscribedCallback('rgfx/system/driver/telemetry', payload);
+
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'driver',
+          message: 'Received invalid telemetry payload from driver',
+          timestamp: expect.any(Number),
+          details: expect.stringContaining('minimalErrors'),
+        }),
+      );
     });
   });
 

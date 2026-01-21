@@ -199,6 +199,7 @@ describe('createServices', () => {
       drivers: expect.anything(),
       loadGif: expect.any(Function),
       parseAmbilight: expect.any(Function),
+      hslToHex: expect.any(Function),
     });
   });
 

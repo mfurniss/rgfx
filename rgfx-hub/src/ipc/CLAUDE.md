@@ -35,18 +35,25 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 
 **File:** [flash-ota-handler.ts](flash-ota-handler.ts)
 
-**Purpose:** Performs Over-The-Air (OTA) firmware update to a connected ESP32 driver.
+**Purpose:** Performs Over-The-Air (OTA) firmware update to a connected ESP32 driver with automatic chip detection.
 
 **Parameters:**
 - `driverId: string` - ID of the driver to flash
 
-**Returns:** `{ success: boolean, error?: string }`
+**Returns:** `Promise<void>` (throws on error)
 
 **Behavior:**
 1. Validates driver exists and is connected
-2. Locates firmware binary (`firmware.bin`) from app resources
-3. Uses `esp-ota` library to upload firmware to driver's IP address on port 3232
-4. Emits progress events to renderer via `flash:ota:state` and `flash:ota:progress` channels
+2. Detects chip type from driver telemetry (`chipModel`) using `mapChipNameToVariant()`
+3. Selects correct firmware variant (ESP32 or ESP32-S3) via `getOtaFirmwareFilename()`
+4. Uses `esp-ota` library to upload firmware to driver's IP address on port 3232
+5. Emits progress events to renderer via `flash:ota:state`, `flash:ota:progress`, and `flash:ota:error` channels
+6. Sets driver state to `updating` during flash, `disconnected` on completion (driver reboots)
+
+**Multi-chip Support:**
+- Firmware files: `firmware-esp32.bin`, `firmware-esp32s3.bin`
+- Rejects unsupported chips (ESP32-C, ESP32-S2, ESP32-H series)
+- Fails gracefully if driver doesn't report chip type (old firmware)
 
 ---
 

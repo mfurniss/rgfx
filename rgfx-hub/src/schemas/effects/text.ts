@@ -44,7 +44,7 @@ export default baseEffect
     gradientSpeed: z
       .number()
       .min(0.1)
-      .max(20)
+      .max(50)
       .optional()
       .default(3)
       .describe('Gradient animation speed'),

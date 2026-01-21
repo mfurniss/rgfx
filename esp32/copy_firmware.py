@@ -6,6 +6,9 @@ Copies compiled ESP32 firmware files to:
 1. esp32-installer/ (for serial flashing via esptool)
 2. rgfx-hub/assets/esp32/firmware/ (for OTA updates from Hub)
 
+Supports multiple chip variants (ESP32, ESP32-S3) with chip-specific firmware files
+and a unified manifest containing all variants.
+
 This script runs automatically after PlatformIO builds via extra_scripts in platformio.ini.
 Can also be run standalone for manual deployment.
 """
@@ -16,12 +19,22 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Files to copy for serial flashing (esp32-installer)
-FIRMWARE_FILES = [
-    {'name': 'firmware.bin', 'address': '0x10000'},
-    {'name': 'bootloader.bin', 'address': '0x1000'},
-    {'name': 'partitions.bin', 'address': '0x8000'},
-]
+# Chip variant configurations
+# Maps PlatformIO environment name to chip type identifier
+CHIP_VARIANTS = {
+    'rgfx-driver': {
+        'chip': 'ESP32',
+        'bootloader_address': 0x1000,  # ESP32 bootloader at 0x1000
+    },
+    'rgfx-driver-s3': {
+        'chip': 'ESP32-S3',
+        'bootloader_address': 0x0,  # ESP32-S3 bootloader at 0x0
+    },
+}
+
+# Common flash addresses (same for all variants except bootloader)
+PARTITIONS_ADDRESS = 0x8000
+FIRMWARE_ADDRESS = 0x10000
 
 
 def get_version(project_root):
@@ -48,166 +61,159 @@ def sha256_file(filepath):
     return sha256_hash.hexdigest()
 
 
-def firmware_unchanged(hub_firmware_dir, build_dir):
+def get_file_info(filepath, address):
+    """Get file metadata for manifest"""
+    return {
+        'name': filepath.name,
+        'address': address,
+        'size': filepath.stat().st_size,
+        'sha256': sha256_file(filepath),
+    }
+
+
+def generate_multi_chip_manifest(hub_firmware_dir, version):
     """
-    Check if the newly built firmware is identical to the existing one.
-    Returns True if firmware binary SHA256 matches existing manifest.
+    Generate manifest.json with all chip variants.
+
+    Manifest structure:
+    {
+        "version": "1.0.0",
+        "generatedAt": "...",
+        "variants": {
+            "ESP32": {
+                "files": [...]
+            },
+            "ESP32-S3": {
+                "files": [...]
+            }
+        }
+    }
     """
     manifest_path = hub_firmware_dir / 'manifest.json'
-    firmware_bin_path = build_dir / 'firmware.bin'
 
-    if not manifest_path.exists() or not firmware_bin_path.exists():
-        return False
+    variants = {}
 
-    try:
-        manifest = json.loads(manifest_path.read_text())
-        existing_sha256 = manifest.get('firmwareBinarySha256')
-        if not existing_sha256:
-            return False
+    for env_name, config in CHIP_VARIANTS.items():
+        chip = config['chip']
+        chip_suffix = chip.lower().replace('-', '')  # "ESP32-S3" -> "esp32s3"
 
-        new_sha256 = sha256_file(firmware_bin_path)
-        return existing_sha256 == new_sha256
-    except (json.JSONDecodeError, KeyError):
-        return False
+        # Check if this variant's firmware exists
+        firmware_file = hub_firmware_dir / f'firmware-{chip_suffix}.bin'
+        bootloader_file = hub_firmware_dir / f'bootloader-{chip_suffix}.bin'
+        partitions_file = hub_firmware_dir / f'partitions-{chip_suffix}.bin'
 
+        if not firmware_file.exists():
+            print(f"  ⚠ Skipping {chip} variant (not built yet)")
+            continue
 
-def generate_manifest(hub_firmware_dir, version):
-    """Generate manifest.json for USB serial flashing"""
-    manifest_path = hub_firmware_dir / 'manifest.json'
+        files_info = []
 
-    # Files for serial flashing (Hub uses firmware.bin, bootloader.bin, partitions.bin)
-    files_info = []
+        # Bootloader (chip-specific address)
+        if bootloader_file.exists():
+            files_info.append(get_file_info(bootloader_file, config['bootloader_address']))
 
-    # Define files with their flash addresses
-    flash_files = [
-        {'name': 'bootloader.bin', 'address': 4096},
-        {'name': 'partitions.bin', 'address': 32768},
-        {'name': 'firmware.bin', 'address': 65536},
-    ]
+        # Partitions (common address)
+        if partitions_file.exists():
+            files_info.append(get_file_info(partitions_file, PARTITIONS_ADDRESS))
 
-    for file_info in flash_files:
-        file_path = hub_firmware_dir / file_info['name']
+        # Firmware (common address)
+        files_info.append(get_file_info(firmware_file, FIRMWARE_ADDRESS))
 
-        if not file_path.exists():
-            raise RuntimeError(f"Required file not found: {file_path}")
+        variants[chip] = {
+            'files': files_info
+        }
 
-        file_size = file_path.stat().st_size
-        file_sha256 = sha256_file(file_path)
+        print(f"  ✓ {chip} variant added to manifest")
 
-        files_info.append({
-            'name': file_info['name'],
-            'address': file_info['address'],
-            'size': file_size,
-            'sha256': file_sha256
-        })
-
-    # Get firmware binary SHA256 specifically
-    firmware_sha256 = next(f['sha256'] for f in files_info if f['name'] == 'firmware.bin')
+    if not variants:
+        raise RuntimeError("No firmware variants found to include in manifest")
 
     manifest = {
         'version': version,
         'generatedAt': datetime.now(timezone.utc).isoformat(),
-        'firmwareBinarySha256': firmware_sha256,
-        'files': files_info
+        'variants': variants,
     }
 
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
-    print(f"  ✓ manifest.json generated (version {version})")
+    print(f"  ✓ manifest.json generated (version {version}, {len(variants)} variant(s))")
 
 
-def copy_to_hub_public(project_root, build_dir):
+def copy_variant_to_hub(project_root, build_dir, env_name):
     """
-    Copy firmware files to Hub's public folder with versioned filename.
+    Copy a single chip variant's firmware files to Hub's public folder.
 
-    Creates two copies of firmware for different flash methods:
-    - firmware.bin: Used by USB serial flasher (referenced in manifest.json)
-    - rgfx-firmware.{version}.bin: Used by OTA flasher (detected by FirmwareVersionService)
-
-    Both files are IDENTICAL (same SHA256) to ensure consistency across flash methods.
-    The manifest.json is auto-generated with checksums to ensure integrity.
-
-    If the firmware binary is unchanged from the existing manifest, skip all updates
-    to preserve the existing version number.
+    Files are named with chip suffix:
+    - firmware-esp32.bin, bootloader-esp32.bin, partitions-esp32.bin
+    - firmware-esp32s3.bin, bootloader-esp32s3.bin, partitions-esp32s3.bin
     """
+    if env_name not in CHIP_VARIANTS:
+        print(f"  ⚠ Unknown environment {env_name}, skipping Hub copy")
+        return
+
+    config = CHIP_VARIANTS[env_name]
+    chip = config['chip']
+    chip_suffix = chip.lower().replace('-', '')  # "ESP32-S3" -> "esp32s3"
+
     hub_firmware_dir = project_root / 'rgfx-hub' / 'assets' / 'esp32' / 'firmware'
     hub_firmware_dir.mkdir(parents=True, exist_ok=True)
 
-    # Check if firmware binary is unchanged - skip update to preserve version
-    if firmware_unchanged(hub_firmware_dir, build_dir):
-        manifest = json.loads((hub_firmware_dir / 'manifest.json').read_text())
-        print(f"\n✓ Firmware binary unchanged (v{manifest['version']}), skipping manifest update\n")
-        return
+    print(f"\nCopying {chip} firmware to rgfx-hub/assets/esp32/firmware:")
 
-    version = get_version(project_root)
+    # Files to copy with chip-specific names
+    files_to_copy = [
+        ('firmware.bin', f'firmware-{chip_suffix}.bin'),
+        ('bootloader.bin', f'bootloader-{chip_suffix}.bin'),
+        ('partitions.bin', f'partitions-{chip_suffix}.bin'),
+    ]
 
-    print("\nCopying files to rgfx-hub/assets/esp32/firmware:")
-
-    # Delete all old rgfx-firmware.*.bin files
-    for old_file in hub_firmware_dir.glob('rgfx-firmware.*.bin'):
-        old_file.unlink()
-        print(f"  ✗ Deleted old firmware: {old_file.name}")
-
-    # Copy firmware.bin (required for USB serial flashing via manifest.json)
-    firmware_bin_path = build_dir / 'firmware.bin'
-    if firmware_bin_path.exists():
-        # Copy as firmware.bin for USB serial flashing
-        dest_firmware = hub_firmware_dir / 'firmware.bin'
-        dest_firmware.write_bytes(firmware_bin_path.read_bytes())
-        print(f"  ✓ firmware.bin ({dest_firmware.stat().st_size} bytes)")
-
-        # Also copy with version in filename for OTA updates
-        versioned_firmware = hub_firmware_dir / f'rgfx-firmware.{version}.bin'
-        versioned_firmware.write_bytes(firmware_bin_path.read_bytes())
-        print(f"  ✓ {versioned_firmware.name} ({versioned_firmware.stat().st_size} bytes)")
-    else:
-        print(f"  ✗ firmware.bin not found at {firmware_bin_path}")
-
-    # Copy other required flash files
-    for file_info in FIRMWARE_FILES:
-        if file_info['name'] == 'firmware.bin':
-            continue  # Already handled above
-
-        source_path = build_dir / file_info['name']
-        dest_path = hub_firmware_dir / file_info['name']
+    for src_name, dest_name in files_to_copy:
+        source_path = build_dir / src_name
+        dest_path = hub_firmware_dir / dest_name
 
         if source_path.exists():
             dest_path.write_bytes(source_path.read_bytes())
-            print(f"  ✓ {file_info['name']} ({dest_path.stat().st_size} bytes)")
+            print(f"  ✓ {dest_name} ({dest_path.stat().st_size} bytes)")
         else:
-            print(f"  ✗ {file_info['name']} not found at {source_path}")
+            print(f"  ✗ {src_name} not found at {source_path}")
 
-    # Generate manifest.json for USB serial flashing
-    generate_manifest(hub_firmware_dir, version)
+    # Also copy versioned firmware for OTA (chip-specific)
+    version = get_version(project_root)
+    firmware_src = build_dir / 'firmware.bin'
+    if firmware_src.exists():
+        # Delete old versioned files for this chip
+        for old_file in hub_firmware_dir.glob(f'rgfx-firmware-{chip_suffix}.*.bin'):
+            old_file.unlink()
+            print(f"  ✗ Deleted old: {old_file.name}")
 
-    print(f"Firmware v{version} copied to Hub public folder\n")
+        versioned_name = f'rgfx-firmware-{chip_suffix}.{version}.bin'
+        versioned_path = hub_firmware_dir / versioned_name
+        versioned_path.write_bytes(firmware_src.read_bytes())
+        print(f"  ✓ {versioned_name} ({versioned_path.stat().st_size} bytes)")
+
+    # Regenerate manifest with all available variants
+    generate_multi_chip_manifest(hub_firmware_dir, version)
+
+    print(f"{chip} firmware v{version} copied to Hub\n")
 
 
-def copy_firmware_standalone():
-    """Copy compiled firmware and required flash files to esp32-installer folder (standalone mode)"""
-    # Get project root (script is in esp32/, project root is parent)
-    script_dir = Path(__file__).parent
-    project_root = script_dir.parent
-
-    # Detect build directory
-    build_dir = script_dir / '.pio' / 'build' / 'rgfx-driver'
-
-    if not build_dir.exists():
-        print(f"Build directory not found: {build_dir}")
-        print("Run 'pio run' first to build the firmware")
+def copy_to_installer(project_root, build_dir, env_name):
+    """Copy firmware files to esp32-installer folder for serial flashing"""
+    if env_name not in CHIP_VARIANTS:
         return
 
-    # Destination directory for standalone installer
+    config = CHIP_VARIANTS[env_name]
+    chip_suffix = config['chip'].lower().replace('-', '')
+
     installer_dir = project_root / 'esp32-installer'
     installer_dir.mkdir(parents=True, exist_ok=True)
 
-    # Files to copy with their sources
     files_to_copy = {
-        'firmware.bin': build_dir / 'firmware.bin',
-        'bootloader.bin': build_dir / 'bootloader.bin',
-        'partitions.bin': build_dir / 'partitions.bin',
+        f'firmware-{chip_suffix}.bin': build_dir / 'firmware.bin',
+        f'bootloader-{chip_suffix}.bin': build_dir / 'bootloader.bin',
+        f'partitions-{chip_suffix}.bin': build_dir / 'partitions.bin',
     }
 
-    print("Copying files to esp32-installer:")
+    print(f"Copying {config['chip']} files to esp32-installer:")
     for dest_name, source_path in files_to_copy.items():
         dest_path = installer_dir / dest_name
         if source_path.exists():
@@ -216,63 +222,57 @@ def copy_firmware_standalone():
         else:
             print(f"  ✗ {dest_name} not found at {source_path}")
 
-    # Check if boot_app0.bin exists in installer dir (should be there from git)
+
+def copy_firmware_standalone():
+    """Copy compiled firmware for all built environments (standalone mode)"""
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+
+    print("Copying firmware files (standalone mode)\n")
+
+    for env_name in CHIP_VARIANTS.keys():
+        build_dir = script_dir / '.pio' / 'build' / env_name
+
+        if not build_dir.exists():
+            print(f"Skipping {env_name} (not built)")
+            continue
+
+        copy_to_installer(project_root, build_dir, env_name)
+        copy_variant_to_hub(project_root, build_dir, env_name)
+
+    # Check if boot_app0.bin exists in installer dir
+    installer_dir = project_root / 'esp32-installer'
     boot_app0_path = installer_dir / 'boot_app0.bin'
     if boot_app0_path.exists():
         print(f"  ✓ boot_app0.bin (already present)")
 
-    print("All files copied successfully!\n")
-
-    # Also copy to Hub public folder
-    copy_to_hub_public(project_root, build_dir)
+    print("\nAll files copied successfully!")
 
 
 def copy_firmware_pio(source, target, env):
-    """Copy compiled firmware and required flash files to esp32-installer folder (PlatformIO callback)"""
-    # Get paths from environment
+    """Copy compiled firmware (PlatformIO callback - runs after each environment build)"""
     firmware_source = str(target[0])
     build_dir = Path(firmware_source).parent
-
-    # Get project root (parent of esp32 folder)
     project_root = Path(env['PROJECT_DIR']).parent
+
+    # Get environment name from build path
+    env_name = build_dir.name
+
+    print(f"\ncopy_firmware_pio([{firmware_source}], [{target[0]}])")
+
+    copy_to_installer(project_root, build_dir, env_name)
+    copy_variant_to_hub(project_root, build_dir, env_name)
+
+    # Check if boot_app0.bin exists in installer dir
     installer_dir = project_root / 'esp32-installer'
-
-    # Files to copy with their sources
-    files_to_copy = {
-        'firmware.bin': Path(firmware_source),
-        'bootloader.bin': build_dir / 'bootloader.bin',
-        'partitions.bin': build_dir / 'partitions.bin',
-    }
-
-    # boot_app0.bin is only available during serial uploads, not OTA
-    if 'FLASH_EXTRA_IMAGES' in env:
-        files_to_copy['boot_app0.bin'] = Path(env['FLASH_EXTRA_IMAGES'][2][1])
-
-    print("\nCopying files to esp32-installer:")
-    for dest_name, source_path in files_to_copy.items():
-        dest_path = installer_dir / dest_name
-        if source_path.exists():
-            shutil.copy2(source_path, dest_path)
-            print(f"  ✓ {dest_name}")
-        else:
-            print(f"  ✗ {dest_name} not found at {source_path}")
-
-    # Check if boot_app0.bin exists in installer dir (should be there from git)
     boot_app0_path = installer_dir / 'boot_app0.bin'
-    if boot_app0_path.exists() and 'boot_app0.bin' not in files_to_copy:
+    if boot_app0_path.exists():
         print(f"  ✓ boot_app0.bin (already present)")
 
-    print("All files copied successfully!\n")
-
-    # Also copy to Hub public folder
-    copy_to_hub_public(project_root, build_dir)
 
 # Detect if running standalone or as PlatformIO script
 if __name__ == "__main__":
-    # Standalone mode - called directly from command line or CI
     copy_firmware_standalone()
 else:
-    # PlatformIO mode - called as extra script
     Import("env")
-    # Register the callback to run after build
     env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", copy_firmware_pio)

@@ -130,7 +130,6 @@ export interface DriverTelemetry {
   maxAllocHeap: number;
   psramSize: number;
   freePsram: number;
-  hasDisplay: boolean;
 
   // Firmware information
   firmwareVersion?: string;
@@ -305,7 +304,7 @@ export function serializeDriverForIPC(driver: Driver): Driver {
 }
 
 export interface SystemError {
-  errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'general';
+  errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'transformer' | 'general';
   message: string;
   timestamp: number;
   filePath?: string;

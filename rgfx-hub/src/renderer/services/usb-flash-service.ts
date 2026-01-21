@@ -6,7 +6,13 @@
  */
 
 import { ESPLoader, Transport } from 'esptool-js';
-import { FirmwareManifestSchema, type FirmwareManifest } from '@/schemas';
+import {
+  FirmwareManifestSchema,
+  type FirmwareManifest,
+  type FirmwareFile as ManifestFile,
+  type SupportedChip,
+  mapChipNameToVariant,
+} from '@/schemas';
 import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
 
 export interface FlashCallbacks {
@@ -17,10 +23,11 @@ export interface FlashCallbacks {
 interface FlashResult {
   success: boolean;
   firmwareVersion: string;
+  chipType?: string;
   error?: string;
 }
 
-interface FirmwareFile {
+interface FirmwareFileData {
   data: string;
   address: number;
 }
@@ -39,22 +46,38 @@ async function loadFirmwareManifest(onLog: (message: string) => void): Promise<F
 
   const manifest = manifestResult.data;
   onLog(`Firmware version: ${manifest.version}`);
-  onLog(`Files to flash: ${manifest.files.length}`);
+  const variantCount = Object.keys(manifest.variants).length;
+  onLog(`Available variants: ${Object.keys(manifest.variants).join(', ')} (${variantCount})`);
 
   return manifest;
 }
 
 /**
- * Load and verify all firmware files defined in manifest
+ * Get firmware files for a specific chip variant from manifest
+ */
+function getVariantFiles(manifest: FirmwareManifest, chipType: SupportedChip): ManifestFile[] {
+  const variant = manifest.variants[chipType];
+
+  // Defensive check for manifest integrity
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!variant) {
+    const available = Object.keys(manifest.variants).join(', ');
+    throw new Error(`No firmware available for ${chipType}. Available: ${available}`);
+  }
+  return variant.files;
+}
+
+/**
+ * Load and verify all firmware files for a specific chip variant
  */
 async function loadAndVerifyFirmwareFiles(
-  manifest: FirmwareManifest,
+  files: ManifestFile[],
   onLog: (message: string) => void,
-): Promise<FirmwareFile[]> {
+): Promise<FirmwareFileData[]> {
   onLog('Loading and verifying firmware files...');
-  const fileArray: FirmwareFile[] = [];
+  const fileArray: FirmwareFileData[] = [];
 
-  for (const fileInfo of manifest.files) {
+  for (const fileInfo of files) {
     // Load firmware file via IPC (returns Node.js Buffer)
     const nodeBuffer = await window.rgfx.getFirmwareFile(fileInfo.name);
     // Convert Node.js Buffer to Uint8Array then to ArrayBuffer
@@ -94,7 +117,7 @@ async function loadAndVerifyFirmwareFiles(
 /**
  * Find the index of the largest file (app binary) for progress reporting
  */
-function findLargestFileIndex(fileArray: FirmwareFile[]): number {
+function findLargestFileIndex(fileArray: FirmwareFileData[]): number {
   return fileArray.reduce(
     (maxIdx, file, idx, arr) => (file.data.length > arr[maxIdx].data.length ? idx : maxIdx),
     0,
@@ -176,6 +199,7 @@ async function cleanupResources(
 
 /**
  * Flash firmware to ESP32 via USB serial
+ * Automatically detects chip type and selects correct firmware variant
  */
 export async function flashViaUSB(
   getPort: () => Promise<SerialPort>,
@@ -188,10 +212,8 @@ export async function flashViaUSB(
   try {
     onProgress(0);
 
-    // Load and verify firmware
+    // Load manifest first to check available variants
     const manifest = await loadFirmwareManifest(onLog);
-    const fileArray = await loadAndVerifyFirmwareFiles(manifest, onLog);
-    const largestFileIndex = findLargestFileIndex(fileArray);
 
     // Get fresh, clean port from selector
     portToFlash = await getPort();
@@ -207,8 +229,26 @@ export async function flashViaUSB(
     });
 
     onLog('Connecting to device...');
-    const chip = await loader.main();
-    onLog(`Connected to ${chip}`);
+    const chipName = await loader.main();
+    onLog(`Connected to ${chipName}`);
+
+    // Map detected chip to supported variant
+    const chipType = mapChipNameToVariant(chipName);
+
+    if (!chipType) {
+      throw new Error(
+        `Unsupported chip type: ${chipName}. Supported: ESP32, ESP32-S3`,
+      );
+    }
+    onLog(`Detected chip type: ${chipType}`);
+
+    // Get firmware files for detected chip
+    const variantFiles = getVariantFiles(manifest, chipType);
+    onLog(`Loading ${chipType} firmware (${variantFiles.length} files)...`);
+
+    // Load and verify firmware files for this chip
+    const fileArray = await loadAndVerifyFirmwareFiles(variantFiles, onLog);
+    const largestFileIndex = findLargestFileIndex(fileArray);
 
     onLog('Starting flash operation...');
     await loader.writeFlash({
@@ -236,12 +276,13 @@ export async function flashViaUSB(
     // Reset the device
     await resetDevice(portToFlash, onLog);
 
-    onLog('Firmware flashed successfully via USB!');
+    onLog(`Firmware v${manifest.version} (${chipType}) flashed successfully!`);
     onProgress(100);
 
     return {
       success: true,
       firmwareVersion: manifest.version,
+      chipType,
     };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';

@@ -240,6 +240,31 @@ bool configLEDs() {
 		break;
 
 		switch (pin) {
+#if CONFIG_IDF_TARGET_ESP32S3
+			// ESP32-S3: GPIO 19/20 are USB, GPIO 22/23 don't exist
+			ADD_FASTLED_FOR_PIN(1)
+			ADD_FASTLED_FOR_PIN(2)
+			ADD_FASTLED_FOR_PIN(3)
+			ADD_FASTLED_FOR_PIN(4)
+			ADD_FASTLED_FOR_PIN(5)
+			ADD_FASTLED_FOR_PIN(6)
+			ADD_FASTLED_FOR_PIN(7)
+			ADD_FASTLED_FOR_PIN(8)
+			ADD_FASTLED_FOR_PIN(9)
+			ADD_FASTLED_FOR_PIN(10)
+			ADD_FASTLED_FOR_PIN(11)
+			ADD_FASTLED_FOR_PIN(12)
+			ADD_FASTLED_FOR_PIN(13)
+			ADD_FASTLED_FOR_PIN(14)
+			ADD_FASTLED_FOR_PIN(15)
+			ADD_FASTLED_FOR_PIN(16)
+			ADD_FASTLED_FOR_PIN(17)
+			ADD_FASTLED_FOR_PIN(18)
+			ADD_FASTLED_FOR_PIN(21)
+			default:
+				String errorMsg = "GPIO pin " + String(pin) + " not configured (available: 1-18, 21)";
+#else
+			// ESP32 (original): Standard GPIO pins
 			ADD_FASTLED_FOR_PIN(16)
 			ADD_FASTLED_FOR_PIN(17)
 			ADD_FASTLED_FOR_PIN(18)
@@ -249,6 +274,7 @@ bool configLEDs() {
 			ADD_FASTLED_FOR_PIN(23)
 			default:
 				String errorMsg = "GPIO pin " + String(pin) + " not configured (available: 16, 17, 18, 19, 21, 22, 23)";
+#endif
 				log("ERROR: " + errorMsg);
 				publishError("config", errorMsg.c_str());
 				delete[] ledBuffers[pinIndex];

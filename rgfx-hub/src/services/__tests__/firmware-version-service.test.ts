@@ -7,13 +7,13 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockReaddirSync } = vi.hoisted(() => ({
-  mockReaddirSync: vi.fn(),
+const { mockReadFileSync } = vi.hoisted(() => ({
+  mockReadFileSync: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
-  default: { readdirSync: mockReaddirSync },
-  readdirSync: mockReaddirSync,
+  default: { readFileSync: mockReadFileSync },
+  readFileSync: mockReadFileSync,
 }));
 
 vi.mock('electron', () => ({
@@ -30,21 +30,29 @@ describe('FirmwareVersionService', () => {
   });
 
   describe('getCurrentVersion', () => {
-    it('should extract version from firmware filename', async () => {
-      mockReaddirSync.mockReturnValue([
-        'bootloader.bin',
-        'partitions.bin',
-        'rgfx-firmware.1.2.3.bin',
-      ]);
+    it('should extract version from manifest.json', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        version: '1.2.3',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {},
+      }));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const version = firmwareVersionService.getCurrentVersion();
 
       expect(version).toBe('1.2.3');
+      expect(mockReadFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('manifest.json'),
+        'utf-8',
+      );
     });
 
     it('should handle version with pre-release suffix', async () => {
-      mockReaddirSync.mockReturnValue(['rgfx-firmware.0.0.1-test.bin']);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        version: '0.0.1-test',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {},
+      }));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const version = firmwareVersionService.getCurrentVersion();
@@ -53,7 +61,11 @@ describe('FirmwareVersionService', () => {
     });
 
     it('should handle version with complex suffix', async () => {
-      mockReaddirSync.mockReturnValue(['rgfx-firmware.2.0.0-beta.1+build.123.bin']);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        version: '2.0.0-beta.1+build.123',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {},
+      }));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const version = firmwareVersionService.getCurrentVersion();
@@ -61,31 +73,9 @@ describe('FirmwareVersionService', () => {
       expect(version).toBe('2.0.0-beta.1+build.123');
     });
 
-    it('should return null when no firmware file found', async () => {
-      mockReaddirSync.mockReturnValue([
-        'bootloader.bin',
-        'partitions.bin',
-        'other-file.txt',
-      ]);
-
-      const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
-
-      expect(version).toBeNull();
-    });
-
-    it('should return null when directory is empty', async () => {
-      mockReaddirSync.mockReturnValue([]);
-
-      const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
-
-      expect(version).toBeNull();
-    });
-
-    it('should return null when readdirSync throws', async () => {
-      mockReaddirSync.mockImplementation(() => {
-        throw new Error('Directory not found');
+    it('should return null when manifest.json cannot be read', async () => {
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error('File not found');
       });
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
@@ -94,22 +84,23 @@ describe('FirmwareVersionService', () => {
       expect(version).toBeNull();
     });
 
-    it('should pick first matching firmware file if multiple exist', async () => {
-      mockReaddirSync.mockReturnValue([
-        'rgfx-firmware.1.0.0.bin',
-        'rgfx-firmware.2.0.0.bin',
-      ]);
+    it('should return null when manifest.json contains invalid JSON', async () => {
+      mockReadFileSync.mockReturnValue('invalid json');
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const version = firmwareVersionService.getCurrentVersion();
 
-      expect(version).toBe('1.0.0');
+      expect(version).toBeNull();
     });
   });
 
   describe('needsUpdate', () => {
     it('should return true when versions differ', async () => {
-      mockReaddirSync.mockReturnValue(['rgfx-firmware.2.0.0.bin']);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        version: '2.0.0',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {},
+      }));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const needsUpdate = firmwareVersionService.needsUpdate('1.0.0');
@@ -118,7 +109,11 @@ describe('FirmwareVersionService', () => {
     });
 
     it('should return false when versions match', async () => {
-      mockReaddirSync.mockReturnValue(['rgfx-firmware.1.0.0.bin']);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        version: '1.0.0',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {},
+      }));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const needsUpdate = firmwareVersionService.needsUpdate('1.0.0');
@@ -127,7 +122,11 @@ describe('FirmwareVersionService', () => {
     });
 
     it('should return false when driver version is undefined', async () => {
-      mockReaddirSync.mockReturnValue(['rgfx-firmware.1.0.0.bin']);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        version: '1.0.0',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {},
+      }));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const needsUpdate = firmwareVersionService.needsUpdate(undefined);
@@ -136,7 +135,9 @@ describe('FirmwareVersionService', () => {
     });
 
     it('should return false when current firmware version is null', async () => {
-      mockReaddirSync.mockReturnValue([]);
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error('File not found');
+      });
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const needsUpdate = firmwareVersionService.needsUpdate('1.0.0');
@@ -145,7 +146,9 @@ describe('FirmwareVersionService', () => {
     });
 
     it('should return false when both versions are missing', async () => {
-      mockReaddirSync.mockReturnValue([]);
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error('File not found');
+      });
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
       const needsUpdate = firmwareVersionService.needsUpdate(undefined);
