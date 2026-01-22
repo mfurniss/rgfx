@@ -157,6 +157,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Sends config update before enabling test mode
 - Visual state change when test is active
 - Disabled when driver is disconnected or request pending
+- 5-second timeout auto-clears pending state if driver doesn't respond
 
 ---
 

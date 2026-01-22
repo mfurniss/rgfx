@@ -40,7 +40,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 ### Published Topics (Driver sends)
 - `rgfx/system/driver/telemetry` - Periodic telemetry (30s interval)
 - `rgfx/driver/{device-id}/status` - Online/offline status (with LWT)
-- `rgfx/driver/{device-id}/test/state` - Current test mode state
+- `rgfx/driver/{device-id}/test/state` - Current test mode state (published only when test mode changes, not on reconnect)
 
 ## Broker Discovery
 

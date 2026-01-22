@@ -357,11 +357,8 @@ void reconnectMQTT() {
 		// Send initial driver telemetry
 		sendDriverTelemetry();
 
-		// Process MQTT protocol again before final publish
+		// Process MQTT protocol again
 		mqttClient.loop();
-
-		// Publish current test state immediately to sync with Hub
-		publishTestState(testModeActive ? "on" : "off");
 	} else {
 		mqttConsecutiveFailures++;
 		log("MQTT connection failed, rc=" + String(mqttClient.returnCode()) +
