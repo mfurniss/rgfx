@@ -249,7 +249,13 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `open: boolean` - Dialog visibility
 - `success: boolean` - Whether flash succeeded
 - `message: string` - Result message
+- `flashMethod: FlashMethod | null` - The method used ('usb' or 'ota')
 - `onClose: () => void` - Close callback
+
+**Features:**
+- Shows context-appropriate help text on failure:
+  - OTA failures suggest trying USB serial
+  - USB failures suggest checking serial port availability
 
 ---
 
@@ -432,12 +438,14 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `icon?: React.ReactNode` - Optional start icon
 - `busyIcon?: React.ReactNode` - Icon shown during busy state (default: CircularProgress)
 - `busy?: boolean` - Show busy state with spinner
-- Plus all standard MUI ButtonProps
+- `sx?: SxProps<Theme>` - MUI sx styling (merged with defaults)
+- Plus all standard MUI ButtonProps (except startIcon, children, sx)
 
 **Features:**
 - Wraps MUI Button with optional tooltip
 - Busy state disables button and shows spinner
 - Span wrapper allows tooltip on disabled buttons
+- Prevents text overflow with `whiteSpace: 'nowrap'` and `flexShrink: 0`
 
 ---
 
