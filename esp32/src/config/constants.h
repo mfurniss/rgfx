@@ -129,7 +129,13 @@ constexpr unsigned long UPTIME_UPDATE_INTERVAL = 5000;  // 5 seconds
 constexpr unsigned long FLASH_DURATION_MS = 10;  // 10 milliseconds
 
 /** Onboard LED GPIO pin for status indication */
-constexpr int ONBOARD_LED_PIN = 2;
+#ifdef CONFIG_IDF_TARGET_ESP32S3
+// Lolin S3 Mini RGB LED - use RGB_BUILTIN which includes the SOC_GPIO_PIN_COUNT offset
+// required by neopixelWrite() to identify this as an addressable RGB LED
+#define ONBOARD_LED_PIN RGB_BUILTIN
+#else
+constexpr int ONBOARD_LED_PIN = 2;   // ESP32-WROOM onboard LED
+#endif
 
 /** Onboard LED flash duration for network events (milliseconds) */
 constexpr unsigned long INDICATOR_FLASH_MS = 20;

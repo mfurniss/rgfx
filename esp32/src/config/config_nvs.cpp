@@ -8,6 +8,15 @@ static Preferences prefs;
 void ConfigNVS::begin() {
 	log("Initializing NVS configuration...");
 
+	// Note: nvs_flash_init() must be called in main.cpp BEFORE this function
+	// and before any WiFi operations, as WiFi also uses NVS internally
+
+	// Create the namespace if it doesn't exist by opening in read-write mode
+	// This is required because Preferences.begin() in read-only mode cannot create namespaces
+	// On a freshly erased flash, the namespace won't exist yet
+	prefs.begin(NAMESPACE, false);  // Read-write mode to create namespace
+	prefs.end();
+
 	// Check if we have a saved LED config
 	if (hasLEDConfig()) {
 		log("Found saved LED configuration in NVS");

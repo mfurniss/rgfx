@@ -101,10 +101,13 @@ clearAllLEDs();                        // Set all LEDs to black
 
 ## Configuration Flow
 
-1. **Boot:** `ConfigNVS::begin()` initializes NVS
-2. **Load:** Check for saved LED config with `hasLEDConfig()`
-3. **Apply:** If config exists, parse and apply immediately
-4. **WiFi:** IotWebConf handles WiFi connection/portal
-5. **MQTT:** Once connected, Hub sends full config via MQTT
-6. **Save:** New config saved to NVS for next boot
-7. **Reinitialize:** Matrix and EffectProcessor recreated with new config
+1. **Boot:** `nvs_flash_init()` called in main.cpp FIRST (handles fresh flash formatting)
+2. **NVS Setup:** `ConfigNVS::begin()` creates namespace if needed
+3. **Load:** Check for saved LED config with `hasLEDConfig()`
+4. **Apply:** If config exists, parse and apply immediately
+5. **WiFi:** IotWebConf handles WiFi connection/portal
+6. **MQTT:** Once connected, Hub sends full config via MQTT
+7. **Save:** New config saved to NVS for next boot
+8. **Reinitialize:** Matrix and EffectProcessor recreated with new config
+
+**Important:** `nvs_flash_init()` must be called before any WiFi or Preferences operations. On fresh flash, it formats the NVS partition automatically.
