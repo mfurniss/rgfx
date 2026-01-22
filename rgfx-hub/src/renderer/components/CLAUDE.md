@@ -263,10 +263,11 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **File:** [confirm-flash-dialog.tsx](confirm-flash-dialog.tsx)
 
-**Purpose:** Confirmation dialog before starting USB firmware flash.
+**Purpose:** Confirmation dialog before starting USB or OTA firmware flash.
 
 **Props:**
 - `open: boolean` - Dialog visibility
+- `isUsb: boolean` - Whether this is USB flash (shows additional warning)
 - `onConfirm: () => void` - Confirm callback
 - `onCancel: () => void` - Cancel callback
 
@@ -274,6 +275,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Warns about 1-2 minute duration
 - Warns not to disconnect or close app
 - Warning about potential bricking
+- USB-specific note: warns that settings will be erased and WiFi reconfiguration needed
 
 ---
 

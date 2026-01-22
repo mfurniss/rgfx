@@ -62,13 +62,21 @@ Key global variables shared between cores:
 
 ## Initialization Sequence
 
-1. Serial port and crash handler initialization
-2. NVS configuration load (WiFi credentials, driver ID)
-3. Power-on LED test (if config exists in NVS)
-4. WiFi connection via IotWebConf portal
-5. Create FreeRTOS task for network operations on Core 0
-6. Main loop waits for LED config from Hub via MQTT
-7. Once config received: create Matrix, EffectProcessor, start rendering
+1. Serial port initialization (500ms delay for USB CDC on ESP32-S3)
+2. Platform detection (ESP32-S3 vs ESP32-WROOM)
+3. Crash handler initialization
+4. NVS flash init with error recovery (handles fresh flash formatting)
+5. NVS configuration load (WiFi credentials, driver ID)
+6. Power-on LED test (if config exists in NVS)
+7. WiFi connection via IotWebConf portal
+8. Create FreeRTOS task for network operations on Core 0
+9. Main loop waits for LED config from Hub via MQTT
+10. Once config received: create Matrix, EffectProcessor, start rendering
+
+**Platform Notes:**
+- ESP32-S3 Super Mini uses native USB CDC (requires build flags in platformio.ini)
+- ESP32-S3 onboard LED is battery charging indicator, not software controllable
+- Watchdog pong always responds even without LED config to prevent false reboots
 
 ---
 
