@@ -170,10 +170,11 @@ const FirmwarePage: React.FC = () => {
       flashState.showResult(
         true,
         `Firmware v${result.firmwareVersion} flashed successfully! The device has been reset.`,
+        'usb',
       );
     } else {
       flashState.setError(`Flash failed: ${result.error}`);
-      flashState.showResult(false, `Flash failed: ${result.error}`);
+      flashState.showResult(false, `Flash failed: ${result.error}`, 'usb');
     }
 
     setIsFlashing(false);
@@ -214,11 +215,11 @@ const FirmwarePage: React.FC = () => {
 
       flashState.setProgress(100);
       const { success, message } = generateResultMessage(result, currentFirmwareVersion);
-      flashState.showResult(success, message);
+      flashState.showResult(success, message, 'ota');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       flashState.setError(`OTA flash failed: ${message}`);
-      flashState.showResult(false, `OTA flash failed: ${message}`);
+      flashState.showResult(false, `OTA flash failed: ${message}`, 'ota');
     } finally {
       setIsFlashing(false);
     }
@@ -306,7 +307,7 @@ const FirmwarePage: React.FC = () => {
               updated in parallel.
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
               <TargetDriversPicker
                 drivers={drivers}
                 selectedDrivers={selectedDrivers}
@@ -316,25 +317,26 @@ const FirmwarePage: React.FC = () => {
                 disabled={isFlashing}
               />
 
-              <SuperButton
-                variant="contained"
-                icon={<FlashIcon />}
-                onClick={() => {
-                  handleFlash();
-                }}
-                disabled={!canFlash}
-                busy={isFlashing}
-                sx={{ whiteSpace: 'nowrap' }}
-              >
-                {isFlashing ? 'Updating...' : 'Update Firmware'}
-              </SuperButton>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <SuperButton
+                  variant="contained"
+                  icon={<FlashIcon />}
+                  onClick={() => {
+                    handleFlash();
+                  }}
+                  disabled={!canFlash}
+                  busy={isFlashing}
+                >
+                  {isFlashing ? 'Updating...' : 'Update Firmware'}
+                </SuperButton>
 
-              <WifiConfigOtaButton
-                drivers={drivers}
-                selectedDrivers={selectedDrivers}
-                disabled={isFlashing}
-                onLog={flashState.addLog}
-              />
+                <WifiConfigOtaButton
+                  drivers={drivers}
+                  selectedDrivers={selectedDrivers}
+                  disabled={isFlashing}
+                  onLog={flashState.addLog}
+                />
+              </Box>
             </Box>
           </>
         )}
@@ -345,8 +347,8 @@ const FirmwarePage: React.FC = () => {
               Connect a new ESP32 or existing driver via USB cable.
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
-              <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <Box sx={{ flex: 1, minWidth: 200 }}>
                 <SerialPortSelector
                   disabled={isFlashing}
                   onPortSelect={handlePortSelect}
@@ -355,20 +357,25 @@ const FirmwarePage: React.FC = () => {
                 />
               </Box>
 
-              <SuperButton
-                variant="contained"
-                icon={<FlashIcon />}
-                onClick={() => {
-                  handleFlash();
-                }}
-                disabled={!canFlash}
-                busy={isFlashing}
-                sx={{ whiteSpace: 'nowrap' }}
-              >
-                {isFlashing ? 'Updating...' : 'Update Firmware'}
-              </SuperButton>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <SuperButton
+                  variant="contained"
+                  icon={<FlashIcon />}
+                  onClick={() => {
+                    handleFlash();
+                  }}
+                  disabled={!canFlash}
+                  busy={isFlashing}
+                >
+                  {isFlashing ? 'Updating...' : 'Update Firmware'}
+                </SuperButton>
 
-              <WifiConfigButton getPort={getPort} disabled={isFlashing} onLog={flashState.addLog} />
+                <WifiConfigButton
+                  getPort={getPort}
+                  disabled={isFlashing}
+                  onLog={flashState.addLog}
+                />
+              </Box>
             </Box>
           </>
         )}
@@ -438,6 +445,7 @@ const FirmwarePage: React.FC = () => {
         open={flashState.resultModal.open}
         success={flashState.resultModal.success}
         message={flashState.resultModal.message}
+        flashMethod={flashState.resultModal.flashMethod}
         onClose={() => {
           flashState.closeResult();
         }}

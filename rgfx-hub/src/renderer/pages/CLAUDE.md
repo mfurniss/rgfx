@@ -144,7 +144,8 @@ Refactored components and utilities extracted from the main page:
   - Real-time progress events from main process
 - Log display showing flash progress
 - Confirmation dialog for USB flashing
-- Result dialog showing success/failure
+- Result dialog showing success/failure with context-appropriate help text
+- Responsive layout with button grouping that wraps on narrow viewports
 
 ---
 

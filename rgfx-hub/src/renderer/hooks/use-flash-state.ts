@@ -6,7 +6,9 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { DriverFlashStatus } from '../store/ui-store';
+import type { DriverFlashStatus, FlashMethod } from '../store/ui-store';
+
+export type { FlashMethod };
 
 interface FlashState {
   progress: number;
@@ -17,6 +19,7 @@ interface FlashState {
     open: boolean;
     success: boolean;
     message: string;
+    flashMethod: FlashMethod | null;
   };
 }
 
@@ -26,7 +29,7 @@ interface FlashStateActions {
   addLog: (message: string) => void;
   clearLogs: () => void;
   setError: (error: string | null) => void;
-  showResult: (success: boolean, message: string) => void;
+  showResult: (success: boolean, message: string, flashMethod: FlashMethod) => void;
   closeResult: () => void;
   resetForNewFlash: () => void;
 }
@@ -50,7 +53,8 @@ export function useFlashState(
     open: boolean;
     success: boolean;
     message: string;
-  }>({ open: false, success: false, message: '' });
+    flashMethod: FlashMethod | null;
+  }>({ open: false, success: false, message: '', flashMethod: null });
 
   const addLog = useCallback((message: string) => {
     console.log('>', message);
@@ -61,8 +65,8 @@ export function useFlashState(
     setLogMessages([]);
   }, []);
 
-  const showResult = useCallback((success: boolean, message: string) => {
-    setResultModal({ open: true, success, message });
+  const showResult = useCallback((success: boolean, message: string, flashMethod: FlashMethod) => {
+    setResultModal({ open: true, success, message, flashMethod });
   }, []);
 
   const closeResult = useCallback(() => {
