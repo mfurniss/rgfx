@@ -62,6 +62,7 @@ static LEDDeviceConfig parseLEDDevice(JsonObject device) {
 	devCfg.colorOrder = device["color_order"] | "GRB";
 	devCfg.maxBrightness = device["max_brightness"] | 255;
 	devCfg.colorCorrection = device["color_correction"] | "TypicalLEDStrip";
+	devCfg.rgbwMode = device["rgbw_mode"] | "exact";
 
 	// Matrix-specific fields
 	if (devCfg.layout.startsWith("matrix-")) {

@@ -99,6 +99,15 @@ static EOrder getColorOrder(const String& colorOrder) {
 }
 
 /**
+ * Helper: Get FastLED RGBW_MODE from string
+ * Returns the appropriate mode for RGB→RGBW color conversion
+ */
+static fl::RGBW_MODE getRGBWMode(const String& mode) {
+	if (mode == "max_brightness") return fl::kRGBWMaxBrightness;
+	return fl::kRGBWExactColors;  // Default
+}
+
+/**
  * Initialize FastLED based on configuration
  * FastLED.addLeds() can only be called once per pin - subsequent calls corrupt RMT channels
  */
@@ -142,6 +151,7 @@ bool configLEDs() {
 	std::map<uint8_t, String> pinColorCorrection;
 	std::map<uint8_t, String> pinChipset;
 	std::map<uint8_t, String> pinColorOrder;
+	std::map<uint8_t, String> pinRgbwMode;
 
 	for (const auto& dev : g_driverConfig.devices) {
 		uint16_t needed = dev.offset + dev.count;
@@ -150,6 +160,7 @@ bool configLEDs() {
 			pinColorCorrection[dev.pin] = dev.colorCorrection;
 			pinChipset[dev.pin] = dev.chipset.length() > 0 ? dev.chipset : "WS2812B";
 			pinColorOrder[dev.pin] = dev.colorOrder.length() > 0 ? dev.colorOrder : "GRB";
+			pinRgbwMode[dev.pin] = dev.rgbwMode.length() > 0 ? dev.rgbwMode : "exact";
 		} else {
 			if (needed > pinLEDCounts[dev.pin]) {
 				pinLEDCounts[dev.pin] = needed;
@@ -198,6 +209,11 @@ bool configLEDs() {
 
 		// Get RGBW config if applicable
 		fl::EOrderW wPos = isRGBW ? getWhitePosition(colorOrder) : fl::W3;
+		fl::RGBW_MODE rgbwMode = getRGBWMode(pinRgbwMode[pin]);
+
+		if (isRGBW) {
+			log("  RGBW mode: " + pinRgbwMode[pin]);
+		}
 
 // Macro to add LEDs with setRgbw() for RGBW strips
 #define ADD_LEDS_WITH_ORDER(CHIPSET, PIN_NUM, ORDER)                                            \
@@ -205,7 +221,7 @@ bool configLEDs() {
 		auto& controller = FastLED.addLeds<CHIPSET, PIN_NUM, ORDER>(ledBuffers[pinIndex], count); \
 		controller.setCorrection(correction);                                                   \
 		if (isRGBW) {                                                                           \
-			controller.setRgbw(fl::Rgbw(fl::kRGBWDefaultColorTemp, fl::kRGBWExactColors, wPos)); \
+			controller.setRgbw(fl::Rgbw(fl::kRGBWDefaultColorTemp, rgbwMode, wPos));            \
 		}                                                                                       \
 	} while(0)
 

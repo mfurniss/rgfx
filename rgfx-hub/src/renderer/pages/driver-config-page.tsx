@@ -44,6 +44,11 @@ import type { LEDHardware } from '@/types';
 const getHardwareDisplayName = (ref: string): string =>
   ref.replace(/^led-hardware\//, '').replace(/\.json$/, '');
 
+// Check if hardware has RGBW color order (4-character order containing 'W')
+const isRGBWHardware = (hardware: LEDHardware | null): boolean =>
+  hardware?.colorOrder?.length === 4 &&
+  hardware.colorOrder.includes('W');
+
 export default function DriverConfigPage() {
   const { mac } = useParams<{ mac: string }>();
   const navigate = useNavigate();
@@ -302,6 +307,7 @@ export default function DriverConfigPage() {
                             reverse: ledConfig?.reverse,
                             gamma: ledConfig?.gamma ?? { r: 2.8, g: 2.8, b: 2.8 },
                             floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
+                            rgbwMode: ledConfig?.rgbwMode,
                           },
                           { shouldDirty: true, shouldValidate: true },
                         );
@@ -338,6 +344,26 @@ export default function DriverConfigPage() {
                       min={0}
                     />
                   </Grid>
+                  {/* Strip-specific: Reverse direction toggle */}
+                  {isStrip && (
+                    <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Controller
+                        name="ledConfig.reverse"
+                        control={control}
+                        render={({ field }) => (
+                          <Tooltip
+                            title="Reverse the LED direction so index 0 maps to the last physical LED"
+                            placement="right"
+                          >
+                            <FormControlLabel
+                              control={<Checkbox {...field} checked={field.value ?? false} />}
+                              label="Reverse Direction"
+                            />
+                          </Tooltip>
+                        )}
+                      />
+                    </Grid>
+                  )}
                   <Grid size={{ xs: 12, md: 6 }}>
                     <NumberField
                       name="ledConfig.globalBrightnessLimit"
@@ -459,22 +485,24 @@ export default function DriverConfigPage() {
                       max={255}
                     />
                   </Grid>
-                  {/* Strip-specific: Reverse direction toggle */}
-                  {isStrip && (
-                    <Grid size={{ xs: 12 }}>
+                  {/* RGBW-specific: Color mode selection */}
+                  {isRGBWHardware(selectedHardware) && (
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Controller
-                        name="ledConfig.reverse"
+                        name="ledConfig.rgbwMode"
                         control={control}
                         render={({ field }) => (
-                          <Tooltip
-                            title="Reverse the LED direction so index 0 maps to the last physical LED"
-                            placement="right"
-                          >
-                            <FormControlLabel
-                              control={<Checkbox {...field} checked={field.value ?? false} />}
-                              label="Reverse Direction"
-                            />
-                          </Tooltip>
+                          <FormControl fullWidth>
+                            <InputLabel>RGBW Mode</InputLabel>
+                            <Select
+                              {...field}
+                              value={field.value ?? 'exact'}
+                              label="RGBW Mode"
+                            >
+                              <MenuItem value="exact">Exact Colors</MenuItem>
+                              <MenuItem value="max_brightness">Max Brightness</MenuItem>
+                            </Select>
+                          </FormControl>
                         )}
                       />
                     </Grid>

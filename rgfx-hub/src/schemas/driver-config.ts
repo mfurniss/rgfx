@@ -89,6 +89,9 @@ const DriverLEDConfigSchema = z.object({
     g: z.number().int().min(0).max(255),
     b: z.number().int().min(0).max(255),
   }).default({ r: 0, g: 0, b: 0 }),
+  // RGBW color mode for 4-channel LED strips
+  // 'exact' = accurate colors with RGB active, 'max_brightness' = maximize white channel
+  rgbwMode: z.enum(['exact', 'max_brightness']).nullable().optional(),
 }).strict();
 
 /**

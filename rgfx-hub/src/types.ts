@@ -111,6 +111,13 @@ export interface DriverLEDConfig {
     g: number;
     b: number;
   };
+  /**
+   * RGBW color mode for 4-channel LED strips (default: 'exact')
+   * - 'exact': Accurate colors, RGB channels active alongside white for color reproduction
+   * - 'max_brightness': Maximizes white channel usage, slight desaturation for whites/grays
+   * Only applicable to RGBW strips (colorOrder containing 'W')
+   */
+  rgbwMode?: 'exact' | 'max_brightness' | null;
 }
 
 /**

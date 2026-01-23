@@ -21,7 +21,7 @@ This separation ensures network operations don't block LED animations.
 
 Key global variables shared between cores:
 
-- `g_driverConfig` - Current LED device configuration
+- `g_driverConfig` - Current LED device configuration (includes rgbwMode for RGBW strips)
 - `g_configReceived` - Whether config has been received from Hub
 - `g_configUpdateInProgress` - Synchronization flag during config changes
 - `matrix` / `effectProcessor` - Main rendering objects (created after config received)
