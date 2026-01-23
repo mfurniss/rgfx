@@ -2,73 +2,137 @@
 #include "gradient_utils.h"
 #include "hal/types.h"
 #include <cmath>
-#include <cstring>
+
+// Canvas uses 4x resolution
+static constexpr uint16_t CANVAS_SCALE = 4;
 
 WarpEffect::WarpEffect(const Matrix& m, Canvas& c)
-	: state{0.0f, 1.0f, 0.0f, false, EnabledState::OFF, 0.0f, 0, {}}, canvas(c) {
+	: state{0.0f, 1.0f, 0.0f, false, {}, {}, 0, 0.0f}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 	generateDefaultRainbowLut(state.gradientLut);
 }
 
-WarpEffect::EnabledState WarpEffect::parseEnabledState(const char* str) {
-	if (strcmp(str, "off") == 0)
-		return EnabledState::OFF;
-	if (strcmp(str, "on") == 0)
-		return EnabledState::ON;
-	if (strcmp(str, "fadeIn") == 0)
-		return EnabledState::FADE_IN;
-	if (strcmp(str, "fadeOut") == 0)
-		return EnabledState::FADE_OUT;
-	return EnabledState::ON;
+void WarpEffect::precomputeDistances(uint16_t physicalDimension) {
+	if (physicalDimension > MAX_DIMENSION) {
+		physicalDimension = MAX_DIMENSION;
+	}
+
+	float center = (physicalDimension - 1) / 2.0f;
+	float maxDist = (center < 1.0f) ? 1.0f : center;
+	float exponent = powf(2.0f, fabsf(state.scale));
+
+	for (uint16_t i = 0; i < physicalDimension; i++) {
+		float normalizedDist = fabsf(static_cast<float>(i) - center) / maxDist;
+
+		if (state.scale > 0.0f) {
+			float distFromEdge = 1.0f - normalizedDist;
+			state.scaledDist[i] = 1.0f - powf(distFromEdge, exponent);
+		} else {
+			state.scaledDist[i] = powf(normalizedDist, exponent);
+		}
+	}
+
+	state.cachedDimension = physicalDimension;
+	state.cachedScale = state.scale;
 }
 
-void WarpEffect::updateAlpha() {
-	switch (state.enabledState) {
-		case EnabledState::OFF:
-			state.currentAlpha = 0;
-			break;
-		case EnabledState::ON:
-			state.currentAlpha = 255;
-			break;
-		case EnabledState::FADE_IN: {
-			float progress = state.fadeTime / FADE_DURATION;
-			if (progress > 1.0f)
-				progress = 1.0f;
-			state.currentAlpha = static_cast<uint8_t>(progress * 255.0f);
-			break;
+CRGB WarpEffect::getColorForDistance(uint16_t distIndex) const {
+	float animatedPos = state.scaledDist[distIndex] - state.time;
+
+	// Fast wrap to [0, 1) - avoid fmodf
+	animatedPos -= static_cast<int>(animatedPos);
+	if (animatedPos < 0.0f)
+		animatedPos += 1.0f;
+
+	uint8_t lutIndex = static_cast<uint8_t>(animatedPos * (GRADIENT_LUT_SIZE - 1));
+	return state.gradientLut[lutIndex];
+}
+
+void WarpEffect::renderStrip(uint16_t canvasWidth) {
+	uint8_t alpha = fade.currentAlpha;
+	CRGB* pixels = canvas.getPixels();
+	uint16_t physicalWidth = canvasWidth / CANVAS_SCALE;
+
+	if (alpha == 255) {
+		for (uint16_t led = 0; led < physicalWidth; led++) {
+			CRGB color = getColorForDistance(led);
+			// Fill all 4 canvas pixels for this physical LED
+			uint16_t canvasX = led * CANVAS_SCALE;
+			pixels[canvasX] = pixels[canvasX + 1] = pixels[canvasX + 2] = pixels[canvasX + 3] = color;
 		}
-		case EnabledState::FADE_OUT: {
-			float progress = state.fadeTime / FADE_DURATION;
-			if (progress > 1.0f)
-				progress = 1.0f;
-			state.currentAlpha = static_cast<uint8_t>((1.0f - progress) * 255.0f);
-			break;
+	} else {
+		uint8_t invAlpha = 255 - alpha;
+		for (uint16_t led = 0; led < physicalWidth; led++) {
+			CRGB color = getColorForDistance(led);
+			uint16_t canvasX = led * CANVAS_SCALE;
+			for (uint16_t i = 0; i < CANVAS_SCALE; i++) {
+				CRGB& p = pixels[canvasX + i];
+				p.r = (color.r * alpha + p.r * invAlpha) / 255;
+				p.g = (color.g * alpha + p.g * invAlpha) / 255;
+				p.b = (color.b * alpha + p.b * invAlpha) / 255;
+			}
+		}
+	}
+}
+
+void WarpEffect::renderMatrix(uint16_t canvasWidth, uint16_t canvasHeight, bool useVertical) {
+	uint8_t alpha = fade.currentAlpha;
+	uint16_t physicalWidth = canvasWidth / CANVAS_SCALE;
+	uint16_t physicalHeight = canvasHeight / CANVAS_SCALE;
+
+	if (useVertical) {
+		// Vertical radiation: gradient changes with Y (rows are uniform color)
+		for (uint16_t ledY = 0; ledY < physicalHeight; ledY++) {
+			CRGB color = getColorForDistance(ledY);
+			uint16_t canvasY = ledY * CANVAS_SCALE;
+
+			if (alpha == 255) {
+				// Fill 4 rows of canvas pixels
+				for (uint16_t dy = 0; dy < CANVAS_SCALE; dy++) {
+					for (uint16_t x = 0; x < canvasWidth; x++) {
+						canvas.drawPixel(x, canvasY + dy, color);
+					}
+				}
+			} else {
+				CRGBA blendColor(color, alpha);
+				for (uint16_t dy = 0; dy < CANVAS_SCALE; dy++) {
+					for (uint16_t x = 0; x < canvasWidth; x++) {
+						canvas.drawPixel(x, canvasY + dy, blendColor, BlendMode::ALPHA);
+					}
+				}
+			}
+		}
+	} else {
+		// Horizontal radiation: gradient changes with X (columns are uniform color)
+		for (uint16_t ledX = 0; ledX < physicalWidth; ledX++) {
+			CRGB color = getColorForDistance(ledX);
+			uint16_t canvasX = ledX * CANVAS_SCALE;
+
+			if (alpha == 255) {
+				// Fill 4 columns of canvas pixels
+				for (uint16_t dx = 0; dx < CANVAS_SCALE; dx++) {
+					for (uint16_t y = 0; y < canvasHeight; y++) {
+						canvas.drawPixel(canvasX + dx, y, color);
+					}
+				}
+			} else {
+				CRGBA blendColor(color, alpha);
+				for (uint16_t dx = 0; dx < CANVAS_SCALE; dx++) {
+					for (uint16_t y = 0; y < canvasHeight; y++) {
+						canvas.drawPixel(canvasX + dx, y, blendColor, BlendMode::ALPHA);
+					}
+				}
+			}
 		}
 	}
 }
 
 void WarpEffect::add(JsonDocument& props) {
-	// Parse enabled - support both string and bool for backwards compat
-	EnabledState enabledState = EnabledState::ON;
-	if (!props["enabled"].isNull()) {
-		if (props["enabled"].is<bool>()) {
-			enabledState = props["enabled"].as<bool>() ? EnabledState::ON : EnabledState::OFF;
-		} else if (props["enabled"].is<const char*>()) {
-			enabledState = parseEnabledState(props["enabled"].as<const char*>());
-		}
-	}
+	EnabledState enabledState = fade.parseEnabledProp(props);
 
-	// If turning off instantly, just set state and return
-	if (enabledState == EnabledState::OFF) {
-		state.enabledState = EnabledState::OFF;
-		state.currentAlpha = 0;
-		return;
-	}
-
-	// Handle fadeOut - preserve existing state, just fade
-	if (enabledState == EnabledState::FADE_OUT) {
-		state.fadeTime = ((255 - state.currentAlpha) / 255.0f) * FADE_DURATION;
-		state.enabledState = EnabledState::FADE_OUT;
+	// If turning off or fading out, just update fade state and return
+	if (enabledState == EnabledState::OFF || enabledState == EnabledState::FADE_OUT) {
+		fade.startFade(enabledState);
 		return;
 	}
 
@@ -92,23 +156,18 @@ void WarpEffect::add(JsonDocument& props) {
 	parseGradientFromJson(props, state.gradientLut);
 
 	state.speed = speed;
-	state.scale = scale;
 
-	// For fades, calculate starting fadeTime based on current alpha
-	if (enabledState == EnabledState::FADE_IN) {
-		state.fadeTime = (state.currentAlpha / 255.0f) * FADE_DURATION;
-	} else if (enabledState == EnabledState::FADE_OUT) {
-		state.fadeTime = ((255 - state.currentAlpha) / 255.0f) * FADE_DURATION;
-	} else {
-		state.fadeTime = 0.0f;
-		state.currentAlpha = (enabledState == EnabledState::ON) ? 255 : 0;
+	// Invalidate precomputed distances if scale changed
+	if (scale != state.scale) {
+		state.scale = scale;
+		state.cachedDimension = 0;
 	}
 
-	state.enabledState = enabledState;
+	fade.startFade(enabledState);
 }
 
 void WarpEffect::update(float deltaTime) {
-	if (state.enabledState == EnabledState::OFF) {
+	if (fade.isOff()) {
 		return;
 	}
 
@@ -121,178 +180,46 @@ void WarpEffect::update(float deltaTime) {
 	if (state.time < -100.0f)
 		state.time += 100.0f;
 
-	// Handle fade transitions
-	if (state.enabledState == EnabledState::FADE_IN ||
-	    state.enabledState == EnabledState::FADE_OUT) {
-		state.fadeTime += deltaTime;
-
-		if (state.fadeTime >= FADE_DURATION) {
-			state.enabledState = (state.enabledState == EnabledState::FADE_IN) ? EnabledState::ON
-			                                                                   : EnabledState::OFF;
-			state.fadeTime = 0.0f;
-		}
-
-		updateAlpha();
-	}
+	fade.updateFade(deltaTime);
 }
 
 void WarpEffect::render() {
-	if (state.enabledState == EnabledState::OFF) {
+	if (fade.isOff() || fade.currentAlpha == 0) {
 		return;
 	}
 
-	uint8_t alpha = state.currentAlpha;
-	if (alpha == 0) {
-		return;
-	}
-
-	uint16_t width = canvas.getWidth();
-	uint16_t height = canvas.getHeight();
-
-	// Calculate center position
-	float centerX = (width - 1) / 2.0f;
-	float centerY = (height - 1) / 2.0f;
+	uint16_t canvasWidth = canvas.getWidth();
+	uint16_t canvasHeight = canvas.getHeight();
 
 	// For strips (height=1), always use horizontal orientation
-	bool useVertical = state.isVertical && height > 1;
+	bool useVertical = state.isVertical && canvasHeight > 1;
 
-	// Maximum distance from center (used for normalization)
-	float maxDist = useVertical ? centerY : centerX;
-	if (maxDist < 1.0f)
-		maxDist = 1.0f;  // Prevent division by zero
+	// Work with physical LED dimensions (canvas is 4x upscaled)
+	uint16_t physicalDim = useVertical ? (canvasHeight / CANVAS_SCALE) : (canvasWidth / CANVAS_SCALE);
 
-	uint8_t invAlpha = 255 - alpha;
-
-	// Strip layout: height=1, render horizontal gradient from center
-	if (height == 1) {
-		CRGB* pixels = canvas.getPixels();
-		for (uint16_t x = 0; x < width; x++) {
-			float distFromCenter = fabsf(static_cast<float>(x) - centerX);
-			float normalizedDist = distFromCenter / maxDist;
-
-			// Apply perspective scaling: scale=0 linear, >0 compresses edges (3D tunnel), <0
-			// compresses center
-			float scaledDist;
-			if (state.scale > 0.0f) {
-				// Positive: compress edges by applying power to distance-from-edge
-				float exponent = powf(2.0f, state.scale);
-				float distFromEdge = 1.0f - normalizedDist;
-				scaledDist = 1.0f - powf(distFromEdge, exponent);
-			} else {
-				float exponent = powf(2.0f, -state.scale);
-				scaledDist = powf(normalizedDist, exponent);
-			}
-			float animatedPos = scaledDist - state.time;
-
-			// Wrap to [0, 1)
-			animatedPos = fmodf(animatedPos, 1.0f);
-			if (animatedPos < 0.0f)
-				animatedPos += 1.0f;
-
-			// Map to LUT
-			uint8_t lutIndex = static_cast<uint8_t>(animatedPos * (GRADIENT_LUT_SIZE - 1));
-			CRGB color = state.gradientLut[lutIndex];
-
-			// Alpha blend
-			if (alpha < 255) {
-				CRGB& p = pixels[x];
-				p.r = (color.r * alpha + p.r * invAlpha) / 255;
-				p.g = (color.g * alpha + p.g * invAlpha) / 255;
-				p.b = (color.b * alpha + p.b * invAlpha) / 255;
-			} else {
-				pixels[x] = color;
-			}
-		}
-		return;
+	// Recompute distances if dimension or scale changed
+	if (state.cachedDimension != physicalDim || state.cachedScale != state.scale) {
+		precomputeDistances(physicalDim);
 	}
 
-	// Matrix layout: render strips perpendicular to radiation direction
-	if (useVertical) {
-		// Vertical radiation: gradient changes with Y (rows are uniform color)
-		for (uint16_t y = 0; y < height; y++) {
-			float distFromCenter = fabsf(static_cast<float>(y) - centerY);
-			float normalizedDist = distFromCenter / maxDist;
-			float scaledDist;
-			if (state.scale > 0.0f) {
-				float exponent = powf(2.0f, state.scale);
-				float distFromEdge = 1.0f - normalizedDist;
-				scaledDist = 1.0f - powf(distFromEdge, exponent);
-			} else {
-				float exponent = powf(2.0f, -state.scale);
-				scaledDist = powf(normalizedDist, exponent);
-			}
-			float animatedPos = scaledDist - state.time;
-
-			animatedPos = fmodf(animatedPos, 1.0f);
-			if (animatedPos < 0.0f)
-				animatedPos += 1.0f;
-
-			uint8_t lutIndex = static_cast<uint8_t>(animatedPos * (GRADIENT_LUT_SIZE - 1));
-			CRGB color = state.gradientLut[lutIndex];
-
-			// Draw entire horizontal row with this color
-			for (uint16_t x = 0; x < width; x++) {
-				if (alpha < 255) {
-					CRGB existing = canvas.getPixel(x, y);
-					CRGB blended((color.r * alpha + existing.r * invAlpha) / 255,
-					             (color.g * alpha + existing.g * invAlpha) / 255,
-					             (color.b * alpha + existing.b * invAlpha) / 255);
-					canvas.drawPixel(x, y, blended);
-				} else {
-					canvas.drawPixel(x, y, color);
-				}
-			}
-		}
+	if (canvasHeight == 1) {
+		renderStrip(canvasWidth);
 	} else {
-		// Horizontal radiation: gradient changes with X (columns are uniform color)
-		for (uint16_t x = 0; x < width; x++) {
-			float distFromCenter = fabsf(static_cast<float>(x) - centerX);
-			float normalizedDist = distFromCenter / maxDist;
-			float scaledDist;
-			if (state.scale > 0.0f) {
-				float exponent = powf(2.0f, state.scale);
-				float distFromEdge = 1.0f - normalizedDist;
-				scaledDist = 1.0f - powf(distFromEdge, exponent);
-			} else {
-				float exponent = powf(2.0f, -state.scale);
-				scaledDist = powf(normalizedDist, exponent);
-			}
-			float animatedPos = scaledDist - state.time;
-
-			animatedPos = fmodf(animatedPos, 1.0f);
-			if (animatedPos < 0.0f)
-				animatedPos += 1.0f;
-
-			uint8_t lutIndex = static_cast<uint8_t>(animatedPos * (GRADIENT_LUT_SIZE - 1));
-			CRGB color = state.gradientLut[lutIndex];
-
-			// Draw entire vertical column with this color
-			for (uint16_t y = 0; y < height; y++) {
-				if (alpha < 255) {
-					CRGB existing = canvas.getPixel(x, y);
-					CRGB blended((color.r * alpha + existing.r * invAlpha) / 255,
-					             (color.g * alpha + existing.g * invAlpha) / 255,
-					             (color.b * alpha + existing.b * invAlpha) / 255);
-					canvas.drawPixel(x, y, blended);
-				} else {
-					canvas.drawPixel(x, y, color);
-				}
-			}
-		}
+		renderMatrix(canvasWidth, canvasHeight, useVertical);
 	}
 }
 
 void WarpEffect::reset() {
-	state.enabledState = EnabledState::OFF;
+	fade = FadeState{};
 	state.time = 0.0f;
 	state.speed = 1.0f;
 	state.scale = 0.0f;
 	state.isVertical = false;
-	state.fadeTime = 0.0f;
-	state.currentAlpha = 0;
+	state.cachedDimension = 0;
+	state.cachedScale = 0.0f;
 	generateDefaultRainbowLut(state.gradientLut);
 }
 
 bool WarpEffect::isFullyOpaque() const {
-	return state.currentAlpha == 255;
+	return fade.isFullyOpaque();
 }

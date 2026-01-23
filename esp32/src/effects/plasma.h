@@ -2,6 +2,7 @@
 
 #include <ArduinoJson.h>
 #include "effect.h"
+#include "effect_utils.h"
 #include "graphics/canvas.h"
 #include "gradient_utils.h"
 
@@ -14,25 +15,16 @@
  */
 class PlasmaEffect : public IEffect {
    private:
-	enum class EnabledState : uint8_t { OFF, ON, FADE_IN, FADE_OUT };
-
-	static constexpr float FADE_DURATION = 1.0f;  // 1 second
-
 	struct PlasmaState {
 		float time;   // Accumulated time in seconds
 		float scale;  // Pattern frequency (0.1 - 10.0)
 		float speed;  // Speed multiplier (1.0 = normal)
-		EnabledState enabledState;
-		float fadeTime;
-		uint8_t currentAlpha;  // Pre-calculated alpha for render loop
-		CRGB gradientLut[GRADIENT_LUT_SIZE];  // Pre-calculated gradient lookup table
+		CRGB gradientLut[GRADIENT_LUT_SIZE];
 	};
 
 	PlasmaState state;
+	FadeState fade;
 	Canvas& canvas;
-
-	static EnabledState parseEnabledState(const char* str);
-	void updateAlpha();
 
    public:
 	PlasmaEffect(const Matrix& matrix, Canvas& canvas);
@@ -41,6 +33,5 @@ class PlasmaEffect : public IEffect {
 	void render() override;
 	void reset() override;
 
-	// Returns true if plasma is fully opaque (used to skip background render)
 	bool isFullyOpaque() const;
 };

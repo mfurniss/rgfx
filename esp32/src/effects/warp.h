@@ -2,6 +2,7 @@
 
 #include <ArduinoJson.h>
 #include "effect.h"
+#include "effect_utils.h"
 #include "graphics/canvas.h"
 #include "gradient_utils.h"
 
@@ -19,26 +20,28 @@
  */
 class WarpEffect : public IEffect {
    private:
-	enum class EnabledState : uint8_t { OFF, ON, FADE_IN, FADE_OUT };
-
-	static constexpr float FADE_DURATION = 1.0f;  // 1 second
+	static constexpr uint16_t MAX_DIMENSION = 512;
 
 	struct WarpState {
-		float time;   // Accumulated time for animation
-		float speed;  // Animation speed (positive=expand, negative=collapse)
-		float scale;  // Gradient stretch factor (0.1 - 10.0)
+		float time;       // Accumulated time for animation
+		float speed;      // Animation speed (positive=expand, negative=collapse)
+		float scale;      // Gradient stretch factor
 		bool isVertical;  // true=radiates up/down, false=radiates left/right
-		EnabledState enabledState;
-		float fadeTime;
-		uint8_t currentAlpha;  // Pre-calculated alpha for render loop
-		CRGB gradientLut[GRADIENT_LUT_SIZE];  // Pre-calculated gradient lookup table
+		CRGB gradientLut[GRADIENT_LUT_SIZE];
+		// Precomputed distance LUT for CPU optimization
+		float scaledDist[MAX_DIMENSION];
+		uint16_t cachedDimension;  // Dimension for which scaledDist was computed
+		float cachedScale;         // Scale value used for computation
 	};
 
 	WarpState state;
+	FadeState fade;
 	Canvas& canvas;
 
-	static EnabledState parseEnabledState(const char* str);
-	void updateAlpha();
+	void precomputeDistances(uint16_t dimension);
+	CRGB getColorForDistance(uint16_t distIndex) const;
+	void renderStrip(uint16_t width);
+	void renderMatrix(uint16_t width, uint16_t height, bool useVertical);
 
    public:
 	WarpEffect(const Matrix& matrix, Canvas& canvas);
@@ -47,6 +50,5 @@ class WarpEffect : public IEffect {
 	void render() override;
 	void reset() override;
 
-	// Returns true if warp is fully opaque (used to skip background render)
 	bool isFullyOpaque() const;
 };
