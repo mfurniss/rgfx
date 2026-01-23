@@ -7,70 +7,27 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Checkbox,
-  CircularProgress,
-  Alert,
-  Grid,
-  Tooltip,
-} from '@mui/material';
+import { Box, Paper, Typography, Button } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { notify } from '../store/notification-store';
-import { NumberField } from '../components/common/number-field';
 import SuperButton from '../components/common/super-button';
-import { UnifiedPanelEditor } from '../components/editors/unified-panel-editor';
 import {
   ConfiguredDriverSchema,
   type ConfiguredDriverFromSchema,
   type ConfiguredDriverInput,
 } from '@/schemas';
-import type { DriverLEDConfig, LEDHardware } from '@/types';
-
-// Extract display name from hardware ref (e.g., "led-hardware/foo.json" -> "foo")
-const getHardwareDisplayName = (ref: string): string =>
-  ref.replace(/^led-hardware\//, '').replace(/\.json$/, '');
-
-// Check if hardware has RGBW color order (4-character order containing 'W')
-const isRGBWHardware = (hardware: LEDHardware | null): boolean =>
-  hardware?.colorOrder?.length === 4 &&
-  hardware.colorOrder.includes('W');
-
-// Normalize ledConfig to ensure nested objects have all required fields with defaults
-// Uses 'as' casts because old saved configs may have partial/missing gamma/floor objects
-const normalizeLedConfig = (config: DriverLEDConfig | null | undefined): DriverLEDConfig | null => {
-  if (!config) {
-    return null;
-  }
-  const gamma = config.gamma as Partial<DriverLEDConfig['gamma']> | undefined;
-  const floor = config.floor as Partial<DriverLEDConfig['floor']> | undefined;
-  return {
-    ...config,
-    gamma: {
-      r: gamma?.r ?? 2.8,
-      g: gamma?.g ?? 2.8,
-      b: gamma?.b ?? 2.8,
-    },
-    floor: {
-      r: floor?.r ?? 0,
-      g: floor?.g ?? 0,
-      b: floor?.b ?? 0,
-    },
-  };
-};
+import type { LEDHardware } from '@/types';
+import {
+  IdentitySection,
+  SettingsSection,
+  LedConfigSection,
+  useLedHardware,
+  normalizeLedConfig,
+} from './driver-config';
 
 export default function DriverConfigPage() {
   const { mac } = useParams<{ mac: string }>();
@@ -79,10 +36,11 @@ export default function DriverConfigPage() {
   // Get driver from store by MAC address (immutable identifier)
   const driver = useDriverStore((state) => state.drivers.find((d) => d.mac === mac));
 
-  // LED hardware options and selected hardware details
-  const [ledHardwareOptions, setLedHardwareOptions] = useState<string[]>([]);
+  // LED hardware options from custom hook
+  const { options: ledHardwareOptions, loading: loadingHardware } = useLedHardware();
+
+  // Selected hardware details (fetched when hardwareRef changes)
   const [selectedHardware, setSelectedHardware] = useState<LEDHardware | null>(null);
-  const [loadingHardware, setLoadingHardware] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Determine if selected hardware is a strip (for conditional UI)
@@ -91,23 +49,7 @@ export default function DriverConfigPage() {
   // Track which driver ID we've initialized the form for
   const initializedForDriverId = useRef<string | null>(null);
 
-  // Load LED hardware options on mount
-  useEffect(() => {
-    void (async () => {
-      try {
-        const options = await window.rgfx.getLEDHardwareList();
-        setLedHardwareOptions(options);
-      } catch (error) {
-        console.error('Failed to load LED hardware options:', error);
-      } finally {
-        setLoadingHardware(false);
-      }
-    })();
-  }, []);
-
   // Form setup with Zod validation
-  // Use ConfiguredDriverInput for form state (input type before defaults)
-  // The zodResolver will produce ConfiguredDriverFromSchema (output type) on submit
   const {
     control,
     handleSubmit,
@@ -129,7 +71,7 @@ export default function DriverConfigPage() {
 
   const ledConfig = watch('ledConfig');
 
-  // Fetch hardware details when hardwareRef changes (to determine if it's a strip or matrix)
+  // Fetch hardware details when hardwareRef changes
   useEffect(() => {
     if (ledConfig?.hardwareRef) {
       void (async () => {
@@ -146,8 +88,7 @@ export default function DriverConfigPage() {
     }
   }, [ledConfig?.hardwareRef]);
 
-  // Reset form only on initial mount or when driver ID actually changes (e.g., after rename)
-  // We don't want to reset on every driver update (heartbeats) as that would wipe user input
+  // Reset form only on initial mount or when driver ID actually changes
   useEffect(() => {
     if (driver && driver.id !== initializedForDriverId.current) {
       initializedForDriverId.current = driver.id;
@@ -214,345 +155,19 @@ export default function DriverConfigPage() {
 
       <Paper sx={{ p: 3, maxWidth: 900 }}>
         <form onSubmit={handleFormSubmit}>
-          <Typography variant="h6" gutterBottom>
-            Identity
-          </Typography>
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Controller
-                name="id"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Driver ID"
-                    fullWidth
-                    error={!!errors.id}
-                    helperText={errors.id?.message ?? 'Alphanumeric and hyphens only (1-32 chars)'}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Controller
-                name="macAddress"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="MAC Address"
-                    fullWidth
-                    disabled
-                    slotProps={{ input: { readOnly: true } }}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
+          <IdentitySection control={control} errors={errors} />
 
-          <Typography variant="h6" gutterBottom>
-            Settings
-          </Typography>
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Controller
-                name="description"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value ?? ''}
-                    label="Description"
-                    fullWidth
-                    placeholder="Optional description for this driver"
-                    error={!!errors.description}
-                    helperText={errors.description?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Controller
-                name="remoteLogging"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth error={!!errors.remoteLogging}>
-                    <InputLabel>Remote Logging</InputLabel>
-                    <Select {...field} value={field.value ?? 'off'} label="Remote Logging">
-                      <MenuItem value="off">Off</MenuItem>
-                      <MenuItem value="errors">Errors Only</MenuItem>
-                      <MenuItem value="all">All Logs</MenuItem>
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-          </Grid>
+          <SettingsSection control={control} errors={errors} />
 
-          <Typography variant="h6" gutterBottom>
-            LED Configuration
-          </Typography>
-
-          {loadingHardware ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <CircularProgress size={20} />
-              <Typography>Loading hardware options...</Typography>
-            </Box>
-          ) : ledHardwareOptions.length === 0 ? (
-            <Alert severity="warning">
-              No LED hardware definitions found. Add hardware files to ~/.rgfx/led-hardware/
-            </Alert>
-          ) : (
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <FormControl fullWidth>
-                  <InputLabel>LED Hardware</InputLabel>
-                  <Select
-                    SelectDisplayProps={{ 'data-testid': 'led-hardware-select' } as React.HTMLAttributes<HTMLDivElement>}
-                    value={ledConfig?.hardwareRef ?? ''}
-                    label="LED Hardware"
-                    onChange={(e) => {
-                      const { value } = e.target;
-
-                      if (value === '') {
-                        setValue('ledConfig', null, { shouldDirty: true, shouldValidate: true });
-                      } else {
-                        // Apply defaults only when first configuring (no existing config)
-                        const isNewConfig = !ledConfig;
-                        setValue(
-                          'ledConfig',
-                          {
-                            hardwareRef: value,
-                            pin: ledConfig?.pin ?? 16,
-                            offset: ledConfig?.offset,
-                            globalBrightnessLimit: isNewConfig
-                              ? 128
-                              : ledConfig.globalBrightnessLimit,
-                            dithering: ledConfig?.dithering ?? true,
-                            powerSupplyVolts: ledConfig?.powerSupplyVolts,
-                            maxPowerMilliamps: isNewConfig
-                              ? 500
-                              : ledConfig.maxPowerMilliamps,
-                            unified: ledConfig?.unified,
-                            reverse: ledConfig?.reverse,
-                            gamma: ledConfig?.gamma ?? { r: 2.8, g: 2.8, b: 2.8 },
-                            floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
-                            rgbwMode: ledConfig?.rgbwMode,
-                          },
-                          { shouldDirty: true, shouldValidate: true },
-                        );
-                      }
-                    }}
-                  >
-                    <MenuItem value="">None</MenuItem>
-                    {ledHardwareOptions.map((hw) => (
-                      <MenuItem key={hw} value={hw}>
-                        {getHardwareDisplayName(hw)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              {ledConfig?.hardwareRef && (
-                <>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <NumberField
-                      name="ledConfig.pin"
-                      control={control}
-                      label="GPIO Pin"
-                      helperText="ESP32 GPIO pin for LED data (0-39)"
-                      min={0}
-                      max={39}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <NumberField
-                      name="ledConfig.offset"
-                      control={control}
-                      label="LED Offset"
-                      helperText="Starting LED index offset (optional)"
-                      min={0}
-                    />
-                  </Grid>
-                  {/* Strip-specific: Reverse direction toggle */}
-                  {isStrip && (
-                    <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Controller
-                        name="ledConfig.reverse"
-                        control={control}
-                        render={({ field }) => (
-                          <Tooltip
-                            title="Reverse the LED direction so index 0 maps to the last physical LED"
-                            placement="right"
-                          >
-                            <FormControlLabel
-                              control={<Checkbox {...field} checked={field.value ?? false} />}
-                              label="Reverse Direction"
-                            />
-                          </Tooltip>
-                        )}
-                      />
-                    </Grid>
-                  )}
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <NumberField
-                      name="ledConfig.globalBrightnessLimit"
-                      control={control}
-                      label="Maximum Brightness"
-                      helperText="Maximum brightness (0-255, optional)"
-                      min={0}
-                      max={255}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <NumberField
-                      name="ledConfig.powerSupplyVolts"
-                      control={control}
-                      label="Power Supply Voltage"
-                      helperText="Power supply voltage (1-24V, optional)"
-                      min={1}
-                      max={24}
-                      allowFloat
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <NumberField
-                      name="ledConfig.maxPowerMilliamps"
-                      control={control}
-                      label="Max Power (mA)"
-                      helperText="Maximum power draw in milliamps (1-10000, optional)"
-                      min={1}
-                      max={10000}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Controller
-                      name="ledConfig.dithering"
-                      control={control}
-                      render={({ field }) => (
-                        <Tooltip
-                          title="Smooths color transitions at low brightness by rapidly alternating between nearby color values"
-                          placement="right"
-                        >
-                          <FormControlLabel
-                            control={<Checkbox {...field} checked={field.value ?? false} />}
-                            label="Enable Temporal Dithering"
-                          />
-                        </Tooltip>
-                      )}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
-                      Gamma Correction (1.0 = linear, 2.8 = typical for WS2812B)
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <NumberField
-                      name="ledConfig.gamma.r"
-                      control={control}
-                      label="Gamma Red"
-                      helperText="Red channel gamma (1.0-5.0)"
-                      min={1.0}
-                      max={5.0}
-                      allowFloat
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <NumberField
-                      name="ledConfig.gamma.g"
-                      control={control}
-                      label="Gamma Green"
-                      helperText="Green channel gamma (1.0-5.0)"
-                      min={1.0}
-                      max={5.0}
-                      allowFloat
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <NumberField
-                      name="ledConfig.gamma.b"
-                      control={control}
-                      label="Gamma Blue"
-                      helperText="Blue channel gamma (1.0-5.0)"
-                      min={1.0}
-                      max={5.0}
-                      allowFloat
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
-                      Floor Cutoff (0-255, values at or below floor become 0)
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <NumberField
-                      name="ledConfig.floor.r"
-                      control={control}
-                      label="Floor Red"
-                      helperText="Red channel floor cutoff (0-255)"
-                      min={0}
-                      max={255}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <NumberField
-                      name="ledConfig.floor.g"
-                      control={control}
-                      label="Floor Green"
-                      helperText="Green channel floor cutoff (0-255)"
-                      min={0}
-                      max={255}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <NumberField
-                      name="ledConfig.floor.b"
-                      control={control}
-                      label="Floor Blue"
-                      helperText="Blue channel floor cutoff (0-255)"
-                      min={0}
-                      max={255}
-                    />
-                  </Grid>
-                  {/* RGBW-specific: Color mode selection */}
-                  {isRGBWHardware(selectedHardware) && (
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <Controller
-                        name="ledConfig.rgbwMode"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControl fullWidth>
-                            <InputLabel>RGBW Mode</InputLabel>
-                            <Select
-                              {...field}
-                              value={field.value ?? 'exact'}
-                              label="RGBW Mode"
-                            >
-                              <MenuItem value="exact">Exact Colors</MenuItem>
-                              <MenuItem value="max_brightness">Max Brightness</MenuItem>
-                            </Select>
-                          </FormControl>
-                        )}
-                      />
-                    </Grid>
-                  )}
-                  {/* Matrix-specific: Unified panel layout editor */}
-                  {!isStrip && (
-                    <Grid size={{ xs: 12 }}>
-                      <Controller
-                        name="ledConfig.unified"
-                        control={control}
-                        render={({ field }) => (
-                          <UnifiedPanelEditor value={field.value} onChange={field.onChange} />
-                        )}
-                      />
-                    </Grid>
-                  )}
-                </>
-              )}
-            </Grid>
-          )}
+          <LedConfigSection
+            control={control}
+            watch={watch}
+            setValue={setValue}
+            ledHardwareOptions={ledHardwareOptions}
+            selectedHardware={selectedHardware}
+            loadingHardware={loadingHardware}
+            isStrip={isStrip}
+          />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button variant="outlined" onClick={handleExit} disabled={saving}>
