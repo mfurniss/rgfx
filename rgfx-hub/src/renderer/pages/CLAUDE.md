@@ -51,10 +51,24 @@ This folder contains the main page components for the RGFX Hub application. Each
 - LED configuration: hardware selection, GPIO pin, offset, reverse direction (strips), brightness limit, dithering, power settings, RGBW mode (for 4-channel strips)
 - Default values applied when first configuring LED hardware: globalBrightnessLimit=128, maxPowerMilliamps=500
 - Existing values preserved when switching hardware types on already-configured drivers
-- Uses `react-hook-form` with Zod validation (`PersistedDriverSchema`) with `normalizeLedConfig()` for backward compatibility
+- Uses `react-hook-form` with Zod validation (`ConfiguredDriverSchema`) with `normalizeLedConfig()` for backward compatibility
 - Loads available LED hardware definitions from hub
 - Saves configuration via IPC and auto-pushes to connected drivers
 - Handles driver rename (ID change) seamlessly
+
+### Driver Config Subdirectory
+
+**Directory:** [driver-config/](driver-config/)
+
+Refactored components, hooks, and utilities extracted from the main page:
+
+| File | Purpose |
+|------|---------|
+| `components/identity-section.tsx` | Driver ID and MAC address form fields |
+| `components/settings-section.tsx` | Description and remote logging fields |
+| `components/led-config-section.tsx` | All LED configuration fields |
+| `hooks/use-led-hardware.ts` | Hook to load LED hardware options |
+| `utils/led-config-helpers.ts` | Helper functions (display name, RGBW check, normalize) |
 
 ---
 
