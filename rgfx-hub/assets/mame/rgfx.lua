@@ -119,13 +119,6 @@ local load_interceptor = function()
 	end
 end
 
-local stop_cb = function()
-	if _G.rgfx.rom then
-		event(_G.rgfx.rom .. "/shutdown")
-	end
-	event_cleanup()
-end
-
 -- Try to load interceptor on first frame (prestart doesn't seem to work for NES)
 local frame_cb = function()
 	load_interceptor()
@@ -134,5 +127,4 @@ end
 print("Registering callbacks...")
 emu.register_prestart(load_interceptor) -- Try prestart first
 emu.add_machine_frame_notifier(frame_cb) -- Fallback to frame callback
-emu.add_machine_stop_notifier(stop_cb)
 print("Callbacks registered. Waiting for machine to start...")
