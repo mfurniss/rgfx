@@ -50,6 +50,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Projectile** | [projectile.h](projectile.h)/[projectile.cpp](projectile.cpp) | Moving rectangular object with direction, velocity, friction, and optional trail. |
 | **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse modes, and duration. |
 | **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with gradient color animation. |
+| **Warp** | [warp.h](warp.h)/[warp.cpp](warp.cpp) | Center-radiating animated gradient effect (old school 3D warp). |
 | **Spectrum** | [spectrum.h](spectrum.h)/[spectrum.cpp](spectrum.cpp) | FFT spectrum analyzer visualization. |
 | **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
@@ -142,6 +143,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `spectrum.h/cpp` | FFT spectrum analyzer (renders behind text effects) |
 | `text.h/cpp` | Static text rendering with gradient and optional accent color |
 | `test_leds.h/cpp` | Hardware test pattern |
+| `warp.h/cpp` | Center-radiating animated gradient effect |
 | `wipe.h/cpp` | Directional wipe effect
 
 ---

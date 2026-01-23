@@ -347,6 +347,16 @@ inline void setDefaultPlasmaProps(JsonDocument& props) {
 }
 
 /**
+ * Create default warp props (matches hub schema defaults)
+ */
+inline void setDefaultWarpProps(JsonDocument& props) {
+	props["speed"] = 1.0f;
+	props["scale"] = 0.0f;
+	props["orientation"] = "horizontal";
+	props["enabled"] = "on";
+}
+
+/**
  * Create default background props (matches hub schema defaults)
  * Uses gradient object format: { colors: string[], orientation: string }
  */
@@ -497,6 +507,23 @@ inline JsonDocument mockPlasmaProps(const char* enabled = "on", float speed = 3.
 	props["enabled"] = enabled;
 	props["speed"] = speed;
 	props["scale"] = scale;
+	return props;
+}
+
+/**
+ * Create a mock warp effect payload
+ * @param enabled Enable state (default: "on")
+ * @param speed Animation speed (default: 1.0)
+ * @param scale Perspective scale (default: 0.0)
+ * @param orientation Radiation direction (default: "horizontal")
+ */
+inline JsonDocument mockWarpProps(const char* enabled = "on", float speed = 1.0f, float scale = 0.0f, const char* orientation = "horizontal") {
+	JsonDocument props;
+	setDefaultWarpProps(props);
+	props["enabled"] = enabled;
+	props["speed"] = speed;
+	props["scale"] = scale;
+	props["orientation"] = orientation;
 	return props;
 }
 
