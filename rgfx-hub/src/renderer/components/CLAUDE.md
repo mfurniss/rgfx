@@ -136,7 +136,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Sticky header with back button, driver ID, status chip, and configure button
-- Sections: LED Configuration, Network, Driver Telemetry, Hardware, Memory
+- Sections: LED Hardware (filename derived from hardwareRef), LED Configuration, Driver Status, Driver Hardware, Driver Telemetry
 - Live uptime calculation based on driver's reported uptime
 - Test LED, Reset, and Open Log buttons
 - Alert shown when LED configuration is missing

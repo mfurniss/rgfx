@@ -404,14 +404,14 @@ describe('UdpClientImpl', () => {
         id: 'strip-1',
         ip: '192.168.1.201',
         state: 'connected',
-        resolvedHardware: { name: 'Strip 1', sku: null, layout: 'strip', count: 60 },
+        resolvedHardware: { sku: null, layout: 'strip', count: 60 },
       });
 
       const strip2 = createDriver({
         id: 'strip-2',
         ip: '192.168.1.202',
         state: 'connected',
-        resolvedHardware: { name: 'Strip 2', sku: null, layout: 'strip', count: 60 },
+        resolvedHardware: { sku: null, layout: 'strip', count: 60 },
       });
 
       // Create matrix drivers
@@ -420,7 +420,6 @@ describe('UdpClientImpl', () => {
         ip: '192.168.1.203',
         state: 'connected',
         resolvedHardware: {
-          name: 'Matrix 1',
           sku: null,
           layout: 'matrix-tl-h',
           count: 256,
@@ -434,7 +433,6 @@ describe('UdpClientImpl', () => {
         ip: '192.168.1.204',
         state: 'connected',
         resolvedHardware: {
-          name: 'Matrix 2',
           sku: null,
           layout: 'matrix-bl-v-snake',
           count: 256,
@@ -562,7 +560,6 @@ describe('UdpClientImpl', () => {
         ip: '192.168.1.210',
         state: 'connected',
         resolvedHardware: {
-          name: 'Matrix',
           sku: null,
           layout: 'matrix-tl-h',
           count: 256,

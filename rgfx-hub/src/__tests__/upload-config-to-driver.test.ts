@@ -49,7 +49,6 @@ describe('createUploadConfigToDriver', () => {
   };
 
   const mockHardware = {
-    name: 'Test LED Matrix',
     description: 'A test 8x8 matrix panel',
     sku: 'TEST-8X8',
     asin: 'B00TEST123',
@@ -131,7 +130,6 @@ describe('createUploadConfigToDriver', () => {
       const device = payload.led_devices[0];
 
       // From hardware
-      expect(device.name).toBe('Test LED Matrix');
       expect(device.layout).toBe('matrix-tl-h');
       expect(device.count).toBe(64);
       expect(device.chipset).toBe('WS2812B');

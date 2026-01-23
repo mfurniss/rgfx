@@ -13,7 +13,6 @@
  */
 struct LEDDeviceConfig {
 	String id;              // Device ID (e.g., "marquee", "coin_slot")
-	String name;            // Display name
 	uint8_t pin;            // GPIO pin number
 	String layout;          // "strip" or "matrix-tl-h-snake", etc.
 	uint16_t count;         // Number of LEDs
@@ -55,8 +54,6 @@ struct LEDDeviceConfig {
  * It includes all LED devices and global settings.
  */
 struct DriverConfigData {
-	String name;                           // Config name (e.g., "8x8 Matrix")
-	String description;                    // Config description
 	String version;                        // Config version
 	std::vector<LEDDeviceConfig> devices;  // All LED devices
 

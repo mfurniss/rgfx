@@ -29,7 +29,7 @@ Schemas for persisting driver configuration to disk:
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 
 ### led-hardware.ts
-`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (name, SKU, layout, count, chipset, color order).
+`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Note: `name` was removed - hardware is identified by its filename.
 
 ### firmware-manifest.ts
 `FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with variants for different ESP32 chip types.

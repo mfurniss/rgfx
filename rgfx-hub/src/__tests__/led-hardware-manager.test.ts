@@ -33,7 +33,6 @@ describe('LEDHardwareManager', () => {
   });
 
   const validHardwareJson = JSON.stringify({
-    name: 'Test LED Matrix',
     description: 'A test 8x8 matrix',
     sku: 'TEST-8X8',
     asin: 'B00TEST123',
@@ -55,7 +54,6 @@ describe('LEDHardwareManager', () => {
       const hardware = manager.loadHardware('led-hardware/test-matrix.json');
 
       expect(hardware).not.toBeNull();
-      expect(hardware?.name).toBe('Test LED Matrix');
       expect(hardware?.count).toBe(64);
       expect(hardware?.layout).toBe('matrix');
     });
@@ -102,12 +100,11 @@ describe('LEDHardwareManager', () => {
 
     it('should throw ConfigError for JSON that fails schema validation', () => {
       mockFs.existsSync.mockReturnValue(true);
-      // Missing required 'name' field
+      // Missing required 'count' field
       mockFs.readFileSync.mockReturnValue(
         JSON.stringify({
           sku: 'TEST',
           layout: 'strip',
-          count: 10,
         }),
       );
 
@@ -210,7 +207,6 @@ describe('LEDHardwareManager', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue(
         JSON.stringify({
-          name: 'Generic Strip',
           sku: 'GEN-STRIP',
           layout: 'strip',
           count: 30,
@@ -221,7 +217,6 @@ describe('LEDHardwareManager', () => {
       const hardware = manager.loadHardware('led-hardware/generic.json');
 
       expect(hardware).not.toBeNull();
-      expect(hardware?.name).toBe('Generic Strip');
       expect(hardware?.asin).toBeUndefined();
     });
 
@@ -229,7 +224,6 @@ describe('LEDHardwareManager', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue(
         JSON.stringify({
-          name: 'Custom Strip',
           sku: null,
           layout: 'strip',
           count: 50,
