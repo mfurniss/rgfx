@@ -128,7 +128,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 |------|---------|
 | `effect.h` | Base `IEffect` interface |
 | `effect_processor.h/cpp` | Manages effects, frame timing, and rendering |
-| `effect_utils.h/cpp` | Shared utility functions for effects |
+| `effect_utils.h/cpp` | Shared utilities: color parsing, `FadeState` for fade in/out transitions |
 | `gradient_utils.h/cpp` | Gradient LUT generation and color parsing |
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
 | `particle_system.h/cpp` | Shared particle system used by explode and projectile effects |
