@@ -47,7 +47,6 @@ type ColorCorrection = 'TypicalLEDStrip' | 'Typical8mmPixel' | 'UncorrectedColor
  * This is a flat object containing only hardware specs, no user-configurable data
  */
 export interface LEDHardware {
-  name: string;
   description?: string;
   sku: string | null;
   asin?: string | null;

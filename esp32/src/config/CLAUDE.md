@@ -11,7 +11,7 @@ This folder manages driver configuration, persistent storage, and WiFi setup for
 | File | Purpose |
 |------|---------|
 | `config_nvs.h/cpp` | Non-volatile storage manager for persistent settings |
-| `config_leds.h/cpp` | FastLED initialization from Hub configuration |
+| `config_leds.h/cpp` | FastLED initialization from Hub configuration (LED config identified by device ID) |
 | `config_portal.h/cpp` | IotWebConf WiFi configuration portal |
 | `config_timeout.h` | Configuration timeout handling utilities |
 | `constants.h` | Global constants (ports, timing, limits) |

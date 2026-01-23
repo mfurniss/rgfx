@@ -327,7 +327,7 @@ bool configLEDs() {
 
 		deviceMappings.push_back(mapping);
 
-		log("Mapped device: " + dev.name + " (" + dev.id + ")");
+		log("Mapped device: " + dev.id);
 		log("  -> Pin " + String(dev.pin) + " [" + String(dev.offset) + ".." +
 		    String(dev.offset + dev.count - 1) + "]");
 	}

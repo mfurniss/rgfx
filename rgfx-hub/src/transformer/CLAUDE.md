@@ -85,7 +85,7 @@ interface UdpClient {
 - Supports selective routing via `drivers` array in payload
 - Supports `*` wildcard for random driver selection
 - Maintains a single reusable UDP socket
-- Uses DriverRegistry to discover driver IPs
+- Uses DriverRegistry to discover driver IPs (drivers identified by ID, not name)
 - Validates packet size against MTU limit (1472 bytes)
 - Reports oversized packets via event bus for error tracking
 

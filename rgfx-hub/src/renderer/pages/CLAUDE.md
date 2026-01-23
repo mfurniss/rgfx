@@ -49,7 +49,7 @@ This folder contains the main page components for the RGFX Hub application. Each
 **Features:**
 - Form fields: Driver ID, description, remote logging level
 - LED configuration: hardware selection, GPIO pin, offset, reverse direction (strips), brightness limit, dithering, power settings, RGBW mode (for 4-channel strips)
-- Uses `react-hook-form` with Zod validation (`PersistedDriverSchema`)
+- Uses `react-hook-form` with Zod validation (`PersistedDriverSchema`) with `normalizeLedConfig()` for backward compatibility
 - Loads available LED hardware definitions from hub
 - Saves configuration via IPC and auto-pushes to connected drivers
 - Handles driver rename (ID change) seamlessly

@@ -61,13 +61,10 @@ export function createUploadConfigToDriver(
 
     const completeConfig = {
       id: driverId,
-      name: hardware.name,
-      description: hardware.description,
       version: '1.0',
       led_devices: [
         {
           id: 'device1',
-          name: hardware.name,
           pin: ledConfig.pin,
           layout: hardware.layout,
           count: effectiveCount,
@@ -119,7 +116,7 @@ export function createUploadConfigToDriver(
       CONFIG_SAVE_TIMEOUT_MS,
     );
 
-    log.info(`Uploaded LED configuration to driver ${driverId}: ${hardware.name} (${hardware.sku})`);
+    log.info(`Uploaded LED configuration to driver ${driverId}: ${ledConfig.hardwareRef} (${hardware.sku})`);
     log.info(`  globalBrightnessLimit: ${ledConfig.globalBrightnessLimit}`);
 
     if (response) {
