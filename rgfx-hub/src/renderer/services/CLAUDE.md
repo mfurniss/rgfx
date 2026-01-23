@@ -39,7 +39,9 @@ Handles USB serial firmware flashing with automatic chip detection:
 2. Connect to device via Web Serial API (esptool-js)
 3. Detect chip type from device
 4. Load and verify firmware files for detected chip (size + SHA256)
-5. Flash all partition files with progress reporting
+5. Flash all partition files with progress reporting (eraseAll=true for clean NVS)
 6. Reset device after successful flash
+
+**Note:** USB flashing uses `eraseAll: true` to ensure clean NVS initialization on fresh devices. This erases all settings including WiFi credentials, so the user must reconfigure after flashing.
 
 **Return:** `FlashResult` with `success`, `firmwareVersion`, `chipType`, `error?`

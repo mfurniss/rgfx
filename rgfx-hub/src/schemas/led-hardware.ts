@@ -12,7 +12,6 @@ import { z } from 'zod';
  * Stored in led-hardware/ directory
  */
 export const LEDHardwareSchema = z.object({
-  name: z.string().min(1),
   description: z.string().optional(),
   sku: z.string().nullable(),
   asin: z.string().nullable().optional(),

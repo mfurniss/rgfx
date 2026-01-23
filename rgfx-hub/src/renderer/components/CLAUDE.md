@@ -136,7 +136,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Sticky header with back button, driver ID, status chip, and configure button
-- Sections: LED Configuration, Network, Driver Telemetry, Hardware, Memory
+- Sections: LED Hardware (filename derived from hardwareRef), LED Configuration, Driver Status, Driver Hardware, Driver Telemetry
 - Live uptime calculation based on driver's reported uptime
 - Test LED, Reset, and Open Log buttons
 - Alert shown when LED configuration is missing
@@ -157,6 +157,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Sends config update before enabling test mode
 - Visual state change when test is active
 - Disabled when driver is disconnected or request pending
+- 5-second timeout auto-clears pending state if driver doesn't respond
 
 ---
 
@@ -249,7 +250,13 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `open: boolean` - Dialog visibility
 - `success: boolean` - Whether flash succeeded
 - `message: string` - Result message
+- `flashMethod: FlashMethod | null` - The method used ('usb' or 'ota')
 - `onClose: () => void` - Close callback
+
+**Features:**
+- Shows context-appropriate help text on failure:
+  - OTA failures suggest trying USB serial
+  - USB failures suggest checking serial port availability
 
 ---
 
@@ -257,10 +264,11 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **File:** [confirm-flash-dialog.tsx](confirm-flash-dialog.tsx)
 
-**Purpose:** Confirmation dialog before starting USB firmware flash.
+**Purpose:** Confirmation dialog before starting USB or OTA firmware flash.
 
 **Props:**
 - `open: boolean` - Dialog visibility
+- `isUsb: boolean` - Whether this is USB flash (shows additional warning)
 - `onConfirm: () => void` - Confirm callback
 - `onCancel: () => void` - Cancel callback
 
@@ -268,6 +276,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Warns about 1-2 minute duration
 - Warns not to disconnect or close app
 - Warning about potential bricking
+- USB-specific note: warns that settings will be erased and WiFi reconfiguration needed
 
 ---
 
@@ -432,12 +441,14 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `icon?: React.ReactNode` - Optional start icon
 - `busyIcon?: React.ReactNode` - Icon shown during busy state (default: CircularProgress)
 - `busy?: boolean` - Show busy state with spinner
-- Plus all standard MUI ButtonProps
+- `sx?: SxProps<Theme>` - MUI sx styling (merged with defaults)
+- Plus all standard MUI ButtonProps (except startIcon, children, sx)
 
 **Features:**
 - Wraps MUI Button with optional tooltip
 - Busy state disables button and shows spinner
 - Span wrapper allows tooltip on disabled buttons
+- Prevents text overflow with `whiteSpace: 'nowrap'` and `flexShrink: 0`
 
 ---
 

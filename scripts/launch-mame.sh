@@ -53,11 +53,49 @@ fi
 # Change to MAME directory (required for plugins to load)
 cd "$MAME_DIR" || exit 1
 
+# Parse ROM name from args (first non-flag argument)
+ROM_NAME=""
+for arg in "$@"; do
+    if [[ ! "$arg" =~ ^- ]]; then
+        ROM_NAME="$arg"
+        break
+    fi
+done
+
+# Parse cart name for console systems (-cart argument)
+CART_NAME=""
+NEXT_IS_CART=false
+for arg in "$@"; do
+    if $NEXT_IS_CART; then
+        # Extract basename without extension from cart path
+        CART_NAME=$(basename "$arg" | sed 's/\.[^.]*$//')
+        break
+    fi
+    if [[ "$arg" == "-cart" || "$arg" == "-cartridge" ]]; then
+        NEXT_IS_CART=true
+    fi
+done
+
+# Use cart name if available (console), otherwise ROM name (arcade)
+GAME_NAME="${CART_NAME:-$ROM_NAME}"
+EVENT_LOG="$HOME/.rgfx/interceptor_events.log"
+
 echo "RGFX MAME Launcher"
 echo "  MAME: $MAME_EXEC"
 echo "  RGFX: $RGFX_LUA"
+echo "  Game: $GAME_NAME"
 echo ""
 
 # Run MAME with autoboot script using absolute path to the script
 # Vector settings loaded from ~/.mame/vector.ini (requires -video opengl)
 "$MAME_EXEC" "$@" -rompath ~/mame-roms -window -nomaximize -skip_gameinfo -video opengl -joystick_deadzone 0.1 -autoboot_script "$RGFX_LUA"
+MAME_EXIT_CODE=$?
+
+# Emit shutdown event after MAME exits (catches all exit methods: quit, crash, force quit)
+if [[ -n "$GAME_NAME" ]]; then
+    printf '%s\n' "rgfx/mame-exit $GAME_NAME" >> "$EVENT_LOG"
+else
+    printf '%s\n' "rgfx/mame-exit unknown" >> "$EVENT_LOG"
+fi
+
+exit $MAME_EXIT_CODE

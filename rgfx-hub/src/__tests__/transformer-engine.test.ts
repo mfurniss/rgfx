@@ -971,6 +971,48 @@ describe('TransformerEngine', () => {
       expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
       expect(mockContext.log.debug).toHaveBeenCalledWith('No connected drivers to clear effects');
     });
+
+    it('should clear effects on rgfx/mame-exit event', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      await engine.handleEvent('rgfx/mame-exit', 'pacman');
+
+      expect(mockContext.log.info).toHaveBeenCalledWith('MAME exited for game: pacman');
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
+    });
+
+    it('should handle rgfx/mame-exit with unknown game', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      await engine.handleEvent('rgfx/mame-exit', '');
+
+      expect(mockContext.log.info).toHaveBeenCalledWith('MAME exited for game: unknown');
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
+    });
+
+    it('should not cascade to other handlers after rgfx/mame-exit', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).subjectHandlers.set('mame-exit', subjectHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('rgfx/mame-exit', 'pacman');
+
+      // Should return early, not calling subject or default handlers
+      expect(subjectHandler).not.toHaveBeenCalled();
+      expect(defaultHandler).not.toHaveBeenCalled();
+    });
   });
 
   describe('context method invocation', () => {

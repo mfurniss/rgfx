@@ -22,7 +22,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 | File | Description |
 |------|-------------|
 | `mqtt.h/cpp` | MQTT client setup, broker discovery, message handling, telemetry |
-| `mqtt_config_handler.cpp` | Handles driver configuration messages from Hub |
+| `mqtt_config_handler.cpp` | Handles driver configuration messages from Hub (parses rgbw_mode for RGBW strips). Note: name/description fields removed from config parsing. |
 | `network_init.h/cpp` | Initializes all network services when WiFi connects |
 | `network_task.h/cpp` | FreeRTOS task running network loop on Core 0 |
 | `ota_update.h/cpp` | ArduinoOTA setup with LED progress indicators |
@@ -40,7 +40,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 ### Published Topics (Driver sends)
 - `rgfx/system/driver/telemetry` - Periodic telemetry (30s interval)
 - `rgfx/driver/{device-id}/status` - Online/offline status (with LWT)
-- `rgfx/driver/{device-id}/test/state` - Current test mode state
+- `rgfx/driver/{device-id}/test/state` - Current test mode state (published only when test mode changes, not on reconnect)
 
 ## Broker Discovery
 

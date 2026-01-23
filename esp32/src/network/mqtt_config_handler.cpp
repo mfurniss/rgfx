@@ -53,7 +53,6 @@ static LEDDeviceConfig parseLEDDevice(JsonObject device) {
 	LEDDeviceConfig devCfg;
 
 	devCfg.id = device["id"] | "";
-	devCfg.name = device["name"] | "";
 	devCfg.pin = device["pin"] | 0;
 	devCfg.layout = device["layout"] | "strip";
 	devCfg.count = device["count"] | 0;
@@ -62,6 +61,7 @@ static LEDDeviceConfig parseLEDDevice(JsonObject device) {
 	devCfg.colorOrder = device["color_order"] | "GRB";
 	devCfg.maxBrightness = device["max_brightness"] | 255;
 	devCfg.colorCorrection = device["color_correction"] | "TypicalLEDStrip";
+	devCfg.rgbwMode = device["rgbw_mode"] | "exact";
 
 	// Matrix-specific fields
 	if (devCfg.layout.startsWith("matrix-")) {
@@ -129,7 +129,7 @@ static LEDDeviceConfig parseLEDDevice(JsonObject device) {
 
 					unifiedValid = true;
 
-					log("Device: " + devCfg.name + " (" + devCfg.id + ")");
+					log("Device: " + devCfg.id);
 					log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 					log("  Unified: " + String(devCfg.unifiedCols) + "x" + String(devCfg.unifiedRows) +
 					    " panels of " + String(devCfg.panelWidth) + "x" + String(devCfg.panelHeight));
@@ -162,7 +162,7 @@ static LEDDeviceConfig parseLEDDevice(JsonObject device) {
 			devCfg.panelRotation.clear();
 			devCfg.panelRotation.push_back(0);  // Default: no rotation
 
-			log("Device: " + devCfg.name + " (" + devCfg.id + ")");
+			log("Device: " + devCfg.id);
 			log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 			log("  Matrix: " + String(devCfg.width) + "x" + String(devCfg.height));
 			log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
@@ -171,7 +171,7 @@ static LEDDeviceConfig parseLEDDevice(JsonObject device) {
 		// Strip-specific: parse reverse flag
 		devCfg.reverse = device["reverse"] | false;
 
-		log("Device: " + devCfg.name + " (" + devCfg.id + ")");
+		log("Device: " + devCfg.id);
 		log("  Pin: GPIO" + String(devCfg.pin) + ", Layout: " + devCfg.layout);
 		log("  Count: " + String(devCfg.count) + ", Offset: " + String(devCfg.offset));
 		if (devCfg.reverse) {
@@ -249,14 +249,9 @@ void handleDriverConfig(const String& payload) {
 
 	// Clear existing configuration and extract basic info
 	g_driverConfig.devices.clear();
-	g_driverConfig.name = doc["name"] | "Unknown";
-	g_driverConfig.description = doc["description"] | "";
 	g_driverConfig.version = doc["version"] | "1.0";
 
-	log("Config: " + g_driverConfig.name);
-	if (g_driverConfig.description.length() > 0) {
-		log("Description: " + g_driverConfig.description);
-	}
+	log("Config version: " + g_driverConfig.version);
 
 	// Extract LED devices
 	JsonArray ledDevices = doc["led_devices"];

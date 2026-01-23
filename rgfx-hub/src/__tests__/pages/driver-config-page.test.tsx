@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import DriverConfigPage from '@/renderer/pages/driver-config-page';
@@ -207,6 +207,86 @@ describe('DriverConfigPage', () => {
       await waitFor(() => {
         expect(screen.getAllByText('LED Hardware').length).toBeGreaterThan(0);
       });
+    });
+
+    it('applies default values when new LED hardware is configured', async () => {
+      const mac = '44:1D:64:F8:9A:58';
+      // Create driver WITHOUT existing ledConfig (new configuration)
+      const driver = createMockDriver({ mac, id: 'test-driver' });
+      driver.ledConfig = null;
+      mockDrivers = [driver];
+      mockGetLEDHardwareList.mockResolvedValue(['led-hardware/test-matrix.json']);
+      mockSaveDriverConfig.mockResolvedValue(undefined);
+
+      renderWithRouter(mac);
+
+      // Wait for hardware dropdown to be available
+      await waitFor(() => {
+        expect(screen.getByTestId('led-hardware-select')).toBeDefined();
+      });
+
+      // Open the LED Hardware select dropdown
+      const select = screen.getByTestId('led-hardware-select');
+      fireEvent.mouseDown(select);
+
+      // Find and click the hardware option
+      const listbox = await screen.findByRole('listbox');
+      const option = within(listbox).getByText(/test-matrix/i);
+      fireEvent.click(option);
+
+      // Wait for form to update and check that defaults were applied
+      await waitFor(() => {
+        const brightnessInput: HTMLInputElement = screen.getByLabelText(/Maximum Brightness/i);
+        expect(brightnessInput.value).toBe('128');
+      });
+
+      const powerInput: HTMLInputElement = screen.getByLabelText(/Max Power \(mA\)/i);
+      expect(powerInput.value).toBe('500');
+    });
+
+    it('preserves existing values when switching LED hardware', async () => {
+      const mac = '44:1D:64:F8:9A:58';
+      // Create driver WITH existing ledConfig (not a new configuration)
+      const driver = createMockDriver({ mac, id: 'test-driver' });
+      driver.ledConfig = {
+        hardwareRef: 'led-hardware/old-hardware.json',
+        pin: 16,
+        globalBrightnessLimit: 200,
+        maxPowerMilliamps: 1000,
+        gamma: { r: 2.8, g: 2.8, b: 2.8 },
+        floor: { r: 0, g: 0, b: 0 },
+      };
+      mockDrivers = [driver];
+      mockGetLEDHardwareList.mockResolvedValue([
+        'led-hardware/old-hardware.json',
+        'led-hardware/test-matrix.json',
+      ]);
+      mockSaveDriverConfig.mockResolvedValue(undefined);
+
+      renderWithRouter(mac);
+
+      // Wait for form to show the brightness field (ledConfig is already set)
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Maximum Brightness/i)).toBeDefined();
+      });
+
+      // Open the LED Hardware select dropdown
+      const select = screen.getByTestId('led-hardware-select');
+      fireEvent.mouseDown(select);
+
+      // Find and click the different hardware option
+      const listbox = await screen.findByRole('listbox');
+      const option = within(listbox).getByText(/test-matrix/i);
+      fireEvent.click(option);
+
+      // Existing values should be preserved, not replaced with defaults
+      await waitFor(() => {
+        const brightnessInput: HTMLInputElement = screen.getByLabelText(/Maximum Brightness/i);
+        expect(brightnessInput.value).toBe('200');
+      });
+
+      const powerInput: HTMLInputElement = screen.getByLabelText(/Max Power \(mA\)/i);
+      expect(powerInput.value).toBe('1000');
     });
   });
 

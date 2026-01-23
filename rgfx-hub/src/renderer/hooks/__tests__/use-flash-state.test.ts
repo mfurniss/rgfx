@@ -28,6 +28,7 @@ describe('useFlashState', () => {
         open: false,
         success: false,
         message: '',
+        flashMethod: null,
       });
     });
 
@@ -148,31 +149,33 @@ describe('useFlashState', () => {
   });
 
   describe('showResult', () => {
-    it('should show success result modal', () => {
+    it('should show success result modal with USB method', () => {
       const { result } = renderHook(() => useFlashState());
 
       act(() => {
-        result.current.showResult(true, 'Flash successful!');
+        result.current.showResult(true, 'Flash successful!', 'usb');
       });
 
       expect(result.current.resultModal).toEqual({
         open: true,
         success: true,
         message: 'Flash successful!',
+        flashMethod: 'usb',
       });
     });
 
-    it('should show failure result modal', () => {
+    it('should show failure result modal with OTA method', () => {
       const { result } = renderHook(() => useFlashState());
 
       act(() => {
-        result.current.showResult(false, 'Flash failed');
+        result.current.showResult(false, 'Flash failed', 'ota');
       });
 
       expect(result.current.resultModal).toEqual({
         open: true,
         success: false,
         message: 'Flash failed',
+        flashMethod: 'ota',
       });
     });
   });
@@ -182,7 +185,7 @@ describe('useFlashState', () => {
       const { result } = renderHook(() => useFlashState());
 
       act(() => {
-        result.current.showResult(true, 'Success!');
+        result.current.showResult(true, 'Success!', 'usb');
       });
 
       act(() => {
@@ -193,6 +196,7 @@ describe('useFlashState', () => {
         open: false,
         success: true,
         message: 'Success!',
+        flashMethod: 'usb',
       });
     });
   });
@@ -220,7 +224,7 @@ describe('useFlashState', () => {
       const { result } = renderHook(() => useFlashState());
 
       act(() => {
-        result.current.showResult(true, 'Previous result');
+        result.current.showResult(true, 'Previous result', 'usb');
         result.current.resetForNewFlash();
       });
 

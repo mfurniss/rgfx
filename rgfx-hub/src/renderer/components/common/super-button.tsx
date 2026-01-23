@@ -1,13 +1,14 @@
 import React from 'react';
 import { Button, Tooltip, CircularProgress } from '@mui/material';
-import type { ButtonProps } from '@mui/material';
+import type { ButtonProps, SxProps, Theme } from '@mui/material';
 
-interface SuperButtonProps extends Omit<ButtonProps, 'startIcon' | 'children'> {
+interface SuperButtonProps extends Omit<ButtonProps, 'startIcon' | 'children' | 'sx'> {
   children: React.ReactNode;
   tooltipTitle?: string;
   icon?: React.ReactNode;
   busyIcon?: React.ReactNode;
   busy?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 const SuperButton: React.FC<SuperButtonProps> = ({
@@ -17,15 +18,19 @@ const SuperButton: React.FC<SuperButtonProps> = ({
   busy = false,
   disabled,
   children,
+  sx,
   ...buttonProps
 }) => {
   const effectiveIcon = busy ? busyIcon : icon;
+
+  const sxArray: SxProps<Theme> = Array.isArray(sx) ? sx : sx ? [sx] : [];
 
   const button = (
     <Button
       {...buttonProps}
       disabled={(disabled ?? false) || busy}
       startIcon={effectiveIcon}
+      sx={[{ whiteSpace: 'nowrap', flexShrink: 0 }, ...sxArray]}
     >
       {children}
     </Button>

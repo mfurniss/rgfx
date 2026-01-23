@@ -10,10 +10,11 @@ Custom React hooks for the renderer process.
 
 **File:** [use-flash-state.ts](use-flash-state.ts)
 
-Manages OTA flash state and progress:
-- Subscribes to `flash:ota:state` and `flash:ota:progress` IPC events
-- Provides flash progress percentage and state
-- Cleans up listeners on unmount
+Manages flash operation state for both USB and OTA flashing:
+- Tracks progress, logs, errors, and driver flash status
+- Provides result modal state with flash method tracking ('usb' | 'ota')
+- Actions: setProgress, addLog, clearLogs, setError, showResult, closeResult, resetForNewFlash
+- Re-exports `FlashMethod` type from ui-store
 
 ### useSimulatorAutoTrigger
 

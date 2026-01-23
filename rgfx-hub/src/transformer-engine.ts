@@ -221,6 +221,14 @@ export class TransformerEngine {
         await this.clearAllDriverEffects();
       }
 
+      // Handle MAME process exit from launch script (catches all exit methods)
+      if (namespace === 'rgfx' && subject === 'mame-exit') {
+        const gameName = topicObj.payload || 'unknown';
+        this.context.log.info(`MAME exited for game: ${gameName}`);
+        await this.clearAllDriverEffects();
+        return;
+      }
+
       // Auto-load game transformer on first event from game
       // Skip for 'rgfx' namespace - reserved for system-level events (audio, driver, etc.)
       if (namespace && namespace !== 'rgfx' && !this.gameHandlers.has(namespace)) {
