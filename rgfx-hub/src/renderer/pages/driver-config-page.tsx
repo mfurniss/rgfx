@@ -308,6 +308,7 @@ export default function DriverConfigPage() {
                 <FormControl fullWidth>
                   <InputLabel>LED Hardware</InputLabel>
                   <Select
+                    SelectDisplayProps={{ 'data-testid': 'led-hardware-select' } as React.HTMLAttributes<HTMLDivElement>}
                     value={ledConfig?.hardwareRef ?? ''}
                     label="LED Hardware"
                     onChange={(e) => {
@@ -316,16 +317,22 @@ export default function DriverConfigPage() {
                       if (value === '') {
                         setValue('ledConfig', null, { shouldDirty: true, shouldValidate: true });
                       } else {
+                        // Apply defaults only when first configuring (no existing config)
+                        const isNewConfig = !ledConfig;
                         setValue(
                           'ledConfig',
                           {
                             hardwareRef: value,
                             pin: ledConfig?.pin ?? 16,
                             offset: ledConfig?.offset,
-                            globalBrightnessLimit: ledConfig?.globalBrightnessLimit,
+                            globalBrightnessLimit: isNewConfig
+                              ? 128
+                              : ledConfig.globalBrightnessLimit,
                             dithering: ledConfig?.dithering ?? true,
                             powerSupplyVolts: ledConfig?.powerSupplyVolts,
-                            maxPowerMilliamps: ledConfig?.maxPowerMilliamps,
+                            maxPowerMilliamps: isNewConfig
+                              ? 500
+                              : ledConfig.maxPowerMilliamps,
                             unified: ledConfig?.unified,
                             reverse: ledConfig?.reverse,
                             gamma: ledConfig?.gamma ?? { r: 2.8, g: 2.8, b: 2.8 },
