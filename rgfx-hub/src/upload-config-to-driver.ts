@@ -84,6 +84,8 @@ export function createUploadConfigToDriver(
           unified,
           // Strip-specific: reverse LED direction
           reverse: ledConfig.reverse ?? false,
+          // RGBW mode for 4-channel strips
+          rgbw_mode: ledConfig.rgbwMode ?? 'exact',
         },
       ],
       settings: {

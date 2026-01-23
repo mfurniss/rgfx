@@ -24,7 +24,7 @@ Public exports for all schemas and types.
 ### driver-persistence.ts
 Schemas for persisting driver configuration to disk:
 - `UnifiedPanelLayoutSchema` - 2D array defining LED panel physical layout
-- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin, brightness, power limits)
+- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin, brightness, power limits, rgbwMode for RGBW strips)
 - `PersistedDriverSchema` - Full driver config (ID, MAC, LED config, remote logging level)
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 

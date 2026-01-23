@@ -62,6 +62,7 @@ clearAllLEDs();                        // Set all LEDs to black
 - RGBW strips use 4 bytes per pixel (R, G, B, W)
 - W channel derived from color temperature or explicit setting
 - Requires specific chipset configuration in hardware definition
+- Configurable RGBW mode: `exact` (accurate colors with RGB active) or `max_brightness` (maximize white channel)
 
 ---
 
