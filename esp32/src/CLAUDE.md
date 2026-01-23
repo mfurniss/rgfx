@@ -21,7 +21,7 @@ This separation ensures network operations don't block LED animations.
 
 Key global variables shared between cores:
 
-- `g_driverConfig` - Current LED device configuration
+- `g_driverConfig` - Current LED device configuration (includes rgbwMode for RGBW strips)
 - `g_configReceived` - Whether config has been received from Hub
 - `g_configUpdateInProgress` - Synchronization flag during config changes
 - `matrix` / `effectProcessor` - Main rendering objects (created after config received)
@@ -33,8 +33,9 @@ Key global variables shared between cores:
 | File | Purpose |
 |------|---------|
 | `main.cpp` | Entry point with `setup()` and `loop()`. Initializes all subsystems, creates FreeRTOS task for Core 0, runs LED rendering loop on Core 1. |
-| `driver_config.h/cpp` | Defines `LEDDeviceConfig` and `DriverConfigData` structs. Holds global driver state including all LED device configurations. |
+| `driver_config.h/cpp` | Defines `LEDDeviceConfig` and `DriverConfigData` structs. Holds global driver state including all LED device configurations. Note: name/description removed - devices identified by ID. |
 | `crash_handler.h/cpp` | Detects unexpected resets, stores crash info in RTC memory, reports crash details to Hub on next boot. |
+| `safe_restart.h/cpp` | Safe device restart that signals Core 1 to stop, clears LEDs (if initialized), then restarts. Checks `isFastLEDInitialized()` to avoid crash on fresh devices without LED config. |
 | `telemetry.h/cpp` | Collects system metrics (heap usage, uptime, CPU load). Periodically sent to Hub via MQTT. |
 | `log.h/cpp` | Thread-safe logging system. Uses FreeRTOS queue to pass messages from Core 1 to Core 0 for MQTT publishing. |
 | `serial.h/cpp` | Serial command processor. Handles CLI commands for debugging (help, reboot, wifi, etc.). |
@@ -62,13 +63,21 @@ Key global variables shared between cores:
 
 ## Initialization Sequence
 
-1. Serial port and crash handler initialization
-2. NVS configuration load (WiFi credentials, driver ID)
-3. Power-on LED test (if config exists in NVS)
-4. WiFi connection via IotWebConf portal
-5. Create FreeRTOS task for network operations on Core 0
-6. Main loop waits for LED config from Hub via MQTT
-7. Once config received: create Matrix, EffectProcessor, start rendering
+1. Serial port initialization (500ms delay for USB CDC on ESP32-S3)
+2. Platform detection (ESP32-S3 vs ESP32-WROOM)
+3. Crash handler initialization
+4. NVS flash init with error recovery (handles fresh flash formatting)
+5. NVS configuration load (WiFi credentials, driver ID)
+6. Power-on LED test (if config exists in NVS)
+7. WiFi connection via IotWebConf portal
+8. Create FreeRTOS task for network operations on Core 0
+9. Main loop waits for LED config from Hub via MQTT
+10. Once config received: create Matrix, EffectProcessor, start rendering
+
+**Platform Notes:**
+- ESP32-S3 Super Mini uses native USB CDC (requires build flags in platformio.ini)
+- ESP32-S3 onboard LED is battery charging indicator, not software controllable
+- Watchdog pong always responds even without LED config to prevent false reboots
 
 ---
 

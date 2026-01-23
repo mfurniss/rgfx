@@ -13,7 +13,6 @@
  */
 struct LEDDeviceConfig {
 	String id;              // Device ID (e.g., "marquee", "coin_slot")
-	String name;            // Display name
 	uint8_t pin;            // GPIO pin number
 	String layout;          // "strip" or "matrix-tl-h-snake", etc.
 	uint16_t count;         // Number of LEDs
@@ -38,11 +37,14 @@ struct LEDDeviceConfig {
 	// Strip-specific: reverse LED direction (index 0 maps to last physical LED)
 	bool reverse;
 
+	// RGBW mode: "exact" or "max_brightness"
+	String rgbwMode;
+
 	// Constructor with defaults
 	LEDDeviceConfig()
 		: pin(0), count(0), offset(0), maxBrightness(255),
 		  width(0), height(0), panelWidth(0), panelHeight(0),
-		  unifiedRows(1), unifiedCols(1), reverse(false) {}
+		  unifiedRows(1), unifiedCols(1), reverse(false), rgbwMode("exact") {}
 };
 
 /**
@@ -52,8 +54,6 @@ struct LEDDeviceConfig {
  * It includes all LED devices and global settings.
  */
 struct DriverConfigData {
-	String name;                           // Config name (e.g., "8x8 Matrix")
-	String description;                    // Config description
 	String version;                        // Config version
 	std::vector<LEDDeviceConfig> devices;  // All LED devices
 

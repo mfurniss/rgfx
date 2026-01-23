@@ -7,6 +7,8 @@ interface TestLedButtonProps {
   driver: Driver;
 }
 
+const TIMEOUT_MS = 5000;
+
 const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
   const [testRequestPending, setTestRequestPending] = useState(false);
 
@@ -14,6 +16,21 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
   useEffect(() => {
     setTestRequestPending(false);
   }, [driver.testActive, driver.state]);
+
+  // Timeout to auto-clear pending state if no response received
+  useEffect(() => {
+    if (!testRequestPending) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setTestRequestPending(false);
+    }, TIMEOUT_MS);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [testRequestPending]);
 
   const handleTestToggle = () => {
     if (testRequestPending) {

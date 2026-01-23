@@ -14,6 +14,7 @@ describe('FlashResultDialog', () => {
         open={true}
         success={true}
         message="Firmware flashed successfully!"
+        flashMethod="usb"
         onClose={onClose}
       />,
     );
@@ -29,6 +30,7 @@ describe('FlashResultDialog', () => {
         open={true}
         success={false}
         message="Connection failed"
+        flashMethod="ota"
         onClose={onClose}
       />,
     );
@@ -44,6 +46,7 @@ describe('FlashResultDialog', () => {
         open={true}
         success={true}
         message="Done"
+        flashMethod="usb"
         onClose={onClose}
       />,
     );
@@ -59,6 +62,7 @@ describe('FlashResultDialog', () => {
         open={false}
         success={true}
         message="Should not appear"
+        flashMethod="usb"
         onClose={onClose}
       />,
     );

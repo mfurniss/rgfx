@@ -39,7 +39,7 @@ MAME Lua scripts that intercept game state and emit events:
 
 ### mame/
 MAME event handling utilities:
-- `rgfx.lua` - Main RGFX module for MAME integration
+- `rgfx.lua` - Main RGFX bootstrap, registers prestart and frame callbacks to load interceptors. Note: MAME shutdown detection is handled by `scripts/launch-mame.sh` (not Lua) because `emu.add_machine_stop_notifier` is unreliable.
 - `event.lua` - Event emission and logging utilities
 - `ram.lua` - RAM monitoring and memory read helpers
 - `docs/` - Documentation for MAME integration

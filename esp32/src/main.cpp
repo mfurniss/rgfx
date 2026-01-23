@@ -27,6 +27,7 @@
 #include "graphics/downsample_to_matrix.h"
 #include "hal/display.h"
 #include "hal/led_controller.h"
+#include <nvs_flash.h>
 
 // Forward declaration for config handling
 void handleDriverConfig(const String& payload);
@@ -86,6 +87,11 @@ static unsigned long indicatorOffTime = 0;
  * @param duration  0 = turn off, >0 = flash for duration ms, <0 = solid on
  */
 void setIndicator(long duration) {
+#ifdef CONFIG_IDF_TARGET_ESP32S3
+	// ESP32-S3 Super Mini has no software-controllable LED
+	(void)duration;
+#else
+	// ESP32-WROOM has simple GPIO LED
 	if (duration == 0) {
 		digitalWrite(ONBOARD_LED_PIN, LOW);
 		indicatorOffTime = 0;
@@ -96,15 +102,24 @@ void setIndicator(long duration) {
 		digitalWrite(ONBOARD_LED_PIN, HIGH);
 		indicatorOffTime = 0;
 	}
+#endif
 }
 
 void setup() {
 	Serial.begin(115200);
-	delay(200);
+	delay(500);  // Wait for USB CDC
+
+	Serial.println("\n\n=== RGFX BOOT ===");
 
 	// Initialize onboard LED indicator
+#ifdef CONFIG_IDF_TARGET_ESP32S3
+	// ESP32-S3 Super Mini blue LED is battery charging indicator - not software controllable
+	Serial.println("ESP32-S3 Super Mini detected");
+#else
+	Serial.println("ESP32 detected - using GPIO2 for status LED");
 	pinMode(ONBOARD_LED_PIN, OUTPUT);
 	digitalWrite(ONBOARD_LED_PIN, LOW);
+#endif
 
 	// Initialize serial command system (must be done before any log() calls)
 	SerialCommand::begin();
@@ -120,6 +135,29 @@ void setup() {
 	log("\n\nRGFX Driver v" + String(RGFX_VERSION) + " starting...");
 	log("Core 0: Protocol/Network core (WiFi, MQTT, Web, Display)");
 	log("Core 1: Application core (LEDs, UDP effects)");
+
+	// Initialize NVS flash FIRST - required before WiFi, Preferences, or any NVS operations
+	// This will format the NVS partition if it's empty (fresh flash) or corrupted
+	esp_err_t nvsErr = nvs_flash_init();
+	if (nvsErr == ESP_ERR_NVS_NO_FREE_PAGES || nvsErr == ESP_ERR_NVS_NEW_VERSION_FOUND ||
+	    nvsErr == ESP_ERR_NVS_NOT_INITIALIZED) {
+		log("NVS partition needs formatting, erasing...");
+		nvs_flash_erase();
+		nvsErr = nvs_flash_init();
+	}
+	if (nvsErr != ESP_OK) {
+		log("ERROR: Failed to initialize NVS: " + String(esp_err_to_name(nvsErr)));
+		// Try one more time with erase as last resort
+		log("Attempting NVS recovery with full erase...");
+		nvs_flash_erase();
+		nvsErr = nvs_flash_init();
+		if (nvsErr != ESP_OK) {
+			log("CRITICAL: NVS initialization failed after erase: " + String(esp_err_to_name(nvsErr)));
+		}
+	}
+	if (nvsErr == ESP_OK) {
+		log("NVS flash initialized successfully");
+	}
 
 	// Reduce WiFi transmit power to minimize power draw spikes
 	// This helps prevent display blinking caused by voltage fluctuations
@@ -320,6 +358,10 @@ void loop() {
 	static bool inApMode = false;
 	bool nowInApMode = (state == "NotConfigured" || state == "ApMode");
 
+	// Process serial commands ALWAYS (even during AP mode or connection attempts)
+	// This allows wifi credentials to be set via serial at any time
+	SerialCommand::process();
+
 	if (nowInApMode && !inApMode) {
 		// Just entered AP mode - show PURPLE immediately (unless in test mode)
 		// Check both matrix and leds pointers for safety
@@ -335,10 +377,6 @@ void loop() {
 	}
 
 	inApMode = nowInApMode;
-
-	// Process serial commands ALWAYS (even during AP mode or connection attempts)
-	// This allows wifi credentials to be set via serial at any time
-	SerialCommand::process();
 
 	// If we haven't made initial connection attempt yet, keep LEDs BLUE (trying to connect)
 	if (!initialConnectionAttemptDone && !isConnected) {
@@ -397,12 +435,12 @@ void loop() {
 		if (effectProcessor != nullptr) {
 			effectProcessor->update();
 			g_frameCount++;
+		}
 
-			// Respond to watchdog ping from Core 0
-			if (watchdogPing.load()) {
-				watchdogPing.store(false);
-				watchdogPong.store(true);
-			}
+		// Respond to watchdog ping from Core 0 (always respond, even without LED config)
+		if (watchdogPing.load()) {
+			watchdogPing.store(false);
+			watchdogPong.store(true);
 		}
 	}
 

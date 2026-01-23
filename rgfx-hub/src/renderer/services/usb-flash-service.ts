@@ -256,7 +256,7 @@ export async function flashViaUSB(
       flashSize: 'keep',
       flashMode: 'dio',
       flashFreq: '40m',
-      eraseAll: false,
+      eraseAll: true,
       compress: true,
       reportProgress: (fileIndex, written, total) => {
         // Only report progress for the largest file (app binary)

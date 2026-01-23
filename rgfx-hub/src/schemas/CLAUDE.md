@@ -24,12 +24,12 @@ Public exports for all schemas and types.
 ### driver-persistence.ts
 Schemas for persisting driver configuration to disk:
 - `UnifiedPanelLayoutSchema` - 2D array defining LED panel physical layout
-- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin, brightness, power limits)
+- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin, brightness, power limits, rgbwMode for RGBW strips)
 - `PersistedDriverSchema` - Full driver config (ID, MAC, LED config, remote logging level)
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 
 ### led-hardware.ts
-`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (name, SKU, layout, count, chipset, color order).
+`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Note: `name` was removed - hardware is identified by its filename.
 
 ### firmware-manifest.ts
 `FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with variants for different ESP32 chip types.

@@ -45,6 +45,12 @@ const ConfirmFlashDialog: React.FC<ConfirmFlashDialogProps> = ({
             ? 'Do not disconnect the USB cable or close the application during flashing.'
             : 'Do not close the application or disconnect drivers from the network during flashing.'}
         </Typography>
+        {isUsb && (
+          <Typography sx={{ mb: 2 }} color="info.main">
+            <strong>Note:</strong> USB flashing erases all settings. You will need to configure
+            WiFi credentials after flashing.
+          </Typography>
+        )}
         <Typography color="warning.main">
           Interrupting the flash may leave your device in an unusable state.
         </Typography>

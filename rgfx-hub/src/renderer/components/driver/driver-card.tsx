@@ -157,10 +157,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   // LED configuration from Hub's resolved hardware + driver settings
   const { resolvedHardware: hardware, ledConfig } = driver;
 
+  // Derive hardware filename from hardwareRef (e.g., "led-hardware/foo.json" -> "foo.json")
+  const hardwareFilename = ledConfig?.hardwareRef
+    ?.replace(/^led-hardware\//, '') ?? 'Unknown';
+
   // LED Hardware section - static properties from hardware JSON file
   const ledHardwareRows: InfoRowData[] = hardware
     ? [
-      ['Name', hardware.name],
+      ['Filename', hardwareFilename],
       ['Description', hardware.description ?? 'Not set'],
       ['SKU', hardware.sku ?? 'Not set'],
       ...(hardware.asin ? [['ASIN', hardware.asin] as InfoRowData] : []),

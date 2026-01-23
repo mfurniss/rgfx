@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TestLedButton from '../test-led-button';
 import type { Driver, DriverLEDConfig } from '@/types';
@@ -165,6 +165,57 @@ describe('TestLedButton', () => {
       });
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('timeout behavior', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('clears pending state after timeout if no response', () => {
+      // Mock a command that never resolves
+      mockSendDriverCommand.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Never resolves - simulates no response from driver
+          }),
+      );
+      const driver = createMockDriver({ testActive: false });
+      render(<TestLedButton driver={driver} />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      // Verify pending state is set
+      expect(screen.getByText('Processing...')).toBeDefined();
+
+      // Fast-forward past timeout
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      // Should show normal state again
+      expect(screen.getByText('Test LEDs OFF')).toBeDefined();
+    });
+
+    it('clears timeout when driver.testActive changes', () => {
+      mockSendDriverCommand.mockResolvedValue({ success: true });
+      const driver = createMockDriver({ testActive: false });
+      const { rerender } = render(<TestLedButton driver={driver} />);
+
+      fireEvent.click(screen.getByRole('button'));
+      expect(screen.getByText('Processing...')).toBeDefined();
+
+      // Simulate driver responding before timeout
+      rerender(<TestLedButton driver={{ ...driver, testActive: true }} />);
+
+      // Should show ON state immediately
+      expect(screen.getByText('Test LEDs ON')).toBeDefined();
     });
   });
 });

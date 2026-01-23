@@ -22,6 +22,7 @@ describe('FlashResultDialog', () => {
           open={true}
           success={true}
           message="Firmware flashed successfully!"
+          flashMethod="usb"
           onClose={vi.fn()}
         />,
       );
@@ -35,6 +36,7 @@ describe('FlashResultDialog', () => {
           open={true}
           success={true}
           message="Firmware v1.0.0 flashed successfully to 2 drivers!"
+          flashMethod="ota"
           onClose={vi.fn()}
         />,
       );
@@ -42,17 +44,19 @@ describe('FlashResultDialog', () => {
       expect(screen.getByText('Firmware v1.0.0 flashed successfully to 2 drivers!')).toBeDefined();
     });
 
-    it('does not show USB fallback hint on success', () => {
+    it('does not show help hint on success', () => {
       render(
         <FlashResultDialog
           open={true}
           success={true}
           message="Firmware flashed successfully!"
+          flashMethod="usb"
           onClose={vi.fn()}
         />,
       );
 
       expect(screen.queryByText(/USB serial/)).toBeNull();
+      expect(screen.queryByText(/serial port/)).toBeNull();
     });
   });
 
@@ -63,6 +67,7 @@ describe('FlashResultDialog', () => {
           open={true}
           success={false}
           message="OTA flash failed"
+          flashMethod="ota"
           onClose={vi.fn()}
         />,
       );
@@ -76,6 +81,7 @@ describe('FlashResultDialog', () => {
           open={true}
           success={false}
           message="Connection timed out"
+          flashMethod="ota"
           onClose={vi.fn()}
         />,
       );
@@ -83,17 +89,35 @@ describe('FlashResultDialog', () => {
       expect(screen.getByText('Connection timed out')).toBeDefined();
     });
 
-    it('shows USB fallback hint on failure', () => {
+    it('shows USB fallback hint on OTA failure', () => {
       render(
         <FlashResultDialog
           open={true}
           success={false}
           message="OTA flash failed"
+          flashMethod="ota"
           onClose={vi.fn()}
         />,
       );
 
       expect(screen.getByText(/USB serial/)).toBeDefined();
+    });
+
+    it('shows serial port hint on USB failure', () => {
+      render(
+        <FlashResultDialog
+          open={true}
+          success={false}
+          message="Connection failed"
+          flashMethod="usb"
+          onClose={vi.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByText('Check that no other application is using the serial port and the device is connected.'),
+      ).toBeDefined();
+      expect(screen.queryByText(/OTA/)).toBeNull();
     });
   });
 
@@ -105,6 +129,7 @@ describe('FlashResultDialog', () => {
           open={true}
           success={true}
           message="Success"
+          flashMethod="usb"
           onClose={onClose}
         />,
       );
@@ -120,6 +145,7 @@ describe('FlashResultDialog', () => {
           open={false}
           success={true}
           message="Success"
+          flashMethod="usb"
           onClose={vi.fn()}
         />,
       );
