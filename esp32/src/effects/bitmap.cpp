@@ -314,6 +314,14 @@ void BitmapEffect::add(JsonDocument& props) {
 	newBitmap.memoryUsed = calculateBitmapMemory(newBitmap);
 	totalMemoryUsed += newBitmap.memoryUsed;
 
+	// Cap vector size as safety net (memory budget is primary limit)
+	// Higher cap than other effects since bitmaps have memory budget protection
+	static constexpr size_t MAX_BITMAPS = 1024;
+	if (bitmaps.size() >= MAX_BITMAPS) {
+		// Decrement memory tracking before dropping oldest
+		totalMemoryUsed -= bitmaps.front().memoryUsed;
+		bitmaps.erase(bitmaps.begin());
+	}
 	bitmaps.push_back(std::move(newBitmap));
 }
 

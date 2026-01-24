@@ -14,7 +14,7 @@
 
 // Test configuration - must match production values
 static const int UDP_BUFFER_SIZE = 1472;  // Max UDP payload without IP fragmentation
-static const uint8_t UDP_QUEUE_SIZE = 8;
+static const uint8_t UDP_QUEUE_SIZE = 16;  // Increased from 8 for burst handling
 
 // Mock Arduino String class
 class String {
@@ -174,36 +174,42 @@ void test_queue_full_drops_message() {
 void test_queue_wraparound() {
 	resetQueue();
 
-	// Fill queue halfway
-	for (int i = 0; i < 4; i++) {
+	// Fill queue past halfway to force wraparound with larger queue (16)
+	for (int i = 0; i < 10; i++) {
 		char json[64];
 		snprintf(json, sizeof(json), R"({"effect":"batch1_%d","props":{}})", i);
 		TEST_ASSERT_TRUE(enqueueMessage(json));
 	}
 
-	// Dequeue 3 messages (advances tail)
+	// Dequeue 8 messages (advances tail)
 	UDPMessage msg;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 8; i++) {
 		TEST_ASSERT_TRUE(dequeueMessage(&msg));
 	}
-	TEST_ASSERT_EQUAL(1, testQueue.count);
+	TEST_ASSERT_EQUAL(2, testQueue.count);
 
-	// Add 6 more messages (should wrap around)
-	for (int i = 0; i < 6; i++) {
+	// Add 10 more messages (should wrap around with queue size 16)
+	for (int i = 0; i < 10; i++) {
 		char json[64];
 		snprintf(json, sizeof(json), R"({"effect":"batch2_%d","props":{}})", i);
 		TEST_ASSERT_TRUE(enqueueMessage(json));
 	}
-	TEST_ASSERT_EQUAL(7, testQueue.count);
+	TEST_ASSERT_EQUAL(12, testQueue.count);
 
-	// Verify wraparound worked - head should have wrapped
-	TEST_ASSERT_TRUE(testQueue.head < testQueue.tail || testQueue.count == UDP_QUEUE_SIZE);
+	// Verify wraparound worked - head should have wrapped past tail
+	// head started at 10, added 10 more = 20, wraps to 4 (20 % 16)
+	// tail is at 8
+	// So head (4) < tail (8) indicates wraparound
+	TEST_ASSERT_TRUE(testQueue.head < testQueue.tail);
 
-	// Drain and verify order
+	// Drain and verify order - should get remaining batch1 then all batch2
 	TEST_ASSERT_TRUE(dequeueMessage(&msg));
-	TEST_ASSERT_TRUE(msg.effect == "batch1_3");  // Last from batch 1
+	TEST_ASSERT_TRUE(msg.effect == "batch1_8");
 
-	for (int i = 0; i < 6; i++) {
+	TEST_ASSERT_TRUE(dequeueMessage(&msg));
+	TEST_ASSERT_TRUE(msg.effect == "batch1_9");
+
+	for (int i = 0; i < 10; i++) {
 		TEST_ASSERT_TRUE(dequeueMessage(&msg));
 		char expected[16];
 		snprintf(expected, sizeof(expected), "batch2_%d", i);
@@ -291,6 +297,83 @@ void test_interleaved_enqueue_dequeue() {
 	TEST_ASSERT_EQUAL(0, testQueue.count);
 }
 
+// Helper to get queue depth (mimics getUdpQueueDepth)
+uint8_t getQueueDepth() {
+	return testQueue.count;
+}
+
+void test_queue_depth_getter() {
+	resetQueue();
+
+	// Empty queue
+	TEST_ASSERT_EQUAL(0, getQueueDepth());
+
+	// Add some messages
+	TEST_ASSERT_TRUE(enqueueMessage(R"({"effect":"a","props":{}})"));
+	TEST_ASSERT_EQUAL(1, getQueueDepth());
+
+	TEST_ASSERT_TRUE(enqueueMessage(R"({"effect":"b","props":{}})"));
+	TEST_ASSERT_EQUAL(2, getQueueDepth());
+
+	// Dequeue one
+	UDPMessage msg;
+	TEST_ASSERT_TRUE(dequeueMessage(&msg));
+	TEST_ASSERT_EQUAL(1, getQueueDepth());
+
+	// Dequeue remaining
+	TEST_ASSERT_TRUE(dequeueMessage(&msg));
+	TEST_ASSERT_EQUAL(0, getQueueDepth());
+}
+
+void test_high_burst_traffic_with_larger_queue() {
+	resetQueue();
+
+	// Simulate high-load scenario: 12 rapid messages (would overflow old queue of 8)
+	for (int i = 0; i < 12; i++) {
+		char json[64];
+		snprintf(json, sizeof(json), R"({"effect":"burst%d","props":{}})", i);
+		TEST_ASSERT_TRUE(enqueueMessage(json));
+	}
+	TEST_ASSERT_EQUAL(12, testQueue.count);
+
+	// All 12 messages should be retrievable (wouldn't fit in old queue of 8)
+	UDPMessage msg;
+	for (int i = 0; i < 12; i++) {
+		TEST_ASSERT_TRUE(dequeueMessage(&msg));
+		char expected[16];
+		snprintf(expected, sizeof(expected), "burst%d", i);
+		TEST_ASSERT_TRUE(msg.effect == expected);
+	}
+
+	TEST_ASSERT_EQUAL(0, testQueue.count);
+}
+
+void test_queue_handles_full_capacity() {
+	resetQueue();
+
+	// Fill queue to full capacity (16 messages)
+	for (uint8_t i = 0; i < UDP_QUEUE_SIZE; i++) {
+		char json[64];
+		snprintf(json, sizeof(json), R"({"effect":"full%d","props":{}})", i);
+		TEST_ASSERT_TRUE(enqueueMessage(json));
+	}
+	TEST_ASSERT_EQUAL(UDP_QUEUE_SIZE, testQueue.count);
+	TEST_ASSERT_EQUAL(UDP_QUEUE_SIZE, getQueueDepth());
+
+	// Next message should fail
+	TEST_ASSERT_FALSE(enqueueMessage(R"({"effect":"overflow","props":{}})"));
+	TEST_ASSERT_EQUAL(UDP_QUEUE_SIZE, testQueue.count);
+
+	// Drain and verify all 16 messages are intact
+	UDPMessage msg;
+	for (uint8_t i = 0; i < UDP_QUEUE_SIZE; i++) {
+		TEST_ASSERT_TRUE(dequeueMessage(&msg));
+		char expected[16];
+		snprintf(expected, sizeof(expected), "full%d", i);
+		TEST_ASSERT_TRUE(msg.effect == expected);
+	}
+}
+
 // ============================================================================
 // Test Runner
 // ============================================================================
@@ -315,6 +398,9 @@ int main() {
 	RUN_TEST(test_burst_traffic_scenario);
 	RUN_TEST(test_message_with_props);
 	RUN_TEST(test_interleaved_enqueue_dequeue);
+	RUN_TEST(test_queue_depth_getter);
+	RUN_TEST(test_high_burst_traffic_with_larger_queue);
+	RUN_TEST(test_queue_handles_full_capacity);
 
 	return UNITY_END();
 }

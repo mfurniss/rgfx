@@ -428,7 +428,6 @@ void loop() {
 		while (checkUDPMessage(&message) && effectProcessor != nullptr) {
 			setIndicator(INDICATOR_FLASH_MS);
 			effectProcessor->addEffect(String(message.effect), message.props);
-			log("UDP RX from Hub: effect=" + String(message.effect));
 		}
 
 		// Update and render continuous effects

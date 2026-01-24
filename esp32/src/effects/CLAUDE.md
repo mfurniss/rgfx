@@ -131,7 +131,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `effect_utils.h/cpp` | Shared utilities: color parsing, `FadeState` for fade in/out transitions |
 | `gradient_utils.h/cpp` | Gradient LUT generation and color parsing |
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
-| `particle_system.h/cpp` | Shared particle system used by explode and projectile effects |
+| `particle_system.h/cpp` | Shared particle system with active count tracking for early-exit optimization |
 | `background.h/cpp` | Gradient background effect with fade transitions |
 | `bitmap.h/cpp` | Animated sprite display with palettized memory storage |
 | `explode.h/cpp` | Radial explosion effect with hueSpread color variation |
@@ -166,3 +166,28 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 - **Multiple Instances:** Each effect can have multiple active instances (e.g., overlapping pulses)
 - **Easing Functions:** Located in `utils/easing.h`, used for smooth animation curves
 - **Hub as Source of Truth:** All effect property defaults come from Hub; ESP32 expects complete props
+
+---
+
+## Performance Optimizations
+
+### Effect Vector Caps
+
+All effects with multiple instances enforce maximum vector sizes to prevent unbounded growth under high load:
+
+| Effect | Max Instances | Notes |
+|--------|---------------|-------|
+| Pulse | 64 | Oldest dropped when full |
+| Explode | 64 | Oldest flash dropped when full |
+| Wipe | 64 | Oldest dropped when full |
+| Text | 64 | Oldest dropped when full |
+| Scroll Text | 64 | Oldest dropped when full |
+| Projectile | 64 | Oldest dropped when full |
+| Bitmap | 1024 | Higher due to existing memory budget protection |
+
+### Particle System Active Count
+
+The particle system tracks `activeCount` to enable early-exit optimization:
+- `update()` and `render()` return immediately when no particles are active
+- Eliminates unnecessary iteration over the 500-slot particle pool
+- Count maintained automatically on add, death, out-of-bounds, and reset
