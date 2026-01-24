@@ -148,3 +148,7 @@ bool checkUDPMessage(UDPMessage* message) {
 
 	return true;
 }
+
+uint8_t getUdpQueueDepth() {
+	return messageQueue.count;
+}

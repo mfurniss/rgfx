@@ -63,3 +63,96 @@ uint32_t randomColor() {
 	CRGB rgb = hsv;
 	return ((uint32_t)rgb.r << 16) | ((uint32_t)rgb.g << 8) | rgb.b;
 }
+
+// FadeState implementation
+
+EnabledState FadeState::parseEnabledState(const char* str) {
+	if (strcmp(str, "off") == 0)
+		return EnabledState::OFF;
+	if (strcmp(str, "on") == 0)
+		return EnabledState::ON;
+	if (strcmp(str, "fadeIn") == 0)
+		return EnabledState::FADE_IN;
+	if (strcmp(str, "fadeOut") == 0)
+		return EnabledState::FADE_OUT;
+	return EnabledState::ON;
+}
+
+void FadeState::updateAlpha() {
+	switch (enabledState) {
+		case EnabledState::OFF:
+			currentAlpha = 0;
+			break;
+		case EnabledState::ON:
+			currentAlpha = 255;
+			break;
+		case EnabledState::FADE_IN: {
+			float progress = fadeTime / FADE_DURATION;
+			if (progress > 1.0f)
+				progress = 1.0f;
+			currentAlpha = static_cast<uint8_t>(progress * 255.0f);
+			break;
+		}
+		case EnabledState::FADE_OUT: {
+			float progress = fadeTime / FADE_DURATION;
+			if (progress > 1.0f)
+				progress = 1.0f;
+			currentAlpha = static_cast<uint8_t>((1.0f - progress) * 255.0f);
+			break;
+		}
+	}
+}
+
+bool FadeState::updateFade(float deltaTime) {
+	if (enabledState == EnabledState::OFF) {
+		return false;
+	}
+
+	if (enabledState == EnabledState::FADE_IN || enabledState == EnabledState::FADE_OUT) {
+		fadeTime += deltaTime;
+
+		if (fadeTime >= FADE_DURATION) {
+			enabledState = (enabledState == EnabledState::FADE_IN) ? EnabledState::ON : EnabledState::OFF;
+			fadeTime = 0.0f;
+		}
+
+		updateAlpha();
+	}
+
+	return enabledState != EnabledState::OFF;
+}
+
+EnabledState FadeState::parseEnabledProp(JsonDocument& props) {
+	EnabledState newState = EnabledState::ON;
+	if (!props["enabled"].isNull()) {
+		if (props["enabled"].is<bool>()) {
+			newState = props["enabled"].as<bool>() ? EnabledState::ON : EnabledState::OFF;
+		} else if (props["enabled"].is<const char*>()) {
+			newState = parseEnabledState(props["enabled"].as<const char*>());
+		}
+	}
+	return newState;
+}
+
+void FadeState::startFade(EnabledState newState) {
+	if (newState == EnabledState::OFF) {
+		enabledState = EnabledState::OFF;
+		currentAlpha = 0;
+		return;
+	}
+
+	if (newState == EnabledState::FADE_OUT) {
+		fadeTime = ((255 - currentAlpha) / 255.0f) * FADE_DURATION;
+		enabledState = EnabledState::FADE_OUT;
+		return;
+	}
+
+	if (newState == EnabledState::FADE_IN) {
+		fadeTime = (currentAlpha / 255.0f) * FADE_DURATION;
+	} else {
+		fadeTime = 0.0f;
+		currentAlpha = (newState == EnabledState::ON) ? 255 : 0;
+	}
+
+	enabledState = newState;
+}

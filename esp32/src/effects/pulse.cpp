@@ -42,6 +42,12 @@ void PulseEffect::add(JsonDocument& props) {
 	newPulse.collapse = collapse;
 	newPulse.elapsedTime = 0.0f;
 	newPulse.easing = getEasingFunction(easingName);
+
+	// Cap vector size to prevent unbounded growth under high load
+	static constexpr size_t MAX_PULSES = 64;
+	if (pulses.size() >= MAX_PULSES) {
+		pulses.erase(pulses.begin());  // Drop oldest
+	}
 	pulses.push_back(newPulse);
 }
 

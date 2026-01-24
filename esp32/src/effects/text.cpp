@@ -63,6 +63,11 @@ void TextEffect::add(JsonDocument& props) {
 		instance.gradientTime = 0.0f;
 	}
 
+	// Cap vector size to prevent unbounded growth under high load
+	static constexpr size_t MAX_TEXT_INSTANCES = 64;
+	if (instances.size() >= MAX_TEXT_INSTANCES) {
+		instances.erase(instances.begin());  // Drop oldest
+	}
 	instances.push_back(instance);
 }
 

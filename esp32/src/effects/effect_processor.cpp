@@ -35,6 +35,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  textEffect(matrix, canvas),
 	  scrollTextEffect(matrix, canvas),
 	  plasmaEffect(matrix, canvas),
+	  warpEffect(matrix, canvas),
 	  spectrumEffect(matrix, canvas),
 	  particleFieldEffect(matrix, canvas),
 	  lastFrameTime(0),
@@ -49,6 +50,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 		  {"projectile", &projectileEffect},
 		  {"spectrum", &spectrumEffect},
 		  {"plasma", &plasmaEffect},
+		  {"warp", &warpEffect},
 		  {"text", &textEffect},
 		  {"scroll_text", &scrollTextEffect},
 	  } {}
@@ -94,11 +96,15 @@ void EffectProcessor::update() {
 	plasmaEffect.render();
 	plasmaEffect.update(deltaTime);
 
-	// Render then update all other effects (excluding test, background, and plasma)
+	// Render warp THIRD (same layer concept as plasma)
+	warpEffect.render();
+	warpEffect.update(deltaTime);
+
+	// Render then update all other effects (excluding test, background, plasma, and warp)
 	// Render first so initial state is visible on the frame the effect is added
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0 &&
-		    strcmp(entry.name, "plasma") != 0) {
+		    strcmp(entry.name, "plasma") != 0 && strcmp(entry.name, "warp") != 0) {
 			entry.effect->render();
 			entry.effect->update(deltaTime);
 		}

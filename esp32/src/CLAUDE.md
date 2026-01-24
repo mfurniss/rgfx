@@ -32,7 +32,7 @@ Key global variables shared between cores:
 
 | File | Purpose |
 |------|---------|
-| `main.cpp` | Entry point with `setup()` and `loop()`. Initializes all subsystems, creates FreeRTOS task for Core 0, runs LED rendering loop on Core 1. |
+| `main.cpp` | Entry point with `setup()` and `loop()`. Initializes all subsystems, creates FreeRTOS task for Core 0, runs LED rendering loop on Core 1. Note: per-message UDP logging removed for latency reduction. |
 | `driver_config.h/cpp` | Defines `LEDDeviceConfig` and `DriverConfigData` structs. Holds global driver state including all LED device configurations. Note: name/description removed - devices identified by ID. |
 | `crash_handler.h/cpp` | Detects unexpected resets, stores crash info in RTC memory, reports crash details to Hub on next boot. |
 | `safe_restart.h/cpp` | Safe device restart that signals Core 1 to stop, clears LEDs (if initialized), then restarts. Checks `isFastLEDInitialized()` to avoid crash on fresh devices without LED config. |

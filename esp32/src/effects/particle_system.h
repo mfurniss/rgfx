@@ -32,6 +32,7 @@ class ParticleSystem {
 	uint16_t canvasHeight;
 	bool isStrip;
 	uint32_t head = 0;
+	uint32_t activeCount = 0;  // Tracks live particles for early-exit optimization
 
    public:
 	ParticleSystem(const Matrix& matrix, Canvas& canvas);
@@ -40,4 +41,6 @@ class ParticleSystem {
 	void update(float deltaTime);
 	void render();
 	void reset();
+
+	uint32_t getActiveCount() const { return activeCount; }
 };
