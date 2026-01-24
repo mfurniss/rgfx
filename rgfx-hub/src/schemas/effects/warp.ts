@@ -33,19 +33,24 @@ export default z
   .object({
     name: z.literal('Warp'),
     description: z.literal('Center-radiating animated gradient effect'),
+    enabled: z
+      .enum(['off', 'on', 'fadeIn', 'fadeOut'])
+      .optional()
+      .default('fadeIn')
+      .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
     speed: z
       .number()
       .min(-50)
       .max(50)
       .optional()
-      .default(4)
+      .default(2.5)
       .describe('Animation speed (positive=expand, negative=collapse)'),
     scale: z
       .number()
       .min(-10)
       .max(10)
       .optional()
-      .default(4)
+      .default(3)
       .describe('Perspective (0=linear, >0=3D tunnel, <0=inverted)'),
     orientation: z
       .enum(['horizontal', 'vertical'])
@@ -58,11 +63,6 @@ export default z
       .optional()
       .default(['#FFFF00', '#00FFFF', '#0000FF', '#FFFF00'])
       .describe(`fieldType:gradientArray|Gradient colors (up to ${MAX_GRADIENT_COLORS} hex colors)`),
-    enabled: z
-      .enum(['off', 'on', 'fadeIn', 'fadeOut'])
-      .optional()
-      .default('fadeIn')
-      .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();
 
