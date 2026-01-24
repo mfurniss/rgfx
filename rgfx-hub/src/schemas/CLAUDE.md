@@ -87,7 +87,7 @@ Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `pulse.ts` - Full-screen color pulse with fade and collapse options
 - `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered)
 - `text.ts` - Static text rendering with gradient and optional accent color
-- `warp.ts` - Center-radiating animated gradient effect (old-school 3D warp)
+- `warp.ts` - Center-radiating animated gradient effect (old-school 3D warp). Uses `enabled` enum with fade support.
 - `wipe.ts` - Color wipe sweeping across the display with random blend mode option
 
 ### Per-Effect Randomize Functions
