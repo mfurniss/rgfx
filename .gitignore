@@ -27,3 +27,4 @@ tools/led-sim/build/
 
 # Claude Code local settings (user-specific permissions)
 .claude/settings.local.json
+rgfx-hub/.claude/settings.local.json

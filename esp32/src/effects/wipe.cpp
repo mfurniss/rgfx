@@ -64,6 +64,12 @@ void WipeEffect::add(JsonDocument& props) {
 	newWipe.elapsedTime = 0;
 	newWipe.direction = parseDirection(dirStr, is1D);
 	newWipe.blendMode = parseBlendMode(blendModeStr);
+
+	// Cap vector size to prevent unbounded growth under high load
+	static constexpr size_t MAX_WIPES = 64;
+	if (wipes.size() >= MAX_WIPES) {
+		wipes.erase(wipes.begin());  // Drop oldest
+	}
 	wipes.push_back(newWipe);
 }
 

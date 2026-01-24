@@ -100,12 +100,21 @@ Effect messages received via UDP:
 
 UDP packets are only accepted from the Hub's IP address (validated against discovered MQTT broker IP).
 
-## Key Constants (from config/constants.h)
+### UDP Queue
+
+UDP messages are stored in a circular buffer queue for burst handling:
+- **Queue Size:** 16 messages (handles high-load burst traffic)
+- **Access Pattern:** Single-threaded (Core 1 only) - no cross-core sync needed
+- **Overflow:** When full, new messages are dropped (counter incremented)
+- **Telemetry:** `getUdpQueueDepth()` exposes current queue depth for monitoring
+
+## Key Constants (from config/constants.h and udp.h)
 
 - `MQTT_PORT` - MQTT broker port (1883)
 - `MQTT_BUFFER_SIZE` - MQTT message buffer size
 - `UDP_PORT` - UDP listener port for effects
-- `UDP_BUFFER_SIZE` - UDP message buffer size
+- `UDP_BUFFER_SIZE` - UDP message buffer size (1472 bytes, max without IP fragmentation)
+- `UDP_QUEUE_SIZE` - UDP message queue capacity (16 messages)
 - `SSDP_POLL_INTERVAL_MS` - Broker discovery poll interval (3000ms)
 - `TELEMETRY_INTERVAL_MS` - Telemetry broadcast interval (10000ms)
 

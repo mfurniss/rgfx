@@ -19,11 +19,19 @@ ParticleSystem::ParticleSystem(const Matrix& matrix, Canvas& c)
 }
 
 void ParticleSystem::add(const Particle& p) {
+	// Track active count: only increment if overwriting a dead particle
+	if (particlePool[head].alpha == 0) {
+		activeCount++;
+	}
 	particlePool[head] = p;
 	head = (head + 1) % MAX_PARTICLES;
 }
 
 void ParticleSystem::update(float deltaTime) {
+	if (activeCount == 0) {
+		return;
+	}
+
 	uint32_t deltaTimeMs = static_cast<uint32_t>(deltaTime * 1000.0f);
 
 	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
@@ -60,6 +68,7 @@ void ParticleSystem::update(float deltaTime) {
 
 		if (p.age >= p.lifespan || outOfBounds) {
 			p.alpha = 0;
+			activeCount--;
 		} else {
 			float lifeProgress = static_cast<float>(p.age) / p.lifespan;
 			p.alpha = static_cast<uint8_t>(255.0f * (1.0f - lifeProgress));
@@ -68,6 +77,10 @@ void ParticleSystem::update(float deltaTime) {
 }
 
 void ParticleSystem::render() {
+	if (activeCount == 0) {
+		return;
+	}
+
 	for (uint32_t i = 0; i < MAX_PARTICLES; i++) {
 		const Particle& p = particlePool[i];
 
@@ -109,4 +122,5 @@ void ParticleSystem::reset() {
 		particlePool[i].alpha = 0;
 	}
 	head = 0;
+	activeCount = 0;
 }

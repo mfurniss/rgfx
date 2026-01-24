@@ -88,6 +88,12 @@ void ExplodeEffect::add(JsonDocument& props) {
 		flash.r = baseR;
 		flash.g = baseG;
 		flash.b = baseB;
+
+		// Cap vector size to prevent unbounded growth under high load
+		static constexpr size_t MAX_FLASHES = 64;
+		if (flashes.size() >= MAX_FLASHES) {
+			flashes.erase(flashes.begin());  // Drop oldest
+		}
 		flashes.push_back(flash);
 	}
 

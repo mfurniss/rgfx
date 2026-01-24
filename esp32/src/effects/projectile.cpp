@@ -110,6 +110,11 @@ void ProjectileEffect::add(JsonDocument& props) {
 			break;
 	}
 
+	// Cap vector size to prevent unbounded growth under high load
+	static constexpr size_t MAX_PROJECTILES = 64;
+	if (projectiles.size() >= MAX_PROJECTILES) {
+		projectiles.erase(projectiles.begin());  // Drop oldest
+	}
 	projectiles.push_back(newProjectile);
 }
 

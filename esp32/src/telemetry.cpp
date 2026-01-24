@@ -53,6 +53,7 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	doc["mqttMessagesReceived"] = mqttMessagesReceived;
 	doc["udpMessagesReceived"] = udpMessagesReceived;
 	doc["udpMessagesDropped"] = udpMessagesDropped;
+	doc["udpQueueDepth"] = getUdpQueueDepth();
 
 	// FPS metrics
 	doc["currentFps"] = getCurrentFps();

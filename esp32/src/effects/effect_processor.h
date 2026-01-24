@@ -12,6 +12,7 @@
 #include "effects/text.h"
 #include "effects/scroll_text.h"
 #include "effects/plasma.h"
+#include "effects/warp.h"
 #include "effects/spectrum.h"
 #include "effects/particle_field.h"
 #include "effects/particle_system.h"
@@ -65,11 +66,12 @@ class EffectProcessor {
 	TextEffect textEffect;
 	ScrollTextEffect scrollTextEffect;
 	PlasmaEffect plasmaEffect;
+	WarpEffect warpEffect;
 	SpectrumEffect spectrumEffect;
 	ParticleFieldEffect particleFieldEffect;
 	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
-	EffectEntry effectMap[12];
+	EffectEntry effectMap[13];
 
    public:
 	EffectProcessor(Matrix& matrix, hal::IDisplay& display);

@@ -10,8 +10,8 @@
 // - UDP_PORT: Port to listen on for UDP messages
 // - UDP_BUFFER_SIZE: Buffer size for incoming messages
 
-// Queue capacity - 8 messages handles burst traffic
-static const uint8_t UDP_QUEUE_SIZE = 8;
+// Queue capacity - 16 messages handles burst traffic under high load
+static const uint8_t UDP_QUEUE_SIZE = 16;
 
 // Maximum effect name length (e.g., "explode", "pulse", "wipe")
 static const size_t MAX_EFFECT_NAME_LENGTH = 32;
@@ -56,5 +56,8 @@ extern uint32_t udpMessagesDropped;
 void setupUDP();
 void processUDP();
 bool checkUDPMessage(UDPMessage* message);
+
+// Telemetry: Get current queue depth (0-16)
+uint8_t getUdpQueueDepth();
 
 #endif
