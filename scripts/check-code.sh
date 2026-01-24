@@ -12,11 +12,11 @@ ROOT_DIR="$(git rev-parse --show-toplevel)"
 
 # macOS notification helper (requires: brew install terminal-notifier)
 notify() {
-    terminal-notifier -title "RGFX Pre-commit" -message "$1" 2>/dev/null || true
+    terminal-notifier -title "RGFX Code Checks" -message "$1" 2>/dev/null || true
 }
 
 # Notify on failure
-trap 'notify "Pre-commit checks failed!"' ERR
+trap 'notify "Code checks failed!"' ERR
 
 # Determine which areas have changes based on staged files
 HUB_CHANGES=false
@@ -148,7 +148,7 @@ if [ -n "$STAGED_FILES" ]; then
     fi
 fi
 
-notify "Starting pre-commit checks..."
+notify "Starting code checks..."
 echo "🔍 Running code quality checks..."
 echo ""
 
