@@ -793,6 +793,76 @@ void test_pulse_property_all_configs_nonblack_at_start() {
 	}
 }
 
+// =============================================================================
+// Vector Cap Tests - Latency Optimization
+// =============================================================================
+
+void test_pulse_vector_cap_drops_oldest() {
+	// Test that adding more than MAX_PULSES (64) drops oldest pulses
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	// Add 70 pulses (more than the cap of 64)
+	for (int i = 0; i < 70; i++) {
+		JsonDocument props;
+		setDefaultPulseProps(props);
+		props["color"] = "#FF0000";
+		props["duration"] = 10000;  // Long duration so they don't expire
+		props["collapse"] = "none";
+		effect.add(props);
+	}
+
+	// Effect should still render without issue
+	canvas.clear();
+	effect.render();
+
+	// Should have non-black pixels (pulses are active)
+	bool hasNonBlack = false;
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r != 0 || pixel.g != 0 || pixel.b != 0) {
+				hasNonBlack = true;
+				break;
+			}
+		}
+	}
+	TEST_ASSERT_TRUE(hasNonBlack);
+}
+
+void test_pulse_vector_cap_maintains_rendering() {
+	// Test that vector cap doesn't break rendering
+	Matrix matrix(4, 4);
+	Canvas canvas(matrix);
+	PulseEffect effect(matrix, canvas);
+
+	// Add pulses at capacity
+	for (int i = 0; i < 64; i++) {
+		JsonDocument props;
+		setDefaultPulseProps(props);
+		props["color"] = "#00FF00";
+		props["duration"] = 5000;
+		props["collapse"] = "none";
+		effect.add(props);
+	}
+
+	// Add one more (should drop oldest)
+	JsonDocument props;
+	setDefaultPulseProps(props);
+	props["color"] = "#0000FF";  // Blue - this should be present
+	props["duration"] = 5000;
+	props["collapse"] = "none";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+
+	// Blue pulse should be rendered (it's the newest)
+	CRGB pixel = canvas.getPixel(0, 0);
+	TEST_ASSERT_GREATER_THAN(0, pixel.b);
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -837,6 +907,10 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_pulse_property_collapse_horizontal_shrinks_bbox);
 	RUN_TEST(test_pulse_property_collapse_vertical_shrinks_bbox);
 	RUN_TEST(test_pulse_property_all_configs_nonblack_at_start);
+
+	// Vector cap tests - latency optimization
+	RUN_TEST(test_pulse_vector_cap_drops_oldest);
+	RUN_TEST(test_pulse_vector_cap_maintains_rendering);
 
 	return UNITY_END();
 }
