@@ -19,16 +19,21 @@ void WarpEffect::precomputeDistances(uint16_t physicalDimension) {
 
 	float center = (physicalDimension - 1) / 2.0f;
 	float maxDist = (center < 1.0f) ? 1.0f : center;
-	float exponent = powf(2.0f, fabsf(state.scale));
+
+	// Linear exponent: scale 0 → exp 1 (linear), scale 3 → exp ~2
+	float exponent = 1.0f + fabsf(state.scale) * 0.3f;
 
 	for (uint16_t i = 0; i < physicalDimension; i++) {
 		float normalizedDist = fabsf(static_cast<float>(i) - center) / maxDist;
 
 		if (state.scale > 0.0f) {
-			float distFromEdge = 1.0f - normalizedDist;
-			state.scaledDist[i] = 1.0f - powf(distFromEdge, exponent);
+			// Tunnel: wide bands at center, narrow at edges
+			// Invert so center leads (colors flow center→edge with positive speed)
+			state.scaledDist[i] = 1.0f - powf(normalizedDist, exponent);
 		} else {
-			state.scaledDist[i] = powf(normalizedDist, exponent);
+			// Bulge: narrow bands at center, wide at edges
+			float distFromEdge = 1.0f - normalizedDist;
+			state.scaledDist[i] = powf(distFromEdge, exponent);
 		}
 	}
 
@@ -136,15 +141,15 @@ void WarpEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse speed (can be negative for collapsing warp), scaled down for smoother animation
-	float speed = (props["speed"] | 1.0f) * 0.3f;
+	// Parse speed (positive=expand outward, negative=collapse inward), scaled down for smoother animation
+	float speed = -(props["speed"] | 1.0f) * 0.3f;
 
-	// Parse scale (0=linear, >0=compresses edges/3D tunnel, <0=compresses center), scaled down
-	float scale = (props["scale"] | 0.0f) * 0.25f;
-	if (scale < -1.25f)
-		scale = -1.25f;
-	if (scale > 1.25f)
-		scale = 1.25f;
+	// Parse scale (0=linear, >0=tunnel perspective, <0=bulge perspective)
+	float scale = props["scale"] | 0.0f;
+	if (scale < -10.0f)
+		scale = -10.0f;
+	if (scale > 10.0f)
+		scale = 10.0f;
 
 	// Parse orientation ("vertical" or "horizontal", default horizontal)
 	state.isVertical = false;

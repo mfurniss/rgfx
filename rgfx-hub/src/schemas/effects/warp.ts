@@ -7,13 +7,13 @@
 
 import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
-import { randomFloat, randomGradient } from '@/utils/random';
+import { randomInt, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
 
 export function randomize(): Record<string, unknown> {
   return {
-    speed: randomFloat(-3, 3),
-    scale: randomFloat(0.5, 2),
+    speed: randomInt(-10, 10),
+    scale: randomInt(-10, 10),
     enabled: 'fadeIn',
     orientation: Math.random() > 0.5 ? 'horizontal' : 'vertical',
     gradient: randomGradient(),
