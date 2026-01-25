@@ -10,9 +10,25 @@ set -e
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
-# macOS notification helper (requires: brew install terminal-notifier)
+# Cross-platform notification helper
+# macOS: brew install terminal-notifier
+# Windows: uses native Toast API (no install required)
 notify() {
-    terminal-notifier -title "RGFX Code Checks" -message "$1" 2>/dev/null || true
+    case "$(uname -s)" in
+        Darwin)
+            terminal-notifier -title "RGFX Code Checks" -message "$1" 2>/dev/null || true
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            powershell.exe -Command "
+                [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+                [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
+                \$xml = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText01)
+                \$xml.GetElementsByTagName('text').Item(0).InnerText = '$1'
+                \$toast = [Windows.UI.Notifications.ToastNotification]::new(\$xml)
+                [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('RGFX Code Checks').Show(\$toast)
+            " 2>/dev/null || true
+            ;;
+    esac
 }
 
 # Notify on failure
