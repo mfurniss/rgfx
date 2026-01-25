@@ -7,8 +7,8 @@
   "scripts": {
     "start": "electron-forge start",
     "start-nodemon": "nodemon --watch src --ext ts --ignore 'src/renderer/**' --exec 'electron-forge start'",
-    "package": "NODE_NO_WARNINGS=1 electron-forge package",
-    "make": "NODE_NO_WARNINGS=1 electron-forge make",
+    "package": "cross-env NODE_NO_WARNINGS=1 electron-forge package",
+    "make": "cross-env NODE_NO_WARNINGS=1 electron-forge make",
     "publish": "electron-forge publish",
     "prepackage": "node scripts/generate-icons.js",
     "premake": "node scripts/generate-icons.js",
@@ -54,6 +54,7 @@
     "@types/w3c-web-serial": "^1.0.8",
     "@vitejs/plugin-react": "^5.1.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "cross-env": "^10.1.0",
     "depcheck": "^1.4.7",
     "electron": "38.3.0",
     "eslint": "^9.18.0",
