@@ -7,6 +7,7 @@
 
 import { watch, readFileSync, statSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import chokidar, { type FSWatcher } from 'chokidar';
 import log from 'electron-log/main';
 import {
   EVENT_LOG_FILENAME,
@@ -28,6 +29,7 @@ export class EventFileReader {
   private filePath: string;
   private filePosition = 0;
   private watcher?: ReturnType<typeof watch>;
+  private chokidarWatcher?: FSWatcher;
   private pollInterval?: NodeJS.Timeout;
   private onEventCallback?: (topic: string, message: string) => void;
   private onErrorCallback?: (message: string) => void;
@@ -81,16 +83,40 @@ export class EventFileReader {
     this.stopPolling();
 
     try {
-      this.watcher = watch(this.filePath, (eventType) => {
-        if (eventType === 'change' && this.onEventCallback) {
-          this.readNewLines();
-        }
-      });
+      if (process.platform === 'win32') {
+        // Windows: use chokidar with polling for reliable low-latency detection
+        // Native fs.watch on Windows uses ReadDirectoryChangesW which has high latency
+        this.chokidarWatcher = chokidar.watch(this.filePath, {
+          persistent: true,
+          usePolling: true,
+          interval: 10,
+          awaitWriteFinish: false,
+          ignoreInitial: true,
+        });
 
-      this.watcher.on('error', (err) => {
-        log.error('Watch error:', err);
-        this.handleError();
-      });
+        this.chokidarWatcher.on('change', () => {
+          if (this.onEventCallback) {
+            this.readNewLines();
+          }
+        });
+
+        this.chokidarWatcher.on('error', (err: unknown) => {
+          log.error('Chokidar watch error:', err);
+          this.handleError();
+        });
+      } else {
+        // macOS/Linux: use native fs.watch (fast and reliable)
+        this.watcher = watch(this.filePath, (eventType) => {
+          if (eventType === 'change' && this.onEventCallback) {
+            this.readNewLines();
+          }
+        });
+
+        this.watcher.on('error', (err) => {
+          log.error('Watch error:', err);
+          this.handleError();
+        });
+      }
 
       log.info('File watcher started');
     } catch (err) {
@@ -117,8 +143,14 @@ export class EventFileReader {
     if (this.watcher) {
       this.watcher.close();
       this.watcher = undefined;
-      log.debug('File watcher stopped');
     }
+
+    if (this.chokidarWatcher) {
+      void this.chokidarWatcher.close();
+      this.chokidarWatcher = undefined;
+    }
+
+    log.debug('File watcher stopped');
   }
 
   private stopPolling() {
