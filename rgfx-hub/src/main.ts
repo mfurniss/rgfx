@@ -80,7 +80,7 @@ const windowManager = createWindowManager({
 
 // Subscribe to network changes to update system status
 eventBus.on('network:changed', () => {
-  windowManager.sendSystemStatus();
+  void windowManager.sendSystemStatus();
 });
 
 // Start services if no critical errors (corrupt config files)

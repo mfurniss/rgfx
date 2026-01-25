@@ -105,7 +105,7 @@ describe('createWindowManager', () => {
 
     mockDeps = {
       systemMonitor: {
-        getSystemStatus: vi.fn().mockReturnValue({
+        getSystemStatus: vi.fn().mockResolvedValue({
           mqttBroker: 'running',
           driversConnected: 1,
           driversTotal: 2,
@@ -216,7 +216,7 @@ describe('createWindowManager', () => {
     const { createWindowManager } = await import('../window-manager.js');
     const manager = createWindowManager(mockDeps);
 
-    manager.sendSystemStatus();
+    await manager.sendSystemStatus();
 
     expect(mockDeps.systemMonitor.getSystemStatus).not.toHaveBeenCalled();
   });
@@ -226,7 +226,7 @@ describe('createWindowManager', () => {
     const manager = createWindowManager(mockDeps);
 
     manager.createWindow();
-    manager.sendSystemStatus();
+    await manager.sendSystemStatus();
 
     expect(mockDeps.systemMonitor.getSystemStatus).toHaveBeenCalled();
     expect(mockWebContents.send).toHaveBeenCalledWith('system:status', expect.anything());

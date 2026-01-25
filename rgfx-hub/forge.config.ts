@@ -9,6 +9,11 @@ import { execSync } from "child_process";
 const config: ForgeConfig = {
   hooks: {
     generateAssets: async () => {
+      // Skip docs build on Windows (requires bash/mkdocs)
+      if (process.platform === "win32") {
+        console.log("Skipping docs build on Windows");
+        return;
+      }
       console.log("Building documentation...");
       execSync("npm run docs:build", {
         cwd: path.join(__dirname, ".."),

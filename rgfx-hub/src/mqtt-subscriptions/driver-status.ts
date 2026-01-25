@@ -57,13 +57,16 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       driver.state = 'disconnected';
 
       sendToRenderer(getMainWindow, 'driver:disconnected', serializeDriverForIPC(driver));
-      const status = systemMonitor.getSystemStatus(
-        driverRegistry.getConnectedCount(),
-        driverRegistry.getAllDrivers().length,
-        getEventsProcessed(),
-        getEventLogSizeBytes(),
-      );
-      sendToRenderer(getMainWindow, 'system:status', status);
+      void systemMonitor
+        .getSystemStatus(
+          driverRegistry.getConnectedCount(),
+          driverRegistry.getAllDrivers().length,
+          getEventsProcessed(),
+          getEventLogSizeBytes(),
+        )
+        .then((status) => {
+          sendToRenderer(getMainWindow, 'system:status', status);
+        });
     } else if (payload === 'online') {
       log.info(`Driver ${driverId} LWT status: online (waiting for connect message)`);
     }
