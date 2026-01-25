@@ -184,10 +184,12 @@ export class EventFileReader {
           log.debug(`Processing ${lines.length} event(s)`);
         }
 
-        for (const line of lines) {
+        for (const rawLine of lines) {
+          // Trim handles Windows \r\n line endings from MAME on Windows
+          const line = rawLine.trim();
           const firstSpaceIndex = line.indexOf(' ');
           const topic = firstSpaceIndex > 0 ? line.substring(0, firstSpaceIndex) : line;
-          const message = firstSpaceIndex > 0 ? line.substring(firstSpaceIndex + 1) : '';
+          const message = firstSpaceIndex > 0 ? line.substring(firstSpaceIndex + 1).trim() : '';
 
           if (!isValidTopic(topic)) {
             const errorMsg = `Invalid topic in event log: "${topic}"`;
