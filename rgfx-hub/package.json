@@ -90,6 +90,7 @@
     "@trpc/react-query": "^11.8.0",
     "@trpc/server": "^11.8.0",
     "aedes": "^0.51.3",
+    "chokidar": "^5.0.0",
     "colord": "^2.9.3",
     "d3-scale": "^4.0.2",
     "date-fns": "^4.1.0",
