@@ -69,7 +69,7 @@ describe('subscribeDriverStatus', () => {
     };
 
     mockSystemMonitor = mock<SystemMonitor>();
-    mockSystemMonitor.getSystemStatus.mockReturnValue(mockStatus);
+    mockSystemMonitor.getSystemStatus.mockResolvedValue(mockStatus);
 
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);

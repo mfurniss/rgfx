@@ -5,75 +5,47 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { networkInterfaces } from 'node:os';
 import log from 'electron-log/main';
 
-interface NetworkInterface {
-  name: string;
-  address: string;
+// Cache the module import and last logged IP to avoid spammy logging
+let internalIpModule: { internalIpV4: () => Promise<string | undefined> } | null = null;
+let lastLoggedIP: string | null = null;
+
+async function getInternalIpModule() {
+  internalIpModule ??= await import('internal-ip');
+  return internalIpModule;
 }
 
-// Track last selected interface to avoid spammy logging
-let lastSelectedInterface: string | null = null;
-
 /**
- * Get the local IP address (IPv4, non-loopback, non-internal).
- * Prefers WiFi/Ethernet interfaces (en0, en1, eth0, etc.) over other interfaces.
+ * Get the local IP address by determining the outbound network interface.
+ * Uses the default gateway to find the correct interface.
+ * This approach respects the OS routing table and works across all platforms.
  */
-export function getLocalIP(): string {
-  const nets = networkInterfaces();
-  const candidates: NetworkInterface[] = [];
+export async function getLocalIP(): Promise<string> {
+  try {
+    const { internalIpV4 } = await getInternalIpModule();
+    const ip = await internalIpV4();
 
-  // Collect all non-loopback IPv4 addresses
-  for (const name of Object.keys(nets)) {
-    const netInterfaces = nets[name];
-
-    if (!netInterfaces) {
-      continue;
-    }
-
-    for (const net of netInterfaces) {
-      if (net.family === 'IPv4' && !net.internal) {
-        candidates.push({ name, address: net.address });
+    if (ip) {
+      if (ip !== lastLoggedIP) {
+        log.info(`Detected local IP: ${ip}`);
+        lastLoggedIP = ip;
       }
+      return ip;
     }
-  }
 
-  // Prefer WiFi/Ethernet interfaces (en0, en1, eth0, etc.)
-  const preferred = candidates.find(
-    (c) => c.name.startsWith('en') || c.name.startsWith('eth'),
-  );
-
-  if (preferred) {
-    if (lastSelectedInterface !== preferred.address) {
-      log.info(
-        `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`,
-      );
-      log.info(`Selected interface ${preferred.name} with IP ${preferred.address}`);
-      lastSelectedInterface = preferred.address;
+    if (lastLoggedIP !== '127.0.0.1') {
+      log.warn('internal-ip returned undefined, using localhost');
+      lastLoggedIP = '127.0.0.1';
     }
-    return preferred.address;
-  }
-
-  // Fallback to first candidate or localhost
-  if (candidates.length > 0) {
-    if (lastSelectedInterface !== candidates[0].address) {
-      log.info(
-        `Detected network interfaces: ${candidates.map((c) => `${c.name}=${c.address}`).join(', ')}`,
-      );
-      log.info(
-        `Using first available interface ${candidates[0].name} with IP ${candidates[0].address}`,
-      );
-      lastSelectedInterface = candidates[0].address;
+    return '127.0.0.1';
+  } catch (error) {
+    if (lastLoggedIP !== '127.0.0.1') {
+      log.warn('Failed to detect local IP, using localhost', error);
+      lastLoggedIP = '127.0.0.1';
     }
-    return candidates[0].address;
+    return '127.0.0.1';
   }
-
-  if (lastSelectedInterface !== '127.0.0.1') {
-    log.warn('No network interfaces found, using localhost');
-    lastSelectedInterface = '127.0.0.1';
-  }
-  return '127.0.0.1';
 }
 
 /**

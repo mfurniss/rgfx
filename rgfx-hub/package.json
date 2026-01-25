@@ -101,6 +101,7 @@
     "esptool-js": "^0.5.7",
     "framer-motion": "^12.23.25",
     "gifuct-js": "^2.1.2",
+    "internal-ip": "^8.0.1",
     "lodash-es": "^4.17.21",
     "node-ssdp": "^4.0.1",
     "react": "^19.2.0",
