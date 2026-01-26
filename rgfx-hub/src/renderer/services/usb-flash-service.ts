@@ -45,7 +45,6 @@ async function loadFirmwareManifest(onLog: (message: string) => void): Promise<F
   }
 
   const manifest = manifestResult.data;
-  onLog(`Firmware version: ${manifest.version}`);
   const variantCount = Object.keys(manifest.variants).length;
   onLog(`Available variants: ${Object.keys(manifest.variants).join(', ')} (${variantCount})`);
 
@@ -243,8 +242,9 @@ export async function flashViaUSB(
     onLog(`Detected chip type: ${chipType}`);
 
     // Get firmware files for detected chip
+    const variant = manifest.variants[chipType];
     const variantFiles = getVariantFiles(manifest, chipType);
-    onLog(`Loading ${chipType} firmware (${variantFiles.length} files)...`);
+    onLog(`Loading ${chipType} firmware v${variant.version} (${variantFiles.length} files)...`);
 
     // Load and verify firmware files for this chip
     const fileArray = await loadAndVerifyFirmwareFiles(variantFiles, onLog);
@@ -276,12 +276,12 @@ export async function flashViaUSB(
     // Reset the device
     await resetDevice(portToFlash, onLog);
 
-    onLog(`Firmware v${manifest.version} (${chipType}) flashed successfully!`);
+    onLog(`Firmware v${variant.version} (${chipType}) flashed successfully!`);
     onProgress(100);
 
     return {
       success: true,
-      firmwareVersion: manifest.version,
+      firmwareVersion: variant.version,
       chipType,
     };
   } catch (err) {

@@ -23,135 +23,157 @@ vi.mock('electron', () => ({
   },
 }));
 
+const validManifest = {
+  generatedAt: '2025-01-01T00:00:00Z',
+  variants: {
+    ESP32: {
+      version: '1.2.3',
+      files: [{
+        name: 'firmware-esp32.bin',
+        address: 0x10000,
+        size: 1000000,
+        sha256: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+      }],
+    },
+    'ESP32-S3': {
+      version: '1.2.4',
+      files: [{
+        name: 'firmware-esp32s3.bin',
+        address: 0x10000,
+        size: 1100000,
+        sha256: 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3',
+      }],
+    },
+  },
+};
+
 describe('FirmwareVersionService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
   });
 
-  describe('getCurrentVersion', () => {
-    it('should extract version from manifest.json', async () => {
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        version: '1.2.3',
-        generatedAt: '2025-01-01T00:00:00Z',
-        variants: {},
-      }));
+  describe('getVersions', () => {
+    it('should return all variant versions from manifest', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
+      const versions = firmwareVersionService.getVersions();
 
-      expect(version).toBe('1.2.3');
-      expect(mockReadFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('manifest.json'),
-        'utf-8',
-      );
+      expect(versions).toEqual({
+        'ESP32': '1.2.3',
+        'ESP32-S3': '1.2.4',
+      });
     });
 
-    it('should handle version with pre-release suffix', async () => {
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        version: '0.0.1-test',
-        generatedAt: '2025-01-01T00:00:00Z',
-        variants: {},
-      }));
-
-      const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
-
-      expect(version).toBe('0.0.1-test');
-    });
-
-    it('should handle version with complex suffix', async () => {
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        version: '2.0.0-beta.1+build.123',
-        generatedAt: '2025-01-01T00:00:00Z',
-        variants: {},
-      }));
-
-      const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
-
-      expect(version).toBe('2.0.0-beta.1+build.123');
-    });
-
-    it('should return null when manifest.json cannot be read', async () => {
+    it('should return empty object when manifest cannot be read', async () => {
       mockReadFileSync.mockImplementation(() => {
         throw new Error('File not found');
       });
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
+      const versions = firmwareVersionService.getVersions();
 
-      expect(version).toBeNull();
+      expect(versions).toEqual({});
     });
 
-    it('should return null when manifest.json contains invalid JSON', async () => {
+    it('should return empty object when manifest contains invalid JSON', async () => {
       mockReadFileSync.mockReturnValue('invalid json');
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const version = firmwareVersionService.getCurrentVersion();
+      const versions = firmwareVersionService.getVersions();
+
+      expect(versions).toEqual({});
+    });
+  });
+
+  describe('getVersionForChip', () => {
+    it('should return version for ESP32', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+      const version = firmwareVersionService.getVersionForChip('ESP32');
+
+      expect(version).toBe('1.2.3');
+    });
+
+    it('should return version for ESP32-S3', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+      const version = firmwareVersionService.getVersionForChip('ESP32-S3');
+
+      expect(version).toBe('1.2.4');
+    });
+
+    it('should return null when manifest cannot be read', async () => {
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error('File not found');
+      });
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+      const version = firmwareVersionService.getVersionForChip('ESP32');
 
       expect(version).toBeNull();
     });
   });
 
   describe('needsUpdate', () => {
-    it('should return true when versions differ', async () => {
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        version: '2.0.0',
-        generatedAt: '2025-01-01T00:00:00Z',
-        variants: {},
-      }));
+    it('should return true when versions differ for ESP32', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const needsUpdate = firmwareVersionService.needsUpdate('1.0.0');
+      const needsUpdate = firmwareVersionService.needsUpdate('1.0.0', 'ESP32');
 
       expect(needsUpdate).toBe(true);
     });
 
-    it('should return false when versions match', async () => {
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        version: '1.0.0',
-        generatedAt: '2025-01-01T00:00:00Z',
-        variants: {},
-      }));
+    it('should return false when versions match for ESP32', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const needsUpdate = firmwareVersionService.needsUpdate('1.0.0');
+      const needsUpdate = firmwareVersionService.needsUpdate('1.2.3', 'ESP32');
 
       expect(needsUpdate).toBe(false);
+    });
+
+    it('should compare against correct chip variant', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+
+      // ESP32 version is 1.2.3, ESP32-S3 version is 1.2.4
+      // Driver with version 1.2.3 on ESP32-S3 should need update
+      expect(firmwareVersionService.needsUpdate('1.2.3', 'ESP32-S3')).toBe(true);
+      // Driver with version 1.2.4 on ESP32-S3 should NOT need update
+      expect(firmwareVersionService.needsUpdate('1.2.4', 'ESP32-S3')).toBe(false);
     });
 
     it('should return false when driver version is undefined', async () => {
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        version: '1.0.0',
-        generatedAt: '2025-01-01T00:00:00Z',
-        variants: {},
-      }));
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const needsUpdate = firmwareVersionService.needsUpdate(undefined);
+      const needsUpdate = firmwareVersionService.needsUpdate(undefined, 'ESP32');
 
       expect(needsUpdate).toBe(false);
     });
 
-    it('should return false when current firmware version is null', async () => {
+    it('should return false when chip type is null', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+      const needsUpdate = firmwareVersionService.needsUpdate('1.0.0', null);
+
+      expect(needsUpdate).toBe(false);
+    });
+
+    it('should return false when manifest cannot be read', async () => {
       mockReadFileSync.mockImplementation(() => {
         throw new Error('File not found');
       });
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const needsUpdate = firmwareVersionService.needsUpdate('1.0.0');
-
-      expect(needsUpdate).toBe(false);
-    });
-
-    it('should return false when both versions are missing', async () => {
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('File not found');
-      });
-
-      const { firmwareVersionService } = await import('../firmware-version-service.js');
-      const needsUpdate = firmwareVersionService.needsUpdate(undefined);
+      const needsUpdate = firmwareVersionService.needsUpdate('1.0.0', 'ESP32');
 
       expect(needsUpdate).toBe(false);
     });

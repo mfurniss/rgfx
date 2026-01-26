@@ -107,7 +107,7 @@ export class SystemMonitor {
       eventsProcessed,
       eventLogSizeBytes,
       hubStartTime: this.hubStartTime,
-      currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
+      firmwareVersions: firmwareVersionService.getVersions(),
       udpMessagesSent,
       udpMessagesFailed,
       udpStatsByDriver: Object.fromEntries(this.udpStatsByDriver),

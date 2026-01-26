@@ -95,12 +95,14 @@ All subscription handlers receive these via dependency injection:
 interface MqttSubscriptionsDeps {
   mqtt: MqttBroker;           // For subscribing to topics
   driverRegistry: DriverRegistry;  // For updating driver state
-  systemMonitor: SystemMonitor;    // For system status updates
+  systemMonitor: SystemMonitor;    // For system status updates (async getSystemStatus())
   driverLogPersistence: DriverLogPersistence;  // For log file I/O
   getMainWindow: () => BrowserWindow | null;   // For IPC to renderer
   getEventsProcessed: () => number;  // For system status
 }
 ```
+
+**Note:** `SystemMonitor.getSystemStatus()` is async and returns a Promise. Tests use `vi.waitFor()` to handle the async IPC notification.
 
 ---
 

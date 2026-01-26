@@ -32,8 +32,10 @@ vi.mock('@/services/event-bus', () => ({
   },
 }));
 
-// Helper to flush pending promises
-const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+// Helper to flush pending promises - advances timers by 0ms to process queued microtasks
+const flushPromises = async () => {
+  await vi.advanceTimersByTimeAsync(0);
+};
 
 describe('NetworkManager', () => {
   let mockMqtt: DiscoveryController;

@@ -48,10 +48,10 @@ beforeEach(() => {
 
   // Default mock implementations with multi-chip variant structure
   mockGetFirmwareManifest.mockResolvedValue({
-    version: '1.0.0',
     generatedAt: '2025-01-01T00:00:00Z',
     variants: {
       ESP32: {
+        version: '1.0.0',
         files: [
           {
             name: 'firmware-esp32.bin',
@@ -62,6 +62,7 @@ beforeEach(() => {
         ],
       },
       'ESP32-S3': {
+        version: '1.0.0',
         files: [
           {
             name: 'firmware-esp32s3.bin',

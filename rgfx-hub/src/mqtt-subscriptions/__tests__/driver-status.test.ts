@@ -61,7 +61,7 @@ describe('subscribeDriverStatus', () => {
       eventsProcessed: 100,
       eventLogSizeBytes: 0,
       hubStartTime: Date.now(),
-      currentFirmwareVersion: '1.0.0',
+      firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' },
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
       udpStatsByDriver: {},
@@ -166,17 +166,20 @@ describe('subscribeDriverStatus', () => {
       );
     });
 
-    it('should send system:status IPC message when driver goes offline', () => {
+    it('should send system:status IPC message when driver goes offline', async () => {
       mockDriver.state = 'connected';
 
       subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
 
-      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
-        'system:status',
-        expect.objectContaining({
-          driversConnected: expect.any(Number),
-        }),
-      );
+      // Wait for async sendSystemStatus() to complete
+      await vi.waitFor(() => {
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+          'system:status',
+          expect.objectContaining({
+            driversConnected: expect.any(Number),
+          }),
+        );
+      });
     });
 
     it('should call getSystemStatus with current driver count and events', () => {

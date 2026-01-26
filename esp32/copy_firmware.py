@@ -71,19 +71,52 @@ def get_file_info(filepath, address):
     }
 
 
-def generate_multi_chip_manifest(hub_firmware_dir, version):
+def get_variant_version(hub_firmware_dir, chip_suffix):
+    """
+    Get the version for a specific chip variant from its versioned firmware file.
+
+    Looks for files matching pattern: rgfx-firmware-{chip_suffix}.{version}.bin
+    Returns the version string, or None if not found.
+    """
+    pattern = f'rgfx-firmware-{chip_suffix}.*.bin'
+    matches = list(hub_firmware_dir.glob(pattern))
+
+    if not matches:
+        return None
+
+    # Should only be one versioned file per variant (old ones are deleted on build)
+    versioned_file = matches[0]
+
+    # Extract version from filename: rgfx-firmware-esp32s3.0.1.0-dev+hash.bin -> 0.1.0-dev+hash
+    filename = versioned_file.name
+    prefix = f'rgfx-firmware-{chip_suffix}.'
+    suffix = '.bin'
+
+    if filename.startswith(prefix) and filename.endswith(suffix):
+        version = filename[len(prefix):-len(suffix)]
+        return version
+
+    return None
+
+
+def generate_multi_chip_manifest(hub_firmware_dir, current_build_version, current_build_chip=None):
     """
     Generate manifest.json with all chip variants.
 
+    Each variant tracks its own version independently, extracted from the
+    versioned firmware filename. This allows building variants at different
+    times without incorrectly flagging other variants as needing updates.
+
     Manifest structure:
     {
-        "version": "1.0.0",
         "generatedAt": "...",
         "variants": {
             "ESP32": {
+                "version": "0.1.0-dev+abc123",
                 "files": [...]
             },
             "ESP32-S3": {
+                "version": "0.1.0-dev+def456",
                 "files": [...]
             }
         }
@@ -106,6 +139,18 @@ def generate_multi_chip_manifest(hub_firmware_dir, version):
             print(f"  ⚠ Skipping {chip} variant (not built yet)")
             continue
 
+        # Get version for this specific variant
+        # If this is the variant we just built, use current_build_version
+        # Otherwise, extract from existing versioned filename
+        if current_build_chip and chip == current_build_chip:
+            variant_version = current_build_version
+        else:
+            variant_version = get_variant_version(hub_firmware_dir, chip_suffix)
+            if not variant_version:
+                # Fallback to current build version if no versioned file exists
+                variant_version = current_build_version
+                print(f"  ⚠ {chip}: No versioned file found, using current build version")
+
         files_info = []
 
         # Bootloader (chip-specific address)
@@ -120,22 +165,22 @@ def generate_multi_chip_manifest(hub_firmware_dir, version):
         files_info.append(get_file_info(firmware_file, FIRMWARE_ADDRESS))
 
         variants[chip] = {
+            'version': variant_version,
             'files': files_info
         }
 
-        print(f"  ✓ {chip} variant added to manifest")
+        print(f"  ✓ {chip} variant added to manifest (v{variant_version})")
 
     if not variants:
         raise RuntimeError("No firmware variants found to include in manifest")
 
     manifest = {
-        'version': version,
         'generatedAt': datetime.now(timezone.utc).isoformat(),
         'variants': variants,
     }
 
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
-    print(f"  ✓ manifest.json generated (version {version}, {len(variants)} variant(s))")
+    print(f"  ✓ manifest.json generated ({len(variants)} variant(s))")
 
 
 def copy_variant_to_hub(project_root, build_dir, env_name):
@@ -191,7 +236,8 @@ def copy_variant_to_hub(project_root, build_dir, env_name):
         print(f"  ✓ {versioned_name} ({versioned_path.stat().st_size} bytes)")
 
     # Regenerate manifest with all available variants
-    generate_multi_chip_manifest(hub_firmware_dir, version)
+    # Pass the chip we just built so its version is taken from current build
+    generate_multi_chip_manifest(hub_firmware_dir, version, current_build_chip=chip)
 
     print(f"{chip} firmware v{version} copied to Hub\n")
 
