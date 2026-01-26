@@ -71,21 +71,21 @@ export class SystemMonitor {
     this.firmwareWatcher.stop();
   }
 
-  getLocalIpAddress(): string {
-    const ip = getLocalIP();
+  async getLocalIpAddress(): Promise<string> {
+    const ip = await getLocalIP();
     // getLocalIP returns '127.0.0.1' when no network found
     return ip === '127.0.0.1' ? 'Unknown' : ip;
   }
 
   // Generate system status object
-  getSystemStatus(
+  async getSystemStatus(
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
     eventLogSizeBytes: number,
     errors: readonly SystemError[] = [],
-  ): SystemStatus {
-    const hubIp = this.getLocalIpAddress();
+  ): Promise<SystemStatus> {
+    const hubIp = await this.getLocalIpAddress();
     const isNetworkAvailable = hubIp !== 'Unknown';
 
     // Aggregate UDP stats from all drivers
@@ -107,7 +107,7 @@ export class SystemMonitor {
       eventsProcessed,
       eventLogSizeBytes,
       hubStartTime: this.hubStartTime,
-      currentFirmwareVersion: firmwareVersionService.getCurrentVersion() ?? undefined,
+      firmwareVersions: firmwareVersionService.getVersions(),
       udpMessagesSent,
       udpMessagesFailed,
       udpStatsByDriver: Object.fromEntries(this.udpStatsByDriver),

@@ -8,15 +8,18 @@ Main process services for firmware management, application lifecycle, and error 
 
 ### firmware-version-service.ts
 
-Singleton service that reads firmware version from `manifest.json` in the bundled firmware directory.
+Singleton service that reads firmware versions from `manifest.json` in the bundled firmware directory.
 
 - **Location**: `assets/esp32/firmware/` (dev) or `resources/firmware/` (packaged)
-- **Multi-chip support**: Firmware is available for ESP32 and ESP32-S3 variants
-- **Version source**: Reads `version` field from `manifest.json`
+- **Multi-chip support**: Each chip variant (ESP32, ESP32-S3) tracks its own version independently
+- **Version source**: Reads `version` field from each variant in `manifest.json`
 
 Key methods:
-- `getCurrentVersion()`: reads manifest.json, returns version string
-- `needsUpdate(driverVersion)`: compares driver version with bundled firmware
+- `getVersions()`: returns `Record<SupportedChip, string>` with all chip versions
+- `getVersionForChip(chipType)`: returns version string for a specific chip type
+- `needsUpdate(driverVersion, chipType)`: compares driver version with the target version for its chip type
+
+This per-chip version tracking prevents false "update needed" notifications when only one chip variant has been rebuilt.
 
 ### firmware-watcher.ts
 

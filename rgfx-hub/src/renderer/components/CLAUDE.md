@@ -185,11 +185,12 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Props:**
 - `driver: Driver` - The driver to display state for
-- `currentFirmwareVersion?: string` - Hub's current firmware version for comparison
+- `firmwareVersions?: Record<string, string>` - Per-chip firmware versions from system status
 
 **Features:**
 - Connected: green chip, Disconnected: red chip
-- Orange warning icon when firmware update available (version mismatch)
+- Orange warning icon when firmware update available (chip-aware version comparison)
+- Uses `mapChipNameToVariant()` to match driver's chip model to correct target version
 - Clicking warning navigates to firmware page
 
 ---
@@ -340,7 +341,8 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Purpose:** Warning banner displayed when drivers have outdated firmware.
 
 **Features:**
-- Shown when any connected driver has different firmware version than Hub
+- Shown when any connected driver has different firmware version than its chip type's target
+- Uses chip-aware version comparison via `mapChipNameToVariant()` to match each driver's chip model to the correct target version
 - Hidden automatically during OTA flashing operations
 - Navigates to firmware page when clicked
 

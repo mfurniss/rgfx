@@ -1,4 +1,5 @@
 import type { ForgeConfig } from "@electron-forge/shared-types";
+import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerDMG } from "@electron-forge/maker-dmg";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FuseV1Options, flipFuses, FuseVersion } from "@electron/fuses";
@@ -9,6 +10,11 @@ import { execSync } from "child_process";
 const config: ForgeConfig = {
   hooks: {
     generateAssets: async () => {
+      // Skip docs build on Windows (requires bash/mkdocs)
+      if (process.platform === "win32") {
+        console.log("Skipping docs build on Windows");
+        return;
+      }
       console.log("Building documentation...");
       execSync("npm run docs:build", {
         cwd: path.join(__dirname, ".."),
@@ -70,6 +76,9 @@ const config: ForgeConfig = {
   rebuildConfig: {},
 
   makers: [
+    new MakerSquirrel({
+      setupIcon: "./assets/icons/icon.ico",
+    }, ["win32"]),
     new MakerDMG({
       format: "ULFO",
       icon: "./assets/icons/icon.icns",

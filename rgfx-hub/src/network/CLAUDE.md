@@ -55,3 +55,8 @@ The broker starts both discovery services when it starts. ESP32 drivers listen f
 ## Related Documentation
 
 See [broker-discovery.md](../../../.claude/docs/broker-discovery.md) for the discovery protocol specification.
+
+## Testing Notes
+
+- `MqttBroker.start()` calls async `startDiscoveryServices()` - tests use `vi.waitFor()` for assertions
+- `NetworkManager` tests use `vi.advanceTimersByTimeAsync(0)` to flush promises with fake timers

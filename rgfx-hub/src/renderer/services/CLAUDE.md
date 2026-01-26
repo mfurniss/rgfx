@@ -45,3 +45,5 @@ Handles USB serial firmware flashing with automatic chip detection:
 **Note:** USB flashing uses `eraseAll: true` to ensure clean NVS initialization on fresh devices. This erases all settings including WiFi credentials, so the user must reconfigure after flashing.
 
 **Return:** `FlashResult` with `success`, `firmwareVersion`, `chipType`, `error?`
+
+**Manifest Format:** The manifest now stores version per-variant (not at the top level). The service validates the manifest and extracts the version from the detected chip's variant.

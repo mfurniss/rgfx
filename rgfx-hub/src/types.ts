@@ -333,7 +333,8 @@ export interface SystemStatus {
   eventsProcessed: number;
   eventLogSizeBytes: number;
   hubStartTime: number;
-  currentFirmwareVersion?: string;
+  /** Firmware versions indexed by chip type (ESP32, ESP32-S3) */
+  firmwareVersions?: Record<string, string>;
   udpMessagesSent: number;
   udpMessagesFailed: number;
   udpStatsByDriver: Record<string, UdpStats>;

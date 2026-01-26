@@ -114,15 +114,12 @@ ram.install_monitors(map, mem)
 
 print("=== STARWARS INTERCEPTOR v9 - Score Delta Detection - " .. os.date("%H:%M:%S") .. " ===")
 
--- Fire button detection via ioport
--- IN0 bit 7 (0x80): 1 = not pressed, 0 = pressed (active low)
+-- Fire button detection via memory-mapped I/O
+-- Address 0x4300 = IN0, bit 7 (0x80) = BUTTON1 (active low)
 local prev_fire = false
 
 local function check_fire_button()
-	local in0_port = manager.machine.ioport.ports[":IN0"]
-	if not in0_port then return end
-
-	local val = in0_port:read()
+	local val = mem:read_u8(0x4300)
 	local fire_pressed = (val & 0x80) == 0  -- active low
 
 	-- Detect rising edge (button just pressed)

@@ -32,26 +32,27 @@ Schemas for persisting driver configuration to disk:
 `LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Note: `name` was removed - hardware is identified by its filename.
 
 ### firmware-manifest.ts
-`FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with variants for different ESP32 chip types.
+`FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with per-variant versioning, allowing different chip types to be built at different times without causing false "update needed" notifications.
 
 **Exports:**
 - `SUPPORTED_CHIPS` - Array of supported chip types: `['ESP32', 'ESP32-S3']`
 - `SupportedChip` - Type alias for supported chip names
-- `FirmwareManifestSchema` - Validates manifest structure with `version`, `generatedAt`, and `variants` object
+- `FirmwareManifestSchema` - Validates manifest structure with `generatedAt` and `variants` object (each variant has its own `version`)
 - `mapChipNameToVariant(chipName)` - Maps chip model names (e.g., "ESP32-D0WD-V3", "ESP32-S3-WROOM-1") to supported variant keys
 - `getOtaFirmwareFilename(chipType)` - Returns OTA firmware filename for a chip type (e.g., "firmware-esp32.bin")
 
 **Manifest Structure:**
 ```json
 {
-  "version": "1.0.0",
   "generatedAt": "...",
   "variants": {
-    "ESP32": { "files": [{ "name": "...", "address": 0, "size": 123, "sha256": "..." }] },
-    "ESP32-S3": { "files": [...] }
+    "ESP32": { "version": "0.1.0-dev+abc123", "files": [...] },
+    "ESP32-S3": { "version": "0.1.0-dev+def456", "files": [...] }
   }
 }
 ```
+
+Each variant tracks its own version independently. When comparing driver firmware, the hub uses the version from the matching chip variant, not a global version.
 
 ## effects/ Subdirectory
 

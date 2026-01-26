@@ -99,9 +99,11 @@ describe('DriverState', () => {
       const driver = createMockDriver({
         disabled: true,
         state: 'connected',
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />,
+      );
 
       expect(screen.getByText('Disabled')).toBeDefined();
       expect(screen.queryByRole('button')).toBeNull();
@@ -112,9 +114,11 @@ describe('DriverState', () => {
     it('shows warning icon when driver needs update', () => {
       const driver = createMockDriver({
         state: 'connected',
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />,
+      );
 
       // Warning icon should be present (MUI Warning icon has data-testid)
       const warningButton = screen.getByRole('button');
@@ -124,9 +128,11 @@ describe('DriverState', () => {
     it('does not show warning icon when firmware versions match', () => {
       const driver = createMockDriver({
         state: 'connected',
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="1.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '1.0.0' }} />,
+      );
 
       expect(screen.queryByRole('button')).toBeNull();
     });
@@ -134,14 +140,16 @@ describe('DriverState', () => {
     it('does not show warning icon when driver is disconnected', () => {
       const driver = createMockDriver({
         state: 'disconnected',
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />,
+      );
 
       expect(screen.queryByRole('button')).toBeNull();
     });
 
-    it('does not show warning icon when no currentFirmwareVersion provided', () => {
+    it('does not show warning icon when no firmwareVersions provided', () => {
       const driver = createMockDriver({ state: 'connected' });
       renderWithRouter(<DriverState driver={driver} />);
 
@@ -153,7 +161,9 @@ describe('DriverState', () => {
         state: 'connected',
         telemetry: undefined,
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />,
+      );
 
       expect(screen.queryByRole('button')).toBeNull();
     });
@@ -161,9 +171,11 @@ describe('DriverState', () => {
     it('navigates to firmware page when warning icon is clicked', () => {
       const driver = createMockDriver({
         state: 'connected',
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />,
+      );
 
       const warningButton = screen.getByRole('button');
       fireEvent.click(warningButton);
@@ -174,14 +186,14 @@ describe('DriverState', () => {
     it('stops event propagation when warning icon is clicked', () => {
       const driver = createMockDriver({
         state: 'connected',
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
 
       const handleParentClick = vi.fn();
       const { container } = render(
         <MemoryRouter>
           <div onClick={handleParentClick}>
-            <DriverState driver={driver} currentFirmwareVersion="2.0.0" />
+            <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />
           </div>
         </MemoryRouter>,
       );
@@ -192,6 +204,39 @@ describe('DriverState', () => {
       fireEvent.click(warningButton!);
 
       expect(handleParentClick).not.toHaveBeenCalled();
+    });
+
+    it('compares against correct chip variant for ESP32-S3', () => {
+      const driver = createMockDriver({
+        state: 'connected',
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-S3-WROOM-1' } as Driver['telemetry'],
+      });
+      // ESP32 version is different but ESP32-S3 version matches
+      renderWithRouter(
+        <DriverState
+          driver={driver}
+          firmwareVersions={{ 'ESP32': '2.0.0', 'ESP32-S3': '1.0.0' }}
+        />,
+      );
+
+      // Should NOT show warning because ESP32-S3 version matches
+      expect(screen.queryByRole('button')).toBeNull();
+    });
+
+    it('shows warning when ESP32-S3 version differs', () => {
+      const driver = createMockDriver({
+        state: 'connected',
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-S3-WROOM-1' } as Driver['telemetry'],
+      });
+      renderWithRouter(
+        <DriverState
+          driver={driver}
+          firmwareVersions={{ 'ESP32': '1.0.0', 'ESP32-S3': '2.0.0' }}
+        />,
+      );
+
+      // Should show warning because ESP32-S3 version differs
+      expect(screen.getByRole('button')).toBeDefined();
     });
   });
 
@@ -234,9 +279,11 @@ describe('DriverState', () => {
       const driver = createMockDriver({
         state: 'connected',
         ledConfig: undefined,
-        telemetry: { firmwareVersion: '1.0.0' } as Driver['telemetry'],
+        telemetry: { firmwareVersion: '1.0.0', chipModel: 'ESP32-D0WD-V3' } as Driver['telemetry'],
       });
-      renderWithRouter(<DriverState driver={driver} currentFirmwareVersion="2.0.0" />);
+      renderWithRouter(
+        <DriverState driver={driver} firmwareVersions={{ 'ESP32': '2.0.0' }} />,
+      );
 
       const warningButton = screen.getByRole('button');
       fireEvent.click(warningButton);

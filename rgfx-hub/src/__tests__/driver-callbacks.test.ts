@@ -121,7 +121,7 @@ describe('setupDriverEventHandlers', () => {
       eventsProcessed: 100,
       eventLogSizeBytes: 0,
       hubStartTime: Date.now(),
-      currentFirmwareVersion: '1.0.0',
+      firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' },
       udpMessagesSent: 0,
       udpMessagesFailed: 0,
       udpStatsByDriver: {},
@@ -129,7 +129,7 @@ describe('setupDriverEventHandlers', () => {
     };
 
     mockSystemMonitor = {
-      getSystemStatus: vi.fn(() => mockStatus),
+      getSystemStatus: vi.fn(() => Promise.resolve(mockStatus)),
     };
 
     mockMqtt = {
@@ -196,15 +196,18 @@ describe('setupDriverEventHandlers', () => {
         );
       });
 
-      it('should send system:status IPC message after driver:connected', () => {
+      it('should send system:status IPC message after driver:connected', async () => {
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
-          'system:status',
-          expect.objectContaining({
-            driversConnected: expect.any(Number),
-          }),
-        );
+        // Wait for async sendSystemStatus() to complete
+        await vi.waitFor(() => {
+          expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            'system:status',
+            expect.objectContaining({
+              driversConnected: expect.any(Number),
+            }),
+          );
+        });
       });
 
       it('should not send IPC if window is destroyed', () => {
@@ -384,15 +387,18 @@ describe('setupDriverEventHandlers', () => {
         );
       });
 
-      it('should send system:status IPC message after driver:disconnected', () => {
+      it('should send system:status IPC message after driver:disconnected', async () => {
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
-          'system:status',
-          expect.objectContaining({
-            driversConnected: expect.any(Number),
-          }),
-        );
+        // Wait for async sendSystemStatus() to complete
+        await vi.waitFor(() => {
+          expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            'system:status',
+            expect.objectContaining({
+              driversConnected: expect.any(Number),
+            }),
+          );
+        });
       });
 
       it('should not send IPC if window is destroyed', () => {

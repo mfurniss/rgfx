@@ -40,19 +40,54 @@ import {
   getDriversToFlash,
   generateResultMessage,
 } from '../services/ota-flash-service';
+import { mapChipNameToVariant } from '@/schemas/firmware-manifest';
+import type { Driver } from '@/types';
+
+/**
+ * Check if a driver needs a firmware update based on its chip type
+ */
+function driverNeedsUpdate(
+  driver: Driver,
+  firmwareVersions: Record<string, string> | undefined,
+): boolean {
+  if (!firmwareVersions || Object.keys(firmwareVersions).length === 0) {
+    return false;
+  }
+
+  if (!driver.telemetry?.firmwareVersion || !driver.telemetry.chipModel) {
+    return false;
+  }
+
+  const chipType = mapChipNameToVariant(driver.telemetry.chipModel);
+
+  if (!chipType) {
+    return false;
+  }
+
+  const targetVersion = firmwareVersions[chipType];
+
+  if (!targetVersion) {
+    return false;
+  }
+
+  return driver.telemetry.firmwareVersion !== targetVersion;
+}
 
 const FirmwarePage: React.FC = () => {
   // Driver store
   const drivers = useDriverStore((state) => state.drivers);
-  const currentFirmwareVersion = useSystemStatusStore(
-    (state) => state.systemStatus.currentFirmwareVersion,
+  const firmwareVersions = useSystemStatusStore(
+    (state) => state.systemStatus.firmwareVersions,
   );
   const connectedDrivers = drivers.filter((d) => d.state === 'connected');
-  const driversNeedingUpdate = connectedDrivers.filter(
-    (d) =>
-      d.telemetry?.firmwareVersion &&
-      d.telemetry.firmwareVersion !== currentFirmwareVersion,
+  const driversNeedingUpdate = connectedDrivers.filter((d) =>
+    driverNeedsUpdate(d, firmwareVersions),
   );
+
+  // Get a display version (first available, or version for drivers being flashed)
+  const displayFirmwareVersion = firmwareVersions
+    ? Object.values(firmwareVersions)[0] ?? ''
+    : '';
 
   // Persisted state from store
   const storedFlashMethod = useUiStore((state) => state.firmwareFlashMethod);
@@ -193,7 +228,7 @@ const FirmwarePage: React.FC = () => {
       return;
     }
 
-    if (!currentFirmwareVersion) {
+    if (!firmwareVersions || Object.keys(firmwareVersions).length === 0) {
       flashState.setError('Firmware version not available');
       return;
     }
@@ -202,7 +237,7 @@ const FirmwarePage: React.FC = () => {
     flashState.resetForNewFlash();
 
     try {
-      const result = await flashViaOTA(driversToFlash, currentFirmwareVersion, {
+      const result = await flashViaOTA(driversToFlash, displayFirmwareVersion, {
         onLog: flashState.addLog,
         onDriverStatusChange: (driverId: string, status: DriverFlashStatus) => {
           flashState.setDriverFlashStatus((prev) => {
@@ -214,7 +249,7 @@ const FirmwarePage: React.FC = () => {
       });
 
       flashState.setProgress(100);
-      const { success, message } = generateResultMessage(result, currentFirmwareVersion);
+      const { success, message } = generateResultMessage(result, displayFirmwareVersion);
       flashState.showResult(success, message, 'ota');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -453,7 +488,7 @@ const FirmwarePage: React.FC = () => {
 
       <ConfirmFlashDialog
         open={confirmModal}
-        firmwareVersion={currentFirmwareVersion ?? ''}
+        firmwareVersion={displayFirmwareVersion}
         flashMethod={flashMethod}
         onConfirm={handleConfirmFlash}
         onCancel={() => {
