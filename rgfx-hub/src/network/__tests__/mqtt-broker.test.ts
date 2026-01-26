@@ -360,12 +360,15 @@ describe('MqttBroker', () => {
       expect(mockServer.listen).toHaveBeenCalledWith(1883, expect.any(Function));
     });
 
-    it('should start discovery services', () => {
+    it('should start discovery services', async () => {
       mqtt.start();
 
-      expect(mockDiscoveryService.start).toHaveBeenCalledWith({
-        mqttPort: 1883,
-        localIP: '192.168.1.100',
+      // Wait for async startDiscoveryServices() to complete
+      await vi.waitFor(() => {
+        expect(mockDiscoveryService.start).toHaveBeenCalledWith({
+          mqttPort: 1883,
+          localIP: '192.168.1.100',
+        });
       });
     });
   });

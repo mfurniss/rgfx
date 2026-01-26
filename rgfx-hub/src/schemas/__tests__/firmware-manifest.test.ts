@@ -22,10 +22,10 @@ describe('FirmwareManifestSchema', () => {
   };
 
   const validManifest = {
-    version: '1.2.3',
     generatedAt: '2025-01-15T10:30:00Z',
     variants: {
       ESP32: {
+        version: '1.2.3',
         files: [
           {
             name: 'bootloader-esp32.bin',
@@ -48,6 +48,7 @@ describe('FirmwareManifestSchema', () => {
         ],
       },
       'ESP32-S3': {
+        version: '1.2.4',
         files: [
           {
             name: 'bootloader-esp32s3.bin',
@@ -78,19 +79,20 @@ describe('FirmwareManifestSchema', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.version).toBe('1.2.3');
         expect(Object.keys(result.data.variants)).toHaveLength(2);
+        expect(result.data.variants.ESP32.version).toBe('1.2.3');
         expect(result.data.variants.ESP32.files).toHaveLength(3);
+        expect(result.data.variants['ESP32-S3'].version).toBe('1.2.4');
         expect(result.data.variants['ESP32-S3'].files).toHaveLength(3);
       }
     });
 
     it('should accept manifest with single variant', () => {
       const data = {
-        version: '1.0.0',
         generatedAt: '2025-01-01T00:00:00Z',
         variants: {
           ESP32: {
+            version: '1.0.0',
             files: [validFile],
           },
         },
@@ -102,10 +104,10 @@ describe('FirmwareManifestSchema', () => {
 
     it('should accept uppercase SHA256 hash', () => {
       const data = {
-        version: '1.0.0',
         generatedAt: '2025-01-01T00:00:00Z',
         variants: {
           ESP32: {
+            version: '1.0.0',
             files: [
               {
                 ...validFile,
@@ -121,22 +123,32 @@ describe('FirmwareManifestSchema', () => {
     });
   });
 
-  describe('version validation', () => {
-    it('should reject empty version', () => {
+  describe('variant version validation', () => {
+    it('should reject empty version in variant', () => {
       const result = FirmwareManifestSchema.safeParse({
-        ...validManifest,
-        version: '',
+        generatedAt: '2025-01-01T00:00:00Z',
+        variants: {
+          ESP32: {
+            version: '',
+            files: [validFile],
+          },
+        },
       });
       expect(result.success).toBe(false);
     });
 
-    it('should accept various version formats', () => {
+    it('should accept various version formats in variant', () => {
       const versions = ['1.0.0', '0.0.1', '2.10.300', 'v1.0.0', '1.0.0-alpha', '1.0.0-beta.1'];
 
       for (const version of versions) {
         const result = FirmwareManifestSchema.safeParse({
-          ...validManifest,
-          version,
+          generatedAt: '2025-01-01T00:00:00Z',
+          variants: {
+            ESP32: {
+              version,
+              files: [validFile],
+            },
+          },
         });
         expect(result.success).toBe(true);
       }
@@ -174,7 +186,7 @@ describe('FirmwareManifestSchema', () => {
       const result = FirmwareManifestSchema.safeParse({
         ...validManifest,
         variants: {
-          ESP32: { files: [] },
+          ESP32: { version: '1.0.0', files: [] },
         },
       });
       expect(result.success).toBe(false);
@@ -186,7 +198,7 @@ describe('FirmwareManifestSchema', () => {
       const result = FirmwareManifestSchema.safeParse({
         ...validManifest,
         variants: {
-          ESP32: { files: [{ ...validFile, name: '' }] },
+          ESP32: { version: '1.0.0', files: [{ ...validFile, name: '' }] },
         },
       });
       expect(result.success).toBe(false);
@@ -196,7 +208,7 @@ describe('FirmwareManifestSchema', () => {
       const result = FirmwareManifestSchema.safeParse({
         ...validManifest,
         variants: {
-          ESP32: { files: [{ ...validFile, address: -1 }] },
+          ESP32: { version: '1.0.0', files: [{ ...validFile, address: -1 }] },
         },
       });
       expect(result.success).toBe(false);
@@ -206,7 +218,7 @@ describe('FirmwareManifestSchema', () => {
       const result = FirmwareManifestSchema.safeParse({
         ...validManifest,
         variants: {
-          'ESP32-S3': { files: [{ ...validFile, address: 0 }] },
+          'ESP32-S3': { version: '1.0.0', files: [{ ...validFile, address: 0 }] },
         },
       });
       expect(result.success).toBe(true);
@@ -216,7 +228,7 @@ describe('FirmwareManifestSchema', () => {
       const result = FirmwareManifestSchema.safeParse({
         ...validManifest,
         variants: {
-          ESP32: { files: [{ ...validFile, size: 0 }] },
+          ESP32: { version: '1.0.0', files: [{ ...validFile, size: 0 }] },
         },
       });
       expect(result.success).toBe(false);
@@ -226,7 +238,7 @@ describe('FirmwareManifestSchema', () => {
       const result = FirmwareManifestSchema.safeParse({
         ...validManifest,
         variants: {
-          ESP32: { files: [{ ...validFile, size: -100 }] },
+          ESP32: { version: '1.0.0', files: [{ ...validFile, size: -100 }] },
         },
       });
       expect(result.success).toBe(false);
@@ -245,7 +257,7 @@ describe('FirmwareManifestSchema', () => {
         const result = FirmwareManifestSchema.safeParse({
           ...validManifest,
           variants: {
-            ESP32: { files: [{ ...validFile, sha256 }] },
+            ESP32: { version: '1.0.0', files: [{ ...validFile, sha256 }] },
           },
         });
         expect(result.success).toBe(false);
@@ -257,6 +269,7 @@ describe('FirmwareManifestSchema', () => {
         ...validManifest,
         variants: {
           ESP32: {
+            version: '1.0.0',
             files: [
               {
                 ...validFile,
@@ -281,7 +294,7 @@ describe('FirmwareManifestSchema', () => {
         const result = FirmwareManifestSchema.safeParse({
           ...validManifest,
           variants: {
-            ESP32: { files: [{ ...validFile, sha256 }] },
+            ESP32: { version: '1.0.0', files: [{ ...validFile, sha256 }] },
           },
         });
         expect(result.success).toBe(true);

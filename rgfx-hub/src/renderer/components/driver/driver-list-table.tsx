@@ -25,8 +25,8 @@ const COLUMNS: SortableColumn<SortField>[] = [
  */
 const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
   const navigate = useNavigate();
-  const currentFirmwareVersion = useSystemStatusStore(
-    (state) => state.systemStatus.currentFirmwareVersion,
+  const firmwareVersions = useSystemStatusStore(
+    (state) => state.systemStatus.firmwareVersions,
   );
 
   const { sortField, sortOrder, handleSort, sortData } = useSortableTable<SortField>({
@@ -91,7 +91,7 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
               <TableCell>{driver.id}</TableCell>
               <TableCell>{driver.state === 'connected' ? driver.ip ?? '' : ''}</TableCell>
               <TableCell>
-                <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
+                <DriverState driver={driver} firmwareVersions={firmwareVersions} />
               </TableCell>
               <TableCell
                 onClick={(e) => {

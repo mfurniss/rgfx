@@ -152,12 +152,14 @@ Refactored components and utilities extracted from the main page:
 - **USB Serial:**
   - Serial port selection via Web Serial API
   - Uses `esptool-js` for direct ESP32 flashing
+  - Automatically detects chip type and loads correct firmware variant
   - Loads and verifies firmware files against manifest checksums
   - Progress reporting and device reset after flash
 - **OTA WiFi:**
   - Driver selection dropdown (connected drivers only)
   - Uses `esp-ota` library via IPC handler
   - Real-time progress events from main process
+- Chip-aware update detection: uses `mapChipNameToVariant()` to compare each driver's firmware against its chip type's target version
 - Log display showing flash progress
 - Confirmation dialog for USB flashing
 - Result dialog showing success/failure with context-appropriate help text

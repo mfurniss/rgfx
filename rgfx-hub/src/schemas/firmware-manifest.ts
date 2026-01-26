@@ -26,29 +26,30 @@ const FirmwareFileSchema = z.object({
 export type FirmwareFile = z.infer<typeof FirmwareFileSchema>;
 
 /**
- * Chip variant schema - contains files for a specific chip type
+ * Chip variant schema - contains version and files for a specific chip type
  */
 const ChipVariantSchema = z.object({
+  version: z.string().min(1),
   files: z.array(FirmwareFileSchema).min(1),
 });
-
-type _ChipVariant = z.infer<typeof ChipVariantSchema>;
 
 /**
  * Firmware manifest schema with multi-chip support
  *
+ * Each variant tracks its own version independently, allowing different
+ * chip types to be built at different times without causing false
+ * "update needed" notifications.
+ *
  * Structure:
  * {
- *   "version": "1.0.0",
  *   "generatedAt": "...",
  *   "variants": {
- *     "ESP32": { "files": [...] },
- *     "ESP32-S3": { "files": [...] }
+ *     "ESP32": { "version": "0.1.0-dev+abc123", "files": [...] },
+ *     "ESP32-S3": { "version": "0.1.0-dev+def456", "files": [...] }
  *   }
  * }
  */
 export const FirmwareManifestSchema = z.object({
-  version: z.string().min(1),
   generatedAt: z.string(),
   variants: z.record(z.string(), ChipVariantSchema),
 });
@@ -95,3 +96,4 @@ export function getOtaFirmwareFilename(chipType: SupportedChip): string {
   const suffix = chipType.toLowerCase().replace('-', '');
   return `firmware-${suffix}.bin`;
 }
+

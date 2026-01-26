@@ -33,7 +33,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
   const location = useLocation();
   const { telemetry } = driver;
   const [now, setNow] = useState(Date.now());
-  const { currentFirmwareVersion } = useSystemStatusStore((state) => state.systemStatus);
+  const { firmwareVersions } = useSystemStatusStore((state) => state.systemStatus);
 
   // Update every second for live timestamps and uptime - only when component is visible
   useEffect(() => {
@@ -159,7 +159,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   // Derive hardware filename from hardwareRef (e.g., "led-hardware/foo.json" -> "foo.json")
   const hardwareFilename = ledConfig?.hardwareRef
-    ?.replace(/^led-hardware\//, '') ?? 'Unknown';
+    .replace(/^led-hardware\//, '') ?? 'Unknown';
 
   // LED Hardware section - static properties from hardware JSON file
   const ledHardwareRows: InfoRowData[] = hardware
@@ -287,7 +287,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" sx={{ pb: 0 }}>{driver.id}</Typography>
-            <DriverState driver={driver} currentFirmwareVersion={currentFirmwareVersion} />
+            <DriverState driver={driver} firmwareVersions={firmwareVersions} />
           </Stack>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {driver.ledConfig && <TestLedButton driver={driver} />}

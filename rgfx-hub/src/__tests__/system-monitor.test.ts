@@ -8,13 +8,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted to ensure mocks are available before vi.mock factories run
-const { mockFirmwareWatcher, mockGetCurrentVersion, mockGetLocalIP } = vi.hoisted(() => ({
+const { mockFirmwareWatcher, mockGetVersions, mockGetLocalIP } = vi.hoisted(() => ({
   mockFirmwareWatcher: {
     on: vi.fn(),
     start: vi.fn(),
     stop: vi.fn(),
   },
-  mockGetCurrentVersion: vi.fn(),
+  mockGetVersions: vi.fn(),
   mockGetLocalIP: vi.fn(),
 }));
 
@@ -24,7 +24,7 @@ vi.mock('../services/firmware-watcher', () => ({
 
 vi.mock('../services/firmware-version-service', () => ({
   firmwareVersionService: {
-    getCurrentVersion: mockGetCurrentVersion,
+    getVersions: mockGetVersions,
   },
 }));
 
@@ -49,7 +49,7 @@ describe('SystemMonitor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetLocalIP.mockResolvedValue('192.168.1.100');
-    mockGetCurrentVersion.mockReturnValue('1.0.0');
+    mockGetVersions.mockReturnValue({ 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' });
     systemMonitor = new SystemMonitor();
   });
 
@@ -83,7 +83,7 @@ describe('SystemMonitor', () => {
   describe('getSystemStatus', () => {
     it('should return complete system status when network is available', async () => {
       mockGetLocalIP.mockResolvedValue('192.168.1.100');
-      mockGetCurrentVersion.mockReturnValue('2.0.0');
+      mockGetVersions.mockReturnValue({ 'ESP32': '2.0.0', 'ESP32-S3': '2.0.1' });
 
       const status = await systemMonitor.getSystemStatus(5, 10, 1000, 2048);
 
@@ -97,7 +97,7 @@ describe('SystemMonitor', () => {
         eventsProcessed: 1000,
         eventLogSizeBytes: 2048,
         hubStartTime: expect.any(Number),
-        currentFirmwareVersion: '2.0.0',
+        firmwareVersions: { 'ESP32': '2.0.0', 'ESP32-S3': '2.0.1' },
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
         udpStatsByDriver: {},
@@ -120,7 +120,7 @@ describe('SystemMonitor', () => {
         eventsProcessed: 0,
         eventLogSizeBytes: 0,
         hubStartTime: expect.any(Number),
-        currentFirmwareVersion: '1.0.0', // From beforeEach default
+        firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' }, // From beforeEach default
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
         udpStatsByDriver: {},
@@ -128,12 +128,12 @@ describe('SystemMonitor', () => {
       });
     });
 
-    it('should omit firmwareVersion when getCurrentVersion returns null', async () => {
-      mockGetCurrentVersion.mockReturnValue(null);
+    it('should return empty firmwareVersions when getVersions returns empty', async () => {
+      mockGetVersions.mockReturnValue({});
 
       const status = await systemMonitor.getSystemStatus(1, 2, 50, 0);
 
-      expect(status.currentFirmwareVersion).toBeUndefined();
+      expect(status.firmwareVersions).toEqual({});
     });
 
     it('should preserve hubStartTime across calls', async () => {
