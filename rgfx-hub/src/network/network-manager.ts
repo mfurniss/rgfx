@@ -25,13 +25,20 @@ export class NetworkManager {
   private mqtt: DiscoveryController;
   private debounceTimer?: NodeJS.Timeout;
   private ipCheckInterval?: NodeJS.Timeout;
-  private currentIP: string;
+  private currentIP = '127.0.0.1';
 
   constructor(mqtt: DiscoveryController) {
     this.mqtt = mqtt;
-    this.currentIP = getLocalIP();
     this.setupEventListeners();
     this.startIPMonitoring();
+
+    // Fetch initial IP asynchronously
+    void this.initializeIP();
+  }
+
+  private async initializeIP(): Promise<void> {
+    this.currentIP = await getLocalIP();
+    log.info(`NetworkManager initialized with IP: ${this.currentIP}`);
   }
 
   private setupEventListeners(): void {
@@ -44,17 +51,17 @@ export class NetworkManager {
 
   private startIPMonitoring(): void {
     this.ipCheckInterval = setInterval(() => {
-      this.checkForIPChange();
+      void this.checkForIPChange();
     }, IP_CHECK_INTERVAL_MS);
   }
 
-  private checkForIPChange(): void {
+  private async checkForIPChange(): Promise<void> {
     // Skip if we're already handling a network issue
     if (this.debounceTimer) {
       return;
     }
 
-    const newIP = getLocalIP();
+    const newIP = await getLocalIP();
 
     if (newIP !== this.currentIP) {
       log.info(`IP address changed: ${this.currentIP} -> ${newIP}`);
@@ -91,20 +98,24 @@ export class NetworkManager {
 
   private scheduleRecoveryCheck(): void {
     this.debounceTimer = setTimeout(() => {
-      this.debounceTimer = undefined;
-      const newIP = getLocalIP();
-
-      if (newIP === '127.0.0.1') {
-        log.info('Network still unavailable, will retry...');
-        this.scheduleRecoveryCheck();
-        return;
-      }
-
-      this.currentIP = newIP;
-      log.info(`Network recovered, restarting discovery with IP: ${newIP}`);
-      this.mqtt.restartDiscovery(newIP);
-      eventBus.emit('network:changed', undefined);
+      void this.performRecoveryCheck();
     }, DISCOVERY_RESTART_DEBOUNCE_MS);
+  }
+
+  private async performRecoveryCheck(): Promise<void> {
+    this.debounceTimer = undefined;
+    const newIP = await getLocalIP();
+
+    if (newIP === '127.0.0.1') {
+      log.info('Network still unavailable, will retry...');
+      this.scheduleRecoveryCheck();
+      return;
+    }
+
+    this.currentIP = newIP;
+    log.info(`Network recovered, restarting discovery with IP: ${newIP}`);
+    this.mqtt.restartDiscovery(newIP);
+    eventBus.emit('network:changed', undefined);
   }
 
   stop(): void {
