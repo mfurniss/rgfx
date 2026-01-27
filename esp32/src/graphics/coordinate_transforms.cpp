@@ -242,17 +242,17 @@ uint16_t* buildUnifiedCoordinateMap(
 			//   3 (d): panel rotated 270° CW, panel's (0,0) is at cell's bottom-left
 			uint16_t physicalX, physicalY;
 			switch (rotation) {
-				case 1:  // 90° CW: cell(x,y) -> panel(cellHeight-1-y, x)
-					physicalX = cellHeight - 1 - localY;
-					physicalY = localX;
+				case 1:  // 90°: cell(x,y) -> panel(y, cellWidth-1-x)
+					physicalX = localY;
+					physicalY = cellWidth - 1 - localX;
 					break;
 				case 2:  // 180°: cell(x,y) -> panel(cellWidth-1-x, cellHeight-1-y)
 					physicalX = cellWidth - 1 - localX;
 					physicalY = cellHeight - 1 - localY;
 					break;
-				case 3:  // 270° CW: cell(x,y) -> panel(y, cellWidth-1-x)
-					physicalX = localY;
-					physicalY = cellWidth - 1 - localX;
+				case 3:  // 270°: cell(x,y) -> panel(cellHeight-1-y, x)
+					physicalX = cellHeight - 1 - localY;
+					physicalY = localX;
 					break;
 				default:  // 0°: cell(x,y) -> panel(x, y)
 					physicalX = localX;
