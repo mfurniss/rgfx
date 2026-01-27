@@ -45,6 +45,7 @@ nav:
     - Introduction: drivers/index.md
     - Setup: drivers/firmware-and-wifi.md
     - Configure LED Hardware: drivers/configure-leds.md
+    - Visual Effects: drivers/effects.md
     - ESP32 Firmware: drivers/esp32/index.md
     - LED Hardware: drivers/led-hardware/index.md
 
