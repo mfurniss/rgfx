@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-01-26T01:15:14.678574+00:00",
+  "generatedAt": "2026-01-27T03:12:05.250828+00:00",
   "variants": {
     "ESP32": {
-      "version": "0.1.0-dev+5573dd56",
+      "version": "0.1.0-dev+674db56c",
       "files": [
         {
           "name": "bootloader-esp32.bin",
@@ -20,7 +20,7 @@
           "name": "firmware-esp32.bin",
           "address": 65536,
           "size": 1204432,
-          "sha256": "7f6931194a0413271d3a131bc80eefd4168af4ca7f49b8cf8cbf5f9d13874a49"
+          "sha256": "c24eecafe42e4f1ef52f7097945617152ef57b8a3a55808c0eee2883a4ce2630"
         }
       ]
     },
