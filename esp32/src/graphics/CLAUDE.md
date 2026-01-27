@@ -122,16 +122,16 @@ uint16_t* buildUnifiedCoordinateMap(
 
 ### Rotation Math
 
-The coordinate transform applies an **inverse rotation** to map from logical display coordinates back to physical panel coordinates:
+The coordinate transform applies rotation to map from logical display coordinates to physical panel coordinates. Setting 90° rotates content 90° clockwise:
 
-| Rotation | Inverse Transform |
-|----------|-------------------|
+| Rotation | Transform |
+|----------|-----------|
 | 0° (a)   | `(x, y)` |
-| 90° (b)  | `(y, effW - 1 - x)` |
+| 90° (b)  | `(effH - 1 - y, x)` |
 | 180° (c) | `(effW - 1 - x, effH - 1 - y)` |
-| 270° (d) | `(effH - 1 - y, x)` |
+| 270° (d) | `(y, effW - 1 - x)` |
 
-Where `effW` and `effH` are the effective dimensions after rotation (swapped for 90°/270°).
+Where `effW` and `effH` are the effective dimensions (swapped for 90°/270° on non-square panels).
 
 ## Downsample Pipeline
 

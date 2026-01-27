@@ -441,14 +441,14 @@ void test_unified_single_panel_90_rotation() {
 	//   0 1
 	//   2 3
 	//
-	// With 90° CW rotation, panel is rotated so:
-	// - What appears at logical (0,0) came from physical (0,1) = LED 2
-	// - What appears at logical (1,0) came from physical (0,0) = LED 0
-	// - What appears at logical (0,1) came from physical (1,1) = LED 3
-	// - What appears at logical (1,1) came from physical (1,0) = LED 1
+	// With 90° CW rotation, content rotates clockwise:
+	// - Logical (0,0) maps to physical (1,0) = LED 1
+	// - Logical (1,0) maps to physical (1,1) = LED 3
+	// - Logical (0,1) maps to physical (0,0) = LED 0
+	// - Logical (1,1) maps to physical (0,1) = LED 2
 	uint16_t expected[] = {
-		2, 0,
-		3, 1
+		1, 3,
+		0, 2
 	};
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
@@ -471,14 +471,14 @@ void test_unified_single_panel_270_rotation() {
 	//   0 1
 	//   2 3
 	//
-	// With 270° CW rotation (= 90° CCW), panel is rotated so:
-	// - What appears at logical (0,0) came from physical (1,0) = LED 1
-	// - What appears at logical (1,0) came from physical (1,1) = LED 3
-	// - What appears at logical (0,1) came from physical (0,0) = LED 0
-	// - What appears at logical (1,1) came from physical (0,1) = LED 2
+	// With 270° CW rotation (= 90° CCW), content rotates counter-clockwise:
+	// - Logical (0,0) maps to physical (0,1) = LED 2
+	// - Logical (1,0) maps to physical (0,0) = LED 0
+	// - Logical (0,1) maps to physical (1,1) = LED 3
+	// - Logical (1,1) maps to physical (1,0) = LED 1
 	uint16_t expected[] = {
-		1, 3,
-		0, 2
+		2, 0,
+		3, 1
 	};
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 4);
@@ -505,14 +505,14 @@ void test_unified_2x2_all_rotations() {
 	//
 	// After rotations:
 	// Panel 0 (0°):   0 1 / 2 3        (unchanged)
-	// Panel 1 (90°):  6 4 / 7 5        (see 90° test above, +4 offset)
-	// Panel 2 (180°): 11 10 / 9 8     (see 180° test above, +8 offset)
-	// Panel 3 (270°): 13 15 / 12 14   (see 270° test above, +12 offset)
+	// Panel 1 (90°):  5 7 / 4 6        (90° CW rotation, +4 offset)
+	// Panel 2 (180°): 11 10 / 9 8     (180° rotation, +8 offset)
+	// Panel 3 (270°): 14 12 / 15 13   (270° CW rotation, +12 offset)
 	uint16_t expected[] = {
-		0,  1,  6,  4,    // y=0: panel 0 row 0, panel 1 row 0
-		2,  3,  7,  5,    // y=1: panel 0 row 1, panel 1 row 1
-		11, 10, 13, 15,   // y=2: panel 2 row 0, panel 3 row 0
-		9,  8,  12, 14    // y=3: panel 2 row 1, panel 3 row 1
+		0,  1,  5,  7,    // y=0: panel 0 row 0, panel 1 row 0
+		2,  3,  4,  6,    // y=1: panel 0 row 1, panel 1 row 1
+		11, 10, 14, 12,   // y=2: panel 2 row 0, panel 3 row 0
+		9,  8,  15, 13    // y=3: panel 2 row 1, panel 3 row 1
 	};
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
@@ -542,15 +542,15 @@ void test_unified_driver0003_config() {
 	// (0,0) = panel 2 @ 90°, (1,0) = panel 3 @ 90°
 	// (0,1) = panel 1 @ 90°, (1,1) = panel 0 @ 0°
 	//
-	// Panel 2 @ 90°: logical -> physical mapping gives: 10 8 / 11 9
-	// Panel 3 @ 90°: 14 12 / 15 13
-	// Panel 1 @ 90°: 6 4 / 7 5
+	// Panel 2 @ 90° CW: 9 11 / 8 10
+	// Panel 3 @ 90° CW: 13 15 / 12 14
+	// Panel 1 @ 90° CW: 5 7 / 4 6
 	// Panel 0 @ 0°:  0 1 / 2 3 (unchanged)
 	uint16_t expected[] = {
-		10, 8,  14, 12,   // y=0: panel 2 row 0, panel 3 row 0
-		11, 9,  15, 13,   // y=1: panel 2 row 1, panel 3 row 1
-		6,  4,  0,  1,    // y=2: panel 1 row 0, panel 0 row 0
-		7,  5,  2,  3     // y=3: panel 1 row 1, panel 0 row 1
+		9,  11, 13, 15,   // y=0: panel 2 row 0, panel 3 row 0
+		8,  10, 12, 14,   // y=1: panel 2 row 1, panel 3 row 1
+		5,  7,  0,  1,    // y=2: panel 1 row 0, panel 0 row 0
+		4,  6,  2,  3     // y=3: panel 1 row 1, panel 0 row 1
 	};
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 16);
@@ -575,19 +575,19 @@ void test_unified_nonsquare_panel_90_rotation() {
 	//   4 5 6 7
 	//
 	// After 90° CW rotation, logical display is 2x4:
-	// Logical (0,0) <- Physical (0,1) = 4
-	// Logical (1,0) <- Physical (0,0) = 0
-	// Logical (0,1) <- Physical (1,1) = 5
-	// Logical (1,1) <- Physical (1,0) = 1
-	// Logical (0,2) <- Physical (2,1) = 6
-	// Logical (1,2) <- Physical (2,0) = 2
-	// Logical (0,3) <- Physical (3,1) = 7
-	// Logical (1,3) <- Physical (3,0) = 3
+	// Logical (0,0) <- Physical (3,0) = 3
+	// Logical (1,0) <- Physical (3,1) = 7
+	// Logical (0,1) <- Physical (2,0) = 2
+	// Logical (1,1) <- Physical (2,1) = 6
+	// Logical (0,2) <- Physical (1,0) = 1
+	// Logical (1,2) <- Physical (1,1) = 5
+	// Logical (0,3) <- Physical (0,0) = 0
+	// Logical (1,3) <- Physical (0,1) = 4
 	uint16_t expected[] = {
-		4, 0,    // y=0
-		5, 1,    // y=1
-		6, 2,    // y=2
-		7, 3     // y=3
+		3, 7,    // y=0
+		2, 6,    // y=1
+		1, 5,    // y=2
+		0, 4     // y=3
 	};
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
@@ -611,19 +611,19 @@ void test_unified_nonsquare_panel_270_rotation() {
 	//   4 5 6 7
 	//
 	// After 270° CW rotation (= 90° CCW), logical display is 2x4:
-	// Logical (0,0) <- Physical (3,0) = 3
-	// Logical (1,0) <- Physical (3,1) = 7
-	// Logical (0,1) <- Physical (2,0) = 2
-	// Logical (1,1) <- Physical (2,1) = 6
-	// Logical (0,2) <- Physical (1,0) = 1
-	// Logical (1,2) <- Physical (1,1) = 5
-	// Logical (0,3) <- Physical (0,0) = 0
-	// Logical (1,3) <- Physical (0,1) = 4
+	// Logical (0,0) <- Physical (0,1) = 4
+	// Logical (1,0) <- Physical (0,0) = 0
+	// Logical (0,1) <- Physical (1,1) = 5
+	// Logical (1,1) <- Physical (1,0) = 1
+	// Logical (0,2) <- Physical (2,1) = 6
+	// Logical (1,2) <- Physical (2,0) = 2
+	// Logical (0,3) <- Physical (3,1) = 7
+	// Logical (1,3) <- Physical (3,0) = 3
 	uint16_t expected[] = {
-		3, 7,    // y=0
-		2, 6,    // y=1
-		1, 5,    // y=2
-		0, 4     // y=3
+		4, 0,    // y=0
+		5, 1,    // y=1
+		6, 2,    // y=2
+		7, 3     // y=3
 	};
 
 	TEST_ASSERT_EQUAL_UINT16_ARRAY(expected, map, 8);
