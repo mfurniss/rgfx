@@ -17,7 +17,7 @@ fft.init({
 })
 
 
-ram.set_boot_delay(3)
+ram.set_boot_delay(6)
 
 -- Access RAM via C117's program space (not maincpu which goes through bank switching)
 local c117 = manager.machine.devices[":c117"]
@@ -76,22 +76,22 @@ emu.register_frame_done(function()
 
 	-- Other sound effects (0x2ff026)
 	-- Note: bit 0x10 is fire input, not a sound effect
-	local sound = c117_mem:read_u8(0x2ff026)
-	if sound ~= prev_sound then
-		if (sound & 0x80) ~= 0 and (prev_sound & 0x80) == 0 then
-			print("EVENT: galaga88/sound/music_start")
-			_G.event("galaga88/sound/music_start")
-		end
-		if (sound & 0x02) ~= 0 and (prev_sound & 0x02) == 0 then
-			print("EVENT: galaga88/sound/effect 2")
-			_G.event("galaga88/sound/effect", 2)
-		end
-		if (sound & 0x01) ~= 0 and (prev_sound & 0x01) == 0 then
-			print("EVENT: galaga88/sound/effect 3")
-			_G.event("galaga88/sound/effect", 3)
-		end
-	end
-	prev_sound = sound
+	-- local sound = c117_mem:read_u8(0x2ff026)
+	-- if sound ~= prev_sound then
+	-- 	if (sound & 0x80) ~= 0 and (prev_sound & 0x80) == 0 then
+	-- 		print("EVENT: galaga88/sound/music_start")
+	-- 		_G.event("galaga88/sound/music_start")
+	-- 	end
+	-- 	if (sound & 0x02) ~= 0 and (prev_sound & 0x02) == 0 then
+	-- 		print("EVENT: galaga88/sound/effect 2")
+	-- 		_G.event("galaga88/sound/effect", 2)
+	-- 	end
+	-- 	if (sound & 0x01) ~= 0 and (prev_sound & 0x01) == 0 then
+	-- 		print("EVENT: galaga88/sound/effect 3")
+	-- 		_G.event("galaga88/sound/effect", 3)
+	-- 	end
+	-- end
+	-- prev_sound = sound
 end, "galaga88_sound")
 
 print("Sound event monitoring active")

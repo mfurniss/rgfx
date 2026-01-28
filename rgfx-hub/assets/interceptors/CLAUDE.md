@@ -18,12 +18,15 @@ Files here are bundled with the app and copied to `~/.rgfx/interceptors/` on fir
 ### Game Interceptors (games/)
 Game-specific interceptors that monitor RAM and emit events:
 - `galaga88_rgfx.lua` - Galaga '88
+- `galaga_rgfx.lua` - Galaga
+- `gforce2_rgfx.lua` - G-LOC: Air Battle / G-Force 2
 - `nes_smb_rgfx.lua` - NES Super Mario Bros
 - `outrun_rgfx.lua` - OutRun
 - `pacman_rgfx.lua` - Pac-Man
 - `robotron_rgfx.lua` - Robotron 2084
+- `sharrier_rgfx.lua` - Space Harrier
 - `ssf2_rgfx.lua` - Super Street Fighter II (QSound monitoring)
 - `starwars_rgfx.lua` - Star Wars
 
 ### Special Interceptors
-- `ambilight.lua` - Ambilight effect based on screen colors
+- `ambilight.lua` - Ambilight screen edge sampling with configurable zones, depth, event_interval, and brightness

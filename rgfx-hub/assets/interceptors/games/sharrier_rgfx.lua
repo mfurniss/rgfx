@@ -7,7 +7,8 @@
 local ambilight = require("ambilight")
 
 ambilight.init({
-	zones = 12,
-	depth = 10,
-	event_interval = 3,
+	zones = 16,
+	depth = 12,
+	event_interval = 4,
+  brightness = 0.7,
 })
