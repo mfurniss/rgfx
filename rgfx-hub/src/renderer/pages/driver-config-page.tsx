@@ -127,7 +127,7 @@ export default function DriverConfigPage() {
     try {
       await window.rgfx.saveDriverConfig(data);
       reset(data);
-      notify(`${data.id} configuration saved`, 'success');
+      notify(`${data.id} configuration saved`, 'info');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       notify(`${data.id} failed to save: ${message}`, 'error');
