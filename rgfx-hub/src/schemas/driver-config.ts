@@ -65,7 +65,7 @@ export const UnifiedPanelLayoutSchema = z
  */
 const DriverLEDConfigSchema = z.object({
   hardwareRef: z.string(),
-  pin: z.number().int().min(0).max(39),
+  pin: z.number().int().min(0).max(48),
   offset: z.number().int().min(0).nullable().optional(),
   maxBrightness: z.number().int().min(0).max(255).nullable().optional(),
   globalBrightnessLimit: z.number().int().min(0).max(255).nullable().optional(),

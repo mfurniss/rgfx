@@ -27,6 +27,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { NumberField } from '@/renderer/components/common/number-field';
+import { GpioPinSelect } from '@/renderer/components/common/gpio-pin-select';
 import { UnifiedPanelEditor } from '@/renderer/components/editors/unified-panel-editor';
 import type { ConfiguredDriverInput } from '@/schemas';
 import type { LEDHardware } from '@/types';
@@ -40,6 +41,7 @@ interface LedConfigSectionProps {
   selectedHardware: LEDHardware | null;
   loadingHardware: boolean;
   isStrip: boolean;
+  chipModel?: string;
 }
 
 export const LedConfigSection: React.FC<LedConfigSectionProps> = ({
@@ -50,6 +52,7 @@ export const LedConfigSection: React.FC<LedConfigSectionProps> = ({
   selectedHardware,
   loadingHardware,
   isStrip,
+  chipModel,
 }) => {
   const ledConfig = watch('ledConfig');
 
@@ -122,13 +125,10 @@ export const LedConfigSection: React.FC<LedConfigSectionProps> = ({
           {ledConfig?.hardwareRef && (
             <>
               <Grid size={{ xs: 12, md: 6 }}>
-                <NumberField
+                <GpioPinSelect
                   name="ledConfig.pin"
                   control={control}
-                  label="GPIO Pin"
-                  helperText="ESP32 GPIO pin for LED data (0-39)"
-                  min={0}
-                  max={39}
+                  chipModel={chipModel}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>

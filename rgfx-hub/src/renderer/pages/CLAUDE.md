@@ -48,7 +48,8 @@ This folder contains the main page components for the RGFX Hub application. Each
 
 **Features:**
 - Form fields: Driver ID, description, remote logging level
-- LED configuration: hardware selection, GPIO pin, offset, reverse direction (strips), brightness limit, dithering, power settings, RGBW mode (for 4-channel strips)
+- LED configuration: hardware selection, GPIO pin (chip-aware selector), offset, reverse direction (strips), brightness limit, dithering, power settings, RGBW mode (for 4-channel strips)
+- Passes `chipModel` from driver telemetry to enable board-specific GPIO pin validation
 - Default values applied when first configuring LED hardware: globalBrightnessLimit=128, maxPowerMilliamps=500
 - Existing values preserved when switching hardware types on already-configured drivers
 - Uses `react-hook-form` with Zod validation (`ConfiguredDriverSchema`) with `normalizeLedConfig()` for backward compatibility
