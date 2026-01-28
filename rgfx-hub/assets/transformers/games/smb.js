@@ -20,12 +20,11 @@ import { sleep, randomInt } from '../utils.js';
 let currentMusicTrack = null;
 let coinGif = null;
 
-const STRIPS = ['rgfx-driver-0003', 'rgfx-driver-0004', 'rgfx-driver-0006'];
 const MATRICES = ['rgfx-driver-0001', 'rgfx-driver-0005'];
 
 export async function transform(
-  { subject, property, qualifier, payload },
-  { broadcast, loadGif }
+  { subject, property, _qualifier, payload },
+  { broadcast, loadGif },
 ) {
   async function loadBitmaps() {
     if (!coinGif) {
@@ -60,7 +59,7 @@ export async function transform(
 
   if (subject === 'sfx') {
     if (property === 'coin') {
-      await loadCoinGif();
+      await loadBitmaps();
       if (coinGif) {
         const centerX = randomInt(0, 100);
 
@@ -139,34 +138,28 @@ export async function transform(
     }
 
     if (property === 'mario-fireball') {
+      const props = {
+        color: '#FF8000',
+        reset: false,
+        direction: 'left',
+        velocity: 1500,
+        friction: 0.5,
+        trail: 0.2,
+        width: 16,
+        height: 6,
+        lifespan: 1200,
+      };
       broadcast({
         effect: 'projectile',
         drivers: ['rgfx-driver-0003'],
-        props: {
-          color: '#FF8000',
-          reset: false,
-          direction: 'left',
-          velocity: 1500,
-          friction: 0.5,
-          trail: 0.2,
-          width: 16,
-          height: 6,
-          lifespan: 1200,
-        },
+        props,
       });
       broadcast({
         effect: 'projectile',
-        drivers: ['rgfx-driver-0006', 'rgfx-driver-0002'],
+        drivers: ['rgfx-driver-0002', 'rgfx-driver-0006'],
         props: {
-          color: '#FF8000',
-          reset: false,
+          ...props,
           direction: 'right',
-          velocity: 1500,
-          friction: 0.5,
-          trail: 0.2,
-          width: 16,
-          height: 6,
-          lifespan: 1200,
         },
       });
     }
@@ -194,25 +187,24 @@ export async function transform(
     }
 
     if (property === 'firework') {
-      broadcast({
+      return broadcast({
         effect: 'explode',
         props: {
           color: 'random',
           reset: false,
-          centerX: 50,
-          centerY: 50,
+          centerX: 'random',
+          centerY: 'random',
           friction: 3,
-          hueSpread: 60,
+          gravity: 0,
+          hueSpread: 0,
           lifespan: 700,
           lifespanSpread: 50,
           particleCount: 100,
           particleSize: 6,
-          power: 50,
+          power: 120,
           powerSpread: 80,
         },
       });
-
-      return true;
     }
   }
 
@@ -267,7 +259,6 @@ export async function transform(
         effect: 'plasma',
         drivers: [
           'rgfx-driver-0001',
-          'rgfx-driver-0002',
           'rgfx-driver-0003',
           'rgfx-driver-0004',
           'rgfx-driver-0006',

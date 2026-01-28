@@ -4,9 +4,6 @@
 --
 -- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
 
--- Super Street Fighter II interceptor
--- Monitors sound commands sent to QSound via shared RAM
-
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 
@@ -64,8 +61,11 @@ emu.register_frame_done(function()
 	prev_cmd = cmd
 end)
 
-print("SSF2 interceptor loaded - monitoring sound commands")
-
--- Enable ambilight for SSF2 (top and bottom edges)
 local ambilight = require("ambilight")
-ambilight.init({ edges = { "top", "bottom", "left", "right" }, zones_per_edge = 10, inset = 0 })
+
+ambilight.init({
+	zones = 16,
+	depth = 12,
+	event_interval = 4,
+  brightness = 0.7,
+})
