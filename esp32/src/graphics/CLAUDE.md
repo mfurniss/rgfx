@@ -122,16 +122,18 @@ uint16_t* buildUnifiedCoordinateMap(
 
 ### Rotation Math
 
-The coordinate transform applies an **inverse rotation** to map from logical display coordinates back to physical panel coordinates:
+The coordinate transform applies an **inverse rotation** to map from logical display coordinates back to physical panel coordinates. The rotation describes how the panel is physically oriented:
 
-| Rotation | Inverse Transform |
-|----------|-------------------|
-| 0° (a)   | `(x, y)` |
-| 90° (b)  | `(y, effW - 1 - x)` |
-| 180° (c) | `(effW - 1 - x, effH - 1 - y)` |
-| 270° (d) | `(effH - 1 - y, x)` |
+| Rotation | Transform | Panel Origin Position |
+|----------|-----------|----------------------|
+| 0° (a)   | `(x, y)` | Top-left |
+| 90° (b)  | `(y, effW - 1 - x)` | Top-right |
+| 180° (c) | `(effW - 1 - x, effH - 1 - y)` | Bottom-right |
+| 270° (d) | `(effH - 1 - y, x)` | Bottom-left |
 
-Where `effW` and `effH` are the effective dimensions after rotation (swapped for 90°/270°).
+Where `effW` and `effH` are the effective dimensions (swapped for 90°/270° on non-square panels).
+
+**Note:** The rotation setting describes the physical panel orientation, not a content rotation. For multi-panel displays, use consistent rotations that match your physical wiring.
 
 ## Downsample Pipeline
 
