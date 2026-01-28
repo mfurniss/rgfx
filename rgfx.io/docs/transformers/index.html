@@ -16,7 +16,7 @@
         <link rel="prev" href="../interceptors/mame-api.html">
       
       
-        <link rel="next" href="../esp32/index.html">
+        <link rel="next" href="../drivers/index.html">
       
       
         
@@ -686,6 +686,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="index.html" class="md-nav__link md-nav__link--active">
         
   
@@ -702,6 +720,230 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-transformers-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Transformers Work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cascade-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cascade System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cascade System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-game-transformers-highest-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Game Transformers (Highest Priority)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-subject-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Subject Transformers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-pattern-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Pattern Transformers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-default-transformer-lowest-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Default Transformer (Lowest Priority)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing Transformers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing Transformers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#topic-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topic Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#broadcasting-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Broadcasting Effects
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Broadcasting Effects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#broadcast-to-all-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Broadcast to All Drivers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-specific-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Specific Drivers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wildcard-targeting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wildcard Targeting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hot-reload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hot Reload
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -740,7 +982,7 @@
   <span class="md-ellipsis">
     
   
-    ESP32 Hardware
+    Drivers
   
 
     
@@ -756,7 +998,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    ESP32 Hardware
+    Drivers
   
 
           </label>
@@ -769,7 +1011,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../esp32/index.html" class="md-nav__link">
+      <a href="../drivers/index.html" class="md-nav__link">
         
   
   
@@ -777,6 +1019,146 @@
     
   
     Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/firmware-and-wifi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/configure-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure LED Hardware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/effects.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual Effects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/esp32/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ESP32 Firmware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/led-hardware/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LED Hardware
   
 
     
@@ -817,6 +1199,219 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-transformers-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Transformers Work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cascade-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cascade System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cascade System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-game-transformers-highest-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Game Transformers (Highest Priority)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-subject-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Subject Transformers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-pattern-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Pattern Transformers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-default-transformer-lowest-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Default Transformer (Lowest Priority)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing Transformers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing Transformers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#topic-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topic Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#broadcasting-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Broadcasting Effects
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Broadcasting Effects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#broadcast-to-all-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Broadcast to All Drivers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-specific-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Specific Drivers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wildcard-targeting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wildcard Targeting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hot-reload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hot Reload
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -833,7 +1428,176 @@
 
 
 <h1 id="transformers">Transformers<a class="headerlink" href="#transformers" title="Permanent link">&para;</a></h1>
-<p>Transformers are JavaScript modules that convert game events into LED effects.</p>
+<p>Transformers are JavaScript modules that convert game events into LED effects. They act as the bridge between game state changes and visual feedback on your LED hardware.</p>
+<h2 id="how-transformers-work">How Transformers Work<a class="headerlink" href="#how-transformers-work" title="Permanent link">&para;</a></h2>
+<p>When MAME interceptors detect game events, they publish MQTT messages with topics like <code>pacman/player/score/1000</code>. The Hub's transformer engine routes these events through a cascade of handlers until one claims the event and broadcasts the appropriate effect to drivers.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Game Event → Transformer Engine → Effect Payload → LED Drivers
+</code></pre></div>
+<h2 id="cascade-system">Cascade System<a class="headerlink" href="#cascade-system" title="Permanent link">&para;</a></h2>
+<p>Events flow through four handler levels. The first handler to return a truthy value stops the cascade.</p>
+<h3 id="1-game-transformers-highest-priority">1. Game Transformers (Highest Priority)<a class="headerlink" href="#1-game-transformers-highest-priority" title="Permanent link">&para;</a></h3>
+<p>Game-specific handlers for individual games.</p>
+<p><strong>Location:</strong> <code>~/.rgfx/transformers/games/</code></p>
+<p><strong>Examples:</strong> <code>pacman.js</code>, <code>galaga.js</code>, <code>robotron.js</code>, <code>starwars.js</code></p>
+<h3 id="2-subject-transformers">2. Subject Transformers<a class="headerlink" href="#2-subject-transformers" title="Permanent link">&para;</a></h3>
+<p>Generic handlers for common event subjects that appear across multiple games.</p>
+<p><strong>Location:</strong> <code>~/.rgfx/transformers/subjects/</code></p>
+<p><strong>Available:</strong></p>
+<ul>
+<li><code>audio.js</code> - FFT spectrum events for audio visualization</li>
+<li><code>ambilight.js</code> - Screen edge colors for ambient lighting</li>
+<li><code>player.js</code> - Generic player events</li>
+<li><code>enemy.js</code> - Enemy-related events</li>
+</ul>
+<h3 id="3-pattern-transformers">3. Pattern Transformers<a class="headerlink" href="#3-pattern-transformers" title="Permanent link">&para;</a></h3>
+<p>Match events by content pattern rather than topic structure.</p>
+<p><strong>Location:</strong> <code>~/.rgfx/transformers/patterns/</code></p>
+<h3 id="4-default-transformer-lowest-priority">4. Default Transformer (Lowest Priority)<a class="headerlink" href="#4-default-transformer-lowest-priority" title="Permanent link">&para;</a></h3>
+<p>Catch-all for unmatched events.</p>
+<p><strong>Location:</strong> <code>~/.rgfx/transformers/default.js</code></p>
+<h2 id="writing-transformers">Writing Transformers<a class="headerlink" href="#writing-transformers" title="Permanent link">&para;</a></h2>
+<p>Transformers export a <code>transform</code> function that receives the parsed topic and a context object.</p>
+<h3 id="topic-structure">Topic Structure<a class="headerlink" href="#topic-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">raw</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pacman/player/score/p1&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Original topic</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">namespace</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pacman&quot;</span><span class="p">,</span><span class="w">            </span><span class="c1">// Game name or &quot;rgfx&quot;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">subject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;player&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// Entity type</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">property</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// Event type</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">qualifier</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;p1&quot;</span><span class="p">,</span><span class="w">                </span><span class="c1">// Optional context</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nx">payload</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1000&quot;</span><span class="w">                 </span><span class="c1">// Event value</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;player&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;score&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;pulse&#39;</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FFFF00&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">500</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="p">});</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="context-object">Context Object<a class="headerlink" href="#context-object" title="Permanent link">&para;</a></h3>
+<p>The context provides services for transformers:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>broadcast(payload)</code></td>
+<td>Send effect to drivers</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td>Key-value store for tracking game state</td>
+</tr>
+<tr>
+<td><code>log</code></td>
+<td>Logger (debug, info, warn, error)</td>
+</tr>
+<tr>
+<td><code>drivers</code></td>
+<td>Registry of connected drivers</td>
+</tr>
+<tr>
+<td><code>loadGif(path)</code></td>
+<td>Load GIF for bitmap effects</td>
+</tr>
+<tr>
+<td><code>parseAmbilight(payload)</code></td>
+<td>Parse ambilight color data</td>
+</tr>
+<tr>
+<td><code>hslToHex(h, s, l)</code></td>
+<td>Convert HSL to hex color</td>
+</tr>
+</tbody>
+</table>
+<h2 id="broadcasting-effects">Broadcasting Effects<a class="headerlink" href="#broadcasting-effects" title="Permanent link">&para;</a></h2>
+<p>The <code>broadcast</code> function sends effects to drivers.</p>
+<h3 id="broadcast-to-all-drivers">Broadcast to All Drivers<a class="headerlink" href="#broadcast-to-all-drivers" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;pulse&#39;</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FF0000&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">});</span>
+</code></pre></div>
+<h3 id="target-specific-drivers">Target Specific Drivers<a class="headerlink" href="#target-specific-drivers" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;rgfx-driver-0001&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;rgfx-driver-0005&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;GAME OVER&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FF0000&#39;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">});</span>
+</code></pre></div>
+<h3 id="wildcard-targeting">Wildcard Targeting<a class="headerlink" href="#wildcard-targeting" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Wildcard</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*S</code></td>
+<td>Random strip driver</td>
+</tr>
+<tr>
+<td><code>*M</code></td>
+<td>Random matrix driver</td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>Random driver (any type)</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;spectrum&#39;</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;*M&#39;</span><span class="p">],</span><span class="w">  </span><span class="c1">// Send to a random matrix</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">bands</span><span class="o">:</span><span class="w"> </span><span class="mf">16</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">});</span>
+</code></pre></div>
+<h2 id="state-management">State Management<a class="headerlink" href="#state-management" title="Permanent link">&para;</a></h2>
+<p>Use <code>context.state</code> to track game state across events.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">state</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;score&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">lastScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;lastScore&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">newScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">payload</span><span class="p">);</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="c1">// Only trigger effect on score increase</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">newScore</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nx">lastScore</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="nx">state</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;lastScore&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newScore</span><span class="p">);</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;pulse&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FFFF00&#39;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="file-location">File Location<a class="headerlink" href="#file-location" title="Permanent link">&para;</a></h2>
+<p>Transformers are stored in <code>~/.rgfx/transformers/</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>~/.rgfx/transformers/
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── default.js
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── games/
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│   ├── pacman.js
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>│   ├── galaga.js
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>│   └── ...
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>├── subjects/
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   ├── audio.js
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   ├── ambilight.js
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   └── ...
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>└── patterns/
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    └── ...
+</code></pre></div>
+<h2 id="hot-reload">Hot Reload<a class="headerlink" href="#hot-reload" title="Permanent link">&para;</a></h2>
+<p>The Hub watches the transformers directory for changes. Edit files directly and changes take effect immediately without restarting.</p>
 
 
 

@@ -12,7 +12,7 @@
 local ram = require("ram")
 
 -- Boot delay to skip diagnostics and attract mode
-ram.set_boot_delay(11)
+ram.set_boot_delay(14)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
@@ -119,38 +119,38 @@ local map = {
 			end
 		end,
 	},
-	brain_count = {
-		addr_start = 0xBE6E,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/enemy/brain/destroy", previous - current)
-			end
-		end,
-	},
-	spheroid_count = {
-		addr_start = 0xBE6F,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/enemy/spheroid/destroy", previous - current)
-			end
-		end,
-	},
-	quark_count = {
-		addr_start = 0xBE70,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/enemy/quark/destroy", previous - current)
-			end
-		end,
-	},
-	tank_count = {
-		addr_start = 0xBE71,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/enemy/tank/destroy", previous - current)
-			end
-		end,
-	},
+	-- brain_count = {
+	-- 	addr_start = 0xBE6E,
+	-- 	callback_changed = function(current, previous)
+	-- 		if current < previous then
+	-- 			_G.event("robotron/enemy/brain/destroy", previous - current)
+	-- 		end
+	-- 	end,
+	-- },
+	-- spheroid_count = {
+	-- 	addr_start = 0xBE6F,
+	-- 	callback_changed = function(current, previous)
+	-- 		if current < previous then
+	-- 			_G.event("robotron/enemy/spheroid/destroy", previous - current)
+	-- 		end
+	-- 	end,
+	-- },
+	-- quark_count = {
+	-- 	addr_start = 0xBE70,
+	-- 	callback_changed = function(current, previous)
+	-- 		if current < previous then
+	-- 			_G.event("robotron/enemy/quark/destroy", previous - current)
+	-- 		end
+	-- 	end,
+	-- },
+	-- tank_count = {
+	-- 	addr_start = 0xBE71,
+	-- 	callback_changed = function(current, previous)
+	-- 		if current < previous then
+	-- 			_G.event("robotron/enemy/tank/destroy", previous - current)
+	-- 		end
+	-- 	end,
+	-- },
 
 	-- Family member counters (0xBE6A-0xBE6C)
 	mommie_count = {
@@ -179,9 +179,7 @@ local map = {
 	},
 }
 
-print("About to install monitors...")
 ram.install_monitors(map, mem)
-print("Monitors installed")
 
 -- Sound detection via RAM tap
 -- The Williams sound board uses PIA registers ($C80E) which are memory-mapped I/O.
@@ -211,6 +209,7 @@ print("Monitors installed")
 local sound_lut = {
 	[0x001A] = "shoot-hulk",
 	[0x001D] = "shoot-hulk",
+  [0x002C] = "human-die",
 	[0x0024] = "rescue-human",
 	[0x0027] = "rescue-human",
 	[0x114D] = "enforcer-spawn",
@@ -218,15 +217,15 @@ local sound_lut = {
 	[0x4141] = "spawn-brains",
 	[0x26EE] = "laser",
 	[0x26F1] = "laser",
-	[0x26D7] = "player_death",
-	[0x26DA] = "player_death",
+	[0x26D7] = "player-death",
+	[0x26DA] = "player-death",
 	[0x26E9] = "next-wave",
 	[0x26EC] = "next-wave",
 	[0x26DF] = "game-start",
 	[0x26E2] = "wave_start",
 	[0x3896] = "explosion",
 	[0x3899] = "explosion",
-	[0x389E] = "grunt_move",
+	[0x389E] = "grunt-move",
 	[0x38A1] = "explosion",
 	[0x38A3] = "destroy-electrode",
 	[0x38A6] = "destroy-electrode",
@@ -236,6 +235,18 @@ local sound_lut = {
 	[0xD0F2] = "wave",
 	[0xEF08] = "sine-wave-boom",
 	[0xEF6E] = "attract",
+  [0x1152] = "destroy-spheroid",
+  [0xD0C7] = "extra-life",
+  [0xD0CA] = "extra-life",
+  [0x4144] = "brain-appear",
+  [0x1AE8] = "prog-appear",
+  [0x115C] = "destroy-enforcer",
+  [0x1154] = "spark",
+  [0x114A] = "spark",
+  [0x1157] = "spark",
+  [0x0029] = "human-die",
+  [0x1AEB] = "human-programming",
+  [0x4B32] = "tank-appear",
 }
 
 local last_sound_ptr = 0
@@ -254,7 +265,9 @@ emu.register_frame_done(function()
 			local name = sound_lut[ptr]
 			if not name then
 				print(string.format("[ROBOTRON] Sound: UNKNOWN ($%04X)", ptr))
-			end
+      else
+        _G.event("robotron/sfx/" .. name)
+      end
 		end
 		last_sound_ptr = ptr
 	end
