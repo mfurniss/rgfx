@@ -53,7 +53,7 @@ This folder contains the main page components for the RGFX Hub application. Each
 - Existing values preserved when switching hardware types on already-configured drivers
 - Uses `react-hook-form` with Zod validation (`ConfiguredDriverSchema`) with `normalizeLedConfig()` for backward compatibility
 - Loads available LED hardware definitions from hub
-- Saves configuration via IPC and auto-pushes to connected drivers
+- Saves configuration via IPC and auto-pushes to connected drivers (shows info notification on success)
 - Handles driver rename (ID change) seamlessly
 
 ### Driver Config Subdirectory
