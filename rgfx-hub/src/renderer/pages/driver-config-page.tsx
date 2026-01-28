@@ -167,6 +167,7 @@ export default function DriverConfigPage() {
             selectedHardware={selectedHardware}
             loadingHardware={loadingHardware}
             isStrip={isStrip}
+            chipModel={driver.telemetry?.chipModel}
           />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>

@@ -169,16 +169,16 @@ describe('ConfiguredDriverSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject pin above 39', () => {
+    it('should reject pin above 48', () => {
       const result = ConfiguredDriverSchema.safeParse({
         ...baseDriver,
-        ledConfig: { hardwareRef: 'led', pin: 40 },
+        ledConfig: { hardwareRef: 'led', pin: 49 },
       });
       expect(result.success).toBe(false);
     });
 
-    it('should accept valid pin range 0-39', () => {
-      for (const pin of [0, 5, 16, 39]) {
+    it('should accept valid pin range 0-48', () => {
+      for (const pin of [0, 5, 16, 39, 48]) {
         const result = ConfiguredDriverSchema.safeParse({
           ...baseDriver,
           ledConfig: { hardwareRef: 'led', pin },

@@ -454,6 +454,27 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### GpioPinSelect
+
+**File:** [common/gpio-pin-select.tsx](common/gpio-pin-select.tsx)
+
+**Purpose:** Board-specific GPIO pin selector for ESP32 drivers with safety classifications.
+
+**Props:**
+- `name: TName` - Form field path
+- `control: Control` - react-hook-form control
+- `chipModel?: string` - Chip model from driver telemetry (e.g., "ESP32-D0WD-V3", "ESP32-S3-WROOM-1")
+
+**Features:**
+- Self-contained pin definitions for ESP32 and ESP32-S3 variants
+- Groups pins into "Safe" and "Use with Caution" sections
+- ESP32: excludes flash pins (6-11), input-only pins (34-39); warns about boot strapping pins
+- ESP32-S3: excludes USB pins (19-20), PSRAM pins (26-32), non-existent pins (33-39); warns about JTAG pins
+- Shows warning alert when current value is an unlisted (unsafe) pin
+- Unlisted pins still selectable in dropdown so legacy configs can be saved
+
+---
+
 ## Effect Form Components
 
 ### EffectForm
