@@ -102,3 +102,24 @@ export const formatNumber = (value: number): string => {
 export const plural = (count: number, singular: string, pluralForm?: string): string => {
   return count === 1 ? singular : (pluralForm ?? `${singular}s`);
 };
+
+/**
+ * Determines WiFi signal quality based on RSSI value.
+ * @param rssi - Signal strength in dBm (typically -30 to -90)
+ * @returns Quality descriptor: Excellent, Good, Fair, or Poor
+ */
+export const getSignalQuality = (rssi: number): string => {
+  if (rssi >= -50) {
+    return 'Excellent';
+  }
+
+  if (rssi >= -60) {
+    return 'Good';
+  }
+
+  if (rssi >= -70) {
+    return 'Fair';
+  }
+
+  return 'Poor';
+};

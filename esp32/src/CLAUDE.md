@@ -69,7 +69,7 @@ Key global variables shared between cores:
 4. NVS flash init with error recovery (handles fresh flash formatting)
 5. NVS configuration load (WiFi credentials, driver ID)
 6. Power-on LED test (if config exists in NVS)
-7. WiFi connection via IotWebConf portal
+7. WiFi connection via IotWebConf portal (uses default TX power)
 8. Create FreeRTOS task for network operations on Core 0
 9. Main loop waits for LED config from Hub via MQTT
 10. Once config received: create Matrix, EffectProcessor, start rendering

@@ -23,6 +23,7 @@ Human-readable formatting functions using date-fns.
 - `formatUptime(ms)`: "2d 5h 30m 15s", always includes seconds
 - `formatTimestamp(timestamp)`: "5m ago", "2h ago" (short format)
 - `formatNumber(value)`: locale-aware thousands separators
+- `formatTableRow(label, value, suffix?)`: Create [label, formatted-value] tuples for InfoSection rows
 
 Custom short locale converts verbose date-fns output to compact format ("5 minutes" → "5m").
 

@@ -56,7 +56,7 @@ Do not drop out of plan mode without the user's explicit permission.
 
 After modifying files in the hub project always run `scripts/check-code.sh`
 
-After modifying files in the esp32 project always run `pio run -e rgfx-driver` to verify the build compiles successfully. Do not report the task as complete until the build passes.
+After modifying files in the esp32 project always run `pio run` to verify the build compiles successfully. Do not report the task as complete until the build passes.
 
 **Separation of concerns is paramount.** This makes testing and maintenance much more effective.
 

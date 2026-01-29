@@ -138,8 +138,25 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Sticky header with back button, driver ID, status chip, and configure button
 - Sections: LED Hardware (filename derived from hardwareRef), LED Configuration, Driver Status, Driver Hardware, Driver Telemetry
 - Live uptime calculation based on driver's reported uptime
-- Test LED, Reset, and Open Log buttons
+- Test LED, Reset, Restart, Disable, and Delete buttons
 - Alert shown when LED configuration is missing
+- Uses `driver-card-rows.ts` utilities for data row building
+
+---
+
+### driver-card-rows.ts
+
+**File:** [driver-card-rows.ts](driver-card-rows.ts)
+
+**Purpose:** Utility functions for building display rows in DriverCard.
+
+**Functions:**
+- `getRotatedDimensions(rotation, width, height)` - Calculate actual dimensions based on rotation code
+- `buildTelemetryRows(params)` - Build telemetry section rows (FPS, uptime, last seen)
+- `buildHardwareRows(params)` - Build hardware section rows (chip model, cores, heap, etc.)
+- `buildLedHardwareRows(params)` - Build LED hardware info rows (filename, layout, count)
+- `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, etc.)
+- `buildDriverStatusRows(params)` - Build driver status rows (ID, MAC, IP, hostname, etc.)
 
 ---
 
@@ -171,9 +188,11 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `driver: Driver` - The driver to reset
 
 **Features:**
+- Uses `ConfirmActionButton` for confirmation flow
 - Warning tooltip explaining reset consequences
 - Confirmation dialog listing what will be erased (ID, LED config, WiFi)
 - Sends reset command via MQTT
+- Disabled when driver is not connected
 
 ---
 
@@ -373,6 +392,31 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### ConfirmActionButton
+
+**File:** [common/confirm-action-button.tsx](common/confirm-action-button.tsx)
+
+**Purpose:** Reusable button that shows a confirmation dialog before executing an async action.
+
+**Props:**
+- `label: string` - Button text
+- `dialogTitle: string` - Confirmation dialog title
+- `dialogContent: ReactNode` - Dialog body content
+- `onConfirm: () => Promise<void>` - Async action to execute on confirm
+- `confirmLabel?: string` - Confirm button label (defaults to `label`)
+- `pendingLabel?: string` - Label shown during execution (defaults to `label...`)
+- `onSuccess?: () => void` - Callback after successful execution
+- `onError?: (error: Error) => void` - Error handler (defaults to console.error)
+- Plus all standard MUI ButtonProps
+
+**Features:**
+- Confirmation dialog with customizable content
+- Pending state with loading indicator
+- Error handling with optional callback
+- Uses `useAsyncAction` hook internally
+
+---
+
 ### SortableTableHead
 
 **File:** [common/sortable-table-head.tsx](common/sortable-table-head.tsx)
@@ -504,6 +548,22 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Supports text, number, boolean, enum, and color field types
 - Integrates with react-hook-form Controller
 - Shows validation errors from form state
+- Uses `field-utils.ts` for label formatting and tooltips
+
+---
+
+### field-utils.ts
+
+**File:** [effect-form/field-utils.ts](effect-form/field-utils.ts)
+
+**Purpose:** Utility functions for effect form field rendering.
+
+**Functions:**
+- `formatLabel(name, overrides?)` - Convert camelCase to human-readable labels with optional overrides
+- `formatConstraintHint(min, max)` - Format min/max constraint hints (e.g., "0–100")
+- `formatDefaultValue(value)` - Format default values for display (handles numbers, booleans, arrays)
+- `buildTooltip(description, defaultValue)` - Combine description and formatted default into tooltip
+- `isColorDisabledByGradient(name, values)` - Check if a color field should be disabled due to gradient selection
 
 ### BackgroundGradientField
 
