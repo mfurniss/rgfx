@@ -48,7 +48,7 @@ describe('SystemMonitor', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetLocalIP.mockResolvedValue('192.168.1.100');
+    mockGetLocalIP.mockReturnValue('192.168.1.100');
     mockGetVersions.mockReturnValue({ 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' });
     systemMonitor = new SystemMonitor();
   });
@@ -62,30 +62,12 @@ describe('SystemMonitor', () => {
     });
   });
 
-  describe('getLocalIpAddress', () => {
-    it('should return IP address when network is available', async () => {
-      mockGetLocalIP.mockResolvedValue('192.168.1.100');
-
-      const ip = await systemMonitor.getLocalIpAddress();
-
-      expect(ip).toBe('192.168.1.100');
-    });
-
-    it('should return "Unknown" when getLocalIP returns localhost', async () => {
-      mockGetLocalIP.mockResolvedValue('127.0.0.1');
-
-      const ip = await systemMonitor.getLocalIpAddress();
-
-      expect(ip).toBe('Unknown');
-    });
-  });
-
   describe('getSystemStatus', () => {
-    it('should return complete system status when network is available', async () => {
-      mockGetLocalIP.mockResolvedValue('192.168.1.100');
+    it('should return complete system status when network is available', () => {
+      mockGetLocalIP.mockReturnValue('192.168.1.100');
       mockGetVersions.mockReturnValue({ 'ESP32': '2.0.0', 'ESP32-S3': '2.0.1' });
 
-      const status = await systemMonitor.getSystemStatus(5, 10, 1000, 2048);
+      const status = systemMonitor.getSystemStatus(5, 10, 1000, 2048);
 
       expect(status).toEqual({
         mqttBroker: 'running',
@@ -105,10 +87,10 @@ describe('SystemMonitor', () => {
       });
     });
 
-    it('should show stopped/inactive services when network is unavailable', async () => {
-      mockGetLocalIP.mockResolvedValue('127.0.0.1');
+    it('should show stopped/inactive services when network is unavailable', () => {
+      mockGetLocalIP.mockReturnValue('127.0.0.1');
 
-      const status = await systemMonitor.getSystemStatus(0, 0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status).toEqual({
         mqttBroker: 'stopped',
@@ -116,11 +98,11 @@ describe('SystemMonitor', () => {
         eventReader: 'monitoring',
         driversConnected: 0,
         driversTotal: 0,
-        hubIp: 'Unknown',
+        hubIp: '127.0.0.1',
         eventsProcessed: 0,
         eventLogSizeBytes: 0,
         hubStartTime: expect.any(Number),
-        firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' }, // From beforeEach default
+        firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' },
         udpMessagesSent: 0,
         udpMessagesFailed: 0,
         udpStatsByDriver: {},
@@ -128,35 +110,35 @@ describe('SystemMonitor', () => {
       });
     });
 
-    it('should return empty firmwareVersions when getVersions returns empty', async () => {
+    it('should return empty firmwareVersions when getVersions returns empty', () => {
       mockGetVersions.mockReturnValue({});
 
-      const status = await systemMonitor.getSystemStatus(1, 2, 50, 0);
+      const status = systemMonitor.getSystemStatus(1, 2, 50, 0);
 
       expect(status.firmwareVersions).toEqual({});
     });
 
-    it('should preserve hubStartTime across calls', async () => {
-      const status1 = await systemMonitor.getSystemStatus(1, 2, 100, 0);
-      const status2 = await systemMonitor.getSystemStatus(2, 3, 200, 0);
+    it('should preserve hubStartTime across calls', () => {
+      const status1 = systemMonitor.getSystemStatus(1, 2, 100, 0);
+      const status2 = systemMonitor.getSystemStatus(2, 3, 200, 0);
 
       expect(status1.hubStartTime).toBe(status2.hubStartTime);
     });
 
-    it('should include system errors when provided', async () => {
+    it('should include system errors when provided', () => {
       const errors = [
         { errorType: 'interceptor' as const, message: 'Test error 1', timestamp: 1000 },
         { errorType: 'interceptor' as const, message: 'Test error 2', timestamp: 2000 },
       ];
 
-      const status = await systemMonitor.getSystemStatus(1, 2, 100, 0, errors);
+      const status = systemMonitor.getSystemStatus(1, 2, 100, 0, errors);
 
       expect(status.systemErrors).toEqual(errors);
       expect(status.systemErrors).toHaveLength(2);
     });
 
-    it('should default to empty array when no errors provided', async () => {
-      const status = await systemMonitor.getSystemStatus(1, 2, 100, 0);
+    it('should default to empty array when no errors provided', () => {
+      const status = systemMonitor.getSystemStatus(1, 2, 100, 0);
 
       expect(status.systemErrors).toEqual([]);
     });
@@ -209,22 +191,22 @@ describe('SystemMonitor', () => {
   });
 
   describe('trackUdpSent', () => {
-    it('should increment sent count on success', async () => {
+    it('should increment sent count on success', () => {
       systemMonitor.trackUdpSent('driver-1', true);
       systemMonitor.trackUdpSent('driver-1', true);
       systemMonitor.trackUdpSent('driver-1', true);
 
-      const status = await systemMonitor.getSystemStatus(0, 0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpMessagesSent).toBe(3);
       expect(status.udpMessagesFailed).toBe(0);
     });
 
-    it('should increment failed count on failure', async () => {
+    it('should increment failed count on failure', () => {
       systemMonitor.trackUdpSent('driver-1', false);
       systemMonitor.trackUdpSent('driver-1', false);
 
-      const status = await systemMonitor.getSystemStatus(0, 0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpMessagesSent).toBe(0);
       expect(status.udpMessagesFailed).toBe(2);
@@ -243,14 +225,14 @@ describe('SystemMonitor', () => {
       expect(stats2).toEqual({ sent: 1, failed: 1 });
     });
 
-    it('should aggregate totals across all drivers in system status', async () => {
+    it('should aggregate totals across all drivers in system status', () => {
       systemMonitor.trackUdpSent('driver-1', true);
       systemMonitor.trackUdpSent('driver-1', false);
       systemMonitor.trackUdpSent('driver-2', true);
       systemMonitor.trackUdpSent('driver-2', true);
       systemMonitor.trackUdpSent('driver-3', false);
 
-      const status = await systemMonitor.getSystemStatus(0, 0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpMessagesSent).toBe(3);
       expect(status.udpMessagesFailed).toBe(2);
@@ -262,13 +244,13 @@ describe('SystemMonitor', () => {
       expect(stats).toEqual({ sent: 0, failed: 0 });
     });
 
-    it('should include per-driver stats in system status', async () => {
+    it('should include per-driver stats in system status', () => {
       systemMonitor.trackUdpSent('driver-1', true);
       systemMonitor.trackUdpSent('driver-1', true);
       systemMonitor.trackUdpSent('driver-2', true);
       systemMonitor.trackUdpSent('driver-2', false);
 
-      const status = await systemMonitor.getSystemStatus(0, 0, 0, 0);
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.udpStatsByDriver).toEqual({
         'driver-1': { sent: 2, failed: 0 },

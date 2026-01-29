@@ -51,7 +51,7 @@ describe('NetworkManager', () => {
       restartDiscovery: vi.fn(),
     };
 
-    vi.mocked(networkUtils.getLocalIP).mockResolvedValue('192.168.1.100');
+    vi.mocked(networkUtils.getLocalIP).mockReturnValue('192.168.1.100');
   });
 
   afterEach(() => {
@@ -138,7 +138,7 @@ describe('NetworkManager', () => {
     });
 
     it('should keep polling if network is still down', async () => {
-      vi.mocked(networkUtils.getLocalIP).mockResolvedValue('127.0.0.1');
+      vi.mocked(networkUtils.getLocalIP).mockReturnValue('127.0.0.1');
 
       const { NetworkManager } = await import('../network-manager.js');
       const networkManager = new NetworkManager(mockMqtt);
@@ -162,16 +162,16 @@ describe('NetworkManager', () => {
 
         // Call 1: constructor - has network
         if (callCount === 1) {
-          return Promise.resolve('192.168.1.100');
+          return '192.168.1.100';
         }
 
         // Calls 2-3: network down (first two recovery checks)
         if (callCount <= 3) {
-          return Promise.resolve('127.0.0.1');
+          return '127.0.0.1';
         }
 
         // Call 4+: network recovered
-        return Promise.resolve('192.168.1.100');
+        return '192.168.1.100';
       });
 
       const { NetworkManager } = await import('../network-manager.js');
@@ -203,7 +203,7 @@ describe('NetworkManager', () => {
       const emitSpy = vi.spyOn(mockEventBus, 'emit');
 
       // IP changes after 5 seconds
-      vi.mocked(networkUtils.getLocalIP).mockResolvedValue('192.168.2.50');
+      vi.mocked(networkUtils.getLocalIP).mockReturnValue('192.168.2.50');
       await vi.advanceTimersByTimeAsync(5000);
 
       expect(mockMqtt.stopDiscovery).toHaveBeenCalled();
@@ -218,7 +218,7 @@ describe('NetworkManager', () => {
       await flushPromises();
 
       // IP changes to localhost (no network)
-      vi.mocked(networkUtils.getLocalIP).mockResolvedValue('127.0.0.1');
+      vi.mocked(networkUtils.getLocalIP).mockReturnValue('127.0.0.1');
       await vi.advanceTimersByTimeAsync(5000);
 
       expect(mockMqtt.stopDiscovery).toHaveBeenCalled();
@@ -250,7 +250,7 @@ describe('NetworkManager', () => {
       vi.mocked(mockMqtt.stopDiscovery).mockClear();
 
       // IP check runs but should be skipped during recovery
-      vi.mocked(networkUtils.getLocalIP).mockResolvedValue('192.168.2.50');
+      vi.mocked(networkUtils.getLocalIP).mockReturnValue('192.168.2.50');
       await vi.advanceTimersByTimeAsync(2000); // Mid-recovery
 
       expect(mockMqtt.stopDiscovery).not.toHaveBeenCalled();
@@ -280,7 +280,7 @@ describe('NetworkManager', () => {
       networkManager.stop();
 
       // IP changes but interval should be cleared
-      vi.mocked(networkUtils.getLocalIP).mockResolvedValue('192.168.2.50');
+      vi.mocked(networkUtils.getLocalIP).mockReturnValue('192.168.2.50');
       await vi.advanceTimersByTimeAsync(10000);
 
       expect(mockMqtt.stopDiscovery).not.toHaveBeenCalled();

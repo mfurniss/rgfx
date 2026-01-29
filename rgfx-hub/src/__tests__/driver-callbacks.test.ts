@@ -129,7 +129,7 @@ describe('setupDriverEventHandlers', () => {
     };
 
     mockSystemMonitor = {
-      getSystemStatus: vi.fn(() => Promise.resolve(mockStatus)),
+      getSystemStatus: vi.fn(() => mockStatus),
     };
 
     mockMqtt = {

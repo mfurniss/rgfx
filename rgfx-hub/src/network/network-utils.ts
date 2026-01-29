@@ -5,47 +5,23 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
+import ip from 'ip';
 import log from 'electron-log/main';
 
-// Cache the module import and last logged IP to avoid spammy logging
-let internalIpModule: { internalIpV4: () => Promise<string | undefined> } | null = null;
 let lastLoggedIP: string | null = null;
 
-async function getInternalIpModule() {
-  internalIpModule ??= await import('internal-ip');
-  return internalIpModule;
-}
-
 /**
- * Get the local IP address by determining the outbound network interface.
- * Uses the default gateway to find the correct interface.
- * This approach respects the OS routing table and works across all platforms.
+ * Get the local IP address.
  */
-export async function getLocalIP(): Promise<string> {
-  try {
-    const { internalIpV4 } = await getInternalIpModule();
-    const ip = await internalIpV4();
+export function getLocalIP(): string {
+  const addr = ip.address();
 
-    if (ip) {
-      if (ip !== lastLoggedIP) {
-        log.info(`Detected local IP: ${ip}`);
-        lastLoggedIP = ip;
-      }
-      return ip;
-    }
-
-    if (lastLoggedIP !== '127.0.0.1') {
-      log.warn('internal-ip returned undefined, using localhost');
-      lastLoggedIP = '127.0.0.1';
-    }
-    return '127.0.0.1';
-  } catch (error) {
-    if (lastLoggedIP !== '127.0.0.1') {
-      log.warn('Failed to detect local IP, using localhost', error);
-      lastLoggedIP = '127.0.0.1';
-    }
-    return '127.0.0.1';
+  if (addr !== lastLoggedIP) {
+    log.info(`Detected local IP: ${addr}`);
+    lastLoggedIP = addr;
   }
+
+  return addr;
 }
 
 /**
