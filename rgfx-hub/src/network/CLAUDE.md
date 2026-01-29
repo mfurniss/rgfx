@@ -19,6 +19,7 @@ The `MqttBroker` class wraps the [Aedes](https://github.com/moscajs/aedes) MQTT 
 - Provides pub/sub interface with QoS 2 (exactly-once delivery)
 - Supports MQTT wildcard subscriptions (`+` single-level, `#` multi-level)
 - Coordinates discovery services to advertise the broker
+- Exposes `isRunning` and `isDiscoveryActive` getters for status reporting
 
 ### ssdp-discovery.ts
 `SsdpDiscovery` implements `DiscoveryService` using SSDP (Simple Service Discovery Protocol). Broadcasts NOTIFY messages to the multicast address `239.255.255.250:1900`.

@@ -52,6 +52,7 @@ Key methods:
 Factory for creating and wiring up all main process services.
 
 - Creates instances of all services with dependency injection
+- `SystemMonitor` receives `MqttBroker` to query actual service status
 - Provides `ServiceContainer` interface for accessing services
 - Used by `service-startup.ts` for initialization
 

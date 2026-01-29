@@ -25,6 +25,16 @@ export class MqttBroker {
   private port: number;
   private subscriptions = new Map<string, (topic: string, payload: string) => void>();
   private discoveryServices: DiscoveryService[];
+  private _isRunning = false;
+  private _isDiscoveryActive = false;
+
+  get isRunning(): boolean {
+    return this._isRunning;
+  }
+
+  get isDiscoveryActive(): boolean {
+    return this._isDiscoveryActive;
+  }
 
   constructor(port = MQTT_DEFAULT_PORT, discoveryServices?: DiscoveryService[]) {
     this.port = port;
@@ -46,6 +56,7 @@ export class MqttBroker {
     for (const service of this.discoveryServices) {
       service.stop();
     }
+    this._isDiscoveryActive = false;
   }
 
   /**
@@ -58,6 +69,7 @@ export class MqttBroker {
     for (const service of this.discoveryServices) {
       service.start({ mqttPort: this.port, localIP: newIP });
     }
+    this._isDiscoveryActive = true;
   }
 
   private setupEventHandlers() {
@@ -217,6 +229,7 @@ export class MqttBroker {
 
   start() {
     this.server.listen(this.port, () => {
+      this._isRunning = true;
       log.info(`Aedes MQTT Broker listening on port ${this.port}`);
       this.startDiscoveryServices();
     });
@@ -229,6 +242,7 @@ export class MqttBroker {
     for (const service of this.discoveryServices) {
       service.start({ mqttPort: this.port, localIP });
     }
+    this._isDiscoveryActive = true;
   }
 
   stop(): Promise<void> {
@@ -237,9 +251,11 @@ export class MqttBroker {
       for (const service of this.discoveryServices) {
         service.stop();
       }
+      this._isDiscoveryActive = false;
 
       this.aedes.close(() => {
         this.server.close(() => {
+          this._isRunning = false;
           log.info('MQTT broker stopped');
           resolve();
         });

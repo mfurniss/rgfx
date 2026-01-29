@@ -57,7 +57,7 @@ Stores can call into each other:
 **State:**
 - `systemStatus: SystemStatus` - Hub status containing:
   - `mqttBroker: string` - MQTT broker state
-  - `udpServer: string` - UDP server state
+  - `discovery: string` - Discovery services state
   - `eventReader: string` - Event reader state
   - `driversConnected: number` - Count of connected drivers
   - `driversTotal: number` - Total drivers

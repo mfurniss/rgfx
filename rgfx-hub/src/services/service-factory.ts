@@ -208,7 +208,7 @@ export function createServices(
   const mqtt = new MqttBroker(MQTT_DEFAULT_PORT);
   const eventReader = new EventFileReader();
   const driverRegistry = new DriverRegistry(driverConfig, ledHardwareManager);
-  const systemMonitor = new SystemMonitor();
+  const systemMonitor = new SystemMonitor(mqtt);
 
   // Create uploadConfigToDriver function
   const uploadConfigToDriver = createUploadConfigToDriver({

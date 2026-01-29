@@ -83,7 +83,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Purpose:** Dashboard panel showing overall hub system status.
 
 **Features:**
-- Displays: Version, IP Address, Uptime, MQTT Broker, UDP Server, Event Reader, Drivers Connected, Events Processed
+- Displays: Version, IP Address, Uptime, MQTT Broker, Discovery, Event Reader, Drivers Connected, Events Processed
 - Live uptime counter (updates every second when visible)
 - Real-time event count via IPC subscription
 
