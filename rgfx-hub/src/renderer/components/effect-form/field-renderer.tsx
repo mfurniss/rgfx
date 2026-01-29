@@ -21,90 +21,18 @@ import {
   GradientArrayField,
   BackgroundGradientField,
 } from './fields';
+import {
+  formatLabel,
+  formatConstraintHint,
+  buildTooltip,
+  isColorDisabledByGradient,
+} from './field-utils';
 
 interface FieldRendererProps<T extends FieldValues> {
   field: FieldMetadata;
   control: Control<T>;
   errors: FieldErrors<T>;
   formValues: Partial<T>;
-}
-
-const labelOverrides: Record<string, string> = {
-  gradient: 'Gradient',
-  orientation: 'Gradient Orientation',
-  lifespanSpread: 'Lifespan Spread %',
-  powerSpread: 'Power Spread %',
-};
-
-function formatLabel(name: string): string {
-  if (labelOverrides[name]) {
-    return labelOverrides[name];
-  }
-
-  return name
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim();
-}
-
-function formatConstraintHint(constraints?: { min?: number; max?: number }): string | undefined {
-  if (!constraints) {
-    return undefined;
-  }
-
-  const { min, max } = constraints;
-
-  if (min !== undefined && max !== undefined) {
-    return `Range: ${min} - ${max}`;
-  }
-
-  if (min !== undefined) {
-    return `Min: ${min}`;
-  }
-
-  if (max !== undefined) {
-    return `Max: ${max}`;
-  }
-
-  return undefined;
-}
-
-function formatDefaultValue(value: unknown): string {
-  if (value === undefined || value === null) {
-    return 'none';
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? 'on' : 'off';
-  }
-
-  if (typeof value === 'string') {
-    return `"${value}"`;
-  }
-
-  if (typeof value === 'number') {
-    return String(value);
-  }
-
-  if (typeof value === 'object') {
-    return JSON.stringify(value);
-  }
-
-  return 'unknown';
-}
-
-function buildTooltip(description?: string, defaultValue?: unknown): string | undefined {
-  const parts: string[] = [];
-
-  if (description) {
-    parts.push(description);
-  }
-
-  if (defaultValue !== undefined) {
-    parts.push(`Default: ${formatDefaultValue(defaultValue)}`);
-  }
-
-  return parts.length > 0 ? parts.join('\n') : undefined;
 }
 
 interface FieldWithHelpProps {
@@ -147,16 +75,8 @@ export function FieldRenderer<T extends FieldValues>({
   const errorMessage = error?.message as string | undefined;
   const label = formatLabel(field.name);
 
-  // Determine if color field should be disabled when gradient has values
-  // Handle both array format (plasma, text) and object format (background)
-  const gradientValue = formValues.gradient as
-    | string[]
-    | { colors?: string[] }
-    | undefined;
-  const hasGradient = Array.isArray(gradientValue)
-    ? gradientValue.length > 0
-    : Array.isArray(gradientValue?.colors) && gradientValue.colors.length > 0;
-  const isColorDisabledByGradient = field.name === 'color' && hasGradient;
+  const gradientValue = formValues.gradient as string[] | { colors?: string[] } | undefined;
+  const colorDisabled = isColorDisabledByGradient(field.name, gradientValue);
 
   switch (field.type) {
     case 'enum':
@@ -208,7 +128,7 @@ export function FieldRenderer<T extends FieldValues>({
             label={label}
             namedColors={field.constraints?.enumValues ?? []}
             error={errorMessage}
-            disabled={isColorDisabledByGradient}
+            disabled={colorDisabled}
           />
         </FieldWithHelp>
       );
@@ -273,6 +193,7 @@ export function FieldRenderer<T extends FieldValues>({
       );
 
     default:
+      console.warn(`Unknown field type: ${field.type} for field ${field.name}`);
       return null;
   }
 }

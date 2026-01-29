@@ -156,10 +156,12 @@ Refactored components and utilities extracted from the main page:
   - Automatically detects chip type and loads correct firmware variant
   - Loads and verifies firmware files against manifest checksums
   - Progress reporting and device reset after flash
+  - WiFi config button using `useWifiConfigDialog` hook
 - **OTA WiFi:**
   - Driver selection dropdown (connected drivers only)
   - Uses `esp-ota` library via IPC handler
-  - Real-time progress events from main process
+  - Real-time progress events via `useOtaFlashEvents` hook
+  - WiFi config OTA button for multi-driver credential configuration
 - Chip-aware update detection: uses `mapChipNameToVariant()` to compare each driver's firmware against its chip type's target version
 - Log display showing flash progress
 - Confirmation dialog for USB flashing

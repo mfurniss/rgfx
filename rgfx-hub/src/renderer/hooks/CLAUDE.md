@@ -34,3 +34,34 @@ Generic hook for sortable table functionality:
 - Provides sorted data array
 - Supports custom sort comparators
 - Used by DriverListTable and EventMonitorPage
+
+### useAsyncAction
+
+**File:** [use-async-action.ts](use-async-action.ts)
+
+Manages async action state with pending indicator:
+- Returns `{ pending, execute }` where execute wraps the action
+- Tracks pending state (false → true → false)
+- Handles errors via callback or console.error fallback
+- Used by `ConfirmActionButton` and driver action buttons
+
+### useWifiConfigDialog
+
+**File:** [use-wifi-config-dialog.ts](use-wifi-config-dialog.ts)
+
+Manages WiFi configuration dialog state:
+- `isOpen`, `isSending`, `error` state
+- `lastWifiSsid`, `lastWifiPassword` persisted via UiStore
+- `openDialog()`, `closeDialog()`, `setError()`, `setIsSending()`
+- `saveCredentials(ssid, password)` persists to localStorage
+- Prevents close while sending
+
+### useOtaFlashEvents
+
+**File:** [use-ota-flash-events.ts](use-ota-flash-events.ts)
+
+Subscribes to OTA flash progress events from main process:
+- Listens for `ota-flash:state`, `ota-flash:progress`, `ota-flash:error` events
+- Updates driver flash status map via callback
+- Auto-cleans up subscriptions on unmount
+- Used by FirmwarePage for real-time OTA progress tracking
