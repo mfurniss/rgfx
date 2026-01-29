@@ -39,7 +39,7 @@ export interface WindowManager {
   getWindow(): BrowserWindow | null;
   isAvailable(): boolean;
   createWindow(): BrowserWindow;
-  sendSystemStatus(): Promise<void>;
+  sendSystemStatus(): void;
   sendEventToRenderer(channel: string, ...args: unknown[]): void;
   startStatusUpdates(): void;
   stopStatusUpdates(): void;
@@ -80,11 +80,12 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
     }
   }
 
-  async function sendSystemStatus(): Promise<void> {
+  function sendSystemStatus(): void {
     if (!isAvailable()) {
       return;
     }
-    const status = await systemMonitor.getSystemStatus(
+
+    const status = systemMonitor.getSystemStatus(
       driverRegistry.getConnectedCount(),
       driverRegistry.getAllDrivers().length,
       eventStats.getCount(),
@@ -208,7 +209,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
       }
 
       // Always send system status (includes critical errors if any)
-      void sendSystemStatus();
+      sendSystemStatus();
 
       // If critical error, don't send driver state or start updates
       if (systemErrorTracker.hasCriticalError()) {
@@ -225,7 +226,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
         clearInterval(statusUpdateInterval);
       }
       statusUpdateInterval = setInterval(() => {
-        void sendSystemStatus();
+        sendSystemStatus();
       }, SYSTEM_STATUS_UPDATE_INTERVAL_MS);
     });
 
@@ -247,7 +248,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
         clearInterval(statusUpdateInterval);
       }
       statusUpdateInterval = setInterval(() => {
-        void sendSystemStatus();
+        sendSystemStatus();
       }, SYSTEM_STATUS_UPDATE_INTERVAL_MS);
     },
 

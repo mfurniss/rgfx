@@ -218,12 +218,12 @@ export class MqttBroker {
   start() {
     this.server.listen(this.port, () => {
       log.info(`Aedes MQTT Broker listening on port ${this.port}`);
-      void this.startDiscoveryServices();
+      this.startDiscoveryServices();
     });
   }
 
-  private async startDiscoveryServices(): Promise<void> {
-    const localIP = await getLocalIP();
+  private startDiscoveryServices(): void {
+    const localIP = getLocalIP();
 
     // Start all discovery services
     for (const service of this.discoveryServices) {

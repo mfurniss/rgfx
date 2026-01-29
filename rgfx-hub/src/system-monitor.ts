@@ -71,22 +71,16 @@ export class SystemMonitor {
     this.firmwareWatcher.stop();
   }
 
-  async getLocalIpAddress(): Promise<string> {
-    const ip = await getLocalIP();
-    // getLocalIP returns '127.0.0.1' when no network found
-    return ip === '127.0.0.1' ? 'Unknown' : ip;
-  }
-
   // Generate system status object
-  async getSystemStatus(
+  getSystemStatus(
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
     eventLogSizeBytes: number,
     errors: readonly SystemError[] = [],
-  ): Promise<SystemStatus> {
-    const hubIp = await this.getLocalIpAddress();
-    const isNetworkAvailable = hubIp !== 'Unknown';
+  ): SystemStatus {
+    const hubIp = getLocalIP();
+    const isNetworkAvailable = hubIp !== '127.0.0.1';
 
     // Aggregate UDP stats from all drivers
     let udpMessagesSent = 0;

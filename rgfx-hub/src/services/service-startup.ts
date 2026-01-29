@@ -156,7 +156,7 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
   // Start firmware monitoring
   services.systemMonitor.startFirmwareMonitoring((_version: string | null) => {
     log.info('[main] Firmware version updated, broadcasting new system status');
-    void windowManager.sendSystemStatus();
+    windowManager.sendSystemStatus();
   });
 
   return {

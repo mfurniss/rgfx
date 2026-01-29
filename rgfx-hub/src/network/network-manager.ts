@@ -6,6 +6,7 @@
  */
 
 import log from 'electron-log/main';
+import { debounce } from 'lodash-es';
 import { eventBus } from '../services/event-bus';
 import { getLocalIP } from './network-utils';
 import { DISCOVERY_RESTART_DEBOUNCE_MS, IP_CHECK_INTERVAL_MS } from '../config/constants';
@@ -23,21 +24,29 @@ export interface DiscoveryController {
  */
 export class NetworkManager {
   private mqtt: DiscoveryController;
-  private debounceTimer?: NodeJS.Timeout;
+  private recoveryTimer?: NodeJS.Timeout;
   private ipCheckInterval?: NodeJS.Timeout;
   private currentIP = '127.0.0.1';
+
+  // Debounce network unreachable handling - only process first event, ignore subsequent
+  private debouncedHandleUnreachable = debounce(
+    () => {
+      this.doHandleNetworkUnreachable();
+    },
+    DISCOVERY_RESTART_DEBOUNCE_MS,
+    { leading: true, trailing: false },
+  );
 
   constructor(mqtt: DiscoveryController) {
     this.mqtt = mqtt;
     this.setupEventListeners();
     this.startIPMonitoring();
 
-    // Fetch initial IP asynchronously
-    void this.initializeIP();
+    this.initializeIP();
   }
 
-  private async initializeIP(): Promise<void> {
-    this.currentIP = await getLocalIP();
+  private initializeIP(): void {
+    this.currentIP = getLocalIP();
     log.info(`NetworkManager initialized with IP: ${this.currentIP}`);
   }
 
@@ -51,17 +60,16 @@ export class NetworkManager {
 
   private startIPMonitoring(): void {
     this.ipCheckInterval = setInterval(() => {
-      void this.checkForIPChange();
+      this.checkForIPChange();
     }, IP_CHECK_INTERVAL_MS);
   }
 
-  private async checkForIPChange(): Promise<void> {
-    // Skip if we're already handling a network issue
-    if (this.debounceTimer) {
+  private checkForIPChange(): void {
+    if (this.recoveryTimer) {
       return;
     }
 
-    const newIP = await getLocalIP();
+    const newIP = getLocalIP();
 
     if (newIP !== this.currentIP) {
       log.info(`IP address changed: ${this.currentIP} -> ${newIP}`);
@@ -81,10 +89,10 @@ export class NetworkManager {
   }
 
   private handleNetworkUnreachable(): void {
-    if (this.debounceTimer) {
-      return;
-    }
+    this.debouncedHandleUnreachable();
+  }
 
+  private doHandleNetworkUnreachable(): void {
     // Stop discovery immediately to prevent stale broadcasts
     this.mqtt.stopDiscovery();
     eventBus.emit('network:changed', undefined);
@@ -97,14 +105,14 @@ export class NetworkManager {
   }
 
   private scheduleRecoveryCheck(): void {
-    this.debounceTimer = setTimeout(() => {
-      void this.performRecoveryCheck();
+    this.recoveryTimer = setTimeout(() => {
+      this.performRecoveryCheck();
     }, DISCOVERY_RESTART_DEBOUNCE_MS);
   }
 
-  private async performRecoveryCheck(): Promise<void> {
-    this.debounceTimer = undefined;
-    const newIP = await getLocalIP();
+  private performRecoveryCheck(): void {
+    this.recoveryTimer = undefined;
+    const newIP = getLocalIP();
 
     if (newIP === '127.0.0.1') {
       log.info('Network still unavailable, will retry...');
@@ -119,9 +127,11 @@ export class NetworkManager {
   }
 
   stop(): void {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = undefined;
+    this.debouncedHandleUnreachable.cancel();
+
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = undefined;
     }
 
     if (this.ipCheckInterval) {
