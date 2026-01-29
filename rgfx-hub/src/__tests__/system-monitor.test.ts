@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted to ensure mocks are available before vi.mock factories run
-const { mockFirmwareWatcher, mockGetVersions, mockGetLocalIP } = vi.hoisted(() => ({
+const { mockFirmwareWatcher, mockGetVersions, mockGetLocalIP, mockMqttBroker } = vi.hoisted(() => ({
   mockFirmwareWatcher: {
     on: vi.fn(),
     start: vi.fn(),
@@ -16,6 +16,10 @@ const { mockFirmwareWatcher, mockGetVersions, mockGetLocalIP } = vi.hoisted(() =
   },
   mockGetVersions: vi.fn(),
   mockGetLocalIP: vi.fn(),
+  mockMqttBroker: {
+    isRunning: true,
+    isDiscoveryActive: true,
+  },
 }));
 
 vi.mock('../services/firmware-watcher', () => ({
@@ -42,6 +46,7 @@ vi.mock('electron-log/main', () => ({
 }));
 
 import { SystemMonitor } from '../system-monitor';
+import type { MqttBroker } from '../network/mqtt-broker';
 
 describe('SystemMonitor', () => {
   let systemMonitor: SystemMonitor;
@@ -50,7 +55,9 @@ describe('SystemMonitor', () => {
     vi.clearAllMocks();
     mockGetLocalIP.mockReturnValue('192.168.1.100');
     mockGetVersions.mockReturnValue({ 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' });
-    systemMonitor = new SystemMonitor();
+    mockMqttBroker.isRunning = true;
+    mockMqttBroker.isDiscoveryActive = true;
+    systemMonitor = new SystemMonitor(mockMqttBroker as unknown as MqttBroker);
   });
 
   describe('constructor', () => {
@@ -71,7 +78,7 @@ describe('SystemMonitor', () => {
 
       expect(status).toEqual({
         mqttBroker: 'running',
-        udpServer: 'active',
+        discovery: 'active',
         eventReader: 'monitoring',
         driversConnected: 5,
         driversTotal: 10,
@@ -87,18 +94,19 @@ describe('SystemMonitor', () => {
       });
     });
 
-    it('should show stopped/inactive services when network is unavailable', () => {
-      mockGetLocalIP.mockReturnValue('127.0.0.1');
+    it('should show stopped/inactive services when broker is not running', () => {
+      mockMqttBroker.isRunning = false;
+      mockMqttBroker.isDiscoveryActive = false;
 
       const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status).toEqual({
         mqttBroker: 'stopped',
-        udpServer: 'inactive',
+        discovery: 'inactive',
         eventReader: 'monitoring',
         driversConnected: 0,
         driversTotal: 0,
-        hubIp: '127.0.0.1',
+        hubIp: '192.168.1.100',
         eventsProcessed: 0,
         eventLogSizeBytes: 0,
         hubStartTime: expect.any(Number),

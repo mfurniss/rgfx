@@ -36,7 +36,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     { name: 'IP Address', value: status.hubIp },
     { name: 'Uptime', value: formatUptime(currentUptime) },
     { name: 'MQTT Broker', value: status.mqttBroker },
-    { name: 'UDP Server', value: status.udpServer },
+    { name: 'Discovery', value: status.discovery },
     { name: 'Event Reader', value: status.eventReader },
     { name: 'Event Log', value: formatBytes(status.eventLogSizeBytes) },
     {

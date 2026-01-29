@@ -371,6 +371,22 @@ describe('MqttBroker', () => {
         });
       });
     });
+
+    it('should set isRunning to true after start', () => {
+      expect(mqtt.isRunning).toBe(false);
+
+      mqtt.start();
+
+      expect(mqtt.isRunning).toBe(true);
+    });
+
+    it('should set isDiscoveryActive to true after start', () => {
+      expect(mqtt.isDiscoveryActive).toBe(false);
+
+      mqtt.start();
+
+      expect(mqtt.isDiscoveryActive).toBe(true);
+    });
   });
 
   describe('stop', () => {
@@ -391,6 +407,67 @@ describe('MqttBroker', () => {
     it('should resolve promise when fully stopped', async () => {
       const stopPromise = mqtt.stop();
       await expect(stopPromise).resolves.toBeUndefined();
+    });
+
+    it('should set isRunning to false after stop', async () => {
+      mqtt.start();
+      expect(mqtt.isRunning).toBe(true);
+
+      await mqtt.stop();
+
+      expect(mqtt.isRunning).toBe(false);
+    });
+
+    it('should set isDiscoveryActive to false after stop', async () => {
+      mqtt.start();
+      expect(mqtt.isDiscoveryActive).toBe(true);
+
+      await mqtt.stop();
+
+      expect(mqtt.isDiscoveryActive).toBe(false);
+    });
+  });
+
+  describe('stopDiscovery', () => {
+    it('should stop all discovery services', () => {
+      mqtt.start();
+      mqtt.stopDiscovery();
+
+      // Called once during stop, verify it was called
+      expect(mockDiscoveryService.stop).toHaveBeenCalled();
+    });
+
+    it('should set isDiscoveryActive to false', () => {
+      mqtt.start();
+      expect(mqtt.isDiscoveryActive).toBe(true);
+
+      mqtt.stopDiscovery();
+
+      expect(mqtt.isDiscoveryActive).toBe(false);
+    });
+  });
+
+  describe('restartDiscovery', () => {
+    it('should restart discovery services with new IP', () => {
+      mqtt.start();
+      vi.clearAllMocks();
+
+      mqtt.restartDiscovery('10.0.0.50');
+
+      expect(mockDiscoveryService.start).toHaveBeenCalledWith({
+        mqttPort: 1883,
+        localIP: '10.0.0.50',
+      });
+    });
+
+    it('should set isDiscoveryActive to true', () => {
+      mqtt.start();
+      mqtt.stopDiscovery();
+      expect(mqtt.isDiscoveryActive).toBe(false);
+
+      mqtt.restartDiscovery('10.0.0.50');
+
+      expect(mqtt.isDiscoveryActive).toBe(true);
     });
   });
 
