@@ -53,7 +53,7 @@ describe('subscribeDriverStatus', () => {
 
     const mockStatus: SystemStatus = {
       mqttBroker: 'running',
-      udpServer: 'active',
+      discovery: 'active',
       eventReader: 'monitoring',
       driversConnected: 1,
       driversTotal: 1,
@@ -69,7 +69,7 @@ describe('subscribeDriverStatus', () => {
     };
 
     mockSystemMonitor = mock<SystemMonitor>();
-    mockSystemMonitor.getSystemStatus.mockResolvedValue(mockStatus);
+    mockSystemMonitor.getSystemStatus.mockReturnValue(mockStatus);
 
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);

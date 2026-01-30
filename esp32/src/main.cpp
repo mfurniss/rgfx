@@ -159,13 +159,6 @@ void setup() {
 		log("NVS flash initialized successfully");
 	}
 
-	// Reduce WiFi transmit power to minimize power draw spikes
-	// This helps prevent display blinking caused by voltage fluctuations
-	// Range: WIFI_POWER_19_5dBm (highest) to WIFI_POWER_2dBm (lowest)
-	// 11dBm provides good range while reducing current spikes
-	WiFi.setTxPower(WIFI_POWER_11dBm);
-	log("WiFi TX power set to 11dBm (reduced for power stability)");
-
 	// Initialize NVS configuration
 	ConfigNVS::begin();
 

@@ -31,7 +31,7 @@ describe('system-status-store', () => {
     useSystemStatusStore.setState({
       systemStatus: {
         mqttBroker: 'stopped',
-        udpServer: 'inactive',
+        discovery: 'inactive',
         eventReader: 'stopped',
         driversConnected: 0,
         driversTotal: 0,
@@ -52,7 +52,7 @@ describe('system-status-store', () => {
     it('should notify when new system error is detected', () => {
       const statusWithError = {
         mqttBroker: 'running' as const,
-        udpServer: 'active' as const,
+        discovery: 'active' as const,
         eventReader: 'monitoring' as const,
         driversConnected: 1,
         driversTotal: 1,

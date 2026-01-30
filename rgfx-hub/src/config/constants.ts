@@ -166,6 +166,13 @@ export const MAX_DRIVER_ID_LENGTH = 32;
 export const MAX_GRADIENT_COLORS = 64;
 
 /**
+ * Regular expression for validating RRGGBB hex color strings with # prefix.
+ * Matches: #FF0000, #00ff00, #1A2B3C
+ * Does not match: FF0000 (no #), #FFF (shorthand), #GGGGGG (invalid chars)
+ */
+export const HEX_COLOR_RRGGBB_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+/**
  * Default effect selected in the Effects Playground page.
  */
 export const DEFAULT_FX_PLAYGROUND_EFFECT = 'background';

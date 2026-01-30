@@ -15,6 +15,7 @@ Manages the main application window lifecycle:
 - Manages devtools in development mode
 - Sets up preload script for IPC bridge
 - Handles window bounds persistence
+- Provides `sendSystemStatus()` (synchronous) for broadcasting system status to renderer
 
 ### index.ts
 

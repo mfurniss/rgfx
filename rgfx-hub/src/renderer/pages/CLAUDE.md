@@ -48,12 +48,13 @@ This folder contains the main page components for the RGFX Hub application. Each
 
 **Features:**
 - Form fields: Driver ID, description, remote logging level
-- LED configuration: hardware selection, GPIO pin, offset, reverse direction (strips), brightness limit, dithering, power settings, RGBW mode (for 4-channel strips)
+- LED configuration: hardware selection, GPIO pin (chip-aware selector), offset, reverse direction (strips), brightness limit, dithering, power settings, RGBW mode (for 4-channel strips)
+- Passes `chipModel` from driver telemetry to enable board-specific GPIO pin validation
 - Default values applied when first configuring LED hardware: globalBrightnessLimit=128, maxPowerMilliamps=500
 - Existing values preserved when switching hardware types on already-configured drivers
 - Uses `react-hook-form` with Zod validation (`ConfiguredDriverSchema`) with `normalizeLedConfig()` for backward compatibility
 - Loads available LED hardware definitions from hub
-- Saves configuration via IPC and auto-pushes to connected drivers
+- Saves configuration via IPC and auto-pushes to connected drivers (shows info notification on success)
 - Handles driver rename (ID change) seamlessly
 
 ### Driver Config Subdirectory
@@ -155,10 +156,12 @@ Refactored components and utilities extracted from the main page:
   - Automatically detects chip type and loads correct firmware variant
   - Loads and verifies firmware files against manifest checksums
   - Progress reporting and device reset after flash
+  - WiFi config button using `useWifiConfigDialog` hook
 - **OTA WiFi:**
   - Driver selection dropdown (connected drivers only)
   - Uses `esp-ota` library via IPC handler
-  - Real-time progress events from main process
+  - Real-time progress events via `useOtaFlashEvents` hook
+  - WiFi config OTA button for multi-driver credential configuration
 - Chip-aware update detection: uses `mapChipNameToVariant()` to compare each driver's firmware against its chip type's target version
 - Log display showing flash progress
 - Confirmation dialog for USB flashing

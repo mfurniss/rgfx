@@ -19,6 +19,7 @@ The `MqttBroker` class wraps the [Aedes](https://github.com/moscajs/aedes) MQTT 
 - Provides pub/sub interface with QoS 2 (exactly-once delivery)
 - Supports MQTT wildcard subscriptions (`+` single-level, `#` multi-level)
 - Coordinates discovery services to advertise the broker
+- Exposes `isRunning` and `isDiscoveryActive` getters for status reporting
 
 ### ssdp-discovery.ts
 `SsdpDiscovery` implements `DiscoveryService` using SSDP (Simple Service Discovery Protocol). Broadcasts NOTIFY messages to the multicast address `239.255.255.250:1900`.
@@ -32,13 +33,13 @@ The `MqttBroker` class wraps the [Aedes](https://github.com/moscajs/aedes) MQTT 
 `NetworkManager` is the central coordinator for network state. Responsibilities:
 - Monitors for IP address changes (detects network switches like WiFi → Ethernet)
 - Listens for `network:error` events via the event bus
-- Handles `ENETUNREACH` errors by stopping discovery and scheduling recovery
-- Restarts discovery services when network becomes available again
-- Notifies dependents of network changes via callback
+- Handles `ENETUNREACH` errors using lodash debounce (leading edge) to prevent duplicate handling
+- Schedules recovery checks to restart discovery when network becomes available
+- Emits `network:changed` events via the event bus
 
 ### network-utils.ts
 Utility functions for network operations:
-- `getLocalIP()` - Detects the local IPv4 address, preferring WiFi/Ethernet interfaces (en0, en1, eth0)
+- `getLocalIP()` - Synchronous function that returns the local IPv4 address using the `ip` npm package. Returns `'127.0.0.1'` when no network interface is available.
 - `getBroadcastAddress(localIP)` - Calculates the broadcast address assuming a /24 subnet
 
 ## Architecture
@@ -58,5 +59,6 @@ See [broker-discovery.md](../../../.claude/docs/broker-discovery.md) for the dis
 
 ## Testing Notes
 
-- `MqttBroker.start()` calls async `startDiscoveryServices()` - tests use `vi.waitFor()` for assertions
-- `NetworkManager` tests use `vi.advanceTimersByTimeAsync(0)` to flush promises with fake timers
+- `MqttBroker.start()` calls `startDiscoveryServices()` synchronously in the listen callback
+- `NetworkManager` tests use `vi.advanceTimersByTimeAsync()` with fake timers to test recovery scheduling
+- `getLocalIP()` is synchronous - tests mock it with `mockReturnValue()` not `mockResolvedValue()`

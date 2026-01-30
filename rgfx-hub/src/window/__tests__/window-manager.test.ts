@@ -216,7 +216,7 @@ describe('createWindowManager', () => {
     const { createWindowManager } = await import('../window-manager.js');
     const manager = createWindowManager(mockDeps);
 
-    await manager.sendSystemStatus();
+    manager.sendSystemStatus();
 
     expect(mockDeps.systemMonitor.getSystemStatus).not.toHaveBeenCalled();
   });
@@ -226,7 +226,7 @@ describe('createWindowManager', () => {
     const manager = createWindowManager(mockDeps);
 
     manager.createWindow();
-    await manager.sendSystemStatus();
+    manager.sendSystemStatus();
 
     expect(mockDeps.systemMonitor.getSystemStatus).toHaveBeenCalled();
     expect(mockWebContents.send).toHaveBeenCalledWith('system:status', expect.anything());

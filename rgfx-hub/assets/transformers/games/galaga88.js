@@ -1,22 +1,13 @@
-/**
- * Galaga 88 game-specific mapper
- *
- * Handles Galaga 88 specific events:
- * - galaga88/player/fire - Player shooting
- * - galaga88/enemy/destroy - Enemy destroyed
- * - galaga88/sound/music_start - Music started
- * - galaga88/sound/effect - Sound effect (payload = effect number 1-3)
- *
- * Note: rgfx/audio/fft events are handled by subjects/audio.js
- */
+// Galaga 88 game-specific mapper
 
-import { formatNumber } from '../utils.js';
+import { formatNumber } from '../utils/format.js';
+import { NAMED_DRIVERS } from '../global.js';
 
 export function transform({ subject, property, payload }, { broadcast }) {
   if (subject === 'player' && property === 'score') {
     return broadcast({
       effect: 'text',
-      drivers: ['rgfx-driver-0005'],
+      drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         align: 'center',
         text: formatNumber(payload),
@@ -32,7 +23,7 @@ export function transform({ subject, property, payload }, { broadcast }) {
     for (var i = 0; i < 2; i++) {
       broadcast({
         effect: 'projectile',
-        drivers: [i & 1 ? 'rgfx-driver-0003' : 'rgfx-driver-0006'],
+        drivers: [i & 1 ? NAMED_DRIVERS.rightStrip : NAMED_DRIVERS.leftStrip],
         props: {
           color: '#46005e',
           direction: i & 1 ? 'left' : 'right',
@@ -68,20 +59,9 @@ export function transform({ subject, property, payload }, { broadcast }) {
     });
   }
 
-  // Music start - rainbow pulse
-  if (subject === 'sound' && property === 'music_start') {
-    return broadcast({
-      effect: 'pulse',
-      props: {
-        color: 'rainbow',
-        duration: 1000,
-      },
-    });
-  }
-
   // Sound effects - color based on effect number in payload
   if (subject === 'sound' && property === 'effect') {
-    const effectNum = parseInt(payload);
+    // const effectNum = parseInt(payload);
     // const color = EFFECT_COLORS[effectNum] || "#FFFFFF";
     // return broadcast({
     //   effect: "pulse",

@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { baseEffect } from './properties';
-import { MAX_GRADIENT_COLORS } from '@/config/constants';
+import { MAX_GRADIENT_COLORS, HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
 
@@ -31,13 +31,13 @@ export default baseEffect
     description: z.literal('Scrolling text marquee'),
     reset: z.boolean().optional().default(true).describe('Clear existing scroll text before adding new'),
     text: z.string().max(64).default("Hidey Ho! It's the Super-Happy-Fun-Time-Show!").describe('Text to scroll (max 64 chars)'),
-    color: z.string().optional().default('#808000').describe('Text color (hex or named)'),
+    color: z.string().optional().describe('Text color (hex or named)'),
     accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
     gradient: z
-      .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
+      .array(z.string().regex(HEX_COLOR_RRGGBB_REGEX))
       .max(MAX_GRADIENT_COLORS)
       .optional()
       .describe('fieldType:gradientArray|Gradient colors for text animation'),
@@ -56,7 +56,11 @@ export default baseEffect
       .default(4)
       .describe('Gradient pattern scale'),
   })
-  .strict();
+  .strict()
+  .refine((data) => Boolean(data.color) || (data.gradient?.length ?? 0) > 0, {
+    message: 'Either color or gradient must be provided',
+    path: ['color'],
+  });
 
 export const presetConfig: PresetConfig = {
   type: 'plasma',

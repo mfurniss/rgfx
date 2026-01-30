@@ -33,7 +33,7 @@ const mockOnSystemStatusUpdate = vi.fn();
 
 let mockSystemStatus: SystemStatus = {
   mqttBroker: 'running',
-  udpServer: 'active',
+  discovery: 'active',
   eventReader: 'monitoring',
   driversConnected: 0,
   driversTotal: 0,
@@ -173,7 +173,7 @@ describe('App Critical Error Handling', () => {
   // Create a fresh system status for each test to avoid state bleeding
   const createFreshSystemStatus = (): SystemStatus => ({
     mqttBroker: 'running',
-    udpServer: 'active',
+    discovery: 'active',
     eventReader: 'monitoring',
     driversConnected: 0,
     driversTotal: 0,

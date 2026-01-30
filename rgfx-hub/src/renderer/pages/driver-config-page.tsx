@@ -127,7 +127,7 @@ export default function DriverConfigPage() {
     try {
       await window.rgfx.saveDriverConfig(data);
       reset(data);
-      notify(`${data.id} configuration saved`, 'success');
+      notify(`${data.id} configuration saved`, 'info');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       notify(`${data.id} failed to save: ${message}`, 'error');
@@ -167,6 +167,7 @@ export default function DriverConfigPage() {
             selectedHardware={selectedHardware}
             loadingHardware={loadingHardware}
             isStrip={isStrip}
+            chipModel={driver.telemetry?.chipModel}
           />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>

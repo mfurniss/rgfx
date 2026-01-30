@@ -52,6 +52,7 @@ Key methods:
 Factory for creating and wiring up all main process services.
 
 - Creates instances of all services with dependency injection
+- `SystemMonitor` receives `MqttBroker` to query actual service status
 - Provides `ServiceContainer` interface for accessing services
 - Used by `service-startup.ts` for initialization
 
@@ -60,8 +61,9 @@ Factory for creating and wiring up all main process services.
 Orchestrates service initialization on app startup.
 
 - Initializes services in correct order with dependency resolution
-- Handles async initialization (MQTT broker, UDP server, etc.)
-- Returns `ServiceContainer` for use throughout app lifecycle
+- Starts MQTT broker, network manager, and other services
+- Sets up firmware monitoring callback to broadcast system status updates
+- Returns `PowerSaveHandle` for cleanup during app shutdown
 
 ### system-error-tracker.ts
 

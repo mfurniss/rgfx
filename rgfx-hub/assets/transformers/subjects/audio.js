@@ -13,17 +13,16 @@
  * @returns {boolean}
  */
 
-const MATRICES = ["rgfx-driver-0001", "rgfx-driver-0005"];
+import { MATRIX_DRIVERS } from '../global.js';
 
 export function transform({ subject, property, payload }, { broadcast }) {
-  if (subject !== 'audio') return false;
-
   // FFT spectrum analyzer - broadcast to all matrix drivers
-  if (property === 'fft') {
+  if (subject === 'audio' && property === 'fft') {
     const values = JSON.parse(payload);
+
     return broadcast({
       effect: 'spectrum',
-      drivers: MATRICES,
+      drivers: MATRIX_DRIVERS,
       props: {
         values,
       },

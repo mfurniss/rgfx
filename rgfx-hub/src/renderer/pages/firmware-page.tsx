@@ -34,6 +34,7 @@ import { useDriverStore } from '../store/driver-store';
 import { useSystemStatusStore } from '../store/system-status-store';
 import { useUiStore, type FlashMethod, type DriverFlashStatus } from '../store/ui-store';
 import { useFlashState } from '../hooks/use-flash-state';
+import { useOtaFlashEvents } from '../hooks/use-ota-flash-events';
 import { flashViaUSB } from '../services/usb-flash-service';
 import {
   flashViaOTA,
@@ -114,56 +115,10 @@ const FirmwarePage: React.FC = () => {
   const [confirmModal, setConfirmModal] = useState(false);
 
   // Subscribe to OTA flash events
-  useEffect(() => {
-    const unsubscribeState = window.rgfx.onFlashOtaState(
-      ({ driverId, state }: { driverId: string; state: string }): void => {
-        flashState.addLog(`[${driverId}] OTA state: ${state}`);
-      },
-    );
-
-    const unsubscribeProgress = window.rgfx.onFlashOtaProgress(
-      (progressData: {
-        driverId: string;
-        sent: number;
-        total: number;
-        percent: number;
-      }): void => {
-        const { driverId, percent, sent, total } = progressData;
-
-        flashState.setDriverFlashStatus((prev) => {
-          const next = new Map(prev);
-          const current = next.get(driverId);
-
-          if (current) {
-            next.set(driverId, { ...current, progress: percent, status: 'flashing' });
-          }
-          return next;
-        });
-        flashState.addLog(`[${driverId}] OTA progress: ${percent}% (${sent}/${total} bytes)`);
-      },
-    );
-
-    const unsubscribeError = window.rgfx.onFlashOtaError(
-      ({ driverId, error }: { driverId: string; error: string }): void => {
-        flashState.addLog(`[${driverId}] OTA error: ${error}`);
-        flashState.setDriverFlashStatus((prev) => {
-          const next = new Map(prev);
-          const current = next.get(driverId);
-
-          if (current) {
-            next.set(driverId, { ...current, status: 'error', error });
-          }
-          return next;
-        });
-      },
-    );
-
-    return (): void => {
-      unsubscribeState();
-      unsubscribeProgress();
-      unsubscribeError();
-    };
-  }, [flashState]);
+  useOtaFlashEvents({
+    addLog: flashState.addLog,
+    setDriverFlashStatus: flashState.setDriverFlashStatus,
+  });
 
   // Reset port selection when switching methods
   useEffect(() => {

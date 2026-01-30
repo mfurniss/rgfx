@@ -19,7 +19,7 @@ interface SystemStatusStoreState {
 export const useSystemStatusStore = create<SystemStatusStoreState>()((set, get) => ({
   systemStatus: {
     mqttBroker: 'stopped',
-    udpServer: 'inactive',
+    discovery: 'inactive',
     eventReader: 'stopped',
     driversConnected: 0,
     driversTotal: 0,

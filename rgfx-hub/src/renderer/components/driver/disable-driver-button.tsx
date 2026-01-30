@@ -1,6 +1,7 @@
 import React from 'react';
 import { Block as BlockIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
 import type { Driver } from '@/types';
+import { useAsyncAction } from '../../hooks/use-async-action';
 import SuperButton from '../common/super-button';
 
 interface DisableDriverButtonProps {
@@ -8,15 +9,16 @@ interface DisableDriverButtonProps {
 }
 
 const DisableDriverButton: React.FC<DisableDriverButtonProps> = ({ driver }) => {
-  const handleToggle = () => {
-    void (async () => {
-      try {
-        await window.rgfx.setDriverDisabled(driver.id, !driver.disabled);
-      } catch (error) {
+  const { execute: toggle, pending } = useAsyncAction(
+    async () => {
+      await window.rgfx.setDriverDisabled(driver.id, !driver.disabled);
+    },
+    {
+      onError: (error) => {
         console.error('Failed to toggle disabled state:', error);
-      }
-    })();
-  };
+      },
+    },
+  );
 
   return (
     <SuperButton
@@ -25,7 +27,8 @@ const DisableDriverButton: React.FC<DisableDriverButtonProps> = ({ driver }) => 
       variant={driver.disabled ? 'contained' : 'outlined'}
       color={driver.disabled ? 'info' : 'primary'}
       size="small"
-      onClick={handleToggle}
+      onClick={toggle}
+      busy={pending}
     >
       {driver.disabled ? 'Enable' : 'Disable'}
     </SuperButton>

@@ -1,6 +1,5 @@
 /**
  * Star Wars (Atari 1983) Transformer
- * Converts game events to LED effects
  */
 
 // 5 Remember, the force will be with you
@@ -18,21 +17,14 @@
 // 17,18 fly away from death star
 // 42 DS surface
 
-import { sleep, randomInt, formatNumber } from '../utils.js';
+import { randomInt } from '../utils/math.js';
+import { sleep } from '../utils/async.js';
+import { formatNumber } from '../utils/format.js';
+import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let laserIndex = 0;
 let gameState;
 let scoreLatch = true;
-
-const MATRIX_DRIVERS = ['rgfx-driver-0001', 'rgfx-driver-0005'];
-
-// const STRIP_DRIVERS = [
-//   'rgfx-driver-0002',
-//   'rgfx-driver-0003',
-//   'rgfx-driver-0004',
-//   'rgfx-driver-0006',
-//   'rgfx-driver-0007',
-// ];
 
 function blockScore() {
   scoreLatch = false;
@@ -110,7 +102,7 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: ['rgfx-driver-0003'],
+        drivers: [NAMED_DRIVERS.rightStrip],
         props: {
           direction: 'right',
           ...commonProps,
@@ -119,7 +111,7 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: ['rgfx-driver-0006', 'rgfx-driver-0002'],
+        drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightMatrix],
         props: {
           direction: 'left',
           ...commonProps,
@@ -130,7 +122,7 @@ export async function transform(
 
       broadcast({
         effect: 'text',
-        drivers: ['rgfx-driver-0005'],
+        drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
           color: '#A00000',
           reset: true,
@@ -147,7 +139,11 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: ['rgfx-driver-0003', 'rgfx-driver-0006', 'rgfx-driver-0002'],
+        drivers: [
+          NAMED_DRIVERS.rightStrip,
+          NAMED_DRIVERS.leftStrip,
+          NAMED_DRIVERS.rightMatrix,
+        ],
         props: {
           enabled: 'fadeOut',
         },
@@ -191,7 +187,7 @@ export async function transform(
         props: {
           color: '#D00000',
           reset: true,
-          duration: 3000,
+          duration: 5000,
           easing: 'quinticInOut',
           fade: true,
           collapse: 'horizontal',
@@ -215,7 +211,7 @@ export async function transform(
 
       broadcast({
         effect: 'text',
-        drivers: ['rgfx-driver-0005'],
+        drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
           color: '#A00000',
           reset: true,
@@ -232,7 +228,7 @@ export async function transform(
 
       broadcast({
         effect: 'text',
-        drivers: ['rgfx-driver-0005'],
+        drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
           color: '#A00000',
           reset: true,
@@ -258,7 +254,7 @@ export async function transform(
         reset: true,
         align: 'center',
       },
-      drivers: ['rgfx-driver-0005'], // 96x8 matrix
+      drivers: [NAMED_DRIVERS.primaryMatrix], // 96x8 matrix
     });
     broadcast({
       effect: 'text',
@@ -268,18 +264,18 @@ export async function transform(
         duration: 200,
         align: 'center',
       },
-      drivers: ['rgfx-driver-0005'], // 96x8 matrix
+      drivers: [NAMED_DRIVERS.primaryMatrix], // 96x8 matrix
     });
   }
 
-  // Player fires X-wing laser
+  // Player fires X-wing laser cannons
   if (gameState !== 14 && subject === 'player' && property === 'fire') {
-    // rgfx-driver-0006 left strip
-    // rgfx-driver-0003 right strip
-
     const direction = laserIndex++ & 1 ? 'left' : 'right';
+
     const drivers =
-      direction === 'right' ? ['rgfx-driver-0006'] : ['rgfx-driver-0003'];
+      direction === 'right'
+        ? [NAMED_DRIVERS.leftStrip]
+        : [NAMED_DRIVERS.rightStrip];
 
     const commonProps = {
       direction,

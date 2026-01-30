@@ -13,16 +13,23 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import type { Driver } from '@/types';
-import InfoSection, { type InfoRowData } from '../common/info-section';
+import InfoSection from '../common/info-section';
 import TestLedButton from './test-led-button';
 import ResetDriverButton from './reset-driver-button';
 import RestartDriverButton from './restart-driver-button';
 import DisableDriverButton from './disable-driver-button';
 import DeleteDriverButton from './delete-driver-button';
 import TelemetryCharts from '../charts/telemetry-charts';
-import { formatBytes, formatUptime, formatNumber } from '@/renderer/utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import { useSystemStatusStore } from '@/renderer/store/system-status-store';
+import {
+  buildTelemetryRows,
+  buildHardwareRows,
+  buildLedHardwareRows,
+  buildLedConfigRows,
+  buildDriverStatusRows,
+  getRotatedDimensions,
+} from './driver-card-rows';
 
 interface DriverCardProps {
   driver: Driver;
@@ -37,14 +44,11 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   // Update every second for live timestamps and uptime - only when component is visible
   useEffect(() => {
-    // Check if we're on a driver detail page (/drivers/:id)
     const isVisible = location.pathname.startsWith('/drivers/');
 
     if (isVisible) {
-      // Immediate update when page becomes visible
       setNow(Date.now());
 
-      // Then start interval
       const interval = setInterval(() => {
         setNow(Date.now());
       }, UI_TIMESTAMP_UPDATE_INTERVAL_MS);
@@ -55,25 +59,7 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     }
   }, [location.pathname]);
 
-  // Helper function to determine WiFi signal quality
-  const getSignalQuality = (rssi: number): string => {
-    if (rssi >= -50) {
-      return 'Excellent';
-    }
-
-    if (rssi >= -60) {
-      return 'Good';
-    }
-
-    if (rssi >= -70) {
-      return 'Fair';
-    }
-
-    return 'Poor';
-  };
-
   // Calculate current uptime based on initial uptimeMs from driver
-  // Only available when telemetry is present
   const driverUptimeAtSnapshot = driver.uptimeMs ?? 0;
   const timeOfSnapshot = driver.lastSeen;
   const timeSinceSnapshot = now - timeOfSnapshot;
@@ -82,117 +68,14 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
       ? driverUptimeAtSnapshot + timeSinceSnapshot
       : driverUptimeAtSnapshot;
 
-  // Prepare data arrays for InfoSection components
-  // Driver telemetry from periodic heartbeats - always show if any data available
-  const telemetryRows: InfoRowData[] = [
-    ...(telemetry
-      ? [['Frame Rate', `${telemetry.currentFps.toFixed(1)} FPS (min: ${telemetry.minFps.toFixed(1)}, max: ${telemetry.maxFps.toFixed(1)})`] as InfoRowData]
-      : []),
-    ...(telemetry?.frameTiming
-      ? [[
-        'Frame Timing',
-        [
-          `clear: ${formatNumber(telemetry.frameTiming.clearUs)}µs`,
-          `effects: ${formatNumber(telemetry.frameTiming.effectsUs)}µs`,
-          `downsample: ${formatNumber(telemetry.frameTiming.downsampleUs)}µs`,
-          `show: ${formatNumber(telemetry.frameTiming.showUs)}µs`,
-          `total: ${formatNumber(telemetry.frameTiming.totalUs)}µs`,
-        ].join('\n'),
-      ] as InfoRowData]
-      : []),
-    ...(telemetry?.lastResetReason
-      ? [['Last Reset Reason', telemetry.lastResetReason] as InfoRowData]
-      : []),
-    ...(telemetry?.crashCount !== undefined && telemetry.crashCount > 0
-      ? [['Crash Count', formatNumber(telemetry.crashCount)] as InfoRowData]
-      : []),
-    ...(telemetry ? [['Driver Uptime', formatUptime(Math.max(0, currentUptime))] as InfoRowData] : []),
-    ...(driver.freeHeap !== undefined && driver.minFreeHeap !== undefined
-      ? [['Memory', `${formatBytes(driver.freeHeap)} free (min: ${formatBytes(driver.minFreeHeap)})`] as InfoRowData]
-      : []),
-    ...(telemetry
-      ? [
-        ['Free Heap', `${formatBytes(driver.freeHeap ?? 0)} / ${formatBytes(telemetry.heapSize)}`] as InfoRowData,
-        ['Max Allocatable Heap', formatBytes(telemetry.maxAllocHeap)] as InfoRowData,
-        ...(telemetry.psramSize > 0
-          ? [['Free PSRAM', `${formatBytes(telemetry.freePsram)} / ${formatBytes(telemetry.psramSize)}`] as InfoRowData]
-          : []),
-        ['Sketch Size', formatBytes(telemetry.sketchSize)] as InfoRowData,
-        ['Free Sketch Space', formatBytes(telemetry.freeSketchSpace)] as InfoRowData,
-        ['SDK Version', telemetry.sdkVersion] as InfoRowData,
-      ]
-      : []),
-    ...(driver.rssi !== undefined
-      ? [['WiFi Signal', `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`] as InfoRowData]
-      : []),
-    ...(driver.uptimeMs !== undefined
-      ? [['Uptime', formatUptime(driver.uptimeMs)] as InfoRowData]
-      : []),
-    ['Telemetry Events', formatNumber(driver.stats.telemetryEventsReceived)],
-    ['MQTT Messages Received', formatNumber(driver.stats.mqttMessagesReceived)],
-    ['MQTT Errors', formatNumber(driver.stats.mqttMessagesFailed)],
-    ...(driver.lastHeartbeat
-      ? [['Last Updated', `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`] as InfoRowData]
-      : []),
-  ];
-
-  const hardwareRows: InfoRowData[] = telemetry
-    ? [
-      ['IP Address', driver.ip ?? ''],
-      ['MAC Address', driver.mac ?? ''],
-      ['Hostname', driver.hostname ?? ''],
-      ['SSID', driver.ssid ?? ''],
-      ['Chip Model', telemetry.chipModel],
-      ['Chip Revision', formatNumber(telemetry.chipRevision)],
-      ['CPU Cores', formatNumber(telemetry.chipCores)],
-      ['CPU Frequency', `${formatNumber(telemetry.cpuFreqMHz)} MHz`],
-      ['Flash Size', formatBytes(telemetry.flashSize)],
-      ['Flash Speed', `${formatNumber(telemetry.flashSpeed / 1000000)} MHz`],
-      ...(telemetry.firmwareVersion
-        ? [['Firmware Version', telemetry.firmwareVersion] as InfoRowData]
-        : []),
-    ]
-    : [];
-
   // LED configuration from Hub's resolved hardware + driver settings
   const { resolvedHardware: hardware, ledConfig } = driver;
 
-  // Derive hardware filename from hardwareRef (e.g., "led-hardware/foo.json" -> "foo.json")
+  // Derive hardware filename from hardwareRef
   const hardwareFilename = ledConfig?.hardwareRef
     .replace(/^led-hardware\//, '') ?? 'Unknown';
 
-  // LED Hardware section - static properties from hardware JSON file
-  const ledHardwareRows: InfoRowData[] = hardware
-    ? [
-      ['Filename', hardwareFilename],
-      ['Description', hardware.description ?? 'Not set'],
-      ['SKU', hardware.sku ?? 'Not set'],
-      ...(hardware.asin ? [['ASIN', hardware.asin] as InfoRowData] : []),
-      ['Layout', hardware.layout],
-      ['LED Count', formatNumber(hardware.count)],
-      ...(hardware.layout !== 'strip'
-        ? [['Panel Size', `${formatNumber(hardware.width ?? 0)} × ${formatNumber(hardware.height ?? 0)}`] as InfoRowData]
-        : []),
-      ['Chipset', hardware.chipset ?? 'Unknown'],
-      ['Color Order', hardware.colorOrder ?? 'Unknown'],
-    ]
-    : [];
-
-  // LED Configuration section - driver-specific settings from drivers.json
   // Calculate actual dimensions accounting for unified multi-panel layout and rotation
-  // Rotation codes: a=0°, b=90°, c=180°, d=270° (b and d swap width/height)
-  const getRotatedDimensions = (
-    panelWidth: number,
-    panelHeight: number,
-    rotation: string,
-  ): { width: number; height: number } => {
-    const isRotated90or270 = rotation === 'b' || rotation === 'd';
-    return isRotated90or270
-      ? { width: panelHeight, height: panelWidth }
-      : { width: panelWidth, height: panelHeight };
-  };
-
-  // For unified layouts, check first panel's rotation to determine effective dimensions
   const firstPanelRotation = ledConfig?.unified?.[0]?.[0]?.slice(-1) ?? 'a';
   const rotatedDims = getRotatedDimensions(
     hardware?.width ?? 0,
@@ -206,52 +89,12 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
     ? rotatedDims.height * ledConfig.unified.length
     : hardware?.height ?? 0;
 
-  const ledConfigRows: InfoRowData[] = ledConfig
-    ? [
-      ['Data Pin', formatNumber(ledConfig.pin)],
-      ...(hardware && hardware.layout !== 'strip'
-        ? [
-          ['Actual Dimensions', `${formatNumber(actualWidth)} × ${formatNumber(actualHeight)}`] as InfoRowData,
-          ['Total LED Count', formatNumber(actualWidth * actualHeight)] as InfoRowData,
-        ]
-        : []),
-      ['Max Brightness', ledConfig.maxBrightness != null ? formatNumber(ledConfig.maxBrightness) : 'Not set'],
-      ['Brightness Limit', ledConfig.globalBrightnessLimit != null ? formatNumber(ledConfig.globalBrightnessLimit) : 'Not set'],
-      ['Dithering', ledConfig.dithering ? 'Yes' : 'No'],
-      ['Gamma Correction', `R: ${ledConfig.gamma.r ?? 2.8}, G: ${ledConfig.gamma.g ?? 2.8}, B: ${ledConfig.gamma.b ?? 2.8}`],
-      ...(ledConfig.floor.r > 0 || ledConfig.floor.g > 0 || ledConfig.floor.b > 0
-        ? [['Floor Cutoff', `R: ${ledConfig.floor.r}, G: ${ledConfig.floor.g}, B: ${ledConfig.floor.b}`] as InfoRowData]
-        : []),
-      ...(ledConfig.unified
-        ? [['Multi-Panel Layout', `${ledConfig.unified.length} ${ledConfig.unified.length === 1 ? 'row' : 'rows'} × ${ledConfig.unified[0]?.length ?? 0} ${(ledConfig.unified[0]?.length ?? 0) === 1 ? 'col' : 'cols'} (${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0)} ${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0) === 1 ? 'panel' : 'panels'})`] as InfoRowData]
-        : []),
-      ['LED Offset', formatNumber(ledConfig.offset ?? 0)],
-      ['Reverse Direction', ledConfig.reverse ? 'Yes' : 'No'],
-      ...(ledConfig.powerSupplyVolts != null
-        ? [['Power Supply', `${ledConfig.powerSupplyVolts}V`] as InfoRowData]
-        : []),
-      ...(ledConfig.maxPowerMilliamps != null
-        ? [['Max Power', `${formatNumber(ledConfig.maxPowerMilliamps)} mA`] as InfoRowData]
-        : []),
-    ]
-    : [];
-
-  // Driver status - metadata and connection health
-  const driverStatusRows: InfoRowData[] = [
-    ...(driver.description
-      ? [['Description', driver.description] as InfoRowData]
-      : []),
-    ['Status', driver.disabled ? 'Disabled' : 'Enabled'],
-    ...(driver.remoteLogging
-      ? [['Remote Logging', driver.remoteLogging === 'all' ? 'All Messages' : driver.remoteLogging === 'errors' ? 'Errors Only' : 'Off'] as InfoRowData]
-      : []),
-    ...(driver.updateRate !== undefined
-      ? [['Update Rate', `${formatNumber(driver.updateRate)} Hz`] as InfoRowData]
-      : []),
-    ...(driver.failedHeartbeats > 0
-      ? [['Failed Heartbeats', formatNumber(driver.failedHeartbeats)] as InfoRowData]
-      : []),
-  ];
+  // Build data rows using extracted utilities
+  const telemetryRows = buildTelemetryRows({ driver, telemetry, currentUptime, now });
+  const hardwareRows = buildHardwareRows({ driver, telemetry });
+  const ledHardwareRows = buildLedHardwareRows({ hardware, hardwareFilename });
+  const ledConfigRows = buildLedConfigRows({ ledConfig, hardware, actualWidth, actualHeight });
+  const driverStatusRows = buildDriverStatusRows(driver);
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -321,7 +164,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
       {/* Scrollable Content */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-        {/* Information Sections */}
         {/* LED Hardware Section - static properties from hardware JSON */}
         <InfoSection
           title="LED Hardware"
@@ -385,7 +227,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
         </InfoSection>
 
         {driver.state === 'connected' && <TelemetryCharts driverId={driver.id} />}
-
       </Box>
     </Box>
   );

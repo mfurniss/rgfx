@@ -71,6 +71,7 @@ driver-config/
 - `selectedHardware` - Currently selected LEDHardware object (or null)
 - `loadingHardware` - Boolean indicating if hardware list is loading
 - `isStrip` - Boolean indicating if selected hardware is a strip layout
+- `chipModel` - Optional chip model from driver telemetry for board-specific GPIO pin validation
 
 ---
 
