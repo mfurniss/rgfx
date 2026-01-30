@@ -1,26 +1,11 @@
-/**
- * Super Mario Bros game-specific mapper
- *
- * Handles Super Mario Bros specific events from nes_smb_rgfx.lua interceptor:
- * - smb/player/score - Player score (red pulse for Mario theme)
- * - smb/player/coins - Coin collection (yellow flash)
- * - smb/player/jump - Player jump (red pulse)
- * - smb/player/fireball - Fireball shot (orange pulse for fire flower)
- * - smb/game/music/area - Music track changes (different colors per area)
- * - smb/game/music/event - Event music (death, game over, level ending, etc.)
- *
- * @param {import('../../../src/types/mapping-types').RgfxTopic} topic - Parsed topic with pre-split segments
- * @param {string} payload
- * @param {import('../../../src/types/mapping-types').MappingContext} context
- * @returns {boolean}
- */
+// Super Mario Bros game-specific mapper
 
-import { sleep, randomInt } from '../utils.js';
+import { randomInt } from '../utils/math.js';
+import { sleep } from '../utils/async.js';
+import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let currentMusicTrack = null;
 let coinGif = null;
-
-const MATRICES = ['rgfx-driver-0001', 'rgfx-driver-0005'];
 
 export async function transform(
   { subject, property, _qualifier, payload },
@@ -53,7 +38,7 @@ export async function transform(
         reset: true,
         duration: 10000,
       },
-      drivers: ['rgfx-driver-0005'],
+      drivers: [NAMED_DRIVERS.primaryMatrix],
     });
   }
 
@@ -65,7 +50,7 @@ export async function transform(
 
         broadcast({
           effect: 'bitmap',
-          drivers: MATRICES,
+          drivers: MATRIX_DRIVERS,
           props: {
             images: coinGif.images,
             palette: coinGif.palette,
@@ -86,7 +71,7 @@ export async function transform(
       for (var i = 0; i < 2; i++) {
         broadcast({
           effect: 'wipe',
-          drivers: MATRICES,
+          drivers: MATRIX_DRIVERS,
           props: {
             color: i & 1 ? 'purple' : 'yellow',
             direction: 'up',
@@ -125,7 +110,7 @@ export async function transform(
       for (var i = 0; i < 3; i++) {
         broadcast({
           effect: 'wipe',
-          drivers: MATRICES,
+          drivers: MATRIX_DRIVERS,
           props: {
             color: '#00C000',
             duration: 300,
@@ -151,12 +136,12 @@ export async function transform(
       };
       broadcast({
         effect: 'projectile',
-        drivers: ['rgfx-driver-0003'],
+        drivers: [NAMED_DRIVERS.rightStrip],
         props,
       });
       broadcast({
         effect: 'projectile',
-        drivers: ['rgfx-driver-0002', 'rgfx-driver-0006'],
+        drivers: [NAMED_DRIVERS.rightMatrix, NAMED_DRIVERS.leftStrip],
         props: {
           ...props,
           direction: 'right',
@@ -244,7 +229,7 @@ export async function transform(
     if (currentMusicTrack === 'castle') {
       broadcast({
         effect: 'particle_field',
-        drivers: ['rgfx-driver-0001', 'rgfx-driver-0005'],
+        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.primaryMatrix],
         props: {
           direction: 'up',
           density: 50,
@@ -258,10 +243,11 @@ export async function transform(
       broadcast({
         effect: 'plasma',
         drivers: [
-          'rgfx-driver-0001',
-          'rgfx-driver-0003',
-          'rgfx-driver-0004',
-          'rgfx-driver-0006',
+          NAMED_DRIVERS.leftMatrix,
+          NAMED_DRIVERS.rightMatrix,
+          NAMED_DRIVERS.rightStrip,
+          NAMED_DRIVERS.frontStrip,
+          NAMED_DRIVERS.leftStrip,
         ],
         props: {
           speed: 0.8,

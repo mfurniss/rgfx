@@ -1,4 +1,6 @@
-import { scaleLinear, formatNumber } from '../utils.js';
+import { scaleLinear } from '../utils/math.js';
+import { formatNumber } from '../utils/format.js';
+import { NAMED_DRIVERS, PRIMARY_MATRIX_DRIVER } from '../global.js';
 
 const shipPositionScale = scaleLinear(17, 225, 13, 88);
 
@@ -8,7 +10,7 @@ export function transform({ subject, property, payload }, { broadcast }) {
   if (subject === 'player' && property === 'score') {
     return broadcast({
       effect: 'text',
-      drivers: ['rgfx-driver-0005'],
+      drivers: [PRIMARY_MATRIX_DRIVER],
       props: {
         align: 'center',
         text: formatNumber(payload),
@@ -24,7 +26,7 @@ export function transform({ subject, property, payload }, { broadcast }) {
     for (var i = 0; i < 2; i++) {
       broadcast({
         effect: 'projectile',
-        drivers: [i & 1 ? 'rgfx-driver-0003' : 'rgfx-driver-0006'],
+        drivers: [i & 1 ? NAMED_DRIVERS.leftStrip : NAMED_DRIVERS.rightStrip],
         props: {
           color: '#56006e',
           direction: i & 1 ? 'left' : 'right',
@@ -39,12 +41,11 @@ export function transform({ subject, property, payload }, { broadcast }) {
     return true;
   }
 
-  // Player ship movement - blue pulse (17 to 225)
   if (subject === 'player' && property === 'ship' && payload >= 17) {
     return true;
     return broadcast({
       effect: 'bitmap',
-      drivers: ['rgfx-driver-0003'],
+      drivers: [NAMED_DRIVERS.leftMatrix],
       props: {
         color: '#0000FF',
         reset: true,

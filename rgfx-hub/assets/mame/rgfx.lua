@@ -109,22 +109,46 @@ local load_interceptor = function()
 		event("rgfx/interceptor/error", error_msg)
 	end
 
-	-- Debug: Print first screen info (use pairs iterator to get first element from MAME enumerator)
-	local screens_iter = pairs(manager.machine.screens)
-	local tag, screen = screens_iter(manager.machine.screens)
-	if screen then
-		print("Screen tag:", tag)
-		print("Screen size:", screen.width .. "x" .. screen.height)
-		print("Refresh rate (Hz):", screen.refresh)
+end
+
+-- Print screen info (wait for screen to initialize before reading properties)
+local screen_info_printed = false
+local frame_count = 0
+local function print_screen_info()
+	if screen_info_printed then return end
+
+	frame_count = frame_count + 1
+	-- Wait a few frames for screen to fully initialize
+	if frame_count < 10 then return end
+
+	local video = manager.machine.video
+	if not video then return end
+
+	local width, height = video:snapshot_size()
+	if width > 0 and height > 0 then
+		-- Get first screen using pairs iterator
+		local iter, screens = pairs(manager.machine.screens)
+		local tag, screen = iter(screens)
+		if screen then
+			local fp = screen.frame_period
+			if fp and fp > 0 and fp < 1 then
+				print(string.format("Screen: %s %dx%d @ %.2f Hz", tag, width, height, 1 / fp))
+			else
+				print(string.format("Screen: %s %dx%d", tag, width, height))
+			end
+		end
+		screen_info_printed = true
 	end
 end
 
 -- Try to load interceptor on first frame (prestart doesn't seem to work for NES)
 local frame_cb = function()
 	load_interceptor()
+	print_screen_info()
 end
 
 print("Registering callbacks...")
 emu.register_prestart(load_interceptor) -- Try prestart first
-emu.add_machine_frame_notifier(frame_cb) -- Fallback to frame callback
+emu.add_machine_frame_notifier(frame_cb) -- Fallback to frame callback for interceptor
+emu.register_frame_done(print_screen_info, "screen_info") -- Called every frame until done
 print("Callbacks registered. Waiting for machine to start...")

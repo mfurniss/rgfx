@@ -71,11 +71,12 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     }
   }
 
-  async function sendSystemStatus() {
+  function sendSystemStatus() {
     if (!isWindowAvailable()) {
       return;
     }
-    const status = await systemMonitor.getSystemStatus(
+
+    const status = systemMonitor.getSystemStatus(
       driverRegistry.getConnectedCount(),
       driverRegistry.getAllDrivers().length,
       getEventsProcessed(),
@@ -95,7 +96,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       log.info(
         `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - eventTime}ms)`,
       );
-      void sendSystemStatus();
+      sendSystemStatus();
     }
 
     if (driver.mac) {
@@ -124,7 +125,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     if (isWindowAvailable()) {
       safeSend('driver:disconnected', serializeDriverForIPC(driver), reason);
       log.info(`Sent driver:disconnected event to renderer (reason: ${reason})`);
-      void sendSystemStatus();
+      sendSystemStatus();
     }
   });
 
@@ -138,7 +139,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     if (isWindowAvailable()) {
       safeSend('driver:restarting', serializeDriverForIPC(driver));
       log.info(`Sent driver:restarting event to renderer for ${driver.id}`);
-      void sendSystemStatus();
+      sendSystemStatus();
     }
   });
 

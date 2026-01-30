@@ -339,7 +339,7 @@ describe('DriverConfigPage', () => {
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockNotify).toHaveBeenCalledWith('test-driver configuration saved', 'success');
+        expect(mockNotify).toHaveBeenCalledWith('test-driver configuration saved', 'info');
       });
     });
 

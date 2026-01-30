@@ -21,11 +21,11 @@ Public exports for all schemas and types.
 ### minimal-driver-registration.ts
 `MinimalDriverRegistrationSchema` - Backward compatibility schema for old firmware drivers. Only requires IP and MAC address; all other fields optional. Used as fallback when full validation fails.
 
-### driver-persistence.ts
-Schemas for persisting driver configuration to disk:
-- `UnifiedPanelLayoutSchema` - 2D array defining LED panel physical layout
-- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin, brightness, power limits, rgbwMode for RGBW strips)
-- `PersistedDriverSchema` - Full driver config (ID, MAC, LED config, remote logging level)
+### driver-config.ts
+Schemas for driver configuration:
+- `UnifiedPanelLayoutSchema` - 2D array defining LED panel physical layout with per-panel rotation
+- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin 0-48 to accommodate all ESP32 variants, brightness, power limits, rgbwMode for RGBW strips)
+- `ConfiguredDriverSchema` - Full driver config (ID, MAC, LED config, remote logging level)
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 
 ### led-hardware.ts
@@ -105,3 +105,4 @@ const props = randomizeExplode(); // Returns randomized explode props
 - **Defaults**: Schemas define sensible defaults where appropriate
 - **Type Export**: Each schema exports inferred TypeScript types via `z.infer<>`
 - **Kebab-Case Filenames**: All effect files use kebab-case (enforced by eslint-plugin-check-file)
+- **Shared Constants**: Gradient array schemas use `HEX_COLOR_RRGGBB_REGEX` from `@/config/constants`

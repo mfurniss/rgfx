@@ -221,7 +221,7 @@ if [ "$ESP32_CHANGES" = true ]; then
 
     notify "Building ESP32 firmware..."
     echo "🔨 Building esp32 firmware..."
-    pio run -e rgfx-driver
+    pio run
     echo "✅ esp32 build passed"
 
     notify "Running ESP32 tests..."

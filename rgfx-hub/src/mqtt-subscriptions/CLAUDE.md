@@ -102,7 +102,7 @@ interface MqttSubscriptionsDeps {
 }
 ```
 
-**Note:** `SystemMonitor.getSystemStatus()` is async and returns a Promise. Tests use `vi.waitFor()` to handle the async IPC notification.
+**Note:** `SystemMonitor.getSystemStatus()` is synchronous. Tests mock it with `mockReturnValue()` not `mockResolvedValue()`. The returned `SystemStatus` includes `discovery` (not `udpServer`) for discovery service state.
 
 ---
 

@@ -5,13 +5,13 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { SettingsInputAntenna as ConfigWifiIcon } from '@mui/icons-material';
 import SuperButton from '../common/super-button';
 import WifiConfigDialog from './wifi-config-dialog';
 import { plural } from '@/renderer/utils/formatters';
 import { WIFI_UPDATE_DELAY_MS } from '@/config/constants';
-import { useUiStore } from '@/renderer/store/ui-store';
+import { useWifiConfigDialog } from '@/renderer/hooks/use-wifi-config-dialog';
 import type { Driver } from '@/types';
 
 interface WifiConfigOtaButtonProps {
@@ -27,30 +27,23 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
   disabled = false,
   onLog = console.log,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const lastWifiSsid = useUiStore((state) => state.lastWifiSsid);
-  const lastWifiPassword = useUiStore((state) => state.lastWifiPassword);
-  const setLastWifiCredentials = useUiStore((state) => state.setLastWifiCredentials);
+  const {
+    isOpen,
+    isSending,
+    error,
+    lastWifiSsid,
+    lastWifiPassword,
+    openDialog,
+    closeDialog,
+    setError,
+    setIsSending,
+    saveCredentials,
+  } = useWifiConfigDialog();
 
   const connectedSelectedDrivers = drivers.filter(
     (d) => selectedDrivers.has(d.id) && d.state === 'connected',
   );
   const driverCount = connectedSelectedDrivers.length;
-
-  const handleOpen = () => {
-    setError(null);
-    setIsOpen(true);
-  };
-
-  const handleClose = () => {
-    if (!isSending) {
-      setIsOpen(false);
-      setError(null);
-    }
-  };
 
   const handleSubmit = async (ssid: string, password: string) => {
     if (driverCount === 0) {
@@ -80,13 +73,12 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
         failCount++;
       }
 
-      // Delay after each update to allow driver to process and reboot
       await new Promise((resolve) => setTimeout(resolve, WIFI_UPDATE_DELAY_MS));
     }
 
     if (failCount === 0) {
       onLog(`WiFi update complete: ${successCount} driver(s) updated successfully`);
-      setIsOpen(false);
+      closeDialog();
     } else if (successCount > 0) {
       setError(`Partial success: ${successCount} succeeded, ${failCount} failed`);
       onLog(`WiFi update complete: ${successCount} succeeded, ${failCount} failed`);
@@ -105,7 +97,7 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
       <SuperButton
         variant="outlined"
         icon={<ConfigWifiIcon />}
-        onClick={handleOpen}
+        onClick={openDialog}
         disabled={driverCount === 0 || disabled}
         sx={{ whiteSpace: 'nowrap' }}
       >
@@ -114,7 +106,7 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
 
       <WifiConfigDialog
         open={isOpen}
-        onClose={handleClose}
+        onClose={closeDialog}
         onSubmit={handleSubmit}
         isSending={isSending}
         error={error}
@@ -123,7 +115,7 @@ const WifiConfigOtaButton: React.FC<WifiConfigOtaButtonProps> = ({
         sendingLabel="Updating..."
         initialSsid={lastWifiSsid}
         initialPassword={lastWifiPassword}
-        onCredentialsSave={setLastWifiCredentials}
+        onCredentialsSave={saveCredentials}
       />
     </>
   );

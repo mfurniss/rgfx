@@ -325,7 +325,7 @@ export interface UdpStats {
 
 export interface SystemStatus {
   mqttBroker: 'running' | 'stopped' | 'error';
-  udpServer: 'active' | 'inactive' | 'error';
+  discovery: 'active' | 'inactive' | 'error';
   eventReader: 'monitoring' | 'stopped' | 'error';
   driversConnected: number;
   driversTotal: number;

@@ -113,7 +113,7 @@ describe('setupDriverEventHandlers', () => {
 
     const mockStatus: SystemStatus = {
       mqttBroker: 'running',
-      udpServer: 'active',
+      discovery: 'active',
       eventReader: 'monitoring',
       driversConnected: 1,
       driversTotal: 1,
@@ -129,7 +129,7 @@ describe('setupDriverEventHandlers', () => {
     };
 
     mockSystemMonitor = {
-      getSystemStatus: vi.fn(() => Promise.resolve(mockStatus)),
+      getSystemStatus: vi.fn(() => mockStatus),
     };
 
     mockMqtt = {

@@ -10,6 +10,7 @@ import type { SystemError, SystemStatus } from './types';
 import { firmwareVersionService } from './services/firmware-version-service';
 import { FirmwareWatcher } from './services/firmware-watcher';
 import { getLocalIP } from './network/network-utils';
+import type { MqttBroker } from './network/mqtt-broker';
 
 interface UdpStats {
   sent: number;
@@ -19,10 +20,12 @@ interface UdpStats {
 export class SystemMonitor {
   private readonly hubStartTime: number;
   private readonly firmwareWatcher: FirmwareWatcher;
+  private readonly mqtt: MqttBroker;
   private onFirmwareUpdatedCallback?: (version: string | null) => void;
   private udpStatsByDriver = new Map<string, UdpStats>();
 
-  constructor() {
+  constructor(mqtt: MqttBroker) {
+    this.mqtt = mqtt;
     this.hubStartTime = Date.now();
     this.firmwareWatcher = new FirmwareWatcher();
     this.setupFirmwareWatcher();
@@ -71,22 +74,15 @@ export class SystemMonitor {
     this.firmwareWatcher.stop();
   }
 
-  async getLocalIpAddress(): Promise<string> {
-    const ip = await getLocalIP();
-    // getLocalIP returns '127.0.0.1' when no network found
-    return ip === '127.0.0.1' ? 'Unknown' : ip;
-  }
-
   // Generate system status object
-  async getSystemStatus(
+  getSystemStatus(
     connectedDriverCount: number,
     totalDriverCount: number,
     eventsProcessed: number,
     eventLogSizeBytes: number,
     errors: readonly SystemError[] = [],
-  ): Promise<SystemStatus> {
-    const hubIp = await this.getLocalIpAddress();
-    const isNetworkAvailable = hubIp !== 'Unknown';
+  ): SystemStatus {
+    const hubIp = getLocalIP();
 
     // Aggregate UDP stats from all drivers
     let udpMessagesSent = 0;
@@ -98,8 +94,8 @@ export class SystemMonitor {
     }
 
     return {
-      mqttBroker: isNetworkAvailable ? 'running' : 'stopped',
-      udpServer: isNetworkAvailable ? 'active' : 'inactive',
+      mqttBroker: this.mqtt.isRunning ? 'running' : 'stopped',
+      discovery: this.mqtt.isDiscoveryActive ? 'active' : 'inactive',
       eventReader: 'monitoring',
       driversConnected: connectedDriverCount,
       driversTotal: totalDriverCount,

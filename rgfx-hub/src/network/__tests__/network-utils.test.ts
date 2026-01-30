@@ -20,16 +20,15 @@ import { getLocalIP, getBroadcastAddress } from '../network-utils';
 
 describe('network-utils', () => {
   describe('getLocalIP', () => {
-    it('should return a valid IPv4 address', async () => {
-      const ip = await getLocalIP();
-      // Should match IPv4 pattern (including localhost fallback)
+    it('should return a valid IPv4 address', () => {
+      const ip = getLocalIP();
+
       expect(ip).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/);
     });
 
-    it('should return a non-loopback address when network is available', async () => {
-      const ip = await getLocalIP();
-      // In a normal network environment, should not be localhost
-      // (This test may return 127.0.0.1 in isolated CI environments)
+    it('should return a non-loopback address when network is available', () => {
+      const ip = getLocalIP();
+
       expect(ip).toBeDefined();
     });
   });
