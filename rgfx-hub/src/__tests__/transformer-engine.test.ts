@@ -151,58 +151,58 @@ describe('TransformerEngine', () => {
       expect(defaultHandler).not.toHaveBeenCalled();
     });
 
-    it('should fall through to pattern handlers', async () => {
+    it('should fall through to property handlers', async () => {
       const gameHandler = vi.fn().mockReturnValue(false);
       const subjectHandler = vi.fn().mockReturnValue(false);
-      const patternHandler = vi.fn().mockReturnValue(true);
+      const propertyHandler = vi.fn().mockReturnValue(true);
       const defaultHandler = vi.fn().mockReturnValue(true);
 
       (engine as any).gameHandlers.set('pacman', gameHandler);
       (engine as any).subjectHandlers.set('player', subjectHandler);
-      (engine as any).patternHandlers = [patternHandler];
+      (engine as any).propertyHandlers = [propertyHandler];
       (engine as any).defaultHandler = defaultHandler;
 
       await engine.handleEvent('pacman/player/score/p1', '1000');
 
       expect(gameHandler).toHaveBeenCalled();
       expect(subjectHandler).toHaveBeenCalled();
-      expect(patternHandler).toHaveBeenCalled();
+      expect(propertyHandler).toHaveBeenCalled();
       expect(defaultHandler).not.toHaveBeenCalled();
     });
 
     it('should fall through to default handler', async () => {
       const gameHandler = vi.fn().mockReturnValue(false);
       const subjectHandler = vi.fn().mockReturnValue(false);
-      const patternHandler = vi.fn().mockReturnValue(false);
+      const propertyHandler = vi.fn().mockReturnValue(false);
       const defaultHandler = vi.fn().mockReturnValue(true);
 
       (engine as any).gameHandlers.set('pacman', gameHandler);
       (engine as any).subjectHandlers.set('player', subjectHandler);
-      (engine as any).patternHandlers = [patternHandler];
+      (engine as any).propertyHandlers = [propertyHandler];
       (engine as any).defaultHandler = defaultHandler;
 
       await engine.handleEvent('pacman/player/score/p1', '1000');
 
       expect(gameHandler).toHaveBeenCalled();
       expect(subjectHandler).toHaveBeenCalled();
-      expect(patternHandler).toHaveBeenCalled();
+      expect(propertyHandler).toHaveBeenCalled();
       expect(defaultHandler).toHaveBeenCalled();
     });
 
-    it('should try multiple pattern handlers in order', async () => {
-      const pattern1 = vi.fn().mockReturnValue(false);
-      const pattern2 = vi.fn().mockReturnValue(true);
-      const pattern3 = vi.fn().mockReturnValue(false);
+    it('should try multiple property handlers in order', async () => {
+      const prop1 = vi.fn().mockReturnValue(false);
+      const prop2 = vi.fn().mockReturnValue(true);
+      const prop3 = vi.fn().mockReturnValue(false);
       const defaultHandler = vi.fn().mockReturnValue(true);
 
-      (engine as any).patternHandlers = [pattern1, pattern2, pattern3];
+      (engine as any).propertyHandlers = [prop1, prop2, prop3];
       (engine as any).defaultHandler = defaultHandler;
 
       await engine.handleEvent('test/topic', 'value');
 
-      expect(pattern1).toHaveBeenCalled();
-      expect(pattern2).toHaveBeenCalled();
-      expect(pattern3).not.toHaveBeenCalled(); // Stopped after pattern2
+      expect(prop1).toHaveBeenCalled();
+      expect(prop2).toHaveBeenCalled();
+      expect(prop3).not.toHaveBeenCalled(); // Stopped after prop2 matched
       expect(defaultHandler).not.toHaveBeenCalled();
     });
 
@@ -278,9 +278,9 @@ describe('TransformerEngine', () => {
       );
     });
 
-    it('should catch and log errors from pattern handlers', async () => {
-      const patternHandler = vi.fn().mockRejectedValue(new Error('Test error'));
-      (engine as any).patternHandlers = [patternHandler];
+    it('should catch and log errors from property handlers', async () => {
+      const propertyHandler = vi.fn().mockRejectedValue(new Error('Test error'));
+      (engine as any).propertyHandlers = [propertyHandler];
 
       await engine.handleEvent('test/topic', 'value');
 
@@ -382,14 +382,14 @@ describe('TransformerEngine', () => {
       );
     });
 
-    it('should log debug message when pattern handler matches', async () => {
-      const patternHandler = vi.fn().mockReturnValue(true);
-      (engine as any).patternHandlers = [patternHandler];
+    it('should log debug message when property handler matches', async () => {
+      const propertyHandler = vi.fn().mockReturnValue(true);
+      (engine as any).propertyHandlers = [propertyHandler];
 
       await engine.handleEvent('test/topic', 'value');
 
       expect(mockContext.log.debug).toHaveBeenCalledWith(
-        'Event handled by pattern transformer: test/topic',
+        'Event handled by property transformer: test/topic',
       );
     });
 

@@ -21,12 +21,21 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	if (!props["color"].is<const char*>()) {
-		hal::log("ERROR: scroll_text missing or invalid 'color' prop");
+	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
+	// Check gradient first since color is optional when gradient is provided
+	bool hasGradient = false;
+	CRGB gradientLut[GRADIENT_LUT_SIZE];
+	hasGradient = parseGradientFromJson(props, gradientLut);
+
+	// Color is required only if no gradient is provided
+	uint32_t color = 0;
+	if (props["color"].is<const char*>()) {
+		color = parseColor(props["color"]);
+	} else if (!hasGradient) {
+		hal::log("ERROR: scroll_text missing 'color' prop (required when no gradient)");
 		publishError("scroll_text", "missing or invalid 'color' prop", props);
 		return;
 	}
-	uint32_t color = parseColor(props["color"]);
 	float speed = props["speed"];
 	bool repeat = props["repeat"].as<bool>();
 
@@ -59,9 +68,10 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.repeat = repeat;
 	instance.snapToLed = props["snapToLed"].as<bool>();
 
-	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
-	instance.hasGradient = parseGradientFromJson(props, instance.gradientLut);
+	// Copy pre-parsed gradient to instance
+	instance.hasGradient = hasGradient;
 	if (instance.hasGradient) {
+		memcpy(instance.gradientLut, gradientLut, sizeof(gradientLut));
 		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;
 		instance.gradientScale = props["gradientScale"] | 4.0f;
 		instance.gradientTime = 0.0f;
