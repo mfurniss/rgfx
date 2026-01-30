@@ -14,27 +14,10 @@
  * @returns {boolean}
  */
 
+import { AMBILIGHT_CONFIG } from '../global.js';
+
 // Payload edge order (fixed by Lua - clockwise from bottom-left)
 const EDGE_ORDER = ['left', 'top', 'right', 'bottom'];
-
-const CONFIG = {
-  mode: 'single', // 'multi' or 'single'
-
-  // Multi-driver mode: each edge to separate driver
-  multiDriver: {
-    top: 'rgfx-driver-0004',
-    bottom: 'rgfx-driver-0007',
-    left: 'rgfx-driver-0006',
-    right: 'rgfx-driver-0003',
-  },
-
-  // Single-driver mode: all edges to one driver
-  singleDriver: {
-    drivers: ['rgfx-driver-0002'],
-    startCorner: 'bottom-left', // 'bottom-left', 'top-left', 'top-right', 'bottom-right'
-    aspectRatio: [16, 10], // [width, height] - 13" MacBook Air
-  },
-};
 
 // Edge order for each starting corner (clockwise)
 const CORNER_EDGE_ORDER = {
@@ -68,13 +51,10 @@ function interpolateColors(colors, targetCount) {
   if (colors.length === 0) return [];
   if (colors.length === targetCount) return colors;
 
-  const result = [];
-  for (let i = 0; i < targetCount; i++) {
-    const srcIdx = (i / (targetCount - 1)) * (colors.length - 1);
-    const idx = Math.round(srcIdx);
-    result.push(colors[Math.min(idx, colors.length - 1)]);
-  }
-  return result;
+  return Array.from({ length: targetCount }, (_, i) => {
+    const idx = Math.round((i / (targetCount - 1)) * (colors.length - 1));
+    return colors[Math.min(idx, colors.length - 1)];
+  });
 }
 
 /**
@@ -105,19 +85,16 @@ function handleMultiDriver(edges, context) {
   const { broadcast, parseAmbilight } = context;
 
   for (const [edge, colors] of Object.entries(edges)) {
-    const driverId = CONFIG.multiDriver[edge];
-    if (!driverId) continue;
+    const driverId = AMBILIGHT_CONFIG.multiDriver[edge];
+
+    if (!driverId) {
+      continue;
+    }
 
     const orientation =
       edge === 'left' || edge === 'right' ? 'vertical' : 'horizontal';
 
-    // Reverse the left edge gradient
-    let payload = colors;
-    if (edge === 'left') {
-      payload = colors.split(',').reverse().join(',');
-    }
-
-    const gradient = parseAmbilight(payload, orientation);
+    const gradient = parseAmbilight(colors, orientation);
 
     broadcast({
       effect: 'background',
@@ -133,7 +110,7 @@ function handleMultiDriver(edges, context) {
  */
 function handleSingleDriver(edges, context) {
   const { broadcast, parseAmbilight } = context;
-  const { drivers, startCorner, aspectRatio } = CONFIG.singleDriver;
+  const { drivers, startCorner, aspectRatio } = AMBILIGHT_CONFIG.singleDriver;
 
   // Get edge order for this starting corner (clockwise)
   const edgeOrder = CORNER_EDGE_ORDER[startCorner];
@@ -191,7 +168,7 @@ export async function transform({ subject, property, payload }, context) {
     return false;
   }
 
-  if (CONFIG.mode === 'single') {
+  if (AMBILIGHT_CONFIG.mode === 'single') {
     handleSingleDriver(edges, context);
   } else {
     handleMultiDriver(edges, context);

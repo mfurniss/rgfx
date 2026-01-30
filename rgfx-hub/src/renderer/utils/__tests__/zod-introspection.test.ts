@@ -160,7 +160,7 @@ describe('zod-introspection', () => {
 
       it('should extract default values for fields that have them', () => {
         // Fields that are purely optional (no default) are allowed
-        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'accentColor', 'gradient'];
+        const optionalFieldsWithoutDefaults = ['endX', 'endY', 'accentColor', 'gradient', 'color'];
 
         for (const [schemaName, schema] of Object.entries(effectPropsSchemas)) {
           const fields = extractFieldMetadata(schema);

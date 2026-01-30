@@ -105,3 +105,4 @@ const props = randomizeExplode(); // Returns randomized explode props
 - **Defaults**: Schemas define sensible defaults where appropriate
 - **Type Export**: Each schema exports inferred TypeScript types via `z.infer<>`
 - **Kebab-Case Filenames**: All effect files use kebab-case (enforced by eslint-plugin-check-file)
+- **Shared Constants**: Gradient array schemas use `HEX_COLOR_RRGGBB_REGEX` from `@/config/constants`

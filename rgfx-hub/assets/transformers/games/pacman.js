@@ -1,4 +1,5 @@
-import { sleep, randomInt } from '../utils.js';
+import { randomInt } from '../utils/math.js';
+import { sleep } from '../utils/async.js';
 import { PICO8_PALETTE } from '../palettes.js';
 import {
   PACMAN_SPRITE_OPEN_MOUTH,
@@ -10,6 +11,7 @@ import {
   GHOST_EYES_RIGHT,
   GHOST_EYES_LEFT,
 } from '../bitmaps/pacman-sprites.js';
+import { STRIP_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 const BONUS_ITEMS = {
   cherry: { score: 100, file: 'pac-bonus-1-cherry.gif' },
@@ -28,12 +30,6 @@ const MATRIX_DRIVERS = [
   'rgfx-driver-0010',
 ];
 
-const STRIP_DRIVERS = [
-  'rgfx-driver-0003',
-  'rgfx-driver-0004',
-  'rgfx-driver-0006',
-];
-
 let dotCount = 0;
 let bonusLatch = false;
 
@@ -44,7 +40,7 @@ export async function transform(
   if (bonusLatch === false && subject === 'player' && property === 'score') {
     return broadcast({
       effect: 'text',
-      drivers: ['rgfx-driver-0005'],
+      drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         text: payload,
         color: '#A0A000',
@@ -67,7 +63,7 @@ export async function transform(
 
     return broadcast({
       effect: 'text',
-      drivers: ['rgfx-driver-0005'],
+      drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         color: '#f4f6f5',
         reset: true,

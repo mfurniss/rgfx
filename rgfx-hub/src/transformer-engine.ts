@@ -2,7 +2,7 @@
  * Event Transformer Engine
  *
  * Core engine that transforms raw game events into semantic LED effects
- * using a cascading precedence system: game → subject → pattern → default
+ * using a cascading precedence system: game → subject → property → default
  *
  * The first matching handler wins and stops the cascade.
  */
@@ -34,7 +34,7 @@ interface TransformerEngineOptions {
 export class TransformerEngine {
   private gameHandlers = new Map<string, TransformerHandler>();
   private subjectHandlers = new Map<string, TransformerHandler>();
-  private patternHandlers: TransformerHandler[] = [];
+  private propertyHandlers: TransformerHandler[] = [];
   private defaultHandler?: TransformerHandler;
   private watcher?: ReturnType<typeof watch>;
   private importModule: (path: string) => Promise<Record<string, unknown>>;
@@ -63,8 +63,8 @@ export class TransformerEngine {
       // Load subject transformers
       await this.loadSubjectTransformers(join(transformersDir, 'subjects'));
 
-      // Load pattern transformers
-      await this.loadPatternTransformers(join(transformersDir, 'patterns'));
+      // Load property transformers
+      await this.loadPropertyTransformers(join(transformersDir, 'properties'));
 
       // Load default transformer
       await this.loadDefaultTransformer(join(transformersDir, 'default.js'));
@@ -72,7 +72,7 @@ export class TransformerEngine {
       this.context.log.info(
         'Loaded default transformers: ' +
           `${this.subjectHandlers.size} subjects, ` +
-          `${this.patternHandlers.length} patterns, ` +
+          `${this.propertyHandlers.length} properties, ` +
           `${this.defaultHandler ? '1' : '0'} default`,
       );
 
@@ -128,11 +128,11 @@ export class TransformerEngine {
           this.subjectHandlers.set(subjectName, handler);
           this.context.log.info(`Reloaded subject transformer: ${subjectName}`);
         }
-      } else if (filename.startsWith('patterns/') || filename.startsWith('patterns\\')) {
-        // patterns/ subdirectory
-        this.patternHandlers = [];
-        await this.loadPatternTransformers(join(transformersDir, 'patterns'));
-        this.context.log.info('Reloaded pattern transformers');
+      } else if (filename.startsWith('properties/') || filename.startsWith('properties\\')) {
+        // properties/ subdirectory
+        this.propertyHandlers = [];
+        await this.loadPropertyTransformers(join(transformersDir, 'properties'));
+        this.context.log.info('Reloaded property transformers');
       } else if (filename === 'default.js') {
         // default.js in root
         this.defaultHandler = undefined;
@@ -268,13 +268,13 @@ export class TransformerEngine {
         }
       }
 
-      // 3. Try pattern handlers (lower priority)
-      for (const handler of this.patternHandlers) {
+      // 3. Try property handlers (lower priority)
+      for (const handler of this.propertyHandlers) {
         const handled = await handler(topicObj, this.context);
 
         if (handled) {
           // Truthy values (true, non-zero, etc.) mean handled
-          this.context.log.debug(`Event handled by pattern transformer: ${topic}`);
+          this.context.log.debug(`Event handled by property transformer: ${topic}`);
           return;
         }
       }
@@ -363,28 +363,28 @@ export class TransformerEngine {
   }
 
   /**
-   * Load pattern transformers from patterns/ directory
+   * Load property transformers from properties/ directory
    */
-  private async loadPatternTransformers(patternsDir: string): Promise<void> {
+  private async loadPropertyTransformers(propertiesDir: string): Promise<void> {
     try {
-      const files = await fs.readdir(patternsDir);
+      const files = await fs.readdir(propertiesDir);
 
       for (const file of files) {
         if (!file.endsWith('.js')) {
           continue;
         }
 
-        const filePath = join(patternsDir, file);
+        const filePath = join(propertiesDir, file);
 
         try {
           const module = await this.importModule(filePath);
           const handler = this.extractTransformer(module);
 
           if (handler) {
-            this.patternHandlers.push(handler);
+            this.propertyHandlers.push(handler);
           }
         } catch (error) {
-          this.context.log.error(`Failed to load pattern transformer ${file}:`, error);
+          this.context.log.error(`Failed to load property transformer ${file}:`, error);
         }
       }
     } catch (error) {

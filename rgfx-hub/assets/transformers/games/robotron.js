@@ -1,33 +1,9 @@
-/**
- * Robotron: 2084 game-specific mapper
- *
- * Handles Robotron-specific events:
- * - robotron/player/score/p1 - Player score
- * - robotron/player/lives - Lives remaining
- * - robotron/player/die - Player death
- * - robotron/player/fire - Laser fired (with direction: up, down, left, right, up-left, etc.)
- * - robotron/wave/number - Current wave number
- * - robotron/wave/complete - Wave completed
- * - robotron/enemy/grunt/destroy - Grunt killed (100 pts)
- * - robotron/enemy/brain/destroy - Brain killed (500 pts)
- * - robotron/enemy/spheroid/destroy - Spheroid killed (1000 pts, spawns Enforcers)
- * - robotron/enemy/quark/destroy - Quark killed (1000 pts, spawns Tanks)
- * - robotron/enemy/tank/destroy - Tank killed (200 pts)
- * - robotron/enemy/enforcer/destroy - Enforcer killed (150 pts)
- * - robotron/enemy/enforcer/spawn - Enforcer spawned
- * - robotron/enemy/spark/count - Spark missiles on screen
- * - robotron/enemy/cruise/count - Cruise missiles on screen
- * - robotron/enemy/electrode/count - Electrodes on screen
- * - robotron/family/rescue - Family member rescued (mommie/daddie/mikey)
- *
- * @param {import('../../../src/types/mapping-types').RgfxTopic} topic - Parsed topic
- * @param {string} payload - Event payload
- * @param {import('../../../src/types/mapping-types').MappingContext} context - Mapping context
- * @returns {boolean} - True if event was handled
- */
+// Robotron: 2084 game-specific mapper
 
-import { formatNumber, randomInt, sleep } from '../utils.js';
-import { MATRIX_DRIVERS } from '../global.js';
+import { randomInt } from '../utils/math.js';
+import { sleep } from '../utils/async.js';
+import { formatNumber } from '../utils/format.js';
+import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 // Cycle hue for score display
 let scoreHue = 0;
@@ -86,48 +62,6 @@ export async function transform(
         });
       }
     }
-    // if (property === 'next-wave') {
-    //   const props = {
-    //     speed: 5,
-    //     scale: 3,
-    //     orientation: 'horizontal',
-    //     gradient: [
-    //       '#A07000',
-    //       '#C0C0C0',
-    //       '#A07000',
-    //       '#C0C0C0',
-    //       '#A07000',
-    //       '#C0C0C0',
-    //       '#00A0A0',
-    //       '#A000A0',
-    //       '#00A0A0',
-    //       '#A000A0',
-    //       '#00A0A0',
-    //       '#A000A0',
-    //       '#0000A0',
-    //       '#A00000',
-    //       '#0000A0',
-    //       '#A00000',
-    //       '#0000A0',
-    //       '#A00000',
-    //     ],
-    //   };
-    //   broadcast({
-    //     effect: 'warp',
-    //     props: {
-    //       ...props,
-    //       enabled: 'on',
-    //     },
-    //   });
-    //   await sleep(1000);
-    //   return broadcast({
-    //     effect: 'warp',
-    //     props: {
-    //       ...props,
-    //       enabled: 'fadeOut',
-    //     },
-    //   });
-    // }
 
     if (property === 'shoot-hulk') {
       return broadcast({
@@ -482,7 +416,35 @@ export async function transform(
         enabled: 'fadeIn',
       },
     });
-    await sleep(1300);
+
+    await sleep(700);
+
+    broadcast({
+      effect: 'scroll_text',
+      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+      props: {
+        reset: true,
+        text: `Wave ${payload}`,
+        accentColor: '',
+        speed: 200,
+        repeat: false,
+        snapToLed: false,
+        gradientSpeed: 4.5,
+        gradientScale: 0.18,
+        gradient: [
+          '#600060',
+          '#0000FF',
+          '#00FFFF',
+          '#FFFFFF',
+          '#FFFF00',
+          '#FF0000',
+          '#600060',
+        ],
+      },
+    });
+
+    await sleep(700);
+
     return broadcast({
       effect: 'warp',
       props: {
@@ -498,7 +460,7 @@ export async function transform(
     scoreHue = (scoreHue + 30) % 360;
     return broadcast({
       effect: 'text',
-      drivers: ['rgfx-driver-0005'],
+      drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         align: 'center',
         text: formatNumber(payload),

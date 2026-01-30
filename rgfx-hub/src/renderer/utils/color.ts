@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+import { HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
 
 export const colorSwatchMap: Record<string, string> = {
   random: '#808080',
@@ -32,12 +32,12 @@ export const colorSwatchMap: Record<string, string> = {
 };
 
 export function isValidHex(value: string): boolean {
-  return HEX_COLOR_REGEX.test(value);
+  return HEX_COLOR_RRGGBB_REGEX.test(value);
 }
 
 export function normalizeHex(value: string): string {
   // Already valid 6-char hex
-  if (HEX_COLOR_REGEX.test(value)) {
+  if (HEX_COLOR_RRGGBB_REGEX.test(value)) {
     return value;
   }
 
@@ -73,7 +73,7 @@ export function valueToHex(value: unknown): string {
       return colorSwatchMap[value];
     }
 
-    if (HEX_COLOR_REGEX.test(value)) {
+    if (HEX_COLOR_RRGGBB_REGEX.test(value)) {
       return value;
     }
 

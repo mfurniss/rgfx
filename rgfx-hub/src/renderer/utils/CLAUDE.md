@@ -46,7 +46,17 @@ Key export:
 extractFieldMetadata(schema: ZodObject): FieldMetadata[]
 ```
 
+### color.ts
+
+Color utilities for hex color validation and conversion.
+
+- `colorSwatchMap`: Maps named colors to hex values
+- `isValidHex(value)`: Validates #RRGGBB hex color strings using `HEX_COLOR_RRGGBB_REGEX` from constants
+- `normalizeHex(value)`: Normalizes various hex formats to #RRGGBB
+- `valueToHex(value)`: Converts color values (number, named, hex) to #RRGGBB
+
 ## Notes
 
 - These utilities are renderer-only (no Node.js APIs)
 - zod-introspection works with Zod 4 internal structure (`_zod.def`)
+- color.ts imports `HEX_COLOR_RRGGBB_REGEX` from `@/config/constants`
