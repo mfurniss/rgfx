@@ -1,3 +1,90 @@
 .md-nav--primary > .md-nav__title {
   display: none;
 }
+
+/* LED test pattern visualizations */
+.led-test-strip {
+  display: flex;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 8px;
+  border-radius: 6px;
+  width: fit-content;
+  margin: 16px 0;
+}
+.led-test-strip .segment {
+  height: 24px;
+  width: 60px;
+}
+.led-test-strip .start-pixel {
+  width: 6px;
+  height: 24px;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+}
+.led-test-strip .seg-red { background: #ff0000; }
+.led-test-strip .seg-green { background: #00ff00; }
+.led-test-strip .seg-blue { background: #0000ff; }
+.led-test-strip .seg-yellow { background: #ffff00; }
+
+.led-test-matrix {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 120px;
+  height: 120px;
+  background: #1a1a1a;
+  padding: 4px;
+  border-radius: 6px;
+  margin: 16px 8px 16px 0;
+  position: relative;
+}
+.led-test-matrix .quadrant {
+  position: relative;
+}
+.led-test-matrix .quad-tl { background: #ff0000; border-radius: 4px 0 0 0; }
+.led-test-matrix .quad-tr { background: #00ff00; border-radius: 0 4px 0 0; }
+.led-test-matrix .quad-bl { background: #0000ff; border-radius: 0 0 0 4px; }
+.led-test-matrix .quad-br { background: #ffff00; border-radius: 0 0 4px 0; }
+.led-test-matrix .origin-pixel {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  box-shadow: 0 0 4px #ffffff;
+}
+
+.led-test-multipanel {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-template-rows: repeat(2, 80px);
+  gap: 4px;
+  background: #1a1a1a;
+  padding: 8px;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+.led-test-multipanel .panel {
+  position: relative;
+  border-radius: 2px;
+}
+.led-test-multipanel .origin-pixel {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  background: #ffffff;
+  box-shadow: 0 0 3px #ffffff;
+  z-index: 1;
+}
+/* Top row: panels 1-3 */
+.led-test-multipanel .panel-tl { background: #ff0000; }
+.led-test-multipanel .panel-tc { background: linear-gradient(to right, #ff0000 50%, #00ff00 50%); }
+.led-test-multipanel .panel-tr { background: #00ff00; }
+/* Bottom row: panels 4-6 */
+.led-test-multipanel .panel-bl { background: #0000ff; }
+.led-test-multipanel .panel-bc { background: linear-gradient(to right, #0000ff 50%, #ffff00 50%); }
+.led-test-multipanel .panel-br { background: #ffff00; }
