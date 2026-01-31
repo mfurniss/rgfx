@@ -17,16 +17,11 @@ The RGFX Hub is the central desktop application that coordinates the entire RGFX
 
 The sidebar provides access to all Hub features:
 
-- **System Status** - Dashboard showing system health
-- **Drivers** - Connected ESP32 devices
-- **Firmware** - Update ESP32 firmware
-- **Games** - View configured game interceptors and transformers
-- **Event Monitor** - Live event stream viewer
-- **FX Playground** - Test LED effects interactively
-- **Simulator** - Manually trigger events for testing
-- **Settings** - Configure directories and preferences
-
-## Next Steps
-
-- [System Status](system-status.md) - View current system health
-- [Settings](settings.md) - Configure the Hub for your setup
+- **[System Status](system-status.md)** - Dashboard showing system health
+- **[Drivers](drivers.md)** - Connected ESP32 devices
+- **[Firmware](firmware.md)** - Update ESP32 firmware
+- **[Games](games.md)** - View configured game interceptors and transformers
+- **[Event Monitor](event-monitor.md)** - Live event stream viewer
+- **[FX Playground](fx-playground.md)** - Test LED effects interactively
+- **[Simulator](simulator.md)** - Manually trigger events for testing
+- **[Settings](settings.md)** - Configure directories and preferences
