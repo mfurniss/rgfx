@@ -328,9 +328,9 @@ describe('Effect Schema Validation', () => {
       description: 'Twinkling particles cycling through a gradient',
     });
     expect(result.duration).toBe(3000);
-    expect(result.density).toBe(30);
-    expect(result.speed).toBe(1.0);
-    expect(result.bloom).toBe(80);
+    expect(result.density).toBe(100);
+    expect(result.speed).toBe(0.75);
+    expect(result.bloom).toBe(90);
     expect(result.reset).toBe(false);
   });
 

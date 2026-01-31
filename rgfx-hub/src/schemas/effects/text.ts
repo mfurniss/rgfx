@@ -11,6 +11,13 @@ import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomColor, randomString, randomFloat, randomInt, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  color: 'color',
+  accentColor: 'color',
+  gradient: 'gradientArray',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -41,7 +48,7 @@ export default baseEffect
       .array(colorStringSchema)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .describe('fieldType:gradientArray|Gradient colors for text animation'),
+      .describe('Gradient colors for text animation'),
     gradientSpeed: z
       .number()
       .min(0.1)

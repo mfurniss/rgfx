@@ -8,6 +8,12 @@
 import { z } from 'zod';
 import { baseEffect, centerX, centerY } from './properties';
 import { randomInt, randomColor } from '@/utils/random';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  centerX: 'centerXY',
+  centerY: 'centerXY',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -35,8 +41,8 @@ export default baseEffect
   .extend({
     name: z.literal('Explode'),
     description: z.literal('Expanding particle burst from a center point'),
-    centerX: centerX.default('random').describe('fieldType:centerXY|Explosion center X (0-100 or random)'),
-    centerY: centerY.default('random').describe('fieldType:centerXY|Explosion center Y (0-100 or random)'),
+    centerX: centerX.default('random').describe('Explosion center X (0-100 or random)'),
+    centerY: centerY.default('random').describe('Explosion center Y (0-100 or random)'),
     friction: z.number().min(0).max(50).optional().default(3.0).describe('Air resistance slowing particles'),
     gravity: z.number().min(-500).max(500).optional().default(0).describe('Vertical acceleration (positive = down, negative = up)'),
     hueSpread: z.number().int().min(0).max(359).optional().default(0).describe('Color variation in degrees'),

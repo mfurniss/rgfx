@@ -35,7 +35,7 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, isEffectName } from '@/schemas';
 import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
@@ -115,6 +115,14 @@ export default function TestEffectsPage() {
       return effectPresetConfigs[selectedEffect] ?? null;
     }
     return null;
+  }, [selectedEffect]);
+
+  // Get field types for selected effect (if it has custom mappings)
+  const currentFieldTypes = useMemo(() => {
+    if (isEffectName(selectedEffect)) {
+      return effectFieldTypes[selectedEffect];
+    }
+    return undefined;
   }, [selectedEffect]);
 
   // Remove disconnected drivers from selection (but don't auto-select new ones)
@@ -407,6 +415,7 @@ export default function TestEffectsPage() {
                 schema={currentSchema}
                 defaultValues={currentProps}
                 onChange={handlePropsChange}
+                fieldTypes={currentFieldTypes}
               />
             )}
           </Stack>
