@@ -1221,6 +1221,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Triggering a Test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-the-hub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the Hub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-the-esp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the ESP32
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1247,10 +1275,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#matrix-layout" class="md-nav__link">
+  <a href="#single-matrix-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Matrix Layout
+        Single Matrix Layout
       
     </span>
   </a>
@@ -1533,6 +1561,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Triggering a Test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-the-hub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the Hub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-the-esp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the ESP32
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1559,10 +1615,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#matrix-layout" class="md-nav__link">
+  <a href="#single-matrix-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Matrix Layout
+        Single Matrix Layout
       
     </span>
   </a>
@@ -1640,12 +1696,15 @@
 <li>Identify the start position and panel origins</li>
 </ul>
 <h2 id="triggering-a-test">Triggering a Test<a class="headerlink" href="#triggering-a-test" title="Permanent link">&para;</a></h2>
+<h3 id="from-the-hub">From the Hub<a class="headerlink" href="#from-the-hub" title="Permanent link">&para;</a></h3>
 <p>Click the <strong>Test LEDs</strong> button to toggle test mode on or off. The button appears:</p>
 <ul>
 <li>In the <strong>Actions</strong> column on the <a href="drivers.html">Drivers</a> list</li>
 <li>In the <strong>Actions</strong> section on the <a href="driver-detail.html">Driver Detail</a> page</li>
 </ul>
 <p>The button shows <strong>Test LEDs ON</strong> (green) when active, or <strong>Test LEDs OFF</strong> when inactive.</p>
+<h3 id="from-the-esp32">From the ESP32<a class="headerlink" href="#from-the-esp32" title="Permanent link">&para;</a></h3>
+<p>Press the <strong>BOOT</strong> button on the ESP32 to toggle test mode directly on the device. This is useful for verifying LED hardware without needing the Hub connected, such as during initial hardware setup or troubleshooting.</p>
 <h2 id="test-patterns">Test Patterns<a class="headerlink" href="#test-patterns" title="Permanent link">&para;</a></h2>
 <p>The test pattern varies based on the LED hardware layout.</p>
 <h3 id="strip-layout">Strip Layout<a class="headerlink" href="#strip-layout" title="Permanent link">&para;</a></h3>
@@ -1688,8 +1747,9 @@
 </tr>
 </tbody>
 </table>
-<h3 id="matrix-layout">Matrix Layout<a class="headerlink" href="#matrix-layout" title="Permanent link">&para;</a></h3>
-<p>Matrices display 4 colored quadrants with a white pixel marking the top-left origin:</p>
+<p>If the white pixel appears at the wrong end, enable the <strong>Reverse</strong> setting in <a href="../drivers/configure-leds.html">Configure LED Hardware</a>.</p>
+<h3 id="single-matrix-layout">Single Matrix Layout<a class="headerlink" href="#single-matrix-layout" title="Permanent link">&para;</a></h3>
+<p>A single matrix displays 4 colored quadrants with a white pixel marking the top-left origin:</p>
 <div class="led-test-matrix">
   <div class="quadrant quad-tl"><div class="origin-pixel"></div></div>
   <div class="quadrant quad-tr"></div>
@@ -1723,6 +1783,7 @@
 </tr>
 </tbody>
 </table>
+<p>If the white origin pixel appears in the wrong corner, adjust the <strong>Rotation</strong> setting in <a href="../drivers/configure-leds.html">Configure LED Hardware</a>.</p>
 <h3 id="multi-panel-matrix">Multi-Panel Matrix<a class="headerlink" href="#multi-panel-matrix" title="Permanent link">&para;</a></h3>
 <p>For multi-panel configurations, the quadrant pattern spans the entire display as one unified image. Each individual panel has a white origin pixel in its top-left corner:</p>
 <div class="led-test-multipanel">
@@ -1767,9 +1828,15 @@
 </tbody>
 </table>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<p><strong>From the Hub:</strong></p>
 <ul>
 <li>Driver must be <strong>Connected</strong> (green status)</li>
 <li>LED hardware must be configured on the driver</li>
+</ul>
+<p><strong>From the ESP32 BOOT button:</strong></p>
+<ul>
+<li>LED hardware must be configured on the driver</li>
+<li>No Hub connection required</li>
 </ul>
 
 

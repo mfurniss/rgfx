@@ -3,29 +3,46 @@
 }
 
 /* LED test pattern visualizations */
+:root {
+  --led-red: #ff0000;
+  --led-green: #00cc00;
+  --led-blue: #0000ff;
+  --led-yellow: #cccc00;
+  --led-white: #ffffff;
+  --led-bg: #1a1a1a;
+}
+
+.led-test-strip,
+.led-test-matrix,
+.led-test-multipanel {
+  background: var(--led-bg);
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
 .led-test-strip {
   display: flex;
   align-items: center;
-  background: #1a1a1a;
   padding: 8px;
-  border-radius: 6px;
   width: fit-content;
-  margin: 16px 0;
+
+  & .segment {
+    height: 12px;
+    width: 100px;
+  }
+
+  & .start-pixel {
+    width: 12px;
+    height: 12px;
+    background: var(--led-white);
+    box-shadow: 0 0 6px var(--led-white);
+  }
+
+  & .seg-red { background: var(--led-red); }
+  & .seg-green { background: var(--led-green); }
+  & .seg-blue { background: var(--led-blue); }
+  & .seg-yellow { background: var(--led-yellow); }
 }
-.led-test-strip .segment {
-  height: 24px;
-  width: 60px;
-}
-.led-test-strip .start-pixel {
-  width: 6px;
-  height: 24px;
-  background: #ffffff;
-  box-shadow: 0 0 6px #ffffff;
-}
-.led-test-strip .seg-red { background: #ff0000; }
-.led-test-strip .seg-green { background: #00ff00; }
-.led-test-strip .seg-blue { background: #0000ff; }
-.led-test-strip .seg-yellow { background: #ffff00; }
 
 .led-test-matrix {
   display: inline-grid;
@@ -33,27 +50,24 @@
   grid-template-rows: 1fr 1fr;
   width: 120px;
   height: 120px;
-  background: #1a1a1a;
   padding: 4px;
-  border-radius: 6px;
-  margin: 16px 8px 16px 0;
-  position: relative;
-}
-.led-test-matrix .quadrant {
-  position: relative;
-}
-.led-test-matrix .quad-tl { background: #ff0000; border-radius: 4px 0 0 0; }
-.led-test-matrix .quad-tr { background: #00ff00; border-radius: 0 4px 0 0; }
-.led-test-matrix .quad-bl { background: #0000ff; border-radius: 0 0 0 4px; }
-.led-test-matrix .quad-br { background: #ffff00; border-radius: 0 0 4px 0; }
-.led-test-matrix .origin-pixel {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 8px;
-  height: 8px;
-  background: #ffffff;
-  box-shadow: 0 0 4px #ffffff;
+  margin-right: 8px;
+
+  & .quadrant { position: relative; }
+  & .quad-tl { background: var(--led-red); border-radius: 4px 0 0 0; }
+  & .quad-tr { background: var(--led-green); border-radius: 0 4px 0 0; }
+  & .quad-bl { background: var(--led-blue); border-radius: 0 0 0 4px; }
+  & .quad-br { background: var(--led-yellow); border-radius: 0 0 4px 0; }
+
+  & .origin-pixel {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 8px;
+    height: 8px;
+    background: var(--led-white);
+    box-shadow: 0 0 4px var(--led-white);
+  }
 }
 
 .led-test-multipanel {
@@ -61,30 +75,28 @@
   grid-template-columns: repeat(3, 80px);
   grid-template-rows: repeat(2, 80px);
   gap: 4px;
-  background: #1a1a1a;
   padding: 8px;
-  border-radius: 6px;
-  margin: 16px 0;
+
+  & .panel {
+    position: relative;
+    border-radius: 2px;
+  }
+
+  & .origin-pixel {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 6px;
+    height: 6px;
+    background: var(--led-white);
+    box-shadow: 0 0 3px var(--led-white);
+    z-index: 1;
+  }
+
+  & .panel-tl { background: var(--led-red); }
+  & .panel-tc { background: linear-gradient(to right, var(--led-red) 50%, var(--led-green) 50%); }
+  & .panel-tr { background: var(--led-green); }
+  & .panel-bl { background: var(--led-blue); }
+  & .panel-bc { background: linear-gradient(to right, var(--led-blue) 50%, var(--led-yellow) 50%); }
+  & .panel-br { background: var(--led-yellow); }
 }
-.led-test-multipanel .panel {
-  position: relative;
-  border-radius: 2px;
-}
-.led-test-multipanel .origin-pixel {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 6px;
-  height: 6px;
-  background: #ffffff;
-  box-shadow: 0 0 3px #ffffff;
-  z-index: 1;
-}
-/* Top row: panels 1-3 */
-.led-test-multipanel .panel-tl { background: #ff0000; }
-.led-test-multipanel .panel-tc { background: linear-gradient(to right, #ff0000 50%, #00ff00 50%); }
-.led-test-multipanel .panel-tr { background: #00ff00; }
-/* Bottom row: panels 4-6 */
-.led-test-multipanel .panel-bl { background: #0000ff; }
-.led-test-multipanel .panel-bc { background: linear-gradient(to right, #0000ff 50%, #ffff00 50%); }
-.led-test-multipanel .panel-br { background: #ffff00; }
