@@ -82,6 +82,10 @@ static bool initialConnectionAttemptDone = false;
 // Onboard LED indicator state
 static unsigned long indicatorOffTime = 0;
 
+// BOOT button state for test mode toggle
+static bool lastButtonState = HIGH;
+static unsigned long buttonDebounceTime = 0;
+
 /**
  * Control the onboard status LED.
  * @param duration  0 = turn off, >0 = flash for duration ms, <0 = solid on
@@ -120,6 +124,9 @@ void setup() {
 	pinMode(ONBOARD_LED_PIN, OUTPUT);
 	digitalWrite(ONBOARD_LED_PIN, LOW);
 #endif
+
+	// Configure BOOT button for test mode toggle
+	pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
 
 	// Initialize serial command system (must be done before any log() calls)
 	SerialCommand::begin();
@@ -354,6 +361,24 @@ void loop() {
 	// Process serial commands ALWAYS (even during AP mode or connection attempts)
 	// This allows wifi credentials to be set via serial at any time
 	SerialCommand::process();
+
+	// BOOT button: toggle test mode on press
+	bool buttonState = digitalRead(BOOT_BUTTON_PIN);
+	if (buttonState != lastButtonState && (millis() - buttonDebounceTime) >= BUTTON_DEBOUNCE_MS) {
+		buttonDebounceTime = millis();
+		lastButtonState = buttonState;
+		if (buttonState == LOW) {
+			testModeActive = !testModeActive;
+			if (testModeActive) {
+				log("Test mode ON (button)");
+				publishTestState("on");
+			} else {
+				if (effectProcessor != nullptr) effectProcessor->clearEffects();
+				log("Test mode OFF (button)");
+				publishTestState("off");
+			}
+		}
+	}
 
 	if (nowInApMode && !inApMode) {
 		// Just entered AP mode - show PURPLE immediately (unless in test mode)

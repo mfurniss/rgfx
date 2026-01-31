@@ -97,6 +97,8 @@ clearAllLEDs();                        // Set all LEDs to black
 - `MAX_PINS` (4) - Maximum GPIO pins for LEDs
 - `DEFAULT_MATRIX_WIDTH/HEIGHT` (8) - Default dimensions
 - `DEFAULT_UPDATE_RATE` (120) - Target FPS
+- `BOOT_BUTTON_PIN` (0) - GPIO for BOOT button (test mode toggle)
+- `BUTTON_DEBOUNCE_MS` (50) - Button debounce time
 
 ---
 
