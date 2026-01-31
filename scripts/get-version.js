@@ -42,7 +42,10 @@ function getSourceHash() {
       .split('\n')
       .filter(Boolean);
 
-    const allFiles = [...new Set([...trackedFiles, ...untrackedFiles])].sort();
+    // Exclude generated files (version.h) from hash to prevent circular dependency
+    const allFiles = [...new Set([...trackedFiles, ...untrackedFiles])]
+      .filter(f => !f.endsWith('version.h'))
+      .sort();
 
     for (const file of allFiles) {
       const filePath = path.join(projectRoot, file);
