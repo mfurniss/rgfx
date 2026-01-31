@@ -57,10 +57,9 @@ void SparkleEffect::renderParticle(const SparkleParticle& p) {
 	// Cloud data (gradientLut, bloom) remains valid after cloud.active = false
 	const SparkleCloud& cloud = clouds[p.cloudIndex];
 
-	// Calculate gradient progress (0-99)
-	float progress = static_cast<float>(p.age) / static_cast<float>(p.lifespan);
-	if (progress > 1.0f) progress = 1.0f;
-	uint8_t lutIndex = static_cast<uint8_t>(progress * 99.0f);
+	// Calculate gradient progress (0-99) using integer math
+	uint16_t clampedAge = (p.age > p.lifespan) ? p.lifespan : p.age;
+	uint8_t lutIndex = static_cast<uint8_t>((static_cast<uint32_t>(clampedAge) * 99) / p.lifespan);
 
 	CRGB color = cloud.gradientLut[lutIndex];
 
@@ -81,10 +80,9 @@ void SparkleEffect::renderParticle(const SparkleParticle& p) {
 		}
 	}
 
-	// Bloom: spread to adjacent LEDs
-	if (cloud.bloom > 0) {
-		uint8_t spreadRadius = (cloud.bloom * 4) / 100;
-		if (spreadRadius == 0) spreadRadius = 1;
+	// Bloom: spread to adjacent LEDs (use pre-computed spreadRadius)
+	if (cloud.spreadRadius > 0) {
+		uint8_t spreadRadius = cloud.spreadRadius;
 
 		if (isStrip) {
 			// Strip: horizontal bloom only (optimized 1D path)
@@ -92,8 +90,8 @@ void SparkleEffect::renderParticle(const SparkleParticle& p) {
 				if (dx == 0) continue;  // Skip center
 
 				uint8_t dist = static_cast<uint8_t>(abs(dx));
-				float baseAlpha = 127.0f * (1.0f - static_cast<float>(dist) / (spreadRadius + 1));
-				uint8_t alpha = static_cast<uint8_t>(baseAlpha * cloud.bloom / 100);
+				uint8_t baseAlpha = 127 - (127 * dist) / (spreadRadius + 1);
+				uint8_t alpha = (static_cast<uint16_t>(baseAlpha) * cloud.bloom) / 100;
 
 				int16_t nx = static_cast<int16_t>(p.x) + (dx * 4);
 				if (nx >= 0 && nx + 4 <= static_cast<int16_t>(cw)) {
@@ -109,8 +107,8 @@ void SparkleEffect::renderParticle(const SparkleParticle& p) {
 					uint8_t dist = static_cast<uint8_t>(abs(dx) + abs(dy));
 					if (dist > spreadRadius) continue;
 
-					float baseAlpha = 127.0f * (1.0f - static_cast<float>(dist) / (spreadRadius + 1));
-					uint8_t alpha = static_cast<uint8_t>(baseAlpha * cloud.bloom / 100);
+					uint8_t baseAlpha = 127 - (127 * dist) / (spreadRadius + 1);
+					uint8_t alpha = (static_cast<uint16_t>(baseAlpha) * cloud.bloom) / 100;
 
 					int16_t nx = static_cast<int16_t>(p.x) + (dx * 4);
 					int16_t ny = static_cast<int16_t>(p.y) + (dy * 4);
@@ -154,9 +152,11 @@ void SparkleEffect::add(JsonDocument& props) {
 	if (cloud.speed < 0.1f) cloud.speed = 0.1f;
 	if (cloud.speed > 5.0f) cloud.speed = 5.0f;
 
-	// Parse bloom (0-100)
+	// Parse bloom (0-100) and pre-compute spread radius
 	cloud.bloom = props["bloom"].as<int>();
 	if (cloud.bloom > 100) cloud.bloom = 100;
+	cloud.spreadRadius = (cloud.bloom * 4) / 100;
+	if (cloud.bloom > 0 && cloud.spreadRadius == 0) cloud.spreadRadius = 1;
 
 	// Parse gradient
 	if (!parseGradientFromJson(props, cloud.gradientLut)) {
@@ -189,11 +189,11 @@ void SparkleEffect::update(float deltaTime) {
 			continue;
 		}
 
-		// Frame-rate independent spawn check
-		// Normalize to 60fps baseline
-		float spawnChance = (cloud.density / 100.0f) * (deltaTime * 60.0f);
-		float roll = static_cast<float>(hal::random(0, 1000)) / 1000.0f;
-		if (roll < spawnChance) {
+		// Frame-rate independent spawn check (integer math)
+		// Threshold scaled to 1000 (1000 = 100% spawn probability)
+		// At 60fps (deltaMs≈17), density=100: threshold = 100*17*6/10 = 1020 (always spawn)
+		uint32_t threshold = (static_cast<uint32_t>(cloud.density) * deltaMs * 6) / 10;
+		if (hal::random(0, 1000) < threshold) {
 			spawnParticle(i);
 		}
 	}
