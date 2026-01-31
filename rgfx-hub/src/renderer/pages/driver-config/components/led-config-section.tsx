@@ -73,6 +73,7 @@ export const LedConfigSection: React.FC<LedConfigSectionProps> = ({
           powerSupplyVolts: ledConfig?.powerSupplyVolts,
           maxPowerMilliamps: isNewConfig ? 500 : ledConfig.maxPowerMilliamps,
           unified: ledConfig?.unified,
+          rotation: ledConfig?.rotation,
           reverse: ledConfig?.reverse,
           gamma: ledConfig?.gamma ?? { r: 2.8, g: 2.8, b: 2.8 },
           floor: ledConfig?.floor ?? { r: 0, g: 0, b: 0 },
@@ -293,6 +294,30 @@ export const LedConfigSection: React.FC<LedConfigSectionProps> = ({
                         <Select {...field} value={field.value ?? 'exact'} label="RGBW Mode">
                           <MenuItem value="exact">Exact Colors</MenuItem>
                           <MenuItem value="max_brightness">Max Brightness</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
+                  />
+                </Grid>
+              )}
+              {/* Matrix-specific: Single-panel rotation (only when not using multi-panel) */}
+              {!isStrip && !ledConfig.unified && (
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Controller
+                    name="ledConfig.rotation"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControl fullWidth>
+                        <InputLabel>Panel Rotation</InputLabel>
+                        <Select
+                          {...field}
+                          value={field.value ?? '0'}
+                          label="Panel Rotation"
+                        >
+                          <MenuItem value="0">0° (No rotation)</MenuItem>
+                          <MenuItem value="90">90° Clockwise</MenuItem>
+                          <MenuItem value="180">180° (Upside down)</MenuItem>
+                          <MenuItem value="270">270° Clockwise</MenuItem>
                         </Select>
                       </FormControl>
                     )}

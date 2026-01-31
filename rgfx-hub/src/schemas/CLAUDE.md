@@ -24,7 +24,7 @@ Public exports for all schemas and types.
 ### driver-config.ts
 Schemas for driver configuration:
 - `UnifiedPanelLayoutSchema` - 2D array defining LED panel physical layout with per-panel rotation
-- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin 0-48 to accommodate all ESP32 variants, brightness, power limits, rgbwMode for RGBW strips)
+- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin 0-48 to accommodate all ESP32 variants, brightness, power limits, rgbwMode for RGBW strips, rotation for single-panel virtual rotation)
 - `ConfiguredDriverSchema` - Full driver config (ID, MAC, LED config, remote logging level)
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 

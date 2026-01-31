@@ -155,7 +155,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `buildTelemetryRows(params)` - Build telemetry section rows (FPS, uptime, last seen)
 - `buildHardwareRows(params)` - Build hardware section rows (chip model, cores, heap, etc.)
 - `buildLedHardwareRows(params)` - Build LED hardware info rows (filename, layout, count)
-- `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, etc.)
+- `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, rotation, etc.)
 - `buildDriverStatusRows(params)` - Build driver status rows (ID, MAC, IP, hostname, etc.)
 
 ---
