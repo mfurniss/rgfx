@@ -10,6 +10,11 @@ import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import type { PresetConfig } from './preset-config';
 import { randomGradient, randomInt } from '@/utils/random';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  gradient: 'backgroundGradient',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -44,7 +49,7 @@ export default z
         orientation: z.enum(['horizontal', 'vertical']).default('horizontal'),
       })
       .default({ colors: ['#FF0000', '#00FF00', '#0000FF'], orientation: 'horizontal' })
-      .describe('fieldType:backgroundGradient|Gradient colors'),
+      .describe('Gradient colors'),
     fadeDuration: z
       .number()
       .int()

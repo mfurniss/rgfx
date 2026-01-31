@@ -6,8 +6,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { extractFieldMetadata } from '../zod-introspection';
-import { effectPropsSchemas } from '@/schemas';
+import { z } from 'zod';
+import { extractFieldMetadata, type FieldTypeMap } from '../zod-introspection';
+import { effectPropsSchemas, effectFieldTypes } from '@/schemas';
 
 /**
  * These tests ensure that all effect schemas are correctly introspected
@@ -78,7 +79,7 @@ describe('zod-introspection', () => {
 
     describe('explode schema', () => {
       it('should extract all fields with correct types', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.explode);
+        const fields = extractFieldMetadata(effectPropsSchemas.explode, effectFieldTypes.explode);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')?.type).toBe('color');
@@ -99,7 +100,10 @@ describe('zod-introspection', () => {
 
     describe('background schema', () => {
       it('should extract all fields with correct types', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const fields = extractFieldMetadata(
+          effectPropsSchemas.background,
+          effectFieldTypes.background,
+        );
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('gradient')?.type).toBe('backgroundGradient');
@@ -107,7 +111,10 @@ describe('zod-introspection', () => {
       });
 
       it('should extract fadeDuration field', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const fields = extractFieldMetadata(
+          effectPropsSchemas.background,
+          effectFieldTypes.background,
+        );
         const fadeDurationField = fields.find((f) => f.name === 'fadeDuration');
 
         expect(fadeDurationField).toBeDefined();
@@ -116,7 +123,10 @@ describe('zod-introspection', () => {
       });
 
       it('should extract gradient field as backgroundGradient type', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const fields = extractFieldMetadata(
+          effectPropsSchemas.background,
+          effectFieldTypes.background,
+        );
         const gradientField = fields.find((f) => f.name === 'gradient');
 
         // Background uses gradient only (no color field)
@@ -125,14 +135,17 @@ describe('zod-introspection', () => {
       });
 
       it('should have exactly 2 fields (gradient and fadeDuration)', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const fields = extractFieldMetadata(
+          effectPropsSchemas.background,
+          effectFieldTypes.background,
+        );
         expect(fields).toHaveLength(2);
       });
     });
 
     describe('bitmap schema', () => {
       it('should extract position fields with correct types (no color - uses palette)', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.bitmap);
+        const fields = extractFieldMetadata(effectPropsSchemas.bitmap, effectFieldTypes.bitmap);
         const fieldMap = new Map(fields.map((f) => [f.name, f]));
 
         expect(fieldMap.get('color')).toBeUndefined();
@@ -180,7 +193,10 @@ describe('zod-introspection', () => {
       });
 
       it('should extract descriptions for fields that have them', () => {
-        const fields = extractFieldMetadata(effectPropsSchemas.background);
+        const fields = extractFieldMetadata(
+          effectPropsSchemas.background,
+          effectFieldTypes.background,
+        );
         const gradientField = fields.find((f) => f.name === 'gradient');
         const fadeDurationField = fields.find((f) => f.name === 'fadeDuration');
 
@@ -205,14 +221,149 @@ describe('zod-introspection', () => {
       expect(easingField?.type).toBe('enum');
     });
 
-    it('should detect centerX/Y as centerXY type via fieldType annotation', () => {
-      // centerX/Y must use explicit fieldType:centerXY annotation
-      const fields = extractFieldMetadata(effectPropsSchemas.explode);
+    it('should detect centerX/Y as centerXY type via fieldTypes map', () => {
+      // centerX/Y must use explicit fieldTypes override
+      const fields = extractFieldMetadata(effectPropsSchemas.explode, effectFieldTypes.explode);
       const centerXField = fields.find((f) => f.name === 'centerX');
       const centerYField = fields.find((f) => f.name === 'centerY');
 
       expect(centerXField?.type).toBe('centerXY');
       expect(centerYField?.type).toBe('centerXY');
+    });
+  });
+
+  describe('fieldTypes override parameter', () => {
+    // Test schema with various field types for override testing
+    const testSchema = z.object({
+      name: z.string().default('test'),
+      count: z.number().default(1),
+      enabled: z.boolean().default(true),
+      mode: z.enum(['fast', 'slow']).default('fast'),
+    });
+
+    it('should use inferred types when no fieldTypes provided', () => {
+      const fields = extractFieldMetadata(testSchema);
+      const fieldMap = new Map(fields.map((f) => [f.name, f]));
+
+      expect(fieldMap.get('name')?.type).toBe('string');
+      expect(fieldMap.get('count')?.type).toBe('number');
+      expect(fieldMap.get('enabled')?.type).toBe('boolean');
+      expect(fieldMap.get('mode')?.type).toBe('enum');
+    });
+
+    it('should override field types when fieldTypes map provided', () => {
+      const fieldTypes: FieldTypeMap = {
+        name: 'color',
+        count: 'hidden',
+      };
+
+      const fields = extractFieldMetadata(testSchema, fieldTypes);
+      const fieldMap = new Map(fields.map((f) => [f.name, f]));
+
+      // Overridden fields
+      expect(fieldMap.get('name')?.type).toBe('color');
+      expect(fieldMap.get('count')?.type).toBe('hidden');
+
+      // Non-overridden fields use inference
+      expect(fieldMap.get('enabled')?.type).toBe('boolean');
+      expect(fieldMap.get('mode')?.type).toBe('enum');
+    });
+
+    it('should preserve descriptions when using fieldTypes override', () => {
+      const schemaWithDesc = z.object({
+        myField: z.string().default('test').describe('This is my field'),
+      });
+
+      const fieldTypes: FieldTypeMap = {
+        myField: 'color',
+      };
+
+      const fields = extractFieldMetadata(schemaWithDesc, fieldTypes);
+      const myField = fields.find((f) => f.name === 'myField');
+
+      expect(myField?.type).toBe('color');
+      expect(myField?.description).toBe('This is my field');
+    });
+
+    it('should preserve default values when using fieldTypes override', () => {
+      const fieldTypes: FieldTypeMap = {
+        name: 'color',
+      };
+
+      const fields = extractFieldMetadata(testSchema, fieldTypes);
+      const nameField = fields.find((f) => f.name === 'name');
+
+      expect(nameField?.type).toBe('color');
+      expect(nameField?.defaultValue).toBe('test');
+    });
+
+    it('should handle empty fieldTypes map same as undefined', () => {
+      const fieldsWithEmpty = extractFieldMetadata(testSchema, {});
+      const fieldsWithUndefined = extractFieldMetadata(testSchema, undefined);
+
+      expect(fieldsWithEmpty).toEqual(fieldsWithUndefined);
+    });
+
+    it('should ignore fieldTypes entries for non-existent fields', () => {
+      const fieldTypes: FieldTypeMap = {
+        nonExistent: 'color',
+        name: 'hidden',
+      };
+
+      const fields = extractFieldMetadata(testSchema, fieldTypes);
+      const fieldNames = fields.map((f) => f.name);
+
+      // Should not add non-existent field
+      expect(fieldNames).not.toContain('nonExistent');
+      // Should still override existing field
+      expect(fields.find((f) => f.name === 'name')?.type).toBe('hidden');
+    });
+  });
+
+  describe('legacy fieldType description annotation (backwards compatibility)', () => {
+    it('should parse fieldType from description when no override provided', () => {
+      const schemaWithAnnotation = z.object({
+        myGradient: z
+          .array(z.string())
+          .default([])
+          .describe('fieldType:gradientArray|Colors for animation'),
+      });
+
+      const fields = extractFieldMetadata(schemaWithAnnotation);
+      const gradientField = fields.find((f) => f.name === 'myGradient');
+
+      expect(gradientField?.type).toBe('gradientArray');
+      expect(gradientField?.description).toBe('Colors for animation');
+    });
+
+    it('should prefer fieldTypes override over description annotation', () => {
+      const schemaWithAnnotation = z.object({
+        myField: z.string().default('').describe('fieldType:color|A color field'),
+      });
+
+      const fieldTypes: FieldTypeMap = {
+        myField: 'hidden',
+      };
+
+      const fields = extractFieldMetadata(schemaWithAnnotation, fieldTypes);
+      const myField = fields.find((f) => f.name === 'myField');
+
+      // Override takes precedence
+      expect(myField?.type).toBe('hidden');
+      // Description is NOT cleaned when using override (uses raw description)
+      expect(myField?.description).toBe('fieldType:color|A color field');
+    });
+
+    it('should clean description when using annotation without override', () => {
+      const schemaWithAnnotation = z.object({
+        myField: z.string().default('').describe('fieldType:centerXY|Position value'),
+      });
+
+      const fields = extractFieldMetadata(schemaWithAnnotation);
+      const myField = fields.find((f) => f.name === 'myField');
+
+      expect(myField?.type).toBe('centerXY');
+      expect(myField?.description).toBe('Position value');
     });
   });
 });

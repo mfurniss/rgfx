@@ -10,6 +10,11 @@ import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomFloat, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  gradient: 'gradientArray',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -53,7 +58,7 @@ export default z
       .max(MAX_GRADIENT_COLORS)
       .optional()
       .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
-      .describe(`fieldType:gradientArray|Gradient colors (up to ${MAX_GRADIENT_COLORS} hex colors)`),
+      .describe(`Gradient colors (up to ${MAX_GRADIENT_COLORS} hex colors)`),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()

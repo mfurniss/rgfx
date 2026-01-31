@@ -19,6 +19,9 @@ type FieldType =
   | 'backgroundGradient'
   | 'hidden';
 
+/** Map of field names to their UI component types */
+export type FieldTypeMap = Partial<Record<string, FieldType>>;
+
 const VALID_FIELD_TYPES: readonly FieldType[] = [
   'enum',
   'boolean',
@@ -295,10 +298,30 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
 /**
  * Analyze a single field and return its metadata
  */
-function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
+function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType): FieldMetadata {
   const { innerSchema, defaultValue, description } = unwrapSchema(schema);
 
-  // Check for explicit field type in description first
+  // Check for explicit override type first (from fieldTypes map)
+  if (overrideType) {
+    if (overrideType === 'color') {
+      return {
+        name,
+        type: 'color',
+        defaultValue,
+        constraints: { enumValues: extractColorNames(innerSchema) },
+        description,
+      };
+    }
+
+    return {
+      name,
+      type: overrideType,
+      defaultValue,
+      description,
+    };
+  }
+
+  // Legacy: check for explicit field type in description (deprecated)
   const { fieldType, cleanDescription } = parseFieldType(description);
 
   if (fieldType) {
@@ -382,13 +405,18 @@ function analyzeField(name: string, schema: z.ZodType): FieldMetadata {
 
 /**
  * Extract field metadata from a Zod object schema
+ * @param schema - The Zod object schema to analyze
+ * @param fieldTypes - Optional map of field names to UI component types (overrides inference)
  */
-export function extractFieldMetadata(schema: z.ZodObject<ZodShape>): FieldMetadata[] {
+export function extractFieldMetadata(
+  schema: z.ZodObject<ZodShape>,
+  fieldTypes?: FieldTypeMap,
+): FieldMetadata[] {
   const { shape } = schema;
   const fields: FieldMetadata[] = [];
 
   for (const [name, fieldSchema] of Object.entries(shape)) {
-    fields.push(analyzeField(name, fieldSchema));
+    fields.push(analyzeField(name, fieldSchema, fieldTypes?.[name]));
   }
 
   return fields;

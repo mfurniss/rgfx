@@ -9,6 +9,11 @@ import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomInt, randomFloat, randomGradient } from '@/utils/random';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  gradient: 'gradientArray',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -44,7 +49,7 @@ export default z
       .min(1)
       .max(100)
       .optional()
-      .default(30)
+      .default(100)
       .describe('Spawn rate (1-100, frame-rate independent)'),
     gradient: z
       .array(colorStringSchema)
@@ -52,13 +57,13 @@ export default z
       .max(MAX_GRADIENT_COLORS)
       .optional()
       .default(['#000000', '#8000FF', '#000000'])
-      .describe(`fieldType:gradientArray|Colors to cycle through (up to ${MAX_GRADIENT_COLORS} hex colors)`),
+      .describe(`Colors to cycle through (up to ${MAX_GRADIENT_COLORS} hex colors)`),
     speed: z
       .number()
       .min(0.1)
       .max(5.0)
       .optional()
-      .default(1.0)
+      .default(0.75)
       .describe('Gradient cycling speed (higher = faster)'),
     bloom: z
       .number()
@@ -66,7 +71,7 @@ export default z
       .min(0)
       .max(100)
       .optional()
-      .default(80)
+      .default(90)
       .describe('Light spread radius (0=none, 100=4 LEDs)'),
     reset: z.boolean().optional().default(false).describe('Clear existing effects before adding'),
   })

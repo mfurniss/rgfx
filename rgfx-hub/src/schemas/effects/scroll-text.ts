@@ -11,6 +11,13 @@ import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  color: 'color',
+  accentColor: 'color',
+  gradient: 'gradientArray',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -32,7 +39,7 @@ export const scrollTextBaseSchema = baseEffect
     description: z.literal('Scrolling text marquee'),
     reset: z.boolean().optional().default(true).describe('Clear existing scroll text before adding new'),
     text: z.string().max(64).default("Hidey Ho! It's the Super-Happy-Fun-Time-Show!").describe('Text to scroll (max 64 chars)'),
-    color: z.string().optional().describe('Text color (hex or named)'),
+    color: z.string().optional().default('#808000').describe('Text color (hex or named)'),
     accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
@@ -41,7 +48,7 @@ export const scrollTextBaseSchema = baseEffect
       .array(colorStringSchema)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .describe('fieldType:gradientArray|Gradient colors for text animation'),
+      .describe('Gradient colors for text animation'),
     gradientSpeed: z
       .number()
       .min(0.1)
