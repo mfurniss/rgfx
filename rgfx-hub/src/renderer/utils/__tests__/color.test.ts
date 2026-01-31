@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isValidHex, normalizeHex, valueToHex, colorSwatchMap } from '../color';
+import { isValidHex, isValidColor, normalizeHex, valueToHex, colorSwatchMap } from '../color';
 
 describe('isValidHex', () => {
   it('returns true for valid 6-char hex with #', () => {
@@ -25,6 +25,33 @@ describe('isValidHex', () => {
     expect(isValidHex('invalid')).toBe(false);
     expect(isValidHex('')).toBe(false);
     expect(isValidHex('#GGGGGG')).toBe(false);
+  });
+});
+
+describe('isValidColor', () => {
+  it('returns true for valid hex with #', () => {
+    expect(isValidColor('#FF0000')).toBe(true);
+    expect(isValidColor('#00ff00')).toBe(true);
+  });
+
+  it('returns true for named colors', () => {
+    expect(isValidColor('red')).toBe(true);
+    expect(isValidColor('random')).toBe(true);
+    expect(isValidColor('blue')).toBe(true);
+  });
+
+  it('returns false for unknown named colors', () => {
+    expect(isValidColor('foobar')).toBe(false);
+    expect(isValidColor('notacolor')).toBe(false);
+  });
+
+  it('returns false for invalid hex', () => {
+    expect(isValidColor('#foobar')).toBe(false);
+    expect(isValidColor('#GGG')).toBe(false);
+  });
+
+  it('returns false for empty string', () => {
+    expect(isValidColor('')).toBe(false);
   });
 });
 

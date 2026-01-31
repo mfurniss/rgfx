@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { baseEffect } from './properties';
-import { MAX_GRADIENT_COLORS, HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
+import { colorStringSchema } from './properties/color';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
 
@@ -37,7 +38,7 @@ export const scrollTextBaseSchema = baseEffect
     repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
     gradient: z
-      .array(z.string().regex(HEX_COLOR_RRGGBB_REGEX))
+      .array(colorStringSchema)
       .max(MAX_GRADIENT_COLORS)
       .optional()
       .describe('fieldType:gradientArray|Gradient colors for text animation'),

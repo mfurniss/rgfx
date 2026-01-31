@@ -6,12 +6,13 @@
  */
 
 import React from 'react';
-import { Box, IconButton, Typography, Tooltip, TextField } from '@mui/material';
+import { Box, IconButton, Typography, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import SuperButton from '@/renderer/components/common/super-button';
+import { ColorPicker } from './color-picker';
 
 interface GradientArrayFieldProps<T extends FieldValues> {
   name: Path<T>;
@@ -78,48 +79,16 @@ export function GradientArrayField<T extends FieldValues>({
                   key={index}
                   sx={{
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     gap: 1,
                   }}
                 >
-                  <Box
-                    component="input"
-                    type="color"
+                  <ColorPicker
                     value={color}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      handleColorChange(index, e.target.value);
+                    onChange={(newColor) => {
+                      handleColorChange(index, newColor);
                     }}
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      border: 'none',
-                      padding: 0,
-                      cursor: 'pointer',
-                      backgroundColor: 'transparent',
-                      '&::-webkit-color-swatch-wrapper': {
-                        padding: 0,
-                      },
-                      '&::-webkit-color-swatch': {
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        borderRadius: '4px',
-                      },
-                    }}
-                  />
-                  <TextField
-                    size="small"
-                    value={color}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      handleColorChange(index, e.target.value);
-                    }}
-                    sx={{
-                      width: 100,
-                      '& .MuiInputBase-input': {
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        py: 0.75,
-                        px: 1,
-                      },
-                    }}
+                    fullWidth={false}
                   />
                   <Tooltip title="Remove color">
                     <span>
@@ -128,6 +97,7 @@ export function GradientArrayField<T extends FieldValues>({
                         onClick={() => {
                           handleRemoveColor(index);
                         }}
+                        sx={{ mt: 0.5 }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>

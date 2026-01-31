@@ -41,4 +41,7 @@ const colorSchemaWithEmptyString = z.preprocess(
   colorSchema.optional().default('random'),
 );
 
+// Schema for color strings (hex or named, no numeric)
+export const colorStringSchema = z.union([colorNameSchema, hexColorSchema]);
+
 export default colorSchemaWithEmptyString.describe('fieldType:color|Named color, hex value, or random');
