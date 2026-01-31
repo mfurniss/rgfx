@@ -26,12 +26,13 @@ class SparkleEffect : public IEffect {
 	};
 
 	struct SparkleCloud {
-		uint32_t duration;  // Cloud duration (ms)
-		uint32_t age;       // Current age (ms)
-		uint8_t density;    // 1-100, spawn probability
-		float speed;        // Gradient cycling speed
-		uint8_t bloom;      // 0-100, light spread radius
-		CRGB gradientLut[GRADIENT_LUT_SIZE];
+		CRGB gradientLut[GRADIENT_LUT_SIZE];  // 300 bytes - largest first
+		uint32_t duration;   // Cloud duration (ms)
+		uint32_t age;        // Current age (ms)
+		float speed;         // Gradient cycling speed
+		uint8_t density;     // 1-100, spawn probability
+		uint8_t bloom;       // 0-100, light spread percentage
+		uint8_t spreadRadius;  // Pre-computed: (bloom * 4) / 100
 		bool active;
 	};
 
