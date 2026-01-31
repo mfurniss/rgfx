@@ -8,6 +8,22 @@ ROOT_DIR="$(git rev-parse --show-toplevel)"
 
 echo "🔍 Running pre-commit checks..."
 
+# ===== FIRMWARE BINARY CHECK =====
+# Fail if firmware binaries are modified but not staged
+FIRMWARE_DIR="rgfx-hub/assets/esp32/firmware"
+UNSTAGED_FIRMWARE=$(git diff --name-only -- "$FIRMWARE_DIR" 2>/dev/null || true)
+
+if [ -n "$UNSTAGED_FIRMWARE" ]; then
+    echo ""
+    echo "❌ ERROR: Firmware binaries modified but not staged!"
+    echo "   The following files have unstaged changes:"
+    echo "$UNSTAGED_FIRMWARE" | sed 's/^/      /'
+    echo ""
+    echo "   Run: git add $FIRMWARE_DIR"
+    echo "   Or stage specific files before committing."
+    exit 1
+fi
+
 # ===== RGFX-HUB CHECKS =====
 echo ""
 echo "📦 Checking rgfx-hub..."
