@@ -51,7 +51,7 @@ export default z
       .min(2)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .default(['#FFFFFF', '#FFFF00', '#FF0000', '#000000'])
+      .default(['#8000FF', '#000000'])
       .describe(`fieldType:gradientArray|Colors to cycle through (up to ${MAX_GRADIENT_COLORS} hex colors)`),
     speed: z
       .number()
@@ -66,7 +66,7 @@ export default z
       .min(0)
       .max(100)
       .optional()
-      .default(0)
+      .default(60)
       .describe('Light spread radius (0=none, 100=4 LEDs)'),
     reset: z.boolean().optional().default(false).describe('Clear existing effects before adding'),
   })
