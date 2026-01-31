@@ -28,6 +28,8 @@ The VSCode workspace contains three key projects.
 
 6. **When fixing bugs DO NOT change or remove features without the user's EXPRESS PERMISSION**
 
+7. **Always commit `public-docs/site/`** after modifying documentation. This is the built site used for online docs. Run `mkdocs build` in `public-docs/` then commit both source and generated files.
+
 ## Core Principles
 
 Your user is as veteran developer with 35 years of experience from the days of 8-bit assembly in the 1980s to now. Any comments such as "are you sure you updated the firmware?", "maybe there was a power brown-out", "maybe you accidentally closed the app?" are guaranteed to piss off your user - so don't even think about saying those things.
