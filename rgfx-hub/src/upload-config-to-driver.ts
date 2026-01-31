@@ -49,9 +49,21 @@ export function createUploadConfigToDriver(
     }
 
     // Calculate unified display dimensions
-    const { unified } = ledConfig;
-    const unifiedRows = unified ? unified.length : 1;
-    const unifiedCols = unified ? unified[0].length : 1;
+    // Convert single-panel rotation to 1x1 unified array
+    const { unified, rotation } = ledConfig;
+
+    let effectiveUnified = unified;
+
+    if (!unified && rotation && rotation !== '0') {
+      const rotationMap: Record<string, string> = {
+        '90': 'b',
+        '180': 'c',
+        '270': 'd',
+      };
+      effectiveUnified = [[`0${rotationMap[rotation]}`]];
+    }
+    const unifiedRows = effectiveUnified ? effectiveUnified.length : 1;
+    const unifiedCols = effectiveUnified ? effectiveUnified[0].length : 1;
     const panelCount = unifiedRows * unifiedCols;
 
     // Effective dimensions for the unified display
@@ -75,10 +87,10 @@ export function createUploadConfigToDriver(
           color_correction: hardware.colorCorrection,
           width: effectiveWidth,
           height: effectiveHeight,
-          // Unified panel configuration (null if single panel)
-          panel_width: unified ? hardware.width : undefined,
-          panel_height: unified ? hardware.height : undefined,
-          unified,
+          // Unified panel configuration (null if single panel without rotation)
+          panel_width: effectiveUnified ? hardware.width : undefined,
+          panel_height: effectiveUnified ? hardware.height : undefined,
+          unified: effectiveUnified,
           // Strip-specific: reverse LED direction
           reverse: ledConfig.reverse ?? false,
           // RGBW mode for 4-channel strips
@@ -104,8 +116,8 @@ export function createUploadConfigToDriver(
     const payload = JSON.stringify(completeConfig);
 
     // Log the unified array being sent for debugging
-    if (unified) {
-      log.info(`Uploading unified config: ${JSON.stringify(unified)}`);
+    if (effectiveUnified) {
+      log.info(`Uploading unified config: ${JSON.stringify(effectiveUnified)}`);
     }
 
     // Publish config and wait for driver to confirm it saved to NVS

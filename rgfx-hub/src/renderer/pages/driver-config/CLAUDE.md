@@ -61,6 +61,7 @@ driver-config/
 - Gamma correction (R/G/B)
 - Floor cutoff (R/G/B)
 - RGBW mode selector (for 4-channel hardware)
+- Single-panel rotation selector (for matrices without unified layout)
 - Unified panel editor (for matrices)
 
 **Props:**

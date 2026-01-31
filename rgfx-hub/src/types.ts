@@ -85,6 +85,12 @@ export interface DriverLEDConfig {
    */
   unified?: string[][] | null;
   /**
+   * Single-panel virtual rotation (ignored if unified is set)
+   * Rotates the panel display without physical rewiring.
+   * Values: '0' (default), '90', '180', '270' degrees clockwise.
+   */
+  rotation?: '0' | '90' | '180' | '270' | null;
+  /**
    * Reverse LED direction for strips (default: false)
    * When true, logical index 0 maps to the last physical LED.
    * Only applicable to strip layouts, ignored for matrices.
