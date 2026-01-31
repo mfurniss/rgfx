@@ -90,6 +90,7 @@ Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `text.ts` - Static text rendering with gradient and optional accent color
 - `warp.ts` - Center-radiating animated gradient with linear perspective scale. Uses `enabled` enum with fade support.
 - `wipe.ts` - Color wipe sweeping across the display with random blend mode option
+- `sparkle.ts` - Twinkling particles cycling through a gradient with bloom support
 
 ### Per-Effect Randomize Functions
 Each effect schema exports a `randomize()` function that generates randomized props:

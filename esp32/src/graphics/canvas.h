@@ -108,4 +108,20 @@ class Canvas {
             row += width;
         }
     }
+
+    // Fast 4x4 block fill with additive blending
+    inline void fillBlock4x4Additive(uint16_t x, uint16_t y, const CRGB& color, uint8_t alpha) {
+        CRGB* row = pixels + (y * width) + x;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                uint16_t r = row[j].r + (color.r * alpha / 255);
+                uint16_t g = row[j].g + (color.g * alpha / 255);
+                uint16_t b = row[j].b + (color.b * alpha / 255);
+                row[j].r = (r > 255) ? 255 : r;
+                row[j].g = (g > 255) ? 255 : g;
+                row[j].b = (b > 255) ? 255 : b;
+            }
+            row += width;
+        }
+    }
 };

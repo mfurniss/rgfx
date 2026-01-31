@@ -17,6 +17,7 @@ import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollTex
 import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig } from './plasma';
 import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
+import sparkleSchema, { randomize as randomizeSparkle } from './sparkle';
 import type { PresetConfig } from './preset-config';
 
 export type { PresetData, PresetType } from './preset-config';
@@ -36,6 +37,7 @@ export const effectSchemas = {
   plasma: plasmaSchema,
   warp: warpSchema,
   particle_field: particleFieldSchema,
+  sparkle: sparkleSchema,
 } as const;
 
 /**
@@ -54,6 +56,7 @@ export const effectPropsSchemas = {
   plasma: plasmaSchema.omit({ name: true, description: true }),
   warp: warpSchema.omit({ name: true, description: true }),
   particle_field: particleFieldSchema.omit({ name: true, description: true }),
+  sparkle: sparkleSchema.omit({ name: true, description: true }),
 } as const;
 
 export const effectRandomizers = {
@@ -68,6 +71,7 @@ export const effectRandomizers = {
   plasma: randomizePlasma,
   warp: randomizeWarp,
   particle_field: randomizeParticleField,
+  sparkle: randomizeSparkle,
 } as const;
 
 type EffectName = keyof typeof effectSchemas;
@@ -84,7 +88,8 @@ type EffectProps =
   | z.infer<typeof scrollTextSchema>
   | z.infer<typeof plasmaSchema>
   | z.infer<typeof warpSchema>
-  | z.infer<typeof particleFieldSchema>;
+  | z.infer<typeof particleFieldSchema>
+  | z.infer<typeof sparkleSchema>;
 
 /**
  * Check if a string is a valid effect name

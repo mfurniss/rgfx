@@ -8,6 +8,7 @@ import projectileSchema, { randomize as randomizeProjectile } from '@/schemas/ef
 import { randomize as randomizeScrollText, presetConfig as scrollTextPreset } from '@/schemas/effects/scroll-text';
 import { randomize as randomizeText, presetConfig as textPreset } from '@/schemas/effects/text';
 import wipeSchema, { randomize as randomizeWipe } from '@/schemas/effects/wipe';
+import sparkleSchema, { randomize as randomizeSparkle } from '@/schemas/effects/sparkle';
 
 describe('Effect Schema Randomize Functions', () => {
   describe('background', () => {
@@ -216,6 +217,36 @@ describe('Effect Schema Randomize Functions', () => {
       }
     });
   });
+
+  describe('sparkle', () => {
+    it('randomize returns valid values', () => {
+      for (let i = 0; i < 10; i++) {
+        const values = randomizeSparkle();
+        expect(values).toHaveProperty('duration');
+        expect(values).toHaveProperty('density');
+        expect(values).toHaveProperty('gradient');
+        expect(values).toHaveProperty('speed');
+        expect(values).toHaveProperty('bloom');
+        expect(typeof values.duration).toBe('number');
+        expect(typeof values.density).toBe('number');
+        expect(values.gradient).toBeInstanceOf(Array);
+        expect(typeof values.speed).toBe('number');
+        expect(typeof values.bloom).toBe('number');
+      }
+    });
+
+    it('schema validates randomized values', () => {
+      for (let i = 0; i < 10; i++) {
+        const values = randomizeSparkle();
+        const result = sparkleSchema.safeParse({
+          name: 'Sparkle',
+          description: 'Twinkling particles cycling through a gradient',
+          ...values,
+        });
+        expect(result.success).toBe(true);
+      }
+    });
+  });
 });
 
 describe('Effect Schema Validation', () => {
@@ -276,5 +307,62 @@ describe('Effect Schema Validation', () => {
       enabled: 'fadeIn',
     });
     expect(valid.success).toBe(true);
+  });
+
+  it('sparkle schema validates correctly', () => {
+    const valid = sparkleSchema.safeParse({
+      name: 'Sparkle',
+      description: 'Twinkling particles cycling through a gradient',
+      duration: 3000,
+      density: 50,
+      gradient: ['#FFFFFF', '#FFFF00', '#FF0000', '#000000'],
+      speed: 1.5,
+      bloom: 25,
+    });
+    expect(valid.success).toBe(true);
+  });
+
+  it('sparkle schema uses defaults', () => {
+    const result = sparkleSchema.parse({
+      name: 'Sparkle',
+      description: 'Twinkling particles cycling through a gradient',
+    });
+    expect(result.duration).toBe(3000);
+    expect(result.density).toBe(30);
+    expect(result.speed).toBe(1.0);
+    expect(result.bloom).toBe(0);
+    expect(result.reset).toBe(false);
+  });
+
+  it('sparkle schema rejects invalid gradient', () => {
+    const invalid = sparkleSchema.safeParse({
+      name: 'Sparkle',
+      description: 'Twinkling particles cycling through a gradient',
+      gradient: ['#FF0000'], // Needs at least 2 colors
+    });
+    expect(invalid.success).toBe(false);
+  });
+
+  it('sparkle schema rejects out-of-range values', () => {
+    const invalidDensity = sparkleSchema.safeParse({
+      name: 'Sparkle',
+      description: 'Twinkling particles cycling through a gradient',
+      density: 101, // Max is 100
+    });
+    expect(invalidDensity.success).toBe(false);
+
+    const invalidBloom = sparkleSchema.safeParse({
+      name: 'Sparkle',
+      description: 'Twinkling particles cycling through a gradient',
+      bloom: 150, // Max is 100
+    });
+    expect(invalidBloom.success).toBe(false);
+
+    const invalidSpeed = sparkleSchema.safeParse({
+      name: 'Sparkle',
+      description: 'Twinkling particles cycling through a gradient',
+      speed: 10, // Max is 5.0
+    });
+    expect(invalidSpeed.success).toBe(false);
   });
 });
