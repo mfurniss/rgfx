@@ -6,7 +6,8 @@
  */
 
 import { z } from 'zod';
-import { MAX_GRADIENT_COLORS, HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
+import { colorStringSchema } from './properties/color';
 import { randomInt, randomFloat, randomGradient } from '@/utils/random';
 
 export function randomize(): Record<string, unknown> {
@@ -46,7 +47,7 @@ export default z
       .default(30)
       .describe('Spawn rate (1-100, frame-rate independent)'),
     gradient: z
-      .array(z.string().regex(HEX_COLOR_RRGGBB_REGEX))
+      .array(colorStringSchema)
       .min(2)
       .max(MAX_GRADIENT_COLORS)
       .optional()

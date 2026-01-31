@@ -11,7 +11,6 @@ import {
   IconButton,
   Typography,
   Tooltip,
-  TextField,
   FormControl,
   InputLabel,
   Select,
@@ -22,7 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import SuperButton from '@/renderer/components/common/super-button';
-import { isValidHex, normalizeHex } from '@/renderer/utils/color';
+import { ColorPicker } from './color-picker';
 
 interface GradientValue {
   colors: string[];
@@ -106,53 +105,16 @@ export function BackgroundGradientField<T extends FieldValues>({
                   key={index}
                   sx={{
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     gap: 1,
                   }}
                 >
-                  <Box
-                    component="input"
-                    type="color"
-                    value={isValidHex(color) ? color : '#808080'}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      handleColorChange(index, e.target.value);
-                    }}
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      border: 'none',
-                      padding: 0,
-                      cursor: 'pointer',
-                      backgroundColor: 'transparent',
-                      '&::-webkit-color-swatch-wrapper': {
-                        padding: 0,
-                      },
-                      '&::-webkit-color-swatch': {
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        borderRadius: '4px',
-                      },
-                    }}
-                  />
-                  <TextField
-                    size="small"
+                  <ColorPicker
                     value={color}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      handleColorChange(index, e.target.value);
+                    onChange={(newColor) => {
+                      handleColorChange(index, newColor);
                     }}
-                    onBlur={() => {
-                      const normalized = normalizeHex(color);
-
-                      if (normalized !== color) {
-                        handleColorChange(index, normalized);
-                      }
-                    }}
-                    error={!isValidHex(color)}
-                    sx={{ width: 100 }}
-                    slotProps={{
-                      input: {
-                        sx: { fontFamily: 'monospace', fontSize: '0.875rem' },
-                      },
-                    }}
+                    fullWidth={false}
                   />
                   <Tooltip title="Remove color">
                     <span>
@@ -161,6 +123,7 @@ export function BackgroundGradientField<T extends FieldValues>({
                         onClick={() => {
                           handleRemoveColor(index);
                         }}
+                        sx={{ mt: 0.5 }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>

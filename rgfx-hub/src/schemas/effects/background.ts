@@ -6,7 +6,8 @@
  */
 
 import { z } from 'zod';
-import { MAX_GRADIENT_COLORS, HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
+import { colorStringSchema } from './properties/color';
 import type { PresetConfig } from './preset-config';
 import { randomGradient, randomInt } from '@/utils/random';
 
@@ -37,7 +38,7 @@ export default z
     gradient: z
       .object({
         colors: z
-          .array(z.string().regex(HEX_COLOR_RRGGBB_REGEX))
+          .array(colorStringSchema)
           .max(MAX_GRADIENT_COLORS)
           .default(['#FF0000', '#00FF00', '#0000FF']),
         orientation: z.enum(['horizontal', 'vertical']).default('horizontal'),

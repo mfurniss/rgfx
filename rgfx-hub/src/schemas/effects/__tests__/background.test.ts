@@ -90,11 +90,11 @@ describe('backgroundSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject hex colors without hash', () => {
+    it('should accept hex colors without hash', () => {
       const result = backgroundSchema.safeParse({
         gradient: { colors: ['FF0000'] },
       });
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
 
     it('should accept vertical orientation', () => {
