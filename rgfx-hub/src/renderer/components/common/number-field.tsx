@@ -126,7 +126,7 @@ export function NumberField<
       render={({ field, fieldState: { error } }) => (
         <NumberInput
           name={name}
-          field={field}
+          field={field as unknown as ControllerRenderProps<FieldValues, string>}
           label={label}
           helperText={helperText}
           allowFloat={allowFloat}
