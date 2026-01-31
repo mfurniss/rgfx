@@ -1,3 +1,94 @@
 .md-nav--primary > .md-nav__title {
   display: none;
 }
+
+/* LED test pattern visualizations */
+:root {
+  --led-red: #ff0000;
+  --led-green: #00cc00;
+  --led-blue: #0000ff;
+  --led-yellow: #cccc00;
+  --led-white: #ffffff;
+  --led-bg: #1a1a1a;
+}
+
+.led-test-strip,
+.led-test-matrix,
+.led-test-multipanel {
+  background: var(--led-bg);
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.led-test-strip {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: fit-content;
+}
+.led-test-strip .segment {
+  height: 12px;
+  width: 100px;
+}
+.led-test-strip .start-pixel {
+  width: 12px;
+  height: 12px;
+  background: var(--led-white);
+  box-shadow: 0 0 6px var(--led-white);
+}
+.led-test-strip .seg-red { background: var(--led-red); }
+.led-test-strip .seg-green { background: var(--led-green); }
+.led-test-strip .seg-blue { background: var(--led-blue); }
+.led-test-strip .seg-yellow { background: var(--led-yellow); }
+
+.led-test-matrix {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 120px;
+  height: 120px;
+  padding: 4px;
+  margin-right: 8px;
+}
+.led-test-matrix .quadrant { position: relative; }
+.led-test-matrix .quad-tl { background: var(--led-red); border-radius: 4px 0 0 0; }
+.led-test-matrix .quad-tr { background: var(--led-green); border-radius: 0 4px 0 0; }
+.led-test-matrix .quad-bl { background: var(--led-blue); border-radius: 0 0 0 4px; }
+.led-test-matrix .quad-br { background: var(--led-yellow); border-radius: 0 0 4px 0; }
+.led-test-matrix .origin-pixel {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: var(--led-white);
+  box-shadow: 0 0 4px var(--led-white);
+}
+
+.led-test-multipanel {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-template-rows: repeat(2, 80px);
+  gap: 4px;
+  padding: 8px;
+}
+.led-test-multipanel .panel {
+  position: relative;
+  border-radius: 2px;
+}
+.led-test-multipanel .origin-pixel {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  background: var(--led-white);
+  box-shadow: 0 0 3px var(--led-white);
+  z-index: 1;
+}
+.led-test-multipanel .panel-tl { background: var(--led-red); }
+.led-test-multipanel .panel-tc { background: linear-gradient(to right, var(--led-red) 50%, var(--led-green) 50%); }
+.led-test-multipanel .panel-tr { background: var(--led-green); }
+.led-test-multipanel .panel-bl { background: var(--led-blue); }
+.led-test-multipanel .panel-bc { background: linear-gradient(to right, var(--led-blue) 50%, var(--led-yellow) 50%); }
+.led-test-multipanel .panel-br { background: var(--led-yellow); }

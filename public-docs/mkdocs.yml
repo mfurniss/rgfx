@@ -48,6 +48,19 @@ nav:
     - Visual Effects: drivers/effects.md
     - ESP32 Firmware: drivers/esp32/index.md
     - LED Hardware: drivers/led-hardware/index.md
+  - Hub App:
+    - Introduction: hub-app/index.md
+    - System Status: hub-app/system-status.md
+    - Drivers:
+      - Overview: hub-app/drivers.md
+      - Driver Detail: hub-app/driver-detail.md
+      - Test LEDs: hub-app/test-leds.md
+    - Firmware: hub-app/firmware.md
+    - Games: hub-app/games.md
+    - Event Monitor: hub-app/event-monitor.md
+    - FX Playground: hub-app/fx-playground.md
+    - Simulator: hub-app/simulator.md
+    - Settings: hub-app/settings.md
 
 markdown_extensions:
   - attr_list
