@@ -36,11 +36,14 @@ nav:
     - Event System: interceptors/events.md
     - RAM Monitoring: interceptors/ram.md
     - Ambilight: interceptors/ambilight.md
-    - FFT Audio: interceptors/fft.md
+    - Spectrum Analyzer: interceptors/fft.md
     - Writing Interceptors: interceptors/writing-interceptors.md
     - MAME API: interceptors/mame-api.md
   - Transformers:
     - Introduction: transformers/index.md
+    - Global Configuration: transformers/global.md
+    - Utilities: transformers/utils.md
+    - Ambilight: transformers/ambilight.md
   - Drivers:
     - Introduction: drivers/index.md
     - Setup: drivers/firmware-and-wifi.md
