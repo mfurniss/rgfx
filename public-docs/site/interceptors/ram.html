@@ -665,7 +665,7 @@
   <span class="md-ellipsis">
     
   
-    FFT Audio
+    Spectrum Analyzer
   
 
     
@@ -804,6 +804,90 @@
     
   
     Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/global.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Global Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/utils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/ambilight.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ambilight
   
 
     
@@ -1583,10 +1667,10 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">ram</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;ram&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="boot-delay">Boot Delay<a class="headerlink" href="#boot-delay" title="Permanent link">&para;</a></h2>
-<p>Most games run hardware tests or show attract screens before gameplay. Use boot delay to skip past these:</p>
+<p>Most games run hardware tests or show attract screens before gameplay. Use boot delay to wait until the game reaches a stable state before monitoring begins:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">ram</span><span class="p">.</span><span class="nf">set_boot_delay</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Wait 6 seconds before monitoring</span>
 </code></pre></div>
-<p>The module displays a countdown in the MAME console and activates monitoring when the delay expires.</p>
+<p>The module displays a countdown in the MAME console and activates monitoring when the delay expires. This prevents spurious events from memory changes during boot sequences.</p>
 <h2 id="installing-monitors">Installing Monitors<a class="headerlink" href="#installing-monitors" title="Permanent link">&para;</a></h2>
 <p>There are two ways to set up memory monitoring.</p>
 <h3 id="option-1-monitor-map-recommended">Option 1: Monitor Map (Recommended)<a class="headerlink" href="#option-1-monitor-map-recommended" title="Permanent link">&para;</a></h3>
