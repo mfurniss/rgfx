@@ -33,6 +33,7 @@ class SparkleEffect : public IEffect {
 		uint8_t density;     // 1-100, spawn probability
 		uint8_t bloom;       // 0-100, light spread percentage
 		uint8_t spreadRadius;  // Pre-computed: (bloom * 4) / 100
+		uint8_t overdrive;   // Pre-computed: (bloom * 255) / 100 for center desaturation
 		bool active;
 	};
 

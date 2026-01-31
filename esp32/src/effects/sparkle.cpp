@@ -63,20 +63,31 @@ void SparkleEffect::renderParticle(const SparkleParticle& p) {
 
 	CRGB color = cloud.gradientLut[lutIndex];
 
+	// Overdrive center towards white, scaled by color luminosity
+	// Dark colors stay dark, bright colors get overdriven to white
+	CRGB centerColor = color;
+	if (cloud.overdrive > 0) {
+		uint8_t luma = max(color.r, max(color.g, color.b));
+		uint8_t scaledOD = (static_cast<uint16_t>(cloud.overdrive) * luma) >> 8;
+		centerColor.r = color.r + (((255 - color.r) * scaledOD) >> 8);
+		centerColor.g = color.g + (((255 - color.g) * scaledOD) >> 8);
+		centerColor.b = color.b + (((255 - color.b) * scaledOD) >> 8);
+	}
+
 	uint16_t cw = canvas.getWidth();
 	uint16_t ch = canvas.getHeight();
 	bool isStrip = (ch == 1);
 
-	// Render center LED at full intensity
+	// Render center LED (overdriven when bloom enabled)
 	if (isStrip) {
 		// Strip: render 4x1 rectangle
 		if (p.x + 4 <= cw) {
-			canvas.drawRectangle(p.x, 0, 4, 1, CRGBA(color, 255), BlendMode::ADDITIVE);
+			canvas.drawRectangle(p.x, 0, 4, 1, CRGBA(centerColor, 255), BlendMode::ADDITIVE);
 		}
 	} else {
 		// Matrix: render 4x4 block
 		if (p.x + 4 <= cw && p.y + 4 <= ch) {
-			canvas.fillBlock4x4Additive(p.x, p.y, color, 255);
+			canvas.fillBlock4x4Additive(p.x, p.y, centerColor, 255);
 		}
 	}
 
@@ -157,6 +168,7 @@ void SparkleEffect::add(JsonDocument& props) {
 	if (cloud.bloom > 100) cloud.bloom = 100;
 	cloud.spreadRadius = (cloud.bloom * 4) / 100;
 	if (cloud.bloom > 0 && cloud.spreadRadius == 0) cloud.spreadRadius = 1;
+	cloud.overdrive = (cloud.bloom * 255) / 100;
 
 	// Parse gradient
 	if (!parseGradientFromJson(props, cloud.gradientLut)) {
