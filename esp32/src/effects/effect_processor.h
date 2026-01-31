@@ -15,6 +15,7 @@
 #include "effects/warp.h"
 #include "effects/spectrum.h"
 #include "effects/particle_field.h"
+#include "effects/sparkle.h"
 #include "effects/particle_system.h"
 #include "effects/effect.h"
 #include "hal/display.h"
@@ -69,9 +70,10 @@ class EffectProcessor {
 	WarpEffect warpEffect;
 	SpectrumEffect spectrumEffect;
 	ParticleFieldEffect particleFieldEffect;
+	SparkleEffect sparkleEffect;
 	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
-	EffectEntry effectMap[13];
+	EffectEntry effectMap[14];
 
    public:
 	EffectProcessor(Matrix& matrix, hal::IDisplay& display);

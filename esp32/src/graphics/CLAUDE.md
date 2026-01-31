@@ -34,6 +34,10 @@ The Canvas class provides a 32-bit RGBA drawing surface at 4x the matrix resolut
 - `ADDITIVE` - Add colors together (for glows/explosions)
 - `AVERAGE` - Average existing and new color
 
+### Optimized Block Rendering
+- `fillBlock4x4(x, y, color, alpha)` - Fast 4x4 block fill with alpha blending
+- `fillBlock4x4Additive(x, y, color, alpha)` - Fast 4x4 block fill with additive blending (for sparkle/glow effects)
+
 ### RGBA Macros
 ```cpp
 RGBA(r, g, b, a)      // Compose RGBA value

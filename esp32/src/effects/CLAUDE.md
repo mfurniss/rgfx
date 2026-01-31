@@ -46,6 +46,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Bitmap** | [bitmap.h](bitmap.h)/[bitmap.cpp](bitmap.cpp) | Animated sprite display with 16-color palette, movement, and fade. |
 | **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
 | **Particle Field** | [particle_field.h](particle_field.h)/[particle_field.cpp](particle_field.cpp) | Field of animated particles with configurable behavior. |
+| **Sparkle** | [sparkle.h](sparkle.h)/[sparkle.cpp](sparkle.cpp) | Twinkling single-LED particles cycling through a gradient. Cloud-based spawning with FIFO particle buffer. |
 | **Plasma** | [plasma.h](plasma.h)/[plasma.cpp](plasma.cpp) | Animated plasma effect using Perlin noise with gradient colors. |
 | **Projectile** | [projectile.h](projectile.h)/[projectile.cpp](projectile.cpp) | Moving rectangular object with direction, velocity, friction, and optional trail. |
 | **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse modes, and duration. |
@@ -136,6 +137,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `bitmap.h/cpp` | Animated sprite display with palettized memory storage |
 | `explode.h/cpp` | Radial explosion effect with hueSpread color variation |
 | `particle_field.h/cpp` | Particle field effect |
+| `sparkle.h/cpp` | Gradient-cycling sparkle particles with bloom |
 | `plasma.h/cpp` | Perlin noise plasma effect |
 | `projectile.h/cpp` | Moving object with velocity capping and cross-core watchdog |
 | `pulse.h/cpp` | Pulse effect with easing and collapse modes |
