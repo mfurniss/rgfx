@@ -330,7 +330,7 @@ describe('Effect Schema Validation', () => {
     expect(result.duration).toBe(3000);
     expect(result.density).toBe(30);
     expect(result.speed).toBe(1.0);
-    expect(result.bloom).toBe(60);
+    expect(result.bloom).toBe(80);
     expect(result.reset).toBe(false);
   });
 
