@@ -544,7 +544,7 @@
   <span class="md-ellipsis">
     
   
-    FFT Audio
+    Spectrum Analyzer
   
 
     
@@ -683,6 +683,90 @@
     
   
     Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/global.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Global Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/utils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/ambilight.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ambilight
   
 
     
@@ -1822,6 +1906,7 @@
 
 <h1 id="visual-effects">Visual Effects<a class="headerlink" href="#visual-effects" title="Permanent link">&para;</a></h1>
 <p>RGFX drivers support 13 visual effects that render on LED strips and matrices.</p>
+<p>Use the <a href="../hub-app/fx-playground.html">FX Playground</a> in the Hub to experiment with effects and see them render in real-time.</p>
 <h2 id="how-effects-work">How Effects Work<a class="headerlink" href="#how-effects-work" title="Permanent link">&para;</a></h2>
 <p>Effects are sent from the Hub to drivers as JSON commands over MQTT. The driver renders effects to an internal canvas at 4x resolution, then downsamples to the physical LED layout. Multiple effects can composite together, with the background rendering first and other effects layering on top.</p>
 <h2 id="effects-reference">Effects Reference<a class="headerlink" href="#effects-reference" title="Permanent link">&para;</a></h2>

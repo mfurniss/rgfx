@@ -1,3 +1,102 @@
 .md-nav--primary > .md-nav__title {
   display: none;
 }
+
+/* LED test pattern visualizations */
+:root {
+  --led-red: #ff0000;
+  --led-green: #00cc00;
+  --led-blue: #0000ff;
+  --led-yellow: #cccc00;
+  --led-white: #ffffff;
+  --led-bg: #1a1a1a;
+}
+
+.led-test-strip,
+.led-test-matrix,
+.led-test-multipanel {
+  background: var(--led-bg);
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.led-test-strip {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: fit-content;
+
+  & .segment {
+    height: 12px;
+    width: 100px;
+  }
+
+  & .start-pixel {
+    width: 12px;
+    height: 12px;
+    background: var(--led-white);
+    box-shadow: 0 0 6px var(--led-white);
+  }
+
+  & .seg-red { background: var(--led-red); }
+  & .seg-green { background: var(--led-green); }
+  & .seg-blue { background: var(--led-blue); }
+  & .seg-yellow { background: var(--led-yellow); }
+}
+
+.led-test-matrix {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 120px;
+  height: 120px;
+  padding: 4px;
+  margin-right: 8px;
+
+  & .quadrant { position: relative; }
+  & .quad-tl { background: var(--led-red); border-radius: 4px 0 0 0; }
+  & .quad-tr { background: var(--led-green); border-radius: 0 4px 0 0; }
+  & .quad-bl { background: var(--led-blue); border-radius: 0 0 0 4px; }
+  & .quad-br { background: var(--led-yellow); border-radius: 0 0 4px 0; }
+
+  & .origin-pixel {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 8px;
+    height: 8px;
+    background: var(--led-white);
+    box-shadow: 0 0 4px var(--led-white);
+  }
+}
+
+.led-test-multipanel {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-template-rows: repeat(2, 80px);
+  gap: 4px;
+  padding: 8px;
+
+  & .panel {
+    position: relative;
+    border-radius: 2px;
+  }
+
+  & .origin-pixel {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 6px;
+    height: 6px;
+    background: var(--led-white);
+    box-shadow: 0 0 3px var(--led-white);
+    z-index: 1;
+  }
+
+  & .panel-tl { background: var(--led-red); }
+  & .panel-tc { background: linear-gradient(to right, var(--led-red) 50%, var(--led-green) 50%); }
+  & .panel-tr { background: var(--led-green); }
+  & .panel-bl { background: var(--led-blue); }
+  & .panel-bc { background: linear-gradient(to right, var(--led-blue) 50%, var(--led-yellow) 50%); }
+  & .panel-br { background: var(--led-yellow); }
+}
