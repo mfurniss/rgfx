@@ -22,10 +22,10 @@ export function randomize(): Record<string, unknown> {
 }
 
 /**
- * Scroll text effect props schema
- * Renders scrolling text from right to left using an 8x8 bitmap font
+ * Scroll text effect props schema (base, without refinements)
+ * Use this for .omit()/.pick() operations since Zod 4 doesn't allow those on refined schemas
  */
-export default baseEffect
+export const scrollTextBaseSchema = baseEffect
   .extend({
     name: z.literal('Scroll Text'),
     description: z.literal('Scrolling text marquee'),
@@ -56,11 +56,22 @@ export default baseEffect
       .default(4)
       .describe('Gradient pattern scale'),
   })
-  .strict()
-  .refine((data) => Boolean(data.color) || (data.gradient?.length ?? 0) > 0, {
-    message: 'Either color or gradient must be provided',
-    path: ['color'],
-  });
+  .strict();
+
+/**
+ * Refinement: either color or gradient must be provided
+ */
+const colorOrGradientRefinement = (data: { color?: string; gradient?: string[] }) =>
+  Boolean(data.color) || (data.gradient?.length ?? 0) > 0;
+
+/**
+ * Full scroll text schema with refinements
+ * Renders scrolling text from right to left using an 8x8 bitmap font
+ */
+export default scrollTextBaseSchema.refine(colorOrGradientRefinement, {
+  message: 'Either color or gradient must be provided',
+  path: ['color'],
+});
 
 export const presetConfig: PresetConfig = {
   type: 'plasma',

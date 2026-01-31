@@ -140,7 +140,7 @@ export default function DriverConfigPage() {
     void navigate(`/drivers/${mac}`);
   };
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     void handleSubmit(onSubmit)(e);
   };
 

@@ -13,7 +13,7 @@ import bitmapSchema, { randomize as randomizeBitmap } from './bitmap';
 import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig } from './background';
 import projectileSchema, { randomize as randomizeProjectile } from './projectile';
 import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig } from './text';
-import scrollTextSchema, { randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig } from './scroll-text';
+import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig } from './scroll-text';
 import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig } from './plasma';
 import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
@@ -50,7 +50,7 @@ export const effectPropsSchemas = {
   background: backgroundSchema.omit({ name: true, description: true }),
   projectile: projectileSchema.omit({ name: true, description: true }),
   text: textSchema.omit({ name: true, description: true }),
-  scroll_text: scrollTextSchema.omit({ name: true, description: true }),
+  scroll_text: scrollTextBaseSchema.omit({ name: true, description: true }),
   plasma: plasmaSchema.omit({ name: true, description: true }),
   warp: warpSchema.omit({ name: true, description: true }),
   particle_field: particleFieldSchema.omit({ name: true, description: true }),

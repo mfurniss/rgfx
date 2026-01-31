@@ -86,7 +86,7 @@ Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `plasma.ts` - Perlin noise plasma with gradient colors
 - `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog
 - `pulse.ts` - Full-screen color pulse with fade and collapse options
-- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered)
+- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered). Exports `scrollTextBaseSchema` for `.omit()` operations (Zod 4 doesn't allow `.omit()` on refined schemas)
 - `text.ts` - Static text rendering with gradient and optional accent color
 - `warp.ts` - Center-radiating animated gradient with linear perspective scale. Uses `enabled` enum with fade support.
 - `wipe.ts` - Color wipe sweeping across the display with random blend mode option

@@ -321,6 +321,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Uses text input type to allow empty field (browser number inputs don't allow clearing)
 - Converts to number on change, null when empty
 - Integrates with react-hook-form Controller
+- Uses type assertion for `ControllerRenderProps` to handle stricter generic constraints in newer react-hook-form versions
 
 ---
 
