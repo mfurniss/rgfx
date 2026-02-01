@@ -110,6 +110,7 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
     driverRegistry: services.driverRegistry,
     driverConfig: services.driverConfig,
     driverLogPersistence: services.driverLogPersistence,
+    logManager: services.logManager,
     ledHardwareManager: services.ledHardwareManager,
     mqtt: services.mqtt,
     uploadConfigToDriver: services.uploadConfigToDriver,

@@ -1,6 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
+import type { LogSizes } from './log-manager';
 import type { ConfiguredDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
@@ -405,6 +406,8 @@ declare global {
       deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
       onDriverDeleted: (callback: (driverId: string) => void) => () => void;
       showInFolder: (filePath: string) => Promise<void>;
+      getLogSizes: () => Promise<LogSizes>;
+      clearAllLogs: () => Promise<void>;
       quitApp: () => void;
     };
   }
