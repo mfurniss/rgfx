@@ -1,17 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  IconButton,
-  InputAdornment,
-} from '@mui/material';
-import { Save, FolderOpen } from '@mui/icons-material';
+import { Paper, Typography, Button, Stack } from '@mui/material';
+import { Save } from '@mui/icons-material';
 import { useUiStore } from '../../store/ui-store';
 import { useAppInfoStore } from '../../store/app-info-store';
 import { notify } from '../../store/notification-store';
+import { DirectoryPicker } from '../common/directory-picker';
 
 export function DirectoriesSection() {
   const storedRgfxConfigDirectory = useUiStore((state) => state.rgfxConfigDirectory);
@@ -79,107 +72,41 @@ export function DirectoriesSection() {
     })();
   };
 
-  const handleSelectConfigDir = () => {
-    void (async () => {
-      const selected = await window.rgfx.selectDirectory(
-        'Select RGFX Config Directory',
-        configDir || defaultConfigDir,
-      );
-
-      if (selected) {
-        setConfigDir(selected);
-
-        if (configDirError) {
-          setConfigDirError(null);
-        }
-      }
-    })();
-  };
-
-  const handleSelectRomsDir = () => {
-    void (async () => {
-      const selected = await window.rgfx.selectDirectory(
-        'Select MAME ROMs Directory',
-        romsDir || undefined,
-      );
-
-      if (selected) {
-        setRomsDir(selected);
-
-        if (romsDirError) {
-          setRomsDirError(null);
-        }
-      }
-    })();
-  };
-
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
         Directories
       </Typography>
-      <TextField
+      <DirectoryPicker
         label="Directory for config and logs"
         value={configDir}
-        onChange={(e) => {
-          setConfigDir(e.target.value);
+        onChange={(value) => {
+          setConfigDir(value);
 
           if (configDirError) {
             setConfigDirError(null);
           }
         }}
-        placeholder={defaultConfigDir}
-        fullWidth
-        required
-        error={!!configDirError}
-        helperText={configDirError ?? 'Directory for RGFX configuration and log files'}
+        dialogTitle="Select RGFX Config Directory"
+        defaultPath={defaultConfigDir}
+        error={configDirError ?? undefined}
+        helperText="Directory for RGFX configuration and log files"
         sx={{ mb: 3 }}
-        slotProps={{
-          input: {
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleSelectConfigDir}
-                  edge="end"
-                  aria-label="Select config directory"
-                >
-                  <FolderOpen />
-                </IconButton>
-              </InputAdornment>
-            ),
-          },
-        }}
       />
-      <TextField
+      <DirectoryPicker
         label="MAME ROMs Directory"
         value={romsDir}
-        onChange={(e) => {
-          setRomsDir(e.target.value);
+        onChange={(value) => {
+          setRomsDir(value);
 
           if (romsDirError) {
             setRomsDirError(null);
           }
         }}
-        placeholder="Enter path to MAME ROMs"
-        fullWidth
-        error={!!romsDirError}
-        helperText={romsDirError ?? 'Directory containing MAME ROM files (optional)'}
+        dialogTitle="Select MAME ROMs Directory"
+        error={romsDirError ?? undefined}
+        helperText="Directory containing MAME ROM files (optional)"
         sx={{ mb: 3 }}
-        slotProps={{
-          input: {
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleSelectRomsDir}
-                  edge="end"
-                  aria-label="Select ROMs directory"
-                >
-                  <FolderOpen />
-                </IconButton>
-              </InputAdornment>
-            ),
-          },
-        }}
       />
       <Stack direction="row" justifyContent="flex-end">
         <Button
