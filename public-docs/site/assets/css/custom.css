@@ -5,9 +5,9 @@
 /* LED test pattern visualizations */
 :root {
   --led-red: #ff0000;
-  --led-green: #00cc00;
-  --led-cyan: #008b8b;
-  --led-purple: #ff00ff;
+  --led-green: #00B000;
+  --led-cyan: #00A0A0;
+  --led-purple: #D000D0;
   --led-white: #ffffff;
   --led-bg: #1a1a1a;
 }
