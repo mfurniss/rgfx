@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { MAX_EVENT_TOPICS } from '@/config/constants';
 
 interface EventTopicData {
   count: number;
@@ -22,9 +23,22 @@ export const useEventStore = create<EventStore>()(
         const existing = topics[topic];
         const currentCount = existing ? existing.count : 0;
 
+        const topicKeys = Object.keys(topics);
+
+        // Evict oldest topic if at limit and this is a new topic
+        let baseTopics = topics;
+
+        if (topicKeys.length >= MAX_EVENT_TOPICS && !existing) {
+          const [, ...rest] = topicKeys;
+          baseTopics = rest.reduce<typeof topics>((acc, key) => {
+            acc[key] = topics[key];
+            return acc;
+          }, {});
+        }
+
         set({
           topics: {
-            ...topics,
+            ...baseTopics,
             [topic]: {
               count: currentCount + 1,
               lastValue: payload,
