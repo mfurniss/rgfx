@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { exposeElectronTRPC } from 'electron-trpc/main';
 import type { Driver, SystemStatus, AppInfo, DisconnectReason, LEDHardware } from './types';
 import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
+import type { LogSizes } from './log-manager';
 import type { ConfiguredDriverFromSchema } from './schemas';
 
 // Expose electron-trpc for type-safe IPC communication
@@ -255,6 +256,14 @@ export const rgfxAPI = {
 
   showInFolder: (filePath: string): Promise<void> => {
     return ipcRenderer.invoke('file:show-in-folder', filePath);
+  },
+
+  getLogSizes: (): Promise<LogSizes> => {
+    return ipcRenderer.invoke('logs:get-sizes');
+  },
+
+  clearAllLogs: (): Promise<void> => {
+    return ipcRenderer.invoke('logs:clear-all');
   },
 
   quitApp: (): void => {
