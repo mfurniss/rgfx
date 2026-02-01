@@ -1,7 +1,8 @@
 import React from 'react';
-import { Paper, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { Brightness4, Brightness7, SettingsBrightness } from '@mui/icons-material';
 import { useColorScheme } from '@mui/material/styles';
+import { SettingsSection } from './settings-section';
 
 type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -15,13 +16,11 @@ export function AppearanceSection() {
   };
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Appearance
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Choose your preferred theme mode
-      </Typography>
+    <SettingsSection
+      title="Appearance"
+      subtitle="Choose your preferred theme mode"
+      sx={{ mb: 3 }}
+    >
       <ToggleButtonGroup
         value={mode}
         exclusive
@@ -41,6 +40,6 @@ export function AppearanceSection() {
           Dark
         </ToggleButton>
       </ToggleButtonGroup>
-    </Paper>
+    </SettingsSection>
   );
 }

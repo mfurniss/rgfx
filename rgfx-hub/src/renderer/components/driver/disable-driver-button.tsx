@@ -1,14 +1,10 @@
 import React from 'react';
 import { Block as BlockIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
-import type { Driver } from '@/types';
 import { useAsyncAction } from '../../hooks/use-async-action';
 import SuperButton from '../common/super-button';
+import type { DriverButtonProps } from './types';
 
-interface DisableDriverButtonProps {
-  driver: Driver;
-}
-
-const DisableDriverButton: React.FC<DisableDriverButtonProps> = ({ driver }) => {
+const DisableDriverButton: React.FC<DriverButtonProps> = ({ driver }) => {
   const { execute: toggle, pending } = useAsyncAction(
     async () => {
       await window.rgfx.setDriverDisabled(driver.id, !driver.disabled);

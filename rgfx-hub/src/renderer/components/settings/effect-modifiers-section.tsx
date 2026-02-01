@@ -1,19 +1,18 @@
 import React from 'react';
-import { Box, Paper, Typography, Slider } from '@mui/material';
+import { Box, Typography, Slider } from '@mui/material';
 import { useUiStore } from '../../store/ui-store';
+import { SettingsSection } from './settings-section';
 
 export function EffectModifiersSection() {
   const stripLifespanScale = useUiStore((state) => state.stripLifespanScale);
   const setStripLifespanScale = useUiStore((state) => state.setStripLifespanScale);
 
   return (
-    <Paper sx={{ p: 3, mt: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Effect Modifiers
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Adjust effect duration scaling for LED strips
-      </Typography>
+    <SettingsSection
+      title="Effect Modifiers"
+      subtitle="Adjust effect duration scaling for LED strips"
+      sx={{ mt: 3 }}
+    >
       <Box sx={{ px: 1 }}>
         <Typography variant="body2" gutterBottom>
           Strip Lifespan Scale: {stripLifespanScale.toFixed(2)}
@@ -41,6 +40,6 @@ export function EffectModifiersSection() {
           duration.
         </Typography>
       </Box>
-    </Paper>
+    </SettingsSection>
   );
 }

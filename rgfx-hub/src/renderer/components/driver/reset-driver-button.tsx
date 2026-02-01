@@ -1,14 +1,10 @@
 import React from 'react';
 import { Typography } from '@mui/material';
 import { RestartAlt as RestartAltIcon, Warning as WarningIcon } from '@mui/icons-material';
-import type { Driver } from '@/types';
 import ConfirmActionButton from '../common/confirm-action-button';
+import type { DriverButtonProps } from './types';
 
-interface ResetDriverButtonProps {
-  driver: Driver;
-}
-
-const ResetDriverButton: React.FC<ResetDriverButtonProps> = ({ driver }) => {
+const ResetDriverButton: React.FC<DriverButtonProps> = ({ driver }) => {
   return (
     <ConfirmActionButton
       label="Reset"

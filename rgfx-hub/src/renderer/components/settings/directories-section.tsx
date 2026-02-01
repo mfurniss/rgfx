@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Button, Stack } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 import { Save } from '@mui/icons-material';
 import { useUiStore } from '../../store/ui-store';
 import { useAppInfoStore } from '../../store/app-info-store';
 import { notify } from '../../store/notification-store';
 import { DirectoryPicker } from '../common/directory-picker';
+import { SettingsSection } from './settings-section';
 
 export function DirectoriesSection() {
   const storedRgfxConfigDirectory = useUiStore((state) => state.rgfxConfigDirectory);
@@ -73,10 +74,7 @@ export function DirectoriesSection() {
   };
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Directories
-      </Typography>
+    <SettingsSection title="Directories">
       <DirectoryPicker
         label="Directory for config and logs"
         value={configDir}
@@ -118,6 +116,6 @@ export function DirectoriesSection() {
           {isSaving ? 'Saving...' : 'Save'}
         </Button>
       </Stack>
-    </Paper>
+    </SettingsSection>
   );
 }
