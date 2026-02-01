@@ -63,9 +63,9 @@ describe('DirectoriesSection', () => {
     };
   });
 
-  // Helper to get input fields by placeholder text
-  const getConfigDirInput = () => screen.getByPlaceholderText('/home/user/.rgfx');
-  const getRomsDirInput = () => screen.getByPlaceholderText('Enter path to MAME ROMs');
+  // Helper to get input fields by label text
+  const getConfigDirInput = () => screen.getByLabelText('Directory for config and logs');
+  const getRomsDirInput = () => screen.getByLabelText('MAME ROMs Directory');
 
   describe('rendering', () => {
     it('renders section title', () => {
@@ -92,8 +92,10 @@ describe('DirectoriesSection', () => {
 
     it('renders folder picker buttons', () => {
       render(<DirectoriesSection />);
-      expect(screen.getByRole('button', { name: 'Select config directory' })).toBeDefined();
-      expect(screen.getByRole('button', { name: 'Select ROMs directory' })).toBeDefined();
+      expect(
+        screen.getByRole('button', { name: 'Select Directory for config and logs' }),
+      ).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Select MAME ROMs Directory' })).toBeDefined();
     });
   });
 
@@ -102,7 +104,9 @@ describe('DirectoriesSection', () => {
       mockSelectDirectory.mockResolvedValue('/new/config/path');
       render(<DirectoriesSection />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Select config directory' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Select Directory for config and logs' }),
+      );
 
       await waitFor(() => {
         expect(mockSelectDirectory).toHaveBeenCalledWith(
@@ -116,7 +120,9 @@ describe('DirectoriesSection', () => {
       mockSelectDirectory.mockResolvedValue('/new/config/path');
       render(<DirectoriesSection />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Select config directory' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Select Directory for config and logs' }),
+      );
 
       await waitFor(() => {
         const input = getConfigDirInput();
@@ -128,7 +134,7 @@ describe('DirectoriesSection', () => {
       mockSelectDirectory.mockResolvedValue('/new/roms/path');
       render(<DirectoriesSection />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Select ROMs directory' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Select MAME ROMs Directory' }));
 
       await waitFor(() => {
         expect(mockSelectDirectory).toHaveBeenCalledWith(
@@ -142,7 +148,9 @@ describe('DirectoriesSection', () => {
       mockSelectDirectory.mockResolvedValue(null);
       render(<DirectoriesSection />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Select config directory' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Select Directory for config and logs' }),
+      );
 
       await waitFor(() => {
         const input = getConfigDirInput();
