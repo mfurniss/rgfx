@@ -6,8 +6,8 @@
 :root {
   --led-red: #ff0000;
   --led-green: #00cc00;
-  --led-blue: #0000ff;
-  --led-yellow: #cccc00;
+  --led-cyan: #008b8b;
+  --led-purple: #ff00ff;
   --led-white: #ffffff;
   --led-bg: #1a1a1a;
 }
@@ -40,8 +40,8 @@
 
   & .seg-red { background: var(--led-red); }
   & .seg-green { background: var(--led-green); }
-  & .seg-blue { background: var(--led-blue); }
-  & .seg-yellow { background: var(--led-yellow); }
+  & .seg-cyan { background: var(--led-cyan); }
+  & .seg-purple { background: var(--led-purple); }
 }
 
 .led-test-matrix {
@@ -56,8 +56,8 @@
   & .quadrant { position: relative; }
   & .quad-tl { background: var(--led-red); border-radius: 4px 0 0 0; }
   & .quad-tr { background: var(--led-green); border-radius: 0 4px 0 0; }
-  & .quad-bl { background: var(--led-blue); border-radius: 0 0 0 4px; }
-  & .quad-br { background: var(--led-yellow); border-radius: 0 0 4px 0; }
+  & .quad-bl { background: var(--led-cyan); border-radius: 0 0 0 4px; }
+  & .quad-br { background: var(--led-purple); border-radius: 0 0 4px 0; }
 
   & .origin-pixel {
     position: absolute;
@@ -96,7 +96,7 @@
   & .panel-tl { background: var(--led-red); }
   & .panel-tc { background: linear-gradient(to right, var(--led-red) 50%, var(--led-green) 50%); }
   & .panel-tr { background: var(--led-green); }
-  & .panel-bl { background: var(--led-blue); }
-  & .panel-bc { background: linear-gradient(to right, var(--led-blue) 50%, var(--led-yellow) 50%); }
-  & .panel-br { background: var(--led-yellow); }
+  & .panel-bl { background: var(--led-cyan); }
+  & .panel-bc { background: linear-gradient(to right, var(--led-cyan) 50%, var(--led-purple) 50%); }
+  & .panel-br { background: var(--led-purple); }
 }

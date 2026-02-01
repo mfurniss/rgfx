@@ -58,9 +58,9 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
     }
 
     if (hardware.layout === 'strip') {
-      return 'Strip: 4 segments in RGBY (25% each). White pixel marks the start.';
+      return 'Strip: 4 segments in RGCP (25% each). White pixel marks the start.';
     } else {
-      return 'Matrix: 4 quadrants (TL:Red, TR:Green, BL:Blue, BR:Yellow). White pixel marks top-left of each panel.';
+      return 'Matrix: 4 quadrants (TL:Red, TR:Green, BL:Cyan, BR:Purple). White pixel marks top-left of each panel.';
     }
   };
 
