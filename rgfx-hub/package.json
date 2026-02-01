@@ -19,7 +19,10 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "check": "npm run typecheck && npm run lint && npm test",
-    "unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='config/mappings;src/preload.ts;src/__tests__;vite.renderer.config.ts' --exitWithCount"
+    "unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='config/mappings;src/preload.ts;src/__tests__;vite.renderer.config.ts' --exitWithCount",
+    "smoke-test": "python3 ../scripts/e2e-smoke-test.py",
+    "smoke-test:verbose": "python3 ../scripts/e2e-smoke-test.py -v",
+    "smoke-test:stress": "python3 ../scripts/e2e-smoke-test.py -d 300 --density high -v"
   },
   "keywords": [],
   "author": {
