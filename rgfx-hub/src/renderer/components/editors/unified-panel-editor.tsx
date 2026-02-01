@@ -101,7 +101,7 @@ function createDefaultGrid(rows: number, cols: number): string[][] {
   return grid;
 }
 
-// Resize grid while preserving existing cell values
+// Resize grid while preserving rotations, renumber indices to stay sequential
 function resizeGrid(
   existing: string[][] | null | undefined,
   newRows: number,
@@ -116,35 +116,32 @@ function resizeGrid(
   const oldCols = existing[0].length;
   const newGrid: string[][] = [];
 
-  // Find the highest existing index to continue from for new cells
-  let maxIndex = -1;
-
-  for (const row of existing) {
-    for (const cell of row) {
-      const parsed = parseCell(cell);
-
-      if (parsed.index > maxIndex) {
-        maxIndex = parsed.index;
-      }
-    }
-  }
-
-  let nextIndex = maxIndex + 1;
-
+  // Build grid preserving rotations from existing cells
   for (let r = 0; r < newRows; r++) {
     const row: string[] = [];
 
     for (let c = 0; c < newCols; c++) {
       if (r < oldRows && c < oldCols) {
-        // Preserve existing cell
-        row.push(existing[r][c]);
+        // Preserve rotation from existing cell
+        const parsed = parseCell(existing[r][c]);
+        row.push(parsed.rotation === 'a' ? '0' : `0${parsed.rotation}`);
       } else {
-        // New cell - assign next sequential index
-        row.push(`${nextIndex}`);
-        nextIndex++;
+        // New cell with default rotation
+        row.push('0');
       }
     }
     newGrid.push(row);
+  }
+
+  // Renumber all indices sequentially (0 to n-1) while preserving rotations
+  let index = 0;
+
+  for (let r = 0; r < newRows; r++) {
+    for (let c = 0; c < newCols; c++) {
+      const parsed = parseCell(newGrid[r][c]);
+      newGrid[r][c] = formatCell({ index, rotation: parsed.rotation });
+      index++;
+    }
   }
 
   return newGrid;

@@ -101,20 +101,20 @@ void test_matrix_quadrants_correct_colors() {
 	// Top-right quadrant should be green
 	CRGB tr = canvas.getPixel(20, 4);
 	TEST_ASSERT_EQUAL_UINT8(0, tr.r);
-	TEST_ASSERT_EQUAL_UINT8(255, tr.g);
+	TEST_ASSERT_EQUAL_UINT8(190, tr.g);
 	TEST_ASSERT_EQUAL_UINT8(0, tr.b);
 
-	// Bottom-left quadrant should be blue
+	// Bottom-left quadrant should be cyan
 	CRGB bl = canvas.getPixel(4, 20);
 	TEST_ASSERT_EQUAL_UINT8(0, bl.r);
-	TEST_ASSERT_EQUAL_UINT8(0, bl.g);
-	TEST_ASSERT_EQUAL_UINT8(255, bl.b);
+	TEST_ASSERT_EQUAL_UINT8(180, bl.g);
+	TEST_ASSERT_EQUAL_UINT8(180, bl.b);
 
-	// Bottom-right quadrant should be yellow
+	// Bottom-right quadrant should be purple
 	CRGB br = canvas.getPixel(20, 20);
-	TEST_ASSERT_EQUAL_UINT8(255, br.r);
-	TEST_ASSERT_EQUAL_UINT8(255, br.g);
-	TEST_ASSERT_EQUAL_UINT8(0, br.b);
+	TEST_ASSERT_EQUAL_UINT8(160, br.r);
+	TEST_ASSERT_EQUAL_UINT8(0, br.g);
+	TEST_ASSERT_EQUAL_UINT8(160, br.b);
 }
 
 void test_strip_segments_correct_colors() {
@@ -138,17 +138,17 @@ void test_strip_segments_correct_colors() {
 	TEST_ASSERT_EQUAL_UINT8(255, s1.g);
 	TEST_ASSERT_EQUAL_UINT8(0, s1.b);
 
-	// Segment 2: Blue
+	// Segment 2: Cyan
 	CRGB s2 = canvas.getPixel(36, 0);
 	TEST_ASSERT_EQUAL_UINT8(0, s2.r);
-	TEST_ASSERT_EQUAL_UINT8(0, s2.g);
-	TEST_ASSERT_EQUAL_UINT8(255, s2.b);
+	TEST_ASSERT_EQUAL_UINT8(139, s2.g);
+	TEST_ASSERT_EQUAL_UINT8(139, s2.b);
 
-	// Segment 3: Yellow
+	// Segment 3: Purple
 	CRGB s3 = canvas.getPixel(52, 0);
 	TEST_ASSERT_EQUAL_UINT8(255, s3.r);
-	TEST_ASSERT_EQUAL_UINT8(255, s3.g);
-	TEST_ASSERT_EQUAL_UINT8(0, s3.b);
+	TEST_ASSERT_EQUAL_UINT8(0, s3.g);
+	TEST_ASSERT_EQUAL_UINT8(255, s3.b);
 }
 
 // =============================================================================
@@ -174,17 +174,17 @@ static uint64_t runTestLedsDigest(const TestConfig& config) {
 
 void test_test_leds_digest_16x16() {
 	uint64_t digest = runTestLedsDigest(TEST_CONFIGS[1]);
-	assertDigest(0x209A2B7D3F14C95Bull, digest, "test_leds_16x16");
+	assertDigest(0x43F3BBC8BD95105Bull, digest, "test_leds_16x16");
 }
 
 void test_test_leds_digest_strip() {
 	uint64_t digest = runTestLedsDigest(TEST_CONFIGS[0]);
-	assertDigest(0xFA23543FE0AD7AA0ull, digest, "test_leds_strip");
+	assertDigest(0x18C40A6C7511215Dull, digest, "test_leds_strip");
 }
 
 void test_test_leds_digest_96x8() {
 	uint64_t digest = runTestLedsDigest(TEST_CONFIGS[2]);
-	assertDigest(0x6A9B204FCE9D24DBull, digest, "test_leds_96x8");
+	assertDigest(0xCC42743F2C8F39DBull, digest, "test_leds_96x8");
 }
 
 void test_test_leds_property_static_pattern() {

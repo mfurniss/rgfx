@@ -42,8 +42,8 @@ Strips display 4 colored segments (25% each) with a white pixel marking the star
   <div class="start-pixel"></div>
   <div class="segment seg-red"></div>
   <div class="segment seg-green"></div>
-  <div class="segment seg-blue"></div>
-  <div class="segment seg-yellow"></div>
+  <div class="segment seg-cyan"></div>
+  <div class="segment seg-purple"></div>
 </div>
 
 | Segment | Color |
@@ -51,8 +51,8 @@ Strips display 4 colored segments (25% each) with a white pixel marking the star
 | Start pixel | White |
 | 1st quarter | Red |
 | 2nd quarter | Green |
-| 3rd quarter | Blue |
-| 4th quarter | Yellow |
+| 3rd quarter | Cyan |
+| 4th quarter | Purple |
 
 If the white pixel appears at the wrong end, enable the **Reverse** setting in [Configure LED Hardware](../drivers/configure-leds.md).
 
@@ -71,8 +71,8 @@ A single matrix displays 4 colored quadrants with a white pixel marking the top-
 |----------|-------|
 | Top-left | Red (with white origin pixel) |
 | Top-right | Green |
-| Bottom-left | Blue |
-| Bottom-right | Yellow |
+| Bottom-left | Cyan |
+| Bottom-right | Purple |
 
 If the white origin pixel appears in the wrong corner, adjust the **Rotation** setting in [Configure LED Hardware](../drivers/configure-leds.md).
 
