@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Stack,
   CircularProgress,
@@ -16,23 +15,9 @@ import {
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import ConfirmActionButton from '../common/confirm-action-button';
 import { notify } from '../../store/notification-store';
+import { formatBytes } from '../../utils/formatters';
+import { SettingsSection } from './settings-section';
 import type { LogSizes } from '../../../log-manager';
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) {
-    return '0 B';
-  }
-
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
 
 export function LogsSection() {
   const [logSizes, setLogSizes] = useState<LogSizes | null>(null);
@@ -76,11 +61,7 @@ export function LogsSection() {
   const hasLogs = totalSize > 0;
 
   return (
-    <Paper sx={{ p: 3, mt: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Logs
-      </Typography>
-
+    <SettingsSection title="Logs" sx={{ mt: 3 }}>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
           <CircularProgress size={24} />
@@ -152,6 +133,6 @@ export function LogsSection() {
           </Stack>
         </>
       )}
-    </Paper>
+    </SettingsSection>
   );
 }
