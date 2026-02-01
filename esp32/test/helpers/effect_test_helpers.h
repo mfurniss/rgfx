@@ -601,6 +601,35 @@ inline JsonDocument mockSpectrumProps(size_t numColumns = 5, int value = 5, floa
 }
 
 /**
+ * Create default sparkle props (matches hub schema defaults)
+ */
+inline void setDefaultSparkleProps(JsonDocument& props) {
+	props["reset"] = false;
+	props["duration"] = 2000;
+	props["density"] = 50;
+	props["speed"] = 1.0f;
+	props["bloom"] = 0;
+	// Gradient defaults to white->yellow->red->black if not provided
+}
+
+/**
+ * Create a mock sparkle effect payload
+ * @param density Spawn probability 1-100 (default: 50)
+ * @param bloom Light spread percentage 0-100 (default: 0)
+ * @param duration Duration in ms, 0=infinite (default: 2000)
+ * @param speed Gradient cycling speed 0.1-5.0 (default: 1.0)
+ */
+inline JsonDocument mockSparkleProps(int density = 50, int bloom = 0, int duration = 2000, float speed = 1.0f) {
+	JsonDocument props;
+	setDefaultSparkleProps(props);
+	props["density"] = density;
+	props["bloom"] = bloom;
+	props["duration"] = duration;
+	props["speed"] = speed;
+	return props;
+}
+
+/**
  * Add a single-frame image to props["images"]
  * This creates the images array with one frame containing the provided rows
  * @param props JsonDocument to add the image to
