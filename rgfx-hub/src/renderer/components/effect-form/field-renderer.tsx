@@ -115,6 +115,7 @@ export function FieldRenderer<T extends FieldValues>({
             helperText={formatConstraintHint(field.constraints)}
             allowFloat
             size="small"
+            emptyValue={field.emptyValue}
           />
         </FieldWithHelp>
       );

@@ -33,7 +33,10 @@ export function hslToHex(h: number, s: number, l: number): string {
     b = x;
   }
 
-  const toHex = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+  const toHex = (v: number) => {
+    const clamped = Math.max(0, Math.min(255, Math.round((v + m) * 255)));
+    return clamped.toString(16).padStart(2, '0');
+  };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }

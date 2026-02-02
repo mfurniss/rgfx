@@ -8,20 +8,31 @@
 import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
-import { randomInt, randomFloat, randomGradient } from '@/utils/random';
+import { randomInt, randomColor, randomFloat } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import { hslToHex } from '@/utils/color';
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',
+  duration: { emptyValue: 0 },
 };
 
 export function randomize(): Record<string, unknown> {
+  const gradient = [randomColor()];
+  let x = randomInt(0, 4);
+
+  while (x--) {
+    gradient.push(hslToHex(randomInt(360), 1, randomFloat(0.3, 0.7)));
+  }
+
+  gradient.push('#000000');
+
   return {
-    duration: randomInt(1000, 5000),
-    density: randomInt(10, 80),
-    gradient: randomGradient(),
-    speed: randomFloat(0.5, 3.0),
-    bloom: randomInt(0, 50),
+    duration: 3000,
+    density: randomInt(5, 100),
+    gradient,
+    speed: randomFloat(0.2, 5 - (gradient.length / 2)),
+    bloom: randomInt(0, 100),
   };
 }
 

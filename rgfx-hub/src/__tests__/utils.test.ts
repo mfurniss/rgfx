@@ -66,6 +66,44 @@ describe('color utils', () => {
       const result270 = hslToHex(270, 1, 0.5);
       expect(result270).toMatch(/^#[0-9a-f]{6}$/);
     });
+
+    it('should clamp overflow values to valid hex', () => {
+      // l=50 instead of 0.5 would cause RGB values > 255 without clamping
+      const result = hslToHex(0, 0.5, 50);
+      expect(result).toMatch(/^#[0-9a-f]{6}$/);
+      // Clamped to max, so should be white or near-white
+      expect(result).toBe('#ffffff');
+    });
+
+    it('should clamp negative values to valid hex', () => {
+      // Negative lightness would cause RGB values < 0 without clamping
+      const result = hslToHex(0, 0.5, -1);
+      expect(result).toMatch(/^#[0-9a-f]{6}$/);
+      // Clamped to min, so should be black
+      expect(result).toBe('#000000');
+    });
+
+    it('should clamp extreme saturation values', () => {
+      // s=100 instead of 1.0
+      const result = hslToHex(0, 100, 0.5);
+      expect(result).toMatch(/^#[0-9a-f]{6}$/);
+    });
+
+    it('should always return exactly 7 characters', () => {
+      // Test various edge cases that previously caused overflow
+      const testCases = [
+        { h: 0, s: 0.5, l: 50 },
+        { h: 120, s: 1, l: 100 },
+        { h: 240, s: 0, l: -10 },
+        { h: 360, s: 2, l: 2 },
+      ];
+
+      for (const { h, s, l } of testCases) {
+        const result = hslToHex(h, s, l);
+        expect(result).toHaveLength(7);
+        expect(result).toMatch(/^#[0-9a-f]{6}$/);
+      }
+    });
   });
 });
 
@@ -178,11 +216,11 @@ describe('random utils', () => {
   });
 
   describe('randomGradient', () => {
-    it('should return array of hex colors', () => {
+    it('should return array of at least 2 hex colors', () => {
       for (let i = 0; i < 20; i++) {
         const result = randomGradient();
         expect(Array.isArray(result)).toBe(true);
-        expect(result.length).toBeGreaterThanOrEqual(1);
+        expect(result.length).toBeGreaterThanOrEqual(2);
 
         for (const color of result) {
           expect(color).toMatch(/^#[0-9a-f]{6}$/);
@@ -213,6 +251,32 @@ describe('random utils', () => {
         }
       }
       expect(foundWrappedGradient).toBe(true);
+    });
+
+    it('should return valid hex colors with non-zero minLume', () => {
+      // Test with minLume=0.5 (the sparkle effect use case)
+      for (let i = 0; i < 20; i++) {
+        const result = randomGradient(0.5, 6);
+        expect(Array.isArray(result)).toBe(true);
+
+        for (const color of result) {
+          expect(color).toMatch(/^#[0-9a-f]{6}$/);
+        }
+      }
+    });
+
+    it('should return valid hex colors with various minLume values', () => {
+      const minLumeValues = [0.1, 0.2, 0.3, 0.5, 0.7, 0.9];
+
+      for (const minLume of minLumeValues) {
+        for (let i = 0; i < 10; i++) {
+          const result = randomGradient(minLume, 5);
+
+          for (const color of result) {
+            expect(color).toMatch(/^#[0-9a-f]{6}$/);
+          }
+        }
+      }
     });
   });
 });

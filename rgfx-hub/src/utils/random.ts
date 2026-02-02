@@ -57,7 +57,7 @@ export function randomColor(minL = 0): string {
 export function randomGradient(minLume = 0, maxColors = 20): string[] {
   const gradient = [];
 
-  for (let i = 0; i < randomInt(1, maxColors); i++ ) {
+  for (let i = 0; i < randomInt(2, maxColors); i++) {
     gradient.push(randomColor(minLume));
   }
 
