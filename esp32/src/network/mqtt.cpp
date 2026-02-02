@@ -309,6 +309,11 @@ void reconnectMQTT() {
 		log("MQTT connected!");
 		mqttConsecutiveFailures = 0;  // Reset failure counter on successful connection
 
+		// Clear any lingering effects from before reconnection
+		if (effectProcessor != nullptr) {
+			effectProcessor->clearEffects();
+		}
+
 		// Seed random number generator with unique values per driver
 		IPAddress ip = WiFi.localIP();
 		uint16_t seed = (millis() & 0xFFFF) ^ (ip[2] << 8) ^ ip[3];

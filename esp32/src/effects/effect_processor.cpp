@@ -38,9 +38,11 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  warpEffect(matrix, canvas),
 	  spectrumEffect(matrix, canvas),
 	  particleFieldEffect(matrix, canvas),
+	  sparkleEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
 		  {"particle_field", &particleFieldEffect},
+		  {"sparkle", &sparkleEffect},
 		  {"pulse", &pulseEffect},
 		  {"bitmap", &bitmapEffect},
 		  {"wipe", &wipeEffect},

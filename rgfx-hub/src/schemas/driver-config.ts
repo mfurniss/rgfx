@@ -73,6 +73,8 @@ const DriverLEDConfigSchema = z.object({
   powerSupplyVolts: z.number().positive().max(24).nullable().optional(),
   maxPowerMilliamps: z.number().positive().max(10000).nullable().optional(),
   unified: UnifiedPanelLayoutSchema.nullable().optional(),
+  // Single-panel virtual rotation (ignored if unified is set)
+  rotation: z.enum(['0', '90', '180', '270']).nullable().optional(),
   // Reverse LED direction for strips (logical index 0 maps to last physical LED)
   reverse: z.boolean().nullable().optional(),
   // Gamma correction per channel (1.0 = linear, 2.8 = typical for WS2812B)

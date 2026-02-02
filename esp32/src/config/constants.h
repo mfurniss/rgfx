@@ -140,6 +140,12 @@ constexpr int ONBOARD_LED_PIN = 2;   // ESP32-WROOM onboard LED
 /** Onboard LED flash duration for network events (milliseconds) */
 constexpr unsigned long INDICATOR_FLASH_MS = 20;
 
+/** BOOT button GPIO pin (GPIO 0 on all ESP32 variants) */
+constexpr int BOOT_BUTTON_PIN = 0;
+
+/** Button debounce time in milliseconds */
+constexpr unsigned long BUTTON_DEBOUNCE_MS = 50;
+
 // ============================================================================
 // Hardware Limits Configuration
 // ============================================================================

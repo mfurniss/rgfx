@@ -11,7 +11,7 @@ import started from 'electron-squirrel-startup';
 import pkg from '../package.json';
 
 // Set app name and dock icon for dev mode (in production, these come from the packaged app)
-app.setName('RGFX Hub');
+app.setName('rgfx-hub');
 
 if (process.platform === 'darwin' && app.dock && !app.isPackaged) {
   app.dock.setIcon(path.join(app.getAppPath(), 'assets/icons/icons/512x512.png'));

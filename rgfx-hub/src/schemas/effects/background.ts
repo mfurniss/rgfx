@@ -6,9 +6,15 @@
  */
 
 import { z } from 'zod';
-import { MAX_GRADIENT_COLORS, HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
+import { colorStringSchema } from './properties/color';
 import type { PresetConfig } from './preset-config';
 import { randomGradient, randomInt } from '@/utils/random';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  gradient: 'backgroundGradient',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -37,13 +43,13 @@ export default z
     gradient: z
       .object({
         colors: z
-          .array(z.string().regex(HEX_COLOR_RRGGBB_REGEX))
+          .array(colorStringSchema)
           .max(MAX_GRADIENT_COLORS)
           .default(['#FF0000', '#00FF00', '#0000FF']),
         orientation: z.enum(['horizontal', 'vertical']).default('horizontal'),
       })
       .default({ colors: ['#FF0000', '#00FF00', '#0000FF'], orientation: 'horizontal' })
-      .describe('fieldType:backgroundGradient|Gradient colors'),
+      .describe('Gradient colors'),
     fadeDuration: z
       .number()
       .int()

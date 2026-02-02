@@ -52,6 +52,8 @@ The following sections need expansion to cover ALL features:
 
 Generated site files in `public-docs/site/` and `rgfx.io/docs/` must be committed. After updating documentation source files, regenerate the site and commit both source and generated files.
 
+**Do NOT run `mkdocs build` yourself.** The user handles the build process.
+
 ### When Adding New Features
 
 If you implement a new feature in the codebase, you MUST update the corresponding documentation page. Undocumented features are bugs.

@@ -10,7 +10,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Grid } from '@mui/material';
 import { z } from 'zod';
-import { extractFieldMetadata } from '@/renderer/utils/zod-introspection';
+import { extractFieldMetadata, type FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import { FieldRenderer } from './field-renderer';
 
 type ZodShape = Record<string, z.ZodType>;
@@ -19,10 +19,11 @@ interface EffectFormProps {
   schema: z.ZodObject<ZodShape>;
   defaultValues: Record<string, unknown>;
   onChange: (values: Record<string, unknown>) => void;
+  fieldTypes?: FieldTypeMap;
 }
 
-export function EffectForm({ schema, defaultValues, onChange }: EffectFormProps) {
-  const fields = useMemo(() => extractFieldMetadata(schema), [schema]);
+export function EffectForm({ schema, defaultValues, onChange, fieldTypes }: EffectFormProps) {
+  const fields = useMemo(() => extractFieldMetadata(schema, fieldTypes), [schema, fieldTypes]);
 
   const methods = useForm({
     resolver: zodResolver(schema),

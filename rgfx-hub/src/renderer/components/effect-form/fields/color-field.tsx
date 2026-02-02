@@ -6,9 +6,8 @@
  */
 
 import React from 'react';
-import { Box, TextField } from '@mui/material';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { valueToHex } from '@/renderer/utils/color';
+import { ColorPicker } from './color-picker';
 
 interface ColorFieldProps<T extends FieldValues> {
   name: Path<T>;
@@ -30,57 +29,15 @@ export function ColorField<T extends FieldValues>({
     <Controller
       name={name}
       control={control}
-      render={({ field }) => {
-        const displayValue = field.value ?? '';
-        const hexValue = valueToHex(field.value);
-
-        const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          field.onChange(e.target.value);
-        };
-
-        const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          field.onChange(e.target.value);
-        };
-
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-            <Box
-              component="input"
-              type="color"
-              value={hexValue}
-              onChange={handleColorChange}
-              disabled={disabled}
-              sx={{
-                width: 32,
-                height: 32,
-                border: 'none',
-                padding: 0,
-                mt: 0.5,
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                backgroundColor: 'transparent',
-                opacity: disabled ? 0.5 : 1,
-                '&::-webkit-color-swatch-wrapper': {
-                  padding: 0,
-                },
-                '&::-webkit-color-swatch': {
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  borderRadius: '4px',
-                },
-              }}
-            />
-            <TextField
-              label={label}
-              value={displayValue}
-              onChange={handleTextChange}
-              error={!!error}
-              helperText={error ?? "Named color (e.g. 'red', 'random') or hex (#RRGGBB)"}
-              fullWidth
-              size="small"
-              disabled={disabled}
-            />
-          </Box>
-        );
-      }}
+      render={({ field }) => (
+        <ColorPicker
+          label={label}
+          value={field.value ?? ''}
+          onChange={field.onChange}
+          disabled={disabled}
+          helperText={error ?? "Named color (e.g. 'red', 'random') or hex (#RRGGBB)"}
+        />
+      )}
     />
   );
 }

@@ -35,6 +35,18 @@ export function isValidHex(value: string): boolean {
   return HEX_COLOR_RRGGBB_REGEX.test(value);
 }
 
+export function isValidColor(value: string): boolean {
+  if (isValidHex(value)) {
+    return true;
+  }
+
+  if (value in colorSwatchMap) {
+    return true;
+  }
+
+  return false;
+}
+
 export function normalizeHex(value: string): string {
   // Already valid 6-char hex
   if (HEX_COLOR_RRGGBB_REGEX.test(value)) {

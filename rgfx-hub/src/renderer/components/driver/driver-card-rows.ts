@@ -197,6 +197,9 @@ export function buildLedConfigRows({
     ...(ledConfig.unified
       ? [['Multi-Panel Layout', `${ledConfig.unified.length} ${ledConfig.unified.length === 1 ? 'row' : 'rows'} × ${ledConfig.unified[0]?.length ?? 0} ${(ledConfig.unified[0]?.length ?? 0) === 1 ? 'col' : 'cols'} (${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0)} ${ledConfig.unified.length * (ledConfig.unified[0]?.length ?? 0) === 1 ? 'panel' : 'panels'})`] as InfoRowData]
       : []),
+    ...(ledConfig.rotation && ledConfig.rotation !== '0' && !ledConfig.unified
+      ? [['Panel Rotation', `${ledConfig.rotation}°`] as InfoRowData]
+      : []),
     ['LED Offset', formatNumber(ledConfig.offset ?? 0)],
     ['Reverse Direction', ledConfig.reverse ? 'Yes' : 'No'],
     ...(ledConfig.powerSupplyVolts != null

@@ -298,3 +298,9 @@ export const TEST_FILE_WATCHER_MAX_RETRIES = 40;
  * Older errors are discarded when this limit is exceeded.
  */
 export const MAX_SYSTEM_ERRORS = 100;
+
+/**
+ * Maximum number of event topics to track in the event store.
+ * Oldest topics are evicted when this limit is exceeded.
+ */
+export const MAX_EVENT_TOPICS = 500;

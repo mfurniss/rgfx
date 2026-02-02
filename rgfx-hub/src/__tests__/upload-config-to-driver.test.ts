@@ -544,4 +544,168 @@ describe('createUploadConfigToDriver', () => {
       expect(device.reverse).toBe(false);
     });
   });
+
+  describe('single-panel rotation', () => {
+    it('should convert rotation 90° to 1x1 unified array [["0b"]]', async () => {
+      const driverWithRotation = {
+        ...mockConfiguredDriver,
+        ledConfig: {
+          ...mockConfiguredDriver.ledConfig,
+          rotation: '90' as const,
+        },
+      };
+
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithRotation);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverConfig: mockDriverConfig,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+      const device = payload.led_devices[0];
+
+      expect(device.unified).toEqual([['0b']]);
+      expect(device.panel_width).toBe(8);
+      expect(device.panel_height).toBe(8);
+    });
+
+    it('should convert rotation 180° to [["0c"]]', async () => {
+      const driverWithRotation = {
+        ...mockConfiguredDriver,
+        ledConfig: {
+          ...mockConfiguredDriver.ledConfig,
+          rotation: '180' as const,
+        },
+      };
+
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithRotation);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverConfig: mockDriverConfig,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+
+      expect(payload.led_devices[0].unified).toEqual([['0c']]);
+    });
+
+    it('should convert rotation 270° to [["0d"]]', async () => {
+      const driverWithRotation = {
+        ...mockConfiguredDriver,
+        ledConfig: {
+          ...mockConfiguredDriver.ledConfig,
+          rotation: '270' as const,
+        },
+      };
+
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithRotation);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverConfig: mockDriverConfig,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+
+      expect(payload.led_devices[0].unified).toEqual([['0d']]);
+    });
+
+    it('should not create unified array when rotation is 0°', async () => {
+      const driverWithRotation = {
+        ...mockConfiguredDriver,
+        ledConfig: {
+          ...mockConfiguredDriver.ledConfig,
+          rotation: '0' as const,
+        },
+      };
+
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithRotation);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverConfig: mockDriverConfig,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+
+      expect(payload.led_devices[0].unified).toBeUndefined();
+      expect(payload.led_devices[0].panel_width).toBeUndefined();
+    });
+
+    it('should not create unified array when rotation is null', async () => {
+      const driverWithNullRotation = {
+        ...mockConfiguredDriver,
+        ledConfig: {
+          ...mockConfiguredDriver.ledConfig,
+          rotation: null,
+        },
+      };
+
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithNullRotation);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverConfig: mockDriverConfig,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+
+      expect(payload.led_devices[0].unified).toBeUndefined();
+    });
+
+    it('should use explicit unified array over rotation field', async () => {
+      const driverWithBoth = {
+        ...mockConfiguredDriver,
+        ledConfig: {
+          ...mockConfiguredDriver.ledConfig,
+          rotation: '90' as const,
+          unified: [['0', '1']],
+        },
+      };
+
+      mockDriverConfig.getDriverByMac.mockReturnValue(driverWithBoth);
+      mockLedHardwareManager.loadHardware.mockReturnValue(mockHardware);
+
+      const uploadConfig = createUploadConfigToDriver({
+        driverConfig: mockDriverConfig,
+        ledHardwareManager: mockLedHardwareManager,
+        mqtt: mockMqtt,
+      });
+
+      await uploadConfig(testMacAddress);
+
+      const publishCall = mockMqtt.publishAndAwaitResponse.mock.calls[0];
+      const payload = JSON.parse(publishCall[1]);
+
+      // Explicit unified array takes precedence over rotation
+      expect(payload.led_devices[0].unified).toEqual([['0', '1']]);
+    });
+  });
 });

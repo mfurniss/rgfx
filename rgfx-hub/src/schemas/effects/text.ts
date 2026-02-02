@@ -7,9 +7,17 @@
 
 import { z } from 'zod';
 import { baseEffect } from './properties';
-import { MAX_GRADIENT_COLORS, HEX_COLOR_RRGGBB_REGEX } from '@/config/constants';
+import { MAX_GRADIENT_COLORS } from '@/config/constants';
+import { colorStringSchema } from './properties/color';
 import { randomColor, randomString, randomFloat, randomInt, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  color: 'color',
+  accentColor: 'color',
+  gradient: 'gradientArray',
+};
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -37,10 +45,10 @@ export default baseEffect
     accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
     duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
     gradient: z
-      .array(z.string().regex(HEX_COLOR_RRGGBB_REGEX))
+      .array(colorStringSchema)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .describe('fieldType:gradientArray|Gradient colors for text animation'),
+      .describe('Gradient colors for text animation'),
     gradientSpeed: z
       .number()
       .min(0.1)

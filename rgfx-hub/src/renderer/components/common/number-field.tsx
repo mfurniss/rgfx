@@ -24,6 +24,7 @@ type NumberFieldProps<TFieldValues extends FieldValues, TName extends FieldPath<
   max?: number;
   step?: number;
   allowFloat?: boolean;
+  emptyValue?: number;
 } & Omit<TextFieldProps, 'name' | 'value' | 'onChange' | 'type'>;
 
 interface NumberInputProps {
@@ -32,6 +33,7 @@ interface NumberInputProps {
   label: string;
   helperText?: string;
   allowFloat: boolean;
+  emptyValue?: number;
   error?: string;
   textFieldProps: Omit<TextFieldProps, 'name' | 'value' | 'onChange' | 'type'>;
 }
@@ -42,6 +44,7 @@ function NumberInput({
   label,
   helperText,
   allowFloat,
+  emptyValue,
   error,
   textFieldProps,
 }: NumberInputProps) {
@@ -66,7 +69,7 @@ function NumberInput({
   const handleBlur = () => {
     // Convert to number and sync to form on blur
     if (localValue === '') {
-      onChange(undefined);
+      onChange(emptyValue ?? undefined);
     } else {
       const num = allowFloat ? parseFloat(localValue) : parseInt(localValue, 10);
       onChange(isNaN(num) ? undefined : num);
@@ -114,6 +117,7 @@ export function NumberField<
   min: _min,
   max: _max,
   allowFloat = false,
+  emptyValue,
   ...textFieldProps
 }: NumberFieldProps<TFieldValues, TName>) {
   void _min;
@@ -126,10 +130,11 @@ export function NumberField<
       render={({ field, fieldState: { error } }) => (
         <NumberInput
           name={name}
-          field={field}
+          field={field as unknown as ControllerRenderProps<FieldValues, string>}
           label={label}
           helperText={helperText}
           allowFloat={allowFloat}
+          emptyValue={emptyValue}
           error={error?.message}
           textFieldProps={textFieldProps}
         />

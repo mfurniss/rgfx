@@ -53,6 +53,7 @@ This folder contains the main page components for the RGFX Hub application. Each
 - Default values applied when first configuring LED hardware: globalBrightnessLimit=128, maxPowerMilliamps=500
 - Existing values preserved when switching hardware types on already-configured drivers
 - Uses `react-hook-form` with Zod validation (`ConfiguredDriverSchema`) with `normalizeLedConfig()` for backward compatibility
+- Form submit handler uses `React.SyntheticEvent` (not deprecated `FormEvent`)
 - Loads available LED hardware definitions from hub
 - Saves configuration via IPC and auto-pushes to connected drivers (shows info notification on success)
 - Handles driver rename (ID change) seamlessly

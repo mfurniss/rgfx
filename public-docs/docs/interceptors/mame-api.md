@@ -2,6 +2,8 @@
 
 Interceptors have access to MAME's Lua environment. This page covers the most useful objects and functions.
 
+For complete documentation, see the [official MAME Lua Scripting Interface](https://docs.mamedev.org/luascript/index.html).
+
 ## CPU and Memory
 
 ```lua

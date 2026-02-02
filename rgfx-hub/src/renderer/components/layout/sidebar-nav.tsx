@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
   { label: 'Event Monitor', path: '/events', icon: <MonitorIcon /> },
   { label: 'FX Playground', path: '/effects-playground', icon: <ScienceIcon /> },
   { label: 'Simulator', path: '/simulator', icon: <TerminalIcon />, dividerAfter: true },
-  { label: 'Hub Settings', path: '/settings', icon: <SettingsIcon /> },
+  { label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
   { label: 'Support', path: '/support', icon: <SupportIcon /> },
   { label: 'About', path: '/about', icon: <InfoIcon /> },
 ];

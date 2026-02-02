@@ -47,16 +47,33 @@ vi.mock('@/services/event-bus', () => ({
 // Static control for mock behavior
 let mockUploadShouldFail = false;
 let mockUploadError: Error | null = null;
+let mockProgressSequence: { sent: number; total: number }[] = [];
 
 class MockEspOTA {
   static FLASH = 'flash';
+  private handlers: Record<string, (data: unknown) => void> = {};
+
   uploadFile = vi.fn(() => {
+    // Simulate progress events
+    for (const progress of mockProgressSequence) {
+      const handler = this.handlers.progress;
+
+      if (handler) {
+        handler(progress);
+      }
+    }
+
     if (mockUploadShouldFail && mockUploadError) {
       return Promise.reject(mockUploadError);
     }
+
     return Promise.resolve();
   });
-  on = vi.fn(() => this);
+
+  on = vi.fn((event: string, handler: (data: unknown) => void) => {
+    this.handlers[event] = handler;
+    return this;
+  });
 }
 
 vi.mock('esp-ota', () => ({
@@ -74,6 +91,7 @@ describe('registerFlashOtaHandler', () => {
     // Reset mock control flags
     mockUploadShouldFail = false;
     mockUploadError = null;
+    mockProgressSequence = [];
 
     const fs = await import('fs');
     (fs.existsSync as Mock).mockReturnValue(true);
@@ -287,6 +305,62 @@ describe('registerFlashOtaHandler', () => {
         'driver:disconnected',
         expect.any(Object),
       );
+    });
+  });
+
+  describe('timeout after full progress', () => {
+    it('should treat timeout after 100% progress as success', async () => {
+      // Simulate: reached 100%, then timeout
+      mockProgressSequence = [
+        { sent: 500000, total: 1000000 }, // 50%
+        { sent: 1000000, total: 1000000 }, // 100%
+      ];
+      mockUploadShouldFail = true;
+      mockUploadError = new Error('Transmission timeout');
+
+      // Should NOT throw - timeout after 100% is treated as success
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
+
+      // Should emit driver:disconnected with 'restarting' reason
+      expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
+        driver: expect.objectContaining({ state: 'disconnected' }),
+        reason: 'restarting',
+      });
+    });
+
+    it('should throw timeout error if 100% was never reached', async () => {
+      // Simulate: only 90% progress, then timeout
+      mockProgressSequence = [
+        { sent: 500000, total: 1000000 }, // 50%
+        { sent: 900000, total: 1000000 }, // 90%
+      ];
+      mockUploadShouldFail = true;
+      mockUploadError = new Error('Transmission timeout');
+
+      // Should throw - real timeout before completion
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
+        'Transmission timeout',
+      );
+    });
+
+    it('should throw non-timeout errors even after 100%', async () => {
+      // Simulate: 100% reached, but a different error
+      mockProgressSequence = [{ sent: 1000000, total: 1000000 }]; // 100%
+      mockUploadShouldFail = true;
+      mockUploadError = new Error('Connection reset');
+
+      // Should throw - not a timeout error
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow('Connection reset');
+    });
+
+    it('should handle case-insensitive timeout detection', async () => {
+      // Simulate: 100%, then UPPERCASE timeout message
+      mockProgressSequence = [{ sent: 1000000, total: 1000000 }];
+      mockUploadShouldFail = true;
+      mockUploadError = new Error('TRANSMISSION TIMEOUT');
+
+      // Should NOT throw - case-insensitive match
+      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
     });
   });
 });
