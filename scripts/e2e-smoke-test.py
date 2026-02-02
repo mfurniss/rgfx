@@ -7,7 +7,7 @@ Generates realistic event sequences matching actual transformer handlers.
 
 Usage:
     python scripts/e2e-smoke-test.py                          # 60s, medium density, random games
-    python scripts/e2e-smoke-test.py -d 300 --density high    # 5 minute stress test
+    python scripts/e2e-smoke-test.py -d 300 -D high           # 5 minute stress test
     python scripts/e2e-smoke-test.py --game pacman -v         # Pac-Man only, verbose
     python scripts/e2e-smoke-test.py -o results.json          # Save results to file
 """
@@ -116,6 +116,11 @@ ERROR_PATTERNS = [
     r"\bCRASH\b",
     r"\bunhandled\b",
     r"\bUnhandledPromiseRejection\b",
+]
+
+# Errors to ignore (expected during Hub restarts)
+IGNORED_ERRORS = [
+    r"MQTT reconnection failed.*resetting",
 ]
 
 
@@ -532,6 +537,7 @@ class LogMonitor:
         self.log_files = self._get_log_paths()
         self.file_positions: dict[Path, int] = {}
         self._compiled_patterns = [re.compile(p, re.IGNORECASE) for p in ERROR_PATTERNS]
+        self._ignored_patterns = [re.compile(p, re.IGNORECASE) for p in IGNORED_ERRORS]
 
     def _get_log_paths(self) -> list[Path]:
         """Get paths to all log files to monitor."""
@@ -555,6 +561,16 @@ class LogMonitor:
                 paths.append(log_file)
 
         return paths
+
+    def clear_driver_logs(self) -> None:
+        """Clear driver log files before test starts."""
+        driver_logs_dir = Path.home() / ".rgfx" / "logs"
+        if driver_logs_dir.exists():
+            for log_file in driver_logs_dir.glob("*.log"):
+                try:
+                    log_file.write_text("")
+                except OSError:
+                    pass
 
     def initialize_positions(self) -> None:
         """Set file positions to end of files (ignore pre-existing content)."""
@@ -583,6 +599,9 @@ class LogMonitor:
 
                 for line in new_content.split("\n"):
                     if not line.strip():
+                        continue
+                    # Skip ignored errors (expected during Hub restarts)
+                    if any(p.search(line) for p in self._ignored_patterns):
                         continue
                     for pattern in self._compiled_patterns:
                         if pattern.search(line):
@@ -703,13 +722,10 @@ class DriverMonitor:
         print(f"  Waiting for {len(self.expected_drivers)} driver(s) to connect (timeout: {timeout}s)...")
         print(f"  Watching: {self.main_log}")
 
-        # Reset state and scan for any recent connections already in log
+        # Reset state and set log position to END - only watch for NEW connections
         self.connected_drivers.clear()
-        self.scan_recent_connections()
-
-        # Report any already-connected drivers
-        if self.connected_drivers and self.verbose:
-            print(f"    Found {len(self.connected_drivers)} already connected: {list(self.connected_drivers)}")
+        if self.main_log.exists():
+            self.log_position = self.main_log.stat().st_size
 
         start = time.time()
 
@@ -743,6 +759,9 @@ class HubLauncher:
         self.hub_dir = hub_dir
         self.verbose = verbose
         self.process: Optional[subprocess.Popen] = None
+        self.output_buffer = ""
+        self.connected_drivers: set[str] = set()
+        self.connect_pattern = re.compile(r"Driver connected:\s*(\S+)")
 
     def start(self) -> bool:
         """Start the Hub application."""
@@ -756,10 +775,11 @@ class HubLauncher:
 
         try:
             # Use login shell to get proper PATH with node/npm
+            # Merge stderr into stdout so we can read all output from one stream
             self.process = subprocess.Popen(
-                ["/bin/zsh", "-l", "-c", f"cd {self.hub_dir} && npm start"],
+                ["/bin/zsh", "-l", "-c", f"cd {self.hub_dir} && npm start 2>&1"],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
                 start_new_session=True,
             )
 
@@ -807,6 +827,70 @@ class HubLauncher:
             time.sleep(1)
 
         print("Error: Timeout waiting for Hub to start")
+        return False
+
+    def _read_output(self) -> None:
+        """Read available output from process stdout without blocking."""
+        if not self.process or not self.process.stdout:
+            return
+
+        import fcntl
+        import os as os_module
+
+        fd = self.process.stdout.fileno()
+
+        # Set non-blocking mode
+        flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, flags | os_module.O_NONBLOCK)
+
+        try:
+            while True:
+                try:
+                    chunk = os_module.read(fd, 4096)
+                    if not chunk:
+                        break
+                    self.output_buffer += chunk.decode("utf-8", errors="replace")
+                except BlockingIOError:
+                    break
+        finally:
+            # Restore blocking mode
+            fcntl.fcntl(fd, fcntl.F_SETFL, flags)
+
+    def wait_for_drivers(self, expected_drivers: list[str], timeout: int = 30, verbose: bool = False) -> bool:
+        """Wait for drivers to connect by monitoring console output."""
+        if not expected_drivers:
+            print("  No drivers to wait for")
+            return True
+
+        print(f"  Waiting for {len(expected_drivers)} driver(s) to connect (timeout: {timeout}s)...")
+
+        start = time.time()
+
+        while (time.time() - start) < timeout:
+            self._read_output()
+
+            # Check for new connections in buffer
+            for line in self.output_buffer.split("\n"):
+                match = self.connect_pattern.search(line)
+                if match:
+                    driver_id = match.group(1)
+                    if driver_id in expected_drivers and driver_id not in self.connected_drivers:
+                        self.connected_drivers.add(driver_id)
+                        if verbose:
+                            print(f"    + {driver_id} connected")
+
+            if verbose and len(self.connected_drivers) < len(expected_drivers):
+                elapsed = time.time() - start
+                print(f"    [{elapsed:.0f}s] Connected: {len(self.connected_drivers)}/{len(expected_drivers)}")
+
+            if len(self.connected_drivers) >= len(expected_drivers):
+                print(f"  All {len(expected_drivers)} driver(s) connected")
+                return True
+
+            time.sleep(1)
+
+        missing = [d for d in expected_drivers if d not in self.connected_drivers]
+        print(f"Error: Timeout waiting for drivers. Missing: {missing}")
         return False
 
     def stop(self):
@@ -889,23 +973,24 @@ class TestRunner:
                 self.hub_launcher.stop()
             return {"error": "Failed to load drivers.json", "status": "FAIL"}
 
-        # Wait for drivers to connect by watching the main log
-        if self.driver_monitor.expected_drivers:
-            if not self.driver_monitor.wait_for_drivers(timeout=30):
-                if self.hub_was_launched and self.hub_launcher:
-                    self.hub_launcher.stop()
+        # Wait for drivers to connect by monitoring Hub console output
+        if self.driver_monitor.expected_drivers and self.hub_launcher:
+            if not self.hub_launcher.wait_for_drivers(
+                self.driver_monitor.expected_drivers,
+                timeout=30,
+                verbose=self.verbose
+            ):
+                self.hub_launcher.stop()
                 return {"error": "Timeout waiting for drivers to connect", "status": "FAIL"}
-            self.drivers_connected = len(self.driver_monitor.connected_drivers)
+            self.drivers_connected = len(self.hub_launcher.connected_drivers)
 
-        # Wait for buffered driver logs to drain before initializing log positions
-        # Drivers send error logs via MQTT after connecting, so errors from before
-        # the test (e.g., recovery from previous Hub shutdown) arrive shortly after connection
-        print("  Waiting for driver logs to settle...")
-        time.sleep(3)
+        # Clear driver logs to remove old errors from previous sessions
+        print("  Clearing driver logs...")
+        self.log_monitor.clear_driver_logs()
 
         print("=" * 40)
 
-        # Initialize log positions (ignore pre-existing errors)
+        # Initialize log positions (start fresh)
         self.log_monitor.initialize_positions()
 
         # Discover testable games (have both transformer and event generator)
@@ -1026,7 +1111,7 @@ def main():
         epilog="""
 Examples:
   %(prog)s                         # 60s test, medium density, random games
-  %(prog)s -d 300 --density high   # 5 minute stress test
+  %(prog)s -d 300 -D high          # 5 minute stress test
   %(prog)s --game pacman -v        # Pac-Man only, verbose output
   %(prog)s -o results.json         # Save results to file
         """,
@@ -1039,7 +1124,7 @@ Examples:
         help="Test duration in seconds (default: 60)",
     )
     parser.add_argument(
-        "--density",
+        "--density", "-D",
         type=str,
         default="medium",
         choices=["low", "medium", "high", "stress"],
