@@ -19,8 +19,11 @@ type FieldType =
   | 'backgroundGradient'
   | 'hidden';
 
-/** Map of field names to their UI component types */
-export type FieldTypeMap = Partial<Record<string, FieldType>>;
+/** Field configuration: can be just a type string or an object with type and emptyValue */
+type FieldConfig = FieldType | { type?: FieldType; emptyValue?: number };
+
+/** Map of field names to their UI component types or full config */
+export type FieldTypeMap = Partial<Record<string, FieldConfig>>;
 
 const VALID_FIELD_TYPES: readonly FieldType[] = [
   'enum',
@@ -77,6 +80,7 @@ export interface FieldMetadata {
   defaultValue: unknown;
   constraints?: FieldConstraints;
   description?: string;
+  emptyValue?: number;
 }
 
 type ZodShape = Record<string, z.ZodType>;
@@ -296,10 +300,32 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
 }
 
 /**
+ * Extract type and emptyValue from field config
+ */
+function parseFieldConfig(config: FieldConfig | undefined): {
+  overrideType?: FieldType;
+  emptyValue?: number;
+} {
+  if (!config) {
+    return {};
+  }
+
+  if (typeof config === 'string') {
+    return { overrideType: config };
+  }
+
+  return {
+    overrideType: config.type,
+    emptyValue: config.emptyValue,
+  };
+}
+
+/**
  * Analyze a single field and return its metadata
  */
-function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType): FieldMetadata {
+function analyzeField(name: string, schema: z.ZodType, fieldConfig?: FieldConfig): FieldMetadata {
   const { innerSchema, defaultValue, description } = unwrapSchema(schema);
+  const { overrideType, emptyValue } = parseFieldConfig(fieldConfig);
 
   // Check for explicit override type first (from fieldTypes map)
   if (overrideType) {
@@ -310,6 +336,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
         defaultValue,
         constraints: { enumValues: extractColorNames(innerSchema) },
         description,
+        emptyValue,
       };
     }
 
@@ -318,6 +345,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       type: overrideType,
       defaultValue,
       description,
+      emptyValue,
     };
   }
 
@@ -333,6 +361,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
         defaultValue,
         constraints: { enumValues: extractColorNames(innerSchema) },
         description: cleanDescription,
+        emptyValue,
       };
     }
 
@@ -341,6 +370,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       type: fieldType,
       defaultValue,
       description: cleanDescription,
+      emptyValue,
     };
   }
 
@@ -352,12 +382,13 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       defaultValue,
       constraints: { enumValues: extractColorNames(innerSchema) },
       description,
+      emptyValue,
     };
   }
 
 
   if (!hasZodDef(innerSchema)) {
-    return { name, type: 'enum', defaultValue, description };
+    return { name, type: 'enum', defaultValue, description, emptyValue };
   }
 
   const { def } = innerSchema._zod;
@@ -369,6 +400,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       defaultValue,
       constraints: { enumValues: extractEnumValues(innerSchema) },
       description,
+      emptyValue,
     };
   }
 
@@ -378,6 +410,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       type: 'boolean',
       defaultValue,
       description,
+      emptyValue,
     };
   }
 
@@ -388,6 +421,7 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       defaultValue,
       constraints: extractNumberConstraints(innerSchema),
       description,
+      emptyValue,
     };
   }
 
@@ -397,16 +431,17 @@ function analyzeField(name: string, schema: z.ZodType, overrideType?: FieldType)
       type: 'string',
       defaultValue,
       description,
+      emptyValue,
     };
   }
 
-  return { name, type: 'enum', defaultValue, description };
+  return { name, type: 'enum', defaultValue, description, emptyValue };
 }
 
 /**
  * Extract field metadata from a Zod object schema
  * @param schema - The Zod object schema to analyze
- * @param fieldTypes - Optional map of field names to UI component types (overrides inference)
+ * @param fieldTypes - Optional map of field names to UI types/config (overrides inference)
  */
 export function extractFieldMetadata(
   schema: z.ZodObject<ZodShape>,
