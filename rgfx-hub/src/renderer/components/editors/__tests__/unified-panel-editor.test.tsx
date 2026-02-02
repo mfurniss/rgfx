@@ -153,7 +153,7 @@ describe('UnifiedPanelEditor', () => {
   });
 
   describe('dimension changes', () => {
-    it('should increase rows while preserving existing cells', () => {
+    it('should increase rows while preserving rotations and renumbering indices', () => {
       render(
         <UnifiedPanelEditor
           value={[
@@ -167,14 +167,15 @@ describe('UnifiedPanelEditor', () => {
       const rowsInput = screen.getByLabelText('Rows');
       fireEvent.change(rowsInput, { target: { value: '3' } });
 
+      // Indices are renumbered 0-5, rotations preserved for existing cells
       expect(mockOnChange).toHaveBeenCalledWith([
-        ['0a', '1b'],
+        ['0', '1b'],
         ['2c', '3d'],
         ['4', '5'],
       ]);
     });
 
-    it('should increase cols while preserving existing cells', () => {
+    it('should increase cols while preserving rotations and renumbering indices', () => {
       render(
         <UnifiedPanelEditor
           value={[
@@ -188,9 +189,10 @@ describe('UnifiedPanelEditor', () => {
       const colsInput = screen.getByLabelText('Cols');
       fireEvent.change(colsInput, { target: { value: '3' } });
 
+      // Indices are renumbered 0-5, rotations preserved for existing cells
       expect(mockOnChange).toHaveBeenCalledWith([
-        ['0a', '1b', '4'],
-        ['2c', '3d', '5'],
+        ['0', '1b', '2'],
+        ['3c', '4d', '5'],
       ]);
     });
 
@@ -215,7 +217,7 @@ describe('UnifiedPanelEditor', () => {
       ]);
     });
 
-    it('should decrease cols (truncate grid)', () => {
+    it('should decrease cols and renumber indices sequentially', () => {
       render(
         <UnifiedPanelEditor
           value={[
@@ -229,9 +231,10 @@ describe('UnifiedPanelEditor', () => {
       const colsInput = screen.getByLabelText('Cols');
       fireEvent.change(colsInput, { target: { value: '2' } });
 
+      // Indices are renumbered 0-3 (sequential from 0)
       expect(mockOnChange).toHaveBeenCalledWith([
         ['0', '1'],
-        ['3', '4'],
+        ['2', '3'],
       ]);
     });
 
@@ -464,9 +467,9 @@ describe('UnifiedPanelEditor', () => {
     });
   });
 
-  describe('resizeGrid with non-sequential indices', () => {
-    it('should find max index and continue from there when adding cells', () => {
-      // Grid with custom arrangement where indices are not sequential
+  describe('resizeGrid sequential index fix', () => {
+    it('should renumber non-sequential indices to be sequential when resizing', () => {
+      // Grid with swapped panels (indices 5,3,1,7 - not sequential)
       render(
         <UnifiedPanelEditor
           value={[
@@ -480,11 +483,54 @@ describe('UnifiedPanelEditor', () => {
       const rowsInput = screen.getByLabelText('Rows');
       fireEvent.change(rowsInput, { target: { value: '3' } });
 
-      // Max index is 7, so new cells should start at 8
+      // All indices should be renumbered 0-5 (sequential from 0)
       expect(mockOnChange).toHaveBeenCalledWith([
-        ['5', '3'],
-        ['1', '7'],
-        ['8', '9'],
+        ['0', '1'],
+        ['2', '3'],
+        ['4', '5'],
+      ]);
+    });
+
+    it('should renumber indices when decreasing panel count (bug fix)', () => {
+      // Simulate the bug scenario: 2x2 grid with swapped panels
+      // User had panels 0,1,2,3, swapped some, now reducing to 2x1
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['3b', '1'],
+            ['2c', '0d'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      const rowsInput = screen.getByLabelText('Rows');
+      fireEvent.change(rowsInput, { target: { value: '1' } });
+
+      // Should be renumbered 0,1 (not keep 3,1 which would fail validation)
+      // Rotations from the preserved cells should be maintained
+      expect(mockOnChange).toHaveBeenCalledWith([['0b', '1']]);
+    });
+
+    it('should preserve rotations when renumbering after column reduction', () => {
+      // Grid with rotations, reduce columns
+      render(
+        <UnifiedPanelEditor
+          value={[
+            ['0b', '1c', '2d'],
+            ['3', '4b', '5c'],
+          ]}
+          onChange={mockOnChange}
+        />,
+      );
+
+      const colsInput = screen.getByLabelText('Cols');
+      fireEvent.change(colsInput, { target: { value: '2' } });
+
+      // Indices 0-3, rotations preserved from original positions
+      expect(mockOnChange).toHaveBeenCalledWith([
+        ['0b', '1c'],
+        ['2', '3b'],
       ]);
     });
   });

@@ -8,16 +8,18 @@
 import { z } from 'zod';
 import pulseSchema, { randomize as randomizePulse } from './pulse';
 import wipeSchema, { randomize as randomizeWipe } from './wipe';
-import explodeSchema, { randomize as randomizeExplode } from './explode';
-import bitmapSchema, { randomize as randomizeBitmap } from './bitmap';
-import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig } from './background';
+import explodeSchema, { randomize as randomizeExplode, fieldTypes as explodeFieldTypes } from './explode';
+import bitmapSchema, { randomize as randomizeBitmap, fieldTypes as bitmapFieldTypes } from './bitmap';
+import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig, fieldTypes as backgroundFieldTypes } from './background';
 import projectileSchema, { randomize as randomizeProjectile } from './projectile';
-import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig } from './text';
-import scrollTextSchema, { randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig } from './scroll-text';
-import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig } from './plasma';
-import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig } from './warp';
+import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig, fieldTypes as textFieldTypes } from './text';
+import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig, fieldTypes as scrollTextFieldTypes } from './scroll-text';
+import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig, fieldTypes as plasmaFieldTypes } from './plasma';
+import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig, fieldTypes as warpFieldTypes } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
+import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes } from './sparkle';
 import type { PresetConfig } from './preset-config';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 
 export type { PresetData, PresetType } from './preset-config';
 
@@ -36,6 +38,7 @@ export const effectSchemas = {
   plasma: plasmaSchema,
   warp: warpSchema,
   particle_field: particleFieldSchema,
+  sparkle: sparkleSchema,
 } as const;
 
 /**
@@ -50,10 +53,11 @@ export const effectPropsSchemas = {
   background: backgroundSchema.omit({ name: true, description: true }),
   projectile: projectileSchema.omit({ name: true, description: true }),
   text: textSchema.omit({ name: true, description: true }),
-  scroll_text: scrollTextSchema.omit({ name: true, description: true }),
+  scroll_text: scrollTextBaseSchema.omit({ name: true, description: true }),
   plasma: plasmaSchema.omit({ name: true, description: true }),
   warp: warpSchema.omit({ name: true, description: true }),
   particle_field: particleFieldSchema.omit({ name: true, description: true }),
+  sparkle: sparkleSchema.omit({ name: true, description: true }),
 } as const;
 
 export const effectRandomizers = {
@@ -68,6 +72,7 @@ export const effectRandomizers = {
   plasma: randomizePlasma,
   warp: randomizeWarp,
   particle_field: randomizeParticleField,
+  sparkle: randomizeSparkle,
 } as const;
 
 type EffectName = keyof typeof effectSchemas;
@@ -84,7 +89,8 @@ type EffectProps =
   | z.infer<typeof scrollTextSchema>
   | z.infer<typeof plasmaSchema>
   | z.infer<typeof warpSchema>
-  | z.infer<typeof particleFieldSchema>;
+  | z.infer<typeof particleFieldSchema>
+  | z.infer<typeof sparkleSchema>;
 
 /**
  * Check if a string is a valid effect name
@@ -131,4 +137,20 @@ export const effectPresetConfigs: Record<string, PresetConfig> = {
   background: backgroundPresetConfig,
   text: textPresetConfig,
   scroll_text: scrollTextPresetConfig,
+};
+
+/**
+ * Map of effect names to their field type overrides.
+ * Used by EffectForm to render the correct UI components.
+ * Effects not listed here use inferred types from their schemas.
+ */
+export const effectFieldTypes: Record<string, FieldTypeMap | undefined> = {
+  explode: explodeFieldTypes,
+  bitmap: bitmapFieldTypes,
+  background: backgroundFieldTypes,
+  text: textFieldTypes,
+  scroll_text: scrollTextFieldTypes,
+  plasma: plasmaFieldTypes,
+  warp: warpFieldTypes,
+  sparkle: sparkleFieldTypes,
 };

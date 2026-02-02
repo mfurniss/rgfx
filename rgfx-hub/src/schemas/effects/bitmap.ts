@@ -7,6 +7,16 @@
 
 import { z } from 'zod';
 import { baseEffect, centerX, centerY, easing } from './properties';
+import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+
+export const fieldTypes: FieldTypeMap = {
+  centerX: 'centerXY',
+  centerY: 'centerXY',
+  endX: 'centerXY',
+  endY: 'centerXY',
+  palette: 'hidden',
+  images: 'spritePreset',
+};
 
 export function randomize(): Record<string, unknown> {
   return {};
@@ -58,10 +68,10 @@ export default baseEffect
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
     reset: z.boolean().optional().default(false),
-    centerX: centerX.default('random').describe('fieldType:centerXY|Start X position (0-100 or random)'),
-    centerY: centerY.default('random').describe('fieldType:centerXY|Start Y position (0-100 or random)'),
-    endX: centerX.default('random').describe('fieldType:centerXY|End X position (0-100 or random)'),
-    endY: centerY.default('random').describe('fieldType:centerXY|End Y position (0-100 or random)'),
+    centerX: centerX.default('random').describe('Start X position (0-100 or random)'),
+    centerY: centerY.default('random').describe('Start Y position (0-100 or random)'),
+    endX: centerX.default('random').describe('End X position (0-100 or random)'),
+    endY: centerY.default('random').describe('End Y position (0-100 or random)'),
     duration: z.number().positive().optional().default(1500),
     easing: easing.optional().default('quadraticInOut'),
     fadeIn: z.number().int().nonnegative().optional().default(300)
@@ -74,12 +84,12 @@ export default baseEffect
       .max(16)
       .optional()
       .default(PICO8_PALETTE)
-      .describe('fieldType:hidden|Array of up to 16 hex colors for palette indices 0-F'),
+      .describe('Array of up to 16 hex colors for palette indices 0-F'),
     frameRate: z.number().positive().optional().default(2)
       .describe('Animation frame rate in frames per second'),
     images: z
       .array(z.array(z.string()))
-      .describe('fieldType:spritePreset|Sprite animation frames')
+      .describe('Sprite animation frames')
       .default([[
         '.......A........',
         '......AAA.......',

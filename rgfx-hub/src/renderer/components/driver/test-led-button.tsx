@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Science as ScienceIcon } from '@mui/icons-material';
-import type { Driver } from '@/types';
 import SuperButton from '../common/super-button';
-
-interface TestLedButtonProps {
-  driver: Driver;
-}
+import type { DriverButtonProps } from './types';
 
 const TIMEOUT_MS = 5000;
 
-const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
+const TestLedButton: React.FC<DriverButtonProps> = ({ driver }) => {
   const [testRequestPending, setTestRequestPending] = useState(false);
 
   // Clear pending state when driver's testActive state changes OR when driver connects/disconnects
@@ -58,9 +54,9 @@ const TestLedButton: React.FC<TestLedButtonProps> = ({ driver }) => {
     }
 
     if (hardware.layout === 'strip') {
-      return 'Strip: 4 segments in RGBY (25% each). White pixel marks the start.';
+      return 'Strip: 4 segments in RGCP (25% each). White pixel marks the start.';
     } else {
-      return 'Matrix: 4 quadrants (TL:Red, TR:Green, BL:Blue, BR:Yellow). White pixel marks top-left of each panel.';
+      return 'Matrix: 4 quadrants (TL:Red, TR:Green, BL:Cyan, BR:Purple). White pixel marks top-left of each panel.';
     }
   };
 

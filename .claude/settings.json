@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Check if a CLAUDE.md file exists in the same directory as the file being read ($ARGUMENTS). If it exists, read it.",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

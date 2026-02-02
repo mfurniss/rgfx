@@ -24,7 +24,7 @@ Public exports for all schemas and types.
 ### driver-config.ts
 Schemas for driver configuration:
 - `UnifiedPanelLayoutSchema` - 2D array defining LED panel physical layout with per-panel rotation
-- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin 0-48 to accommodate all ESP32 variants, brightness, power limits, rgbwMode for RGBW strips)
+- `DriverLEDConfigSchema` - LED strip/matrix configuration (pin 0-48 to accommodate all ESP32 variants, brightness, power limits, rgbwMode for RGBW strips, rotation for single-panel virtual rotation)
 - `ConfiguredDriverSchema` - Full driver config (ID, MAC, LED config, remote logging level)
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 
@@ -86,10 +86,11 @@ Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `plasma.ts` - Perlin noise plasma with gradient colors
 - `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog
 - `pulse.ts` - Full-screen color pulse with fade and collapse options
-- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered)
+- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered). Exports `scrollTextBaseSchema` for `.omit()` operations (Zod 4 doesn't allow `.omit()` on refined schemas)
 - `text.ts` - Static text rendering with gradient and optional accent color
 - `warp.ts` - Center-radiating animated gradient with linear perspective scale. Uses `enabled` enum with fade support.
 - `wipe.ts` - Color wipe sweeping across the display with random blend mode option
+- `sparkle.ts` - Twinkling particles cycling through a gradient with bloom support
 
 ### Per-Effect Randomize Functions
 Each effect schema exports a `randomize()` function that generates randomized props:

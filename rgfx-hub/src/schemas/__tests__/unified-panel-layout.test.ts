@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { UnifiedPanelLayoutSchema } from '../driver-config';
+import { UnifiedPanelLayoutSchema, ConfiguredDriverSchema } from '../driver-config';
 
 describe('UnifiedPanelLayoutSchema', () => {
   describe('valid layouts', () => {
@@ -254,5 +254,87 @@ describe('UnifiedPanelLayoutSchema', () => {
         expect(result.data).toEqual(input);
       }
     });
+  });
+});
+
+describe('DriverLEDConfig rotation field', () => {
+  const baseDriver = {
+    id: 'test-driver',
+    macAddress: 'AA:BB:CC:DD:EE:FF',
+    ledConfig: {
+      hardwareRef: 'test-hardware',
+      pin: 16,
+      gamma: { r: 2.8, g: 2.8, b: 2.8 },
+      floor: { r: 0, g: 0, b: 0 },
+    },
+  };
+
+  it('should accept rotation value "0"', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: '0' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept rotation value "90"', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: '90' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept rotation value "180"', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: '180' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept rotation value "270"', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: '270' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept null rotation', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: null },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept undefined rotation (field omitted)', () => {
+    const result = ConfiguredDriverSchema.safeParse(baseDriver);
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject invalid rotation value "45"', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: '45' },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject invalid rotation value "360"', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: '360' },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject numeric rotation value', () => {
+    const result = ConfiguredDriverSchema.safeParse({
+      ...baseDriver,
+      ledConfig: { ...baseDriver.ledConfig, rotation: 90 },
+    });
+    expect(result.success).toBe(false);
   });
 });

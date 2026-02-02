@@ -87,13 +87,15 @@ export function registerAppLifecycleHandlers(deps: AppLifecycleDeps): void {
     // Stop connection monitor
     services.driverRegistry.stopConnectionMonitor();
 
-    // Clear effects on all connected drivers before shutdown, then stop services
+    // Stop event reader FIRST to prevent new effects during shutdown
+    services.eventReader.stop();
+
+    // Clear effects on all connected drivers, then stop remaining services
     clearEffectsOnAllDrivers(services.driverRegistry, services.mqtt)
       .catch((err: unknown) => {
         log.error('Failed to clear effects on shutdown:', err);
       })
       .finally(() => {
-        services.eventReader.stop();
         services.udpClient.stop();
         services.networkManager.stop();
         void services.mqtt.stop();

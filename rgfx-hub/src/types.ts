@@ -1,6 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
 import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
+import type { LogSizes } from './log-manager';
 import type { ConfiguredDriverFromSchema, RemoteLoggingLevel } from './schemas';
 
 /**
@@ -84,6 +85,12 @@ export interface DriverLEDConfig {
    * Defaults to null (single panel, no unification)
    */
   unified?: string[][] | null;
+  /**
+   * Single-panel virtual rotation (ignored if unified is set)
+   * Rotates the panel display without physical rewiring.
+   * Values: '0' (default), '90', '180', '270' degrees clockwise.
+   */
+  rotation?: '0' | '90' | '180' | '270' | null;
   /**
    * Reverse LED direction for strips (default: false)
    * When true, logical index 0 maps to the last physical LED.
@@ -399,6 +406,8 @@ declare global {
       deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
       onDriverDeleted: (callback: (driverId: string) => void) => () => void;
       showInFolder: (filePath: string) => Promise<void>;
+      getLogSizes: () => Promise<LogSizes>;
+      clearAllLogs: () => Promise<void>;
       quitApp: () => void;
     };
   }

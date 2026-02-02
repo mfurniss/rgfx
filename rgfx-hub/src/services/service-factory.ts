@@ -13,6 +13,7 @@ import { DriverRegistry } from '../driver-registry';
 import { SystemMonitor } from '../system-monitor';
 import { DriverConfig } from '../driver-config';
 import { DriverLogPersistence } from '../driver-log-persistence';
+import { LogManager } from '../log-manager';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { TransformerEngine } from '../transformer-engine';
 import { UdpClientImpl } from '../transformer/udp-client';
@@ -30,6 +31,7 @@ export type Logger = ElectronLogger;
 export interface AppServices {
   driverConfig: DriverConfig;
   driverLogPersistence: DriverLogPersistence;
+  logManager: LogManager;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
   eventReader: EventFileReader;
@@ -198,6 +200,7 @@ export function createServices(
   // Initialize persistence services first
   const driverConfig = new DriverConfig(configPath);
   const driverLogPersistence = new DriverLogPersistence(configPath);
+  const logManager = new LogManager(configPath, driverLogPersistence);
   const ledHardwareManager = new LEDHardwareManager(configPath);
 
   // Load driver config BEFORE creating registry so drivers are available
@@ -243,6 +246,7 @@ export function createServices(
   return {
     driverConfig,
     driverLogPersistence,
+    logManager,
     ledHardwareManager,
     mqtt,
     eventReader,

@@ -155,7 +155,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `buildTelemetryRows(params)` - Build telemetry section rows (FPS, uptime, last seen)
 - `buildHardwareRows(params)` - Build hardware section rows (chip model, cores, heap, etc.)
 - `buildLedHardwareRows(params)` - Build LED hardware info rows (filename, layout, count)
-- `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, etc.)
+- `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, rotation, etc.)
 - `buildDriverStatusRows(params)` - Build driver status rows (ID, MAC, IP, hostname, etc.)
 
 ---
@@ -321,6 +321,30 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Uses text input type to allow empty field (browser number inputs don't allow clearing)
 - Converts to number on change, null when empty
 - Integrates with react-hook-form Controller
+- Uses type assertion for `ControllerRenderProps` to handle stricter generic constraints in newer react-hook-form versions
+
+---
+
+### DirectoryPicker
+
+**File:** [common/directory-picker.tsx](common/directory-picker.tsx)
+
+**Purpose:** Reusable directory path input with native folder picker dialog.
+
+**Props:**
+- `label: string` - Field label
+- `value: string` - Current directory path
+- `onChange: (value: string) => void` - Change handler
+- `dialogTitle: string` - Title for native folder dialog
+- `defaultPath?: string` - Default path for folder dialog
+- `error?: string` - Error message to display
+- `helperText?: string` - Helper text shown when no error
+- `sx?: SxProps<Theme>` - MUI sx styling
+
+**Features:**
+- TextField with FolderOpen icon button in end adornment
+- Calls `window.rgfx.selectDirectory()` for native folder picker
+- Shows error or helperText below field
 
 ---
 

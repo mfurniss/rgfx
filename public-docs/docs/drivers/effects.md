@@ -2,6 +2,8 @@
 
 RGFX drivers support 13 visual effects that render on LED strips and matrices.
 
+Use the [FX Playground](../hub-app/fx-playground.md) in the Hub to experiment with effects and see them render in real-time.
+
 ## How Effects Work
 
 Effects are sent from the Hub to drivers as JSON commands over MQTT. The driver renders effects to an internal canvas at 4x resolution, then downsamples to the physical LED layout. Multiple effects can composite together, with the background rendering first and other effects layering on top.

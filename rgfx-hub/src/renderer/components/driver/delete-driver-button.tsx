@@ -2,14 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import { Delete as DeleteIcon, Warning as WarningIcon } from '@mui/icons-material';
-import type { Driver } from '@/types';
 import ConfirmActionButton from '../common/confirm-action-button';
+import type { DriverButtonProps } from './types';
 
-interface DeleteDriverButtonProps {
-  driver: Driver;
-}
-
-const DeleteDriverButton: React.FC<DeleteDriverButtonProps> = ({ driver }) => {
+const DeleteDriverButton: React.FC<DriverButtonProps> = ({ driver }) => {
   const navigate = useNavigate();
 
   return (

@@ -9,6 +9,7 @@ import type { BrowserWindow } from 'electron';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverConfig } from '../driver-config';
 import type { DriverLogPersistence } from '../driver-log-persistence';
+import type { LogManager } from '../log-manager';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
 import type { TransformerEngine } from '../transformer-engine';
@@ -34,11 +35,13 @@ import { registerResetEventCountsHandler } from './reset-event-counts-handler';
 import { registerRestartDriverHandler } from './restart-driver-handler';
 import { registerDeleteDriverHandler } from './delete-driver-handler';
 import { registerLoadGifHandler } from './load-gif-handler';
+import { registerLogsHandler } from './logs-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
   driverConfig: DriverConfig;
   driverLogPersistence: DriverLogPersistence;
+  logManager: LogManager;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
   uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
@@ -71,4 +74,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerRestartDriverHandler(deps);
   registerDeleteDriverHandler(deps);
   registerLoadGifHandler();
+  registerLogsHandler(deps);
 }
