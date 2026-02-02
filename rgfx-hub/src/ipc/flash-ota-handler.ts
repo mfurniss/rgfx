@@ -114,11 +114,16 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     });
 
     let lastPercent = -1;
+    let reachedFullProgress = false;
     esp.on('progress', (data: { sent: number; total: number }) => {
       const percent = Math.round((data.sent / data.total) * 100);
 
       if (percent !== lastPercent) {
         log.info(`OTA progress: ${driverId} ${percent}%`);
+
+        if (percent >= 100) {
+          reachedFullProgress = true;
+        }
 
         // Touch driver to keep it marked as connected during OTA
         // (OTA activity proves the driver is still responsive)
@@ -166,7 +171,24 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
       }
     } catch (error) {
-      // On error, try to mark driver as disconnected
+      const err = error as Error;
+
+      // If we reached 100% progress and got a timeout, the firmware was actually
+      // flashed successfully - the ESP32 just rebooted before sending confirmation
+      if (reachedFullProgress && err.message.toLowerCase().includes('timeout')) {
+        log.info(`OTA flash to ${driverId} completed (device rebooted before confirmation)`);
+        const updatedDriver = driverRegistry.getDriver(driverId);
+
+        if (updatedDriver) {
+          updatedDriver.state = 'disconnected';
+          updatedDriver.ip = undefined;
+          eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
+        }
+
+        return;
+      }
+
+      // Real error - mark driver as disconnected and re-throw
       const errorDriver = driverRegistry.getDriver(driverId);
 
       if (errorDriver) {
