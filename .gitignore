@@ -1,5 +1,8 @@
 .DS_Store
 
+# Python
+__pycache__/
+
 # Node.js
 node_modules/
 
