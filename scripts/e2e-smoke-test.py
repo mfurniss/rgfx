@@ -1015,16 +1015,23 @@ class TestRunner:
                 self.hub_launcher.stop()
             return {"error": "Failed to load drivers.json", "status": "FAIL"}
 
-        # Wait for drivers to connect by monitoring Hub console output
-        if self.driver_monitor.expected_drivers and self.hub_launcher:
-            if not self.hub_launcher.wait_for_drivers(
-                self.driver_monitor.expected_drivers,
-                timeout=30,
-                verbose=self.verbose
-            ):
-                self.hub_launcher.stop()
-                return {"error": "Timeout waiting for drivers to connect", "status": "FAIL"}
-            self.drivers_connected = len(self.hub_launcher.connected_drivers)
+        # Wait for drivers to connect
+        if self.driver_monitor.expected_drivers:
+            if self.hub_launcher:
+                # We launched the Hub - wait for drivers via console output
+                if not self.hub_launcher.wait_for_drivers(
+                    self.driver_monitor.expected_drivers,
+                    timeout=30,
+                    verbose=self.verbose
+                ):
+                    self.hub_launcher.stop()
+                    return {"error": "Timeout waiting for drivers to connect", "status": "FAIL"}
+                self.drivers_connected = len(self.hub_launcher.connected_drivers)
+            else:
+                # Hub already running - scan log for recent connections
+                self.driver_monitor.scan_recent_connections(since_seconds=300)
+                self.drivers_connected = len(self.driver_monitor.connected_drivers)
+                print(f"  Found {self.drivers_connected} driver(s) connected")
 
         # Clear driver logs to remove old errors from previous sessions
         print("  Clearing driver logs...")

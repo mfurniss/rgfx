@@ -57,11 +57,15 @@ export class UdpClientImpl implements UdpClient {
       // Resolve '*' wildcards to actual driver IDs
       const resolvedIds = this.resolveRandomDrivers(targetDriverIds, drivers);
 
+      log.info(`UDP broadcast: targets=${targetDriverIds.join(',')} resolved=${resolvedIds.join(',')}`);
+
       // Filter drivers by resolved IDs
       drivers = drivers.filter(({ id }) => resolvedIds.includes(id));
 
+      log.info(`UDP broadcast: ${drivers.length} drivers matched: ${drivers.map((d) => `${d.id}@${d.ip}`).join(', ')}`);
+
       if (drivers.length === 0) {
-        log.debug(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
+        log.warn(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
       }
     }
 
