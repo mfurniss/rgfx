@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Box, Paper } from '@mui/material';
+import { Alert, Box, Paper, Stack } from '@mui/material';
 import { Dashboard as DashboardIcon } from '@mui/icons-material';
 import SystemStatus from '../components/system/system-status';
 import { SystemErrors } from '../components/system/system-errors';
@@ -14,16 +14,18 @@ const SystemStatusPage: React.FC = () => {
   return (
     <Box>
       <PageTitle icon={<DashboardIcon />} title="System Status" />
-      {isOffline && (
-        <Alert variant="outlined" severity="error" sx={{ mb: 2 }}>
-          Network unavailable. Connect to the driver network to enable communication.
-        </Alert>
-      )}
-      <Paper sx={{ mb: 3 }}>
-        <SystemStatus status={systemStatus} />
-      </Paper>
-      <SystemErrors errors={systemStatus.systemErrors} />
-      <EventsRateChart />
+      <Stack spacing={3}>
+        {isOffline && (
+          <Alert variant="outlined" severity="error">
+            Network unavailable. Connect to the driver network to enable communication.
+          </Alert>
+        )}
+        <Paper>
+          <SystemStatus status={systemStatus} />
+        </Paper>
+        <SystemErrors errors={systemStatus.systemErrors} />
+        <EventsRateChart />
+      </Stack>
     </Box>
   );
 };
