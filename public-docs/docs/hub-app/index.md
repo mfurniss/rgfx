@@ -25,3 +25,4 @@ The sidebar provides access to all Hub features:
 - **[FX Playground](fx-playground.md)** - Test LED effects interactively
 - **[Simulator](simulator.md)** - Manually trigger events for testing
 - **[Settings](settings.md)** - Configure directories and preferences
+- **Help** - Access documentation

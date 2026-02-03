@@ -93,7 +93,6 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
       const message = Buffer.from(JSON.stringify(effectData));
       localhostSocket.send(message, UDP_PORT, '127.0.0.1');
 
-      // Log AFTER sending to avoid blocking the hot path
       log.info(`Effect broadcast: ${payload.effect}`, { ...rest, props: validatedProps });
     } catch (error) {
       log.error('Failed to broadcast effect:', error);

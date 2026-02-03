@@ -265,9 +265,10 @@ describe('DirectoriesSection', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-      // Check for saving state
+      // Check for saving state (button is disabled while saving)
       await waitFor(() => {
-        expect(screen.getByText('Saving...')).toBeDefined();
+        const button = screen.getByRole('button', { name: /save/i });
+        expect(button).toHaveProperty('disabled', true);
       });
 
       // Resolve to allow test to complete
@@ -287,7 +288,7 @@ describe('DirectoriesSection', () => {
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
       await waitFor(() => {
-        const button = screen.getByRole('button', { name: /saving/i });
+        const button = screen.getByRole('button', { name: /save/i });
         expect(button).toHaveProperty('disabled', true);
       });
 

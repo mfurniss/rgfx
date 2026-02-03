@@ -321,14 +321,22 @@ void reconnectMQTT() {
 		log("Random seed initialized: " + String(seed));
 
 		// Subscribe to topics with QoS 2 (exactly-once delivery) using pre-allocated buffers
-		mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
-		mqttClient.subscribe(topicConfig, 2);
-		mqttClient.subscribe(topicTest, 2);
-		mqttClient.subscribe(topicReset, 2);
-		mqttClient.subscribe(topicReboot, 2);
-		mqttClient.subscribe(topicLogging, 2);
-		mqttClient.subscribe(topicClearEffects, 2);
-		mqttClient.subscribe(topicWifi, 2);
+		// Check return values to detect subscription failures (can happen after crash recovery)
+		bool allSubscribed = true;
+		allSubscribed &= mqttClient.subscribe(MQTT_TOPIC_TEST, 2);
+		allSubscribed &= mqttClient.subscribe(topicConfig, 2);
+		allSubscribed &= mqttClient.subscribe(topicTest, 2);
+		allSubscribed &= mqttClient.subscribe(topicReset, 2);
+		allSubscribed &= mqttClient.subscribe(topicReboot, 2);
+		allSubscribed &= mqttClient.subscribe(topicLogging, 2);
+		allSubscribed &= mqttClient.subscribe(topicClearEffects, 2);
+		allSubscribed &= mqttClient.subscribe(topicWifi, 2);
+
+		if (!allSubscribed) {
+			log("One or more MQTT subscriptions failed - forcing reconnect", LogLevel::ERROR);
+			mqttClient.disconnect();
+			return;
+		}
 
 		log("Subscribed to topics with QoS 2:");
 		log("  - " + String(MQTT_TOPIC_TEST));

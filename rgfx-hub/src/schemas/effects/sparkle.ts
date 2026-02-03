@@ -32,7 +32,7 @@ export function randomize(): Record<string, unknown> {
     density: randomInt(5, 100),
     gradient,
     speed: randomFloat(0.2, 5 - (gradient.length / 2)),
-    bloom: randomInt(0, 100),
+    bloom: randomInt(1) === 0 ? 0 : randomInt(40, 100),
   };
 }
 
@@ -46,14 +46,14 @@ export function randomize(): Record<string, unknown> {
 export default z
   .object({
     name: z.literal('Sparkle'),
-    description: z.literal('Twinkling particles cycling through a gradient'),
+    description: z.literal('Sparkling particles cycling through a gradient'),
     duration: z
       .number()
       .int()
       .min(0)
       .optional()
       .default(3000)
-      .describe('Cloud duration in milliseconds (0 = infinite)'),
+      .describe('Duration in milliseconds (0 = infinite)'),
     density: z
       .number()
       .int()
@@ -61,7 +61,7 @@ export default z
       .max(100)
       .optional()
       .default(100)
-      .describe('Spawn rate (1-100, frame-rate independent)'),
+      .describe('Sparkle spawn rate (1-100)'),
     gradient: z
       .array(colorStringSchema)
       .min(2)
@@ -75,7 +75,7 @@ export default z
       .max(5.0)
       .optional()
       .default(0.75)
-      .describe('Gradient cycling speed (higher = faster)'),
+      .describe('Gradient transition speed (0.1-5.0)'),
     bloom: z
       .number()
       .int()

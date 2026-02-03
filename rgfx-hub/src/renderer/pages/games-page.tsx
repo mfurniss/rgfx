@@ -12,6 +12,7 @@ import {
   FormControlLabel,
   Switch,
   Alert,
+  Stack,
 } from '@mui/material';
 import { SportsEsports as GamesIcon } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
@@ -80,86 +81,88 @@ const GamesPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <PageTitle icon={<GamesIcon />} title="Games" />
-        {hasMameRomsDirectory ? (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={hideUnconfigured}
-                onChange={(e) => {
-                  setHideUnconfigured(e.target.checked);
-                }}
-              />
-            }
-            label="Hide unconfigured"
-          />
+      <Stack spacing={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <PageTitle icon={<GamesIcon />} title="Games" />
+          {hasMameRomsDirectory ? (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={hideUnconfigured}
+                  onChange={(e) => {
+                    setHideUnconfigured(e.target.checked);
+                  }}
+                />
+              }
+              label="Hide unconfigured"
+            />
+          ) : null}
+        </Box>
+        {!hasMameRomsDirectory ? (
+          <Alert variant="outlined" severity="info">
+            Configure the MAME ROMs directory in{' '}
+            <Link component={RouterLink} to="/settings">
+              Settings
+            </Link>{' '}
+            to see which ROMs have interceptors and transformers.
+          </Alert>
         ) : null}
-      </Box>
-      {!hasMameRomsDirectory ? (
-        <Alert variant="outlined" severity="info" sx={{ mb: 2 }}>
-          Configure the MAME ROMs directory in{' '}
-          <Link component={RouterLink} to="/settings">
-            Settings
-          </Link>{' '}
-          to see which ROMs have interceptors and transformers.
-        </Alert>
-      ) : null}
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <SortableTableHead
-            columns={columns}
-            sortField={sortField}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-          />
-          <TableBody>
-            {sortedGames.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={hasMameRomsDirectory ? 3 : 2} align="center">
-                  <Typography variant="body2" color="text.secondary">
-                    No games configured
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              sortedGames.map((game, index) => (
-                <TableRow key={index}>
-                  {hasMameRomsDirectory ? <TableCell>{game.romName}</TableCell> : null}
-                  <TableCell>
-                    {game.interceptorName ? (
-                      <Link
-                        component="button"
-                        variant="body2"
-                        onClick={() => {
-                          handleOpenFile(game.interceptorPath);
-                        }}
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        {game.interceptorName}
-                      </Link>
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    {game.transformerName ? (
-                      <Link
-                        component="button"
-                        variant="body2"
-                        onClick={() => {
-                          handleOpenFile(game.transformerPath);
-                        }}
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        {game.transformerName}
-                      </Link>
-                    ) : null}
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <SortableTableHead
+              columns={columns}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+            />
+            <TableBody>
+              {sortedGames.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={hasMameRomsDirectory ? 3 : 2} align="center">
+                    <Typography variant="body2" color="text.secondary">
+                      No games configured
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              ) : (
+                sortedGames.map((game, index) => (
+                  <TableRow key={index}>
+                    {hasMameRomsDirectory ? <TableCell>{game.romName}</TableCell> : null}
+                    <TableCell>
+                      {game.interceptorName ? (
+                        <Link
+                          component="button"
+                          variant="body2"
+                          onClick={() => {
+                            handleOpenFile(game.interceptorPath);
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          {game.interceptorName}
+                        </Link>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      {game.transformerName ? (
+                        <Link
+                          component="button"
+                          variant="body2"
+                          onClick={() => {
+                            handleOpenFile(game.transformerPath);
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          {game.transformerName}
+                        </Link>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Stack>
     </Box>
   );
 };

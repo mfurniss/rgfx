@@ -71,7 +71,7 @@ const ConfirmActionButton: React.FC<ConfirmActionButtonProps> = ({
   onError,
   disabled = false,
   tooltipTitle,
-  size = 'small',
+  size = 'medium',
   variant = 'outlined',
   sx,
 }) => {
