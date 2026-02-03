@@ -1,4 +1,5 @@
 #include "sparkle.h"
+#include "bloom_utils.h"
 #include "effect_utils.h"
 #include "hal/platform.h"
 #include <cstring>
@@ -91,47 +92,14 @@ void SparkleEffect::renderParticle(const SparkleParticle& p) {
 		}
 	}
 
-	// Bloom: spread to adjacent LEDs (use pre-computed spreadRadius)
+	// Bloom: spread to adjacent LEDs using shared bloom utility
 	if (cloud.spreadRadius > 0) {
-		uint8_t spreadRadius = cloud.spreadRadius;
-
-		if (isStrip) {
-			// Strip: horizontal bloom only (optimized 1D path)
-			for (int8_t dx = -static_cast<int8_t>(spreadRadius); dx <= static_cast<int8_t>(spreadRadius); dx++) {
-				if (dx == 0) continue;  // Skip center
-
-				uint8_t dist = static_cast<uint8_t>(abs(dx));
-				uint8_t baseAlpha = 127 - (127 * dist) / (spreadRadius + 1);
-				uint8_t alpha = (static_cast<uint16_t>(baseAlpha) * cloud.bloom) / 100;
-
-				int16_t nx = static_cast<int16_t>(p.x) + (dx * 4);
-				if (nx >= 0 && nx + 4 <= static_cast<int16_t>(cw)) {
-					canvas.drawRectangle(static_cast<uint16_t>(nx), 0, 4, 1, CRGBA(color, alpha), BlendMode::ADDITIVE);
-				}
-			}
-		} else {
-			// Matrix: 2D bloom
-			for (int8_t dy = -static_cast<int8_t>(spreadRadius); dy <= static_cast<int8_t>(spreadRadius); dy++) {
-				for (int8_t dx = -static_cast<int8_t>(spreadRadius); dx <= static_cast<int8_t>(spreadRadius); dx++) {
-					if (dx == 0 && dy == 0) continue;
-
-					uint8_t dist = static_cast<uint8_t>(abs(dx) + abs(dy));
-					if (dist > spreadRadius) continue;
-
-					uint8_t baseAlpha = 127 - (127 * dist) / (spreadRadius + 1);
-					uint8_t alpha = (static_cast<uint16_t>(baseAlpha) * cloud.bloom) / 100;
-
-					int16_t nx = static_cast<int16_t>(p.x) + (dx * 4);
-					int16_t ny = static_cast<int16_t>(p.y) + (dy * 4);
-
-					if (nx >= 0 && ny >= 0 &&
-					    nx + 4 <= static_cast<int16_t>(cw) &&
-					    ny + 4 <= static_cast<int16_t>(ch)) {
-						canvas.fillBlock4x4Additive(static_cast<uint16_t>(nx), static_cast<uint16_t>(ny), color, alpha);
-					}
-				}
-			}
-		}
+		BloomConfig config = {
+			.radius = cloud.spreadRadius,
+			.intensity = 127,
+			.bloom = cloud.bloom
+		};
+		renderBloom(canvas, p.x, p.y, color, config, isStrip);
 	}
 }
 
@@ -166,8 +134,7 @@ void SparkleEffect::add(JsonDocument& props) {
 	// Parse bloom (0-100) and pre-compute spread radius
 	cloud.bloom = props["bloom"].as<int>();
 	if (cloud.bloom > 100) cloud.bloom = 100;
-	cloud.spreadRadius = (cloud.bloom * 4) / 100;
-	if (cloud.bloom > 0 && cloud.spreadRadius == 0) cloud.spreadRadius = 1;
+	cloud.spreadRadius = bloomPercentToRadius(cloud.bloom);
 	cloud.overdrive = (cloud.bloom * 255) / 100;
 
 	// Parse gradient

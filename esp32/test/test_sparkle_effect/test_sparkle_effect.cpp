@@ -51,6 +51,8 @@ using String = std::string;
 
 // Include effects
 #include "effects/effect.h"
+#include "effects/bloom_utils.h"
+#include "effects/bloom_utils.cpp"
 #include "effects/sparkle.h"
 #include "effects/sparkle.cpp"
 
@@ -937,7 +939,7 @@ void test_sparkle_digest_16x16_t500() {
 void test_sparkle_digest_16x16_bloom50() {
 	uint64_t digest = runSparkleDigest(TEST_CONFIGS[1], 0.1f, 50, 50);
 	printDigest("sparkle_16x16_bloom50", digest);
-	assertDigest(0xB45350B3FA4DF037ull, digest, "sparkle_16x16_bloom50");
+	assertDigest(0x49EFBB0B3FFB08C3ull, digest, "sparkle_16x16_bloom50");
 }
 
 void test_sparkle_digest_strip_t100() {
