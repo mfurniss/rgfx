@@ -32,7 +32,7 @@ export function randomize(): Record<string, unknown> {
     density: randomInt(5, 100),
     gradient,
     speed: randomFloat(0.2, 5 - (gradient.length / 2)),
-    bloom: randomInt(0, 100),
+    bloom: randomInt(1) === 0 ? 0 : randomInt(40, 100),
   };
 }
 
