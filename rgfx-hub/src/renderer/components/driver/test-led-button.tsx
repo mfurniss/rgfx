@@ -66,11 +66,10 @@ const TestLedButton: React.FC<DriverButtonProps> = ({ driver }) => {
       icon={<ScienceIcon />}
       variant={driver.testActive ? 'contained' : 'outlined'}
       color={driver.testActive ? 'success' : 'primary'}
-      size="small"
       onClick={handleTestToggle}
       disabled={driver.state !== 'connected' || !driver.ledConfig}
       busy={testRequestPending}
-      sx={{ height: 30, width: 140 }}
+      sx={{ width: 140 }}
     >
       {testRequestPending ? 'Processing...' : `Test LEDs ${driver.testActive ? 'ON' : 'OFF'}`}
     </SuperButton>

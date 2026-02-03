@@ -14,6 +14,7 @@ import {
   Alert,
   ToggleButtonGroup,
   ToggleButton,
+  Stack,
 } from '@mui/material';
 import LogDisplay from '../components/common/log-display';
 import FlashResultDialog from '../components/firmware/flash-result-dialog';
@@ -259,177 +260,179 @@ const FirmwarePage: React.FC = () => {
     <Box>
       <PageTitle icon={<FirmwareIcon />} title="Firmware" />
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Update Method
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Choose how to update RGFX Driver firmware on your ESP32 device(s).
-        </Typography>
+      <Stack spacing={3}>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Update Method
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Choose how to update RGFX Driver firmware on your ESP32 device(s).
+          </Typography>
 
-        <ToggleButtonGroup
-          value={flashMethod}
-          exclusive
-          onChange={(_event, newMethod: FlashMethod | null) => {
-            if (newMethod !== null) {
-              setFlashMethod(newMethod);
-              flashState.setError(null);
-            }
-          }}
-          fullWidth
-          sx={{ mb: 3 }}
-          disabled={isFlashing}
-        >
-          <ToggleButton value="ota">
-            <WifiIcon sx={{ mr: 1 }} />
-            OTA WiFi
-          </ToggleButton>
-          <ToggleButton value="usb">
-            <UsbIcon sx={{ mr: 1 }} />
-            USB Serial
-          </ToggleButton>
-        </ToggleButtonGroup>
+          <ToggleButtonGroup
+            value={flashMethod}
+            exclusive
+            onChange={(_event, newMethod: FlashMethod | null) => {
+              if (newMethod !== null) {
+                setFlashMethod(newMethod);
+                flashState.setError(null);
+              }
+            }}
+            fullWidth
+            sx={{ mb: 3 }}
+            disabled={isFlashing}
+          >
+            <ToggleButton value="ota">
+              <WifiIcon sx={{ mr: 1 }} />
+              OTA WiFi
+            </ToggleButton>
+            <ToggleButton value="usb">
+              <UsbIcon sx={{ mr: 1 }} />
+              USB Serial
+            </ToggleButton>
+          </ToggleButtonGroup>
 
-        {flashMethod === 'ota' && (
-          <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Update firmware on already-configured drivers over WiFi. Multiple drivers can be
-              updated in parallel.
-            </Typography>
+          {flashMethod === 'ota' && (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Update firmware on already-configured drivers over WiFi. Multiple drivers can be
+                updated in parallel.
+              </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-              <TargetDriversPicker
-                drivers={drivers}
-                selectedDrivers={selectedDrivers}
-                selectAll={selectAll}
-                onDriverToggle={handleDriverToggle}
-                onSelectAll={handleSelectAll}
-                disabled={isFlashing}
-              />
-
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <SuperButton
-                  variant="contained"
-                  icon={<FlashIcon />}
-                  onClick={() => {
-                    handleFlash();
-                  }}
-                  disabled={!canFlash}
-                  busy={isFlashing}
-                >
-                  {isFlashing ? 'Updating...' : 'Update Firmware'}
-                </SuperButton>
-
-                <WifiConfigOtaButton
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                <TargetDriversPicker
                   drivers={drivers}
                   selectedDrivers={selectedDrivers}
+                  selectAll={selectAll}
+                  onDriverToggle={handleDriverToggle}
+                  onSelectAll={handleSelectAll}
                   disabled={isFlashing}
-                  onLog={flashState.addLog}
                 />
-              </Box>
-            </Box>
-          </>
-        )}
 
-        {flashMethod === 'usb' && (
-          <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Connect a new ESP32 or existing driver via USB cable.
-            </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <SuperButton
+                    variant="contained"
+                    icon={<FlashIcon />}
+                    onClick={() => {
+                      handleFlash();
+                    }}
+                    disabled={!canFlash}
+                    busy={isFlashing}
+                  >
+                    {isFlashing ? 'Updating...' : 'Update Firmware'}
+                  </SuperButton>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <Box sx={{ flex: 1, minWidth: 200 }}>
-                <SerialPortSelector
-                  disabled={isFlashing}
-                  onPortSelect={handlePortSelect}
-                  onLog={flashState.addLog}
-                  onError={flashState.setError}
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <SuperButton
-                  variant="contained"
-                  icon={<FlashIcon />}
-                  onClick={() => {
-                    handleFlash();
-                  }}
-                  disabled={!canFlash}
-                  busy={isFlashing}
-                >
-                  {isFlashing ? 'Updating...' : 'Update Firmware'}
-                </SuperButton>
-
-                <WifiConfigButton
-                  getPort={getPort}
-                  disabled={isFlashing}
-                  onLog={flashState.addLog}
-                />
-              </Box>
-            </Box>
-          </>
-        )}
-
-        {flashState.error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {flashState.error}
-          </Alert>
-        )}
-
-        {isFlashing && flashMethod === 'usb' && (
-          <Box sx={{ mt: 2 }}>
-            <LinearProgress variant="determinate" value={flashState.progress} />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {flashState.progress}%
-            </Typography>
-          </Box>
-        )}
-
-        {isFlashing && flashMethod === 'ota' && flashState.driverFlashStatus.size > 0 && (
-          <Box sx={{ mt: 2 }}>
-            {Array.from(flashState.driverFlashStatus.entries())
-              .filter(([driverId]) => selectedDrivers.has(driverId))
-              .map(([driverId, status]) => (
-                <Box key={driverId} sx={{ mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Typography variant="body2" sx={{ minWidth: 120 }}>
-                      {driverId}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color={
-                        status.status === 'success'
-                          ? 'success.main'
-                          : status.status === 'error'
-                            ? 'error.main'
-                            : 'text.secondary'
-                      }
-                      sx={{ minWidth: 60 }}
-                    >
-                      {status.status === 'pending' && 'Waiting...'}
-                      {status.status === 'flashing' && `${status.progress}%`}
-                      {status.status === 'success' && 'Done'}
-                      {status.status === 'error' && 'Failed'}
-                    </Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={status.progress}
-                    color={
-                      status.status === 'success'
-                        ? 'success'
-                        : status.status === 'error'
-                          ? 'error'
-                          : 'primary'
-                    }
+                  <WifiConfigOtaButton
+                    drivers={drivers}
+                    selectedDrivers={selectedDrivers}
+                    disabled={isFlashing}
+                    onLog={flashState.addLog}
                   />
                 </Box>
-              ))}
-          </Box>
-        )}
-      </Paper>
+              </Box>
+            </>
+          )}
 
-      <LogDisplay messages={flashState.logMessages} />
+          {flashMethod === 'usb' && (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Connect a new ESP32 or existing driver via USB cable.
+              </Typography>
+
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <Box sx={{ flex: 1, minWidth: 200 }}>
+                  <SerialPortSelector
+                    disabled={isFlashing}
+                    onPortSelect={handlePortSelect}
+                    onLog={flashState.addLog}
+                    onError={flashState.setError}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <SuperButton
+                    variant="contained"
+                    icon={<FlashIcon />}
+                    onClick={() => {
+                      handleFlash();
+                    }}
+                    disabled={!canFlash}
+                    busy={isFlashing}
+                  >
+                    {isFlashing ? 'Updating...' : 'Update Firmware'}
+                  </SuperButton>
+
+                  <WifiConfigButton
+                    getPort={getPort}
+                    disabled={isFlashing}
+                    onLog={flashState.addLog}
+                  />
+                </Box>
+              </Box>
+            </>
+          )}
+
+          {flashState.error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {flashState.error}
+            </Alert>
+          )}
+
+          {isFlashing && flashMethod === 'usb' && (
+            <Box sx={{ mt: 2 }}>
+              <LinearProgress variant="determinate" value={flashState.progress} />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {flashState.progress}%
+              </Typography>
+            </Box>
+          )}
+
+          {isFlashing && flashMethod === 'ota' && flashState.driverFlashStatus.size > 0 && (
+            <Box sx={{ mt: 2 }}>
+              {Array.from(flashState.driverFlashStatus.entries())
+                .filter(([driverId]) => selectedDrivers.has(driverId))
+                .map(([driverId, status]) => (
+                  <Box key={driverId} sx={{ mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Typography variant="body2" sx={{ minWidth: 120 }}>
+                        {driverId}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color={
+                          status.status === 'success'
+                            ? 'success.main'
+                            : status.status === 'error'
+                              ? 'error.main'
+                              : 'text.secondary'
+                        }
+                        sx={{ minWidth: 60 }}
+                      >
+                        {status.status === 'pending' && 'Waiting...'}
+                        {status.status === 'flashing' && `${status.progress}%`}
+                        {status.status === 'success' && 'Done'}
+                        {status.status === 'error' && 'Failed'}
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={status.progress}
+                      color={
+                        status.status === 'success'
+                          ? 'success'
+                          : status.status === 'error'
+                            ? 'error'
+                            : 'primary'
+                      }
+                    />
+                  </Box>
+                ))}
+            </Box>
+          )}
+        </Paper>
+
+        <LogDisplay messages={flashState.logMessages} />
+      </Stack>
 
       <FlashResultDialog
         open={flashState.resultModal.open}

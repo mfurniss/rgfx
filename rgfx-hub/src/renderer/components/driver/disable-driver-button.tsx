@@ -22,7 +22,6 @@ const DisableDriverButton: React.FC<DriverButtonProps> = ({ driver }) => {
       icon={driver.disabled ? <PlayArrowIcon /> : <BlockIcon />}
       variant={driver.disabled ? 'contained' : 'outlined'}
       color={driver.disabled ? 'info' : 'primary'}
-      size="small"
       onClick={toggle}
       busy={pending}
     >

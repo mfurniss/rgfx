@@ -1120,10 +1120,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#spectrum" class="md-nav__link">
+  <a href="#particle-field" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Spectrum
+        Particle Field
       
     </span>
   </a>
@@ -1131,10 +1131,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#particle-field" class="md-nav__link">
+  <a href="#sparkle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Particle Field
+        Sparkle
       
     </span>
   </a>
@@ -1231,6 +1231,34 @@
     
   
     LED Hardware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
   
 
     
@@ -1828,10 +1856,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#spectrum" class="md-nav__link">
+  <a href="#particle-field" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Spectrum
+        Particle Field
       
     </span>
   </a>
@@ -1839,10 +1867,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#particle-field" class="md-nav__link">
+  <a href="#sparkle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Particle Field
+        Sparkle
       
     </span>
   </a>
@@ -1905,7 +1933,7 @@
 
 
 <h1 id="visual-effects">Visual Effects<a class="headerlink" href="#visual-effects" title="Permanent link">&para;</a></h1>
-<p>RGFX drivers support 13 visual effects that render on LED strips and matrices.</p>
+<p>RGFX drivers support 12 visual effects that render on LED strips and matrices.</p>
 <p>Use the <a href="../hub-app/fx-playground.html">FX Playground</a> in the Hub to experiment with effects and see them render in real-time.</p>
 <h2 id="how-effects-work">How Effects Work<a class="headerlink" href="#how-effects-work" title="Permanent link">&para;</a></h2>
 <p>Effects are sent from the Hub to drivers as JSON commands over MQTT. The driver renders effects to an internal canvas at 4x resolution, then downsamples to the physical LED layout. Multiple effects can composite together, with the background rendering first and other effects layering on top.</p>
@@ -1922,7 +1950,7 @@
 <tbody>
 <tr>
 <td><code>gradient.colors</code></td>
-<td>Array of hex colors (2-64)</td>
+<td>Array of hex colors</td>
 </tr>
 <tr>
 <td><code>gradient.orientation</code></td>
@@ -1930,7 +1958,7 @@
 </tr>
 <tr>
 <td><code>fadeDuration</code></td>
-<td>Fade transition time in ms (default: 1000)</td>
+<td>Cross-fade transition time in ms (default: 1000)</td>
 </tr>
 </tbody>
 </table>
@@ -1950,7 +1978,7 @@
 </tr>
 <tr>
 <td><code>duration</code></td>
-<td>Duration in ms</td>
+<td>Duration in ms (default: 800)</td>
 </tr>
 <tr>
 <td><code>fade</code></td>
@@ -1958,7 +1986,7 @@
 </tr>
 <tr>
 <td><code>easing</code></td>
-<td>Easing function (e.g., <code>easeInOutQuad</code>)</td>
+<td>Easing function (default: <code>quinticOut</code>)</td>
 </tr>
 <tr>
 <td><code>collapse</code></td>
@@ -1967,7 +1995,7 @@
 </tbody>
 </table>
 <h3 id="bitmap">Bitmap<a class="headerlink" href="#bitmap" title="Permanent link">&para;</a></h3>
-<p>Animated sprite display with frame-based animation, movement, and fading. Uses 16-color palettes.</p>
+<p>Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette).</p>
 <table>
 <thead>
 <tr>
@@ -1977,16 +2005,16 @@
 </thead>
 <tbody>
 <tr>
-<td><code>image</code></td>
-<td>Array of pixel rows (hex chars map to palette)</td>
+<td><code>images</code></td>
+<td>Array of frames, each frame is an array of row strings</td>
 </tr>
 <tr>
 <td><code>palette</code></td>
-<td>Array of 16 hex colors</td>
+<td>Array of up to 16 hex colors</td>
 </tr>
 <tr>
-<td><code>x</code>, <code>y</code></td>
-<td>Start position (or <code>random</code>)</td>
+<td><code>centerX</code>, <code>centerY</code></td>
+<td>Start position (0-100 or <code>random</code>)</td>
 </tr>
 <tr>
 <td><code>endX</code>, <code>endY</code></td>
@@ -1994,15 +2022,15 @@
 </tr>
 <tr>
 <td><code>easing</code></td>
-<td>Movement easing function</td>
+<td>Movement easing function (default: <code>quadraticInOut</code>)</td>
 </tr>
 <tr>
-<td><code>fadeInMs</code>, <code>fadeOutMs</code></td>
-<td>Fade durations</td>
+<td><code>fadeIn</code>, <code>fadeOut</code></td>
+<td>Fade durations in ms</td>
 </tr>
 <tr>
 <td><code>duration</code></td>
-<td>Total effect duration</td>
+<td>Total effect duration in ms (default: 1500)</td>
 </tr>
 <tr>
 <td><code>frameRate</code></td>
@@ -2026,7 +2054,7 @@
 </tr>
 <tr>
 <td><code>duration</code></td>
-<td>Duration in ms</td>
+<td>Duration in ms (default: 500)</td>
 </tr>
 <tr>
 <td><code>direction</code></td>
@@ -2039,7 +2067,7 @@
 </tbody>
 </table>
 <h3 id="explode">Explode<a class="headerlink" href="#explode" title="Permanent link">&para;</a></h3>
-<p>Radial explosion from a center point. On matrices, emits particles. On strips, creates a collapsing flash.</p>
+<p>Radial particle explosion from a center point.</p>
 <table>
 <thead>
 <tr>
@@ -2049,28 +2077,48 @@
 </thead>
 <tbody>
 <tr>
-<td><code>x</code>, <code>y</code></td>
-<td>Center position</td>
+<td><code>centerX</code>, <code>centerY</code></td>
+<td>Explosion center (0-100 or <code>random</code>)</td>
 </tr>
 <tr>
 <td><code>color</code></td>
 <td>Hex color (required)</td>
 </tr>
 <tr>
-<td><code>spread</code></td>
-<td>Initial radius</td>
+<td><code>power</code></td>
+<td>Initial particle velocity (default: 120)</td>
 </tr>
 <tr>
-<td><code>duration</code></td>
-<td>Duration in ms</td>
+<td><code>powerSpread</code></td>
+<td>Power variation percentage (default: 80)</td>
 </tr>
 <tr>
-<td><code>hueSpread</code></td>
-<td>Color variation for rainbow effect</td>
+<td><code>lifespan</code></td>
+<td>Particle lifetime in ms (default: 700)</td>
+</tr>
+<tr>
+<td><code>lifespanSpread</code></td>
+<td>Lifespan variation percentage (default: 50)</td>
 </tr>
 <tr>
 <td><code>particleCount</code></td>
-<td>Number of particles (matrices)</td>
+<td>Number of particles (1-500, default: 100)</td>
+</tr>
+<tr>
+<td><code>particleSize</code></td>
+<td>Particle size in pixels (1-16, default: 6)</td>
+</tr>
+<tr>
+<td><code>hueSpread</code></td>
+<td>Color variation in degrees (0-359)</td>
+</tr>
+<tr>
+<td><code>friction</code></td>
+<td>Air resistance (0-50, default: 3)</td>
+</tr>
+<tr>
+<td><code>gravity</code></td>
+<td>Vertical acceleration (-500 to 500, default: 0)</td>
 </tr>
 </tbody>
 </table>
@@ -2094,7 +2142,7 @@
 </tr>
 <tr>
 <td><code>velocity</code></td>
-<td>Speed in pixels/second</td>
+<td>Speed in pixels/second (default: 1200)</td>
 </tr>
 <tr>
 <td><code>friction</code></td>
@@ -2102,19 +2150,19 @@
 </tr>
 <tr>
 <td><code>trail</code></td>
-<td>Trail length multiplier</td>
+<td>Trail multiplier (0=none, 1=velocity length)</td>
 </tr>
 <tr>
 <td><code>width</code>, <code>height</code></td>
-<td>Object size</td>
+<td>Object size in pixels</td>
 </tr>
 <tr>
 <td><code>lifespan</code></td>
-<td>Auto-removal timeout in ms</td>
+<td>Max duration in ms (default: 5000)</td>
 </tr>
 <tr>
 <td><code>particleDensity</code></td>
-<td>Trail particle chance (0-100%)</td>
+<td>Trail particle chance per frame (0-100%)</td>
 </tr>
 </tbody>
 </table>
@@ -2134,15 +2182,15 @@
 </tr>
 <tr>
 <td><code>color</code></td>
-<td>Hex color (required)</td>
+<td>Hex color (default: <code>#FFA000</code>)</td>
 </tr>
 <tr>
 <td><code>accentColor</code></td>
-<td>Highlight color</td>
+<td>Optional accent/shadow color</td>
 </tr>
 <tr>
 <td><code>duration</code></td>
-<td>Display time in ms (0=permanent)</td>
+<td>Display time in ms (0=permanent, default: 3000)</td>
 </tr>
 <tr>
 <td><code>gradient</code></td>
@@ -2154,7 +2202,11 @@
 </tr>
 <tr>
 <td><code>gradientScale</code></td>
-<td>Color offset between chars (default: 4.0)</td>
+<td>Gradient pattern scale (default: 4.0)</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>Clear existing text before rendering</td>
 </tr>
 </tbody>
 </table>
@@ -2174,11 +2226,15 @@
 </tr>
 <tr>
 <td><code>color</code></td>
-<td>Hex color (required)</td>
+<td>Hex color (default: <code>#808000</code>)</td>
+</tr>
+<tr>
+<td><code>accentColor</code></td>
+<td>Optional accent/shadow color</td>
 </tr>
 <tr>
 <td><code>speed</code></td>
-<td>Scroll speed in pixels/second</td>
+<td>Scroll speed in canvas pixels/second (default: 150)</td>
 </tr>
 <tr>
 <td><code>repeat</code></td>
@@ -2191,6 +2247,18 @@
 <tr>
 <td><code>gradient</code></td>
 <td>Array of hex colors for animation</td>
+</tr>
+<tr>
+<td><code>gradientSpeed</code></td>
+<td>Animation speed (default: 3.0)</td>
+</tr>
+<tr>
+<td><code>gradientScale</code></td>
+<td>Gradient pattern scale (default: 4.0)</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>Clear existing scroll text before adding</td>
 </tr>
 </tbody>
 </table>
@@ -2210,19 +2278,15 @@
 </tr>
 <tr>
 <td><code>scale</code></td>
-<td>Pattern frequency (0.1-10.0)</td>
+<td>Pattern frequency (0.1-10, higher=more detail)</td>
 </tr>
 <tr>
 <td><code>speed</code></td>
-<td>Speed multiplier (1.0=normal)</td>
+<td>Animation speed multiplier (0.1-20, default: 3)</td>
 </tr>
 <tr>
 <td><code>enabled</code></td>
 <td><code>on</code>, <code>off</code>, <code>fadeIn</code>, <code>fadeOut</code></td>
-</tr>
-<tr>
-<td><code>fadeDuration</code></td>
-<td>Fade time in ms (default: 1000)</td>
 </tr>
 </tbody>
 </table>
@@ -2246,44 +2310,20 @@
 </tr>
 <tr>
 <td><code>speed</code></td>
-<td>Positive=expand, negative=collapse</td>
+<td>Animation speed (positive=expand, negative=collapse)</td>
 </tr>
 <tr>
 <td><code>scale</code></td>
-<td>Gradient stretch factor</td>
+<td>Perspective (0=linear, &gt;0=3D tunnel, &lt;0=inverted)</td>
 </tr>
 <tr>
 <td><code>enabled</code></td>
 <td><code>on</code>, <code>off</code>, <code>fadeIn</code>, <code>fadeOut</code></td>
 </tr>
-<tr>
-<td><code>fadeDuration</code></td>
-<td>Fade time in ms (default: 1000)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="spectrum">Spectrum<a class="headerlink" href="#spectrum" title="Permanent link">&para;</a></h3>
-<p>FFT spectrum analyzer visualization with rainbow columns and decay animation.</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>bands</code></td>
-<td>Number of frequency bands/columns</td>
-</tr>
-<tr>
-<td><code>decay</code></td>
-<td>Column fall rate (units per second)</td>
-</tr>
 </tbody>
 </table>
 <h3 id="particle-field">Particle Field<a class="headerlink" href="#particle-field" title="Permanent link">&para;</a></h3>
-<p>Animated particle system for starfields, rain, or snow effects.</p>
+<p>Animated particle system for starfields, rain, or snow effects. Slower particles appear dimmer to simulate distance.</p>
 <table>
 <thead>
 <tr>
@@ -2293,12 +2333,12 @@
 </thead>
 <tbody>
 <tr>
-<td><code>particleCount</code></td>
-<td>Number of particles (max 100)</td>
+<td><code>density</code></td>
+<td>Number of active particles (1-100, default: 20)</td>
 </tr>
 <tr>
 <td><code>speed</code></td>
-<td>Base particle speed</td>
+<td>Base particle speed in pixels/second (default: 50)</td>
 </tr>
 <tr>
 <td><code>direction</code></td>
@@ -2310,20 +2350,52 @@
 </tr>
 <tr>
 <td><code>size</code></td>
-<td>Particle size</td>
+<td>Particle size in canvas pixels (1-16, default: 4)</td>
 </tr>
 <tr>
 <td><code>enabled</code></td>
 <td><code>on</code>, <code>off</code>, <code>fadeIn</code>, <code>fadeOut</code></td>
 </tr>
+</tbody>
+</table>
+<h3 id="sparkle">Sparkle<a class="headerlink" href="#sparkle" title="Permanent link">&para;</a></h3>
+<p>Twinkling single-LED particles that cycle through a color gradient. Triggering creates a "cloud" that spawns particles over its duration.</p>
+<table>
+<thead>
 <tr>
-<td><code>fadeDuration</code></td>
-<td>Fade time in ms (default: 1000)</td>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gradient</code></td>
+<td>Colors to cycle through (min 2 colors)</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>Duration in ms (0=infinite, default: 3000)</td>
+</tr>
+<tr>
+<td><code>density</code></td>
+<td>Sparkle spawn rate (1-100, default: 100)</td>
+</tr>
+<tr>
+<td><code>speed</code></td>
+<td>Gradient transition speed (0.1-5.0, default: 0.75)</td>
+</tr>
+<tr>
+<td><code>bloom</code></td>
+<td>Light spread radius (0=none, 100=4 LEDs, default: 90)</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>Clear existing effects before adding</td>
 </tr>
 </tbody>
 </table>
 <h3 id="test-leds">Test LEDs<a class="headerlink" href="#test-leds" title="Permanent link">&para;</a></h3>
-<p>Hardware validation pattern that cycles through colors. Used for diagnostics.</p>
+<p>Hardware validation pattern that cycles through colors. Used for diagnostics. Triggered via the BOOT button on the ESP32 or from the Hub application.</p>
 <h2 id="blend-modes">Blend Modes<a class="headerlink" href="#blend-modes" title="Permanent link">&para;</a></h2>
 <p>Effects can use different blend modes when compositing:</p>
 <ul>

@@ -453,12 +453,13 @@ void loop() {
 			effectProcessor->update();
 			g_frameCount++;
 		}
+	}
 
-		// Respond to watchdog ping from Core 0 (always respond, even without LED config)
-		if (watchdogPing.load()) {
-			watchdogPing.store(false);
-			watchdogPong.store(true);
-		}
+	// Respond to watchdog ping from Core 0 - MUST be outside conditional block
+	// so Core 1 responds even when conditions above fail (e.g., no UDP, OTA in progress)
+	if (watchdogPing.load()) {
+		watchdogPing.store(false);
+		watchdogPong.store(true);
 	}
 
 	// Update crash handler with current uptime (so we know uptime at crash)

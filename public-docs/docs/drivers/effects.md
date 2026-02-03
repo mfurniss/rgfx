@@ -1,6 +1,6 @@
 # Visual Effects
 
-RGFX drivers support 13 visual effects that render on LED strips and matrices.
+RGFX drivers support 12 visual effects that render on LED strips and matrices.
 
 Use the [FX Playground](../hub-app/fx-playground.md) in the Hub to experiment with effects and see them render in real-time.
 
@@ -16,9 +16,9 @@ Fills the entire display with a solid color or gradient. Renders first, allowing
 
 | Parameter | Description |
 |-----------|-------------|
-| `gradient.colors` | Array of hex colors (2-64) |
+| `gradient.colors` | Array of hex colors |
 | `gradient.orientation` | `horizontal` or `vertical` |
-| `fadeDuration` | Fade transition time in ms (default: 1000) |
+| `fadeDuration` | Cross-fade transition time in ms (default: 1000) |
 
 ### Pulse
 
@@ -27,24 +27,24 @@ Pulsing color overlay that expands and contracts. Supports multiple simultaneous
 | Parameter | Description |
 |-----------|-------------|
 | `color` | Hex color (required) |
-| `duration` | Duration in ms |
+| `duration` | Duration in ms (default: 800) |
 | `fade` | Fade out (`true`) or stay bright (`false`) |
-| `easing` | Easing function (e.g., `easeInOutQuad`) |
+| `easing` | Easing function (default: `quinticOut`) |
 | `collapse` | Direction: `horizontal`, `vertical`, `none`, `random` |
 
 ### Bitmap
 
-Animated sprite display with frame-based animation, movement, and fading. Uses 16-color palettes.
+Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette).
 
 | Parameter | Description |
 |-----------|-------------|
-| `image` | Array of pixel rows (hex chars map to palette) |
-| `palette` | Array of 16 hex colors |
-| `x`, `y` | Start position (or `random`) |
+| `images` | Array of frames, each frame is an array of row strings |
+| `palette` | Array of up to 16 hex colors |
+| `centerX`, `centerY` | Start position (0-100 or `random`) |
 | `endX`, `endY` | End position for movement |
-| `easing` | Movement easing function |
-| `fadeInMs`, `fadeOutMs` | Fade durations |
-| `duration` | Total effect duration |
+| `easing` | Movement easing function (default: `quadraticInOut`) |
+| `fadeIn`, `fadeOut` | Fade durations in ms |
+| `duration` | Total effect duration in ms (default: 1500) |
 | `frameRate` | Frames per second (default: 2) |
 
 ### Wipe
@@ -54,22 +54,27 @@ Directional color sweep across the display.
 | Parameter | Description |
 |-----------|-------------|
 | `color` | Hex color (required) |
-| `duration` | Duration in ms |
+| `duration` | Duration in ms (default: 500) |
 | `direction` | `left`, `right`, `up`, `down`, `random` |
 | `blendMode` | `additive` or `replace` |
 
 ### Explode
 
-Radial explosion from a center point. On matrices, emits particles. On strips, creates a collapsing flash.
+Radial particle explosion from a center point.
 
 | Parameter | Description |
 |-----------|-------------|
-| `x`, `y` | Center position |
+| `centerX`, `centerY` | Explosion center (0-100 or `random`) |
 | `color` | Hex color (required) |
-| `spread` | Initial radius |
-| `duration` | Duration in ms |
-| `hueSpread` | Color variation for rainbow effect |
-| `particleCount` | Number of particles (matrices) |
+| `power` | Initial particle velocity (default: 120) |
+| `powerSpread` | Power variation percentage (default: 80) |
+| `lifespan` | Particle lifetime in ms (default: 700) |
+| `lifespanSpread` | Lifespan variation percentage (default: 50) |
+| `particleCount` | Number of particles (1-500, default: 100) |
+| `particleSize` | Particle size in pixels (1-16, default: 6) |
+| `hueSpread` | Color variation in degrees (0-359) |
+| `friction` | Air resistance (0-50, default: 3) |
+| `gravity` | Vertical acceleration (-500 to 500, default: 0) |
 
 ### Projectile
 
@@ -79,12 +84,12 @@ Moving object with velocity and optional particle trail. Starts from screen edge
 |-----------|-------------|
 | `color` | Hex color (required) |
 | `direction` | `left`, `right`, `up`, `down`, `random` |
-| `velocity` | Speed in pixels/second |
+| `velocity` | Speed in pixels/second (default: 1200) |
 | `friction` | Deceleration (0=none, positive=slow, negative=accelerate) |
-| `trail` | Trail length multiplier |
-| `width`, `height` | Object size |
-| `lifespan` | Auto-removal timeout in ms |
-| `particleDensity` | Trail particle chance (0-100%) |
+| `trail` | Trail multiplier (0=none, 1=velocity length) |
+| `width`, `height` | Object size in pixels |
+| `lifespan` | Max duration in ms (default: 5000) |
+| `particleDensity` | Trail particle chance per frame (0-100%) |
 
 ### Text
 
@@ -93,12 +98,13 @@ Static text display with optional gradient animation. Matrix only.
 | Parameter | Description |
 |-----------|-------------|
 | `text` | Text to display (max 32 chars) |
-| `color` | Hex color (required) |
-| `accentColor` | Highlight color |
-| `duration` | Display time in ms (0=permanent) |
+| `color` | Hex color (default: `#FFA000`) |
+| `accentColor` | Optional accent/shadow color |
+| `duration` | Display time in ms (0=permanent, default: 3000) |
 | `gradient` | Array of hex colors for animation |
 | `gradientSpeed` | Animation speed (default: 3.0) |
-| `gradientScale` | Color offset between chars (default: 4.0) |
+| `gradientScale` | Gradient pattern scale (default: 4.0) |
+| `reset` | Clear existing text before rendering |
 
 ### Scroll Text
 
@@ -107,11 +113,15 @@ Horizontally scrolling text with gradient animation.
 | Parameter | Description |
 |-----------|-------------|
 | `text` | Text to display (max 64 chars) |
-| `color` | Hex color (required) |
-| `speed` | Scroll speed in pixels/second |
+| `color` | Hex color (default: `#808000`) |
+| `accentColor` | Optional accent/shadow color |
+| `speed` | Scroll speed in canvas pixels/second (default: 150) |
 | `repeat` | Restart when text exits (`true`/`false`) |
 | `snapToLed` | Snap to LED boundaries for smoother motion |
 | `gradient` | Array of hex colors for animation |
+| `gradientSpeed` | Animation speed (default: 3.0) |
+| `gradientScale` | Gradient pattern scale (default: 4.0) |
+| `reset` | Clear existing scroll text before adding |
 
 ### Plasma
 
@@ -120,10 +130,9 @@ Classic demoscene plasma effect using Perlin noise.
 | Parameter | Description |
 |-----------|-------------|
 | `gradient` | Array of hex colors (default: rainbow) |
-| `scale` | Pattern frequency (0.1-10.0) |
-| `speed` | Speed multiplier (1.0=normal) |
+| `scale` | Pattern frequency (0.1-10, higher=more detail) |
+| `speed` | Animation speed multiplier (0.1-20, default: 3) |
 | `enabled` | `on`, `off`, `fadeIn`, `fadeOut` |
-| `fadeDuration` | Fade time in ms (default: 1000) |
 
 ### Warp
 
@@ -133,37 +142,39 @@ Center-radiating animated gradient creating tunnel or bulge effects.
 |-----------|-------------|
 | `gradient` | Array of hex colors |
 | `orientation` | `horizontal` or `vertical` |
-| `speed` | Positive=expand, negative=collapse |
-| `scale` | Gradient stretch factor |
+| `speed` | Animation speed (positive=expand, negative=collapse) |
+| `scale` | Perspective (0=linear, >0=3D tunnel, <0=inverted) |
 | `enabled` | `on`, `off`, `fadeIn`, `fadeOut` |
-| `fadeDuration` | Fade time in ms (default: 1000) |
-
-### Spectrum
-
-FFT spectrum analyzer visualization with rainbow columns and decay animation.
-
-| Parameter | Description |
-|-----------|-------------|
-| `bands` | Number of frequency bands/columns |
-| `decay` | Column fall rate (units per second) |
 
 ### Particle Field
 
-Animated particle system for starfields, rain, or snow effects.
+Animated particle system for starfields, rain, or snow effects. Slower particles appear dimmer to simulate distance.
 
 | Parameter | Description |
 |-----------|-------------|
-| `particleCount` | Number of particles (max 100) |
-| `speed` | Base particle speed |
+| `density` | Number of active particles (1-100, default: 20) |
+| `speed` | Base particle speed in pixels/second (default: 50) |
 | `direction` | `up`, `down`, `left`, `right` |
 | `color` | Hex color |
-| `size` | Particle size |
+| `size` | Particle size in canvas pixels (1-16, default: 4) |
 | `enabled` | `on`, `off`, `fadeIn`, `fadeOut` |
-| `fadeDuration` | Fade time in ms (default: 1000) |
+
+### Sparkle
+
+Twinkling single-LED particles that cycle through a color gradient. Triggering creates a "cloud" that spawns particles over its duration.
+
+| Parameter | Description |
+|-----------|-------------|
+| `gradient` | Colors to cycle through (min 2 colors) |
+| `duration` | Duration in ms (0=infinite, default: 3000) |
+| `density` | Sparkle spawn rate (1-100, default: 100) |
+| `speed` | Gradient transition speed (0.1-5.0, default: 0.75) |
+| `bloom` | Light spread radius (0=none, 100=4 LEDs, default: 90) |
+| `reset` | Clear existing effects before adding |
 
 ### Test LEDs
 
-Hardware validation pattern that cycles through colors. Used for diagnostics.
+Hardware validation pattern that cycles through colors. Used for diagnostics. Triggered via the BOOT button on the ESP32 or from the Hub application.
 
 ## Blend Modes
 

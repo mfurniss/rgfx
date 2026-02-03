@@ -179,15 +179,19 @@ Refactored components and utilities extracted from the main page:
 
 **Purpose:** Application settings and preferences.
 
+**Layout:** Uses `Stack` with `spacing={3}` for consistent section spacing.
+
 **Features:**
 - **Appearance:** Theme mode selection (system/light/dark) via MUI color scheme
+- **Effect Modifiers:** Strip lifespan scaling setting for LED strips
 - **Directories:**
   - RGFX Config Directory (required) - for interceptors, transformers, driver configs
   - MAME ROMs Directory (optional) - for ROM file location
-- Directory validation with folder picker dialogs
+  - Directory validation with folder picker dialogs
+  - Uses `SuperButton` for save action with busy state
+- **Logs:** Log file management with size display and clear functionality
 - Saves to `UiStore` (localStorage persistence)
 - Gets default paths from `AppInfoStore`
-- **Effects:** Strip explosion lifespan scaling setting for LED strips
 
 ---
 

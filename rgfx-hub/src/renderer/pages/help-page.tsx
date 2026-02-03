@@ -1,13 +1,13 @@
 import React from 'react';
 import { Typography, Box, Paper, Button } from '@mui/material';
 import {
-  HelpOutline as SupportIcon,
+  HelpOutline as HelpIcon,
   MenuBook as DocsIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import { useAppInfoStore } from '../store/app-info-store';
 
-const SupportPage: React.FC = () => {
+const HelpPage: React.FC = () => {
   const appInfo = useAppInfoStore((state) => state.appInfo);
 
   const handleOpenDocs = () => {
@@ -18,8 +18,8 @@ const SupportPage: React.FC = () => {
 
   return (
     <Box>
-      <PageTitle icon={<SupportIcon />} title="Support" />
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <PageTitle icon={<HelpIcon />} title="Help" />
+      <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Documentation
         </Typography>
@@ -40,4 +40,4 @@ const SupportPage: React.FC = () => {
   );
 };
 
-export default SupportPage;
+export default HelpPage;
