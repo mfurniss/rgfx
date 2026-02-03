@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Stack,
 } from '@mui/material';
 import {
   Monitor as MonitorIcon,
@@ -105,60 +106,62 @@ const EventMonitorPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
-        <Button
-          variant="outlined"
-          color="error"
-          size="small"
-          startIcon={<RefreshIcon />}
-          onClick={handleOpenDialog}
-          disabled={topicsArray.length === 0}
-        >
-          Reset
-        </Button>
-      </Box>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <SortableTableHead
-            columns={COLUMNS}
-            sortField={sortField}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-          />
-          <TableBody>
-            {sortedTopics.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} align="center">
-                  <Typography variant="body2" color="text.secondary">
-                    No events received yet
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              sortedTopics.map((entry) => (
-                <TableRow
-                  key={entry.topic}
-                  onClick={() => {
-                    const eventLine = entry.lastValue
-                      ? `${entry.topic} ${entry.lastValue}`
-                      : entry.topic;
-                    void window.rgfx.simulateEvent(eventLine);
-                  }}
-                  sx={{
-                    cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'action.hover' },
-                  }}
-                >
-                  <TableCell>{entry.topic}</TableCell>
-                  <TableCell align="right">{formatNumber(entry.count)}</TableCell>
-                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatValue(entry.lastValue)}</TableCell>
+      <Stack spacing={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            startIcon={<RefreshIcon />}
+            onClick={handleOpenDialog}
+            disabled={topicsArray.length === 0}
+          >
+            Reset
+          </Button>
+        </Box>
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <SortableTableHead
+              columns={COLUMNS}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+            />
+            <TableBody>
+              {sortedTopics.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align="center">
+                    <Typography variant="body2" color="text.secondary">
+                      No events received yet
+                    </Typography>
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              ) : (
+                sortedTopics.map((entry) => (
+                  <TableRow
+                    key={entry.topic}
+                    onClick={() => {
+                      const eventLine = entry.lastValue
+                        ? `${entry.topic} ${entry.lastValue}`
+                        : entry.topic;
+                      void window.rgfx.simulateEvent(eventLine);
+                    }}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: 'action.hover' },
+                    }}
+                  >
+                    <TableCell>{entry.topic}</TableCell>
+                    <TableCell align="right">{formatNumber(entry.count)}</TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatValue(entry.lastValue)}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Stack>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

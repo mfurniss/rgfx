@@ -138,7 +138,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             <SuperButton
               icon={<DescriptionIcon />}
               variant="outlined"
-              size="small"
               onClick={() => {
                 void window.rgfx.openDriverLog(driver.id);
               }}
@@ -147,7 +146,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
             </SuperButton>
             <SuperButton
               variant="outlined"
-              size="small"
               icon={<SettingsIcon />}
               onClick={() => {
                 void navigate(`/drivers/${driver.mac}/config`);

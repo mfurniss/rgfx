@@ -19,7 +19,7 @@ const SupportPage: React.FC = () => {
   return (
     <Box>
       <PageTitle icon={<SupportIcon />} title="Support" />
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Documentation
         </Typography>

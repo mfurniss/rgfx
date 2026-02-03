@@ -304,155 +304,157 @@ export default function TestEffectsPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
-        <Button
-          variant="outlined"
-          color="warning"
-          startIcon={<LayersClearIcon />}
-          onClick={handleClearEffects}
-          disabled={connectedDrivers.length === 0}
-        >
-          Clear All Effects
-        </Button>
-      </Box>
-
-      <Paper sx={{ p: 3, mt: 2 }}>
-        <Tabs
-          value={tabIndex}
-          onChange={(_, v: number) => {
-            setTabIndex(v);
-          }}
-          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
-        >
-          <Tab label="Effect Form" />
-          <Tab label="Transformer Code" />
-        </Tabs>
-
-        <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-          <TargetDriversPicker
-            drivers={drivers}
-            selectedDrivers={selectedDrivers}
-            selectAll={selectAll}
-            onDriverToggle={handleDriverToggle}
-            onSelectAll={handleSelectAll}
-          />
-          <SuperButton
-            variant="contained"
-            color="primary"
-            onClick={handleTriggerEffect}
-            icon={<ScienceIcon />}
-            disabled={selectedDrivers.size === 0}
-            data-testid="trigger-effect-btn"
-          >
-            Trigger Effect
-          </SuperButton>
-          <SuperButton
+      <Stack spacing={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
+          <Button
             variant="outlined"
-            color="primary"
-            onClick={handleRandomTrigger}
-            icon={<ShuffleIcon />}
-            disabled={selectedDrivers.size === 0}
+            color="warning"
+            startIcon={<LayersClearIcon />}
+            onClick={handleClearEffects}
+            disabled={connectedDrivers.length === 0}
           >
-            Random Trigger
-          </SuperButton>
+            Clear All Effects
+          </Button>
         </Box>
 
-        <TabPanel value={tabIndex} index={0}>
-          <Stack spacing={3}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Effect</InputLabel>
-                <Select
-                  value={selectedEffect}
-                  label="Effect"
-                  onChange={(e) => {
-                    handleEffectChange(e.target.value);
-                  }}
-                >
-                  {formEffects.map((effect) => (
-                    <MenuItem key={effect} value={effect}>
-                      {effectDisplayNames[effect]}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {presetConfig && (
+        <Paper sx={{ p: 3 }}>
+          <Tabs
+            value={tabIndex}
+            onChange={(_, v: number) => {
+              setTabIndex(v);
+            }}
+            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+          >
+            <Tab label="Effect Form" />
+            <Tab label="Transformer Code" />
+          </Tabs>
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+            <TargetDriversPicker
+              drivers={drivers}
+              selectedDrivers={selectedDrivers}
+              selectAll={selectAll}
+              onDriverToggle={handleDriverToggle}
+              onSelectAll={handleSelectAll}
+            />
+            <SuperButton
+              variant="contained"
+              color="primary"
+              onClick={handleTriggerEffect}
+              icon={<ScienceIcon />}
+              disabled={selectedDrivers.size === 0}
+              data-testid="trigger-effect-btn"
+            >
+              Trigger Effect
+            </SuperButton>
+            <SuperButton
+              variant="outlined"
+              color="primary"
+              onClick={handleRandomTrigger}
+              icon={<ShuffleIcon />}
+              disabled={selectedDrivers.size === 0}
+            >
+              Random Trigger
+            </SuperButton>
+          </Box>
+
+          <TabPanel value={tabIndex} index={0}>
+            <Stack spacing={3}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Effect</InputLabel>
+                  <Select
+                    value={selectedEffect}
+                    label="Effect"
+                    onChange={(e) => {
+                      handleEffectChange(e.target.value);
+                    }}
+                  >
+                    {formEffects.map((effect) => (
+                      <MenuItem key={effect} value={effect}>
+                        {effectDisplayNames[effect]}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {presetConfig && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<PaletteIcon />}
+                    onClick={() => {
+                      setPresetModalOpen(true);
+                    }}
+                    sx={{ minWidth: 160, height: 40 }}
+                  >
+                    Select Preset
+                  </Button>
+                )}
                 <Button
                   variant="outlined"
-                  startIcon={<PaletteIcon />}
-                  onClick={() => {
-                    setPresetModalOpen(true);
-                  }}
-                  sx={{ minWidth: 160, height: 40 }}
+                  startIcon={<ResetIcon />}
+                  onClick={handleResetToDefaults}
+                  sx={{ minWidth: 120, height: 40 }}
                 >
-                  Select Preset
+                  Reset
                 </Button>
+              </Box>
+
+              {presetConfig && (
+                <PresetSelectorModal
+                  open={presetModalOpen}
+                  type={presetConfig.type}
+                  onClose={() => {
+                    setPresetModalOpen(false);
+                  }}
+                  onSelect={handlePresetSelect}
+                />
               )}
-              <Button
-                variant="outlined"
-                startIcon={<ResetIcon />}
-                onClick={handleResetToDefaults}
-                sx={{ minWidth: 120, height: 40 }}
-              >
-                Reset
-              </Button>
-            </Box>
 
-            {presetConfig && (
-              <PresetSelectorModal
-                open={presetModalOpen}
-                type={presetConfig.type}
-                onClose={() => {
-                  setPresetModalOpen(false);
+              {currentSchema && (
+                <EffectForm
+                  schema={currentSchema}
+                  defaultValues={currentProps}
+                  onChange={handlePropsChange}
+                  fieldTypes={currentFieldTypes}
+                />
+              )}
+            </Stack>
+          </TabPanel>
+
+          <TabPanel value={tabIndex} index={1}>
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="subtitle2">
+                  Copy this code to the transformer JavaScript (.js) file.
+                </Typography>
+                <Tooltip title={copySuccess ? 'Copied!' : 'Copy to clipboard'}>
+                  <IconButton onClick={() => {
+                    void handleCopyCode();
+                  }} size="small">
+                    <CopyIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Box
+                component="pre"
+                sx={{
+                  p: 2,
+                  bgcolor: 'grey.900',
+                  color: 'grey.100',
+                  borderRadius: 1,
+                  overflow: 'auto',
+                  fontFamily: 'monospace',
+                  fontSize: '0.875rem',
+                  m: 0,
                 }}
-                onSelect={handlePresetSelect}
-              />
-            )}
-
-            {currentSchema && (
-              <EffectForm
-                schema={currentSchema}
-                defaultValues={currentProps}
-                onChange={handlePropsChange}
-                fieldTypes={currentFieldTypes}
-              />
-            )}
-          </Stack>
-        </TabPanel>
-
-        <TabPanel value={tabIndex} index={1}>
-          <Stack spacing={2}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2">
-                Copy this code to the transformer JavaScript (.js) file.
-              </Typography>
-              <Tooltip title={copySuccess ? 'Copied!' : 'Copy to clipboard'}>
-                <IconButton onClick={() => {
-                  void handleCopyCode();
-                }} size="small">
-                  <CopyIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-            <Box
-              component="pre"
-              sx={{
-                p: 2,
-                bgcolor: 'grey.900',
-                color: 'grey.100',
-                borderRadius: 1,
-                overflow: 'auto',
-                fontFamily: 'monospace',
-                fontSize: '0.875rem',
-                m: 0,
-              }}
-            >
-              {broadcastCode}
-            </Box>
-          </Stack>
-        </TabPanel>
-      </Paper>
+              >
+                {broadcastCode}
+              </Box>
+            </Stack>
+          </TabPanel>
+        </Paper>
+      </Stack>
     </Box>
   );
 }
