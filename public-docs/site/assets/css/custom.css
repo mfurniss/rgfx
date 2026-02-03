@@ -2,6 +2,11 @@
   display: none;
 }
 
+/* Remove underline from h2 headers */
+.md-typeset h2 {
+  border-bottom: none;
+}
+
 /* LED test pattern visualizations */
 :root {
   --led-red: #ff0000;
