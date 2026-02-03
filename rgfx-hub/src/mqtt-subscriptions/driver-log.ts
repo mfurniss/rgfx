@@ -9,6 +9,7 @@ import log from 'electron-log/main';
 import { z } from 'zod';
 import type { MqttBroker } from '../network';
 import type { DriverLogPersistence } from '../driver-log-persistence';
+import { eventBus } from '../services/event-bus';
 
 /**
  * Schema for driver log messages
@@ -51,6 +52,18 @@ export function subscribeDriverLog(deps: DriverLogDeps): void {
       }
 
       const { level, message } = result.data;
+
+      // Detect crash recovery and surface as system error
+      if (message.includes('CRASH RECOVERY')) {
+        log.warn(`Driver ${driverId} recovered from crash: ${message}`);
+        eventBus.emit('system:error', {
+          errorType: 'driver',
+          message: `Driver ${driverId} crash recovery detected`,
+          timestamp: Date.now(),
+          details: message,
+        });
+      }
+
       // Use Hub's timestamp since driver only has uptime (millis())
       driverLogPersistence.appendLog(
         driverId,

@@ -629,6 +629,8 @@ class DriverMonitor:
         self.drivers_file = self.rgfx_dir / "drivers.json"
         self.expected_drivers: list[str] = []
         self.connected_drivers: set[str] = set()
+        self.disconnected_drivers: set[str] = set()
+        self.crashes_detected: int = 0
         self.log_position: int = 0
 
         # Hub main log path (varies by platform)
@@ -641,6 +643,9 @@ class DriverMonitor:
 
         # Pattern to match: "[timestamp] [info] Driver connected: driver-01"
         self.connect_pattern = re.compile(r"Driver connected:\s*(\S+)")
+        # Patterns for disconnect detection
+        self.disconnect_pattern = re.compile(r"Driver (\S+) (?:went offline|timed out)")
+        self.crash_recovery_pattern = re.compile(r"CRASH RECOVERY")
 
     def load_expected_drivers(self) -> bool:
         """Load expected driver IDs from drivers.json."""
@@ -712,6 +717,43 @@ class DriverMonitor:
             pass
 
         return newly_connected
+
+    def check_for_disconnections_and_crashes(self) -> tuple[list[str], int]:
+        """Check main log for driver disconnections and crash recovery events.
+
+        Returns:
+            Tuple of (newly_disconnected driver IDs, new crash count)
+        """
+        newly_disconnected: list[str] = []
+        new_crashes = 0
+
+        if not self.main_log.exists():
+            return newly_disconnected, new_crashes
+
+        try:
+            with open(self.main_log, "r", errors="replace") as f:
+                f.seek(self.log_position)
+                new_content = f.read()
+                self.log_position = f.tell()
+
+            for line in new_content.split("\n"):
+                # Check for driver disconnection
+                match = self.disconnect_pattern.search(line)
+                if match:
+                    driver_id = match.group(1)
+                    if driver_id not in self.disconnected_drivers:
+                        self.disconnected_drivers.add(driver_id)
+                        newly_disconnected.append(driver_id)
+
+                # Check for crash recovery
+                if self.crash_recovery_pattern.search(line):
+                    self.crashes_detected += 1
+                    new_crashes += 1
+
+        except OSError:
+            pass
+
+        return newly_disconnected, new_crashes
 
     def wait_for_drivers(self, timeout: int = 30) -> bool:
         """Wait for all expected drivers to connect by watching the main log."""
@@ -1031,6 +1073,14 @@ class TestRunner:
                     sample = self.process_monitor.sample()
                     self.log_monitor.check_for_errors()
 
+                    # Check for driver disconnections and crashes
+                    disconnected, crashes = self.driver_monitor.check_for_disconnections_and_crashes()
+                    if disconnected:
+                        for driver_id in disconnected:
+                            print(f"  WARNING: Driver {driver_id} disconnected!")
+                    if crashes > 0:
+                        print(f"  WARNING: {crashes} driver crash(es) detected!")
+
                     if self.verbose:
                         elapsed = current_time - self.start_time
                         rate = self.events_sent / elapsed if elapsed > 1 else 0
@@ -1076,10 +1126,16 @@ class TestRunner:
         elapsed = time.time() - self.start_time
         process_stats = self.process_monitor.get_stats()
         error_count = len(self.log_monitor.errors)
+        disconnected_count = len(self.driver_monitor.disconnected_drivers)
+        crash_count = self.driver_monitor.crashes_detected
 
-        # Determine status
+        # Determine status - fail on errors, disconnects, or crashes
         status = "PASS"
         if error_count > 0:
+            status = "FAIL"
+        elif disconnected_count > 0:
+            status = "FAIL"
+        elif crash_count > 0:
             status = "FAIL"
         elif process_stats.get("memory_trend") == "growing":
             status = "WARN"
@@ -1089,6 +1145,8 @@ class TestRunner:
             "density": self.density,
             "game": self.game,
             "drivers_connected": self.drivers_connected,
+            "drivers_disconnected": list(self.driver_monitor.disconnected_drivers),
+            "crashes_detected": crash_count,
             "events": {
                 "total_sent": self.events_sent,
                 "rate_per_second": round(self.events_sent / elapsed, 2) if elapsed > 0 else 0,
@@ -1166,6 +1224,12 @@ Examples:
     print(f"  Status:       {results.get('status', 'UNKNOWN')}")
     print(f"  Duration:     {results.get('test_duration_seconds', 0):.1f}s")
     print(f"  Drivers:      {results.get('drivers_connected', 0)}")
+    disconnected = results.get('drivers_disconnected', [])
+    if disconnected:
+        print(f"  Disconnected: {len(disconnected)} ({', '.join(disconnected)})")
+    crashes = results.get('crashes_detected', 0)
+    if crashes:
+        print(f"  Crashes:      {crashes}")
     print(f"  Events Sent:  {results.get('events', {}).get('total_sent', 0)}")
     print(f"  Events/sec:   {results.get('events', {}).get('rate_per_second', 0):.2f}")
     proc = results.get('process', {})
