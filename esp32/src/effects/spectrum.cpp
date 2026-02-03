@@ -42,6 +42,12 @@ void SpectrumEffect::add(JsonDocument& props) {
 		return;
 	}
 
+	// Limit columns to prevent unbounded memory growth
+	static constexpr size_t MAX_SPECTRUM_COLUMNS = 64;
+	if (newCount > MAX_SPECTRUM_COLUMNS) {
+		newCount = MAX_SPECTRUM_COLUMNS;
+	}
+
 	// Parse optional decay rate
 	if (props["decayRate"].is<float>()) {
 		decayRate = props["decayRate"].as<float>();
