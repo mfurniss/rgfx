@@ -21,6 +21,8 @@ plugins:
   - search
   - offline
   - open-in-new-tab
+  - glightbox:
+      auto_caption: true
 
 # Disable features incompatible with file:// protocol
 use_directory_urls: false
