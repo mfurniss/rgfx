@@ -51,6 +51,7 @@ nav:
     - Visual Effects: drivers/effects.md
     - ESP32 Firmware: drivers/esp32/index.md
     - LED Hardware: drivers/led-hardware/index.md
+    - Examples: drivers/examples.md
   - Hub App:
     - Introduction: hub-app/index.md
     - System Status: hub-app/system-status.md
