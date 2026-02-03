@@ -10,7 +10,7 @@ import {
   Settings as SettingsIcon,
   Info as InfoIcon,
   SportsEsports as GamesIcon,
-  HelpOutline as SupportIcon,
+  HelpOutline as HelpIcon,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -30,7 +30,7 @@ const navItems: NavItem[] = [
   { label: 'FX Playground', path: '/effects-playground', icon: <ScienceIcon /> },
   { label: 'Simulator', path: '/simulator', icon: <TerminalIcon />, dividerAfter: true },
   { label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
-  { label: 'Support', path: '/support', icon: <SupportIcon /> },
+  { label: 'Help', path: '/help', icon: <HelpIcon /> },
   { label: 'About', path: '/about', icon: <InfoIcon /> },
 ];
 
