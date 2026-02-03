@@ -431,13 +431,14 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `pendingLabel?: string` - Label shown during execution (defaults to `label...`)
 - `onSuccess?: () => void` - Callback after successful execution
 - `onError?: (error: Error) => void` - Error handler (defaults to console.error)
-- Plus all standard MUI ButtonProps
+- `size?: ButtonProps['size']` - Button size (defaults to `'medium'` to match SuperButton)
+- `variant?: ButtonProps['variant']` - Button variant (defaults to `'outlined'`)
+- Plus standard MUI ButtonProps (color, disabled, tooltipTitle, sx)
 
 **Features:**
 - Confirmation dialog with customizable content
-- Pending state with loading indicator
+- Pending state with loading indicator (uses SuperButton internally)
 - Error handling with optional callback
-- Uses `useAsyncAction` hook internally
 
 ---
 
