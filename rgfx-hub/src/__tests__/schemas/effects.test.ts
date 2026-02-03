@@ -240,7 +240,7 @@ describe('Effect Schema Randomize Functions', () => {
         const values = randomizeSparkle();
         const result = sparkleSchema.safeParse({
           name: 'Sparkle',
-          description: 'Twinkling particles cycling through a gradient',
+          description: 'Sparkling particles cycling through a gradient',
           ...values,
         });
         expect(result.success).toBe(true);
@@ -312,7 +312,7 @@ describe('Effect Schema Validation', () => {
   it('sparkle schema validates correctly', () => {
     const valid = sparkleSchema.safeParse({
       name: 'Sparkle',
-      description: 'Twinkling particles cycling through a gradient',
+      description: 'Sparkling particles cycling through a gradient',
       duration: 3000,
       density: 50,
       gradient: ['#FFFFFF', '#FFFF00', '#FF0000', '#000000'],
@@ -325,7 +325,7 @@ describe('Effect Schema Validation', () => {
   it('sparkle schema uses defaults', () => {
     const result = sparkleSchema.parse({
       name: 'Sparkle',
-      description: 'Twinkling particles cycling through a gradient',
+      description: 'Sparkling particles cycling through a gradient',
     });
     expect(result.duration).toBe(3000);
     expect(result.density).toBe(100);
@@ -337,7 +337,7 @@ describe('Effect Schema Validation', () => {
   it('sparkle schema rejects invalid gradient', () => {
     const invalid = sparkleSchema.safeParse({
       name: 'Sparkle',
-      description: 'Twinkling particles cycling through a gradient',
+      description: 'Sparkling particles cycling through a gradient',
       gradient: ['#FF0000'], // Needs at least 2 colors
     });
     expect(invalid.success).toBe(false);
@@ -346,21 +346,21 @@ describe('Effect Schema Validation', () => {
   it('sparkle schema rejects out-of-range values', () => {
     const invalidDensity = sparkleSchema.safeParse({
       name: 'Sparkle',
-      description: 'Twinkling particles cycling through a gradient',
+      description: 'Sparkling particles cycling through a gradient',
       density: 101, // Max is 100
     });
     expect(invalidDensity.success).toBe(false);
 
     const invalidBloom = sparkleSchema.safeParse({
       name: 'Sparkle',
-      description: 'Twinkling particles cycling through a gradient',
+      description: 'Sparkling particles cycling through a gradient',
       bloom: 150, // Max is 100
     });
     expect(invalidBloom.success).toBe(false);
 
     const invalidSpeed = sparkleSchema.safeParse({
       name: 'Sparkle',
-      description: 'Twinkling particles cycling through a gradient',
+      description: 'Sparkling particles cycling through a gradient',
       speed: 10, // Max is 5.0
     });
     expect(invalidSpeed.success).toBe(false);

@@ -11,7 +11,6 @@ export function EffectModifiersSection() {
     <SettingsSection
       title="Effect Modifiers"
       subtitle="Adjust effect duration scaling for LED strips"
-      sx={{ mt: 3 }}
     >
       <Box sx={{ px: 1 }}>
         <Typography variant="body2" gutterBottom>

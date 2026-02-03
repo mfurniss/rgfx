@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { Settings as SettingsIcon } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import {
@@ -13,10 +13,12 @@ const SettingsPage: React.FC = () => {
   return (
     <Box>
       <PageTitle icon={<SettingsIcon />} title="Settings" />
-      <AppearanceSection />
-      <EffectModifiersSection />
-      <DirectoriesSection />
-      <LogsSection />
+      <Stack spacing={3}>
+        <AppearanceSection />
+        <EffectModifiersSection />
+        <DirectoriesSection />
+        <LogsSection />
+      </Stack>
     </Box>
   );
 };

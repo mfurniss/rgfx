@@ -61,7 +61,7 @@ export function LogsSection() {
   const hasLogs = totalSize > 0;
 
   return (
-    <SettingsSection title="Logs" sx={{ mt: 3 }}>
+    <SettingsSection title="Logs">
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
           <CircularProgress size={24} />
@@ -128,7 +128,6 @@ export function LogsSection() {
               onError={handleClearError}
               disabled={!hasLogs}
               variant="outlined"
-              size="small"
             />
           </Stack>
         </>

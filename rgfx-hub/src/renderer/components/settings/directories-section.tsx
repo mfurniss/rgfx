@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Stack } from '@mui/material';
+import { Stack } from '@mui/material';
 import { Save } from '@mui/icons-material';
 import { useUiStore } from '../../store/ui-store';
 import { useAppInfoStore } from '../../store/app-info-store';
 import { notify } from '../../store/notification-store';
 import { DirectoryPicker } from '../common/directory-picker';
+import SuperButton from '../common/super-button';
 import { SettingsSection } from './settings-section';
 
 export function DirectoriesSection() {
@@ -107,14 +108,9 @@ export function DirectoriesSection() {
         sx={{ mb: 3 }}
       />
       <Stack direction="row" justifyContent="flex-end">
-        <Button
-          variant="contained"
-          startIcon={<Save />}
-          onClick={handleSave}
-          disabled={isSaving}
-        >
-          {isSaving ? 'Saving...' : 'Save'}
-        </Button>
+        <SuperButton variant="contained" icon={<Save />} onClick={handleSave} busy={isSaving}>
+          Save
+        </SuperButton>
       </Stack>
     </SettingsSection>
   );
