@@ -66,12 +66,12 @@ Matrix 1 is outlined in green. Matrix 2 is outlined in red.
 
 ---
 
-## 32x8 Display Example
+## 96x8 Display Example
 
-Three 32x8 LED matrices arranged horizontally, creating a 96x8 unified display. This wide configuration is ideal for displaying scores and scrolling text messages.
+Three 32x8 LED matrices arranged horizontally, creating a 96x8 unified display. This wide configuration is ideal for displaying scores and text messages.
 
 ### Test Pattern
 
-> The white LEDs indicate the top left of each matrix.
+> The white LEDs indicate the top left corner of each matrix.
 
 ![Triple 96x8 matrix test pattern](../assets/images/matrix-examples/32x8x3-front-test-pattern.jpg)
