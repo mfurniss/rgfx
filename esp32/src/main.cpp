@@ -81,6 +81,7 @@ static bool initialConnectionAttemptDone = false;
 
 // Onboard LED indicator state
 static unsigned long indicatorOffTime = 0;
+static bool wasConnecting = false;
 
 // BOOT button state for test mode toggle
 static bool lastButtonState = HIGH;
@@ -337,6 +338,13 @@ void loop() {
 	// Onboard LED indicator: solid in AP mode, blink while connecting, flash on network events
 	bool isApMode = (state == "ApMode" || state == "NotConfigured");
 	bool isConnecting = (state == "Connecting");
+
+	// Ensure LED is off when exiting connecting state
+	if (wasConnecting && !isConnecting && !isApMode) {
+		setIndicator(0);
+	}
+	wasConnecting = isConnecting;
+
 	if (isApMode) {
 		setIndicator(-1);  // Solid on
 	} else if (isConnecting) {
