@@ -4,7 +4,6 @@
 #include "graphics/canvas.h"
 #include "network/mqtt.h"
 #include <cmath>
-#include <cstring>
 
 namespace {
 	constexpr float PROJECTILE_MIN_SEGMENT_WIDTH = 4.0f;
@@ -12,38 +11,9 @@ namespace {
 	constexpr uint8_t PROJECTILE_TRAIL_ALPHA_MAX = 120;
 }  // namespace
 
-static ProjectileDirection parseDirection(const char* dir, bool is1D) {
-	ProjectileDirection result;
-
-	if (strcmp(dir, "random") == 0 || strcmp(dir, "") == 0) {
-		result = static_cast<ProjectileDirection>(hal::random(4));
-	} else if (strcmp(dir, "left") == 0) {
-		result = ProjectileDirection::LEFT;
-	} else if (strcmp(dir, "right") == 0) {
-		result = ProjectileDirection::RIGHT;
-	} else if (strcmp(dir, "up") == 0) {
-		result = ProjectileDirection::UP;
-	} else if (strcmp(dir, "down") == 0) {
-		result = ProjectileDirection::DOWN;
-	} else {
-		result = static_cast<ProjectileDirection>(hal::random(4));
-	}
-
-	// For 1D strips, vertical directions map to horizontal
-	if (is1D) {
-		if (result == ProjectileDirection::UP)
-			result = ProjectileDirection::LEFT;
-		if (result == ProjectileDirection::DOWN)
-			result = ProjectileDirection::RIGHT;
-	}
-
-	return result;
-}
-
 ProjectileEffect::ProjectileEffect(const Matrix& m, Canvas& c, ParticleSystem& ps)
 	: canvas(c), particleSystem(ps), canvasWidth(c.getWidth()), canvasHeight(c.getHeight()) {
-	(void)m;                  // Matrix not needed, but kept for API consistency
-	projectiles.reserve(16);  // Pre-allocate to avoid heap fragmentation
+	(void)m;  // Matrix not needed, but kept for API consistency
 }
 
 void ProjectileEffect::add(JsonDocument& props) {
@@ -62,7 +32,7 @@ void ProjectileEffect::add(JsonDocument& props) {
 	const char* dirStr = props["direction"] | "";
 
 	bool is1D = canvas.getHeight() == 1;
-	ProjectileDirection direction = parseDirection(dirStr, is1D);
+	Direction direction = parseDirection(dirStr, is1D);
 
 	// For 1D strips, use larger of width/height as width, force height to 1
 	if (is1D) {
@@ -71,9 +41,7 @@ void ProjectileEffect::add(JsonDocument& props) {
 	}
 
 	Projectile newProjectile;
-	newProjectile.r = (color >> 16) & 0xFF;
-	newProjectile.g = (color >> 8) & 0xFF;
-	newProjectile.b = color & 0xFF;
+	newProjectile.color = RGBColor(color);
 	newProjectile.width = width;
 	newProjectile.height = height;
 	newProjectile.friction = friction;
@@ -84,25 +52,25 @@ void ProjectileEffect::add(JsonDocument& props) {
 
 	// Calculate start position and velocity based on direction
 	switch (direction) {
-		case ProjectileDirection::RIGHT:
+		case Direction::RIGHT:
 			newProjectile.x = -static_cast<float>(width);
 			newProjectile.y = (canvasHeight - height) / 2.0f;
 			newProjectile.velocityX = static_cast<float>(velocity);
 			newProjectile.velocityY = 0.0f;
 			break;
-		case ProjectileDirection::LEFT:
+		case Direction::LEFT:
 			newProjectile.x = static_cast<float>(canvasWidth);
 			newProjectile.y = (canvasHeight - height) / 2.0f;
 			newProjectile.velocityX = -static_cast<float>(velocity);
 			newProjectile.velocityY = 0.0f;
 			break;
-		case ProjectileDirection::DOWN:
+		case Direction::DOWN:
 			newProjectile.x = (canvasWidth - width) / 2.0f;
 			newProjectile.y = -static_cast<float>(height);
 			newProjectile.velocityX = 0.0f;
 			newProjectile.velocityY = static_cast<float>(velocity);
 			break;
-		case ProjectileDirection::UP:
+		case Direction::UP:
 			newProjectile.x = (canvasWidth - width) / 2.0f;
 			newProjectile.y = static_cast<float>(canvasHeight);
 			newProjectile.velocityX = 0.0f;
@@ -110,12 +78,7 @@ void ProjectileEffect::add(JsonDocument& props) {
 			break;
 	}
 
-	// Cap vector size to prevent unbounded growth under high load
-	static constexpr size_t MAX_PROJECTILES = 64;
-	if (projectiles.size() >= MAX_PROJECTILES) {
-		projectiles.erase(projectiles.begin());  // Drop oldest
-	}
-	projectiles.push_back(newProjectile);
+	projectiles.add(newProjectile);
 }
 
 void ProjectileEffect::update(float deltaTime) {
@@ -164,9 +127,9 @@ void ProjectileEffect::update(float deltaTime) {
 			if (vy < -MAX_PARTICLE_VEL) vy = -MAX_PARTICLE_VEL;
 			particle.vx = vx;
 			particle.vy = vy;
-			particle.r = p.r;
-			particle.g = p.g;
-			particle.b = p.b;
+			particle.r = p.color.r;
+			particle.g = p.color.g;
+			particle.b = p.color.b;
 			particle.alpha = hal::random(160, 255);
 			particle.age = 0;
 			particle.lifespan = hal::random(300, 1200);  // 500-1500ms
@@ -239,7 +202,7 @@ void ProjectileEffect::render() {
 					canvas.drawRectangle(
 						static_cast<int16_t>(segX), static_cast<int16_t>(proj.y),
 						static_cast<uint8_t>(segmentWidth + 1),  // +1 to avoid gaps
-						proj.height, CRGBA(proj.r, proj.g, proj.b, alpha), BlendMode::ADDITIVE);
+						proj.height, CRGBA(proj.color.r, proj.color.g, proj.color.b, alpha), BlendMode::ADDITIVE);
 					segX += segDelta;  // Additive increment instead of multiplication
 				}
 			}
@@ -247,7 +210,7 @@ void ProjectileEffect::render() {
 
 		// Render main projectile (full brightness, on top)
 		canvas.drawRectangle(static_cast<int16_t>(proj.x), static_cast<int16_t>(proj.y), proj.width,
-		                     proj.height, CRGBA(proj.r, proj.g, proj.b, 255), BlendMode::ADDITIVE);
+		                     proj.height, CRGBA(proj.color.r, proj.color.g, proj.color.b, 255), BlendMode::ADDITIVE);
 	}
 }
 

@@ -464,20 +464,23 @@ void publishTestState(const String& state) {
 	}
 }
 
-// Publish error to Hub (with optional payload/props)
-void publishError(const char* source, const char* errorMessage, JsonDocument& props) {
+// Core implementation for publishing errors to Hub
+static void publishErrorCore(const char* source, const char* errorMessage, JsonDocument* props) {
 	if (!mqttClient.connected()) {
 		return;  // Silently skip if not connected
 	}
 
 	String deviceId = Utils::getDeviceId();
 
-	// Build JSON error message with nested props
+	// Build JSON error message
 	JsonDocument doc;
 	doc["driverId"] = deviceId;
 	doc["source"] = source;
 	doc["error"] = errorMessage;
-	doc["payload"] = props;
+
+	if (props != nullptr) {
+		doc["payload"] = *props;
+	}
 
 	size_t len = serializeJson(doc, effectErrorBuffer, sizeof(effectErrorBuffer));
 
@@ -493,32 +496,14 @@ void publishError(const char* source, const char* errorMessage, JsonDocument& pr
 	}
 }
 
+// Publish error to Hub (with optional payload/props)
+void publishError(const char* source, const char* errorMessage, JsonDocument& props) {
+	publishErrorCore(source, errorMessage, &props);
+}
+
 // Publish error to Hub (simple version without payload)
 void publishError(const char* source, const char* errorMessage) {
-	if (!mqttClient.connected()) {
-		return;  // Silently skip if not connected
-	}
-
-	String deviceId = Utils::getDeviceId();
-
-	// Build JSON error message
-	JsonDocument doc;
-	doc["driverId"] = deviceId;
-	doc["source"] = source;
-	doc["error"] = errorMessage;
-
-	size_t len = serializeJson(doc, effectErrorBuffer, sizeof(effectErrorBuffer));
-
-	if (len >= sizeof(effectErrorBuffer)) {
-		log("Error payload too large, truncated");
-	}
-
-	// Publish to system error topic with QoS 0 (fire-and-forget)
-	bool result = mqttClient.publish("rgfx/system/driver/error", effectErrorBuffer, false, 0);
-
-	if (result) {
-		log("Published error: " + String(source) + " - " + String(errorMessage));
-	}
+	publishErrorCore(source, errorMessage, nullptr);
 }
 
 // Process pending MQTT operations queued from callback

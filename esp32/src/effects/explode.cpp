@@ -27,9 +27,7 @@ float parseCoordPercent(JsonVariant prop) {
 }  // namespace
 
 ExplodeEffect::ExplodeEffect(const Matrix& m, Canvas& c, ParticleSystem& ps)
-    : canvas(c), matrix(m), particleSystem(ps) {
-	flashes.reserve(16);
-}
+    : canvas(c), matrix(m), particleSystem(ps) {}
 
 void ExplodeEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
@@ -73,9 +71,10 @@ void ExplodeEffect::add(JsonDocument& props) {
 	}
 
 	// Extract RGB components
-	uint8_t baseR = (color >> 16) & 0xFF;
-	uint8_t baseG = (color >> 8) & 0xFF;
-	uint8_t baseB = color & 0xFF;
+	RGBColor baseColor(color);
+	uint8_t baseR = baseColor.r;
+	uint8_t baseG = baseColor.g;
+	uint8_t baseB = baseColor.b;
 
 	// Create flash effect for LED strips (colored pulse that collapses inward)
 	if (isStrip) {
@@ -85,16 +84,9 @@ void ExplodeEffect::add(JsonDocument& props) {
 		flash.initialWidth = min(power * 0.5f, static_cast<float>(canvas.getWidth()) * 0.3f);
 		flash.duration = (lifespan * 0.35f) / 1000.0f;  // 35% of lifespan, in seconds
 		flash.age = 0.0f;
-		flash.r = baseR;
-		flash.g = baseG;
-		flash.b = baseB;
+		flash.color = baseColor;
 
-		// Cap vector size to prevent unbounded growth under high load
-		static constexpr size_t MAX_FLASHES = 64;
-		if (flashes.size() >= MAX_FLASHES) {
-			flashes.erase(flashes.begin());  // Drop oldest
-		}
-		flashes.push_back(flash);
+		flashes.add(flash);
 	}
 
 	// Add particles to the shared particle system
@@ -210,11 +202,11 @@ void ExplodeEffect::render() {
 			int16_t rightX = centerX + offset;
 
 			if (leftX >= 0 && leftX < width) {
-				canvas.drawPixel(leftX, 0, CRGBA(flash.r, flash.g, flash.b, alpha), BlendMode::ADDITIVE);
+				canvas.drawPixel(leftX, 0, CRGBA(flash.color.r, flash.color.g, flash.color.b, alpha), BlendMode::ADDITIVE);
 			}
 
 			if (offset > 0 && rightX >= 0 && rightX < width) {
-				canvas.drawPixel(rightX, 0, CRGBA(flash.r, flash.g, flash.b, alpha), BlendMode::ADDITIVE);
+				canvas.drawPixel(rightX, 0, CRGBA(flash.color.r, flash.color.g, flash.color.b, alpha), BlendMode::ADDITIVE);
 			}
 		}
 	}
