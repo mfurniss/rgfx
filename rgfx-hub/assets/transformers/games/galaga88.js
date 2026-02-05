@@ -11,7 +11,7 @@ export function transform({ subject, property, payload }, { broadcast }) {
       props: {
         align: 'center',
         text: formatNumber(payload),
-        color: '#808060',
+        gradient: ['#808060'],
         accentColor: '#603000',
         duration: 3000,
         reset: true,
