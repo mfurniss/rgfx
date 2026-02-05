@@ -6,9 +6,7 @@
 #include <algorithm>
 #include <cstring>
 
-PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {
-	pulses.reserve(16);
-}
+PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {
@@ -34,21 +32,14 @@ void PulseEffect::add(JsonDocument& props) {
 	}
 
 	Pulse newPulse;
-	newPulse.r = (color >> 16) & 0xFF;
-	newPulse.g = (color >> 8) & 0xFF;
-	newPulse.b = color & 0xFF;
+	newPulse.color = RGBColor(color);
 	newPulse.duration = durationMs / 1000.0f;  // Convert ms to seconds
 	newPulse.fade = fade;
 	newPulse.collapse = collapse;
 	newPulse.elapsedTime = 0.0f;
 	newPulse.easing = getEasingFunction(easingName);
 
-	// Cap vector size to prevent unbounded growth under high load
-	static constexpr size_t MAX_PULSES = 64;
-	if (pulses.size() >= MAX_PULSES) {
-		pulses.erase(pulses.begin());  // Drop oldest
-	}
-	pulses.push_back(newPulse);
+	pulses.add(newPulse);
 }
 
 void PulseEffect::update(float deltaTime) {
@@ -87,7 +78,7 @@ void PulseEffect::render() {
 			alpha = 255;
 		}
 
-		CRGBA color(p.r, p.g, p.b, alpha);
+		CRGBA color(p.color.r, p.color.g, p.color.b, alpha);
 
 		uint16_t startCol = 0;
 		uint16_t startRow = 0;

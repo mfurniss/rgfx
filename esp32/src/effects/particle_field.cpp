@@ -1,54 +1,14 @@
 #include "particle_field.h"
-#include "effect_utils.h"
 #include "hal/platform.h"
 #include "network/mqtt.h"
 #include <cstring>
 
 ParticleFieldEffect::ParticleFieldEffect(const Matrix& m, Canvas& c)
-	: state{{}, 0, 0.0f, 4, Direction::DOWN, 255, 255, 255, EnabledState::OFF, 0.0f, 0}, canvas(c) {
+	: state{{}, 0, 0.0f, 4, Direction::DOWN, 255, 255, 255, {}}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 }
 
-ParticleFieldEffect::Direction ParticleFieldEffect::parseDirection(const char* str) {
-	if (strcmp(str, "up") == 0) return Direction::UP;
-	if (strcmp(str, "down") == 0) return Direction::DOWN;
-	if (strcmp(str, "left") == 0) return Direction::LEFT;
-	if (strcmp(str, "right") == 0) return Direction::RIGHT;
-	return Direction::DOWN;
-}
-
-ParticleFieldEffect::EnabledState ParticleFieldEffect::parseEnabledState(const char* str) {
-	if (strcmp(str, "off") == 0) return EnabledState::OFF;
-	if (strcmp(str, "on") == 0) return EnabledState::ON;
-	if (strcmp(str, "fadeIn") == 0) return EnabledState::FADE_IN;
-	if (strcmp(str, "fadeOut") == 0) return EnabledState::FADE_OUT;
-	return EnabledState::ON;
-}
-
-void ParticleFieldEffect::updateAlpha() {
-	switch (state.enabledState) {
-		case EnabledState::OFF:
-			state.currentAlpha = 0;
-			break;
-		case EnabledState::ON:
-			state.currentAlpha = 255;
-			break;
-		case EnabledState::FADE_IN: {
-			float progress = state.fadeTime / FADE_DURATION;
-			if (progress > 1.0f) progress = 1.0f;
-			state.currentAlpha = static_cast<uint8_t>(progress * 255.0f);
-			break;
-		}
-		case EnabledState::FADE_OUT: {
-			float progress = state.fadeTime / FADE_DURATION;
-			if (progress > 1.0f) progress = 1.0f;
-			state.currentAlpha = static_cast<uint8_t>((1.0f - progress) * 255.0f);
-			break;
-		}
-	}
-}
-
-ParticleFieldEffect::Direction ParticleFieldEffect::getEffectiveDirection() const {
+Direction ParticleFieldEffect::getEffectiveDirection() const {
 	Direction dir = state.direction;
 	// For strips (height=1), map up/down to left/right
 	if (canvas.getHeight() == 1) {
@@ -155,34 +115,36 @@ void ParticleFieldEffect::respawnAtEdge(Particle& p) {
 }
 
 void ParticleFieldEffect::add(JsonDocument& props) {
-	// Parse enabled state
-	EnabledState enabledState = EnabledState::ON;
-	if (!props["enabled"].isNull()) {
-		if (props["enabled"].is<bool>()) {
-			enabledState = props["enabled"].as<bool>() ? EnabledState::ON : EnabledState::OFF;
-		} else if (props["enabled"].is<const char*>()) {
-			enabledState = parseEnabledState(props["enabled"].as<const char*>());
-		}
-	}
+	// Parse enabled state using shared FadeState
+	EnabledState enabledState = state.fade.parseEnabledProp(props);
 
 	// Handle instant off
 	if (enabledState == EnabledState::OFF) {
-		state.enabledState = EnabledState::OFF;
-		state.currentAlpha = 0;
+		state.fade.enabledState = EnabledState::OFF;
+		state.fade.currentAlpha = 0;
 		return;
 	}
 
 	// Handle fadeOut - preserve particles, just fade
 	if (enabledState == EnabledState::FADE_OUT) {
-		state.fadeTime = ((255 - state.currentAlpha) / 255.0f) * FADE_DURATION;
-		state.enabledState = EnabledState::FADE_OUT;
+		state.fade.startFade(EnabledState::FADE_OUT);
 		return;
 	}
 
-	// Parse direction
+	// Parse direction - default to DOWN if not specified
 	Direction direction = Direction::DOWN;
 	if (props["direction"].is<const char*>()) {
-		direction = parseDirection(props["direction"].as<const char*>());
+		const char* dirStr = props["direction"].as<const char*>();
+		// Use shared parseDirection but handle default case
+		if (strcmp(dirStr, "up") == 0) {
+			direction = Direction::UP;
+		} else if (strcmp(dirStr, "down") == 0) {
+			direction = Direction::DOWN;
+		} else if (strcmp(dirStr, "left") == 0) {
+			direction = Direction::LEFT;
+		} else if (strcmp(dirStr, "right") == 0) {
+			direction = Direction::RIGHT;
+		}
 	}
 
 	// Parse density (1-100)
@@ -190,7 +152,7 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 	if (props["density"].is<int>()) {
 		density = props["density"].as<int>();
 		if (density < 1) density = 1;
-		if (density > MAX_PARTICLES) density = MAX_PARTICLES;
+		if (density > MAX_PARTICLE_FIELD_PARTICLES) density = MAX_PARTICLE_FIELD_PARTICLES;
 	}
 
 	// Parse speed (10-1000 pixels/second)
@@ -245,19 +207,12 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 		}
 	}
 
-	// Handle fade transitions
-	if (enabledState == EnabledState::FADE_IN) {
-		state.fadeTime = (state.currentAlpha / 255.0f) * FADE_DURATION;
-	} else {
-		state.fadeTime = 0.0f;
-		state.currentAlpha = 255;
-	}
-
-	state.enabledState = enabledState;
+	// Handle fade transitions using shared FadeState
+	state.fade.startFade(enabledState);
 }
 
 void ParticleFieldEffect::update(float deltaTime) {
-	if (state.enabledState == EnabledState::OFF) {
+	if (state.fade.isOff()) {
 		return;
 	}
 
@@ -291,26 +246,16 @@ void ParticleFieldEffect::update(float deltaTime) {
 		}
 	}
 
-	// Handle fade transitions
-	if (state.enabledState == EnabledState::FADE_IN || state.enabledState == EnabledState::FADE_OUT) {
-		state.fadeTime += deltaTime;
-
-		if (state.fadeTime >= FADE_DURATION) {
-			state.enabledState =
-				(state.enabledState == EnabledState::FADE_IN) ? EnabledState::ON : EnabledState::OFF;
-			state.fadeTime = 0.0f;
-		}
-
-		updateAlpha();
-	}
+	// Handle fade transitions using shared FadeState
+	state.fade.updateFade(deltaTime);
 }
 
 void ParticleFieldEffect::render() {
-	if (state.enabledState == EnabledState::OFF || state.currentAlpha == 0) {
+	if (state.fade.isOff() || state.fade.currentAlpha == 0) {
 		return;
 	}
 
-	uint8_t globalAlpha = state.currentAlpha;
+	uint8_t globalAlpha = state.fade.currentAlpha;
 	Direction dir = getEffectiveDirection();
 	bool isHorizontal = (dir == Direction::LEFT || dir == Direction::RIGHT);
 
@@ -343,7 +288,7 @@ void ParticleFieldEffect::render() {
 }
 
 void ParticleFieldEffect::reset() {
-	state.enabledState = EnabledState::OFF;
+	state.fade = FadeState{};  // Reset to default (OFF state)
 	state.particleCount = 0;
 	state.baseSpeed = 0.0f;
 	state.size = 4;
@@ -351,6 +296,4 @@ void ParticleFieldEffect::reset() {
 	state.r = 255;
 	state.g = 255;
 	state.b = 255;
-	state.fadeTime = 0.0f;
-	state.currentAlpha = 0;
 }
