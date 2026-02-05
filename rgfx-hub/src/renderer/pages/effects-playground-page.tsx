@@ -300,6 +300,9 @@ export default function TestEffectsPage() {
 
   const handleClearEffects = () => {
     void (async () => {
+      // Clear transformer state first so loops stop
+      await window.rgfx.clearTransformerState();
+
       for (const driver of connectedDrivers) {
         try {
           await window.rgfx.sendDriverCommand(driver.id, 'clear-effects', '');

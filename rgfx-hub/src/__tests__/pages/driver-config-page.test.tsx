@@ -78,6 +78,7 @@ beforeEach(() => {
     setDriverDisabled: vi.fn(),
     onEvent: vi.fn(() => vi.fn()),
     resetEventCounts: vi.fn(),
+    clearTransformerState: vi.fn(),
     loadGif: vi.fn(),
     restartDriver: vi.fn(),
     deleteDriver: vi.fn(),

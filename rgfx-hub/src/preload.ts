@@ -229,6 +229,10 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('event:reset');
   },
 
+  clearTransformerState: (): Promise<void> => {
+    return ipcRenderer.invoke('transformer:clear-state');
+  },
+
   loadGif: (): Promise<GifBitmapResult | null> => {
     return ipcRenderer.invoke('dialog:load-gif');
   },
