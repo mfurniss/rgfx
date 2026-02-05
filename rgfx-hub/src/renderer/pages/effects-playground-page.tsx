@@ -35,7 +35,7 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, effectLayoutConfigs, isEffectName } from '@/schemas';
 import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
@@ -121,6 +121,14 @@ export default function TestEffectsPage() {
   const currentFieldTypes = useMemo(() => {
     if (isEffectName(selectedEffect)) {
       return effectFieldTypes[selectedEffect];
+    }
+    return undefined;
+  }, [selectedEffect]);
+
+  // Get layout config for selected effect (if it has custom layout)
+  const currentLayoutConfig = useMemo(() => {
+    if (isEffectName(selectedEffect)) {
+      return effectLayoutConfigs[selectedEffect];
     }
     return undefined;
   }, [selectedEffect]);
@@ -417,6 +425,7 @@ export default function TestEffectsPage() {
                   defaultValues={currentProps}
                   onChange={handlePropsChange}
                   fieldTypes={currentFieldTypes}
+                  layoutConfig={currentLayoutConfig}
                 />
               )}
             </Stack>

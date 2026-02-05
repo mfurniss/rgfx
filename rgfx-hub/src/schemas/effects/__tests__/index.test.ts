@@ -122,4 +122,89 @@ describe('safeValidateEffectProps', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('text effect gradient consolidation', () => {
+    it('should require gradient with at least 1 color for text effect', () => {
+      const result = safeValidateEffectProps('text', { gradient: ['#FFA000'] });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect((result.data as { gradient: string[] }).gradient).toEqual(['#FFA000']);
+      }
+    });
+
+    it('should apply default gradient for text effect when not provided', () => {
+      const result = safeValidateEffectProps('text', {});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect((result.data as { gradient: string[] }).gradient).toEqual(['#FFA000']);
+      }
+    });
+
+    it('should reject empty gradient array for text effect', () => {
+      const result = safeValidateEffectProps('text', { gradient: [] });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject non-array gradient for text effect', () => {
+      const result = safeValidateEffectProps('text', { gradient: '#FFA000' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject color prop for text effect (strict mode)', () => {
+      const result = safeValidateEffectProps('text', { color: '#FFA000' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('scroll_text effect gradient consolidation', () => {
+    it('should require gradient with at least 1 color for scroll_text effect', () => {
+      const result = safeValidateEffectProps('scroll_text', { gradient: ['#E0E000'] });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect((result.data as { gradient: string[] }).gradient).toEqual(['#E0E000']);
+      }
+    });
+
+    it('should apply default gradient for scroll_text effect when not provided', () => {
+      const result = safeValidateEffectProps('scroll_text', {});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect((result.data as { gradient: string[] }).gradient).toEqual(['#E0E000']);
+      }
+    });
+
+    it('should reject empty gradient array for scroll_text effect', () => {
+      const result = safeValidateEffectProps('scroll_text', { gradient: [] });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject non-array gradient for scroll_text effect', () => {
+      const result = safeValidateEffectProps('scroll_text', { gradient: '#E0E000' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject color prop for scroll_text effect (strict mode)', () => {
+      const result = safeValidateEffectProps('scroll_text', { color: '#E0E000' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept multi-color gradient for scroll_text animation', () => {
+      const result = safeValidateEffectProps('scroll_text', {
+        gradient: ['#FF0000', '#00FF00', '#0000FF'],
+        gradientSpeed: 5,
+        gradientScale: 2,
+      });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        const data = result.data as { gradient: string[]; gradientSpeed: number };
+        expect(data.gradient).toHaveLength(3);
+        expect(data.gradientSpeed).toBe(5);
+      }
+    });
+  });
 });

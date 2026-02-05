@@ -349,7 +349,7 @@ void test_parse_gradient_not_array_returns_false() {
 	TEST_ASSERT_FALSE(result);
 }
 
-void test_parse_gradient_single_color_returns_false() {
+void test_parse_gradient_single_color_succeeds() {
 	JsonDocument props;
 	JsonArray gradient = props["gradient"].to<JsonArray>();
 	gradient.add("#FF0000");
@@ -357,7 +357,12 @@ void test_parse_gradient_single_color_returns_false() {
 
 	bool result = parseGradientFromJson(props, lut);
 
-	TEST_ASSERT_FALSE(result);
+	TEST_ASSERT_TRUE(result);
+	// Single color fills entire LUT with that color
+	TEST_ASSERT_EQUAL(255, lut[0].r);
+	TEST_ASSERT_EQUAL(0, lut[0].g);
+	TEST_ASSERT_EQUAL(0, lut[0].b);
+	TEST_ASSERT_EQUAL(255, lut[GRADIENT_LUT_SIZE - 1].r);
 }
 
 void test_parse_gradient_two_colors_succeeds() {
@@ -422,6 +427,64 @@ void test_parse_gradient_all_invalid_returns_false() {
 }
 
 // =============================================================================
+// parseTextGradientFromJson tests
+// =============================================================================
+
+void test_parse_text_gradient_missing_returns_invalid() {
+	JsonDocument props;
+	CRGB lut[GRADIENT_LUT_SIZE];
+
+	TextGradientResult result = parseTextGradientFromJson(props, lut);
+
+	TEST_ASSERT_FALSE(result.valid);
+}
+
+void test_parse_text_gradient_single_color_returns_solid() {
+	JsonDocument props;
+	JsonArray gradient = props["gradient"].to<JsonArray>();
+	gradient.add("#FF8000");  // Orange
+	CRGB lut[GRADIENT_LUT_SIZE];
+
+	TextGradientResult result = parseTextGradientFromJson(props, lut);
+
+	TEST_ASSERT_TRUE(result.valid);
+	TEST_ASSERT_FALSE(result.animate);  // Single color = no animation
+	TEST_ASSERT_EQUAL(255, result.r);
+	TEST_ASSERT_EQUAL(128, result.g);
+	TEST_ASSERT_EQUAL(0, result.b);
+}
+
+void test_parse_text_gradient_two_colors_returns_animate() {
+	JsonDocument props;
+	JsonArray gradient = props["gradient"].to<JsonArray>();
+	gradient.add("#FF0000");
+	gradient.add("#0000FF");
+	CRGB lut[GRADIENT_LUT_SIZE];
+
+	TextGradientResult result = parseTextGradientFromJson(props, lut);
+
+	TEST_ASSERT_TRUE(result.valid);
+	TEST_ASSERT_TRUE(result.animate);  // Two colors = animate
+	// RGB values from first color
+	TEST_ASSERT_EQUAL(255, result.r);
+	TEST_ASSERT_EQUAL(0, result.g);
+	TEST_ASSERT_EQUAL(0, result.b);
+	// LUT should be populated
+	TEST_ASSERT_EQUAL(255, lut[0].r);  // First color: red
+	TEST_ASSERT_EQUAL(255, lut[GRADIENT_LUT_SIZE - 1].b);  // Last color: blue
+}
+
+void test_parse_text_gradient_invalid_array_returns_invalid() {
+	JsonDocument props;
+	props["gradient"] = "not-an-array";
+	CRGB lut[GRADIENT_LUT_SIZE];
+
+	TextGradientResult result = parseTextGradientFromJson(props, lut);
+
+	TEST_ASSERT_FALSE(result.valid);
+}
+
+// =============================================================================
 // Main test runner
 // =============================================================================
 
@@ -465,11 +528,17 @@ int main(int argc, char** argv) {
 	// parseGradientFromJson
 	RUN_TEST(test_parse_gradient_null_returns_false);
 	RUN_TEST(test_parse_gradient_not_array_returns_false);
-	RUN_TEST(test_parse_gradient_single_color_returns_false);
+	RUN_TEST(test_parse_gradient_single_color_succeeds);
 	RUN_TEST(test_parse_gradient_two_colors_succeeds);
 	RUN_TEST(test_parse_gradient_exceeds_max_returns_false);
 	RUN_TEST(test_parse_gradient_with_non_string_colors_skips_invalid);
 	RUN_TEST(test_parse_gradient_all_invalid_returns_false);
+
+	// parseTextGradientFromJson
+	RUN_TEST(test_parse_text_gradient_missing_returns_invalid);
+	RUN_TEST(test_parse_text_gradient_single_color_returns_solid);
+	RUN_TEST(test_parse_text_gradient_two_colors_returns_animate);
+	RUN_TEST(test_parse_text_gradient_invalid_array_returns_invalid);
 
 	return UNITY_END();
 }

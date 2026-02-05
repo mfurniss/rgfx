@@ -37,6 +37,7 @@ export {
   effectRandomizers,
   effectPresetConfigs,
   effectFieldTypes,
+  effectLayoutConfigs,
   isEffectName,
   safeValidateEffectProps,
 } from './effects';

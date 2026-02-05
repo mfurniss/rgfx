@@ -117,7 +117,7 @@ bool parseGradientFromJson(JsonDocument& props, CRGB* lut) {
 			return false;
 		}
 
-		if (colorCount >= 2) {
+		if (colorCount >= 1) {
 			CRGB colors[MAX_GRADIENT_COLORS];
 			uint8_t validColors = 0;
 			for (JsonVariant colorVal : gradientArray) {
@@ -125,11 +125,53 @@ bool parseGradientFromJson(JsonDocument& props, CRGB* lut) {
 					colors[validColors++] = parseHexColor(colorVal.as<const char*>());
 				}
 			}
-			if (validColors >= 2) {
+			if (validColors >= 1) {
 				generateGradientLut(colors, validColors, lut);
 				return true;
 			}
 		}
 	}
 	return false;
+}
+
+TextGradientResult parseTextGradientFromJson(JsonDocument& props, CRGB* lut) {
+	TextGradientResult result = {false, false, 0, 0, 0};
+
+	if (props["gradient"].isNull() || !props["gradient"].is<JsonArray>()) {
+		return result;
+	}
+
+	JsonArray gradientArray = props["gradient"].as<JsonArray>();
+	uint8_t colorCount = gradientArray.size();
+
+	if (colorCount == 0 || colorCount > MAX_GRADIENT_COLORS) {
+		return result;
+	}
+
+	// Parse all colors
+	CRGB colors[MAX_GRADIENT_COLORS];
+	uint8_t validColors = 0;
+	for (JsonVariant colorVal : gradientArray) {
+		if (colorVal.is<const char*>() && validColors < MAX_GRADIENT_COLORS) {
+			colors[validColors++] = parseHexColor(colorVal.as<const char*>());
+		}
+	}
+
+	if (validColors == 0) {
+		return result;
+	}
+
+	result.valid = true;
+	result.r = colors[0].r;
+	result.g = colors[0].g;
+	result.b = colors[0].b;
+
+	if (validColors >= 2) {
+		// Multi-color: populate LUT for animation
+		generateGradientLut(colors, validColors, lut);
+		result.animate = true;
+	}
+	// Single color: animate=false, r/g/b already set from colors[0]
+
+	return result;
 }

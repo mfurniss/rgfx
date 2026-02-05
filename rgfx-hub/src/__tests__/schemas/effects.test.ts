@@ -151,7 +151,6 @@ describe('Effect Schema Randomize Functions', () => {
     it('randomize returns valid values', () => {
       for (let i = 0; i < 10; i++) {
         const values = randomizeScrollText();
-        expect(values).toHaveProperty('color');
         expect(values).toHaveProperty('gradient');
         expect(values).toHaveProperty('gradientSpeed');
         expect(values).toHaveProperty('gradientScale');
@@ -174,7 +173,7 @@ describe('Effect Schema Randomize Functions', () => {
       for (let i = 0; i < 10; i++) {
         const values = randomizeText();
         expect(values).toHaveProperty('text');
-        expect(values).toHaveProperty('color');
+        expect(values).toHaveProperty('gradient');
         expect(values).toHaveProperty('duration');
         expect(typeof values.text).toBe('string');
         expect(typeof values.duration).toBe('number');
