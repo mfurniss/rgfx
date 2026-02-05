@@ -11,6 +11,18 @@ import { registerTriggerEffectHandler } from '../trigger-effect-handler';
 import type { UdpClient, EffectPayload } from '@/types/transformer-types';
 import type { DriverRegistry } from '@/driver-registry';
 
+const { mockLog, mockEventBus } = vi.hoisted(() => ({
+  mockLog: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+  mockEventBus: {
+    emit: vi.fn(),
+  },
+}));
+
 vi.mock('electron', () => ({
   ipcMain: {
     handle: vi.fn(),
@@ -18,12 +30,11 @@ vi.mock('electron', () => ({
 }));
 
 vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
+  default: mockLog,
+}));
+
+vi.mock('@/services/event-bus', () => ({
+  eventBus: mockEventBus,
 }));
 
 describe('registerTriggerEffectHandler', () => {
@@ -85,5 +96,67 @@ describe('registerTriggerEffectHandler', () => {
     expect(() => {
       registeredHandler({}, payload);
     }).toThrow(error);
+  });
+
+  describe('validation error handling', () => {
+    it('should log effect and props when validation fails', () => {
+      const payload: EffectPayload = {
+        effect: 'scroll_text',
+        props: { gradient: 'not-an-array' }, // Invalid: gradient should be an array
+      };
+
+      expect(() => {
+        registeredHandler({}, payload);
+      }).toThrow(/Invalid effect props/);
+
+      expect(mockLog.error).toHaveBeenCalledWith(
+        'Invalid effect props:',
+        expect.any(Object),
+        expect.objectContaining({
+          effect: 'scroll_text',
+          props: { gradient: 'not-an-array' },
+        }),
+      );
+    });
+
+    it('should emit SystemError when validation fails', () => {
+      const payload: EffectPayload = {
+        effect: 'scroll_text',
+        props: { gradient: 'not-an-array' },
+      };
+
+      expect(() => {
+        registeredHandler({}, payload);
+      }).toThrow(/Invalid effect props/);
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'general',
+          message: expect.stringContaining('Invalid effect props for scroll_text'),
+          timestamp: expect.any(Number),
+          details: expect.any(String),
+        }),
+      );
+    });
+
+    it('should include props in SystemError details', () => {
+      const invalidProps = { gradient: { wrongType: true } };
+      const payload: EffectPayload = {
+        effect: 'text',
+        props: invalidProps,
+      };
+
+      expect(() => {
+        registeredHandler({}, payload);
+      }).toThrow(/Invalid effect props/);
+
+      const emitCall = mockEventBus.emit.mock.calls.find(
+        (call: unknown[]) => call[0] === 'system:error',
+      );
+      expect(emitCall).toBeDefined();
+      const errorPayload = emitCall![1] as { details: string };
+      expect(errorPayload.details).toContain('wrongType');
+    });
   });
 });

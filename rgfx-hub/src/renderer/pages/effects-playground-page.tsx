@@ -26,7 +26,6 @@ import {
   ContentCopy as CopyIcon,
   RestartAlt as ResetIcon,
   Shuffle as ShuffleIcon,
-  LayersClear as LayersClearIcon,
   Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
@@ -35,10 +34,11 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, effectLayoutConfigs, isEffectName } from '@/schemas';
 import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
+import { ClearAllEffectsButton } from '../components/common/clear-all-effects-button';
 import {
   effectDisplayNames,
   formEffects,
@@ -121,6 +121,14 @@ export default function TestEffectsPage() {
   const currentFieldTypes = useMemo(() => {
     if (isEffectName(selectedEffect)) {
       return effectFieldTypes[selectedEffect];
+    }
+    return undefined;
+  }, [selectedEffect]);
+
+  // Get layout config for selected effect (if it has custom layout)
+  const currentLayoutConfig = useMemo(() => {
+    if (isEffectName(selectedEffect)) {
+      return effectLayoutConfigs[selectedEffect];
     }
     return undefined;
   }, [selectedEffect]);
@@ -290,32 +298,12 @@ export default function TestEffectsPage() {
     selectAll,
   );
 
-  const handleClearEffects = () => {
-    void (async () => {
-      for (const driver of connectedDrivers) {
-        try {
-          await window.rgfx.sendDriverCommand(driver.id, 'clear-effects', '');
-        } catch (err) {
-          console.error('Failed to clear effects on driver:', driver.id, err);
-        }
-      }
-    })();
-  };
-
   return (
     <Box>
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
-          <Button
-            variant="outlined"
-            color="warning"
-            startIcon={<LayersClearIcon />}
-            onClick={handleClearEffects}
-            disabled={connectedDrivers.length === 0}
-          >
-            Clear All Effects
-          </Button>
+          <PageTitle icon={<ScienceIcon />} title="Effects Playground" noGutters />
+          <ClearAllEffectsButton />
         </Box>
 
         <Paper sx={{ p: 3 }}>
@@ -417,6 +405,7 @@ export default function TestEffectsPage() {
                   defaultValues={currentProps}
                   onChange={handlePropsChange}
                   fieldTypes={currentFieldTypes}
+                  layoutConfig={currentLayoutConfig}
                 />
               )}
             </Stack>

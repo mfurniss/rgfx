@@ -48,8 +48,11 @@ export function GradientArrayField<T extends FieldValues>({
         };
 
         const handleRemoveColor = (index: number) => {
+          if (colors.length <= 1) {
+            return; // Enforce minimum 1 color
+          }
           const newColors = colors.filter((_, i) => i !== index);
-          field.onChange(newColors.length > 0 ? newColors : undefined);
+          field.onChange(newColors);
         };
 
         return (
@@ -90,13 +93,14 @@ export function GradientArrayField<T extends FieldValues>({
                     }}
                     fullWidth={false}
                   />
-                  <Tooltip title="Remove color">
+                  <Tooltip title={colors.length <= 1 ? 'At least one color required' : 'Remove color'}>
                     <span>
                       <IconButton
                         size="small"
                         onClick={() => {
                           handleRemoveColor(index);
                         }}
+                        disabled={colors.length <= 1}
                         sx={{ mt: 0.5 }}
                       >
                         <DeleteIcon fontSize="small" />

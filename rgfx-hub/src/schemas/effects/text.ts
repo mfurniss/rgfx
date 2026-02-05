@@ -12,9 +12,9 @@ import { colorStringSchema } from './properties/color';
 import { randomColor, randomString, randomFloat, randomInt, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import type { LayoutConfig } from './layout-config';
 
 export const fieldTypes: FieldTypeMap = {
-  color: 'color',
   accentColor: 'color',
   gradient: 'gradientArray',
 };
@@ -22,7 +22,6 @@ export const fieldTypes: FieldTypeMap = {
 export function randomize(): Record<string, unknown> {
   return {
     text: randomString(['Hello You!', 'AaBbCcDd', '0123456789', '*** RGFX ***']),
-    color: randomColor(0.2),
     accentColor: randomInt(1) ? randomColor(0.2) : null,
     duration: randomInt(3, 5) * 1000,
     gradient: randomGradient(0.2),
@@ -36,19 +35,18 @@ export function randomize(): Record<string, unknown> {
  * Renders text using an 8x8 bitmap font
  */
 export default baseEffect
+  .omit({ color: true })
   .extend({
     name: z.literal('Text'),
     description: z.literal('Static text display'),
     reset: z.boolean().optional().default(true).describe('Clear existing text before rendering'),
     text: z.string().max(32).default('Hello You!').describe('Text to render (max 32 chars)'),
-    color: z.string().optional().default('#FFA000').describe('Text color (hex or named)'),
-    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
-    duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
     gradient: z
       .array(colorStringSchema)
+      .min(1)
       .max(MAX_GRADIENT_COLORS)
-      .optional()
-      .describe('Gradient colors for text animation'),
+      .default(['#FFA000'])
+      .describe('Text colors (1 color = solid, 2+ = animated gradient)'),
     gradientSpeed: z
       .number()
       .min(0.1)
@@ -63,6 +61,8 @@ export default baseEffect
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),
+    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
+    duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
   })
   .strict();
 
@@ -75,3 +75,10 @@ export const presetConfig: PresetConfig = {
     gradientScale: data.scale,
   }),
 };
+
+export const layoutConfig: LayoutConfig = [
+  ['reset', 'text'],
+  ['gradient'],
+  ['gradientSpeed', 'gradientScale'],
+  ['accentColor', 'duration'],
+];

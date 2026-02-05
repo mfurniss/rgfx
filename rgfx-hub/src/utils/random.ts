@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { hslToHex } from './color';
+import { hslToHex } from '@/renderer/utils/color';
 
 // Mulberry32 PRNG - fast, simple, good distribution
 // Returns a function that generates numbers in [0, 1)

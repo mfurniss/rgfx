@@ -20,6 +20,7 @@ namespace Commands {
 		log("reset                - Erase WiFi credentials and restart");
 		log("telemetry            - Display system telemetry (JSON)");
 		log("test_leds on|off     - Enable/disable LED test pattern");
+		log("udp_reset            - Reinitialize UDP socket (recover from stall)");
 		log("help                 - Show this help message");
 	}
 

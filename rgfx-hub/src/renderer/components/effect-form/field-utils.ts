@@ -102,21 +102,3 @@ export function buildTooltip(description?: string, defaultValue?: unknown): stri
   return parts.length > 0 ? parts.join('\n') : undefined;
 }
 
-/**
- * Checks if a color field should be disabled based on gradient having values.
- * Handles both array format (plasma, text) and object format (background).
- */
-export function isColorDisabledByGradient(
-  fieldName: string,
-  gradientValue: string[] | { colors?: string[] } | undefined,
-): boolean {
-  if (fieldName !== 'color') {
-    return false;
-  }
-
-  const hasGradient = Array.isArray(gradientValue)
-    ? gradientValue.length > 0
-    : Array.isArray(gradientValue?.colors) && gradientValue.colors.length > 0;
-
-  return hasGradient;
-}

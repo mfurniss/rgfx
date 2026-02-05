@@ -11,7 +11,7 @@ import {
   GHOST_EYES_RIGHT,
   GHOST_EYES_LEFT,
 } from '../bitmaps/pacman-sprites.js';
-import { STRIP_DRIVERS, NAMED_DRIVERS } from '../global.js';
+import { STRIP_DRIVERS, NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 const BONUS_ITEMS = {
   cherry: { score: 100, file: 'pac-bonus-1-cherry.gif' },
@@ -23,12 +23,6 @@ const BONUS_ITEMS = {
   bell: { score: 3000, file: 'pac-bonus-7-bell.gif' },
   key: { score: 5000, file: 'pac-bonus-8-key.gif' },
 };
-
-const MATRIX_DRIVERS = [
-  'rgfx-driver-0001',
-  'rgfx-driver-0005',
-  'rgfx-driver-0010',
-];
 
 let dotCount = 0;
 let bonusLatch = false;
@@ -43,7 +37,7 @@ export async function transform(
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         text: payload,
-        color: '#A0A000',
+        gradient: ['#A0A000'],
         accentColor: '#000080',
         duration: 5000,
         reset: true,
@@ -57,6 +51,7 @@ export async function transform(
       props: {
         reset: true,
         text: '',
+        gradient: ['#000000'],
         repeat: false,
       },
     });
@@ -65,7 +60,6 @@ export async function transform(
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
-        color: '#f4f6f5',
         reset: true,
         text: '+ Credit +',
         duration: 1000,
@@ -210,7 +204,7 @@ export async function transform(
         drivers: MATRIX_DRIVERS,
         props: {
           text: score,
-          color: '#FFFF70',
+          gradient: ['#FFFF70'],
           accentColor: '#0000A0',
           align: 'center',
           duration: 2000,

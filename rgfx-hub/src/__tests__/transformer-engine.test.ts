@@ -889,6 +889,28 @@ describe('TransformerEngine', () => {
 
   });
 
+  describe('clearState', () => {
+    it('should clear the state store', () => {
+      engine.clearState();
+
+      expect(mockContext.state.clear).toHaveBeenCalledTimes(1);
+    });
+
+    it('should log info message when clearing state', () => {
+      engine.clearState();
+
+      expect(mockContext.log.info).toHaveBeenCalledWith('Clearing transformer state');
+    });
+
+    it('should be callable multiple times', () => {
+      engine.clearState();
+      engine.clearState();
+      engine.clearState();
+
+      expect(mockContext.state.clear).toHaveBeenCalledTimes(3);
+    });
+  });
+
   describe('clearAllDriverEffects', () => {
     it('should clear effects on init event', async () => {
       const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
@@ -906,6 +928,20 @@ describe('TransformerEngine', () => {
       expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:02/clear-effects', '', 2);
+    });
+
+    it('should clear transformer state when clearing driver effects', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('game/init', '');
+
+      expect(mockContext.state.clear).toHaveBeenCalled();
     });
 
     it('should clear effects on shutdown event', async () => {

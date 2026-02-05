@@ -55,8 +55,6 @@ using String = std::string;
 #include "effects/gradient_utils.cpp"
 
 // Include effects
-// Note: wipe.cpp and projectile.cpp both define static parseDirection()
-// We wrap the includes in namespaces to avoid conflicts
 #include "effects/effect.h"
 
 #include "effects/pulse.h"
@@ -71,19 +69,11 @@ using String = std::string;
 #include "effects/explode.h"
 #include "effects/explode.cpp"
 
-// Wrap wipe in namespace to avoid parseDirection conflict with projectile
-namespace wipe_impl {
 #include "effects/wipe.h"
 #include "effects/wipe.cpp"
-}
-using WipeEffect = wipe_impl::WipeEffect;
 
-// Wrap projectile in namespace to avoid parseDirection conflict with wipe
-namespace projectile_impl {
 #include "effects/projectile.h"
 #include "effects/projectile.cpp"
-}
-using ProjectileEffect = projectile_impl::ProjectileEffect;
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"

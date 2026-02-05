@@ -155,10 +155,22 @@ export class TransformerEngine {
   }
 
   /**
+   * Clear transformer state (stops loops that check state values)
+   * Called when user manually clears all effects
+   */
+  clearState(): void {
+    this.context.log.info('Clearing transformer state');
+    this.context.state.clear();
+  }
+
+  /**
    * Clear effects on all connected, enabled drivers
    * Called when a game init event is received to reset driver state
    */
   private async clearAllDriverEffects(): Promise<void> {
+    // Reset transformer state so loops checking state values stop naturally
+    this.context.state.clear();
+
     const connectedDrivers = this.context.drivers
       .getConnectedDrivers()
       .filter((d) => !d.disabled);

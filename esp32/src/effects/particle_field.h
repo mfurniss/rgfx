@@ -2,9 +2,11 @@
 
 #include <ArduinoJson.h>
 #include "effect.h"
+#include "direction.h"
+#include "effect_utils.h"
 #include "graphics/canvas.h"
 
-static const uint8_t MAX_PARTICLES = 100;
+static const uint8_t MAX_PARTICLE_FIELD_PARTICLES = 100;
 
 /**
  * Particle Field Effect
@@ -16,11 +18,6 @@ static const uint8_t MAX_PARTICLES = 100;
  */
 class ParticleFieldEffect : public IEffect {
    private:
-	enum class EnabledState : uint8_t { OFF, ON, FADE_IN, FADE_OUT };
-	enum class Direction : uint8_t { UP, DOWN, LEFT, RIGHT };
-
-	static constexpr float FADE_DURATION = 1.0f;  // 1 second
-
 	struct Particle {
 		float x, y;      // Position on canvas (0-255 range)
 		float speed;     // Actual speed (randomized around base)
@@ -29,23 +26,18 @@ class ParticleFieldEffect : public IEffect {
 	};
 
 	struct ParticleFieldState {
-		Particle particles[MAX_PARTICLES];
+		Particle particles[MAX_PARTICLE_FIELD_PARTICLES];
 		uint8_t particleCount;
 		float baseSpeed;
 		uint8_t size;
 		Direction direction;
 		uint8_t r, g, b;
-		EnabledState enabledState;
-		float fadeTime;
-		uint8_t currentAlpha;
+		FadeState fade;  // Use shared FadeState from effect_utils.h
 	};
 
 	ParticleFieldState state;
 	Canvas& canvas;
 
-	static Direction parseDirection(const char* str);
-	static EnabledState parseEnabledState(const char* str);
-	void updateAlpha();
 	void spawnParticle(Particle& p);
 	void respawnAtEdge(Particle& p);
 	Direction getEffectiveDirection() const;

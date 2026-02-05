@@ -10,7 +10,6 @@ import {
   Paper,
   Button,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Stack,
@@ -25,6 +24,8 @@ import { formatNumber } from '../utils/formatters';
 import { PageTitle } from '../components/layout/page-title';
 import { useSortableTable } from '../hooks/use-sortable-table';
 import { SortableTableHead, type SortableColumn } from '../components/common/sortable-table-head';
+import { TableEmptyRow } from '../components/common/table-empty-row';
+import { DialogTitleWithIcon } from '../components/common/dialog-title-with-icon';
 
 type SortField = 'topic' | 'count' | 'lastValue';
 
@@ -107,12 +108,11 @@ const EventMonitorPage: React.FC = () => {
   return (
     <Box>
       <Stack spacing={2}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <PageTitle icon={<MonitorIcon />} title="Event Monitor" noGutters />
           <Button
             variant="outlined"
             color="error"
-            size="small"
             startIcon={<RefreshIcon />}
             onClick={handleOpenDialog}
             disabled={topicsArray.length === 0}
@@ -130,13 +130,7 @@ const EventMonitorPage: React.FC = () => {
             />
             <TableBody>
               {sortedTopics.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} align="center">
-                    <Typography variant="body2" color="text.secondary">
-                      No events received yet
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={3} message="No events received yet" />
               ) : (
                 sortedTopics.map((entry) => (
                   <TableRow
@@ -164,10 +158,7 @@ const EventMonitorPage: React.FC = () => {
       </Stack>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <WarningIcon color="warning" />
-          Confirm Reset
-        </DialogTitle>
+        <DialogTitleWithIcon icon={<WarningIcon />} title="Confirm Reset" iconColor="warning" />
         <DialogContent>
           <Typography>
             This will clear all event counts and reset the events processed counter.

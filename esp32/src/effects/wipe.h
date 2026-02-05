@@ -1,26 +1,28 @@
 #pragma once
 
-#include <vector>
 #include <ArduinoJson.h>
 #include "effect.h"
+#include "effect_utils.h"
+#include "direction.h"
+#include "instance_vector.h"
 #include "graphics/canvas.h"
-
-enum class WipeDirection : uint8_t { LEFT, RIGHT, UP, DOWN };
 
 class WipeEffect : public IEffect {
    private:
+	static constexpr size_t MAX_WIPES = 64;
+
 	struct Wipe {
 		uint32_t duration;      // Total duration in milliseconds
 		uint32_t elapsedTime;   // Elapsed time in milliseconds
-		uint8_t r, g, b;        // RGB color
-		WipeDirection direction;  // Resolved direction (never RANDOM at runtime)
+		RGBColor color;         // RGB color
+		Direction direction;    // Resolved direction (never RANDOM at runtime)
 		BlendMode blendMode;    // Blend mode for rendering
 
 		// Calculate remaining duration
 		uint32_t remaining() const { return duration - elapsedTime; }
 	};
 
-	std::vector<Wipe> wipes;  // Dynamic array of active wipes
+	CappedVector<Wipe, MAX_WIPES> wipes;
 	Canvas& canvas;
 
    public:

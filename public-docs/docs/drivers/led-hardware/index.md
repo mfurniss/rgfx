@@ -44,3 +44,5 @@ Multiple identical LED matrices can be combined into a single unified display:
 - Per-panel rotation support (0°, 90°, 180°, 270°)
 
 This allows effects to render seamlessly across multiple physical panels as one logical display.
+
+View practical [examples](../examples.md) of multi-panel configurations.

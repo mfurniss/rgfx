@@ -113,7 +113,8 @@ void test_text_render_single_char() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "H";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 
 	effect.add(props);
 	canvas.clear();
@@ -137,7 +138,8 @@ void test_text_render_hello() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "HELLO";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 
 	effect.add(props);
 	canvas.clear();
@@ -178,7 +180,8 @@ void test_text_reset_clears() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 
 	effect.add(props);
 	canvas.clear();
@@ -247,7 +250,8 @@ void test_text_full_alpha_before_halfway() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 	props["duration"] = 1000;  // 1 second
 
 	effect.add(props);
@@ -284,7 +288,8 @@ void test_text_fades_after_halfway() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 	props["duration"] = 1000;  // 1 second
 
 	effect.add(props);
@@ -316,7 +321,8 @@ void test_text_permanent_no_fade() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 	props["duration"] = 0;  // Permanent
 
 	effect.add(props);
@@ -351,7 +357,8 @@ void test_text_centered_horizontally() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "AB";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 
 	effect.add(props);
 	canvas.clear();
@@ -376,7 +383,8 @@ void test_text_centered_vertically() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 
 	effect.add(props);
 	canvas.clear();
@@ -401,7 +409,8 @@ void test_text_snapped_to_led_boundary() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 
 	effect.add(props);
 	canvas.clear();
@@ -423,7 +432,8 @@ void test_text_color_preserved() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FF0000";  // Red
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FF0000");  // Red
 
 	effect.add(props);
 	canvas.clear();
@@ -454,7 +464,8 @@ void test_text_with_accent() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 	props["accentColor"] = "#0000FF";  // Blue accent
 
 	effect.add(props);
@@ -499,7 +510,8 @@ static uint64_t runTextDigest(const TestConfig& config, float updateTime, const 
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = text;
-	props["color"] = "#00FFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#00FFFF");
 	effect.add(props);
 
 	effect.update(updateTime);
@@ -542,7 +554,8 @@ void test_text_property_static_permanent() {
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = "X";
-	props["color"] = "#FFFFFF";
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FFFFFF");
 	props["duration"] = 0;  // Permanent
 	effect.add(props);
 
@@ -577,7 +590,8 @@ void test_text_property_all_configs_render() {
 		JsonDocument props;
 		setDefaultTextProps(props);
 		props["text"] = "X";
-		props["color"] = "#FFFFFF";
+		props["gradient"].as<JsonArray>().clear();
+		props["gradient"].as<JsonArray>().add("#FFFFFF");
 		effect.add(props);
 
 		effect.update(0.1f);
