@@ -45,6 +45,7 @@ nav:
     - Introduction: transformers/index.md
     - Global Configuration: transformers/global.md
     - Utilities: transformers/utils.md
+    - GIF Bitmaps: transformers/gif-bitmaps.md
     - Ambilight: transformers/ambilight.md
   - Drivers:
     - Introduction: drivers/index.md

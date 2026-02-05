@@ -2,6 +2,11 @@
   display: none;
 }
 
+/* Prevent inline code from wrapping in table cells */
+.md-typeset table td code {
+  white-space: nowrap;
+}
+
 /* Remove underline from h2 headers */
 .md-typeset h2 {
   border-bottom: none;
