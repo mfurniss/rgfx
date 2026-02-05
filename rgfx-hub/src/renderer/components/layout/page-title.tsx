@@ -9,13 +9,18 @@ interface PageTitleProps {
   subtitle?: string;
   backPath?: string;
   backLabel?: string;
+  noGutters?: boolean;
 }
 
-export function PageTitle({ icon, title, subtitle, backPath, backLabel }: PageTitleProps) {
+export function PageTitle({
+  icon, title, subtitle, backPath, backLabel, noGutters,
+}: PageTitleProps) {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, mt: 1 }}>
+    <Box sx={{
+      display: 'flex', alignItems: 'center', gap: 2, mb: noGutters ? 0 : 3, mt: noGutters ? 0 : 1,
+    }}>
       {backPath && (
         <IconButton
           onClick={() => {

@@ -112,3 +112,7 @@ The white origin pixels on each panel help verify panel orientation and ordering
 
 - LED hardware must be configured on the driver
 - No Hub connection required
+
+## See Also
+
+- [Hardware Examples](../drivers/examples.md) - Photos of test patterns on real LED matrix builds
