@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hslToHex } from '../utils/color';
+import { hslToHex } from '../renderer/utils/color';
 import { roundFloat } from '../utils/math';
 import { randomInt, randomFloat, randomString, randomColor, randomGradient } from '../utils/random';
 

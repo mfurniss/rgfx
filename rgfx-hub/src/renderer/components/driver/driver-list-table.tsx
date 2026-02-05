@@ -7,6 +7,7 @@ import { useSortableTable } from '@/renderer/hooks/use-sortable-table';
 import { SortableTableHead, type SortableColumn } from '@/renderer/components/common/sortable-table-head';
 import TestLedButton from './test-led-button';
 import DriverState from './driver-state';
+import { TableEmptyRow } from '@/renderer/components/common/table-empty-row';
 
 type SortField = 'id' | 'ip' | 'status';
 
@@ -77,31 +78,35 @@ const DriverListTable: React.FC<DriverListTableProps> = ({ drivers }) => {
           extraColumns={<TableCell>Actions</TableCell>}
         />
         <TableBody>
-          {sortedDrivers.map((driver: Driver) => (
-            <TableRow
-              key={driver.mac ?? driver.id}
-              onClick={() => {
-                void navigate(`/drivers/${driver.mac}`);
-              }}
-              sx={{
-                cursor: 'pointer',
-                '&:hover': { backgroundColor: 'action.hover' },
-              }}
-            >
-              <TableCell>{driver.id}</TableCell>
-              <TableCell>{driver.state === 'connected' ? driver.ip ?? '' : ''}</TableCell>
-              <TableCell>
-                <DriverState driver={driver} firmwareVersions={firmwareVersions} />
-              </TableCell>
-              <TableCell
-                onClick={(e) => {
-                  e.stopPropagation();
+          {sortedDrivers.length === 0 ? (
+            <TableEmptyRow colSpan={4} message="No drivers configured" />
+          ) : (
+            sortedDrivers.map((driver: Driver) => (
+              <TableRow
+                key={driver.mac ?? driver.id}
+                onClick={() => {
+                  void navigate(`/drivers/${driver.mac}`);
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: 'action.hover' },
                 }}
               >
-                <TestLedButton driver={driver} />
-              </TableCell>
-            </TableRow>
-          ))}
+                <TableCell>{driver.id}</TableCell>
+                <TableCell>{driver.state === 'connected' ? driver.ip ?? '' : ''}</TableCell>
+                <TableCell>
+                  <DriverState driver={driver} firmwareVersions={firmwareVersions} />
+                </TableCell>
+                <TableCell
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <TestLedButton driver={driver} />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>

@@ -10,7 +10,7 @@ import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomInt, randomColor, randomFloat } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
-import { hslToHex } from '@/utils/color';
+import { hslToHex } from '@/renderer/utils/color';
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',
