@@ -31,6 +31,7 @@ namespace SerialCommand {
 		{"help", Commands::help},
 		{"telemetry", Commands::telemetry},
 		{"test_leds", Commands::testLeds},
+		{"udp_reset", Commands::udpReset},
 	};
 
 	void begin() {
