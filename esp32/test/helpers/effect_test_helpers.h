@@ -387,7 +387,8 @@ inline void setBackgroundGradientColor(JsonDocument& props, const char* color) {
 inline void setDefaultTextProps(JsonDocument& props) {
 	props["reset"] = true;
 	props["text"] = "Hello you!";
-	props["color"] = "#008888";
+	JsonArray gradient = props["gradient"].to<JsonArray>();
+	gradient.add("#008888");
 	props["accentColor"] = "#004444";
 	props["duration"] = 3000;
 }
@@ -398,7 +399,8 @@ inline void setDefaultTextProps(JsonDocument& props) {
 inline void setDefaultScrollTextProps(JsonDocument& props) {
 	props["reset"] = true;
 	props["text"] = "Hidey Ho! It's the RGFX Show!";
-	props["color"] = "#808000";
+	JsonArray gradient = props["gradient"].to<JsonArray>();
+	gradient.add("#808000");
 	props["accentColor"] = "#006060";
 	props["y"] = 0;
 	props["speed"] = 150.0f;
@@ -550,7 +552,8 @@ inline JsonDocument mockTextProps(const char* text = "Test", const char* color =
 	JsonDocument props;
 	setDefaultTextProps(props);
 	props["text"] = text;
-	props["color"] = color;
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add(color);
 	props["duration"] = duration;
 	return props;
 }
@@ -565,7 +568,8 @@ inline JsonDocument mockScrollTextProps(const char* text = "Scrolling", const ch
 	JsonDocument props;
 	setDefaultScrollTextProps(props);
 	props["text"] = text;
-	props["color"] = color;
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add(color);
 	props["speed"] = speed;
 	return props;
 }

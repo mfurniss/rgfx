@@ -1,7 +1,4 @@
-
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
+<!DOCTYPE html><html lang="en" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -50,7 +47,7 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
@@ -63,7 +60,17 @@
 
     
     
-  </head>
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
   
   
     
@@ -99,12 +106,12 @@
     <a href=".." title="RGFX Documentation" class="md-header__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -132,7 +139,7 @@
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -141,15 +148,15 @@
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
         </button>
       </nav>
       
@@ -185,7 +192,7 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -197,7 +204,7 @@
     <a href=".." title="RGFX Documentation" class="md-nav__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     RGFX Documentation
@@ -220,7 +227,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
         
           
           <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
@@ -386,7 +393,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -636,7 +643,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -739,6 +746,34 @@
     
   
     Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/gif-bitmaps.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GIF Bitmaps
   
 
     
@@ -1294,7 +1329,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1397,7 +1432,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3">
         
           
           <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
@@ -1704,7 +1739,7 @@
             
             
               
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -1932,13 +1967,13 @@
 
 
 
-<h1 id="visual-effects">Visual Effects<a class="headerlink" href="#visual-effects" title="Permanent link">&para;</a></h1>
+<h1 id="visual-effects">Visual Effects<a class="headerlink" href="#visual-effects" title="Permanent link">¶</a></h1>
 <p>RGFX drivers support 12 visual effects that render on LED strips and matrices.</p>
 <p>Use the <a href="../hub-app/fx-playground.html">FX Playground</a> in the Hub to experiment with effects and see them render in real-time.</p>
-<h2 id="how-effects-work">How Effects Work<a class="headerlink" href="#how-effects-work" title="Permanent link">&para;</a></h2>
+<h2 id="how-effects-work">How Effects Work<a class="headerlink" href="#how-effects-work" title="Permanent link">¶</a></h2>
 <p>Effects are sent from the Hub to drivers as JSON commands over MQTT. The driver renders effects to an internal canvas at 4x resolution, then downsamples to the physical LED layout. Multiple effects can composite together, with the background rendering first and other effects layering on top.</p>
-<h2 id="effects-reference">Effects Reference<a class="headerlink" href="#effects-reference" title="Permanent link">&para;</a></h2>
-<h3 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h3>
+<h2 id="effects-reference">Effects Reference<a class="headerlink" href="#effects-reference" title="Permanent link">¶</a></h2>
+<h3 id="background">Background<a class="headerlink" href="#background" title="Permanent link">¶</a></h3>
 <p>Fills the entire display with a solid color or gradient. Renders first, allowing other effects to layer on top. Supports smooth cross-fading between colors.</p>
 <table>
 <thead>
@@ -1962,7 +1997,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="pulse">Pulse<a class="headerlink" href="#pulse" title="Permanent link">&para;</a></h3>
+<h3 id="pulse">Pulse<a class="headerlink" href="#pulse" title="Permanent link">¶</a></h3>
 <p>Pulsing color overlay that expands and contracts. Supports multiple simultaneous pulses.</p>
 <table>
 <thead>
@@ -1994,7 +2029,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="bitmap">Bitmap<a class="headerlink" href="#bitmap" title="Permanent link">&para;</a></h3>
+<h3 id="bitmap">Bitmap<a class="headerlink" href="#bitmap" title="Permanent link">¶</a></h3>
 <p>Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette).</p>
 <table>
 <thead>
@@ -2038,7 +2073,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="wipe">Wipe<a class="headerlink" href="#wipe" title="Permanent link">&para;</a></h3>
+<h3 id="wipe">Wipe<a class="headerlink" href="#wipe" title="Permanent link">¶</a></h3>
 <p>Directional color sweep across the display.</p>
 <table>
 <thead>
@@ -2066,7 +2101,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="explode">Explode<a class="headerlink" href="#explode" title="Permanent link">&para;</a></h3>
+<h3 id="explode">Explode<a class="headerlink" href="#explode" title="Permanent link">¶</a></h3>
 <p>Radial particle explosion from a center point.</p>
 <table>
 <thead>
@@ -2122,7 +2157,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="projectile">Projectile<a class="headerlink" href="#projectile" title="Permanent link">&para;</a></h3>
+<h3 id="projectile">Projectile<a class="headerlink" href="#projectile" title="Permanent link">¶</a></h3>
 <p>Moving object with velocity and optional particle trail. Starts from screen edge.</p>
 <table>
 <thead>
@@ -2166,7 +2201,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="text">Text<a class="headerlink" href="#text" title="Permanent link">&para;</a></h3>
+<h3 id="text">Text<a class="headerlink" href="#text" title="Permanent link">¶</a></h3>
 <p>Static text display with optional gradient animation. Matrix only.</p>
 <table>
 <thead>
@@ -2210,7 +2245,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="scroll-text">Scroll Text<a class="headerlink" href="#scroll-text" title="Permanent link">&para;</a></h3>
+<h3 id="scroll-text">Scroll Text<a class="headerlink" href="#scroll-text" title="Permanent link">¶</a></h3>
 <p>Horizontally scrolling text with gradient animation.</p>
 <table>
 <thead>
@@ -2262,7 +2297,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="plasma">Plasma<a class="headerlink" href="#plasma" title="Permanent link">&para;</a></h3>
+<h3 id="plasma">Plasma<a class="headerlink" href="#plasma" title="Permanent link">¶</a></h3>
 <p>Classic demoscene plasma effect using Perlin noise.</p>
 <table>
 <thead>
@@ -2290,7 +2325,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="warp">Warp<a class="headerlink" href="#warp" title="Permanent link">&para;</a></h3>
+<h3 id="warp">Warp<a class="headerlink" href="#warp" title="Permanent link">¶</a></h3>
 <p>Center-radiating animated gradient creating tunnel or bulge effects.</p>
 <table>
 <thead>
@@ -2322,7 +2357,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="particle-field">Particle Field<a class="headerlink" href="#particle-field" title="Permanent link">&para;</a></h3>
+<h3 id="particle-field">Particle Field<a class="headerlink" href="#particle-field" title="Permanent link">¶</a></h3>
 <p>Animated particle system for starfields, rain, or snow effects. Slower particles appear dimmer to simulate distance.</p>
 <table>
 <thead>
@@ -2358,7 +2393,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="sparkle">Sparkle<a class="headerlink" href="#sparkle" title="Permanent link">&para;</a></h3>
+<h3 id="sparkle">Sparkle<a class="headerlink" href="#sparkle" title="Permanent link">¶</a></h3>
 <p>Twinkling single-LED particles that cycle through a color gradient. Triggering creates a "cloud" that spawns particles over its duration.</p>
 <table>
 <thead>
@@ -2394,9 +2429,9 @@
 </tr>
 </tbody>
 </table>
-<h3 id="test-leds">Test LEDs<a class="headerlink" href="#test-leds" title="Permanent link">&para;</a></h3>
+<h3 id="test-leds">Test LEDs<a class="headerlink" href="#test-leds" title="Permanent link">¶</a></h3>
 <p>Hardware validation pattern that cycles through colors. Used for diagnostics. Triggered via the BOOT button on the ESP32 or from the Hub application.</p>
-<h2 id="blend-modes">Blend Modes<a class="headerlink" href="#blend-modes" title="Permanent link">&para;</a></h2>
+<h2 id="blend-modes">Blend Modes<a class="headerlink" href="#blend-modes" title="Permanent link">¶</a></h2>
 <p>Effects can use different blend modes when compositing:</p>
 <ul>
 <li><strong>Replace</strong>: Overwrite the pixel completely</li>
@@ -2404,7 +2439,7 @@
 <li><strong>Additive</strong>: Add colors together (bright effects)</li>
 <li><strong>Average</strong>: 50/50 blend</li>
 </ul>
-<h2 id="performance-limits">Performance Limits<a class="headerlink" href="#performance-limits" title="Permanent link">&para;</a></h2>
+<h2 id="performance-limits">Performance Limits<a class="headerlink" href="#performance-limits" title="Permanent link">¶</a></h2>
 <table>
 <thead>
 <tr>
@@ -2465,7 +2500,7 @@
         
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
   Back to top
 </button>
         
@@ -2508,5 +2543,7 @@
         <script src="../js/open_in_new_tab.js"></script>
       
     
-  </body>
-</html>
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

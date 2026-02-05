@@ -21,19 +21,14 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
-	// Check gradient first since color is optional when gradient is provided
-	bool hasGradient = false;
+	// Parse gradient (required, min 1 color)
+	// Single-color gradient acts as solid color (no animation)
+	// Multi-color gradient enables animated gradient effect
 	CRGB gradientLut[GRADIENT_LUT_SIZE];
-	hasGradient = parseGradientFromJson(props, gradientLut);
-
-	// Color is required only if no gradient is provided
-	uint32_t color = 0;
-	if (props["color"].is<const char*>()) {
-		color = parseColor(props["color"]);
-	} else if (!hasGradient) {
-		hal::log("ERROR: scroll_text missing 'color' prop (required when no gradient)");
-		publishError("scroll_text", "missing or invalid 'color' prop", props);
+	TextGradientResult gradient = parseTextGradientFromJson(props, gradientLut);
+	if (!gradient.valid) {
+		hal::log("ERROR: scroll_text missing or invalid 'gradient' prop");
+		publishError("scroll_text", "missing or invalid 'gradient' prop", props);
 		return;
 	}
 	float speed = props["speed"];
@@ -47,9 +42,9 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	strncpy(instance.text, text, instance.textLen);
 	instance.text[instance.textLen] = '\0';
 
-	instance.r = (color >> 16) & 0xFF;
-	instance.g = (color >> 8) & 0xFF;
-	instance.b = color & 0xFF;
+	instance.r = gradient.r;
+	instance.g = gradient.g;
+	instance.b = gradient.b;
 
 	instance.hasAccent = !props["accentColor"].isNull();
 	if (instance.hasAccent) {
@@ -68,8 +63,8 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.repeat = repeat;
 	instance.snapToLed = props["snapToLed"].as<bool>();
 
-	// Copy pre-parsed gradient to instance
-	instance.hasGradient = hasGradient;
+	// Copy gradient LUT only when animating (2+ colors)
+	instance.hasGradient = gradient.animate;
 	if (instance.hasGradient) {
 		memcpy(instance.gradientLut, gradientLut, sizeof(gradientLut));
 		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;

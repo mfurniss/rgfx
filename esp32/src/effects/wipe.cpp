@@ -4,37 +4,9 @@
 #include "hal/types.h"
 #include "graphics/canvas.h"
 #include "network/mqtt.h"
-#include <cstring>
-
-static WipeDirection parseDirection(const char* dir, bool is1D) {
-	WipeDirection result;
-
-	if (strcmp(dir, "random") == 0 || strcmp(dir, "") == 0) {
-		result = static_cast<WipeDirection>(hal::random(4));
-	} else if (strcmp(dir, "left") == 0) {
-		result = WipeDirection::LEFT;
-	} else if (strcmp(dir, "right") == 0) {
-		result = WipeDirection::RIGHT;
-	} else if (strcmp(dir, "up") == 0) {
-		result = WipeDirection::UP;
-	} else if (strcmp(dir, "down") == 0) {
-		result = WipeDirection::DOWN;
-	} else {
-		result = static_cast<WipeDirection>(hal::random(4));
-	}
-
-	// For 1D strips, vertical directions map to horizontal
-	if (is1D) {
-		if (result == WipeDirection::UP) result = WipeDirection::LEFT;
-		if (result == WipeDirection::DOWN) result = WipeDirection::RIGHT;
-	}
-
-	return result;
-}
 
 WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
-	wipes.reserve(8);
 }
 
 static BlendMode parseBlendMode(const char* mode) {
@@ -57,20 +29,13 @@ void WipeEffect::add(JsonDocument& props) {
 	bool is1D = canvas.getHeight() == 1;
 
 	Wipe newWipe;
-	newWipe.r = (color >> 16) & 0xFF;
-	newWipe.g = (color >> 8) & 0xFF;
-	newWipe.b = color & 0xFF;
+	newWipe.color = RGBColor(color);
 	newWipe.duration = duration;
 	newWipe.elapsedTime = 0;
 	newWipe.direction = parseDirection(dirStr, is1D);
 	newWipe.blendMode = parseBlendMode(blendModeStr);
 
-	// Cap vector size to prevent unbounded growth under high load
-	static constexpr size_t MAX_WIPES = 64;
-	if (wipes.size() >= MAX_WIPES) {
-		wipes.erase(wipes.begin());  // Drop oldest
-	}
-	wipes.push_back(newWipe);
+	wipes.add(newWipe);
 }
 
 void WipeEffect::update(float deltaTime) {
@@ -93,7 +58,7 @@ void WipeEffect::render() {
 	uint16_t height = canvas.getHeight();
 
 	for (const auto& wipe : wipes) {
-		CRGB color(wipe.r, wipe.g, wipe.b);
+		CRGB color = wipe.color;
 		uint32_t halfDuration = wipe.duration / 2;
 		float progress;
 
@@ -106,7 +71,7 @@ void WipeEffect::render() {
 		bool filling = wipe.elapsedTime < halfDuration;
 
 		switch (wipe.direction) {
-			case WipeDirection::RIGHT: {
+			case Direction::RIGHT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
 					canvas.drawRectangle(0, 0, fillWidth, height, CRGBA(color), wipe.blendMode);
@@ -116,7 +81,7 @@ void WipeEffect::render() {
 				}
 				break;
 			}
-			case WipeDirection::LEFT: {
+			case Direction::LEFT: {
 				if (filling) {
 					uint16_t fillWidth = static_cast<uint16_t>(progress * width);
 					canvas.drawRectangle(width - fillWidth, 0, fillWidth, height, CRGBA(color), wipe.blendMode);
@@ -126,7 +91,7 @@ void WipeEffect::render() {
 				}
 				break;
 			}
-			case WipeDirection::DOWN: {
+			case Direction::DOWN: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
 					canvas.drawRectangle(0, 0, width, fillHeight, CRGBA(color), wipe.blendMode);
@@ -136,7 +101,7 @@ void WipeEffect::render() {
 				}
 				break;
 			}
-			case WipeDirection::UP: {
+			case Direction::UP: {
 				if (filling) {
 					uint16_t fillHeight = static_cast<uint16_t>(progress * height);
 					canvas.drawRectangle(0, height - fillHeight, width, fillHeight, CRGBA(color), wipe.blendMode);

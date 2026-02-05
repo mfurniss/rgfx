@@ -10,7 +10,7 @@ The ESP32-WROOM development board is my recommended microcontroller for RGFX dri
 
 My preferred plug-n-play connection method uses a 38-pin ESP32 breakout board. The 5V, GND and DATA pins are connected to the LED hardware using included JST SM 3 connectors.
 
-![ESP32-WROOM microcontroller](../assets/images/matrix-examples/esp32-wroom-close-up.jpg)
+![ESP32-WROOM development board and breakout](../assets/images/matrix-examples/esp32-wroom-close-up.jpg)
 
 > Note the small **RESET** and **BOOT** buttons at the left and right of the USB input.
 
@@ -28,7 +28,7 @@ Two 16x16 LED matrices arranged horizontally, creating a unified 32x16 display. 
 
 > Matrix 1 is outlined in green, matrix 2 is outlined in red.
 
-![16x16 dual-panel front view](../assets/images/matrix-examples/16x16x2-front.jpg)
+![Dual 16x16 matrix front view](../assets/images/matrix-examples/16x16x2-front.jpg)
 
 ### Test Pattern
 
@@ -36,11 +36,11 @@ Once a driver is configured, the test pattern can be activated by pressing eithe
 
 > The test pattern helps verify the order and orientation of the individual matrices. The unified display has four colored quadrants, and the top left of each matrix is identified by a single white LED.
 
-![16x16 dual-panel test pattern](../assets/images/matrix-examples/16x16x2-front-test-pattern.jpg)
+![Dual 16x16 matrix test pattern](../assets/images/matrix-examples/16x16x2-front-test-pattern.jpg)
 
-### Back / Wiring
+### Rear / Wiring
 
-![16x16 dual-panel back view](../assets/images/matrix-examples/16x16x2-back.jpg)
+![Dual 16x16 matrix rear view](../assets/images/matrix-examples/16x16x2-back.jpg)
 
 ---
 
@@ -52,26 +52,26 @@ A pair of 32x8 LED matrices stacked vertically, creating a unified 32x16 display
 
 Matrix 1 is outlined in green. Matrix 2 is outlined in red.
 
-![32x8 dual-panel front view](../assets/images/matrix-examples/32x8x2-front.jpg)
+![Dual 32x8 matrix front view](../assets/images/matrix-examples/32x8x2-front.jpg)
 
-### Back / Wiring
+### Rear / Wiring
 
-![32x8 dual-panel back view](../assets/images/matrix-examples/32x8x2-back.jpg)
+![Dual 32x8 matrix rear view](../assets/images/matrix-examples/32x8x2-back.jpg)
 
 ### Test Pattern
 
 > Note the single white LED indicating the top left of each matrix.
 
-![32x8 dual-panel test pattern](../assets/images/matrix-examples/32x8x2-front-test-pattern.jpg)
+![Dual 32x8 matrix test pattern](../assets/images/matrix-examples/32x8x2-front-test-pattern.jpg)
 
 ---
 
-## 32x8 Display Example
+## 96x8 Display Example
 
-Three 32x8 LED matrices arranged horizontally, creating a 96x8 unified display. This wide configuration is ideal for displaying scores and scrolling text messages.
+Three 32x8 LED matrices arranged horizontally, creating a 96x8 unified display. This wide configuration is ideal for displaying scores and text messages.
 
 ### Test Pattern
 
-> The white LEDs indicate the top left of each matrix.
+> The white LEDs indicate the top left corner of each matrix.
 
-![32x8 triple-panel test pattern](../assets/images/matrix-examples/32x8x3-front-test-pattern.jpg)
+![Triple 96x8 matrix test pattern](../assets/images/matrix-examples/32x8x3-front-test-pattern.jpg)

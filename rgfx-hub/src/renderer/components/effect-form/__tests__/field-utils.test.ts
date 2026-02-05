@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatLabel, formatConstraintHint, buildTooltip, isColorDisabledByGradient } from '../field-utils';
+import { formatLabel, formatConstraintHint, buildTooltip } from '../field-utils';
 
 describe('field-utils', () => {
   describe('formatLabel', () => {
@@ -109,41 +109,6 @@ describe('field-utils', () => {
 
     it('formats null as none', () => {
       expect(buildTooltip(undefined, null)).toBe('Default: none');
-    });
-  });
-
-  describe('isColorDisabledByGradient', () => {
-    it('returns false for non-color fields', () => {
-      expect(isColorDisabledByGradient('gradient', ['red', 'blue'])).toBe(false);
-      expect(isColorDisabledByGradient('orientation', ['red', 'blue'])).toBe(false);
-      expect(isColorDisabledByGradient('speed', ['red', 'blue'])).toBe(false);
-    });
-
-    it('returns false when gradient is undefined', () => {
-      expect(isColorDisabledByGradient('color', undefined)).toBe(false);
-    });
-
-    it('returns false when gradient array is empty', () => {
-      expect(isColorDisabledByGradient('color', [])).toBe(false);
-    });
-
-    it('returns true when gradient array has values', () => {
-      expect(isColorDisabledByGradient('color', ['red'])).toBe(true);
-      expect(isColorDisabledByGradient('color', ['red', 'blue'])).toBe(true);
-      expect(isColorDisabledByGradient('color', ['#ff0000', '#0000ff'])).toBe(true);
-    });
-
-    it('returns false when gradient object has empty colors array', () => {
-      expect(isColorDisabledByGradient('color', { colors: [] })).toBe(false);
-    });
-
-    it('returns true when gradient object has colors', () => {
-      expect(isColorDisabledByGradient('color', { colors: ['red'] })).toBe(true);
-      expect(isColorDisabledByGradient('color', { colors: ['red', 'blue'] })).toBe(true);
-    });
-
-    it('returns false when gradient object has no colors property', () => {
-      expect(isColorDisabledByGradient('color', {})).toBe(false);
     });
   });
 });

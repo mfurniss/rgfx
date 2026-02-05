@@ -60,4 +60,7 @@ bool checkUDPMessage(UDPMessage* message);
 // Telemetry: Get current queue depth (0-16)
 uint8_t getUdpQueueDepth();
 
+// Reinitialize UDP socket (for recovery from stalled state)
+void reinitializeUDP();
+
 #endif

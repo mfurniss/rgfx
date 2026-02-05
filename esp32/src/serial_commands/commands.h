@@ -62,6 +62,12 @@ namespace Commands {
 	 */
 	void testLeds(const String& args);
 
+	/**
+	 * UDP reset command.
+	 * Reinitializes the UDP socket to recover from stalled state.
+	 */
+	void udpReset(const String& args);
+
 }  // namespace Commands
 
 #endif

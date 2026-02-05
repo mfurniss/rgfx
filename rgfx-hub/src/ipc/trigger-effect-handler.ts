@@ -12,6 +12,7 @@ import { UDP_PORT } from '../config/constants';
 import type { UdpClient, EffectPayload } from '../types/transformer-types';
 import type { DriverRegistry } from '../driver-registry';
 import { safeValidateEffectProps } from '../schemas';
+import { eventBus } from '../services/event-bus';
 
 interface TriggerEffectHandlerDeps {
   udpClient: UdpClient;
@@ -31,7 +32,16 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
       const result = safeValidateEffectProps(payload.effect, payload.props);
 
       if (!result.success) {
-        log.error('Invalid effect props:', result.error);
+        log.error('Invalid effect props:', result.error, {
+          effect: payload.effect,
+          props: payload.props,
+        });
+        eventBus.emit('system:error', {
+          errorType: 'general',
+          message: `Invalid effect props for ${payload.effect}: ${result.error.message}`,
+          timestamp: Date.now(),
+          details: JSON.stringify(payload.props, null, 2),
+        });
         throw new Error(`Invalid effect props: ${result.error.message}`);
       }
 

@@ -89,11 +89,22 @@ void processUDP() {
 				udpMessagesReceived++;
 			}
 		} else {
-			// Queue full - must consume packet to clear it from UDP buffer
-			char discard[1];
-			udp.read(discard, 1);
+			// Queue full - must clear entire rx_buffer to allow future parsePacket() calls
+			// Note: reading just 1 byte leaves rx_buffer non-empty, which causes
+			// parsePacket() to return 0 forever (it exits early if buffer exists)
+			while (udp.available()) {
+				udp.read();
+			}
 			log("UDP RX: Queue full, dropping message");
 			udpMessagesDropped++;
+
+			// Report to Hub (rate limited - only on first drop in a batch)
+			static uint32_t lastDropReportTime = 0;
+			uint32_t now = millis();
+			if (now - lastDropReportTime > 5000) {  // Max once per 5 seconds
+				publishError("udp", "Queue full - dropping messages");
+				lastDropReportTime = now;
+			}
 		}
 		packetsProcessed++;
 	}
@@ -151,4 +162,11 @@ bool checkUDPMessage(UDPMessage* message) {
 
 uint8_t getUdpQueueDepth() {
 	return messageQueue.count;
+}
+
+void reinitializeUDP() {
+	log("Reinitializing UDP socket...");
+	udp.stop();
+	delay(10);  // Allow socket cleanup
+	setupUDP();
 }

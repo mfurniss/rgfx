@@ -162,6 +162,32 @@ describe('subscribeDriverError', () => {
 
       eventBusEmitSpy.mockRestore();
     });
+
+    it('should handle UDP queue full error from driver', () => {
+      const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
+
+      // This is the error format sent by publishError() in esp32/src/network/udp.cpp
+      // when the UDP queue is full and messages are being dropped
+      const payload = {
+        driverId: 'rgfx-driver-test',
+        effect: 'udp',
+        error: 'Queue full - dropping messages',
+        payload: {},
+      };
+
+      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+
+      expect(eventBusEmitSpy).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'driver',
+          message: expect.stringContaining('Queue full - dropping messages'),
+          driverId: 'rgfx-driver-test',
+        }),
+      );
+
+      eventBusEmitSpy.mockRestore();
+    });
   });
 
   describe('invalid message handling', () => {

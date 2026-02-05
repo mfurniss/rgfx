@@ -1,7 +1,4 @@
-
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
+<!DOCTYPE html><html lang="en" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -50,7 +47,7 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
@@ -63,7 +60,17 @@
 
     
     
-  </head>
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
   
   
     
@@ -99,12 +106,12 @@
     <a href=".." title="RGFX Documentation" class="md-header__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -132,7 +139,7 @@
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -141,15 +148,15 @@
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
         </button>
       </nav>
       
@@ -185,7 +192,7 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -197,7 +204,7 @@
     <a href=".." title="RGFX Documentation" class="md-nav__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     RGFX Documentation
@@ -220,7 +227,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
         
           
           <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
@@ -386,7 +393,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -1013,6 +1020,34 @@
   
   
     <li class="md-nav__item">
+      <a href="gif-bitmaps.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GIF Bitmaps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="ambilight.html" class="md-nav__link">
         
   
@@ -1056,7 +1091,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -1306,7 +1341,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1409,7 +1444,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3">
         
           
           <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
@@ -1716,7 +1751,7 @@
             
             
               
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -1956,19 +1991,19 @@
 
 
 
-<h1 id="transformers">Transformers<a class="headerlink" href="#transformers" title="Permanent link">&para;</a></h1>
+<h1 id="transformers">Transformers<a class="headerlink" href="#transformers" title="Permanent link">¶</a></h1>
 <p>Transformers are JavaScript modules that convert game events into LED effects. They act as the bridge between game state changes and visual feedback on your LED hardware.</p>
-<h2 id="how-transformers-work">How Transformers Work<a class="headerlink" href="#how-transformers-work" title="Permanent link">&para;</a></h2>
+<h2 id="how-transformers-work">How Transformers Work<a class="headerlink" href="#how-transformers-work" title="Permanent link">¶</a></h2>
 <p>When MAME interceptors detect game events, they publish MQTT messages with topics like <code>pacman/player/score/1000</code>. The Hub's transformer engine routes these events through a cascade of handlers until one claims the event and broadcasts the appropriate effect to drivers.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Game Event → Transformer Engine → Effect Payload → LED Drivers
 </code></pre></div>
-<h2 id="cascade-system">Cascade System<a class="headerlink" href="#cascade-system" title="Permanent link">&para;</a></h2>
+<h2 id="cascade-system">Cascade System<a class="headerlink" href="#cascade-system" title="Permanent link">¶</a></h2>
 <p>Events flow through four handler levels. The first handler to return a truthy value stops the cascade.</p>
-<h3 id="1-game-transformers-highest-priority">1. Game Transformers (Highest Priority)<a class="headerlink" href="#1-game-transformers-highest-priority" title="Permanent link">&para;</a></h3>
+<h3 id="1-game-transformers-highest-priority">1. Game Transformers (Highest Priority)<a class="headerlink" href="#1-game-transformers-highest-priority" title="Permanent link">¶</a></h3>
 <p>Game-specific handlers for individual games.</p>
 <p><strong>Location:</strong> <code>~/.rgfx/transformers/games/</code></p>
 <p><strong>Examples:</strong> <code>pacman.js</code>, <code>galaga.js</code>, <code>robotron.js</code>, <code>starwars.js</code></p>
-<h3 id="2-subject-transformers">2. Subject Transformers<a class="headerlink" href="#2-subject-transformers" title="Permanent link">&para;</a></h3>
+<h3 id="2-subject-transformers">2. Subject Transformers<a class="headerlink" href="#2-subject-transformers" title="Permanent link">¶</a></h3>
 <p>Generic handlers for common event subjects that appear across multiple games.</p>
 <p><strong>Location:</strong> <code>~/.rgfx/transformers/subjects/</code></p>
 <p><strong>Available:</strong></p>
@@ -1978,39 +2013,39 @@
 <li><code>player.js</code> - Generic player events</li>
 <li><code>enemy.js</code> - Enemy-related events</li>
 </ul>
-<h3 id="3-pattern-transformers">3. Pattern Transformers<a class="headerlink" href="#3-pattern-transformers" title="Permanent link">&para;</a></h3>
+<h3 id="3-pattern-transformers">3. Pattern Transformers<a class="headerlink" href="#3-pattern-transformers" title="Permanent link">¶</a></h3>
 <p>Match events by content pattern rather than topic structure.</p>
 <p><strong>Location:</strong> <code>~/.rgfx/transformers/patterns/</code></p>
-<h3 id="4-default-transformer-lowest-priority">4. Default Transformer (Lowest Priority)<a class="headerlink" href="#4-default-transformer-lowest-priority" title="Permanent link">&para;</a></h3>
+<h3 id="4-default-transformer-lowest-priority">4. Default Transformer (Lowest Priority)<a class="headerlink" href="#4-default-transformer-lowest-priority" title="Permanent link">¶</a></h3>
 <p>Catch-all for unmatched events.</p>
 <p><strong>Location:</strong> <code>~/.rgfx/transformers/default.js</code></p>
-<h2 id="writing-transformers">Writing Transformers<a class="headerlink" href="#writing-transformers" title="Permanent link">&para;</a></h2>
+<h2 id="writing-transformers">Writing Transformers<a class="headerlink" href="#writing-transformers" title="Permanent link">¶</a></h2>
 <p>Transformers export a <code>transform</code> function that receives the parsed topic and a context object.</p>
-<h3 id="topic-structure">Topic Structure<a class="headerlink" href="#topic-structure" title="Permanent link">&para;</a></h3>
+<h3 id="topic-structure">Topic Structure<a class="headerlink" href="#topic-structure" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">raw</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pacman/player/score/p1&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Original topic</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">namespace</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pacman&quot;</span><span class="p">,</span><span class="w">            </span><span class="c1">// Game name or &quot;rgfx&quot;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">subject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;player&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// Entity type</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">property</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// Event type</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">qualifier</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;p1&quot;</span><span class="p">,</span><span class="w">                </span><span class="c1">// Optional context</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nx">payload</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1000&quot;</span><span class="w">                 </span><span class="c1">// Event value</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">raw</span><span class="o">:</span><span class="w"> </span><span class="s2">"pacman/player/score/p1"</span><span class="p">,</span><span class="w">  </span><span class="c1">// Original topic</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">namespace</span><span class="o">:</span><span class="w"> </span><span class="s2">"pacman"</span><span class="p">,</span><span class="w">            </span><span class="c1">// Game name or "rgfx"</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">subject</span><span class="o">:</span><span class="w"> </span><span class="s2">"player"</span><span class="p">,</span><span class="w">              </span><span class="c1">// Entity type</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">property</span><span class="o">:</span><span class="w"> </span><span class="s2">"score"</span><span class="p">,</span><span class="w">              </span><span class="c1">// Event type</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">qualifier</span><span class="o">:</span><span class="w"> </span><span class="s2">"p1"</span><span class="p">,</span><span class="w">                </span><span class="c1">// Optional context</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nx">payload</span><span class="o">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="w">                 </span><span class="c1">// Event value</span>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">}</span>
 </code></pre></div>
-<h3 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">&para;</a></h3>
+<h3 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;player&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">'player'</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;score&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'score'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;pulse&#39;</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FFFF00&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">500</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'pulse'</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">'#FFFF00'</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">500</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="p">});</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">}</span>
 </code></pre></div>
-<h3 id="context-object">Context Object<a class="headerlink" href="#context-object" title="Permanent link">&para;</a></h3>
+<h3 id="context-object">Context Object<a class="headerlink" href="#context-object" title="Permanent link">¶</a></h3>
 <p>The context provides services for transformers:</p>
 <table>
 <thead>
@@ -2050,22 +2085,22 @@
 </tr>
 </tbody>
 </table>
-<h2 id="broadcasting-effects">Broadcasting Effects<a class="headerlink" href="#broadcasting-effects" title="Permanent link">&para;</a></h2>
+<h2 id="broadcasting-effects">Broadcasting Effects<a class="headerlink" href="#broadcasting-effects" title="Permanent link">¶</a></h2>
 <p>The <code>broadcast</code> function sends effects to drivers.</p>
-<h3 id="broadcast-to-all-drivers">Broadcast to All Drivers<a class="headerlink" href="#broadcast-to-all-drivers" title="Permanent link">&para;</a></h3>
+<h3 id="broadcast-to-all-drivers">Broadcast to All Drivers<a class="headerlink" href="#broadcast-to-all-drivers" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;pulse&#39;</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FF0000&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'pulse'</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">'#FF0000'</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">});</span>
 </code></pre></div>
-<h3 id="target-specific-drivers">Target Specific Drivers<a class="headerlink" href="#target-specific-drivers" title="Permanent link">&para;</a></h3>
+<h3 id="target-specific-drivers">Target Specific Drivers<a class="headerlink" href="#target-specific-drivers" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;rgfx-driver-0001&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;rgfx-driver-0005&#39;</span><span class="p">],</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;GAME OVER&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FF0000&#39;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'rgfx-driver-0001'</span><span class="p">,</span><span class="w"> </span><span class="s1">'rgfx-driver-0005'</span><span class="p">],</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="s1">'GAME OVER'</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">'#FF0000'</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">});</span>
 </code></pre></div>
-<h3 id="wildcard-targeting">Wildcard Targeting<a class="headerlink" href="#wildcard-targeting" title="Permanent link">&para;</a></h3>
+<h3 id="wildcard-targeting">Wildcard Targeting<a class="headerlink" href="#wildcard-targeting" title="Permanent link">¶</a></h3>
 <table>
 <thead>
 <tr>
@@ -2089,28 +2124,28 @@
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;spectrum&#39;</span><span class="p">,</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;*M&#39;</span><span class="p">],</span><span class="w">  </span><span class="c1">// Send to a random matrix</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'spectrum'</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'*M'</span><span class="p">],</span><span class="w">  </span><span class="c1">// Send to a random matrix</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">bands</span><span class="o">:</span><span class="w"> </span><span class="mf">16</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">});</span>
 </code></pre></div>
-<h2 id="state-management">State Management<a class="headerlink" href="#state-management" title="Permanent link">&para;</a></h2>
+<h2 id="state-management">State Management<a class="headerlink" href="#state-management" title="Permanent link">¶</a></h2>
 <p>Use <code>context.state</code> to track game state across events.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">state</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;score&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">lastScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;lastScore&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'score'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">lastScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'lastScore'</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">newScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">payload</span><span class="p">);</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="c1">// Only trigger effect on score increase</span>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">newScore</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nx">lastScore</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="nx">state</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;lastScore&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newScore</span><span class="p">);</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;pulse&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#FFFF00&#39;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="nx">state</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">'lastScore'</span><span class="p">,</span><span class="w"> </span><span class="nx">newScore</span><span class="p">);</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'pulse'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">'#FFFF00'</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
 <a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
 <a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="file-location">File Location<a class="headerlink" href="#file-location" title="Permanent link">&para;</a></h2>
+<h2 id="file-location">File Location<a class="headerlink" href="#file-location" title="Permanent link">¶</a></h2>
 <p>Transformers are stored in <code>~/.rgfx/transformers/</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>~/.rgfx/transformers/
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── default.js
@@ -2125,7 +2160,7 @@
 <a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>└── patterns/
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    └── ...
 </code></pre></div>
-<h2 id="hot-reload">Hot Reload<a class="headerlink" href="#hot-reload" title="Permanent link">&para;</a></h2>
+<h2 id="hot-reload">Hot Reload<a class="headerlink" href="#hot-reload" title="Permanent link">¶</a></h2>
 <p>The Hub watches the transformers directory for changes. Edit files directly and changes take effect immediately without restarting.</p>
 
 
@@ -2149,7 +2184,7 @@
         
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
   Back to top
 </button>
         
@@ -2192,5 +2227,7 @@
         <script src="../js/open_in_new_tab.js"></script>
       
     
-  </body>
-</html>
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

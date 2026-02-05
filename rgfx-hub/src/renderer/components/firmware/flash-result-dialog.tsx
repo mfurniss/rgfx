@@ -1,13 +1,13 @@
 import React from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Typography,
   Button,
 } from '@mui/material';
 import { CheckCircle as SuccessIcon, Error as ErrorIcon } from '@mui/icons-material';
+import { DialogTitleWithIcon } from '../common/dialog-title-with-icon';
 import type { FlashMethod } from '../../hooks/use-flash-state';
 
 interface FlashResultDialogProps {
@@ -34,17 +34,11 @@ const FlashResultDialog: React.FC<FlashResultDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          color: success ? 'success.main' : 'error.main',
-        }}
-      >
-        {success ? <SuccessIcon /> : <ErrorIcon />}
-        {success ? 'Flash Complete' : 'Flash Failed'}
-      </DialogTitle>
+      <DialogTitleWithIcon
+        icon={success ? <SuccessIcon /> : <ErrorIcon />}
+        title={success ? 'Flash Complete' : 'Flash Failed'}
+        titleColor={success ? 'success.main' : 'error.main'}
+      />
       <DialogContent>
         <Typography sx={{ pb: success ? 0 : 2 }}>{message}</Typography>
         {!success && <Typography>{getFailureHelpText(flashMethod)}</Typography>}

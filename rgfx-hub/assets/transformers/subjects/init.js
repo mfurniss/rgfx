@@ -16,7 +16,7 @@ export async function transform({ namespace, subject }, ctx) {
               wr.date
             }`,
             repeat: false,
-            color: '#808000',
+            gradient: ['#808000'],
             accentColor: '#006060',
             speed: 250,
             snapToLed: false,

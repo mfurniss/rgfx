@@ -1,32 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Science as ScienceIcon } from '@mui/icons-material';
 import SuperButton from '../common/super-button';
 import type { DriverButtonProps } from './types';
-
-const TIMEOUT_MS = 5000;
+import { usePendingWithTimeout } from '@/renderer/hooks/use-pending-with-timeout';
 
 const TestLedButton: React.FC<DriverButtonProps> = ({ driver }) => {
-  const [testRequestPending, setTestRequestPending] = useState(false);
-
-  // Clear pending state when driver's testActive state changes OR when driver connects/disconnects
-  useEffect(() => {
-    setTestRequestPending(false);
-  }, [driver.testActive, driver.state]);
-
-  // Timeout to auto-clear pending state if no response received
-  useEffect(() => {
-    if (!testRequestPending) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setTestRequestPending(false);
-    }, TIMEOUT_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [testRequestPending]);
+  const { pending: testRequestPending, setPending: setTestRequestPending } = usePendingWithTimeout({
+    timeoutMs: 5000,
+    clearOnChange: [driver.testActive, driver.state],
+  });
 
   const handleTestToggle = () => {
     if (testRequestPending) {

@@ -52,7 +52,7 @@ The following sections need expansion to cover ALL features:
 
 Generated site files in `public-docs/site/` and `rgfx.io/docs/` must be committed. After updating documentation source files, regenerate the site and commit both source and generated files.
 
-**Do NOT run `mkdocs build` yourself.** The user handles the build process.
+**Do NOT run `npm run docs:build` or `mkdocs build` yourself.** The user has a watch process that rebuilds automatically.
 
 ### When Adding New Features
 

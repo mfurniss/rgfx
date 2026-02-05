@@ -1,4 +1,5 @@
 mkdocs-material>=9.0.0
 mdx-truly-sane-lists
 mkdocs-open-in-new-tab
+mkdocs-glightbox
 click==8.2.1  # Pin to fix live reload - https://github.com/mkdocs/mkdocs/issues/4032

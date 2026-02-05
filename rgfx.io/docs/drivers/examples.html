@@ -1,7 +1,4 @@
-
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
+<!DOCTYPE html><html lang="en" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -50,7 +47,7 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
@@ -63,7 +60,17 @@
 
     
     
-  </head>
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
   
   
     
@@ -99,12 +106,12 @@
     <a href=".." title="RGFX Documentation" class="md-header__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -132,7 +139,7 @@
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -141,15 +148,15 @@
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
         </button>
       </nav>
       
@@ -185,7 +192,7 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -197,7 +204,7 @@
     <a href=".." title="RGFX Documentation" class="md-nav__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     RGFX Documentation
@@ -220,7 +227,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
         
           
           <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
@@ -386,7 +393,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -636,7 +643,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -739,6 +746,34 @@
     
   
     Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/gif-bitmaps.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GIF Bitmaps
   
 
     
@@ -1116,10 +1151,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#back-wiring" class="md-nav__link">
+  <a href="#rear-wiring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Back / Wiring
+        Rear / Wiring
       
     </span>
   </a>
@@ -1155,10 +1190,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#back-wiring_1" class="md-nav__link">
+  <a href="#rear-wiring_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Back / Wiring
+        Rear / Wiring
       
     </span>
   </a>
@@ -1182,15 +1217,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#32x8-display-example" class="md-nav__link">
+  <a href="#96x8-display-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        32x8 Display Example
+        96x8 Display Example
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="32x8 Display Example">
+    <nav class="md-nav" aria-label="96x8 Display Example">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1240,7 +1275,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1343,7 +1378,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3">
         
           
           <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
@@ -1650,7 +1685,7 @@
             
             
               
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -1714,10 +1749,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#back-wiring" class="md-nav__link">
+  <a href="#rear-wiring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Back / Wiring
+        Rear / Wiring
       
     </span>
   </a>
@@ -1753,10 +1788,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#back-wiring_1" class="md-nav__link">
+  <a href="#rear-wiring_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Back / Wiring
+        Rear / Wiring
       
     </span>
   </a>
@@ -1780,15 +1815,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#32x8-display-example" class="md-nav__link">
+  <a href="#96x8-display-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        32x8 Display Example
+        96x8 Display Example
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="32x8 Display Example">
+    <nav class="md-nav" aria-label="96x8 Display Example">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1824,55 +1859,55 @@
 
 
 
-<h1 id="hardware-examples">Hardware Examples<a class="headerlink" href="#hardware-examples" title="Permanent link">&para;</a></h1>
+<h1 id="hardware-examples">Hardware Examples<a class="headerlink" href="#hardware-examples" title="Permanent link">¶</a></h1>
 <p>Individual LED matrices can be combined to create larger displays. These builds demonstrate various sizes and layout options.</p>
 <p>Flexible LED matrices are often available in 8x8, 16x16 and 32x8 configurations. </p>
-<h2 id="esp32-controller">ESP32 Controller<a class="headerlink" href="#esp32-controller" title="Permanent link">&para;</a></h2>
+<h2 id="esp32-controller">ESP32 Controller<a class="headerlink" href="#esp32-controller" title="Permanent link">¶</a></h2>
 <p>The ESP32-WROOM development board is my recommended microcontroller for RGFX drivers. It provides excellent WiFi connectivity with generous CPU and storage. Perfect for low latency real-time game effects. The onboard 5V pin provides power to the LED hardware.</p>
 <p>My preferred plug-n-play connection method uses a 38-pin ESP32 breakout board. The 5V, GND and DATA pins are connected to the LED hardware using included JST SM 3 connectors.</p>
-<p><img alt="ESP32-WROOM microcontroller" src="../assets/images/matrix-examples/esp32-wroom-close-up.jpg" /></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/esp32-wroom-close-up.jpg" data-title="ESP32-WROOM development board and breakout" data-desc-position="bottom"><img alt="ESP32-WROOM development board and breakout" src="../assets/images/matrix-examples/esp32-wroom-close-up.jpg"></a></p>
 <blockquote>
 <p>Note the small <strong>RESET</strong> and <strong>BOOT</strong> buttons at the left and right of the USB input.</p>
 </blockquote>
 <p><em>Higher voltage and amperage setups can be created, but are out of scope for this documentation.</em></p>
 <p><em>ESP32-C3 Super Mini is supported. These are smaller and a little less expensive, but more difficult to work with - requiring soldering headers, and the C3 has fewer breakout options.</em></p>
-<hr />
-<h2 id="32x16-display-example">32x16 Display Example<a class="headerlink" href="#32x16-display-example" title="Permanent link">&para;</a></h2>
+<hr>
+<h2 id="32x16-display-example">32x16 Display Example<a class="headerlink" href="#32x16-display-example" title="Permanent link">¶</a></h2>
 <p>Two 16x16 LED matrices arranged horizontally, creating a unified 32x16 display. The flexible matrices are mounted to 1/4" project board with double-sided tape. This configuration works well for many effect types.</p>
-<h3 id="front-view">Front View<a class="headerlink" href="#front-view" title="Permanent link">&para;</a></h3>
+<h3 id="front-view">Front View<a class="headerlink" href="#front-view" title="Permanent link">¶</a></h3>
 <blockquote>
 <p>Matrix 1 is outlined in green, matrix 2 is outlined in red.</p>
 </blockquote>
-<p><img alt="16x16 dual-panel front view" src="../assets/images/matrix-examples/16x16x2-front.jpg" /></p>
-<h3 id="test-pattern">Test Pattern<a class="headerlink" href="#test-pattern" title="Permanent link">&para;</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/16x16x2-front.jpg" data-title="Dual 16x16 matrix front view" data-desc-position="bottom"><img alt="Dual 16x16 matrix front view" src="../assets/images/matrix-examples/16x16x2-front.jpg"></a></p>
+<h3 id="test-pattern">Test Pattern<a class="headerlink" href="#test-pattern" title="Permanent link">¶</a></h3>
 <p>Once a driver is configured, the test pattern can be activated by pressing either the ESP32's BOOT button or via the Hub application.</p>
 <blockquote>
 <p>The test pattern helps verify the order and orientation of the individual matrices. The unified display has four colored quadrants, and the top left of each matrix is identified by a single white LED.</p>
 </blockquote>
-<p><img alt="16x16 dual-panel test pattern" src="../assets/images/matrix-examples/16x16x2-front-test-pattern.jpg" /></p>
-<h3 id="back-wiring">Back / Wiring<a class="headerlink" href="#back-wiring" title="Permanent link">&para;</a></h3>
-<p><img alt="16x16 dual-panel back view" src="../assets/images/matrix-examples/16x16x2-back.jpg" /></p>
-<hr />
-<h2 id="alternate-32x16-display-example">Alternate 32x16 Display Example<a class="headerlink" href="#alternate-32x16-display-example" title="Permanent link">&para;</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/16x16x2-front-test-pattern.jpg" data-title="Dual 16x16 matrix test pattern" data-desc-position="bottom"><img alt="Dual 16x16 matrix test pattern" src="../assets/images/matrix-examples/16x16x2-front-test-pattern.jpg"></a></p>
+<h3 id="rear-wiring">Rear / Wiring<a class="headerlink" href="#rear-wiring" title="Permanent link">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/16x16x2-back.jpg" data-title="Dual 16x16 matrix rear view" data-desc-position="bottom"><img alt="Dual 16x16 matrix rear view" src="../assets/images/matrix-examples/16x16x2-back.jpg"></a></p>
+<hr>
+<h2 id="alternate-32x16-display-example">Alternate 32x16 Display Example<a class="headerlink" href="#alternate-32x16-display-example" title="Permanent link">¶</a></h2>
 <p>A pair of 32x8 LED matrices stacked vertically, creating a unified 32x16 display.</p>
-<h3 id="front-view_1">Front View<a class="headerlink" href="#front-view_1" title="Permanent link">&para;</a></h3>
+<h3 id="front-view_1">Front View<a class="headerlink" href="#front-view_1" title="Permanent link">¶</a></h3>
 <p>Matrix 1 is outlined in green. Matrix 2 is outlined in red.</p>
-<p><img alt="32x8 dual-panel front view" src="../assets/images/matrix-examples/32x8x2-front.jpg" /></p>
-<h3 id="back-wiring_1">Back / Wiring<a class="headerlink" href="#back-wiring_1" title="Permanent link">&para;</a></h3>
-<p><img alt="32x8 dual-panel back view" src="../assets/images/matrix-examples/32x8x2-back.jpg" /></p>
-<h3 id="test-pattern_1">Test Pattern<a class="headerlink" href="#test-pattern_1" title="Permanent link">&para;</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/32x8x2-front.jpg" data-title="Dual 32x8 matrix front view" data-desc-position="bottom"><img alt="Dual 32x8 matrix front view" src="../assets/images/matrix-examples/32x8x2-front.jpg"></a></p>
+<h3 id="rear-wiring_1">Rear / Wiring<a class="headerlink" href="#rear-wiring_1" title="Permanent link">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/32x8x2-back.jpg" data-title="Dual 32x8 matrix rear view" data-desc-position="bottom"><img alt="Dual 32x8 matrix rear view" src="../assets/images/matrix-examples/32x8x2-back.jpg"></a></p>
+<h3 id="test-pattern_1">Test Pattern<a class="headerlink" href="#test-pattern_1" title="Permanent link">¶</a></h3>
 <blockquote>
 <p>Note the single white LED indicating the top left of each matrix.</p>
 </blockquote>
-<p><img alt="32x8 dual-panel test pattern" src="../assets/images/matrix-examples/32x8x2-front-test-pattern.jpg" /></p>
-<hr />
-<h2 id="32x8-display-example">32x8 Display Example<a class="headerlink" href="#32x8-display-example" title="Permanent link">&para;</a></h2>
-<p>Three 32x8 LED matrices arranged horizontally, creating a 96x8 unified display. This wide configuration is ideal for displaying scores and scrolling text messages.</p>
-<h3 id="test-pattern_2">Test Pattern<a class="headerlink" href="#test-pattern_2" title="Permanent link">&para;</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/32x8x2-front-test-pattern.jpg" data-title="Dual 32x8 matrix test pattern" data-desc-position="bottom"><img alt="Dual 32x8 matrix test pattern" src="../assets/images/matrix-examples/32x8x2-front-test-pattern.jpg"></a></p>
+<hr>
+<h2 id="96x8-display-example">96x8 Display Example<a class="headerlink" href="#96x8-display-example" title="Permanent link">¶</a></h2>
+<p>Three 32x8 LED matrices arranged horizontally, creating a 96x8 unified display. This wide configuration is ideal for displaying scores and text messages.</p>
+<h3 id="test-pattern_2">Test Pattern<a class="headerlink" href="#test-pattern_2" title="Permanent link">¶</a></h3>
 <blockquote>
-<p>The white LEDs indicate the top left of each matrix.</p>
+<p>The white LEDs indicate the top left corner of each matrix.</p>
 </blockquote>
-<p><img alt="32x8 triple-panel test pattern" src="../assets/images/matrix-examples/32x8x3-front-test-pattern.jpg" /></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/matrix-examples/32x8x3-front-test-pattern.jpg" data-title="Triple 96x8 matrix test pattern" data-desc-position="bottom"><img alt="Triple 96x8 matrix test pattern" src="../assets/images/matrix-examples/32x8x3-front-test-pattern.jpg"></a></p>
 
 
 
@@ -1895,7 +1930,7 @@
         
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
   Back to top
 </button>
         
@@ -1938,5 +1973,7 @@
         <script src="../js/open_in_new_tab.js"></script>
       
     
-  </body>
-</html>
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

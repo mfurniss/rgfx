@@ -108,6 +108,17 @@ class WiFiUDP {
 		return toRead;
 	}
 
+	// Read single byte (used for buffer draining)
+	int read() {
+		if (readPosition >= currentPacket.data.size()) {
+			return -1;
+		}
+		return currentPacket.data[readPosition++];
+	}
+
+	// Check available bytes in current packet (used for buffer draining)
+	int available() { return currentPacket.data.size() - readPosition; }
+
 	// Helper for tests to inject packets
 	void injectPacket(const IPAddress& ip, uint16_t port, const std::string& data) {
 		MockUDPPacket pkt;

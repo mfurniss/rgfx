@@ -13,6 +13,7 @@ import { Terminal as TerminalIcon, PlayArrow as PlayArrowIcon } from '@mui/icons
 import { useUiStore, SimulatorAutoInterval } from '../store/ui-store';
 import SuperButton from '../components/common/super-button';
 import { PageTitle } from '../components/layout/page-title';
+import { ClearAllEffectsButton } from '../components/common/clear-all-effects-button';
 
 export default function SimulatorPage() {
   const simulatorRows = useUiStore((state) => state.simulatorRows);
@@ -41,9 +42,12 @@ export default function SimulatorPage() {
 
   return (
     <Box>
-      <PageTitle icon={<TerminalIcon />} title="Event Simulator" />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <PageTitle icon={<TerminalIcon />} title="Event Simulator" noGutters />
+        <ClearAllEffectsButton />
+      </Box>
 
-      <Paper sx={{ p: 3, mt: 2 }}>
+      <Paper sx={{ p: 3 }}>
         <Stack spacing={2}>
           {simulatorRows.map((row, index) => (
             <Stack key={index} direction="row" spacing={2} alignItems="center">

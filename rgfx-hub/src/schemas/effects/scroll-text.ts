@@ -12,16 +12,15 @@ import { colorStringSchema } from './properties/color';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
 import type { PresetConfig } from './preset-config';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import type { LayoutConfig } from './layout-config';
 
 export const fieldTypes: FieldTypeMap = {
-  color: 'color',
   accentColor: 'color',
   gradient: 'gradientArray',
 };
 
 export function randomize(): Record<string, unknown> {
   return {
-    color: randomColor(0.2),
     accentColor: randomInt(1) ? randomColor() : null,
     gradient: randomGradient(0.2),
     gradientSpeed: randomFloat(0.1, 20),
@@ -34,21 +33,18 @@ export function randomize(): Record<string, unknown> {
  * Use this for .omit()/.pick() operations since Zod 4 doesn't allow those on refined schemas
  */
 export const scrollTextBaseSchema = baseEffect
+  .omit({ color: true })
   .extend({
     name: z.literal('Scroll Text'),
     description: z.literal('Scrolling text marquee'),
     reset: z.boolean().optional().default(true).describe('Clear existing scroll text before adding new'),
     text: z.string().max(64).default("Hidey Ho! It's the Super-Happy-Fun-Time-Show!").describe('Text to scroll (max 64 chars)'),
-    color: z.string().optional().default('#808000').describe('Text color (hex or named)'),
-    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
-    speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
-    repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
-    snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
     gradient: z
       .array(colorStringSchema)
+      .min(1)
       .max(MAX_GRADIENT_COLORS)
-      .optional()
-      .describe('Gradient colors for text animation'),
+      .default(['#E0E000'])
+      .describe('Text colors (1 color = solid, 2+ = animated gradient)'),
     gradientSpeed: z
       .number()
       .min(0.1)
@@ -63,23 +59,18 @@ export const scrollTextBaseSchema = baseEffect
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),
+    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
+    speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
+    repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
+    snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),
   })
   .strict();
 
 /**
- * Refinement: either color or gradient must be provided
- */
-const colorOrGradientRefinement = (data: { color?: string; gradient?: string[] }) =>
-  Boolean(data.color) || (data.gradient?.length ?? 0) > 0;
-
-/**
- * Full scroll text schema with refinements
+ * Full scroll text schema
  * Renders scrolling text from right to left using an 8x8 bitmap font
  */
-export default scrollTextBaseSchema.refine(colorOrGradientRefinement, {
-  message: 'Either color or gradient must be provided',
-  path: ['color'],
-});
+export default scrollTextBaseSchema;
 
 export const presetConfig: PresetConfig = {
   type: 'plasma',
@@ -90,3 +81,11 @@ export const presetConfig: PresetConfig = {
     gradientScale: data.scale,
   }),
 };
+
+export const layoutConfig: LayoutConfig = [
+  ['reset', 'text'],
+  ['gradient'],
+  ['gradientSpeed', 'gradientScale'],
+  ['accentColor', 'speed'],
+  ['repeat', 'snapToLed'],
+];

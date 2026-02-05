@@ -374,6 +374,78 @@ void test_queue_handles_full_capacity() {
 	}
 }
 
+/**
+ * Test that WiFiUDP mock properly supports buffer draining
+ * This validates the fix for the UDP socket stall bug where only reading
+ * 1 byte left the rx_buffer non-empty, causing parsePacket() to return 0 forever.
+ */
+void test_mock_udp_buffer_draining() {
+	WiFiUDP mockUdp;
+
+	// Inject a packet with known content
+	IPAddress testIP(192, 168, 1, 100);
+	mockUdp.injectPacket(testIP, 5000, R"({"effect":"test","props":{}})");
+
+	// Parse the packet
+	int packetSize = mockUdp.parsePacket();
+	TEST_ASSERT_GREATER_THAN(0, packetSize);
+
+	// Read only 1 byte (the old buggy behavior)
+	char singleByte;
+	mockUdp.read(&singleByte, 1);
+
+	// available() should still show remaining bytes
+	TEST_ASSERT_GREATER_THAN(0, mockUdp.available());
+
+	// Drain the rest using the fix pattern: while(available()) read()
+	int bytesRead = 0;
+	while (mockUdp.available()) {
+		mockUdp.read();
+		bytesRead++;
+	}
+
+	// All remaining bytes should have been drained
+	TEST_ASSERT_EQUAL(packetSize - 1, bytesRead);
+	TEST_ASSERT_EQUAL(0, mockUdp.available());
+}
+
+/**
+ * Test that after draining, new packets can be processed
+ * This verifies recovery from the stall state
+ */
+void test_mock_udp_recovery_after_drain() {
+	WiFiUDP mockUdp;
+	IPAddress testIP(192, 168, 1, 100);
+
+	// Inject first packet and simulate partial read (the bug trigger)
+	mockUdp.injectPacket(testIP, 5000, R"({"effect":"first","props":{}})");
+	mockUdp.parsePacket();
+
+	// Partially read (bug behavior) then drain (fix behavior)
+	char partial[5];
+	mockUdp.read(partial, 5);
+	while (mockUdp.available()) {
+		mockUdp.read();
+	}
+
+	// Inject a second packet
+	mockUdp.injectPacket(testIP, 5000, R"({"effect":"second","props":{}})");
+
+	// Should be able to parse the new packet
+	int packetSize = mockUdp.parsePacket();
+	TEST_ASSERT_GREATER_THAN(0, packetSize);
+
+	// Read and verify it's the second packet
+	char buffer[256];
+	mockUdp.read(buffer, sizeof(buffer) - 1);
+	buffer[packetSize] = '\0';
+
+	JsonDocument doc;
+	DeserializationError err = deserializeJson(doc, buffer);
+	TEST_ASSERT_FALSE(err);
+	TEST_ASSERT_EQUAL_STRING("second", doc["effect"].as<const char*>());
+}
+
 // ============================================================================
 // Test Runner
 // ============================================================================
@@ -401,6 +473,8 @@ int main() {
 	RUN_TEST(test_queue_depth_getter);
 	RUN_TEST(test_high_burst_traffic_with_larger_queue);
 	RUN_TEST(test_queue_handles_full_capacity);
+	RUN_TEST(test_mock_udp_buffer_draining);
+	RUN_TEST(test_mock_udp_recovery_after_drain);
 
 	return UNITY_END();
 }

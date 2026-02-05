@@ -100,10 +100,10 @@ def _signal_handler(signum, _frame):
 
 # Density mappings: (min_delay, max_delay) in seconds
 DENSITY_RANGES = {
-    "low": (0.5, 2.0),      # ~1 event/sec
-    "medium": (0.1, 0.5),   # ~5 events/sec
-    "high": (0.02, 0.1),    # ~20 events/sec
-    "stress": (0.005, 0.02) # ~100 events/sec
+    "low": (0.1, 0.5),      # ~5 events/sec
+    "medium": (0.02, 0.1),  # ~20 events/sec
+    "high": (0.005, 0.02),  # ~100 events/sec
+    "stress": (0.003, 0.01) # ~200 events/sec
 }
 
 # Error patterns to detect in logs (must match [error] or [ERROR] level, not INFO)

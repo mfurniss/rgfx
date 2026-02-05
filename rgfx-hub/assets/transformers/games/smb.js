@@ -4,12 +4,11 @@ import { randomInt } from '../utils/math.js';
 import { sleep } from '../utils/async.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
-let currentMusicTrack = null;
 let coinGif = null;
 
 export async function transform(
   { subject, property, _qualifier, payload },
-  { broadcast, loadGif },
+  { broadcast, loadGif, state },
 ) {
   async function loadBitmaps() {
     if (!coinGif) {
@@ -22,7 +21,7 @@ export async function transform(
   }
   // Reset transformer state when game initializes
   if (subject === 'init') {
-    currentMusicTrack = null;
+    state.delete('musicTrack');
     await loadBitmaps();
     return true;
   }
@@ -32,7 +31,7 @@ export async function transform(
       effect: 'text',
       props: {
         text: payload,
-        color: '#D0D0A0',
+        gradient: ['#D0D0A0'],
         accentColor: '#700000',
         align: 'center',
         reset: true,
@@ -141,7 +140,7 @@ export async function transform(
       });
       broadcast({
         effect: 'projectile',
-        drivers: [NAMED_DRIVERS.rightMatrix, NAMED_DRIVERS.leftStrip],
+        drivers: [NAMED_DRIVERS.leftStrip],
         props: {
           ...props,
           direction: 'right',
@@ -195,13 +194,13 @@ export async function transform(
 
   // Music track changes - different colors per area
   if (subject === 'music') {
-    if (payload === currentMusicTrack) {
+    if (payload === state.get('musicTrack')) {
       return;
     }
 
-    currentMusicTrack = payload;
+    state.set('musicTrack', payload);
 
-    console.log('currentMusicTrack', currentMusicTrack);
+    console.log('musicTrack', payload);
 
     // Fade out all ambient effects
     broadcast({
@@ -226,7 +225,7 @@ export async function transform(
       },
     });
 
-    if (currentMusicTrack === 'castle') {
+    if (payload === 'castle') {
       broadcast({
         effect: 'particle_field',
         drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.primaryMatrix],
@@ -239,7 +238,7 @@ export async function transform(
           enabled: 'fadeIn',
         },
       });
-    } else if (currentMusicTrack === 'overworld') {
+    } else if (payload === 'overworld') {
       broadcast({
         effect: 'plasma',
         drivers: [
@@ -256,7 +255,7 @@ export async function transform(
           enabled: 'fadeIn',
         },
       });
-    } else if (currentMusicTrack === 'underworld') {
+    } else if (payload === 'underworld') {
       broadcast({
         effect: 'background',
         props: {
@@ -267,7 +266,7 @@ export async function transform(
           fadeDuration: 1000,
         },
       });
-    } else if (currentMusicTrack === 'flag') {
+    } else if (payload === 'flag') {
       for (var i = 0; i < 20; i++) {
         broadcast({
           effect: 'explode',
@@ -290,7 +289,7 @@ export async function transform(
         });
         await sleep(250);
       }
-    } else if (currentMusicTrack === 'swimming') {
+    } else if (payload === 'swimming') {
       broadcast({
         effect: 'plasma',
         props: {
@@ -307,7 +306,7 @@ export async function transform(
           enabled: 'fadeIn',
         },
       });
-    } else if (currentMusicTrack === 'power-star') {
+    } else if (payload === 'power-star') {
       broadcast({
         effect: 'plasma',
         props: {
@@ -326,7 +325,7 @@ export async function transform(
           },
         });
         await sleep(400);
-        if (currentMusicTrack === 'power-star') {
+        if (state.get('musicTrack') === 'power-star') {
           loop();
         }
       }

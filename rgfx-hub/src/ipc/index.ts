@@ -36,6 +36,7 @@ import { registerRestartDriverHandler } from './restart-driver-handler';
 import { registerDeleteDriverHandler } from './delete-driver-handler';
 import { registerLoadGifHandler } from './load-gif-handler';
 import { registerLogsHandler } from './logs-handler';
+import { registerClearTransformerStateHandler } from './clear-transformer-state-handler';
 
 interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -75,4 +76,5 @@ export function registerIpcHandlers(deps: IpcHandlersDeps): void {
   registerDeleteDriverHandler(deps);
   registerLoadGifHandler();
   registerLogsHandler(deps);
+  registerClearTransformerStateHandler(deps);
 }
