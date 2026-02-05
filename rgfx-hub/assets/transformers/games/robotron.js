@@ -18,6 +18,35 @@ export async function transform(
   }
 
   if (subject === 'sfx') {
+    if (property === 'game-start') {
+      const props = {
+        speed: 3.25,
+        scale: 7.83,
+        gradient: [
+          '#18617b',
+          '#090a05',
+          '#d96330',
+          '#6d396f',
+          '#211e25',
+          '#161313',
+          '#308aa1',
+          '#18617b',
+        ],
+      };
+
+      broadcast({
+        effect: 'plasma',
+        props: { ...props, enabled: 'on' },
+      });
+
+      await sleep(700);
+
+      broadcast({
+        effect: 'plasma',
+        props: { ...props, enabled: 'fadeOut' },
+      });
+    }
+
     if (property === 'spark') {
       for (var i = 0; i < 3; i++) {
         broadcast({
@@ -79,6 +108,8 @@ export async function transform(
     }
 
     if (property === 'brain-appear') {
+      //broadcast({ effect: 'clear' });
+
       const props = {
         speed: 15,
         scale: 10,
@@ -100,6 +131,7 @@ export async function transform(
           '#000000',
         ],
       };
+
       broadcast({
         effect: 'plasma',
         props: {
@@ -107,6 +139,7 @@ export async function transform(
           enabled: 'fadeIn',
         },
       });
+
       await sleep(2000);
       return broadcast({
         effect: 'plasma',
@@ -456,20 +489,24 @@ export async function transform(
 
   // Score updates - cycle hue each time
   if (subject === 'player' && property === 'score') {
+    console.log('SCORE HANDLER REACHED:', { subject, property, payload });
     const color = hslToHex(scoreHue, 100, 50);
+    console.log('Color generated:', color);
     scoreHue = (scoreHue + 30) % 360;
-    return broadcast({
+    const result = broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         align: 'center',
         text: formatNumber(payload),
-        color,
+        gradient: [color],
         accentColor: '#000000',
         duration: 800,
         reset: true,
       },
     });
+    console.log('Broadcast result:', result);
+    return result;
   }
 
   // Grunt destroy - orange explosion

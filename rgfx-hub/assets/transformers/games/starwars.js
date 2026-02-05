@@ -25,6 +25,7 @@ import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 let laserIndex = 0;
 let gameState;
 let scoreLatch = true;
+let goingIn = false;
 
 function blockScore() {
   scoreLatch = false;
@@ -44,7 +45,7 @@ export async function transform(
       return broadcast({
         effect: 'scroll_text',
         props: {
-          color: '#409040',
+          gradient: ['#409040'],
           reset: true,
           text: 'Remember, The Force will be with you',
           speed: 300,
@@ -78,7 +79,7 @@ export async function transform(
       return broadcast({
         effect: 'scroll_text',
         props: {
-          color: '#409040',
+          gradient: ['#409040'],
           reset: true,
           text: 'Use The Force, Luke',
           speed: 300,
@@ -91,12 +92,22 @@ export async function transform(
     }
 
     // going in
-    if (payload == 34 || payload == 36 || payload == 37 || payload == 38) {
+    if (payload == 36 || payload == 37 || payload == 38) {
+      if (goingIn) {
+        return true;
+      }
+
+      setTimeout(() => {
+        goingIn = false;
+      }, 10000);
+
+      goingIn = true;
+
       const commonProps = {
         density: 102,
         speed: 320,
         size: 16,
-        color: '808080',
+        color: '#808080',
         enabled: 'fadeIn',
       };
 
@@ -124,7 +135,7 @@ export async function transform(
         effect: 'text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
-          color: '#A00000',
+          gradient: ['#A00000'],
           reset: true,
           text: "I'm going in",
           accentColor: '#000080',
@@ -159,7 +170,6 @@ export async function transform(
         effect: 'scroll_text',
         props: {
           reset: true,
-          color: '',
           text: 'Death Star Destroyed',
           accentColor: '',
           speed: 300,
@@ -213,7 +223,7 @@ export async function transform(
         effect: 'text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
-          color: '#A00000',
+          gradient: ['#A00000'],
           reset: true,
           text: 'Red Five',
           accentColor: '#000080',
@@ -230,7 +240,7 @@ export async function transform(
         effect: 'text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
-          color: '#A00000',
+          gradient: ['#A00000'],
           reset: true,
           text: 'Standing By',
           accentColor: '#000080',
@@ -248,7 +258,7 @@ export async function transform(
       effect: 'text',
       props: {
         text: formatNumber(payload),
-        color: '#008000',
+        gradient: ['#008000'],
         accentColor: '#000000',
         duration: 6000,
         reset: true,
@@ -260,7 +270,7 @@ export async function transform(
       effect: 'text',
       props: {
         text: formatNumber(payload),
-        color: '#80FF80',
+        gradient: ['#80FF80'],
         duration: 200,
         align: 'center',
       },

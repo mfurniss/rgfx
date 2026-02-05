@@ -1,6 +1,6 @@
 import { scaleLinear } from '../utils/math.js';
 import { formatNumber } from '../utils/format.js';
-import { NAMED_DRIVERS, PRIMARY_MATRIX_DRIVER } from '../global.js';
+import { NAMED_DRIVERS } from '../global.js';
 
 const shipPositionScale = scaleLinear(17, 225, 13, 88);
 
@@ -10,11 +10,11 @@ export function transform({ subject, property, payload }, { broadcast }) {
   if (subject === 'player' && property === 'score') {
     return broadcast({
       effect: 'text',
-      drivers: [PRIMARY_MATRIX_DRIVER],
+      drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         align: 'center',
         text: formatNumber(payload),
-        color: '#808060',
+        gradient: ['#808060'],
         accentColor: '#603000',
         duration: 3000,
         reset: true,
