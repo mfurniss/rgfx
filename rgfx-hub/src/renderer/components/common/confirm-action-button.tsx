@@ -9,12 +9,12 @@ import React, { useState, useCallback } from 'react';
 import {
   Button,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material';
 import type { ButtonProps, SxProps, Theme } from '@mui/material';
 import SuperButton from './super-button';
+import { DialogTitleWithIcon } from './dialog-title-with-icon';
 
 type ColorType = 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
 
@@ -129,14 +129,7 @@ const ConfirmActionButton: React.FC<ConfirmActionButtonProps> = ({
       </SuperButton>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {React.isValidElement(effectiveDialogIcon)
-            ? React.cloneElement(effectiveDialogIcon as React.ReactElement<{ color?: string }>, {
-              color,
-            })
-            : effectiveDialogIcon}
-          {dialogTitle}
-        </DialogTitle>
+        <DialogTitleWithIcon icon={effectiveDialogIcon} title={dialogTitle} iconColor={color} />
         <DialogContent>{dialogContent}</DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

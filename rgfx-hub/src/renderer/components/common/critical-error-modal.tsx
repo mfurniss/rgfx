@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Typography,
@@ -17,6 +16,7 @@ import {
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
 import type { SystemError } from '@/types';
+import { DialogTitleWithIcon } from './dialog-title-with-icon';
 
 interface CriticalErrorModalProps {
   error: SystemError;
@@ -52,10 +52,7 @@ export function CriticalErrorModal({ error }: CriticalErrorModalProps): React.Re
         }
       }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <ErrorIcon color="error" />
-        Configuration Error
-      </DialogTitle>
+      <DialogTitleWithIcon icon={<ErrorIcon />} title="Configuration Error" iconColor="error" />
       <DialogContent>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error.message}

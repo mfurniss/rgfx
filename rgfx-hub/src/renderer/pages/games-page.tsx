@@ -21,6 +21,7 @@ import { PageTitle } from '../components/layout/page-title';
 import { useUiStore } from '../store/ui-store';
 import { useSortableTable } from '../hooks/use-sortable-table';
 import { SortableTableHead, type SortableColumn } from '../components/common/sortable-table-head';
+import { TableEmptyRow } from '../components/common/table-empty-row';
 
 type SortField = 'romName' | 'interceptorName' | 'transformerName';
 
@@ -117,13 +118,7 @@ const GamesPage: React.FC = () => {
             />
             <TableBody>
               {sortedGames.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={hasMameRomsDirectory ? 3 : 2} align="center">
-                    <Typography variant="body2" color="text.secondary">
-                      No games configured
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={hasMameRomsDirectory ? 3 : 2} message="No games configured" />
               ) : (
                 sortedGames.map((game, index) => (
                   <TableRow key={index}>
