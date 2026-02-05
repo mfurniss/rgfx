@@ -401,6 +401,7 @@ declare global {
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
       onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
       resetEventCounts: () => Promise<void>;
+      clearTransformerState: () => Promise<void>;
       loadGif: () => Promise<GifBitmapResult | null>;
       restartDriver: (driverId: string) => Promise<{ success: boolean }>;
       deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
