@@ -20,12 +20,16 @@ void TextEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	if (!props["color"].is<const char*>()) {
-		hal::log("ERROR: text missing or invalid 'color' prop");
-		publishError("text", "missing or invalid 'color' prop", props);
+	// Parse gradient (required, min 1 color)
+	// Single-color gradient acts as solid color (no animation)
+	// Multi-color gradient enables animated gradient effect
+	CRGB gradientLut[GRADIENT_LUT_SIZE];
+	TextGradientResult gradient = parseTextGradientFromJson(props, gradientLut);
+	if (!gradient.valid) {
+		hal::log("ERROR: text missing or invalid 'gradient' prop");
+		publishError("text", "missing or invalid 'gradient' prop", props);
 		return;
 	}
-	uint32_t color = parseColor(props["color"]);
 	uint32_t durationMs = props["duration"];
 
 	TextInstance instance;
@@ -36,9 +40,9 @@ void TextEffect::add(JsonDocument& props) {
 	strncpy(instance.text, text, instance.textLen);
 	instance.text[instance.textLen] = '\0';
 
-	instance.r = (color >> 16) & 0xFF;
-	instance.g = (color >> 8) & 0xFF;
-	instance.b = color & 0xFF;
+	instance.r = gradient.r;
+	instance.g = gradient.g;
+	instance.b = gradient.b;
 
 	instance.hasAccent = !props["accentColor"].isNull();
 	if (instance.hasAccent) {
@@ -55,9 +59,10 @@ void TextEffect::add(JsonDocument& props) {
 	instance.duration = durationMs / 1000.0f;
 	instance.elapsedTime = 0.0f;
 
-	// Parse optional gradient animation (flat gradient array + separate speed/scale props)
-	instance.hasGradient = parseGradientFromJson(props, instance.gradientLut);
+	// Copy gradient LUT only when animating (2+ colors)
+	instance.hasGradient = gradient.animate;
 	if (instance.hasGradient) {
+		memcpy(instance.gradientLut, gradientLut, sizeof(gradientLut));
 		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;
 		instance.gradientScale = props["gradientScale"] | 4.0f;
 		instance.gradientTime = 0.0f;

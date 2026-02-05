@@ -8,7 +8,7 @@
 import React from 'react';
 import { Box, Tooltip } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { type Control, type FieldValues, type FieldErrors, type FieldPath } from 'react-hook-form';
+import { type Control, type FieldValues, type FieldErrors, type FieldPath, useWatch } from 'react-hook-form';
 import { type FieldMetadata } from '@/renderer/utils/zod-introspection';
 import { NumberField } from '../common/number-field';
 import {
@@ -25,14 +25,12 @@ import {
   formatLabel,
   formatConstraintHint,
   buildTooltip,
-  isColorDisabledByGradient,
 } from './field-utils';
 
 interface FieldRendererProps<T extends FieldValues> {
   field: FieldMetadata;
   control: Control<T>;
   errors: FieldErrors<T>;
-  formValues: Partial<T>;
 }
 
 interface FieldWithHelpProps {
@@ -65,18 +63,23 @@ function FieldWithHelp({ description, defaultValue, children }: FieldWithHelpPro
   );
 }
 
+// Fields that should be disabled when gradient has < 2 colors
+const GRADIENT_DEPENDENT_FIELDS = ['gradientSpeed', 'gradientScale'];
+
 export function FieldRenderer<T extends FieldValues>({
   field,
   control,
   errors,
-  formValues,
 }: FieldRendererProps<T>) {
   const error = errors[field.name as keyof T];
   const errorMessage = error?.message as string | undefined;
   const label = formatLabel(field.name);
 
-  const gradientValue = formValues.gradient as string[] | { colors?: string[] } | undefined;
-  const colorDisabled = isColorDisabledByGradient(field.name, gradientValue);
+  // Watch gradient field to determine if speed/scale should be disabled
+  const gradientValue = useWatch({ control, name: 'gradient' as FieldPath<T> }) as unknown;
+  const isGradientDependentField = GRADIENT_DEPENDENT_FIELDS.includes(field.name);
+  const gradientColors = Array.isArray(gradientValue) ? (gradientValue as unknown[]).length : 0;
+  const isGradientAnimationDisabled = isGradientDependentField && gradientColors < 2;
 
   switch (field.type) {
     case 'enum':
@@ -112,10 +115,15 @@ export function FieldRenderer<T extends FieldValues>({
             label={label}
             min={field.constraints?.min}
             max={field.constraints?.max}
-            helperText={formatConstraintHint(field.constraints)}
+            helperText={
+              isGradientAnimationDisabled
+                ? 'Requires 2+ gradient colors'
+                : formatConstraintHint(field.constraints)
+            }
             allowFloat
             size="small"
             emptyValue={field.emptyValue}
+            disabled={isGradientAnimationDisabled}
           />
         </FieldWithHelp>
       );
@@ -129,7 +137,6 @@ export function FieldRenderer<T extends FieldValues>({
             label={label}
             namedColors={field.constraints?.enumValues ?? []}
             error={errorMessage}
-            disabled={colorDisabled}
           />
         </FieldWithHelp>
       );

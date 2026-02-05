@@ -55,3 +55,23 @@ ColorGradientResult parseColorGradientFromJson(JsonDocument& props, CRGB* lut);
  * @return true if gradient was parsed from JSON, false if using default
  */
 bool parseGradientFromJson(JsonDocument& props, CRGB* lut);
+
+/**
+ * Result of parsing a text gradient from JSON
+ */
+struct TextGradientResult {
+	bool valid;       // true if gradient was parsed successfully
+	bool animate;     // true if 2+ colors (animate gradient), false if 1 color (solid)
+	uint8_t r, g, b;  // RGB values of first color (for solid color rendering)
+};
+
+/**
+ * Parse a gradient array for text effects with single-color optimization.
+ * For single-color gradients, returns animate=false with the solid RGB values.
+ * For multi-color gradients, returns animate=true and populates the LUT.
+ *
+ * @param props JSON document containing "gradient" array
+ * @param lut Output lookup table (only populated when animate=true)
+ * @return TextGradientResult with parsing result and color info
+ */
+TextGradientResult parseTextGradientFromJson(JsonDocument& props, CRGB* lut);

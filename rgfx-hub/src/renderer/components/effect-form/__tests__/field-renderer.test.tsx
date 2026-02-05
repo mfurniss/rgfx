@@ -40,7 +40,6 @@ function TestWrapper({ field, defaultValue }: TestWrapperProps) {
         field={field}
         control={methods.control}
         errors={{}}
-        formValues={{ testField: defaultValue ?? field.defaultValue }}
       />
     </FormProvider>
   );
@@ -288,6 +287,113 @@ describe('FieldRenderer', () => {
 
       // Should render nothing for unknown field types
       expect(container.textContent).toBe('');
+    });
+  });
+
+  describe('gradient-dependent fields', () => {
+    interface GradientFormValues {
+      gradient: string[];
+      gradientSpeed: number;
+      gradientScale: number;
+    }
+
+    function GradientTestWrapper({
+      field,
+      gradientColors,
+    }: {
+      field: FieldMetadata;
+      gradientColors: string[];
+    }) {
+      const methods = useForm<GradientFormValues>({
+        defaultValues: {
+          gradient: gradientColors,
+          gradientSpeed: 3,
+          gradientScale: 1,
+        },
+        mode: 'onChange',
+      });
+
+      return (
+        <FormProvider {...methods}>
+          <FieldRenderer
+            field={field}
+            control={methods.control}
+            errors={{}}
+          />
+        </FormProvider>
+      );
+    }
+
+    const gradientSpeedField: FieldMetadata = {
+      name: 'gradientSpeed',
+      type: 'number',
+      defaultValue: 3,
+      constraints: { min: 0.1, max: 20 },
+      description: 'Gradient animation speed',
+    };
+
+    const gradientScaleField: FieldMetadata = {
+      name: 'gradientScale',
+      type: 'number',
+      defaultValue: 1,
+      constraints: { min: 0.1, max: 5 },
+      description: 'Gradient scale',
+    };
+
+    it('should disable gradientSpeed when gradient has 0 colors', () => {
+      render(<GradientTestWrapper field={gradientSpeedField} gradientColors={[]} />);
+
+      const input = screen.getByRole('spinbutton');
+      expect((input as HTMLInputElement).disabled).toBe(true);
+    });
+
+    it('should disable gradientSpeed when gradient has 1 color', () => {
+      render(<GradientTestWrapper field={gradientSpeedField} gradientColors={['#FF0000']} />);
+
+      const input = screen.getByRole('spinbutton');
+      expect((input as HTMLInputElement).disabled).toBe(true);
+    });
+
+    it('should enable gradientSpeed when gradient has 2+ colors', () => {
+      render(
+        <GradientTestWrapper field={gradientSpeedField} gradientColors={['#FF0000', '#00FF00']} />,
+      );
+
+      const input = screen.getByRole('spinbutton');
+      expect((input as HTMLInputElement).disabled).toBe(false);
+    });
+
+    it('should disable gradientScale when gradient has < 2 colors', () => {
+      render(<GradientTestWrapper field={gradientScaleField} gradientColors={['#FF0000']} />);
+
+      const input = screen.getByRole('spinbutton');
+      expect((input as HTMLInputElement).disabled).toBe(true);
+    });
+
+    it('should enable gradientScale when gradient has 2+ colors', () => {
+      render(
+        <GradientTestWrapper
+          field={gradientScaleField}
+          gradientColors={['#FF0000', '#00FF00', '#0000FF']}
+        />,
+      );
+
+      const input = screen.getByRole('spinbutton');
+      expect((input as HTMLInputElement).disabled).toBe(false);
+    });
+
+    it('should show helper text explaining why field is disabled', () => {
+      render(<GradientTestWrapper field={gradientSpeedField} gradientColors={['#FF0000']} />);
+
+      expect(screen.getByText('Requires 2+ gradient colors')).toBeDefined();
+    });
+
+    it('should show normal constraint hint when enabled', () => {
+      render(
+        <GradientTestWrapper field={gradientSpeedField} gradientColors={['#FF0000', '#00FF00']} />,
+      );
+
+      expect(screen.getByText(/Range: 0.1 - 20/)).toBeDefined();
     });
   });
 });

@@ -12,14 +12,15 @@ import explodeSchema, { randomize as randomizeExplode, fieldTypes as explodeFiel
 import bitmapSchema, { randomize as randomizeBitmap, fieldTypes as bitmapFieldTypes } from './bitmap';
 import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig, fieldTypes as backgroundFieldTypes } from './background';
 import projectileSchema, { randomize as randomizeProjectile } from './projectile';
-import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig, fieldTypes as textFieldTypes } from './text';
-import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig, fieldTypes as scrollTextFieldTypes } from './scroll-text';
+import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig, fieldTypes as textFieldTypes, layoutConfig as textLayoutConfig } from './text';
+import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig, fieldTypes as scrollTextFieldTypes, layoutConfig as scrollTextLayoutConfig } from './scroll-text';
 import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig, fieldTypes as plasmaFieldTypes } from './plasma';
 import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig, fieldTypes as warpFieldTypes } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
 import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes } from './sparkle';
 import type { PresetConfig } from './preset-config';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import type { LayoutConfig } from './layout-config';
 
 export type { PresetData, PresetType } from './preset-config';
 
@@ -153,4 +154,13 @@ export const effectFieldTypes: Record<string, FieldTypeMap | undefined> = {
   plasma: plasmaFieldTypes,
   warp: warpFieldTypes,
   sparkle: sparkleFieldTypes,
+};
+
+/**
+ * Map of effect names to their form layout configurations.
+ * Effects not listed here use the default flat 2-column layout.
+ */
+export const effectLayoutConfigs: Record<string, LayoutConfig | undefined> = {
+  text: textLayoutConfig,
+  scroll_text: scrollTextLayoutConfig,
 };
