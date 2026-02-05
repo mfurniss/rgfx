@@ -26,7 +26,6 @@ import {
   ContentCopy as CopyIcon,
   RestartAlt as ResetIcon,
   Shuffle as ShuffleIcon,
-  LayersClear as LayersClearIcon,
   Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
@@ -39,6 +38,7 @@ import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectField
 import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
+import { ClearAllEffectsButton } from '../components/common/clear-all-effects-button';
 import {
   effectDisplayNames,
   formEffects,
@@ -298,35 +298,12 @@ export default function TestEffectsPage() {
     selectAll,
   );
 
-  const handleClearEffects = () => {
-    void (async () => {
-      // Clear transformer state first so loops stop
-      await window.rgfx.clearTransformerState();
-
-      for (const driver of connectedDrivers) {
-        try {
-          await window.rgfx.sendDriverCommand(driver.id, 'clear-effects', '');
-        } catch (err) {
-          console.error('Failed to clear effects on driver:', driver.id, err);
-        }
-      }
-    })();
-  };
-
   return (
     <Box>
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <PageTitle icon={<ScienceIcon />} title="Effects Playground" />
-          <Button
-            variant="outlined"
-            color="warning"
-            startIcon={<LayersClearIcon />}
-            onClick={handleClearEffects}
-            disabled={connectedDrivers.length === 0}
-          >
-            Clear All Effects
-          </Button>
+          <PageTitle icon={<ScienceIcon />} title="Effects Playground" noGutters />
+          <ClearAllEffectsButton />
         </Box>
 
         <Paper sx={{ p: 3 }}>

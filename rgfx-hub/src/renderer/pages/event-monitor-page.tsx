@@ -107,12 +107,11 @@ const EventMonitorPage: React.FC = () => {
   return (
     <Box>
       <Stack spacing={2}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <PageTitle icon={<MonitorIcon />} title="Event Monitor" />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <PageTitle icon={<MonitorIcon />} title="Event Monitor" noGutters />
           <Button
             variant="outlined"
             color="error"
-            size="small"
             startIcon={<RefreshIcon />}
             onClick={handleOpenDialog}
             disabled={topicsArray.length === 0}
