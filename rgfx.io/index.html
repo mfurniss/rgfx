@@ -87,13 +87,13 @@
       const logo = document.getElementById('logo');
       const wrap = logo.parentNode;
 
-      logo.addEventListener('mouseover', (e) => {
-        const cls = e.target.className;
+      function triggerBlock(el) {
+        const cls = el.className;
         if (!colors[cls]) return;
 
-        const current = getComputedStyle(e.target).backgroundColor;
-        e.target.getAnimations().forEach(a => a.cancel());
-        e.target.animate(
+        const current = getComputedStyle(el).backgroundColor;
+        el.getAnimations().forEach(a => a.cancel());
+        el.animate(
           [
             { backgroundColor: current, offset: 0 },
             { backgroundColor: '#fff', offset: 0.0375 },
@@ -103,7 +103,7 @@
           flash
         );
 
-        const rect = e.target.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
         const wrapRect = wrap.getBoundingClientRect();
         const glow = document.createElement('div');
         glow.className = 'glow';
@@ -121,7 +121,20 @@
           { opacity: 1, offset: 0.0375 },
           { opacity: 0, offset: 1 },
         ], fade).onfinish = () => glow.remove();
-      });
+      }
+
+      logo.addEventListener('mouseover', (e) => triggerBlock(e.target));
+
+      let lastTouchBlock = null;
+      function handleTouch(e) {
+        const touch = e.touches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (!el || el === lastTouchBlock) return;
+        lastTouchBlock = el;
+        triggerBlock(el);
+      }
+      logo.addEventListener('touchstart', (e) => { lastTouchBlock = null; handleTouch(e); }, { passive: true });
+      logo.addEventListener('touchmove', handleTouch, { passive: true });
     </script>
   </body>
 </html>
