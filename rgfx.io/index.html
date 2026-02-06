@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
+      body {
+        margin: 0;
+        background: #121212;
+      }
       #hero-video {
         position: fixed;
         top: 0;
@@ -17,8 +21,8 @@
   </head>
   <body>
     <video id="hero-video" autoplay muted loop playsinline preload="auto">
-      <source src="assets/video/hero.webm" type="video/webm">
-      <source src="assets/video/hero.mp4" type="video/mp4">
+      <source src="assets/video/hero.webm" type="video/webm" />
+      <source src="assets/video/hero.mp4" type="video/mp4" />
     </video>
     <div
       id="splash"
@@ -41,11 +45,26 @@
       "
     >
       <style>
+        .logo-wrapper {
+          position: relative;
+          margin: 0 12px;
+        }
         .container {
+          --cell: min(30px, calc((100vw - 51px) / 10));
+          position: relative;
+          z-index: 1;
           display: grid;
-          grid-template-columns: repeat(10, 30px);
-          grid-template-rows: repeat(10, 30px);
+          grid-template-columns: repeat(10, var(--cell));
+          grid-template-rows: repeat(10, var(--cell));
           gap: 3px;
+        }
+        .glow {
+          position: absolute;
+          filter: blur(10px) brightness(2);
+          scale: 1.3;
+          pointer-events: none;
+          z-index: 0;
+          transform: scale(1.5);
         }
         .container div.r {
           background-color: #f44336;
@@ -60,108 +79,154 @@
           background-color: #ab47bc;
         }
       </style>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const colors = {
+            r: '#f44336',
+            g: '#66bb6a',
+            f: '#42a5f5',
+            x: '#ab47bc',
+          };
+          const logo = document.getElementById('logo');
+          const wrapper = logo.parentNode;
+          const timing = { duration: 1200, easing: 'ease-in-out' };
 
-      <div class="container">
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
+          logo.addEventListener('mouseover', (e) => {
+            const cls = e.target.className;
+            if (!colors[cls]) return;
+
+            // Flash the block: white -> base color
+            e.target.getAnimations().forEach((a) => a.cancel());
+            e.target.animate(
+              [
+                { backgroundColor: '#ffffff', offset: 0 },
+                { backgroundColor: '#ffffff', offset: 0.3 },
+                { backgroundColor: colors[cls], offset: 1 },
+              ],
+              timing
+            );
+
+            // Create a glow div at the same position, behind the logo
+            const rect = e.target.getBoundingClientRect();
+            const wrapRect = wrapper.getBoundingClientRect();
+            const glow = document.createElement('div');
+            glow.className = 'glow';
+            glow.style.left = `${rect.left - wrapRect.left}px`;
+            glow.style.top = `${rect.top - wrapRect.top}px`;
+            glow.style.width = `${rect.width}px`;
+            glow.style.height = `${rect.height}px`;
+            glow.style.backgroundColor = colors[cls];
+            wrapper.appendChild(glow);
+
+            const anim = glow.animate([{ opacity: 1 }, { opacity: 0 }], timing);
+            anim.onfinish = () => glow.remove();
+          });
+        });
+      </script>
+
+      <div class="logo-wrapper">
+        <div id="logo" class="container">
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div></div>
+          <div class="r"></div>
+          <div class="r"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="g"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div class="f"></div>
+          <div class="f"></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+          <div></div>
+          <div class="x"></div>
+          <div class="x"></div>
+        </div>
       </div>
     </div>
   </body>
