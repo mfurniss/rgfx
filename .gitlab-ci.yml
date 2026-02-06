@@ -63,7 +63,7 @@ test:hub:
     - npm install --package-lock-only
     - npm ci --cache .npm --prefer-offline --ignore-scripts
     # Rebuild platform-specific binaries (phantomjs has no arm64 binary, so we skip all scripts)
-    - npm rebuild esbuild electron
+    - npm rebuild esbuild electron rollup
 
   script:
     # Run all checks - ANY failure stops pipeline
@@ -146,7 +146,7 @@ build:hub:
     - npm install --package-lock-only
     - npm ci --cache .npm --prefer-offline --ignore-scripts
     # Rebuild platform-specific binaries (phantomjs has no arm64 binary, so we skip all scripts)
-    - npm rebuild esbuild electron
+    - npm rebuild esbuild electron rollup
 
   script:
     # Inject version from git tag
