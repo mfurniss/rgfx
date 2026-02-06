@@ -3,166 +3,125 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RGFX - Retro Game Effects</title>
+    <meta name="description" content="External visual effects for retro video games" />
     <style>
+      body {
+        margin: 0;
+        background: #121212;
+      }
+
       #hero-video {
         position: fixed;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        z-index: 0;
+      }
+
+      #splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+      }
+
+      .logo-wrap {
+        position: relative;
+        margin: 0 12px;
+      }
+
+      #logo {
+        --cell: min(30px, calc((100vw - 51px) / 10));
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(10, var(--cell));
+        grid-template-rows: repeat(10, var(--cell));
+        gap: 3px;
+      }
+
+      #logo .r { background-color: #f44336; }
+      #logo .g { background-color: #66bb6a; }
+      #logo .f { background-color: #42a5f5; }
+      #logo .x { background-color: #ab47bc; }
+
+      .glow {
+        position: absolute;
+        filter: blur(10px) brightness(2);
+        scale: 1.5;
+        pointer-events: none;
       }
     </style>
   </head>
   <body>
     <video id="hero-video" autoplay muted loop playsinline preload="auto">
-      <source src="assets/video/hero.webm" type="video/webm">
-      <source src="assets/video/hero.mp4" type="video/mp4">
+      <source src="assets/video/hero.webm" type="video/webm" />
+      <source src="assets/video/hero.mp4" type="video/mp4" />
     </video>
-    <div
-      id="splash"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family:
-          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-          Arial, sans-serif;
-        color: #ffffff;
-        font-size: 24px;
-        font-weight: 300;
-        z-index: 1;
-      "
-    >
-      <style>
-        .container {
-          display: grid;
-          grid-template-columns: repeat(10, 30px);
-          grid-template-rows: repeat(10, 30px);
-          gap: 3px;
-        }
-        .container div.r {
-          background-color: #f44336;
-        }
-        .container div.g {
-          background-color: #66bb6a;
-        }
-        .container div.f {
-          background-color: #42a5f5;
-        }
-        .container div.x {
-          background-color: #ab47bc;
-        }
-      </style>
 
-      <div class="container">
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div></div>
-        <div class="r"></div>
-        <div class="r"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="g"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div class="f"></div>
-        <div class="f"></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
-        <div></div>
-        <div class="x"></div>
-        <div class="x"></div>
+    <div id="splash">
+      <div class="logo-wrap">
+        <div id="logo" role="img" aria-label="RGFX logo">
+          <div class="r"></div><div class="r"></div><div class="r"></div><div class="r"></div><div class="r"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div>
+          <div class="r"></div><div class="r"></div><div></div><div class="r"></div><div class="r"></div><div class="g"></div><div class="g"></div><div></div><div></div><div></div>
+          <div class="r"></div><div class="r"></div><div class="r"></div><div class="r"></div><div></div><div class="g"></div><div class="g"></div><div></div><div class="g"></div><div class="g"></div>
+          <div class="r"></div><div class="r"></div><div></div><div class="r"></div><div class="r"></div><div class="g"></div><div class="g"></div><div></div><div class="g"></div><div class="g"></div>
+          <div class="r"></div><div class="r"></div><div></div><div class="r"></div><div class="r"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div>
+
+          <div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="x"></div><div class="x"></div><div></div><div class="x"></div><div class="x"></div>
+          <div class="f"></div><div class="f"></div><div></div><div></div><div></div><div class="x"></div><div class="x"></div><div></div><div class="x"></div><div class="x"></div>
+          <div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div></div><div></div><div class="x"></div><div class="x"></div><div class="x"></div><div></div>
+          <div class="f"></div><div class="f"></div><div></div><div></div><div></div><div class="x"></div><div class="x"></div><div></div><div class="x"></div><div class="x"></div>
+          <div class="f"></div><div class="f"></div><div></div><div></div><div></div><div class="x"></div><div class="x"></div><div></div><div class="x"></div><div class="x"></div>
+        </div>
       </div>
     </div>
+
+    <script>
+      const colors = { r: '#f44336', g: '#66bb6a', f: '#42a5f5', x: '#ab47bc' };
+      const flash = { duration: 1200, easing: 'ease-in-out' };
+      const fade = { duration: 1200, easing: 'ease-in-out', fill: 'forwards' };
+      const logo = document.getElementById('logo');
+      const wrap = logo.parentNode;
+
+      logo.addEventListener('mouseover', (e) => {
+        const cls = e.target.className;
+        if (!colors[cls]) return;
+
+        const current = getComputedStyle(e.target).backgroundColor;
+        e.target.getAnimations().forEach(a => a.cancel());
+        e.target.animate(
+          [
+            { backgroundColor: current, offset: 0 },
+            { backgroundColor: '#fff', offset: 0.0375 },
+            { backgroundColor: '#fff', offset: 0.15 },
+            { backgroundColor: colors[cls], offset: 1 },
+          ],
+          flash
+        );
+
+        const rect = e.target.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        const glow = document.createElement('div');
+        glow.className = 'glow';
+        Object.assign(glow.style, {
+          left: `${rect.left - wrapRect.left}px`,
+          top: `${rect.top - wrapRect.top}px`,
+          width: `${rect.width}px`,
+          height: `${rect.height}px`,
+          backgroundColor: colors[cls],
+        });
+        wrap.appendChild(glow);
+
+        glow.animate([
+          { opacity: 0, offset: 0 },
+          { opacity: 1, offset: 0.0375 },
+          { opacity: 0, offset: 1 },
+        ], fade).onfinish = () => glow.remove();
+      });
+    </script>
   </body>
 </html>
