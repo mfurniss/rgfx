@@ -7,6 +7,7 @@ site_description: Retro Game Effects - External visual effects for retro video g
 
 theme:
   name: material
+  custom_dir: overrides
   favicon: assets/images/favicon.png
   palette:
     scheme: slate
@@ -23,6 +24,9 @@ plugins:
   - open-in-new-tab
   - glightbox:
       auto_caption: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      fallback_to_build_date: false
 
 # Disable features incompatible with file:// protocol
 use_directory_urls: false
