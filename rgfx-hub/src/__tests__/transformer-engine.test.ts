@@ -924,6 +924,8 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('game/init', '');
 
+      // Immediate UDP clear broadcast
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       // Topics use MAC address (immutable) instead of driver ID
       expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
@@ -955,6 +957,7 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('game/shutdown', '');
 
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
     });
 
@@ -988,6 +991,8 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('game/init', '');
 
+      // UDP clear still broadcasts (fire-and-forget to all drivers)
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
       expect(mockContext.log.debug).toHaveBeenCalledWith('No connected drivers to clear effects');
     });
@@ -1004,6 +1009,7 @@ describe('TransformerEngine', () => {
 
       await engine.handleEvent('game/init', '');
 
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
       expect(mockContext.log.debug).toHaveBeenCalledWith('No connected drivers to clear effects');
     });
@@ -1017,6 +1023,7 @@ describe('TransformerEngine', () => {
       await engine.handleEvent('rgfx/mame-exit', 'pacman');
 
       expect(mockContext.log.info).toHaveBeenCalledWith('MAME exited for game: pacman');
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
     });
 
@@ -1029,6 +1036,7 @@ describe('TransformerEngine', () => {
       await engine.handleEvent('rgfx/mame-exit', '');
 
       expect(mockContext.log.info).toHaveBeenCalledWith('MAME exited for game: unknown');
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
     });
 
@@ -1046,6 +1054,37 @@ describe('TransformerEngine', () => {
       await engine.handleEvent('rgfx/mame-exit', 'pacman');
 
       // Should return early, not calling subject or default handlers
+      expect(subjectHandler).not.toHaveBeenCalled();
+      expect(defaultHandler).not.toHaveBeenCalled();
+    });
+
+    it('should clear effects on rgfx/clear-effects event', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      await engine.handleEvent('rgfx/clear-effects', '');
+
+      expect(mockContext.log.info).toHaveBeenCalledWith('Clear all effects requested');
+      expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
+      expect(mockContext.state.clear).toHaveBeenCalled();
+      expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:01/clear-effects', '', 2);
+    });
+
+    it('should not cascade to other handlers after rgfx/clear-effects', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).subjectHandlers.set('clear-effects', subjectHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('rgfx/clear-effects', '');
+
       expect(subjectHandler).not.toHaveBeenCalled();
       expect(defaultHandler).not.toHaveBeenCalled();
     });
