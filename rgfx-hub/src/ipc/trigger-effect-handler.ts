@@ -21,7 +21,6 @@ interface TriggerEffectHandlerDeps {
 
 export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): void {
   const { udpClient, driverRegistry } = deps;
-  log.info('[TriggerEffectHandler] Registering effect:trigger IPC handler');
 
   // Socket for sending to localhost (led-sim)
   const localhostSocket = dgram.createSocket('udp4');

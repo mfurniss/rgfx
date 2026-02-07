@@ -45,17 +45,6 @@ export function configureSerialPort(): void {
     }
   });
 
-  session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
-    if (permission === 'serial') {
-      return true;
-    }
-    return true;
-  });
-
-  session.defaultSession.setDevicePermissionHandler((details) => {
-    if (details.deviceType === 'serial') {
-      return true;
-    }
-    return true;
-  });
+  session.defaultSession.setPermissionCheckHandler(() => true);
+  session.defaultSession.setDevicePermissionHandler(() => true);
 }

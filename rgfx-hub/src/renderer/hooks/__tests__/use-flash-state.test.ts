@@ -94,16 +94,6 @@ describe('useFlashState', () => {
       expect(result.current.logMessages[1]).toContain('Second message');
     });
 
-    it('should log to console', () => {
-      const consoleSpy = vi.spyOn(console, 'log');
-      const { result } = renderHook(() => useFlashState());
-
-      act(() => {
-        result.current.addLog('Console test');
-      });
-
-      expect(consoleSpy).toHaveBeenCalledWith('>', 'Console test');
-    });
   });
 
   describe('clearLogs', () => {

@@ -6,7 +6,6 @@
  */
 
 import { ipcMain } from 'electron';
-import log from 'electron-log/main';
 
 interface ResetEventCountsHandlerDeps {
   resetEventsProcessed: () => void;
@@ -14,10 +13,8 @@ interface ResetEventCountsHandlerDeps {
 
 export function registerResetEventCountsHandler(deps: ResetEventCountsHandlerDeps): void {
   const { resetEventsProcessed } = deps;
-  log.info('[ResetEventCountsHandler] Registering event:reset IPC handler');
 
   ipcMain.handle('event:reset', () => {
-    log.info('[ResetEventCountsHandler] Resetting events processed counter');
     resetEventsProcessed();
   });
 }

@@ -57,7 +57,6 @@ export function useFlashState(
   }>({ open: false, success: false, message: '', flashMethod: null });
 
   const addLog = useCallback((message: string) => {
-    console.log('>', message);
     setLogMessages((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
   }, []);
 

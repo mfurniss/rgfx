@@ -32,6 +32,8 @@ interface NumberInputProps {
   field: ControllerRenderProps<FieldValues, string>;
   label: string;
   helperText?: string;
+  min?: number;
+  max?: number;
   allowFloat: boolean;
   emptyValue?: number;
   error?: string;
@@ -43,6 +45,8 @@ function NumberInput({
   field,
   label,
   helperText,
+  min,
+  max,
   allowFloat,
   emptyValue,
   error,
@@ -91,6 +95,13 @@ function NumberInput({
       fullWidth
       error={!!error}
       helperText={error ?? helperText}
+      slotProps={{
+        htmlInput: {
+          min,
+          max,
+          step: allowFloat ? 'any' : 1,
+        },
+      }}
       {...textFieldProps}
     />
   );
@@ -114,15 +125,12 @@ export function NumberField<
   control,
   label,
   helperText,
-  min: _min,
-  max: _max,
+  min,
+  max,
   allowFloat = false,
   emptyValue,
   ...textFieldProps
 }: NumberFieldProps<TFieldValues, TName>) {
-  void _min;
-  void _max;
-
   return (
     <Controller
       name={name}
@@ -133,6 +141,8 @@ export function NumberField<
           field={field as unknown as ControllerRenderProps<FieldValues, string>}
           label={label}
           helperText={helperText}
+          min={min}
+          max={max}
           allowFloat={allowFloat}
           emptyValue={emptyValue}
           error={error?.message}

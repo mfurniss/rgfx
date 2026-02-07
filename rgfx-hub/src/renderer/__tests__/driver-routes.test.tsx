@@ -30,9 +30,6 @@ vi.mock('../store/driver-store', () => ({
 vi.mock('../store/ui-store', () => ({
   useUiStore: vi.fn((selector) => {
     const state = {
-      driverTableSortField: 'id',
-      driverTableSortOrder: 'asc',
-      setDriverTableSort: vi.fn(),
       tableSortPreferences: {},
       setTableSort: vi.fn(),
     };
