@@ -276,23 +276,6 @@ export const DRIVER_CHART_COLORS = [
   '#f44336', // red
 ];
 
-// ============================================================================
-// Test Configuration
-// ============================================================================
-
-/**
- * Retry delay for file watcher readiness checks in tests (milliseconds).
- * Tests poll with this delay to detect when fs.watch is initialized.
- */
-export const TEST_FILE_WATCHER_RETRY_DELAY_MS = 50;
-
-/**
- * Maximum retry attempts for file watcher readiness checks in tests.
- * Total wait time = TEST_FILE_WATCHER_RETRY_DELAY_MS × TEST_FILE_WATCHER_MAX_RETRIES
- * Default: 50ms × 40 = 2000ms (2 seconds)
- */
-export const TEST_FILE_WATCHER_MAX_RETRIES = 40;
-
 /**
  * Maximum number of system errors to retain in memory.
  * Older errors are discarded when this limit is exceeded.

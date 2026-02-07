@@ -11,6 +11,7 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverConfig } from '../driver-config';
 import { requireDriver, sendToRenderer } from '../utils/driver-utils';
+import { IPC } from '../config/ipc-channels';
 
 interface DeleteDriverHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -38,7 +39,7 @@ export function registerDeleteDriverHandler(deps: DeleteDriverHandlerDeps): void
     driverRegistry.deleteDriver(driverId);
 
     // Notify renderer that driver was deleted
-    sendToRenderer(getMainWindow, 'driver:deleted', driverId);
+    sendToRenderer(getMainWindow, IPC.DRIVER_DELETED, driverId);
 
     log.info(`Driver ${driverId} deleted successfully`);
     return { success: true };

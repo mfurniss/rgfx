@@ -1,5 +1,5 @@
 import React from 'react';
-import { Snackbar, Alert, Box } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
 import { useNotificationStore, type Notification } from '@/renderer/store/notification-store';
 import { TOAST_AUTO_HIDE_DURATION_MS } from '@/config/constants';
 
@@ -37,7 +37,7 @@ export const NotificationStack: React.FC = () => {
   const removeNotification = useNotificationStore((state) => state.removeNotification);
 
   return (
-    <Box>
+    <>
       {notifications.map((notification, index) => (
         <NotificationToast
           key={notification.id}
@@ -46,6 +46,6 @@ export const NotificationStack: React.FC = () => {
           onClose={removeNotification}
         />
       ))}
-    </Box>
+    </>
   );
 };

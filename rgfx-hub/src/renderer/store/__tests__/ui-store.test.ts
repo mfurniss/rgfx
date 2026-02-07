@@ -14,8 +14,6 @@ describe('useUiStore', () => {
   beforeEach(() => {
     // Reset to default state between tests
     useUiStore.setState({
-      driverTableSortField: 'id',
-      driverTableSortOrder: 'asc',
       testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
       testEffectsPropsMap: {
         [DEFAULT_FX_PLAYGROUND_EFFECT]: JSON.stringify(
@@ -31,12 +29,6 @@ describe('useUiStore', () => {
   });
 
   describe('initial state', () => {
-    it('should have default driver table sort', () => {
-      const { driverTableSortField, driverTableSortOrder } = useUiStore.getState();
-      expect(driverTableSortField).toBe('id');
-      expect(driverTableSortOrder).toBe('asc');
-    });
-
     it('should have default test effects state', () => {
       const { testEffectsSelectedEffect, testEffectsSelectedDrivers } =
         useUiStore.getState();
@@ -51,28 +43,6 @@ describe('useUiStore', () => {
         expect(row.eventLine).toBe('');
         expect(row.autoInterval).toBe('off');
       });
-    });
-  });
-
-  describe('setDriverTableSort', () => {
-    it('should update sort field and order', () => {
-      const { setDriverTableSort } = useUiStore.getState();
-
-      setDriverTableSort('name', 'desc');
-
-      const { driverTableSortField, driverTableSortOrder } = useUiStore.getState();
-      expect(driverTableSortField).toBe('name');
-      expect(driverTableSortOrder).toBe('desc');
-    });
-
-    it('should accept all valid sort fields', () => {
-      const { setDriverTableSort } = useUiStore.getState();
-      const fields = ['id', 'name', 'ip', 'status'] as const;
-
-      for (const field of fields) {
-        setDriverTableSort(field, 'asc');
-        expect(useUiStore.getState().driverTableSortField).toBe(field);
-      }
     });
   });
 

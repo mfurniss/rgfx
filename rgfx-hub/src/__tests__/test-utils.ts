@@ -6,10 +6,9 @@
  */
 
 import { writeFileSync, existsSync } from 'node:fs';
-import {
-  TEST_FILE_WATCHER_RETRY_DELAY_MS,
-  TEST_FILE_WATCHER_MAX_RETRIES,
-} from '../config/constants';
+
+const TEST_FILE_WATCHER_RETRY_DELAY_MS = 50;
+const TEST_FILE_WATCHER_MAX_RETRIES = 40;
 
 /**
  * Write to a file and retry until a watcher detects the change.

@@ -8,6 +8,7 @@
 import type { BrowserWindow } from 'electron';
 import type { Driver } from '../types';
 import type { DriverRegistry } from '../driver-registry';
+import type { IpcChannel } from '../config/ipc-channels';
 
 /**
  * Driver with guaranteed MAC address
@@ -55,7 +56,7 @@ export function requireDriver(driverId: string, driverRegistry: DriverRegistry):
  */
 export function sendToRenderer(
   getMainWindow: () => BrowserWindow | null,
-  channel: string,
+  channel: IpcChannel,
   ...args: unknown[]
 ): void {
   const mainWindow = getMainWindow();
