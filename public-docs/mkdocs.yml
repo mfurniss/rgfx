@@ -8,7 +8,7 @@ site_description: Retro Game Effects - External visual effects for retro video g
 theme:
   name: material
   custom_dir: overrides
-  favicon: assets/images/favicon.png
+  favicon: favicon.ico
   palette:
     scheme: slate
     primary: grey
