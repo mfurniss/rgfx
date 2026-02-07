@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cstring>
 
-PulseEffect::PulseEffect(const Matrix& /* m */, Canvas& c) : canvas(c) {}
+PulseEffect::PulseEffect(Canvas& c) : canvas(c) {}
 
 void PulseEffect::add(JsonDocument& props) {
 	if (!props["color"].is<const char*>()) {

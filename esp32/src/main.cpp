@@ -14,7 +14,6 @@
 #include "config/config_portal.h"
 #include "config/config_nvs.h"
 #include "config/config_leds.h"
-#include "config/config_timeout.h"
 #include "config/constants.h"
 #include "driver_config.h"
 #include "network/udp.h"
@@ -34,11 +33,6 @@ void handleDriverConfig(const String& payload);
 
 // Forward declaration for lazy Matrix creation
 static void createMatrixIfNeeded();
-
-// Timing constants defined in config/constants.h:
-// - FLASH_DURATION_MS: MQTT message flash duration
-// - UPTIME_UPDATE_INTERVAL: OLED display refresh interval
-// - AP_TIMEOUT_MS: WiFi AP mode timeout
 
 // Global matrix pointer - initialized only after LED configuration is received
 Matrix* matrix = nullptr;

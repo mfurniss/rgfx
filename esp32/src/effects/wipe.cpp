@@ -5,9 +5,7 @@
 #include "graphics/canvas.h"
 #include "network/mqtt.h"
 
-WipeEffect::WipeEffect(const Matrix& m, Canvas& c) : canvas(c) {
-	(void)m;  // Matrix not needed, but kept for API consistency
-}
+WipeEffect::WipeEffect(Canvas& c) : canvas(c) {}
 
 static BlendMode parseBlendMode(const char* mode) {
 	if (mode != nullptr && strcmp(mode, "replace") == 0) {

@@ -3,8 +3,7 @@
 #include "hal/types.h"
 #include <cmath>
 
-PlasmaEffect::PlasmaEffect(const Matrix& m, Canvas& c) : state{0.0f, 0.0f, 0.0f, {}}, canvas(c) {
-	(void)m;  // Matrix not needed, but kept for API consistency
+PlasmaEffect::PlasmaEffect(Canvas& c) : state{0.0f, 0.0f, 0.0f, {}}, canvas(c) {
 	generateDefaultRainbowLut(state.gradientLut);
 }
 

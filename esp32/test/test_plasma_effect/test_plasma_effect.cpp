@@ -72,14 +72,14 @@ void tearDown(void) {}
 void test_plasma_creation() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 	TEST_PASS();
 }
 
 void test_plasma_not_enabled_by_default() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// Without calling add(), plasma is not enabled
 	canvas.clear();
@@ -92,7 +92,7 @@ void test_plasma_not_enabled_by_default() {
 void test_plasma_add_enables() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -109,7 +109,7 @@ void test_plasma_add_enables() {
 void test_plasma_reset_disables() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -132,7 +132,7 @@ void test_plasma_reset_disables() {
 void test_plasma_enabled_on() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -148,7 +148,7 @@ void test_plasma_enabled_on() {
 void test_plasma_enabled_off() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// First enable
 	JsonDocument props1;
@@ -169,7 +169,7 @@ void test_plasma_enabled_off() {
 void test_plasma_enabled_bool_backwards_compat() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// Test bool true (backwards compat)
 	JsonDocument props1;
@@ -193,7 +193,7 @@ void test_plasma_enabled_bool_backwards_compat() {
 void test_plasma_re_enable_after_disable() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// Enable
 	JsonDocument props1;
@@ -222,7 +222,7 @@ void test_plasma_re_enable_after_disable() {
 void test_plasma_update_advances_animation() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -266,13 +266,13 @@ void test_plasma_speed_affects_animation_rate() {
 	Canvas canvas(matrix);
 
 	// Test with slow speed
-	PlasmaEffect slowEffect(matrix, canvas);
+	PlasmaEffect slowEffect(canvas);
 	JsonDocument slowProps;
 	slowProps["speed"] = 0.5f;
 	slowEffect.add(slowProps);
 
 	// Test with fast speed
-	PlasmaEffect fastEffect(matrix, canvas);
+	PlasmaEffect fastEffect(canvas);
 	JsonDocument fastProps;
 	fastProps["speed"] = 2.0f;
 	fastEffect.add(fastProps);
@@ -318,7 +318,7 @@ void test_plasma_speed_affects_animation_rate() {
 void test_plasma_scale_parameter() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// Test low scale (less detail)
 	JsonDocument props1;
@@ -345,7 +345,7 @@ void test_plasma_scale_parameter() {
 void test_plasma_scale_clamped() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// Test scale above max (255)
 	JsonDocument props;
@@ -363,7 +363,7 @@ void test_plasma_scale_clamped() {
 void test_plasma_default_parameters() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// Add with no parameters - should use defaults
 	JsonDocument props;
@@ -384,7 +384,7 @@ void test_plasma_default_parameters() {
 void test_plasma_fills_entire_canvas() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -405,7 +405,7 @@ void test_plasma_fills_entire_canvas() {
 void test_plasma_large_matrix() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -422,7 +422,7 @@ void test_plasma_large_matrix() {
 void test_plasma_strip_layout() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -444,7 +444,7 @@ void test_plasma_strip_layout() {
 void test_plasma_has_multiple_colors() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -474,7 +474,7 @@ void test_plasma_has_multiple_colors() {
 void test_plasma_fadeIn_starts_dark() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -491,7 +491,7 @@ void test_plasma_fadeIn_starts_dark() {
 void test_plasma_fadeIn_brightens() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -521,7 +521,7 @@ void test_plasma_fadeIn_brightens() {
 void test_plasma_fadeIn_transitions_to_on() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -542,7 +542,7 @@ void test_plasma_fadeIn_transitions_to_on() {
 void test_plasma_fadeOut_starts_bright() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// First enable the effect at full brightness
 	JsonDocument props;
@@ -564,7 +564,7 @@ void test_plasma_fadeOut_starts_bright() {
 void test_plasma_fadeOut_dims() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -584,7 +584,7 @@ void test_plasma_fadeOut_dims() {
 void test_plasma_fadeOut_transitions_to_off() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -615,7 +615,7 @@ void test_plasma_fadeOut_transitions_to_off() {
 void test_plasma_isFullyOpaque_when_on() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -628,7 +628,7 @@ void test_plasma_isFullyOpaque_when_on() {
 void test_plasma_isFullyOpaque_when_off() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -641,7 +641,7 @@ void test_plasma_isFullyOpaque_when_off() {
 void test_plasma_isFullyOpaque_when_fading() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	// During fadeIn
 	JsonDocument props1;
@@ -668,7 +668,7 @@ static uint64_t runPlasmaDigest(const TestConfig& config, float updateTime, int 
 	String layout = config.layout ? config.layout : "matrix-br-v-snake";
 	Matrix matrix(config.width, config.height, layout);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -711,7 +711,7 @@ void test_plasma_property_animation_changes() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PlasmaEffect effect(matrix, canvas);
+	PlasmaEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPlasmaProps(props);
@@ -741,7 +741,7 @@ void test_plasma_property_all_configs_render() {
 		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
 		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
 		Canvas canvas(matrix);
-		PlasmaEffect effect(matrix, canvas);
+		PlasmaEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultPlasmaProps(props);

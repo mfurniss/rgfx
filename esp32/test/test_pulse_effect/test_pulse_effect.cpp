@@ -68,7 +68,7 @@ void tearDown(void) {}
 void test_pulse_creation_default_values() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -87,7 +87,7 @@ void test_pulse_creation_default_values() {
 void test_pulse_creation_with_color() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -108,7 +108,7 @@ void test_pulse_creation_with_color() {
 void test_pulse_fade_over_time() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -132,7 +132,7 @@ void test_pulse_fade_over_time() {
 void test_pulse_fade_completes() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -157,7 +157,7 @@ void test_pulse_fade_completes() {
 void test_pulse_non_fading_stays_full_brightness() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -182,7 +182,7 @@ void test_pulse_non_fading_stays_full_brightness() {
 void test_pulse_non_fading_expires() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -206,7 +206,7 @@ void test_pulse_non_fading_expires() {
 void test_pulse_multiple_pulses_exist() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props1;
 	setDefaultPulseProps(props1);
@@ -234,7 +234,7 @@ void test_pulse_multiple_pulses_exist() {
 void test_pulse_reset_clears_all() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -265,7 +265,7 @@ void test_pulse_canvas_size_matches_matrix() {
 void test_pulse_collapse_none_fills_canvas() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -290,7 +290,7 @@ void test_pulse_collapse_none_fills_canvas() {
 void test_pulse_collapse_horizontal_shrinks_height() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -316,7 +316,7 @@ void test_pulse_collapse_horizontal_shrinks_height() {
 void test_pulse_collapse_vertical_shrinks_width() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -347,7 +347,7 @@ void test_pulse_collapse_random_selects_one() {
 	// Random collapse should select either horizontal or vertical
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	hal::test::seedRandom(12345);
 
@@ -376,7 +376,7 @@ void test_pulse_strip_layout() {
 	// Strip has height=1, so horizontal collapse should act like vertical
 	Matrix matrix(16, 1, "strip");
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -404,7 +404,7 @@ void test_pulse_duration_zero() {
 	// Duration of 0 should cause immediate expiration
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -426,7 +426,7 @@ void test_pulse_duration_zero() {
 void test_pulse_multiple_sorted_by_remaining() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	// First pulse: longer duration, red
 	JsonDocument props1;
@@ -460,7 +460,7 @@ void test_pulse_multiple_sorted_by_remaining() {
 void test_pulse_easing_linear() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -484,7 +484,7 @@ void test_pulse_easing_linear() {
 void test_pulse_easing_quinticOut_default() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -520,7 +520,7 @@ static uint64_t runPulseDigest(const TestConfig& config, float updateTime,
 	String layout = config.layout ? config.layout : "matrix-br-v-snake";
 	Matrix matrix(config.width, config.height, layout);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -599,7 +599,7 @@ void test_pulse_property_nonblack_at_start() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -626,7 +626,7 @@ void test_pulse_property_fades_to_black() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -655,7 +655,7 @@ void test_pulse_property_brightness_decreases_with_fade() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -691,7 +691,7 @@ void test_pulse_property_collapse_horizontal_shrinks_bbox() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -730,7 +730,7 @@ void test_pulse_property_collapse_vertical_shrinks_bbox() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -771,7 +771,7 @@ void test_pulse_property_all_configs_nonblack_at_start() {
 		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
 		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
 		Canvas canvas(matrix);
-		PulseEffect effect(matrix, canvas);
+		PulseEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultPulseProps(props);
@@ -801,7 +801,7 @@ void test_pulse_vector_cap_drops_oldest() {
 	// Test that adding more than MAX_PULSES (64) drops oldest pulses
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	// Add 70 pulses (more than the cap of 64)
 	for (int i = 0; i < 70; i++) {
@@ -835,7 +835,7 @@ void test_pulse_vector_cap_maintains_rendering() {
 	// Test that vector cap doesn't break rendering
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect effect(matrix, canvas);
+	PulseEffect effect(canvas);
 
 	// Add pulses at capacity
 	for (int i = 0; i < 64; i++) {

@@ -8,7 +8,6 @@
 #include "commands.h"
 #include "log.h"
 #include "telemetry.h"
-#include "driver_config.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
@@ -16,7 +15,7 @@ namespace Commands {
 
 	void telemetry(const String& args) {
 		// Get system telemetry (including LED config)
-		JsonDocument doc = Telemetry::getTelemetry(g_driverConfig, g_configReceived);
+		JsonDocument doc = Telemetry::getTelemetry();
 
 		// Output formatted JSON to serial
 		log("\n=== System Telemetry ===");
