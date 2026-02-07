@@ -8,6 +8,8 @@
 import { z } from 'zod';
 import { baseEffect, centerX, centerY, easing } from './properties';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import { randomInt } from '@/utils/random';
+import { spritePresets } from '@/utils/sprite-presets';
 
 export const fieldTypes: FieldTypeMap = {
   centerX: 'centerXY',
@@ -19,7 +21,12 @@ export const fieldTypes: FieldTypeMap = {
 };
 
 export function randomize(): Record<string, unknown> {
-  return {};
+  // Randomly select one of the sprite presets
+  const randomPreset = spritePresets[randomInt(0, spritePresets.length - 1)];
+
+  return {
+    images: [randomPreset.image], // Wrap in array for multi-frame format
+  };
 }
 
 /**
