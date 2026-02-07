@@ -23,12 +23,6 @@ class ConfigPortal {
 	// Get current state name (Boot, ApMode, Connecting, OnLine, etc.)
 	static String getStateName();
 
-	// Get configured LED brightness (1-255)
-	static uint8_t getLedBrightness();
-
-	// Get configured LED data pin (GPIO number)
-	static uint8_t getLedDataPin();
-
 	// Erase saved WiFi credentials (factory reset)
 	static void resetSettings();
 

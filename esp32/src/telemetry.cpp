@@ -8,7 +8,7 @@
 #include <WiFi.h>
 #include <Arduino.h>
 
-JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool configReceived) {
+JsonDocument Telemetry::getTelemetry() {
 	JsonDocument doc;
 
 	// Network information
@@ -68,11 +68,6 @@ JsonDocument Telemetry::getTelemetry(const DriverConfigData& driverConfig, bool 
 	frameTiming["downsampleUs"] = timing.downsampleUs;
 	frameTiming["showUs"] = timing.showUs;
 	frameTiming["totalUs"] = timing.totalUs;
-
-	// Note: LED config is NOT included in telemetry - Hub already has it
-	// Including it would exceed the 1024 byte MQTT buffer limit
-	(void)driverConfig;
-	(void)configReceived;
 
 	return doc;
 }

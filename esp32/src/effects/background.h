@@ -31,7 +31,7 @@ class BackgroundEffect : public IEffect {
 	static bool isAllBlack(const CRGB* colors, uint8_t count);
 
    public:
-	BackgroundEffect(const Matrix& matrix, Canvas& canvas);
+	BackgroundEffect(Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;

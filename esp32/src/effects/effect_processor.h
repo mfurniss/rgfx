@@ -73,7 +73,8 @@ class EffectProcessor {
 	SparkleEffect sparkleEffect;
 	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
-	EffectEntry effectMap[14];
+	static constexpr size_t EFFECT_COUNT = 14;
+	EffectEntry effectMap[EFFECT_COUNT];
 
    public:
 	EffectProcessor(Matrix& matrix, hal::IDisplay& display);

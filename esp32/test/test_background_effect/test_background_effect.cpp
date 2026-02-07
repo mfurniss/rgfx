@@ -73,14 +73,14 @@ void tearDown(void) {}
 void test_background_creation() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 	TEST_PASS();
 }
 
 void test_background_not_rendered_by_default() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Without calling add(), background is black (targetIsBlack=true)
 	canvas.clear();
@@ -93,7 +93,7 @@ void test_background_not_rendered_by_default() {
 void test_background_add_renders() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -111,7 +111,7 @@ void test_background_add_renders() {
 void test_background_reset_stops_rendering() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -135,7 +135,7 @@ void test_background_reset_stops_rendering() {
 void test_background_singleton_replaces_previous() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// First color - red
 	JsonDocument props1;
@@ -162,7 +162,7 @@ void test_background_singleton_replaces_previous() {
 void test_background_multiple_add_calls() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Add multiple times
 	for (int i = 0; i < 10; i++) {
@@ -188,7 +188,7 @@ void test_background_multiple_add_calls() {
 void test_background_color_red() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -206,7 +206,7 @@ void test_background_color_red() {
 void test_background_color_green() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -223,7 +223,7 @@ void test_background_color_green() {
 void test_background_color_blue() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -240,7 +240,7 @@ void test_background_color_blue() {
 void test_background_color_black_skips_render() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -257,7 +257,7 @@ void test_background_color_black_skips_render() {
 void test_background_white() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -281,7 +281,7 @@ void test_background_white() {
 void test_background_crossfade_immediate_when_zero_duration() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set red with fadeDuration=0
 	JsonDocument props1;
@@ -319,7 +319,7 @@ void test_background_crossfade_immediate_when_zero_duration() {
 void test_background_crossfade_interpolates() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set red with fadeDuration=0 (immediate)
 	JsonDocument props1;
@@ -356,7 +356,7 @@ void test_background_crossfade_interpolates() {
 void test_background_crossfade_completes() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set red immediately
 	JsonDocument props1;
@@ -387,7 +387,7 @@ void test_background_crossfade_completes() {
 void test_background_crossfade_mid_fade_new_gradient() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set red immediately
 	JsonDocument props1;
@@ -442,7 +442,7 @@ void test_background_crossfade_mid_fade_new_gradient() {
 void test_background_black_gradient_skips_render() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set a color first
 	JsonDocument props1;
@@ -472,7 +472,7 @@ void test_background_black_gradient_skips_render() {
 void test_background_fade_to_black() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set white
 	JsonDocument props1;
@@ -504,7 +504,7 @@ void test_background_fade_to_black() {
 void test_background_empty_array_is_black() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set a color first
 	JsonDocument props1;
@@ -533,7 +533,7 @@ void test_background_empty_array_is_black() {
 void test_background_all_black_colors_is_black() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	// Set gradient with multiple black colors
 	JsonDocument props;
@@ -560,7 +560,7 @@ void test_background_all_black_colors_is_black() {
 void test_background_fills_entire_canvas() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -582,7 +582,7 @@ void test_background_fills_entire_canvas() {
 void test_background_large_matrix() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -600,7 +600,7 @@ void test_background_large_matrix() {
 void test_background_strip_layout() {
 	Matrix matrix(32, 1, "strip");
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -629,7 +629,7 @@ static uint64_t runBackgroundDigest(const TestConfig& config, float updateTime,
 	String layout = config.layout ? config.layout : "matrix-br-v-snake";
 	Matrix matrix(config.width, config.height, layout);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -672,7 +672,7 @@ void test_background_property_static_no_change() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	BackgroundEffect effect(matrix, canvas);
+	BackgroundEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultBackgroundProps(props);
@@ -704,7 +704,7 @@ void test_background_property_all_configs_render() {
 		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
 		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
 		Canvas canvas(matrix);
-		BackgroundEffect effect(matrix, canvas);
+		BackgroundEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultBackgroundProps(props);

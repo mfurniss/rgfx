@@ -35,7 +35,7 @@ class PulseEffect : public IEffect {
 	Canvas& canvas;
 
    public:
-	PulseEffect(const Matrix& matrix, Canvas& canvas);
+	PulseEffect(Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;

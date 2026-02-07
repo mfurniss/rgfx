@@ -144,7 +144,7 @@ void test_canvas_to_display_color() {
 void test_pulse_effect_renders_red() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect pulse(matrix, canvas);
+	PulseEffect pulse(canvas);
 
 	hal::test::setTime(100);
 
@@ -181,7 +181,7 @@ void test_pulse_effect_renders_red() {
 void test_pulse_fades_over_time() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect pulse(matrix, canvas);
+	PulseEffect pulse(canvas);
 
 	hal::test::setTime(100);
 
@@ -217,7 +217,7 @@ void test_pulse_fades_over_time() {
 void test_wipe_effect_renders() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect wipe(matrix, canvas);
+	WipeEffect wipe(canvas);
 
 	hal::test::setTime(100);
 
@@ -251,7 +251,7 @@ void test_wipe_effect_renders() {
 void test_multiple_pulses_blend() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect pulse(matrix, canvas);
+	PulseEffect pulse(canvas);
 
 	// Add red pulse
 	JsonDocument props1;
@@ -290,7 +290,7 @@ void test_multiple_pulses_blend() {
 void test_strip_layout_renders() {
 	Matrix matrix(8, 1, "strip");
 	Canvas canvas(matrix);
-	PulseEffect pulse(matrix, canvas);
+	PulseEffect pulse(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -322,7 +322,7 @@ void test_strip_layout_renders() {
 void test_large_matrix_renders() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	PulseEffect pulse(matrix, canvas);
+	PulseEffect pulse(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);
@@ -353,7 +353,7 @@ void test_large_matrix_renders() {
 void test_reset_clears_effect() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	PulseEffect pulse(matrix, canvas);
+	PulseEffect pulse(canvas);
 
 	JsonDocument props;
 	setDefaultPulseProps(props);

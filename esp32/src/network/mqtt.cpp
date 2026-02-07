@@ -421,7 +421,7 @@ void sendDriverTelemetry() {
 	}
 
 	// Get full system telemetry (including LED config)
-	JsonDocument doc = Telemetry::getTelemetry(g_driverConfig, g_configReceived);
+	JsonDocument doc = Telemetry::getTelemetry();
 
 	// Serialize to pre-allocated buffer (avoids String heap allocation)
 	size_t len = serializeJson(doc, telemetryBuffer, sizeof(telemetryBuffer));

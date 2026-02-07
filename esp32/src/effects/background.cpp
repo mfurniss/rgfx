@@ -5,9 +5,8 @@
 #include "network/mqtt.h"
 #include <cstring>
 
-BackgroundEffect::BackgroundEffect(const Matrix& m, Canvas& c)
+BackgroundEffect::BackgroundEffect(Canvas& c)
 	: state{0.0f, 0.0f, {}, {}, true, false}, canvas(c) {
-	(void)m;  // Matrix not needed, but kept for API consistency
 	// Initialize both LUTs to black
 	fill_solid(state.gradientLut, GRADIENT_LUT_SIZE, CRGB::Black);
 	fill_solid(state.targetLut, GRADIENT_LUT_SIZE, CRGB::Black);

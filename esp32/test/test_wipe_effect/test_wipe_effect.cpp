@@ -65,7 +65,7 @@ void tearDown(void) {}
 void test_wipe_creation_default_values() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -93,7 +93,7 @@ void test_wipe_creation_default_values() {
 void test_wipe_creation_with_color() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -123,7 +123,7 @@ void test_wipe_creation_with_color() {
 void test_wipe_progresses_over_time() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -169,7 +169,7 @@ void test_wipe_progresses_over_time() {
 void test_wipe_completes() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -198,7 +198,7 @@ void test_wipe_completes() {
 void test_wipe_reset_clears_all() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -235,7 +235,7 @@ void test_wipe_canvas_size_matches_matrix() {
 void test_wipe_column_calculation() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -264,7 +264,7 @@ void test_wipe_column_calculation() {
 void test_wipe_direction_left() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -295,7 +295,7 @@ void test_wipe_direction_left() {
 void test_wipe_direction_down() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -326,7 +326,7 @@ void test_wipe_direction_down() {
 void test_wipe_direction_up() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -362,7 +362,7 @@ void test_wipe_fill_then_clear_phases() {
 	// Wipe has two phases: fill (first half) and clear (second half)
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -424,7 +424,7 @@ void test_wipe_fill_then_clear_phases() {
 void test_wipe_direction_random() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	hal::test::seedRandom(12345);
 
@@ -457,7 +457,7 @@ void test_wipe_strip_vertical_maps_to_horizontal() {
 	// On 1D strip, vertical directions should map to horizontal
 	Matrix matrix(16, 1, "strip");
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -484,7 +484,7 @@ void test_wipe_strip_vertical_maps_to_horizontal() {
 void test_wipe_strip_up_maps_to_left() {
 	Matrix matrix(16, 1, "strip");
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -511,7 +511,7 @@ void test_wipe_strip_up_maps_to_left() {
 void test_wipe_multiple_concurrent() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	// First wipe: left to right, red
 	JsonDocument props1;
@@ -550,7 +550,7 @@ void test_wipe_multiple_concurrent() {
 void test_wipe_duration_very_short() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -601,7 +601,7 @@ void test_wipe_duration_very_short() {
 void test_wipe_blendmode_additive() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	// Set a base color on the canvas
 	canvas.drawRectangle(0, 0, canvas.getWidth(), canvas.getHeight(), CRGBA(100, 0, 0, 255), BlendMode::REPLACE);
@@ -635,7 +635,7 @@ void test_wipe_blendmode_additive() {
 void test_wipe_blendmode_replace() {
 	Matrix matrix(4, 4);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	// Set a base color on the canvas
 	canvas.drawRectangle(0, 0, canvas.getWidth(), canvas.getHeight(), CRGBA(100, 0, 0, 255), BlendMode::REPLACE);
@@ -679,7 +679,7 @@ static uint64_t runWipeDigest(const TestConfig& config, float updateTime,
 	String layout = config.layout ? config.layout : "matrix-br-v-snake";
 	Matrix matrix(config.width, config.height, layout);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -739,7 +739,7 @@ void test_wipe_property_fill_then_clear() {
 
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
-	WipeEffect effect(matrix, canvas);
+	WipeEffect effect(canvas);
 
 	JsonDocument props;
 	setDefaultWipeProps(props);
@@ -783,7 +783,7 @@ void test_wipe_property_all_configs_render() {
 		String layout = TEST_CONFIGS[i].layout ? TEST_CONFIGS[i].layout : "matrix-br-v-snake";
 		Matrix matrix(TEST_CONFIGS[i].width, TEST_CONFIGS[i].height, layout);
 		Canvas canvas(matrix);
-		WipeEffect effect(matrix, canvas);
+		WipeEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultWipeProps(props);
