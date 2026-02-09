@@ -18,11 +18,30 @@ import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPrese
 import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig, fieldTypes as warpFieldTypes } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
 import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes } from './sparkle';
-import type { PresetConfig } from './preset-config';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
-import type { LayoutConfig } from './layout-config';
 
-export type { PresetData, PresetType } from './preset-config';
+/**
+ * Layout configuration for effect forms.
+ * Each inner array represents a column with stacked fields.
+ * All columns use responsive width: xs=12 (full width on mobile), md=6 (half width on desktop)
+ */
+export type LayoutConfig = string[][];
+
+export interface PresetData {
+  gradient: string[];
+  speed?: number;
+  scale?: number;
+}
+
+export type PresetType = 'plasma' | 'gradient';
+
+export interface PresetConfig {
+  type: PresetType;
+  apply: (
+    presetData: PresetData,
+    currentValues: Record<string, unknown>,
+  ) => Record<string, unknown>;
+}
 
 /**
  * Map of effect names to their full schemas (includes name/description metadata)

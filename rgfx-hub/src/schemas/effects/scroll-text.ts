@@ -10,9 +10,8 @@ import { baseEffect } from './properties';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
-import type { PresetConfig } from './preset-config';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
-import type { LayoutConfig } from './layout-config';
+import type { PresetConfig, LayoutConfig } from './index';
 
 export const fieldTypes: FieldTypeMap = {
   accentColor: 'color',

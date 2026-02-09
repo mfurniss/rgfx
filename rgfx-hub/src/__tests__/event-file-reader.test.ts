@@ -451,3 +451,53 @@ describe('EventFileReader invalid topic handling', () => {
     expect(errors).toHaveLength(1);
   });
 });
+
+describe('getFileSizeBytes', () => {
+  let testDir: string;
+  let testFilePath: string;
+  let reader: EventFileReader;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `rgfx-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(testDir, { recursive: true });
+    testFilePath = join(testDir, 'interceptor_events.log');
+    reader = new EventFileReader(testFilePath);
+  });
+
+  afterEach(async () => {
+    reader.stop();
+    vi.useRealTimers();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return 0 when file does not exist', () => {
+    expect(reader.getFileSizeBytes()).toBe(0);
+  });
+
+  it('should return file size when file exists', () => {
+    writeFileSync(testFilePath, 'game/init pacman\n');
+    const expectedSize = statSync(testFilePath).size;
+
+    expect(reader.getFileSizeBytes()).toBe(expectedSize);
+  });
+
+  it('should return correct size for empty file', () => {
+    writeFileSync(testFilePath, '');
+
+    expect(reader.getFileSizeBytes()).toBe(0);
+  });
+
+  it('should return updated size after writes', () => {
+    writeFileSync(testFilePath, 'game/init pacman\n');
+    const size1 = reader.getFileSizeBytes();
+
+    writeFileSync(testFilePath, 'game/init pacman\ngame/start 1\n');
+    const size2 = reader.getFileSizeBytes();
+
+    expect(size2).toBeGreaterThan(size1);
+  });
+});
