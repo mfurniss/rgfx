@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import centerX from '@/schemas/effects/properties/center-x';
+import { centerX } from '@/schemas/effects/properties';
 
 describe('centerX schema', () => {
   describe('optional behavior', () => {

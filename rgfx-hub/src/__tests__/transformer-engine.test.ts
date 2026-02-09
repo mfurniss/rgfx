@@ -18,8 +18,14 @@ function createTopic(raw: string, payload = ''): RgfxTopic {
 }
 
 // Mock filesystem modules
+// Source uses `import { promises as fs } from 'node:fs'` so we need
+// node:fs mock's `promises` property to be the same as node:fs/promises mock
 vi.mock('node:fs/promises');
-vi.mock('node:fs');
+vi.mock('node:fs', async () => {
+  const fsPromises = await import('node:fs/promises');
+  const mod = { promises: fsPromises, watch: vi.fn() };
+  return { ...mod, default: mod };
+});
 
 // Mock transformer-installer
 vi.mock('../transformer-installer', () => ({
@@ -841,6 +847,146 @@ describe('TransformerEngine', () => {
       expect((testEngine as any).gameHandlers.has('broken')).toBe(false);
     });
 
+
+    it('should load subject transformers from directory', async () => {
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      const mockImportModule = vi.fn().mockResolvedValue({
+        transform: subjectHandler,
+      });
+
+      vi.mocked(fs.readdir).mockResolvedValue(['player.js', 'enemy.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadSubjectTransformers('/mock/subjects');
+
+      expect(mockImportModule).toHaveBeenCalledWith('/mock/subjects/player.js');
+      expect(mockImportModule).toHaveBeenCalledWith('/mock/subjects/enemy.js');
+      expect((testEngine as any).subjectHandlers.has('player')).toBe(true);
+      expect((testEngine as any).subjectHandlers.has('enemy')).toBe(true);
+    });
+
+    it('should filter non-.js files in subject loading', async () => {
+      const mockImportModule = vi.fn().mockResolvedValue({ transform: vi.fn() });
+      vi.mocked(fs.readdir).mockResolvedValue(['player.js', 'readme.md', '.gitkeep'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadSubjectTransformers('/mock/subjects');
+
+      expect(mockImportModule).toHaveBeenCalledTimes(1);
+      expect(mockImportModule).toHaveBeenCalledWith('/mock/subjects/player.js');
+    });
+
+    it('should swallow ENOENT when subject directory missing', async () => {
+      const enoentError: any = new Error('No such directory');
+      enoentError.code = 'ENOENT';
+      vi.mocked(fs.readdir).mockRejectedValue(enoentError);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
+      await expect(
+        (testEngine as any).loadSubjectTransformers('/mock/subjects'),
+      ).resolves.not.toThrow();
+    });
+
+    it('should re-throw non-ENOENT errors from subject loading', async () => {
+      const permError = new Error('Permission denied');
+      vi.mocked(fs.readdir).mockRejectedValue(permError);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
+      await expect((testEngine as any).loadSubjectTransformers('/mock/subjects')).rejects.toThrow(
+        'Permission denied',
+      );
+    });
+
+    it('should continue loading when individual subject transformer fails', async () => {
+      let callCount = 0;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        callCount++;
+
+        if (callCount === 1) {
+          return Promise.reject(new Error('Syntax error'));
+        }
+
+        return Promise.resolve({ transform: vi.fn() });
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['broken.js', 'good.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadSubjectTransformers('/mock/subjects');
+
+      expect(mockContext.log.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load subject transformer broken.js'),
+        expect.any(Error),
+      );
+      expect((testEngine as any).subjectHandlers.has('good')).toBe(true);
+    });
+
+    it('should load property transformers from directory', async () => {
+      const propHandler = vi.fn().mockReturnValue(true);
+      const mockImportModule = vi.fn().mockResolvedValue({
+        transform: propHandler,
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['score.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadPropertyTransformers('/mock/properties');
+
+      expect(mockImportModule).toHaveBeenCalledWith('/mock/properties/score.js');
+      expect((testEngine as any).propertyHandlers).toHaveLength(1);
+    });
+
+    it('should swallow ENOENT when property directory missing', async () => {
+      const enoentError: any = new Error('No such directory');
+      enoentError.code = 'ENOENT';
+      vi.mocked(fs.readdir).mockRejectedValue(enoentError);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
+      await expect(
+        (testEngine as any).loadPropertyTransformers('/mock/properties'),
+      ).resolves.not.toThrow();
+    });
+
+    it('should re-throw non-ENOENT errors from property loading', async () => {
+      const permError = new Error('Permission denied');
+      vi.mocked(fs.readdir).mockRejectedValue(permError);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
+      await expect(
+        (testEngine as any).loadPropertyTransformers('/mock/properties'),
+      ).rejects.toThrow('Permission denied');
+    });
+
+    it('should continue loading when individual property transformer fails', async () => {
+      let callCount = 0;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        callCount++;
+
+        if (callCount === 1) {
+          return Promise.reject(new Error('Syntax error'));
+        }
+
+        return Promise.resolve({ transform: vi.fn() });
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['broken.js', 'good.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+      await (testEngine as any).loadPropertyTransformers('/mock/properties');
+
+      expect(mockContext.log.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load property transformer broken.js'),
+        expect.any(Error),
+      );
+      expect((testEngine as any).propertyHandlers).toHaveLength(1);
+    });
 
     it('should load default transformer', async () => {
       const mockHandler = vi.fn();

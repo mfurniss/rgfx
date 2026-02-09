@@ -32,6 +32,7 @@ export default defineConfig({
         "dist",
         ".vite",
         "out",
+        "**/*.js",
         "**/*.config.{js,ts}",
         "**/types.ts",
         "src/preload.ts",
