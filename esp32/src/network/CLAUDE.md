@@ -21,7 +21,10 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 
 | File | Description |
 |------|-------------|
-| `mqtt.h/cpp` | MQTT client setup, broker discovery, message handling, telemetry |
+| `mqtt.h/cpp` | MQTT client setup, connection lifecycle, topic management |
+| `mqtt_callback.cpp` | MQTT message routing and deferred operation processing |
+| `mqtt_discovery.cpp` | UDP broadcast listener for MQTT broker discovery |
+| `mqtt_publisher.cpp` | Outbound MQTT messages: telemetry, test state, errors |
 | `mqtt_config_handler.cpp` | Handles driver configuration messages from Hub (parses rgbw_mode for RGBW strips). Note: name/description fields removed from config parsing. |
 | `network_init.h/cpp` | Initializes all network services when WiFi connects |
 | `network_task.h/cpp` | FreeRTOS task running network loop on Core 0 |
