@@ -72,6 +72,14 @@ class MQTTClient {
 	MQTTClient(int bufferSize) : isConnected(false) { (void)bufferSize; }
 
 	/**
+	 * Constructor with read/write buffer sizes (used by mqtt.cpp)
+	 */
+	MQTTClient(int readBufSize, int writeBufSize) : isConnected(false) {
+		(void)readBufSize;
+		(void)writeBufSize;
+	}
+
+	/**
 	 * Clear published messages (call in setUp)
 	 */
 	void clearPublishedMessages() { publishedMessages.clear(); }
@@ -158,6 +166,11 @@ class MQTTClient {
 		(void)retained;
 		(void)qos;
 	}
+
+	/**
+	 * Set keepalive interval
+	 */
+	void setKeepAlive(int seconds) { (void)seconds; }
 
 	/**
 	 * Set broker host
