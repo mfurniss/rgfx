@@ -9,6 +9,7 @@ theme:
   name: material
   custom_dir: overrides
   favicon: favicon.ico
+  logo: assets/images/favicon.png
   palette:
     scheme: slate
     primary: grey
