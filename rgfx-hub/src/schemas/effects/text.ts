@@ -20,7 +20,7 @@ export const fieldTypes: FieldTypeMap = {
 
 export function randomize(): Record<string, unknown> {
   return {
-    text: randomString(['Hello You!', 'AaBbCcDd', '0123456789', '*** RGFX ***']),
+    text: randomString(['*** RGFX ***', 'AaBbCcDd', '0123456789', 'Hello!']),
     accentColor: randomInt(1) ? randomColor(0.2) : null,
     duration: randomInt(3, 5) * 1000,
     gradient: randomGradient(0.2),
