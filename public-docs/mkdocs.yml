@@ -34,8 +34,8 @@ use_directory_urls: false
 nav:
   - Overview:
     - Introduction: overview/index.md
-    - Requirements: overview/requirements.md
     - Getting Started: overview/getting-started.md
+    - Requirements: overview/requirements.md
     - Architecture: overview/architecture.md
   - Interceptors:
     - Introduction: interceptors/index.md
