@@ -33,9 +33,7 @@ These games have interceptors that detect events but use default effect mappings
 
 ## Create Your Own
 
-Picked a game that isn't listed above? Every game in MAME can be given RGFX support. The [Writing Interceptors](interceptors/writing-interceptors.md) guide walks you through the process step by step — from finding memory addresses with MAME's debugger to emitting your first event.
-
-You don't need to be an expert programmer. If you can edit a text file and follow a tutorial, you can write an interceptor. The existing game scripts are good examples to study and adapt.
+Any game in MAME can be given RGFX support. The [Writing Interceptors](interceptors/writing-interceptors.md) guide covers the process — finding memory addresses with MAME's debugger, monitoring them in Lua, and emitting events. The existing scripts are good references to study and adapt.
 
 For mapping events to effects, see the [Transformers](transformers/index.md) documentation.
 

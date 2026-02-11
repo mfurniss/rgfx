@@ -126,11 +126,11 @@ describe('UdpClientImpl', () => {
       udpClient.broadcast(payload);
 
       // Check first call (driver-0001)
-      expect(udpMock.calls.driverCalls[0].port).toBe(8888); // UDP_PORT
+      expect(udpMock.calls.driverCalls[0].port).toBe(8811); // UDP_PORT
       expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
 
       // Check second call (driver-0002)
-      expect(udpMock.calls.driverCalls[1].port).toBe(8888);
+      expect(udpMock.calls.driverCalls[1].port).toBe(8811);
       expect(udpMock.calls.driverCalls[1].ip).toBe('192.168.1.102');
     });
 

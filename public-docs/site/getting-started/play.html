@@ -10,7 +10,7 @@
         <link rel="canonical" href="https://rgfx.io/getting-started/play.html">
       
       
-        <link rel="prev" href="test-leds.html">
+        <link rel="prev" href="first-driver.html">
       
       
         <link rel="next" href="../games.html">
@@ -374,34 +374,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test Your LEDs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -717,34 +689,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../hub-app/test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test LEDs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../hub-app/firmware.html" class="md-nav__link">
         
   
@@ -1031,6 +975,34 @@
     
   
     Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hub-app/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test LEDs
   
 
     
@@ -1695,15 +1667,17 @@
 <h1 id="play-a-game">Play a Game<a class="headerlink" href="#play-a-game" title="Permanent link">¶</a></h1>
 <p>Everything is connected — time to see RGFX in action.</p>
 <h2 id="pick-a-game">Pick a Game<a class="headerlink" href="#pick-a-game" title="Permanent link">¶</a></h2>
-<p>Check the <a href="../games.html">Example Games</a> page for the full list of included games. For your first run, <strong>Pac-Man</strong> (<code>pacman</code>) is a great choice — it has a full interceptor and transformer with events for scoring, lives, ghost eating, power pellets, and level completion.</p>
+<p>Check the <a href="../games.html">Example Games</a> page for the full list of included games. For your first run, <strong>Pac-Man</strong> (<code>pacman</code>) is a great choice — its example interceptor and transformer cover events like scoring, ghost eating, power pellets, and level completion.</p>
 <h2 id="launch-mame">Launch MAME<a class="headerlink" href="#launch-mame" title="Permanent link">¶</a></h2>
 <p>Start the game in MAME as you normally would. RGFX works behind the scenes — when MAME launches, the <code>rgfx.lua</code> script automatically detects which game is running and loads the matching interceptor.</p>
 <h2 id="what-to-expect">What to Expect<a class="headerlink" href="#what-to-expect" title="Permanent link">¶</a></h2>
-<p>As you play:</p>
+<p>For example, as you play Pac-Man:</p>
 <ul>
-<li><strong>Score points</strong> and effects trigger on your LEDs — pulses, wipes, or explosions depending on the event</li>
-<li><strong>Lose a life</strong> and you'll see a different effect</li>
-<li><strong>Eat a power pellet</strong> (in Pac-Man) or <strong>destroy a wave</strong> (in Galaga) and more dramatic effects fire</li>
+<li><strong>Eat dots</strong> and a Pac-Man sprite animates across the matrix while wipe effects sweep the strips</li>
+<li><strong>Eat an energizer</strong> and a scared ghost sprite chases across the matrix with a blue pulse on the strips</li>
+<li><strong>Eat a ghost</strong> and the ghost's score (200, 400, 800, 1600) displays on the matrix with floating ghost eyes</li>
+<li><strong>Die</strong> and a yellow pulse fires across all drivers</li>
+<li><strong>Complete a level</strong> and the background flashes between blue and white</li>
 </ul>
 <p>Open the Hub's <a href="../hub-app/event-monitor.html">Event Monitor</a> to see events streaming in real-time as you play. Each row shows the event topic, how many times it has fired, and its last value.</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>

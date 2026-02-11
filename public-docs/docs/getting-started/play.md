@@ -4,7 +4,7 @@ Everything is connected — time to see RGFX in action.
 
 ## Pick a Game
 
-Check the [Example Games](../games.md) page for the full list of included games. For your first run, **Pac-Man** (`pacman`) is a great choice — it has a full interceptor and transformer with events for scoring, lives, ghost eating, power pellets, and level completion.
+Check the [Example Games](../games.md) page for the full list of included games. For your first run, **Pac-Man** (`pacman`) is a great choice — its example interceptor and transformer cover events like scoring, ghost eating, power pellets, and level completion.
 
 ## Launch MAME
 
@@ -12,11 +12,13 @@ Start the game in MAME as you normally would. RGFX works behind the scenes — w
 
 ## What to Expect
 
-As you play:
+For example, as you play Pac-Man:
 
-- **Score points** and effects trigger on your LEDs — pulses, wipes, or explosions depending on the event
-- **Lose a life** and you'll see a different effect
-- **Eat a power pellet** (in Pac-Man) or **destroy a wave** (in Galaga) and more dramatic effects fire
+- **Eat dots** and a Pac-Man sprite animates across the matrix while wipe effects sweep the strips
+- **Eat an energizer** and a scared ghost sprite chases across the matrix with a blue pulse on the strips
+- **Eat a ghost** and the ghost's score (200, 400, 800, 1600) displays on the matrix with floating ghost eyes
+- **Die** and a yellow pulse fires across all drivers
+- **Complete a level** and the background flashes between blue and white
 
 Open the Hub's [Event Monitor](../hub-app/event-monitor.md) to see events streaming in real-time as you play. Each row shows the event topic, how many times it has fired, and its last value.
 
