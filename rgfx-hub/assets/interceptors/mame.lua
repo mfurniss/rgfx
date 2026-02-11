@@ -10,6 +10,11 @@ manager = {}
 ---@class MameMachine
 ---@field devices table<string, MameDevice>
 ---@field ioport MameIoport
+---@field video MameVideo
+
+---@class MameVideo
+---@field snapshot_size fun(self: MameVideo): integer, integer
+---@field snapshot_pixels fun(self: MameVideo): string|nil
 
 ---@class MameDevice
 ---@field spaces table<string, MameMemorySpace>
@@ -32,7 +37,7 @@ manager = {}
 emu = {}
 
 ---@param callback fun()
----@param name string
+---@param name? string
 function emu.register_frame_done(callback, name) end
 
 ---@param callback fun()

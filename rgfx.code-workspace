@@ -22,6 +22,10 @@
     {
       "path": "tools",
     },
+    {
+      "name": ".rgfx (User Config)",
+      "path": "~/.rgfx",
+    },
   ],
   "settings": {
     "files.exclude": {
