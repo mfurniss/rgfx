@@ -39,19 +39,28 @@ RGFX Hub supports **macOS and Windows only**. Do not reference Linux support in 
 - Do not hardcode counts of games or effects (e.g., "11 games", "13 effects"). Just say "example games" or "visual effects."
 - Frame community contributions as encouraged — interceptors and transformers are starting points, not definitive versions.
 
+### Voice
+
+Use neutral voice for most content and first person "I" for personal opinions or recommendations. Do not use "we" — this is a single-author project.
+
 ### Site Structure
 
 ```
 docs/
-├── index.md                    # Landing page
+├── index.md                    # Landing page with hero video
 ├── games.md                    # Example games & community scripts
+├── faq.md                      # FAQ and troubleshooting
+├── about.md                    # About the author
 ├── getting-started/            # 5-page onboarding flow
 ├── hub-app/                    # Hub application reference (10 pages)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, effects, examples)
 ├── interceptors/               # Lua interceptor docs (7 pages)
-├── transformers/               # JS transformer docs (5 pages)
-└── reference/                  # Architecture, ESP32 firmware, troubleshooting
+└── transformers/               # JS transformer docs (5 pages)
 ```
+
+### Config Directory References
+
+Never hardcode `~/.rgfx` paths. Use "config directory" with a link to `getting-started/hub-setup.md#config-directory` on first mention per page. The hub-setup page has the canonical platform table (macOS/Windows).
 
 ### Build Artifacts
 
