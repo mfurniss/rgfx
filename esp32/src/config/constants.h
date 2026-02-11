@@ -18,7 +18,7 @@
 // ============================================================================
 
 /** UDP port for receiving LED effects from Hub */
-constexpr int UDP_PORT = 8888;
+constexpr int UDP_PORT = 8811;
 
 /**
  * UDP buffer size for incoming messages.

@@ -39,7 +39,6 @@ nav:
     - What You'll Need: getting-started/requirements.md
     - Set Up RGFX Hub: getting-started/hub-setup.md
     - Flash Your First Driver: getting-started/first-driver.md
-    - Test Your LEDs: getting-started/test-leds.md
     - Play a Game: getting-started/play.md
   - Example Games: games.md
   - Hub App:
@@ -47,7 +46,6 @@ nav:
     - System Status: hub-app/system-status.md
     - Drivers: hub-app/drivers.md
     - Driver Detail: hub-app/driver-detail.md
-    - Test LEDs: hub-app/test-leds.md
     - Firmware: hub-app/firmware.md
     - Games: hub-app/games.md
     - Event Monitor: hub-app/event-monitor.md
@@ -58,6 +56,7 @@ nav:
     - Choosing Hardware: hardware/choosing.md
     - Wiring & Power: hardware/wiring.md
     - Configuration: hardware/configure.md
+    - Test LEDs: hub-app/test-leds.md
     - Visual Effects: hardware/effects.md
     - Build Examples: hardware/examples.md
   - Interceptors:

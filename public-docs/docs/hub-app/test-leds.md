@@ -2,6 +2,8 @@
 
 The Test LEDs feature is the quickest way to verify that a driver is communicating and its LED hardware is working correctly.
 
+![Test pattern on a dual 16x16 LED matrix display](../assets/images/matrix-examples/16x16x2-front-test-pattern.jpg)
+
 ## How It Works
 
 When you toggle test mode on, the Hub sends a command to the driver which displays a static test pattern. The pattern remains active until you toggle test mode off. This allows you to:
@@ -109,6 +111,21 @@ The white origin pixels on each panel help verify panel orientation and ordering
 
 - LED hardware must be configured on the driver
 - No Hub connection required
+
+## Try the FX Playground
+
+The [FX Playground](fx-playground.md) lets you send any effect to your drivers interactively:
+
+1. Go to **FX Playground** in the sidebar
+2. Select your driver from the target picker
+3. Choose an effect — try **Pulse** for a quick visual hit, or **Plasma** for something continuous
+4. Adjust the parameters (color, duration, speed) and click **Trigger Effect**
+
+Click **Random Trigger** to discover interesting parameter combinations automatically.
+
+## Next Step
+
+Ready to play? [Play a game :material-arrow-right:](../getting-started/play.md)
 
 ## See Also
 

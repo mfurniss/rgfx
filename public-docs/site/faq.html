@@ -375,34 +375,6 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test Your LEDs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="getting-started/play.html" class="md-nav__link">
         
   
@@ -604,34 +576,6 @@
     
   
     Driver Detail
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="hub-app/test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test LEDs
   
 
     
@@ -938,6 +882,34 @@
     
   
     Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test LEDs
   
 
     
@@ -1602,6 +1574,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#why-scripting-instead-of-simple-config-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why scripting instead of simple config files?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#do-i-need-to-install-an-mqtt-broker" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1878,6 +1861,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#why-scripting-instead-of-simple-config-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why scripting instead of simple config files?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#do-i-need-to-install-an-mqtt-broker" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2054,6 +2048,9 @@
 <p>Any game that runs in MAME can work with RGFX. The <a href="interceptors/writing-interceptors.html">Writing Interceptors</a> guide walks you through the process — from finding memory addresses with MAME's debugger to emitting your first event. The <a href="games.html">existing game scripts</a> are good examples to study.</p>
 <h2 id="can-i-customize-the-effects-for-a-game">Can I customize the effects for a game?<a class="headerlink" href="#can-i-customize-the-effects-for-a-game" title="Permanent link">¶</a></h2>
 <p>Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the <a href="transformers/index.html">Transformers</a> documentation.</p>
+<h2 id="why-scripting-instead-of-simple-config-files">Why scripting instead of simple config files?<a class="headerlink" href="#why-scripting-instead-of-simple-config-files" title="Permanent link">¶</a></h2>
+<p>A config-based system (YAML/JSON mapping events to effects) would be simpler to set up but too rigid for what RGFX needs to do. Game events aren't always clean key-value pairs — interceptors often need to decode packed bytes, track state across frames, debounce noisy values, or apply game-specific logic before emitting an event. Transformers need to sequence multiple effects with timing, conditionally choose effects based on game state, or load sprites dynamically.</p>
+<p>Lua and JavaScript give you full control over that logic in short, readable scripts — chaining effects with precise timing, reacting differently based on accumulated game state, or animating sprites across your LED matrices in sync with gameplay.</p>
 <h2 id="do-i-need-to-install-an-mqtt-broker">Do I need to install an MQTT broker?<a class="headerlink" href="#do-i-need-to-install-an-mqtt-broker" title="Permanent link">¶</a></h2>
 <p>No. RGFX Hub runs an embedded MQTT broker automatically. Your ESP32 drivers discover it on the network and connect without any configuration.</p>
 <h2 id="do-i-need-an-internet-connection">Do I need an internet connection?<a class="headerlink" href="#do-i-need-an-internet-connection" title="Permanent link">¶</a></h2>
@@ -2262,7 +2259,13 @@
 </tbody>
 </table>
 <h3 id="still-stuck">Still stuck?<a class="headerlink" href="#still-stuck" title="Permanent link">¶</a></h3>
-<p>For general LED hardware questions (power supplies, wiring, signal issues), the <a href="https://www.reddit.com/r/led/">r/led</a> community on Reddit is a good resource.</p>
+<ul>
+<li><strong>LED hardware</strong> — <a href="https://www.reddit.com/r/led/">r/led</a> for power supplies, wiring, and signal issues</li>
+<li><strong>ESP32</strong> — <a href="https://www.reddit.com/r/esp32/">r/esp32</a> for microcontroller and firmware questions</li>
+<li><strong>MAME Lua scripting</strong> — the official <a href="https://docs.mamedev.org/luascript/index.html">MAME Lua scripting docs</a> cover the full API available to interceptors</li>
+<li><strong>Lua</strong> — <a href="https://tylerneylon.com/a/learn-lua/">Learn Lua in 15 Minutes</a> or the official <a href="https://www.lua.org/pil/1.html">Programming in Lua</a> guide</li>
+<li><strong>JavaScript</strong> — <a href="https://javascript.info/">The Modern JavaScript Tutorial</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide">MDN's JavaScript Guide</a></li>
+</ul>
 
 
 

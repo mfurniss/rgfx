@@ -4,8 +4,6 @@ The RGFX Hub is the desktop application at the center of the system. It watches 
 
 The Hub also runs an embedded MQTT message broker internally, so your ESP32 drivers can communicate without any extra software or cloud services. Everything stays on your local network.
 
-![RGFX Hub — System Status page](../assets/images/rgfx-hub-system-status.png)
-
 ## Features
 
 - Monitors MAME game events from interceptor scripts
