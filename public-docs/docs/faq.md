@@ -119,3 +119,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | Hub won't start | Check that no other instance is already running (the MQTT broker binds to a fixed port). |
 | Settings don't save | Verify the directories exist on disk. The Hub validates paths before saving. |
 | Events processed but no effects | Check that the game has a transformer script. Games with interceptors but no transformer use default effect mappings. |
+
+### Still stuck?
+
+For general LED hardware questions (power supplies, wiring, signal issues), the [r/led](https://www.reddit.com/r/led/) community on Reddit is a good resource.
