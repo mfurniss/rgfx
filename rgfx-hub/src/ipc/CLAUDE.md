@@ -290,6 +290,23 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 
 ---
 
+### `backup:create`
+
+**File:** [backup-handler.ts](backup-handler.ts)
+
+**Purpose:** Creates a zip backup of the entire `~/.rgfx` configuration directory.
+
+**Parameters:** None
+
+**Returns:** `{ success: boolean, error?: string }`
+
+**Behavior:**
+1. Opens native save dialog with default filename `rgfx-backup-YYYY-MM-DD.zip`
+2. If user selects a path, zips `CONFIG_DIRECTORY` using OS-native tools (`zip` on macOS, PowerShell `Compress-Archive` on Windows)
+3. Returns `{ success: false }` (no error) if user cancels the dialog
+
+---
+
 ## Error Handling
 
 All handlers follow a standardized error handling pattern:

@@ -189,6 +189,7 @@ Refactored components and utilities extracted from the main page:
   - MAME ROMs Directory (optional) - for ROM file location
   - Directory validation with folder picker dialogs
   - Uses `SuperButton` for save action with busy state
+- **Backup:** One-click zip backup of entire `~/.rgfx` config directory via native save dialog
 - **Logs:** Log file management with size display and clear functionality
 - Saves to `UiStore` (localStorage persistence)
 - Gets default paths from `AppInfoStore`

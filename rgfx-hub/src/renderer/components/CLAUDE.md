@@ -622,3 +622,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Grid of preset thumbnails
 - Search/filter functionality
 - Preview on hover
+
+---
+
+## Settings Components
+
+### BackupSection
+
+**File:** [settings/backup-section.tsx](settings/backup-section.tsx)
+
+**Purpose:** One-click backup of the entire `~/.rgfx` configuration directory.
+
+**Features:**
+- Creates a zip archive via `window.rgfx.createBackup()` IPC call
+- Uses `SuperButton` with busy state during backup
+- Three-way result: success → green notify, error → red notify, cancel → no notification
+- Wrapped in `SettingsSection` with title and subtitle

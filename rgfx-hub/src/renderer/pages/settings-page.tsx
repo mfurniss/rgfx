@@ -4,6 +4,7 @@ import { Settings as SettingsIcon } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
 import {
   AppearanceSection,
+  BackupSection,
   DirectoriesSection,
   EffectModifiersSection,
   LogsSection,
@@ -17,6 +18,7 @@ const SettingsPage: React.FC = () => {
         <AppearanceSection />
         <EffectModifiersSection />
         <DirectoriesSection />
+        <BackupSection />
         <LogsSection />
       </Stack>
     </Box>

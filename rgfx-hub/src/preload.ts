@@ -167,6 +167,10 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('logs:clear-all');
   },
 
+  createBackup: (): Promise<{ success: boolean; error?: string }> => {
+    return ipcRenderer.invoke('backup:create');
+  },
+
   quitApp: (): void => {
     ipcRenderer.send('app:quit');
   },
