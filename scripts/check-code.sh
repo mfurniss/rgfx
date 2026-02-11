@@ -96,7 +96,7 @@ check_claude_md_updates() {
     for file in $staged_files; do
         # Skip non-source files
         case "$file" in
-            *.ts|*.tsx|*.js|*.jsx|*.cpp|*.h|*.lua|*.md)
+            *.ts|*.tsx|*.js|*.jsx|*.cpp|*.h|*.lua|public-docs/docs/*|public-docs/mkdocs.yml|public-docs/overrides/*)
                 ;;
             *)
                 continue
