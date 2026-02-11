@@ -2,7 +2,7 @@
 
 The ambilight transformer converts screen edge color events into LED gradient effects, creating ambient lighting that matches what's displayed on screen.
 
-**Location:** `~/.rgfx/transformers/subjects/ambilight.js`
+**Location:** `transformers/subjects/ambilight.js` in your [config directory](../getting-started/hub-setup.md#config-directory)
 
 ## How It Works
 
@@ -18,7 +18,7 @@ The transformer parses these colors and broadcasts `background` effects with gra
 
 ## Configuration
 
-Configure ambilight behavior in `~/.rgfx/transformers/global.js`:
+Configure ambilight behavior in `transformers/global.js` (see [Global Configuration](global.md)):
 
 ```javascript
 export const AMBILIGHT_CONFIG = {

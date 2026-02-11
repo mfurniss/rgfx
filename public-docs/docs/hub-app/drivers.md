@@ -1,9 +1,8 @@
 # Drivers
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
+The Drivers page is where you manage your ESP32 devices. It shows every driver the Hub has seen, their connection status, and provides quick access to testing and configuration.
 
-The Drivers page displays all ESP32 driver devices known to the Hub.
+![RGFX Hub — Drivers page](../assets/images/rgfx-hub-drivers.png)
 
 ## Driver List
 
@@ -51,4 +50,4 @@ Click a driver row to view:
 
 ## Configure Driver
 
-See [Configure LED Hardware](../drivers/configure-leds.md) for configuration options.
+See [LED Configuration](../hardware/configure.md) for configuration options.

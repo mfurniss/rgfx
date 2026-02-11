@@ -2,7 +2,7 @@
 
 Helper functions available to all transformers.
 
-**Location:** `~/.rgfx/transformers/utils.js`
+**Location:** `transformers/utils.js` in your [config directory](../getting-started/hub-setup.md#config-directory)
 
 ## Import
 

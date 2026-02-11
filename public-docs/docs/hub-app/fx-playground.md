@@ -1,9 +1,8 @@
 # FX Playground
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
+The FX Playground lets you experiment with all the visual effects interactively — pick an effect, tweak the parameters, and trigger it on your connected drivers. No game required.
 
-The FX Playground is an interactive testing tool for LED visual effects.
+<!-- TODO: Screenshot of FX Playground -->
 
 ## Effect Testing
 

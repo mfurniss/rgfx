@@ -21,7 +21,7 @@ export async function transform({ subject, property, payload }, { broadcast, loa
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `path` | string | Path to the GIF file, relative to `~/.rgfx/transformers/` |
+| `path` | string | Path to the GIF file, relative to the `transformers/` folder in your [config directory](../getting-started/hub-setup.md#config-directory) |
 
 ## Return Value
 
@@ -126,10 +126,10 @@ broadcast({
 
 ## File Location
 
-Place GIF files in subdirectories under `~/.rgfx/transformers/`:
+Place GIF files in subdirectories under `transformers/` in your config directory:
 
 ```
-~/.rgfx/transformers/
+transformers/
 ├── bitmaps/
 │   ├── cherry.gif
 │   ├── explosion.gif

@@ -18,7 +18,7 @@ Events flow through four handler levels. The first handler to return a truthy va
 
 Game-specific handlers for individual games.
 
-**Location:** `~/.rgfx/transformers/games/`
+**Location:** `transformers/games/` in your [config directory](../getting-started/hub-setup.md#config-directory)
 
 **Examples:** `pacman.js`, `galaga.js`, `robotron.js`, `starwars.js`
 
@@ -26,7 +26,7 @@ Game-specific handlers for individual games.
 
 Generic handlers for common event subjects that appear across multiple games.
 
-**Location:** `~/.rgfx/transformers/subjects/`
+**Location:** `transformers/subjects/`
 
 **Available:**
 
@@ -39,13 +39,13 @@ Generic handlers for common event subjects that appear across multiple games.
 
 Match events by content pattern rather than topic structure.
 
-**Location:** `~/.rgfx/transformers/patterns/`
+**Location:** `transformers/patterns/`
 
 ### 4. Default Transformer (Lowest Priority)
 
 Catch-all for unmatched events.
 
-**Location:** `~/.rgfx/transformers/default.js`
+**Location:** `transformers/default.js`
 
 ## Writing Transformers
 
@@ -156,10 +156,10 @@ export function transform({ property, payload }, { broadcast, state }) {
 
 ## File Location
 
-Transformers are stored in `~/.rgfx/transformers/`:
+Transformers are stored in the `transformers/` subdirectory of your config directory:
 
 ```
-~/.rgfx/transformers/
+transformers/
 ├── default.js
 ├── games/
 │   ├── pacman.js

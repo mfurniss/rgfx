@@ -20,7 +20,7 @@ Use MAME's built-in debugger to discover where the game stores its state.
 
 ## Step 2: Create the Interceptor File
 
-Create a new file in `~/.rgfx/interceptors/games/`:
+Create a new file in the `interceptors/games/` folder of your [config directory](../getting-started/hub-setup.md#config-directory):
 
 ```lua
 -- mygame_rgfx.lua
@@ -60,7 +60,7 @@ ram.install_monitors(map, mem)
 
 ## Step 3: Register in the ROM Map
 
-Edit `~/.rgfx/interceptors/rom_map.lua` to add your game:
+Edit `interceptors/rom_map.lua` in your config directory to add your game:
 
 ```lua
 return {
@@ -78,7 +78,7 @@ return {
 1. Start MAME with RGFX enabled
 2. Load your game
 3. Watch the MAME console for your event output
-4. Check `~/.rgfx/interceptor_events.log` to verify events are being written
+4. Check `interceptor_events.log` in your config directory to verify events are being written
 
 ---
 
