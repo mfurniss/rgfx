@@ -53,8 +53,8 @@ export const scrollTextBaseSchema = baseEffect
       .describe('Gradient animation speed'),
     gradientScale: z
       .number()
-      .min(0.1)
-      .max(10)
+      .min(0)
+      .max(20)
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),

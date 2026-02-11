@@ -25,7 +25,7 @@ export function randomize(): Record<string, unknown> {
     duration: randomInt(3, 5) * 1000,
     gradient: randomGradient(0.2),
     gradientSpeed: randomFloat(0.1, 20),
-    gradientScale: randomFloat(0.1, 10),
+    gradientScale: randomFloat(0.1, 20),
   };
 }
 
@@ -55,8 +55,8 @@ export default baseEffect
       .describe('Gradient animation speed'),
     gradientScale: z
       .number()
-      .min(0.1)
-      .max(10)
+      .min(0)
+      .max(20)
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),
