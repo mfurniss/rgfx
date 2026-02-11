@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Box,
   Paper,
@@ -51,12 +52,13 @@ export default function TestEffectsPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
 
-  const connectedDriverIds = useDriverStore((state) =>
-    state.drivers
-      .filter((d) => d.state === 'connected')
-      .map((d) => d.id)
-      .sort()
-      .join(','),
+  const connectedDriverIds = useDriverStore(
+    useShallow((state) =>
+      state.drivers
+        .filter((d) => d.state === 'connected')
+        .map((d) => d.id)
+        .sort(),
+    ),
   );
 
   const drivers = useDriverStore((state) => state.drivers);
@@ -101,41 +103,25 @@ export default function TestEffectsPage() {
     }
   }, [propsJson]);
 
-  // Get props schema for selected effect (without name/description metadata)
-  const currentSchema = useMemo(() => {
-    if (isEffectName(selectedEffect)) {
-      return effectPropsSchemas[selectedEffect];
-    }
-    return null;
-  }, [selectedEffect]);
+  const currentSchema = isEffectName(selectedEffect)
+    ? effectPropsSchemas[selectedEffect]
+    : null;
 
-  // Get preset config for selected effect (if it has one)
-  const presetConfig = useMemo(() => {
-    if (isEffectName(selectedEffect)) {
-      return effectPresetConfigs[selectedEffect] ?? null;
-    }
-    return null;
-  }, [selectedEffect]);
+  const presetConfig = isEffectName(selectedEffect)
+    ? effectPresetConfigs[selectedEffect] ?? null
+    : null;
 
-  // Get field types for selected effect (if it has custom mappings)
-  const currentFieldTypes = useMemo(() => {
-    if (isEffectName(selectedEffect)) {
-      return effectFieldTypes[selectedEffect];
-    }
-    return undefined;
-  }, [selectedEffect]);
+  const currentFieldTypes = isEffectName(selectedEffect)
+    ? effectFieldTypes[selectedEffect]
+    : undefined;
 
-  // Get layout config for selected effect (if it has custom layout)
-  const currentLayoutConfig = useMemo(() => {
-    if (isEffectName(selectedEffect)) {
-      return effectLayoutConfigs[selectedEffect];
-    }
-    return undefined;
-  }, [selectedEffect]);
+  const currentLayoutConfig = isEffectName(selectedEffect)
+    ? effectLayoutConfigs[selectedEffect]
+    : undefined;
 
   // Remove disconnected drivers from selection (but don't auto-select new ones)
   useEffect(() => {
-    const connectedIds = new Set(connectedDriverIds.split(',').filter(Boolean));
+    const connectedIds = new Set(connectedDriverIds);
     const stillConnected = new Set(
       Array.from(selectedDrivers).filter((id) => connectedIds.has(id)),
     );

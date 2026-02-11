@@ -4,10 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RGFX - Retro Game Effects</title>
-    <meta
-      name="description"
-      content="External visual effects for retro video games"
-    />
+    <link rel="icon" href="favicon.ico" />
+    <meta name="description" content="Visual effects for retro video games" />
     <style>
       body {
         margin: 0;
@@ -17,8 +15,6 @@
       #hero-video {
         position: fixed;
         inset: 0;
-        width: 100%;
-        height: 100%;
         object-fit: cover;
         filter: brightness(0.5);
       }
@@ -50,6 +46,10 @@
       }
 
       #logo {
+        --r: #f44336;
+        --g: #66bb6a;
+        --f: #42a5f5;
+        --x: #ab47bc;
         --cell: min(30px, calc((100vw - 51px) / 10));
         position: relative;
         z-index: 1;
@@ -60,22 +60,22 @@
       }
 
       #logo .r {
-        background-color: #f44336;
+        background-color: var(--r);
       }
       #logo .g {
-        background-color: #66bb6a;
+        background-color: var(--g);
       }
       #logo .f {
-        background-color: #42a5f5;
+        background-color: var(--f);
       }
       #logo .x {
-        background-color: #ab47bc;
+        background-color: var(--x);
       }
 
       .glow {
         position: absolute;
-        filter: blur(10px) brightness(2);
-        scale: 1.5;
+        filter: blur(10px) brightness(1.5);
+        scale: 1.7;
         pointer-events: none;
       }
     </style>
@@ -89,122 +89,52 @@
 
     <div id="splash">
       <div class="logo-wrap">
-        <div id="logo" role="img" aria-label="RGFX logo">
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div></div>
-          <div class="r"></div>
-          <div class="r"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-          <div class="g"></div>
-
-          <div class="f"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div class="f"></div>
-          <div class="f"></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-          <div></div>
-          <div class="x"></div>
-          <div class="x"></div>
-        </div>
+        <div id="logo" role="img" aria-label="RGFX logo"></div>
       </div>
     </div>
 
     <script>
-      const colors = { r: '#f44336', g: '#66bb6a', f: '#42a5f5', x: '#ab47bc' };
+      const rgfxLogo = [
+        'rrrrrggggg',
+        'rr rrgg   ',
+        'rrrr gg gg',
+        'rr rrgg gg',
+        'rr rrggggg',
+        'fffffxx xx',
+        'ff   xx xx',
+        'ffff  xxx ',
+        'ff   xx xx',
+        'ff   xx xx',
+      ];
+
+      const logo = document.getElementById('logo');
+      const frag = document.createDocumentFragment();
+
+      for (const c of rgfxLogo.join('')) {
+        const d = document.createElement('div');
+        if (c !== ' ') d.className = c;
+        frag.appendChild(d);
+      }
+
+      logo.appendChild(frag);
+      const logoStyle = getComputedStyle(logo);
+
+      const colors = Object.fromEntries(
+        ['r', 'g', 'f', 'x'].map((k) => [
+          k,
+          logoStyle.getPropertyValue(`--${k}`).trim(),
+        ])
+      );
       const flash = { duration: 1200, easing: 'ease-in-out' };
       const fade = { duration: 1200, easing: 'ease-in-out', fill: 'forwards' };
-      const logo = document.getElementById('logo');
       const wrap = logo.parentNode;
 
       function triggerBlock(el) {
         const cls = el.className;
-        if (!colors[cls]) return;
+
+        if (!colors[cls]) {
+          return;
+        }
 
         const current = getComputedStyle(el).backgroundColor;
         el.getAnimations().forEach((a) => a.cancel());
@@ -222,6 +152,7 @@
         const wrapRect = wrap.getBoundingClientRect();
         const glow = document.createElement('div');
         glow.className = 'glow';
+
         Object.assign(glow.style, {
           left: `${rect.left - wrapRect.left}px`,
           top: `${rect.top - wrapRect.top}px`,
@@ -229,6 +160,7 @@
           height: `${rect.height}px`,
           backgroundColor: colors[cls],
         });
+
         wrap.appendChild(glow);
 
         glow.animate(
@@ -244,13 +176,19 @@
       logo.addEventListener('mouseover', (e) => triggerBlock(e.target));
 
       let lastTouchBlock = null;
+
       function handleTouch(e) {
         const touch = e.touches[0];
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (!el || el === lastTouchBlock) return;
+
+        if (!el || el === lastTouchBlock) {
+          return;
+        }
+
         lastTouchBlock = el;
         triggerBlock(el);
       }
+
       logo.addEventListener(
         'touchstart',
         (e) => {
@@ -259,6 +197,7 @@
         },
         { passive: true }
       );
+
       logo.addEventListener('touchmove', handleTouch, { passive: true });
     </script>
   </body>

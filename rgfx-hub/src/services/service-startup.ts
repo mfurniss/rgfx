@@ -17,6 +17,7 @@ import { installDefaultTransformers } from '../transformer-installer';
 import { installDefaultInterceptors } from '../interceptor-installer';
 import { installDefaultLedHardware } from '../led-hardware-installer';
 import { eventBus } from './event-bus';
+import { IPC } from '../config/ipc-channels';
 
 export interface PowerSaveHandle {
   blockerId: number | null;
@@ -51,7 +52,7 @@ function createEventProcessor(
 
     // Update event count and notify renderer
     eventStats.increment();
-    windowManager.sendEventToRenderer('event:received', topic, message || undefined);
+    windowManager.sendEventToRenderer(IPC.EVENT_RECEIVED, topic, message || undefined);
   };
 }
 

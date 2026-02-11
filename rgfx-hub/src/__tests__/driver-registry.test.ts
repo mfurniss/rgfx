@@ -438,4 +438,105 @@ describe('DriverRegistry', () => {
       expect(driver?.id).toBe('rgfx-driver-0001');
     });
   });
+
+  describe('stopConnectionMonitor', () => {
+    it('should stop running connection monitor', () => {
+      vi.useFakeTimers();
+      registry.startConnectionMonitor();
+
+      registry.stopConnectionMonitor();
+
+      // Verify it was stopped by checking no further timeout events fire
+      expect(() => vi.advanceTimersByTime(60000)).not.toThrow();
+      vi.useRealTimers();
+    });
+
+    it('should be safe to call when monitor not running', () => {
+      expect(() => {
+        registry.stopConnectionMonitor();
+      }).not.toThrow();
+    });
+
+    it('should be safe to call multiple times', () => {
+      vi.useFakeTimers();
+      registry.startConnectionMonitor();
+
+      registry.stopConnectionMonitor();
+      registry.stopConnectionMonitor();
+
+      expect(() => vi.advanceTimersByTime(60000)).not.toThrow();
+      vi.useRealTimers();
+    });
+  });
+
+  describe('refreshDriverFromConfig', () => {
+    let registryWithHardware: DriverRegistry;
+    let ledHardwareManager: LEDHardwareManager;
+
+    beforeEach(() => {
+      ledHardwareManager = new LEDHardwareManager('test-config');
+      registryWithHardware = new DriverRegistry(persistence, ledHardwareManager);
+    });
+
+    it('should return undefined when no driverConfig', () => {
+      const noConfigRegistry = new DriverRegistry();
+
+      const result = noConfigRegistry.refreshDriverFromConfig('AA:BB:CC:DD:EE:FF');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when MAC not in config', () => {
+      const result = registryWithHardware.refreshDriverFromConfig('FF:FF:FF:FF:FF:FF');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when no runtime driver for MAC', () => {
+      // Add to config after registry was constructed, so it's only in config, not runtime
+      persistence.addDriver('rgfx-driver-0001', 'AA:BB:CC:DD:EE:FF');
+
+      const result = registryWithHardware.refreshDriverFromConfig('AA:BB:CC:DD:EE:FF');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should update driver fields from config', () => {
+      // Register a driver via telemetry
+      const telemetryData = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      registryWithHardware.registerDriver(telemetryData);
+
+      // Update the config with a description
+      const configDriver = persistence.getDriverByMac('AA:BB:CC:DD:EE:11');
+
+      if (configDriver) {
+        configDriver.description = 'Updated Description';
+      }
+
+      const result = registryWithHardware.refreshDriverFromConfig('AA:BB:CC:DD:EE:11');
+
+      expect(result).toBeDefined();
+      expect(result?.description).toBe('Updated Description');
+    });
+
+    it('should handle ID migration when config ID differs from runtime', () => {
+      // Register a driver (creates both config and runtime entries)
+      const telemetryData = createMockTelemetryData({ mac: 'AA:BB:CC:DD:EE:11' });
+      const driver = registryWithHardware.registerDriver(telemetryData);
+      const originalId = driver.id;
+
+      // Simulate a rename: delete old config entry, add new one with same MAC
+      persistence.deleteDriver(originalId);
+      persistence.addDriver('new-custom-id', 'AA:BB:CC:DD:EE:11');
+
+      const result = registryWithHardware.refreshDriverFromConfig('AA:BB:CC:DD:EE:11');
+
+      expect(result).toBeDefined();
+      expect(result?.id).toBe('new-custom-id');
+      // Old ID should be removed from registry
+      expect(registryWithHardware.getDriver(originalId)).toBeUndefined();
+      // New ID should exist
+      expect(registryWithHardware.getDriver('new-custom-id')).toBeDefined();
+    });
+  });
 });

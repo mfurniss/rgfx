@@ -7,6 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { WindowManagerDeps } from '../window-manager';
+import { IPC } from '@/config/ipc-channels';
 
 // Mock Electron modules
 const mockBrowserWindow = vi.fn();
@@ -237,16 +238,16 @@ describe('createWindowManager', () => {
     const manager = createWindowManager(mockDeps);
 
     manager.createWindow();
-    manager.sendEventToRenderer('test:event', 'arg1', 'arg2');
+    manager.sendEventToRenderer(IPC.DRIVER_UPDATED, 'arg1', 'arg2');
 
-    expect(mockWebContents.send).toHaveBeenCalledWith('test:event', 'arg1', 'arg2');
+    expect(mockWebContents.send).toHaveBeenCalledWith(IPC.DRIVER_UPDATED, 'arg1', 'arg2');
   });
 
   it('should not send events when window unavailable', async () => {
     const { createWindowManager } = await import('../window-manager.js');
     const manager = createWindowManager(mockDeps);
 
-    manager.sendEventToRenderer('test:event', 'arg1');
+    manager.sendEventToRenderer(IPC.DRIVER_UPDATED, 'arg1');
 
     expect(mockWebContents.send).not.toHaveBeenCalled();
   });

@@ -223,7 +223,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
             sx={{ height: 42 }}
             renderValue={(value) => {
               if (value === '' || !availablePorts?.[value]) {
-                return <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Select a port...</span>;
+                return <span style={{ color: 'inherit', opacity: 0.5 }}>Select a port...</span>;
               }
               return availablePorts[value].displayName;
             }}

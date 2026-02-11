@@ -1,9 +1,6 @@
 # Event Monitor
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
-
-The Event Monitor displays real-time statistics for all game events received from MAME interceptors.
+The Event Monitor shows game events streaming in real-time as you play. It's useful for verifying that your interceptor is detecting events correctly and for understanding what's happening behind the scenes.
 
 ## Event Table
 

@@ -118,7 +118,7 @@ void test_pulse_on_all_matrix_sizes() {
 		const MatrixConfig& cfg = MATRIX_CONFIGS[i];
 		Matrix matrix(cfg.width, cfg.height, cfg.layout);
 		Canvas canvas(matrix);
-		PulseEffect effect(matrix, canvas);
+		PulseEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultPulseProps(props);
@@ -144,7 +144,7 @@ void test_pulse_collapse_on_all_sizes() {
 		const MatrixConfig& cfg = MATRIX_CONFIGS[i];
 		Matrix matrix(cfg.width, cfg.height, cfg.layout);
 		Canvas canvas(matrix);
-		PulseEffect effect(matrix, canvas);
+		PulseEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultPulseProps(props);
@@ -176,7 +176,7 @@ void test_wipe_on_all_matrix_sizes() {
 		const MatrixConfig& cfg = MATRIX_CONFIGS[i];
 		Matrix matrix(cfg.width, cfg.height, cfg.layout);
 		Canvas canvas(matrix);
-		WipeEffect effect(matrix, canvas);
+		WipeEffect effect(canvas);
 
 		JsonDocument props;
 		setDefaultWipeProps(props);
@@ -203,7 +203,7 @@ void test_wipe_all_directions_on_strips() {
 	for (const char* dir : directions) {
 		Matrix matrix(16, 1, "strip");
 		Canvas canvas(matrix);
-		WipeEffect effect(matrix, canvas);
+		WipeEffect effect(canvas);
 
 		JsonDocument props;
 		props["color"] = "#FFFFFF";
@@ -371,7 +371,7 @@ void test_background_on_all_matrix_sizes() {
 		const MatrixConfig& cfg = MATRIX_CONFIGS[i];
 		Matrix matrix(cfg.width, cfg.height, cfg.layout);
 		Canvas canvas(matrix);
-		BackgroundEffect effect(matrix, canvas);
+		BackgroundEffect effect(canvas);
 
 		JsonDocument props;
 		setBackgroundGradientColor(props, "#FF8800");
@@ -420,7 +420,7 @@ void test_all_effects_reset_on_all_sizes() {
 
 		// Test Pulse reset
 		{
-			PulseEffect effect(matrix, canvas);
+			PulseEffect effect(canvas);
 			JsonDocument props;
 			props["color"] = "#FF0000";
 			effect.add(props);
@@ -432,7 +432,7 @@ void test_all_effects_reset_on_all_sizes() {
 
 		// Test Wipe reset
 		{
-			WipeEffect effect(matrix, canvas);
+			WipeEffect effect(canvas);
 			JsonDocument props;
 			props["color"] = "#00FF00";
 			effect.add(props);
@@ -471,7 +471,7 @@ void test_all_effects_reset_on_all_sizes() {
 
 		// Test Background reset
 		{
-			BackgroundEffect effect(matrix, canvas);
+			BackgroundEffect effect(canvas);
 			JsonDocument props;
 			props["color"] = "#FF00FF";
 			effect.add(props);

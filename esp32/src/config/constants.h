@@ -146,6 +146,9 @@ constexpr int BOOT_BUTTON_PIN = 0;
 /** Button debounce time in milliseconds */
 constexpr unsigned long BUTTON_DEBOUNCE_MS = 50;
 
+/** Default AP password for IotWebConf (required for WiFi connection) */
+constexpr const char* DEFAULT_AP_PASSWORD = "rgfx1234";
+
 // ============================================================================
 // Hardware Limits Configuration
 // ============================================================================

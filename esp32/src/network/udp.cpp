@@ -44,9 +44,16 @@ void processUDP() {
 
 	// Drain all available packets (up to queue size) to batch them before rendering
 	// This prevents visible latency when multiple effects are broadcast in quick succession
-	while ((packetSize = udp.parsePacket()) > 0 && packetsProcessed < UDP_QUEUE_SIZE) {
+	// IMPORTANT: Check packetsProcessed BEFORE parsePacket() — parsePacket() allocates an
+	// internal rx_buffer that must be consumed before the next call, otherwise it returns 0
+	// forever (WiFiUDP::parsePacket exits early if rx_buffer exists)
+	while (packetsProcessed < UDP_QUEUE_SIZE) {
+		packetSize = udp.parsePacket();
+		if (packetSize <= 0) break;
+
 		// Bounds check: reject packets larger than our buffer
 		if (packetSize > UDP_BUFFER_SIZE - 1) {
+			udp.flush();  // Must consume rx_buffer before next parsePacket()
 			log("UDP RX: Packet too large (" + String(packetSize) +
 			    " bytes, max " + String(UDP_BUFFER_SIZE - 1) + "), dropping");
 			udpMessagesDropped++;
@@ -63,6 +70,7 @@ void processUDP() {
 			IPAddress hubIP;
 			if (hubIP.fromString(mqttServerIP)) {
 				if (sourceIP != hubIP) {
+					udp.flush();  // Must consume rx_buffer before next parsePacket()
 					log("UDP RX: Rejected packet from unauthorized source " + sourceIP.toString() +
 					    " (expected " + hubIP.toString() + ")");
 					packetsProcessed++;
@@ -71,6 +79,7 @@ void processUDP() {
 			}
 		} else {
 			// Hub not discovered yet - reject all UDP packets for security
+			udp.flush();  // Must consume rx_buffer before next parsePacket()
 			log("UDP RX: Rejected packet from " + sourceIP.toString() + " (Hub not discovered yet)");
 			packetsProcessed++;
 			continue;
@@ -89,12 +98,8 @@ void processUDP() {
 				udpMessagesReceived++;
 			}
 		} else {
-			// Queue full - must clear entire rx_buffer to allow future parsePacket() calls
-			// Note: reading just 1 byte leaves rx_buffer non-empty, which causes
-			// parsePacket() to return 0 forever (it exits early if buffer exists)
-			while (udp.available()) {
-				udp.read();
-			}
+			// Queue full - must consume rx_buffer to allow future parsePacket() calls
+			udp.flush();
 			log("UDP RX: Queue full, dropping message");
 			udpMessagesDropped++;
 
@@ -107,6 +112,12 @@ void processUDP() {
 			}
 		}
 		packetsProcessed++;
+	}
+
+	// Safety: ensure no stale data blocks future parsePacket() calls
+	if (udp.available()) {
+		udp.flush();
+		log("UDP: Flushed unconsumed rx_buffer (safety catch)");
 	}
 }
 

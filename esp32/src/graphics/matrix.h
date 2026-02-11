@@ -10,13 +10,6 @@ using String = std::string;
 #include "coordinate_transforms.h"
 #include "config/constants.h"
 
-// Default matrix dimensions defined in config/constants.h:
-// - DEFAULT_MATRIX_WIDTH
-// - DEFAULT_MATRIX_HEIGHT
-// Legacy defines kept for backward compatibility:
-#define WIDTH DEFAULT_MATRIX_WIDTH
-#define HEIGHT DEFAULT_MATRIX_HEIGHT
-
 enum class LayoutType : uint8_t {
 	STRIP = 1,
 	MATRIX = 2

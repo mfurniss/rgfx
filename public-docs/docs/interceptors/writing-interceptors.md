@@ -20,7 +20,7 @@ Use MAME's built-in debugger to discover where the game stores its state.
 
 ## Step 2: Create the Interceptor File
 
-Create a new file in `~/.rgfx/interceptors/games/`:
+Create a new file in the `interceptors/games/` folder of your [config directory](../getting-started/hub-setup.md#config-directory):
 
 ```lua
 -- mygame_rgfx.lua
@@ -60,7 +60,7 @@ ram.install_monitors(map, mem)
 
 ## Step 3: Register in the ROM Map
 
-Edit `~/.rgfx/interceptors/rom_map.lua` to add your game:
+Edit `interceptors/rom_map.lua` in your config directory to add your game:
 
 ```lua
 return {
@@ -78,7 +78,7 @@ return {
 1. Start MAME with RGFX enabled
 2. Load your game
 3. Watch the MAME console for your event output
-4. Check `~/.rgfx/interceptor_events.log` to verify events are being written
+4. Check `interceptor_events.log` in your config directory to verify events are being written
 
 ---
 
@@ -153,3 +153,64 @@ callback_changed = function(current, previous)
     end
 end
 ```
+
+### Sound Effect Monitors
+
+Some game events are difficult to detect through memory alone — there may not be a dedicated counter or flag, or the RAM values may be ambiguous. Many arcade machines write a sound identifier or data pointer to a known address when triggering a sound effect. Polling that address each frame lets you detect specific sounds and emit events for them.
+
+#### Finding Sound Addresses
+
+Use the MAME debugger to locate where the game writes sound data:
+
+1. Identify the sound hardware from the game's machine config (sound CPU, PIA registers, etc.)
+2. Set write watchpoints on the sound I/O region or the RAM variables that feed it
+3. Play the game and trigger distinct sounds — note which addresses change and what values are written
+4. Map the observed values to gameplay events
+
+!!! note
+    MAME's `install_write_tap` only works on RAM regions, not device-mapped I/O. If the sound trigger address is memory-mapped I/O, use frame polling instead.
+
+#### Frame Polling Pattern
+
+Register a callback with `emu.register_frame_done` to read the sound address each frame and compare it to the previous value. The Robotron interceptor uses this approach to monitor the sound data pointer at `$9854-$9855`:
+
+```lua
+-- Lookup table mapping sound data pointers to event names
+local sound_lut = {
+    [0x26EE] = "laser",
+    [0x26D7] = "player-death",
+    [0x26E9] = "next-wave",
+    [0x3896] = "explosion",
+    [0x0024] = "rescue-human",
+    [0xD0C7] = "extra-life",
+    -- ...
+}
+
+local last_sound_ptr = 0
+
+emu.register_frame_done(function()
+    local ptr_hi = mem:read_u8(0x9854)
+    local ptr_lo = mem:read_u8(0x9855)
+    local ptr = (ptr_hi << 8) | ptr_lo
+
+    if ptr ~= last_sound_ptr and ptr > 0 then
+        -- Sound data advances by 3 bytes per frame during playback.
+        -- A genuine new sound starts when the pointer jumps elsewhere.
+        local is_new_sound = (ptr ~= last_sound_ptr + 3)
+
+        if is_new_sound then
+            local name = sound_lut[ptr]
+            if name then
+                event("robotron/sfx/" .. name)
+            end
+        end
+        last_sound_ptr = ptr
+    end
+end, "sound_monitor")
+```
+
+Key points from this example:
+
+- **Lookup table** — map raw pointer values to human-readable event names. Log unknown values during development so you can identify and add them later.
+- **Advance filtering** — the sound pointer increments by 3 each frame during playback. Only emit an event when the pointer jumps to a new location, not when it steps through existing sound data.
+- **Complements RAM monitors** — sound polling runs alongside `ram.install_monitors`. Use whichever detection method is most reliable for each event.

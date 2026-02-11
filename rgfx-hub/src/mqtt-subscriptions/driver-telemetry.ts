@@ -9,7 +9,7 @@ import type { BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
-import { serializeDriverForIPC } from '../types';
+
 import {
   TelemetryPayloadSchema,
   DriverTelemetrySchema,
@@ -21,6 +21,7 @@ import {
 } from '../schemas/minimal-driver-registration';
 import { sendToRenderer, getErrorMessage } from '../utils/driver-utils';
 import { eventBus } from '../services/event-bus';
+import { IPC } from '../config/ipc-channels';
 
 interface DriverTelemetryDeps {
   mqtt: MqttBroker;
@@ -106,7 +107,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
 
         // Notify renderer of driver update
         log.debug(`Sending driver:updated to renderer for ${driver.id}`);
-        sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+        sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
         log.debug(`driver:updated sent for ${driver.id}`);
       } else {
         // Try minimal validation (old firmware fallback)
@@ -127,7 +128,7 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
           );
 
           // Notify renderer of driver update (UI will show "Update Required" badge)
-          sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+          sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
           log.debug(`driver:updated sent for ${driver.id} (minimal)`);
         } else {
           // Completely invalid - reject and surface as system error

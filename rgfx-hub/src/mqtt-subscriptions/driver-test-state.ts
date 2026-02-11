@@ -8,8 +8,9 @@
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
-import { serializeDriverForIPC } from '../types';
+
 import { sendToRenderer } from '../utils/driver-utils';
+import { IPC } from '../config/ipc-channels';
 
 interface DriverTestStateDeps {
   mqtt: MqttBroker;
@@ -41,6 +42,6 @@ export function subscribeDriverTestState(deps: DriverTestStateDeps): void {
     driver.testActive = payload === 'on';
 
     log.info(`Sending driver:updated to renderer for ${driverId}`);
-    sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(driver));
+    sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
   });
 }

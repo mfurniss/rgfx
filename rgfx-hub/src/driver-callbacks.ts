@@ -11,8 +11,10 @@ import type { DriverRegistry } from './driver-registry';
 import type { DriverConfig } from './driver-config';
 import type { SystemMonitor } from './system-monitor';
 import type { MqttBroker } from './network';
-import { serializeDriverForIPC, type SystemError } from './types';
+import type { SystemError } from './types';
+import { sendToRenderer } from './utils/driver-utils';
 import { eventBus } from './services/event-bus';
+import { IPC } from './config/ipc-channels';
 
 interface DriverEventHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -43,39 +45,7 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     uploadConfigToDriver,
   } = deps;
 
-  function isWindowAvailable(): boolean {
-    const mainWindow = getMainWindow();
-    return mainWindow !== null && !mainWindow.isDestroyed();
-  }
-
-  function safeSend(channel: string, ...args: unknown[]): void {
-    const mainWindow = getMainWindow();
-
-    if (!isWindowAvailable() || !mainWindow) {
-      return;
-    }
-
-    // webContents can be destroyed even if window isn't (e.g., during renderer crash)
-    if (mainWindow.webContents.isDestroyed()) {
-      return;
-    }
-
-    try {
-      mainWindow.webContents.send(channel, ...args);
-    } catch (error) {
-      // Ignore "Render frame was disposed" errors during shutdown
-      if (error instanceof Error && error.message.includes('Render frame was disposed')) {
-        return;
-      }
-      throw error;
-    }
-  }
-
   function sendSystemStatus() {
-    if (!isWindowAvailable()) {
-      return;
-    }
-
     const status = systemMonitor.getSystemStatus(
       driverRegistry.getConnectedCount(),
       driverRegistry.getAllDrivers().length,
@@ -83,21 +53,12 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
       getEventLogSizeBytes(),
       getSystemErrors(),
     );
-    safeSend('system:status', status);
+    sendToRenderer(getMainWindow, IPC.SYSTEM_STATUS, status);
   }
 
-  // Handle driver connected events
   eventBus.on('driver:connected', ({ driver }) => {
-    const eventTime = Date.now();
-    log.info(`[DEBUG] driver:connected event received for ${driver.id} at ${eventTime}`);
-
-    if (isWindowAvailable()) {
-      safeSend('driver:connected', serializeDriverForIPC(driver));
-      log.info(
-        `[DEBUG] IPC driver:connected sent to renderer for ${driver.id} (elapsed: ${Date.now() - eventTime}ms)`,
-      );
-      sendSystemStatus();
-    }
+    sendToRenderer(getMainWindow, IPC.DRIVER_CONNECTED, driver);
+    sendSystemStatus();
 
     if (driver.mac) {
       void uploadConfigToDriver(driver.mac).catch((error: unknown) => {
@@ -120,39 +81,25 @@ export function setupDriverEventHandlers(deps: DriverEventHandlersDeps): void {
     }
   });
 
-  // Handle driver disconnected events
   eventBus.on('driver:disconnected', ({ driver, reason }) => {
-    if (isWindowAvailable()) {
-      safeSend('driver:disconnected', serializeDriverForIPC(driver), reason);
-      log.info(`Sent driver:disconnected event to renderer (reason: ${reason})`);
-      sendSystemStatus();
-    }
+    sendToRenderer(getMainWindow, IPC.DRIVER_DISCONNECTED, driver, reason);
+    log.info(`Sent driver:disconnected event to renderer (reason: ${reason})`);
+    sendSystemStatus();
   });
 
-  // Handle driver updated events (stats changes, telemetry updates)
   eventBus.on('driver:updated', ({ driver }) => {
-    safeSend('driver:updated', serializeDriverForIPC(driver));
+    sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
   });
 
-  // Handle driver restarting events (config save, expected reboot)
   eventBus.on('driver:restarting', ({ driver }) => {
-    if (isWindowAvailable()) {
-      safeSend('driver:restarting', serializeDriverForIPC(driver));
-      log.info(`Sent driver:restarting event to renderer for ${driver.id}`);
-      sendSystemStatus();
-    }
+    sendToRenderer(getMainWindow, IPC.DRIVER_RESTARTING, driver);
+    log.info(`Sent driver:restarting event to renderer for ${driver.id}`);
+    sendSystemStatus();
   });
 
-  // Handle OTA flash events
-  eventBus.on('flash:ota:state', (data) => {
-    safeSend('flash:ota:state', data);
-  });
-
-  eventBus.on('flash:ota:progress', (data) => {
-    safeSend('flash:ota:progress', data);
-  });
-
-  eventBus.on('flash:ota:error', (data) => {
-    safeSend('flash:ota:error', data);
-  });
+  for (const event of [IPC.FLASH_OTA_STATE, IPC.FLASH_OTA_PROGRESS, IPC.FLASH_OTA_ERROR] as const) {
+    eventBus.on(event, (data) => {
+      sendToRenderer(getMainWindow, event, data);
+    });
+  }
 }

@@ -1,9 +1,6 @@
 # Test LEDs
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
-
-The Test LEDs feature verifies that a driver is communicating correctly and its LED hardware is functioning properly.
+The Test LEDs feature is the quickest way to verify that a driver is communicating and its LED hardware is working correctly.
 
 ## How It Works
 
@@ -54,7 +51,7 @@ Strips display 4 colored segments (25% each) with a white pixel marking the star
 | 3rd quarter | Cyan |
 | 4th quarter | Purple |
 
-If the white pixel appears at the wrong end, enable the **Reverse** setting in [Configure LED Hardware](../drivers/configure-leds.md).
+If the white pixel appears at the wrong end, enable the **Reverse** setting in [LED Configuration](../hardware/configure.md).
 
 ### Single Matrix Layout
 
@@ -74,7 +71,7 @@ A single matrix displays 4 colored quadrants with a white pixel marking the top-
 | Bottom-left | Cyan |
 | Bottom-right | Purple |
 
-If the white origin pixel appears in the wrong corner, adjust the **Rotation** setting in [Configure LED Hardware](../drivers/configure-leds.md).
+If the white origin pixel appears in the wrong corner, adjust the **Rotation** setting in [LED Configuration](../hardware/configure.md).
 
 ### Multi-Panel Matrix
 
@@ -115,4 +112,4 @@ The white origin pixels on each panel help verify panel orientation and ordering
 
 ## See Also
 
-- [Hardware Examples](../drivers/examples.md) - Photos of test patterns on real LED matrix builds
+- [Build Examples](../hardware/examples.md) - Photos of test patterns on real LED matrix builds

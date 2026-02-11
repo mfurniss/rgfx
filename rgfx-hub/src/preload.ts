@@ -5,11 +5,33 @@ import type { Driver, SystemStatus, AppInfo, DisconnectReason, LEDHardware } fro
 import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
 import type { LogSizes } from './log-manager';
 import type { ConfiguredDriverFromSchema } from './schemas';
+import { IPC, type IpcChannel } from './config/ipc-channels';
 
 // Expose electron-trpc for type-safe IPC communication
 process.once('loaded', () => {
   exposeElectronTRPC();
 });
+
+type IpcListener<T extends unknown[]> =
+  (callback: (...args: T) => void) => () => void;
+
+// Type-safe IPC listener: strips Electron event arg, returns cleanup
+function onIpc<T extends unknown[]>(
+  channel: IpcChannel,
+): IpcListener<T> {
+  return (callback) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      ...args: unknown[]
+    ) => {
+      callback(...(args as T));
+    };
+    ipcRenderer.on(channel, handler);
+    return () => {
+      ipcRenderer.removeListener(channel, handler);
+    };
+  };
+}
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
@@ -18,122 +40,16 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('app:get-info');
   },
 
-  onDriverConnected: (callback: (driver: Driver) => void): (() => void) => {
-    console.log('[PRELOAD] Registering listener for driver:connected');
-    const handler = (_event: Electron.IpcRendererEvent, driver: Driver) => {
-      console.log(`[PRELOAD] IPC event received: driver:connected for ${driver.id}`);
-      callback(driver);
-    };
-    ipcRenderer.on('driver:connected', handler);
-    return () => {
-      console.log('[PRELOAD] Removing listener for driver:connected');
-      ipcRenderer.removeListener('driver:connected', handler);
-    };
-  },
-
-  onDriverDisconnected: (
-    callback: (driver: Driver, reason: DisconnectReason) => void,
-  ): (() => void) => {
-    console.log('[PRELOAD] Registering listener for driver:disconnected');
-    const handler = (_event: Electron.IpcRendererEvent, driver: Driver, reason: DisconnectReason = 'disconnected') => {
-      console.log(`[PRELOAD] IPC event received: driver:disconnected for ${driver.id} (reason: ${reason})`);
-      callback(driver, reason);
-    };
-    ipcRenderer.on('driver:disconnected', handler);
-    return () => {
-      console.log('[PRELOAD] Removing listener for driver:disconnected');
-      ipcRenderer.removeListener('driver:disconnected', handler);
-    };
-  },
-
-  onDriverUpdated: (callback: (driver: Driver) => void): (() => void) => {
-    console.log('[PRELOAD] Registering listener for driver:updated');
-    const handler = (_event: Electron.IpcRendererEvent, driver: Driver) => {
-      console.log(`[PRELOAD] IPC event received: driver:updated for ${driver.id}`);
-      callback(driver);
-    };
-    ipcRenderer.on('driver:updated', handler);
-    return () => {
-      console.log('[PRELOAD] Removing listener for driver:updated');
-      ipcRenderer.removeListener('driver:updated', handler);
-    };
-  },
-
-  onDriverRestarting: (callback: (driver: Driver) => void): (() => void) => {
-    console.log('[PRELOAD] Registering listener for driver:restarting');
-    const handler = (_event: Electron.IpcRendererEvent, driver: Driver) => {
-      console.log(`[PRELOAD] IPC event received: driver:restarting for ${driver.id}`);
-      callback(driver);
-    };
-    ipcRenderer.on('driver:restarting', handler);
-    return () => {
-      console.log('[PRELOAD] Removing listener for driver:restarting');
-      ipcRenderer.removeListener('driver:restarting', handler);
-    };
-  },
-
-  onSystemStatus: (callback: (status: SystemStatus) => void): (() => void) => {
-    console.log('[PRELOAD] Registering listener for system:status');
-    const handler = (_event: Electron.IpcRendererEvent, status: SystemStatus) => {
-      console.log(`[PRELOAD] IPC event received: system:status (mqttBroker: ${status.mqttBroker})`);
-      callback(status);
-    };
-    ipcRenderer.on('system:status', handler);
-    return () => {
-      console.log('[PRELOAD] Removing listener for system:status');
-      ipcRenderer.removeListener('system:status', handler);
-    };
-  },
-
-  onFlashOtaState: (
-    callback: (data: { driverId: string; state: string }) => void,
-  ): (() => void) => {
-    const handler = (
-      _event: Electron.IpcRendererEvent,
-      data: { driverId: string; state: string },
-    ): void => {
-      callback(data);
-    };
-    ipcRenderer.on('flash:ota:state', handler);
-    return () => {
-      ipcRenderer.removeListener('flash:ota:state', handler);
-    };
-  },
-
-  onFlashOtaProgress: (
-    callback: (progress: {
-      driverId: string;
-      sent: number;
-      total: number;
-      percent: number;
-    }) => void,
-  ): (() => void) => {
-    const handler = (
-      _event: Electron.IpcRendererEvent,
-      progress: { driverId: string; sent: number; total: number; percent: number },
-    ): void => {
-      callback(progress);
-    };
-    ipcRenderer.on('flash:ota:progress', handler);
-    return () => {
-      ipcRenderer.removeListener('flash:ota:progress', handler);
-    };
-  },
-
-  onFlashOtaError: (
-    callback: (data: { driverId: string; error: string }) => void,
-  ): (() => void) => {
-    const handler = (
-      _event: Electron.IpcRendererEvent,
-      data: { driverId: string; error: string },
-    ): void => {
-      callback(data);
-    };
-    ipcRenderer.on('flash:ota:error', handler);
-    return () => {
-      ipcRenderer.removeListener('flash:ota:error', handler);
-    };
-  },
+  onDriverConnected: onIpc<[Driver]>(IPC.DRIVER_CONNECTED),
+  onDriverDisconnected: onIpc<[Driver, DisconnectReason]>(IPC.DRIVER_DISCONNECTED),
+  onDriverUpdated: onIpc<[Driver]>(IPC.DRIVER_UPDATED),
+  onDriverRestarting: onIpc<[Driver]>(IPC.DRIVER_RESTARTING),
+  onSystemStatus: onIpc<[SystemStatus]>(IPC.SYSTEM_STATUS),
+  onFlashOtaState: onIpc<[{ driverId: string; state: string }]>(IPC.FLASH_OTA_STATE),
+  onFlashOtaProgress: onIpc<
+    [{ driverId: string; sent: number; total: number; percent: number }]
+  >(IPC.FLASH_OTA_PROGRESS),
+  onFlashOtaError: onIpc<[{ driverId: string; error: string }]>(IPC.FLASH_OTA_ERROR),
 
   sendDriverCommand: (driverId: string, command: string, payload?: string): Promise<void> => {
     return ipcRenderer.invoke('driver:send-command', driverId, command, payload);
@@ -215,15 +131,7 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:set-disabled', driverId, disabled);
   },
 
-  onEvent: (callback: (topic: string, payload?: string) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, topic: string, payload?: string) => {
-      callback(topic, payload);
-    };
-    ipcRenderer.on('event:received', handler);
-    return () => {
-      ipcRenderer.removeListener('event:received', handler);
-    };
-  },
+  onEvent: onIpc<[string, string | undefined]>(IPC.EVENT_RECEIVED),
 
   resetEventCounts: (): Promise<void> => {
     return ipcRenderer.invoke('event:reset');
@@ -245,18 +153,7 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:delete', driverId);
   },
 
-  onDriverDeleted: (callback: (driverId: string) => void): (() => void) => {
-    console.log('[PRELOAD] Registering listener for driver:deleted');
-    const handler = (_event: Electron.IpcRendererEvent, driverId: string) => {
-      console.log(`[PRELOAD] IPC event received: driver:deleted for ${driverId}`);
-      callback(driverId);
-    };
-    ipcRenderer.on('driver:deleted', handler);
-    return () => {
-      console.log('[PRELOAD] Removing listener for driver:deleted');
-      ipcRenderer.removeListener('driver:deleted', handler);
-    };
-  },
+  onDriverDeleted: onIpc<[string]>(IPC.DRIVER_DELETED),
 
   showInFolder: (filePath: string): Promise<void> => {
     return ipcRenderer.invoke('file:show-in-folder', filePath);

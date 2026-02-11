@@ -1111,10 +1111,21 @@ class TestRunner:
         except KeyboardInterrupt:
             print("\n  Test interrupted by user")
 
+        # Allow in-flight transformer handlers to complete
+        # (some use await sleep() loops, e.g., SMB flag ~5s, Pac-Man energizer ~1.5s)
+        print("  Waiting for effects to settle...")
+        time.sleep(3)
+
         # Send shutdown events for all active games
         for game in active_games:
             self.event_generator.write_event(f"{game}/shutdown")
             self.events_sent += 1
+
+        # Explicit clear-all via reserved namespace (belt-and-suspenders)
+        self.event_generator.write_event("rgfx/clear-effects")
+
+        # Allow MQTT QoS 2 clear-effects to be delivered to drivers
+        time.sleep(2)
 
         # Final error check
         self.log_monitor.check_for_errors()

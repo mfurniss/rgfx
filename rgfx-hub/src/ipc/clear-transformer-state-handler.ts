@@ -6,7 +6,6 @@
  */
 
 import { ipcMain } from 'electron';
-import log from 'electron-log/main';
 import type { TransformerEngine } from '../transformer-engine';
 
 interface ClearTransformerStateHandlerDeps {
@@ -15,7 +14,6 @@ interface ClearTransformerStateHandlerDeps {
 
 export function registerClearTransformerStateHandler(deps: ClearTransformerStateHandlerDeps): void {
   const { transformerEngine } = deps;
-  log.info('[ClearTransformerStateHandler] Registering transformer:clear-state IPC handler');
 
   ipcMain.handle('transformer:clear-state', () => {
     transformerEngine.clearState();

@@ -15,6 +15,7 @@ import { hslToHex } from '@/renderer/utils/color';
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',
   duration: { emptyValue: 0 },
+  bloom: { emptyValue: 0 },
 };
 
 export function randomize(): Record<string, unknown> {

@@ -26,7 +26,7 @@ class WipeEffect : public IEffect {
 	Canvas& canvas;
 
    public:
-	WipeEffect(const Matrix& matrix, Canvas& canvas);
+	WipeEffect(Canvas& canvas);
 	void add(JsonDocument& props) override;
 	void update(float deltaTime) override;
 	void render() override;

@@ -7,17 +7,12 @@
 
 import { initTRPC } from '@trpc/server';
 import { eventBus, type AppEventMap } from '../services/event-bus';
-import {
-  serializeDriverForIPC,
-  type DisconnectReason,
-} from '../types';
+import type { Driver, DisconnectReason } from '../types';
 
 const t = initTRPC.create();
 
-type SerializedDriver = ReturnType<typeof serializeDriverForIPC>;
-
 interface DisconnectPayload {
-  driver: SerializedDriver;
+  driver: Driver;
   reason: DisconnectReason;
 }
 
@@ -74,7 +69,7 @@ export const appRouter = t.router({
     const generator = createEventGenerator('driver:connected');
 
     for await (const { driver } of generator()) {
-      yield serializeDriverForIPC(driver);
+      yield driver;
     }
   }),
 
@@ -87,7 +82,7 @@ export const appRouter = t.router({
 
     for await (const { driver, reason } of generator()) {
       const payload: DisconnectPayload = {
-        driver: serializeDriverForIPC(driver),
+        driver,
         reason,
       };
       yield payload;
@@ -102,7 +97,7 @@ export const appRouter = t.router({
     const generator = createEventGenerator('driver:updated');
 
     for await (const { driver } of generator()) {
-      yield serializeDriverForIPC(driver);
+      yield driver;
     }
   }),
 

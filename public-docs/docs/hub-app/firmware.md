@@ -1,9 +1,8 @@
 # Firmware
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
+The Firmware page handles flashing and updating your ESP32 drivers. New boards get flashed via USB; existing drivers can be updated over WiFi.
 
-The Firmware page manages ESP32 driver firmware updates.
+![RGFX Hub — Firmware page](../assets/images/rgfx-hub-firmware.png)
 
 ## Update Methods
 

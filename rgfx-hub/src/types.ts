@@ -308,13 +308,6 @@ export function createDriver(data: DriverInput): Driver {
   };
 }
 
-/**
- * Serialize a Driver for IPC transmission to renderer process
- * Since Driver is now a plain object, this is just a shallow copy
- */
-export function serializeDriverForIPC(driver: Driver): Driver {
-  return { ...driver };
-}
 
 export interface SystemError {
   errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'transformer' | 'general';

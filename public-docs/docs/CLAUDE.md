@@ -2,7 +2,13 @@
 
 ## CRITICAL REQUIREMENTS
 
-**Documentation accuracy is paramount.** Every page in this documentation must be technically accurate and reflect the current state of the RGFX codebase.
+**Documentation accuracy is paramount.** Every page must be technically accurate and reflect the current state of the RGFX codebase.
+
+### Minimize HTML
+
+Use standard markdown wherever possible. HTML should only be used where there is no markdown alternative (e.g., `<video>` embeds). Do not use HTML for layout, styling, or features that can be achieved with markdown or MkDocs Material features.
+
+The LED test pattern visualizations in `hub-app/test-leds.md` are an accepted exception — CSS-driven diagrams that have no markdown equivalent.
 
 ### Before Making Documentation Changes
 
@@ -23,44 +29,45 @@
 - Show real examples from the codebase when possible
 - Keep API references synchronized with actual function signatures
 
-### Current Documentation Gaps
+### Platform Support
 
-The following sections need expansion to cover ALL features:
+RGFX Hub supports **macOS and Windows only**. Do not reference Linux support in the documentation.
 
-1. **Drivers section** (`/drivers/index.md`) - Currently a stub. Needs:
-   - All 13 LED effect types with parameters
-   - MQTT topics and message formats
-   - LED hardware configuration (strips, matrices, unified panels, RGBW)
-   - OTA update process
-   - Telemetry and status reporting
-   - Gamma correction and power management
-   - Multi-core architecture overview
+### Terminology
 
-2. **Transformers section** (`/transformers/index.md`) - Currently a stub. Needs:
-   - Transformer cascade precedence (game → subject → pattern → default)
-   - Context object API (log, drivers, mqtt, udp, store)
-   - Hot-reload behavior
-   - Example transformers
+- Included game scripts are **examples**, not "supported games." Never imply a fixed compatibility list.
+- Do not hardcode counts of games or effects (e.g., "11 games", "13 effects"). Just say "example games" or "visual effects."
+- Frame community contributions as encouraged — interceptors and transformers are starting points, not definitive versions.
 
-3. **Getting Started** (`/overview/getting-started.md`) - Empty. Needs:
-   - Installation steps
-   - First-time setup walkthrough
-   - MAME configuration
-   - ESP32 flashing instructions
+### Voice
+
+Use neutral voice for most content and first person "I" for personal opinions or recommendations. Do not use "we" — this is a single-author project.
+
+### Site Structure
+
+```
+docs/
+├── index.md                    # Landing page with hero video
+├── games.md                    # Example games & community scripts
+├── faq.md                      # FAQ and troubleshooting
+├── about.md                    # About the author
+├── getting-started/            # 5-page onboarding flow
+├── hub-app/                    # Hub application reference (10 pages)
+├── hardware/                   # LED hardware (choosing, wiring, configure, effects, examples)
+├── interceptors/               # Lua interceptor docs (7 pages)
+└── transformers/               # JS transformer docs (5 pages)
+```
+
+### Config Directory References
+
+Never hardcode `~/.rgfx` paths. Use "config directory" with a link to `getting-started/hub-setup.md#config-directory` on first mention per page. The hub-setup page has the canonical platform table (macOS/Windows).
 
 ### Build Artifacts
 
-Generated site files in `public-docs/site/` and `rgfx.io/docs/` must be committed. After updating documentation source files, regenerate the site and commit both source and generated files.
+Generated site files in `public-docs/site/` must be committed. After updating documentation source files, regenerate the site and commit both source and generated files.
 
 **Do NOT run `npm run docs:build` or `mkdocs build` yourself.** The user has a watch process that rebuilds automatically.
 
 ### When Adding New Features
 
 If you implement a new feature in the codebase, you MUST update the corresponding documentation page. Undocumented features are bugs.
-
-### Feature Reference
-
-For comprehensive feature lists to document, see the exploration results from:
-- ESP32 driver: 13 effects, dual-core architecture, MQTT/UDP protocols, OTA, telemetry
-- RGFX Hub: Event processing, device discovery, transformer engine, IPC handlers
-- MAME Integration: RAM monitoring, ambilight, FFT audio, 9+ game interceptors

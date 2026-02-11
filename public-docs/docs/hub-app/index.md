@@ -1,28 +1,29 @@
 # Hub App
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
+The RGFX Hub is the desktop application at the center of the system. It watches for game events from MAME, runs your transformer scripts to decide which LED effects to trigger, and sends commands to your ESP32 drivers over WiFi.
 
-The RGFX Hub is the central desktop application that coordinates the entire RGFX system.
+The Hub also runs an embedded MQTT message broker internally, so your ESP32 drivers can communicate without any extra software or cloud services. Everything stays on your local network.
 
-## What It Does
+![RGFX Hub — System Status page](../assets/images/rgfx-hub-system-status.png)
+
+## Features
 
 - Monitors MAME game events from interceptor scripts
-- Runs an embedded MQTT broker for driver communication
-- Manages connected ESP32 driver devices
 - Transforms game events into LED visual effects
+- Manages connected ESP32 driver devices
 - Provides firmware update capabilities (USB and OTA)
+- Runs an embedded MQTT broker for driver communication
 
 ## Navigation
 
 The sidebar provides access to all Hub features:
 
-- **[System Status](system-status.md)** - Dashboard showing system health
-- **[Drivers](drivers.md)** - Connected ESP32 devices
-- **[Firmware](firmware.md)** - Update ESP32 firmware
-- **[Games](games.md)** - View configured game interceptors and transformers
-- **[Event Monitor](event-monitor.md)** - Live event stream viewer
-- **[FX Playground](fx-playground.md)** - Test LED effects interactively
-- **[Simulator](simulator.md)** - Manually trigger events for testing
-- **[Settings](settings.md)** - Configure directories and preferences
-- **Help** - Access documentation
+- **[System Status](system-status.md)** — dashboard showing system health and real-time metrics
+- **[Drivers](drivers.md)** — manage connected ESP32 devices and their LED configurations
+- **[Firmware](firmware.md)** — flash and update ESP32 firmware via USB or WiFi
+- **[Games](games.md)** — view which ROMs have interceptors and transformers configured
+- **[Event Monitor](event-monitor.md)** — watch game events streaming in real-time
+- **[FX Playground](fx-playground.md)** — experiment with LED effects interactively
+- **[Simulator](simulator.md)** — trigger events manually for testing without running MAME
+- **[Settings](settings.md)** — configure directories and preferences
+- **Help** — access this documentation
