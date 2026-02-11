@@ -19,46 +19,7 @@ This document outlines the current maintainers of the RGFX project and provides 
 
 ## Contribution Process
 
-### How to Contribute
-
-RGFX welcomes contributions from the community! We follow a feature branch workflow with mandatory CI/CD checks.
-
-**Steps to contribute:**
-
-1. **Fork the repository** on GitLab
-2. **Create a feature branch** from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make your changes** following our code quality standards
-4. **Test thoroughly** - All CI checks must pass:
-   - TypeScript compilation (`npm run typecheck`)
-   - ESLint checks (`npm run lint`)
-   - Unit tests (`npm test`)
-   - ESP32 compilation (`pio run`)
-5. **Commit with clear messages** following conventional commit style
-6. **Push to your fork** and create a merge request
-7. **Respond to feedback** during code review
-8. **Wait for approval** from a maintainer
-
-### Code Quality Requirements
-
-**Mandatory Standards (CI enforced):**
-- ✅ Zero TypeScript errors
-- ✅ Zero ESLint errors or warnings
-- ✅ All unit tests passing
-- ✅ ESP32 firmware compiles successfully
-- ✅ Lua scripts pass StyLua formatting and luacheck
-
-**Best Practices:**
-- Write meaningful tests (no shallow coverage tests)
-- Add comments for complex logic
-- Keep functions small and focused
-- Use descriptive variable and function names
-- Update documentation for significant changes
-- Follow existing code style and patterns
-
-See [.claude/CLAUDE.md](.claude/CLAUDE.md) for comprehensive development guidelines.
+For development setup, code standards, and how to submit changes, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Code Review Process
 
@@ -198,23 +159,7 @@ Maintainer status is granted by the lead maintainer after discussion with existi
 
 ## Code of Conduct
 
-### Expected Behavior
-
-- **Be respectful** - Treat all contributors with respect
-- **Be constructive** - Provide helpful, actionable feedback
-- **Be patient** - Maintainers are volunteers with limited time
-- **Be collaborative** - Work together to improve the project
-- **Be professional** - Keep discussions technical and on-topic
-
-### Unacceptable Behavior
-
-- Personal attacks or harassment
-- Discriminatory language or behavior
-- Spam or off-topic discussions
-- Demanding immediate responses
-- Aggressive or hostile communication
-
-Violations may result in warnings, temporary bans, or permanent bans at maintainer discretion.
+This project follows the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md). All participants are expected to uphold this code.
 
 ## License
 
@@ -237,4 +182,4 @@ GitLab: [@furniss](https://gitlab.com/furniss)
 
 **Thank you for contributing to RGFX!**
 
-*Last updated: 2025-10-27*
+*Last updated: 2026-02-11*
