@@ -1,9 +1,6 @@
 # Settings
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
-
-Configure Hub application preferences and directories.
+Configure the Hub's directories, appearance, and effect behavior.
 
 ## Appearance
 
@@ -24,7 +21,7 @@ Choose your preferred theme mode:
 - LED hardware definitions (`led-hardware/`)
 - Driver configurations (`drivers/`)
 
-Default: `~/.rgfx`
+Default: see [Config Directory](../getting-started/hub-setup.md#config-directory)
 
 ### MAME ROMs Directory
 

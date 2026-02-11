@@ -1,0 +1,60 @@
+# Wiring & Power
+
+Getting your LEDs connected to an ESP32 is straightforward. This page covers basic wiring and power considerations.
+
+## Basic Wiring
+
+An addressable LED strip needs three connections from the ESP32:
+
+1. **DATA** — GPIO pin to the LED strip's data-in line
+2. **GND** — common ground between ESP32 and LEDs
+3. **5V** — power for the LEDs
+
+For small setups (under ~30 LEDs), the ESP32's onboard 5V pin can power the LEDs directly through USB. For anything larger, you'll need an external power supply.
+
+### GPIO Pin
+
+RGFX uses a single data pin to drive all connected LEDs. The default is GPIO 16, but you can configure any valid GPIO pin (0-39) in the driver settings. This single-pin approach keeps wiring simple — one data wire from the ESP32 to the first LED in the chain.
+
+### Data Direction
+
+LED strips have a data direction — signals flow from data-in to data-out. Make sure you connect the ESP32's data pin to the **input** end of the strip (usually marked with an arrow showing signal direction, or labeled "DIN").
+
+## Power
+
+### USB Power (Small Setups)
+
+For getting started with a short strip (up to ~30 LEDs), USB power through the ESP32 is fine. The ESP32's 5V pin passes through USB power to the strip.
+
+### External 5V Power (Larger Setups)
+
+Each WS2812B LED can draw up to ~60mA at full white brightness. The math adds up quickly:
+
+| LEDs | Max Current | Power Supply |
+|------|------------|-------------|
+| 30 | ~1.8A | USB is usually fine |
+| 60 | ~3.6A | 5V 4A supply |
+| 100 | ~6A | 5V 8A supply |
+| 256 (16x16 matrix) | ~15A | 5V 20A supply |
+
+!!! tip
+    In practice, effects rarely drive all LEDs at full white simultaneously. RGFX's driver firmware includes a **max power (mA) setting** that dynamically scales brightness to stay within your power supply's capacity. Always configure this limit to match your actual power supply.
+
+When using an external supply:
+
+- Connect the supply's 5V and GND to the LED strip's power pads
+- Connect the supply's GND to the ESP32's GND (common ground is essential)
+- The ESP32 itself can still be powered via USB
+
+### Power Injection
+
+For long strips (100+ LEDs), voltage drop along the strip can cause LEDs at the far end to appear dimmer or discolored. Injecting power at both ends — or at intervals along the strip — solves this. Connect additional 5V and GND wires from your power supply to power pads further along the strip.
+
+## Level Shifters
+
+The ESP32 outputs 3.3V logic, while WS2812B LEDs expect 5V signals. For short data wire runs, this usually works fine without any conversion. If you experience flickering or unreliable behavior — especially with longer data wires — a logic level shifter between the ESP32 and the first LED can help.
+
+## Next Steps
+
+- [Configure your LED hardware](configure.md) in the Hub
+- View [Build Examples](examples.md) to see real wiring setups

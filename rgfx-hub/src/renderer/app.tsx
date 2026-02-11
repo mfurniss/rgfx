@@ -73,57 +73,15 @@ const App: React.FC = () => {
   useSimulatorAutoTrigger();
 
   useEffect(() => {
-    console.log('[APP] Registering IPC listeners');
+    const unsubConnected = window.rgfx.onDriverConnected(onDriverConnected);
+    const unsubDisconnected = window.rgfx.onDriverDisconnected(onDriverDisconnected);
+    const unsubUpdated = window.rgfx.onDriverUpdated(onDriverUpdated);
+    const unsubRestarting = window.rgfx.onDriverRestarting(onDriverRestarting);
+    const unsubDeleted = window.rgfx.onDriverDeleted(onDriverDeleted);
+    const unsubSystemStatus = window.rgfx.onSystemStatus(onSystemStatusUpdate);
+    const unsubEvent = window.rgfx.onEvent(onEvent);
 
-    // Wire IPC listeners directly to Zustand actions with debug logging
-    const unsubConnected = window.rgfx.onDriverConnected((driver) => {
-      const ipcReceiveTime = Date.now();
-      console.log(
-        `[DEBUG] IPC driver:connected received in renderer for ${driver.id} at ${ipcReceiveTime}`,
-      );
-      onDriverConnected(driver);
-      console.log(
-        `[DEBUG] onDriverConnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`,
-      );
-    });
-
-    const unsubDisconnected = window.rgfx.onDriverDisconnected((driver) => {
-      const ipcReceiveTime = Date.now();
-      console.log(
-        `[DEBUG] IPC driver:disconnected received in renderer for ${driver.id} at ${ipcReceiveTime}`,
-      );
-      onDriverDisconnected(driver);
-      console.log(
-        `[DEBUG] onDriverDisconnected action called for ${driver.id} (elapsed: ${Date.now() - ipcReceiveTime}ms)`,
-      );
-    });
-
-    const unsubUpdated = window.rgfx.onDriverUpdated((driver) => {
-      console.log(`[DEBUG] IPC driver:updated received in renderer for ${driver.id}`);
-      onDriverUpdated(driver);
-    });
-
-    const unsubRestarting = window.rgfx.onDriverRestarting((driver) => {
-      console.log(`[DEBUG] IPC driver:restarting received in renderer for ${driver.id}`);
-      onDriverRestarting(driver);
-    });
-
-    const unsubDeleted = window.rgfx.onDriverDeleted((driverId) => {
-      console.log(`[DEBUG] IPC driver:deleted received in renderer for ${driverId}`);
-      onDriverDeleted(driverId);
-    });
-
-    const unsubSystemStatus = window.rgfx.onSystemStatus((status) => {
-      onSystemStatusUpdate(status);
-    });
-
-    const unsubEvent = window.rgfx.onEvent((topic, payload) => {
-      onEvent(topic, payload);
-    });
-
-    // Cleanup function to remove listeners
     return () => {
-      console.log('[APP] Cleaning up IPC listeners');
       unsubConnected();
       unsubDisconnected();
       unsubUpdated();
@@ -142,12 +100,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!rendererReadyCalled) {
-      console.log('[APP] Signaling renderer ready');
       window.rgfx.rendererReady();
       void getAppInfo();
       rendererReadyCalled = true;
-    } else {
-      console.log('[APP] Skipping rendererReady - already called');
     }
   }, [getAppInfo]);
 

@@ -1,6 +1,5 @@
 #include "config_portal.h"
 #include "config_nvs.h"
-#include "config_timeout.h"
 #include "constants.h"
 #include "log.h"
 #include "safe_restart.h"
@@ -33,7 +32,7 @@ static const char* STATE_NAMES[] = {
 
 // Helper to convert state enum to human-readable string
 String stateToString(uint8_t state) {
-	if (state < 6) {
+	if (state < sizeof(STATE_NAMES) / sizeof(STATE_NAMES[0])) {
 		return STATE_NAMES[state];
 	}
 	return "Unknown(" + String(state) + ")";
@@ -97,13 +96,11 @@ void ConfigPortal::begin() {
 	String apName = Utils::getDeviceId();
 	log("AP name: " + apName);
 
-	// Initialize IotWebConf with a default AP password
 	// IotWebConf REQUIRES an AP password to be set before it will connect to WiFi
-	const char* defaultApPassword = "rgfx1234";     // Default password for AP mode
 	iotWebConf = new (std::nothrow) IotWebConf(apName.c_str(),     // Thing name (AP SSID)
 	                                           &dnsServer,         // DNS server
 	                                           &server,            // Web server
-	                                           defaultApPassword,  // Default AP password (required!)
+	                                           DEFAULT_AP_PASSWORD,
 	                                           CONFIG_VERSION      // Config version
 	);
 	if (!iotWebConf) {
@@ -282,16 +279,6 @@ String ConfigPortal::getStateName() {
 	return "Uninitialized";
 }
 
-uint8_t ConfigPortal::getLedBrightness() {
-	// LED config now managed by Hub
-	return 64;  // Default value for status display
-}
-
-uint8_t ConfigPortal::getLedDataPin() {
-	// LED config now managed by Hub
-	return 16;  // Default value for status display
-}
-
 void ConfigPortal::resetSettings() {
 	log("Factory reset: Erasing all configuration...");
 
@@ -367,11 +354,10 @@ bool ConfigPortal::setWiFiCredentials(const String& ssid, const String& password
 	wifiPassParam->valueBuffer[wifiPassParam->getLength() - 1] = '\0';  // Ensure null termination
 
 	// Set AP password to the default (required for IotWebConf to connect to WiFi)
-	const char* defaultApPassword = "rgfx1234";
-	strncpy(apPassParam->valueBuffer, defaultApPassword, apPassParam->getLength());
+	strncpy(apPassParam->valueBuffer, DEFAULT_AP_PASSWORD, apPassParam->getLength());
 	apPassParam->valueBuffer[apPassParam->getLength() - 1] = '\0';  // Ensure null termination
 
-	log("Also setting AP password to: rgfx1234");
+	log("Also setting AP password to: " + String(DEFAULT_AP_PASSWORD));
 
 	// Save configuration to EEPROM
 	iotWebConf->saveConfig();

@@ -13,7 +13,6 @@ This folder manages driver configuration, persistent storage, and WiFi setup for
 | `config_nvs.h/cpp` | Non-volatile storage manager for persistent settings |
 | `config_leds.h/cpp` | FastLED initialization from Hub configuration (LED config identified by device ID) |
 | `config_portal.h/cpp` | IotWebConf WiFi configuration portal |
-| `config_timeout.h` | Configuration timeout handling utilities |
 | `constants.h` | Global constants (ports, timing, limits) |
 
 ---
@@ -99,6 +98,7 @@ clearAllLEDs();                        // Set all LEDs to black
 - `DEFAULT_UPDATE_RATE` (120) - Target FPS
 - `BOOT_BUTTON_PIN` (0) - GPIO for BOOT button (test mode toggle)
 - `BUTTON_DEBOUNCE_MS` (50) - Button debounce time
+- `DEFAULT_AP_PASSWORD` ("rgfx1234") - Default AP password for IotWebConf
 
 ---
 

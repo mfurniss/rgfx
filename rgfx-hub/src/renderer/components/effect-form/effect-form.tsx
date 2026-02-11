@@ -16,7 +16,7 @@ import {
   type FieldMetadata,
 } from '@/renderer/utils/zod-introspection';
 import { FieldRenderer } from './field-renderer';
-import type { LayoutConfig } from '@/schemas/effects/layout-config';
+import type { LayoutConfig } from '@/schemas/effects';
 
 type ZodShape = Record<string, z.ZodType>;
 

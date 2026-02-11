@@ -15,7 +15,9 @@ import type { EventFileReader } from '../event-file-reader';
 import type { SystemErrorTracker } from '../services/system-error-tracker';
 import type { EventStats } from '../services/event-stats';
 import type { Logger } from '../services/service-factory';
-import { serializeDriverForIPC } from '../types';
+import { sendToRenderer } from '../utils/driver-utils';
+import type { IpcChannel } from '../config/ipc-channels';
+import { IPC } from '../config/ipc-channels';
 import { appRouter } from '../trpc/router';
 import {
   MAIN_WINDOW_WIDTH,
@@ -40,7 +42,7 @@ export interface WindowManager {
   isAvailable(): boolean;
   createWindow(): BrowserWindow;
   sendSystemStatus(): void;
-  sendEventToRenderer(channel: string, ...args: unknown[]): void;
+  sendEventToRenderer(channel: IpcChannel, ...args: unknown[]): void;
   startStatusUpdates(): void;
   stopStatusUpdates(): void;
 }
@@ -55,29 +57,10 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
   let mainWindow: BrowserWindow | null = null;
   let statusUpdateInterval: NodeJS.Timeout | null = null;
 
+  const getWindow = () => mainWindow;
+
   function isAvailable(): boolean {
     return mainWindow !== null && !mainWindow.isDestroyed();
-  }
-
-  function safeSend(channel: string, ...args: unknown[]): void {
-    if (!isAvailable() || !mainWindow) {
-      return;
-    }
-
-    // webContents can be destroyed even if window isn't (e.g., during renderer crash)
-    if (mainWindow.webContents.isDestroyed()) {
-      return;
-    }
-
-    try {
-      mainWindow.webContents.send(channel, ...args);
-    } catch (error) {
-      // Ignore "Render frame was disposed" errors during shutdown
-      if (error instanceof Error && error.message.includes('Render frame was disposed')) {
-        return;
-      }
-      throw error;
-    }
   }
 
   function sendSystemStatus(): void {
@@ -92,7 +75,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
       eventReader.getFileSizeBytes(),
       systemErrorTracker.errors,
     );
-    safeSend('system:status', status);
+    sendToRenderer(getWindow, IPC.SYSTEM_STATUS, status);
   }
 
   function createWindow(): BrowserWindow {
@@ -218,7 +201,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
 
       // Send initial driver state (both connected and disconnected)
       driverRegistry.getAllDrivers().forEach((driver) => {
-        safeSend('driver:updated', serializeDriverForIPC(driver));
+        sendToRenderer(getWindow, IPC.DRIVER_UPDATED, driver);
       });
 
       // Start periodic system status updates
@@ -234,13 +217,13 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
   }
 
   return {
-    getWindow: () => mainWindow,
+    getWindow,
     isAvailable,
     createWindow,
     sendSystemStatus,
 
-    sendEventToRenderer(channel: string, ...args: unknown[]): void {
-      safeSend(channel, ...args);
+    sendEventToRenderer(channel: IpcChannel, ...args: unknown[]): void {
+      sendToRenderer(getWindow, channel, ...args);
     },
 
     startStatusUpdates(): void {

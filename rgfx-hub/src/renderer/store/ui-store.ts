@@ -7,7 +7,6 @@ function getDefaultPropsJson(effect: keyof typeof effectPropsSchemas): string {
   return JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
 }
 
-type SortField = 'id' | 'name' | 'ip' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 interface TableSortPreference {
@@ -31,10 +30,6 @@ interface SimulatorRow {
 interface UiState {
   // Generic table sort preferences (for useSortableTable hook)
   tableSortPreferences: Record<string, TableSortPreference>;
-
-  // Legacy driver table sort preferences (kept for backward compatibility)
-  driverTableSortField: SortField;
-  driverTableSortOrder: SortOrder;
 
   // Test effects page state
   testEffectsSelectedEffect: string;
@@ -64,7 +59,6 @@ interface UiState {
 
   // Actions
   setTableSort: (key: string, field: string, order: SortOrder) => void;
-  setDriverTableSort: (field: SortField, order: SortOrder) => void;
   setIsFlashingFirmware: (isFlashing: boolean) => void;
   setTestEffectsState: (
     selectedEffect: string,
@@ -89,10 +83,6 @@ export const useUiStore = create<UiState>()(
     (set) => ({
       // Generic table sort preferences
       tableSortPreferences: {},
-
-      // Legacy: Driver ID ascending (kept for backward compatibility)
-      driverTableSortField: 'id',
-      driverTableSortOrder: 'asc',
 
       // Test effects defaults
       testEffectsSelectedEffect: DEFAULT_FX_PLAYGROUND_EFFECT,
@@ -132,10 +122,6 @@ export const useUiStore = create<UiState>()(
             [key]: { field, order },
           },
         }));
-      },
-
-      setDriverTableSort: (field, order) => {
-        set({ driverTableSortField: field, driverTableSortOrder: order });
       },
 
       setIsFlashingFirmware: (isFlashing) => {
@@ -194,8 +180,6 @@ export const useUiStore = create<UiState>()(
       version: 4,
       partialize: (state) => ({
         tableSortPreferences: state.tableSortPreferences,
-        driverTableSortField: state.driverTableSortField,
-        driverTableSortOrder: state.driverTableSortOrder,
         simulatorRows: state.simulatorRows,
         rgfxConfigDirectory: state.rgfxConfigDirectory,
         mameRomsDirectory: state.mameRomsDirectory,

@@ -1,9 +1,8 @@
 # Driver Detail
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
+The Driver Detail page shows everything about a single ESP32 driver — its LED configuration, network status, hardware specs, and real-time performance. Access it by clicking any row in the [Drivers](drivers.md) list.
 
-The Driver Detail page shows comprehensive information about a single ESP32 driver device. Access it by clicking any row in the [Drivers](drivers.md) list.
+![RGFX Hub — Driver Detail page](../assets/images/rgfx-hub-driver-detail.png)
 
 ## LED Hardware
 
@@ -48,7 +47,7 @@ Real-time performance metrics:
 Available actions for the driver:
 
 - **Test LED** - Toggle LED test pattern to verify the driver is communicating and LEDs are working. See [Test LEDs](test-leds.md) for details.
-- **Configure Driver** - Edit driver settings (see [Configure LED Hardware](../drivers/configure-leds.md))
+- **Configure Driver** - Edit driver settings (see [LED Configuration](../hardware/configure.md))
 - **Reset** - Factory reset (erases ID, LED config, WiFi)
 - **Restart** - Reboot the driver
 - **Disable/Enable** - Toggle driver participation

@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
-import type { PresetConfig } from './preset-config';
+import type { PresetConfig } from './index';
 import { randomGradient, randomInt } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 

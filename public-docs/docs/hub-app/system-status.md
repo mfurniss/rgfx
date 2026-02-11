@@ -1,9 +1,6 @@
 # System Status
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
-
-The System Status page is the Hub's main dashboard, showing overall system health and key metrics at a glance.
+The System Status page is the Hub's main dashboard. It gives you a quick overview of whether everything is running correctly — services, drivers, and event processing.
 
 ## Status Metrics
 

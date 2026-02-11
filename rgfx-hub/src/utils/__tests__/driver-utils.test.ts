@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import type { BrowserWindow, WebContents } from 'electron';
+import { IPC } from '@/config/ipc-channels';
 import type { DriverRegistry } from '@/driver-registry';
 import { createMockDriver } from '@/__tests__/factories';
 import { createDriver } from '@/types';
@@ -107,15 +108,15 @@ describe('driver-utils', () => {
         webContents: { send: mockSend, isDestroyed: () => false } as unknown as WebContents,
       } as BrowserWindow;
 
-      sendToRenderer(() => mockWindow, 'test-channel', 'arg1', 'arg2');
+      sendToRenderer(() => mockWindow, IPC.DRIVER_UPDATED, 'arg1', 'arg2');
 
-      expect(mockSend).toHaveBeenCalledWith('test-channel', 'arg1', 'arg2');
+      expect(mockSend).toHaveBeenCalledWith(IPC.DRIVER_UPDATED, 'arg1', 'arg2');
     });
 
     it('should not send when window is null', () => {
       const mockSend = vi.fn();
 
-      sendToRenderer(() => null, 'test-channel', 'data');
+      sendToRenderer(() => null, IPC.DRIVER_UPDATED, 'data');
 
       expect(mockSend).not.toHaveBeenCalled();
     });
@@ -127,7 +128,7 @@ describe('driver-utils', () => {
         webContents: { send: mockSend } as unknown as WebContents,
       } as BrowserWindow;
 
-      sendToRenderer(() => mockWindow, 'test-channel', 'data');
+      sendToRenderer(() => mockWindow, IPC.DRIVER_UPDATED, 'data');
 
       expect(mockSend).not.toHaveBeenCalled();
     });

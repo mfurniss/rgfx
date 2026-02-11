@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomFloat, randomGradient } from '@/utils/random';
-import type { PresetConfig } from './preset-config';
+import type { PresetConfig } from './index';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 
 export const fieldTypes: FieldTypeMap = {

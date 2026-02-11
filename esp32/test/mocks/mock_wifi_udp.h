@@ -48,6 +48,9 @@ class IPAddress {
 		return std::string(buf);
 	}
 
+	uint8_t operator[](int index) const { return octets[index]; }
+	uint8_t& operator[](int index) { return octets[index]; }
+
 	bool operator==(const IPAddress& other) const {
 		return memcmp(octets, other.octets, 4) == 0;
 	}

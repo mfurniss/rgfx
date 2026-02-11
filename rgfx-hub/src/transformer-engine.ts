@@ -171,6 +171,9 @@ export class TransformerEngine {
     // Reset transformer state so loops checking state values stop naturally
     this.context.state.clear();
 
+    // Immediate UDP clear (fire-and-forget, arrives before MQTT handshake completes)
+    this.context.broadcast({ effect: 'clear' });
+
     const connectedDrivers = this.context.drivers
       .getConnectedDrivers()
       .filter((d) => !d.disabled);
@@ -180,6 +183,7 @@ export class TransformerEngine {
       return;
     }
 
+    // Reliable MQTT clear (QoS 2 guaranteed delivery as backup)
     this.context.log.info(`Clearing effects on ${connectedDrivers.length} connected driver(s)`);
 
     for (const driver of connectedDrivers) {
@@ -237,6 +241,13 @@ export class TransformerEngine {
       if (namespace === 'rgfx' && subject === 'mame-exit') {
         const gameName = topicObj.payload || 'unknown';
         this.context.log.info(`MAME exited for game: ${gameName}`);
+        await this.clearAllDriverEffects();
+        return;
+      }
+
+      // Handle explicit clear-all-effects request (e.g., from smoke test via event log)
+      if (namespace === 'rgfx' && subject === 'clear-effects') {
+        this.context.log.info('Clear all effects requested');
         await this.clearAllDriverEffects();
         return;
       }

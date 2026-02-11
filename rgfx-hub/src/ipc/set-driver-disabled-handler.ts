@@ -11,12 +11,13 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { DriverConfig } from '../driver-config';
 import type { MqttBroker } from '../network';
-import { serializeDriverForIPC } from '../types';
+
 import {
   requireDriverWithMac,
   buildDriverTopic,
   sendToRenderer,
 } from '../utils/driver-utils';
+import { IPC } from '../config/ipc-channels';
 
 interface SetDriverDisabledHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -53,7 +54,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
       const updatedDriver = driverRegistry.refreshDriverFromConfig(driver.mac);
 
       if (updatedDriver) {
-        sendToRenderer(getMainWindow, 'driver:updated', serializeDriverForIPC(updatedDriver));
+        sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, updatedDriver);
       }
 
       log.info(`Driver ${driverId} disabled state set to ${disabled}`);

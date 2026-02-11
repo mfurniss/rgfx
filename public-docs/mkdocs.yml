@@ -4,11 +4,13 @@
 site_name: RGFX Documentation
 site_url: https://rgfx.io/
 site_description: Retro Game Effects - External visual effects for retro video games
+strict: true
 
 theme:
   name: material
   custom_dir: overrides
-  favicon: assets/images/favicon.png
+  favicon: favicon.ico
+  logo: assets/images/favicon.png
   palette:
     scheme: slate
     primary: grey
@@ -25,18 +27,39 @@ plugins:
   - glightbox:
       auto_caption: true
   - git-revision-date-localized:
-      enable_creation_date: true
+      enable_creation_date: false
       fallback_to_build_date: false
 
 # Disable features incompatible with file:// protocol
 use_directory_urls: false
 
 nav:
-  - Overview:
-    - Introduction: overview/index.md
-    - Requirements: overview/requirements.md
-    - Getting Started: overview/getting-started.md
-    - Architecture: overview/architecture.md
+  - Home: index.md
+  - Getting Started:
+    - What You'll Need: getting-started/requirements.md
+    - Set Up RGFX Hub: getting-started/hub-setup.md
+    - Flash Your First Driver: getting-started/first-driver.md
+    - Test Your LEDs: getting-started/test-leds.md
+    - Play a Game: getting-started/play.md
+  - Example Games: games.md
+  - Hub App:
+    - Overview: hub-app/index.md
+    - System Status: hub-app/system-status.md
+    - Drivers: hub-app/drivers.md
+    - Driver Detail: hub-app/driver-detail.md
+    - Test LEDs: hub-app/test-leds.md
+    - Firmware: hub-app/firmware.md
+    - Games: hub-app/games.md
+    - Event Monitor: hub-app/event-monitor.md
+    - FX Playground: hub-app/fx-playground.md
+    - Simulator: hub-app/simulator.md
+    - Settings: hub-app/settings.md
+  - LED Hardware:
+    - Choosing Hardware: hardware/choosing.md
+    - Wiring & Power: hardware/wiring.md
+    - Configuration: hardware/configure.md
+    - Visual Effects: hardware/effects.md
+    - Build Examples: hardware/examples.md
   - Interceptors:
     - Introduction: interceptors/index.md
     - Event System: interceptors/events.md
@@ -51,27 +74,8 @@ nav:
     - Utilities: transformers/utils.md
     - GIF Bitmaps: transformers/gif-bitmaps.md
     - Ambilight: transformers/ambilight.md
-  - Drivers:
-    - Introduction: drivers/index.md
-    - Setup: drivers/firmware-and-wifi.md
-    - Configure LED Hardware: drivers/configure-leds.md
-    - Visual Effects: drivers/effects.md
-    - ESP32 Firmware: drivers/esp32/index.md
-    - LED Hardware: drivers/led-hardware/index.md
-    - Examples: drivers/examples.md
-  - Hub App:
-    - Introduction: hub-app/index.md
-    - System Status: hub-app/system-status.md
-    - Drivers:
-      - Overview: hub-app/drivers.md
-      - Driver Detail: hub-app/driver-detail.md
-      - Test LEDs: hub-app/test-leds.md
-    - Firmware: hub-app/firmware.md
-    - Games: hub-app/games.md
-    - Event Monitor: hub-app/event-monitor.md
-    - FX Playground: hub-app/fx-playground.md
-    - Simulator: hub-app/simulator.md
-    - Settings: hub-app/settings.md
+  - FAQ / Troubleshooting: faq.md
+  - About: about.md
 
 markdown_extensions:
   - attr_list
@@ -86,6 +90,9 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - toc:
       permalink: true
 

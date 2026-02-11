@@ -14,7 +14,6 @@ interface SimulateEventHandlerDeps {
 
 export function registerSimulateEventHandler(deps: SimulateEventHandlerDeps): void {
   const { onEventProcessed } = deps;
-  log.info('[SimulateEventHandler] Registering event:simulate IPC handler');
 
   ipcMain.handle('event:simulate', (_event, eventLine: string) => {
     log.info(`[SimulateEventHandler] Simulating event: ${eventLine}`);

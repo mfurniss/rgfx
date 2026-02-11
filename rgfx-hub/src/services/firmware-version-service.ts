@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { app } from 'electron';
+import log from 'electron-log/main';
 import {
   FirmwareManifestSchema,
   type FirmwareManifest,
@@ -17,7 +18,7 @@ class FirmwareVersionService {
     this.firmwareDir = app.isPackaged
       ? join(process.resourcesPath, 'firmware')
       : join(app.getAppPath(), 'assets', 'esp32', 'firmware');
-    console.log('[FirmwareVersionService] Firmware directory:', this.firmwareDir);
+    log.info('Firmware directory:', this.firmwareDir);
   }
 
   private getManifest(): FirmwareManifest | null {
@@ -27,7 +28,7 @@ class FirmwareVersionService {
       const parsed: unknown = JSON.parse(manifestContent);
       return FirmwareManifestSchema.parse(parsed);
     } catch (error) {
-      console.error('[FirmwareVersionService] Failed to load manifest:', error);
+      log.error('Failed to load firmware manifest:', error);
       return null;
     }
   }

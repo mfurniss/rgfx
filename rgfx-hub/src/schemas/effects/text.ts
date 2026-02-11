@@ -10,9 +10,8 @@ import { baseEffect } from './properties';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomColor, randomString, randomFloat, randomInt, randomGradient } from '@/utils/random';
-import type { PresetConfig } from './preset-config';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
-import type { LayoutConfig } from './layout-config';
+import type { PresetConfig, LayoutConfig } from './index';
 
 export const fieldTypes: FieldTypeMap = {
   accentColor: 'color',
@@ -21,12 +20,12 @@ export const fieldTypes: FieldTypeMap = {
 
 export function randomize(): Record<string, unknown> {
   return {
-    text: randomString(['Hello You!', 'AaBbCcDd', '0123456789', '*** RGFX ***']),
+    text: randomString(['*** RGFX ***', 'AaBbCcDd', '0123456789', 'Hello!']),
     accentColor: randomInt(1) ? randomColor(0.2) : null,
     duration: randomInt(3, 5) * 1000,
     gradient: randomGradient(0.2),
     gradientSpeed: randomFloat(0.1, 20),
-    gradientScale: randomFloat(0.1, 10),
+    gradientScale: randomFloat(0.1, 20),
   };
 }
 
@@ -56,8 +55,8 @@ export default baseEffect
       .describe('Gradient animation speed'),
     gradientScale: z
       .number()
-      .min(0.1)
-      .max(10)
+      .min(0)
+      .max(20)
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),

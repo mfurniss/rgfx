@@ -1,0 +1,2355 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Retro Game Effects - External visual effects for retro video games">
+      
+      
+      
+        <link rel="canonical" href="https://rgfx.io/faq.html">
+      
+      
+        <link rel="prev" href="transformers/ambilight.html">
+      
+      
+        <link rel="next" href="about.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>FAQ / Troubleshooting - RGFX Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/css/custom.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#frequently-asked-questions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="RGFX Documentation" class="md-header__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
+      
+  <img src="assets/images/favicon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RGFX Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FAQ / Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="RGFX Documentation" class="md-nav__button md-logo" aria-label="RGFX Documentation" data-md-component="logo">
+      
+  <img src="assets/images/favicon.png" alt="logo">
+
+    </a>
+    RGFX Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/requirements.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What You'll Need
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/hub-setup.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Set Up RGFX Hub
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/first-driver.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flash Your First Driver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Your LEDs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/play.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Play a Game
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="games.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Example Games
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hub App
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Hub App
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/system-status.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/drivers.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drivers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/driver-detail.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Driver Detail
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test LEDs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/firmware.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Firmware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/games.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Games
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/event-monitor.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Monitor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/fx-playground.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FX Playground
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/simulator.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hub-app/settings.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LED Hardware
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LED Hardware
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hardware/choosing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing Hardware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hardware/wiring.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wiring &amp; Power
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hardware/configure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hardware/effects.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual Effects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hardware/examples.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interceptors
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Interceptors
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/events.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/ram.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RAM Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/ambilight.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ambilight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/fft.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spectrum Analyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/writing-interceptors.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing Interceptors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interceptors/mame-api.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MAME API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transformers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="transformers/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="transformers/global.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Global Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="transformers/utils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="transformers/gif-bitmaps.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GIF Bitmaps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="transformers/ambilight.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ambilight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ / Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="faq.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ / Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-do-i-get-game-roms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where do I get game ROMs?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-rgfx-work-with-my-emulation-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does RGFX work with my emulation frontend?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-rgfx-work-with-emulators-other-than-mame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does RGFX work with emulators other than MAME?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-to-know-javascript-and-lua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do I need to know JavaScript and Lua?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-mames-lua-scripting-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How does MAME's Lua scripting work?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-add-support-for-a-new-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How do I add support for a new game?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-customize-the-effects-for-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I customize the effects for a game?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-to-install-an-mqtt-broker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do I need to install an MQTT broker?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-an-internet-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do I need an internet connection?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-many-leds-can-i-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How many LEDs can I run?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-are-my-config-files-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where are my config files stored?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#my-driver-doesnt-appear-in-the-hub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My driver doesn't appear in the Hub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#my-leds-dont-respond-to-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My LEDs don't respond to effects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-events-appear-when-playing-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No events appear when playing a game
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#my-leds-flicker-or-show-wrong-colors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My LEDs flicker or show wrong colors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firmware-update-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firmware update fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hub-application-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hub application issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#still-stuck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Still stuck?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="about.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-do-i-get-game-roms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where do I get game ROMs?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-rgfx-work-with-my-emulation-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does RGFX work with my emulation frontend?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-rgfx-work-with-emulators-other-than-mame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does RGFX work with emulators other than MAME?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-to-know-javascript-and-lua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do I need to know JavaScript and Lua?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-mames-lua-scripting-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How does MAME's Lua scripting work?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-add-support-for-a-new-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How do I add support for a new game?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-customize-the-effects-for-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I customize the effects for a game?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-to-install-an-mqtt-broker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do I need to install an MQTT broker?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-an-internet-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do I need an internet connection?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-many-leds-can-i-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How many LEDs can I run?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-are-my-config-files-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where are my config files stored?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#my-driver-doesnt-appear-in-the-hub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My driver doesn't appear in the Hub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#my-leds-dont-respond-to-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My LEDs don't respond to effects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-events-appear-when-playing-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No events appear when playing a game
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#my-leds-flicker-or-show-wrong-colors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My LEDs flicker or show wrong colors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firmware-update-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firmware update fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hub-application-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hub application issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#still-stuck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Still stuck?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="frequently-asked-questions">Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permanent link">¶</a></h1>
+<h2 id="where-do-i-get-game-roms">Where do I get game ROMs?<a class="headerlink" href="#where-do-i-get-game-roms" title="Permanent link">¶</a></h2>
+<p>RGFX does not include or distribute game ROMs. You should only play games you legally own. ROM files for arcade games you own can be found by searching the internet — I can't link to specific sources.</p>
+<p>Once you have ROM files, place them in a folder and point RGFX Hub to that folder in <a href="hub-app/settings.html">Settings</a>.</p>
+<h2 id="does-rgfx-work-with-my-emulation-frontend">Does RGFX work with my emulation frontend?<a class="headerlink" href="#does-rgfx-work-with-my-emulation-frontend" title="Permanent link">¶</a></h2>
+<p>Yes. RGFX works with any frontend (LaunchBox, AttractMode, EmulationStation, etc.) as long as it launches MAME as an external application. RGFX monitors MAME directly via its Lua plugin system — the frontend doesn't need to know about RGFX at all.</p>
+<h2 id="does-rgfx-work-with-emulators-other-than-mame">Does RGFX work with emulators other than MAME?<a class="headerlink" href="#does-rgfx-work-with-emulators-other-than-mame" title="Permanent link">¶</a></h2>
+<p>Not yet. RGFX currently relies on MAME's Lua plugin API to monitor game memory and detect events. I'd like to support other emulators in the future — if your favorite emulator exposes a scripting or plugin interface, that's a good candidate. For now, MAME version 0.250 or later is required.</p>
+<h2 id="do-i-need-to-know-javascript-and-lua">Do I need to know JavaScript and Lua?<a class="headerlink" href="#do-i-need-to-know-javascript-and-lua" title="Permanent link">¶</a></h2>
+<p>Not to use RGFX with the included example games — those work out of the box.</p>
+<p>To <strong>add a new game</strong>, you'll write a Lua interceptor script. To <strong>customize effects</strong>, you'll edit a JavaScript transformer script. Both are short, readable files — not full applications. The existing game scripts are good templates to copy and modify.</p>
+<p>If you're new to either language, these free resources are a good starting point:</p>
+<ul>
+<li><strong>Lua</strong> — <a href="https://tylerneylon.com/a/learn-lua/">Learn Lua in 15 Minutes</a> for a quick overview, or the official <a href="https://www.lua.org/pil/1.html">Programming in Lua</a> guide for more depth</li>
+<li><strong>JavaScript</strong> — <a href="https://javascript.info/">The Modern JavaScript Tutorial</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide">MDN's JavaScript Guide</a> from Mozilla</li>
+</ul>
+<h2 id="how-does-mames-lua-scripting-work">How does MAME's Lua scripting work?<a class="headerlink" href="#how-does-mames-lua-scripting-work" title="Permanent link">¶</a></h2>
+<p>MAME has a built-in Lua engine that lets plugins read game memory, hook into events, and interact with the emulator while a game is running. RGFX interceptors are MAME Lua plugins. The official MAME Lua scripting documentation is at <a href="https://docs.mamedev.org/luascript/index.html">docs.mamedev.org/luascript</a>, and the RGFX <a href="interceptors/mame-api.html">MAME API</a> page covers the specific parts used by interceptors.</p>
+<h2 id="how-do-i-add-support-for-a-new-game">How do I add support for a new game?<a class="headerlink" href="#how-do-i-add-support-for-a-new-game" title="Permanent link">¶</a></h2>
+<p>Any game that runs in MAME can work with RGFX. The <a href="interceptors/writing-interceptors.html">Writing Interceptors</a> guide walks you through the process — from finding memory addresses with MAME's debugger to emitting your first event. The <a href="games.html">existing game scripts</a> are good examples to study.</p>
+<h2 id="can-i-customize-the-effects-for-a-game">Can I customize the effects for a game?<a class="headerlink" href="#can-i-customize-the-effects-for-a-game" title="Permanent link">¶</a></h2>
+<p>Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the <a href="transformers/index.html">Transformers</a> documentation.</p>
+<h2 id="do-i-need-to-install-an-mqtt-broker">Do I need to install an MQTT broker?<a class="headerlink" href="#do-i-need-to-install-an-mqtt-broker" title="Permanent link">¶</a></h2>
+<p>No. RGFX Hub runs an embedded MQTT broker automatically. Your ESP32 drivers discover it on the network and connect without any configuration.</p>
+<h2 id="do-i-need-an-internet-connection">Do I need an internet connection?<a class="headerlink" href="#do-i-need-an-internet-connection" title="Permanent link">¶</a></h2>
+<p>No. Everything runs locally over your WiFi network. MAME, the Hub, and your ESP32 drivers communicate directly — nothing is sent to the cloud.</p>
+<h2 id="how-many-leds-can-i-run">How many LEDs can I run?<a class="headerlink" href="#how-many-leds-can-i-run" title="Permanent link">¶</a></h2>
+<p>Each ESP32 driver can control one strip or matrix. The limit depends on your power supply — each WS2812B LED draws up to 60mA at full white brightness. A USB port can power around 30 LEDs comfortably; larger setups need an external 5V supply. See <a href="hardware/wiring.html">Wiring &amp; Power</a> for details.</p>
+<p>You can run multiple ESP32 drivers simultaneously for separate LED strips or matrices.</p>
+<h2 id="where-are-my-config-files-stored">Where are my config files stored?<a class="headerlink" href="#where-are-my-config-files-stored" title="Permanent link">¶</a></h2>
+<p>RGFX stores interceptors, transformers, LED hardware definitions, and driver configurations in a <a href="getting-started/hub-setup.html#config-directory">config directory</a> on your computer. You can change this location in <a href="hub-app/settings.html">Settings</a>.</p>
+<hr>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="my-driver-doesnt-appear-in-the-hub">My driver doesn't appear in the Hub<a class="headerlink" href="#my-driver-doesnt-appear-in-the-hub" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WiFi credentials</td>
+<td>Did you enter the correct network name and password during setup? Reflash WiFi config via USB if needed.</td>
+</tr>
+<tr>
+<td>Same network</td>
+<td>The ESP32 and the computer running RGFX Hub must be on the same local network. Guest networks or VLANs may isolate devices.</td>
+</tr>
+<tr>
+<td>Hub is running</td>
+<td>The Hub's embedded MQTT broker must be running for drivers to connect. Check the <a href="hub-app/system-status.html">System Status</a> page — the MQTT Broker status should show as active.</td>
+</tr>
+<tr>
+<td>Firewall</td>
+<td>Your computer's firewall may be blocking MQTT (port 1883) or SSDP discovery (port 1900).</td>
+</tr>
+<tr>
+<td>ESP32 power</td>
+<td>Is the ESP32's power LED lit? Try a different USB port or cable.</td>
+</tr>
+<tr>
+<td>Serial monitor</td>
+<td>Connect the ESP32 via USB and check the serial output for connection errors.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="my-leds-dont-respond-to-effects">My LEDs don't respond to effects<a class="headerlink" href="#my-leds-dont-respond-to-effects" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPIO pin</td>
+<td>Verify the configured GPIO pin matches the physical pin your data wire is connected to.</td>
+</tr>
+<tr>
+<td>LED count</td>
+<td>Make sure the LED hardware definition matches your actual hardware (correct LED count and layout type).</td>
+</tr>
+<tr>
+<td>Power</td>
+<td>Are the LEDs receiving power? Check that the 5V supply is connected and turned on.</td>
+</tr>
+<tr>
+<td>Data direction</td>
+<td>LED strips have a direction — signals flow from DIN to DOUT. Make sure you're connected to the input end.</td>
+</tr>
+<tr>
+<td>Test pattern</td>
+<td>Press the ESP32's <strong>BOOT</strong> button to trigger a test pattern without needing the Hub. If the test pattern works but Hub effects don't, the issue is network-side, not hardware.</td>
+</tr>
+<tr>
+<td>Brightness</td>
+<td>Check that maximum brightness isn't set to 0 in the driver configuration.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="no-events-appear-when-playing-a-game">No events appear when playing a game<a class="headerlink" href="#no-events-appear-when-playing-a-game" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAME version</td>
+<td>RGFX requires MAME 0.250 or later for the Lua plugin API.</td>
+</tr>
+<tr>
+<td>ROM name</td>
+<td>The interceptor matches by ROM name. The ROM filename must match an entry in <code>interceptors/rom_map.lua</code> in your <a href="getting-started/hub-setup.html#config-directory">config directory</a>.</td>
+</tr>
+<tr>
+<td>Interceptor loading</td>
+<td>Check MAME's console output for errors. If the interceptor has a Lua syntax error, MAME will report it.</td>
+</tr>
+<tr>
+<td>Config directory</td>
+<td>Verify the RGFX Config Directory in <a href="hub-app/settings.html">Settings</a> points to your config directory.</td>
+</tr>
+<tr>
+<td>Event log</td>
+<td>Check that <code>interceptor_events.log</code> is being created and updated in your config directory while the game runs.</td>
+</tr>
+<tr>
+<td>Boot delay</td>
+<td>Some interceptors have a boot delay to skip past hardware tests and attract modes. Wait for gameplay to begin before expecting events.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="my-leds-flicker-or-show-wrong-colors">My LEDs flicker or show wrong colors<a class="headerlink" href="#my-leds-flicker-or-show-wrong-colors" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Colors are swapped (red shows as green)</td>
+<td>Color order mismatch</td>
+<td>Change color order in <a href="hardware/configure.html">LED Configuration</a> (GRB vs RGB)</td>
+</tr>
+<tr>
+<td>Flickering or random pixels</td>
+<td>Data signal integrity</td>
+<td>Shorten the data wire, add a level shifter, or check for loose connections</td>
+</tr>
+<tr>
+<td>LEDs at the far end are dim or discolored</td>
+<td>Voltage drop</td>
+<td>Inject power at both ends of the strip — see <a href="hardware/wiring.html">Wiring &amp; Power</a></td>
+</tr>
+<tr>
+<td>Only the first few LEDs work</td>
+<td>Data line break</td>
+<td>Check wiring continuity past the working LEDs</td>
+</tr>
+<tr>
+<td>Dim flicker at low brightness</td>
+<td>Normal LED behavior</td>
+<td>Enable <strong>temporal dithering</strong> in driver config, or adjust <strong>floor cutoff</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="firmware-update-fails">Firmware update fails<a class="headerlink" href="#firmware-update-fails" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>USB cable</td>
+<td>Use a <strong>data</strong> cable, not charge-only. Try a different cable if the serial port doesn't appear.</td>
+</tr>
+<tr>
+<td>Serial port</td>
+<td>Make sure no other application (serial monitor, IDE) has the port open.</td>
+</tr>
+<tr>
+<td>Boot mode</td>
+<td>If USB flash fails, hold the ESP32's <strong>BOOT</strong> button while pressing <strong>RESET</strong> to enter bootloader mode, then try again.</td>
+</tr>
+<tr>
+<td>OTA timeout</td>
+<td>For OTA updates, the driver must be connected and responsive. If it's in a bad state, reflash via USB.</td>
+</tr>
+<tr>
+<td>Multiple drivers</td>
+<td>OTA can update multiple drivers in parallel. If one fails, the others continue independently.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hub-application-issues">Hub application issues<a class="headerlink" href="#hub-application-issues" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hub won't start</td>
+<td>Check that no other instance is already running (the MQTT broker binds to a fixed port).</td>
+</tr>
+<tr>
+<td>Settings don't save</td>
+<td>Verify the directories exist on disk. The Hub validates paths before saving.</td>
+</tr>
+<tr>
+<td>Events processed but no effects</td>
+<td>Check that the game has a transformer script. Games with interceptors but no transformer use default effect mappings.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="still-stuck">Still stuck?<a class="headerlink" href="#still-stuck" title="Permanent link">¶</a></h3>
+<p>For general LED hardware questions (power supplies, wiring, signal issues), the <a href="https://www.reddit.com/r/led/">r/led</a> community on Reddit is a good resource.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 11, 2026 01:19:58 UTC">February 11, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.top", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="assets/js/mermaid.min.js"></script>
+      
+        <script src="js/open_in_new_tab.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

@@ -1,9 +1,6 @@
 # Games
 
-!!! warning "Draft"
-    This page is a placeholder and is under active development.
-
-The Games page shows all configured games with their interceptor and transformer scripts.
+The Games page shows which of your MAME ROMs have interceptor and transformer scripts configured. It's a quick way to see what's ready to play and what still needs scripts.
 
 ## Games Table
 

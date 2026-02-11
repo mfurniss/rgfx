@@ -83,12 +83,6 @@ else
     fi
 fi
 
-# Check if any code changes detected
-if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES" = false ]; then
-    echo "📄 No code changes detected (docs only), skipping checks"
-    exit 0
-fi
-
 # Check for unstaged CLAUDE.md files in directories with staged changes
 # Returns 1 if unstaged CLAUDE.md files are found, 0 otherwise
 check_claude_md_updates() {
@@ -102,7 +96,7 @@ check_claude_md_updates() {
     for file in $staged_files; do
         # Skip non-source files
         case "$file" in
-            *.ts|*.tsx|*.js|*.jsx|*.cpp|*.h|*.lua)
+            *.ts|*.tsx|*.js|*.jsx|*.cpp|*.h|*.lua|public-docs/docs/*|public-docs/mkdocs.yml|public-docs/overrides/*)
                 ;;
             *)
                 continue
@@ -162,6 +156,12 @@ if [ -n "$STAGED_FILES" ]; then
     if ! check_claude_md_updates "$STAGED_FILES"; then
         exit 1
     fi
+fi
+
+# Check if any code changes detected
+if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES" = false ]; then
+    echo "📄 No code changes detected (docs only), skipping checks"
+    exit 0
 fi
 
 notify "Starting code checks..."

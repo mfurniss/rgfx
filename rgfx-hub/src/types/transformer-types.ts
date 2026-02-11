@@ -165,35 +165,10 @@ interface HttpClient {
  * Useful for tracking game state, debouncing, rate limiting, etc.
  */
 export interface StateStore {
-  /**
-   * Get value by key
-   * @param key Storage key
-   * @returns Stored value or undefined if not found
-   */
   get(key: string): unknown;
-
-  /**
-   * Set value for key
-   * @param key Storage key
-   * @param value Value to store
-   */
   set(key: string, value: unknown): void;
-
-  /**
-   * Check if key exists
-   * @param key Storage key
-   */
   has(key: string): boolean;
-
-  /**
-   * Delete key
-   * @param key Storage key
-   */
   delete(key: string): void;
-
-  /**
-   * Clear all stored data
-   */
   clear(): void;
 }
 
@@ -201,24 +176,9 @@ export interface StateStore {
  * Logger interface for transformers to log debug/info/warnings/errors
  */
 export interface Logger {
-  /**
-   * Log debug message (verbose, development only)
-   */
   debug(message: string, ...args: unknown[]): void;
-
-  /**
-   * Log informational message
-   */
   info(message: string, ...args: unknown[]): void;
-
-  /**
-   * Log warning message
-   */
   warn(message: string, ...args: unknown[]): void;
-
-  /**
-   * Log error message
-   */
   error(message: string, ...args: unknown[]): void;
 }
 
