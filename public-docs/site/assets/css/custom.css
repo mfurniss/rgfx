@@ -16,6 +16,25 @@
   border-bottom: none;
 }
 
+/* Dark background for glightbox overlay */
+.glightbox-clean .gslide-media {
+  box-shadow: none;
+}
+
+.glightbox-clean .goverlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.glightbox-clean .gslide-image img {
+  background: transparent;
+}
+
+.glightbox-clean .gdesc-inner,
+.glightbox-clean .gslide-desc {
+  background: transparent;
+  color: #ccc;
+}
+
 /* LED test pattern visualizations */
 :root {
   --led-red: #ff0000;
