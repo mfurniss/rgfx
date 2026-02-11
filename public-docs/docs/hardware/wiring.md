@@ -10,7 +10,7 @@ An addressable LED strip needs three connections from the ESP32:
 2. **GND** — common ground between ESP32 and LEDs
 3. **5V** — power for the LEDs
 
-For small setups (under ~30 LEDs), the ESP32's onboard 5V pin can power the LEDs directly through USB. For anything larger, you'll need an external power supply.
+The ESP32's onboard 5V pin is the recommended connection point for powering your LEDs. It cleanly routes power from your supply through the breakout board to both the ESP32 and the LED hardware.
 
 ### GPIO Pin
 
@@ -22,13 +22,7 @@ LED strips have a data direction — signals flow from data-in to data-out. Make
 
 ## Power
 
-### USB Power (Small Setups)
-
-For getting started with a short strip (up to ~30 LEDs), USB power through the ESP32 is fine. The ESP32's 5V pin passes through USB power to the strip.
-
-### External 5V Power (Larger Setups)
-
-Each WS2812B LED can draw up to ~60mA at full white brightness. The math adds up quickly:
+The power supply you need depends on how many LEDs you're driving. Each WS2812B LED can draw up to ~60mA at full white brightness:
 
 | LEDs | Max Current | Power Supply |
 |------|------------|-------------|
@@ -37,14 +31,10 @@ Each WS2812B LED can draw up to ~60mA at full white brightness. The math adds up
 | 100 | ~6A | 5V 8A supply |
 | 256 (16x16 matrix) | ~15A | 5V 20A supply |
 
+For small setups, USB power alone is sufficient. For larger builds, use an external 5V power supply connected to the breakout board — the 5V pin distributes power to both the ESP32 and the LEDs.
+
 !!! tip
     In practice, effects rarely drive all LEDs at full white simultaneously. RGFX's driver firmware includes a **max power (mA) setting** that dynamically scales brightness to stay within your power supply's capacity. Always configure this limit to match your actual power supply.
-
-When using an external supply:
-
-- Connect the supply's 5V and GND to the LED strip's power pads
-- Connect the supply's GND to the ESP32's GND (common ground is essential)
-- The ESP32 itself can still be powered via USB
 
 ### Power Injection
 
