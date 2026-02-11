@@ -2,7 +2,7 @@
 
 The `global.js` file defines driver constants and configurations shared across transformers.
 
-**Location:** `~/.rgfx/transformers/global.js`
+**Location:** `transformers/global.js` in your [config directory](../getting-started/hub-setup.md#config-directory)
 
 ## Driver Groups
 

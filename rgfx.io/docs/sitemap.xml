@@ -11,38 +11,63 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/index.html</loc>
-    <lastmod>2026-01-27T04:18:13+00:00</lastmod>
+    <loc>https://rgfx.io/faq.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/configure-leds.html</loc>
-    <lastmod>2026-01-27T04:18:13+00:00</lastmod>
+    <loc>https://rgfx.io/games.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/effects.html</loc>
-    <lastmod>2026-02-03T23:18:15+00:00</lastmod>
+    <loc>https://rgfx.io/getting-started/first-driver.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/examples.html</loc>
-    <lastmod>2026-02-04T14:23:14+00:00</lastmod>
+    <loc>https://rgfx.io/getting-started/hub-setup.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/firmware-and-wifi.html</loc>
-    <lastmod>2026-01-27T04:18:13+00:00</lastmod>
+    <loc>https://rgfx.io/getting-started/play.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/esp32/index.html</loc>
-    <lastmod>2026-01-27T04:18:13+00:00</lastmod>
+    <loc>https://rgfx.io/getting-started/requirements.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/drivers/led-hardware/index.html</loc>
-    <lastmod>2026-02-04T14:23:14+00:00</lastmod>
+    <loc>https://rgfx.io/getting-started/test-leds.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://rgfx.io/hardware/choosing.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://rgfx.io/hardware/configure.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://rgfx.io/hardware/effects.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://rgfx.io/hardware/examples.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://rgfx.io/hardware/wiring.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -136,23 +161,18 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/overview/index.html</loc>
-    <lastmod>2026-01-18T04:12:15+00:00</lastmod>
+    <loc>https://rgfx.io/reference/architecture.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/overview/architecture.html</loc>
-    <lastmod>2026-01-16T15:48:33+00:00</lastmod>
+    <loc>https://rgfx.io/reference/esp32.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/overview/getting-started.html</loc>
-    <lastmod>2026-02-10T19:14:15+00:00</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://rgfx.io/overview/requirements.html</loc>
-    <lastmod>2026-01-18T04:12:15+00:00</lastmod>
+    <loc>https://rgfx.io/reference/troubleshooting.html</loc>
+    <lastmod>2026-02-11T00:57:26+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>

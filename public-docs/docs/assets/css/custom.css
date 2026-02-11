@@ -1,3 +1,7 @@
+.md-header {
+  background-color: #1a1a1a;
+}
+
 .md-nav--primary > .md-nav__title {
   display: none;
 }
@@ -10,6 +14,25 @@
 /* Remove underline from h2 headers */
 .md-typeset h2 {
   border-bottom: none;
+}
+
+/* Dark background for glightbox overlay */
+.glightbox-clean .gslide-media {
+  box-shadow: none;
+}
+
+.glightbox-clean .goverlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.glightbox-clean .gslide-image img {
+  background: transparent;
+}
+
+.glightbox-clean .gdesc-inner,
+.glightbox-clean .gslide-desc {
+  background: transparent;
+  color: #ccc;
 }
 
 /* LED test pattern visualizations */

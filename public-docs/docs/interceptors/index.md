@@ -1,6 +1,8 @@
 # Interceptors
 
-Interceptors are the bridge between games running in MAME and the RGFX event processing system. Written in Lua, they run inside MAME's Lua environment where they analyze game state, monitor memory locations, and generate meaningful events that describe what's happening in the game.
+Interceptors are how you add your favorite game to RGFX. They're the bridge between a game running in MAME and the LED effects on your setup — written in Lua, they watch the game's memory for meaningful moments and fire events when things happen.
+
+RGFX ships with [example interceptors](../games.md) for several classic games, but the real power is writing your own. If you can find memory addresses with MAME's debugger and edit a text file, you can add any game. Community-contributed interceptors are welcome and will be merged into official releases.
 
 ## What Interceptors Do
 
@@ -26,26 +28,24 @@ flowchart TB
         rgfx --> detect --> load --> intercept
     end
 
-    intercept --> |"event()"| logfile["~/.rgfx/interceptor_events.log"]
+    intercept --> |"event()"| logfile["interceptor_events.log"]
     logfile --> hub["RGFX Hub"]
     hub --> led["LED Effects"]
 ```
 
 ## Where Interceptors Live
 
-Interceptors are stored in your home directory:
+Interceptors are stored in the `interceptors/` subdirectory of your [config directory](../getting-started/hub-setup.md#config-directory):
 
 ```
-~/.rgfx/
-├── interceptor_events.log    # Event output (auto-generated)
-└── interceptors/
-    ├── rom_map.lua           # Maps ROM names to interceptors
-    ├── ambilight.lua         # Screen color sampling utility
-    ├── fft.lua               # Audio analysis utility
-    └── games/
-        ├── pacman_rgfx.lua
-        ├── galaga_rgfx.lua
-        └── ...
+interceptors/
+├── rom_map.lua           # Maps ROM names to interceptors
+├── ambilight.lua         # Screen color sampling utility
+├── fft.lua               # Audio analysis utility
+└── games/
+    ├── pacman_rgfx.lua
+    ├── galaga_rgfx.lua
+    └── ...
 ```
 
 When RGFX Hub first runs, it copies default interceptors to this location. You can customize these files — your changes won't be overwritten.

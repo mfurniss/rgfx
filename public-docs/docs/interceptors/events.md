@@ -32,7 +32,7 @@ event("rgfx/ambilight/top", "FF0000,00FF00,0000FF")
 
 ## Event Log
 
-Events are written to `~/.rgfx/interceptor_events.log` in a simple format:
+Events are written to `interceptor_events.log` in your [config directory](../getting-started/hub-setup.md#config-directory):
 
 ```
 topic payload
