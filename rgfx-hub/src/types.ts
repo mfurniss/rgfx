@@ -402,6 +402,7 @@ declare global {
       showInFolder: (filePath: string) => Promise<void>;
       getLogSizes: () => Promise<LogSizes>;
       clearAllLogs: () => Promise<void>;
+      createBackup: () => Promise<{ success: boolean; error?: string }>;
       quitApp: () => void;
     };
   }
