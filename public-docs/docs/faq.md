@@ -130,6 +130,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 
 - **LED hardware** — [r/led](https://www.reddit.com/r/led/) for power supplies, wiring, and signal issues
 - **ESP32** — [r/esp32](https://www.reddit.com/r/esp32/) for microcontroller and firmware questions
+- **MAME** — [r/MAME](https://www.reddit.com/r/MAME/) for general MAME emulation discussion
 - **MAME Lua scripting** — the official [MAME Lua scripting docs](https://docs.mamedev.org/luascript/index.html) cover the full API available to interceptors
 - **Lua** — [Learn Lua in 15 Minutes](https://tylerneylon.com/a/learn-lua/) or the official [Programming in Lua](https://www.lua.org/pil/1.html) guide
 - **JavaScript** — [The Modern JavaScript Tutorial](https://javascript.info/) or [MDN's JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)

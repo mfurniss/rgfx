@@ -1,5 +1,5 @@
 import { formatNumber, sleep } from '../utils.js';
-import { NAMED_DRIVERS } from '../global.js';
+import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 const bonusColors = {
   150: '#C0C0C0',
@@ -12,7 +12,23 @@ const bonusColors = {
   3000: '#F0F0F0',
 };
 
+let tractorBeam = false;
+
 export async function transform({ subject, property, payload }, { broadcast }) {
+  if (subject === 'init') {
+    broadcast({
+      effect: 'particle_field',
+      drivers: MATRIX_DRIVERS,
+      props: {
+        direction: 'down',
+        density: 40,
+        speed: 50,
+        size: 1,
+        color: '#606060',
+        enabled: 'fadeIn',
+      },
+    });
+  }
   if (subject === 'player' && property === 'score' && Number(payload) > 0) {
     broadcast({
       effect: 'text',
@@ -28,6 +44,47 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     });
 
     return true;
+  }
+
+  if (subject === 'stage') {
+    const isChallengingStage = !(Number(payload) - 3) % 4;
+
+    broadcast({
+      effect: 'scroll_text',
+      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+      props: {
+        text: isChallengingStage ? 'CHALLENGING STAGE' : `STAGE ${payload}`,
+        gradient: ['#008050'],
+        speed: 220,
+        repeat: false,
+        snapToLed: true,
+      },
+    });
+  }
+
+  if (subject === 'player' && property === 'captured') {
+    broadcast({
+      effect: 'warp',
+      props: {
+        enabled: 'fadeOut',
+      },
+    });
+
+    await sleep(500);
+
+    tractorBeam = false;
+
+    broadcast({
+      effect: 'scroll_text',
+      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+      props: {
+        text: 'FIGHTER CAPTURED',
+        gradient: ['#A00000'],
+        speed: 250,
+        repeat: false,
+        snapToLed: true,
+      },
+    });
   }
 
   if (subject === 'bonus' && property === 'score') {
@@ -70,12 +127,14 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     return true;
   }
 
-  if (subject === 'boss' && property === 'tractor-beam') {
+  if (subject === 'boss' && property === 'tractor-beam' && !tractorBeam) {
+    tractorBeam = true;
+
     const props = {
       speed: 16,
       scale: 0,
       orientation: 'horizontal',
-      gradient: ['#00FFFF', '#0060FF', '#000080'],
+      gradient: ['#00A0A0', '#0040A0', '#000050'],
     };
 
     broadcast({
@@ -86,15 +145,16 @@ export async function transform({ subject, property, payload }, { broadcast }) {
       },
     });
 
-    await sleep(4200);
+    await sleep(8000);
 
     broadcast({
       effect: 'warp',
       props: {
-        ...props,
         enabled: 'fadeOut',
       },
     });
+
+    tractorBeam = false;
 
     return true;
   }

@@ -8,13 +8,13 @@
 local ram = require("ram")
 
 
-local ambilight = require("ambilight")
+-- local ambilight = require("ambilight")
 
-ambilight.init({
-	zones = 12,
-	depth = 10,
-	event_interval = 3,
-})
+-- ambilight.init({
+-- 	zones = 12,
+-- 	depth = 10,
+-- 	event_interval = 3,
+-- })
 
 
 -- Super Mario Bros (NES) RAM Map
@@ -298,12 +298,3 @@ _G.event(game_name .. "/init", "1")
 
 ram.install_monitors(map, mem)
 
--- Optional: Enable FFT audio analysis for visual effects
--- Uncomment to enable FFT events and/or console bar graph
--- local fft = require("fft")
--- fft.init({
--- 	game_name = game_name,
--- 	emit_events = true, -- Send FFT data via events
--- 	log_bars = true, -- Show bar graph in console
--- 	fps = 10,
--- })

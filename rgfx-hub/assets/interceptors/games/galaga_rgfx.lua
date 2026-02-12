@@ -114,6 +114,27 @@ local map = {
 			end
 		end,
 	},
+	-- Capture flag at ds5_928A_captr_status[4] ($928E)
+	fighter_captured = {
+		addr_start = 0x928E,
+		callback = function(_, current, previous)
+			print(string.format("CAPTURE $928E: %02X -> %02X", previous, current))
+			if current == 1 and previous ~= 1 then
+				print("FIGHTER CAPTURED")
+				_G.event("galaga/player/captured")
+			end
+		end,
+	},
+	-- Stage counter at ds_plyr_actv + _b_stgctr ($9820 + $01 = $9821)
+	stage = {
+		addr_start = 0x9821,
+		callback = function(_, current, previous)
+			if current == previous + 1 then
+				print(string.format("STAGE: %d -> %d", previous, current))
+				_G.event("galaga/stage", current)
+			end
+		end,
+	},
 }
 
 ram.install_monitors(map, mem)
@@ -142,6 +163,8 @@ for slot = 0, 63 do
 end
 
 emu.register_frame_done(function()
+	if not ram.is_ready() then return end
+
 	for slot = 0, 63 do
 		local addr = SPRITE_CODE_BASE + (slot * 2)
 		local val = mem:read_u8(addr) & 0x7F

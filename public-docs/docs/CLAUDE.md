@@ -23,6 +23,7 @@ The LED test pattern visualizations in `hub-app/test-leds.md` are an accepted ex
 
 ### Documentation Standards
 
+- Link to relevant subreddits (r/led, r/esp32, r/MAME) and external resources in the FAQ "Still stuck?" section
 - Use precise technical terminology
 - Include actual configuration options with correct defaults
 - Document all parameters, not just common ones

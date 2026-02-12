@@ -29,6 +29,10 @@ function exports.set_boot_delay(seconds)
 	end
 end
 
+function exports.is_ready()
+	return not delay_enabled
+end
+
 -- Set a global boot delay before RAM monitoring begins
 -- Call this BEFORE installing any monitors to skip boot/test phases
 -- Displays a countdown timer and activates monitoring after delay expires
