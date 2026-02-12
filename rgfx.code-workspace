@@ -53,6 +53,8 @@
       "editor.formatOnSave": true
     },
     "stylua.targetReleaseVersion": "latest",
+    "Lua.diagnostics.globals": ["manager", "emu", "event", "event_cleanup"],
+    "Lua.diagnostics.disable": ["undefined-field"],
     "files.associations": {
       "*.h": "cpp",
       "random": "cpp"
