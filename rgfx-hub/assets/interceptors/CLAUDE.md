@@ -18,7 +18,7 @@ Files here are bundled with the app and copied to `~/.rgfx/interceptors/` on fir
 ### Game Interceptors (games/)
 Game-specific interceptors that monitor RAM and emit events:
 - `galaga88_rgfx.lua` - Galaga '88
-- `galaga_rgfx.lua` - Galaga (score-delta event mapping, tractor beam detection, bonus sprite scanning)
+- `galaga_rgfx.lua` - Galaga (score-delta event mapping, tractor beam detection, bonus sprite scanning, fighter capture detection, stage tracking)
 - `gforce2_rgfx.lua` - G-LOC: Air Battle / G-Force 2
 - `nes_smb_rgfx.lua` - NES Super Mario Bros
 - `outrun_rgfx.lua` - OutRun
