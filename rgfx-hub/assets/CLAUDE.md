@@ -51,7 +51,7 @@ JavaScript modules that transform game events into LED effects:
 - `utils.js` - Shared utility functions (randomInt, sleep, formatNumber, scaleLinear)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
-- `games/` - Game-specific transformer modules (galaga.js, outrun.js, pacman.js, smb.js, etc.)
+- `games/` - Game-specific transformer modules (galaga.js, outrun.js, pacman.js, shangon.js, smb.js, etc.)
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting
   - `ambilight.js` - Ambilight effect subject
