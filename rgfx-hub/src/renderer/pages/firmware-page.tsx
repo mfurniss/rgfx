@@ -341,7 +341,7 @@ const FirmwarePage: React.FC = () => {
             </>
           )}
 
-          {flashState.error && (
+          {flashState.error && !isFlashing && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {flashState.error}
             </Alert>
