@@ -158,6 +158,8 @@ bool testModeActive = false;
 #include "effects/particle_field.cpp"
 #include "effects/sparkle.h"
 #include "effects/sparkle.cpp"
+#include "effects/music.h"
+#include "effects/music.cpp"
 
 // Include the EffectProcessor (this also includes downsample_to_matrix.h)
 #include "effects/effect_processor.h"
