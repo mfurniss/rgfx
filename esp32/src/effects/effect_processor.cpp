@@ -37,6 +37,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  plasmaEffect(canvas),
 	  warpEffect(matrix, canvas),
 	  spectrumEffect(matrix, canvas),
+	  musicEffect(matrix, canvas),
 	  particleFieldEffect(matrix, canvas),
 	  sparkleEffect(matrix, canvas),
 	  lastFrameTime(0),
@@ -55,6 +56,7 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 		  {"warp", &warpEffect},
 		  {"text", &textEffect},
 		  {"scroll_text", &scrollTextEffect},
+		  {"music", &musicEffect},
 	  } {}
 
 void EffectProcessor::update() {
