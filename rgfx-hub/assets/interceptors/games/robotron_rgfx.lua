@@ -254,6 +254,7 @@ local sound_lut = {
 local last_sound_ptr = 0
 
 emu.register_frame_done(function()
+	if not ram.is_ready() then return end
 	local ptr_hi = mem:read_u8(0x9854)
 	local ptr_lo = mem:read_u8(0x9855)
 	local ptr = (ptr_hi << 8) | ptr_lo
@@ -266,7 +267,7 @@ emu.register_frame_done(function()
 		if is_new_sound then
 			local name = sound_lut[ptr]
 			if not name then
-				print(string.format("[ROBOTRON] Sound: UNKNOWN ($%04X)", ptr))
+				-- print(string.format("[ROBOTRON] Sound: UNKNOWN ($%04X)", ptr))
       else
         _G.event("robotron/sfx/" .. name)
       end

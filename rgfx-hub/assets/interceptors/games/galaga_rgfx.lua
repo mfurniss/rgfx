@@ -14,22 +14,29 @@ local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 
 -- Score delta to event lookup table
-local SCORE_EVENTS = {
-	[50] = "galaga/enemy/destroy/bee",          -- bee in formation
-	[80] = "galaga/enemy/destroy/butterfly",    -- butterfly in formation
-	[100] = "galaga/enemy/destroy/bee",         -- bee diving (or challenge hit)
-	[150] = "galaga/enemy/destroy/boss",        -- boss in formation
-	[160] = "galaga/enemy/destroy/butterfly",   -- butterfly diving (or transform individual)
-	[400] = "galaga/enemy/destroy/boss",        -- boss diving alone
-	[800] = "galaga/enemy/destroy/boss-convoy", -- boss + 1 escort diving
-	[1000] = "galaga/bonus/transform",          -- all scorpions destroyed
-	[1600] = "galaga/enemy/destroy/boss-convoy", -- boss + 2 escorts diving
-	[2000] = "galaga/bonus/transform",          -- all stingrays destroyed
-	[3000] = "galaga/bonus/transform",          -- all galaxian flagships destroyed
-	[10000] = "galaga/bonus/perfect",           -- perfect challenging stage
-}
+-- local SCORE_EVENTS = {
+-- 	[50] = "galaga/enemy/destroy/bee",          -- bee in formation
+-- 	[80] = "galaga/enemy/destroy/butterfly",    -- butterfly in formation
+-- 	[100] = "galaga/enemy/destroy/bee",         -- bee diving (or challenge hit)
+-- 	[150] = "galaga/enemy/destroy/boss",        -- boss in formation
+-- 	[160] = "galaga/enemy/destroy/butterfly",   -- butterfly diving (or transform individual)
+-- 	[400] = "galaga/enemy/destroy/boss",        -- boss diving alone
+-- 	[800] = "galaga/enemy/destroy/boss-convoy", -- boss + 1 escort diving
+-- 	[1000] = "galaga/bonus/transform",          -- all scorpions destroyed
+-- 	[1600] = "galaga/enemy/destroy/boss-convoy", -- boss + 2 escorts diving
+-- 	[2000] = "galaga/bonus/transform",          -- all stingrays destroyed
+-- 	[3000] = "galaga/bonus/transform",          -- all galaxian flagships destroyed
+-- 	-- [10000] = "galaga/bonus/perfect",           -- perfect challenging stage
+-- }
 
-local last_score = 0
+-- Galaga Player 1 current score in video RAM at 0x83F8 - 0x83FD
+-- Player ship X position at 0x9362 (gameplay buffer, verified via runtime analysis)
+--   Range: 0x11 (left edge) to 0xE1 (right edge)
+-- Shot counter at 0x9846 (16-bit word, increments when player fires)
+-- Hit counter at 0x9844 (increments when enemy destroyed)
+
+local last_score_p1 = 0
+local last_score_p2 = 0
 
 local function get_galaga_score(start_addr)
 	local score = 0
@@ -50,31 +57,28 @@ local function get_galaga_score(start_addr)
 	return score
 end
 
--- Galaga Player 1 current score in video RAM at 0x83F8 - 0x83FD
--- Player ship X position at 0x9362 (gameplay buffer, verified via runtime analysis)
---   Range: 0x11 (left edge) to 0xE1 (right edge)
--- Shot counter at 0x9846 (16-bit word, increments when player fires)
--- Hit counter at 0x9844 (increments when enemy destroyed)
+
 local map = {
 	player_one_score = {
 		addr_start = 0x83F8,
 		addr_end = 0x83FD,
 		callback = function(_, _, _)
 			local score = get_galaga_score(0x83F8)
-			local delta = score - last_score
-
-			_G.event("galaga/player/score/p1", score)
-
-			if delta > 0 then
-				local event = SCORE_EVENTS[delta]
-				if event then
-					_G.event(event, delta)
-				else
-					print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
-				end
+			if score ~= last_score_p1 then
+				_G.event("galaga/player/score/p1", score)
+				last_score_p1 = score
 			end
-
-			last_score = score
+		end,
+	},
+	player_two_score = {
+		addr_start = 0x83E3,
+		addr_end = 0x83E8,
+		callback = function(_, _, _)
+			local score = get_galaga_score(0x83E3)
+			if score ~= last_score_p2 and score > 0 then
+				_G.event("galaga/player/score/p2", score)
+				last_score_p2 = score
+			end
 		end,
 	},
 	-- player_ship_x = {
@@ -106,7 +110,6 @@ local map = {
 	beam_sound = {
 		addr_start = 0x9AA5,
 		callback = function(_, current, previous)
-			print(string.format("BEAM SOUND $9AA5: %02X -> %02X", previous, current))
 			if current > 0 and previous == 0 then
 				_G.event("galaga/boss/tractor-beam", 1)
 			elseif current == 0 and previous > 0 then
@@ -118,10 +121,18 @@ local map = {
 	fighter_captured = {
 		addr_start = 0x928E,
 		callback = function(_, current, previous)
-			print(string.format("CAPTURE $928E: %02X -> %02X", previous, current))
 			if current == 1 and previous ~= 1 then
-				print("FIGHTER CAPTURED")
 				_G.event("galaga/player/captured")
+			end
+		end,
+	},
+	-- Perfect bonus music trigger at $9AB4 (b_9AA0 + $14)
+	-- Game writes 1 here in gctl_chllng_stg_end() when hit counter == 40
+	perfect = {
+		addr_start = 0x9AB4,
+		callback = function(_, current, previous)
+			if current == 1 and previous == 0 then
+				_G.event("galaga/bonus/perfect")
 			end
 		end,
 	},
@@ -130,7 +141,6 @@ local map = {
 		addr_start = 0x9821,
 		callback = function(_, current, previous)
 			if current == previous + 1 then
-				print(string.format("STAGE: %d -> %d", previous, current))
 				_G.event("galaga/stage", current)
 			end
 		end,
@@ -173,11 +183,7 @@ emu.register_frame_done(function()
 			if prev_tiles[slot] == 0x48 then
 				local bonus = BONUS_TILES[val]
 				if bonus then
-					local color_attr = mem:read_u8(addr + 1)
-					print(string.format("BONUS: %d pts tile=0x%02X color=0x%02X slot=%02d", bonus, val, color_attr, slot))
 					_G.event("galaga/bonus/score", bonus)
-				else
-					print(string.format("UNKNOWN BONUS TILE: slot=%02d tile=0x%02X", slot, val))
 				end
 			end
 			prev_tiles[slot] = val

@@ -10,11 +10,6 @@ manager = {}
 ---@class MameMachine
 ---@field devices table<string, MameDevice>
 ---@field ioport MameIoport
----@field video MameVideo
-
----@class MameVideo
----@field snapshot_size fun(self: MameVideo): integer, integer
----@field snapshot_pixels fun(self: MameVideo): string|nil
 
 ---@class MameDevice
 ---@field spaces table<string, MameMemorySpace>
@@ -37,7 +32,7 @@ manager = {}
 emu = {}
 
 ---@param callback fun()
----@param name? string
+---@param name string
 function emu.register_frame_done(callback, name) end
 
 ---@param callback fun()
@@ -48,6 +43,14 @@ function emu.register_frame(callback, name) end
 ---@param name string
 function emu.register_periodic(callback, name) end
 
--- RGFX globals injected by rgfx.lua
-_G.event = function(topic, value) end
+-- RGFX globals injected by event.lua
+
+---@param topic string
+---@param value? any
+function _G.event(topic, value) end
+
+---@type fun()
+_G.event_cleanup = nil
+
+---@type string
 _G.game_name = ""

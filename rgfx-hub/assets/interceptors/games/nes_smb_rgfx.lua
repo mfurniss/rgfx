@@ -73,6 +73,8 @@ local function get_score()
 	return score * 10 -- Multiply by 10 since ones digit is always 0
 end
 
+local last_score = -1
+
 -- RAM monitoring map
 local map = {
 	-- Score - monitor the 5 bytes that store the score (one digit per byte)
@@ -81,7 +83,10 @@ local map = {
 		addr_end = 0x07E2,
 		callback = function()
 			local score = get_score()
-			_G.event(game_name .. "/player/score", string.format("%06d", score))
+			if score ~= last_score then
+				_G.event(game_name .. "/player/score", string.format("%06d", score))
+				last_score = score
+			end
 		end,
 	},
 
