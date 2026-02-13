@@ -1,4 +1,4 @@
-import { formatNumber, sleep } from '../utils.js';
+import { formatNumber, sleep, randomInt } from '../utils.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 const bonusColors = {
@@ -181,5 +181,33 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     });
 
     return true;
+  }
+
+  if (subject === 'bonus' && property === 'perfect') {
+    await sleep(200);
+
+    for (var i = 0; i < 60; i++) {
+      broadcast({
+        effect: 'explode',
+        drivers: ['*', '*'],
+        props: {
+          color: 'random',
+          reset: false,
+          centerX: 'random',
+          centerY: 'random',
+          friction: 3,
+          gravity: 0,
+          hueSpread: 0,
+          lifespan: 700,
+          lifespanSpread: 50,
+          particleCount: 100,
+          particleSize: 6,
+          power: 120,
+          powerSpread: 80,
+        },
+      });
+
+      await sleep(randomInt(20, 150));
+    }
   }
 }

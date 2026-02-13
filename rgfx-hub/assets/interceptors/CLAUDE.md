@@ -11,16 +11,16 @@ Files here are bundled with the app and copied to `~/.rgfx/interceptors/` on fir
 ## Structure
 
 ### Core Files
-- `mame.lua` - Main entry point loaded by MAME plugin system
+- `mame.lua` - MAME/emu type stubs for Lua language server (manager, emu, _G.event, _G.event_cleanup, _G.game_name)
 - `rom_map.lua` - Maps ROM names to game-specific interceptors
 - `fft.lua` - FFT audio analysis interceptor
 
 ### Game Interceptors (games/)
 Game-specific interceptors that monitor RAM and emit events:
 - `galaga88_rgfx.lua` - Galaga '88
-- `galaga_rgfx.lua` - Galaga (score-delta event mapping, tractor beam detection, bonus sprite scanning, fighter capture detection, stage tracking)
+- `galaga_rgfx.lua` - Galaga (P1/P2 score tracking, tractor beam detection, bonus sprite scanning, fighter capture detection, perfect bonus detection, stage tracking)
 - `gforce2_rgfx.lua` - G-LOC: Air Battle / G-Force 2
-- `nes_smb_rgfx.lua` - NES Super Mario Bros
+- `nes_smb_rgfx.lua` - NES Super Mario Bros (score dedup guard)
 - `outrun_rgfx.lua` - OutRun
 - `pacman_rgfx.lua` - Pac-Man
 - `robotron_rgfx.lua` - Robotron 2084

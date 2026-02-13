@@ -33,7 +33,7 @@ Application icons in various formats and sizes:
 
 ### interceptors/
 MAME Lua scripts that intercept game state and emit events:
-- `mame.lua` - Main entry point, loaded by MAME's plugin system
+- `mame.lua` - MAME/emu type stubs for Lua language server
 - `rom_map.lua` - Maps ROM names to game-specific interceptor scripts
 - `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga)
 

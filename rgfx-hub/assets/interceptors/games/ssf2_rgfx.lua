@@ -55,7 +55,7 @@ emu.register_frame_done(function()
 	local cmd = val & 0x00FF -- Low byte is the command
 
 	if cmd ~= prev_cmd and cmd ~= 0x00 and cmd ~= 0xFF then
-		print(string.format("SND: 0x%02X", cmd))
+		-- print(string.format("SND: 0x%02X", cmd))
 		_G.event("ssf2/sound/cmd", cmd)
 	end
 	prev_cmd = cmd
