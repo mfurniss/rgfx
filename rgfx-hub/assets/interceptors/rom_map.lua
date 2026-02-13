@@ -32,6 +32,11 @@ return {
 	-- Star Wars (Atari 1983)
 	starwars = "starwars_rgfx",
 
+	-- OutRun variants
+	outrun = "outrun_rgfx",
+	outruna = "outrun_rgfx",
+	outrunb = "outrun_rgfx",
+
 	-- Super Street Fighter II (CPS2)
 	ssf2 = "ssf2_rgfx",
 	ssf2u = "ssf2_rgfx",

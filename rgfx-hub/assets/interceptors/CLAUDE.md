@@ -21,7 +21,7 @@ Game-specific interceptors that monitor RAM and emit events:
 - `galaga_rgfx.lua` - Galaga (P1/P2 score tracking, tractor beam detection, bonus sprite scanning, fighter capture detection, perfect bonus detection, stage tracking)
 - `gforce2_rgfx.lua` - G-LOC: Air Battle / G-Force 2
 - `nes_smb_rgfx.lua` - NES Super Mario Bros (score dedup guard)
-- `outrun_rgfx.lua` - OutRun
+- `outrun_rgfx.lua` - OutRun (YM2151 FM note tracking via Z80 sound CPU RAM polling, 8 channels)
 - `pacman_rgfx.lua` - Pac-Man
 - `robotron_rgfx.lua` - Robotron 2084
 - `sharrier_rgfx.lua` - Space Harrier
