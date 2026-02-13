@@ -566,6 +566,128 @@ void test_music_new_note_full_height() {
 	TEST_ASSERT_EQUAL(canvas.getHeight() - 1, box.maxY);
 }
 
+// =============================================================================
+// Peak Indicator Tests
+// =============================================================================
+
+void test_music_peak_appears_at_note_top() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	MusicEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["channels"] = "80|..|..|..|..|..|..|..";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+
+	// New note has life=1.0, so bar fills full height.
+	// Peak should be at y=0 (top). Check for blue component there.
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	CRGB topPixel = canvas.getPixel(box.minX, 0);
+	TEST_ASSERT_TRUE(topPixel.b > 0);
+}
+
+void test_music_peak_holds_then_falls() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	MusicEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["channels"] = "80|..|..|..|..|..|..|..";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();  // Sets peak to 1.0
+
+	// Decay the note completely (default decayRate=2.0, 1.0s to fully decay)
+	effect.update(1.0f);
+
+	// Peak should still be holding (holdTimer was 0.5s, only 0.5s of hold elapsed
+	// after subtracting deltaTime). Actually 1.0s > 0.5s hold, so it should be falling.
+	// After 1.0s: holdTimer = 0.5 - 1.0 = expired, then falls by PEAK_FALL_RATE*0.5s = 0.5
+	// Peak height should be ~0.5
+	canvas.clear();
+	effect.render();
+
+	BoundingBox box = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box.valid);
+	// Peak still visible (height ~0.5, not zero yet)
+	TEST_ASSERT_TRUE(box.minY > 0);  // Not at top anymore
+	TEST_ASSERT_TRUE(box.minY < canvas.getHeight() - 1);  // Not at bottom yet
+}
+
+void test_music_peak_updates_to_higher_bar() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	MusicEffect effect(matrix, canvas);
+
+	// First note: partial life (decay first)
+	JsonDocument props1;
+	props1["channels"] = "80|..|..|..|..|..|..|..";
+	effect.add(props1);
+	effect.update(0.25f);  // life drops to 0.5
+
+	canvas.clear();
+	effect.render();
+	BoundingBox box1 = findBoundingBox(canvas);
+
+	// Second note at same pitch: full life (higher bar)
+	JsonDocument props2;
+	props2["channels"] = "80|..|..|..|..|..|..|..";
+	effect.add(props2);
+
+	canvas.clear();
+	effect.render();
+	BoundingBox box2 = findBoundingBox(canvas);
+
+	// Peak should have moved up (lower Y value)
+	TEST_ASSERT_TRUE(box2.minY <= box1.minY);
+}
+
+void test_music_peak_clears_on_reset() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	MusicEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["channels"] = "80|..|..|..|..|..|..|..";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();  // Sets peak
+
+	effect.reset();
+
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_music_peak_disappears_after_full_decay() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	MusicEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	props["channels"] = "80|..|..|..|..|..|..|..";
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();  // Sets peak to 1.0
+
+	// Hold (0.5s) + full fall (1.0s at rate 1.0) = 1.5s total
+	effect.update(2.0f);
+
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -624,6 +746,13 @@ int main(int argc, char** argv) {
 	// Dimensions
 	RUN_TEST(test_music_note_is_two_leds_wide);
 	RUN_TEST(test_music_new_note_full_height);
+
+	// Peak indicators
+	RUN_TEST(test_music_peak_appears_at_note_top);
+	RUN_TEST(test_music_peak_holds_then_falls);
+	RUN_TEST(test_music_peak_updates_to_higher_bar);
+	RUN_TEST(test_music_peak_clears_on_reset);
+	RUN_TEST(test_music_peak_disappears_after_full_decay);
 
 	return UNITY_END();
 }

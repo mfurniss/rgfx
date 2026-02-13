@@ -53,7 +53,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with gradient color animation. Color is optional when gradient is provided. |
 | **Warp** | [warp.h](warp.h)/[warp.cpp](warp.cpp) | Center-radiating animated gradient with linear perspective scale (tunnel/bulge). |
 | **Spectrum** | [spectrum.h](spectrum.h)/[spectrum.cpp](spectrum.cpp) | FFT spectrum analyzer visualization. |
-| **Music** | [music.h](music.h)/[music.cpp](music.cpp) | Music channel visualizer. FIFO of decaying vertical bars, one per note. Matrix-only. |
+| **Music** | [music.h](music.h)/[music.cpp](music.cpp) | Music channel visualizer. FIFO of decaying vertical bars with VU-meter peak indicators, auto-scaling pitch range (resets after 5s idle), and slow hue rotation (120s cycle). Matrix-only. |
 | **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
 | **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). |

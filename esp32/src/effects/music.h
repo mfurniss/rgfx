@@ -21,8 +21,17 @@ class MusicEffect : public IEffect {
 		uint8_t r, g, b;  // Color from channel hue
 	};
 
+	struct Peak {
+		float height;     // 0.0-1.0 normalized height
+		float holdTimer;  // Seconds remaining at peak before falling
+	};
+
 	static constexpr size_t BUFFER_SIZE = 128;
 	static constexpr size_t MAX_CHANNELS = 64;
+	static constexpr size_t MAX_SLOTS = 128;
+	static constexpr float PEAK_HOLD_TIME = 0.5f;
+	static constexpr float PEAK_FALL_RATE = 1.0f;
+	static constexpr float IDLE_RESET_TIME = 5.0f;
 
 	Note buffer[BUFFER_SIZE];
 	size_t head;
@@ -36,6 +45,10 @@ class MusicEffect : public IEffect {
 	// Per-channel color cache (recomputed when channel count changes)
 	uint8_t channelColors[MAX_CHANNELS][3];
 	size_t lastChannelCount;
+
+	Peak peaks[MAX_SLOTS];
+	float idleTimer;
+	float hueOffset;
 
 	void updateChannelColors(size_t channelCount);
 

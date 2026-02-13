@@ -12,9 +12,10 @@
 
 MusicEffect::MusicEffect(const Matrix& m, Canvas& c)
 	: head(0), matrix(m), canvas(c), decayRate(2.0f), minPitch(255), maxPitch(0),
-	  lastChannelCount(0) {
+	  lastChannelCount(0), idleTimer(0.0f), hueOffset(0.0f) {
 	memset(buffer, 0, sizeof(buffer));
 	memset(channelColors, 0, sizeof(channelColors));
+	memset(peaks, 0, sizeof(peaks));
 }
 
 int MusicEffect::hexToPitch(const char* pair) {
@@ -55,7 +56,7 @@ void MusicEffect::updateChannelColors(size_t channelCount) {
 		return;
 
 	for (size_t i = 0; i < channelCount; i++) {
-		uint8_t hue = static_cast<uint8_t>((i * 256) / channelCount);
+		uint8_t hue = static_cast<uint8_t>((i * 256) / channelCount + static_cast<int>(hueOffset));
 		CRGB rgb = CHSV(hue, 255, 255);
 		channelColors[i][0] = rgb.r;
 		channelColors[i][1] = rgb.g;
@@ -69,6 +70,8 @@ void MusicEffect::add(JsonDocument& props) {
 	if (matrix.layoutType == LayoutType::STRIP) {
 		return;
 	}
+
+	idleTimer = 0.0f;
 
 	if (!props["channels"].is<const char*>()) {
 		hal::log("ERROR: music missing 'channels' string");
@@ -95,9 +98,7 @@ void MusicEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	if (channelCount != lastChannelCount) {
-		updateChannelColors(channelCount);
-	}
+	updateChannelColors(channelCount);
 
 	size_t ch = 0;
 	size_t pos = 0;
@@ -127,11 +128,37 @@ void MusicEffect::update(float deltaTime) {
 			buffer[i].life -= decayRate * deltaTime;
 		}
 	}
+
+	idleTimer += deltaTime;
+	if (idleTimer >= IDLE_RESET_TIME) {
+		minPitch = 255;
+		maxPitch = 0;
+	}
+
+	hueOffset += deltaTime * (256.0f / 120.0f);
+	if (hueOffset >= 256.0f) hueOffset -= 256.0f;
+
+	for (size_t s = 0; s < MAX_SLOTS; s++) {
+		if (peaks[s].height <= 0.0f) continue;
+		if (peaks[s].holdTimer > 0.0f) {
+			peaks[s].holdTimer -= deltaTime;
+			if (peaks[s].holdTimer < 0.0f) {
+				// Apply excess time past hold to falling
+				peaks[s].height += peaks[s].holdTimer * PEAK_FALL_RATE;
+				if (peaks[s].height < 0.0f) peaks[s].height = 0.0f;
+			}
+		} else {
+			peaks[s].height -= PEAK_FALL_RATE * deltaTime;
+			if (peaks[s].height < 0.0f) peaks[s].height = 0.0f;
+		}
+	}
 }
 
 void MusicEffect::render() {
 	uint16_t canvasWidth = canvas.getWidth();
 	uint16_t canvasHeight = canvas.getHeight();
+
+	float slotHeight[MAX_SLOTS] = {};
 
 	for (size_t i = 0; i < BUFFER_SIZE; i++) {
 		const Note& note = buffer[i];
@@ -147,11 +174,39 @@ void MusicEffect::render() {
 		CRGBA color(note.r, note.g, note.b, 255);
 		canvas.drawRectangle(x, y, static_cast<uint16_t>(8), height, color,
 		                     BlendMode::ADDITIVE);
+
+		size_t slot = x / 8;
+		if (slot < MAX_SLOTS && note.life > slotHeight[slot])
+			slotHeight[slot] = note.life;
+	}
+
+	// Update and render VU-meter peak indicators
+	int maxSlot = canvasWidth / 8 - 2;
+	if (maxSlot < 0) maxSlot = 0;
+
+	for (int s = 0; s <= maxSlot && s < static_cast<int>(MAX_SLOTS); s++) {
+		if (slotHeight[s] > peaks[s].height) {
+			peaks[s].height = slotHeight[s];
+			peaks[s].holdTimer = PEAK_HOLD_TIME;
+		}
+		if (peaks[s].height <= 0.0f) continue;
+
+		uint16_t peakH = static_cast<uint16_t>(peaks[s].height * canvasHeight);
+		if (peakH == 0) continue;
+		peakH = (peakH / 4) * 4;
+		if (peakH == 0) continue;
+		uint16_t peakY = canvasHeight - peakH;
+
+		CRGBA peakColor(96, 96, 96, 255);
+		canvas.drawRectangle(static_cast<uint16_t>(s * 8), peakY,
+		                     static_cast<uint16_t>(8), static_cast<uint16_t>(4),
+		                     peakColor, BlendMode::ADDITIVE);
 	}
 }
 
 void MusicEffect::reset() {
 	memset(buffer, 0, sizeof(buffer));
+	memset(peaks, 0, sizeof(peaks));
 	head = 0;
 	minPitch = 255;
 	maxPitch = 0;
