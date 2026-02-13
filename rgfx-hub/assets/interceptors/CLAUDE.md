@@ -8,6 +8,12 @@ Do not modify files in this folder directly. The runtime interceptor files are i
 
 Files here are bundled with the app and copied to `~/.rgfx/interceptors/` on first run only.
 
+## Testing with MAME
+
+To launch MAME for testing: `scripts/launch-mame.sh <game> -playback <game>.inp`
+
+To terminate MAME after testing: `pkill -9 -f "mame.*<game>"` (replace `<game>` with the ROM name). Do NOT use `kill $PID` — MAME's process tree requires `pkill -f` to reliably terminate.
+
 ## Structure
 
 ### Core Files

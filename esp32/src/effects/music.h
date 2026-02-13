@@ -16,22 +16,30 @@
 class MusicEffect : public IEffect {
    private:
 	struct Note {
+		uint16_t life;    // Fixed 0.16: 0=dead, 65535=full height
 		uint8_t pitch;    // Raw pitch value 0-255 (X computed at render time)
-		float life;       // 1.0 = full height, decays to 0
 		uint8_t r, g, b;  // Color from channel hue
 	};
 
 	struct Peak {
-		float height;     // 0.0-1.0 normalized height
-		float holdTimer;  // Seconds remaining at peak before falling
+		uint16_t height;     // Fixed 0.16: 0-65535 normalized height
+		uint16_t holdTimer;  // Milliseconds remaining at peak before falling
 	};
 
 	static constexpr size_t BUFFER_SIZE = 128;
 	static constexpr size_t MAX_CHANNELS = 64;
 	static constexpr size_t MAX_SLOTS = 128;
-	static constexpr float PEAK_HOLD_TIME = 0.5f;
-	static constexpr float PEAK_FALL_RATE = 1.0f;
-	static constexpr float IDLE_RESET_TIME = 5.0f;
+	static constexpr uint16_t PEAK_HOLD_MS = 500;
+	static constexpr uint16_t PEAK_FALL_PER_MS = 66;  // 65535 / 1000 ≈ 66
+	static constexpr uint32_t IDLE_RESET_MS = 5000;
+	static constexpr uint16_t LIFE_MAX = 65535;
+
+	// HSV LUT: full-saturation, full-brightness hues (computed once)
+	static CRGB hsvLut[256];
+	static bool hsvLutReady;
+
+	// Hex digit LUT: ASCII char → 0-15 or -1 for invalid
+	static const int8_t HEX_LUT[128];
 
 	Note buffer[BUFFER_SIZE];
 	size_t head;
@@ -47,9 +55,10 @@ class MusicEffect : public IEffect {
 	size_t lastChannelCount;
 
 	Peak peaks[MAX_SLOTS];
-	float idleTimer;
-	float hueOffset;
+	uint32_t idleMs;      // Idle timer in milliseconds
+	uint32_t hueAccum;    // Hue offset in 16.16 fixed-point (upper 8 of integer = hue)
 
+	static void initHsvLut();
 	void updateChannelColors(size_t channelCount);
 
    public:

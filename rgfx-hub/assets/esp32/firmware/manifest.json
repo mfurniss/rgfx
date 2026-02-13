@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-02-13T20:06:06.404629+00:00",
+  "generatedAt": "2026-02-13T22:21:59.996682+00:00",
   "variants": {
     "ESP32": {
-      "version": "0.2.0-dev+e7ab6c5c",
+      "version": "0.2.0-dev+d8149f0a",
       "files": [
         {
           "name": "bootloader-esp32.bin",
@@ -19,13 +19,13 @@
         {
           "name": "firmware-esp32.bin",
           "address": 65536,
-          "size": 1212544,
-          "sha256": "0b492a181f423ae14dda29a8fbc96ac9f11e2891bd22ca10d457efa797e0b854"
+          "size": 1212736,
+          "sha256": "3c583d8dd48406264d54cec5fc1ba84df05768d613f1aa4629da6bb64be0c166"
         }
       ]
     },
     "ESP32-S3": {
-      "version": "0.2.0-dev+e7ab6c5c",
+      "version": "0.2.0-dev+d8149f0a",
       "files": [
         {
           "name": "bootloader-esp32s3.bin",
@@ -42,8 +42,8 @@
         {
           "name": "firmware-esp32s3.bin",
           "address": 65536,
-          "size": 1341648,
-          "sha256": "6fc1250151066ff1e1d65e1f1eb64977fb5e58e6207b5a823083eef9a56a488d"
+          "size": 1341920,
+          "sha256": "c22cae80dc062ce00dbbf3f1ae2a7f025240dbca3f1a8a0ce0e3bbb75b417be6"
         }
       ]
     }
