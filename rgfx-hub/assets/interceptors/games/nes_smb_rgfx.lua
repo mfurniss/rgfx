@@ -8,13 +8,13 @@
 local ram = require("ram")
 
 
-local ambilight = require("ambilight")
+-- local ambilight = require("ambilight")
 
-ambilight.init({
-	zones = 12,
-	depth = 10,
-	event_interval = 3,
-})
+-- ambilight.init({
+-- 	zones = 12,
+-- 	depth = 10,
+-- 	event_interval = 3,
+-- })
 
 
 -- Super Mario Bros (NES) RAM Map
@@ -73,6 +73,8 @@ local function get_score()
 	return score * 10 -- Multiply by 10 since ones digit is always 0
 end
 
+local last_score = -1
+
 -- RAM monitoring map
 local map = {
 	-- Score - monitor the 5 bytes that store the score (one digit per byte)
@@ -81,7 +83,10 @@ local map = {
 		addr_end = 0x07E2,
 		callback = function()
 			local score = get_score()
-			_G.event(game_name .. "/player/score", string.format("%06d", score))
+			if score ~= last_score then
+				_G.event(game_name .. "/player/score", string.format("%06d", score))
+				last_score = score
+			end
 		end,
 	},
 
@@ -298,12 +303,3 @@ _G.event(game_name .. "/init", "1")
 
 ram.install_monitors(map, mem)
 
--- Optional: Enable FFT audio analysis for visual effects
--- Uncomment to enable FFT events and/or console bar graph
--- local fft = require("fft")
--- fft.init({
--- 	game_name = game_name,
--- 	emit_events = true, -- Send FFT data via events
--- 	log_bars = true, -- Show bar graph in console
--- 	fps = 10,
--- })

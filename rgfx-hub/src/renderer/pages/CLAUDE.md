@@ -164,6 +164,7 @@ Refactored components and utilities extracted from the main page:
   - Real-time progress events via `useOtaFlashEvents` hook
   - WiFi config OTA button for multi-driver credential configuration
 - Chip-aware update detection: uses `mapChipNameToVariant()` to compare each driver's firmware against its chip type's target version
+- Error alerts hidden during active flashing to prevent stale validation errors from displaying alongside progress bars (race condition between Zustand and React state batching)
 - Log display showing flash progress
 - Confirmation dialog for USB flashing
 - Result dialog showing success/failure with context-appropriate help text
@@ -189,6 +190,7 @@ Refactored components and utilities extracted from the main page:
   - MAME ROMs Directory (optional) - for ROM file location
   - Directory validation with folder picker dialogs
   - Uses `SuperButton` for save action with busy state
+- **Backup:** One-click zip backup of entire `~/.rgfx` config directory via native save dialog
 - **Logs:** Log file management with size display and clear functionality
 - Saves to `UiStore` (localStorage persistence)
 - Gets default paths from `AppInfoStore`

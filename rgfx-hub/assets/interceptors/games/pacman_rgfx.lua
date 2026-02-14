@@ -59,10 +59,10 @@ local map = {
 			if delta > 0 then
 				local event = SCORE_EVENTS[delta] or SCORE_EVENTS[delta - 10]
 				if event then
-					print(string.format("DELTA: +%d", delta))
+					-- print(string.format("DELTA: +%d", delta))
 					_G.event("pacman/player/eat", event)
 				else
-					print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
+					-- print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
 				end
 			end
 

@@ -37,6 +37,12 @@ Any game that runs in MAME can work with RGFX. The [Writing Interceptors](interc
 
 Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the [Transformers](transformers/index.md) documentation.
 
+## Why scripting instead of simple config files?
+
+A config-based system (YAML/JSON mapping events to effects) would be simpler to set up but too rigid for what RGFX needs to do. Game events aren't always clean key-value pairs — interceptors often need to decode packed bytes, track state across frames, debounce noisy values, or apply game-specific logic before emitting an event. Transformers need to sequence multiple effects with timing, conditionally choose effects based on game state, or load sprites dynamically.
+
+Lua and JavaScript give you full control over that logic in short, readable scripts — chaining effects with precise timing, reacting differently based on accumulated game state, or animating sprites across your LED matrices in sync with gameplay.
+
 ## Do I need to install an MQTT broker?
 
 No. RGFX Hub runs an embedded MQTT broker automatically. Your ESP32 drivers discover it on the network and connect without any configuration.
@@ -122,4 +128,9 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 
 ### Still stuck?
 
-For general LED hardware questions (power supplies, wiring, signal issues), the [r/led](https://www.reddit.com/r/led/) community on Reddit is a good resource.
+- **LED hardware** — [r/led](https://www.reddit.com/r/led/) for power supplies, wiring, and signal issues
+- **ESP32** — [r/esp32](https://www.reddit.com/r/esp32/) for microcontroller and firmware questions
+- **MAME** — [r/MAME](https://www.reddit.com/r/MAME/) for general MAME emulation discussion
+- **MAME Lua scripting** — the official [MAME Lua scripting docs](https://docs.mamedev.org/luascript/index.html) cover the full API available to interceptors
+- **Lua** — [Learn Lua in 15 Minutes](https://tylerneylon.com/a/learn-lua/) or the official [Programming in Lua](https://www.lua.org/pil/1.html) guide
+- **JavaScript** — [The Modern JavaScript Tutorial](https://javascript.info/) or [MDN's JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)

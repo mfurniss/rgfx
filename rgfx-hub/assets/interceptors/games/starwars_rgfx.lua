@@ -76,7 +76,7 @@ local map = {
 				if event then
 					_G.event(event, delta)
 				else
-					print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
+					-- print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
 				end
 			end
 
@@ -87,7 +87,7 @@ local map = {
 	shields = {
 		addr_start = 0x4860,
 		callback_changed = function(current, previous)
-			print(string.format("SHIELDS 0x4860: %d -> %d", previous, current))
+			-- print(string.format("SHIELDS 0x4860: %d -> %d", previous, current))
 			if current < previous then
 				_G.event("starwars/player/shield-reduced", current)
 			end
@@ -99,9 +99,8 @@ local map = {
 		addr_start = 0x4841,
 		size = 1,
 		callback_changed = function(current, previous)
-			local time = os.date("%H:%M:%S")
 			_G.event("starwars/game/state", current)
-			print(string.format("[%s] $4841 (game state): 0x%02X -> 0x%02X", time, previous, current))
+			-- print(string.format("$4841 (game state): 0x%02X -> 0x%02X", previous, current))
 			-- Detect transition to explosion visual (0x12 -> 0x13 = concentric rings start)
 			if previous == 0x12 and current == 0x13 then
 				_G.event("starwars/enemy/destroy/death-star")
@@ -112,7 +111,7 @@ local map = {
 
 ram.install_monitors(map, mem)
 
-print("=== STARWARS INTERCEPTOR v9 - Score Delta Detection - " .. os.date("%H:%M:%S") .. " ===")
+-- print("=== STARWARS INTERCEPTOR v9 ===")
 
 -- Fire button detection via ioport
 -- IN0 bit 7 (0x80): 1 = not pressed, 0 = pressed (active low)

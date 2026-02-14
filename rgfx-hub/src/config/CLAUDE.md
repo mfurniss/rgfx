@@ -13,7 +13,7 @@ All tunable constants in one place. Categories:
 **Network & Communication**
 - `MQTT_DEFAULT_PORT`: 1883
 - `MQTT_QOS_LEVEL`: 2 (exactly once)
-- `UDP_PORT`: 8888 (LED effects)
+- `UDP_PORT`: 8811 (LED effects)
 - `UDP_MAX_PACKET_SIZE`: 1472 (MTU limit for UDP)
 - `SSDP_PORT`: 1900, `SSDP_SERVICE_URN`: broker discovery
 - `UDP_DISCOVERY_PORT`: 8889, `UDP_DISCOVERY_INTERVAL_MS`: 5000

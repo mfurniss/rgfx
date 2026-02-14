@@ -79,6 +79,7 @@ local function is_valid_topic(topic)
 end
 
 -- Global event function for use in game scripts
+---@diagnostic disable-next-line: duplicate-set-field
 function _G.event(topic, message)
 	-- Validate topic format before writing
 	if not is_valid_topic(topic) then
@@ -194,6 +195,7 @@ function _G.event(topic, message)
 end
 
 -- Cleanup function to be called on shutdown
+---@diagnostic disable-next-line: duplicate-set-field
 function _G.event_cleanup()
 	if event_file then
 		event_file:close()

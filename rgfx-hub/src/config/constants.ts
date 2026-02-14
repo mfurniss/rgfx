@@ -21,7 +21,7 @@ export const MQTT_DEFAULT_PORT = 1883;
 export const MQTT_QOS_LEVEL = 2;
 
 /** UDP port for sending LED effects to drivers */
-export const UDP_PORT = 8888;
+export const UDP_PORT = 8811;
 
 /**
  * Maximum UDP packet size for driver communication (bytes).

@@ -1,5 +1,4 @@
-import { randomInt } from '../utils/math.js';
-import { sleep } from '../utils/async.js';
+import { randomInt, sleep } from '../utils.js';
 import { PICO8_PALETTE } from '../palettes.js';
 import {
   PACMAN_SPRITE_OPEN_MOUTH,

@@ -1,5 +1,10 @@
 # RGFX - Retro Game Effects
 
+[![pipeline status](https://gitlab.com/furniss/rgfx/badges/main/pipeline.svg)](https://gitlab.com/furniss/rgfx/-/commits/main)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](LICENSE)
+
+> **Project Status: Alpha** - Active development. APIs and configuration formats may change.
+
 A distributed system for monitoring retro arcade and console game state in MAME and translating game events into synchronized LED effects across multiple ESP32-based hardware controllers.
 
 ## Overview
@@ -15,7 +20,7 @@ RGFX bridges the gap between classic retro games running in MAME and modern LED 
 - **Real-Time Effects** - Sub-10ms latency from game event to LED update
 - **OTA Updates** - Wireless firmware updates for ESP32 devices
 - **Flexible Configuration** - Multiple LED devices per Driver with custom mappings
-- **Game Library** - Built-in interceptors for Pac-Man, Galaga, Super Mario Bros, and more
+- **Game Library** - Built-in interceptors for classic arcade and console titles
 
 ## Architecture
 
@@ -85,7 +90,7 @@ rgfx/
 
 ### Prerequisites
 
-- **macOS** (primary development platform)
+- **macOS or Windows** (see [CONTRIBUTING.md](CONTRIBUTING.md) for platform-specific setup)
 - **Node.js** 18+ (for Hub)
 - **MAME** 0.281+ (for game emulation)
 - **PlatformIO** (for ESP32 firmware)
@@ -124,14 +129,7 @@ cd ../mame
 
 ## Supported Games
 
-RGFX includes game interceptors for:
-
-- **Pac-Man** (arcade)
-- **Ms. Pac-Man** (arcade)
-- **Galaga** (arcade)
-- **Super Mario Bros** (NES)
-- **Castlevania III** (NES) - In development
-- **Super Mario World** (SNES) - In development
+RGFX includes interceptors for several classic arcade and console titles, with more being added. See the [game list](public-docs/docs/games.md) for details.
 
 ## Development
 
@@ -213,26 +211,11 @@ See [MAINTAINERS.md](MAINTAINERS.md) for contribution guidelines and project gov
 
 ## Contributing
 
-Contributions are welcome! This project follows a feature branch workflow with automated CI/CD testing.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and how to submit changes.
 
-**To contribute:**
+For project governance and review process, see [MAINTAINERS.md](MAINTAINERS.md).
 
-1. **Fork** the repository
-2. **Create a feature branch** - `git checkout -b feature/my-feature`
-3. **Make your changes** - Follow code quality standards (see [.claude/CLAUDE.md](.claude/CLAUDE.md))
-4. **Test thoroughly** - Ensure TypeScript, ESLint, and unit tests pass
-5. **Create a merge request** - CI must pass before merge
-6. **Respond to feedback** - Address any review comments
-
-### Development Standards
-
-- **TypeScript errors** - Zero tolerance, must fix immediately
-- **ESLint** - All warnings treated as errors
-- **Tests** - Meaningful tests only, no shallow coverage tests
-- **Code style** - Clean, readable, well-commented
-- **Documentation** - Update docs for significant changes
-
-See [.claude/CLAUDE.md](.claude/CLAUDE.md) for comprehensive development guidelines.
+For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ## Acknowledgments
 

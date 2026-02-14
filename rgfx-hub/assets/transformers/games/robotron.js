@@ -1,12 +1,10 @@
 // Robotron: 2084 game-specific mapper
 
-import { randomInt } from '../utils/math.js';
-import { sleep } from '../utils/async.js';
-import { formatNumber } from '../utils/format.js';
+import { randomInt, sleep, formatNumber } from '../utils.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
-// Cycle hue for score display
 let scoreHue = 0;
+let livesRemaining;
 
 export async function transform(
   { subject, property, qualifier, payload },
@@ -108,8 +106,6 @@ export async function transform(
     }
 
     if (property === 'brain-appear') {
-      //broadcast({ effect: 'clear' });
-
       const props = {
         speed: 15,
         scale: 10,
@@ -152,7 +148,6 @@ export async function transform(
 
     if (property === 'rescue-human') {
       for (var i = -10; i <= 110; i += 30) {
-        // Random hue in pink/magenta range: 300° (magenta) to 360° (red)
         const hue = 300 + Math.random() * 60;
         broadcast({
           effect: 'bitmap',
@@ -352,25 +347,6 @@ export async function transform(
     console.log('sfx for', property, 'undefined');
 
     return true;
-
-    return broadcast({
-      effect: 'explode',
-      props: {
-        color: 'random',
-        reset: false,
-        centerX: 'random',
-        centerY: 'random',
-        friction: 3,
-        gravity: 0,
-        hueSpread: 0,
-        lifespan: 700,
-        lifespanSpread: 50,
-        particleCount: 100,
-        particleSize: 6,
-        power: 120,
-        powerSpread: 80,
-      },
-    });
   }
   // Player fire - directional green wipe
   // if (subject === 'player' && property === 'fire') {
@@ -381,37 +357,6 @@ export async function transform(
   //       color: '#00FF00',
   //       duration: 250,
   //       direction: wipeDirection,
-  //     },
-  //   });
-  // }
-
-  // Wave complete - celebratory explosion
-  // if (subject === 'wave' && property === 'complete') {
-  //   const props = {
-  //     speed: 10,
-  //     scale: 3.8,
-  //     gradient: [
-  //       '#213631',
-  //       '#4f8c89',
-  //       '#c0b354',
-  //       '#f67e9a',
-  //       '#bcaaca',
-  //       '#0f2305',
-  //     ],
-  //   };
-  //   broadcast({
-  //     effect: 'plasma',
-  //     props: {
-  //       ...props,
-  //       enabled: 'on',
-  //     },
-  //   });
-  //   await sleep(1000);
-  //   return broadcast({
-  //     effect: 'plasma',
-  //     props: {
-  //       ...props,
-  //       enabled: 'fadeOut',
   //     },
   //   });
   // }
@@ -487,13 +432,11 @@ export async function transform(
     });
   }
 
-  // Score updates - cycle hue each time
   if (subject === 'player' && property === 'score') {
     console.log('SCORE HANDLER REACHED:', { subject, property, payload });
     const color = hslToHex(scoreHue, 100, 50);
-    console.log('Color generated:', color);
     scoreHue = (scoreHue + 30) % 360;
-    const result = broadcast({
+    broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
@@ -505,11 +448,38 @@ export async function transform(
         reset: true,
       },
     });
-    console.log('Broadcast result:', result);
-    return result;
+    return true;
   }
 
-  // Grunt destroy - orange explosion
+  if (subject === 'player' && property === 'lives') {
+    if (payload != livesRemaining) {
+      livesRemaining = payload;
+      broadcast({
+        effect: 'text',
+        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+        props: {
+          align: 'center',
+          text: `L:${Number(livesRemaining) + 1}`,
+          duration: 6000,
+          reset: true,
+          gradient: [
+            '#FF0000',
+            '#FFFF00',
+            '#00FF00',
+            '#00FFFF',
+            '#0000FF',
+            '#FF00FF',
+            '#FF0000',
+          ],
+          gradientSpeed: 3,
+          gradientScale: 0,
+          accentColor: '#0000C0',
+        },
+      });
+    }
+    return true;
+  }
+
   if (subject === 'enemy' && property === 'grunt' && qualifier === 'destroy') {
     broadcast({
       effect: 'pulse',
