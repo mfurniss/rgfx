@@ -36,6 +36,10 @@ local FM_NOTE_OFFSET = 0x13
 local FM_FLAG_OFFSET = 0x00
 local FM_DUR_OFFSET = 0x03
 
+-- Main CPU addresses (68000 work RAM at 0x60000-0x67FFF)
+local GAME_STATE_ADDR = 0x6080D  -- 0x0C = in-game
+local TIMER_ADDR = 0x60861       -- BCD countdown: 0x00-0x99
+
 -- YM2151 KC note code to semitone index (non-linear Yamaha encoding)
 local NOTE_INDEX = {
 	[0x0] = 0,  [0x1] = 1,  [0x2] = 2,
@@ -78,9 +82,12 @@ end
 
 local soundcpu = nil
 local mem = nil
+local maincpu = nil
+local mainmem = nil
 
 local prev_fm_ch = {}   -- Per-channel hex value from previous frame
 local prev_fm_dur = {}  -- Per-channel duration counter from previous frame
+local prev_time = -1
 -- local prev_pcm_state = ""
 
 local function init()
@@ -92,6 +99,17 @@ local function init()
 	mem = soundcpu.spaces["program"]
 	if not mem then
 		print("[OUTRUN] ERROR: program space not available")
+		return false
+	end
+
+	maincpu = manager.machine.devices[":maincpu"]
+	if not maincpu then
+		print("[OUTRUN] ERROR: :maincpu not found")
+		return false
+	end
+	mainmem = maincpu.spaces["program"]
+	if not mainmem then
+		print("[OUTRUN] ERROR: main program space not available")
 		return false
 	end
 
@@ -167,12 +185,25 @@ local function poll_fm()
 	end
 end
 
+local function poll_time()
+	if not mainmem then return end
+	if mainmem:read_u8(GAME_STATE_ADDR) ~= 0x0C then return end
+	local bcd = mainmem:read_u8(TIMER_ADDR)
+	if bcd ~= prev_time then
+		local tens = (bcd >> 4) & 0x0F
+		local ones = bcd & 0x0F
+		local seconds = tens * 10 + ones
+		_G.event("outrun/game/time", seconds)
+		prev_time = bcd
+	end
+end
+
 -- local function poll_pcm()
 -- 	local chars = {}
 -- 	for ch = 0, 15 do
 -- 		local ctrl = mem:read_u8(PCM_BASE + PCM_CTRL_OFFSET + ch * PCM_STRIDE)
 -- 		local active = (ctrl & 0x01) ~= 0
---
+
 -- 		if active then
 -- 			local delta = mem:read_u8(PCM_BASE + ch * PCM_STRIDE + PCM_DELTA_OFFSET)
 -- 			chars[ch + 1] = delta_to_char(delta)
@@ -180,7 +211,7 @@ end
 -- 			chars[ch + 1] = "0"
 -- 		end
 -- 	end
---
+
 -- 	local state = table.concat(chars)
 -- 	if state ~= prev_pcm_state then
 -- 		_G.event("outrun/music/pcm", state)
@@ -205,6 +236,7 @@ emu.register_frame_done(function()
 
 	if ready and frame_count > BOOT_FRAMES then
 		poll_fm()
+		poll_time()
 		-- poll_pcm()
 	end
 end, "outrun_sound_monitor")
@@ -213,4 +245,5 @@ ambilight.init({
 	zones = 12,
 	depth = 10,
 	event_interval = 3,
+  brightness = 0.8,
 })

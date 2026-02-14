@@ -17,7 +17,7 @@ To terminate MAME after testing: `pkill -9 -f "mame.*<game>"` (replace `<game>` 
 ## Structure
 
 ### Core Files
-- `mame.lua` - MAME/emu type stubs for Lua language server (manager, emu, _G.event, _G.event_cleanup, _G.game_name); register callback name params are optional
+- `mame.lua` - MAME/emu type stubs for Lua language server (manager, emu, _G.event, _G.event_cleanup, _G.game_name); register callback name params are required
 - `rom_map.lua` - Maps ROM names (including variants) to game-specific interceptors
 - `fft.lua` - FFT audio analysis interceptor
 
@@ -27,7 +27,7 @@ Game-specific interceptors that monitor RAM and emit events:
 - `galaga_rgfx.lua` - Galaga (P1/P2 score tracking, tractor beam detection, bonus sprite scanning, fighter capture detection, perfect bonus detection, stage tracking)
 - `gforce2_rgfx.lua` - G-LOC: Air Battle / G-Force 2
 - `nes_smb_rgfx.lua` - NES Super Mario Bros (score dedup guard)
-- `outrun_rgfx.lua` - OutRun (YM2151 FM note tracking with retrigger detection via duration counter, SegaPCM scaffolding disabled, ambilight enabled)
+- `outrun_rgfx.lua` - OutRun (YM2151 FM note tracking with retrigger detection via duration counter, BCD game timer countdown via main CPU polling, SegaPCM scaffolding disabled, ambilight enabled)
 - `pacman_rgfx.lua` - Pac-Man
 - `robotron_rgfx.lua` - Robotron 2084
 - `shangon_rgfx.lua` - Super Hang-On (YM2151 FM note tracking with retrigger detection, ambilight enabled)

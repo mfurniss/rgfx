@@ -28,7 +28,7 @@ class IEffect {
 - Owns a single shared `Canvas` used by all effects
 - Maintains an effect map (name -> effect instance)
 - Handles frame timing and delta time calculation
-- Calls `update()` and `render()` on each effect every frame
+- Calls `update()` and `render()` on each effect every frame with explicit render ordering: background first, then plasma, warp, general effects, text/scroll_text on top, and finally particles
 - Routes incoming effect commands to the appropriate effect
 - Reports effect errors to Hub via MQTT when required properties are missing
 

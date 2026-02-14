@@ -55,7 +55,7 @@ docs/
 ├── getting-started/            # 5-page onboarding flow
 ├── hub-app/                    # Hub application reference (10 pages)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, effects, examples)
-├── interceptors/               # Lua interceptor docs (7 pages)
+├── interceptors/               # Lua interceptor docs (7 pages, writing guide links to MAME cheat file resources)
 └── transformers/               # JS transformer docs (5 pages)
 ```
 
