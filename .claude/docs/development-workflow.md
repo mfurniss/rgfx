@@ -229,15 +229,24 @@ glab ci status -b <branch-name>
 
 ## Release Management
 
-**For creating releases, see [docs/release-workflow.md](../../docs/release-workflow.md)**
+Single command handles the full release workflow:
 
-Key points:
-- Git tags are source of truth (`v1.0.0`)
-- Semantic versioning (MAJOR.MINOR.PATCH)
-- CI/CD builds only on tags
-- Manual release approval in GitLab
+```bash
+npm run release -- v0.5.0
+```
 
-Version injection:
+The script:
+1. Injects version, builds docs, runs quality checks (fails fast before pushing)
+2. Creates the git tag and pushes to origin
+3. Waits for CI pipeline (tests, driver build, pages deploy, release creation)
+4. Builds the Hub installer (DMG on macOS, EXE on Windows)
+5. Uploads the installer to the GitLab release
+
+The script is idempotent — if interrupted, re-run the same command to resume from where it left off. It detects existing tags, pushed tags, and created releases, skipping completed steps.
+
+**View a release:** `glab release view v0.5.0`
+
+Version injection (used internally by `release.js`):
 ```bash
 node scripts/inject-version-hub.js     # Updates rgfx-hub/package.json
 node scripts/inject-version-driver.js  # Generates esp32/src/version.h
