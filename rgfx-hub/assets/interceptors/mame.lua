@@ -32,15 +32,15 @@ manager = {}
 emu = {}
 
 ---@param callback fun()
----@param name? string
+---@param name string
 function emu.register_frame_done(callback, name) end
 
 ---@param callback fun()
----@param name? string
+---@param name string
 function emu.register_frame(callback, name) end
 
 ---@param callback fun()
----@param name? string
+---@param name string
 function emu.register_periodic(callback, name) end
 
 -- RGFX globals injected by event.lua

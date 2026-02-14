@@ -104,15 +104,22 @@ void EffectProcessor::update() {
 	warpEffect.render();
 	warpEffect.update(deltaTime);
 
-	// Render then update all other effects (excluding test, background, plasma, and warp)
+	// Render then update all other effects (excluding manually-ordered effects)
 	// Render first so initial state is visible on the frame the effect is added
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0 &&
-		    strcmp(entry.name, "plasma") != 0 && strcmp(entry.name, "warp") != 0) {
+		    strcmp(entry.name, "plasma") != 0 && strcmp(entry.name, "warp") != 0 &&
+		    strcmp(entry.name, "text") != 0 && strcmp(entry.name, "scroll_text") != 0) {
 			entry.effect->render();
 			entry.effect->update(deltaTime);
 		}
 	}
+
+	// Text effects render last so they appear on top of all other effects
+	textEffect.render();
+	textEffect.update(deltaTime);
+	scrollTextEffect.render();
+	scrollTextEffect.update(deltaTime);
 
 	// Render and update shared particle system (on top of all effects)
 	particleSystem.render();
