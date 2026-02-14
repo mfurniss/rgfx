@@ -30,7 +30,8 @@ Game-specific interceptors that monitor RAM and emit events:
 - `outrun_rgfx.lua` - OutRun (YM2151 FM note tracking with retrigger detection via duration counter, SegaPCM scaffolding disabled, ambilight enabled)
 - `pacman_rgfx.lua` - Pac-Man
 - `robotron_rgfx.lua` - Robotron 2084
-- `sharrier_rgfx.lua` - Space Harrier
+- `shangon_rgfx.lua` - Super Hang-On (YM2151 FM note tracking with retrigger detection, ambilight enabled)
+- `sharrier_rgfx.lua` - Space Harrier (YM2203 FM note tracking with Block/F-Number encoding, ambilight enabled)
 - `ssf2_rgfx.lua` - Super Street Fighter II (QSound monitoring)
 - `starwars_rgfx.lua` - Star Wars
 

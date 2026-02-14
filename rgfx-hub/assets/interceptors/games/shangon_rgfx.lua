@@ -98,21 +98,20 @@ local function poll_fm()
 
 		if active and kc ~= 0xFF and kc ~= 0x00 then
 			local hex = kc_to_hex(kc)
-			-- Dur counter is uint8, wraps every ~2.1s (128 frames x 2).
-			-- Detect wrap so it doesn't trigger false retrigger.
 			local prev_dur = prev_fm_dur[ch] or 0
 			local wrapped = dur < 10 and prev_dur > 240
-			-- Detect retrigger: dur resets to low value (0-2) on new note.
-			-- Skip dur=0 (could be note-end); caught next frame via watermark.
 			local retriggered = not wrapped and dur > 0 and dur < prev_dur
-			if hex ~= prev_fm_ch[ch] or retriggered then
+			-- Only emit on note onset: channel was silent, or duration
+			-- counter reset. Ignores pitch bends which change KC every
+			-- frame and can wrap past octave 7.
+			local note_onset = prev_fm_ch[ch] == ".." or retriggered
+			if note_onset then
 				events[ch + 1] = hex
 				has_event = true
 			else
 				events[ch + 1] = ".."
 			end
 			prev_fm_ch[ch] = hex
-			-- Advance watermark on increment, retrigger, or wrap reset
 			if dur >= prev_dur or retriggered or wrapped then
 				prev_fm_dur[ch] = dur
 			end
