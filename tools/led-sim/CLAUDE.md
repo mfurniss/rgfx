@@ -39,7 +39,7 @@ Requires raylib installed via Homebrew: `brew install raylib`
 - `Q` / `ESC` - Quit
 
 **UDP Input:**
-The simulator listens on UDP port 8888 (same as ESP32 drivers) and receives effect commands from the Hub's Effects Playground. This allows testing effects without hardware.
+The simulator listens on UDP port 8811 (same as ESP32 drivers) and receives effect commands from the Hub's Effects Playground. This allows testing effects without hardware.
 
 ## Architecture
 
@@ -163,6 +163,6 @@ Effects are platform-agnostic. To test a new effect:
 |--------|-------|-----------|
 | Output | WS2812B LEDs | raylib window |
 | Frame rate | ~60 FPS | 120 FPS (configurable) |
-| Effects | UDP port 8888 | UDP port 8888 (same) |
+| Effects | UDP port 8811 | UDP port 8811 (same) |
 | MQTT | Config, OTA, telemetry | N/A |
 | Config | NVS flash | Command-line args / JSON |

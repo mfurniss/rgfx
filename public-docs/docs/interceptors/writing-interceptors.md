@@ -18,6 +18,9 @@ Use MAME's built-in debugger to discover where the game stores its state.
 
 3. Note the data format (BCD, binary, etc.) by examining values before and after changes.
 
+!!! tip "Shortcut: MAME Cheat Files"
+    Before firing up the debugger, check [MAME Cheat Downloads](https://www.mamecheat.co.uk/mame_downloads.htm) for existing cheat files. These contain known memory addresses for thousands of games (lives, scores, timers, etc.) and can save significant reverse-engineering effort. Even if a cheat file doesn't cover exactly what you need, it's a great starting point for finding nearby addresses.
+
 ## Step 2: Create the Interceptor File
 
 Create a new file in the `interceptors/games/` folder of your [config directory](../getting-started/hub-setup.md#config-directory):

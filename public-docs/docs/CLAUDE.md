@@ -23,6 +23,7 @@ The LED test pattern visualizations in `hub-app/test-leds.md` are an accepted ex
 
 ### Documentation Standards
 
+- Link to relevant subreddits (r/led, r/esp32, r/MAME) and external resources in the FAQ "Still stuck?" section
 - Use precise technical terminology
 - Include actual configuration options with correct defaults
 - Document all parameters, not just common ones
@@ -54,7 +55,7 @@ docs/
 ├── getting-started/            # 5-page onboarding flow
 ├── hub-app/                    # Hub application reference (10 pages)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, effects, examples)
-├── interceptors/               # Lua interceptor docs (7 pages)
+├── interceptors/               # Lua interceptor docs (7 pages, writing guide links to MAME cheat file resources)
 └── transformers/               # JS transformer docs (5 pages)
 ```
 

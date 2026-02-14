@@ -14,6 +14,7 @@
 #include "effects/plasma.h"
 #include "effects/warp.h"
 #include "effects/spectrum.h"
+#include "effects/music.h"
 #include "effects/particle_field.h"
 #include "effects/sparkle.h"
 #include "effects/particle_system.h"
@@ -69,11 +70,12 @@ class EffectProcessor {
 	PlasmaEffect plasmaEffect;
 	WarpEffect warpEffect;
 	SpectrumEffect spectrumEffect;
+	MusicEffect musicEffect;
 	ParticleFieldEffect particleFieldEffect;
 	SparkleEffect sparkleEffect;
 	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
-	static constexpr size_t EFFECT_COUNT = 14;
+	static constexpr size_t EFFECT_COUNT = 15;
 	EffectEntry effectMap[EFFECT_COUNT];
 
    public:

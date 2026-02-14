@@ -1,7 +1,7 @@
 /**
  * UDP Listener for receiving effect commands from RGFX Hub
  *
- * Listens on the same port as ESP32 drivers (8888) to receive
+ * Listens on the same port as ESP32 drivers (8811) to receive
  * effect payloads from the Hub's Effects Playground.
  */
 #pragma once
@@ -14,10 +14,10 @@ public:
 
 	/**
 	 * Initialize UDP socket and bind to port.
-	 * @param port UDP port to listen on (default: 8888)
+	 * @param port UDP port to listen on (default: 8811)
 	 * @return true if successful
 	 */
-	bool init(int port = 8888);
+	bool init(int port = 8811);
 
 	/**
 	 * Close socket and release resources.

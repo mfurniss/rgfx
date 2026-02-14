@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 
 	// Initialize UDP listener for receiving effects from Hub
 	UdpListener udpListener;
-	if (!udpListener.init(8888)) {
+	if (!udpListener.init(8811)) {
 		printf("Warning: UDP listener failed to start - keyboard input only\n");
 	}
 

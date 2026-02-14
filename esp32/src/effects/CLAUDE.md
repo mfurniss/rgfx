@@ -28,7 +28,7 @@ class IEffect {
 - Owns a single shared `Canvas` used by all effects
 - Maintains an effect map (name -> effect instance)
 - Handles frame timing and delta time calculation
-- Calls `update()` and `render()` on each effect every frame
+- Calls `update()` and `render()` on each effect every frame with explicit render ordering: background first, then plasma, warp, general effects, text/scroll_text on top, and finally particles
 - Routes incoming effect commands to the appropriate effect
 - Reports effect errors to Hub via MQTT when required properties are missing
 
@@ -53,6 +53,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with gradient color animation. Color is optional when gradient is provided. |
 | **Warp** | [warp.h](warp.h)/[warp.cpp](warp.cpp) | Center-radiating animated gradient with linear perspective scale (tunnel/bulge). |
 | **Spectrum** | [spectrum.h](spectrum.h)/[spectrum.cpp](spectrum.cpp) | FFT spectrum analyzer visualization. |
+| **Music** | [music.h](music.h)/[music.cpp](music.cpp) | Music channel visualizer. FIFO of decaying vertical bars with VU-meter peak indicators, auto-scaling pitch range (resets after 5s idle), and slow hue rotation (120s cycle). Matrix-only. Uses fixed-point integer math (0.16 for life/height, ms for timers), HSV LUT, hex digit LUT, and pre-computed reciprocal multiply for pitch-to-X mapping. |
 | **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
 | **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). |
@@ -143,6 +144,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `pulse.h/cpp` | Pulse effect with easing and collapse modes |
 | `scroll_text.h/cpp` | Horizontally scrolling text with gradient (auto-centered vertically) |
 | `spectrum.h/cpp` | FFT spectrum analyzer (renders behind text effects) |
+| `music.h/cpp` | Music channel visualizer with FIFO note buffer (matrix-only) |
 | `text.h/cpp` | Static text rendering with gradient and optional accent color |
 | `test_leds.h/cpp` | Hardware test pattern |
 | `warp.h/cpp` | Center-radiating animated gradient effect |

@@ -81,7 +81,7 @@ clearAllLEDs();                        // Set all LEDs to black
 [constants.h](constants.h) defines global configuration values:
 
 **Network:**
-- `UDP_PORT` (8888) - Effect listener port
+- `UDP_PORT` (8811) - Effect listener port
 - `MQTT_PORT` (1883) - Broker port
 - `WEB_SERVER_PORT` (80) - Config portal port
 - `SSDP_POLL_INTERVAL_MS` (3000) - Broker discovery interval

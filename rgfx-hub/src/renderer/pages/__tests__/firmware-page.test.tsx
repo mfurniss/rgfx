@@ -9,6 +9,8 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FirmwarePage from '../firmware-page';
+import { useUiStore } from '../../store/ui-store';
+import { useFlashState } from '../../hooks/use-flash-state';
 
 // Mock all child components
 vi.mock('../../components/common/log-display', () => ({
@@ -78,7 +80,7 @@ vi.mock('../../store/ui-store', () => ({
 
 // Mock hooks
 vi.mock('../../hooks/use-flash-state', () => ({
-  useFlashState: () => ({
+  useFlashState: vi.fn(() => ({
     progress: 0,
     driverFlashStatus: new Map(),
     logMessages: [],
@@ -92,7 +94,7 @@ vi.mock('../../hooks/use-flash-state', () => ({
     showResult: vi.fn(),
     closeResult: vi.fn(),
     resetForNewFlash: vi.fn(),
-  }),
+  })),
 }));
 
 vi.mock('../../hooks/use-ota-flash-events', () => ({
@@ -188,6 +190,65 @@ describe('FirmwarePage', () => {
       fireEvent.click(screen.getByText('OTA WiFi'));
 
       expect(screen.getByText(/Update firmware on already-configured drivers over WiFi/)).toBeDefined();
+    });
+  });
+
+  describe('error alert', () => {
+    it('shows error alert when not flashing and error exists', () => {
+      vi.mocked(useFlashState).mockReturnValue({
+        progress: 0,
+        driverFlashStatus: new Map(),
+        logMessages: [],
+        error: 'No connected drivers selected',
+        resultModal: { open: false, success: false, message: '', flashMethod: null },
+        setProgress: vi.fn(),
+        setDriverFlashStatus: vi.fn(),
+        addLog: vi.fn(),
+        clearLogs: vi.fn(),
+        setError: vi.fn(),
+        showResult: vi.fn(),
+        closeResult: vi.fn(),
+        resetForNewFlash: vi.fn(),
+      });
+
+      render(<FirmwarePage />);
+
+      expect(screen.getByText('No connected drivers selected')).toBeDefined();
+    });
+
+    it('hides error alert when flashing is in progress', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        const state = {
+          firmwareFlashMethod: 'ota',
+          firmwareDriverFlashStatus: {},
+          setFirmwareState: vi.fn(),
+          setFirmwareDriverFlashStatus: vi.fn(),
+          isFlashingFirmware: true,
+          setIsFlashingFirmware: vi.fn(),
+        };
+        return selector(state);
+      }) as any);
+
+      vi.mocked(useFlashState).mockReturnValue({
+        progress: 0,
+        driverFlashStatus: new Map(),
+        logMessages: [],
+        error: 'No connected drivers selected',
+        resultModal: { open: false, success: false, message: '', flashMethod: null },
+        setProgress: vi.fn(),
+        setDriverFlashStatus: vi.fn(),
+        addLog: vi.fn(),
+        clearLogs: vi.fn(),
+        setError: vi.fn(),
+        showResult: vi.fn(),
+        closeResult: vi.fn(),
+        resetForNewFlash: vi.fn(),
+      });
+
+      render(<FirmwarePage />);
+
+      expect(screen.queryByText('No connected drivers selected')).toBeNull();
     });
   });
 });

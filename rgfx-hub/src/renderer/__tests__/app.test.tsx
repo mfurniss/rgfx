@@ -110,6 +110,7 @@ describe('App IPC Listener Registration', () => {
       showInFolder: vi.fn(),
       getLogSizes: vi.fn().mockResolvedValue({ system: null, events: null, drivers: [] }),
       clearAllLogs: vi.fn(),
+      createBackup: vi.fn(),
       quitApp: vi.fn(),
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
@@ -228,6 +229,7 @@ describe('App Critical Error Handling', () => {
       showInFolder: vi.fn(),
       getLogSizes: vi.fn().mockResolvedValue({ system: null, events: null, drivers: [] }),
       clearAllLogs: vi.fn(),
+      createBackup: vi.fn(),
       quitApp: vi.fn(),
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',

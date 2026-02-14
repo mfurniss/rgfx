@@ -12,7 +12,7 @@
 local ram = require("ram")
 
 -- Boot delay to skip diagnostics and attract mode
-ram.set_boot_delay(14)
+ram.set_boot_delay(13)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
@@ -209,49 +209,52 @@ ram.install_monitors(map, mem)
 local sound_lut = {
 	[0x001A] = "shoot-hulk",
 	[0x001D] = "shoot-hulk",
-  [0x002C] = "human-die",
 	[0x0024] = "rescue-human",
 	[0x0027] = "rescue-human",
 	[0x114D] = "enforcer-spawn",
 	[0x114F] = "destroy-spheroid",
-	[0x4141] = "spawn-brains",
-	[0x26EE] = "laser",
-	[0x26F1] = "laser",
 	[0x26D7] = "player-death",
 	[0x26DA] = "player-death",
-	[0x26E9] = "next-wave",
-	[0x26EC] = "next-wave",
 	[0x26DF] = "game-start",
 	[0x26E2] = "wave_start",
+	[0x26E9] = "next-wave",
+	[0x26EC] = "next-wave",
+	[0x26EE] = "laser",
+	[0x26F1] = "laser",
 	[0x3896] = "explosion",
 	[0x3899] = "explosion",
 	[0x389E] = "grunt-move",
 	[0x38A1] = "explosion",
 	[0x38A3] = "destroy-electrode",
 	[0x38A6] = "destroy-electrode",
+  [0x4144] = "brain-appear",
+	[0x4141] = "brain-appear",
 	[0xD0DE] = "wave",
 	[0xD0E3] = "wave",
 	[0xD0EF] = "huge-explosion",
 	[0xD0F2] = "wave",
 	[0xEF08] = "sine-wave-boom",
 	[0xEF6E] = "attract",
+  [0x0029] = "human-die",
+  [0x002C] = "human-die",
+  [0x114A] = "spark",
   [0x1152] = "destroy-spheroid",
+  [0x1154] = "spark",
+  [0x1157] = "spark",
+  [0x115C] = "destroy-enforcer",
+  [0x1ACE] = "human-programming",
+  [0x1AE8] = "human-programming",
+  [0x1AEB] = "human-programming",
+  [0x4B2F] = "tank-appear",
+  [0x4B32] = "tank-appear",
   [0xD0C7] = "extra-life",
   [0xD0CA] = "extra-life",
-  [0x4144] = "brain-appear",
-  [0x1AE8] = "prog-appear",
-  [0x115C] = "destroy-enforcer",
-  [0x1154] = "spark",
-  [0x114A] = "spark",
-  [0x1157] = "spark",
-  [0x0029] = "human-die",
-  [0x1AEB] = "human-programming",
-  [0x4B32] = "tank-appear",
 }
 
 local last_sound_ptr = 0
 
 emu.register_frame_done(function()
+	if not ram.is_ready() then return end
 	local ptr_hi = mem:read_u8(0x9854)
 	local ptr_lo = mem:read_u8(0x9855)
 	local ptr = (ptr_hi << 8) | ptr_lo
@@ -264,7 +267,7 @@ emu.register_frame_done(function()
 		if is_new_sound then
 			local name = sound_lut[ptr]
 			if not name then
-				print(string.format("[ROBOTRON] Sound: UNKNOWN ($%04X)", ptr))
+				-- print(string.format("[ROBOTRON] Sound: UNKNOWN ($%04X)", ptr))
       else
         _G.event("robotron/sfx/" .. name)
       end

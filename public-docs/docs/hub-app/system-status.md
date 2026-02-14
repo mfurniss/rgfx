@@ -2,6 +2,8 @@
 
 The System Status page is the Hub's main dashboard. It gives you a quick overview of whether everything is running correctly — services, drivers, and event processing.
 
+![RGFX Hub — System Status page](../assets/images/rgfx-hub-system-status.png)
+
 ## Status Metrics
 
 - **Version** - Current Hub application version

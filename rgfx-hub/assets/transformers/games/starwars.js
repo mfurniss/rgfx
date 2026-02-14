@@ -17,9 +17,7 @@
 // 17,18 fly away from death star
 // 42 DS surface
 
-import { randomInt } from '../utils/math.js';
-import { sleep } from '../utils/async.js';
-import { formatNumber } from '../utils/format.js';
+import { randomInt, sleep, formatNumber } from '../utils.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let laserIndex = 0;
@@ -113,7 +111,7 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.rightStrip],
+        drivers: [NAMED_DRIVERS.rightStrip, NAMED_DRIVERS.leftMatrix],
         props: {
           direction: 'right',
           ...commonProps,
@@ -132,17 +130,15 @@ export async function transform(
       await sleep(500);
 
       broadcast({
-        effect: 'text',
+        effect: 'scroll_text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
         props: {
-          gradient: ['#A00000'],
+          gradient: ['#D00000'],
           reset: true,
-          text: "I'm going in",
-          accentColor: '#000080',
-          x: 0,
-          y: 0,
-          duration: 2000,
-          align: 'center',
+          text: "Red Five - I'm going in",
+          reset: true,
+          speed: 400,
+          snapToLed: true,
         },
       });
 
@@ -154,6 +150,7 @@ export async function transform(
           NAMED_DRIVERS.rightStrip,
           NAMED_DRIVERS.leftStrip,
           NAMED_DRIVERS.rightMatrix,
+          NAMED_DRIVERS.leftMatrix,
         ],
         props: {
           enabled: 'fadeOut',

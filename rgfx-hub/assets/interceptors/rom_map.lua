@@ -32,6 +32,24 @@ return {
 	-- Star Wars (Atari 1983)
 	starwars = "starwars_rgfx",
 
+	-- OutRun variants
+	outrun = "outrun_rgfx",
+	outruna = "outrun_rgfx",
+	outrunb = "outrun_rgfx",
+
+	-- Space Harrier variants
+	sharrier = "sharrier_rgfx",
+	sharrier1 = "sharrier_rgfx",
+	sharrierj = "sharrier_rgfx",
+
+	-- Super Hang-On variants
+	shangon = "shangon_rgfx",
+	shangon1 = "shangon_rgfx",
+	shangon2 = "shangon_rgfx",
+	shangon3 = "shangon_rgfx",
+	shangon3d = "shangon_rgfx",
+	shangonle = "shangon_rgfx",
+
 	-- Super Street Fighter II (CPS2)
 	ssf2 = "ssf2_rgfx",
 	ssf2u = "ssf2_rgfx",
