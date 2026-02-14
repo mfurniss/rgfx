@@ -6,13 +6,14 @@
 # 2. Merge request: CI runs tests → Must pass to merge
 # 3. Merge to main: CI runs tests + builds artifacts
 # 4. Create tag: git tag v1.0.0 && git push origin v1.0.0
-# 5. CI runs full pipeline → Deploys to Pages → Manual approval for release
+# 5. CI runs full pipeline → Deploys to Pages → Creates release with driver firmware
+# 6. Run `node scripts/release.js` locally to build Hub installer and upload to release
 #
 # Stage breakdown:
 # - test: Runs on MRs and main branch (no artifacts)
-# - build: Runs on main + tags (creates artifacts for releases)
+# - build: Runs on main + tags (creates driver firmware artifacts)
 # - deploy: Runs on tags only (deploys to GitLab Pages)
-# - release: Runs on tags only (creates GitHub-style release with manual approval)
+# - release: Runs on tags only (creates release with driver artifacts; Hub uploaded locally)
 
 variables:
   NODE_VERSION: "20"
@@ -117,60 +118,7 @@ test:driver:
 
 # ===== BUILD STAGE =====
 # Runs on main branch and tags only
-# Creates artifacts for releases
-
-build:hub:
-  stage: build
-  image: node:${NODE_VERSION}
-  interruptible: true
-  allow_failure: true  # DMG build fails on Linux - don't block pages deploy
-
-  # Cache npm packages to speed up subsequent runs
-  cache:
-    key:
-      files:
-        - rgfx-hub/package.json
-    paths:
-      - rgfx-hub/.npm/
-
-  before_script:
-    - node --version
-    - npm --version
-    # Install from workspace root - npm hoists packages to root node_modules
-    # Regenerate lock file for CI npm version compatibility (CI: 10.8.2, local: 11.5.2)
-    - rm -f package-lock.json
-    - npm install --prefer-offline
-
-  script:
-    # Inject version from git tag
-    - node scripts/inject-version-hub.js
-    - cd rgfx-hub
-
-    # Run all checks - ANY failure stops build
-    - npm run typecheck  # TypeScript errors = FAIL
-    - npm run lint       # ESLint errors AND warnings = FAIL
-    - npm test           # Any test failure = FAIL
-
-    # Build DMG artifacts only for tags (releases), not for main branch commits
-    # Main branch: Tests pass, no artifacts created (Linux CI can't build macOS DMG)
-    # Tags: Tests pass + DMG created (requires macOS runner - not yet configured)
-    - |
-      if [ -n "$CI_COMMIT_TAG" ]; then
-        echo "Tag detected: Building DMG artifact..."
-        npm run make
-      else
-        echo "Branch commit: Skipping DMG build (tests passed, no artifacts needed)"
-      fi
-
-  artifacts:
-    name: "rgfx-hub-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - rgfx-hub/out/make/**/*.dmg
-    expire_in: 1 month
-
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+# Hub installer is built locally via `node scripts/release.js`
 
 # ===== DRIVER BUILD (ESP32) =====
 build:driver:
@@ -248,14 +196,13 @@ pages:
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
-# ===== CREATE RELEASE (MANUAL TRIGGER) =====
-# This job waits for manual approval before creating the release
-# Click the "Play" button in GitLab UI to approve and create release
+# ===== CREATE RELEASE =====
+# Creates release with driver firmware. Hub installers are uploaded
+# locally via `node scripts/release.js` after this job completes.
 create:release:
   stage: release
   image: registry.gitlab.com/gitlab-org/cli:latest
   dependencies:
-    - build:hub
     - build:driver
 
   script:
@@ -273,16 +220,15 @@ create:release:
       echo "Release notes:"
       echo "$NOTES"
 
-    # Create release with artifacts using glab CLI
+    # Create release with driver firmware artifacts
+    # Hub installers (DMG/EXE) are uploaded locally after this job
     - |
       glab release create "${CI_COMMIT_TAG}" \
         --name "RGFX ${CI_COMMIT_TAG}" \
         --notes "${NOTES}" \
-        rgfx-hub/out/make/**/*.dmg \
         esp32-installer/*.bin
 
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
-      when: manual  # *** MANUAL TRIGGER - YOU APPROVE RELEASE ***
 
   allow_failure: false
