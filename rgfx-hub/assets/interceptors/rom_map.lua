@@ -37,6 +37,11 @@ return {
 	outruna = "outrun_rgfx",
 	outrunb = "outrun_rgfx",
 
+	-- Space Harrier variants
+	sharrier = "sharrier_rgfx",
+	sharrier1 = "sharrier_rgfx",
+	sharrierj = "sharrier_rgfx",
+
 	-- Super Hang-On variants
 	shangon = "shangon_rgfx",
 	shangon1 = "shangon_rgfx",

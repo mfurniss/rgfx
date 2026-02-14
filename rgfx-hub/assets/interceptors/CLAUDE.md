@@ -18,7 +18,7 @@ To terminate MAME after testing: `pkill -9 -f "mame.*<game>"` (replace `<game>` 
 
 ### Core Files
 - `mame.lua` - MAME/emu type stubs for Lua language server (manager, emu, _G.event, _G.event_cleanup, _G.game_name); register callback name params are optional
-- `rom_map.lua` - Maps ROM names to game-specific interceptors
+- `rom_map.lua` - Maps ROM names (including variants) to game-specific interceptors
 - `fft.lua` - FFT audio analysis interceptor
 
 ### Game Interceptors (games/)
