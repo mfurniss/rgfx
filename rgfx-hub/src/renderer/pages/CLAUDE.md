@@ -133,7 +133,8 @@ Refactored components and utilities extracted from the main page:
 **Purpose:** Manual event simulation for testing event-to-effect mappings.
 
 **Features:**
-- 6 configurable event rows (persisted across sessions)
+- 12 configurable event rows (persisted across sessions)
+- Each row rendered as isolated `SimulatorRow` component (per-row Zustand subscriptions, local input state with debounced store sync)
 - Each row has: event input field, trigger button, auto-trigger interval selector
 - Event format: `topic payload` (space-delimited)
 - Auto-trigger intervals: off, 1 second, 5 seconds
