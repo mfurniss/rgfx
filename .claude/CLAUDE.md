@@ -8,7 +8,7 @@ A framework which creates external visual effects for retro video games.
 
 The VSCode workspace contains three key projects.
 
-- MAME Lua scripts are bundled within rgfx-hub/assets/ in the `interceptors/` and `mame/` subdirectories. These scripts interface with MAME's internal APIs to monitor game state and generate events which are added to the events log.
+- MAME Lua scripts are bundled within rgfx-hub/assets/ in the `interceptors/` and `mame/` subdirectories. These scripts interface with MAME's internal APIs to monitor game state and generate events which are added to the events log. **Do NOT edit files in `rgfx-hub/assets/` — the user manages the assets directory. Only create and edit interceptors, transformers, and rom_map.lua in `~/.rgfx/`.**
 - /rgfx-hub is the main controller app which converts event log entries to network messages. The native app uses Electron and is written in TypeScript and Material UI. When working on rgfx-hub delegate to the rgfx-hub-developer agent.
 - /esp32 is the driver firmware for ESP32 microcontrollers. It is a Platform IO project written in C++. The driver's job is to receive network messages from the hub and convert these to visual effects using the connected LED strips and LED matrices. Use the platformio-esp32-expert agent when working on the esp32 driver firmware.
 
