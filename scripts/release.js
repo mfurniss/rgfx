@@ -7,12 +7,12 @@
  *   npm run release               # Resume — auto-detect tag from current HEAD
  *
  * What it does:
- *   1. Injects version, builds docs, runs quality checks (before pushing)
+ *   1. Builds docs, runs quality checks (before pushing)
  *   2. Creates git tag and pushes to origin
  *   3. Waits for CI pipeline to finish and create the GitLab release
- *   4. Builds the Hub installer (DMG on macOS, EXE on Windows)
+ *   4. Injects version into Hub package.json, builds installer (DMG/EXE)
  *   5. Copies installer to rgfx-hub/out/release/<platform>/
- *   6. Uploads to the GitLab release
+ *   6. Uploads to the GitLab release via Package Registry
  *
  * Prerequisites:
  *   - glab CLI authenticated (glab auth status)
@@ -124,21 +124,23 @@ async function waitForCI(tagName) {
     try {
       const output = runCapture(`glab ci status -b ${tagName}`);
 
-      if (/failed/i.test(output)) {
+      // Parse the overall pipeline state, not individual job statuses
+      const stateMatch = output.match(/Pipeline state:\s*(\w+)/i);
+      const state = stateMatch ? stateMatch[1].toLowerCase() : '';
+
+      if (state === 'failed' || state === 'canceled') {
         console.log(output);
-        fail(`CI pipeline failed for ${tagName}. Check the pipeline and fix before retrying.`);
+        fail(`CI pipeline ${state} for ${tagName}. Check the pipeline and fix before retrying.`);
       }
 
-      if (/success/i.test(output) || /passed/i.test(output)) {
+      if (state === 'success' || state === 'passed') {
         console.log('  CI pipeline passed.');
         return;
       }
 
-      // Still running — show status and wait
-      const statusLine = output.split('\n').find(l => /pipeline/i.test(l) || /status/i.test(l)) || output.split('\n')[0];
+      const statusLine = output.split('\n').find(l => /Pipeline state/i.test(l)) || output.split('\n')[0];
       process.stdout.write(`  ${statusLine}\r`);
     } catch {
-      // glab ci status can fail if pipeline hasn't started yet
       process.stdout.write('  Waiting for pipeline to start...\r');
     }
 
@@ -195,23 +197,19 @@ async function waitForCI(tagName) {
 
   console.log('Pre-flight checks passed.\n');
 
-  // --- Step 1: Inject version ---
-  console.log('Injecting version...');
-  run('node scripts/inject-version-hub.js');
-
-  // --- Step 2: Build docs (macOS only — Windows skips per forge config) ---
+  // --- Step 1: Build docs (macOS only — Windows skips per forge config) ---
   if (platform === 'darwin') {
     console.log('\nBuilding docs...');
     run('npm run docs:build');
   }
 
-  // --- Step 3: Run quality checks ---
+  // --- Step 2: Quality checks ---
   console.log('\nRunning quality checks...');
   run('npm run typecheck', { cwd: HUB_DIR });
   run('npm run lint', { cwd: HUB_DIR });
   run('npm test', { cwd: HUB_DIR });
 
-  // --- Step 4: Create tag if needed ---
+  // --- Step 3: Create tag if needed ---
   if (tagExistsLocally(tag)) {
     console.log(`\nTag ${tag} already exists locally.`);
   } else {
@@ -219,7 +217,7 @@ async function waitForCI(tagName) {
     run(`git tag ${tag}`);
   }
 
-  // --- Step 5: Push tag if needed ---
+  // --- Step 4: Push tag if needed ---
   if (tagExistsOnRemote(tag)) {
     console.log(`Tag ${tag} already pushed to origin.`);
   } else {
@@ -237,7 +235,7 @@ async function waitForCI(tagName) {
     run(`git checkout ${tag}`);
   }
 
-  // --- Step 6: Wait for CI and release creation ---
+  // --- Step 5: Wait for CI and release creation ---
   if (releaseExists(tag)) {
     console.log(`GitLab release ${tag} already exists.`);
   } else {
@@ -259,11 +257,15 @@ async function waitForCI(tagName) {
     }
   }
 
-  // --- Step 7: Build installer ---
+  // --- Step 6: Inject version and build installer ---
+  // Version injection must happen AFTER tag checkout so git checkout doesn't revert it
+  console.log('\nInjecting version...');
+  run('node scripts/inject-version-hub.js');
+
   console.log('\nBuilding installer...');
   run('npm run make', { cwd: HUB_DIR });
 
-  // --- Step 8: Copy to normalized release directory ---
+  // --- Step 7: Copy to normalized release directory ---
   console.log('\nPreparing release artifact...');
 
   const platformDir = platform === 'darwin' ? 'macos' : 'windows';
@@ -295,9 +297,23 @@ async function waitForCI(tagName) {
 
   console.log(`  ${platformDir}/${artifactName}`);
 
-  // --- Step 9: Upload to GitLab release ---
+  // --- Step 8: Upload to GitLab release via Package Registry ---
+  // glab release upload uses the /uploads API which has a 100MB limit.
+  // Package Registry supports up to 5GB.
   console.log(`\nUploading to release ${tag}...`);
-  run(`glab release upload ${tag} "${releasePath}"`);
+
+  const token = runCapture('glab auth status -t 2>&1').match(/Token found:\s*(\S+)/)?.[1];
+  if (!token) fail('Could not extract glab auth token. Run: glab auth login');
+
+  const projectId = runCapture('glab api projects/:fullpath --jq .id');
+  const packageUrl = `https://gitlab.com/api/v4/projects/${projectId}/packages/generic/rgfx-hub/${tag}/${artifactName}`;
+
+  console.log('  Uploading to Package Registry...');
+  run(`curl --fail --header "Authorization: Bearer ${token}" --upload-file "${releasePath}" "${packageUrl}"`);
+
+  console.log('  Linking to release...');
+  const linkData = JSON.stringify({ name: artifactName, url: packageUrl, link_type: 'package' });
+  run(`curl --fail --header "Authorization: Bearer ${token}" --header "Content-Type: application/json" --request POST "https://gitlab.com/api/v4/projects/${projectId}/releases/${tag}/assets/links" --data '${linkData}'`);
 
   console.log(`\nDone! ${artifactName} uploaded to release ${tag}`);
   console.log(`View: glab release view ${tag}`);
