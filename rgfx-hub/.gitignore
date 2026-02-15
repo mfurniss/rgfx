@@ -91,7 +91,5 @@ typings/
 # Electron-Forge
 out/
 
-# Generated icon files (regenerate with: node scripts/generate-icons.js)
-assets/icons/icon.icns
-assets/icons/icon.ico
+# Generated Linux icon set (regenerate with: node scripts/generate-icons.js)
 assets/icons/icons/
