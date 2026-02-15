@@ -199,16 +199,30 @@ pages:
 # ===== CREATE RELEASE =====
 # Creates release with driver firmware. Hub installers are uploaded
 # locally via `node scripts/release.js` after this job completes.
+#
+# CI job tokens can't use the /uploads API, so firmware is uploaded to
+# the Generic Package Registry and linked as release assets.
 create:release:
   stage: release
-  image: registry.gitlab.com/gitlab-org/cli:latest
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
   dependencies:
     - build:driver
 
   before_script:
-    - glab auth login --hostname $CI_SERVER_HOST --job-token $CI_JOB_TOKEN
+    - apk add --no-cache curl
 
   script:
+    # Upload .bin files to Generic Package Registry (supports job tokens)
+    - |
+      PACKAGE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rgfx-driver/${CI_COMMIT_TAG}"
+      for f in esp32-installer/*.bin; do
+        filename=$(basename "$f")
+        echo "Uploading ${filename}..."
+        curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          --upload-file "$f" \
+          "${PACKAGE_URL}/${filename}"
+      done
+
     # Generate release notes from commits since last tag
     - |
       PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${CI_COMMIT_TAG}^ 2>/dev/null || echo "")
@@ -223,14 +237,17 @@ create:release:
       echo "Release notes:"
       echo "$NOTES"
 
-    # Create release with driver firmware artifacts
-    # Hub installers (DMG/EXE) are uploaded locally after this job
+    # Create release with asset links to package registry
     - |
-      glab release create "${CI_COMMIT_TAG}" \
-        --ref "${CI_COMMIT_SHA}" \
-        --name "RGFX ${CI_COMMIT_TAG}" \
-        --notes "${NOTES}" \
-        esp32-installer/*.bin
+      PACKAGE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rgfx-driver/${CI_COMMIT_TAG}"
+      set -- --name "RGFX ${CI_COMMIT_TAG}" \
+             --tag-name "${CI_COMMIT_TAG}" \
+             --description "${NOTES}"
+      for f in esp32-installer/*.bin; do
+        filename=$(basename "$f")
+        set -- "$@" --assets-link "{\"name\":\"${filename}\",\"url\":\"${PACKAGE_URL}/${filename}\",\"link_type\":\"package\"}"
+      done
+      release-cli create "$@"
 
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
