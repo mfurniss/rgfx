@@ -205,6 +205,9 @@ create:release:
   dependencies:
     - build:driver
 
+  before_script:
+    - glab auth login --hostname $CI_SERVER_HOST --job-token $CI_JOB_TOKEN
+
   script:
     # Generate release notes from commits since last tag
     - |
@@ -224,6 +227,7 @@ create:release:
     # Hub installers (DMG/EXE) are uploaded locally after this job
     - |
       glab release create "${CI_COMMIT_TAG}" \
+        --ref "${CI_COMMIT_SHA}" \
         --name "RGFX ${CI_COMMIT_TAG}" \
         --notes "${NOTES}" \
         esp32-installer/*.bin
