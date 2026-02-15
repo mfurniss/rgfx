@@ -38,7 +38,7 @@ stages:
   - release
 
 # ===== TEST STAGE =====
-# Runs on ALL branches and MRs for fast feedback
+# Runs on MRs only — main branch skips tests (already validated by MR pipeline)
 # No artifacts created - just validation
 
 test:hub:
@@ -72,7 +72,6 @@ test:hub:
   rules:
     - if: $GITLAB_CI == "false"                       # Run locally with gitlab-ci-local
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
 
 test:driver:
   stage: test
@@ -114,7 +113,6 @@ test:driver:
   rules:
     - if: $GITLAB_CI == "false"                       # Run locally with gitlab-ci-local
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
 
 # ===== BUILD STAGE =====
 # Runs on main branch and tags only
