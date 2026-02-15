@@ -262,6 +262,10 @@ async function waitForCI(tagName) {
   console.log('\nInjecting version...');
   run('node scripts/inject-version-hub.js');
 
+  // Clean previous build so Electron Forge doesn't reuse stale output
+  const outDir = path.join(HUB_DIR, 'out');
+  fs.rmSync(outDir, { recursive: true, force: true });
+
   console.log('\nBuilding installer...');
   run('npm run make', { cwd: HUB_DIR });
 
@@ -305,7 +309,7 @@ async function waitForCI(tagName) {
   const token = runCapture('glab auth status -t 2>&1').match(/Token found:\s*(\S+)/)?.[1];
   if (!token) fail('Could not extract glab auth token. Run: glab auth login');
 
-  const projectId = runCapture('glab api projects/:fullpath --jq .id');
+  const projectId = JSON.parse(runCapture('glab api projects/:fullpath')).id;
   const packageUrl = `https://gitlab.com/api/v4/projects/${projectId}/packages/generic/rgfx-hub/${tag}/${artifactName}`;
 
   console.log('  Uploading to Package Registry...');
