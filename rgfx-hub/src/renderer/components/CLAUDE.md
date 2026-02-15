@@ -625,6 +625,26 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+## Simulator Components
+
+### SimulatorRow
+
+**File:** [simulator/simulator-row.tsx](simulator/simulator-row.tsx)
+
+**Purpose:** Single row in the event simulator with optimized input handling.
+
+**Props:**
+- `index: number` - Row index into the store's `simulatorRows` array
+
+**Features:**
+- Subscribes only to its own row slice via Zustand selector (prevents cross-row re-renders)
+- Local `useState` for the text input — typing is instant with no store overhead
+- Debounced (300ms) sync from local state to Zustand store (and localStorage persist)
+- Flushes debounce immediately on Enter key or Trigger button click
+- Auto-interval dropdown updates store immediately (no debounce)
+
+---
+
 ## Settings Components
 
 ### BackupSection
