@@ -12,6 +12,7 @@ import type { DriverLogPersistence } from '../driver-log-persistence';
 import type { LogManager } from '../log-manager';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
+import type { SystemMonitor } from '../system-monitor';
 import type { TransformerEngine } from '../transformer-engine';
 import type { UdpClient } from '../types/transformer-types';
 import { registerSetIdHandler } from './set-id-handler';
@@ -46,6 +47,7 @@ interface IpcHandlersDeps {
   logManager: LogManager;
   ledHardwareManager: LEDHardwareManager;
   mqtt: MqttBroker;
+  systemMonitor: SystemMonitor;
   uploadConfigToDriver: (macAddress: string) => Promise<boolean>;
   udpClient: UdpClient;
   transformerEngine: TransformerEngine;

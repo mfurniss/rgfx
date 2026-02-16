@@ -6,7 +6,7 @@ This folder contains Electron IPC (Inter-Process Communication) handlers that en
 
 ## Handler Registration
 
-All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts), which accepts a dependency injection object containing shared services.
+All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts), which accepts a dependency injection object containing shared services (including `SystemMonitor` for cleanup operations like clearing UDP stats on driver delete).
 
 ---
 

@@ -88,7 +88,7 @@ Stores can call into each other:
 - `version: number` - Incremented on changes to trigger re-renders
 
 **Actions:**
-- `updateFromStatus(udpStatsByDriver, connectedDriverIds)` - Updates current stats from SystemStatus
+- `updateFromStatus(udpStatsByDriver, connectedDriverIds)` - Updates current stats from SystemStatus; rebuilds `knownDrivers` from current data to evict stale entries
 - `sampleRates()` - Calculates rate deltas and pushes data point to history (called by interval timer)
 - `getHistory()` - Returns history as array for chart rendering
 - `getDriverIds()` - Returns sorted list of known driver IDs
@@ -126,7 +126,7 @@ interface TelemetryDataPoint {
 **Actions:**
 - `addDataPoint(driverId, dataPoint)` - Adds telemetry point; creates buffer lazily
 - `getHistory(driverId)` - Returns array of all telemetry points
-- `clearHistory(driverId)` - Clears telemetry for specific driver
+- `clearHistory(driverId)` - Deletes telemetry buffer for specific driver (frees memory)
 - `clearAllHistory()` - Clears all telemetry data
 
 ---
