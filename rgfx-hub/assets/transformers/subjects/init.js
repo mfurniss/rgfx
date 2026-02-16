@@ -18,6 +18,7 @@ export async function transform({ namespace, subject }, ctx) {
             repeat: false,
             speed: 250,
             gradient: ['#700070', '#B0FF00', '#300050', '#700070'],
+            accentColor: '',
             gradientSpeed: 6,
             gradientScale: 0.2,
             snapToLed: true,

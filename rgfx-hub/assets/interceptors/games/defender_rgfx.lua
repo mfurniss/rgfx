@@ -13,7 +13,7 @@
 local ram = require("ram")
 
 -- Boot delay to skip diagnostics and attract mode
-ram.set_boot_delay(13)
+ram.set_boot_delay(14)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
@@ -171,49 +171,51 @@ ram.install_monitors(map, mem)
 
 -- =============================================================================
 -- DEBUG: RAM scanner to find fire/bullet address
--- Scans $A000-$A200, suppresses addresses that change too often (noise)
+-- Scans a range, suppresses addresses that change too often (noise)
 -- =============================================================================
-local scan_start = 0x9800
-local scan_end = 0x9A00
--- Skip addresses we already monitor
-local skip = {
-	[0xA0FA] = true, -- humanoid_count
-	[0xA112] = true, [0xA113] = true, [0xA114] = true, -- enemy counts
-	[0xA115] = true, [0xA116] = true, [0xA119] = true,
-	[0xA1C3] = true, [0xA1C4] = true, [0xA1C5] = true, -- score
-	[0xA1C9] = true, -- lives
-	[0xA1CB] = true, -- smart bombs
-}
+local DEBUG_SCANNER = false
 
-local scan_prev = {}
-local change_count = {}
-for addr = scan_start, scan_end do
-	scan_prev[addr] = 0
-	change_count[addr] = 0
-end
+if DEBUG_SCANNER then
+	local scan_start = 0x9800
+	local scan_end = 0x9A00
+	-- Skip addresses we already monitor
+	local skip = {
+		[0xA0FA] = true, -- humanoid_count
+		[0xA112] = true, [0xA113] = true, [0xA114] = true, -- enemy counts
+		[0xA115] = true, [0xA116] = true, [0xA119] = true,
+		[0xA1C3] = true, [0xA1C4] = true, [0xA1C5] = true, -- score
+		[0xA1C9] = true, -- lives
+		[0xA1CB] = true, -- smart bombs
+	}
 
-local frame_num = 0
-emu.register_frame_done(function()
-	if not ram.is_ready() then return end
-	frame_num = frame_num + 1
-
+	local scan_prev = {}
+	local change_count = {}
 	for addr = scan_start, scan_end do
-		if not skip[addr] then
-			local val = mem:read_u8(addr)
-			if val ~= scan_prev[addr] then
-				change_count[addr] = change_count[addr] + 1
-				-- Suppress addresses that change more than 20 times (noise)
-				if change_count[addr] <= 20 then
-					print(string.format("[SCAN] F%d $%04X: %d -> %d (0x%02X -> 0x%02X)",
-						frame_num, addr, scan_prev[addr], val, scan_prev[addr], val))
-				elseif change_count[addr] == 21 then
-					print(string.format("[SCAN] $%04X suppressed (too noisy)", addr))
+		scan_prev[addr] = 0
+		change_count[addr] = 0
+	end
+
+	local frame_num = 0
+	emu.register_frame_done(function()
+		if not ram.is_ready() then return end
+		frame_num = frame_num + 1
+
+		for addr = scan_start, scan_end do
+			if not skip[addr] then
+				local val = mem:read_u8(addr)
+				if val ~= scan_prev[addr] then
+					change_count[addr] = change_count[addr] + 1
+					if change_count[addr] <= 20 then
+						print(string.format("[SCAN] F%d $%04X: %d -> %d (0x%02X -> 0x%02X)",
+							frame_num, addr, scan_prev[addr], val, scan_prev[addr], val))
+					elseif change_count[addr] == 21 then
+						print(string.format("[SCAN] $%04X suppressed (too noisy)", addr))
+					end
+					scan_prev[addr] = val
 				end
-				scan_prev[addr] = val
 			end
 		end
-	end
-end, "debug_scanner")
+	end, "debug_scanner")
 
-print("[DEFENDER] DEBUG scanner active: $A000-$A200 (noise-filtered)")
-print("[DEFENDER] Interceptor loaded")
+	print("[DEFENDER] DEBUG scanner active: $9800-$9A00 (noise-filtered)")
+end
