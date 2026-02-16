@@ -48,7 +48,7 @@ MAME event handling utilities:
 JavaScript modules that transform game events into LED effects:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game global effects
-- `utils/` - Shared utility modules (index.js barrel, math.js, async.js, format.js)
+- `utils/` - Shared utility modules (index.js barrel, math.js, async.js, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, outrun.js, pacman.js, shangon.js, sharrier.js, smb.js, etc.)

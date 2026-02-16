@@ -1,9 +1,4 @@
-import {
-  sleep,
-  formatNumber,
-  randomInt,
-  randomElement,
-} from '../utils/index.js';
+import { sleep, formatNumber, randomInt } from '../utils/index.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 let scoreHue = 0;
@@ -13,12 +8,12 @@ export async function transform(
   { broadcast, hslToHex },
 ) {
   // Let init events pass through to subject handlers
-  if (subject === 'init') {
-    return false;
-  }
+  // if (subject === 'init') {
+  //   return false;
+  // }
 
   if (subject === 'player' && property === 'score') {
-    const color = hslToHex(scoreHue, 100, 50);
+    const color = hslToHex(scoreHue, 100, 30);
     scoreHue = (scoreHue + 30) % 360;
     broadcast({
       effect: 'text',
@@ -149,24 +144,24 @@ export async function transform(
   //   return true;
   // }
 
-  // -- Smart bomb count display --
-  if (subject === 'player' && property === 'smart-bombs') {
-    broadcast({
-      effect: 'text',
-      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
-      props: {
-        align: 'center',
-        text: `B:${payload}`,
-        duration: 3000,
-        reset: true,
-        gradient: ['#FFFFFF', '#FFFF00', '#FF8000'],
-        gradientSpeed: 2,
-        gradientScale: 0,
-        accentColor: '#200000',
-      },
-    });
-    return true;
-  }
+  // // -- Smart bomb count display --
+  // if (subject === 'player' && property === 'smart-bombs') {
+  //   broadcast({
+  //     effect: 'text',
+  //     drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+  //     props: {
+  //       align: 'center',
+  //       text: `B:${payload}`,
+  //       duration: 3000,
+  //       reset: true,
+  //       gradient: ['#FFFFFF', '#FFFF00', '#FF8000'],
+  //       gradientSpeed: 2,
+  //       gradientScale: 0,
+  //       accentColor: '#200000',
+  //     },
+  //   });
+  //   return true;
+  // }
 
   // -- Humanoid lost --
   if (subject === 'humanoid' && property === 'lost') {
@@ -216,7 +211,7 @@ export async function transform(
     if (property === 'lander') {
       broadcast({
         effect: 'explode',
-        drivers: ['*M'],
+        drivers: MATRIX_DRIVERS,
         props: {
           color: '#00FF00',
           centerX: 'random',
@@ -234,7 +229,7 @@ export async function transform(
     if (property === 'mutant') {
       broadcast({
         effect: 'explode',
-        drivers: ['*M'],
+        drivers: MATRIX_DRIVERS,
         props: {
           color: '#FF00FF',
           centerX: 'random',
@@ -254,7 +249,7 @@ export async function transform(
     if (property === 'baiter') {
       broadcast({
         effect: 'explode',
-        drivers: ['*M'],
+        drivers: MATRIX_DRIVERS,
         props: {
           color: '#80FF00',
           centerX: 'random',
@@ -273,7 +268,6 @@ export async function transform(
 
     if (property === 'bomber') {
       const hue = randomInt(360);
-      const driver = randomElement(MATRIX_DRIVERS);
 
       const props = {
         color: hslToHex(hue, 100, 50),
@@ -284,7 +278,7 @@ export async function transform(
       };
 
       broadcast({
-        drivers: [driver],
+        drivers: MATRIX_DRIVERS,
         effect: 'pulse',
         props,
       });
@@ -295,7 +289,7 @@ export async function transform(
       props.collapse = 'vertical';
 
       broadcast({
-        drivers: [driver],
+        drivers: MATRIX_DRIVERS,
         effect: 'pulse',
         props,
       });
@@ -343,7 +337,7 @@ export async function transform(
     if (property === 'swarmer') {
       broadcast({
         effect: 'explode',
-        drivers: ['*M'],
+        drivers: MATRIX_DRIVERS,
         props: {
           color: '#FF0000',
           centerX: 'random',
@@ -381,5 +375,5 @@ export async function transform(
   //   });
   // }
 
-  return true;
+  // return true;
 }

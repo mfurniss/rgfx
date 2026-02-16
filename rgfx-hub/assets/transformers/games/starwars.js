@@ -249,7 +249,7 @@ export async function transform(
       });
     }
   }
-  // Score change - display score on matrix
+
   if (subject === 'player' && property === 'score' && scoreLatch) {
     broadcast({
       effect: 'text',
@@ -259,10 +259,10 @@ export async function transform(
         accentColor: '#000000',
         duration: 6000,
         reset: true,
-        align: 'center',
       },
       drivers: [NAMED_DRIVERS.primaryMatrix], // 96x8 matrix
     });
+    // await sleep(1);
     broadcast({
       effect: 'text',
       props: {
@@ -270,6 +270,7 @@ export async function transform(
         gradient: ['#80FF80'],
         duration: 200,
         align: 'center',
+        // reset: false,
       },
       drivers: [NAMED_DRIVERS.primaryMatrix], // 96x8 matrix
     });
