@@ -40,3 +40,17 @@ export function randomInt(a, b) {
   }
   return Math.floor(Math.random() * (b - a + 1)) + a;
 }
+
+/**
+ * Pick a random element from an array.
+ *
+ * @template T
+ * @param {T[]} array
+ * @returns {T}
+ *
+ * @example
+ * randomElement(['a', 'b', 'c']); // returns 'a', 'b', or 'c'
+ */
+export function randomElement(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}

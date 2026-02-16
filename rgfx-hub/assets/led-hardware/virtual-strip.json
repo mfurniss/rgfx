@@ -1,0 +1,9 @@
+{
+  "description": "Virtual 100 LED Strip for LED-SIM",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 100,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}

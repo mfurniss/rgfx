@@ -1,0 +1,9 @@
+{
+  "description": "9.8ft (3m) WS2812B IC RGB 2.7mm Ultra Narrow LED strip, 160 pixels/m, 480 total pixels, non-waterproof (IP30)",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 480,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}

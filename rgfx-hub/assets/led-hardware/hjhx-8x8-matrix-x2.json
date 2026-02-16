@@ -1,5 +1,4 @@
 {
-  "name": "HJHX 8x8 Matrix x2 chained",
   "description": "Two chained 8x8 WS2812B serpentine matrix with 64 individually addressable pixels",
   "sku": null,
   "asin": "B0B775PTVF",

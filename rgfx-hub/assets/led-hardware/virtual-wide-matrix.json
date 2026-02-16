@@ -1,12 +1,12 @@
 {
-  "description": "8x32 WS2812B flexible LED panel with 256 individually addressable pixels",
+  "description": "Virtual 768 LED Matrix for LED-SIM",
   "sku": null,
   "asin": null,
   "layout": "matrix-br-h-snake",
-  "count": 256,
+  "count": 768,
   "chipset": "WS2812B",
   "colorOrder": "GRB",
   "colorCorrection": "TypicalLEDStrip",
-  "width": 8,
-  "height": 32
+  "width": 96,
+  "height": 8
 }

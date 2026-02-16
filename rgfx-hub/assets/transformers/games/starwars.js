@@ -17,7 +17,7 @@
 // 17,18 fly away from death star
 // 42 DS surface
 
-import { randomInt, sleep, formatNumber } from '../utils.js';
+import { randomInt, sleep, formatNumber } from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let laserIndex = 0;

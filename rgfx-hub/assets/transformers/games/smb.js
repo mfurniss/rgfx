@@ -1,6 +1,6 @@
 // Super Mario Bros game-specific mapper
 
-import { randomInt, sleep } from '../utils.js';
+import { randomInt, sleep } from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let coinGif = null;
