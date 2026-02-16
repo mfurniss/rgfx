@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { MAX_EVENT_TOPICS } from '@/config/constants';
+import { createDebouncedStorage } from './debounced-storage';
 
 interface EventTopicData {
   count: number;
@@ -53,6 +54,7 @@ export const useEventStore = create<EventStore>()(
     }),
     {
       name: 'rgfx-event-monitor',
+      storage: createJSONStorage(() => createDebouncedStorage(500)),
     },
   ),
 );
