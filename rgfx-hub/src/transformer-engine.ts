@@ -39,38 +39,21 @@ export class TransformerEngine {
   private defaultHandler?: TransformerHandler;
   private watcher?: ReturnType<typeof watch>;
   private importModule: (path: string) => Promise<Record<string, unknown>>;
-  private moduleHashes = new Map<string, string>();
-  private moduleCache = new Map<string, Record<string, unknown>>();
-
   constructor(
     private context: TransformerContext,
     options?: TransformerEngineOptions,
   ) {
     if (options?.importModule) {
-      // Test injection — skip content-hash caching
       this.importModule = options.importModule;
     } else {
-      // Production: content-hash-based import with local caching.
-      // Uses file content hash as the URL cache key so identical content
-      // reuses the same V8 module cache entry instead of leaking a new one
-      // on every fs.watch notification.
+      // Content-hash URL prevents V8 module cache leak (same content = same
+      // URL = reused cache entry) while supporting hot reload (changed content
+      // = new hash = new URL = fresh import from disk).
       this.importModule = async (filePath: string) => {
         const content = await fs.readFile(filePath, 'utf-8');
         const hash = createHash('sha1').update(content).digest('hex').slice(0, 12);
-
-        const cachedHash = this.moduleHashes.get(filePath);
-        const cachedModule = this.moduleCache.get(filePath);
-
-        if (cachedHash === hash && cachedModule) {
-          return cachedModule;
-        }
-
         const url = pathToFileURL(filePath).href;
-        const module = (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
-
-        this.moduleHashes.set(filePath, hash);
-        this.moduleCache.set(filePath, module);
-        return module;
+        return (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
       };
     }
   }
