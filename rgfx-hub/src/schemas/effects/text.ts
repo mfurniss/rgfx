@@ -38,7 +38,7 @@ export default baseEffect
   .extend({
     name: z.literal('Text'),
     description: z.literal('Static text display'),
-    reset: z.boolean().optional().default(true).describe('Clear existing text before rendering'),
+    reset: z.boolean().optional().default(false).describe('Clear existing text before rendering'),
     text: z.string().max(32).default('Hello You!').describe('Text to render (max 32 chars)'),
     gradient: z
       .array(colorStringSchema)
