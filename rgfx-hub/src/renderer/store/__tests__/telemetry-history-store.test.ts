@@ -137,6 +137,21 @@ describe('useTelemetryHistoryStore', () => {
 
       expect(getHistory('driver-1')).toHaveLength(1);
     });
+
+    it('should remove the map entry to free memory', () => {
+      const store = useTelemetryHistoryStore.getState();
+
+      store.addDataPoint('driver-1', createDataPoint(1000));
+      store.addDataPoint('driver-2', createDataPoint(2000));
+
+      expect(store.histories.size).toBe(2);
+
+      store.clearHistory('driver-1');
+
+      expect(store.histories.size).toBe(1);
+      expect(store.histories.has('driver-1')).toBe(false);
+      expect(store.histories.has('driver-2')).toBe(true);
+    });
   });
 
   describe('clearAllHistory', () => {

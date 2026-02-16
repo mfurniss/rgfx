@@ -625,6 +625,47 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+## Event Monitor Components
+
+### EventRow
+
+**File:** [event-monitor/event-row.tsx](event-monitor/event-row.tsx)
+
+**Purpose:** Single memoized row in the event monitor table.
+
+**Props:**
+- `topic: string` - Event topic name
+- `count: number` - Number of times this event has been received
+- `lastValue?: string` - Most recent payload value
+
+**Features:**
+- Wrapped with `React.memo` — only re-renders when its own props change
+- Formats numeric values with hex representation for 16-bit values
+- Truncates long string values to 25 characters
+- Click triggers `simulateEvent` with the topic and last value
+
+---
+
+## Simulator Components
+
+### SimulatorRow
+
+**File:** [simulator/simulator-row.tsx](simulator/simulator-row.tsx)
+
+**Purpose:** Single row in the event simulator with optimized input handling.
+
+**Props:**
+- `index: number` - Row index into the store's `simulatorRows` array
+
+**Features:**
+- Subscribes only to its own row slice via Zustand selector (prevents cross-row re-renders)
+- Local `useState` for the text input — typing is instant with no store overhead
+- Debounced (300ms) sync from local state to Zustand store (and localStorage persist)
+- Flushes debounce immediately on Enter key or Trigger button click
+- Auto-interval dropdown updates store immediately (no debounce)
+
+---
+
 ## Settings Components
 
 ### BackupSection

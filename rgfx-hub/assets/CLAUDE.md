@@ -48,13 +48,14 @@ MAME event handling utilities:
 JavaScript modules that transform game events into LED effects:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game global effects
-- `utils.js` - Shared utility functions (randomInt, sleep, formatNumber, scaleLinear)
+- `utils/` - Shared utility modules (index.js barrel, math.js, async.js, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
-- `games/` - Game-specific transformer modules (galaga.js, outrun.js, pacman.js, shangon.js, sharrier.js, smb.js, etc.)
+- `games/` - Game-specific transformer modules (defender.js, galaga.js, outrun.js, pacman.js, shangon.js, sharrier.js, smb.js, etc.)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting
+  - `init.js` - Game init subject (clears effects, displays world record)
   - `ambilight.js` - Ambilight effect subject
   - `audio.js` - Audio-reactive effect subject
 - `bitmaps/` - Sprite bitmaps for bitmap effects
@@ -64,5 +65,6 @@ JavaScript modules that transform game events into LED effects:
 
 ### led-hardware/
 LED hardware definition files (JSON):
-- Define physical LED products with name, SKU, layout, pixel count, chipset
-- Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json)
+- Define physical LED products with description, SKU, layout, pixel count, chipset
+- Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json, sk6812-rgbw-5v-300px.json)
+- Includes virtual hardware definitions for simulator (virtual-strip.json, virtual-wide-matrix.json)

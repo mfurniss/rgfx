@@ -5,7 +5,17 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import { watch, readFileSync, statSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import {
+  watch,
+  readFileSync,
+  openSync,
+  readSync,
+  closeSync,
+  statSync,
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import chokidar, { type FSWatcher } from 'chokidar';
 import log from 'electron-log/main';
@@ -204,10 +214,19 @@ export class EventFileReader {
         this.filePosition = currentSize;
       }
 
-      // Read new data
+      // Read only new bytes (avoids allocating a buffer for the entire file)
       if (currentSize > this.filePosition) {
-        const buffer = readFileSync(this.filePath);
-        const newData = buffer.toString('utf-8', this.filePosition, currentSize);
+        const bytesToRead = currentSize - this.filePosition;
+        const buffer = Buffer.alloc(bytesToRead);
+        const fd = openSync(this.filePath, 'r');
+
+        try {
+          readSync(fd, buffer, 0, bytesToRead, this.filePosition);
+        } finally {
+          closeSync(fd);
+        }
+
+        const newData = buffer.toString('utf-8');
         this.filePosition = currentSize;
 
         const lines = newData.split('\n').filter((line) => line.trim().length > 0);

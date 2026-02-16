@@ -29,6 +29,12 @@ return {
 	-- Robotron: 2084
 	robotron = "robotron_rgfx",
 
+	-- Williams Defender variants
+	defender = "defender_rgfx",
+	defenderg = "defender_rgfx",
+	defenderb = "defender_rgfx",
+	defenderw = "defender_rgfx",
+
 	-- Star Wars (Atari 1983)
 	starwars = "starwars_rgfx",
 

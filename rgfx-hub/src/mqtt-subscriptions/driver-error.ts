@@ -16,7 +16,7 @@ interface DriverErrorDeps {
 
 interface DriverErrorPayload {
   driverId: string;
-  effect: string;
+  source: string;
   error: string;
   payload: unknown;
 }
@@ -28,8 +28,14 @@ export function subscribeDriverError(deps: DriverErrorDeps): void {
     try {
       const parsed = JSON.parse(message) as DriverErrorPayload;
 
-      const errorMessage = `[${parsed.driverId}] Effect '${parsed.effect}' error: ${parsed.error}`;
-      log.error(`Driver error: ${errorMessage}`);
+      const errorMessage = `[${parsed.driverId}] ${parsed.source}: ${parsed.error}`;
+      const isQueueOverflow = parsed.error.toLowerCase().includes('queue full');
+
+      if (isQueueOverflow) {
+        log.warn(`Driver warning: ${errorMessage}`);
+      } else {
+        log.error(`Driver error: ${errorMessage}`);
+      }
       log.debug(`Driver error payload: ${JSON.stringify(parsed.payload)}`);
 
       eventBus.emit('system:error', {
@@ -40,7 +46,7 @@ export function subscribeDriverError(deps: DriverErrorDeps): void {
         details: JSON.stringify(parsed.payload, null, 2),
       });
     } catch (err) {
-      log.error(`Failed to parse driver error message: ${getErrorMessage(err)}`);
+      log.warn(`Failed to parse driver error message: ${getErrorMessage(err)}`);
     }
   });
 }

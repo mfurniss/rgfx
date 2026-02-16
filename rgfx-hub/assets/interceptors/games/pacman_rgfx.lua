@@ -34,11 +34,12 @@ local last_score = 0
 
 local function get_player_score(dword)
 	local score = 0
-	-- Process 4 bytes (32 bits) as BCD
-	for i = 3, 0, -1 do
+	-- Score is 3 bytes packed BCD (6 digits, max 999990)
+	-- Byte at 0x4E83 is unrelated data, so only decode bytes 0-2
+	for i = 2, 0, -1 do
 		local byte = (dword >> (i * 8)) & 0xFF
-		local hi = (byte >> 4) & 0x0F -- Upper 4 bits (high nibble)
-		local lo = byte & 0x0F -- Lower 4 bits (low nibble)
+		local hi = (byte >> 4) & 0x0F
+		local lo = byte & 0x0F
 		score = score * 100 + hi * 10 + lo
 	end
 

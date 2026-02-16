@@ -1,6 +1,6 @@
 // Robotron: 2084 game-specific mapper
 
-import { randomInt, sleep, formatNumber } from '../utils.js';
+import { randomInt, sleep, formatNumber } from '../utils/index.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 let scoreHue = 0;

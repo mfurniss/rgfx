@@ -4,9 +4,7 @@ import {
   Box,
   Table,
   TableBody,
-  TableCell,
   TableContainer,
-  TableRow,
   Paper,
   Button,
   Dialog,
@@ -20,12 +18,15 @@ import {
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useEventStore } from '../store/event-store';
-import { formatNumber } from '../utils/formatters';
 import { PageTitle } from '../components/layout/page-title';
 import { useSortableTable } from '../hooks/use-sortable-table';
-import { SortableTableHead, type SortableColumn } from '../components/common/sortable-table-head';
+import {
+  SortableTableHead,
+  type SortableColumn,
+} from '../components/common/sortable-table-head';
 import { TableEmptyRow } from '../components/common/table-empty-row';
 import { DialogTitleWithIcon } from '../components/common/dialog-title-with-icon';
+import { EventRow } from '../components/event-monitor/event-row';
 
 type SortField = 'topic' | 'count' | 'lastValue';
 
@@ -38,49 +39,31 @@ interface TopicEntry {
 const COLUMNS: SortableColumn<SortField>[] = [
   { field: 'topic', label: 'Event Topic', width: 0.4 },
   { field: 'count', label: 'Count', width: 0.3, align: 'right' },
-  { field: 'lastValue', label: 'Last Value', width: 0.3, align: 'right', sortable: false },
+  {
+    field: 'lastValue',
+    label: 'Last Value',
+    width: 0.3,
+    align: 'right',
+    sortable: false,
+  },
 ];
-
-const truncateValue = (value: string): string => {
-  const maxLength = 25;
-
-  if (value.length <= maxLength) {
-    return value;
-  }
-  return `${value.slice(0, maxLength)}…`;
-};
-
-const formatValue = (value: string | undefined): string => {
-  if (value === undefined || value === '') {
-    return '';
-  }
-
-  const numValue = Number(value);
-
-  if (isNaN(numValue)) {
-    return truncateValue(value);
-  }
-
-  if (numValue >= 0 && numValue <= 65535 && Number.isInteger(numValue)) {
-    const hex = `0x${numValue.toString(16).toUpperCase().padStart(4, '0')}`;
-    return `${formatNumber(numValue)} (${hex})`;
-  }
-
-  return formatNumber(numValue);
-};
 
 const EventMonitorPage: React.FC = () => {
   const topics = useEventStore((state) => state.topics);
   const reset = useEventStore((state) => state.reset);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { sortField, sortOrder, handleSort, sortData } = useSortableTable<SortField>({
-    storageKey: 'eventMonitor',
-    defaultField: 'topic',
-  });
+  const { sortField, sortOrder, handleSort, sortData } =
+    useSortableTable<SortField>({
+      storageKey: 'eventMonitor',
+      defaultField: 'topic',
+    });
 
   const topicsArray: TopicEntry[] = Object.entries(topics)
-    .filter((entry): entry is [string, NonNullable<(typeof entry)[1]>] => entry[1] !== undefined)
+    .filter(
+      (entry): entry is [string, NonNullable<(typeof entry)[1]>] =>
+        entry[1] !== undefined,
+    )
     .map(([topic, data]) => ({
       topic,
       count: data.count,
@@ -108,8 +91,17 @@ const EventMonitorPage: React.FC = () => {
   return (
     <Box>
       <Stack spacing={2}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <PageTitle icon={<MonitorIcon />} title="Event Monitor" noGutters />
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}>
+          <PageTitle
+            icon={<MonitorIcon />}
+            title="Event Monitor"
+            noGutters
+          />
           <Button
             variant="outlined"
             color="error"
@@ -130,26 +122,18 @@ const EventMonitorPage: React.FC = () => {
             />
             <TableBody>
               {sortedTopics.length === 0 ? (
-                <TableEmptyRow colSpan={3} message="No events received yet" />
+                <TableEmptyRow
+                  colSpan={3}
+                  message="No events received yet"
+                />
               ) : (
                 sortedTopics.map((entry) => (
-                  <TableRow
+                  <EventRow
                     key={entry.topic}
-                    onClick={() => {
-                      const eventLine = entry.lastValue
-                        ? `${entry.topic} ${entry.lastValue}`
-                        : entry.topic;
-                      void window.rgfx.simulateEvent(eventLine);
-                    }}
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: 'action.hover' },
-                    }}
-                  >
-                    <TableCell>{entry.topic}</TableCell>
-                    <TableCell align="right">{formatNumber(entry.count)}</TableCell>
-                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatValue(entry.lastValue)}</TableCell>
-                  </TableRow>
+                    topic={entry.topic}
+                    count={entry.count}
+                    lastValue={entry.lastValue}
+                  />
                 ))
               )}
             </TableBody>
@@ -157,16 +141,30 @@ const EventMonitorPage: React.FC = () => {
         </TableContainer>
       </Stack>
 
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitleWithIcon icon={<WarningIcon />} title="Confirm Reset" iconColor="warning" />
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitleWithIcon
+          icon={<WarningIcon />}
+          title="Confirm Reset"
+          iconColor="warning"
+        />
         <DialogContent>
           <Typography>
-            This will clear all event counts and reset the events processed counter.
+            This will clear all event counts and reset the
+            events processed counter.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleConfirmReset} variant="contained" color="error">
+          <Button
+            onClick={handleConfirmReset}
+            variant="contained"
+            color="error"
+          >
             Reset
           </Button>
         </DialogActions>

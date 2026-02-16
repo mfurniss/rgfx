@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { effectPropsSchemas } from '@/schemas';
 import { DEFAULT_FX_PLAYGROUND_EFFECT, SIMULATOR_ROW_COUNT } from '@/config/constants';
+import { createDebouncedStorage } from './debounced-storage';
 
 function getDefaultPropsJson(effect: keyof typeof effectPropsSchemas): string {
   return JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
@@ -178,6 +179,7 @@ export const useUiStore = create<UiState>()(
     {
       name: 'rgfx-ui-preferences',
       version: 4,
+      storage: createJSONStorage(() => createDebouncedStorage(500)),
       partialize: (state) => ({
         tableSortPreferences: state.tableSortPreferences,
         simulatorRows: state.simulatorRows,

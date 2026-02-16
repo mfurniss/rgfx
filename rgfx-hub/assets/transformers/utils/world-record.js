@@ -1,5 +1,6 @@
 // ROM name → Aurcade game ID lookup table
 const AURCADE_IDS = {
+  defender: 66,
   pacman: 10,
   galaga: 12,
   robotron: 185,
@@ -39,7 +40,7 @@ export async function getWorldRecord(romName, { http, log }) {
     record.romName = romName;
 
     log.info(
-      `World record for ${romName}: ${record.score} by ${record.player} on ${record.date}`
+      `World record for ${romName}: ${record.score} by ${record.player} on ${record.date}`,
     );
 
     return record;
@@ -57,13 +58,13 @@ function parseWorldRecord(html) {
 
   // Score: inside <span class="format-top-score">
   const scoreMatch = html.match(
-    /<span class="format-top-score">([^<]+)<\/span>/
+    /<span class="format-top-score">([^<]+)<\/span>/,
   );
   const score = scoreMatch ? scoreMatch[1] : null;
 
   // Player: inside <b> tag after the score
   const playerMatch = html.match(
-    /<span class="format-top-score">[^<]+<\/span><br \/>\s*<b>([^<]+)<\/b>/
+    /<span class="format-top-score">[^<]+<\/span><br \/>\s*<b>([^<]+)<\/b>/,
   );
   const player = playerMatch ? playerMatch[1] : null;
 

@@ -1,0 +1,9 @@
+{
+  "description": "45 pixel ring",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 45,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}

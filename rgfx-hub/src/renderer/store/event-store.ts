@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { MAX_EVENT_TOPICS } from '@/config/constants';
+import { createDebouncedStorage } from './debounced-storage';
 
 interface EventTopicData {
   count: number;
@@ -13,46 +14,81 @@ interface EventStore {
   reset: () => void;
 }
 
+// Buffer lives outside Zustand — zero serialization overhead per event
+const eventBuffer = new Map<string, { count: number; lastValue?: string }>();
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+const FLUSH_INTERVAL_MS = 250;
+
+function flushEvents() {
+  flushTimer = null;
+
+  if (eventBuffer.size === 0) {
+    return;
+  }
+
+  // Snapshot and clear buffer before merging into state
+  const buffered = new Map(eventBuffer);
+  eventBuffer.clear();
+
+  useEventStore.setState((state) => {
+    const merged = { ...state.topics };
+
+    for (const [topic, data] of buffered) {
+      const existing = merged[topic];
+      merged[topic] = {
+        count: (existing?.count ?? 0) + data.count,
+        lastValue: data.lastValue,
+      };
+    }
+
+    // Evict oldest topics if over limit
+    const keys = Object.keys(merged);
+
+    if (keys.length > MAX_EVENT_TOPICS) {
+      const keysToKeep = keys.slice(keys.length - MAX_EVENT_TOPICS);
+
+      const trimmed: typeof merged = {};
+
+      for (const key of keysToKeep) {
+        trimmed[key] = merged[key];
+      }
+
+      return { topics: trimmed };
+    }
+
+    return { topics: merged };
+  });
+}
+
 export const useEventStore = create<EventStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       topics: {},
 
       onEvent: (topic: string, payload?: string) => {
-        const { topics } = get();
-        const existing = topics[topic];
-        const currentCount = existing ? existing.count : 0;
-
-        const topicKeys = Object.keys(topics);
-
-        // Evict oldest topic if at limit and this is a new topic
-        let baseTopics = topics;
-
-        if (topicKeys.length >= MAX_EVENT_TOPICS && !existing) {
-          const [, ...rest] = topicKeys;
-          baseTopics = rest.reduce<typeof topics>((acc, key) => {
-            acc[key] = topics[key];
-            return acc;
-          }, {});
-        }
-
-        set({
-          topics: {
-            ...baseTopics,
-            [topic]: {
-              count: currentCount + 1,
-              lastValue: payload,
-            },
-          },
+        const existing = eventBuffer.get(topic);
+        eventBuffer.set(topic, {
+          count: (existing?.count ?? 0) + 1,
+          lastValue: payload,
         });
+
+        flushTimer ??= setTimeout(flushEvents, FLUSH_INTERVAL_MS);
       },
 
       reset: () => {
+        eventBuffer.clear();
+
+        if (flushTimer) {
+          clearTimeout(flushTimer);
+          flushTimer = null;
+        }
         set({ topics: {} });
       },
     }),
     {
       name: 'rgfx-event-monitor',
+      storage: createJSONStorage(() => createDebouncedStorage(500)),
     },
   ),
 );

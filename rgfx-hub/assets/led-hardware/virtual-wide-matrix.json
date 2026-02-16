@@ -1,0 +1,12 @@
+{
+  "description": "Virtual 768 LED Matrix for LED-SIM",
+  "sku": null,
+  "asin": null,
+  "layout": "matrix-br-h-snake",
+  "count": 768,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB",
+  "colorCorrection": "TypicalLEDStrip",
+  "width": 96,
+  "height": 8
+}

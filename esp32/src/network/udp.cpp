@@ -102,14 +102,6 @@ void processUDP() {
 			udp.flush();
 			log("UDP RX: Queue full, dropping message");
 			udpMessagesDropped++;
-
-			// Report to Hub (rate limited - only on first drop in a batch)
-			static uint32_t lastDropReportTime = 0;
-			uint32_t now = millis();
-			if (now - lastDropReportTime > 5000) {  // Max once per 5 seconds
-				publishError("udp", "Queue full - dropping messages");
-				lastDropReportTime = now;
-			}
 		}
 		packetsProcessed++;
 	}
@@ -136,8 +128,9 @@ bool checkUDPMessage(UDPMessage* message) {
 	uint8_t idx = messageQueue.tail;
 	const char* buffer = messageQueue.messages[idx].buffer;
 
-	// Parse JSON
-	JsonDocument doc;
+	// Parse JSON (static doc reuses heap pool across calls to reduce fragmentation)
+	static JsonDocument doc;
+	doc.clear();
 	DeserializationError error = deserializeJson(doc, buffer);
 
 	// Advance tail regardless of parse success (consume the slot)

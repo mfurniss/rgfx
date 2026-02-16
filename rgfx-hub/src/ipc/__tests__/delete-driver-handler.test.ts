@@ -10,6 +10,7 @@ import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-
 import { registerDeleteDriverHandler } from '../delete-driver-handler';
 import type { DriverRegistry } from '@/driver-registry';
 import type { DriverConfig } from '@/driver-config';
+import type { SystemMonitor } from '@/system-monitor';
 import type { BrowserWindow } from 'electron';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
@@ -32,6 +33,7 @@ vi.mock('electron-log/main', () => ({
 describe('registerDeleteDriverHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockDriverConfig: MockProxy<DriverConfig>;
+  let mockSystemMonitor: MockProxy<SystemMonitor>;
   let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => { success: boolean };
@@ -48,6 +50,8 @@ describe('registerDeleteDriverHandler', () => {
     mockDriverConfig = mock<DriverConfig>();
     mockDriverConfig.deleteDriver.mockReturnValue(true);
 
+    mockSystemMonitor = mock<SystemMonitor>();
+
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);
 
@@ -61,6 +65,7 @@ describe('registerDeleteDriverHandler', () => {
     registerDeleteDriverHandler({
       driverRegistry: mockDriverRegistry,
       driverConfig: mockDriverConfig,
+      systemMonitor: mockSystemMonitor,
       getMainWindow: () => mockMainWindow,
     });
   });
@@ -120,6 +125,7 @@ describe('registerDeleteDriverHandler', () => {
       registerDeleteDriverHandler({
         driverRegistry: mockDriverRegistry,
         driverConfig: mockDriverConfig,
+        systemMonitor: mockSystemMonitor,
         getMainWindow: () => null,
       });
 
@@ -155,6 +161,19 @@ describe('registerDeleteDriverHandler', () => {
 
       expect(() => registeredHandler({}, 'rgfx-driver-0001')).toThrow();
       expect(mockDriverRegistry.deleteDriver).not.toHaveBeenCalled();
+    });
+
+    it('clears UDP stats for deleted driver', () => {
+      registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(mockSystemMonitor.clearUdpStats).toHaveBeenCalledWith('rgfx-driver-0001');
+    });
+
+    it('does not clear UDP stats if persistence delete fails', () => {
+      mockDriverConfig.deleteDriver.mockReturnValue(false);
+
+      expect(() => registeredHandler({}, 'rgfx-driver-0001')).toThrow();
+      expect(mockSystemMonitor.clearUdpStats).not.toHaveBeenCalled();
     });
   });
 });

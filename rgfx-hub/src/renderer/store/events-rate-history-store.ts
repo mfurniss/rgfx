@@ -75,9 +75,8 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()((set, 
   version: 0,
 
   updateFromStatus: (udpStatsByDriver, connectedDriverIds) => {
-    const { currentStats, knownDrivers } = get();
+    const { currentStats } = get();
     const connectedSet = new Set(connectedDriverIds);
-    let driversChanged = false;
 
     // Update stats for all drivers we have UDP data for
     for (const [driverId, stats] of Object.entries(udpStatsByDriver)) {
@@ -85,10 +84,6 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()((set, 
         udpSent: stats.sent,
         isConnected: connectedSet.has(driverId),
       });
-
-      if (!knownDrivers.has(driverId)) {
-        driversChanged = true;
-      }
     }
 
     // Also track connected drivers even if no UDP stats yet
@@ -98,20 +93,15 @@ export const useEventsRateHistoryStore = create<EventsRateHistoryState>()((set, 
           udpSent: 0,
           isConnected: true,
         });
-
-        if (!knownDrivers.has(driverId)) {
-          driversChanged = true;
-        }
       }
     }
 
-    if (driversChanged) {
-      const newKnownDrivers = new Set([
-        ...Object.keys(udpStatsByDriver),
-        ...connectedDriverIds,
-      ]);
-      set({ knownDrivers: newKnownDrivers });
-    }
+    // Rebuild knownDrivers from current data to evict stale entries
+    const newKnownDrivers = new Set([
+      ...Object.keys(udpStatsByDriver),
+      ...connectedDriverIds,
+    ]);
+    set({ knownDrivers: newKnownDrivers });
   },
 
   sampleRates: () => {

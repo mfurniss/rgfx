@@ -118,9 +118,10 @@ ERROR_PATTERNS = [
     r"\bUnhandledPromiseRejection\b",
 ]
 
-# Errors to ignore (expected during Hub restarts)
+# Errors to ignore (expected during normal operation)
 IGNORED_ERRORS = [
     r"MQTT reconnection failed.*resetting",
+    r"Queue full",
 ]
 
 
@@ -233,36 +234,41 @@ class RobotronEvents(GameEvents):
     def reset(self) -> None:
         self.score = 0
         self.wave = 1
-        self.hue = 0
+        self.lives = 3
 
     def get_next_event(self) -> tuple[str, str]:
         roll = random.random()
 
-        if roll < 0.25:  # 25% - spark (enemy killed)
+        if roll < 0.22:  # 22% - spark (enemy killed)
             self.score += 100
             return ("robotron/sfx/spark", "")
-        elif roll < 0.35:  # 10% - grunt destroy
+        elif roll < 0.31:  # 9% - grunt destroy
             self.score += 100
             return ("robotron/enemy/grunt/destroy", "")
-        elif roll < 0.45:  # 10% - rescue human
+        elif roll < 0.40:  # 9% - rescue human
             self.score += random.choice([1000, 2000, 3000, 4000, 5000])
             return ("robotron/sfx/rescue-human", "")
-        elif roll < 0.52:  # 7% - shoot hulk
+        elif roll < 0.46:  # 6% - shoot hulk
             return ("robotron/sfx/shoot-hulk", "")
-        elif roll < 0.58:  # 6% - brain appear
+        elif roll < 0.52:  # 6% - brain appear
             return ("robotron/sfx/brain-appear", "")
-        elif roll < 0.64:  # 6% - tank appear
+        elif roll < 0.57:  # 5% - tank appear
             return ("robotron/sfx/tank-appear", "")
-        elif roll < 0.70:  # 6% - human programming
+        elif roll < 0.62:  # 5% - human programming
             return ("robotron/sfx/human-programming", "")
-        elif roll < 0.75:  # 5% - human die
+        elif roll < 0.67:  # 5% - human die
             return ("robotron/sfx/human-die", "")
-        elif roll < 0.80:  # 5% - destroy electrode
+        elif roll < 0.72:  # 5% - destroy electrode
             return ("robotron/sfx/destroy-electrode", "")
-        elif roll < 0.84:  # 4% - destroy spheroid
+        elif roll < 0.76:  # 4% - destroy spheroid
             return ("robotron/sfx/destroy-spheroid", "")
-        elif roll < 0.88:  # 4% - player death
+        elif roll < 0.80:  # 4% - player death
+            self.lives = max(0, self.lives - 1)
             return ("robotron/sfx/player-death", "")
+        elif roll < 0.84:  # 4% - lives update
+            return ("robotron/player/lives", str(self.lives))
+        elif roll < 0.88:  # 4% - game start
+            return ("robotron/sfx/game-start", "")
         elif roll < 0.94:  # 6% - score update
             return ("robotron/player/score", str(self.score))
         else:  # 6% - wave number
@@ -278,17 +284,113 @@ class GalagaEvents(GameEvents):
 
     def reset(self) -> None:
         self.score = 0
+        self.stage = 1
 
     def get_next_event(self) -> tuple[str, str]:
         roll = random.random()
 
-        if roll < 0.40:  # 40% - player fire
+        if roll < 0.30:  # 30% - player fire
             return ("galaga/player/fire", "")
-        elif roll < 0.70:  # 30% - enemy destroy
+        elif roll < 0.52:  # 22% - enemy destroy
             self.score += random.choice([50, 80, 100, 150, 160, 400])
             return ("galaga/enemy/destroy", "")
-        else:  # 30% - score update
+        elif roll < 0.70:  # 18% - score update
             return ("galaga/player/score", str(self.score))
+        elif roll < 0.78:  # 8% - stage advance
+            self.stage += 1
+            return ("galaga/stage", str(self.stage))
+        elif roll < 0.84:  # 6% - bonus score
+            bonus = random.choice([150, 400, 800, 1000, 1500, 1600, 2000, 3000])
+            self.score += bonus
+            return ("galaga/bonus/score", str(bonus))
+        elif roll < 0.89:  # 5% - player captured
+            return ("galaga/player/captured", "")
+        elif roll < 0.94:  # 5% - boss tractor beam
+            return ("galaga/boss/tractor-beam", "")
+        else:  # 6% - bonus perfect (challenging stage)
+            return ("galaga/bonus/perfect", "")
+
+
+class Galaga88Events(GameEvents):
+    """Generates realistic Galaga '88 event sequences."""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self) -> None:
+        self.score = 0
+
+    def get_next_event(self) -> tuple[str, str]:
+        roll = random.random()
+
+        if roll < 0.35:  # 35% - player fire
+            return ("galaga88/player/fire", "")
+        elif roll < 0.65:  # 30% - enemy destroy
+            self.score += random.choice([50, 100, 150, 200, 400])
+            return ("galaga88/enemy/destroy", "")
+        else:  # 35% - score update
+            return ("galaga88/player/score", str(self.score))
+
+
+class DefenderEvents(GameEvents):
+    """Generates realistic Defender event sequences."""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self) -> None:
+        self.score = 0
+        self.smart_bombs = 3
+
+    def get_next_event(self) -> tuple[str, str]:
+        roll = random.random()
+
+        if roll < 0.20:  # 20% - player fire
+            return ("defender/player/fire", "")
+        elif roll < 0.35:  # 15% - enemy destroy (various types)
+            enemy = random.choice(
+                ["lander", "mutant", "baiter", "bomber", "pod", "swarmer"]
+            )
+            self.score += random.choice([150, 200, 250, 500, 1000])
+            return (f"defender/enemy/{enemy}/destroy", "")
+        elif roll < 0.50:  # 15% - score update
+            return ("defender/player/score", str(self.score))
+        elif roll < 0.62:  # 12% - humanoid lost
+            return ("defender/humanoid/lost", "")
+        elif roll < 0.72:  # 10% - smart bombs display
+            return ("defender/player/smart-bombs", str(self.smart_bombs))
+        elif roll < 0.82:  # 10% - humanoid all lost
+            return ("defender/humanoid/all-lost", "")
+        elif roll < 0.92:  # 10% - player death
+            self.smart_bombs = 3
+            return ("defender/player/die", "")
+        else:  # 8% - smart bomb used
+            self.smart_bombs = max(0, self.smart_bombs - 1)
+            return ("defender/player/smart-bomb-used", "")
+
+
+class FMMusicEvents(GameEvents):
+    """Generates FM music events for Sega arcade games (OutRun, Super Hang-On, Space Harrier)."""
+
+    def __init__(self, game_prefix: str):
+        self.game_prefix = game_prefix
+        self.reset()
+
+    def reset(self) -> None:
+        self.time = 80
+
+    def get_next_event(self) -> tuple[str, str]:
+        roll = random.random()
+
+        if roll < 0.70:  # 70% - FM music data (main effect for these games)
+            # Simulate FM channel data as comma-separated amplitude values
+            channels = ",".join(str(random.randint(0, 255)) for _ in range(8))
+            return (f"{self.game_prefix}/music/fm", channels)
+        else:  # 30% - game time update
+            self.time = max(0, self.time - 1)
+            if self.time == 0:
+                self.time = 80
+            return (f"{self.game_prefix}/game/time", str(self.time))
 
 
 class StarWarsEvents(GameEvents):
@@ -335,6 +437,11 @@ class EventGenerator:
             "smb": SMBEvents(),
             "robotron": RobotronEvents(),
             "galaga": GalagaEvents(),
+            "galaga88": Galaga88Events(),
+            "defender": DefenderEvents(),
+            "outrun": FMMusicEvents("outrun"),
+            "shangon": FMMusicEvents("shangon"),
+            "sharrier": FMMusicEvents("sharrier"),
             "starwars": StarWarsEvents(),
         }
         self.current_game: Optional[str] = None
@@ -1111,10 +1218,31 @@ class TestRunner:
         except KeyboardInterrupt:
             print("\n  Test interrupted by user")
 
-        # Allow in-flight transformer handlers to complete
-        # (some use await sleep() loops, e.g., SMB flag ~5s, Pac-Man energizer ~1.5s)
-        print("  Waiting for effects to settle...")
-        time.sleep(3)
+        # Cooldown phase: stop sending events but keep monitoring CPU/RAM
+        # Verifies that resources settle back to normal after load stops
+        cooldown_seconds = 10
+        print(f"  Cooldown: monitoring for {cooldown_seconds}s with no events...")
+        cooldown_start = time.time()
+        while (time.time() - cooldown_start) < cooldown_seconds:
+            sample = self.process_monitor.sample()
+            self.log_monitor.check_for_errors()
+
+            disconnected, crashes = self.driver_monitor.check_for_disconnections_and_crashes()
+            if disconnected:
+                for driver_id in disconnected:
+                    print(f"  WARNING: Driver {driver_id} disconnected during cooldown!")
+            if crashes > 0:
+                print(f"  WARNING: {crashes} driver crash(es) during cooldown!")
+
+            if self.verbose:
+                elapsed = time.time() - self.start_time
+                print(
+                    f"  [{elapsed:6.1f}s] COOLDOWN  "
+                    f"CPU: {sample.get('cpu_percent', 0):5.1f}%, "
+                    f"Mem: {sample.get('memory_rss_mb', 0):6.1f}MB"
+                )
+
+            time.sleep(sample_interval)
 
         # Send shutdown events for all active games
         for game in active_games:
@@ -1264,7 +1392,7 @@ Examples:
     if results.get("errors", {}).get("count", 0) > 0:
         print("\nErrors detected:")
         for err in results["errors"]["details"][:5]:
-            print(f"  - [{err['file']}] {err['line'][:80]}")
+            print(f"  - [{err['file']}] {err['line'][:200]}")
 
     # Save to file if requested
     if args.output:

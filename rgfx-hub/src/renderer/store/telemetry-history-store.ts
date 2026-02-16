@@ -76,10 +76,8 @@ export const useTelemetryHistoryStore = create<TelemetryHistoryState>()((set, ge
 
   clearHistory: (driverId) => {
     const { histories } = get();
-    const buffer = histories.get(driverId);
 
-    if (buffer) {
-      buffer.clear();
+    if (histories.delete(driverId)) {
       set((state) => ({ version: state.version + 1 }));
     }
   },
