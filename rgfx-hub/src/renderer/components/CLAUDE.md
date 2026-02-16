@@ -625,6 +625,27 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+## Event Monitor Components
+
+### EventRow
+
+**File:** [event-monitor/event-row.tsx](event-monitor/event-row.tsx)
+
+**Purpose:** Single memoized row in the event monitor table.
+
+**Props:**
+- `topic: string` - Event topic name
+- `count: number` - Number of times this event has been received
+- `lastValue?: string` - Most recent payload value
+
+**Features:**
+- Wrapped with `React.memo` — only re-renders when its own props change
+- Formats numeric values with hex representation for 16-bit values
+- Truncates long string values to 25 characters
+- Click triggers `simulateEvent` with the topic and last value
+
+---
+
 ## Simulator Components
 
 ### SimulatorRow

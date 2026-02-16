@@ -85,7 +85,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 **Features:**
 - Sortable table showing all event topics received from MAME
 - Columns: topic name, occurrence count, last value
-- Formats numeric values with hex representation for 16-bit values
+- Each row rendered as memoized `EventRow` component (only re-renders when its own props change)
 - Uses `EventStore` for reactive updates
 - Click-to-simulate: clicking a row triggers that event through the simulator
 

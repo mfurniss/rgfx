@@ -156,6 +156,19 @@ interface Notification {
 
 ---
 
+### Debounced Storage
+
+**File:** [debounced-storage.ts](debounced-storage.ts)
+
+**Purpose:** Wraps `localStorage` with debounced `setItem` for Zustand persist middleware.
+
+**Exports:**
+- `createDebouncedStorage(delay?)` - Returns a `StateStorage` adapter. `getItem`/`removeItem` pass through immediately; `setItem` is debounced via lodash-es to batch rapid writes.
+
+**Used by:** Event Store, UI Store (both with 500ms delay)
+
+---
+
 ### Event Store
 
 **File:** [event-store.ts](event-store.ts)
@@ -163,22 +176,15 @@ interface Notification {
 **Purpose:** Tracks game event statistics for the events dashboard.
 
 **State:**
-- `topics: Map<string, EventTopic>` - Map of event topics to their statistics
+- `topics: Partial<Record<string, EventTopicData>>` - Map of event topics to their statistics
 
 **Actions:**
-- `onEventTopic(topic, count, lastValue?)` - Updates statistics for an event topic
-
-**EventTopic Shape:**
-```typescript
-interface EventTopic {
-  topic: string;
-  count: number;
-  lastValue?: string;
-}
-```
+- `onEvent(topic, payload?)` - Increments count and updates lastValue for a topic
+- `reset()` - Clears all topics
 
 **Features:**
-- Uses Zustand devtools for debugging
+- Uses debounced persist storage (500ms) to avoid blocking UI during rapid updates
+- Evicts oldest topic when at `MAX_EVENT_TOPICS` limit
 
 ---
 
@@ -208,7 +214,7 @@ interface EventTopic {
 - `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
 
 **Features:**
-- Uses Zustand persist middleware to save preferences to localStorage
+- Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates
 - Persists sort preferences, simulator rows, and WiFi credentials
 - Storage key: `rgfx-ui-preferences`
 
