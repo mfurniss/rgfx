@@ -114,6 +114,7 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
     logManager: services.logManager,
     ledHardwareManager: services.ledHardwareManager,
     mqtt: services.mqtt,
+    systemMonitor: services.systemMonitor,
     uploadConfigToDriver: services.uploadConfigToDriver,
     udpClient: services.udpClient,
     transformerEngine: services.transformerEngine,

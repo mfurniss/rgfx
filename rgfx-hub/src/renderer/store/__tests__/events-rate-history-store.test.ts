@@ -67,6 +67,26 @@ describe('useEventsRateHistoryStore', () => {
       expect(driverIds).toHaveLength(3);
       expect(driverIds).toEqual(['driver-1', 'driver-2', 'driver-3']);
     });
+
+    it('should evict stale drivers no longer in status data', () => {
+      const { updateFromStatus, getDriverIds } = useEventsRateHistoryStore.getState();
+
+      updateFromStatus(
+        createUdpStats({ 'driver-1': 10, 'driver-2': 20, 'driver-3': 30 }),
+        ['driver-1', 'driver-2', 'driver-3'],
+      );
+      expect(getDriverIds()).toHaveLength(3);
+
+      // driver-2 removed (deleted or renamed)
+      updateFromStatus(
+        createUdpStats({ 'driver-1': 15, 'driver-3': 35 }),
+        ['driver-1', 'driver-3'],
+      );
+
+      const driverIds = getDriverIds();
+      expect(driverIds).toEqual(['driver-1', 'driver-3']);
+      expect(driverIds).not.toContain('driver-2');
+    });
   });
 
   describe('sampleRates', () => {

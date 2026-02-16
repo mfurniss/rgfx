@@ -50,6 +50,10 @@ export class SystemMonitor {
     return this.udpStatsByDriver.get(driverId) ?? { sent: 0, failed: 0 };
   }
 
+  clearUdpStats(driverId: string): void {
+    this.udpStatsByDriver.delete(driverId);
+  }
+
   private setupFirmwareWatcher(): void {
     this.firmwareWatcher.on('firmware-updated', (version: string | null) => {
       log.info('[SystemMonitor] Firmware updated notification received:', version);
