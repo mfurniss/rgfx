@@ -55,6 +55,7 @@ JavaScript modules that transform game events into LED effects:
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting
+  - `init.js` - Game init subject (clears effects, displays world record)
   - `ambilight.js` - Ambilight effect subject
   - `audio.js` - Audio-reactive effect subject
 - `bitmaps/` - Sprite bitmaps for bitmap effects
