@@ -120,7 +120,7 @@ Refactored components and utilities extracted from the main page:
 | `components/tab-panel.tsx` | Tab panel wrapper for tabbed interface |
 | `effect-helpers.ts` | Effect manipulation helpers (randomize, defaults) |
 | `utils/code-generator.ts` | Generates JavaScript code from effect props |
-| `utils/value-formatter.ts` | Formats values for display and code output |
+| `utils/value-formatter.ts` | Formats values for code output (escapes single quotes and backslashes in strings) |
 
 ---
 

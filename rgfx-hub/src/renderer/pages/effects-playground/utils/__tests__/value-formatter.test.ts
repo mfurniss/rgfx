@@ -22,6 +22,15 @@ describe('createValueFormatter', () => {
       expect(formatValue('with spaces', 0)).toBe("'with spaces'");
     });
 
+    it('should escape single quotes within strings', () => {
+      expect(formatValue("it's", 0)).toBe("'it\\'s'");
+      expect(formatValue("it's a 'test'", 0)).toBe("'it\\'s a \\'test\\''");
+    });
+
+    it('should escape backslashes within strings', () => {
+      expect(formatValue('back\\slash', 0)).toBe("'back\\\\slash'");
+    });
+
     it('should format numbers', () => {
       expect(formatValue(42, 0)).toBe('42');
       expect(formatValue(3.14, 0)).toBe('3.14');
