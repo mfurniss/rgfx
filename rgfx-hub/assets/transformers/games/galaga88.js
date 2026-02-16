@@ -1,6 +1,6 @@
 // Galaga 88 game-specific mapper
 
-import { formatNumber } from '../utils/format.js';
+import { formatNumber } from '../utils/index.js';
 import { NAMED_DRIVERS } from '../global.js';
 
 export function transform({ subject, property, payload }, { broadcast }) {

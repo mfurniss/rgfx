@@ -1,0 +1,9 @@
+{
+  "description": "SK6812 RGBW 5M 300px",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 300,
+  "chipset": "SK6812",
+  "colorOrder": "GRBW"
+}

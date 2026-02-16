@@ -58,7 +58,7 @@ export const scrollTextBaseSchema = baseEffect
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),
-    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
+    accentColor: z.string().nullable().optional().default(null).describe('Optional accent/shadow color (hex or named)'),
     speed: z.number().min(1).max(500).optional().default(150).describe('Scroll speed in canvas pixels per second'),
     repeat: z.boolean().optional().default(false).describe('Restart scrolling when text exits left edge'),
     snapToLed: z.boolean().optional().default(true).describe('Snap scroll position to LED boundaries to reduce shimmer'),

@@ -10,6 +10,7 @@
 import { promises as fs, watch } from 'node:fs';
 import { join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
 import { getTransformersDir } from './transformer-installer';
 import { eventBus } from './services/event-bus';
@@ -38,18 +39,23 @@ export class TransformerEngine {
   private defaultHandler?: TransformerHandler;
   private watcher?: ReturnType<typeof watch>;
   private importModule: (path: string) => Promise<Record<string, unknown>>;
-
   constructor(
     private context: TransformerContext,
     options?: TransformerEngineOptions,
   ) {
-    // Default: dynamic import with cache-busting for hot-reload support
-    this.importModule =
-      options?.importModule ??
-      ((filePath: string) => {
+    if (options?.importModule) {
+      this.importModule = options.importModule;
+    } else {
+      // Content-hash URL prevents V8 module cache leak (same content = same
+      // URL = reused cache entry) while supporting hot reload (changed content
+      // = new hash = new URL = fresh import from disk).
+      this.importModule = async (filePath: string) => {
+        const content = await fs.readFile(filePath, 'utf-8');
+        const hash = createHash('sha1').update(content).digest('hex').slice(0, 12);
         const url = pathToFileURL(filePath).href;
-        return import(`${url}?t=${Date.now()}`) as Promise<Record<string, unknown>>;
-      });
+        return (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
+      };
+    }
   }
 
   /**

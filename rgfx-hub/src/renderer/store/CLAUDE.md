@@ -88,7 +88,7 @@ Stores can call into each other:
 - `version: number` - Incremented on changes to trigger re-renders
 
 **Actions:**
-- `updateFromStatus(udpStatsByDriver, connectedDriverIds)` - Updates current stats from SystemStatus
+- `updateFromStatus(udpStatsByDriver, connectedDriverIds)` - Updates current stats from SystemStatus; rebuilds `knownDrivers` from current data to evict stale entries
 - `sampleRates()` - Calculates rate deltas and pushes data point to history (called by interval timer)
 - `getHistory()` - Returns history as array for chart rendering
 - `getDriverIds()` - Returns sorted list of known driver IDs
@@ -126,7 +126,7 @@ interface TelemetryDataPoint {
 **Actions:**
 - `addDataPoint(driverId, dataPoint)` - Adds telemetry point; creates buffer lazily
 - `getHistory(driverId)` - Returns array of all telemetry points
-- `clearHistory(driverId)` - Clears telemetry for specific driver
+- `clearHistory(driverId)` - Deletes telemetry buffer for specific driver (frees memory)
 - `clearAllHistory()` - Clears all telemetry data
 
 ---
@@ -156,6 +156,19 @@ interface Notification {
 
 ---
 
+### Debounced Storage
+
+**File:** [debounced-storage.ts](debounced-storage.ts)
+
+**Purpose:** Wraps `localStorage` with debounced `setItem` for Zustand persist middleware.
+
+**Exports:**
+- `createDebouncedStorage(delay?)` - Returns a `StateStorage` adapter. `getItem`/`removeItem` pass through immediately; `setItem` is debounced via lodash-es to batch rapid writes.
+
+**Used by:** Event Store, UI Store (both with 500ms delay)
+
+---
+
 ### Event Store
 
 **File:** [event-store.ts](event-store.ts)
@@ -163,22 +176,16 @@ interface Notification {
 **Purpose:** Tracks game event statistics for the events dashboard.
 
 **State:**
-- `topics: Map<string, EventTopic>` - Map of event topics to their statistics
+- `topics: Partial<Record<string, EventTopicData>>` - Map of event topics to their statistics
 
 **Actions:**
-- `onEventTopic(topic, count, lastValue?)` - Updates statistics for an event topic
-
-**EventTopic Shape:**
-```typescript
-interface EventTopic {
-  topic: string;
-  count: number;
-  lastValue?: string;
-}
-```
+- `onEvent(topic, payload?)` - Buffers event into module-level Map; schedules 250ms flush timer
+- `reset()` - Clears buffer, cancels flush timer, and clears all topics
 
 **Features:**
-- Uses Zustand devtools for debugging
+- Events are batched in a module-level `Map` outside Zustand (zero serialization overhead per event), then flushed into state every 250ms in a single `set()` call. This reduces `JSON.stringify` calls from ~100/sec to ~4/sec during gameplay.
+- Uses debounced persist storage (500ms) to avoid blocking UI during rapid writes to localStorage
+- Evicts oldest topics when exceeding `MAX_EVENT_TOPICS` limit
 
 ---
 
@@ -208,7 +215,7 @@ interface EventTopic {
 - `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
 
 **Features:**
-- Uses Zustand persist middleware to save preferences to localStorage
+- Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates
 - Persists sort preferences, simulator rows, and WiFi credentials
 - Storage key: `rgfx-ui-preferences`
 

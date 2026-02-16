@@ -38,7 +38,7 @@ export default baseEffect
   .extend({
     name: z.literal('Text'),
     description: z.literal('Static text display'),
-    reset: z.boolean().optional().default(true).describe('Clear existing text before rendering'),
+    reset: z.boolean().optional().default(false).describe('Clear existing text before rendering'),
     text: z.string().max(32).default('Hello You!').describe('Text to render (max 32 chars)'),
     gradient: z
       .array(colorStringSchema)
@@ -60,7 +60,7 @@ export default baseEffect
       .optional()
       .default(4)
       .describe('Gradient pattern scale'),
-    accentColor: z.string().nullable().optional().default('#900000').describe('Optional accent/shadow color (hex or named)'),
+    accentColor: z.string().nullable().optional().default(null).describe('Optional accent/shadow color (hex or named)'),
     duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
   })
   .strict();

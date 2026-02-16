@@ -796,6 +796,128 @@ describe('TransformerEngine', () => {
     });
   });
 
+  describe('hot reload', () => {
+    it('should replace game handler when file changes', async () => {
+      const handlerV1 = vi.fn().mockReturnValue(true);
+      const handlerV2 = vi.fn().mockReturnValue(true);
+
+      let callCount = 0;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        callCount++;
+        return Promise.resolve({
+          transform: callCount === 1 ? handlerV1 : handlerV2,
+        });
+      });
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Initial load
+      await (testEngine as any).loadGameTransformer('pacman');
+      expect((testEngine as any).gameHandlers.get('pacman')).toBe(handlerV1);
+
+      // Simulate file change via watcher
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'games/pacman.js');
+      expect((testEngine as any).gameHandlers.get('pacman')).toBe(handlerV2);
+    });
+
+    it('should replace subject handler when file changes', async () => {
+      const handlerV1 = vi.fn().mockReturnValue(true);
+      const handlerV2 = vi.fn().mockReturnValue(true);
+
+      let callCount = 0;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        callCount++;
+        return Promise.resolve({
+          transform: callCount === 1 ? handlerV1 : handlerV2,
+        });
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['player.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Initial load via loadSubjectTransformers
+      await (testEngine as any).loadSubjectTransformers('/mock/transformers/subjects');
+      expect((testEngine as any).subjectHandlers.get('player')).toBe(handlerV1);
+
+      // Simulate file change via watcher
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'subjects/player.js');
+      expect((testEngine as any).subjectHandlers.get('player')).toBe(handlerV2);
+    });
+
+    it('should replace default handler when file changes', async () => {
+      const handlerV1 = vi.fn().mockReturnValue(true);
+      const handlerV2 = vi.fn().mockReturnValue(true);
+
+      let callCount = 0;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        callCount++;
+        return Promise.resolve({
+          transform: callCount === 1 ? handlerV1 : handlerV2,
+        });
+      });
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Initial load
+      await (testEngine as any).loadDefaultTransformer('/mock/transformers/default.js');
+      expect((testEngine as any).defaultHandler).toBe(handlerV1);
+
+      // Simulate file change via watcher
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'default.js');
+      expect((testEngine as any).defaultHandler).toBe(handlerV2);
+    });
+
+    it('should replace property handlers when file changes', async () => {
+      const handlerV1 = vi.fn().mockReturnValue(true);
+      const handlerV2 = vi.fn().mockReturnValue(true);
+
+      let callCount = 0;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        callCount++;
+        return Promise.resolve({
+          transform: callCount === 1 ? handlerV1 : handlerV2,
+        });
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['score.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Initial load
+      await (testEngine as any).loadPropertyTransformers('/mock/transformers/properties');
+      expect((testEngine as any).propertyHandlers).toHaveLength(1);
+      expect((testEngine as any).propertyHandlers[0]).toBe(handlerV1);
+
+      // Simulate file change via watcher — reloads all property handlers
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'properties/score.js');
+      expect((testEngine as any).propertyHandlers).toHaveLength(1);
+      expect((testEngine as any).propertyHandlers[0]).toBe(handlerV2);
+    });
+
+    it('should log reload errors without crashing', async () => {
+      const mockImportModule = vi.fn().mockRejectedValue(new Error('Syntax error'));
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Subject reload catches import error in reloadTransformer's try-catch
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'subjects/broken.js');
+
+      expect(mockContext.log.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to reload transformer subjects/broken.js'),
+        expect.any(Error),
+      );
+    });
+  });
+
   describe('file loading with dependency injection', () => {
     beforeEach(() => {
       vi.clearAllMocks();

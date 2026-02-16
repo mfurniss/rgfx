@@ -16,10 +16,12 @@ export async function transform({ namespace, subject }, ctx) {
               wr.date
             }`,
             repeat: false,
-            gradient: ['#808000'],
-            accentColor: '#006060',
             speed: 250,
-            snapToLed: false,
+            gradient: ['#700070', '#B0FF00', '#300050', '#700070'],
+            accentColor: '',
+            gradientSpeed: 6,
+            gradientScale: 0.2,
+            snapToLed: true,
           },
         });
       }

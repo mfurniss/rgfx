@@ -443,9 +443,10 @@ void loop() {
 			}
 		}
 
-		// Process all queued UDP messages
+		// Process one UDP message per frame to avoid heap fragmentation
+		// from burst JSON alloc/free cycles (queue drains at frame rate)
 		UDPMessage message;
-		while (checkUDPMessage(&message) && effectProcessor != nullptr) {
+		if (checkUDPMessage(&message) && effectProcessor != nullptr) {
 			setIndicator(INDICATOR_FLASH_MS);
 			effectProcessor->addEffect(String(message.effect), message.props);
 		}

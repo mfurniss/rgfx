@@ -16,7 +16,7 @@ export function createValueFormatter(): ValueFormatter {
     }
 
     if (typeof value === 'string') {
-      return `'${value}'`;
+      return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
     }
 
     if (typeof value === 'number' || typeof value === 'boolean') {

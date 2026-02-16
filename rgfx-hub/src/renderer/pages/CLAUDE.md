@@ -85,7 +85,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 **Features:**
 - Sortable table showing all event topics received from MAME
 - Columns: topic name, occurrence count, last value
-- Formats numeric values with hex representation for 16-bit values
+- Each row rendered as memoized `EventRow` component (only re-renders when its own props change)
 - Uses `EventStore` for reactive updates
 - Click-to-simulate: clicking a row triggers that event through the simulator
 
@@ -120,7 +120,7 @@ Refactored components and utilities extracted from the main page:
 | `components/tab-panel.tsx` | Tab panel wrapper for tabbed interface |
 | `effect-helpers.ts` | Effect manipulation helpers (randomize, defaults) |
 | `utils/code-generator.ts` | Generates JavaScript code from effect props |
-| `utils/value-formatter.ts` | Formats values for display and code output |
+| `utils/value-formatter.ts` | Formats values for code output (escapes single quotes and backslashes in strings) |
 
 ---
 
@@ -133,7 +133,8 @@ Refactored components and utilities extracted from the main page:
 **Purpose:** Manual event simulation for testing event-to-effect mappings.
 
 **Features:**
-- 6 configurable event rows (persisted across sessions)
+- 12 configurable event rows (persisted across sessions)
+- Each row rendered as isolated `SimulatorRow` component (per-row Zustand subscriptions, local input state with debounced store sync)
 - Each row has: event input field, trigger button, auto-trigger interval selector
 - Event format: `topic payload` (space-delimited)
 - Auto-trigger intervals: off, 1 second, 5 seconds

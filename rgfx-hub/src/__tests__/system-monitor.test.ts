@@ -266,4 +266,38 @@ describe('SystemMonitor', () => {
       });
     });
   });
+
+  describe('clearUdpStats', () => {
+    it('should remove stats for a specific driver', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-2', true);
+
+      systemMonitor.clearUdpStats('driver-1');
+
+      expect(systemMonitor.getUdpStatsForDriver('driver-1')).toEqual({ sent: 0, failed: 0 });
+      expect(systemMonitor.getUdpStatsForDriver('driver-2')).toEqual({ sent: 1, failed: 0 });
+    });
+
+    it('should exclude cleared driver from system status totals', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-2', true);
+
+      systemMonitor.clearUdpStats('driver-1');
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+      expect(status.udpMessagesSent).toBe(1);
+      expect(status.udpStatsByDriver).toEqual({
+        'driver-2': { sent: 1, failed: 0 },
+      });
+    });
+
+    it('should be a no-op for unknown driver', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+
+      systemMonitor.clearUdpStats('unknown-driver');
+
+      expect(systemMonitor.getUdpStatsForDriver('driver-1')).toEqual({ sent: 1, failed: 0 });
+    });
+  });
 });
