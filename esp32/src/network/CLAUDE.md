@@ -29,7 +29,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 | `network_init.h/cpp` | Initializes all network services when WiFi connects |
 | `network_task.h/cpp` | FreeRTOS task running network loop on Core 0 |
 | `ota_update.h/cpp` | ArduinoOTA setup with LED progress indicators |
-| `udp.h/cpp` | UDP listener for real-time effect messages |
+| `udp.h/cpp` | UDP listener for real-time effect messages. Uses static JsonDocument in `checkUDPMessage()` to reuse heap pool across calls and reduce fragmentation. |
 
 ## MQTT Topics
 

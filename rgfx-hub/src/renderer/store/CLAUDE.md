@@ -179,12 +179,13 @@ interface Notification {
 - `topics: Partial<Record<string, EventTopicData>>` - Map of event topics to their statistics
 
 **Actions:**
-- `onEvent(topic, payload?)` - Increments count and updates lastValue for a topic
-- `reset()` - Clears all topics
+- `onEvent(topic, payload?)` - Buffers event into module-level Map; schedules 250ms flush timer
+- `reset()` - Clears buffer, cancels flush timer, and clears all topics
 
 **Features:**
-- Uses debounced persist storage (500ms) to avoid blocking UI during rapid updates
-- Evicts oldest topic when at `MAX_EVENT_TOPICS` limit
+- Events are batched in a module-level `Map` outside Zustand (zero serialization overhead per event), then flushed into state every 250ms in a single `set()` call. This reduces `JSON.stringify` calls from ~100/sec to ~4/sec during gameplay.
+- Uses debounced persist storage (500ms) to avoid blocking UI during rapid writes to localStorage
+- Evicts oldest topics when exceeding `MAX_EVENT_TOPICS` limit
 
 ---
 

@@ -22,6 +22,7 @@ import { StateStoreImpl } from '../transformer/state-store';
 import { LoggerWrapper } from '../transformer/logger-wrapper';
 import { getTransformersDir } from '../transformer-installer';
 import { loadGif } from '../gif-loader';
+import { validateTransformerEffect } from '../transformer/validate-effect';
 import { createUploadConfigToDriver } from '../upload-config-to-driver';
 import { MQTT_DEFAULT_PORT } from '../config/constants';
 import type { AmbilightGradient } from '../types/transformer-types';
@@ -228,7 +229,10 @@ export function createServices(
 
   // Initialize transformer engine with all context services
   const transformerEngine = new TransformerEngine({
-    broadcast: udpClient.broadcast.bind(udpClient),
+    broadcast: (payload) => {
+      const validated = validateTransformerEffect(payload, loggerWrapper);
+      return udpClient.broadcast(validated);
+    },
     udp: udpClient,
     mqtt: mqttClient,
     http: createHttpContext(),

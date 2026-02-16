@@ -10,6 +10,7 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 import { subscribeDriverError } from '../driver-error';
 import type { MqttBroker } from '@/network';
 import { eventBus } from '@/services/event-bus';
+import log from 'electron-log/main';
 
 vi.mock('electron-log/main', () => ({
   default: {
@@ -19,6 +20,8 @@ vi.mock('electron-log/main', () => ({
     debug: vi.fn(),
   },
 }));
+
+const mockLog = vi.mocked(log);
 
 describe('subscribeDriverError', () => {
   let mockMqtt: MockProxy<MqttBroker>;
@@ -56,7 +59,7 @@ describe('subscribeDriverError', () => {
 
       const payload = {
         driverId: 'rgfx-driver-0001',
-        effect: 'bitmap',
+        source: 'bitmap',
         error: 'Invalid image format',
         payload: { image: ['XXX'] },
       };
@@ -75,12 +78,12 @@ describe('subscribeDriverError', () => {
       eventBusEmitSpy.mockRestore();
     });
 
-    it('should include effect name in error message', () => {
+    it('should include source name in error message', () => {
       const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
 
       const payload = {
         driverId: 'test-driver',
-        effect: 'pulse',
+        source: 'pulse',
         error: 'Duration too short',
         payload: { duration: 0 },
       };
@@ -90,7 +93,7 @@ describe('subscribeDriverError', () => {
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
         expect.objectContaining({
-          message: expect.stringContaining("Effect 'pulse'"),
+          message: expect.stringContaining('pulse:'),
         }),
       );
 
@@ -102,7 +105,7 @@ describe('subscribeDriverError', () => {
 
       const payload = {
         driverId: 'test-driver',
-        effect: 'wipe',
+        source: 'wipe',
         error: 'Color value out of range',
         payload: {},
       };
@@ -124,7 +127,7 @@ describe('subscribeDriverError', () => {
 
       const payload = {
         driverId: 'test-driver',
-        effect: 'test',
+        source: 'test',
         error: 'Test error',
         payload: { key: 'value', nested: { data: 123 } },
       };
@@ -147,7 +150,7 @@ describe('subscribeDriverError', () => {
 
       const payload = {
         driverId: 'test-driver',
-        effect: 'test',
+        source: 'test',
         error: 'Test error',
         payload: {},
       };
@@ -170,7 +173,7 @@ describe('subscribeDriverError', () => {
       // when the UDP queue is full and messages are being dropped
       const payload = {
         driverId: 'rgfx-driver-test',
-        effect: 'udp',
+        source: 'udp',
         error: 'Queue full - dropping messages',
         payload: {},
       };
@@ -187,6 +190,38 @@ describe('subscribeDriverError', () => {
       );
 
       eventBusEmitSpy.mockRestore();
+    });
+
+    it('should log queue full errors at warn level instead of error', () => {
+      const payload = {
+        driverId: 'rgfx-driver-test',
+        source: 'udp',
+        error: 'Queue full - dropping messages',
+        payload: {},
+      };
+
+      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+
+      expect(mockLog.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Queue full - dropping messages'),
+      );
+      expect(mockLog.error).not.toHaveBeenCalled();
+    });
+
+    it('should log non-queue errors at error level', () => {
+      const payload = {
+        driverId: 'rgfx-driver-test',
+        source: 'bitmap',
+        error: 'Invalid image format',
+        payload: {},
+      };
+
+      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+
+      expect(mockLog.error).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid image format'),
+      );
+      expect(mockLog.warn).not.toHaveBeenCalled();
     });
   });
 
