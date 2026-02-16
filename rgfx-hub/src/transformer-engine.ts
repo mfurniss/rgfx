@@ -10,6 +10,7 @@
 import { promises as fs, watch } from 'node:fs';
 import { join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
 import { getTransformersDir } from './transformer-installer';
 import { eventBus } from './services/event-bus';
@@ -38,18 +39,40 @@ export class TransformerEngine {
   private defaultHandler?: TransformerHandler;
   private watcher?: ReturnType<typeof watch>;
   private importModule: (path: string) => Promise<Record<string, unknown>>;
+  private moduleHashes = new Map<string, string>();
+  private moduleCache = new Map<string, Record<string, unknown>>();
 
   constructor(
     private context: TransformerContext,
     options?: TransformerEngineOptions,
   ) {
-    // Default: dynamic import with cache-busting for hot-reload support
-    this.importModule =
-      options?.importModule ??
-      ((filePath: string) => {
+    if (options?.importModule) {
+      // Test injection — skip content-hash caching
+      this.importModule = options.importModule;
+    } else {
+      // Production: content-hash-based import with local caching.
+      // Uses file content hash as the URL cache key so identical content
+      // reuses the same V8 module cache entry instead of leaking a new one
+      // on every fs.watch notification.
+      this.importModule = async (filePath: string) => {
+        const content = await fs.readFile(filePath, 'utf-8');
+        const hash = createHash('sha1').update(content).digest('hex').slice(0, 12);
+
+        const cachedHash = this.moduleHashes.get(filePath);
+        const cachedModule = this.moduleCache.get(filePath);
+
+        if (cachedHash === hash && cachedModule) {
+          return cachedModule;
+        }
+
         const url = pathToFileURL(filePath).href;
-        return import(`${url}?t=${Date.now()}`) as Promise<Record<string, unknown>>;
-      });
+        const module = (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
+
+        this.moduleHashes.set(filePath, hash);
+        this.moduleCache.set(filePath, module);
+        return module;
+      };
+    }
   }
 
   /**
