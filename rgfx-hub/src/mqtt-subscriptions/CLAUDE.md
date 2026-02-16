@@ -28,6 +28,7 @@ All subscriptions are registered at startup via [index.ts](index.ts).
 | `driver-status.ts` | `rgfx/driver/+/status` | Connection state (online/offline via LWT) |
 | `driver-test-state.ts` | `rgfx/driver/+/test` | LED test mode active/inactive |
 | `driver-log.ts` | `rgfx/driver/+/log` | Remote log messages from drivers |
+| `driver-error.ts` | `rgfx/system/driver/error` | Effect validation and system errors from drivers |
 
 ---
 
@@ -84,6 +85,22 @@ Receives remote log messages from drivers:
 **Actions:**
 - Persists log entries to driver log file
 - Uses Hub timestamp (driver sends uptime, not wall clock)
+
+### Driver Error
+
+**Topic:** `rgfx/system/driver/error`
+
+Receives error reports from drivers (effect validation failures, queue overflow, etc.):
+```json
+{"driverId": "rgfx-driver-0001", "source": "bitmap", "error": "missing required 'centerX' prop", "payload": {...}}
+```
+
+**Note:** The `source` field identifies the error origin (effect name like "bitmap", or system component like "udp"). This matches the ESP32's `publishError()` field name.
+
+**Actions:**
+- Queue overflow errors ("Queue full") are logged at `warn` level (expected under high load)
+- All other errors are logged at `error` level
+- Emits `system:error` event for UI display regardless of level
 
 ---
 
