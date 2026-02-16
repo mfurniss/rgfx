@@ -1,5 +1,6 @@
 #include "explode.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include "hal/types.h"
 #include "graphics/canvas.h"
@@ -36,15 +37,15 @@ void ExplodeEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	uint32_t particleCount = props["particleCount"];
-	float power = props["power"];
-	uint32_t lifespan = props["lifespan"];
-	float powerSpread = props["powerSpread"];
-	uint32_t particleSize = props["particleSize"];
-	uint32_t hueSpread = min(static_cast<uint32_t>(props["hueSpread"]), 359u);
-	float friction = props["friction"];
-	float gravity = props["gravity"];
-	float lifespanSpread = props["lifespanSpread"];
+	uint32_t particleCount = props["particleCount"] | effect_defaults::explode::particleCount;
+	float power = props["power"] | effect_defaults::explode::power;
+	uint32_t lifespan = props["lifespan"] | effect_defaults::explode::lifespan;
+	float powerSpread = props["powerSpread"] | effect_defaults::explode::powerSpread;
+	uint32_t particleSize = props["particleSize"] | effect_defaults::explode::particleSize;
+	uint32_t hueSpread = min(props["hueSpread"] | effect_defaults::explode::hueSpread, 359u);
+	float friction = props["friction"] | effect_defaults::explode::friction;
+	float gravity = props["gravity"] | effect_defaults::explode::gravity;
+	float lifespanSpread = props["lifespanSpread"] | effect_defaults::explode::lifespanSpread;
 
 	bool isStrip = (matrix.layoutType == LayoutType::STRIP);
 

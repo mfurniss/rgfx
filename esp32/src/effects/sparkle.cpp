@@ -1,6 +1,7 @@
 #include "sparkle.h"
 #include "bloom_utils.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include <cstring>
 #include <algorithm>
@@ -114,7 +115,7 @@ void SparkleEffect::add(JsonDocument& props) {
 	SparkleCloud& cloud = clouds[cloudIndex];
 
 	// Parse duration (0 = infinite)
-	int dur = props["duration"].as<int>();
+	int dur = props["duration"] | static_cast<int>(effect_defaults::sparkle::duration);
 	if (dur == 0) {
 		cloud.duration = 0;  // Infinite
 	} else {
@@ -122,17 +123,17 @@ void SparkleEffect::add(JsonDocument& props) {
 	}
 
 	// Parse density (1-100)
-	cloud.density = props["density"].as<int>();
+	cloud.density = props["density"] | static_cast<int>(effect_defaults::sparkle::density);
 	if (cloud.density < 1) cloud.density = 1;
 	if (cloud.density > 100) cloud.density = 100;
 
 	// Parse speed (0.1-5.0)
-	cloud.speed = props["speed"].as<float>();
+	cloud.speed = props["speed"] | effect_defaults::sparkle::speed;
 	if (cloud.speed < 0.1f) cloud.speed = 0.1f;
 	if (cloud.speed > 5.0f) cloud.speed = 5.0f;
 
 	// Parse bloom (0-100) and pre-compute spread radius
-	cloud.bloom = props["bloom"].as<int>();
+	cloud.bloom = props["bloom"] | static_cast<int>(effect_defaults::sparkle::bloom);
 	if (cloud.bloom > 100) cloud.bloom = 100;
 	cloud.spreadRadius = bloomPercentToRadius(cloud.bloom);
 	cloud.overdrive = (cloud.bloom * 255) / 100;

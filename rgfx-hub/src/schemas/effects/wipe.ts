@@ -8,6 +8,9 @@
 import { z } from 'zod';
 import { baseEffect } from './properties';
 import { randomColor, randomInt, randomString } from '@/utils/random';
+import defaults from './defaults.json';
+
+const d = defaults.wipe;
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -26,8 +29,13 @@ export default baseEffect
   .extend({
     name: z.literal('Wipe'),
     description: z.literal('Directional color wipe across the display'),
-    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random').describe('Direction of the wipe animation'),
-    duration: z.number().positive().optional().default(500).describe('Effect duration in milliseconds'),
-    blendMode: z.enum(['additive', 'replace']).optional().default('additive').describe('Blend mode for rendering'),
+    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional()
+      .default(d.direction as 'random')
+      .describe('Direction of the wipe animation'),
+    duration: z.number().positive().optional().default(d.duration)
+      .describe('Effect duration in milliseconds'),
+    blendMode: z.enum(['additive', 'replace']).optional()
+      .default(d.blendMode as 'additive')
+      .describe('Blend mode for rendering'),
   })
   .strict();

@@ -135,6 +135,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
 | `particle_system.h/cpp` | Shared particle system with active count tracking for early-exit optimization |
 | `background.h/cpp` | Gradient background effect with fade transitions |
+| `generated/effect_defaults.h` | Auto-generated constexpr defaults from `defaults.json` (do not edit) |
 | `bitmap.h/cpp` | Animated sprite display with palettized memory storage |
 | `explode.h/cpp` | Radial explosion effect with hueSpread color variation |
 | `particle_field.h/cpp` | Particle field effect |
@@ -169,7 +170,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 - **Delta Time:** Frame-independent animation using elapsed time in seconds
 - **Multiple Instances:** Each effect can have multiple active instances (e.g., overlapping pulses)
 - **Easing Functions:** Located in `utils/easing.h`, used for smooth animation curves
-- **Hub as Source of Truth:** All effect property defaults come from Hub; ESP32 expects complete props
+- **Shared Defaults:** All effect property defaults are defined in `rgfx-hub/src/schemas/effects/defaults.json`. A Node.js generator produces `generated/effect_defaults.h` (C++ constexpr header) which is auto-regenerated on every `pio run` via `generate_defaults.py` pre-build script. ESP32 effects use these as `|` fallbacks in ArduinoJson parsing.
 
 ---
 

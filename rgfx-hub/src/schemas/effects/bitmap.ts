@@ -10,6 +10,9 @@ import { baseEffect, centerX, centerY, easing } from './properties';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import { randomInt } from '@/utils/random';
 import { spritePresets } from '@/utils/sprite-presets';
+import defaults from './defaults.json';
+
+const d = defaults.bitmap;
 
 export const fieldTypes: FieldTypeMap = {
   centerX: 'centerXY',
@@ -29,31 +32,11 @@ export function randomize(): Record<string, unknown> {
   };
 }
 
-/**
- * PICO-8 default palette - 16 colors designed for retro games
- * @see https://lospec.com/palette-list/pico-8
- */
-const PICO8_PALETTE = [
-  '#000000', // 0: Black
-  '#1D2B53', // 1: Dark Blue
-  '#7E2553', // 2: Dark Purple
-  '#008751', // 3: Dark Green
-  '#AB5236', // 4: Brown
-  '#5F574F', // 5: Dark Gray
-  '#C2C3C7', // 6: Light Gray
-  '#FFF1E8', // 7: White
-  '#FF004D', // 8: Red
-  '#FFA300', // 9: Orange
-  '#FFEC27', // A: Yellow
-  '#00E436', // B: Green
-  '#29ADFF', // C: Blue
-  '#83769C', // D: Lavender
-  '#FF77A8', // E: Pink
-  '#FFCCAA', // F: Peach
-];
-
 // Hex color string for palette entries
-const paletteColorSchema = z.string().regex(/^#?[0-9a-fA-F]{6}$/, 'Invalid hex color format');
+const paletteColorSchema = z.string().regex(
+  /^#?[0-9a-fA-F]{6}$/,
+  'Invalid hex color format',
+);
 
 /**
  * Bitmap effect props schema
@@ -74,46 +57,31 @@ export default baseEffect
   .extend({
     name: z.literal('Bitmap'),
     description: z.literal('Display a bitmap image'),
-    reset: z.boolean().optional().default(false),
-    centerX: centerX.default('random').describe('Start X position (0-100 or random)'),
-    centerY: centerY.default('random').describe('Start Y position (0-100 or random)'),
-    endX: centerX.default('random').describe('End X position (0-100 or random)'),
-    endY: centerY.default('random').describe('End Y position (0-100 or random)'),
-    duration: z.number().positive().optional().default(1500),
-    easing: easing.optional().default('quadraticInOut'),
-    fadeIn: z.number().int().nonnegative().optional().default(300)
+    reset: z.boolean().optional().default(d.reset),
+    centerX: centerX.default(d.centerX as 'random')
+      .describe('Start X position (0-100 or random)'),
+    centerY: centerY.default(d.centerY as 'random')
+      .describe('Start Y position (0-100 or random)'),
+    endX: centerX.describe('End X position (0-100 or random)'),
+    endY: centerY.describe('End Y position (0-100 or random)'),
+    duration: z.number().positive().optional().default(d.duration),
+    easing: easing.optional().default(d.easing as 'quadraticInOut'),
+    fadeIn: z.number().int().nonnegative().optional().default(d.fadeIn)
       .describe('Fade in duration in milliseconds'),
-    fadeOut: z.number().int().nonnegative().optional().default(300)
+    fadeOut: z.number().int().nonnegative().optional().default(d.fadeOut)
       .describe('Fade out duration in milliseconds'),
     palette: z
       .array(paletteColorSchema)
       .min(1)
       .max(16)
       .optional()
-      .default(PICO8_PALETTE)
+      .default(d.palette)
       .describe('Array of up to 16 hex colors for palette indices 0-F'),
-    frameRate: z.number().positive().optional().default(2)
+    frameRate: z.number().positive().optional().default(d.frameRate)
       .describe('Animation frame rate in frames per second'),
     images: z
       .array(z.array(z.string()))
       .describe('Sprite animation frames')
-      .default([[
-        '.......A........',
-        '......AAA.......',
-        '....BBBBBAAAA...',
-        '...BBBBBBBAA....',
-        '..B7B77BBBB.....',
-        '..70B077BBBAAA..',
-        '..70B077BBBBA...',
-        '.B70B077AABB....',
-        '.A70B077AAABAA..',
-        '.BB7B77BA0BBA...',
-        '..0070000BEB....',
-        '..BBBBBBBEEEB...',
-        '...7777BEEEEB...',
-        '..777777BEEBBA..',
-        'EEE777EEBBBBBBA.',
-        '.EE77EEEEEBBBBBB',
-      ]]),
+      .default(d.images),
   })
   .strict();

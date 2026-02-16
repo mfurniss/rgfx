@@ -603,6 +603,8 @@ void test_bitmap_custom_palette() {
 	props["duration"] = 1000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
+	props["fadeIn"] = 0;
+	props["fadeOut"] = 0;
 	// Custom 2-color palette
 	JsonArray palette = props["palette"].to<JsonArray>();
 	palette.add("#00FF00");  // 0: Green
@@ -633,6 +635,8 @@ void test_bitmap_invalid_palette_index_transparent() {
 	palette.add("#FF0000");  // 0: Red
 	palette.add("#00FF00");  // 1: Green
 	props["duration"] = 1000;
+	props["fadeIn"] = 0;
+	props["fadeOut"] = 0;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
 	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
@@ -858,7 +862,7 @@ void test_bitmap_easing_quadraticOut() {
 	TEST_ASSERT_TRUE(centerX > canvas.getWidth() / 2);
 }
 
-void test_bitmap_easing_default_linear() {
+void test_bitmap_easing_default_quadraticInOut() {
 	Matrix matrix(8, 8);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
@@ -870,7 +874,7 @@ void test_bitmap_easing_default_linear() {
 	props["centerY"] = 50;
 	props["endX"] = 100;
 	props["endY"] = 50;
-	// No easing specified - should default to linear
+	// No easing specified - should default to quadraticInOut
 	JsonArray images = props["images"].to<JsonArray>(); JsonArray image = images.add<JsonArray>();
 	image.add("7");
 
@@ -882,7 +886,7 @@ void test_bitmap_easing_default_linear() {
 
 	BoundingBox box = findBoundingBox(canvas);
 	TEST_ASSERT_TRUE(box.valid);
-	// With linear at 50% time, should be at 50% distance
+	// quadraticInOut at 50% gives exactly 50% distance (symmetric around midpoint)
 	int centerX = (box.minX + box.maxX) / 2;
 	TEST_ASSERT_INT_WITHIN(8, canvas.getWidth() / 2, centerX);
 }
@@ -1831,7 +1835,7 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_movement_only_endY);
 	RUN_TEST(test_bitmap_no_movement_without_end_coords);
 	RUN_TEST(test_bitmap_easing_quadraticOut);
-	RUN_TEST(test_bitmap_easing_default_linear);
+	RUN_TEST(test_bitmap_easing_default_quadraticInOut);
 	RUN_TEST(test_bitmap_movement_from_off_canvas_left);
 	RUN_TEST(test_bitmap_movement_to_off_canvas_right);
 	RUN_TEST(test_bitmap_movement_off_canvas_both_ends);

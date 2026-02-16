@@ -8,7 +8,7 @@
 
 class ScrollTextEffect : public IEffect {
    private:
-	static constexpr uint8_t MAX_TEXT_LENGTH = 64;
+	static constexpr uint16_t MAX_TEXT_LENGTH = 256;
 
 	struct ScrollInstance {
 		char text[MAX_TEXT_LENGTH];

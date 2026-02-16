@@ -1,6 +1,7 @@
 #include "text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "gradient_utils.h"
 #include "hal/platform.h"
 #include "network/mqtt.h"
@@ -30,7 +31,7 @@ void TextEffect::add(JsonDocument& props) {
 		publishError("text", "missing or invalid 'gradient' prop", props);
 		return;
 	}
-	uint32_t durationMs = props["duration"];
+	uint32_t durationMs = props["duration"] | effect_defaults::text::duration;
 
 	TextInstance instance;
 	instance.textLen = static_cast<uint8_t>(strlen(text));
