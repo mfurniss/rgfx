@@ -1,0 +1,134 @@
+{
+  "pulse": {
+    "color": "random",
+    "reset": false,
+    "duration": 800,
+    "easing": "quinticOut",
+    "fade": true,
+    "collapse": "random"
+  },
+  "wipe": {
+    "color": "random",
+    "reset": false,
+    "duration": 500,
+    "direction": "random",
+    "blendMode": "additive"
+  },
+  "explode": {
+    "color": "random",
+    "reset": false,
+    "centerX": "random",
+    "centerY": "random",
+    "particleCount": 100,
+    "power": 120,
+    "lifespan": 700,
+    "powerSpread": 80,
+    "particleSize": 6,
+    "hueSpread": 0,
+    "friction": 3.0,
+    "gravity": 0,
+    "lifespanSpread": 50
+  },
+  "bitmap": {
+    "reset": false,
+    "centerX": "random",
+    "centerY": "random",
+    "duration": 1500,
+    "easing": "quadraticInOut",
+    "fadeIn": 300,
+    "fadeOut": 300,
+    "frameRate": 2,
+    "palette": [
+      "#000000", "#1D2B53", "#7E2553", "#008751",
+      "#AB5236", "#5F574F", "#C2C3C7", "#FFF1E8",
+      "#FF004D", "#FFA300", "#FFEC27", "#00E436",
+      "#29ADFF", "#83769C", "#FF77A8", "#FFCCAA"
+    ],
+    "images": [[
+      "0000111122223333",
+      "0000111122223333",
+      "0000111122223333",
+      "0000111122223333",
+      "4444555566667777",
+      "4444555566667777",
+      "4444555566667777",
+      "4444555566667777",
+      "88889999AAAABBBB",
+      "88889999AAAABBBB",
+      "88889999AAAABBBB",
+      "88889999AAAABBBB",
+      "CCCCDDDDEEEEFFFF",
+      "CCCCDDDDEEEEFFFF",
+      "CCCCDDDDEEEEFFFF",
+      "CCCCDDDDEEEEFFFF"
+    ]]
+  },
+  "background": {
+    "gradient": {
+      "colors": ["#FF0000", "#00FF00", "#0000FF"],
+      "orientation": "horizontal"
+    },
+    "fadeDuration": 1000
+  },
+  "projectile": {
+    "color": "random",
+    "reset": false,
+    "direction": "random",
+    "velocity": 1200,
+    "friction": 0.5,
+    "trail": 0.2,
+    "width": 16,
+    "height": 6,
+    "lifespan": 5000,
+    "particleDensity": 0
+  },
+  "text": {
+    "reset": false,
+    "text": "*** RGFX ***",
+    "gradient": ["#E0E000", "#0000E0", "#E0E000"],
+    "gradientSpeed": 3,
+    "gradientScale": 4,
+    "accentColor": null,
+    "duration": 5000
+  },
+  "scroll_text": {
+    "reset": true,
+    "text": "*** RGFX - Retro Game Effects ***",
+    "gradient": ["#E0E000", "#0000E0", "#E0E000"],
+    "gradientSpeed": 3,
+    "gradientScale": 4,
+    "accentColor": null,
+    "speed": 150,
+    "repeat": false,
+    "snapToLed": true
+  },
+  "plasma": {
+    "speed": 3,
+    "scale": 4,
+    "gradient": ["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF", "#FF0000"],
+    "enabled": "on"
+  },
+  "warp": {
+    "enabled": "fadeIn",
+    "speed": 2.5,
+    "scale": 3,
+    "orientation": "horizontal",
+    "gradient": ["#FFFF00", "#00FFFF", "#0000FF", "#FFFF00"]
+  },
+  "particle_field": {
+    "direction": "left",
+    "density": 20,
+    "speed": 50,
+    "size": 4,
+    "color": "random",
+    "enabled": "on"
+  },
+  "sparkle": {
+    "duration": 3000,
+    "density": 100,
+    "gradient": ["#000000", "#8000FF", "#000000"],
+    "speed": 0.75,
+    "bloom": 90,
+    "reset": false
+  }
+}

@@ -20,8 +20,8 @@ describe('bitmapSchema', () => {
         expect(result.data.reset).toBe(false);
         expect(result.data.centerX).toBe('random');
         expect(result.data.centerY).toBe('random');
-        expect(result.data.endX).toBe('random');
-        expect(result.data.endY).toBe('random');
+        expect(result.data.endX).toBeUndefined();
+        expect(result.data.endY).toBeUndefined();
         expect(result.data.duration).toBe(1500);
         expect(result.data.easing).toBe('quadraticInOut');
         expect(result.data.fadeIn).toBe(300);
@@ -91,22 +91,22 @@ describe('bitmapSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept endX override while endY uses default', () => {
+    it('should accept endX override while endY stays undefined', () => {
       const result = bitmapSchema.safeParse({ endX: 50 });
       expect(result.success).toBe(true);
 
       if (result.success) {
         expect(result.data.endX).toBe(50);
-        expect(result.data.endY).toBe('random');
+        expect(result.data.endY).toBeUndefined();
       }
     });
 
-    it('should accept endY override while endX uses default', () => {
+    it('should accept endY override while endX stays undefined', () => {
       const result = bitmapSchema.safeParse({ endY: 50 });
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect(result.data.endX).toBe('random');
+        expect(result.data.endX).toBeUndefined();
         expect(result.data.endY).toBe(50);
       }
     });
@@ -269,14 +269,14 @@ describe('bitmapSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should use default Bub sprite wrapped in array when not specified', () => {
+    it('should use default Palette Test sprite when not specified', () => {
       const result = bitmapSchema.safeParse({});
       expect(result.success).toBe(true);
 
       if (result.success) {
         expect(result.data.images).toHaveLength(1);
         expect(result.data.images[0]).toHaveLength(16);
-        expect(result.data.images[0][0]).toContain('A');
+        expect(result.data.images[0][0]).toBe('0000111122223333');
       }
     });
   });

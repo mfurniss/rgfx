@@ -58,6 +58,9 @@ Each variant tracks its own version independently. When comparing driver firmwar
 
 Effect property schemas for LED visual effects sent to drivers.
 
+### effects/defaults.json
+Single source of truth for all effect property defaults. Consumed by Zod schemas at compile time and by the C++ header generator (`npm run generate:defaults`). Hub test suite verifies the committed C++ header stays in sync.
+
 ### effects/index.ts
 - `effectSchemas` - Map of effect names to their Zod schemas
 - `isEffectName()` - Type guard for valid effect names
@@ -103,7 +106,7 @@ const props = randomizeExplode(); // Returns randomized explode props
 
 - **Schema Composition**: Larger schemas are composed from smaller ones using `.pick()`, `.extend()`, and `.merge()`
 - **Strict Mode**: Effect schemas use `.strict()` to reject unknown properties
-- **Defaults**: Schemas define sensible defaults where appropriate
+- **Shared Defaults**: All effect defaults live in `effects/defaults.json` (single source of truth). Zod schemas import this JSON directly for `.default()` values. A generator script (`scripts/generate-effect-defaults.mjs`) produces the ESP32 C++ header from the same file.
 - **Type Export**: Each schema exports inferred TypeScript types via `z.infer<>`
 - **Kebab-Case Filenames**: All effect files use kebab-case (enforced by eslint-plugin-check-file)
 - **Shared Constants**: Gradient array schemas use `HEX_COLOR_RRGGBB_REGEX` from `@/config/constants`

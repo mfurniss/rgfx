@@ -1,4 +1,5 @@
 #include "plasma.h"
+#include "generated/effect_defaults.h"
 #include "gradient_utils.h"
 #include "hal/types.h"
 #include <cmath>
@@ -17,14 +18,14 @@ void PlasmaEffect::add(JsonDocument& props) {
 	}
 
 	// Parse scale (0.1-10.0)
-	float scale = props["scale"];
+	float scale = props["scale"] | effect_defaults::plasma::scale;
 	if (scale < 0.1f)
 		scale = 0.1f;
 	if (scale > 10.0f)
 		scale = 10.0f;
 
 	// Parse speed
-	float speed = props["speed"];
+	float speed = props["speed"] | effect_defaults::plasma::speed;
 
 	// Parse gradient array using shared utility
 	parseGradientFromJson(props, state.gradientLut);

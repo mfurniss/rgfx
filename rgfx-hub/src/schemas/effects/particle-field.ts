@@ -8,6 +8,9 @@
 import { z } from 'zod';
 import color from './properties/color';
 import { randomString, randomInt, randomFloat, randomColor } from '@/utils/random';
+import defaults from './defaults.json';
+
+const d = defaults.particle_field;
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -36,7 +39,7 @@ export default z
     direction: z
       .enum(['up', 'down', 'left', 'right'])
       .optional()
-      .default('left')
+      .default(d.direction as 'left')
       .describe('Particle movement direction (up/down maps to left/right on strips)'),
     density: z
       .number()
@@ -44,14 +47,14 @@ export default z
       .min(1)
       .max(100)
       .optional()
-      .default(20)
+      .default(d.density)
       .describe('Number of active particles (1-100)'),
     speed: z
       .number()
       .min(10)
       .max(1000)
       .optional()
-      .default(50)
+      .default(d.speed)
       .describe('Base particle speed in pixels/second (individual particles vary)'),
     size: z
       .number()
@@ -59,13 +62,13 @@ export default z
       .min(1)
       .max(16)
       .optional()
-      .default(4)
+      .default(d.size)
       .describe('Particle size in canvas pixels'),
     color,
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
-      .default('on')
+      .default(d.enabled as 'on')
       .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();

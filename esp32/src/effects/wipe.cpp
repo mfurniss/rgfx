@@ -1,5 +1,6 @@
 #include "wipe.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include "hal/types.h"
 #include "graphics/canvas.h"
@@ -21,7 +22,7 @@ void WipeEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	uint32_t duration = props["duration"];
+	uint32_t duration = props["duration"] | effect_defaults::wipe::duration;
 	const char* dirStr = props["direction"] | "";
 	const char* blendModeStr = props["blendMode"];
 	bool is1D = canvas.getHeight() == 1;

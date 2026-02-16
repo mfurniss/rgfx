@@ -11,6 +11,9 @@ import { colorStringSchema } from './properties/color';
 import { randomFloat, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './index';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import defaults from './defaults.json';
+
+const d = defaults.plasma;
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',
@@ -44,25 +47,25 @@ export default z
       .min(0.1)
       .max(20)
       .optional()
-      .default(3)
+      .default(d.speed)
       .describe('Animation speed multiplier (1 = normal speed)'),
     scale: z
       .number()
       .min(0.1)
       .max(10)
       .optional()
-      .default(4)
+      .default(d.scale)
       .describe('Pattern frequency (0.1-10, higher = more detailed)'),
     gradient: z
       .array(colorStringSchema)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .default(['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000'])
+      .default(d.gradient)
       .describe(`Gradient colors (up to ${MAX_GRADIENT_COLORS} hex colors)`),
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
-      .default('on')
+      .default(d.enabled as 'on')
       .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
   })
   .strict();

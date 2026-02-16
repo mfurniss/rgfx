@@ -1,5 +1,6 @@
 #include "projectile.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include "graphics/canvas.h"
 #include "network/mqtt.h"
@@ -23,12 +24,12 @@ void ProjectileEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	uint32_t velocity = props["velocity"];
-	float friction = props["friction"];
-	float trail = props["trail"];
-	uint8_t width = props["width"];
-	uint8_t height = props["height"];
-	uint32_t lifespanMs = props["lifespan"];
+	uint32_t velocity = props["velocity"] | static_cast<uint32_t>(effect_defaults::projectile::velocity);
+	float friction = props["friction"] | effect_defaults::projectile::friction;
+	float trail = props["trail"] | effect_defaults::projectile::trail;
+	uint8_t width = props["width"] | static_cast<uint8_t>(effect_defaults::projectile::width);
+	uint8_t height = props["height"] | static_cast<uint8_t>(effect_defaults::projectile::height);
+	uint32_t lifespanMs = props["lifespan"] | effect_defaults::projectile::lifespan;
 	const char* dirStr = props["direction"] | "";
 
 	bool is1D = canvas.getHeight() == 1;

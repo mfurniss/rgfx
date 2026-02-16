@@ -12,6 +12,9 @@ import { colorStringSchema } from './properties/color';
 import { randomColor, randomString, randomFloat, randomInt, randomGradient } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import type { PresetConfig, LayoutConfig } from './index';
+import defaults from './defaults.json';
+
+const d = defaults.text;
 
 export const fieldTypes: FieldTypeMap = {
   accentColor: 'color',
@@ -38,30 +41,34 @@ export default baseEffect
   .extend({
     name: z.literal('Text'),
     description: z.literal('Static text display'),
-    reset: z.boolean().optional().default(false).describe('Clear existing text before rendering'),
-    text: z.string().max(32).default('Hello You!').describe('Text to render (max 32 chars)'),
+    reset: z.boolean().optional().default(d.reset)
+      .describe('Clear existing text before rendering'),
+    text: z.string().max(31).default(d.text)
+      .describe('Text to render (max 31 chars)'),
     gradient: z
       .array(colorStringSchema)
       .min(1)
       .max(MAX_GRADIENT_COLORS)
-      .default(['#FFA000'])
+      .default(d.gradient)
       .describe('Text colors (1 color = solid, 2+ = animated gradient)'),
     gradientSpeed: z
       .number()
       .min(0.1)
       .max(50)
       .optional()
-      .default(3)
+      .default(d.gradientSpeed)
       .describe('Gradient animation speed'),
     gradientScale: z
       .number()
       .min(0)
       .max(20)
       .optional()
-      .default(4)
+      .default(d.gradientScale)
       .describe('Gradient pattern scale'),
-    accentColor: z.string().nullable().optional().default(null).describe('Optional accent/shadow color (hex or named)'),
-    duration: z.number().int().min(0).optional().default(3000).describe('Duration in ms (0 = infinite, use reset to clear)'),
+    accentColor: z.string().nullable().optional().default(d.accentColor)
+      .describe('Optional accent/shadow color (hex or named)'),
+    duration: z.number().int().min(0).optional().default(d.duration)
+      .describe('Duration in ms (0 = infinite, use reset to clear)'),
   })
   .strict();
 

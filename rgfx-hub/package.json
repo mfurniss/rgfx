@@ -22,7 +22,8 @@
     "unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='config/mappings;src/preload.ts;src/__tests__;vite.renderer.config.ts' --exitWithCount",
     "smoke-test": "python3 ../scripts/e2e-smoke-test.py",
     "smoke-test:verbose": "python3 ../scripts/e2e-smoke-test.py -v",
-    "smoke-test:stress": "python3 ../scripts/e2e-smoke-test.py -d 300 --density high -v"
+    "smoke-test:stress": "python3 ../scripts/e2e-smoke-test.py -d 300 --density high -v",
+    "generate:defaults": "node scripts/generate-effect-defaults.mjs"
   },
   "keywords": [],
   "author": {
