@@ -114,7 +114,8 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     });
 
     let lastPercent = -1;
-    let reachedFullProgress = false;
+    // Object property avoids TS narrowing the callback-mutated value as always-false
+    const progressState = { reachedFull: false };
     esp.on('progress', (data: { sent: number; total: number }) => {
       const percent = Math.round((data.sent / data.total) * 100);
 
@@ -122,7 +123,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         log.info(`OTA progress: ${driverId} ${percent}%`);
 
         if (percent >= 100) {
-          reachedFullProgress = true;
+          progressState.reachedFull = true;
         }
 
         // Touch driver to keep it marked as connected during OTA
@@ -175,7 +176,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
 
       // If we reached 100% progress and got a timeout, the firmware was actually
       // flashed successfully - the ESP32 just rebooted before sending confirmation
-      if (reachedFullProgress && err.message.toLowerCase().includes('timeout')) {
+      if (progressState.reachedFull && err.message.toLowerCase().includes('timeout')) {
         log.info(`OTA flash to ${driverId} completed (device rebooted before confirmation)`);
         const updatedDriver = driverRegistry.getDriver(driverId);
 

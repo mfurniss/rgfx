@@ -161,4 +161,74 @@ describe('ColorPicker', () => {
       expect(screen.getByLabelText('Color')).toBeDefined();
     });
   });
+
+  describe('local state optimization', () => {
+    it('should not call onChange for partial/invalid text input', () => {
+      const handleChange = vi.fn();
+      render(<ColorPicker value="#FF0000" onChange={handleChange} />);
+
+      const textInput = screen.getByRole('textbox');
+      fireEvent.change(textInput, { target: { value: '#F' } });
+
+      expect(handleChange).not.toHaveBeenCalled();
+      expect((textInput as HTMLInputElement).value).toBe('#F');
+    });
+
+    it('should call onChange immediately when typed value is valid', () => {
+      const handleChange = vi.fn();
+      render(<ColorPicker value="#FF0000" onChange={handleChange} />);
+
+      const textInput = screen.getByRole('textbox');
+      fireEvent.change(textInput, { target: { value: '#00FF00' } });
+
+      expect(handleChange).toHaveBeenCalledWith('#00FF00');
+    });
+
+    it('should call onChange on blur with valid value', () => {
+      const handleChange = vi.fn();
+      render(<ColorPicker value="#FF0000" onChange={handleChange} />);
+
+      const textInput = screen.getByRole('textbox');
+      fireEvent.change(textInput, { target: { value: 'red' } });
+      handleChange.mockClear();
+      fireEvent.blur(textInput);
+
+      expect(handleChange).toHaveBeenCalledWith('red');
+    });
+
+    it('should revert to last valid value on blur when invalid', () => {
+      const handleChange = vi.fn();
+      render(<ColorPicker value="#FF0000" onChange={handleChange} />);
+
+      const textInput = screen.getByRole('textbox');
+      fireEvent.change(textInput, { target: { value: 'foobar' } });
+      fireEvent.blur(textInput);
+
+      expect((textInput as HTMLInputElement).value).toBe('#FF0000');
+    });
+
+    it('should call onChange immediately from color swatch', () => {
+      const handleChange = vi.fn();
+      render(<ColorPicker value="#FF0000" onChange={handleChange} />);
+
+      const colorInput = document.querySelector('input[type="color"]')!;
+      fireEvent.change(colorInput, { target: { value: '#0000ff' } });
+
+      expect(handleChange).toHaveBeenCalledWith('#0000ff');
+    });
+
+    it('should sync local state when value prop changes externally', () => {
+      const handleChange = vi.fn();
+      const { rerender } = render(
+        <ColorPicker value="#FF0000" onChange={handleChange} />,
+      );
+
+      rerender(
+        <ColorPicker value="#00FF00" onChange={handleChange} />,
+      );
+
+      const textInput = screen.getByRole('textbox');
+      expect((textInput as HTMLInputElement).value).toBe('#00FF00');
+    });
+  });
 });

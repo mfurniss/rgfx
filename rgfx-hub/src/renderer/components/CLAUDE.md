@@ -575,6 +575,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Shows validation errors from form state
 - Uses `field-utils.ts` for label formatting and tooltips
 
+### ColorPicker
+
+**File:** [effect-form/fields/color-picker.tsx](effect-form/fields/color-picker.tsx)
+
+**Purpose:** Inline color picker with text input and native color swatch.
+
+**Features:**
+- Native `<input type="color">` swatch for visual picking
+- Text input for typing hex or named colors
+- Validates color values (hex, CSS named colors, "random")
+- Shows "Invalid color" error for unrecognized values
+- **Local state optimization:** uses `useState` to avoid propagating every keystroke up the form tree. Only valid colors trigger `onChange` immediately; invalid partial input is held locally and either committed on blur (if valid) or reverted to the last valid value
+
 ---
 
 ### field-utils.ts

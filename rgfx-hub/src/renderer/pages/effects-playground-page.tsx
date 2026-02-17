@@ -5,8 +5,9 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { debounce } from 'lodash-es';
 import {
   Box,
   Paper,
@@ -142,13 +143,28 @@ export default function TestEffectsPage() {
     }
   };
 
-  const handlePropsChange = useCallback(
-    (values: Record<string, unknown>) => {
+  // Refs keep the debounced callback stable while reading current values
+  const selectedEffectRef = useRef(selectedEffect);
+  selectedEffectRef.current = selectedEffect;
+  const selectedDriversRef = useRef(selectedDrivers);
+  selectedDriversRef.current = selectedDrivers;
+
+  // Debounce store writes so rapid keystrokes batch
+  const handlePropsChange = useMemo(
+    () => debounce((values: Record<string, unknown>) => {
       const newPropsJson = JSON.stringify(values, null, 2);
-      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers);
-    },
-    [selectedEffect, selectedDrivers, setTestEffectsState],
+      setTestEffectsState(
+        selectedEffectRef.current,
+        newPropsJson,
+        selectedDriversRef.current,
+      );
+    }, 150),
+    [setTestEffectsState],
   );
+
+  useEffect(() => () => {
+    handlePropsChange.cancel();
+  }, [handlePropsChange]);
 
   const handleDriverToggle = (driverId: string) => {
     const newSelected = new Set(selectedDrivers);
@@ -211,9 +227,16 @@ export default function TestEffectsPage() {
     if (selectedDrivers.size === 0) {
       return;
     }
+
+    // Flush debounced form changes so store is current
+    handlePropsChange.flush();
+
     void (async () => {
       try {
-        const props = JSON.parse(propsJson) as Record<string, unknown>;
+        // Read from store after flush (reactive state may lag this render cycle)
+        const storeProps =
+          useUiStore.getState().testEffectsPropsMap[selectedEffect] ?? propsJson;
+        const props = JSON.parse(storeProps) as Record<string, unknown>;
         // Strip internal markers before sending to driver
         const cleanProps = { ...props };
         delete cleanProps.__gifPath;
@@ -240,6 +263,8 @@ export default function TestEffectsPage() {
     if (!isEffectName(selectedEffect)) {
       return;
     }
+
+    handlePropsChange.flush();
 
     void (async () => {
       try {
