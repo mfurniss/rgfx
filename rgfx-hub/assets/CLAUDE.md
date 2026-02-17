@@ -51,7 +51,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 - `utils/` - Shared utility modules (index.js barrel, math.js, async.js, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
-- `games/` - Game-specific transformer modules (defender.js, galaga.js, outrun.js, pacman.js, shangon.js, sharrier.js, smb.js, etc.)
+- `games/` - Game-specific transformer modules (defender.js, galaga.js, outrun.js, pacman.js, shangon.js, smb.js, etc.)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting

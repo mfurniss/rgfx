@@ -64,5 +64,5 @@ flowchart TB
 ## Get Started
 
 - **[Getting Started](getting-started/requirements.md)** — everything you need to go from zero to LEDs reacting to gameplay
-- **[Example Games](games.md)** — browse included game scripts or learn how to add your favorite game
+- **[Example Games](example-games.md)** — browse included game scripts or learn how to add your favorite game
 - **[FX Playground](hub-app/fx-playground.md)** — experiment with effects interactively, no game required

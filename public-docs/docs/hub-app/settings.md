@@ -2,6 +2,8 @@
 
 Configure the Hub's directories, appearance, and effect behavior.
 
+![Settings](../assets/images/rgfx-hub-settings-1.png)
+
 ## Appearance
 
 Choose your preferred theme mode:
@@ -38,6 +40,8 @@ Range: 0.1 to 1.0 (default: 0.6)
 ## Backup
 
 Creates a zip archive of your entire RGFX configuration directory — interceptors, transformers, LED hardware definitions, driver configs, and logs. Click **Create Backup** to save the archive.
+
+![Settings — Backup and Logs](../assets/images/rgfx-hub-settings-2.png)
 
 ## Logs
 

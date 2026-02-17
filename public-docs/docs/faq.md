@@ -31,7 +31,7 @@ MAME has a built-in Lua engine that lets plugins read game memory, hook into eve
 
 ## How do I add support for a new game?
 
-Any game that runs in MAME can work with RGFX. The [Writing Interceptors](interceptors/writing-interceptors.md) guide walks you through the process — from finding memory addresses with MAME's debugger to emitting your first event. The [existing game scripts](games.md) are good examples to study.
+Any game that runs in MAME can work with RGFX. The [Writing Interceptors](interceptors/writing-interceptors.md) guide walks you through the process — from finding memory addresses with MAME's debugger to emitting your first event. The [existing game scripts](example-games.md) are good examples to study.
 
 ## Can I customize the effects for a game?
 

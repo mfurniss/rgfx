@@ -49,7 +49,7 @@ Use neutral voice for most content and first person "I" for personal opinions or
 ```
 docs/
 ├── index.md                    # Landing page with hero video
-├── games.md                    # Example games & community scripts
+├── example-games.md            # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 4-page onboarding flow
 ├── hub-app/                    # Hub application reference (10 pages)
