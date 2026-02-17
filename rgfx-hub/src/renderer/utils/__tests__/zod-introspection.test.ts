@@ -96,6 +96,29 @@ describe('zod-introspection', () => {
         expect(fieldMap.get('powerSpread')?.type).toBe('number');
       });
 
+      it('should extract min/max constraints for number fields', () => {
+        const fields = extractFieldMetadata(
+          effectPropsSchemas.explode,
+          effectFieldTypes.explode,
+        );
+        const fieldMap = new Map(fields.map((f) => [f.name, f]));
+
+        expect(fieldMap.get('power')?.constraints).toEqual(
+          expect.objectContaining({ min: 1, max: 1000 }),
+        );
+        expect(fieldMap.get('friction')?.constraints).toEqual(
+          expect.objectContaining({ min: 0, max: 50 }),
+        );
+        expect(fieldMap.get('particleCount')?.constraints).toEqual(
+          expect.objectContaining({ min: 1, max: 500 }),
+        );
+        expect(fieldMap.get('particleSize')?.constraints).toEqual(
+          expect.objectContaining({ min: 1, max: 16 }),
+        );
+        expect(fieldMap.get('hueSpread')?.constraints).toEqual(
+          expect.objectContaining({ min: 0, max: 359 }),
+        );
+      });
     });
 
     describe('background schema', () => {
@@ -317,6 +340,63 @@ describe('zod-introspection', () => {
       expect(fieldNames).not.toContain('nonExistent');
       // Should still override existing field
       expect(fields.find((f) => f.name === 'name')?.type).toBe('hidden');
+    });
+  });
+
+  describe('number constraint extraction', () => {
+    it('should extract min/max from a standalone number schema', () => {
+      const schema = z.object({
+        value: z.number().min(5).max(100).optional().default(50),
+      });
+      const fields = extractFieldMetadata(schema);
+      const field = fields.find((f) => f.name === 'value');
+
+      expect(field?.type).toBe('number');
+      expect(field?.constraints?.min).toBe(5);
+      expect(field?.constraints?.max).toBe(100);
+    });
+
+    it('should extract min-only constraint', () => {
+      const schema = z.object({
+        value: z.number().min(0).optional().default(10),
+      });
+      const fields = extractFieldMetadata(schema);
+      const field = fields.find((f) => f.name === 'value');
+
+      expect(field?.constraints?.min).toBe(0);
+      expect(field?.constraints?.max).toBeUndefined();
+    });
+
+    it('should extract max-only constraint', () => {
+      const schema = z.object({
+        value: z.number().max(1000).optional().default(500),
+      });
+      const fields = extractFieldMetadata(schema);
+      const field = fields.find((f) => f.name === 'value');
+
+      expect(field?.constraints?.min).toBeUndefined();
+      expect(field?.constraints?.max).toBe(1000);
+    });
+
+    it('should return undefined constraints for unconstrained number', () => {
+      const schema = z.object({
+        value: z.number().optional().default(0),
+      });
+      const fields = extractFieldMetadata(schema);
+      const field = fields.find((f) => f.name === 'value');
+
+      expect(field?.constraints).toBeUndefined();
+    });
+
+    it('should handle negative constraint values', () => {
+      const schema = z.object({
+        value: z.number().min(-500).max(500).optional().default(0),
+      });
+      const fields = extractFieldMetadata(schema);
+      const field = fields.find((f) => f.name === 'value');
+
+      expect(field?.constraints?.min).toBe(-500);
+      expect(field?.constraints?.max).toBe(500);
     });
   });
 

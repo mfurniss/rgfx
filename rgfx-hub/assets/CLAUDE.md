@@ -45,9 +45,9 @@ MAME event handling utilities:
 - `docs/` - Documentation for MAME integration
 
 ### transformers/
-JavaScript modules that transform game events into LED effects:
+JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, utils/, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
 - `default.js` - Default transformer for unmapped events
-- `global.js` - Cross-game global effects
+- `global.js` - Cross-game shared constants (driver IDs, named drivers, ambilight config)
 - `utils/` - Shared utility modules (index.js barrel, math.js, async.js, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)

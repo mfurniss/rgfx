@@ -85,6 +85,22 @@ export interface FieldMetadata {
 
 type ZodShape = Record<string, z.ZodType>;
 
+/** Zod v4 check stored in _zod.def of each check object */
+interface ZodV4CheckDef {
+  check: string;
+  value: number;
+  inclusive?: boolean;
+}
+
+/** Individual check item — Zod v3 uses plain objects, Zod v4 uses schema-like wrappers */
+interface ZodCheck {
+  // Zod v3 format
+  kind?: string;
+  value?: number;
+  // Zod v4 format: check is a schema-like object with _zod.def
+  _zod?: { def: ZodV4CheckDef };
+}
+
 interface ZodDef {
   type?: string;
   defaultValue?: unknown;
@@ -93,7 +109,7 @@ interface ZodDef {
   entries?: Record<string, string>;
   value?: unknown;
   values?: unknown[];
-  checks?: { kind: string; value: number }[];
+  checks?: ZodCheck[];
   description?: string;
 }
 
@@ -265,7 +281,8 @@ function extractColorNames(schema: z.ZodType): readonly string[] | undefined {
 }
 
 /**
- * Extract min/max/integer constraints from a ZodNumber schema
+ * Extract min/max/integer constraints from a ZodNumber schema.
+ * Supports both Zod v3 (plain check objects) and Zod v4 (schema-like check wrappers).
  */
 function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefined {
   if (!hasZodDef(schema)) {
@@ -281,6 +298,22 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
   const constraints: FieldConstraints = {};
 
   for (const check of def.checks) {
+    // Zod v4: checks are schema-like objects with _zod.def
+    if (check._zod?.def) {
+      const { check: checkType, value } = check._zod.def;
+
+      if (checkType === 'greater_than') {
+        constraints.min = value;
+      }
+
+      if (checkType === 'less_than') {
+        constraints.max = value;
+      }
+
+      continue;
+    }
+
+    // Zod v3 fallback: checks are plain objects with kind/value
     if (check.kind === 'min') {
       constraints.min = check.value;
     }
@@ -289,9 +322,7 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
       constraints.max = check.value;
     }
 
-    // Zod 3: check.kind === 'int'
-    // Zod 4: check.isInt === true
-    if (check.kind === 'int' || ('isInt' in check && check.isInt === true)) {
+    if (check.kind === 'int') {
       constraints.isInteger = true;
     }
   }

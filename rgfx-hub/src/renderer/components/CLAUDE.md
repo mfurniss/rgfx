@@ -556,11 +556,15 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `schema: z.ZodObject` - Zod schema defining form fields
 - `defaultValues: Record<string, unknown>` - Initial form values
 - `onChange: (values) => void` - Callback when form values change
+- `onValidityChange?: (isValid: boolean) => void` - Callback when form validity changes (gated on `isDirty` to avoid false positives before async validation resolves)
+- `fieldTypes?: FieldTypeMap` - Optional field type overrides
+- `layoutConfig?: LayoutConfig` - Optional layout configuration
 
 **Features:**
 - Introspects Zod schema to generate form fields automatically
 - Uses react-hook-form with Zod resolver for validation
 - Resets form when schema changes
+- Reports form validity to parent via `onValidityChange` (only after user edits)
 - Grid layout with responsive columns
 
 ### FieldRenderer
