@@ -131,7 +131,8 @@ void TextEffect::render() {
 				if (inst.hasGradient) {
 					float charOffset = i * inst.gradientScale;
 					float position = inst.gradientTime + charOffset;
-					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					int raw = static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE;
+					uint8_t lutIndex = static_cast<uint8_t>(raw < 0 ? raw + GRADIENT_LUT_SIZE : raw);
 					CRGB color = inst.gradientLut[lutIndex];
 					r = color.r;
 					g = color.g;
@@ -155,7 +156,8 @@ void TextEffect::render() {
 				if (inst.hasGradient) {
 					float charOffset = i * inst.gradientScale;
 					float position = inst.gradientTime + charOffset;
-					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					int raw = static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE;
+					uint8_t lutIndex = static_cast<uint8_t>(raw < 0 ? raw + GRADIENT_LUT_SIZE : raw);
 					CRGB color = inst.gradientLut[lutIndex];
 					r = color.r;
 					g = color.g;
