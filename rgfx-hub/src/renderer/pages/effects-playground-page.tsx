@@ -51,6 +51,7 @@ export default function TestEffectsPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(true);
 
   const drivers = useDriverStore((state) => state.drivers);
   const connectedDrivers = useMemo(
@@ -346,7 +347,7 @@ export default function TestEffectsPage() {
               color="primary"
               onClick={handleTriggerEffect}
               icon={<ScienceIcon />}
-              disabled={selectedDrivers.size === 0}
+              disabled={selectedDrivers.size === 0 || !isFormValid}
               data-testid="trigger-effect-btn"
             >
               Trigger Effect
@@ -356,7 +357,7 @@ export default function TestEffectsPage() {
               color="primary"
               onClick={handleRandomTrigger}
               icon={<ShuffleIcon />}
-              disabled={selectedDrivers.size === 0}
+              disabled={selectedDrivers.size === 0 || !isFormValid}
             >
               Random Trigger
             </SuperButton>
@@ -419,6 +420,7 @@ export default function TestEffectsPage() {
                   schema={currentSchema}
                   defaultValues={currentProps}
                   onChange={handlePropsChange}
+                  onValidityChange={setIsFormValid}
                   fieldTypes={currentFieldTypes}
                   layoutConfig={currentLayoutConfig}
                 />

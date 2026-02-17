@@ -108,6 +108,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 - Preset selection modal for gradient and plasma effects
 - State persisted in `UiStore` across navigation
 - Code generation tab showing JavaScript code for transformers
+- **Form validation gate:** Trigger and Random Trigger buttons are disabled when the form has validation errors (`isFormValid` state, fed by `EffectForm.onValidityChange`)
 - **Debounced store writes:** `handlePropsChange` uses lodash `debounce` (150ms) with `useRef` for stable callback identity, preventing rapid keystrokes from thrashing the store. Debounce is flushed before triggering effects or randomizing to ensure store is current
 - **Single driver store subscription:** uses one `drivers` subscription with `useMemo` to derive `connectedDrivers` and `connectedDriverIds`, avoiding redundant store subscriptions
 - **Narrow useEffect deps for driver pruning:** the effect that removes disconnected drivers from selection reads current values from refs so it only fires when `connectedDriverIds` changes, not on every form keystroke

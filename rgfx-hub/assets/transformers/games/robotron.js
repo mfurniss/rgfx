@@ -1,9 +1,13 @@
-// Robotron: 2084 game-specific mapper
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
+ */
 
 import { randomInt, sleep, formatNumber } from '../utils/index.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
-let scoreHue = 0;
 let livesRemaining;
 
 export async function transform(
@@ -433,19 +437,26 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score') {
-    console.log('SCORE HANDLER REACHED:', { subject, property, payload });
-    const color = hslToHex(scoreHue, 100, 50);
-    scoreHue = (scoreHue + 30) % 360;
     broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         align: 'center',
         text: formatNumber(payload),
-        gradient: [color],
         accentColor: '#000000',
-        duration: 800,
+        duration: 4000,
         reset: true,
+        gradient: [
+          '#FF0000',
+          '#FFFF00',
+          '#00FF00',
+          '#00FFFF',
+          '#0000FF',
+          '#FF00FF',
+          '#FF0000',
+        ],
+        gradientSpeed: 2,
+        gradientScale: 0,
       },
     });
     return true;

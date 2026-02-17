@@ -8,7 +8,7 @@
  */
 
 import { promises as fs, watch } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join, basename, dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
@@ -46,16 +46,68 @@ export class TransformerEngine {
     if (options?.importModule) {
       this.importModule = options.importModule;
     } else {
-      // Content-hash URL prevents V8 module cache leak (same content = same
-      // URL = reused cache entry) while supporting hot reload (changed content
-      // = new hash = new URL = fresh import from disk).
+      // Content-hash URL prevents V8 module cache leak. Relative imports
+      // are rewritten with dependency content hashes so shared modules
+      // (global.js, utils/) are always loaded fresh after changes.
       this.importModule = async (filePath: string) => {
         const content = await fs.readFile(filePath, 'utf-8');
-        const hash = createHash('sha1').update(content).digest('hex').slice(0, 12);
-        const url = pathToFileURL(filePath).href;
-        return (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
+        const rewritten = await this.rewriteRelativeImports(filePath, content);
+        const hash = createHash('sha1').update(rewritten).digest('hex').slice(0, 12);
+
+        if (rewritten === content) {
+          // No relative imports — use direct URL with cache-bust
+          const url = pathToFileURL(filePath).href;
+          return (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
+        }
+
+        // Temp file in same directory preserves relative path resolution.
+        // The .mjs extension is ignored by the file watcher (.js filter).
+        const tempPath = join(dirname(filePath), `.rgfx-${hash}.mjs`);
+        await fs.writeFile(tempPath, rewritten);
+
+        try {
+          const url = pathToFileURL(tempPath).href;
+
+          return (await import(url)) as Record<string, unknown>;
+        } finally {
+          await fs.unlink(tempPath).catch(() => undefined);
+        }
       };
     }
+  }
+
+  /**
+   * Rewrite relative import specifiers with content-hash cache-busting.
+   * Ensures dependencies are always loaded fresh from disk on hot reload.
+   */
+  private async rewriteRelativeImports(filePath: string, content: string): Promise<string> {
+    const dir = dirname(filePath);
+    const importRegex = /from\s+['"](\.[^'"]+)['"]/g;
+    let result = content;
+    const seen = new Set<string>();
+
+    for (const match of content.matchAll(importRegex)) {
+      const specifier = match[1];
+
+      if (seen.has(specifier)) {
+        continue;
+      }
+
+      seen.add(specifier);
+
+      const depPath = resolve(dir, specifier);
+
+      try {
+        const depContent = await fs.readFile(depPath, 'utf-8');
+        const depHash = createHash('sha1').update(depContent).digest('hex').slice(0, 12);
+        result = result.replaceAll(`'${specifier}'`, `'${specifier}?v=${depHash}'`);
+        result = result.replaceAll(`"${specifier}"`, `"${specifier}?v=${depHash}"`);
+      } catch {
+        // Dependency doesn't exist — skip rewriting
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -144,10 +196,35 @@ export class TransformerEngine {
         this.defaultHandler = undefined;
         await this.loadDefaultTransformer(filePath);
         this.context.log.info('Reloaded default transformer');
+      } else {
+        // Shared dependency changed (global.js, utils/*.js, palettes.js, etc.)
+        await this.reloadAllTransformers(transformersDir);
+        this.context.log.info(`Shared dependency changed: ${filename} — reloaded all transformers`);
       }
     } catch (error) {
       this.context.log.error(`Failed to reload transformer ${filename}:`, error);
     }
+  }
+
+  /**
+   * Reload all loaded transformers (used when a shared dependency changes)
+   */
+  private async reloadAllTransformers(transformersDir: string): Promise<void> {
+    const gameNames = [...this.gameHandlers.keys()];
+
+    for (const gameName of gameNames) {
+      this.gameHandlers.delete(gameName);
+      await this.loadGameTransformer(gameName);
+    }
+
+    this.subjectHandlers.clear();
+    await this.loadSubjectTransformers(join(transformersDir, 'subjects'));
+
+    this.propertyHandlers = [];
+    await this.loadPropertyTransformers(join(transformersDir, 'properties'));
+
+    this.defaultHandler = undefined;
+    await this.loadDefaultTransformer(join(transformersDir, 'default.js'));
   }
 
   /**
