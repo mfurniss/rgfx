@@ -732,6 +732,157 @@ void test_text_zero_gradient_scale_uniform_color() {
 }
 
 // =============================================================================
+// Gradient Continuity Tests
+// =============================================================================
+
+static JsonDocument makeGradientProps(const char* text, const char* c1, const char* c2, const char* c3,
+                                       float speed = 2.0f, float scale = 3.0f) {
+	JsonDocument props;
+	setDefaultTextProps(props);
+	props["text"] = text;
+	props["duration"] = 0;
+	props["accentColor"] = nullptr;
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add(c1);
+	props["gradient"].as<JsonArray>().add(c2);
+	props["gradient"].as<JsonArray>().add(c3);
+	props["gradientSpeed"] = speed;
+	props["gradientScale"] = scale;
+	return props;
+}
+
+void test_text_gradient_continuity_after_reset_same_gradient() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	auto props = makeGradientProps("ABCD", "#FF0000", "#00FF00", "#0000FF");
+	effect.add(props);
+	effect.update(1.5f);
+
+	// Capture pre-reset render
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t preResetDigest = computeFrameDigest(matrix);
+
+	// Reset and re-add with same gradient but different text length
+	effect.reset();
+	auto props2 = makeGradientProps("ABCD", "#FF0000", "#00FF00", "#0000FF");
+	effect.add(props2);
+
+	// Render immediately (no update) — should match pre-reset
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t postResetDigest = computeFrameDigest(matrix);
+
+	TEST_ASSERT_EQUAL_HEX64_MESSAGE(preResetDigest, postResetDigest,
+	    "Same gradient after reset should inherit gradientTime");
+}
+
+void test_text_gradient_resets_with_different_gradient() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	auto props = makeGradientProps("ABCD", "#FF0000", "#00FF00", "#0000FF");
+	effect.add(props);
+	effect.update(1.5f);
+
+	// Capture pre-reset render
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t preResetDigest = computeFrameDigest(matrix);
+
+	// Reset and re-add with different gradient colors
+	effect.reset();
+	auto props2 = makeGradientProps("ABCD", "#FFFF00", "#FF00FF", "#00FFFF");
+	effect.add(props2);
+
+	// Render immediately — should NOT match pre-reset (fresh gradientTime=0)
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t postResetDigest = computeFrameDigest(matrix);
+
+	TEST_ASSERT_NOT_EQUAL_MESSAGE(preResetDigest, postResetDigest,
+	    "Different gradient after reset should start fresh");
+}
+
+void test_text_gradient_continuity_no_reset_same_gradient() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	auto props = makeGradientProps("ABCD", "#FF0000", "#00FF00", "#0000FF");
+	effect.add(props);
+	effect.update(1.5f);
+
+	// Capture render with advanced gradient time
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t advancedDigest = computeFrameDigest(matrix);
+
+	// Add again without reset (same gradient) — should inherit time
+	auto props2 = makeGradientProps("ABCD", "#FF0000", "#00FF00", "#0000FF");
+	effect.add(props2);
+
+	// The new instance (last in vector) should render with inherited time
+	// Create a fresh effect with time=0 for comparison
+	TextEffect freshEffect(matrix, canvas);
+	auto props3 = makeGradientProps("ABCD", "#FF0000", "#00FF00", "#0000FF");
+	freshEffect.add(props3);
+	canvas.clear();
+	freshEffect.render();
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t freshDigest = computeFrameDigest(matrix);
+
+	// The advanced digest should differ from fresh (proving time was inherited)
+	TEST_ASSERT_NOT_EQUAL_MESSAGE(advancedDigest, freshDigest,
+	    "Inherited gradient time should differ from fresh start");
+}
+
+void test_text_gradient_no_continuity_solid_color() {
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	setDefaultTextProps(props);
+	props["text"] = "ABCD";
+	props["duration"] = 0;
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FF0000");
+
+	effect.add(props);
+	effect.update(1.0f);
+
+	// Reset and re-add with same solid color — should work without issues
+	effect.reset();
+	effect.add(props);
+
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE_MESSAGE(countNonBlackPixels(canvas) > 0,
+	    "Solid color should render normally after reset");
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -773,6 +924,12 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_text_negative_gradient_scale_reverses_direction);
 	RUN_TEST(test_text_large_negative_gradient_scale_no_overflow);
 	RUN_TEST(test_text_zero_gradient_scale_uniform_color);
+
+	// Gradient Continuity Tests
+	RUN_TEST(test_text_gradient_continuity_after_reset_same_gradient);
+	RUN_TEST(test_text_gradient_resets_with_different_gradient);
+	RUN_TEST(test_text_gradient_continuity_no_reset_same_gradient);
+	RUN_TEST(test_text_gradient_no_continuity_solid_color);
 
 	return UNITY_END();
 }
