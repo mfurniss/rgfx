@@ -1,5 +1,6 @@
 #include "bitmap.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include "graphics/canvas.h"
 #include "network/mqtt.h"
@@ -134,7 +135,7 @@ void BitmapEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	uint32_t duration = props["duration"];
+	uint32_t duration = props["duration"] | effect_defaults::bitmap::duration;
 
 	// Parse palette array - hub always provides this with PICO-8 defaults
 	uint32_t palette[16] = {0};
@@ -193,15 +194,14 @@ void BitmapEffect::add(JsonDocument& props) {
 	}
 
 	// Parse easing function
-	const char* easingName = props["easing"] | "linear";
+	const char* easingName = props["easing"] | effect_defaults::bitmap::easing;
 	newBitmap.easing = getEasingFunction(easingName);
 
 	// Parse fade configuration
-	newBitmap.fadeInMs = props["fadeIn"] | 0;
-	newBitmap.fadeOutMs = props["fadeOut"] | 0;
+	newBitmap.fadeInMs = props["fadeIn"] | effect_defaults::bitmap::fadeIn;
+	newBitmap.fadeOutMs = props["fadeOut"] | effect_defaults::bitmap::fadeOut;
 
-	// Parse frame rate (default 2 FPS)
-	newBitmap.frameRate = props["frameRate"] | 2;
+	newBitmap.frameRate = props["frameRate"] | static_cast<int>(effect_defaults::bitmap::frameRate);
 
 	// Parse images array (array of frames, each frame is array of row strings)
 	if (props["images"].is<JsonArray>()) {

@@ -412,6 +412,10 @@ inline void setDefaultScrollTextProps(JsonDocument& props) {
  * Add PICO-8 palette to props (for bitmap effect tests)
  */
 inline void addPico8Palette(JsonDocument& props) {
+	// Disable fading by default so tests render at full opacity at t=0.
+	// Tests that specifically verify fade behavior override these values.
+	props["fadeIn"] = 0;
+	props["fadeOut"] = 0;
 	JsonArray palette = props["palette"].to<JsonArray>();
 	palette.add("#000000");  // 0: Black
 	palette.add("#1D2B53");  // 1: Dark Blue

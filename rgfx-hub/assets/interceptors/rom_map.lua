@@ -76,9 +76,6 @@ return {
 	-- Super Mario Bros (World edition) - shares interceptor with smb
 	smw = "nes_smb_rgfx",
 
-	-- Castlevania III: Dracula's Curse
-	castlevania_3 = "nes_castlevania3_rgfx",
-
 	-- ============================================================================
 	-- SNES Games (cartridge filename → interceptor)
 	-- ============================================================================

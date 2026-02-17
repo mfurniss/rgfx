@@ -11,6 +11,9 @@ import { colorStringSchema } from './properties/color';
 import { randomInt, randomGradient } from '@/utils/random';
 import type { PresetConfig } from './index';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import defaults from './defaults.json';
+
+const d = defaults.warp;
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',
@@ -42,32 +45,32 @@ export default z
     enabled: z
       .enum(['off', 'on', 'fadeIn', 'fadeOut'])
       .optional()
-      .default('fadeIn')
+      .default(d.enabled as 'fadeIn')
       .describe('off: instant off, on: instant on, fadeIn: fade in over 1s, fadeOut: fade out over 1s'),
     speed: z
       .number()
       .min(-50)
       .max(50)
       .optional()
-      .default(2.5)
+      .default(d.speed)
       .describe('Animation speed (positive=expand, negative=collapse)'),
     scale: z
       .number()
       .min(-10)
       .max(10)
       .optional()
-      .default(3)
+      .default(d.scale)
       .describe('Perspective (0=linear, >0=3D tunnel, <0=inverted)'),
     orientation: z
       .enum(['horizontal', 'vertical'])
       .optional()
-      .default('horizontal')
+      .default(d.orientation as 'horizontal')
       .describe('Radiation direction (horizontal=left/right from center, vertical=up/down)'),
     gradient: z
       .array(colorStringSchema)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .default(['#FFFF00', '#00FFFF', '#0000FF', '#FFFF00'])
+      .default(d.gradient)
       .describe(`Gradient colors (up to ${MAX_GRADIENT_COLORS} hex colors)`),
   })
   .strict();

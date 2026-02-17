@@ -1,4 +1,5 @@
 #include "particle_field.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include "network/mqtt.h"
 #include <cstring>
@@ -131,20 +132,17 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse direction - default to DOWN if not specified
+	// Parse direction
+	const char* dirStr = props["direction"] | effect_defaults::particle_field::direction;
 	Direction direction = Direction::DOWN;
-	if (props["direction"].is<const char*>()) {
-		const char* dirStr = props["direction"].as<const char*>();
-		// Use shared parseDirection but handle default case
-		if (strcmp(dirStr, "up") == 0) {
-			direction = Direction::UP;
-		} else if (strcmp(dirStr, "down") == 0) {
-			direction = Direction::DOWN;
-		} else if (strcmp(dirStr, "left") == 0) {
-			direction = Direction::LEFT;
-		} else if (strcmp(dirStr, "right") == 0) {
-			direction = Direction::RIGHT;
-		}
+	if (strcmp(dirStr, "up") == 0) {
+		direction = Direction::UP;
+	} else if (strcmp(dirStr, "down") == 0) {
+		direction = Direction::DOWN;
+	} else if (strcmp(dirStr, "left") == 0) {
+		direction = Direction::LEFT;
+	} else if (strcmp(dirStr, "right") == 0) {
+		direction = Direction::RIGHT;
 	}
 
 	// Parse density (1-100)

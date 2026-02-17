@@ -4,7 +4,7 @@ Everything is connected — time to see RGFX in action.
 
 ## Pick a Game
 
-Check the [Example Games](../games.md) page for the full list of included games. For your first run, **Pac-Man** (`pacman`) is a great choice — its example interceptor and transformer cover events like scoring, ghost eating, power pellets, and level completion.
+Check the [Example Games](../example-games.md) page for the full list of included games. For your first run, **Pac-Man** (`pacman`) is a great choice — its example interceptor and transformer cover events like scoring, ghost eating, power pellets, and level completion.
 
 ## Launch MAME
 
@@ -26,7 +26,7 @@ Open the Hub's [Event Monitor](../hub-app/event-monitor.md) to see events stream
 
 Now that you're up and running, here's where to go from here:
 
-- **Try more games** — load up Galaga, Star Wars, Robotron, or any of the other [example games](../games.md)
+- **Try more games** — load up Galaga, Star Wars, Robotron, or any of the other [example games](../example-games.md)
 - **Experiment with effects** — use the [FX Playground](../hub-app/fx-playground.md) to explore the visual effects and find your favorites
 - **Add more drivers** — connect additional ESP32 boards with LED strips or matrices for a bigger setup
 - **Add your favorite game** — the [Writing Interceptors](../interceptors/writing-interceptors.md) guide walks you through adding RGFX support for any game in MAME

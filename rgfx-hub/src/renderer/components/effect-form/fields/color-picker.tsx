@@ -5,7 +5,7 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, TextField } from '@mui/material';
 import { isValidColor, valueToHex } from '@/renderer/utils/color';
 
@@ -26,14 +26,36 @@ export function ColorPicker({
   fullWidth = true,
   label,
 }: ColorPickerProps) {
-  const hexValue = valueToHex(value);
-  const isInvalid = value !== '' && !isValidColor(value);
+  // Local state avoids propagating every keystroke up the form tree.
+  // Only valid colors or blur events trigger onChange.
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const hexValue = valueToHex(localValue);
+  const isInvalid = localValue !== '' && !isValidColor(localValue);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+
+    if (isValidColor(newValue)) {
+      onChange(newValue);
+    }
+  };
+
+  const handleBlur = () => {
+    if (isValidColor(localValue)) {
+      onChange(localValue);
+    } else {
+      setLocalValue(value);
+    }
   };
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
     onChange(e.target.value);
   };
 
@@ -65,8 +87,9 @@ export function ColorPicker({
       />
       <TextField
         label={label}
-        value={value}
+        value={localValue}
         onChange={handleTextChange}
+        onBlur={handleBlur}
         error={isInvalid}
         helperText={isInvalid ? 'Invalid color' : helperText}
         fullWidth={fullWidth}

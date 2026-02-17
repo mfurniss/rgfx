@@ -217,7 +217,6 @@ describe('FirmwarePage', () => {
     });
 
     it('hides error alert when flashing is in progress', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(useUiStore).mockImplementation(((selector: any) => {
         const state = {
           firmwareFlashMethod: 'ota',

@@ -556,11 +556,15 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - `schema: z.ZodObject` - Zod schema defining form fields
 - `defaultValues: Record<string, unknown>` - Initial form values
 - `onChange: (values) => void` - Callback when form values change
+- `onValidityChange?: (isValid: boolean) => void` - Callback when form validity changes (gated on `isDirty` to avoid false positives before async validation resolves)
+- `fieldTypes?: FieldTypeMap` - Optional field type overrides
+- `layoutConfig?: LayoutConfig` - Optional layout configuration
 
 **Features:**
 - Introspects Zod schema to generate form fields automatically
 - Uses react-hook-form with Zod resolver for validation
 - Resets form when schema changes
+- Reports form validity to parent via `onValidityChange` (only after user edits)
 - Grid layout with responsive columns
 
 ### FieldRenderer
@@ -574,6 +578,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Integrates with react-hook-form Controller
 - Shows validation errors from form state
 - Uses `field-utils.ts` for label formatting and tooltips
+
+### ColorPicker
+
+**File:** [effect-form/fields/color-picker.tsx](effect-form/fields/color-picker.tsx)
+
+**Purpose:** Inline color picker with text input and native color swatch.
+
+**Features:**
+- Native `<input type="color">` swatch for visual picking
+- Text input for typing hex or named colors
+- Validates color values (hex, CSS named colors, "random")
+- Shows "Invalid color" error for unrecognized values
+- **Local state optimization:** uses `useState` to avoid propagating every keystroke up the form tree. Only valid colors trigger `onChange` immediately; invalid partial input is held locally and either committed on blur (if valid) or reverted to the last valid value
 
 ---
 
@@ -667,6 +684,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 ---
 
 ## Settings Components
+
+### ClearAllEffectsButton
+
+**File:** [common/clear-all-effects-button.tsx](common/clear-all-effects-button.tsx)
+
+**Purpose:** Button to clear all active effects on connected drivers.
+
+**Features:**
+- Calls `clearTransformerState` then sends `clear-effects` command to each connected driver
+- Disabled when no drivers are connected
+- Uses `useShallow` with string ID array selector to avoid re-renders on unrelated driver changes (e.g., telemetry updates)
+
+---
 
 ### BackupSection
 

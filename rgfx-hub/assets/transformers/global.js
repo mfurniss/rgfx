@@ -21,6 +21,11 @@ export const NAMED_DRIVERS = {
   rightMatrix: 'rgfx-driver-0002',
 };
 
+export const SECONDARY_MATRIX_DRIVERS = [
+  NAMED_DRIVERS.leftMatrix,
+  NAMED_DRIVERS.rightMatrix,
+];
+
 export const AMBILIGHT_CONFIG = {
   mode: 'multi', // 'multi' or 'single'
 

@@ -1,6 +1,7 @@
 #include "text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "gradient_utils.h"
 #include "hal/platform.h"
 #include "network/mqtt.h"
@@ -30,7 +31,7 @@ void TextEffect::add(JsonDocument& props) {
 		publishError("text", "missing or invalid 'gradient' prop", props);
 		return;
 	}
-	uint32_t durationMs = props["duration"];
+	uint32_t durationMs = props["duration"] | effect_defaults::text::duration;
 
 	TextInstance instance;
 	instance.textLen = static_cast<uint8_t>(strlen(text));
@@ -66,7 +67,26 @@ void TextEffect::add(JsonDocument& props) {
 		instance.gradientSpeed = props["gradientSpeed"] | 3.0f;
 		instance.gradientScale = props["gradientScale"] | 4.0f;
 		instance.gradientTime = 0.0f;
+
+		// Gradient continuity: inherit phase from matching gradient
+		if (!instances.empty()) {
+			// No-reset path: check existing instances
+			auto& last = instances.back();
+			if (last.hasGradient &&
+			    memcmp(instance.gradientLut, last.gradientLut, sizeof(instance.gradientLut)) == 0 &&
+			    instance.gradientSpeed == last.gradientSpeed &&
+			    instance.gradientScale == last.gradientScale) {
+				instance.gradientTime = last.gradientTime;
+			}
+		} else if (cachedGradient.valid &&
+		           memcmp(instance.gradientLut, cachedGradient.lut, sizeof(instance.gradientLut)) == 0 &&
+		           instance.gradientSpeed == cachedGradient.speed &&
+		           instance.gradientScale == cachedGradient.scale) {
+			// Post-reset path: check cached state
+			instance.gradientTime = cachedGradient.time;
+		}
 	}
+	cachedGradient.valid = false;
 
 	// Cap vector size to prevent unbounded growth under high load
 	static constexpr size_t MAX_TEXT_INSTANCES = 64;
@@ -130,7 +150,8 @@ void TextEffect::render() {
 				if (inst.hasGradient) {
 					float charOffset = i * inst.gradientScale;
 					float position = inst.gradientTime + charOffset;
-					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					int raw = static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE;
+					uint8_t lutIndex = static_cast<uint8_t>(raw < 0 ? raw + GRADIENT_LUT_SIZE : raw);
 					CRGB color = inst.gradientLut[lutIndex];
 					r = color.r;
 					g = color.g;
@@ -154,7 +175,8 @@ void TextEffect::render() {
 				if (inst.hasGradient) {
 					float charOffset = i * inst.gradientScale;
 					float position = inst.gradientTime + charOffset;
-					uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+					int raw = static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE;
+					uint8_t lutIndex = static_cast<uint8_t>(raw < 0 ? raw + GRADIENT_LUT_SIZE : raw);
 					CRGB color = inst.gradientLut[lutIndex];
 					r = color.r;
 					g = color.g;
@@ -172,5 +194,16 @@ void TextEffect::render() {
 }
 
 void TextEffect::reset() {
+	cachedGradient.valid = false;
+	if (!instances.empty()) {
+		auto& last = instances.back();
+		if (last.hasGradient) {
+			cachedGradient.valid = true;
+			memcpy(cachedGradient.lut, last.gradientLut, sizeof(cachedGradient.lut));
+			cachedGradient.speed = last.gradientSpeed;
+			cachedGradient.scale = last.gradientScale;
+			cachedGradient.time = last.gradientTime;
+		}
+	}
 	instances.clear();
 }

@@ -28,7 +28,7 @@ You can change this location in [Settings](../hub-app/settings.md), but the defa
 
 ## First Launch
 
-On first launch, the Hub copies default interceptor and transformer scripts to the config directory. This gives you a working set of [example game scripts](../games.md).
+On first launch, the Hub copies default interceptor and transformer scripts to the config directory. This gives you a working set of [example game scripts](../example-games.md).
 
 The Hub also starts an embedded MQTT message broker automatically — this is how your ESP32 drivers communicate with the Hub. You don't need to install or configure a separate broker.
 
@@ -36,7 +36,7 @@ The Hub also starts an embedded MQTT message broker automatically — this is ho
 
 Go to **[Settings](../hub-app/settings.md)** in the sidebar and configure:
 
-<!-- TODO: Screenshot of Settings page -->
+![Settings](../assets/images/rgfx-hub-settings-1.png)
 
 ### MAME ROMs Directory
 

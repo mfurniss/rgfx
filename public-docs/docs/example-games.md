@@ -18,6 +18,9 @@ These games have both an interceptor (detects game events) and a transformer (ma
 | Star Wars | `starwars` | Score, shields, wave complete, enemy destroyed |
 | Robotron: 2084 | `robotron` | Score, lives, sound effects (laser, explosion, rescue) |
 | Super Mario Bros | `smb` | Score, lives, coins, power-ups |
+| Defender | `defender` | Score, lives, smart bombs, humanoid rescue, enemy destroyed |
+| OutRun | `outrun` | Ambilight, game time, music channels (FM) |
+| Super Hang-On | `shangon` | Ambilight, music channels (FM) |
 
 ### Interceptor Only
 
@@ -25,11 +28,9 @@ These games have interceptors that detect events but use default effect mappings
 
 | Game | ROM | Events Detected |
 |------|-----|----------------|
+| Space Harrier | `sharrier` | Ambilight |
 | Super Street Fighter II | `ssf2` | Score, round, health, actions |
-| Space Harrier | `sharrier` | Score, lives |
-| OutRun | `outrun` | Score, speed, stage |
 | G-Force 2 | `gforce2` | Score, lives |
-| Castlevania III (NES) | `nes_castlevania3` | Score, lives, health |
 
 ## Create Your Own
 

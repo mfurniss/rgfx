@@ -140,7 +140,7 @@ describe('EffectForm', () => {
       expect(screen.getByLabelText('Field C')).toBeDefined();
 
       // nonExistentField should be silently skipped
-      const allLabels = container.textContent ?? '';
+      const allLabels = container.textContent;
       expect(allLabels).not.toContain('Non Existent Field');
     });
 

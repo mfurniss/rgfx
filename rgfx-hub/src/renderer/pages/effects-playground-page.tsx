@@ -5,8 +5,8 @@
  * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { debounce } from 'lodash-es';
 import {
   Box,
   Paper,
@@ -51,18 +51,17 @@ export default function TestEffectsPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
-
-  const connectedDriverIds = useDriverStore(
-    useShallow((state) =>
-      state.drivers
-        .filter((d) => d.state === 'connected')
-        .map((d) => d.id)
-        .sort(),
-    ),
-  );
+  const [isFormValid, setIsFormValid] = useState(true);
 
   const drivers = useDriverStore((state) => state.drivers);
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const connectedDrivers = useMemo(
+    () => drivers.filter((d) => d.state === 'connected'),
+    [drivers],
+  );
+  const connectedDriverIds = useMemo(
+    () => connectedDrivers.map((d) => d.id).sort(),
+    [connectedDrivers],
+  );
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsMap = useUiStore((state) => state.testEffectsPropsMap);
@@ -119,19 +118,32 @@ export default function TestEffectsPage() {
     ? effectLayoutConfigs[selectedEffect]
     : undefined;
 
-  // Remove disconnected drivers from selection (but don't auto-select new ones)
+  // Refs keep the debounced callback and pruning effect stable while reading current values
+  const selectedEffectRef = useRef(selectedEffect);
+  selectedEffectRef.current = selectedEffect;
+  const selectedDriversRef = useRef(selectedDrivers);
+  selectedDriversRef.current = selectedDrivers;
+  const propsJsonRef = useRef(propsJson);
+  propsJsonRef.current = propsJson;
+
+  // Remove disconnected drivers from selection (but don't auto-select new ones).
+  // Reads current values from refs so the effect only fires on actual connection changes.
   useEffect(() => {
     const connectedIds = new Set(connectedDriverIds);
+    const currentSelection = selectedDriversRef.current;
     const stillConnected = new Set(
-      Array.from(selectedDrivers).filter((id) => connectedIds.has(id)),
+      Array.from(currentSelection).filter((id) => connectedIds.has(id)),
     );
 
-    // Only update if selection actually changed (driver disconnected)
-    if (stillConnected.size !== selectedDrivers.size) {
+    if (stillConnected.size !== currentSelection.size) {
       setSelectedDrivers(stillConnected);
-      setTestEffectsState(selectedEffect, propsJson, stillConnected);
+      setTestEffectsState(
+        selectedEffectRef.current,
+        propsJsonRef.current,
+        stillConnected,
+      );
     }
-  }, [connectedDriverIds, selectedEffect, propsJson, selectedDrivers, setTestEffectsState]);
+  }, [connectedDriverIds, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {
@@ -142,13 +154,22 @@ export default function TestEffectsPage() {
     }
   };
 
-  const handlePropsChange = useCallback(
-    (values: Record<string, unknown>) => {
+  // Debounce store writes so rapid keystrokes batch
+  const handlePropsChange = useMemo(
+    () => debounce((values: Record<string, unknown>) => {
       const newPropsJson = JSON.stringify(values, null, 2);
-      setTestEffectsState(selectedEffect, newPropsJson, selectedDrivers);
-    },
-    [selectedEffect, selectedDrivers, setTestEffectsState],
+      setTestEffectsState(
+        selectedEffectRef.current,
+        newPropsJson,
+        selectedDriversRef.current,
+      );
+    }, 150),
+    [setTestEffectsState],
   );
+
+  useEffect(() => () => {
+    handlePropsChange.cancel();
+  }, [handlePropsChange]);
 
   const handleDriverToggle = (driverId: string) => {
     const newSelected = new Set(selectedDrivers);
@@ -211,9 +232,16 @@ export default function TestEffectsPage() {
     if (selectedDrivers.size === 0) {
       return;
     }
+
+    // Flush debounced form changes so store is current
+    handlePropsChange.flush();
+
     void (async () => {
       try {
-        const props = JSON.parse(propsJson) as Record<string, unknown>;
+        // Read from store after flush (reactive state may lag this render cycle)
+        const storeProps =
+          useUiStore.getState().testEffectsPropsMap[selectedEffect] ?? propsJson;
+        const props = JSON.parse(storeProps) as Record<string, unknown>;
         // Strip internal markers before sending to driver
         const cleanProps = { ...props };
         delete cleanProps.__gifPath;
@@ -240,6 +268,8 @@ export default function TestEffectsPage() {
     if (!isEffectName(selectedEffect)) {
       return;
     }
+
+    handlePropsChange.flush();
 
     void (async () => {
       try {
@@ -317,7 +347,7 @@ export default function TestEffectsPage() {
               color="primary"
               onClick={handleTriggerEffect}
               icon={<ScienceIcon />}
-              disabled={selectedDrivers.size === 0}
+              disabled={selectedDrivers.size === 0 || !isFormValid}
               data-testid="trigger-effect-btn"
             >
               Trigger Effect
@@ -327,7 +357,7 @@ export default function TestEffectsPage() {
               color="primary"
               onClick={handleRandomTrigger}
               icon={<ShuffleIcon />}
-              disabled={selectedDrivers.size === 0}
+              disabled={selectedDrivers.size === 0 || !isFormValid}
             >
               Random Trigger
             </SuperButton>
@@ -390,6 +420,7 @@ export default function TestEffectsPage() {
                   schema={currentSchema}
                   defaultValues={currentProps}
                   onChange={handlePropsChange}
+                  onValidityChange={setIsFormValid}
                   fieldTypes={currentFieldTypes}
                   layoutConfig={currentLayoutConfig}
                 />

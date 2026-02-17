@@ -2,7 +2,7 @@
 
 The FX Playground lets you experiment with all the visual effects interactively — pick an effect, tweak the parameters, and trigger it on your connected drivers. No game required.
 
-<!-- TODO: Screenshot of FX Playground -->
+![FX Playground](../assets/images/rgfx-hub-fx-playground.png)
 
 ## Effect Testing
 

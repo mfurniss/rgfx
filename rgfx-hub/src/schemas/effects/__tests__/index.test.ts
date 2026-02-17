@@ -138,7 +138,9 @@ describe('safeValidateEffectProps', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect((result.data as { gradient: string[] }).gradient).toEqual(['#FFA000']);
+        expect((result.data as { gradient: string[] }).gradient).toEqual(
+          ['#E0E000', '#0000E0', '#E0E000'],
+        );
       }
     });
 
@@ -173,7 +175,9 @@ describe('safeValidateEffectProps', () => {
       expect(result.success).toBe(true);
 
       if (result.success) {
-        expect((result.data as { gradient: string[] }).gradient).toEqual(['#E0E000']);
+        expect((result.data as { gradient: string[] }).gradient).toEqual(
+          ['#E0E000', '#0000E0', '#E0E000'],
+        );
       }
     });
 

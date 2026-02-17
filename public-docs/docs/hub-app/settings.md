@@ -2,6 +2,8 @@
 
 Configure the Hub's directories, appearance, and effect behavior.
 
+![Settings](../assets/images/rgfx-hub-settings-1.png)
+
 ## Appearance
 
 Choose your preferred theme mode:
@@ -34,6 +36,22 @@ Default: see [Config Directory](../getting-started/hub-setup.md#config-directory
 Adjusts the lifespan of explosion effects on LED strips. Lower values create shorter, snappier explosions. Higher values extend the visual decay.
 
 Range: 0.1 to 1.0 (default: 0.6)
+
+## Backup
+
+Creates a zip archive of your entire RGFX configuration directory — interceptors, transformers, LED hardware definitions, driver configs, and logs. Click **Create Backup** to save the archive.
+
+![Settings — Backup and Logs](../assets/images/rgfx-hub-settings-2.png)
+
+## Logs
+
+Shows the size of each log file:
+
+- **System** — Hub application log
+- **Events** — Interceptor event log
+- **Driver** logs — One per driver (remote logging)
+
+Hover over any row to see the full file path. Click **Clear All Logs** to permanently delete all log files.
 
 ## Saving
 

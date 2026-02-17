@@ -11,6 +11,9 @@ import { colorStringSchema } from './properties/color';
 import type { PresetConfig } from './index';
 import { randomGradient, randomInt } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import defaults from './defaults.json';
+
+const d = defaults.background;
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'backgroundGradient',
@@ -45,17 +48,20 @@ export default z
         colors: z
           .array(colorStringSchema)
           .max(MAX_GRADIENT_COLORS)
-          .default(['#FF0000', '#00FF00', '#0000FF']),
-        orientation: z.enum(['horizontal', 'vertical']).default('horizontal'),
+          .default(d.gradient.colors),
+        orientation: z.enum(['horizontal', 'vertical'])
+          .default(d.gradient.orientation as 'horizontal'),
       })
-      .default({ colors: ['#FF0000', '#00FF00', '#0000FF'], orientation: 'horizontal' })
+      .default(
+        d.gradient as { colors: string[]; orientation: 'horizontal' },
+      )
       .describe('Gradient colors'),
     fadeDuration: z
       .number()
       .int()
       .min(0)
       .max(10000)
-      .default(1000)
+      .default(d.fadeDuration)
       .describe('Duration in ms to cross-fade to new gradient'),
   })
   .strict();
