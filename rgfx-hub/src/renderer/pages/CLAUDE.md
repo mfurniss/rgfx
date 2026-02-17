@@ -108,6 +108,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 - Preset selection modal for gradient and plasma effects
 - State persisted in `UiStore` across navigation
 - Code generation tab showing JavaScript code for transformers
+- **Debounced store writes:** `handlePropsChange` uses lodash `debounce` (150ms) with `useRef` for stable callback identity, preventing rapid keystrokes from thrashing the store. Debounce is flushed before triggering effects or randomizing to ensure store is current
 
 ### Effects Playground Subdirectory
 

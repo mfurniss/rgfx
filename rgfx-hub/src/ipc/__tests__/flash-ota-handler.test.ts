@@ -56,11 +56,7 @@ class MockEspOTA {
   uploadFile = vi.fn(() => {
     // Simulate progress events
     for (const progress of mockProgressSequence) {
-      const handler = this.handlers.progress;
-
-      if (handler) {
-        handler(progress);
-      }
+      this.handlers.progress(progress);
     }
 
     if (mockUploadShouldFail && mockUploadError) {
