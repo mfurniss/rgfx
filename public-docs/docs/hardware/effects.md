@@ -58,8 +58,6 @@ Directional color sweep across the display.
 
 ### Explode
 
-<!-- TODO: Photo/GIF of explode effect on LED matrix -->
-
 Radial particle explosion from a center point.
 
 | Parameter | Description |
@@ -125,8 +123,6 @@ Horizontally scrolling text with gradient animation.
 
 ### Plasma
 
-<!-- TODO: Photo/GIF of plasma effect on LED matrix -->
-
 Classic demoscene plasma effect using Perlin noise.
 
 | Parameter | Description |
@@ -150,8 +146,6 @@ Center-radiating animated gradient creating tunnel or bulge effects.
 
 ### Particle Field
 
-<!-- TODO: Photo/GIF of particle field effect on LED matrix -->
-
 Animated particle system for starfields, rain, or snow effects. Slower particles appear dimmer to simulate distance.
 
 | Parameter | Description |
@@ -164,8 +158,6 @@ Animated particle system for starfields, rain, or snow effects. Slower particles
 | `enabled` | `on`, `off`, `fadeIn`, `fadeOut` |
 
 ### Sparkle
-
-<!-- TODO: Photo/GIF of sparkle effect on LED strip -->
 
 Twinkling single-LED particles that cycle through a color gradient. Triggering creates a "cloud" that spawns particles over its duration.
 
