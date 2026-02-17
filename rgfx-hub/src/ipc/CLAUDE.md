@@ -49,6 +49,7 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 4. Uses `esp-ota` library to upload firmware to driver's IP address on port 3232
 5. Emits progress events to renderer via `flash:ota:state`, `flash:ota:progress`, and `flash:ota:error` channels
 6. Sets driver state to `updating` during flash, `disconnected` on completion (driver reboots)
+7. Uses object property pattern (`progressState.reachedFull`) instead of `let` variable to avoid TypeScript narrowing issue where callback-mutated booleans appear always-false at catch sites
 
 **Multi-chip Support:**
 - Firmware files: `firmware-esp32.bin`, `firmware-esp32s3.bin`

@@ -40,7 +40,7 @@ nav:
     - Set Up RGFX Hub: getting-started/hub-setup.md
     - Flash Your First Driver: getting-started/first-driver.md
     - Play a Game: getting-started/play.md
-  - Example Games: games.md
+    - Example Games: example-games.md
   - Hub App:
     - Overview: hub-app/index.md
     - System Status: hub-app/system-status.md
@@ -74,7 +74,6 @@ nav:
     - GIF Bitmaps: transformers/gif-bitmaps.md
     - Ambilight: transformers/ambilight.md
   - FAQ / Troubleshooting: faq.md
-  - About: about.md
 
 markdown_extensions:
   - attr_list

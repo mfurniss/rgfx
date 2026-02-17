@@ -1,5 +1,6 @@
 #include "pulse.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "hal/platform.h"
 #include "graphics/canvas.h"
 #include "network/mqtt.h"
@@ -15,10 +16,10 @@ void PulseEffect::add(JsonDocument& props) {
 		return;
 	}
 	uint32_t color = parseColor(props["color"]);
-	uint32_t durationMs = props["duration"];
-	bool fade = props["fade"].as<bool>();
-	const char* easingName = props["easing"] | "";
-	const char* collapseStr = props["collapse"] | "";
+	uint32_t durationMs = props["duration"] | effect_defaults::pulse::duration;
+	bool fade = props["fade"] | effect_defaults::pulse::fade;
+	const char* easingName = props["easing"] | effect_defaults::pulse::easing;
+	const char* collapseStr = props["collapse"] | effect_defaults::pulse::collapse;
 
 	CollapseMode collapse;
 	if (strcmp(collapseStr, "random") == 0) {

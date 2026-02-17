@@ -9,6 +9,9 @@ import { z } from 'zod';
 import { baseEffect } from './properties';
 import { randomColor, randomFloat, randomInt, randomString } from '@/utils/random';
 import { roundFloat } from '@/utils/math';
+import defaults from './defaults.json';
+
+const d = defaults.projectile;
 
 export function randomize(): Record<string, unknown> {
   return {
@@ -31,13 +34,24 @@ export default baseEffect
   .extend({
     name: z.literal('Projectile'),
     description: z.literal('Animated projectile moving across display'),
-    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional().default('random').describe('Direction of travel'),
-    velocity: z.number().min(1).max(5000).optional().default(1200).describe('Initial speed in pixels/second'),
-    friction: z.number().optional().default(0.5).describe('Friction (0=none, positive=decel, negative=accel)'),
-    trail: z.number().min(0).optional().default(0.2).describe('Trail multiplier (0=none, 1=velocity length)'),
-    width: z.number().int().min(1).max(64).optional().default(16).describe('Width in pixels'),
-    height: z.number().int().min(1).max(64).optional().default(6).describe('Height in pixels'),
-    lifespan: z.number().min(100).max(30000).optional().default(5000).describe('Max duration in milliseconds'),
-    particleDensity: z.number().min(0).max(100).optional().default(0).describe('% chance per frame to emit particle (0 = disabled)'),
+    direction: z.enum(['left', 'right', 'up', 'down', 'random']).optional()
+      .default(d.direction as 'random')
+      .describe('Direction of travel'),
+    velocity: z.number().min(1).max(5000).optional().default(d.velocity)
+      .describe('Initial speed in pixels/second'),
+    friction: z.number().optional().default(d.friction)
+      .describe('Friction (0=none, positive=decel, negative=accel)'),
+    trail: z.number().min(0).optional().default(d.trail)
+      .describe('Trail multiplier (0=none, 1=velocity length)'),
+    width: z.number().int().min(1).max(64).optional().default(d.width)
+      .describe('Width in pixels'),
+    height: z.number().int().min(1).max(64).optional().default(d.height)
+      .describe('Height in pixels'),
+    lifespan: z.number().min(100).max(30000).optional()
+      .default(d.lifespan)
+      .describe('Max duration in milliseconds'),
+    particleDensity: z.number().min(0).max(100).optional()
+      .default(d.particleDensity)
+      .describe('% chance per frame to emit particle (0 = disabled)'),
   })
   .strict();

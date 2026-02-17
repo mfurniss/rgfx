@@ -30,12 +30,20 @@ local function decode_bcd_score(start_addr)
 	return score
 end
 
+local prev_score = 0
+
 local map = {
 	player_one_score = {
 		addr_start = 0xA1C3,
 		addr_end = 0xA1C5,
 		callback_changed = function()
-			_G.event("defender/player/score/p1", decode_bcd_score(0xA1C3))
+			local score = decode_bcd_score(0xA1C3)
+			local delta = score - prev_score
+			prev_score = score
+			_G.event("defender/player/score/p1", score)
+			if delta == 500 then
+				_G.event("defender/humanoid/rescue")
+			end
 		end,
 	},
 	player_one_lives = {
@@ -149,6 +157,16 @@ local map = {
 	-- 		_G.event("defender/game/state", current)
 	-- 	end,
 	-- },
+
+	-- STATUS register: $7F=alive, $58=exploding, $77=hyperspace, $FF=game over
+	player_status = {
+		addr_start = 0xA0BA,
+		callback_changed = function(current, previous)
+			if current == 0x58 and previous ~= 0x58 then
+				_G.event("defender/player/explode")
+			end
+		end,
+	},
 
 	-- ship_world_x = {
 	-- 	addr_start = 0xA0C3,

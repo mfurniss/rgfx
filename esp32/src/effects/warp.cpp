@@ -1,4 +1,5 @@
 #include "warp.h"
+#include "generated/effect_defaults.h"
 #include "gradient_utils.h"
 #include "hal/types.h"
 #include <cmath>
@@ -142,10 +143,10 @@ void WarpEffect::add(JsonDocument& props) {
 	}
 
 	// Parse speed (positive=expand outward, negative=collapse inward), scaled down for smoother animation
-	float speed = -(props["speed"] | 1.0f) * 0.3f;
+	float speed = -(props["speed"] | effect_defaults::warp::speed) * 0.3f;
 
 	// Parse scale (0=linear, >0=tunnel perspective, <0=bulge perspective)
-	float scale = props["scale"] | 0.0f;
+	float scale = props["scale"] | effect_defaults::warp::scale;
 	if (scale < -10.0f)
 		scale = -10.0f;
 	if (scale > 10.0f)

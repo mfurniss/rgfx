@@ -916,6 +916,93 @@ describe('TransformerEngine', () => {
         expect.any(Error),
       );
     });
+
+    it('should reload all loaded game transformers when shared dependency changes', async () => {
+      const handlerV1 = vi.fn().mockReturnValue(true);
+      const handlerV2 = vi.fn().mockReturnValue(true);
+
+      let version = 1;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        return Promise.resolve({
+          transform: version === 1 ? handlerV1 : handlerV2,
+        });
+      });
+      vi.mocked(fs.readdir).mockResolvedValue([] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Load two game transformers
+      await (testEngine as any).loadGameTransformer('defender');
+      await (testEngine as any).loadGameTransformer('pacman');
+      expect((testEngine as any).gameHandlers.get('defender')).toBe(handlerV1);
+      expect((testEngine as any).gameHandlers.get('pacman')).toBe(handlerV1);
+
+      // Switch to V2 and simulate shared file change
+      version = 2;
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'global.js');
+
+      expect((testEngine as any).gameHandlers.get('defender')).toBe(handlerV2);
+      expect((testEngine as any).gameHandlers.get('pacman')).toBe(handlerV2);
+      expect(mockContext.log.info).toHaveBeenCalledWith(
+        'Shared dependency changed: global.js — reloaded all transformers',
+      );
+    });
+
+    it('should reload subject and default handlers when shared dependency changes', async () => {
+      const handlerV1 = vi.fn().mockReturnValue(true);
+      const handlerV2 = vi.fn().mockReturnValue(true);
+
+      let version = 1;
+      const mockImportModule = vi.fn().mockImplementation(() => {
+        return Promise.resolve({
+          transform: version === 1 ? handlerV1 : handlerV2,
+        });
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['init.js'] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Initial load
+      await (testEngine as any).loadSubjectTransformers('/mock/transformers/subjects');
+      await (testEngine as any).loadDefaultTransformer('/mock/transformers/default.js');
+      expect((testEngine as any).subjectHandlers.get('init')).toBe(handlerV1);
+      expect((testEngine as any).defaultHandler).toBe(handlerV1);
+
+      // Switch to V2 and simulate utils file change
+      version = 2;
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'utils/index.js');
+
+      expect((testEngine as any).subjectHandlers.get('init')).toBe(handlerV2);
+      expect((testEngine as any).defaultHandler).toBe(handlerV2);
+    });
+
+    it('should not create game handlers for unloaded games on shared dependency change', async () => {
+      const mockImportModule = vi.fn().mockResolvedValue({
+        transform: vi.fn().mockReturnValue(true),
+      });
+      vi.mocked(fs.readdir).mockResolvedValue([] as any);
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // No game transformers loaded
+      expect((testEngine as any).gameHandlers.size).toBe(0);
+      mockImportModule.mockClear();
+
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'global.js');
+
+      // No game imports should have been attempted
+      const gameImportCalls = mockImportModule.mock.calls.filter(
+        (call: string[]) => call[0].includes('games/'),
+      );
+      expect(gameImportCalls).toHaveLength(0);
+      expect((testEngine as any).gameHandlers.size).toBe(0);
+    });
   });
 
   describe('file loading with dependency injection', () => {

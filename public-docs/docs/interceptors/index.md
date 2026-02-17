@@ -2,7 +2,7 @@
 
 Interceptors are how you add your favorite game to RGFX. They're the bridge between a game running in MAME and the LED effects on your setup — written in Lua, they watch the game's memory for meaningful moments and fire events when things happen.
 
-RGFX ships with [example interceptors](../games.md) for several classic games, but the real power is writing your own. If you can find memory addresses with MAME's debugger and edit a text file, you can add any game. Community-contributed interceptors are welcome and will be merged into official releases.
+RGFX ships with [example interceptors](../example-games.md) for several classic games, but the real power is writing your own. If you can find memory addresses with MAME's debugger and edit a text file, you can add any game. Community-contributed interceptors are welcome and will be merged into official releases.
 
 ## What Interceptors Do
 

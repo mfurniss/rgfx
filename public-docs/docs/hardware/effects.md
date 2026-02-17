@@ -58,8 +58,6 @@ Directional color sweep across the display.
 
 ### Explode
 
-<!-- TODO: Photo/GIF of explode effect on LED matrix -->
-
 Radial particle explosion from a center point.
 
 | Parameter | Description |
@@ -103,8 +101,8 @@ Static text display with optional gradient animation. Matrix only.
 | `duration` | Display time in ms (0=permanent, default: 3000) |
 | `gradient` | Array of hex colors for animation |
 | `gradientSpeed` | Animation speed (default: 3.0) |
-| `gradientScale` | Gradient pattern scale (default: 4.0) |
-| `reset` | Clear existing text before rendering |
+| `gradientScale` | Gradient offset between adjacent characters (-20 to 20, default: 4.0). Negative values reverse gradient direction. |
+| `reset` | Clear existing text before rendering. When the same gradient config (colors, speed, scale) is re-applied after a reset, the gradient animation continues from where it left off — no visible jump. |
 
 ### Scroll Text
 
@@ -120,12 +118,10 @@ Horizontally scrolling text with gradient animation.
 | `snapToLed` | Snap to LED boundaries for smoother motion |
 | `gradient` | Array of hex colors for animation |
 | `gradientSpeed` | Animation speed (default: 3.0) |
-| `gradientScale` | Gradient pattern scale (default: 4.0) |
+| `gradientScale` | Gradient offset between adjacent characters (-20 to 20, default: 4.0). Negative values reverse gradient direction. |
 | `reset` | Clear existing scroll text before adding |
 
 ### Plasma
-
-<!-- TODO: Photo/GIF of plasma effect on LED matrix -->
 
 Classic demoscene plasma effect using Perlin noise.
 
@@ -150,8 +146,6 @@ Center-radiating animated gradient creating tunnel or bulge effects.
 
 ### Particle Field
 
-<!-- TODO: Photo/GIF of particle field effect on LED matrix -->
-
 Animated particle system for starfields, rain, or snow effects. Slower particles appear dimmer to simulate distance.
 
 | Parameter | Description |
@@ -165,8 +159,6 @@ Animated particle system for starfields, rain, or snow effects. Slower particles
 
 ### Sparkle
 
-<!-- TODO: Photo/GIF of sparkle effect on LED strip -->
-
 Twinkling single-LED particles that cycle through a color gradient. Triggering creates a "cloud" that spawns particles over its duration.
 
 | Parameter | Description |
@@ -178,9 +170,31 @@ Twinkling single-LED particles that cycle through a color gradient. Triggering c
 | `bloom` | Light spread radius (0=none, 100=4 LEDs, default: 90) |
 | `reset` | Clear existing effects before adding |
 
-### Test LEDs
+### Spectrum
 
-Hardware validation pattern that cycles through colors. Used for diagnostics. Triggered via the BOOT button on the ESP32 or from the Hub application.
+FFT spectrum analyzer visualization. Each frequency band renders as a column that rises on new peaks and decays smoothly. Matrix only.
+
+This effect is driven by [FFT interceptor](../interceptors/fft.md) events — it is not available in the FX Playground.
+
+| Parameter | Description |
+|-----------|-------------|
+| `values` | Array of band values (0-9), one per column (max 64) |
+| `decayRate` | Column fall speed after peak hold (default: 2.1) |
+
+Columns are colored with a rainbow palette spread across the frequency range.
+
+### Music
+
+Per-channel music visualizer that shows note activity from FM synthesizer chips. Each active note renders as a column with VU-meter peak indicators. Matrix only.
+
+This effect is driven by game-specific transformers (OutRun, Space Harrier, Hang-On) that forward FM channel data from interceptors.
+
+| Parameter | Description |
+|-----------|-------------|
+| `channels` | Pipe-delimited hex pitch values per channel (e.g. `"FF\|..\|A0"`, `..` = silent) |
+| `decayRate` | Note decay speed (default: 2.0) |
+
+Features auto-scaling pitch range, per-channel hue rotation (full cycle every 120 seconds), and peak indicators with hold-and-fall behavior.
 
 ## Blend Modes
 

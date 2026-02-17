@@ -175,4 +175,6 @@ transformers/
 
 ## Hot Reload
 
-The Hub watches the transformers directory for changes. Edit files directly and changes take effect immediately without restarting.
+The Hub watches the transformers directory for changes. Edit a game transformer and the change takes effect immediately without restarting.
+
+Changes to shared files — `global.js` and anything in `utils/` — trigger a full reload of **all** loaded transformers, since any transformer may import from these modules.

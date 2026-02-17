@@ -1,6 +1,7 @@
 #include "scroll_text.h"
 #include "text_rendering.h"
 #include "effect_utils.h"
+#include "generated/effect_defaults.h"
 #include "gradient_utils.h"
 #include "hal/platform.h"
 #include "network/mqtt.h"
@@ -31,8 +32,8 @@ void ScrollTextEffect::add(JsonDocument& props) {
 		publishError("scroll_text", "missing or invalid 'gradient' prop", props);
 		return;
 	}
-	float speed = props["speed"];
-	bool repeat = props["repeat"].as<bool>();
+	float speed = props["speed"] | effect_defaults::scroll_text::speed;
+	bool repeat = props["repeat"] | effect_defaults::scroll_text::repeat;
 
 	ScrollInstance instance;
 	instance.textLen = static_cast<uint8_t>(strlen(text));
@@ -61,7 +62,7 @@ void ScrollTextEffect::add(JsonDocument& props) {
 	instance.scrollX = static_cast<float>(canvas.getWidth());
 	instance.speed = speed;
 	instance.repeat = repeat;
-	instance.snapToLed = props["snapToLed"].as<bool>();
+	instance.snapToLed = props["snapToLed"] | effect_defaults::scroll_text::snapToLed;
 
 	// Copy gradient LUT only when animating (2+ colors)
 	instance.hasGradient = gradient.animate;
@@ -146,7 +147,8 @@ void ScrollTextEffect::render() {
 				float charOffset = i * inst.gradientScale;
 				float position = inst.gradientTime + charOffset;
 				// Map position to LUT index (0-99), wrapping around
-				uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+				int raw = static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE;
+				uint8_t lutIndex = static_cast<uint8_t>(raw < 0 ? raw + GRADIENT_LUT_SIZE : raw);
 				CRGB color = inst.gradientLut[lutIndex];
 				r = color.r;
 				g = color.g;

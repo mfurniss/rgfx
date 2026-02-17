@@ -50,8 +50,8 @@ else
     exit 1
 fi
 
-# Change to MAME directory (required for plugins to load)
-cd "$MAME_DIR" || exit 1
+# Change to MAME home directory so relative paths in mame.ini (inp, snap, cfg, etc.) resolve here
+cd "$HOME/.mame" || exit 1
 
 # Parse ROM name from args (first non-flag argument)
 ROM_NAME=""
@@ -88,7 +88,12 @@ echo ""
 
 # Run MAME with autoboot script using absolute path to the script
 # Vector settings loaded from ~/.mame/vector.ini (requires -video opengl)
-"$MAME_EXEC" "$@" -rompath ~/mame-roms -window -nomaximize -skip_gameinfo -video opengl -joystick_deadzone 0.1 -autoboot_script "$RGFX_LUA"
+"$MAME_EXEC" "$@" \
+  -rompath ~/mame-roms \
+  -pluginspath "$MAME_DIR/plugins" \
+  -window -nomaximize -skip_gameinfo \
+  -video opengl -joystick_deadzone 0.1 \
+  -autoboot_script "$RGFX_LUA"
 MAME_EXIT_CODE=$?
 
 # Emit shutdown event after MAME exits (catches all exit methods: quit, crash, force quit)

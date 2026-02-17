@@ -11,6 +11,9 @@ import { colorStringSchema } from './properties/color';
 import { randomInt, randomColor, randomFloat } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import { hslToHex } from '@/renderer/utils/color';
+import defaults from './defaults.json';
+
+const d = defaults.sparkle;
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',
@@ -53,7 +56,7 @@ export default z
       .int()
       .min(0)
       .optional()
-      .default(3000)
+      .default(d.duration)
       .describe('Duration in milliseconds (0 = infinite)'),
     density: z
       .number()
@@ -61,21 +64,21 @@ export default z
       .min(1)
       .max(100)
       .optional()
-      .default(100)
+      .default(d.density)
       .describe('Sparkle spawn rate (1-100)'),
     gradient: z
       .array(colorStringSchema)
       .min(2)
       .max(MAX_GRADIENT_COLORS)
       .optional()
-      .default(['#000000', '#8000FF', '#000000'])
+      .default(d.gradient)
       .describe(`Colors to cycle through (up to ${MAX_GRADIENT_COLORS} hex colors)`),
     speed: z
       .number()
       .min(0.1)
       .max(5.0)
       .optional()
-      .default(0.75)
+      .default(d.speed)
       .describe('Gradient transition speed (0.1-5.0)'),
     bloom: z
       .number()
@@ -83,8 +86,9 @@ export default z
       .min(0)
       .max(100)
       .optional()
-      .default(90)
+      .default(d.bloom)
       .describe('Light spread radius (0=none, 100=4 LEDs)'),
-    reset: z.boolean().optional().default(false).describe('Clear existing effects before adding'),
+    reset: z.boolean().optional().default(d.reset)
+      .describe('Clear existing effects before adding'),
   })
   .strict();

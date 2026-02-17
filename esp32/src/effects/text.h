@@ -26,7 +26,16 @@ class TextEffect : public IEffect {
 		float gradientTime;
 	};
 
+	struct CachedGradientState {
+		bool valid = false;
+		CRGB lut[GRADIENT_LUT_SIZE];
+		float speed;
+		float scale;
+		float time;
+	};
+
 	std::vector<TextInstance> instances;
+	CachedGradientState cachedGradient{};
 	const Matrix& matrix;
 	Canvas& canvas;
 

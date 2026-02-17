@@ -1,5 +1,9 @@
 import { sleep, formatNumber, randomInt } from '../utils/index.js';
-import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
+import {
+  MATRIX_DRIVERS,
+  NAMED_DRIVERS,
+  SECONDARY_MATRIX_DRIVERS,
+} from '../global.js';
 
 let scoreHue = 0;
 
@@ -28,6 +32,28 @@ export async function transform(
     });
 
     return true;
+  }
+
+  if (subject === 'player' && property === 'explode') {
+    await sleep(500);
+    broadcast({
+      effect: 'explode',
+      props: {
+        color: 'white',
+        reset: false,
+        centerX: 50,
+        centerY: 50,
+        friction: 3,
+        gravity: 0,
+        hueSpread: 0,
+        lifespan: 1800,
+        lifespanSpread: 80,
+        particleCount: 500,
+        particleSize: 6,
+        power: 300,
+        powerSpread: 95,
+      },
+    });
   }
 
   // if (subject === 'player' && property === 'lives') {
@@ -162,6 +188,22 @@ export async function transform(
   //   });
   //   return true;
   // }
+
+  if (subject === 'humanoid' && property === 'rescue') {
+    return broadcast({
+      effect: 'text',
+      drivers: SECONDARY_MATRIX_DRIVERS,
+      props: {
+        text: '500',
+        gradient: ['#0080FF', '#FFFF00', '#FF0000', '#0080FF'],
+        gradientSpeed: 7,
+        gradientScale: 3,
+        accentColor: '#000000',
+        duration: 2500,
+        reset: true,
+      },
+    });
+  }
 
   // -- Humanoid lost --
   if (subject === 'humanoid' && property === 'lost') {

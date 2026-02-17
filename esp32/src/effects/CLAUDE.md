@@ -54,7 +54,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Warp** | [warp.h](warp.h)/[warp.cpp](warp.cpp) | Center-radiating animated gradient with linear perspective scale (tunnel/bulge). |
 | **Spectrum** | [spectrum.h](spectrum.h)/[spectrum.cpp](spectrum.cpp) | FFT spectrum analyzer visualization. |
 | **Music** | [music.h](music.h)/[music.cpp](music.cpp) | Music channel visualizer. FIFO of decaying vertical bars with VU-meter peak indicators, auto-scaling pitch range (resets after 5s idle), and slow hue rotation (120s cycle). Matrix-only. Uses fixed-point integer math (0.16 for life/height, ms for timers), HSV LUT, hex digit LUT, and pre-computed reciprocal multiply for pitch-to-X mapping. |
-| **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. |
+| **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. Gradient phase is preserved across reset cycles when the same gradient config is re-added, preventing visual jumps in continuous score displays. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
 | **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). |
 
@@ -99,7 +99,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 
 - `gradient`: Array of hex color strings (2-64 colors)
 - `gradientSpeed`: Animation speed multiplier (Text/Scroll Text only)
-- `gradientScale`: Color offset between adjacent characters (Text/Scroll Text only)
+- `gradientScale`: Color offset between adjacent characters (Text/Scroll Text only). Supports negative values to reverse gradient direction across text.
 
 **Static Gradients (Background):**
 - `gradient`: Array of hex color strings
@@ -109,6 +109,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 **Implementation:**
 - 100-entry lookup table (LUT) pre-computed from gradient colors
 - For animated gradients: each character offset in LUT by `gradientScale`
+- LUT index uses non-negative modulo wrapping to handle negative `gradientScale` safely
 - Animation time advances with `gradientSpeed / 2.0` multiplier, wraps at 1000.0
 
 ---
@@ -135,6 +136,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
 | `particle_system.h/cpp` | Shared particle system with active count tracking for early-exit optimization |
 | `background.h/cpp` | Gradient background effect with fade transitions |
+| `generated/effect_defaults.h` | Auto-generated constexpr defaults from `defaults.json` (do not edit) |
 | `bitmap.h/cpp` | Animated sprite display with palettized memory storage |
 | `explode.h/cpp` | Radial explosion effect with hueSpread color variation |
 | `particle_field.h/cpp` | Particle field effect |
@@ -169,7 +171,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 - **Delta Time:** Frame-independent animation using elapsed time in seconds
 - **Multiple Instances:** Each effect can have multiple active instances (e.g., overlapping pulses)
 - **Easing Functions:** Located in `utils/easing.h`, used for smooth animation curves
-- **Hub as Source of Truth:** All effect property defaults come from Hub; ESP32 expects complete props
+- **Shared Defaults:** All effect property defaults are defined in `rgfx-hub/src/schemas/effects/defaults.json`. A Node.js generator produces `generated/effect_defaults.h` (C++ constexpr header) which is auto-regenerated on every `pio run` via `generate_defaults.py` pre-build script. ESP32 effects use these as `|` fallbacks in ArduinoJson parsing.
 
 ---
 
