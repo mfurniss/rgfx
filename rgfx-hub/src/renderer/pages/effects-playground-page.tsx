@@ -6,7 +6,6 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 import { debounce } from 'lodash-es';
 import {
   Box,
@@ -53,17 +52,15 @@ export default function TestEffectsPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
 
-  const connectedDriverIds = useDriverStore(
-    useShallow((state) =>
-      state.drivers
-        .filter((d) => d.state === 'connected')
-        .map((d) => d.id)
-        .sort(),
-    ),
-  );
-
   const drivers = useDriverStore((state) => state.drivers);
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const connectedDrivers = useMemo(
+    () => drivers.filter((d) => d.state === 'connected'),
+    [drivers],
+  );
+  const connectedDriverIds = useMemo(
+    () => connectedDrivers.map((d) => d.id).sort(),
+    [connectedDrivers],
+  );
 
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsMap = useUiStore((state) => state.testEffectsPropsMap);
@@ -120,19 +117,32 @@ export default function TestEffectsPage() {
     ? effectLayoutConfigs[selectedEffect]
     : undefined;
 
-  // Remove disconnected drivers from selection (but don't auto-select new ones)
+  // Refs keep the debounced callback and pruning effect stable while reading current values
+  const selectedEffectRef = useRef(selectedEffect);
+  selectedEffectRef.current = selectedEffect;
+  const selectedDriversRef = useRef(selectedDrivers);
+  selectedDriversRef.current = selectedDrivers;
+  const propsJsonRef = useRef(propsJson);
+  propsJsonRef.current = propsJson;
+
+  // Remove disconnected drivers from selection (but don't auto-select new ones).
+  // Reads current values from refs so the effect only fires on actual connection changes.
   useEffect(() => {
     const connectedIds = new Set(connectedDriverIds);
+    const currentSelection = selectedDriversRef.current;
     const stillConnected = new Set(
-      Array.from(selectedDrivers).filter((id) => connectedIds.has(id)),
+      Array.from(currentSelection).filter((id) => connectedIds.has(id)),
     );
 
-    // Only update if selection actually changed (driver disconnected)
-    if (stillConnected.size !== selectedDrivers.size) {
+    if (stillConnected.size !== currentSelection.size) {
       setSelectedDrivers(stillConnected);
-      setTestEffectsState(selectedEffect, propsJson, stillConnected);
+      setTestEffectsState(
+        selectedEffectRef.current,
+        propsJsonRef.current,
+        stillConnected,
+      );
     }
-  }, [connectedDriverIds, selectedEffect, propsJson, selectedDrivers, setTestEffectsState]);
+  }, [connectedDriverIds, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {
@@ -142,12 +152,6 @@ export default function TestEffectsPage() {
       setTestEffectsState(effect, savedProps || defaultProps, selectedDrivers);
     }
   };
-
-  // Refs keep the debounced callback stable while reading current values
-  const selectedEffectRef = useRef(selectedEffect);
-  selectedEffectRef.current = selectedEffect;
-  const selectedDriversRef = useRef(selectedDrivers);
-  selectedDriversRef.current = selectedDrivers;
 
   // Debounce store writes so rapid keystrokes batch
   const handlePropsChange = useMemo(
