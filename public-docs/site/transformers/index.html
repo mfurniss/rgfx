@@ -1711,33 +1711,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../about.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    About
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -2156,7 +2129,8 @@
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    └── ...
 </code></pre></div>
 <h2 id="hot-reload">Hot Reload<a class="headerlink" href="#hot-reload" title="Permanent link">¶</a></h2>
-<p>The Hub watches the transformers directory for changes. Edit files directly and changes take effect immediately without restarting.</p>
+<p>The Hub watches the transformers directory for changes. Edit a game transformer and the change takes effect immediately without restarting.</p>
+<p>Changes to shared files — <code>global.js</code> and anything in <code>utils/</code> — trigger a full reload of <strong>all</strong> loaded transformers, since any transformer may import from these modules.</p>
 
 
 
