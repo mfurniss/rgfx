@@ -7,12 +7,13 @@ The `global.js` file defines driver constants and configurations shared across t
 ## Driver Groups
 
 ```javascript
-import { MATRIX_DRIVERS, STRIP_DRIVERS, ALL_DRIVERS } from '../global.js';
+import { MATRIX_DRIVERS, SECONDARY_MATRIX_DRIVERS, STRIP_DRIVERS, ALL_DRIVERS } from '../global.js';
 ```
 
 | Constant | Description |
 |----------|-------------|
-| `MATRIX_DRIVERS` | Array of matrix driver IDs |
+| `MATRIX_DRIVERS` | Array of all matrix driver IDs |
+| `SECONDARY_MATRIX_DRIVERS` | Array of secondary matrix driver IDs (left and right matrices) |
 | `STRIP_DRIVERS` | Array of strip driver IDs |
 | `ALL_DRIVERS` | Combined array of all driver IDs |
 

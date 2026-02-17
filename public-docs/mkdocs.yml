@@ -74,7 +74,6 @@ nav:
     - GIF Bitmaps: transformers/gif-bitmaps.md
     - Ambilight: transformers/ambilight.md
   - FAQ / Troubleshooting: faq.md
-  - About: about.md
 
 markdown_extensions:
   - attr_list

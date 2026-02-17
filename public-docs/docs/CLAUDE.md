@@ -51,8 +51,7 @@ docs/
 ├── index.md                    # Landing page with hero video
 ├── games.md                    # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
-├── about.md                    # About the author
-├── getting-started/            # 5-page onboarding flow
+├── getting-started/            # 4-page onboarding flow
 ├── hub-app/                    # Hub application reference (10 pages)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, effects, examples)
 ├── interceptors/               # Lua interceptor docs (7 pages, writing guide links to MAME cheat file resources)

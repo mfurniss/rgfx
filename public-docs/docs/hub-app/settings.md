@@ -35,6 +35,20 @@ Adjusts the lifespan of explosion effects on LED strips. Lower values create sho
 
 Range: 0.1 to 1.0 (default: 0.6)
 
+## Backup
+
+Creates a zip archive of your entire RGFX configuration directory — interceptors, transformers, LED hardware definitions, driver configs, and logs. Click **Create Backup** to save the archive.
+
+## Logs
+
+Shows the size of each log file:
+
+- **System** — Hub application log
+- **Events** — Interceptor event log
+- **Driver** logs — One per driver (remote logging)
+
+Hover over any row to see the full file path. Click **Clear All Logs** to permanently delete all log files.
+
 ## Saving
 
 Click **Save** to apply directory changes. The Hub validates that directories exist before saving.

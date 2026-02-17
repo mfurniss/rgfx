@@ -1147,10 +1147,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#test-leds" class="md-nav__link">
+  <a href="#spectrum" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test LEDs
+        Spectrum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#music" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Music
       
     </span>
   </a>
@@ -1699,33 +1710,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../about.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    About
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1908,10 +1892,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#test-leds" class="md-nav__link">
+  <a href="#spectrum" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test LEDs
+        Spectrum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#music" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Music
       
     </span>
   </a>
@@ -2233,11 +2228,11 @@
 </tr>
 <tr>
 <td><code>gradientScale</code></td>
-<td>Gradient pattern scale (default: 4.0)</td>
+<td>Gradient offset between adjacent characters (-20 to 20, default: 4.0). Negative values reverse gradient direction.</td>
 </tr>
 <tr>
 <td><code>reset</code></td>
-<td>Clear existing text before rendering</td>
+<td>Clear existing text before rendering. When the same gradient config (colors, speed, scale) is re-applied after a reset, the gradient animation continues from where it left off — no visible jump.</td>
 </tr>
 </tbody>
 </table>
@@ -2285,7 +2280,7 @@
 </tr>
 <tr>
 <td><code>gradientScale</code></td>
-<td>Gradient pattern scale (default: 4.0)</td>
+<td>Gradient offset between adjacent characters (-20 to 20, default: 4.0). Negative values reverse gradient direction.</td>
 </tr>
 <tr>
 <td><code>reset</code></td>
@@ -2431,8 +2426,50 @@
 </tr>
 </tbody>
 </table>
-<h3 id="test-leds">Test LEDs<a class="headerlink" href="#test-leds" title="Permanent link">¶</a></h3>
-<p>Hardware validation pattern that cycles through colors. Used for diagnostics. Triggered via the BOOT button on the ESP32 or from the Hub application.</p>
+<h3 id="spectrum">Spectrum<a class="headerlink" href="#spectrum" title="Permanent link">¶</a></h3>
+<p>FFT spectrum analyzer visualization. Each frequency band renders as a column that rises on new peaks and decays smoothly. Matrix only.</p>
+<p>This effect is driven by <a href="../interceptors/fft.html">FFT interceptor</a> events — it is not available in the FX Playground.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>values</code></td>
+<td>Array of band values (0-9), one per column (max 64)</td>
+</tr>
+<tr>
+<td><code>decayRate</code></td>
+<td>Column fall speed after peak hold (default: 2.1)</td>
+</tr>
+</tbody>
+</table>
+<p>Columns are colored with a rainbow palette spread across the frequency range.</p>
+<h3 id="music">Music<a class="headerlink" href="#music" title="Permanent link">¶</a></h3>
+<p>Per-channel music visualizer that shows note activity from FM synthesizer chips. Each active note renders as a column with VU-meter peak indicators. Matrix only.</p>
+<p>This effect is driven by game-specific transformers (OutRun, Space Harrier, Hang-On) that forward FM channel data from interceptors.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>channels</code></td>
+<td>Pipe-delimited hex pitch values per channel (e.g. <code>"FF\|..\|A0"</code>, <code>..</code> = silent)</td>
+</tr>
+<tr>
+<td><code>decayRate</code></td>
+<td>Note decay speed (default: 2.0)</td>
+</tr>
+</tbody>
+</table>
+<p>Features auto-scaling pitch range, per-channel hue rotation (full cycle every 120 seconds), and peak indicators with hold-and-fall behavior.</p>
 <h2 id="blend-modes">Blend Modes<a class="headerlink" href="#blend-modes" title="Permanent link">¶</a></h2>
 <p>Effects can use different blend modes when compositing:</p>
 <ul>

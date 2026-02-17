@@ -1567,33 +1567,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../about.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    About
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1702,7 +1675,7 @@
 <p>The <code>global.js</code> file defines driver constants and configurations shared across transformers.</p>
 <p><strong>Location:</strong> <code>transformers/global.js</code> in your <a href="../getting-started/hub-setup.html#config-directory">config directory</a></p>
 <h2 id="driver-groups">Driver Groups<a class="headerlink" href="#driver-groups" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">MATRIX_DRIVERS</span><span class="p">,</span><span class="w"> </span><span class="nx">STRIP_DRIVERS</span><span class="p">,</span><span class="w"> </span><span class="nx">ALL_DRIVERS</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../global.js'</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">MATRIX_DRIVERS</span><span class="p">,</span><span class="w"> </span><span class="nx">SECONDARY_MATRIX_DRIVERS</span><span class="p">,</span><span class="w"> </span><span class="nx">STRIP_DRIVERS</span><span class="p">,</span><span class="w"> </span><span class="nx">ALL_DRIVERS</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../global.js'</span><span class="p">;</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1714,7 +1687,11 @@
 <tbody>
 <tr>
 <td><code>MATRIX_DRIVERS</code></td>
-<td>Array of matrix driver IDs</td>
+<td>Array of all matrix driver IDs</td>
+</tr>
+<tr>
+<td><code>SECONDARY_MATRIX_DRIVERS</code></td>
+<td>Array of secondary matrix driver IDs (left and right matrices)</td>
 </tr>
 <tr>
 <td><code>STRIP_DRIVERS</code></td>
