@@ -6,23 +6,29 @@
  */
 
 import React from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@mui/material';
 import { LayersClear as LayersClearIcon } from '@mui/icons-material';
 import { useDriverStore } from '../../store/driver-store';
 
 export function ClearAllEffectsButton() {
-  const drivers = useDriverStore((state) => state.drivers);
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const connectedDriverIds = useDriverStore(
+    useShallow((state) =>
+      state.drivers
+        .filter((d) => d.state === 'connected')
+        .map((d) => d.id),
+    ),
+  );
 
   const handleClearEffects = () => {
     void (async () => {
       await window.rgfx.clearTransformerState();
 
-      for (const driver of connectedDrivers) {
+      for (const driverId of connectedDriverIds) {
         try {
-          await window.rgfx.sendDriverCommand(driver.id, 'clear-effects', '');
+          await window.rgfx.sendDriverCommand(driverId, 'clear-effects', '');
         } catch (err) {
-          console.error('Failed to clear effects on driver:', driver.id, err);
+          console.error('Failed to clear effects on driver:', driverId, err);
         }
       }
     })();
@@ -34,7 +40,7 @@ export function ClearAllEffectsButton() {
       color="warning"
       startIcon={<LayersClearIcon />}
       onClick={handleClearEffects}
-      disabled={connectedDrivers.length === 0}
+      disabled={connectedDriverIds.length === 0}
     >
       Clear All Effects
     </Button>

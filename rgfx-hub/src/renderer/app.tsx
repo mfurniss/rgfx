@@ -55,19 +55,29 @@ const AnimatedRoutes: React.FC = () => {
   );
 };
 
+// Isolated component that only mounts when a config error exists.
+// Subscribes to the error details without burdening the main App render cycle.
+const ConfigErrorContent: React.FC = () => {
+  const configError = useSystemStatusStore(
+    (state) => state.systemStatus.systemErrors.find((e) => e.errorType === 'config'),
+  );
+  return configError ? <CriticalErrorModal error={configError} /> : null;
+};
+
 const App: React.FC = () => {
-  // Get actions from Zustand stores
+  // Get actions from Zustand stores (stable references — no re-renders)
   const onDriverConnected = useDriverStore((state) => state.onDriverConnected);
   const onDriverDisconnected = useDriverStore((state) => state.onDriverDisconnected);
   const onDriverUpdated = useDriverStore((state) => state.onDriverUpdated);
   const onDriverRestarting = useDriverStore((state) => state.onDriverRestarting);
   const onDriverDeleted = useDriverStore((state) => state.onDriverDeleted);
-  const systemStatus = useSystemStatusStore((state) => state.systemStatus);
   const onSystemStatusUpdate = useSystemStatusStore((state) => state.onSystemStatusUpdate);
   const onEvent = useEventStore((state) => state.onEvent);
 
-  // Check for critical config errors
-  const configError = systemStatus.systemErrors.find((e) => e.errorType === 'config');
+  // Boolean selector — only re-renders when a config error appears/disappears
+  const hasConfigError = useSystemStatusStore(
+    (state) => state.systemStatus.systemErrors.some((e) => e.errorType === 'config'),
+  );
 
   // Run simulator auto-trigger at app level so it persists across navigation
   useSimulatorAutoTrigger();
@@ -106,12 +116,11 @@ const App: React.FC = () => {
     }
   }, [getAppInfo]);
 
-  // If there's a critical config error, render only the error modal
-  if (configError) {
+  if (hasConfigError) {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <CriticalErrorModal error={configError} />
+        <ConfigErrorContent />
       </ThemeProvider>
     );
   }

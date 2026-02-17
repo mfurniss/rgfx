@@ -681,6 +681,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ## Settings Components
 
+### ClearAllEffectsButton
+
+**File:** [common/clear-all-effects-button.tsx](common/clear-all-effects-button.tsx)
+
+**Purpose:** Button to clear all active effects on connected drivers.
+
+**Features:**
+- Calls `clearTransformerState` then sends `clear-effects` command to each connected driver
+- Disabled when no drivers are connected
+- Uses `useShallow` with string ID array selector to avoid re-renders on unrelated driver changes (e.g., telemetry updates)
+
+---
+
 ### BackupSection
 
 **File:** [settings/backup-section.tsx](settings/backup-section.tsx)
