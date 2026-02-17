@@ -147,7 +147,8 @@ void ScrollTextEffect::render() {
 				float charOffset = i * inst.gradientScale;
 				float position = inst.gradientTime + charOffset;
 				// Map position to LUT index (0-99), wrapping around
-				uint8_t lutIndex = static_cast<uint8_t>(static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE);
+				int raw = static_cast<int>(position * 25.5f) % GRADIENT_LUT_SIZE;
+				uint8_t lutIndex = static_cast<uint8_t>(raw < 0 ? raw + GRADIENT_LUT_SIZE : raw);
 				CRGB color = inst.gradientLut[lutIndex];
 				r = color.r;
 				g = color.g;

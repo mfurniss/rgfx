@@ -607,6 +607,131 @@ void test_text_property_all_configs_render() {
 }
 
 // =============================================================================
+// Gradient Scale Tests
+// =============================================================================
+
+static void setupGradientText(Canvas& canvas, TextEffect& effect,
+                               float gradientScale, float updateTime = 0.5f) {
+	JsonDocument props;
+	setDefaultTextProps(props);
+	props["text"] = "ABCD";
+	props["duration"] = 0;
+	props["accentColor"] = nullptr;
+	props["gradient"].as<JsonArray>().clear();
+	props["gradient"].as<JsonArray>().add("#FF0000");
+	props["gradient"].as<JsonArray>().add("#00FF00");
+	props["gradient"].as<JsonArray>().add("#0000FF");
+	props["gradientSpeed"] = 1.0f;
+	props["gradientScale"] = gradientScale;
+
+	effect.add(props);
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+}
+
+void test_text_positive_gradient_scale_renders() {
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	setupGradientText(canvas, effect, 4.0f);
+
+	TEST_ASSERT_TRUE_MESSAGE(countNonBlackPixels(canvas) > 0,
+	    "Positive gradientScale should render pixels");
+}
+
+void test_text_negative_gradient_scale_renders() {
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	setupGradientText(canvas, effect, -4.0f);
+
+	TEST_ASSERT_TRUE_MESSAGE(countNonBlackPixels(canvas) > 0,
+	    "Negative gradientScale should render pixels");
+}
+
+void test_text_negative_gradient_scale_reverses_direction() {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+
+	TextEffect effectPos(matrix, canvas);
+	setupGradientText(canvas, effectPos, 4.0f);
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t digestPos = computeFrameDigest(matrix);
+
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+
+	effectPos.reset();
+	TextEffect effectNeg(matrix, canvas);
+	setupGradientText(canvas, effectNeg, -4.0f);
+	downsampleToMatrix(canvas, &matrix);
+	uint64_t digestNeg = computeFrameDigest(matrix);
+
+	TEST_ASSERT_NOT_EQUAL_MESSAGE(digestPos, digestNeg,
+	    "Positive and negative gradientScale should produce different output");
+}
+
+void test_text_large_negative_gradient_scale_no_overflow() {
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	setupGradientText(canvas, effect, -20.0f, 2.0f);
+
+	TEST_ASSERT_TRUE_MESSAGE(countNonBlackPixels(canvas) > 0,
+	    "Large negative gradientScale should render without overflow");
+
+	// Verify no pixel has 255 in any channel (would indicate LUT overflow)
+	// Alpha blending caps at 254: (255*255)>>8 = 254
+	for (uint16_t y = 0; y < canvas.getHeight(); y++) {
+		for (uint16_t x = 0; x < canvas.getWidth(); x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r > 0 || pixel.g > 0 || pixel.b > 0) {
+				TEST_ASSERT_LESS_OR_EQUAL(254, pixel.r);
+				TEST_ASSERT_LESS_OR_EQUAL(254, pixel.g);
+				TEST_ASSERT_LESS_OR_EQUAL(254, pixel.b);
+			}
+		}
+	}
+}
+
+void test_text_zero_gradient_scale_uniform_color() {
+	Matrix matrix(32, 8);
+	Canvas canvas(matrix);
+	TextEffect effect(matrix, canvas);
+
+	setupGradientText(canvas, effect, 0.0f);
+
+	CRGB firstColor = {0, 0, 0};
+	bool foundFirst = false;
+	bool allSame = true;
+
+	for (uint16_t y = 0; y < canvas.getHeight() && allSame; y++) {
+		for (uint16_t x = 0; x < canvas.getWidth() && allSame; x++) {
+			CRGB pixel = canvas.getPixel(x, y);
+			if (pixel.r > 0 || pixel.g > 0 || pixel.b > 0) {
+				if (!foundFirst) {
+					firstColor = pixel;
+					foundFirst = true;
+				} else if (pixel.r != firstColor.r || pixel.g != firstColor.g || pixel.b != firstColor.b) {
+					allSame = false;
+				}
+			}
+		}
+	}
+
+	TEST_ASSERT_TRUE_MESSAGE(foundFirst, "Should have rendered some pixels");
+	TEST_ASSERT_TRUE_MESSAGE(allSame, "gradientScale=0 should produce uniform color");
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -641,6 +766,13 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_text_digest_96x8_t100);
 	RUN_TEST(test_text_property_static_permanent);
 	RUN_TEST(test_text_property_all_configs_render);
+
+	// Gradient Scale Tests
+	RUN_TEST(test_text_positive_gradient_scale_renders);
+	RUN_TEST(test_text_negative_gradient_scale_renders);
+	RUN_TEST(test_text_negative_gradient_scale_reverses_direction);
+	RUN_TEST(test_text_large_negative_gradient_scale_no_overflow);
+	RUN_TEST(test_text_zero_gradient_scale_uniform_color);
 
 	return UNITY_END();
 }

@@ -99,7 +99,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 
 - `gradient`: Array of hex color strings (2-64 colors)
 - `gradientSpeed`: Animation speed multiplier (Text/Scroll Text only)
-- `gradientScale`: Color offset between adjacent characters (Text/Scroll Text only)
+- `gradientScale`: Color offset between adjacent characters (Text/Scroll Text only). Supports negative values to reverse gradient direction across text.
 
 **Static Gradients (Background):**
 - `gradient`: Array of hex color strings
@@ -109,6 +109,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 **Implementation:**
 - 100-entry lookup table (LUT) pre-computed from gradient colors
 - For animated gradients: each character offset in LUT by `gradientScale`
+- LUT index uses non-negative modulo wrapping to handle negative `gradientScale` safely
 - Animation time advances with `gradientSpeed / 2.0` multiplier, wraps at 1000.0
 
 ---
