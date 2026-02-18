@@ -16,7 +16,7 @@ Plug your ESP32 development board into your computer using a USB cable.
 3. Choose the serial port from the dropdown
 4. Click **Update Firmware** and wait for completion
 
-<!-- TODO: Screenshot of Firmware page during USB flash -->
+![Firmware page during USB flash](../assets/images/rgfx-hub-firmware-usb-flash.png)
 
 The Hub detects your ESP32's chip type automatically and selects the correct firmware.
 

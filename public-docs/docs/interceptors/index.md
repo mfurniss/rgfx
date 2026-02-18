@@ -28,7 +28,7 @@ flowchart TB
         rgfx --> detect --> load --> intercept
     end
 
-    intercept --> |"event()"| logfile["interceptor_events.log"]
+    intercept --> |"_G.event()"| logfile["interceptor_events.log"]
     logfile --> hub["RGFX Hub"]
     hub --> led["LED Effects"]
 ```
