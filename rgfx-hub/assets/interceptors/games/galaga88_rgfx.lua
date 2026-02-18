@@ -1,11 +1,3 @@
--- This Source Code Form is subject to the terms of the Mozilla Public
--- License, v. 2.0. If a copy of the MPL was not distributed with this
--- file, You can obtain one at http://mozilla.org/MPL/2.0/.
---
--- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
-
-local ram = require("ram")
-
 -- Optional: Enable FFT audio analysis for visual effects
 local fft = require("fft")
 fft.init({
@@ -16,8 +8,7 @@ fft.init({
   devices = { "ymsnd" },
 })
 
-
-ram.set_boot_delay(6)
+boot_delay(6)
 
 -- Access RAM via C117's program space (not maincpu which goes through bank switching)
 local c117 = manager.machine.devices[":c117"]
@@ -37,18 +28,46 @@ local function read_score()
 	return b0 * 100000 + b1 * 10000 + b2 * 1000 + b3 * 100 + b4 * 10 + b5
 end
 
+-- Score delta to enemy type lookup
+local SCORE_LUT = {
+	[50]   = "zako",          -- zako in formation
+	[80]   = "goei",          -- goei in formation
+	[100]  = "zako",          -- zako attacking
+	[150]  = "boss",          -- boss in formation
+	[160]  = "goei",          -- goei attacking
+	[200]  = "don",           -- don attacking
+	[400]  = "boss",          -- boss attacking solo
+	[600]  = "hiyoko",        -- formation escort (4 hits)
+	[800]  = "boss-convoy",   -- boss + 1 escort
+	[900]  = "pan",
+	[1000] = "pan",
+	[1100] = "pan",
+	[1200] = "daruma",        -- formation escort (4 hits)
+	[1300] = "pan",
+	[1400] = "pan",
+	[1600] = "kan",
+	[1800] = "kan",
+	[2000] = "babito",        -- formation escort (4 hits)
+	[2200] = "kan",
+}
+
 -- Monitor score changes
 local last_score = -1
 
 emu.register_frame_done(function()
 	local score = read_score()
 	if score ~= last_score then
+		if last_score >= 0 and score > last_score then
+			local delta = score - last_score
+			local enemy = SCORE_LUT[delta]
+			if enemy then
+				_G.event("galaga88/enemy/destroy/" .. enemy, delta)
+			end
+		end
 		_G.event("galaga88/player/score/p1", score)
 		last_score = score
 	end
 end)
-
-print("\nGalaga 88 - Score monitoring active")
 
 -- Sound command addresses discovered via research:
 -- 0x2ff027: Player fire (bit 0x10 = fire sound)
@@ -94,5 +113,4 @@ emu.register_frame_done(function()
 	-- prev_sound = sound
 end, "galaga88_sound")
 
-print("Sound event monitoring active")
 

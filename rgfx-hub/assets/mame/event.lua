@@ -40,6 +40,12 @@ local event_count = 0
 local last_file_check = os.time()
 local FILE_CHECK_INTERVAL = 5 -- Check every 5 seconds
 
+-- Global boot delay state
+local boot_delay_active = false
+local boot_delay_start = 0
+local boot_delay_seconds = 0
+local boot_delay_last_countdown = -1
+
 -- Check if file exists on disk
 local function file_exists(path)
 	local f = io.open(path, "r")
@@ -78,12 +84,46 @@ local function is_valid_topic(topic)
 	return true
 end
 
+-- Suppress all events except /init topics until delay expires
+---@diagnostic disable-next-line: duplicate-set-field
+function _G.boot_delay(seconds)
+	if seconds > 0 then
+		boot_delay_active = true
+		boot_delay_start = os.time()
+		boot_delay_seconds = seconds
+		print(string.format("Boot delay: %d seconds", seconds))
+
+		-- Frame callback drives the countdown timer independently of event attempts
+		emu.register_frame_done(function()
+			if not boot_delay_active then return end
+
+			local remaining = boot_delay_seconds - (os.time() - boot_delay_start)
+
+			if remaining > 0 then
+				if remaining ~= boot_delay_last_countdown then
+					boot_delay_last_countdown = remaining
+					print(string.format("Events start in %d second%s...",
+						remaining, remaining == 1 and "" or "s"))
+				end
+			else
+				print("Events ACTIVE")
+				boot_delay_active = false
+			end
+		end, "boot_delay")
+	end
+end
+
 -- Global event function for use in game scripts
 ---@diagnostic disable-next-line: duplicate-set-field
 function _G.event(topic, message)
 	-- Validate topic format before writing
 	if not is_valid_topic(topic) then
 		print(string.format("ERROR: Invalid topic format: %s", tostring(topic)))
+		return
+	end
+
+	-- Suppress events during boot delay (except init events)
+	if boot_delay_active and topic:sub(-5) ~= "/init" then
 		return
 	end
 
