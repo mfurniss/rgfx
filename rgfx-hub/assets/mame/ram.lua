@@ -12,37 +12,6 @@ local size_config = {
 	[4] = { method = "read_u32", hex_format = "0x%08X" },
 }
 
--- Global delay configuration (set by interceptors before installing monitors)
-local delay_enabled = false
-local delay_start_time = 0
-local delay_duration_seconds = 0
-local last_countdown_second = -1
-
-function exports.set_boot_delay(seconds)
-	if seconds > 0 then
-		delay_enabled = true
-		delay_start_time = 0 -- Will be set on first frame
-		delay_duration_seconds = seconds
-		print(string.format("RAM monitoring delayed: %d seconds", seconds))
-	else
-		print("RAM monitoring: no delay")
-	end
-end
-
-function exports.is_ready()
-	return not delay_enabled
-end
-
--- Set a global boot delay before RAM monitoring begins
--- Call this BEFORE installing any monitors to skip boot/test phases
--- Displays a countdown timer and activates monitoring after delay expires
---
--- Usage:
---   ram.set_boot_delay(17)  -- Delay 17 seconds for Galaga boot test
---
--- Parameters:
---   seconds: number of seconds to delay (0 = no delay)
-
 -- Install a RAM monitor that tracks memory changes
 --
 -- options:
@@ -96,38 +65,6 @@ function exports.install_ram_monitor(options)
 	end
 
 	emu.register_frame_done(function()
-		-- Handle global boot delay countdown
-		if delay_enabled then
-			-- Initialize start time on first frame
-			if delay_start_time == 0 then
-				delay_start_time = os.time()
-			end
-
-			local elapsed = os.time() - delay_start_time
-			local remaining = delay_duration_seconds - elapsed
-
-			if remaining > 0 then
-				-- Print countdown once per second
-				if remaining ~= last_countdown_second then
-					last_countdown_second = remaining
-					print(
-						string.format(
-							"RAM monitoring starts in %d second%s...",
-							remaining,
-							remaining == 1 and "" or "s"
-						)
-					)
-				end
-				return -- Skip monitoring during delay
-			else
-				-- Delay expired, activate monitoring
-				if delay_enabled then
-					print("RAM monitoring ACTIVE")
-					delay_enabled = false
-				end
-			end
-		end
-
 		if not active then
 			return
 		end

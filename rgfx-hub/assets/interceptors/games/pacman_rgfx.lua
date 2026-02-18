@@ -7,8 +7,8 @@
 -- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
 
--- Set boot delay to skip RAM test phase (6 seconds)
-ram.set_boot_delay(6)
+-- Skip RAM test phase (6 seconds)
+boot_delay(6)
 
 local cpu = manager.machine.devices[":maincpu"]
 

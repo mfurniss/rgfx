@@ -12,8 +12,8 @@
 -- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
 
--- Boot delay to skip diagnostics and attract mode
-ram.set_boot_delay(14)
+-- Skip diagnostics and attract mode
+boot_delay(14)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
@@ -215,7 +215,6 @@ if DEBUG_SCANNER then
 
 	local frame_num = 0
 	emu.register_frame_done(function()
-		if not ram.is_ready() then return end
 		frame_num = frame_num + 1
 
 		for addr = scan_start, scan_end do
