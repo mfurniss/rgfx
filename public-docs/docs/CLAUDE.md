@@ -53,7 +53,7 @@ docs/
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 4-page onboarding flow (requirements has download links)
 ├── hub-app/                    # Hub application reference (10 pages)
-├── hardware/                   # LED hardware (choosing, wiring, configure, effects, examples)
+├── hardware/                   # LED hardware (choosing, wiring, configure, effects with blend modes, examples)
 ├── interceptors/               # Lua interceptor docs (7 pages, all examples use _G.event() with real game events)
 └── transformers/               # JS transformer docs (5 pages, ambilight has single/multi driver modes)
 ```
