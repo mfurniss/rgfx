@@ -2,6 +2,8 @@
 
 The ambilight module captures colors from the edges of the game screen, enabling ambient lighting effects that react to on-screen visuals.
 
+![Ambilight — LED strips around a monitor reacting to on-screen colors](../assets/images/ambilight.jpg)
+
 ```lua
 local ambilight = require("ambilight")
 ```

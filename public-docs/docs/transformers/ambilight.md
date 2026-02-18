@@ -38,22 +38,6 @@ export const AMBILIGHT_CONFIG = {
 };
 ```
 
-## Multi-Driver Mode
-
-Each screen edge broadcasts to a separate LED strip. Use this when you have individual strips mounted on each side of your display.
-
-```javascript
-mode: 'multi',
-multiDriver: {
-  top: 'rgfx-driver-0004',    // Strip above screen
-  left: 'rgfx-driver-0006',   // Strip on left side
-  right: 'rgfx-driver-0003',  // Strip on right side
-  // bottom: 'rgfx-driver-0007', // Optional bottom strip
-},
-```
-
-Each edge receives its own gradient based on the sampled colors from that portion of the screen.
-
 ## Single-Driver Mode
 
 All edges combine into one continuous gradient on a single strip. Use this when you have one LED strip running around the entire perimeter of your display.
@@ -74,6 +58,22 @@ singleDriver: {
 | `aspectRatio` | Screen dimensions as `[width, height]` for proper edge proportions |
 
 The aspect ratio ensures horizontal edges (top/bottom) receive proportionally more colors than vertical edges (left/right), matching the physical layout of LEDs around a widescreen display.
+
+## Multi-Driver Mode
+
+Each screen edge broadcasts to a separate LED strip. Use this when you have long strips mounted around the room, where each strip covers one direction.
+
+```javascript
+mode: 'multi',
+multiDriver: {
+  top: 'rgfx-driver-0004',    // Strip above screen
+  left: 'rgfx-driver-0006',   // Strip on left side
+  right: 'rgfx-driver-0003',  // Strip on right side
+  // bottom: 'rgfx-driver-0007', // Optional bottom strip
+},
+```
+
+Each edge receives its own gradient based on the sampled colors from that portion of the screen. Since ambilight sets the `background` effect, these strips can still display foreground effects (score flashes, hit indicators, etc.) simultaneously.
 
 ## Effect Output
 

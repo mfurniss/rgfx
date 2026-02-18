@@ -2,6 +2,8 @@
 
 The Event Simulator provides manual event triggering for testing transformers without running MAME.
 
+![Event Simulator](../assets/images/rgfx-hub-simulator.png)
+
 ## Event Rows
 
 Twelve configurable rows let you define and trigger events. Each row contains:

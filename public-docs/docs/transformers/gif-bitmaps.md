@@ -2,6 +2,8 @@
 
 The `loadGif` function loads animated GIF files and converts them to the bitmap effect format used by RGFX drivers.
 
+![Bitmap sprite displayed on an LED matrix](../assets/images/rgfx-bitmap-bub.jpg)
+
 ## Usage
 
 ```javascript

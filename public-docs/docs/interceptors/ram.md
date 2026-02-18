@@ -33,13 +33,13 @@ local map = {
         addr_start = 0x4E80,
         size = 4,
         callback_changed = function(value, previous)
-            event("game/player/score", value)
+            _G.event("galaga/player/score/p1", value)
         end,
     },
     lives = {
         addr_start = 0x4E14,
         callback_changed = function(value, previous)
-            event("game/player/lives", value)
+            _G.event("galaga/player/lives", value)
         end,
     },
 }
@@ -59,7 +59,7 @@ ram.install_ram_monitor({
     size = 4,              -- 1 (byte), 2 (word), or 4 (dword)
     name = "player_score", -- Optional: for debugging
     callback_changed = function(value, previous)
-        event("game/player/score", value)
+        _G.event("galaga/player/score/p1", value)
     end,
 })
 ```

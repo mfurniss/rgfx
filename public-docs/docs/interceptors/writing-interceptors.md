@@ -43,16 +43,16 @@ local map = {
         addr_start = 0x1234,
         size = 2,
         callback_changed = function(value, previous)
-            event("mygame/player/score", value)
+            _G.event("mygame/player/score", value)
         end,
     },
     lives = {
         addr_start = 0x1240,
         callback_changed = function(value, previous)
             if value < previous then
-                event("mygame/player/died")
+                _G.event("mygame/player/died")
             end
-            event("mygame/player/lives", value)
+            _G.event("mygame/player/lives", value)
         end,
     },
 }
@@ -123,7 +123,7 @@ callback_changed = function(value, previous)
 
     local event_name = SCORE_EVENTS[delta]
     if event_name then
-        event("mygame/scored", event_name)
+        _G.event("mygame/scored", event_name)
     end
 
     last_score = score
@@ -137,9 +137,9 @@ Watch for specific value changes:
 ```lua
 callback_changed = function(current, previous)
     if previous == 0x00 and current == 0x01 then
-        event("game/level/started")
+        _G.event("game/level/started")
     elseif previous == 0x01 and current == 0x00 then
-        event("game/level/ended")
+        _G.event("game/level/ended")
     end
 end
 ```
@@ -152,7 +152,7 @@ Useful for enemy kills, items collected, etc.:
 callback_changed = function(current, previous)
     if current > previous then
         local count = current - previous
-        event("game/enemy/destroyed", count)
+        _G.event("game/enemy/destroyed", count)
     end
 end
 ```
@@ -204,7 +204,7 @@ emu.register_frame_done(function()
         if is_new_sound then
             local name = sound_lut[ptr]
             if name then
-                event("robotron/sfx/" .. name)
+                _G.event("robotron/sfx/" .. name)
             end
         end
         last_sound_ptr = ptr
