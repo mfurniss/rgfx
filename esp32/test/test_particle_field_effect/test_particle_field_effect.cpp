@@ -207,14 +207,13 @@ void test_random_color() {
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
-void test_missing_color_returns_early() {
+void test_missing_color_uses_default_white() {
 	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
 	ParticleFieldEffect effect(matrix, canvas);
 
-	// No color prop - should return without spawning particles
+	// No color prop — should use default white and still spawn particles
 	JsonDocument props;
-	props["direction"] = "down";
 	props["density"] = 10;
 	props["enabled"] = "on";
 	effect.add(props);
@@ -222,7 +221,7 @@ void test_missing_color_returns_early() {
 	canvas.clear();
 	effect.render();
 
-	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 }
 
 // =============================================================================
@@ -501,6 +500,235 @@ void test_off_state_skips_update() {
 }
 
 // =============================================================================
+// Per-Particle Color Tests
+// =============================================================================
+
+void test_color_change_preserves_existing_particles() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with red particles
+	auto props = makeParticleFieldProps("#FF0000", "down", 30, 50.0f);
+	effect.add(props);
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	int redBefore = countRedDominantPixels(canvas);
+	TEST_ASSERT_TRUE(redBefore > 0);
+
+	// Change color to blue — existing particles keep red
+	JsonDocument colorProps;
+	colorProps["color"] = "#0000FF";
+	colorProps["enabled"] = "on";
+	effect.add(colorProps);
+
+	// Render immediately — no respawn has happened yet
+	canvas.clear();
+	effect.render();
+	int redAfter = countRedDominantPixels(canvas);
+
+	// Red particles should still be present (no reset)
+	TEST_ASSERT_TRUE(redAfter > 0);
+}
+
+void test_respawned_particles_get_new_color() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with red, high speed so particles leave quickly
+	auto props = makeParticleFieldProps("#FF0000", "down", 20, 900.0f);
+	effect.add(props);
+
+	// Change to blue
+	JsonDocument colorProps;
+	colorProps["color"] = "#0000FF";
+	colorProps["enabled"] = "on";
+	effect.add(colorProps);
+
+	// Run enough frames that all particles have respawned with the new color
+	for (int i = 0; i < 200; i++) {
+		effect.update(0.016f);
+	}
+	canvas.clear();
+	effect.render();
+
+	// After many frames at high speed, all particles should have respawned blue
+	TEST_ASSERT_EQUAL(0, countRedDominantPixels(canvas));
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+// =============================================================================
+// Density Preservation Tests
+// =============================================================================
+
+void test_density_increase_adds_gradually() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with 10 particles
+	auto props = makeParticleFieldProps("#FFFFFF", "down", 10, 100.0f);
+	effect.add(props);
+	for (int i = 0; i < 5; i++) {
+		effect.update(0.016f);
+	}
+
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessBefore = calculateTotalBrightness(canvas);
+
+	// Increase density to 20 — new particles trickle in via update()
+	JsonDocument densityProps;
+	densityProps["density"] = 20;
+	densityProps["enabled"] = "on";
+	effect.add(densityProps);
+
+	// Run enough time for all 10 new particles to spawn (100ms each = ~1s)
+	for (int i = 0; i < 80; i++) {
+		effect.update(0.016f);
+	}
+
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessAfter = calculateTotalBrightness(canvas);
+
+	// More particles = more brightness
+	TEST_ASSERT_TRUE(brightnessAfter > brightnessBefore);
+}
+
+void test_density_decrease_drains_naturally() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with 30 particles, fast speed so they exit quickly
+	auto props = makeParticleFieldProps("#FFFFFF", "down", 30, 500.0f);
+	effect.add(props);
+	effect.update(0.016f);
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessFull = calculateTotalBrightness(canvas);
+	TEST_ASSERT_TRUE(brightnessFull > 0);
+
+	// Decrease target to 10 — particles still rendering immediately (no instant removal)
+	JsonDocument densityProps;
+	densityProps["density"] = 10;
+	densityProps["enabled"] = "on";
+	effect.add(densityProps);
+
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessImmediately = calculateTotalBrightness(canvas);
+	TEST_ASSERT_EQUAL(brightnessFull, brightnessImmediately);
+
+	// After enough time, excess particles have exited and drained
+	for (int i = 0; i < 200; i++) {
+		effect.update(0.016f);
+	}
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessAfterDrain = calculateTotalBrightness(canvas);
+
+	TEST_ASSERT_TRUE(brightnessAfterDrain > 0);
+	TEST_ASSERT_TRUE(brightnessAfterDrain < brightnessFull);
+}
+
+// =============================================================================
+// Minimal Props Tests
+// =============================================================================
+
+void test_minimal_props_fade_out_only() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with full props
+	auto props = makeParticleFieldProps("#FFFFFF", "down", 30, 100.0f);
+	effect.add(props);
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// Send ONLY fadeOut — no color, no density, nothing else
+	JsonDocument fadeProps;
+	fadeProps["enabled"] = "fadeOut";
+	effect.add(fadeProps);
+
+	// Complete the fade
+	for (int i = 0; i < 30; i++) {
+		effect.update(0.05f);
+	}
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_EQUAL(0, countNonBlackPixels(canvas));
+}
+
+void test_minimal_props_color_only() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with red
+	auto props = makeParticleFieldProps("#FF0000", "down", 30, 100.0f);
+	effect.add(props);
+	effect.update(0.1f);
+
+	// Send only color change — should not error or reset
+	JsonDocument colorProps;
+	colorProps["color"] = "#00FF00";
+	colorProps["enabled"] = "on";
+	effect.add(colorProps);
+
+	// Particles should still be running
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_minimal_props_speed_only() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// Start with default speed
+	auto props = makeParticleFieldProps("#FFFFFF", "down", 20, 50.0f);
+	effect.add(props);
+	effect.update(0.1f);
+
+	// Send only speed change
+	JsonDocument speedProps;
+	speedProps["speed"] = 500;
+	speedProps["enabled"] = "on";
+	effect.add(speedProps);
+
+	// Particles should still be running
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_minimal_props_first_call_uses_defaults() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	ParticleFieldEffect effect(matrix, canvas);
+
+	// First call with only color and enabled — should use defaults for everything else
+	JsonDocument props;
+	props["color"] = "#FF0000";
+	props["enabled"] = "on";
+	effect.add(props);
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -517,7 +745,7 @@ int main(int /* argc */, char** /* argv */) {
 	// Color parsing
 	RUN_TEST(test_hex_color_parsing);
 	RUN_TEST(test_random_color);
-	RUN_TEST(test_missing_color_returns_early);
+	RUN_TEST(test_missing_color_uses_default_white);
 
 	// Direction
 	RUN_TEST(test_direction_down_renders);
@@ -535,6 +763,20 @@ int main(int /* argc */, char** /* argv */) {
 
 	// Reset
 	RUN_TEST(test_reset_clears_state);
+
+	// Per-particle color
+	RUN_TEST(test_color_change_preserves_existing_particles);
+	RUN_TEST(test_respawned_particles_get_new_color);
+
+	// Density preservation
+	RUN_TEST(test_density_increase_adds_gradually);
+	RUN_TEST(test_density_decrease_drains_naturally);
+
+	// Minimal props
+	RUN_TEST(test_minimal_props_fade_out_only);
+	RUN_TEST(test_minimal_props_color_only);
+	RUN_TEST(test_minimal_props_speed_only);
+	RUN_TEST(test_minimal_props_first_call_uses_defaults);
 
 	// Snapshot digests
 	RUN_TEST(test_particle_field_digest_16x16);
