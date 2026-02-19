@@ -35,7 +35,8 @@ Application icons in various formats and sizes:
 MAME Lua scripts that intercept game state and emit events:
 - `mame.lua` - MAME/emu type stubs for Lua language server
 - `rom_map.lua` - Maps ROM names to game-specific interceptor scripts
-- `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga)
+- `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga, Galaga 88)
+  - Galaga 88 uses C117 address mapper for RAM access; fire detection reads shot counter at 0x3000C3 (work RAM), enemy explosion uses TRIRAM at 0x2ff02c
 
 ### mame/
 MAME event handling utilities:
