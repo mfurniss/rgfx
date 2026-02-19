@@ -45,7 +45,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Background** | [background.h](background.h)/[background.cpp](background.cpp) | Singleton solid color background. Renders first as a base layer. Supports fade states (enabled/fadeIn/fadeOut/disabled). |
 | **Bitmap** | [bitmap.h](bitmap.h)/[bitmap.cpp](bitmap.cpp) | Animated sprite display with 16-color palette, movement, and fade. |
 | **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
-| **Particle Field** | [particle_field.h](particle_field.h)/[particle_field.cpp](particle_field.cpp) | Field of animated particles with configurable behavior. |
+| **Particle Field** | [particle_field.h](particle_field.h)/[particle_field.cpp](particle_field.cpp) | Directional particle field with per-particle color, gradual density transitions, and incremental prop updates. |
 | **Sparkle** | [sparkle.h](sparkle.h)/[sparkle.cpp](sparkle.cpp) | Twinkling single-LED particles cycling through a gradient. Cloud-based spawning with FIFO particle buffer. |
 | **Plasma** | [plasma.h](plasma.h)/[plasma.cpp](plasma.cpp) | Animated plasma effect using Perlin noise with gradient colors. |
 | **Projectile** | [projectile.h](projectile.h)/[projectile.cpp](projectile.cpp) | Moving rectangular object with direction, velocity, friction, and optional trail. |
@@ -139,7 +139,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | `generated/effect_defaults.h` | Auto-generated constexpr defaults from `defaults.json` (do not edit) |
 | `bitmap.h/cpp` | Animated sprite display with palettized memory storage |
 | `explode.h/cpp` | Radial explosion effect with hueSpread color variation |
-| `particle_field.h/cpp` | Particle field effect |
+| `particle_field.h/cpp` | Particle field with per-particle color, gradual density (targetDensity/spawnTimer), incremental props |
 | `sparkle.h/cpp` | Gradient-cycling sparkle particles with bloom |
 | `plasma.h/cpp` | Perlin noise plasma effect |
 | `projectile.h/cpp` | Moving object with velocity capping and cross-core watchdog |

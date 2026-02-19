@@ -23,11 +23,14 @@ class ParticleFieldEffect : public IEffect {
 		float speed;     // Actual speed (randomized around base)
 		uint8_t alpha;   // Brightness (derived from speed ratio)
 		uint8_t length;  // Length along movement axis (scaled by speed, min 6)
+		uint8_t r, g, b; // Per-particle color (assigned at spawn from state)
 	};
 
 	struct ParticleFieldState {
 		Particle particles[MAX_PARTICLE_FIELD_PARTICLES];
-		uint8_t particleCount;
+		uint8_t particleCount;   // Actual live particles in the array
+		uint8_t targetDensity;   // Desired count — update() gradually adjusts particleCount toward this
+		float spawnTimer;        // Accumulator for throttled spawning when increasing density
 		float baseSpeed;
 		uint8_t size;
 		Direction direction;
