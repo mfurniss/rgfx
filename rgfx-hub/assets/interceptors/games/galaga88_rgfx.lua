@@ -69,48 +69,24 @@ emu.register_frame_done(function()
 	end
 end)
 
--- Sound command addresses discovered via research:
--- 0x2ff027: Player fire (bit 0x10 = fire sound)
--- 0x2ff02c: Enemy explosion (bit 0x80 = explosion)
--- 0x2ff026: Various sounds (0x01, 0x02, 0x10 = different effects)
-
-local prev_fire = 0
+-- Shot counter at 0x3000C3 (increments by 1 each time player fires during gameplay)
+-- Enemy explosion sound trigger at 0x2ff02c bit 0x80 (TRIRAM shared scratch)
+local SHOT_COUNTER_ADDR = 0x3000C3
+local prev_shots = 0
 local prev_explosion = 0
-local prev_sound = 0
 
 emu.register_frame_done(function()
-	-- Player fire detection (0x2ff027 bit 0x10)
-	local fire = c117_mem:read_u8(0x2ff027)
-	if (fire & 0x10) ~= 0 and (prev_fire & 0x10) == 0 then
-		_G.event("galaga88/player/fire")
+	local shots = c117_mem:read_u8(SHOT_COUNTER_ADDR)
+	if shots > prev_shots then
+		_G.event("galaga88/player/fire", shots)
 	end
-	prev_fire = fire
+	prev_shots = shots
 
-	-- Enemy explosion detection (0x2ff02c bit 0x80)
 	local explosion = c117_mem:read_u8(0x2ff02c)
 	if (explosion & 0x80) ~= 0 and (prev_explosion & 0x80) == 0 then
 		_G.event("galaga88/enemy/destroy")
 	end
 	prev_explosion = explosion
-
-	-- Other sound effects (0x2ff026)
-	-- Note: bit 0x10 is fire input, not a sound effect
-	-- local sound = c117_mem:read_u8(0x2ff026)
-	-- if sound ~= prev_sound then
-	-- 	if (sound & 0x80) ~= 0 and (prev_sound & 0x80) == 0 then
-	-- 		print("EVENT: galaga88/sound/music_start")
-	-- 		_G.event("galaga88/sound/music_start")
-	-- 	end
-	-- 	if (sound & 0x02) ~= 0 and (prev_sound & 0x02) == 0 then
-	-- 		print("EVENT: galaga88/sound/effect 2")
-	-- 		_G.event("galaga88/sound/effect", 2)
-	-- 	end
-	-- 	if (sound & 0x01) ~= 0 and (prev_sound & 0x01) == 0 then
-	-- 		print("EVENT: galaga88/sound/effect 3")
-	-- 		_G.event("galaga88/sound/effect", 3)
-	-- 	end
-	-- end
-	-- prev_sound = sound
 end, "galaga88_sound")
 
 -- Text detection across all 6 C123 tilemap layers using byte-level search
@@ -251,3 +227,4 @@ emu.register_frame_done(function()
 		end
 	end
 end, "text_detect")
+

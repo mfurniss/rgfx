@@ -26,18 +26,41 @@ export async function transform(
   }
 
   async function particleWarp() {
-    broadcast({
-      effect: 'particle_field',
-      drivers: [...MATRIX_DRIVERS],
-      props: {
-        direction: 'down',
-        density: 50,
-        speed: 200,
-        size: 16,
-        color: '#FF00FF',
-        enabled: 'on',
-      },
-    });
+    for (let i = 0; i <= 1; i += 0.2) {
+      broadcast({
+        effect: 'particle_field',
+        drivers: [...MATRIX_DRIVERS],
+        props: {
+          direction: 'down',
+          density: 50 + i * 50,
+          speed: 50 + i * 200,
+          size: 4 + i * 3,
+          color: 'random',
+          enabled: 'fadeIn',
+        },
+      });
+
+      await sleep(200);
+    }
+
+    await sleep(4000);
+
+    for (let i = 0.8; i >= 0.2; i -= 0.2) {
+      broadcast({
+        effect: 'particle_field',
+        drivers: [...MATRIX_DRIVERS],
+        props: {
+          direction: 'down',
+          density: 50 + i * 50,
+          speed: 50 + i * 200,
+          size: 4 + i * 3,
+          color: 'random',
+          enabled: 'fadeIn',
+        },
+      });
+
+      await sleep(200);
+    }
   }
 
   if (subject === 'init') {
@@ -45,30 +68,43 @@ export async function transform(
   }
 
   if (subject === 'screen' && property === 'text') {
-    broadcast({
-      effect: 'scroll_text',
-      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
-      props: {
-        reset: true,
-        text: payload,
-        gradient: ['#B00000', '#B00000', '#D0D0D0', '#B00000', '#B00000'],
-        gradientSpeed: 7,
-        gradientScale: -4.2,
-        accentColor: null,
-        speed: 250,
-        repeat: false,
-        snapToLed: true,
-      },
-    });
-
     if (payload === 'START!') {
+      broadcast({
+        effect: 'text',
+        drivers: [NAMED_DRIVERS.primaryMatrix],
+        props: {
+          text: payload,
+          gradient: ['#A00000'],
+          accentColor: '#000000',
+          duration: 3000,
+          reset: true,
+        },
+      });
       await sleep(3000);
-      particleWarp();
-      await sleep(6000);
+      await particleWarp();
       starfield();
-    }
-
-    if (payload === 'PERFECT') {
+    } else if (payload === 'PERFECT') {
+      broadcast({
+        effect: 'text',
+        drivers: ['rgfx-driver-0005'],
+        props: {
+          reset: false,
+          text: 'PERFECT !!',
+          gradient: [
+            '#FF0000',
+            '#FFFF00',
+            '#00FF00',
+            '#00FFFF',
+            '#0000FF',
+            '#FF00FF',
+            '#FF0000',
+          ],
+          gradientSpeed: 5,
+          gradientScale: 5,
+          accentColor: '#000000',
+          duration: 5000,
+        },
+      });
       await sleep(200);
 
       for (var i = 0; i < 60; i++) {
@@ -94,6 +130,22 @@ export async function transform(
 
         await sleep(randomInt(20, 150));
       }
+    } else {
+      broadcast({
+        effect: 'scroll_text',
+        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+        props: {
+          reset: true,
+          text: payload,
+          gradient: ['#B00000', '#B00000', '#D0D0D0', '#B00000', '#B00000'],
+          gradientSpeed: 7,
+          gradientScale: -4.2,
+          accentColor: null,
+          speed: 250,
+          repeat: false,
+          snapToLed: true,
+        },
+      });
     }
   }
 
