@@ -1,4 +1,4 @@
-import { sleep, formatNumber } from '../utils/index.js';
+import { sleep, formatNumber, randomInt } from '../utils/index.js';
 
 import {
   MATRIX_DRIVERS,
@@ -10,7 +10,7 @@ export async function transform(
   { subject, property, qualifier, payload },
   { broadcast },
 ) {
-  if (subject === 'init') {
+  function starfield() {
     broadcast({
       effect: 'particle_field',
       drivers: MATRIX_DRIVERS,
@@ -25,12 +25,83 @@ export async function transform(
     });
   }
 
+  async function particleWarp() {
+    broadcast({
+      effect: 'particle_field',
+      drivers: [...MATRIX_DRIVERS],
+      props: {
+        direction: 'down',
+        density: 50,
+        speed: 200,
+        size: 16,
+        color: '#FF00FF',
+        enabled: 'on',
+      },
+    });
+  }
+
+  if (subject === 'init') {
+    starfield();
+  }
+
+  if (subject === 'screen' && property === 'text') {
+    broadcast({
+      effect: 'scroll_text',
+      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+      props: {
+        reset: true,
+        text: payload,
+        gradient: ['#B00000', '#B00000', '#D0D0D0', '#B00000', '#B00000'],
+        gradientSpeed: 7,
+        gradientScale: -4.2,
+        accentColor: null,
+        speed: 250,
+        repeat: false,
+        snapToLed: true,
+      },
+    });
+
+    if (payload === 'START!') {
+      await sleep(3000);
+      particleWarp();
+      await sleep(6000);
+      starfield();
+    }
+
+    if (payload === 'PERFECT') {
+      await sleep(200);
+
+      for (var i = 0; i < 60; i++) {
+        broadcast({
+          effect: 'explode',
+          drivers: ['*', '*'],
+          props: {
+            color: 'random',
+            reset: false,
+            centerX: 'random',
+            centerY: 'random',
+            friction: 3,
+            gravity: 0,
+            hueSpread: 0,
+            lifespan: 700,
+            lifespanSpread: 50,
+            particleCount: 100,
+            particleSize: 6,
+            power: 120,
+            powerSpread: 80,
+          },
+        });
+
+        await sleep(randomInt(20, 150));
+      }
+    }
+  }
+
   if (subject === 'player' && property === 'score') {
     broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
-        align: 'center',
         text: formatNumber(payload),
         gradient: ['#A0A0A0'],
         accentColor: '#000000',
