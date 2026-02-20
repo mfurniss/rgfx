@@ -13,6 +13,7 @@ import type { GameInfo } from '../types';
 import { CONFIG_DIRECTORY } from '../config/paths';
 import { expandPath } from '../utils/expand-path';
 import { ROM_EXTENSIONS } from '../config/constants';
+import { INVOKE_CHANNELS } from './contract';
 
 function getRomBaseName(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
@@ -48,7 +49,7 @@ function parseRomMap(romMapPath: string): Map<string, string> {
 }
 
 export function registerListGamesHandler(): void {
-  ipcMain.handle('games:list', (_event, romsDirectory?: string): GameInfo[] => {
+  ipcMain.handle(INVOKE_CHANNELS.listGames, (_event, romsDirectory?: string): GameInfo[] => {
     try {
       const interceptorsDir = path.join(CONFIG_DIRECTORY, 'interceptors', 'games');
       const transformersDir = path.join(CONFIG_DIRECTORY, 'transformers', 'games');

@@ -29,6 +29,7 @@ import { startServices, type PowerSaveHandle } from './services/service-startup'
 import { registerAppLifecycleHandlers } from './lifecycle';
 import { ConfigError } from './errors/config-error';
 import { MAX_SYSTEM_ERRORS } from './config/constants';
+import { INVOKE_CHANNELS, SEND_CHANNELS } from './ipc/contract';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (started) {
@@ -99,11 +100,11 @@ if (!systemErrorTracker.hasCriticalError()) {
 }
 
 // Register critical error IPC handlers (always available, even in error state)
-ipcMain.handle('file:show-in-folder', (_event, filePath: string) => {
+ipcMain.handle(INVOKE_CHANNELS.showInFolder, (_event, filePath: string) => {
   shell.showItemInFolder(filePath);
 });
 
-ipcMain.on('app:quit', () => {
+ipcMain.on(SEND_CHANNELS.quitApp, () => {
   app.quit();
 });
 

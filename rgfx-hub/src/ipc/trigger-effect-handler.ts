@@ -13,6 +13,7 @@ import type { UdpClient, EffectPayload } from '../types/transformer-types';
 import type { DriverRegistry } from '../driver-registry';
 import { safeValidateEffectProps } from '../schemas';
 import { eventBus } from '../services/event-bus';
+import { INVOKE_CHANNELS } from './contract';
 
 interface TriggerEffectHandlerDeps {
   udpClient: UdpClient;
@@ -25,7 +26,7 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
   // Socket for sending to localhost (led-sim)
   const localhostSocket = dgram.createSocket('udp4');
 
-  ipcMain.handle('effect:trigger', (_event, payload: EffectPayload) => {
+  ipcMain.handle(INVOKE_CHANNELS.triggerEffect, (_event, payload: EffectPayload) => {
     try {
       // Validate and apply schema defaults to props
       const result = safeValidateEffectProps(payload.effect, payload.props);

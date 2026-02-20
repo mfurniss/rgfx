@@ -487,19 +487,6 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
-### TrpcProvider
-
-**File:** [trpc-provider.tsx](trpc-provider.tsx)
-
-**Purpose:** Context provider for tRPC/React Query integration.
-
-**Features:**
-- Creates IPC link for main process communication
-- Wraps app with QueryClientProvider and trpc.Provider
-- Used at app root for tRPC hooks to work
-
----
-
 ### SuperButton
 
 **File:** [super-button.tsx](super-button.tsx)

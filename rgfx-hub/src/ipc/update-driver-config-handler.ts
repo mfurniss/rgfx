@@ -9,6 +9,7 @@ import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { requireDriverWithMac } from '../utils/driver-utils';
+import { INVOKE_CHANNELS } from './contract';
 
 interface UploadDriverConfigHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -18,7 +19,7 @@ interface UploadDriverConfigHandlerDeps {
 export function registerUpdateDriverConfigHandler(deps: UploadDriverConfigHandlerDeps): void {
   const { driverRegistry, uploadConfigToDriver } = deps;
 
-  ipcMain.handle('driver:update-config', async (_event, driverId: string) => {
+  ipcMain.handle(INVOKE_CHANNELS.updateDriverConfig, async (_event, driverId: string) => {
     log.info(`Update config requested for driver ${driverId}`);
 
     const driver = requireDriverWithMac(driverId, driverRegistry);

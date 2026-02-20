@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from '../app';
 import type { Driver, SystemStatus, SystemError } from '@/types';
+import {
+  installRgfxMock,
+  type MockRgfxAPI,
+} from '@/__tests__/create-rgfx-mock';
 
 // Mock Zustand driver store
 const mockOnDriverConnected = vi.fn();
@@ -57,101 +61,53 @@ vi.mock('../store/system-status-store', () => ({
 }));
 
 describe('App IPC Listener Registration', () => {
-  let mockIpcOnDriverConnected: ReturnType<typeof vi.fn>;
-  let mockIpcOnDriverDisconnected: ReturnType<typeof vi.fn>;
-  let mockIpcOnDriverUpdated: ReturnType<typeof vi.fn>;
-  let mockIpcOnSystemStatus: ReturnType<typeof vi.fn>;
-  let mockRendererReady: ReturnType<typeof vi.fn>;
+  let mock: MockRgfxAPI;
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock window.rgfx IPC bridge - functions now return cleanup functions
-    mockIpcOnDriverConnected = vi.fn(() => vi.fn());
-    mockIpcOnDriverDisconnected = vi.fn(() => vi.fn());
-    mockIpcOnDriverUpdated = vi.fn(() => vi.fn());
-    mockIpcOnSystemStatus = vi.fn(() => vi.fn());
-    mockRendererReady = vi.fn();
-
-    (window as Window & { rgfx: unknown }).rgfx = {
-      onDriverConnected: mockIpcOnDriverConnected,
-      onDriverDisconnected: mockIpcOnDriverDisconnected,
-      onDriverUpdated: mockIpcOnDriverUpdated,
-      onDriverRestarting: vi.fn(() => vi.fn()),
-      onSystemStatus: mockIpcOnSystemStatus,
-      onFlashOtaState: vi.fn(() => vi.fn()),
-      onFlashOtaProgress: vi.fn(() => vi.fn()),
-      onFlashOtaError: vi.fn(() => vi.fn()),
-      rendererReady: mockRendererReady,
-      sendDriverCommand: vi.fn(),
-      updateDriverConfig: vi.fn(),
-      flashOTA: vi.fn(),
-      triggerDiscovery: vi.fn(),
-      triggerEffect: vi.fn(),
-      saveDriverConfig: vi.fn(),
-      getLEDHardwareList: vi.fn(),
-      getLEDHardware: vi.fn(),
-      openDriverLog: vi.fn(),
-      openFile: vi.fn(),
-      listGames: vi.fn(),
-      simulateEvent: vi.fn(),
-      selectDirectory: vi.fn(),
-      verifyDirectory: vi.fn(),
-      getFirmwareManifest: vi.fn(),
-      getFirmwareFile: vi.fn(),
-      setDriverDisabled: vi.fn(),
-      setDriverFallbackEnabled: vi.fn(),
-      onEvent: vi.fn(() => vi.fn()),
-      resetEventCounts: vi.fn(),
-      clearTransformerState: vi.fn(),
-      loadGif: vi.fn(),
-      restartDriver: vi.fn(),
-      deleteDriver: vi.fn(),
-      onDriverDeleted: vi.fn(() => vi.fn()),
-      showInFolder: vi.fn(),
-      getLogSizes: vi.fn().mockResolvedValue({ system: null, events: null, drivers: [] }),
-      clearAllLogs: vi.fn(),
-      createBackup: vi.fn(),
-      quitApp: vi.fn(),
+    mock = installRgfxMock({
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
         licensePath: '/mock/LICENSE',
         defaultRgfxConfigDir: '/mock/.rgfx',
         defaultMameRomsDir: '/mock/mame-roms',
       }),
-    };
+      getLogSizes: vi.fn().mockResolvedValue({
+        system: null, events: null, drivers: [],
+      }),
+    });
   });
 
   it('should register IPC listeners exactly once on mount', () => {
     render(<App />);
 
     // Verify each IPC listener is registered exactly once
-    expect(mockIpcOnDriverConnected).toHaveBeenCalledTimes(1);
-    expect(mockIpcOnDriverDisconnected).toHaveBeenCalledTimes(1);
-    expect(mockIpcOnSystemStatus).toHaveBeenCalledTimes(1);
-    expect(mockRendererReady).toHaveBeenCalledTimes(1);
+    expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    expect(mock.onDriverDisconnected).toHaveBeenCalledTimes(1);
+    expect(mock.onSystemStatus).toHaveBeenCalledTimes(1);
+    expect(mock.rendererReady).toHaveBeenCalledTimes(1);
   });
 
   it('should NOT re-register IPC listeners on re-render', () => {
     const { rerender } = render(<App />);
 
     // Initial registration
-    expect(mockIpcOnDriverConnected).toHaveBeenCalledTimes(1);
+    expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
 
     // Force re-render
     rerender(<App />);
 
     // Still only registered once (not twice)
-    expect(mockIpcOnDriverConnected).toHaveBeenCalledTimes(1);
-    expect(mockIpcOnDriverDisconnected).toHaveBeenCalledTimes(1);
-    expect(mockIpcOnSystemStatus).toHaveBeenCalledTimes(1);
+    expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    expect(mock.onDriverDisconnected).toHaveBeenCalledTimes(1);
+    expect(mock.onSystemStatus).toHaveBeenCalledTimes(1);
   });
 
   it('should call Zustand action exactly once when IPC event fires', () => {
     render(<App />);
 
     // Get the registered callback
-    const registeredCallback = mockIpcOnDriverConnected.mock.calls[0][0];
+    const registeredCallback = mock.onDriverConnected.mock.calls[0][0];
 
     // Simulate IPC event (use 'as Driver' since this is a test mock)
     const mockDriver = {
@@ -192,61 +148,21 @@ describe('App Critical Error Handling', () => {
     systemErrors: [],
   });
 
-  const createWindowMock = (): void => {
-    (window as Window & { rgfx: unknown }).rgfx = {
-      onDriverConnected: vi.fn(() => vi.fn()),
-      onDriverDisconnected: vi.fn(() => vi.fn()),
-      onDriverUpdated: vi.fn(() => vi.fn()),
-      onDriverRestarting: vi.fn(() => vi.fn()),
-      onSystemStatus: vi.fn(() => vi.fn()),
-      onFlashOtaState: vi.fn(() => vi.fn()),
-      onFlashOtaProgress: vi.fn(() => vi.fn()),
-      onFlashOtaError: vi.fn(() => vi.fn()),
-      rendererReady: vi.fn(),
-      sendDriverCommand: vi.fn(),
-      updateDriverConfig: vi.fn(),
-      flashOTA: vi.fn(),
-      triggerDiscovery: vi.fn(),
-      triggerEffect: vi.fn(),
-      saveDriverConfig: vi.fn(),
-      getLEDHardwareList: vi.fn(),
-      getLEDHardware: vi.fn(),
-      openDriverLog: vi.fn(),
-      openFile: vi.fn(),
-      listGames: vi.fn(),
-      simulateEvent: vi.fn(),
-      selectDirectory: vi.fn(),
-      verifyDirectory: vi.fn(),
-      getFirmwareManifest: vi.fn(),
-      getFirmwareFile: vi.fn(),
-      setDriverDisabled: vi.fn(),
-      setDriverFallbackEnabled: vi.fn(),
-      onEvent: vi.fn(() => vi.fn()),
-      resetEventCounts: vi.fn(),
-      clearTransformerState: vi.fn(),
-      loadGif: vi.fn(),
-      restartDriver: vi.fn(),
-      deleteDriver: vi.fn(),
-      onDriverDeleted: vi.fn(() => vi.fn()),
-      showInFolder: vi.fn(),
-      getLogSizes: vi.fn().mockResolvedValue({ system: null, events: null, drivers: [] }),
-      clearAllLogs: vi.fn(),
-      createBackup: vi.fn(),
-      quitApp: vi.fn(),
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset mockSystemStatus to clean state for each test
+    mockSystemStatus = createFreshSystemStatus();
+    installRgfxMock({
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
         licensePath: '/mock/LICENSE',
         defaultRgfxConfigDir: '/mock/.rgfx',
         defaultMameRomsDir: '/mock/mame-roms',
       }),
-    };
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    // Reset mockSystemStatus to clean state for each test
-    mockSystemStatus = createFreshSystemStatus();
-    createWindowMock();
+      getLogSizes: vi.fn().mockResolvedValue({
+        system: null, events: null, drivers: [],
+      }),
+    });
   });
 
   it('should render CriticalErrorModal when config error exists', () => {

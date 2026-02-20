@@ -9,6 +9,7 @@ import { ipcMain, app } from 'electron';
 import path from 'node:path';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
+import { INVOKE_CHANNELS } from './contract';
 import { eventBus } from '../services/event-bus';
 import { setActiveOtaDriver, clearActiveOtaDriver } from '../services/global-error-handler';
 import {
@@ -57,7 +58,7 @@ function getFirmwarePath(chipType: SupportedChip): string {
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
   const { driverRegistry } = deps;
 
-  ipcMain.handle('driver:flash-ota', async (_event, driverId: string): Promise<void> => {
+  ipcMain.handle(INVOKE_CHANNELS.flashOTA, async (_event, driverId: string): Promise<void> => {
     const driver = driverRegistry.getDriver(driverId);
 
     if (!driver) {

@@ -8,6 +8,7 @@
 import { ipcMain } from 'electron';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { LEDHardware } from '../types';
+import { INVOKE_CHANNELS } from './contract';
 
 interface GetLEDHardwareHandlerDeps {
   ledHardwareManager: LEDHardwareManager;
@@ -16,7 +17,10 @@ interface GetLEDHardwareHandlerDeps {
 export function registerGetLEDHardwareHandler(deps: GetLEDHardwareHandlerDeps): void {
   const { ledHardwareManager } = deps;
 
-  ipcMain.handle('led-hardware:get', (_event, hardwareRef: string): LEDHardware | null => {
-    return ledHardwareManager.loadHardware(hardwareRef);
-  });
+  ipcMain.handle(
+    INVOKE_CHANNELS.getLEDHardware,
+    (_event, hardwareRef: string): LEDHardware | null => {
+      return ledHardwareManager.loadHardware(hardwareRef);
+    },
+  );
 }
