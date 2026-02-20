@@ -392,6 +392,7 @@ declare global {
       getFirmwareManifest: () => Promise<unknown>;
       getFirmwareFile: (filename: string) => Promise<Buffer>;
       setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
+      setDriverFallbackEnabled: (enabled: boolean) => Promise<{ success: boolean }>;
       onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
       resetEventCounts: () => Promise<void>;
       clearTransformerState: () => Promise<void>;

@@ -76,6 +76,7 @@ beforeEach(() => {
     getFirmwareManifest: vi.fn(),
     getFirmwareFile: vi.fn(),
     setDriverDisabled: vi.fn(),
+    setDriverFallbackEnabled: vi.fn(),
     onEvent: vi.fn(() => vi.fn()),
     resetEventCounts: vi.fn(),
     clearTransformerState: vi.fn(),
