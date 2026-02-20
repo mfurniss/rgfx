@@ -1,4 +1,4 @@
-import { describe, it, before, after, beforeEach } from 'node:test';
+import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { sleep, trackedTimeout, clearAllTimers } from '../async.js';
 
@@ -16,7 +16,7 @@ describe('sleep', () => {
 
   it('never resolves after clearAllTimers is called', async () => {
     let resolved = false;
-    const promise = sleep(50).then(() => {
+    sleep(50).then(() => {
       resolved = true;
     });
 
@@ -126,7 +126,7 @@ describe('async chain cancellation', () => {
   it('stops an async chain mid-execution', async () => {
     const steps = [];
 
-    const chain = (async () => {
+    (async () => {
       steps.push('before-sleep-1');
       await sleep(30);
       steps.push('after-sleep-1');
@@ -142,6 +142,10 @@ describe('async chain cancellation', () => {
 
     // Wait for what would have been the full chain
     await new Promise((r) => setTimeout(r, 200));
-    assert.deepEqual(steps, ['before-sleep-1'], 'chain should have stopped after clearAllTimers');
+    assert.deepEqual(
+      steps,
+      ['before-sleep-1'],
+      'chain should have stopped after clearAllTimers',
+    );
   });
 });
