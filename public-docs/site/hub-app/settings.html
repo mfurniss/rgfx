@@ -849,6 +849,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#driver-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driver Fallback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#effect-modifiers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1695,6 +1706,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#driver-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driver Fallback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#effect-modifiers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1794,6 +1816,10 @@
 <p>Default: see <a href="../getting-started/hub-setup.html#config-directory">Config Directory</a></p>
 <h3 id="mame-roms-directory">MAME ROMs Directory<a class="headerlink" href="#mame-roms-directory" title="Permanent link">¶</a></h3>
 <p><strong>Optional.</strong> Path to your MAME ROM files. When configured, the <a href="games.html">Games</a> page shows which ROMs have interceptors and transformers.</p>
+<h2 id="driver-fallback">Driver Fallback<a class="headerlink" href="#driver-fallback" title="Permanent link">¶</a></h2>
+<p>When enabled, effects targeting non-existent or offline drivers are routed to the first available online driver instead of being silently dropped.</p>
+<p>This is useful when you have fewer drivers than your transformer configuration expects. For example, the default <code>global.js</code> transformer references multiple named drivers — with fallback enabled, all effects will reach your connected driver even if you only have one.</p>
+<p>Enabled by default.</p>
 <h2 id="effect-modifiers">Effect Modifiers<a class="headerlink" href="#effect-modifiers" title="Permanent link">¶</a></h2>
 <h3 id="strip-explosions">Strip Explosions<a class="headerlink" href="#strip-explosions" title="Permanent link">¶</a></h3>
 <p>Adjusts the lifespan of explosion effects on LED strips. Lower values create shorter, snappier explosions. Higher values extend the visual decay.</p>
