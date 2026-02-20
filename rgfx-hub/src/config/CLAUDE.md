@@ -62,6 +62,10 @@ Configures electron-log for the application.
 - Configures log levels
 - Formats log output
 
+### ipc-channels.ts
+
+Re-exports `IPC` push channel constants and `IpcChannel` type from `../ipc/contract` for backward compatibility. The canonical source of truth for all IPC channels is `src/ipc/contract.ts`.
+
 ### zod-config.ts
 
 Configures Zod for consistent error messages across the app.

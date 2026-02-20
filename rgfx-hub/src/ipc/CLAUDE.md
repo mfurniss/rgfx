@@ -4,9 +4,44 @@
 
 This folder contains Electron IPC (Inter-Process Communication) handlers that enable communication between the renderer process (UI) and the main process. Each handler is registered via `ipcMain.handle()` and can be invoked from the renderer using `ipcRenderer.invoke()`.
 
+## Architecture: Contract-First IPC
+
+All IPC channels, type signatures, and the preload bridge are driven from a single source of truth:
+
+### contract.ts
+
+Single source of truth for all 40 IPC methods:
+- `INVOKE_CHANNELS` — maps method names to channel strings (28 entries)
+- `PUSH_CHANNELS` — push event channels from main → renderer (10 entries)
+- `SEND_CHANNELS` — fire-and-forget channels from renderer → main (2 entries)
+- `InvokeContract`, `PushContract`, `SendContract` — type contracts
+- `RgfxAPI` — auto-derived type used by `Window.rgfx` in `types.ts`
+- Compile-time checks ensure channel map keys match contract keys
+
+### create-preload.ts
+
+Auto-generates the preload API by looping over channel maps. No per-method boilerplate — adding a method to the contract automatically exposes it in the preload.
+
+### handler-registry.ts
+
+Contains the `IpcHandlersDeps` interface and the `handlers` array of all 25 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
+
+### index.ts
+
+Minimal entry point — imports the handlers array and loops over it calling each with deps.
+
+## Adding a New IPC Handler
+
+1. Add 2 lines to `contract.ts` (channel name + type signature)
+2. Create handler file with `INVOKE_CHANNELS.methodName` for the channel
+3. Add 1 import + 1 array entry in `handler-registry.ts`
+4. Create handler test
+
+Preload, `Window.rgfx` type, and test mocks are all auto-derived — no manual updates needed.
+
 ## Handler Registration
 
-All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts), which accepts a dependency injection object containing shared services (including `SystemMonitor` for cleanup operations like clearing UDP stats on driver delete).
+All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts), which loops over the handler registry array with a dependency injection object containing shared services.
 
 ---
 

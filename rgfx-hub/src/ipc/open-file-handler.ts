@@ -8,6 +8,7 @@
 import { ipcMain, shell } from 'electron';
 import * as fs from 'fs';
 import log from 'electron-log/main';
+import { INVOKE_CHANNELS } from './contract';
 
 const FILE_NOT_FOUND_ERROR = 'File does not exist';
 
@@ -27,7 +28,7 @@ export async function openFile(filePath: string): Promise<void> {
 }
 
 export function registerOpenFileHandler(): void {
-  ipcMain.handle('file:open', async (_event, filePath: string) => {
+  ipcMain.handle(INVOKE_CHANNELS.openFile, async (_event, filePath: string) => {
     return openFile(filePath);
   });
 }

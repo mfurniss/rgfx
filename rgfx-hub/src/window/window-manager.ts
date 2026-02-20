@@ -8,7 +8,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import windowStateKeeper from 'electron-window-state';
-import { createIPCHandler } from 'electron-trpc/main';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverRegistry } from '../driver-registry';
 import type { EventFileReader } from '../event-file-reader';
@@ -18,7 +17,6 @@ import type { Logger } from '../services/service-factory';
 import { sendToRenderer } from '../utils/driver-utils';
 import type { IpcChannel } from '../config/ipc-channels';
 import { IPC } from '../config/ipc-channels';
-import { appRouter } from '../trpc/router';
 import {
   MAIN_WINDOW_WIDTH,
   MAIN_WINDOW_HEIGHT,
@@ -180,9 +178,6 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
         }
       }, 1000);
     });
-
-    // Setup tRPC IPC handler for type-safe cross-process communication
-    createIPCHandler({ router: appRouter, windows: [mainWindow] });
 
     // Wait for renderer to signal it's ready before sending initial state
     // Use 'on' instead of 'once' to handle HMR reloads during development

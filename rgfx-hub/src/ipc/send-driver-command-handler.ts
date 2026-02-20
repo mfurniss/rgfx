@@ -10,6 +10,7 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
 import { requireDriverWithMac, buildDriverTopic } from '../utils/driver-utils';
+import { INVOKE_CHANNELS } from './contract';
 
 interface SendDriverCommandHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -20,7 +21,7 @@ export function registerSendDriverCommandHandler(deps: SendDriverCommandHandlerD
   const { driverRegistry, mqtt } = deps;
 
   ipcMain.handle(
-    'driver:send-command',
+    INVOKE_CHANNELS.sendDriverCommand,
     async (_event, driverId: string, command: string, payload?: string) => {
       log.info(`Command '${command}' requested for driver ${driverId}${payload ? ` with payload: ${payload}` : ''}`);
 

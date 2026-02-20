@@ -12,7 +12,6 @@ import { IPC } from '@/config/ipc-channels';
 // Mock Electron modules
 const mockBrowserWindow = vi.fn();
 const mockIpcMainOn = vi.fn();
-const mockCreateIPCHandler = vi.fn();
 const mockWindowStateKeeper = vi.fn().mockReturnValue({
   x: 100,
   y: 100,
@@ -35,14 +34,6 @@ vi.mock('electron', () => ({
 
 vi.mock('electron-window-state', () => ({
   default: mockWindowStateKeeper,
-}));
-
-vi.mock('electron-trpc/main', () => ({
-  createIPCHandler: mockCreateIPCHandler,
-}));
-
-vi.mock('../../trpc/router', () => ({
-  appRouter: {},
 }));
 
 vi.mock('../../config/constants', () => ({
@@ -187,19 +178,6 @@ describe('createWindowManager', () => {
           nodeIntegration: false,
           backgroundThrottling: false,
         }),
-      }),
-    );
-  });
-
-  it('should setup tRPC IPC handler', async () => {
-    const { createWindowManager } = await import('../window-manager.js');
-    const manager = createWindowManager(mockDeps);
-
-    manager.createWindow();
-
-    expect(mockCreateIPCHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        windows: [mockWindow],
       }),
     );
   });
