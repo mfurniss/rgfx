@@ -308,6 +308,22 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 
 ---
 
+### `settings:set-driver-fallback`
+
+**File:** [set-driver-fallback-handler.ts](set-driver-fallback-handler.ts)
+
+**Purpose:** Toggles driver fallback mode on the UDP client.
+
+**Parameters:**
+- `enabled: boolean` - Whether to enable driver fallback
+
+**Returns:** `{ success: boolean }`
+
+**Behavior:**
+- Calls `udpClient.setDriverFallbackEnabled(enabled)` to update the fallback flag
+
+---
+
 ## Error Handling
 
 All handlers follow a standardized error handling pattern:

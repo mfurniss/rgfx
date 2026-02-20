@@ -29,6 +29,14 @@ Default: see [Config Directory](../getting-started/hub-setup.md#config-directory
 
 **Optional.** Path to your MAME ROM files. When configured, the [Games](games.md) page shows which ROMs have interceptors and transformers.
 
+## Driver Fallback
+
+When enabled, effects targeting non-existent or offline drivers are routed to the first available online driver instead of being silently dropped.
+
+This is useful when you have fewer drivers than your transformer configuration expects. For example, the default `global.js` transformer references multiple named drivers — with fallback enabled, all effects will reach your connected driver even if you only have one.
+
+Enabled by default.
+
 ## Effect Modifiers
 
 ### Strip Explosions

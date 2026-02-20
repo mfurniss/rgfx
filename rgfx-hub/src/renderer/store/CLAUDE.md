@@ -206,6 +206,7 @@ interface Notification {
 - `wifiSsid: string` - Persisted WiFi SSID for driver configuration
 - `wifiPassword: string` - Persisted WiFi password for driver configuration
 - `stripExplosionLifespanScale: number` - Scaling factor for explosion effect lifespan on strips
+- `driverFallbackEnabled: boolean` - Whether driver fallback mode is active (default: true)
 
 **Actions:**
 - `setDriverTableSort(field, order)` - Updates driver table sort preferences
@@ -213,6 +214,7 @@ interface Notification {
 - `setSimulatorRow(index, eventLine, autoInterval)` - Updates a simulator row
 - `setWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
 - `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
+- `setDriverFallbackEnabled(enabled)` - Toggles driver fallback mode
 
 **Features:**
 - Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates

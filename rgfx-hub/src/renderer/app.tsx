@@ -22,6 +22,7 @@ import { useDriverStore } from './store/driver-store';
 import { useSystemStatusStore } from './store/system-status-store';
 import { useEventStore } from './store/event-store';
 import { useAppInfoStore } from './store/app-info-store';
+import { useUiStore } from './store/ui-store';
 import { useSimulatorAutoTrigger } from './hooks/use-simulator-auto-trigger';
 import { theme } from './theme';
 
@@ -112,6 +113,11 @@ const App: React.FC = () => {
     if (!rendererReadyCalled) {
       window.rgfx.rendererReady();
       void getAppInfo();
+
+      // Sync persisted settings to main process
+      const { driverFallbackEnabled } = useUiStore.getState();
+      void window.rgfx.setDriverFallbackEnabled(driverFallbackEnabled);
+
       rendererReadyCalled = true;
     }
   }, [getAppInfo]);

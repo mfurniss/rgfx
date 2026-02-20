@@ -49,6 +49,7 @@ interface UiState {
   lastWifiPassword: string;
 
   // Effects settings
+  driverFallbackEnabled: boolean;
   stripLifespanScale: number;
 
   // Firmware update state (transient, not persisted)
@@ -76,6 +77,7 @@ interface UiState {
   ) => void;
   setFirmwareDriverFlashStatus: (status: Record<string, DriverFlashStatus>) => void;
   setLastWifiCredentials: (ssid: string, password: string) => void;
+  setDriverFallbackEnabled: (enabled: boolean) => void;
   setStripLifespanScale: (scale: number) => void;
 }
 
@@ -107,6 +109,7 @@ export const useUiStore = create<UiState>()(
       lastWifiPassword: '',
 
       // Effects settings defaults
+      driverFallbackEnabled: true,
       stripLifespanScale: 0.6,
 
       // Firmware update state
@@ -172,6 +175,10 @@ export const useUiStore = create<UiState>()(
         set({ lastWifiSsid: ssid, lastWifiPassword: password });
       },
 
+      setDriverFallbackEnabled: (enabled) => {
+        set({ driverFallbackEnabled: enabled });
+      },
+
       setStripLifespanScale: (scale) => {
         set({ stripLifespanScale: scale });
       },
@@ -187,6 +194,7 @@ export const useUiStore = create<UiState>()(
         mameRomsDirectory: state.mameRomsDirectory,
         lastWifiSsid: state.lastWifiSsid,
         lastWifiPassword: state.lastWifiPassword,
+        driverFallbackEnabled: state.driverFallbackEnabled,
         stripLifespanScale: state.stripLifespanScale,
       }),
       migrate: (persistedState: unknown) => {

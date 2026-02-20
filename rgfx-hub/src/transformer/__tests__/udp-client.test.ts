@@ -624,6 +624,132 @@ describe('UdpClientImpl', () => {
     });
   });
 
+  describe('driver fallback mode', () => {
+    it('should not fall back when fallback is disabled (default)', () => {
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      udpClient.broadcast(payload);
+
+      expect(udpMock.driverSendCount).toBe(0);
+    });
+
+    it('should fall back to first connected driver when enabled', () => {
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      udpClient.broadcast(payload);
+
+      // Should send to first connected driver (driver-0001)
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
+    });
+
+    it('should not fall back when some targets match', () => {
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-0001', 'rgfx-driver-9999'],
+      };
+
+      udpClient.broadcast(payload);
+
+      // driver-0001 matches, so no fallback — only send to 0001
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
+    });
+
+    it('should not send when fallback enabled but no drivers connected', () => {
+      const emptyRegistry = new DriverRegistry();
+      const emptyClient = new UdpClientImpl(
+        emptyRegistry,
+        mockSystemMonitor,
+      );
+      emptyClient.setDriverFallbackEnabled(true);
+      udpMock.reset();
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      emptyClient.broadcast(payload);
+
+      expect(udpMock.driverSendCount).toBe(0);
+      emptyClient.stop();
+    });
+
+    it('should fall back for *S when no strip drivers exist', () => {
+      // Default registry has no resolvedHardware, so *S finds nothing
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*S'],
+      };
+
+      udpClient.broadcast(payload);
+
+      // Falls back to first connected driver
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
+    });
+
+    it('should fall back for *M when no matrix drivers exist', () => {
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['*M'],
+      };
+
+      udpClient.broadcast(payload);
+
+      // Falls back to first connected driver
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
+    });
+
+    it('should not fall back when broadcast has no target drivers', () => {
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = { effect: 'test' };
+
+      udpClient.broadcast(payload);
+
+      // No selective routing — sends to all connected drivers normally
+      expect(udpMock.driverSendCount).toBe(2);
+    });
+
+    it('should skip disabled drivers for fallback', () => {
+      // Disable driver-0001 so fallback picks driver-0002
+      const driver1 = driverRegistry.getDriver('rgfx-driver-0001');
+
+      if (driver1) {
+        driver1.disabled = true;
+      }
+
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      udpClient.broadcast(payload);
+
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.102');
+    });
+  });
+
   describe('packet size validation', () => {
     it('should reject packets larger than UDP_BUFFER_SIZE', () => {
       const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');

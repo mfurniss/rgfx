@@ -106,6 +106,12 @@ export interface UdpClient {
   broadcast(payload: EffectPayload): boolean;
 
   /**
+   * Enable or disable driver fallback mode.
+   * When enabled, effects targeting non-existent drivers are sent to the first available driver.
+   */
+  setDriverFallbackEnabled(enabled: boolean): void;
+
+  /**
    * Stop the UDP client and release resources
    */
   stop(): void;

@@ -131,6 +131,10 @@ export const rgfxAPI = {
     return ipcRenderer.invoke('driver:set-disabled', driverId, disabled);
   },
 
+  setDriverFallbackEnabled: (enabled: boolean): Promise<{ success: boolean }> => {
+    return ipcRenderer.invoke('settings:set-driver-fallback', enabled);
+  },
+
   onEvent: onIpc<[string, string | undefined]>(IPC.EVENT_RECEIVED),
 
   resetEventCounts: (): Promise<void> => {
