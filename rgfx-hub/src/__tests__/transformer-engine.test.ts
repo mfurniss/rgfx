@@ -1267,17 +1267,14 @@ describe('TransformerEngine', () => {
   });
 
   describe('clearAllDriverEffects', () => {
-    it('should clear effects on init event', async () => {
+    it('should clear effects on rgfx/reset event', async () => {
       const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
       const mockDriver2 = { id: 'driver-2', mac: 'AA:BB:CC:DD:EE:02', disabled: false };
       mockContext.drivers = {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2]),
       } as any;
 
-      const defaultHandler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = defaultHandler;
-
-      await engine.handleEvent('game/init', '');
+      await engine.handleEvent('rgfx/reset', 'galaga88');
 
       // Immediate UDP clear broadcast
       expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
@@ -1287,7 +1284,35 @@ describe('TransformerEngine', () => {
       expect(mockContext.mqtt.publish).toHaveBeenCalledWith('rgfx/driver/AA:BB:CC:DD:EE:02/clear-effects', '', 2);
     });
 
-    it('should clear transformer state when clearing driver effects', async () => {
+    it('should clear transformer state on rgfx/reset event', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      await engine.handleEvent('rgfx/reset', 'galaga88');
+
+      expect(mockContext.state.clear).toHaveBeenCalled();
+    });
+
+    it('should not cascade to handlers after rgfx/reset', async () => {
+      const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
+      mockContext.drivers = {
+        getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
+      } as any;
+
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).subjectHandlers.set('reset', subjectHandler);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('rgfx/reset', 'galaga88');
+
+      expect(subjectHandler).not.toHaveBeenCalled();
+      expect(defaultHandler).not.toHaveBeenCalled();
+    });
+
+    it('should not clear effects on init event', async () => {
       const mockDriver1 = { id: 'driver-1', mac: 'AA:BB:CC:DD:EE:01', disabled: false };
       mockContext.drivers = {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1]),
@@ -1296,9 +1321,12 @@ describe('TransformerEngine', () => {
       const defaultHandler = vi.fn().mockReturnValue(true);
       (engine as any).defaultHandler = defaultHandler;
 
-      await engine.handleEvent('game/init', '');
+      await engine.handleEvent('game/init', 'game');
 
-      expect(mockContext.state.clear).toHaveBeenCalled();
+      // Init should NOT clear — rgfx/reset handles clearing separately
+      expect(mockContext.broadcast).not.toHaveBeenCalledWith({ effect: 'clear' });
+      expect(mockContext.mqtt.publish).not.toHaveBeenCalled();
+      expect(mockContext.state.clear).not.toHaveBeenCalled();
     });
 
     it('should clear effects on shutdown event', async () => {
@@ -1324,10 +1352,7 @@ describe('TransformerEngine', () => {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2, mockDriver3]),
       } as any;
 
-      const defaultHandler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = defaultHandler;
-
-      await engine.handleEvent('game/init', '');
+      await engine.handleEvent('rgfx/reset', 'game');
 
       // Should only clear effects on enabled drivers (driver-1 and driver-3)
       expect(mockContext.mqtt.publish).toHaveBeenCalledTimes(2);
@@ -1341,10 +1366,7 @@ describe('TransformerEngine', () => {
         getConnectedDrivers: vi.fn().mockReturnValue([]),
       } as any;
 
-      const defaultHandler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = defaultHandler;
-
-      await engine.handleEvent('game/init', '');
+      await engine.handleEvent('rgfx/reset', 'game');
 
       // UDP clear still broadcasts (fire-and-forget to all drivers)
       expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
@@ -1359,10 +1381,7 @@ describe('TransformerEngine', () => {
         getConnectedDrivers: vi.fn().mockReturnValue([mockDriver1, mockDriver2]),
       } as any;
 
-      const defaultHandler = vi.fn().mockReturnValue(true);
-      (engine as any).defaultHandler = defaultHandler;
-
-      await engine.handleEvent('game/init', '');
+      await engine.handleEvent('rgfx/reset', 'game');
 
       expect(mockContext.broadcast).toHaveBeenCalledWith({ effect: 'clear' });
       expect(mockContext.mqtt.publish).not.toHaveBeenCalled();

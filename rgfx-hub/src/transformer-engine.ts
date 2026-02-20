@@ -38,6 +38,7 @@ export class TransformerEngine {
   private propertyHandlers: TransformerHandler[] = [];
   private defaultHandler?: TransformerHandler;
   private watcher?: ReturnType<typeof watch>;
+  private clearAllTimersFn?: () => void;
   private importModule: (path: string) => Promise<Record<string, unknown>>;
   constructor(
     private context: TransformerContext,
@@ -133,6 +134,19 @@ export class TransformerEngine {
           `${this.propertyHandlers.length} properties, ` +
           `${this.defaultHandler ? '1' : '0'} default`,
       );
+
+      // Load timer cleanup from transformer utils (plain import — no cache-bust
+      // so we get the same module instance the transformers use)
+      try {
+        const asyncUtilsUrl = pathToFileURL(join(transformersDir, 'utils', 'async.js')).href;
+        const asyncUtils = (await import(asyncUtilsUrl)) as Record<string, unknown>;
+
+        if (typeof asyncUtils.clearAllTimers === 'function') {
+          this.clearAllTimersFn = asyncUtils.clearAllTimers as () => void;
+        }
+      } catch {
+        this.context.log.warn('Could not load clearAllTimers from transformer utils');
+      }
 
       // Start watching for file changes
       this.startFileWatcher(transformersDir);
@@ -247,10 +261,13 @@ export class TransformerEngine {
   }
 
   /**
-   * Clear effects on all connected, enabled drivers
-   * Called when a game init event is received to reset driver state
+   * Clear effects on all connected, enabled drivers.
+   * Cancels timers, resets state, sends UDP clear, and MQTT QoS 2 backup.
    */
   private async clearAllDriverEffects(): Promise<void> {
+    // Cancel all pending transformer timers (sleep, trackedTimeout)
+    this.clearAllTimersFn?.();
+
     // Reset transformer state so loops checking state values stop naturally
     this.context.state.clear();
 
@@ -310,9 +327,13 @@ export class TransformerEngine {
       const topicObj = this.parseTopic(topic, payload);
       const { namespace, subject } = topicObj;
 
-      // Clear effects on all drivers when a game init event is received
-      if (subject === 'init') {
+      // Full reset: clear timers, state, UDP + MQTT. Sent by Lua bootstrap
+      // before loading a new game. The init event follows ~500ms later,
+      // giving MQTT clears time to reach all drivers.
+      if (namespace === 'rgfx' && subject === 'reset') {
+        this.context.log.info('Reset requested — clearing all effects');
         await this.clearAllDriverEffects();
+        return;
       }
 
       // Clear effects on all drivers when game shuts down

@@ -1,4 +1,4 @@
-import { randomInt, sleep } from '../utils/index.js';
+import { randomInt, sleep, trackedTimeout } from '../utils/index.js';
 import { PICO8_PALETTE } from '../palettes.js';
 import {
   PACMAN_SPRITE_OPEN_MOUTH,
@@ -175,7 +175,7 @@ export async function transform(
     if (payload.startsWith('ghost')) {
       bonusLatch = true;
 
-      setTimeout(() => {
+      trackedTimeout(() => {
         bonusLatch = false;
       }, 3000);
 

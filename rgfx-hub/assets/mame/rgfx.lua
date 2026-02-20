@@ -97,12 +97,22 @@ local load_interceptor = function()
 	print("Loading interceptor: " .. game_script .. ".lua")
 	-- Set game name in global scope so interceptor can use it for event prefixes
 	_G.rgfx.rom = lookup_key
+	-- Reset clears timers, state, and all driver effects (UDP + MQTT QoS 2).
+	-- Sent before loading so any in-flight effects from a previous game are killed.
+	event("rgfx/reset", lookup_key)
+
 	local status, err = pcall(require, game_script)
 	if status then
 		print("Successfully loaded interceptor: " .. game_script .. ".lua")
-		-- Emit game init event AFTER interceptor loads so Hub can load the game mapper
-		-- Use lookup_key (cart_name for consoles, rom_name for arcade) to match event prefixes
-		event(lookup_key .. "/init", lookup_key)
+		-- Delay init ~500ms (30 frames) so MQTT clears reach drivers before new effects
+		local init_frames = 0
+		emu.register_frame_done(function()
+			init_frames = init_frames + 1
+			if init_frames >= 30 then
+				event(lookup_key .. "/init", lookup_key)
+				init_frames = -9999 -- one-shot guard
+			end
+		end, "init_delay")
 	else
 		local error_msg = tostring(err)
 		print("Error loading interceptor: " .. error_msg)

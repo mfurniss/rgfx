@@ -1,3 +1,5 @@
+_G.boot_delay(6)
+
 -- Optional: Enable FFT audio analysis for visual effects
 -- local fft = require("fft")
 -- fft.init({
@@ -7,8 +9,6 @@
 -- 	boot_delay = 3,
 --   devices = { "ymsnd" },
 -- })
-
-_G.boot_delay(6)
 
 -- Access RAM via C117's program space (not maincpu which goes through bank switching)
 local c117 = manager.machine.devices[":c117"]
@@ -35,7 +35,8 @@ local SCORE_LUT = {
 	[100]  = "zako",          -- zako attacking
 	[150]  = "boss",          -- boss in formation
 	[160]  = "goei",          -- goei attacking
-	[200]  = "don",           -- don attacking
+	[200]  = "don-attack",    -- don attacking
+--	[300]  = "don",           -- don in formation
 	[400]  = "boss",          -- boss attacking solo
 	[600]  = "hiyoko",        -- formation escort (4 hits)
 	[800]  = "boss-convoy",   -- boss + 1 escort
@@ -70,10 +71,8 @@ emu.register_frame_done(function()
 end)
 
 -- Shot counter at 0x3000C3 (increments by 1 each time player fires during gameplay)
--- Enemy explosion sound trigger at 0x2ff02c bit 0x80 (TRIRAM shared scratch)
 local SHOT_COUNTER_ADDR = 0x3000C3
 local prev_shots = 0
-local prev_explosion = 0
 
 emu.register_frame_done(function()
 	local shots = c117_mem:read_u8(SHOT_COUNTER_ADDR)
@@ -81,13 +80,7 @@ emu.register_frame_done(function()
 		_G.event("galaga88/player/fire", shots)
 	end
 	prev_shots = shots
-
-	local explosion = c117_mem:read_u8(0x2ff02c)
-	if (explosion & 0x80) ~= 0 and (prev_explosion & 0x80) == 0 then
-		_G.event("galaga88/enemy/destroy")
-	end
-	prev_explosion = explosion
-end, "galaga88_sound")
+end, "galaga88_fire")
 
 -- Text detection across all 6 C123 tilemap layers using byte-level search
 -- Tile code is the odd byte of each 2-byte tile entry
@@ -174,7 +167,7 @@ watch_text("READY")
 -- watch_text("STAGE")
 -- watch_text("DIMENSION")
 watch_text("GAME  OVER")
-watch_text("INSERT COIN")
+-- watch_text("INSERT COIN")
 -- watch_text("SCORE")
 watch_text("SELECT MODE")
 watch_text("START!")

@@ -2,7 +2,7 @@
 local ram = require("ram")
 
 -- Skip RAM test phase (16 seconds)
-boot_delay(16)
+_G.boot_delay(16)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
