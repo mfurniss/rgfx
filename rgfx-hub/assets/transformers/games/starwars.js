@@ -17,7 +17,7 @@
 // 17,18 fly away from death star
 // 42 DS surface
 
-import { randomInt, sleep, formatNumber } from '../utils/index.js';
+import { randomInt, sleep, formatNumber, trackedTimeout } from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let laserIndex = 0;
@@ -27,7 +27,7 @@ let goingIn = false;
 
 function blockScore() {
   scoreLatch = false;
-  setTimeout(() => {
+  trackedTimeout(() => {
     scoreLatch = true;
   }, 3000);
 }
@@ -95,7 +95,7 @@ export async function transform(
         return true;
       }
 
-      setTimeout(() => {
+      trackedTimeout(() => {
         goingIn = false;
       }, 10000);
 

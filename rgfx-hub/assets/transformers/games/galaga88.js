@@ -8,7 +8,7 @@ import {
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast },
+  { broadcast, log },
 ) {
   function starfield() {
     broadcast({
@@ -80,7 +80,7 @@ export async function transform(
           reset: true,
         },
       });
-      await sleep(3000);
+      await sleep(2500);
       await particleWarp();
       starfield();
     } else if (payload === 'PERFECT') {
@@ -185,14 +185,44 @@ export async function transform(
   }
 
   if (subject === 'enemy' && property === 'destroy') {
+    if (qualifier === 'don') {
+      (async () => {
+        for (var i = 0; i < 3; i++) {
+          broadcast({
+            effect: 'pulse',
+            drivers: [
+              NAMED_DRIVERS.frontStrip,
+              NAMED_DRIVERS.leftMatrix,
+              NAMED_DRIVERS.rightMatrix,
+            ],
+            props: {
+              color: 'random',
+              reset: false,
+              duration: 500,
+              easing: 'quinticOut',
+              fade: true,
+              collapse: i & 1 ? 'horizontal' : 'vertical',
+            },
+          });
+          await sleep(80);
+        }
+      })();
+
+      return true;
+    }
+
     const delta = Number(payload);
 
     const colors = {
       zako: '#E04400',
       goei: '#C0A000',
       boss: '#00A0FF',
-      don: '#FFA0A0',
+      'don-attack': '#FFA0A0',
     };
+
+    if (!colors[qualifier]) {
+      log.warn('unknown enemy type', qualifier, delta);
+    }
 
     broadcast({
       effect: 'explode',
