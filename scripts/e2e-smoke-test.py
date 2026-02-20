@@ -598,14 +598,15 @@ class ProcessMonitor:
         main_mem_values = [s["main_memory_mb"] for s in self.samples if "main_memory_mb" in s]
         renderer_mem_values = [s["renderer_memory_mb"] for s in self.samples if "renderer_memory_mb" in s]
 
-        # Calculate memory trend on total
+        # Calculate memory trend, skipping warm-up period.
+        # Compare 3rd quarter vs 4th quarter so both are post-warm-up.
         trend = "stable"
-        if len(total_mem_values) >= 4:
+        if len(total_mem_values) >= 8:
             quarter = len(total_mem_values) // 4
-            first_quarter_avg = statistics.mean(total_mem_values[:quarter])
-            last_quarter_avg = statistics.mean(total_mem_values[-quarter:])
-            if first_quarter_avg > 0:
-                change = (last_quarter_avg - first_quarter_avg) / first_quarter_avg
+            q3_avg = statistics.mean(total_mem_values[quarter * 2:quarter * 3])
+            q4_avg = statistics.mean(total_mem_values[quarter * 3:])
+            if q3_avg > 0:
+                change = (q4_avg - q3_avg) / q3_avg
                 if change > 0.20:
                     trend = "growing"
                 elif change < -0.10:
@@ -1199,7 +1200,7 @@ class TestRunner:
                         elapsed = current_time - self.start_time
                         rate = self.events_sent / elapsed if elapsed > 1 else 0
                         print(
-                            f"  [{elapsed:6.1f}s] Events: {self.events_sent:5d}, "
+                            f"  [{elapsed:4.0f}s] Events: {self.events_sent:5d}, "
                             f"Rate: {rate:5.1f}/s, "
                             f"CPU: {sample.get('cpu_percent', 0):5.1f}%, "
                             f"Mem: {sample.get('memory_rss_mb', 0):6.1f}MB"
@@ -1237,7 +1238,7 @@ class TestRunner:
             if self.verbose:
                 elapsed = time.time() - self.start_time
                 print(
-                    f"  [{elapsed:6.1f}s] COOLDOWN  "
+                    f"  [{elapsed:4.0f}s] COOLDOWN  "
                     f"CPU: {sample.get('cpu_percent', 0):5.1f}%, "
                     f"Mem: {sample.get('memory_rss_mb', 0):6.1f}MB"
                 )
