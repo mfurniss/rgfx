@@ -4,102 +4,33 @@
 --
 -- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
 
--- ROM-to-Interceptor Mapping Configuration
+-- ROM-to-Interceptor Variant Mapping
 --
--- This file maps ROM names and cartridge filenames to their corresponding interceptor files.
+-- The framework automatically tries to load "{romname}_rgfx" for any ROM,
+-- so games like "pacman", "starwars", "galaga88" etc. don't need entries here.
+-- This file only needs entries for variants whose name doesn't match the
+-- interceptor's base name (e.g., "mspacman" → "pacman_rgfx").
 --
--- For arcade games: Uses ROM name from emu.romname() (e.g., "pacman", "mspacman")
--- For console games: Uses cartridge filename without extension (e.g., "smb" from "smb.nes")
---
--- Multiple ROMs can map to the same interceptor (many-to-one relationship).
--- Example: pacman and mspacman both use pacman_rgfx.lua
+-- Key = base name (ROM name or interceptor name), value = array of variants.
+-- Flattened at runtime so rgfx.lua gets { variant = "base_rgfx" }.
 
-return {
-	-- ============================================================================
-	-- Arcade Games (ROM name → interceptor)
-	-- ============================================================================
+local variants = {
+	-- Arcade
+	pacman   = { "mspacman" },
+	defender = { "defenderg", "defenderb", "defenderw" },
+	outrun   = { "outruna", "outrunb" },
+	sharrier = { "sharrier1", "sharrierj" },
+	shangon  = { "shangon1", "shangon2", "shangon3", "shangon3d", "shangonle" },
+	ssf2     = { "ssf2u", "ssf2a", "ssf2j", "ssf2t", "ssf2tu", "ssf2ta", "ssf2tj" },
 
-	-- Pac-Man variants (all share same RAM map)
-	pacman = "pacman_rgfx",
-	mspacman = "pacman_rgfx",
-
-	-- Galaga
-	galaga = "galaga_rgfx",
-
-	-- Robotron: 2084
-	robotron = "robotron_rgfx",
-
-	-- Williams Defender variants
-	defender = "defender_rgfx",
-	defenderg = "defender_rgfx",
-	defenderb = "defender_rgfx",
-	defenderw = "defender_rgfx",
-
-	-- Star Wars (Atari 1983)
-	starwars = "starwars_rgfx",
-
-	-- OutRun variants
-	outrun = "outrun_rgfx",
-	outruna = "outrun_rgfx",
-	outrunb = "outrun_rgfx",
-
-	-- Space Harrier variants
-	sharrier = "sharrier_rgfx",
-	sharrier1 = "sharrier_rgfx",
-	sharrierj = "sharrier_rgfx",
-
-	-- Super Hang-On variants
-	shangon = "shangon_rgfx",
-	shangon1 = "shangon_rgfx",
-	shangon2 = "shangon_rgfx",
-	shangon3 = "shangon_rgfx",
-	shangon3d = "shangon_rgfx",
-	shangonle = "shangon_rgfx",
-
-	-- Super Street Fighter II (CPS2)
-	ssf2 = "ssf2_rgfx",
-	ssf2u = "ssf2_rgfx",
-	ssf2a = "ssf2_rgfx",
-	ssf2j = "ssf2_rgfx",
-	ssf2t = "ssf2_rgfx",
-	ssf2tu = "ssf2_rgfx",
-	ssf2ta = "ssf2_rgfx",
-	ssf2tj = "ssf2_rgfx",
-
-	-- ============================================================================
-	-- NES Games (cartridge filename → interceptor)
-	-- ============================================================================
-
-	-- Super Mario Bros (USA)
-	smb = "nes_smb_rgfx",
-
-	-- Super Mario Bros (World edition) - shares interceptor with smb
-	smw = "nes_smb_rgfx",
-
-	-- ============================================================================
-	-- SNES Games (cartridge filename → interceptor)
-	-- ============================================================================
-
-	-- Super Mario World (handle various filename formats)
-	["Super Mario World (USA)"] = "snes_smw_rgfx",
-	["super_mario_world"] = "snes_smw_rgfx",
-	smworld = "snes_smw_rgfx",
-
-	-- ============================================================================
-	-- Future Examples (add as needed)
-	-- ============================================================================
-
-	-- NES:
-	-- smb3 = "nes_smb3_rgfx",
-	-- zelda = "nes_zelda_rgfx",
-	-- metroid = "nes_metroid_rgfx",
-
-	-- Genesis/Mega Drive:
-	-- sonic = "genesis_sonic_rgfx",
-	-- sonic2 = "genesis_sonic2_rgfx",
-	-- goldenaxe = "genesis_goldenaxe_rgfx",
-
-	-- SNES:
-	-- zelda_lttp = "snes_zelda_lttp_rgfx",
-	-- super_metroid = "snes_super_metroid_rgfx",
+	-- Console (key = interceptor name, values = cartridge filenames)
+	nes_smb  = { "smb", "smw" },
 }
+
+local map = {}
+for base, names in pairs(variants) do
+	for _, name in ipairs(names) do
+		map[name] = base .. "_rgfx"
+	end
+end
+return map

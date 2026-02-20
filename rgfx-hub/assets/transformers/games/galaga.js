@@ -29,6 +29,7 @@ export async function transform({ subject, property, payload }, { broadcast }) {
       },
     });
   }
+
   if (subject === 'player' && property === 'score' && Number(payload) > 0) {
     broadcast({
       effect: 'text',

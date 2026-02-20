@@ -279,6 +279,7 @@ async function waitForCI(tagName) {
   fs.mkdirSync(releaseSubDir, { recursive: true });
 
   let artifact;
+  let artifactName;
 
   if (platform === 'darwin') {
     const dmgFiles = findFiles(MAKE_DIR, name => name.endsWith('.dmg'));
@@ -286,6 +287,9 @@ async function waitForCI(tagName) {
       fail('No .dmg found in rgfx-hub/out/make/');
     }
     artifact = dmgFiles[0];
+    // Extract arch from Forge filename: rgfx-hub-{version}-{arch}.dmg
+    const arch = path.basename(artifact, '.dmg').split('-').pop();
+    artifactName = `rgfx-${version}-${platformDir}-${arch}.dmg`;
   } else {
     // Windows: find the Setup.exe, ignore .nupkg and RELEASES
     const exeFiles = findFiles(MAKE_DIR, name => name.endsWith('.exe'));
@@ -293,9 +297,10 @@ async function waitForCI(tagName) {
       fail('No .exe found in rgfx-hub/out/make/');
     }
     artifact = exeFiles[0];
+    // Squirrel doesn't embed arch in filename, use build machine arch
+    artifactName = `rgfx-${version}-${platformDir}-${os.arch()}.exe`;
   }
 
-  const artifactName = path.basename(artifact);
   const releasePath = path.join(releaseSubDir, artifactName);
   fs.copyFileSync(artifact, releasePath);
 
@@ -310,7 +315,7 @@ async function waitForCI(tagName) {
   if (!token) fail('Could not extract glab auth token. Run: glab auth login');
 
   const projectId = JSON.parse(runCapture('glab api projects/:fullpath')).id;
-  const packageUrl = `https://gitlab.com/api/v4/projects/${projectId}/packages/generic/rgfx-hub/${tag}/${artifactName}`;
+  const packageUrl = `https://gitlab.com/api/v4/projects/${projectId}/packages/generic/rgfx/${tag}/${artifactName}`;
 
   console.log('  Uploading to Package Registry...');
   run(`curl --fail --header "Authorization: Bearer ${token}" --upload-file "${releasePath}" "${packageUrl}"`);

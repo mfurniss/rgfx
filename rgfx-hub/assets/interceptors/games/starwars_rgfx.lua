@@ -10,7 +10,7 @@
 local ram = require("ram")
 
 -- Skip attract mode and RAM tests
-ram.set_boot_delay(2)
+boot_delay(2)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]

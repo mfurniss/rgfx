@@ -11,8 +11,8 @@
 -- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
 
--- Boot delay to skip diagnostics and attract mode
-ram.set_boot_delay(13)
+-- Skip diagnostics and attract mode
+boot_delay(13)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
@@ -254,7 +254,6 @@ local sound_lut = {
 local last_sound_ptr = 0
 
 emu.register_frame_done(function()
-	if not ram.is_ready() then return end
 	local ptr_hi = mem:read_u8(0x9854)
 	local ptr_lo = mem:read_u8(0x9855)
 	local ptr = (ptr_hi << 8) | ptr_lo

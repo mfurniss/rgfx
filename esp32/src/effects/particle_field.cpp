@@ -5,7 +5,7 @@
 #include <cstring>
 
 ParticleFieldEffect::ParticleFieldEffect(const Matrix& m, Canvas& c)
-	: state{{}, 0, 0.0f, 4, Direction::DOWN, 255, 255, 255, {}}, canvas(c) {
+	: state{{}, 0, 0, 0.0f, 0.0f, 4, Direction::DOWN, 255, 255, 255, {}}, canvas(c) {
 	(void)m;  // Matrix not needed, but kept for API consistency
 }
 
@@ -37,6 +37,11 @@ void ParticleFieldEffect::spawnParticle(Particle& p) {
 	constexpr uint8_t MIN_LENGTH = 6;
 	uint8_t lengthRange = (state.size > MIN_LENGTH) ? (state.size - MIN_LENGTH) : 0;
 	p.length = MIN_LENGTH + static_cast<uint8_t>(normalizedSpeed * lengthRange);
+
+	// Per-particle color from current state
+	p.r = state.r;
+	p.g = state.g;
+	p.b = state.b;
 
 	// Snap perpendicular axis to LED grid
 	// Perpendicular dimension is always 4 canvas pixels
@@ -80,6 +85,11 @@ void ParticleFieldEffect::respawnAtEdge(Particle& p) {
 	constexpr uint8_t MIN_LENGTH = 6;
 	uint8_t lengthRange = (state.size > MIN_LENGTH) ? (state.size - MIN_LENGTH) : 0;
 	p.length = MIN_LENGTH + static_cast<uint8_t>(normalizedSpeed * lengthRange);
+
+	// Pick up current color on respawn
+	p.r = state.r;
+	p.g = state.g;
+	p.b = state.b;
 
 	// Respawn at opposite edge with perpendicular axis snapped to LED grid
 	// Perpendicular dimension is always 4 canvas pixels
@@ -132,74 +142,80 @@ void ParticleFieldEffect::add(JsonDocument& props) {
 		return;
 	}
 
-	// Parse direction
-	const char* dirStr = props["direction"] | effect_defaults::particle_field::direction;
-	Direction direction = Direction::DOWN;
-	if (strcmp(dirStr, "up") == 0) {
-		direction = Direction::UP;
-	} else if (strcmp(dirStr, "down") == 0) {
-		direction = Direction::DOWN;
-	} else if (strcmp(dirStr, "left") == 0) {
-		direction = Direction::LEFT;
-	} else if (strcmp(dirStr, "right") == 0) {
-		direction = Direction::RIGHT;
+	bool firstTime = (state.particleCount == 0);
+
+	// Update direction only if provided (use default on first call)
+	if (props["direction"].is<const char*>()) {
+		const char* dirStr = props["direction"].as<const char*>();
+		if (strcmp(dirStr, "up") == 0) {
+			state.direction = Direction::UP;
+		} else if (strcmp(dirStr, "down") == 0) {
+			state.direction = Direction::DOWN;
+		} else if (strcmp(dirStr, "left") == 0) {
+			state.direction = Direction::LEFT;
+		} else if (strcmp(dirStr, "right") == 0) {
+			state.direction = Direction::RIGHT;
+		}
+	} else if (firstTime) {
+		const char* dirStr = effect_defaults::particle_field::direction;
+		if (strcmp(dirStr, "up") == 0) {
+			state.direction = Direction::UP;
+		} else if (strcmp(dirStr, "left") == 0) {
+			state.direction = Direction::LEFT;
+		} else if (strcmp(dirStr, "right") == 0) {
+			state.direction = Direction::RIGHT;
+		} else {
+			state.direction = Direction::DOWN;
+		}
 	}
 
-	// Parse density (1-100)
-	uint8_t density = 20;
-	if (props["density"].is<int>()) {
-		density = props["density"].as<int>();
-		if (density < 1) density = 1;
-		if (density > MAX_PARTICLE_FIELD_PARTICLES) density = MAX_PARTICLE_FIELD_PARTICLES;
-	}
-
-	// Parse speed (10-1000 pixels/second)
-	float speed = 50.0f;
+	// Update speed only if provided
 	if (props["speed"].is<float>() || props["speed"].is<int>()) {
-		speed = props["speed"].as<float>();
+		float speed = props["speed"].as<float>();
 		if (speed < 10.0f) speed = 10.0f;
 		if (speed > 1000.0f) speed = 1000.0f;
+		state.baseSpeed = speed;
+	} else if (firstTime) {
+		state.baseSpeed = effect_defaults::particle_field::speed;
 	}
 
-	// Parse size (1-16)
-	uint8_t size = 4;
+	// Update size only if provided
 	if (props["size"].is<int>()) {
-		size = props["size"].as<int>();
+		uint8_t size = props["size"].as<int>();
 		if (size < 1) size = 1;
 		if (size > 16) size = 16;
+		state.size = size;
+	} else if (firstTime) {
+		state.size = effect_defaults::particle_field::size;
 	}
 
-	// Parse color - hub must provide this
-	if (!props["color"].is<const char*>()) {
-		hal::log("ERROR: particle_field missing required 'color' prop");
-		publishError("particle_field", "missing required 'color' prop", props);
-		return;
-	}
-	const char* colorStr = props["color"].as<const char*>();
-	uint8_t r, g, b;
-	if (strcmp(colorStr, "random") == 0) {
-		uint32_t c = randomColor();
-		r = (c >> 16) & 0xFF;
-		g = (c >> 8) & 0xFF;
-		b = c & 0xFF;
-	} else {
-		uint32_t c = parseColor(colorStr);
-		r = (c >> 16) & 0xFF;
-		g = (c >> 8) & 0xFF;
-		b = c & 0xFF;
+	// Update color only if provided
+	if (props["color"].is<const char*>()) {
+		const char* colorStr = props["color"].as<const char*>();
+		uint32_t c;
+		if (strcmp(colorStr, "random") == 0) {
+			c = randomColor();
+		} else {
+			c = parseColor(colorStr);
+		}
+		state.r = (c >> 16) & 0xFF;
+		state.g = (c >> 8) & 0xFF;
+		state.b = c & 0xFF;
 	}
 
-	// Store state
-	state.direction = direction;
-	state.baseSpeed = speed;
-	state.size = size;
-	state.r = r;
-	state.g = g;
-	state.b = b;
+	// Handle density — update() gradually adjusts particleCount toward target
+	if (props["density"].is<int>()) {
+		uint8_t density = props["density"].as<int>();
+		if (density < 1) density = 1;
+		if (density > MAX_PARTICLE_FIELD_PARTICLES) density = MAX_PARTICLE_FIELD_PARTICLES;
+		state.targetDensity = density;
+	} else if (firstTime) {
+		state.targetDensity = effect_defaults::particle_field::density;
+	}
 
-	// Spawn or adjust particles based on density change
-	if (density != state.particleCount) {
-		state.particleCount = density;
+	// On first call, spawn all particles immediately (fade-in handles the visual)
+	if (firstTime && state.particleCount == 0) {
+		state.particleCount = state.targetDensity;
 		for (uint8_t i = 0; i < state.particleCount; i++) {
 			spawnParticle(state.particles[i]);
 		}
@@ -219,29 +235,54 @@ void ParticleFieldEffect::update(float deltaTime) {
 	Direction dir = getEffectiveDirection();
 
 	// Update particle positions
-	// Respawn when particle fully exits the canvas (including its length)
-	for (uint8_t i = 0; i < state.particleCount; i++) {
+	// When a particle exits: respawn it or drain it depending on target density
+	for (uint8_t i = 0; i < state.particleCount; ) {
 		Particle& p = state.particles[i];
 		float movement = p.speed * deltaTime;
+		bool exited = false;
 
 		switch (dir) {
 			case Direction::DOWN:
 				p.y += movement;
-				if (p.y >= height) respawnAtEdge(p);
+				exited = (p.y >= height);
 				break;
 			case Direction::UP:
 				p.y -= movement;
-				if (p.y + p.length < 0) respawnAtEdge(p);
+				exited = (p.y + p.length < 0);
 				break;
 			case Direction::LEFT:
 				p.x -= movement;
-				if (p.x + p.length < 0) respawnAtEdge(p);
+				exited = (p.x + p.length < 0);
 				break;
 			case Direction::RIGHT:
 				p.x += movement;
-				if (p.x >= width) respawnAtEdge(p);
+				exited = (p.x >= width);
 				break;
 		}
+
+		if (exited) {
+			if (state.particleCount > state.targetDensity) {
+				// Drain: swap with last particle and shrink
+				state.particles[i] = state.particles[state.particleCount - 1];
+				state.particleCount--;
+				continue;  // Re-check this index (now has the swapped particle)
+			}
+			respawnAtEdge(p);
+		}
+		i++;
+	}
+
+	// Gradually add particles when below target (throttled so they trickle in)
+	if (state.particleCount < state.targetDensity) {
+		constexpr float SPAWN_INTERVAL = 0.1f;  // One new particle every 100ms
+		state.spawnTimer += deltaTime;
+		if (state.spawnTimer >= SPAWN_INTERVAL) {
+			state.spawnTimer -= SPAWN_INTERVAL;
+			respawnAtEdge(state.particles[state.particleCount]);
+			state.particleCount++;
+		}
+	} else {
+		state.spawnTimer = 0.0f;
 	}
 
 	// Handle fade transitions using shared FadeState
@@ -273,10 +314,10 @@ void ParticleFieldEffect::render() {
 		// Combine particle alpha with global fade alpha
 		uint8_t alpha = (static_cast<uint16_t>(p.alpha) * globalAlpha) / 255;
 
-		// Scale color by alpha for additive-like appearance
-		uint8_t r = (state.r * alpha) / 255;
-		uint8_t g = (state.g * alpha) / 255;
-		uint8_t b = (state.b * alpha) / 255;
+		// Scale per-particle color by alpha for additive-like appearance
+		uint8_t r = (p.r * alpha) / 255;
+		uint8_t g = (p.g * alpha) / 255;
+		uint8_t b = (p.b * alpha) / 255;
 
 		int16_t x = static_cast<int16_t>(p.x);
 		int16_t y = static_cast<int16_t>(p.y);
@@ -288,6 +329,8 @@ void ParticleFieldEffect::render() {
 void ParticleFieldEffect::reset() {
 	state.fade = FadeState{};  // Reset to default (OFF state)
 	state.particleCount = 0;
+	state.targetDensity = 0;
+	state.spawnTimer = 0.0f;
 	state.baseSpeed = 0.0f;
 	state.size = 4;
 	state.direction = Direction::DOWN;
