@@ -2,6 +2,12 @@
 
 Before you begin, here's what you'll need to set up RGFX. The minimum viable setup is surprisingly simple and inexpensive.
 
+## Software
+
+- **RGFX package** — includes the RGFX Hub desktop app (macOS and Windows) along with MAME interceptor scripts, event transformer scripts, and ESP32 driver firmware — [download from GitLab](https://gitlab.com/mfurniss/rgfx/-/releases)
+
+- **MAME** version 0.250 or later — [download from mamedev.org](https://www.mamedev.org/release.html)
+
 ## Hardware
 
 ### The Essentials
@@ -30,14 +36,6 @@ For detailed hardware recommendations and wiring guidance, see [Choosing Hardwar
 | ESP32-WROOM-32 | Recommended — widely tested, dual-core |
 | ESP32-S3 | Works well — newer generation |
 | ESP32-C3 Super Mini | Works — smaller and cheaper, but requires soldering headers |
-
-## Software
-
-- **RGFX Hub** — the desktop application that coordinates everything
-- **MAME** version 0.250 or later
-    - [macOS version](https://sdlmame.lngn.net)
-    - [Windows version](https://www.mamedev.org/release.html)
-- **Your favorite emulation frontend** (optional) — works with any frontend that launches the external MAME app
 
 ## Next Step
 

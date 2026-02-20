@@ -1,22 +1,168 @@
-// Galaga 88 game-specific mapper
+import { sleep, formatNumber, randomInt } from '../utils/index.js';
 
-import { formatNumber } from '../utils/index.js';
-import { NAMED_DRIVERS } from '../global.js';
+import {
+  MATRIX_DRIVERS,
+  NAMED_DRIVERS,
+  SECONDARY_MATRIX_DRIVERS,
+} from '../global.js';
 
-export function transform({ subject, property, payload }, { broadcast }) {
+export async function transform(
+  { subject, property, qualifier, payload },
+  { broadcast, log },
+) {
+  function starfield() {
+    broadcast({
+      effect: 'particle_field',
+      drivers: MATRIX_DRIVERS,
+      props: {
+        direction: 'down',
+        density: 40,
+        speed: 50,
+        size: 1,
+        color: '#606060',
+        enabled: 'fadeIn',
+      },
+    });
+  }
+
+  async function particleWarp() {
+    for (let i = 0; i <= 1; i += 0.2) {
+      broadcast({
+        effect: 'particle_field',
+        drivers: [...MATRIX_DRIVERS],
+        props: {
+          direction: 'down',
+          density: 50 + i * 50,
+          speed: 50 + i * 200,
+          size: 4 + i * 3,
+          color: 'random',
+          enabled: 'fadeIn',
+        },
+      });
+
+      await sleep(200);
+    }
+
+    await sleep(4000);
+
+    for (let i = 0.8; i >= 0.2; i -= 0.2) {
+      broadcast({
+        effect: 'particle_field',
+        drivers: [...MATRIX_DRIVERS],
+        props: {
+          direction: 'down',
+          density: 50 + i * 50,
+          speed: 50 + i * 200,
+          size: 4 + i * 3,
+          color: 'random',
+          enabled: 'fadeIn',
+        },
+      });
+
+      await sleep(200);
+    }
+  }
+
+  if (subject === 'init') {
+    starfield();
+  }
+
+  if (subject === 'screen' && property === 'text') {
+    if (payload === 'START!') {
+      broadcast({
+        effect: 'text',
+        drivers: [NAMED_DRIVERS.primaryMatrix],
+        props: {
+          text: payload,
+          gradient: ['#A00000'],
+          accentColor: '#000000',
+          duration: 3000,
+          reset: true,
+        },
+      });
+      await sleep(2500);
+      await particleWarp();
+      starfield();
+    } else if (payload === 'PERFECT') {
+      broadcast({
+        effect: 'text',
+        drivers: ['rgfx-driver-0005'],
+        props: {
+          reset: false,
+          text: 'PERFECT !!',
+          gradient: [
+            '#FF0000',
+            '#FFFF00',
+            '#00FF00',
+            '#00FFFF',
+            '#0000FF',
+            '#FF00FF',
+            '#FF0000',
+          ],
+          gradientSpeed: 5,
+          gradientScale: 5,
+          accentColor: '#000000',
+          duration: 5000,
+        },
+      });
+      await sleep(200);
+
+      for (var i = 0; i < 60; i++) {
+        broadcast({
+          effect: 'explode',
+          drivers: ['*', '*'],
+          props: {
+            color: 'random',
+            reset: false,
+            centerX: 'random',
+            centerY: 'random',
+            friction: 3,
+            gravity: 0,
+            hueSpread: 0,
+            lifespan: 700,
+            lifespanSpread: 50,
+            particleCount: 100,
+            particleSize: 6,
+            power: 120,
+            powerSpread: 80,
+          },
+        });
+
+        await sleep(randomInt(20, 150));
+      }
+    } else {
+      broadcast({
+        effect: 'scroll_text',
+        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+        props: {
+          reset: true,
+          text: payload,
+          gradient: ['#B00000', '#B00000', '#D0D0D0', '#B00000', '#B00000'],
+          gradientSpeed: 7,
+          gradientScale: -4.2,
+          accentColor: null,
+          speed: 250,
+          repeat: false,
+          snapToLed: true,
+        },
+      });
+    }
+  }
+
   if (subject === 'player' && property === 'score') {
-    return broadcast({
+    broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
-        align: 'center',
         text: formatNumber(payload),
-        gradient: ['#808060'],
-        accentColor: '#603000',
-        duration: 3000,
+        gradient: ['#A0A0A0'],
+        accentColor: '#000000',
+        duration: 6000,
         reset: true,
       },
     });
+
+    return true;
   }
 
   if (subject === 'player' && property === 'fire') {
@@ -38,37 +184,82 @@ export function transform({ subject, property, payload }, { broadcast }) {
     }
   }
 
-  // Enemy destroyed - particle explosion
   if (subject === 'enemy' && property === 'destroy') {
-    return broadcast({
+    if (qualifier === 'don') {
+      (async () => {
+        for (var i = 0; i < 3; i++) {
+          broadcast({
+            effect: 'pulse',
+            drivers: [
+              NAMED_DRIVERS.frontStrip,
+              NAMED_DRIVERS.leftMatrix,
+              NAMED_DRIVERS.rightMatrix,
+            ],
+            props: {
+              color: 'random',
+              reset: false,
+              duration: 500,
+              easing: 'quinticOut',
+              fade: true,
+              collapse: i & 1 ? 'horizontal' : 'vertical',
+            },
+          });
+          await sleep(80);
+        }
+      })();
+
+      return true;
+    }
+
+    const delta = Number(payload);
+
+    const colors = {
+      zako: '#E04400',
+      goei: '#C0A000',
+      boss: '#00A0FF',
+      'don-attack': '#FFA0A0',
+    };
+
+    if (!colors[qualifier]) {
+      log.warn('unknown enemy type', qualifier, delta);
+    }
+
+    broadcast({
       effect: 'explode',
-      drivers: ['*', '*'],
+      drivers: MATRIX_DRIVERS,
       props: {
-        color: '#FF4400',
+        color: colors[qualifier] ?? '#409040',
         centerX: 'random',
         centerY: 'random',
-        particleCount: 80,
-        power: 180,
-        lifespan: 380,
-        powerSpread: 40,
+        particleCount: Math.min(delta, 500),
+        power: 150 + delta / 5,
+        lifespan: 320 + delta,
+        powerSpread: Math.max(30, Math.min(90, Math.round(delta / 3))),
         particleSize: 4,
-        hueSpread: 40,
+        hueSpread: 50,
         friction: 3,
         lifespanSpread: 40,
       },
     });
+
+    if (delta > 500 && delta <= 9999) {
+      await sleep(150);
+
+      broadcast({
+        effect: 'text',
+        drivers: SECONDARY_MATRIX_DRIVERS,
+        props: {
+          text: String(Math.round(delta / 100) * 100),
+          gradient: ['#0080FF', '#FFFF00', '#FF0000', '#0080FF'],
+          gradientSpeed: 7,
+          gradientScale: 0,
+          accentColor: '#000000',
+          duration: 2000,
+          reset: true,
+        },
+      });
+    }
   }
 
-  // Sound effects - color based on effect number in payload
-  if (subject === 'sound' && property === 'effect') {
-    // const effectNum = parseInt(payload);
-    // const color = EFFECT_COLORS[effectNum] || "#FFFFFF";
-    // return broadcast({
-    //   effect: "pulse",
-    //   props: {
-    //     color,
-    //     duration: 150,
-    //   },
-    // });
-  }
+  return true;
 }

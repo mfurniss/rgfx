@@ -2,6 +2,8 @@
 
 The Event Monitor shows game events streaming in real-time as you play. It's useful for verifying that your interceptor is detecting events correctly and for understanding what's happening behind the scenes.
 
+![Event Monitor](../assets/images/rgfx-hub-event-monitor.png)
+
 ## Event Table
 
 | Column | Description |
@@ -16,9 +18,9 @@ The table is sortable by topic or count.
 
 Numeric values in the 16-bit range (0-65535) show both decimal and hexadecimal representations (e.g., `2,500 (0x09C4)`).
 
-## Click to Simulate
+## Click to Replay
 
-Click any event row to immediately re-trigger that event through the transformer pipeline. This is useful for testing effect mappings without running the game.
+Click any row in the event table to immediately fire that event again through the transformer pipeline with its last recorded value. This triggers the same LED effects as the original event, making it easy to test and iterate on effect mappings without restarting the game.
 
 ## Reset Counts
 

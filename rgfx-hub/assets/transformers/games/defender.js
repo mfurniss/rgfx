@@ -11,14 +11,10 @@ export async function transform(
   { subject, property, qualifier, payload },
   { broadcast, hslToHex },
 ) {
-  // Let init events pass through to subject handlers
-  // if (subject === 'init') {
-  //   return false;
-  // }
-
-  if (subject === 'player' && property === 'score') {
+  if (subject === 'player' && property === 'score' && Number(payload) > 0) {
     const color = hslToHex(scoreHue, 100, 30);
     scoreHue = (scoreHue + 30) % 360;
+
     broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
@@ -35,7 +31,8 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'explode') {
-    await sleep(500);
+    await sleep(400);
+
     broadcast({
       effect: 'explode',
       props: {
@@ -55,27 +52,6 @@ export async function transform(
       },
     });
   }
-
-  // if (subject === 'player' && property === 'lives') {
-  //   if (payload != livesRemaining) {
-  //     livesRemaining = payload;
-  //     broadcast({
-  //       effect: 'text',
-  //       drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
-  //       props: {
-  //         align: 'center',
-  //         text: `L:${Number(livesRemaining)}`,
-  //         duration: 6000,
-  //         reset: true,
-  //         gradient: ['#0080FF', '#00FFFF', '#FFFFFF', '#00FFFF', '#0080FF'],
-  //         gradientSpeed: 3,
-  //         gradientScale: 0,
-  //         accentColor: '#001040',
-  //       },
-  //     });
-  //   }
-  //   return true;
-  // }
 
   if (subject === 'player' && property === 'fire') {
     const effect = {
@@ -103,94 +79,8 @@ export async function transform(
     return true;
   }
 
-  // // -- Player death --
-  // if (subject === 'player' && property === 'die') {
-  //   return broadcast({
-  //     effect: 'explode',
-  //     props: {
-  //       color: '#80C0FF',
-  //       reset: false,
-  //       centerX: 50,
-  //       centerY: 50,
-  //       friction: 3,
-  //       gravity: 0,
-  //       hueSpread: 30,
-  //       lifespan: 2000,
-  //       lifespanSpread: 70,
-  //       particleCount: 400,
-  //       particleSize: 10,
-  //       power: 300,
-  //       powerSpread: 100,
-  //     },
-  //   });
-  // }
-
-  // // -- Smart bomb used --
-  // if (subject === 'player' && property === 'smart-bomb-used') {
-  //   broadcast({
-  //     effect: 'background',
-  //     props: {
-  //       gradient: {
-  //         colors: ['#FFFFFF'],
-  //         orientation: 'horizontal',
-  //       },
-  //       fadeDuration: 0,
-  //     },
-  //   });
-  //   await sleep(100);
-  //   broadcast({
-  //     effect: 'explode',
-  //     props: {
-  //       color: '#FFFFFF',
-  //       reset: false,
-  //       centerX: 50,
-  //       centerY: 50,
-  //       friction: 2,
-  //       gravity: 0,
-  //       hueSpread: 60,
-  //       lifespan: 1500,
-  //       lifespanSpread: 50,
-  //       particleCount: 600,
-  //       particleSize: 12,
-  //       power: 400,
-  //       powerSpread: 50,
-  //     },
-  //   });
-  //   await sleep(200);
-  //   broadcast({
-  //     effect: 'background',
-  //     props: {
-  //       gradient: {
-  //         colors: ['#000000'],
-  //         orientation: 'horizontal',
-  //       },
-  //       fadeDuration: 500,
-  //     },
-  //   });
-  //   return true;
-  // }
-
-  // // -- Smart bomb count display --
-  // if (subject === 'player' && property === 'smart-bombs') {
-  //   broadcast({
-  //     effect: 'text',
-  //     drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
-  //     props: {
-  //       align: 'center',
-  //       text: `B:${payload}`,
-  //       duration: 3000,
-  //       reset: true,
-  //       gradient: ['#FFFFFF', '#FFFF00', '#FF8000'],
-  //       gradientSpeed: 2,
-  //       gradientScale: 0,
-  //       accentColor: '#200000',
-  //     },
-  //   });
-  //   return true;
-  // }
-
   if (subject === 'humanoid' && property === 'rescue') {
-    return broadcast({
+    broadcast({
       effect: 'text',
       drivers: SECONDARY_MATRIX_DRIVERS,
       props: {
@@ -203,9 +93,10 @@ export async function transform(
         reset: true,
       },
     });
+
+    return true;
   }
 
-  // -- Humanoid lost --
   if (subject === 'humanoid' && property === 'lost') {
     return broadcast({
       effect: 'pulse',
@@ -221,7 +112,6 @@ export async function transform(
     });
   }
 
-  // -- All humanoids lost (planet explodes) --
   if (subject === 'humanoid' && property === 'all-lost') {
     const props = {
       speed: 8,
@@ -396,26 +286,4 @@ export async function transform(
 
     return true;
   }
-
-  // Swarmer - yellow pulse (small fast enemies from pods)
-  // if (
-  //   subject === 'enemy' &&
-  //   property === 'swarmer' &&
-  //   qualifier === 'destroy'
-  // ) {
-  //   return broadcast({
-  //     effect: 'pulse',
-  //     drivers: ['*', '*'],
-  //     props: {
-  //       color: '#C0C000',
-  //       reset: false,
-  //       duration: 300,
-  //       easing: 'quinticOut',
-  //       fade: true,
-  //       collapse: 'random',
-  //     },
-  //   });
-  // }
-
-  // return true;
 }

@@ -297,9 +297,5 @@ local map = {
 	-- },
 }
 
--- Send initialization event to inform Hub which game is running
--- This allows Hub to load the correct game-specific mapper
-_G.event(game_name .. "/init", "1")
-
 ram.install_monitors(map, mem)
 

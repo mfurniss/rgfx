@@ -1,33 +1,11 @@
--- This Source Code Form is subject to the terms of the Mozilla Public
--- License, v. 2.0. If a copy of the MPL was not distributed with this
--- file, You can obtain one at http://mozilla.org/MPL/2.0/.
---
--- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
-
 -- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
 
--- Set boot delay to skip RAM test phase (16 seconds)
-ram.set_boot_delay(16)
+-- Skip RAM test phase (16 seconds)
+_G.boot_delay(16)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
-
--- Score delta to event lookup table
--- local SCORE_EVENTS = {
--- 	[50] = "galaga/enemy/destroy/bee",          -- bee in formation
--- 	[80] = "galaga/enemy/destroy/butterfly",    -- butterfly in formation
--- 	[100] = "galaga/enemy/destroy/bee",         -- bee diving (or challenge hit)
--- 	[150] = "galaga/enemy/destroy/boss",        -- boss in formation
--- 	[160] = "galaga/enemy/destroy/butterfly",   -- butterfly diving (or transform individual)
--- 	[400] = "galaga/enemy/destroy/boss",        -- boss diving alone
--- 	[800] = "galaga/enemy/destroy/boss-convoy", -- boss + 1 escort diving
--- 	[1000] = "galaga/bonus/transform",          -- all scorpions destroyed
--- 	[1600] = "galaga/enemy/destroy/boss-convoy", -- boss + 2 escorts diving
--- 	[2000] = "galaga/bonus/transform",          -- all stingrays destroyed
--- 	[3000] = "galaga/bonus/transform",          -- all galaxian flagships destroyed
--- 	-- [10000] = "galaga/bonus/perfect",           -- perfect challenging stage
--- }
 
 -- Galaga Player 1 current score in video RAM at 0x83F8 - 0x83FD
 -- Player ship X position at 0x9362 (gameplay buffer, verified via runtime analysis)
@@ -173,8 +151,6 @@ for slot = 0, 63 do
 end
 
 emu.register_frame_done(function()
-	if not ram.is_ready() then return end
-
 	for slot = 0, 63 do
 		local addr = SPRITE_CODE_BASE + (slot * 2)
 		local val = mem:read_u8(addr) & 0x7F

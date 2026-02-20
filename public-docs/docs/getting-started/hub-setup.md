@@ -2,9 +2,6 @@
 
 The RGFX Hub is the desktop application that ties everything together. It watches for game events from MAME, decides which LED effects to trigger, and sends commands to your ESP32 drivers over WiFi. It also handles firmware updates and driver configuration.
 
-!!! note
-    RGFX Hub is not yet publicly available. Check back for download links when the project is open-sourced.
-
 ## Config Directory
 
 RGFX stores all user-editable files in a single config directory:
