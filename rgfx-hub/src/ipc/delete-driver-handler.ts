@@ -13,6 +13,7 @@ import type { DriverConfig } from '../driver-config';
 import type { SystemMonitor } from '../system-monitor';
 import { requireDriver, sendToRenderer } from '../utils/driver-utils';
 import { IPC } from '../config/ipc-channels';
+import { INVOKE_CHANNELS } from './contract';
 
 interface DeleteDriverHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -24,7 +25,7 @@ interface DeleteDriverHandlerDeps {
 export function registerDeleteDriverHandler(deps: DeleteDriverHandlerDeps): void {
   const { driverRegistry, driverConfig, systemMonitor, getMainWindow } = deps;
 
-  ipcMain.handle('driver:delete', (_event, driverId: string) => {
+  ipcMain.handle(INVOKE_CHANNELS.deleteDriver, (_event, driverId: string) => {
     log.info(`Deleting driver ${driverId}`);
 
     // Validate driver exists (don't need MAC for delete)

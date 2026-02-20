@@ -9,6 +9,7 @@ import { ipcMain, app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import log from 'electron-log/main';
+import { INVOKE_CHANNELS } from './contract';
 
 function getFirmwareDir(): string {
   return app.isPackaged
@@ -17,7 +18,7 @@ function getFirmwareDir(): string {
 }
 
 export function registerFirmwareFilesHandler(): void {
-  ipcMain.handle('firmware:get-manifest', async () => {
+  ipcMain.handle(INVOKE_CHANNELS.getFirmwareManifest, async () => {
     try {
       const firmwareDir = getFirmwareDir();
       const manifestPath = path.join(firmwareDir, 'manifest.json');
@@ -33,7 +34,7 @@ export function registerFirmwareFilesHandler(): void {
     }
   });
 
-  ipcMain.handle('firmware:get-file', async (_event, filename: string) => {
+  ipcMain.handle(INVOKE_CHANNELS.getFirmwareFile, async (_event, filename: string) => {
     try {
       // Validate filename to prevent path traversal
       if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {

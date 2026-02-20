@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { UdpClient } from '../types/transformer-types';
+import { INVOKE_CHANNELS } from './contract';
 
 interface SetDriverFallbackHandlerDeps {
   udpClient: UdpClient;
@@ -10,7 +11,7 @@ export function registerSetDriverFallbackHandler(deps: SetDriverFallbackHandlerD
   const { udpClient } = deps;
 
   ipcMain.handle(
-    'settings:set-driver-fallback',
+    INVOKE_CHANNELS.setDriverFallbackEnabled,
     (_event, enabled: boolean) => {
       log.info(`Setting driver fallback enabled: ${enabled}`);
       udpClient.setDriverFallbackEnabled(enabled);

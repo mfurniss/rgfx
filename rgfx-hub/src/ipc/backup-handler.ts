@@ -10,10 +10,11 @@ import { ipcMain, dialog } from 'electron';
 import log from 'electron-log/main';
 import { format } from 'date-fns';
 import { CONFIG_DIRECTORY } from '../config/paths';
+import { INVOKE_CHANNELS } from './contract';
 
 export function registerBackupHandler(): void {
   ipcMain.handle(
-    'backup:create',
+    INVOKE_CHANNELS.createBackup,
     async (): Promise<{ success: boolean; error?: string }> => {
       const defaultFilename = `rgfx-backup-${format(new Date(), 'yyyy-MM-dd')}.zip`;
 

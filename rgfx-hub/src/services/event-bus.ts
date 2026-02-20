@@ -13,7 +13,7 @@ import { EVENT_BUS_LOGGING } from '../config/constants';
 /**
  * Type-safe event payloads. Add new events here.
  */
-export interface AppEventMap {
+interface AppEventMap {
   'network:error': { code: string };
   'network:changed': undefined;
 

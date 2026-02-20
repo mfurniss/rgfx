@@ -18,6 +18,7 @@ import {
   sendToRenderer,
 } from '../utils/driver-utils';
 import { IPC } from '../config/ipc-channels';
+import { INVOKE_CHANNELS } from './contract';
 
 interface SetDriverDisabledHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -30,7 +31,7 @@ export function registerSetDriverDisabledHandler(deps: SetDriverDisabledHandlerD
   const { driverRegistry, driverConfig, mqtt, getMainWindow } = deps;
 
   ipcMain.handle(
-    'driver:set-disabled',
+    INVOKE_CHANNELS.setDriverDisabled,
     (_event, driverId: string, disabled: boolean) => {
       log.info(`Setting disabled state for driver ${driverId}: ${disabled}`);
 

@@ -10,9 +10,10 @@ import log from 'electron-log/main';
 import { loadGif } from '../gif-loader';
 import { eventBus } from '../services/event-bus';
 import type { GifBitmapResult } from '../types/transformer-types';
+import { INVOKE_CHANNELS } from './contract';
 
 export function registerLoadGifHandler(): void {
-  ipcMain.handle('dialog:load-gif', async (): Promise<GifBitmapResult | null> => {
+  ipcMain.handle(INVOKE_CHANNELS.loadGif, async (): Promise<GifBitmapResult | null> => {
     const result = await dialog.showOpenDialog({
       title: 'Select GIF Image',
       filters: [

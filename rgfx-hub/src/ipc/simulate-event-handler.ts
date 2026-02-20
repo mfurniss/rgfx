@@ -7,6 +7,7 @@
 
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
+import { INVOKE_CHANNELS } from './contract';
 
 interface SimulateEventHandlerDeps {
   onEventProcessed: (topic: string, payload: string) => void;
@@ -15,7 +16,7 @@ interface SimulateEventHandlerDeps {
 export function registerSimulateEventHandler(deps: SimulateEventHandlerDeps): void {
   const { onEventProcessed } = deps;
 
-  ipcMain.handle('event:simulate', (_event, eventLine: string) => {
+  ipcMain.handle(INVOKE_CHANNELS.simulateEvent, (_event, eventLine: string) => {
     log.info(`[SimulateEventHandler] Simulating event: ${eventLine}`);
 
     // Parse event line: format is "topic payload" (space-delimited)

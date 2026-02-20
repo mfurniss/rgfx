@@ -11,6 +11,7 @@ import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
 import { rebootDriver } from '../services/driver-service';
 import { requireDriver } from '../utils/driver-utils';
+import { INVOKE_CHANNELS } from './contract';
 
 interface RestartDriverHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -20,7 +21,7 @@ interface RestartDriverHandlerDeps {
 export function registerRestartDriverHandler(deps: RestartDriverHandlerDeps): void {
   const { driverRegistry, mqtt } = deps;
 
-  ipcMain.handle('driver:restart', async (_event, driverId: string) => {
+  ipcMain.handle(INVOKE_CHANNELS.restartDriver, async (_event, driverId: string) => {
     log.info(`Restart requested for driver ${driverId}`);
 
     const driver = requireDriver(driverId, driverRegistry);

@@ -106,11 +106,13 @@ local load_interceptor = function()
 		print("Successfully loaded interceptor: " .. game_script .. ".lua")
 		-- Delay init ~500ms (30 frames) so MQTT clears reach drivers before new effects
 		local init_frames = 0
+		local init_sent = false
 		emu.register_frame_done(function()
+			if init_sent then return end
 			init_frames = init_frames + 1
 			if init_frames >= 30 then
+				init_sent = true
 				event(lookup_key .. "/init", lookup_key)
-				init_frames = -9999 -- one-shot guard
 			end
 		end, "init_delay")
 	else
