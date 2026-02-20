@@ -6,6 +6,9 @@ site_url: https://rgfx.io/
 site_description: Retro Game Effects - External visual effects for retro video games
 strict: true
 
+exclude_docs: |
+  CLAUDE.md
+
 theme:
   name: material
   custom_dir: overrides
