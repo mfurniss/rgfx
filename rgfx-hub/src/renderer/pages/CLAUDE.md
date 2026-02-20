@@ -189,6 +189,7 @@ Refactored components and utilities extracted from the main page:
 
 **Features:**
 - **Appearance:** Theme mode selection (system/light/dark) via MUI color scheme
+- **Driver Fallback:** Toggle to route effects targeting non-existent/offline drivers to the first available online driver (default: enabled)
 - **Effect Modifiers:** Strip lifespan scaling setting for LED strips
 - **Directories:**
   - RGFX Config Directory (required) - for interceptors, transformers, driver configs
