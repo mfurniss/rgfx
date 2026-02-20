@@ -1,8 +1,7 @@
 // Shared types for IPC communication between main and renderer processes
 
-import type { EffectPayload, GifBitmapResult } from './types/transformer-types';
-import type { LogSizes } from './log-manager';
-import type { ConfiguredDriverFromSchema, RemoteLoggingLevel } from './schemas';
+import type { RemoteLoggingLevel } from './schemas';
+import type { RgfxAPI } from './ipc/contract';
 
 /**
  * Static application information returned by a single IPC call at startup
@@ -343,69 +342,9 @@ export interface SystemStatus {
 
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';
 
-// Extend Window interface for TypeScript
 declare global {
   interface Window {
-    rgfx: {
-      getAppInfo: () => Promise<AppInfo>;
-
-      onDriverConnected: (callback: (driver: Driver) => void) => () => void;
-      onDriverDisconnected: (
-        callback: (driver: Driver, reason: DisconnectReason) => void,
-      ) => () => void;
-      onDriverUpdated: (callback: (driver: Driver) => void) => () => void;
-      onDriverRestarting: (callback: (driver: Driver) => void) => () => void;
-      onSystemStatus: (callback: (status: SystemStatus) => void) => () => void;
-      onFlashOtaState: (
-        callback: (data: { driverId: string; state: string }) => void,
-      ) => () => void;
-      onFlashOtaProgress: (
-        callback: (progress: {
-          driverId: string;
-          sent: number;
-          total: number;
-          percent: number;
-        }) => void,
-      ) => () => void;
-      onFlashOtaError: (
-        callback: (data: { driverId: string; error: string }) => void,
-      ) => () => void;
-      sendDriverCommand: (driverId: string, command: string, payload?: string) => Promise<void>;
-      updateDriverConfig: (driverId: string) => Promise<void>;
-      flashOTA: (
-        driverId: string
-      ) => Promise<{ success: boolean; error?: string; output?: string }>;
-      rendererReady: () => void;
-      triggerDiscovery: () => Promise<void>;
-      triggerEffect: (payload: EffectPayload) => Promise<void>;
-      saveDriverConfig: (
-        config: ConfiguredDriverFromSchema
-      ) => Promise<{ success: boolean }>;
-      getLEDHardwareList: () => Promise<string[]>;
-      getLEDHardware: (hardwareRef: string) => Promise<LEDHardware | null>;
-      openDriverLog: (driverId: string) => Promise<{ success: boolean; error?: string }>;
-      openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
-      listGames: (romsDirectory?: string) => Promise<GameInfo[]>;
-      simulateEvent: (eventLine: string) => Promise<void>;
-      selectDirectory: (title?: string, defaultPath?: string) => Promise<string | null>;
-      verifyDirectory: (path: string) => Promise<boolean>;
-      getFirmwareManifest: () => Promise<unknown>;
-      getFirmwareFile: (filename: string) => Promise<Buffer>;
-      setDriverDisabled: (driverId: string, disabled: boolean) => Promise<{ success: boolean }>;
-      setDriverFallbackEnabled: (enabled: boolean) => Promise<{ success: boolean }>;
-      onEvent: (callback: (topic: string, payload?: string) => void) => () => void;
-      resetEventCounts: () => Promise<void>;
-      clearTransformerState: () => Promise<void>;
-      loadGif: () => Promise<GifBitmapResult | null>;
-      restartDriver: (driverId: string) => Promise<{ success: boolean }>;
-      deleteDriver: (driverId: string) => Promise<{ success: boolean }>;
-      onDriverDeleted: (callback: (driverId: string) => void) => () => void;
-      showInFolder: (filePath: string) => Promise<void>;
-      getLogSizes: () => Promise<LogSizes>;
-      clearAllLogs: () => Promise<void>;
-      createBackup: () => Promise<{ success: boolean; error?: string }>;
-      quitApp: () => void;
-    };
+    rgfx: RgfxAPI;
   }
 }
 

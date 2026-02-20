@@ -88,6 +88,7 @@ Simple pub/sub event bus for inter-service communication.
 
 - Decouples services from direct dependencies
 - Used for system-wide events like errors, status updates
+- `AppEventMap` interface (internal, not exported) defines all event names and payload types
 
 ## Usage
 
