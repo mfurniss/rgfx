@@ -698,6 +698,20 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### DriverFallbackSection
+
+**File:** [settings/driver-fallback-section.tsx](settings/driver-fallback-section.tsx)
+
+**Purpose:** Toggle for driver fallback mode.
+
+**Features:**
+- MUI `Switch` to enable/disable driver fallback
+- On toggle: updates Zustand store + syncs to main process via `window.rgfx.setDriverFallbackEnabled()`
+- Helper text explaining fallback behavior
+- Wrapped in `SettingsSection` with title and subtitle
+
+---
+
 ### BackupSection
 
 **File:** [settings/backup-section.tsx](settings/backup-section.tsx)

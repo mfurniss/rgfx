@@ -44,6 +44,7 @@ describe('TransformerEngine', () => {
       udp: {
         broadcast: broadcastMock,
         stop: vi.fn(),
+        setDriverFallbackEnabled: vi.fn(),
       },
       mqtt: {
         publish: vi.fn(),

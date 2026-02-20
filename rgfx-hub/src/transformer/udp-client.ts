@@ -24,6 +24,7 @@ import { eventBus } from '../services/event-bus';
 export class UdpClientImpl implements UdpClient {
   private socket: dgram.Socket;
   private closed = false;
+  private driverFallbackEnabled = false;
 
   constructor(
     private driverRegistry: DriverRegistry,
@@ -34,6 +35,11 @@ export class UdpClientImpl implements UdpClient {
       log.error(`UDP client socket error: ${err.message}`);
     });
     log.debug('UDP client socket initialized');
+  }
+
+  setDriverFallbackEnabled(enabled: boolean): void {
+    this.driverFallbackEnabled = enabled;
+    log.info(`Driver fallback mode ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   /**
@@ -65,7 +71,19 @@ export class UdpClientImpl implements UdpClient {
       log.info(`UDP broadcast: ${drivers.length} drivers matched: ${drivers.map((d) => `${d.id}@${d.ip}`).join(', ')}`);
 
       if (drivers.length === 0) {
-        log.warn(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
+        if (this.driverFallbackEnabled) {
+          const allConnected = this.driverRegistry
+            .getConnectedDrivers().filter((d) => !d.disabled);
+
+          if (allConnected.length > 0) {
+            drivers = [allConnected[0]];
+            log.info(`Driver fallback: routing to ${drivers[0].id} (targets: ${targetDriverIds.join(', ')})`);
+          } else {
+            log.warn('Driver fallback: no connected drivers available');
+          }
+        } else {
+          log.warn(`No drivers matched selective routing targets: ${targetDriverIds.join(', ')}`);
+        }
       }
     }
 

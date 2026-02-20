@@ -78,6 +78,7 @@ Used for sending configuration or commands to drivers.
 ```typescript
 interface UdpClient {
   broadcast(payload: EffectPayload): boolean;
+  setDriverFallbackEnabled(enabled: boolean): void;
 }
 ```
 
@@ -85,6 +86,7 @@ interface UdpClient {
 - Broadcasts effects to all connected drivers
 - Supports selective routing via `drivers` array in payload
 - Supports `*` wildcard for random driver selection
+- **Driver fallback mode:** when enabled and selective routing resolves to zero matches, routes to the first connected non-disabled driver instead of dropping the effect
 - Maintains a single reusable UDP socket
 - Uses DriverRegistry to discover driver IPs (drivers identified by ID, not name)
 - Validates packet size against MTU limit (1472 bytes)
