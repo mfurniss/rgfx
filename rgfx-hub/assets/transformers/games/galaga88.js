@@ -257,6 +257,7 @@ export async function transform(
       goei: '#C0A000',
       boss: '#00A0FF',
       'don-attack': '#FFA0A0',
+      hiyoko: '#A0A0A0',
     };
 
     if (!colors[qualifier]) {

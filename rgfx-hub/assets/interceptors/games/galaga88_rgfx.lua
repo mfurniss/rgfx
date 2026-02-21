@@ -38,6 +38,7 @@ local SCORE_LUT = {
 	[200]  = "don-attack",    -- don attacking
 --	[300]  = "don",           -- don in formation
 	[400]  = "boss",          -- boss attacking solo
+  [500]  = "don",           -- attacking don
 	[600]  = "hiyoko",        -- formation escort (4 hits)
 	[800]  = "boss-convoy",   -- boss + 1 escort
 	[900]  = "pan",
