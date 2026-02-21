@@ -1,5 +1,5 @@
 export { sleep, trackedTimeout, clearAllTimers } from './async.js';
-export { scaleLinear, randomInt, randomElement } from './math.js';
+export { scaleLinear, randomInt, randomElement, hslToRgb } from './math.js';
 export { getWorldRecord } from './world-record.js';
 
 /**

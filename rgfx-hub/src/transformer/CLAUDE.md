@@ -91,6 +91,7 @@ interface UdpClient {
 - Uses DriverRegistry to discover driver IPs (drivers identified by ID, not name)
 - Validates packet size against MTU limit (1472 bytes)
 - Reports oversized packets via event bus for error tracking
+- Diagnostic logging uses `log.debug` and runs after UDP sends to avoid adding latency in the hot path
 
 **Effect Payload:**
 ```typescript

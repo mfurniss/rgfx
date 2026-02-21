@@ -1,4 +1,10 @@
-import { sleep, formatNumber, randomInt } from '../utils/index.js';
+import {
+  sleep,
+  formatNumber,
+  randomInt,
+  hslToRgb,
+  trackedTimeout,
+} from '../utils/index.js';
 
 import {
   MATRIX_DRIVERS,
@@ -8,8 +14,23 @@ import {
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, log },
+  { broadcast, log, state },
 ) {
+  const SCORE_THROTTLE_MS = 100;
+
+  function broadcastScore(score) {
+    broadcast({
+      effect: 'text',
+      drivers: [NAMED_DRIVERS.primaryMatrix],
+      props: {
+        text: formatNumber(score),
+        gradient: ['#A0A0A0'],
+        accentColor: '#000000',
+        duration: 6000,
+        reset: true,
+      },
+    });
+  }
   function starfield() {
     broadcast({
       effect: 'particle_field',
@@ -26,49 +47,54 @@ export async function transform(
   }
 
   async function particleWarp() {
-    for (let i = 0; i <= 1; i += 0.2) {
-      broadcast({
-        effect: 'particle_field',
-        drivers: [...MATRIX_DRIVERS],
-        props: {
-          direction: 'down',
-          density: 50 + i * 50,
-          speed: 50 + i * 200,
-          size: 4 + i * 3,
-          color: 'random',
-          enabled: 'fadeIn',
-        },
-      });
+    const event = {
+      effect: 'particle_field',
+      drivers: [...MATRIX_DRIVERS],
+      props: {
+        direction: 'down',
+        enabled: 'fadeIn',
+      },
+    };
 
-      await sleep(200);
+    for (let i = 0; i <= 1; i += 0.1) {
+      event.props.density = 30 + i * 50;
+      event.props.speed = 50 + i * 300;
+      event.props.size = 4 + i * 6;
+      event.props.color = hslToRgb(randomInt(0, 359), 1, 0.5);
+      broadcast(event);
+      await sleep(100);
     }
 
-    await sleep(4000);
+    event.props.speed = 400;
+    event.props.size = 16;
 
-    for (let i = 0.8; i >= 0.2; i -= 0.2) {
-      broadcast({
-        effect: 'particle_field',
-        drivers: [...MATRIX_DRIVERS],
-        props: {
-          direction: 'down',
-          density: 50 + i * 50,
-          speed: 50 + i * 200,
-          size: 4 + i * 3,
-          color: 'random',
-          enabled: 'fadeIn',
-        },
-      });
-
-      await sleep(200);
+    for (let i = 0; i <= 100; i += 1) {
+      event.props.color = randomInt(2)
+        ? hslToRgb(randomInt(0, 359), 1, 0.5)
+        : '#B0B0B0';
+      broadcast(event);
+      await sleep(40);
     }
+
+    for (let i = 0.9; i >= 0.1; i -= 0.1) {
+      event.props.density = 30 + i * 50;
+      event.props.speed = 50 + i * 300;
+      event.props.size = 4 + i * 6;
+      event.props.color = hslToRgb(randomInt(0, 359), 1, 0.5);
+      broadcast(event);
+      await sleep(100);
+    }
+
+    starfield();
   }
 
   if (subject === 'init') {
     starfield();
+    state.delete('score');
   }
 
   if (subject === 'screen' && property === 'text') {
-    if (payload === 'START!') {
+    if (payload === 'START!' || payload === 'READY') {
       broadcast({
         effect: 'text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
@@ -81,8 +107,10 @@ export async function transform(
         },
       });
       await sleep(2500);
-      await particleWarp();
-      starfield();
+
+      if (payload === 'START!') {
+        await particleWarp();
+      }
     } else if (payload === 'PERFECT') {
       broadcast({
         effect: 'text',
@@ -150,18 +178,25 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score') {
-    broadcast({
-      effect: 'text',
-      drivers: [NAMED_DRIVERS.primaryMatrix],
-      props: {
-        text: formatNumber(payload),
-        gradient: ['#A0A0A0'],
-        accentColor: '#000000',
-        duration: 6000,
-        reset: true,
-      },
-    });
+    const s = state.get('score') || { lastSent: 0 };
+    s.latest = payload;
 
+    const now = Date.now();
+
+    if (now - s.lastSent >= SCORE_THROTTLE_MS) {
+      broadcastScore(payload);
+      s.lastSent = now;
+    } else if (!s.timerPending) {
+      s.timerPending = true;
+      const delay = SCORE_THROTTLE_MS - (now - s.lastSent);
+      trackedTimeout(() => {
+        s.timerPending = false;
+        broadcastScore(s.latest);
+        s.lastSent = Date.now();
+      }, delay);
+    }
+
+    state.set('score', s);
     return true;
   }
 
@@ -211,7 +246,7 @@ export async function transform(
       return true;
     }
 
-    const delta = Number(payload);
+    let delta = Number(payload);
 
     const colors = {
       zako: '#E04400',
@@ -245,11 +280,15 @@ export async function transform(
     if (delta > 500 && delta <= 9999) {
       await sleep(150);
 
+      if (delta === 1100) {
+        delta = 1000;
+      }
+
       broadcast({
         effect: 'text',
         drivers: SECONDARY_MATRIX_DRIVERS,
         props: {
-          text: String(Math.round(delta / 100) * 100),
+          text: String(delta),
           gradient: ['#0080FF', '#FFFF00', '#FF0000', '#0080FF'],
           gradientSpeed: 7,
           gradientScale: 0,
