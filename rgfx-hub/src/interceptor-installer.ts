@@ -12,6 +12,9 @@ import { join, relative } from 'node:path';
 import log from 'electron-log/main';
 import { INTERCEPTORS_DIRECTORY } from './config/paths';
 
+/** Files that should not be copied to user config (e.g. LSP type stubs) */
+const EXCLUDED_FILES = ['mame.lua'];
+
 /**
  * Get the bundled interceptors directory
  * (assets/interceptors in development, Resources/assets/interceptors in production)
@@ -49,8 +52,8 @@ async function copyDirectory(src: string, dest: string): Promise<void> {
 
     if (entry.isDirectory()) {
       await copyDirectory(srcPath, destPath);
-    } else if (entry.isFile() && entry.name.endsWith('.lua')) {
-      // Only copy .lua files (skip .md, .asm, etc.)
+    } else if (entry.isFile() && entry.name.endsWith('.lua') && !EXCLUDED_FILES.includes(entry.name)) {
+      // Only copy .lua files, excluding type stubs
       // Check if file already exists (don't overwrite user customizations)
       try {
         await fs.access(destPath);
