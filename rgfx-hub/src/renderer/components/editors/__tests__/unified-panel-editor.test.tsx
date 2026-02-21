@@ -22,14 +22,14 @@ describe('UnifiedPanelEditor', () => {
     it('should show single panel mode message when value is null', () => {
       render(<UnifiedPanelEditor value={null} onChange={mockOnChange} />);
 
-      expect(screen.getByText('Single panel mode (no unified layout)')).toBeDefined();
+      expect(screen.getByText('Single panel mode')).toBeDefined();
       expect(screen.getByText('Configure Multi-Panel')).toBeDefined();
     });
 
     it('should show single panel mode message when value is undefined', () => {
       render(<UnifiedPanelEditor value={undefined} onChange={mockOnChange} />);
 
-      expect(screen.getByText('Single panel mode (no unified layout)')).toBeDefined();
+      expect(screen.getByText('Single panel mode')).toBeDefined();
     });
 
     it('should create default 2x2 grid when clicking Configure Multi-Panel', () => {
@@ -62,7 +62,7 @@ describe('UnifiedPanelEditor', () => {
         />,
       );
 
-      expect(screen.getByText('Multi-Panel Layout (2×2 = 4 panels)')).toBeDefined();
+      expect(screen.getByText('Unified Multi-Panel Layout (2×2 = 4 panels)')).toBeDefined();
       expect(screen.getByText('0')).toBeDefined();
       expect(screen.getByText('1')).toBeDefined();
       expect(screen.getByText('2')).toBeDefined();
@@ -88,13 +88,13 @@ describe('UnifiedPanelEditor', () => {
     it('should display 1x3 horizontal layout', () => {
       render(<UnifiedPanelEditor value={[['0', '1', '2']]} onChange={mockOnChange} />);
 
-      expect(screen.getByText('Multi-Panel Layout (1×3 = 3 panels)')).toBeDefined();
+      expect(screen.getByText('Unified Multi-Panel Layout (1×3 = 3 panels)')).toBeDefined();
     });
 
     it('should display 3x1 vertical layout', () => {
       render(<UnifiedPanelEditor value={[['0'], ['1'], ['2']]} onChange={mockOnChange} />);
 
-      expect(screen.getByText('Multi-Panel Layout (3×1 = 3 panels)')).toBeDefined();
+      expect(screen.getByText('Unified Multi-Panel Layout (3×1 = 3 panels)')).toBeDefined();
     });
 
     it('should handle cells without rotation suffix (defaults to 0°)', () => {

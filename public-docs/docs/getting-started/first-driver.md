@@ -47,4 +47,4 @@ The settings are pushed to the driver over the network. For a full reference of 
 
 ## Next Step
 
-[Test your LEDs :material-arrow-right:](../hub-app/test-leds.md)
+[Test your LEDs :material-arrow-right:](test-leds.md)

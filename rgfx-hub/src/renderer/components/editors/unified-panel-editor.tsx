@@ -368,9 +368,6 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
   if (!value) {
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          Multi-Panel Layout
-        </Typography>
         <Paper
           variant="outlined"
           sx={{
@@ -380,7 +377,7 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
             justifyContent: 'space-between',
           }}
         >
-          <Typography color="text.secondary">Single panel mode (no unified layout)</Typography>
+          <Typography color="text.secondary">Single panel mode</Typography>
           <Button
             variant="outlined"
             size="small"
@@ -399,7 +396,7 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
     <Box sx={{ mt: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Typography variant="subtitle2" color="text.secondary">
-          Multi-Panel Layout ({rows}×{cols} = {totalPanels} panels)
+          Unified Multi-Panel Layout ({rows}×{cols} = {totalPanels} panels)
         </Typography>
         <Button
           variant="text"

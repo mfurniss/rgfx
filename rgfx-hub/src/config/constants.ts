@@ -111,7 +111,7 @@ export const ROM_EXTENSIONS = ['.zip', '.nes', '.smc', '.sfc', '.bin', '.rom'];
  * Filename for interceptor event log file.
  * Interceptor Lua scripts write events to this file in ~/.rgfx/ directory.
  */
-export const EVENT_LOG_FILENAME = 'interceptor_events.log';
+export const EVENT_LOG_FILENAME = 'interceptor-events.log';
 
 /**
  * Interval for polling event file existence when file doesn't exist (milliseconds).

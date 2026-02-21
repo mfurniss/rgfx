@@ -36,7 +36,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 
 ## Infrastructure
 
-- `log-manager.ts` — Manages event log file; provides disk usage stats
+- `log-manager.ts` — Manages log files (system, event, driver); provides disk usage stats and clear-all
 - `system-monitor.ts` — Monitors firmware versions, network status, UDP stats
 - `serial-port-config.ts` — Serial port auto-selection for WebUSB/ESP32
 

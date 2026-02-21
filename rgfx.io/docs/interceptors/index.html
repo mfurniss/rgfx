@@ -10,7 +10,7 @@
         <link rel="canonical" href="https://rgfx.io/interceptors/index.html">
       
       
-        <link rel="prev" href="../hardware/examples.html">
+        <link rel="prev" href="../hardware/effects.html">
       
       
         <link rel="next" href="events.html">
@@ -355,6 +355,34 @@
     
   
     Flash Your First Driver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test LEDs
   
 
     
@@ -847,6 +875,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../hardware/examples.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../hardware/wiring.html" class="md-nav__link">
         
   
@@ -903,34 +959,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../hub-app/test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test LEDs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../hardware/effects.html" class="md-nav__link">
         
   
@@ -939,34 +967,6 @@
     
   
     Visual Effects
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../hardware/examples.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Build Examples
   
 
     
@@ -1662,7 +1662,7 @@
         rgfx --&gt; detect --&gt; load --&gt; intercept
     end
 
-    intercept --&gt; |"_G.event()"| logfile["interceptor_events.log"]
+    intercept --&gt; |"_G.event()"| logfile["interceptor-events.log"]
     logfile --&gt; hub["RGFX Hub"]
     hub --&gt; led["LED Effects"]</code></pre>
 <h2 id="where-interceptors-live">Where Interceptors Live<a class="headerlink" href="#where-interceptors-live" title="Permanent link">¶</a></h2>

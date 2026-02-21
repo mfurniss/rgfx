@@ -535,7 +535,7 @@ class TestRunner:
         self.verbose = args.verbose
         self.output_file = args.output
 
-        self.event_file = Path.home() / ".rgfx" / "interceptor_events.log"
+        self.event_file = Path.home() / ".rgfx" / "interceptor-events.log"
         self.event_generator = EventGenerator(self.event_file, self.density)
         self.process_monitor = ProcessMonitor()
         self.log_monitor = LogMonitor()
