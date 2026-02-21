@@ -63,12 +63,8 @@ export class UdpClientImpl implements UdpClient {
       // Resolve '*' wildcards to actual driver IDs
       const resolvedIds = this.resolveRandomDrivers(targetDriverIds, drivers);
 
-      log.info(`UDP broadcast: targets=${targetDriverIds.join(',')} resolved=${resolvedIds.join(',')}`);
-
       // Filter drivers by resolved IDs
       drivers = drivers.filter(({ id }) => resolvedIds.includes(id));
-
-      log.info(`UDP broadcast: ${drivers.length} drivers matched: ${drivers.map((d) => `${d.id}@${d.ip}`).join(', ')}`);
 
       if (drivers.length === 0) {
         if (this.driverFallbackEnabled) {
@@ -115,6 +111,10 @@ export class UdpClientImpl implements UdpClient {
         log.error(`UDP send to localhost failed: ${err.message}`);
       }
     });
+
+    if (targetDriverIds?.length) {
+      log.debug(`UDP broadcast: targets=${targetDriverIds.join(',')} → ${drivers.length} drivers matched`);
+    }
 
     return true;
   }
