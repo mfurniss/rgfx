@@ -51,9 +51,9 @@ Receives periodic heartbeat messages containing:
 
 ### Driver Status
 
-**Topic:** `rgfx/driver/{driverId}/status`
+**Topic:** `rgfx/driver/{macAddress}/status`
 
-Receives MQTT Last Will and Testament (LWT) messages:
+Receives MQTT Last Will and Testament (LWT) messages. The topic contains the driver's MAC address (not driver ID), so `getDriverByMac()` is used for lookup:
 - `online` - Driver connected to broker
 - `offline` - Driver disconnected (crash, power loss, network issue)
 
@@ -62,6 +62,7 @@ Receives MQTT Last Will and Testament (LWT) messages:
 - Ignores offline during OTA updates (expected disconnect)
 - Sends `driver:disconnected` IPC to renderer
 - Updates system status
+- Logs use `driver.id` (not raw MAC from topic) for readable output
 
 ### Driver Test State
 

@@ -141,6 +141,7 @@ describe('validateTransformerEffect', () => {
 
       expect(mockLog.warn).toHaveBeenCalledWith(
         expect.stringContaining("Transformer effect 'pulse'"),
+        payload.props,
       );
       expect(result).toBe(payload);
     });

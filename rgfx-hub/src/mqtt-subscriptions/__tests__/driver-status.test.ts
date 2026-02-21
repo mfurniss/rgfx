@@ -47,7 +47,7 @@ describe('subscribeDriverStatus', () => {
     );
 
     mockDriverRegistry = mock<DriverRegistry>();
-    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
+    mockDriverRegistry.getDriverByMac.mockReturnValue(mockDriver);
     mockDriverRegistry.getConnectedCount.mockReturnValue(1);
     mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver]);
 
@@ -107,28 +107,22 @@ describe('subscribeDriverStatus', () => {
       });
     });
 
-    it('should extract driver ID from valid topic', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
-
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
-    });
-
-    it('should extract driver ID with MAC address format', () => {
+    it('should extract MAC address from topic and look up driver', () => {
       subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
+      expect(mockDriverRegistry.getDriverByMac).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
     });
 
     it('should handle invalid topic format gracefully', () => {
       subscribedCallback('rgfx/invalid/topic', 'offline');
 
-      expect(mockDriverRegistry.getDriver).not.toHaveBeenCalled();
+      expect(mockDriverRegistry.getDriverByMac).not.toHaveBeenCalled();
     });
 
     it('should handle topic missing status suffix', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF', 'offline');
 
-      expect(mockDriverRegistry.getDriver).not.toHaveBeenCalled();
+      expect(mockDriverRegistry.getDriverByMac).not.toHaveBeenCalled();
     });
   });
 
@@ -148,7 +142,7 @@ describe('subscribeDriverStatus', () => {
       mockDriver.state = 'connected';
       mockDriver.ip = '192.168.1.100';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.ip).toBeUndefined();
     });
@@ -156,7 +150,7 @@ describe('subscribeDriverStatus', () => {
     it('should send driver:disconnected IPC message when driver goes offline', () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         'driver:disconnected',
@@ -169,7 +163,7 @@ describe('subscribeDriverStatus', () => {
     it('should send system:status IPC message when driver goes offline', async () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       // Wait for async sendSystemStatus() to complete
       await vi.waitFor(() => {
@@ -188,7 +182,7 @@ describe('subscribeDriverStatus', () => {
       mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver, mockDriver, mockDriver]);
       mockGetEventsProcessed.mockReturnValue(500);
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(2, 3, 500, 0);
     });
@@ -196,7 +190,7 @@ describe('subscribeDriverStatus', () => {
     it('should NOT process offline if driver was already disconnected', () => {
       mockDriver.state = 'disconnected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -215,7 +209,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should NOT send IPC messages for online status (handled by telemetry)', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'online');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'online');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -223,7 +217,7 @@ describe('subscribeDriverStatus', () => {
     it('should NOT modify driver state for online status', () => {
       const originalIp = mockDriver.ip;
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'online');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'online');
 
       expect(mockDriver.ip).toBe(originalIp);
     });
@@ -242,16 +236,16 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should not throw for unknown driver', () => {
-      mockDriverRegistry.getDriver.mockReturnValue(undefined);
+      mockDriverRegistry.getDriverByMac.mockReturnValue(undefined);
 
       expect(() => {
-        subscribedCallback('rgfx/driver/unknown-driver/status', 'offline');
+        subscribedCallback('rgfx/driver/FF:FF:FF:FF:FF:FF/status', 'offline');
       }).not.toThrow();
     });
 
     it('should not send IPC messages for unknown driver', () => {
-      mockDriverRegistry.getDriver.mockReturnValue(undefined);
-      subscribedCallback('rgfx/driver/unknown-driver/status', 'offline');
+      mockDriverRegistry.getDriverByMac.mockReturnValue(undefined);
+      subscribedCallback('rgfx/driver/FF:FF:FF:FF:FF:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -273,7 +267,7 @@ describe('subscribeDriverStatus', () => {
       mockDriver.state = 'connected';
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -293,7 +287,7 @@ describe('subscribeDriverStatus', () => {
         payload: string,
       ) => void;
       mockDriver.state = 'connected';
-      callback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      callback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -312,19 +306,19 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should ignore unexpected payload values', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'unknown');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'unknown');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it('should ignore empty payload', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', '');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', '');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it('should handle whitespace payload', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', '  ');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', '  ');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -346,7 +340,7 @@ describe('subscribeDriverStatus', () => {
       const originalId = mockDriver.id;
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.id).toBe(originalId);
     });
@@ -355,7 +349,7 @@ describe('subscribeDriverStatus', () => {
       const originalMac = mockDriver.mac;
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.mac).toBe(originalMac);
     });
@@ -364,7 +358,7 @@ describe('subscribeDriverStatus', () => {
       const originalTelemetry = { ...mockDriver.telemetry };
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.telemetry).toEqual(originalTelemetry);
     });
@@ -387,7 +381,7 @@ describe('subscribeDriverStatus', () => {
       mockDriver.state = 'updating';
       mockDriver.ip = '192.168.1.100';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       // Driver should remain in updating state during OTA
       expect(mockDriver.state).toBe('updating');
@@ -398,7 +392,7 @@ describe('subscribeDriverStatus', () => {
     it('should process offline normally when driver state is connected', () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.state).toBe('disconnected');
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
@@ -410,7 +404,7 @@ describe('subscribeDriverStatus', () => {
     it('should not process offline if driver already disconnected', () => {
       mockDriver.state = 'disconnected';
 
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/status', 'offline');
+      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       // Should not send notification since driver was already disconnected
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();

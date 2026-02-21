@@ -12,6 +12,7 @@ import type { WindowManager } from '../window/window-manager';
 import type { PowerSaveHandle } from '../services/service-startup';
 import { configureSerialPort } from '../serial-port-config';
 import { clearEffectsOnAllDrivers } from '../shutdown';
+import { setShuttingDown } from '../services/global-error-handler';
 import pkg from '../../package.json';
 
 export interface AppLifecycleDeps {
@@ -75,6 +76,7 @@ export function registerAppLifecycleHandlers(deps: AppLifecycleDeps): void {
   // Cleanup on app quit
   app.on('before-quit', () => {
     log.info('Shutting down...');
+    setShuttingDown();
 
     // Stop power save blocker
     if (powerSaveHandle) {

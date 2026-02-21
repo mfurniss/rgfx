@@ -53,7 +53,9 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
-  - galaga88.js uses StateStore-based score throttle (100ms) with trailing-edge guarantee to prevent UDP flooding during bonus stage tally
+  - galaga88.js uses StateStore-based score throttle (100ms) with trailing-edge guarantee to prevent UDP flooding during bonus stage tally. `particleWarp()` uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation.
+  - pacman.js ripple effects omit endX/endY when not needed (empty strings fail validation)
+  - starwars.js particle_field density capped at 100 (max allowed by driver validation)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting

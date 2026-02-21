@@ -107,7 +107,7 @@ export async function transform(
       goingIn = true;
 
       const commonProps = {
-        density: 102,
+        density: 100,
         speed: 320,
         size: 16,
         color: '#808080',

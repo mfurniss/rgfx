@@ -47,41 +47,45 @@ export async function transform(
   }
 
   async function particleWarp() {
-    const event = {
-      effect: 'particle_field',
-      drivers: [...MATRIX_DRIVERS],
-      props: {
-        direction: 'down',
-        enabled: 'fadeIn',
-      },
-    };
+    function update({ density, speed, size }) {
+      broadcast({
+        effect: 'particle_field',
+        drivers: [...MATRIX_DRIVERS],
+        props: {
+          direction: 'down',
+          enabled: 'on',
+          density: Math.round(density),
+          speed,
+          size: Math.round(size),
+          color: randomInt(2) ? hslToRgb(randomInt(0, 359), 1, 0.5) : '#B0B0B0',
+        },
+      });
+    }
 
     for (let i = 0; i <= 1; i += 0.1) {
-      event.props.density = 30 + i * 50;
-      event.props.speed = 50 + i * 300;
-      event.props.size = 4 + i * 6;
-      event.props.color = hslToRgb(randomInt(0, 359), 1, 0.5);
-      broadcast(event);
+      update({
+        density: 30 + i * 50,
+        speed: 50 + i * 300,
+        size: 4 + i * 6,
+      });
       await sleep(100);
     }
 
-    event.props.speed = 400;
-    event.props.size = 16;
-
     for (let i = 0; i <= 100; i += 1) {
-      event.props.color = randomInt(2)
-        ? hslToRgb(randomInt(0, 359), 1, 0.5)
-        : '#B0B0B0';
-      broadcast(event);
+      update({
+        density: 100,
+        speed: 400,
+        size: 16,
+      });
       await sleep(40);
     }
 
     for (let i = 0.9; i >= 0.1; i -= 0.1) {
-      event.props.density = 30 + i * 50;
-      event.props.speed = 50 + i * 300;
-      event.props.size = 4 + i * 6;
-      event.props.color = hslToRgb(randomInt(0, 359), 1, 0.5);
-      broadcast(event);
+      update({
+        density: 30 + i * 50,
+        speed: 50 + i * 300,
+        size: 4 + i * 6,
+      });
       await sleep(100);
     }
 
