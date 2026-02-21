@@ -32,7 +32,7 @@ TransformerEngine
 | `mqtt-client-wrapper.ts` | MQTT publish interface for transformers |
 | `udp-client.ts` | UDP broadcast for sending effects to drivers |
 | `state-store.ts` | In-memory key-value store for game state |
-| `validate-effect.ts` | Applies Zod schema defaults to transformer effect payloads |
+| `validate-effect.ts` | Validates transformer effects against Zod schemas, applies defaults, logs warnings with property paths and props |
 
 ---
 

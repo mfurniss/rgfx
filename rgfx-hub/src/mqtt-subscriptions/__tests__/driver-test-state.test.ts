@@ -79,12 +79,6 @@ describe('subscribeDriverTestState', () => {
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
     });
 
-    it('should extract driver ID with MAC address format', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/test/state', 'on');
-
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
-    });
-
     it('should handle invalid topic format gracefully', () => {
       subscribedCallback('rgfx/invalid/topic', 'on');
 

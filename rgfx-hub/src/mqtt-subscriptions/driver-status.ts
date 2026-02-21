@@ -37,11 +37,11 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       return;
     }
 
-    const driverId = match[1];
-    const driver = driverRegistry.getDriver(driverId);
+    const macAddress = match[1];
+    const driver = driverRegistry.getDriverByMac(macAddress);
 
     if (!driver) {
-      log.warn(`Status change from unknown driver: ${driverId}`);
+      log.warn(`Status change from unknown driver: ${macAddress}`);
       return;
     }
 
@@ -49,11 +49,11 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       // Ignore LWT offline messages during OTA updates - the ESP32 disconnects
       // from MQTT to receive firmware, but we don't want to mark it as disconnected
       if (driver.state === 'updating') {
-        log.info(`Driver ${driverId} LWT offline ignored (OTA in progress)`);
+        log.info(`Driver ${driver.id} LWT offline ignored (OTA in progress)`);
         return;
       }
 
-      log.warn(`Driver ${driverId} went offline (LWT triggered)`);
+      log.warn(`Driver ${driver.id} went offline (LWT triggered)`);
       driver.ip = undefined;
       driver.state = 'disconnected';
 
@@ -67,7 +67,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       );
       sendToRenderer(getMainWindow, IPC.SYSTEM_STATUS, status);
     } else if (payload === 'online') {
-      log.info(`Driver ${driverId} LWT status: online (waiting for connect message)`);
+      log.info(`Driver ${driver.id} LWT status: online (waiting for connect message)`);
     }
   });
 }

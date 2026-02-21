@@ -52,6 +52,11 @@ vi.mock('../../shutdown', () => ({
   clearEffectsOnAllDrivers: vi.fn().mockResolvedValue(undefined),
 }));
 
+const mockSetShuttingDown = vi.fn();
+vi.mock('../../services/global-error-handler', () => ({
+  setShuttingDown: mockSetShuttingDown,
+}));
+
 describe('registerAppLifecycleHandlers', () => {
   let mockServices: AppServices;
   let mockWindowManager: WindowManager;
@@ -210,6 +215,15 @@ describe('registerAppLifecycleHandlers', () => {
       triggerAppEvent('before-quit');
 
       expect(mockServices.driverRegistry.stopConnectionMonitor).toHaveBeenCalled();
+    });
+
+    it('should set shutting down flag to suppress socket errors', async () => {
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('before-quit');
+
+      expect(mockSetShuttingDown).toHaveBeenCalled();
     });
   });
 

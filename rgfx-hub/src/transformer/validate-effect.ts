@@ -38,8 +38,8 @@ export function validateTransformerEffect(
     return { ...payload, props: result.data as Record<string, unknown> };
   }
 
-  const issues = result.error.issues.map((i) => i.message).join(', ');
-  log.warn(`Transformer effect '${effect}' validation: ${issues}`);
+  const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+  log.warn(`Transformer effect '${effect}' validation: ${issues}`, props);
 
   return payload;
 }

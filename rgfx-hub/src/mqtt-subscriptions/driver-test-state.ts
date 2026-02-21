@@ -41,7 +41,7 @@ export function subscribeDriverTestState(deps: DriverTestStateDeps): void {
 
     driver.testActive = payload === 'on';
 
-    log.info(`Sending driver:updated to renderer for ${driverId}`);
+    log.info(`Sending driver:updated to renderer for ${driver.id}`);
     sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
   });
 }
