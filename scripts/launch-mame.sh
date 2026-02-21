@@ -78,7 +78,7 @@ done
 
 # Use cart name if available (console), otherwise ROM name (arcade)
 GAME_NAME="${CART_NAME:-$ROM_NAME}"
-EVENT_LOG="$HOME/.rgfx/interceptor_events.log"
+EVENT_LOG="$HOME/.rgfx/interceptor-events.log"
 
 echo "RGFX MAME Launcher"
 echo "  MAME: $MAME_EXEC"

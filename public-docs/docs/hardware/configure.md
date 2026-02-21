@@ -4,21 +4,23 @@ Configure your driver's LED strip or matrix settings in RGFX Hub.
 
 ## Access Driver Configuration
 
-1. Go to the **Drivers** page
-2. Click on a driver to view its details
+1. Go to the [Drivers](../hub-app/drivers.md) page
+2. Click on a driver to view its [Driver Detail](../hub-app/driver-detail.md) page
 3. Click **Configure Driver**
 
 ## LED Configuration Settings
 
+![Configure Driver dialog](../assets/images/rgfx-hub-configure-driver.png)
+
 ### LED Hardware
 
-Select your LED hardware from the dropdown. Hardware definitions describe physical properties like LED count, chipset, color order, and layout type.
+Select your LED hardware from the dropdown. Hardware definitions describe physical properties like LED count, chipset, color order, and layout type. See [Choosing Hardware](choosing.md) for guidance.
 
 If your hardware isn't listed, you can add custom definitions to the `led-hardware/` folder in your [config directory](../getting-started/hub-setup.md#config-directory).
 
 ### GPIO Pin
 
-The ESP32 GPIO pin connected to your LED data line. Valid range: 0-39. Default: 16.
+The ESP32 GPIO pin connected to your LED data line. Valid range: 0-39. Default: 16. See [Wiring & Power](wiring.md) for connection details.
 
 ### LED Offset
 
@@ -56,7 +58,9 @@ When enabled, logical LED index 0 maps to the last physical LED. Use this if you
 
 ## Matrix-Specific Settings
 
-### Unified Panel Layout
+### Unified Multi-Panel Layout
+
+![Unified Multi-Panel Layout](../assets/images/rgfx-hub-multi-panel-layout.png)
 
 For multi-panel matrix setups, the panel layout editor lets you arrange panels in a grid and specify rotation for each panel.
 
@@ -80,4 +84,4 @@ For 4-channel RGBW LED strips (like SK6812 RGBW), select the color mode:
 
 ## Save Configuration
 
-Click **Save Configuration** to apply changes. The driver will receive the new settings over the network.
+Click **Save Configuration** to apply changes. The driver will receive the new settings over the network. Use [Test LEDs](../getting-started/test-leds.md) to verify your configuration is correct.

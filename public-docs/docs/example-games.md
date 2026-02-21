@@ -50,7 +50,7 @@ RGFX is a community project. If you've written an interceptor or transformer for
 
 ### What Makes a Good Submission
 
-- **Naming convention**: `gamename_rgfx.lua` for interceptors, `gamename.js` for transformers
+- **Naming convention**: `romname_rgfx.lua` for interceptors, `romname.js` for transformers
 - **Common events covered**: score, lives/health, and level changes at minimum
 - **Tested across game modes**: single-player, attract mode, and game over should all behave correctly
 - **Clean code**: comments explaining any non-obvious memory addresses or data formats

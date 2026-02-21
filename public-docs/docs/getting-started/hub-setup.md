@@ -8,7 +8,7 @@ RGFX stores all user-editable files in a single config directory:
 
 | Platform | Default Path |
 |----------|-------------|
-| macOS | `~/.rgfx/` |
+| macOS | `/Users/<username>/.rgfx/` |
 | Windows | `C:\Users\<username>\.rgfx\` |
 
 The directory structure:
@@ -18,7 +18,7 @@ interceptors/          # Lua scripts for MAME game monitoring
 transformers/          # JavaScript scripts mapping events to effects
 led-hardware/          # LED hardware definitions
 drivers/               # Driver configurations
-interceptor_events.log # Event output (auto-generated)
+interceptor-events.log # Event output (auto-generated)
 ```
 
 You can change this location in [Settings](../hub-app/settings.md), but the default is recommended.

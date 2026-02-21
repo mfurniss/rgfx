@@ -4,7 +4,7 @@ This page helps you pick the right ESP32 board and LEDs for your RGFX setup.
 
 ## ESP32 Boards
 
-RGFX runs on ESP32 microcontrollers. These are small, inexpensive WiFi-enabled boards that can drive addressable LEDs directly from a single GPIO pin.
+RGFX runs on [ESP32](https://www.espressif.com/en/products/socs/esp32) microcontrollers. These are small, inexpensive WiFi-enabled boards that can drive addressable LEDs directly from a single GPIO pin.
 
 ### Recommended: ESP32-WROOM-32
 
@@ -12,7 +12,7 @@ The ESP32-WROOM development board is the best starting point. It's widely availa
 
 A 38-pin breakout board makes wiring easy — the 5V, GND, and DATA pins connect to LEDs using JST SM connectors for a clean plug-and-play setup.
 
-![ESP32-WROOM development board and breakout](../assets/images/matrix-examples/esp32-wroom-close-up.jpg)
+![ESP32-WROOM development board and breakout](../assets/images/rgfx-esp32-wroom.png)
 
 > Note the **RESET** and **BOOT** buttons at the left and right of the USB input. The BOOT button is used to toggle the LED test pattern during hardware setup.
 

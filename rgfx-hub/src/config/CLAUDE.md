@@ -28,7 +28,7 @@ All tunable constants in one place. Categories:
 - `OPEN_DEVTOOLS_IN_DEV`: false
 
 **Event File Reader**
-- `EVENT_LOG_FILENAME`: 'interceptor_events.log'
+- `EVENT_LOG_FILENAME`: 'interceptor-events.log'
 - `EVENT_FILE_POLL_INTERVAL_MS`: 5000
 
 **Driver ID Validation**

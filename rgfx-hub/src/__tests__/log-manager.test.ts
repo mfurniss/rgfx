@@ -83,7 +83,7 @@ describe('LogManager', () => {
           return Promise.resolve({ size: 1024 } as fs.Stats);
         }
 
-        if (path === '/mock/.rgfx/interceptor_events.log') {
+        if (path === '/mock/.rgfx/interceptor-events.log') {
           return Promise.resolve({ size: 2048 } as fs.Stats);
         }
 
@@ -99,7 +99,7 @@ describe('LogManager', () => {
       const sizes = await logManager.getSizes();
 
       expect(sizes.system).toEqual({ path: '/mock/logs/main.log', size: 1024 });
-      expect(sizes.events).toEqual({ path: '/mock/.rgfx/interceptor_events.log', size: 2048 });
+      expect(sizes.events).toEqual({ path: '/mock/.rgfx/interceptor-events.log', size: 2048 });
       expect(sizes.drivers).toEqual([
         { driverId: 'driver-1', path: '/mock/.rgfx/logs/driver-1.log', size: 512 },
       ]);
@@ -143,7 +143,7 @@ describe('LogManager', () => {
           return Promise.resolve({ size: 1024 } as fs.Stats);
         }
 
-        if (path === '/mock/.rgfx/interceptor_events.log') {
+        if (path === '/mock/.rgfx/interceptor-events.log') {
           return Promise.resolve({ size: 2048 } as fs.Stats);
         }
 
@@ -160,7 +160,7 @@ describe('LogManager', () => {
       await logManager.clearAll();
 
       expect(mockWriteFile).toHaveBeenCalledWith('/mock/logs/main.log', '', 'utf8');
-      expect(mockWriteFile).toHaveBeenCalledWith('/mock/.rgfx/interceptor_events.log', '', 'utf8');
+      expect(mockWriteFile).toHaveBeenCalledWith('/mock/.rgfx/interceptor-events.log', '', 'utf8');
       expect(mockWriteFile).toHaveBeenCalledWith('/mock/.rgfx/logs/driver-1.log', '', 'utf8');
     });
 
