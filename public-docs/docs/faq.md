@@ -35,7 +35,7 @@ Any game that runs in MAME can work with RGFX. The [Writing Interceptors](interc
 
 ## Can I customize the effects for a game?
 
-Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the [Transformers](transformers/index.md) documentation.
+Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the [Writing Transformers](transformers/writing-transformers.md) guide.
 
 ## Why scripting instead of simple config files?
 

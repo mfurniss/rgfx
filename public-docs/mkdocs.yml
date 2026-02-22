@@ -72,6 +72,7 @@ nav:
     - MAME API: interceptors/mame-api.md
   - Transformers:
     - Introduction: transformers/index.md
+    - Writing Transformers: transformers/writing-transformers.md
     - Global Configuration: transformers/global.md
     - Utilities: transformers/utils.md
     - GIF Bitmaps: transformers/gif-bitmaps.md
