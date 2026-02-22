@@ -1,6 +1,5 @@
 # RGFX - Retro Game Effects
 
-[![pipeline status](https://gitlab.com/mfurniss/rgfx/badges/main/pipeline.svg)](https://gitlab.com/mfurniss/rgfx/-/commits/main)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](LICENSE)
 
 > **Project Status: Alpha** — Active development. APIs and configuration formats may change.
@@ -64,16 +63,11 @@ See the [full game list](https://rgfx.io/hub-app/games/) for details on each gam
 - **ESP32 hardware** with connected LED strips or matrices
 - **An MQTT broker on your network** (or let the Hub run its embedded broker)
 
-### Install the Hub
+### Install the RGFX Package
 
-```bash
-git clone https://gitlab.com/mfurniss/rgfx.git
-cd rgfx/rgfx-hub
-npm install
-npm run make        # Creates a DMG (macOS) or installer (Windows)
-```
-
-The installer will be in `rgfx-hub/out/make/`. Alternatively, run `npm start` for development mode.
+Download the latest installer from the [Releases](https://github.com/mfurniss/rgfx/releases/latest) page:
+- **macOS** — `.dmg` installer
+- **Windows** — `.exe` installer
 
 ### Flash ESP32 Firmware
 
@@ -176,7 +170,7 @@ This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See
 
 **Matt Furniss**
 Email: furniss@gmail.com
-GitLab: [@mfurniss](https://gitlab.com/mfurniss)
+GitHub: [@mfurniss](https://github.com/mfurniss)
 
 ## Contributing
 

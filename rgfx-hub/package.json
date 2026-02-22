@@ -1,7 +1,7 @@
 {
   "name": "rgfx-hub",
   "productName": "rgfx-hub",
-  "version": "0.0.1-test",
+  "version": "0.5.0",
   "description": "Visual effects controller for retro arcade games",
   "main": ".vite/build/main.js",
   "scripts": {
