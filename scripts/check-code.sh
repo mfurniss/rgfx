@@ -38,6 +38,7 @@ trap 'notify "Code checks failed!"' ERR
 HUB_CHANGES=false
 ESP32_CHANGES=false
 LUA_CHANGES=false
+DOCS_CHANGES=false
 
 # Helper function to classify files and set change flags
 classify_files() {
@@ -53,6 +54,9 @@ classify_files() {
             esp32/*.cpp|esp32/*.h|esp32/*.c|esp32/*.ini)
                 ESP32_CHANGES=true
                 ;;
+            public-docs/docs/*|public-docs/mkdocs.yml|public-docs/overrides/*|public-docs/requirements.txt)
+                DOCS_CHANGES=true
+                ;;
         esac
     done
 }
@@ -62,6 +66,7 @@ if [ "$1" = "--all" ]; then
     HUB_CHANGES=true
     ESP32_CHANGES=true
     LUA_CHANGES=true
+    DOCS_CHANGES=true
 else
     # Get staged files (if any)
     STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
@@ -180,9 +185,9 @@ if [ -n "$STAGED_FILES" ]; then
     fi
 fi
 
-# Check if any code changes detected
-if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES" = false ]; then
-    echo "📄 No code changes detected (docs only), skipping checks"
+# Check if any changes detected
+if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES" = false ] && [ "$DOCS_CHANGES" = false ]; then
+    echo "📄 No relevant changes detected, skipping checks"
     exit 0
 fi
 
@@ -265,6 +270,27 @@ if [ "$LUA_CHANGES" = true ]; then
     echo "🔍 Running luacheck..."
     luacheck *.lua
     echo "✅ Lua checks passed"
+
+    echo ""
+fi
+
+# 4. Docs build
+if [ "$DOCS_CHANGES" = true ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "📚 public-docs"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    cd "$ROOT_DIR"
+
+    notify "Building docs..."
+    echo "🔨 Building documentation..."
+    npm run docs:build
+    echo "✅ Docs built"
+
+    # Auto-stage generated site if running as pre-commit (staged files present)
+    if [ -n "$STAGED_FILES" ]; then
+        echo "📎 Staging public-docs/site/..."
+        git add public-docs/site/
+    fi
 
     echo ""
 fi

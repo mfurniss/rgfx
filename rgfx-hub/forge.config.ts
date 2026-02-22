@@ -41,12 +41,6 @@ const config: ForgeConfig = {
       "../LICENSE",
       "../public-docs/site",
     ],
-    osxSign: {
-      optionsForFile: () => ({
-        entitlements: "./entitlements.mac.plist",
-        hardenedRuntime: true,
-      }),
-    },
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [
       async (
