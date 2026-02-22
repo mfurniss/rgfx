@@ -71,6 +71,8 @@ If a particular test is difficult or problematic, do not skip or delete the test
 
 **Comments explain why, not what.** No pointless or obvious filler comments.
 
+**Do NOT add copyright or license headers to source code files.** The root `LICENSE` file covers the entire repository. Per-file headers are not used in this project.
+
 **Stop and wait for answers.** When you ask the user a question in a response, you must stop and allow the user to answer. Do not ask a question and continue working without getting the answer.
 
 **Debug methodically.** When adding debug logs to solve a particular issue, work one small step at a time. Make a small change and verify - then repeat. Do not remove debug logging without the user's explicit permission.

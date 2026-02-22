@@ -65,3 +65,5 @@ Subscribes to OTA flash progress events from main process:
 - Updates driver flash status map via callback
 - Auto-cleans up subscriptions on unmount
 - Used by FirmwarePage for real-time OTA progress tracking
+
+<\!-- No per-file license headers — see root LICENSE -->

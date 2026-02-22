@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { installDefaultInterceptors } from '@/interceptor-installer';
 
@@ -61,9 +54,10 @@ describe('interceptor-installer', () => {
   });
 
   describe('installDefaultInterceptors', () => {
-    it('should copy .lua files only', async () => {
+    it('should copy .lua files only, excluding type stubs', async () => {
       mockReaddir.mockResolvedValue([
         { name: 'pacman_rgfx.lua', isDirectory: () => false, isFile: () => true },
+        { name: 'mame.lua', isDirectory: () => false, isFile: () => true },
         { name: 'readme.md', isDirectory: () => false, isFile: () => true },
         { name: 'notes.txt', isDirectory: () => false, isFile: () => true },
       ]);
@@ -74,11 +68,15 @@ describe('interceptor-installer', () => {
 
       await installDefaultInterceptors();
 
-      // Should only copy .lua file
+      // Should only copy game interceptor .lua files, not type stubs
       expect(mockCopyFile).toHaveBeenCalledTimes(1);
       expect(mockCopyFile).toHaveBeenCalledWith(
         expect.stringContaining('pacman_rgfx.lua'),
         expect.stringContaining('pacman_rgfx.lua'),
+      );
+      expect(mockCopyFile).not.toHaveBeenCalledWith(
+        expect.stringContaining('mame.lua'),
+        expect.anything(),
       );
     });
 

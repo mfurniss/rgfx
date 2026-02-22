@@ -178,3 +178,7 @@ transformers/
 The Hub watches the transformers directory for changes. Edit a game transformer and the change takes effect immediately without restarting.
 
 Changes to shared files — `global.js` and anything in `utils/` — trigger a full reload of **all** loaded transformers, since any transformer may import from these modules.
+
+## Next Step
+
+For a complete walkthrough of creating a game transformer from scratch, see the [Writing Transformers](writing-transformers.md) guide.

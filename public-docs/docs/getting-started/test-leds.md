@@ -20,8 +20,8 @@ When you toggle test mode on, the Hub sends a command to the driver which displa
 
 Click the **Test LEDs** button to toggle test mode on or off. The button appears:
 
-- In the **Actions** column on the [Drivers](drivers.md) list
-- In the **Actions** section on the [Driver Detail](driver-detail.md) page
+- In the **Actions** column on the [Drivers](../hub-app/drivers.md) list
+- In the **Actions** section on the [Driver Detail](../hub-app/driver-detail.md) page
 
 The button shows **Test LEDs ON** (green) when active, or **Test LEDs OFF** when inactive.
 
@@ -114,7 +114,7 @@ The white origin pixels on each panel help verify panel orientation and ordering
 
 ## Try the FX Playground
 
-The [FX Playground](fx-playground.md) lets you send any effect to your drivers interactively:
+The [FX Playground](../hub-app/fx-playground.md) lets you send any effect to your drivers interactively:
 
 1. Go to **FX Playground** in the sidebar
 2. Select your driver from the target picker

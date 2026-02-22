@@ -81,7 +81,7 @@ return {
 1. Start MAME with RGFX enabled
 2. Load your game
 3. Watch the MAME console for your event output
-4. Check `interceptor_events.log` in your config directory to verify events are being written
+4. Check `interceptor-events.log` in your config directory to verify events are being written
 
 ---
 

@@ -101,8 +101,6 @@ export async function transform(
           reset: false,
           centerX: 'random',
           centerY: 'random',
-          endX: '',
-          endY: '',
           duration: 500,
           easing: 'quadraticInOut',
           fadeIn: 200,

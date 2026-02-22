@@ -32,7 +32,7 @@ TransformerEngine
 | `mqtt-client-wrapper.ts` | MQTT publish interface for transformers |
 | `udp-client.ts` | UDP broadcast for sending effects to drivers |
 | `state-store.ts` | In-memory key-value store for game state |
-| `validate-effect.ts` | Applies Zod schema defaults to transformer effect payloads |
+| `validate-effect.ts` | Validates transformer effects against Zod schemas, applies defaults, logs warnings with property paths and props |
 
 ---
 
@@ -91,6 +91,7 @@ interface UdpClient {
 - Uses DriverRegistry to discover driver IPs (drivers identified by ID, not name)
 - Validates packet size against MTU limit (1472 bytes)
 - Reports oversized packets via event bus for error tracking
+- Diagnostic logging uses `log.debug` and runs after UDP sends to avoid adding latency in the hot path
 
 **Effect Payload:**
 ```typescript
@@ -162,3 +163,5 @@ function transform(event: GameEvent, context: TransformerContext) {
   state.set('lastPulse', Date.now());
 }
 ```
+
+<\!-- No per-file license headers — see root LICENSE -->

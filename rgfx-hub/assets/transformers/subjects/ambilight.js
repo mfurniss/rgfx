@@ -95,6 +95,7 @@ function handleMultiDriver(edges, context) {
       edge === 'left' || edge === 'right' ? 'vertical' : 'horizontal';
 
     const gradient = parseAmbilight(colors, orientation);
+    if (edge === 'right') gradient.colors.reverse();
 
     broadcast({
       effect: 'background',

@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { sleep, trackedTimeout, clearAllTimers } from '../async.js';
+import { sleep, trackedTimeout, trackedInterval, clearAllTimers } from '../async.js';
 
 describe('sleep', () => {
   beforeEach(() => {
@@ -67,6 +67,41 @@ describe('trackedTimeout', () => {
 
   it('returns a timer ID', () => {
     const id = trackedTimeout(() => {}, 1000);
+    assert.ok(id !== undefined && id !== null);
+    clearAllTimers();
+  });
+});
+
+describe('trackedInterval', () => {
+  beforeEach(() => {
+    clearAllTimers();
+  });
+
+  it('fires callback repeatedly', async () => {
+    let count = 0;
+    trackedInterval(() => {
+      count++;
+    }, 30);
+
+    await new Promise((r) => setTimeout(r, 100));
+    assert.ok(count >= 2, `Expected >= 2 ticks, got ${count}`);
+    clearAllTimers();
+  });
+
+  it('does not fire callback after clearAllTimers', async () => {
+    let count = 0;
+    trackedInterval(() => {
+      count++;
+    }, 30);
+
+    clearAllTimers();
+
+    await new Promise((r) => setTimeout(r, 100));
+    assert.equal(count, 0, 'callback should not have fired');
+  });
+
+  it('returns an interval ID', () => {
+    const id = trackedInterval(() => {}, 1000);
     assert.ok(id !== undefined && id !== null);
     clearAllTimers();
   });

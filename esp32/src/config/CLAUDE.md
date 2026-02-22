@@ -114,3 +114,5 @@ clearAllLEDs();                        // Set all LEDs to black
 8. **Reinitialize:** Matrix and EffectProcessor recreated with new config
 
 **Important:** `nvs_flash_init()` must be called before any WiFi or Preferences operations. On fresh flash, it formats the NVS partition automatically.
+
+<\!-- No per-file license headers — see root LICENSE -->

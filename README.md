@@ -1,230 +1,193 @@
 # RGFX - Retro Game Effects
 
-[![pipeline status](https://gitlab.com/furniss/rgfx/badges/main/pipeline.svg)](https://gitlab.com/furniss/rgfx/-/commits/main)
+[![pipeline status](https://gitlab.com/mfurniss/rgfx/badges/main/pipeline.svg)](https://gitlab.com/mfurniss/rgfx/-/commits/main)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](LICENSE)
 
-> **Project Status: Alpha** - Active development. APIs and configuration formats may change.
+> **Project Status: Alpha** — Active development. APIs and configuration formats may change.
 
-A distributed system for monitoring retro arcade and console game state in MAME and translating game events into synchronized LED effects across multiple ESP32-based hardware controllers.
+Real-time LED effects driven by retro arcade games. RGFX monitors game state inside MAME and translates events like score changes, power-ups, and enemy behavior into synchronized lighting effects on ESP32-controlled LED strips and matrices.
 
-## Overview
+[![RGFX Demo](https://img.youtube.com/vi/6lCLMydJWps/maxresdefault.jpg)](https://www.youtube.com/shorts/6lCLMydJWps)
 
-RGFX bridges the gap between classic retro games running in MAME and modern LED lighting systems. It monitors game state changes (score updates, ghost behavior, power-ups, etc.) and broadcasts events that trigger coordinated LED effects on physical hardware.
+## Features
 
-### Key Features
+- **Real-Time Effects** — Sub-10ms latency from game event to LED update
+- **Multi-Device Architecture** — Central Hub coordinates multiple ESP32 Driver devices
+- **MAME Integration** — Lua scripts intercept game RAM and publish events
+- **Zero Configuration** — Automatic device discovery via SSDP and mDNS
+- **Dual Protocol** — MQTT (QoS 2) for reliability, UDP for low-latency effects
+- **OTA Updates** — Wireless firmware updates for ESP32 devices
+- **Flexible Configuration** — Multiple LED devices per Driver with custom mappings
+- **Game Library** — Built-in interceptors for classic arcade and console titles
 
-- **Multi-Device Architecture** - Central Hub coordinates multiple ESP32 Driver devices
-- **MAME Integration** - Lua scripts intercept game RAM and publish events
-- **Zero Configuration** - Automatic device discovery via mDNS
-- **Dual Protocol** - MQTT (QoS 2) for reliability, UDP for low-latency effects
-- **Real-Time Effects** - Sub-10ms latency from game event to LED update
-- **OTA Updates** - Wireless firmware updates for ESP32 devices
-- **Flexible Configuration** - Multiple LED devices per Driver with custom mappings
-- **Game Library** - Built-in interceptors for classic arcade and console titles
+## How It Works
 
-## Architecture
+RGFX is a distributed system with three components:
 
-### Components
+**RGFX Hub** — An Electron desktop app (macOS/Windows) that monitors MAME's event output, discovers ESP32 devices on the network, and maps game events to LED effects.
 
-**RGFX Hub** - Electron application (TypeScript/React)
-- Monitors MAME event file
-- Discovers and manages ESP32 Drivers
-- Maps game events to LED effects
-- Provides configuration UI
-- Handles firmware updates
+**RGFX Driver** — ESP32 firmware that receives commands from the Hub and controls the connected LED hardware. Multiple Drivers can run simultaneously for multi-zone setups.
 
-**RGFX Driver** - ESP32 firmware (C++/Arduino)
-- Controls LED hardware via FastLED
-- Receives commands via MQTT and UDP
-- Announces presence via mDNS
-- Dual-core architecture for performance
-- Persistent configuration storage
+**MAME Interceptors** — Lua scripts that run inside MAME, reading game RAM to detect events like score changes, entity movement, and game state transitions. Events are written to a log file that the Hub monitors.
 
-**MAME Scripts** - Lua interceptors
-- Monitor game RAM addresses
-- Extract game events (score, entities, power-ups)
-- Write events to temporary file
-- Game-specific implementations
+The Hub communicates with Drivers using MQTT (QoS 2) for configuration and reliable messaging, and UDP broadcast for low-latency game event delivery. Devices discover each other automatically — no manual IP configuration needed.
 
-### Communication Protocols
+For the full architecture details, see the [documentation](https://rgfx.io/).
 
-- **MQTT (QoS 2)** - Discovery, configuration, logging, OTA updates
-- **UDP Broadcast** - Low-latency game event delivery
-- **mDNS** - Zero-config device discovery
+## Supported Games
 
-## Project Structure
+RGFX includes interceptors for the following titles:
 
-```
-rgfx/
-├── rgfx-hub/          # Electron Hub application
-│   ├── src/           # TypeScript source
-│   │   ├── main.ts              # Main process
-│   │   ├── mqtt.ts              # Embedded MQTT broker
-│   │   ├── udp.ts               # UDP broadcaster
-│   │   ├── event-file-reader.ts # MAME event monitor
-│   │   ├── driver-registry.ts   # Driver management
-│   │   └── renderer/            # React UI
-│   └── package.json
-├── esp32/             # ESP32 Driver firmware
-│   ├── src/           # C++ source
-│   │   ├── main.cpp             # Main firmware
-│   │   ├── mqtt.cpp             # MQTT client
-│   │   ├── udp.cpp              # UDP receiver
-│   │   ├── effects/             # LED effects
-│   │   └── config_leds.cpp      # LED configuration
-│   └── platformio.ini
-├── mame/              # MAME Lua scripts
-│   ├── lua/
-│   │   ├── rgfx.lua             # Main entry point
-│   │   ├── event.lua            # Event logging
-│   │   ├── ram.lua              # RAM utilities
-│   │   └── interceptors/        # Game-specific scripts
-│   └── launch.sh      # MAME launcher script
-└── docs/              # Documentation
-    ├── architecture.md          # System design
-    ├── release-workflow.md      # Release process
-    └── *.md                     # Library docs
-```
+| Game | Interceptor | Transformer |
+|------|:-----------:|:-----------:|
+| Pac-Man | yes | yes |
+| Galaga | yes | yes |
+| Galaga '88 | yes | yes |
+| Star Wars | yes | yes |
+| Robotron: 2084 | yes | yes |
+| Super Mario Bros (NES) | yes | yes |
+| Defender | yes | yes |
+| OutRun | yes | yes |
+| Super Hang-On | yes | yes |
+| Space Harrier | yes | — |
+| Super Street Fighter II | yes | — |
+| G-Force 2 | yes | — |
+
+See the [full game list](https://rgfx.io/hub-app/games/) for details on each game's supported events.
 
 ## Getting Started
 
 ### Prerequisites
 
-- **macOS or Windows** (see [CONTRIBUTING.md](CONTRIBUTING.md) for platform-specific setup)
-- **Node.js** 18+ (for Hub)
-- **MAME** 0.281+ (for game emulation)
-- **PlatformIO** (for ESP32 firmware)
-- **ESP32 Hardware** (for physical LED control)
+- **macOS or Windows**
+- **MAME** 0.281+
+- **ESP32 hardware** with connected LED strips or matrices
+- **An MQTT broker on your network** (or let the Hub run its embedded broker)
 
-### Quick Start
+### Install the Hub
 
-**1. Clone the repository:**
 ```bash
-git clone https://gitlab.com/furniss/rgfx.git
-cd rgfx
-```
-
-**2. Install Hub dependencies:**
-```bash
-cd rgfx-hub
+git clone https://gitlab.com/mfurniss/rgfx.git
+cd rgfx/rgfx-hub
 npm install
+npm run make        # Creates a DMG (macOS) or installer (Windows)
 ```
 
-**3. Start the Hub:**
-```bash
-npm start
-```
+The installer will be in `rgfx-hub/out/make/`. Alternatively, run `npm start` for development mode.
 
-**4. Flash ESP32 firmware:**
+### Flash ESP32 Firmware
+
+**Option A — Web Flasher** (no toolchain needed):
+Open `esp32-installer/index.html` in Chrome and follow the prompts to flash pre-built firmware via USB.
+
+**Option B — PlatformIO:**
 ```bash
-cd ../esp32
+cd esp32
 pio run -t upload
 ```
 
-**5. Launch MAME with RGFX:**
-```bash
-cd ../mame
-./launch.sh pacman
-```
+### Launch MAME
 
-## Supported Games
-
-RGFX includes interceptors for several classic arcade and console titles, with more being added. See the [game list](public-docs/docs/games.md) for details.
-
-## Development
-
-### Building the Hub
-
-```bash
-cd rgfx-hub
-npm run check        # TypeScript + ESLint + tests
-npm run package      # Build distributable
-npm run make         # Create DMG installer
-```
-
-### Building ESP32 Firmware
-
-```bash
-cd esp32
-pio run              # Compile firmware
-pio run -t upload    # Upload via serial
-pio test             # Run unit tests
-```
-
-### OTA Updates
-
-Upload firmware wirelessly to configured ESP32 devices:
-
-```bash
-# Discover devices
-dns-sd -B _arduino._tcp local.
-
-# Upload to specific device
-pio run -e rgfx-driver-ota -t upload --upload-port rgfx-driver-f89a58.local
-```
-
-## CI/CD
-
-RGFX uses GitLab CI/CD with a feature branch workflow:
-
-- **Feature branches** - All development happens here
-- **Protected main branch** - Only accepts merge requests
-- **Automated testing** - TypeScript, ESLint, unit tests, PlatformIO compilation
-- **Artifact generation** - DMG installers, firmware binaries
-- **GitLab Pages** - Firmware download hub
-
-See [docs/release-workflow.md](docs/release-workflow.md) for details.
+Start MAME with the RGFX autofire script. The Hub app configures the correct MAME launch parameters — see the [Getting Started guide](https://rgfx.io/getting-started/) for details.
 
 ## Documentation
 
-- [Architecture Overview](docs/architecture.md) - System design and protocols
-- [Release Workflow](docs/release-workflow.md) - Version management and CI/CD
-- [MAME Lua API](mame/docs/mame_docs/) - Extracted EPUB documentation
-- [Arduino MQTT](docs/arduino-mqtt.md) - ESP32 MQTT client library
-- [Aedes](docs/aedes.md) - Node.js MQTT broker
-- [Zustand](docs/zustand.md) - React state management
-- [ESP32 Preferences](docs/esp32-preferences.md) - NVS storage
+Full documentation is available at **[rgfx.io](https://rgfx.io/)**, covering:
+
+- Getting started and installation
+- Hub app configuration
+- LED hardware setup
+- Writing custom interceptors and transformers
+- Architecture and protocols
+- FAQ
+
+## Development
+
+### Hub (Electron/TypeScript)
+
+Requires **Node.js 18+**.
+
+```bash
+cd rgfx-hub
+npm install
+npm start            # Development mode
+npm run check        # TypeScript + ESLint + tests
+npm run make         # Build installer
+```
+
+### ESP32 Driver (C++/PlatformIO)
+
+```bash
+cd esp32
+pio run              # Compile
+pio run -t upload    # Flash via serial
+pio test             # Unit tests
+```
+
+### OTA Firmware Updates
+
+```bash
+dns-sd -B _arduino._tcp local.                                           # Discover devices
+pio run -e rgfx-driver-ota -t upload --upload-port rgfx-driver-xxxx.local  # Upload
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and how to submit changes.
+
+## Project Structure
+
+```
+rgfx/
+├── rgfx-hub/              # Electron Hub application
+│   ├── src/
+│   │   ├── main.ts                  # Main process entry point
+│   │   ├── event-file-reader.ts     # MAME event monitor
+│   │   ├── driver-registry.ts       # Driver management
+│   │   ├── transformer-engine.ts    # Event-to-effect transformer
+│   │   ├── network/                 # MQTT and UDP modules
+│   │   ├── renderer/                # React UI
+│   │   └── ...
+│   └── assets/
+│       ├── interceptors/games/      # Bundled Lua interceptors
+│       └── transformers/games/      # Bundled JS transformers
+├── esp32/                 # ESP32 Driver firmware
+│   ├── src/
+│   │   ├── main.cpp                 # Firmware entry point
+│   │   ├── effects/                 # LED effect implementations
+│   │   ├── graphics/                # Matrix rendering
+│   │   ├── network/                 # MQTT and UDP modules
+│   │   └── ...
+│   └── platformio.ini
+├── esp32-installer/       # Pre-built firmware + web flasher
+├── public-docs/           # Documentation site (rgfx.io)
+└── scripts/               # Build and development scripts
+```
 
 ## License
 
-This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**.
+This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See [LICENSE](LICENSE) for full text.
 
-See [LICENSE](LICENSE) for full license text.
+- **Use freely** — Commercial and non-commercial use permitted
+- **Modify** — Create derivatives and modifications
+- **Share** — Distribute original or modified versions
+- **Copyleft for modifications** — Modified MPL-2.0 files must remain MPL-2.0
+- **Mix with proprietary** — Can combine with proprietary code (file-level copyleft only)
 
-### What This Means
-
-- ✅ **Use freely** - Commercial and non-commercial use permitted
-- ✅ **Modify** - Create derivatives and modifications
-- ✅ **Share** - Distribute original or modified versions
-- ⚠️ **Copyleft for modifications** - Modified MPL-2.0 files must remain MPL-2.0
-- ✅ **Mix with proprietary** - Can combine with proprietary code (file-level copyleft only)
-
-MPL-2.0 is a balanced copyleft license that ensures modifications to RGFX remain open source while allowing integration with other software.
-
-## Author and Maintainer
+## Author
 
 **Matt Furniss**
 Email: furniss@gmail.com
-GitLab: [@furniss](https://gitlab.com/furniss)
-
-See [MAINTAINERS.md](MAINTAINERS.md) for contribution guidelines and project governance.
+GitLab: [@mfurniss](https://gitlab.com/mfurniss)
 
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and how to submit changes.
 
-For project governance and review process, see [MAINTAINERS.md](MAINTAINERS.md).
-
-For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+For project governance, see [MAINTAINERS.md](MAINTAINERS.md). For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ## Acknowledgments
 
-- **MAME Project** - Arcade emulation framework
-- **FastLED** - High-performance LED library
-- **Aedes** - Lightweight MQTT broker
-- **Electron** - Cross-platform desktop framework
-- **PlatformIO** - Embedded development platform
-
----
-
-**Built with 💡 by the retro gaming and LED enthusiast community.**
+- [MAME](https://www.mamedev.org/) — Arcade emulation framework
+- [FastLED](https://fastled.io/) — High-performance LED library
+- [Aedes](https://github.com/moscajs/aedes) — Lightweight MQTT broker
+- [Electron](https://www.electronjs.org/) — Cross-platform desktop framework
+- [PlatformIO](https://platformio.org/) — Embedded development platform

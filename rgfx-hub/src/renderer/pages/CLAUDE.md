@@ -247,3 +247,5 @@ Refactored components and utilities extracted from the main page:
 - System architecture overview (Hub, Drivers, Communication)
 - Technology stack details
 - License and copyright information (MPL 2.0)
+
+<\!-- No per-file license headers — see root LICENSE -->

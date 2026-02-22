@@ -6,6 +6,9 @@ site_url: https://rgfx.io/
 site_description: Retro Game Effects - External visual effects for retro video games
 strict: true
 
+exclude_docs: |
+  CLAUDE.md
+
 theme:
   name: material
   custom_dir: overrides
@@ -39,6 +42,7 @@ nav:
     - What You'll Need: getting-started/requirements.md
     - Set Up RGFX Hub: getting-started/hub-setup.md
     - Flash Your First Driver: getting-started/first-driver.md
+    - Test LEDs: getting-started/test-leds.md
     - Play a Game: getting-started/play.md
     - Example Games: example-games.md
   - Hub App:
@@ -54,11 +58,10 @@ nav:
     - Settings: hub-app/settings.md
   - LED Hardware:
     - Choosing Hardware: hardware/choosing.md
+    - Build Examples: hardware/examples.md
     - Wiring & Power: hardware/wiring.md
     - Configuration: hardware/configure.md
-    - Test LEDs: hub-app/test-leds.md
     - Visual Effects: hardware/effects.md
-    - Build Examples: hardware/examples.md
   - Interceptors:
     - Introduction: interceptors/index.md
     - Event System: interceptors/events.md
@@ -69,6 +72,7 @@ nav:
     - MAME API: interceptors/mame-api.md
   - Transformers:
     - Introduction: transformers/index.md
+    - Writing Transformers: transformers/writing-transformers.md
     - Global Configuration: transformers/global.md
     - Utilities: transformers/utils.md
     - GIF Bitmaps: transformers/gif-bitmaps.md

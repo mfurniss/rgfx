@@ -261,6 +261,48 @@ export async function transform(
       return true;
     }
 
+    if (property === 'enforcer-spawn') {
+      broadcast({
+        effect: 'sparkle',
+        props: {
+          duration: 300,
+          density: 100,
+          gradient: ['#000000', '#00FFFF', '#000000'],
+          speed: 2,
+          bloom: 90,
+          reset: false,
+        },
+      });
+
+      return true;
+    }
+
+    if (property == 'extra-life') {
+      broadcast({
+        effect: 'scroll_text',
+        props: {
+          reset: true,
+          text: 'Extra Life!',
+          gradient: [
+            '#004233',
+            '#009e96',
+            '#ccb400',
+            '#ff003c',
+            '#bcaaca',
+            '#004233',
+          ],
+          gradientSpeed: 10,
+          gradientScale: 4.2,
+          accentColor: '#000000',
+          speed: 300,
+          repeat: false,
+          snapToLed: true,
+        },
+      });
+
+      return true;
+    }
+
     if (property === 'destroy-electrode') {
       return broadcast({
         effect: 'pulse',

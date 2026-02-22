@@ -30,4 +30,4 @@ Now that you're up and running, here's where to go from here:
 - **Experiment with effects** — use the [FX Playground](../hub-app/fx-playground.md) to explore the visual effects and find your favorites
 - **Add more drivers** — connect additional ESP32 boards with LED strips or matrices for a bigger setup
 - **Add your favorite game** — the [Writing Interceptors](../interceptors/writing-interceptors.md) guide walks you through adding RGFX support for any game in MAME
-- **Customize effect mappings** — write a [transformer](../transformers/index.md) to control exactly which effects play for each event
+- **Customize effect mappings** — write a [transformer](../transformers/writing-transformers.md) to control exactly which effects play for each event

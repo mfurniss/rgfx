@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
@@ -44,7 +37,7 @@ export function subscribeDriverWifiResponse(deps: DriverWifiResponseDeps): void 
       const response = JSON.parse(payload) as { success: boolean; error?: string };
 
       if (response.success) {
-        log.info(`Driver ${driverId} WiFi credentials saved, driver will restart`);
+        log.info(`Driver ${driver.id} WiFi credentials saved, driver will restart`);
 
         // Notify renderer that driver is restarting (suppresses disconnect notification)
         eventBus.emit('driver:restarting', { driver });
@@ -54,7 +47,7 @@ export function subscribeDriverWifiResponse(deps: DriverWifiResponseDeps): void 
         driver.ip = undefined;
         eventBus.emit('driver:disconnected', { driver, reason: 'restarting' });
       } else {
-        log.error(`Driver ${driverId} failed to save WiFi credentials: ${response.error}`);
+        log.error(`Driver ${driver.id} failed to save WiFi credentials: ${response.error}`);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

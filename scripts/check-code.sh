@@ -106,32 +106,54 @@ check_claude_md_updates() {
         # Get directory of the file
         local dir=$(dirname "$file")
 
-        # Walk up directory tree looking for CLAUDE.md
-        while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
-            # Skip if we already checked this directory
-            if echo "$checked_dirs" | grep -q "^${dir}$"; then
-                break
-            fi
-
-            local claude_file="$dir/CLAUDE.md"
-
-            # Check if CLAUDE.md exists in this directory
+        # Helper to check a CLAUDE.md and record if unstaged
+        check_one_claude() {
+            local claude_file="$1"
             if [ -f "$ROOT_DIR/$claude_file" ]; then
-                # Check if it's staged
                 if ! echo "$staged_claude_files" | grep -q "^${claude_file}$"; then
-                    # Not staged - add to error list (if not already there)
                     if ! echo "$unstaged_claude_files" | grep -q "^${claude_file}$"; then
                         unstaged_claude_files="$unstaged_claude_files
 $claude_file"
                     fi
                 fi
+                return 0
+            fi
+            return 1
+        }
+
+        local found=false
+
+        # Walk up directory tree looking for CLAUDE.md
+        while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+            # Skip if we already checked this directory
+            if echo "$checked_dirs" | grep -q "^${dir}$"; then
+                found=true
+                break
+            fi
+
+            if check_one_claude "$dir/CLAUDE.md"; then
                 checked_dirs="$checked_dirs
 $dir"
+                found=true
                 break
             fi
 
             dir=$(dirname "$dir")
         done
+
+        # Also check immediate child directories (handles cases like
+        # public-docs/mkdocs.yml needing public-docs/docs/CLAUDE.md)
+        if [ "$found" = false ]; then
+            local file_dir=$(dirname "$file")
+            for child_claude in "$ROOT_DIR/$file_dir"/*/CLAUDE.md; do
+                [ -f "$child_claude" ] || continue
+                local rel_path="${child_claude#$ROOT_DIR/}"
+                check_one_claude "$rel_path"
+                checked_dirs="$checked_dirs
+$file_dir"
+                break
+            done
+        fi
     done
 
     # Fail if any unstaged CLAUDE.md files found

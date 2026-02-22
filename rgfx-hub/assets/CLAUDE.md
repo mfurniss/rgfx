@@ -36,12 +36,12 @@ MAME Lua scripts that intercept game state and emit events:
 - `mame.lua` - MAME/emu type stubs for Lua language server (callback name params are optional)
 - `rom_map.lua` - Variant-only mapping; framework auto-loads `{romname}_rgfx` by convention, rom_map only needed for clones/variants whose name differs from the interceptor base name
 - `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga, Galaga 88)
-  - Galaga 88 uses C117 address mapper for RAM access; fire detection reads shot counter at 0x3000C3 (work RAM)
+  - Galaga 88 uses C117 address mapper for RAM access; fire detection reads shot counter at 0x3000C3 (work RAM). SCORE_LUT maps point values to kill qualifiers (don-attack, boss, hiyoko, etc.)
 
 ### mame/
 MAME event handling utilities:
 - `rgfx.lua` - Main RGFX bootstrap, registers prestart and frame callbacks to load interceptors. Emits `rgfx/reset` before loading to clear all driver effects, then delays `{game}/init` by ~500ms (30 frames) so MQTT clears reach drivers first. Uses a boolean guard (`init_sent`) to ensure init fires exactly once. Screen info is printed after 10 frames via `register_frame_done` callback to ensure screen properties are initialized. Note: MAME shutdown detection is handled by `scripts/launch-mame.sh` (not Lua) because `emu.add_machine_stop_notifier` is unreliable.
-- `event.lua` - Event emission and logging utilities; defines `_G.boot_delay(seconds)` to suppress all events except `/init` during boot
+- `event.lua` - Event emission and logging utilities; writes to `interceptor-events.log`; defines `_G.boot_delay(seconds)` to suppress all events except `/init` during boot
 - `ram.lua` - RAM monitoring and memory read helpers
 - `docs/` - Documentation for MAME integration
 
@@ -49,10 +49,14 @@ MAME event handling utilities:
 JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, utils/, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game shared constants (driver IDs, named drivers, ambilight config)
-- `utils/` - Shared utility modules (index.js barrel, math.js, async.js with tracked timers for cleanup on game exit, format.js, world-record.js)
+- `utils/` - Shared utility modules (index.js barrel, math.js with hslToRgb, async.js with tracked timers including trackedInterval for cleanup on game exit, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
-- `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, shangon.js, smb.js, etc.)
+- `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
+  - galaga88.js uses StateStore-based score throttle (100ms) with trailing-edge guarantee to prevent UDP flooding during bonus stage tally. `particleWarp()` uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation.
+  - pacman.js ripple effects omit endX/endY when not needed (empty strings fail validation)
+  - starwars.js particle_field density capped at 100 (max allowed by driver validation)
+- `eslint.config.js` - ESLint flat config for transformer JS files (defines Node.js timer globals: setTimeout, setInterval, clearTimeout, clearInterval)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting
@@ -69,3 +73,5 @@ LED hardware definition files (JSON):
 - Define physical LED products with description, SKU, layout, pixel count, chipset
 - Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json, sk6812-rgbw-5v-300px.json)
 - Includes virtual hardware definitions for simulator (virtual-strip.json, virtual-wide-matrix.json)
+
+<\!-- No per-file license headers — see root LICENSE -->

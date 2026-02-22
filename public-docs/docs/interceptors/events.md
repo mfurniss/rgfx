@@ -33,7 +33,7 @@ _G.event("galaga/player/captured")
 
 ## Event Log
 
-Events are written to `interceptor_events.log` in your [config directory](../getting-started/hub-setup.md#config-directory), one per line. Each line is the topic followed by the message (if any), separated by a space:
+Events are written to `interceptor-events.log` in your [config directory](../getting-started/hub-setup.md#config-directory), one per line. Each line is the topic followed by the message (if any), separated by a space:
 
 ```
 galaga/player/score/p1 12500

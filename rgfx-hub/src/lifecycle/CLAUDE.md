@@ -15,7 +15,10 @@ Manages application startup and shutdown:
 - Handles 'activate' event (macOS dock click)
 - Handles 'window-all-closed' event
 - Configures app-level settings
+- Calls `setShuttingDown()` on 'before-quit' to suppress socket errors during shutdown
 
 ### index.ts
 
 Re-exports lifecycle functions for clean imports.
+
+<\!-- No per-file license headers — see root LICENSE -->

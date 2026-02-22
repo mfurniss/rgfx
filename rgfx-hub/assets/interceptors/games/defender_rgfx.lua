@@ -1,9 +1,3 @@
--- This Source Code Form is subject to the terms of the Mozilla Public
--- License, v. 2.0. If a copy of the MPL was not distributed with this
--- file, You can obtain one at http://mozilla.org/MPL/2.0/.
---
--- Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
-
 -- Williams Defender RGFX Interceptor
 -- Hardware: Motorola MC6809E @ 1MHz (big-endian)
 -- RAM: $0000-$BFFF (48 KB), ROM/IO bank-switched at $C000-$CFFF
@@ -13,7 +7,7 @@
 local ram = require("ram")
 
 -- Skip diagnostics and attract mode
-boot_delay(14)
+_G.boot_delay(14)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]

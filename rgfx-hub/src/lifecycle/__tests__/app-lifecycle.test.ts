@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { AppLifecycleDeps } from '../app-lifecycle';
 import type { AppServices } from '../../services/service-factory';
@@ -50,6 +43,11 @@ vi.mock('../../serial-port-config', () => ({
 
 vi.mock('../../shutdown', () => ({
   clearEffectsOnAllDrivers: vi.fn().mockResolvedValue(undefined),
+}));
+
+const mockSetShuttingDown = vi.fn();
+vi.mock('../../services/global-error-handler', () => ({
+  setShuttingDown: mockSetShuttingDown,
 }));
 
 describe('registerAppLifecycleHandlers', () => {
@@ -210,6 +208,15 @@ describe('registerAppLifecycleHandlers', () => {
       triggerAppEvent('before-quit');
 
       expect(mockServices.driverRegistry.stopConnectionMonitor).toHaveBeenCalled();
+    });
+
+    it('should set shutting down flag to suppress socket errors', async () => {
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('before-quit');
+
+      expect(mockSetShuttingDown).toHaveBeenCalled();
     });
   });
 

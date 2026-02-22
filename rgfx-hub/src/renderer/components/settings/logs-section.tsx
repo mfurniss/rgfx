@@ -72,14 +72,14 @@ export function LogsSection() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Log</TableCell>
+                  <TableCell>File</TableCell>
                   <TableCell align="right">Size</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 <Tooltip title={logSizes?.system?.path ?? ''} placement="top" arrow>
                   <TableRow hover sx={{ cursor: logSizes?.system ? 'help' : 'default' }}>
-                    <TableCell>System</TableCell>
+                    <TableCell>{logSizes?.system?.path.split('/').pop() ?? 'main.log'}</TableCell>
                     <TableCell align="right">
                       {logSizes?.system ? formatBytes(logSizes.system.size) : 'Not found'}
                     </TableCell>
@@ -87,7 +87,9 @@ export function LogsSection() {
                 </Tooltip>
                 <Tooltip title={logSizes?.events?.path ?? ''} placement="top" arrow>
                   <TableRow hover sx={{ cursor: logSizes?.events ? 'help' : 'default' }}>
-                    <TableCell>Events</TableCell>
+                    <TableCell>
+                      {logSizes?.events?.path.split('/').pop() ?? 'interceptor-events.log'}
+                    </TableCell>
                     <TableCell align="right">
                       {logSizes?.events ? formatBytes(logSizes.events.size) : 'Not found'}
                     </TableCell>
@@ -96,7 +98,7 @@ export function LogsSection() {
                 {logSizes?.drivers.map((driver) => (
                   <Tooltip key={driver.driverId} title={driver.path} placement="top" arrow>
                     <TableRow hover sx={{ cursor: 'help' }}>
-                      <TableCell>Driver: {driver.driverId}</TableCell>
+                      <TableCell>{driver.driverId}.log</TableCell>
                       <TableCell align="right">{formatBytes(driver.size)}</TableCell>
                     </TableRow>
                   </Tooltip>

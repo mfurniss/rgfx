@@ -16,7 +16,7 @@ describe('EventFileReader', () => {
   beforeEach(() => {
     testDir = join(tmpdir(), `rgfx-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-    testFilePath = join(testDir, 'interceptor_events.log');
+    testFilePath = join(testDir, 'interceptor-events.log');
     reader = new EventFileReader(testFilePath);
   });
 
@@ -372,7 +372,7 @@ describe('EventFileReader invalid topic handling', () => {
   beforeEach(() => {
     testDir = join(tmpdir(), `rgfx-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-    testFilePath = join(testDir, 'interceptor_events.log');
+    testFilePath = join(testDir, 'interceptor-events.log');
     reader = new EventFileReader(testFilePath);
   });
 
@@ -460,7 +460,7 @@ describe('getFileSizeBytes', () => {
   beforeEach(() => {
     testDir = join(tmpdir(), `rgfx-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-    testFilePath = join(testDir, 'interceptor_events.log');
+    testFilePath = join(testDir, 'interceptor-events.log');
     reader = new EventFileReader(testFilePath);
   });
 

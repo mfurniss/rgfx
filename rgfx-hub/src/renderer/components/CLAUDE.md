@@ -685,6 +685,20 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### LogsSection
+
+**File:** [settings/logs-section.tsx](settings/logs-section.tsx)
+
+**Purpose:** Displays log file sizes and provides a clear-all action.
+
+**Features:**
+- Shows actual filenames (e.g., `main.log`, `interceptor-events.log`, `{driverId}.log`)
+- Full file path shown in tooltip on hover
+- Total size summary row
+- Clear All Logs button with confirmation dialog
+
+---
+
 ### DriverFallbackSection
 
 **File:** [settings/driver-fallback-section.tsx](settings/driver-fallback-section.tsx)
@@ -710,3 +724,5 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Uses `SuperButton` with busy state during backup
 - Three-way result: success → green notify, error → red notify, cancel → no notification
 - Wrapped in `SettingsSection` with title and subtitle
+
+<\!-- No per-file license headers — see root LICENSE -->

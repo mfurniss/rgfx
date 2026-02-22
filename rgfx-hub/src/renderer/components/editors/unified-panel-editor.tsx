@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 import React, { useMemo, useState } from 'react';
 import { Box, Typography, Button, Paper, TextField, Stack } from '@mui/material';
 import { GridView as GridIcon, Clear as ClearIcon } from '@mui/icons-material';
@@ -368,9 +361,6 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
   if (!value) {
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          Multi-Panel Layout
-        </Typography>
         <Paper
           variant="outlined"
           sx={{
@@ -380,7 +370,7 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
             justifyContent: 'space-between',
           }}
         >
-          <Typography color="text.secondary">Single panel mode (no unified layout)</Typography>
+          <Typography color="text.secondary">Single panel mode</Typography>
           <Button
             variant="outlined"
             size="small"
@@ -399,7 +389,7 @@ export function UnifiedPanelEditor({ value, onChange, disabled }: UnifiedPanelEd
     <Box sx={{ mt: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Typography variant="subtitle2" color="text.secondary">
-          Multi-Panel Layout ({rows}×{cols} = {totalPanels} panels)
+          Unified Multi-Panel Layout ({rows}×{cols} = {totalPanels} panels)
         </Typography>
         <Button
           variant="text"

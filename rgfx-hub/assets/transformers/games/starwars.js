@@ -17,7 +17,12 @@
 // 17,18 fly away from death star
 // 42 DS surface
 
-import { randomInt, sleep, formatNumber, trackedTimeout } from '../utils/index.js';
+import {
+  randomInt,
+  sleep,
+  formatNumber,
+  trackedTimeout,
+} from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let laserIndex = 0;
@@ -92,7 +97,7 @@ export async function transform(
     // going in
     if (payload == 36 || payload == 37 || payload == 38) {
       if (goingIn) {
-        return true;
+        //return true;
       }
 
       trackedTimeout(() => {
@@ -102,7 +107,7 @@ export async function transform(
       goingIn = true;
 
       const commonProps = {
-        density: 102,
+        density: 100,
         speed: 320,
         size: 16,
         color: '#808080',
@@ -111,21 +116,30 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.rightStrip, NAMED_DRIVERS.leftMatrix],
+        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.leftStrip],
         props: {
-          direction: 'right',
+          direction: 'left',
           ...commonProps,
         },
       });
 
       broadcast({
         effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightMatrix],
+        drivers: [NAMED_DRIVERS.rightMatrix, NAMED_DRIVERS.rightStrip],
         props: {
-          direction: 'left',
+          direction: 'right',
           ...commonProps,
         },
       });
+
+      // broadcast({
+      //   effect: 'particle_field',
+      //   drivers: [NAMED_DRIVERS.rightStrip],
+      //   props: {
+      //     direction: 'right',
+      //     ...commonProps,
+      //   },
+      // });
 
       await sleep(500);
 

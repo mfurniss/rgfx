@@ -13,7 +13,7 @@
         <link rel="prev" href="wiring.html">
       
       
-        <link rel="next" href="../hub-app/test-leds.html">
+        <link rel="next" href="effects.html">
       
       
         
@@ -355,6 +355,34 @@
     
   
     Flash Your First Driver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test LEDs
   
 
     
@@ -849,6 +877,34 @@
   
   
     <li class="md-nav__item">
+      <a href="examples.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="wiring.html" class="md-nav__link">
         
   
@@ -1093,10 +1149,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#unified-panel-layout" class="md-nav__link">
+  <a href="#unified-multi-panel-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified Panel Layout
+        Unified Multi-Panel Layout
       
     </span>
   </a>
@@ -1146,34 +1202,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../hub-app/test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test LEDs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="effects.html" class="md-nav__link">
         
   
@@ -1182,34 +1210,6 @@
     
   
     Visual Effects
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="examples.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Build Examples
   
 
     
@@ -1562,6 +1562,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../transformers/writing-transformers.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing Transformers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../transformers/global.html" class="md-nav__link">
         
   
@@ -1884,10 +1912,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#unified-panel-layout" class="md-nav__link">
+  <a href="#unified-multi-panel-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified Panel Layout
+        Unified Multi-Panel Layout
       
     </span>
   </a>
@@ -1942,16 +1970,17 @@
 <p>Configure your driver's LED strip or matrix settings in RGFX Hub.</p>
 <h2 id="access-driver-configuration">Access Driver Configuration<a class="headerlink" href="#access-driver-configuration" title="Permanent link">¶</a></h2>
 <ol>
-<li>Go to the <strong>Drivers</strong> page</li>
-<li>Click on a driver to view its details</li>
+<li>Go to the <a href="../hub-app/drivers.html">Drivers</a> page</li>
+<li>Click on a driver to view its <a href="../hub-app/driver-detail.html">Driver Detail</a> page</li>
 <li>Click <strong>Configure Driver</strong></li>
 </ol>
 <h2 id="led-configuration-settings">LED Configuration Settings<a class="headerlink" href="#led-configuration-settings" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/rgfx-hub-configure-driver.png" data-title="Configure Driver dialog" data-desc-position="bottom"><img alt="Configure Driver dialog" src="../assets/images/rgfx-hub-configure-driver.png"></a></p>
 <h3 id="led-hardware">LED Hardware<a class="headerlink" href="#led-hardware" title="Permanent link">¶</a></h3>
-<p>Select your LED hardware from the dropdown. Hardware definitions describe physical properties like LED count, chipset, color order, and layout type.</p>
+<p>Select your LED hardware from the dropdown. Hardware definitions describe physical properties like LED count, chipset, color order, and layout type. See <a href="choosing.html">Choosing Hardware</a> for guidance.</p>
 <p>If your hardware isn't listed, you can add custom definitions to the <code>led-hardware/</code> folder in your <a href="../getting-started/hub-setup.html#config-directory">config directory</a>.</p>
 <h3 id="gpio-pin">GPIO Pin<a class="headerlink" href="#gpio-pin" title="Permanent link">¶</a></h3>
-<p>The ESP32 GPIO pin connected to your LED data line. Valid range: 0-39. Default: 16.</p>
+<p>The ESP32 GPIO pin connected to your LED data line. Valid range: 0-39. Default: 16. See <a href="wiring.html">Wiring &amp; Power</a> for connection details.</p>
 <h3 id="led-offset">LED Offset<a class="headerlink" href="#led-offset" title="Permanent link">¶</a></h3>
 <p>Optional starting index offset. Use this if you want to skip LEDs at the beginning of the strip.</p>
 <h3 id="maximum-brightness">Maximum Brightness<a class="headerlink" href="#maximum-brightness" title="Permanent link">¶</a></h3>
@@ -1975,7 +2004,8 @@
 <h3 id="reverse-direction">Reverse Direction<a class="headerlink" href="#reverse-direction" title="Permanent link">¶</a></h3>
 <p>When enabled, logical LED index 0 maps to the last physical LED. Use this if your strip is mounted in the opposite direction.</p>
 <h2 id="matrix-specific-settings">Matrix-Specific Settings<a class="headerlink" href="#matrix-specific-settings" title="Permanent link">¶</a></h2>
-<h3 id="unified-panel-layout">Unified Panel Layout<a class="headerlink" href="#unified-panel-layout" title="Permanent link">¶</a></h3>
+<h3 id="unified-multi-panel-layout">Unified Multi-Panel Layout<a class="headerlink" href="#unified-multi-panel-layout" title="Permanent link">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/rgfx-hub-multi-panel-layout.png" data-title="Unified Multi-Panel Layout" data-desc-position="bottom"><img alt="Unified Multi-Panel Layout" src="../assets/images/rgfx-hub-multi-panel-layout.png"></a></p>
 <p>For multi-panel matrix setups, the panel layout editor lets you arrange panels in a grid and specify rotation for each panel.</p>
 <p>Each panel entry uses the format <code>&lt;index&gt;&lt;rotation&gt;</code>:</p>
 <ul>
@@ -1994,7 +2024,7 @@
 <li><strong>Max Brightness</strong>: Maximizes white channel output for brighter whites</li>
 </ul>
 <h2 id="save-configuration">Save Configuration<a class="headerlink" href="#save-configuration" title="Permanent link">¶</a></h2>
-<p>Click <strong>Save Configuration</strong> to apply changes. The driver will receive the new settings over the network.</p>
+<p>Click <strong>Save Configuration</strong> to apply changes. The driver will receive the new settings over the network. Use <a href="../getting-started/test-leds.html">Test LEDs</a> to verify your configuration is correct.</p>
 
 
 
@@ -2015,7 +2045,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="January 27, 2026 04:18:13 UTC">January 27, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 21, 2026 22:20:20 UTC">February 21, 2026</span>
   </span>
 
     

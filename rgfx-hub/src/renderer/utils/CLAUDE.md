@@ -60,3 +60,5 @@ Color utilities for hex color validation and conversion.
 - These utilities are renderer-only (no Node.js APIs)
 - zod-introspection works with Zod 4 internal structure (`_zod.def`)
 - color.ts imports `HEX_COLOR_RRGGBB_REGEX` from `@/config/constants`
+
+<\!-- No per-file license headers — see root LICENSE -->
