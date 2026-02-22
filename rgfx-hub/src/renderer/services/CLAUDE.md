@@ -47,3 +47,5 @@ Handles USB serial firmware flashing with automatic chip detection:
 **Return:** `FlashResult` with `success`, `firmwareVersion`, `chipType`, `error?`
 
 **Manifest Format:** The manifest now stores version per-variant (not at the top level). The service validates the manifest and extracts the version from the detected chip's variant.
+
+<\!-- No per-file license headers — see root LICENSE -->

@@ -724,3 +724,5 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Uses `SuperButton` with busy state during backup
 - Three-way result: success → green notify, error → red notify, cancel → no notification
 - Wrapped in `SettingsSection` with title and subtitle
+
+<\!-- No per-file license headers — see root LICENSE -->

@@ -21,3 +21,5 @@ Manages the main application window lifecycle:
 ### index.ts
 
 Re-exports WindowManager for clean imports.
+
+<\!-- No per-file license headers — see root LICENSE -->

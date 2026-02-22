@@ -72,3 +72,5 @@ LED hardware definition files (JSON):
 - Define physical LED products with description, SKU, layout, pixel count, chipset
 - Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json, sk6812-rgbw-5v-300px.json)
 - Includes virtual hardware definitions for simulator (virtual-strip.json, virtual-wide-matrix.json)
+
+<\!-- No per-file license headers — see root LICENSE -->

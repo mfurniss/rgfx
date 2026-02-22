@@ -72,3 +72,5 @@ Configures Zod for consistent error messages across the app.
 
 - Sets custom error map
 - Standardizes validation messages
+
+<\!-- No per-file license headers — see root LICENSE -->

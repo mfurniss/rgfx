@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 /**
  * Centralized configuration constants for the RGFX Hub application.
  * All global constants should be defined here for easy configuration and maintenance.

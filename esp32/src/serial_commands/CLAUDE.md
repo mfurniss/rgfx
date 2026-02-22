@@ -63,3 +63,5 @@ Commands are defined in the `Commands` namespace. Each command is implemented in
 - `matrix.h` - LED matrix control
 - `effects/effect_processor.h` - Effect management
 - `network/mqtt.h` - MQTT client for test state notifications
+
+<\!-- No per-file license headers — see root LICENSE -->

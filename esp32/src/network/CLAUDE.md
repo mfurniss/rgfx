@@ -129,3 +129,5 @@ UDP messages are stored in a circular buffer queue for burst handling:
 - `ESPmDNS.h` - mDNS/Bonjour responder
 - `ArduinoJson.h` - JSON parsing
 - `FastLED.h` - LED feedback during OTA
+
+<\!-- No per-file license headers — see root LICENSE -->

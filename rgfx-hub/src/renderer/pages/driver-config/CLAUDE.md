@@ -119,3 +119,5 @@ import {
   normalizeLedConfig,
 } from './driver-config';
 ```
+
+<\!-- No per-file license headers — see root LICENSE -->
