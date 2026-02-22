@@ -8,7 +8,10 @@
 
 Use standard markdown wherever possible. HTML should only be used where there is no markdown alternative (e.g., `<video>` embeds). Do not use HTML for layout, styling, or features that can be achieved with markdown or MkDocs Material features.
 
-The LED test pattern visualizations in `getting-started/test-leds.md` are an accepted exception — CSS-driven diagrams that have no markdown equivalent.
+Accepted exceptions:
+
+- LED test pattern visualizations in `getting-started/test-leds.md` — CSS-driven diagrams with no markdown equivalent
+- Download button on `index.md` — uses `md_in_html` extension with `{ .md-button .md-button--primary }` attribute syntax
 
 ### Before Making Documentation Changes
 
@@ -48,7 +51,7 @@ Use neutral voice for most content and first person "I" for personal opinions or
 
 ```
 docs/
-├── index.md                    # Landing page with hero video
+├── index.md                    # Landing page with hero video and download button
 ├── example-games.md            # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 5-page onboarding flow (requirements has download links, test-leds moved here)

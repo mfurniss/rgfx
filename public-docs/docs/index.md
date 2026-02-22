@@ -9,6 +9,13 @@
 
 RGFX monitors game state in MAME and drives real-time LED effects on ESP32 hardware. Lua interceptors watch memory addresses for gameplay events — scoring, deaths, power-ups, level transitions — and transformers map those events to visual effects on your LED strips and matrices over WiFi.
 
+---
+
+[:material-download: Download RGFX](https://github.com/mfurniss/rgfx/releases/latest){ .md-button .md-button--primary }
+
+---
+
+
 ## How It Works
 
 RGFX connects three things together:

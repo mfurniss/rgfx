@@ -2,9 +2,7 @@
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](LICENSE)
 
-> **Project Status: Alpha** — Active development. APIs and configuration formats may change.
-
-Real-time LED effects driven by retro arcade games. RGFX monitors game state inside MAME and translates events like score changes, power-ups, and enemy behavior into synchronized lighting effects on ESP32-controlled LED strips and matrices.
+Real-time LED effects driven by retro arcade games. RGFX monitors game state inside MAME and translates events like score changes, player and enemy behavior into synchronized lighting effects on ESP32-controlled LED strips and matrices.
 
 [![RGFX Demo](https://img.youtube.com/vi/6lCLMydJWps/maxresdefault.jpg)](https://www.youtube.com/shorts/6lCLMydJWps)
 
@@ -12,18 +10,18 @@ Real-time LED effects driven by retro arcade games. RGFX monitors game state ins
 
 - **Real-Time Effects** — Sub-10ms latency from game event to LED update
 - **Multi-Device Architecture** — Central Hub coordinates multiple ESP32 Driver devices
-- **MAME Integration** — Lua scripts intercept game RAM and publish events
+- **MAME Integration** — Lua scripts monitor game internals and publish events
 - **Zero Configuration** — Automatic device discovery via SSDP and mDNS
 - **Dual Protocol** — MQTT (QoS 2) for reliability, UDP for low-latency effects
 - **OTA Updates** — Wireless firmware updates for ESP32 devices
 - **Flexible Configuration** — Multiple LED devices per Driver with custom mappings
-- **Game Library** — Built-in interceptors for classic arcade and console titles
+- **Game Library** — Includes example code to help get setup quickly
 
 ## How It Works
 
 RGFX is a distributed system with three components:
 
-**RGFX Hub** — An Electron desktop app (macOS/Windows) that monitors MAME's event output, discovers ESP32 devices on the network, and maps game events to LED effects.
+**RGFX Hub** — A desktop app (macOS/Windows) that monitors MAME's event output, discovers ESP32 devices on the network, and maps game events to LED effects.
 
 **RGFX Driver** — ESP32 firmware that receives commands from the Hub and controls the connected LED hardware. Multiple Drivers can run simultaneously for multi-zone setups.
 
@@ -31,26 +29,23 @@ RGFX is a distributed system with three components:
 
 The Hub communicates with Drivers using MQTT (QoS 2) for configuration and reliable messaging, and UDP broadcast for low-latency game event delivery. Devices discover each other automatically — no manual IP configuration needed.
 
-For the full architecture details, see the [documentation](https://rgfx.io/).
+For the full architecture details, see the [documentation](https://rgfx.io/docs).
 
-## Supported Games
+## Included examples
 
-RGFX includes interceptors for the following titles:
+RGFX includes examples for the following titles:
 
 | Game | Interceptor | Transformer |
 |------|:-----------:|:-----------:|
-| Pac-Man | yes | yes |
+| Defender | yes | yes |
 | Galaga | yes | yes |
 | Galaga '88 | yes | yes |
-| Star Wars | yes | yes |
-| Robotron: 2084 | yes | yes |
-| Super Mario Bros (NES) | yes | yes |
-| Defender | yes | yes |
 | OutRun | yes | yes |
+| Pac-Man | yes | yes |
+| Robotron: 2084 | yes | yes |
+| Star Wars | yes | yes |
 | Super Hang-On | yes | yes |
-| Space Harrier | yes | — |
-| Super Street Fighter II | yes | — |
-| G-Force 2 | yes | — |
+| Super Mario Bros (NES) | yes | yes |
 
 See the [full game list](https://rgfx.io/hub-app/games/) for details on each game's supported events.
 
@@ -61,7 +56,6 @@ See the [full game list](https://rgfx.io/hub-app/games/) for details on each gam
 - **macOS or Windows**
 - **MAME** 0.281+
 - **ESP32 hardware** with connected LED strips or matrices
-- **An MQTT broker on your network** (or let the Hub run its embedded broker)
 
 ### Install the RGFX Package
 
@@ -69,24 +63,13 @@ Download the latest installer from the [Releases](https://github.com/mfurniss/rg
 - **macOS** — `.dmg` installer
 - **Windows** — `.exe` installer
 
-### Flash ESP32 Firmware
-
-**Option A — Web Flasher** (no toolchain needed):
-Open `esp32-installer/index.html` in Chrome and follow the prompts to flash pre-built firmware via USB.
-
-**Option B — PlatformIO:**
-```bash
-cd esp32
-pio run -t upload
-```
-
 ### Launch MAME
 
 Start MAME with the RGFX autofire script. The Hub app configures the correct MAME launch parameters — see the [Getting Started guide](https://rgfx.io/getting-started/) for details.
 
 ## Documentation
 
-Full documentation is available at **[rgfx.io](https://rgfx.io/)**, covering:
+Full documentation is available at **[rgfx.io](https://rgfx.io/docs)**, covering:
 
 - Getting started and installation
 - Hub app configuration
