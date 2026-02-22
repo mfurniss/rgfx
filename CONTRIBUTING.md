@@ -72,7 +72,7 @@ pip install platformio
 ### Clone and Install
 
 ```bash
-git clone https://gitlab.com/furniss/rgfx.git
+git clone https://github.com/mfurniss/rgfx.git
 cd rgfx
 ```
 

@@ -291,32 +291,14 @@ function extractNumberConstraints(schema: z.ZodType): FieldConstraints | undefin
   const constraints: FieldConstraints = {};
 
   for (const check of def.checks) {
-    // Zod v4: checks are schema-like objects with _zod.def
-    if (check._zod?.def) {
-      const { check: checkType, value } = check._zod.def;
+    const { check: checkType, value } = check._zod.def;
 
-      if (checkType === 'greater_than') {
-        constraints.min = value;
-      }
-
-      if (checkType === 'less_than') {
-        constraints.max = value;
-      }
-
-      continue;
+    if (checkType === 'greater_than') {
+      constraints.min = value;
     }
 
-    // Zod v3 fallback: checks are plain objects with kind/value
-    if (check.kind === 'min') {
-      constraints.min = check.value;
-    }
-
-    if (check.kind === 'max') {
-      constraints.max = check.value;
-    }
-
-    if (check.kind === 'int') {
-      constraints.isInteger = true;
+    if (checkType === 'less_than') {
+      constraints.max = value;
     }
   }
 

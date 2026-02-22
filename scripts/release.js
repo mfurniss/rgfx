@@ -13,9 +13,11 @@
  *   4. Injects version into Hub package.json, builds installer (DMG/EXE)
  *   5. Copies installer to rgfx-hub/out/release/<platform>/
  *   6. Uploads to the GitLab release via Package Registry
+ *   7. Creates matching GitHub release and uploads installer
  *
  * Prerequisites:
  *   - glab CLI authenticated (glab auth status)
+ *   - gh CLI authenticated (gh auth login)
  *   - Working tree must be clean
  *   - Must be on main branch (or on the tag for resume)
  */
@@ -31,6 +33,9 @@ const MAKE_DIR = path.join(HUB_DIR, 'out', 'make');
 const RELEASE_DIR = path.join(HUB_DIR, 'out', 'release');
 
 const CI_POLL_INTERVAL_MS = 30_000;
+const GITHUB_REPO = 'mfurniss/rgfx';
+const GITHUB_MIRROR_POLL_INTERVAL_MS = 15_000;
+const GITHUB_MIRROR_MAX_ATTEMPTS = 20;
 
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
@@ -114,6 +119,54 @@ function releaseExists(tagName) {
 }
 
 /**
+ * Check if a GitHub release exists for the given tag.
+ */
+function gitHubReleaseExists(tagName) {
+  try {
+    runCapture(`gh release view ${tagName} --repo ${GITHUB_REPO}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check if a tag has been mirrored to GitHub.
+ */
+function tagExistsOnGitHub(tagName) {
+  try {
+    runCapture(`gh api repos/${GITHUB_REPO}/git/refs/tags/${tagName}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Wait for GitLab push mirror to sync tag to GitHub.
+ */
+async function waitForGitHubMirror(tagName) {
+  console.log(`\nWaiting for tag ${tagName} to appear on GitHub...`);
+  console.log(`  (polling every ${GITHUB_MIRROR_POLL_INTERVAL_MS / 1000}s)\n`);
+
+  let attempts = 0;
+  while (attempts < GITHUB_MIRROR_MAX_ATTEMPTS) {
+    if (tagExistsOnGitHub(tagName)) {
+      console.log('  Tag found on GitHub.');
+      return;
+    }
+    process.stdout.write('  Waiting for mirror sync...\r');
+    await sleep(GITHUB_MIRROR_POLL_INTERVAL_MS);
+    attempts++;
+  }
+
+  fail(
+    `Tag ${tagName} did not appear on GitHub after ${(GITHUB_MIRROR_POLL_INTERVAL_MS * GITHUB_MIRROR_MAX_ATTEMPTS) / 1000}s.\n` +
+    'Check GitLab mirror settings or push manually: git push github ' + tagName
+  );
+}
+
+/**
  * Poll CI pipeline status until it completes.
  */
 async function waitForCI(tagName) {
@@ -193,6 +246,13 @@ async function waitForCI(tagName) {
     runCapture('glab auth status');
   } catch {
     fail('glab CLI not authenticated. Run: glab auth login');
+  }
+
+  // gh authentication (for GitHub release)
+  try {
+    runCapture('gh auth status');
+  } catch {
+    fail('gh CLI not authenticated. Run: gh auth login');
   }
 
   console.log('Pre-flight checks passed.\n');
@@ -324,6 +384,28 @@ async function waitForCI(tagName) {
   const linkData = JSON.stringify({ name: artifactName, url: packageUrl, link_type: 'package' });
   run(`curl --fail --header "Authorization: Bearer ${token}" --header "Content-Type: application/json" --request POST "https://gitlab.com/api/v4/projects/${projectId}/releases/${tag}/assets/links" --data '${linkData}'`);
 
-  console.log(`\nDone! ${artifactName} uploaded to release ${tag}`);
-  console.log(`View: glab release view ${tag}`);
+  // --- Step 9: Create GitHub release and upload artifact ---
+  console.log('\n--- GitHub Release ---');
+
+  if (gitHubReleaseExists(tag)) {
+    console.log(`GitHub release ${tag} already exists. Uploading artifact...`);
+    run(`gh release upload ${tag} "${releasePath}#${artifactName}" --repo ${GITHUB_REPO} --clobber`);
+  } else {
+    if (!tagExistsOnGitHub(tag)) {
+      await waitForGitHubMirror(tag);
+    }
+
+    console.log(`Creating GitHub release ${tag}...`);
+    run(
+      `gh release create ${tag} "${releasePath}#${artifactName}"` +
+      ` --repo ${GITHUB_REPO}` +
+      ` --title "RGFX ${tag}"` +
+      ` --generate-notes` +
+      ` --verify-tag`
+    );
+  }
+
+  console.log(`\nDone! ${artifactName} uploaded to releases.`);
+  console.log(`  GitLab: glab release view ${tag}`);
+  console.log(`  GitHub: gh release view ${tag} --repo ${GITHUB_REPO}`);
 })();
