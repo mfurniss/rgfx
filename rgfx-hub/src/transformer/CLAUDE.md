@@ -163,3 +163,5 @@ function transform(event: GameEvent, context: TransformerContext) {
   state.set('lastPulse', Date.now());
 }
 ```
+
+<\!-- No per-file license headers — see root LICENSE -->

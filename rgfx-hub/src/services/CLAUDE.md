@@ -114,3 +114,5 @@ watcher.start();
 // Setup global error handling
 setupGlobalErrorHandler(mainWindow);
 ```
+
+<\!-- No per-file license headers — see root LICENSE -->

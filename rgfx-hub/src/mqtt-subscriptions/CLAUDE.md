@@ -145,3 +145,5 @@ Subscription Handler
               ▼
          React Components
 ```
+
+<\!-- No per-file license headers — see root LICENSE -->

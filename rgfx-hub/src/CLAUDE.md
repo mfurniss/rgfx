@@ -45,3 +45,5 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `types.ts` — Shared types for IPC (AppInfo, LED configs, etc.)
 - `css-modules.d.ts` — CSS module import declarations
 - `vite-env.d.ts` — Vite environment variable declarations
+
+<\!-- No per-file license headers — see root LICENSE -->
