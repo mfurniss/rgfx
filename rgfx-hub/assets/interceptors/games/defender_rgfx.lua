@@ -7,7 +7,7 @@
 local ram = require("ram")
 
 -- Skip diagnostics and attract mode
-boot_delay(14)
+_G.boot_delay(14)
 
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]

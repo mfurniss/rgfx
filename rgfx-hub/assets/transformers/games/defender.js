@@ -11,6 +11,32 @@ export async function transform(
   { subject, property, qualifier, payload },
   { broadcast, hslToHex },
 ) {
+  if (subject === 'init') {
+    broadcast({
+      effect: 'sparkle',
+      props: {
+        duration: 0,
+        density: 2,
+        gradient: ['#000000', '#005000', '#000000'],
+        speed: 0.5,
+        bloom: 90,
+        reset: false,
+      },
+    });
+
+    broadcast({
+      effect: 'sparkle',
+      props: {
+        duration: 0,
+        density: 2,
+        gradient: ['#000000', '#500050', '#000000'],
+        speed: 0.4,
+        bloom: 100,
+        reset: false,
+      },
+    });
+  }
+
   if (subject === 'player' && property === 'score' && Number(payload) > 0) {
     const color = hslToHex(scoreHue, 100, 30);
     scoreHue = (scoreHue + 30) % 360;
@@ -56,7 +82,7 @@ export async function transform(
   if (subject === 'player' && property === 'fire') {
     const effect = {
       effect: 'projectile',
-      drivers: [NAMED_DRIVERS.leftStrip],
+      drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightStrip],
       props: {
         color: 'random',
         direction: 'right',
@@ -70,10 +96,6 @@ export async function transform(
       },
     };
 
-    broadcast(effect);
-
-    effect.drivers = [NAMED_DRIVERS.rightStrip];
-    effect.props.direction = 'left';
     broadcast(effect);
 
     return true;

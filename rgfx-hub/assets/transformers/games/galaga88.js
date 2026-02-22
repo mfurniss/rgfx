@@ -12,6 +12,12 @@ import {
   SECONDARY_MATRIX_DRIVERS,
 } from '../global.js';
 
+const STARFIELD_DRIVERS = [
+  ...MATRIX_DRIVERS,
+  NAMED_DRIVERS.leftStrip,
+  NAMED_DRIVERS.rightStrip,
+];
+
 export async function transform(
   { subject, property, qualifier, payload },
   { broadcast, log, state },
@@ -31,10 +37,11 @@ export async function transform(
       },
     });
   }
+
   function starfield() {
     broadcast({
       effect: 'particle_field',
-      drivers: MATRIX_DRIVERS,
+      drivers: STARFIELD_DRIVERS,
       props: {
         direction: 'down',
         density: 40,
@@ -50,7 +57,7 @@ export async function transform(
     function update({ density, speed, size }) {
       broadcast({
         effect: 'particle_field',
-        drivers: [...MATRIX_DRIVERS],
+        drivers: STARFIELD_DRIVERS,
         props: {
           direction: 'down',
           enabled: 'on',
@@ -208,10 +215,10 @@ export async function transform(
     for (var i = 0; i < 2; i++) {
       broadcast({
         effect: 'projectile',
-        drivers: [i & 1 ? NAMED_DRIVERS.rightStrip : NAMED_DRIVERS.leftStrip],
+        drivers: [NAMED_DRIVERS.rightStrip, NAMED_DRIVERS.leftStrip],
         props: {
           color: '#46005e',
-          direction: i & 1 ? 'left' : 'right',
+          direction: 'right',
           velocity: 1800,
           friction: 0.5,
           trail: 0.3,
