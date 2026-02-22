@@ -74,4 +74,6 @@ LED hardware definition files (JSON):
 - Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json, sk6812-rgbw-5v-300px.json)
 - Includes virtual hardware definitions for simulator (virtual-strip.json, virtual-wide-matrix.json)
 
-<\!-- No per-file license headers — see root LICENSE -->
+### Build Packaging
+
+Assets are bundled by `forge.config.ts` via `extraResource`. The macOS build is unsigned (no Apple Developer certificate) — `entitlements.mac.plist` exists at the hub root for future use if signing is added.
