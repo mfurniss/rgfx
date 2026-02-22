@@ -97,3 +97,5 @@ Key global variables shared between cores:
 - **ArduinoJson** - JSON parsing for config and effects
 - **PubSubClient** - MQTT client
 - **ESP32 FreeRTOS** - Dual-core task scheduling
+
+<\!-- No per-file license headers — see root LICENSE -->

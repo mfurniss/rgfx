@@ -248,3 +248,5 @@ interface AppInfo {
 - Loaded once at app startup
 - Provides default values for settings page
 - No persistence (always fetched fresh from main process)
+
+<\!-- No per-file license headers — see root LICENSE -->

@@ -46,7 +46,7 @@ Real-time performance metrics:
 
 Available actions for the driver:
 
-- **Test LED** - Toggle LED test pattern to verify the driver is communicating and LEDs are working. See [Test LEDs](test-leds.md) for details.
+- **Test LED** - Toggle LED test pattern to verify the driver is communicating and LEDs are working. See [Test LEDs](../getting-started/test-leds.md) for details.
 - **Configure Driver** - Edit driver settings (see [LED Configuration](../hardware/configure.md))
 - **Reset** - Factory reset (erases ID, LED config, WiFi)
 - **Restart** - Reboot the driver

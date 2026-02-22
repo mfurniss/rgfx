@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Logger } from '../service-factory';
 
@@ -80,7 +73,7 @@ describe('registerGlobalErrorHandlers', () => {
       const error = new Error('read ECONNRESET');
       uncaughtExceptionHandler!(error);
 
-      expect(mockLogFns.warn).toHaveBeenCalledWith('Socket error (recovered):', error.message);
+      expect(mockLogFns.warn).toHaveBeenCalledWith('Uncaught exception (recovered):', error.message);
       expect(mockEventBus.emit).toHaveBeenCalledWith('system:error', expect.objectContaining({
         errorType: 'network',
         message: expect.stringContaining('ECONNRESET'),
@@ -94,7 +87,7 @@ describe('registerGlobalErrorHandlers', () => {
       const error = new Error('write EPIPE');
       uncaughtExceptionHandler!(error);
 
-      expect(mockLogFns.warn).toHaveBeenCalledWith('Socket error (recovered):', error.message);
+      expect(mockLogFns.warn).toHaveBeenCalledWith('Uncaught exception (recovered):', error.message);
       expect(mockEventBus.emit).toHaveBeenCalledWith('system:error', expect.objectContaining({
         errorType: 'network',
       }));
@@ -107,7 +100,7 @@ describe('registerGlobalErrorHandlers', () => {
       const error = new Error('connect ECONNREFUSED 192.168.1.100:3232');
       uncaughtExceptionHandler!(error);
 
-      expect(mockLogFns.warn).toHaveBeenCalledWith('Socket error (recovered):', error.message);
+      expect(mockLogFns.warn).toHaveBeenCalledWith('Uncaught exception (recovered):', error.message);
     });
 
     it('should handle ETIMEDOUT errors as socket errors', async () => {
@@ -117,7 +110,7 @@ describe('registerGlobalErrorHandlers', () => {
       const error = new Error('connect ETIMEDOUT');
       uncaughtExceptionHandler!(error);
 
-      expect(mockLogFns.warn).toHaveBeenCalledWith('Socket error (recovered):', error.message);
+      expect(mockLogFns.warn).toHaveBeenCalledWith('Uncaught exception (recovered):', error.message);
     });
 
     it('should log non-socket errors as errors and emit general SystemError', async () => {
@@ -239,6 +232,39 @@ describe('registerGlobalErrorHandlers', () => {
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('system:error', expect.objectContaining({
         details: error.stack,
+      }));
+    });
+  });
+
+  // Must be last — setShuttingDown() is irreversible within a module instance
+  describe('shutdown suppression', () => {
+    beforeEach(async () => {
+      const mod = await import('../global-error-handler.js');
+      mod.registerGlobalErrorHandlers(mockLog);
+      mod.setShuttingDown();
+    });
+
+    it('should suppress socket errors during shutdown', () => {
+      uncaughtExceptionHandler!(new Error('write EPIPE'));
+
+      expect(mockLogFns.warn).not.toHaveBeenCalled();
+      expect(mockEventBus.emit).not.toHaveBeenCalled();
+    });
+
+    it('should suppress socket rejection errors during shutdown', () => {
+      unhandledRejectionHandler!(new Error('read ECONNRESET'));
+
+      expect(mockLogFns.warn).not.toHaveBeenCalled();
+      expect(mockEventBus.emit).not.toHaveBeenCalled();
+    });
+
+    it('should still log non-socket errors during shutdown', () => {
+      const error = new Error('Something unexpected');
+      uncaughtExceptionHandler!(error);
+
+      expect(mockLogFns.error).toHaveBeenCalledWith('Uncaught exception:', error);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('system:error', expect.objectContaining({
+        errorType: 'general',
       }));
     });
   });

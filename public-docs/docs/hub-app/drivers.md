@@ -17,7 +17,7 @@ A sortable table shows:
 
 ### Test LED Button
 
-The **Test LED** button in the Actions column toggles a test pattern on the driver's connected LEDs. This helps verify the driver is communicating correctly and the LED hardware is working. See [Test LEDs](test-leds.md) for details on the test patterns.
+The **Test LED** button in the Actions column toggles a test pattern on the driver's connected LEDs. This helps verify the driver is communicating correctly and the LED hardware is working. See [Test LEDs](../getting-started/test-leds.md) for details on the test patterns.
 
 Click any row to view the [Driver Detail](driver-detail.md) page.
 

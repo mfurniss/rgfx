@@ -7,14 +7,14 @@ Helper functions available to all transformers.
 ## Import
 
 ```javascript
-import { scaleLinear, sleep, randomInt, formatNumber } from '../utils.js';
+import { scaleLinear, sleep, trackedTimeout, trackedInterval, randomInt, formatNumber } from '../utils.js';
 ```
 
 Or import from individual modules:
 
 ```javascript
 import { scaleLinear, randomInt } from '../utils/math.js';
-import { sleep } from '../utils/async.js';
+import { sleep, trackedTimeout, trackedInterval } from '../utils/async.js';
 import { formatNumber } from '../utils/format.js';
 ```
 
@@ -54,6 +54,34 @@ await sleep(100);  // wait 100ms
 ```
 
 Useful for sequencing effects or adding delays between broadcasts.
+
+### trackedTimeout
+
+Tracked wrapper around `setTimeout`. Like `sleep`, the timer is tracked and auto-cancelled when the game exits.
+
+```javascript
+trackedTimeout(() => {
+  bonusLatch = false;
+}, 3000);
+```
+
+Useful for resetting flags or latches after a delay without blocking the transform function.
+
+### trackedInterval
+
+Tracked wrapper around `setInterval`. The interval is tracked and auto-cancelled when the game exits.
+
+```javascript
+trackedInterval(() => {
+  pulse();
+}, 1000);
+```
+
+Useful for repeating actions on a fixed schedule (e.g., periodic ambient effects).
+
+### clearAllTimers
+
+Cancel all pending `sleep()`, `trackedTimeout()`, and `trackedInterval()` timers. Called automatically by the transformer engine on game exit — you don't need to call this yourself.
 
 ## Formatting Functions
 

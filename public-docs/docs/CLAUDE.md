@@ -8,7 +8,7 @@
 
 Use standard markdown wherever possible. HTML should only be used where there is no markdown alternative (e.g., `<video>` embeds). Do not use HTML for layout, styling, or features that can be achieved with markdown or MkDocs Material features.
 
-The LED test pattern visualizations in `hub-app/test-leds.md` are an accepted exception — CSS-driven diagrams that have no markdown equivalent.
+The LED test pattern visualizations in `getting-started/test-leds.md` are an accepted exception — CSS-driven diagrams that have no markdown equivalent.
 
 ### Before Making Documentation Changes
 
@@ -51,11 +51,11 @@ docs/
 ├── index.md                    # Landing page with hero video
 ├── example-games.md            # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
-├── getting-started/            # 4-page onboarding flow (requirements has download links)
-├── hub-app/                    # Hub application reference (10 pages, settings includes driver fallback toggle)
+├── getting-started/            # 5-page onboarding flow (requirements has download links, test-leds moved here)
+├── hub-app/                    # Hub application reference (9 pages, settings includes driver fallback toggle)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, effects with blend modes, examples)
 ├── interceptors/               # Lua interceptor docs (7 pages, all examples use _G.event() with real game events)
-└── transformers/               # JS transformer docs (5 pages, ambilight has single/multi driver modes)
+└── transformers/               # JS transformer docs (6 pages, ambilight has single/multi driver modes)
 ```
 
 ### Config Directory References

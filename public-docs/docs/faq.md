@@ -35,7 +35,7 @@ Any game that runs in MAME can work with RGFX. The [Writing Interceptors](interc
 
 ## Can I customize the effects for a game?
 
-Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the [Transformers](transformers/index.md) documentation.
+Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the [Writing Transformers](transformers/writing-transformers.md) guide.
 
 ## Why scripting instead of simple config files?
 
@@ -95,7 +95,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | ROM name | The interceptor matches by ROM name. The ROM filename must match an entry in `interceptors/rom_map.lua` in your [config directory](getting-started/hub-setup.md#config-directory). |
 | Interceptor loading | Check MAME's console output for errors. If the interceptor has a Lua syntax error, MAME will report it. |
 | Config directory | Verify the RGFX Config Directory in [Settings](hub-app/settings.md) points to your config directory. |
-| Event log | Check that `interceptor_events.log` is being created and updated in your config directory while the game runs. |
+| Event log | Check that `interceptor-events.log` is being created and updated in your config directory while the game runs. |
 | Boot delay | Some interceptors have a boot delay to skip past hardware tests and attract modes. Wait for gameplay to begin before expecting events. |
 
 ### My LEDs flicker or show wrong colors

@@ -1,4 +1,10 @@
-import { sleep, formatNumber, randomInt } from '../utils/index.js';
+import {
+  sleep,
+  formatNumber,
+  randomInt,
+  hslToRgb,
+  trackedTimeout,
+} from '../utils/index.js';
 
 import {
   MATRIX_DRIVERS,
@@ -6,14 +12,36 @@ import {
   SECONDARY_MATRIX_DRIVERS,
 } from '../global.js';
 
+const STARFIELD_DRIVERS = [
+  ...MATRIX_DRIVERS,
+  NAMED_DRIVERS.leftStrip,
+  NAMED_DRIVERS.rightStrip,
+];
+
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, log },
+  { broadcast, log, state },
 ) {
+  const SCORE_THROTTLE_MS = 100;
+
+  function broadcastScore(score) {
+    broadcast({
+      effect: 'text',
+      drivers: [NAMED_DRIVERS.primaryMatrix],
+      props: {
+        text: formatNumber(score),
+        gradient: ['#A0A0A0'],
+        accentColor: '#000000',
+        duration: 6000,
+        reset: true,
+      },
+    });
+  }
+
   function starfield() {
     broadcast({
       effect: 'particle_field',
-      drivers: MATRIX_DRIVERS,
+      drivers: STARFIELD_DRIVERS,
       props: {
         direction: 'down',
         density: 40,
@@ -26,49 +54,58 @@ export async function transform(
   }
 
   async function particleWarp() {
-    for (let i = 0; i <= 1; i += 0.2) {
+    function update({ density, speed, size }) {
       broadcast({
         effect: 'particle_field',
-        drivers: [...MATRIX_DRIVERS],
+        drivers: STARFIELD_DRIVERS,
         props: {
           direction: 'down',
-          density: 50 + i * 50,
-          speed: 50 + i * 200,
-          size: 4 + i * 3,
-          color: 'random',
-          enabled: 'fadeIn',
+          enabled: 'on',
+          density: Math.round(density),
+          speed,
+          size: Math.round(size),
+          color: randomInt(2) ? hslToRgb(randomInt(0, 359), 1, 0.5) : '#B0B0B0',
         },
       });
-
-      await sleep(200);
     }
 
-    await sleep(4000);
-
-    for (let i = 0.8; i >= 0.2; i -= 0.2) {
-      broadcast({
-        effect: 'particle_field',
-        drivers: [...MATRIX_DRIVERS],
-        props: {
-          direction: 'down',
-          density: 50 + i * 50,
-          speed: 50 + i * 200,
-          size: 4 + i * 3,
-          color: 'random',
-          enabled: 'fadeIn',
-        },
+    for (let i = 0; i <= 1; i += 0.1) {
+      update({
+        density: 30 + i * 50,
+        speed: 50 + i * 300,
+        size: 4 + i * 6,
       });
-
-      await sleep(200);
+      await sleep(100);
     }
+
+    for (let i = 0; i <= 100; i += 1) {
+      update({
+        density: 100,
+        speed: 400,
+        size: 16,
+      });
+      await sleep(40);
+    }
+
+    for (let i = 0.9; i >= 0.1; i -= 0.1) {
+      update({
+        density: 30 + i * 50,
+        speed: 50 + i * 300,
+        size: 4 + i * 6,
+      });
+      await sleep(100);
+    }
+
+    starfield();
   }
 
   if (subject === 'init') {
     starfield();
+    state.delete('score');
   }
 
   if (subject === 'screen' && property === 'text') {
-    if (payload === 'START!') {
+    if (payload === 'START!' || payload === 'READY') {
       broadcast({
         effect: 'text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
@@ -81,8 +118,10 @@ export async function transform(
         },
       });
       await sleep(2500);
-      await particleWarp();
-      starfield();
+
+      if (payload === 'START!') {
+        await particleWarp();
+      }
     } else if (payload === 'PERFECT') {
       broadcast({
         effect: 'text',
@@ -150,18 +189,25 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score') {
-    broadcast({
-      effect: 'text',
-      drivers: [NAMED_DRIVERS.primaryMatrix],
-      props: {
-        text: formatNumber(payload),
-        gradient: ['#A0A0A0'],
-        accentColor: '#000000',
-        duration: 6000,
-        reset: true,
-      },
-    });
+    const s = state.get('score') || { lastSent: 0 };
+    s.latest = payload;
 
+    const now = Date.now();
+
+    if (now - s.lastSent >= SCORE_THROTTLE_MS) {
+      broadcastScore(payload);
+      s.lastSent = now;
+    } else if (!s.timerPending) {
+      s.timerPending = true;
+      const delay = SCORE_THROTTLE_MS - (now - s.lastSent);
+      trackedTimeout(() => {
+        s.timerPending = false;
+        broadcastScore(s.latest);
+        s.lastSent = Date.now();
+      }, delay);
+    }
+
+    state.set('score', s);
     return true;
   }
 
@@ -169,10 +215,10 @@ export async function transform(
     for (var i = 0; i < 2; i++) {
       broadcast({
         effect: 'projectile',
-        drivers: [i & 1 ? NAMED_DRIVERS.rightStrip : NAMED_DRIVERS.leftStrip],
+        drivers: [NAMED_DRIVERS.rightStrip, NAMED_DRIVERS.leftStrip],
         props: {
           color: '#46005e',
-          direction: i & 1 ? 'left' : 'right',
+          direction: 'right',
           velocity: 1800,
           friction: 0.5,
           trail: 0.3,
@@ -211,13 +257,14 @@ export async function transform(
       return true;
     }
 
-    const delta = Number(payload);
+    let delta = Number(payload);
 
     const colors = {
       zako: '#E04400',
       goei: '#C0A000',
       boss: '#00A0FF',
       'don-attack': '#FFA0A0',
+      hiyoko: '#A0A0A0',
     };
 
     if (!colors[qualifier]) {
@@ -245,11 +292,15 @@ export async function transform(
     if (delta > 500 && delta <= 9999) {
       await sleep(150);
 
+      if (delta === 1100) {
+        delta = 1000;
+      }
+
       broadcast({
         effect: 'text',
         drivers: SECONDARY_MATRIX_DRIVERS,
         props: {
-          text: String(Math.round(delta / 100) * 100),
+          text: String(delta),
           gradient: ['#0080FF', '#FFFF00', '#FF0000', '#0080FF'],
           gradientSpeed: 7,
           gradientScale: 0,

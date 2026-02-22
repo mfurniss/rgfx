@@ -1,5 +1,24 @@
 import { formatNumber, sleep, randomInt } from '../utils/index.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
+import test from 'node:test';
+import { text } from 'stream/consumers';
+
+const STARFIELD_DRIVERS = [
+  ...MATRIX_DRIVERS,
+  NAMED_DRIVERS.leftStrip,
+  NAMED_DRIVERS.rightStrip,
+];
+
+const EXPLOSION_DRIVERS = [...MATRIX_DRIVERS, NAMED_DRIVERS.frontStrip];
+
+function pickTwo(array) {
+  const i = Math.floor(Math.random() * array.length);
+  let j;
+  do {
+    j = Math.floor(Math.random() * array.length);
+  } while (j === i);
+  return [array[i], array[j]];
+}
 
 const bonusColors = {
   150: '#C0C0C0',
@@ -18,7 +37,7 @@ export async function transform({ subject, property, payload }, { broadcast }) {
   if (subject === 'init') {
     broadcast({
       effect: 'particle_field',
-      drivers: MATRIX_DRIVERS,
+      drivers: STARFIELD_DRIVERS,
       props: {
         direction: 'down',
         density: 40,
@@ -51,8 +70,13 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     const isChallengingStage = !(Number(payload) - 3) % 4;
 
     broadcast({
+      effect: 'text',
+      props: { reset: true, duration: 0, text: '' },
+    });
+
+    broadcast({
       effect: 'scroll_text',
-      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+      drivers: MATRIX_DRIVERS,
       props: {
         text: isChallengingStage ? 'CHALLENGING STAGE' : `STAGE ${payload}`,
         gradient: ['#008050'],
@@ -77,7 +101,7 @@ export async function transform({ subject, property, payload }, { broadcast }) {
 
     broadcast({
       effect: 'scroll_text',
-      drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+      drivers: MATRIX_DRIVERS,
       props: {
         text: 'FIGHTER CAPTURED',
         gradient: ['#A00000'],
@@ -112,10 +136,10 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     for (var i = 0; i < 2; i++) {
       broadcast({
         effect: 'projectile',
-        drivers: [i & 1 ? NAMED_DRIVERS.leftStrip : NAMED_DRIVERS.rightStrip],
+        drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightStrip],
         props: {
           color: '#56006e',
-          direction: i & 1 ? 'right' : 'left',
+          direction: 'right',
           velocity: 1800,
           friction: 0.5,
           trail: 0.3,
@@ -163,7 +187,7 @@ export async function transform({ subject, property, payload }, { broadcast }) {
   if (subject === 'enemy' && property === 'destroy') {
     broadcast({
       effect: 'explode',
-      drivers: ['*', '*'],
+      drivers: pickTwo(EXPLOSION_DRIVERS),
       props: {
         color: '#FF7000',
         reset: false,
@@ -190,7 +214,7 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     for (var i = 0; i < 60; i++) {
       broadcast({
         effect: 'explode',
-        drivers: ['*', '*'],
+        drivers: pickTwo(EXPLOSION_DRIVERS),
         props: {
           color: 'random',
           reset: false,

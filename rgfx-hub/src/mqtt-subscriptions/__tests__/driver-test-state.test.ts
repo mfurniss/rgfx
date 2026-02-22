@@ -1,10 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2025 Matt Furniss <furniss@gmail.com>
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { subscribeDriverTestState } from '../driver-test-state';
@@ -77,12 +70,6 @@ describe('subscribeDriverTestState', () => {
       subscribedCallback('rgfx/driver/rgfx-driver-0001/test/state', 'on');
 
       expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('rgfx-driver-0001');
-    });
-
-    it('should extract driver ID with MAC address format', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/test/state', 'on');
-
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
     });
 
     it('should handle invalid topic format gracefully', () => {

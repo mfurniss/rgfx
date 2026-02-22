@@ -197,3 +197,5 @@ The particle system tracks `activeCount` to enable early-exit optimization:
 - `update()` and `render()` return immediately when no particles are active
 - Eliminates unnecessary iteration over the 500-slot particle pool
 - Count maintained automatically on add, death, out-of-bounds, and reset
+
+<\!-- No per-file license headers — see root LICENSE -->

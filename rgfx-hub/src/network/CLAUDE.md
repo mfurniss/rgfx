@@ -62,3 +62,5 @@ See [broker-discovery.md](../../../.claude/docs/broker-discovery.md) for the dis
 - `MqttBroker.start()` calls `startDiscoveryServices()` synchronously in the listen callback
 - `NetworkManager` tests use `vi.advanceTimersByTimeAsync()` with fake timers to test recovery scheduling
 - `getLocalIP()` is synchronous - tests mock it with `mockReturnValue()` not `mockResolvedValue()`
+
+<\!-- No per-file license headers — see root LICENSE -->

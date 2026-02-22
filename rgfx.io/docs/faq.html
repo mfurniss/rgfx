@@ -373,6 +373,34 @@
   
   
     <li class="md-nav__item">
+      <a href="getting-started/test-leds.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test LEDs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="getting-started/play.html" class="md-nav__link">
         
   
@@ -845,6 +873,34 @@
   
   
     <li class="md-nav__item">
+      <a href="hardware/examples.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="hardware/wiring.html" class="md-nav__link">
         
   
@@ -901,34 +957,6 @@
   
   
     <li class="md-nav__item">
-      <a href="hub-app/test-leds.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test LEDs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="hardware/effects.html" class="md-nav__link">
         
   
@@ -937,34 +965,6 @@
     
   
     Visual Effects
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="hardware/examples.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Build Examples
   
 
     
@@ -1297,6 +1297,34 @@
     
   
     Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="transformers/writing-transformers.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing Transformers
   
 
     
@@ -2019,7 +2047,7 @@
 <h2 id="how-do-i-add-support-for-a-new-game">How do I add support for a new game?<a class="headerlink" href="#how-do-i-add-support-for-a-new-game" title="Permanent link">¶</a></h2>
 <p>Any game that runs in MAME can work with RGFX. The <a href="interceptors/writing-interceptors.html">Writing Interceptors</a> guide walks you through the process — from finding memory addresses with MAME's debugger to emitting your first event. The <a href="example-games.html">existing game scripts</a> are good examples to study.</p>
 <h2 id="can-i-customize-the-effects-for-a-game">Can I customize the effects for a game?<a class="headerlink" href="#can-i-customize-the-effects-for-a-game" title="Permanent link">¶</a></h2>
-<p>Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the <a href="transformers/index.html">Transformers</a> documentation.</p>
+<p>Yes. Each game's effects are controlled by a transformer script — a JavaScript file you can edit. Changes take effect immediately without restarting the Hub. See the <a href="transformers/writing-transformers.html">Writing Transformers</a> guide.</p>
 <h2 id="why-scripting-instead-of-simple-config-files">Why scripting instead of simple config files?<a class="headerlink" href="#why-scripting-instead-of-simple-config-files" title="Permanent link">¶</a></h2>
 <p>A config-based system (YAML/JSON mapping events to effects) would be simpler to set up but too rigid for what RGFX needs to do. Game events aren't always clean key-value pairs — interceptors often need to decode packed bytes, track state across frames, debounce noisy values, or apply game-specific logic before emitting an event. Transformers need to sequence multiple effects with timing, conditionally choose effects based on game state, or load sprites dynamically.</p>
 <p>Lua and JavaScript give you full control over that logic in short, readable scripts — chaining effects with precise timing, reacting differently based on accumulated game state, or animating sprites across your LED matrices in sync with gameplay.</p>
@@ -2131,7 +2159,7 @@
 </tr>
 <tr>
 <td>Event log</td>
-<td>Check that <code>interceptor_events.log</code> is being created and updated in your config directory while the game runs.</td>
+<td>Check that <code>interceptor-events.log</code> is being created and updated in your config directory while the game runs.</td>
 </tr>
 <tr>
 <td>Boot delay</td>
@@ -2259,7 +2287,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 17, 2026 19:59:56 UTC">February 17, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 21, 2026 22:20:20 UTC">February 21, 2026</span>
   </span>
 
     

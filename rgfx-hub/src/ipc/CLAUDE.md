@@ -365,3 +365,5 @@ All handlers follow a standardized error handling pattern:
 - Validation errors return `{ success: false, error: string }`
 - Unexpected errors are logged and re-thrown
 - OTA errors are tracked via global error handler with driver ID context
+
+<\!-- No per-file license headers — see root LICENSE -->
