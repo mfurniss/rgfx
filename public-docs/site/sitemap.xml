@@ -2,17 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rgfx.io/index.html</loc>
-    <lastmod>2026-02-17T19:59:56+00:00</lastmod>
+    <lastmod>2026-02-22T16:06:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/example-games.html</loc>
-    <lastmod>2026-02-21T22:20:20+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/faq.html</loc>
-    <lastmod>2026-02-21T22:20:20+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -27,12 +27,12 @@
   </url>
   <url>
     <loc>https://rgfx.io/getting-started/play.html</loc>
-    <lastmod>2026-02-17T19:59:56+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/getting-started/requirements.html</loc>
-    <lastmod>2026-02-17T22:58:55+00:00</lastmod>
+    <lastmod>2026-02-22T16:06:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -97,7 +97,7 @@
   </url>
   <url>
     <loc>https://rgfx.io/hub-app/games.html</loc>
-    <lastmod>2026-02-11T01:14:07+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -152,7 +152,7 @@
   </url>
   <url>
     <loc>https://rgfx.io/transformers/index.html</loc>
-    <lastmod>2026-02-17T18:18:27+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -172,12 +172,12 @@
   </url>
   <url>
     <loc>https://rgfx.io/transformers/utils.html</loc>
-    <lastmod>2026-02-11T01:14:07+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/transformers/writing-transformers.html</loc>
-    <lastmod>2026-02-22T01:37:33+00:00</lastmod>
+    <lastmod>2026-02-22T01:37:48+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
 </urlset>
