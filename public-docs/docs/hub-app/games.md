@@ -23,4 +23,4 @@ Configure the **MAME ROMs Directory** in [Settings](settings.md) to see which RO
 ## Adding Game Support
 
 - **Interceptors**: See [Writing Interceptors](../interceptors/writing-interceptors.md)
-- **Transformers**: See [Transformers](../transformers/index.md)
+- **Transformers**: See [Writing Transformers](../transformers/writing-transformers.md)
