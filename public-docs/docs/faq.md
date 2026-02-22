@@ -126,6 +126,15 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | Settings don't save | Verify the directories exist on disk. The Hub validates paths before saving. |
 | Events processed but no effects | Check that the game has a transformer script. Games with interceptors but no transformer use default effect mappings. |
 
+### macOS: "can't be opened because Apple cannot verify the developer"
+
+RGFX Hub is not signed with an Apple Developer certificate. On first launch after downloading, macOS will block the app. To open it:
+
+1. **Right-click** (or Control-click) **RGFX Hub.app** and select **Open**
+2. Click **Open** in the confirmation dialog
+
+You only need to do this once — subsequent launches will work normally.
+
 ### Still stuck?
 
 - **LED hardware** — [r/led](https://www.reddit.com/r/led/) for power supplies, wiring, and signal issues

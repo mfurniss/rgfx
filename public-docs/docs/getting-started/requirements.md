@@ -6,6 +6,9 @@ Before you begin, here's what you'll need to set up RGFX. The minimum viable set
 
 - **RGFX package** — includes the RGFX Hub desktop app (macOS and Windows) along with MAME interceptor scripts, event transformer scripts, and ESP32 driver firmware — [download from GitHub](https://github.com/mfurniss/rgfx/releases/latest)
 
+!!! note "macOS Gatekeeper"
+    After downloading, macOS may block RGFX Hub because it is not from an identified developer. Right-click the app, select **Open**, then click **Open** in the dialog. See [FAQ](../faq.md#macos-cant-be-opened-because-apple-cannot-verify-the-developer) for details.
+
 - **MAME** version 0.250 or later — [download from mamedev.org](https://www.mamedev.org/release.html)
 
 ## Hardware
