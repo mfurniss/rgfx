@@ -12,13 +12,13 @@ These games have both an interceptor (detects game events) and a transformer (ma
 
 | Game | ROM | Events Detected |
 |------|-----|----------------|
-| Pac-Man | `pacman` | Score, lives, ghost eaten, power pellet, level complete |
-| Galaga | `galaga` | Score, lives, enemy destroyed, challenging stage |
-| Galaga '88 | `galaga88` | Score, lives, enemy destroyed |
-| Star Wars | `starwars` | Score, shields, wave complete, enemy destroyed |
-| Robotron: 2084 | `robotron` | Score, lives, sound effects (laser, explosion, rescue) |
+| Pac-Man | `pacman` | Score deltas (dot, energizer, fruit types, ghosts), ghost states, sound, game mode, dots remaining, level complete |
+| Galaga | `galaga` | P1/P2 score, enemy destroy, tractor beam, fighter capture, perfect bonus, bonus scores, stage, fire count |
+| Galaga '88 | `galaga88` | Score, enemy destroy (with type), fire count, screen text detection |
+| Star Wars | `starwars` | Score (with enemy type), shields, player fire, game state, death star destruction |
+| Robotron: 2084 | `robotron` | Score, lives, wave tracking, fire direction, enemy counts (6 types), family rescue, sound effects (20+ types) |
 | Super Mario Bros | `smb` | Score, lives, coins, power-ups |
-| Defender | `defender` | Score, lives, smart bombs, humanoid rescue, enemy destroyed |
+| Defender | `defender` | Score, lives, smart bombs, humanoid count/lost, enemy counts (6 types), player explosion |
 | OutRun | `outrun` | Ambilight, game time, music channels (FM) |
 | Super Hang-On | `shangon` | Ambilight, music channels (FM) |
 
@@ -29,8 +29,8 @@ These games have interceptors that detect events but use default effect mappings
 | Game | ROM | Events Detected |
 |------|-----|----------------|
 | Space Harrier | `sharrier` | Ambilight |
-| Super Street Fighter II | `ssf2` | Score, round, health, actions |
-| G-Force 2 | `gforce2` | Score, lives |
+| Super Street Fighter II | `ssf2` | Sound commands, ambilight |
+| G-Force 2 | `gforce2` | Ambilight |
 
 ## Create Your Own
 

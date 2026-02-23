@@ -1398,10 +1398,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-pattern-transformers" class="md-nav__link">
+  <a href="#3-property-transformers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Pattern Transformers
+        3. Property Transformers
       
     </span>
   </a>
@@ -1823,10 +1823,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-pattern-transformers" class="md-nav__link">
+  <a href="#3-property-transformers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Pattern Transformers
+        3. Property Transformers
       
     </span>
   </a>
@@ -2029,12 +2029,14 @@
 <ul>
 <li><code>audio.js</code> - FFT spectrum events for audio visualization</li>
 <li><code>ambilight.js</code> - Screen edge colors for ambient lighting</li>
-<li><code>player.js</code> - Generic player events</li>
+<li><code>init.js</code> - Game initialization handler (displays world record scores)</li>
+<li><code>sound.js</code> - NES APU sound channel events</li>
+<li><code>player.js</code> - Generic player events (disabled by default)</li>
 <li><code>enemy.js</code> - Enemy-related events</li>
 </ul>
-<h3 id="3-pattern-transformers">3. Pattern Transformers<a class="headerlink" href="#3-pattern-transformers" title="Permanent link">¶</a></h3>
-<p>Match events by content pattern rather than topic structure.</p>
-<p><strong>Location:</strong> <code>transformers/patterns/</code></p>
+<h3 id="3-property-transformers">3. Property Transformers<a class="headerlink" href="#3-property-transformers" title="Permanent link">¶</a></h3>
+<p>Generic handlers that match events by property name, applying across all games.</p>
+<p><strong>Location:</strong> <code>transformers/properties/</code></p>
 <h3 id="4-default-transformer-lowest-priority">4. Default Transformer (Lowest Priority)<a class="headerlink" href="#4-default-transformer-lowest-priority" title="Permanent link">¶</a></h3>
 <p>Catch-all for unmatched events.</p>
 <p><strong>Location:</strong> <code>transformers/default.js</code></p>
@@ -2079,6 +2081,18 @@
 <td>Send effect to drivers</td>
 </tr>
 <tr>
+<td><code>udp</code></td>
+<td>UDP client for direct effect broadcasting with lower-level control</td>
+</tr>
+<tr>
+<td><code>mqtt</code></td>
+<td>MQTT client for publishing messages to the broker</td>
+</tr>
+<tr>
+<td><code>http</code></td>
+<td>HTTP client with <code>get()</code>, <code>post()</code>, <code>put()</code>, <code>delete()</code> for external APIs</td>
+</tr>
+<tr>
 <td><code>state</code></td>
 <td>Key-value store for tracking game state</td>
 </tr>
@@ -2100,7 +2114,7 @@
 </tr>
 <tr>
 <td><code>hslToHex(h, s, l)</code></td>
-<td>Convert HSL to hex color</td>
+<td>Convert HSL to hex color (h: 0–360, s: 0–100, l: 0–100)</td>
 </tr>
 </tbody>
 </table>
@@ -2176,7 +2190,7 @@
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   ├── audio.js
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   ├── ambilight.js
 <a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   └── ...
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>└── patterns/
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>└── properties/
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    └── ...
 </code></pre></div>
 <h2 id="hot-reload">Hot Reload<a class="headerlink" href="#hot-reload" title="Permanent link">¶</a></h2>

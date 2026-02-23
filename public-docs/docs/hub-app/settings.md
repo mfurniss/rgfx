@@ -21,7 +21,7 @@ Choose your preferred theme mode:
 - Interceptor scripts (`interceptors/`)
 - Transformer scripts (`transformers/`)
 - LED hardware definitions (`led-hardware/`)
-- Driver configurations (`drivers/`)
+- Driver configurations (`drivers.json`)
 
 Default: see [Config Directory](../getting-started/hub-setup.md#config-directory)
 
@@ -39,9 +39,9 @@ Enabled by default.
 
 ## Effect Modifiers
 
-### Strip Explosions
+### Strip Lifespan Scale
 
-Adjusts the lifespan of explosion effects on LED strips. Lower values create shorter, snappier explosions. Higher values extend the visual decay.
+Scales the duration of all LED strip effects. Lower values create shorter effects with faster decay. Higher values extend the visual duration. Matrices use full effect duration and are not affected by this setting.
 
 Range: 0.1 to 1.0 (default: 0.6)
 

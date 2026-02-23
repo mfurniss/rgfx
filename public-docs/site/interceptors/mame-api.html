@@ -1760,13 +1760,21 @@
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kr">end</span>
 </code></pre></div>
 <h2 id="emulator-callbacks">Emulator Callbacks<a class="headerlink" href="#emulator-callbacks" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">emu</span><span class="p">.</span><span class="nf">register_frame_done</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="c1">-- Called after each frame</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">emu</span><span class="p">.</span><span class="nf">register_prestart</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="c1">-- Called when the machine is about to start</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kr">end</span><span class="p">)</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">emu</span><span class="p">.</span><span class="nf">register_sound_update</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">samples</span><span class="p">)</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="c1">-- Called when audio buffer is available</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">emu</span><span class="p">.</span><span class="nf">register_frame_done</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="c1">-- Called after each frame is rendered</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="s2">"optional_name"</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Optional name for debugging</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="nv">emu</span><span class="p">.</span><span class="nf">add_machine_frame_notifier</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="c1">-- Called at each machine frame (alternative to register_frame_done)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="kr">end</span><span class="p">)</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="nv">emu</span><span class="p">.</span><span class="nf">register_sound_update</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">samples</span><span class="p">)</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="c1">-- Called when audio buffer is available</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="rom-information">ROM Information<a class="headerlink" href="#rom-information" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">rom_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">emu</span><span class="p">.</span><span class="nf">romname</span><span class="p">()</span><span class="w">  </span><span class="c1">-- e.g., "pacman"</span>

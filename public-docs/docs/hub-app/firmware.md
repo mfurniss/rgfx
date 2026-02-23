@@ -10,7 +10,7 @@ The Firmware page handles flashing and updating your ESP32 drivers. New boards g
 
 Update firmware over the network on already-configured drivers.
 
-1. Select target drivers from the dropdown
+1. Select target drivers from the picker
 2. Click **Update Firmware**
 3. Confirm the update
 4. Monitor progress for each driver

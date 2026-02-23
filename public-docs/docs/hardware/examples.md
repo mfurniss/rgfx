@@ -16,7 +16,7 @@ My preferred plug-n-play connection method uses a 38-pin ESP32 breakout board. T
 
 _Higher voltage and amperage setups can be created, but are out of scope for this documentation._
 
-_ESP32-C3 Super Mini is supported. These are smaller and a little less expensive, but more difficult to work with - requiring soldering headers, and the C3 has fewer breakout options._
+_ESP32-S3 Mini is also supported. These are smaller and a little less expensive, but more difficult to work with — requiring soldering headers, and the S3 Mini has fewer breakout options._
 
 ---
 

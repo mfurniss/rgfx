@@ -10,7 +10,7 @@ A sortable table shows:
 
 | Column | Description |
 |--------|-------------|
-| Device ID | User-assigned identifier |
+| Driver ID | User-assigned identifier |
 | IP Address | Driver's network address |
 | Status | Connection state |
 | Actions | Quick actions (Test LED) |
@@ -25,9 +25,10 @@ Click any row to view the [Driver Detail](driver-detail.md) page.
 
 - **Connected** (green) - Driver is online and communicating
 - **Disconnected** (red) - Driver is offline
-- **Update Required** - Firmware update needed
-- **Update Available** - Newer firmware available
-- **Needs Configuration** - LED hardware not configured
+- **Updating** (blue) - Firmware update in progress
+- **Disabled** (grey) - Driver is disabled and not participating
+
+Connected drivers may also show warning icons for firmware updates available or LED hardware not yet configured.
 
 ## Driver Detail Page
 

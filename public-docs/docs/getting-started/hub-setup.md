@@ -17,7 +17,8 @@ The directory structure:
 interceptors/          # Lua scripts for MAME game monitoring
 transformers/          # JavaScript scripts mapping events to effects
 led-hardware/          # LED hardware definitions
-drivers/               # Driver configurations
+drivers.json           # Driver configurations (auto-generated)
+logs/                  # Log files (auto-generated)
 interceptor-events.log # Event output (auto-generated)
 ```
 

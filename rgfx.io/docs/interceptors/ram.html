@@ -1727,10 +1727,10 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">ram</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">"ram"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="boot-delay">Boot Delay<a class="headerlink" href="#boot-delay" title="Permanent link">¶</a></h2>
-<p>Most games run hardware tests or show attract screens before gameplay. Use boot delay to wait until the game reaches a stable state before monitoring begins:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">ram</span><span class="p">.</span><span class="nf">set_boot_delay</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Wait 6 seconds before monitoring</span>
+<p>Most games run hardware tests or show attract screens before gameplay. Use <code>_G.boot_delay()</code> to suppress events until the game reaches a stable state:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">_G</span><span class="p">.</span><span class="nf">boot_delay</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Suppress events for 6 seconds</span>
 </code></pre></div>
-<p>The module displays a countdown in the MAME console and activates monitoring when the delay expires. This prevents spurious events from memory changes during boot sequences.</p>
+<p>During the delay, all events are silently dropped except <code>/init</code> topics. A countdown is displayed in the MAME console. This is a global function defined by the <code>event</code> module — not part of <code>ram</code>.</p>
 <h2 id="installing-monitors">Installing Monitors<a class="headerlink" href="#installing-monitors" title="Permanent link">¶</a></h2>
 <p>There are two ways to set up memory monitoring.</p>
 <h3 id="option-1-monitor-map-recommended">Option 1: Monitor Map (Recommended)<a class="headerlink" href="#option-1-monitor-map-recommended" title="Permanent link">¶</a></h3>

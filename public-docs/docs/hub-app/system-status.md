@@ -12,8 +12,11 @@ The System Status page is the Hub's main dashboard. It gives you a quick overvie
 - **MQTT Broker** - Status of the embedded MQTT broker
 - **Discovery** - SSDP discovery service status
 - **Event Reader** - Status of MAME event log monitoring
-- **Drivers Connected** - Number of connected ESP32 drivers
+- **Event Log** - Size of the interceptor events log file
+- **Drivers Connected** - Connected drivers shown as "X of Y" (connected of total registered)
 - **Events Processed** - Total events processed this session
+- **UDP Messages Sent** - Count of UDP effect messages sent to drivers
+- **UDP Errors** - Count of UDP transmission errors
 
 ## Network Status
 
