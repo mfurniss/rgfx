@@ -3,12 +3,10 @@
 -- RAM: $0000-$BFFF (48 KB), ROM/IO bank-switched at $C000-$CFFF
 -- Memory addresses sourced from Aaron Bottegal's Defender disassembly
 
--- ram module is loaded via package.path set by rgfx.lua
-local ram = require("ram")
-
--- Skip diagnostics and attract mode
+-- Don't emit events during power-on test
 _G.boot_delay(14)
 
+local ram = require("ram")
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 

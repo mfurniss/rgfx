@@ -1,9 +1,7 @@
--- ram module is loaded via package.path set by rgfx.lua
+-- Don't emit any events during power-on test
+_G.boot_delay(6)
+
 local ram = require("ram")
-
--- Skip RAM test phase (6 seconds)
-boot_delay(6)
-
 local cpu = manager.machine.devices[":maincpu"]
 
 local SCORE_EVENTS = {
@@ -40,24 +38,18 @@ local function get_player_score(dword)
 	return score
 end
 
--- https://github.com/BleuLlama/GameDocs/blob/master/disassemble/mspac.asm
-
 local map = {
   	player_eat = {
 		addr_start = 0x4E80,
 		size = 4,
 		callback_changed = function(value, _)
-      -- print(string.format("*** player_score: +%d", value))
 			local score = get_player_score(value)
 			local delta = score - last_score
 
 			if delta > 0 then
 				local event = SCORE_EVENTS[delta] or SCORE_EVENTS[delta - 10]
 				if event then
-					-- print(string.format("DELTA: +%d", delta))
 					_G.event("pacman/player/eat", event)
-				else
-					-- print(string.format("UNKNOWN SCORE DELTA: +%d", delta))
 				end
 			end
 
@@ -163,7 +155,7 @@ local map = {
 			end
 		end,
 	},
-	-- GAME STATE MONITORING
+
 	game_mode = {
 		addr_start = 0x4E00,
 		callback_changed = function(value, _)
