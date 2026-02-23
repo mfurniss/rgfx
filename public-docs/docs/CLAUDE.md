@@ -81,6 +81,7 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
 - FFT module requires `emit_events = true` to emit events (defaults to false)
+- Interceptor and transformer docs are cross-linked — related pages link to their counterpart (e.g., ambilight interceptor ↔ ambilight transformer, events → transformers, writing-interceptors → writing-transformers)
 
 ### When Adding New Features
 

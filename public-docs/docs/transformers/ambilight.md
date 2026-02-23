@@ -94,3 +94,7 @@ The transformer broadcasts `background` effects with gradient data:
 ```
 
 The 200ms fade duration smooths transitions between frames.
+
+---
+
+**See also:** [Ambilight Interceptor](../interceptors/ambilight.md) — how screen colors are sampled in MAME

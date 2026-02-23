@@ -75,3 +75,7 @@ This prints to the MAME console when the game loads. Common device names include
 - `namco` — Namco custom sound
 - `pokey` — Atari POKEY
 - `speaker` — Simple speaker/beeper output
+
+---
+
+**See also:** [Audio Subject Transformer](../transformers/index.md#2-subject-transformers) — how FFT events are converted to spectrum effects

@@ -4,7 +4,7 @@ Transformers are JavaScript modules that convert game events into LED effects. T
 
 ## How Transformers Work
 
-When MAME interceptors detect game events, they publish MQTT messages with topics like `pacman/player/score/1000`. The Hub's transformer engine routes these events through a cascade of handlers until one claims the event and broadcasts the appropriate effect to drivers.
+When MAME [interceptors](../interceptors/index.md) detect game events, they publish MQTT messages with topics like `pacman/player/score/1000`. The Hub's transformer engine routes these events through a cascade of handlers until one claims the event and broadcasts the appropriate effect to drivers.
 
 ```
 Game Event → Transformer Engine → Effect Payload → LED Drivers

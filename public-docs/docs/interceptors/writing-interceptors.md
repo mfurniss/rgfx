@@ -217,3 +217,7 @@ Key points from this example:
 - **Lookup table** — map raw pointer values to human-readable event names. Log unknown values during development so you can identify and add them later.
 - **Advance filtering** — the sound pointer increments by 3 each frame during playback. Only emit an event when the pointer jumps to a new location, not when it steps through existing sound data.
 - **Complements RAM monitors** — sound polling runs alongside `ram.install_monitors`. Use whichever detection method is most reliable for each event.
+
+---
+
+**Next:** [Writing Transformers](../transformers/writing-transformers.md) — map your interceptor's events to LED effects

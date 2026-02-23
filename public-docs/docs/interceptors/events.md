@@ -42,3 +42,7 @@ galaga/player/captured
 ```
 
 The Hub watches this file and processes events as they arrive. The file is recreated each time MAME starts.
+
+---
+
+**Next:** [Transformers](../transformers/index.md) — how the Hub converts these events into LED effects
