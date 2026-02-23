@@ -11,6 +11,10 @@ The FX Playground lets you experiment with all the visual effects interactively 
 3. Adjust effect parameters using the form
 4. Click **Trigger Effect** to send to drivers
 
+### Reset
+
+Click **Reset** to restore all effect parameters to their default values.
+
 ### Randomize
 
 Click **Random Trigger** to apply random parameter values and immediately trigger the effect. Useful for discovering interesting combinations.

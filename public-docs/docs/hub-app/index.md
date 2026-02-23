@@ -25,3 +25,4 @@ The sidebar provides access to all Hub features:
 - **[Simulator](simulator.md)** — trigger events manually for testing without running MAME
 - **[Settings](settings.md)** — configure directories and preferences
 - **Help** — access this documentation
+- **About** — application information, architecture overview, and license

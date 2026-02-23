@@ -24,6 +24,8 @@ RGFX connects three things together:
 2. **RGFX Hub** picks up those events and decides which LED effects to trigger
 3. **ESP32 drivers** receive the commands over WiFi and render effects on your LED strips and matrices — in real-time
 
+This is the flow, using three example games. Of course, many MAME roms are compatible.
+
 ```mermaid
 ---
 config:
@@ -33,20 +35,20 @@ config:
 ---
 flowchart TB
     subgraph MAME["MAME emulator + rgfx.lua"]
-        subgraph Interceptors[Lua Interceptors]
-            I1[Pac-Man]
-            I2[Robotron 2084]
-            I3[Galaga]
+        subgraph Interceptors["Lua Interceptors"]
+            I1[pacman_rgfx.lua]
+            I2[robotron_rgfx.lua]
+            I3[galaga_rgfx.lua]
         end
     end
 
     MAME --> Log[Events Log File]
 
     subgraph Hub["RGFX Hub"]
-        subgraph Transformers[JS Transformers]
-            T1[Pac-Man]
-            T2[Robotron 2084]
-            T3[Galaga]
+        subgraph Transformers["JS Transformers"]
+            T1[pacman.js]
+            T2[robotron.js]
+            T3[galaga.js]
         end
     end
 

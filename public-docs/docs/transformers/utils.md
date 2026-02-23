@@ -2,18 +2,18 @@
 
 Helper functions available to all transformers.
 
-**Location:** `transformers/utils.js` in your [config directory](../getting-started/hub-setup.md#config-directory)
+**Location:** `transformers/utils/` directory in your [config directory](../getting-started/hub-setup.md#config-directory), with a barrel export via `utils/index.js`
 
 ## Import
 
 ```javascript
-import { scaleLinear, sleep, trackedTimeout, trackedInterval, randomInt, formatNumber } from '../utils.js';
+import { scaleLinear, randomInt, randomElement, hslToRgb, sleep, trackedTimeout, trackedInterval, formatNumber } from '../utils/index.js';
 ```
 
 Or import from individual modules:
 
 ```javascript
-import { scaleLinear, randomInt } from '../utils/math.js';
+import { scaleLinear, randomInt, randomElement, hslToRgb } from '../utils/math.js';
 import { sleep, trackedTimeout, trackedInterval } from '../utils/async.js';
 import { formatNumber } from '../utils/format.js';
 ```
@@ -43,7 +43,26 @@ randomInt(1, 10);  // returns 1-10
 randomInt(5, 5);   // returns 5
 ```
 
+### randomElement
+
+Pick a random element from an array.
+
+```javascript
+randomElement(['red', 'green', 'blue']);  // returns one at random
+```
+
+### hslToRgb
+
+Convert HSL color to a hex string. Note: `s` and `l` use the 0–1 range (not 0–100 like the context's `hslToHex`).
+
+```javascript
+hslToRgb(0, 1, 0.5);    // returns "#FF0000"
+hslToRgb(120, 1, 0.5);  // returns "#00FF00"
+```
+
 ## Async Functions
+
+Always use these tracked functions instead of native `setTimeout` and `setInterval`. Tracked timers are automatically cancelled when the game exits, preventing stale callbacks from firing after a game change or reset.
 
 ### sleep
 

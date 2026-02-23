@@ -31,7 +31,7 @@ Create a new file in the `interceptors/games/` folder of your [config directory]
 local ram = require("ram")
 
 -- Skip the title screen and attract mode
-ram.set_boot_delay(8)
+_G.boot_delay(8)
 
 -- Get access to the CPU's memory
 local cpu = manager.machine.devices[":maincpu"]

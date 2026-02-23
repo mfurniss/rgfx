@@ -1767,7 +1767,7 @@
 </ol>
 <p>The ESP32's onboard 5V pin is the recommended connection point for powering your LEDs. It cleanly routes power from your supply through the breakout board to both the ESP32 and the LED hardware.</p>
 <h3 id="gpio-pin">GPIO Pin<a class="headerlink" href="#gpio-pin" title="Permanent link">¶</a></h3>
-<p>RGFX uses a single data pin to drive all connected LEDs. The default is GPIO 16, but you can configure any valid GPIO pin (0-39) in the driver settings. This single-pin approach keeps wiring simple — one data wire from the ESP32 to the first LED in the chain.</p>
+<p>RGFX uses a single data pin to drive all connected LEDs. The default is GPIO 16, but you can configure any valid GPIO pin (0-48 depending on your ESP32 variant) in the driver settings. This single-pin approach keeps wiring simple — one data wire from the ESP32 to the first LED in the chain.</p>
 <h3 id="data-direction">Data Direction<a class="headerlink" href="#data-direction" title="Permanent link">¶</a></h3>
 <p>LED strips have a data direction — signals flow from data-in to data-out. Make sure you connect the ESP32's data pin to the <strong>input</strong> end of the strip (usually marked with an arrow showing signal direction, or labeled "DIN").</p>
 <h2 id="power">Power<a class="headerlink" href="#power" title="Permanent link">¶</a></h2>

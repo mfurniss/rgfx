@@ -1060,6 +1060,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#global-brightness-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Brightness Limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#power-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1147,6 +1158,17 @@
   
     <nav class="md-nav" aria-label="Matrix-Specific Settings">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#panel-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Panel Rotation
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#unified-multi-panel-layout" class="md-nav__link">
@@ -1823,6 +1845,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#global-brightness-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Brightness Limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#power-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1912,6 +1945,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#panel-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Panel Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#unified-multi-panel-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1980,11 +2024,13 @@
 <p>Select your LED hardware from the dropdown. Hardware definitions describe physical properties like LED count, chipset, color order, and layout type. See <a href="choosing.html">Choosing Hardware</a> for guidance.</p>
 <p>If your hardware isn't listed, you can add custom definitions to the <code>led-hardware/</code> folder in your <a href="../getting-started/hub-setup.html#config-directory">config directory</a>.</p>
 <h3 id="gpio-pin">GPIO Pin<a class="headerlink" href="#gpio-pin" title="Permanent link">¶</a></h3>
-<p>The ESP32 GPIO pin connected to your LED data line. Valid range: 0-39. Default: 16. See <a href="wiring.html">Wiring &amp; Power</a> for connection details.</p>
+<p>The ESP32 GPIO pin connected to your LED data line. Valid range: 0-48 (varies by chip variant). Default: 16. See <a href="wiring.html">Wiring &amp; Power</a> for connection details.</p>
 <h3 id="led-offset">LED Offset<a class="headerlink" href="#led-offset" title="Permanent link">¶</a></h3>
 <p>Optional starting index offset. Use this if you want to skip LEDs at the beginning of the strip.</p>
 <h3 id="maximum-brightness">Maximum Brightness<a class="headerlink" href="#maximum-brightness" title="Permanent link">¶</a></h3>
-<p>Limits the maximum brightness (0-255). Useful for power management or reducing eye strain.</p>
+<p>Limits the maximum per-LED brightness (0-255). Useful for power management or reducing eye strain.</p>
+<h3 id="global-brightness-limit">Global Brightness Limit<a class="headerlink" href="#global-brightness-limit" title="Permanent link">¶</a></h3>
+<p>An additional global cap on overall brightness (0-255), applied after maximum brightness. Allows finer control over display intensity.</p>
 <h3 id="power-settings">Power Settings<a class="headerlink" href="#power-settings" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Power Supply Voltage</strong>: Your power supply voltage (1-24V)</li>
@@ -2004,6 +2050,15 @@
 <h3 id="reverse-direction">Reverse Direction<a class="headerlink" href="#reverse-direction" title="Permanent link">¶</a></h3>
 <p>When enabled, logical LED index 0 maps to the last physical LED. Use this if your strip is mounted in the opposite direction.</p>
 <h2 id="matrix-specific-settings">Matrix-Specific Settings<a class="headerlink" href="#matrix-specific-settings" title="Permanent link">¶</a></h2>
+<h3 id="panel-rotation">Panel Rotation<a class="headerlink" href="#panel-rotation" title="Permanent link">¶</a></h3>
+<p>For single-panel matrices (not using unified multi-panel layout), rotate the display:</p>
+<ul>
+<li><code>0</code> degrees (default)</li>
+<li><code>90</code> degrees</li>
+<li><code>180</code> degrees</li>
+<li><code>270</code> degrees</li>
+</ul>
+<p>Multi-panel unified layouts use per-panel rotation in the layout editor instead.</p>
 <h3 id="unified-multi-panel-layout">Unified Multi-Panel Layout<a class="headerlink" href="#unified-multi-panel-layout" title="Permanent link">¶</a></h3>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/rgfx-hub-multi-panel-layout.png" data-title="Unified Multi-Panel Layout" data-desc-position="bottom"><img alt="Unified Multi-Panel Layout" src="../assets/images/rgfx-hub-multi-panel-layout.png"></a></p>
 <p>For multi-panel matrix setups, the panel layout editor lets you arrange panels in a grid and specify rotation for each panel.</p>

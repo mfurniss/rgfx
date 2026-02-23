@@ -32,14 +32,16 @@ Generic handlers for common event subjects that appear across multiple games.
 
 - `audio.js` - FFT spectrum events for audio visualization
 - `ambilight.js` - Screen edge colors for ambient lighting
-- `player.js` - Generic player events
+- `init.js` - Game initialization handler (displays world record scores)
+- `sound.js` - NES APU sound channel events
+- `player.js` - Generic player events (disabled by default)
 - `enemy.js` - Enemy-related events
 
-### 3. Pattern Transformers
+### 3. Property Transformers
 
-Match events by content pattern rather than topic structure.
+Generic handlers that match events by property name, applying across all games.
 
-**Location:** `transformers/patterns/`
+**Location:** `transformers/properties/`
 
 ### 4. Default Transformer (Lowest Priority)
 
@@ -88,12 +90,15 @@ The context provides services for transformers:
 | Service | Description |
 |---------|-------------|
 | `broadcast(payload)` | Send effect to drivers |
+| `udp` | UDP client for direct effect broadcasting with lower-level control |
+| `mqtt` | MQTT client for publishing messages to the broker |
+| `http` | HTTP client with `get()`, `post()`, `put()`, `delete()` for external APIs |
 | `state` | Key-value store for tracking game state |
 | `log` | Logger (debug, info, warn, error) |
 | `drivers` | Registry of connected drivers |
 | `loadGif(path)` | Load GIF for bitmap effects |
 | `parseAmbilight(payload)` | Parse ambilight color data |
-| `hslToHex(h, s, l)` | Convert HSL to hex color |
+| `hslToHex(h, s, l)` | Convert HSL to hex color (h: 0–360, s: 0–100, l: 0–100) |
 
 ## Broadcasting Effects
 
@@ -169,7 +174,7 @@ transformers/
 │   ├── audio.js
 │   ├── ambilight.js
 │   └── ...
-└── patterns/
+└── properties/
     └── ...
 ```
 

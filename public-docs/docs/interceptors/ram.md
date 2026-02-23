@@ -8,13 +8,13 @@ local ram = require("ram")
 
 ## Boot Delay
 
-Most games run hardware tests or show attract screens before gameplay. Use boot delay to wait until the game reaches a stable state before monitoring begins:
+Most games run hardware tests or show attract screens before gameplay. Use `_G.boot_delay()` to suppress events until the game reaches a stable state:
 
 ```lua
-ram.set_boot_delay(6)  -- Wait 6 seconds before monitoring
+_G.boot_delay(6)  -- Suppress events for 6 seconds
 ```
 
-The module displays a countdown in the MAME console and activates monitoring when the delay expires. This prevents spurious events from memory changes during boot sequences.
+During the delay, all events are silently dropped except `/init` topics. A countdown is displayed in the MAME console. This is a global function defined by the `event` module — not part of `ram`.
 
 ## Installing Monitors
 

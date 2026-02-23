@@ -900,10 +900,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#strip-explosions" class="md-nav__link">
+  <a href="#strip-lifespan-scale" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Strip Explosions
+        Strip Lifespan Scale
       
     </span>
   </a>
@@ -1757,10 +1757,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#strip-explosions" class="md-nav__link">
+  <a href="#strip-lifespan-scale" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Strip Explosions
+        Strip Lifespan Scale
       
     </span>
   </a>
@@ -1839,7 +1839,7 @@
 <li>Interceptor scripts (<code>interceptors/</code>)</li>
 <li>Transformer scripts (<code>transformers/</code>)</li>
 <li>LED hardware definitions (<code>led-hardware/</code>)</li>
-<li>Driver configurations (<code>drivers/</code>)</li>
+<li>Driver configurations (<code>drivers.json</code>)</li>
 </ul>
 <p>Default: see <a href="../getting-started/hub-setup.html#config-directory">Config Directory</a></p>
 <h3 id="mame-roms-directory">MAME ROMs Directory<a class="headerlink" href="#mame-roms-directory" title="Permanent link">¶</a></h3>
@@ -1849,8 +1849,8 @@
 <p>This is useful when you have fewer drivers than your transformer configuration expects. For example, the default <code>global.js</code> transformer references multiple named drivers — with fallback enabled, all effects will reach your connected driver even if you only have one.</p>
 <p>Enabled by default.</p>
 <h2 id="effect-modifiers">Effect Modifiers<a class="headerlink" href="#effect-modifiers" title="Permanent link">¶</a></h2>
-<h3 id="strip-explosions">Strip Explosions<a class="headerlink" href="#strip-explosions" title="Permanent link">¶</a></h3>
-<p>Adjusts the lifespan of explosion effects on LED strips. Lower values create shorter, snappier explosions. Higher values extend the visual decay.</p>
+<h3 id="strip-lifespan-scale">Strip Lifespan Scale<a class="headerlink" href="#strip-lifespan-scale" title="Permanent link">¶</a></h3>
+<p>Scales the duration of all LED strip effects. Lower values create shorter effects with faster decay. Higher values extend the visual duration. Matrices use full effect duration and are not affected by this setting.</p>
 <p>Range: 0.1 to 1.0 (default: 0.6)</p>
 <h2 id="backup">Backup<a class="headerlink" href="#backup" title="Permanent link">¶</a></h2>
 <p>Creates a zip archive of your entire RGFX configuration directory — interceptors, transformers, LED hardware definitions, driver configs, and logs. Click <strong>Create Backup</strong> to save the archive.</p>

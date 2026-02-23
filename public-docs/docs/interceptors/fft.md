@@ -10,6 +10,7 @@ local fft = require("fft")
 
 ```lua
 fft.init({
+    emit_events = true,
     log_bars = false,
     fps = 10,
     devices = { "ym2151" },
@@ -21,10 +22,12 @@ fft.init({
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `log_bars` | false | Print bar graph to console (debugging) |
-| `fps` | 10 | Update rate |
+| `emit_events` | `false` | Send FFT data via `_G.event()` — must be `true` to emit events |
+| `on_update` | `nil` | Callback `function(bands)` called each update with normalized 0–9 values |
+| `log_bars` | `false` | Print bar graph to console (debugging) |
+| `fps` | `10` | Update rate |
 | `devices` | all | Array of audio device patterns to monitor |
-| `boot_delay` | 0 | Seconds to wait before starting |
+| `boot_delay` | `0` | Seconds to wait before starting |
 
 ## Events Emitted
 

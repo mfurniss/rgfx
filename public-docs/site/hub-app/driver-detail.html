@@ -1718,15 +1718,24 @@
 <h2 id="led-configuration">LED Configuration<a class="headerlink" href="#led-configuration" title="Permanent link">¶</a></h2>
 <p>Shows the driver's LED settings:</p>
 <ul>
-<li><strong>GPIO Pin</strong> - Data pin connected to LED strip/matrix</li>
-<li><strong>Brightness</strong> - Maximum brightness level (0-255)</li>
-<li><strong>Power Limit</strong> - Maximum power draw in milliwatts</li>
-<li><strong>Color Order</strong> - LED color channel order (GRB, RGB, etc.)</li>
+<li><strong>Data Pin</strong> - GPIO pin connected to LED strip/matrix</li>
+<li><strong>Actual Dimensions</strong> - Resolved LED width and height</li>
+<li><strong>Total LED Count</strong> - Number of addressable LEDs</li>
+<li><strong>Max Brightness</strong> - Per-LED brightness limit (0-255)</li>
+<li><strong>Brightness Limit</strong> - Global brightness cap (0-255)</li>
+<li><strong>Dithering</strong> - Temporal dithering enabled/disabled</li>
+<li><strong>Gamma Correction</strong> - Per-channel gamma values</li>
+<li><strong>Floor Cutoff</strong> - Per-channel minimum threshold</li>
+<li><strong>Multi-Panel Layout</strong> - Panel arrangement (matrices only)</li>
+<li><strong>Panel Rotation</strong> - Single-panel rotation (matrices only)</li>
+<li><strong>LED Offset</strong> - Starting index offset</li>
+<li><strong>Reverse Direction</strong> - Whether LED order is reversed (strips only)</li>
+<li><strong>Power Supply</strong> - Voltage and max power (mA) settings</li>
 </ul>
 <h2 id="driver-status">Driver Status<a class="headerlink" href="#driver-status" title="Permanent link">¶</a></h2>
 <p>Basic identification and network information:</p>
 <ul>
-<li><strong>Device ID</strong> - User-assigned friendly name</li>
+<li><strong>Driver ID</strong> - User-assigned friendly name</li>
 <li><strong>MAC Address</strong> - Hardware identifier</li>
 <li><strong>IP Address</strong> - Current network address</li>
 <li><strong>Hostname</strong> - mDNS hostname</li>
@@ -1735,21 +1744,31 @@
 <p>ESP32 chip specifications:</p>
 <ul>
 <li><strong>Chip Model</strong> - ESP32, ESP32-S3, etc.</li>
+<li><strong>Chip Revision</strong> - Hardware revision</li>
 <li><strong>CPU Cores</strong> - Number of processor cores</li>
-<li><strong>Free Heap</strong> - Available memory</li>
+<li><strong>CPU Frequency</strong> - Clock speed</li>
+<li><strong>Flash Size / Speed</strong> - Storage capacity and bus speed</li>
+<li><strong>Firmware Version</strong> - Currently installed firmware</li>
 </ul>
 <h2 id="driver-telemetry">Driver Telemetry<a class="headerlink" href="#driver-telemetry" title="Permanent link">¶</a></h2>
 <p>Real-time performance metrics:</p>
 <ul>
-<li><strong>FPS</strong> - Current frames per second</li>
-<li><strong>Uptime</strong> - Time since last reboot</li>
-<li><strong>Last Seen</strong> - Timestamp of last communication</li>
+<li><strong>Frame Rate</strong> - Current FPS with min/max range</li>
+<li><strong>Frame Timing</strong> - Render timing breakdown (microseconds)</li>
+<li><strong>Last Reset Reason</strong> - Why the driver last rebooted</li>
+<li><strong>Crash Count</strong> - Number of crashes since flash</li>
+<li><strong>Driver Uptime</strong> - Time since last reboot</li>
+<li><strong>Memory</strong> - Free heap, min free heap, max allocatable, PSRAM</li>
+<li><strong>WiFi Signal</strong> - RSSI signal strength</li>
+<li><strong>MQTT Messages / Errors</strong> - Message and error counts</li>
+<li><strong>Last Updated</strong> - Timestamp of last telemetry report</li>
 </ul>
 <h2 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link">¶</a></h2>
 <p>Available actions for the driver:</p>
 <ul>
 <li><strong>Test LED</strong> - Toggle LED test pattern to verify the driver is communicating and LEDs are working. See <a href="../getting-started/test-leds.html">Test LEDs</a> for details.</li>
 <li><strong>Configure Driver</strong> - Edit driver settings (see <a href="../hardware/configure.html">LED Configuration</a>)</li>
+<li><strong>Open Driver Log</strong> - View logs from this specific driver</li>
 <li><strong>Reset</strong> - Factory reset (erases ID, LED config, WiFi)</li>
 <li><strong>Restart</strong> - Reboot the driver</li>
 <li><strong>Disable/Enable</strong> - Toggle driver participation</li>
