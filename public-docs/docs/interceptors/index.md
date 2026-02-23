@@ -58,3 +58,5 @@ When RGFX Hub first runs, it copies default interceptors to this location. You c
 - [FFT Audio](fft.md) — React to game audio frequencies
 - [Writing Interceptors](writing-interceptors.md) — Create your own interceptor
 - [MAME API Reference](mame-api.md) — Access MAME's Lua environment
+
+Once events are flowing, [Transformers](../transformers/index.md) convert them into LED effects.
