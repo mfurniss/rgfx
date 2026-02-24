@@ -381,8 +381,15 @@ async function waitForCI(tagName) {
   run(`curl --fail --header "Authorization: Bearer ${token}" --upload-file "${releasePath}" "${packageUrl}"`);
 
   console.log('  Linking to release...');
-  const linkData = JSON.stringify({ name: artifactName, url: packageUrl, link_type: 'package' });
-  run(`curl --fail --header "Authorization: Bearer ${token}" --header "Content-Type: application/json" --request POST "https://gitlab.com/api/v4/projects/${projectId}/releases/${tag}/assets/links" --data '${linkData}'`);
+  const existingLinks = JSON.parse(
+    runCapture(`curl --fail --silent --header "Authorization: Bearer ${token}" "https://gitlab.com/api/v4/projects/${projectId}/releases/${tag}/assets/links"`)
+  );
+  if (existingLinks.some(link => link.name === artifactName)) {
+    console.log(`  Asset link '${artifactName}' already exists — skipping.`);
+  } else {
+    const linkData = JSON.stringify({ name: artifactName, url: packageUrl, link_type: 'package' });
+    run(`curl --fail --header "Authorization: Bearer ${token}" --header "Content-Type: application/json" --request POST "https://gitlab.com/api/v4/projects/${projectId}/releases/${tag}/assets/links" --data '${linkData}'`);
+  }
 
   // --- Step 9: Create GitHub release and upload artifact ---
   console.log('\n--- GitHub Release ---');
