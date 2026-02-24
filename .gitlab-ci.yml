@@ -156,17 +156,6 @@ build:driver:
     # Note: Native tests run in test stage. Embedded tests require hardware.
     # Run locally before release: pio test --project-dir esp32
 
-    # Copy firmware to installer directory (uses Python script - PlatformIO requirement)
-    - python3 esp32/copy_firmware.py
-
-  artifacts:
-    name: "rgfx-driver-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - esp32-installer/*.bin
-      - esp32-installer/manifest.json
-      - esp32-installer/index.html
-    expire_in: 1 month
-
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
@@ -174,13 +163,13 @@ build:driver:
 # ===== DEPLOY TO GITLAB PAGES =====
 pages:
   stage: deploy
-  dependencies:
-    - build:driver
 
   script:
     # Assemble public directory
-    - mkdir -p public/docs
-    - cp -r esp32-installer/* public/
+    - mkdir -p public/docs public/assets
+    - cp rgfx.io/index.html public/
+    - cp rgfx.io/favicon.ico public/
+    - cp -r rgfx.io/assets/* public/assets/
     - cp -r public-docs/site/* public/docs/
 
   artifacts:
