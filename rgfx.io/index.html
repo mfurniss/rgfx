@@ -40,6 +40,7 @@
         align-items: center;
         justify-content: center;
         z-index: 1;
+        cursor: pointer;
       }
 
       .logo-wrap {
@@ -201,6 +202,10 @@
       );
 
       logo.addEventListener('touchmove', handleTouch, { passive: true });
+
+      document.getElementById('splash').addEventListener('click', () => {
+        window.location.href = '/docs';
+      });
     </script>
   </body>
 </html>
