@@ -11,6 +11,7 @@ The VSCode workspace contains three key projects.
 - MAME Lua scripts are bundled within rgfx-hub/assets/ in the `interceptors/` and `mame/` subdirectories. These scripts interface with MAME's internal APIs to monitor game state and generate events which are added to the events log. **Do NOT edit files in `rgfx-hub/assets/` — the user manages the assets directory. Only create and edit interceptors, transformers, and rom_map.lua in `~/.rgfx/`.**
 - /rgfx-hub is the main controller app which converts event log entries to network messages. The native app uses Electron and is written in TypeScript and Material UI. When working on rgfx-hub delegate to the rgfx-hub-developer agent.
 - /esp32 is the driver firmware for ESP32 microcontrollers. It is a Platform IO project written in C++. The driver's job is to receive network messages from the hub and convert these to visual effects using the connected LED strips and LED matrices. Use the platformio-esp32-expert agent when working on the esp32 driver firmware.
+- /rgfx.io is the public website (rgfx.io). A static splash page with animated logo and hero video. Docs are served at /docs (from public-docs/site/).
 
 ## CRITICAL - Changes & Documentation
 
@@ -59,6 +60,11 @@ Do not drop out of plan mode without the user's explicit permission.
 After modifying files in the hub project always run `scripts/check-code.sh`
 
 After modifying files in the esp32 project always run `pio run` to verify the build compiles successfully. Do not report the task as complete until the build passes.
+
+**Test Coverage Reports**
+
+- **Hub:** `cd rgfx-hub && npm run test:coverage` — vitest + v8 provider, outputs text/JSON/HTML to `coverage/`. Config in `vitest.config.ts`. Works out of the box.
+- **ESP32:** `cd esp32 && pio test -e native-coverage` runs tests with LLVM instrumentation but **cannot produce a combined line-coverage report** because PlatformIO overwrites the test binary per suite. Tests and pass/fail counts are still reported. A custom script to save each binary would be needed for full `llvm-cov` reporting.
 
 **Separation of concerns is paramount.** This makes testing and maintenance much more effective.
 

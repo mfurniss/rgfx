@@ -4,6 +4,7 @@ import type { AppServices } from '../service-factory';
 import type { WindowManager } from '../../window/window-manager';
 import type { SystemErrorTracker } from '../system-error-tracker';
 import type { EventStats } from '../event-stats';
+import { IPC } from '../../config/ipc-channels';
 
 // Mock Electron
 const mockPowerSaveBlocker = {
@@ -263,6 +264,114 @@ describe('startServices', () => {
     // Wait for async operations
     await vi.waitFor(() => {
       expect(mockServices.transformerEngine.loadTransformers).toHaveBeenCalled();
+    });
+  });
+
+  describe('event processor callback', () => {
+    type MockFn = ReturnType<typeof vi.fn>;
+
+    function getEventProcessor() {
+      const startMock = mockServices.eventReader.start as MockFn;
+      return startMock.mock.calls[0][0];
+    }
+
+    it('should forward events to transformer engine', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      getEventProcessor()('game/init', 'pacman');
+
+      expect(mockServices.transformerEngine.handleEvent)
+        .toHaveBeenCalledWith('game/init', 'pacman');
+    });
+
+    it('should increment event stats', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      getEventProcessor()('game/init', 'pacman');
+
+      expect(mockEventStats.increment).toHaveBeenCalled();
+    });
+
+    it('should send event to renderer via IPC', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      getEventProcessor()('game/init', 'pacman');
+
+      expect(mockWindowManager.sendEventToRenderer)
+        .toHaveBeenCalledWith(
+          IPC.EVENT_RECEIVED, 'game/init', 'pacman',
+        );
+    });
+
+    it('should pass undefined for empty message', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      getEventProcessor()('game/start', '');
+
+      expect(mockWindowManager.sendEventToRenderer)
+        .toHaveBeenCalledWith(
+          IPC.EVENT_RECEIVED, 'game/start', undefined,
+        );
+    });
+
+    it('should emit system:error for interceptor errors', async () => {
+      const { eventBus } = await import('../event-bus.js');
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      getEventProcessor()('rgfx/interceptor/error', 'broke');
+
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'interceptor',
+          message: 'broke',
+        }),
+      );
+    });
+  });
+
+  describe('event reader error callback', () => {
+    it('should emit system:error on reader errors', async () => {
+      const { eventBus } = await import('../event-bus.js');
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      type MockFn = ReturnType<typeof vi.fn>;
+      const startMock = mockServices.eventReader.start as MockFn;
+      const errorCallback = startMock.mock.calls[0][1];
+
+      errorCallback('Invalid topic: /bad/path');
+
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'interceptor',
+          message: 'Invalid topic: /bad/path',
+        }),
+      );
+    });
+  });
+
+  describe('firmware monitoring callback', () => {
+    it('should send system status on version change', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      type MockFn = ReturnType<typeof vi.fn>;
+      const fwMock =
+        mockServices.systemMonitor
+          .startFirmwareMonitoring as MockFn;
+      const firmwareCallback = fwMock.mock.calls[0][0];
+
+      firmwareCallback('1.2.3');
+
+      expect(mockWindowManager.sendSystemStatus)
+        .toHaveBeenCalled();
     });
   });
 });

@@ -1,9 +1,7 @@
--- ram module is loaded via package.path set by rgfx.lua
-local ram = require("ram")
-
--- Skip RAM test phase (16 seconds)
+-- Don't emit events during power-on test
 _G.boot_delay(16)
 
+local ram = require("ram")
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 

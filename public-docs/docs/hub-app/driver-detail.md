@@ -12,16 +12,25 @@ Displays the selected LED hardware definition for this driver, including the har
 
 Shows the driver's LED settings:
 
-- **GPIO Pin** - Data pin connected to LED strip/matrix
-- **Brightness** - Maximum brightness level (0-255)
-- **Power Limit** - Maximum power draw in milliwatts
-- **Color Order** - LED color channel order (GRB, RGB, etc.)
+- **Data Pin** - GPIO pin connected to LED strip/matrix
+- **Actual Dimensions** - Resolved LED width and height
+- **Total LED Count** - Number of addressable LEDs
+- **Max Brightness** - Per-LED brightness limit (0-255)
+- **Brightness Limit** - Global brightness cap (0-255)
+- **Dithering** - Temporal dithering enabled/disabled
+- **Gamma Correction** - Per-channel gamma values
+- **Floor Cutoff** - Per-channel minimum threshold
+- **Multi-Panel Layout** - Panel arrangement (matrices only)
+- **Panel Rotation** - Single-panel rotation (matrices only)
+- **LED Offset** - Starting index offset
+- **Reverse Direction** - Whether LED order is reversed (strips only)
+- **Power Supply** - Voltage and max power (mA) settings
 
 ## Driver Status
 
 Basic identification and network information:
 
-- **Device ID** - User-assigned friendly name
+- **Driver ID** - User-assigned friendly name
 - **MAC Address** - Hardware identifier
 - **IP Address** - Current network address
 - **Hostname** - mDNS hostname
@@ -31,16 +40,25 @@ Basic identification and network information:
 ESP32 chip specifications:
 
 - **Chip Model** - ESP32, ESP32-S3, etc.
+- **Chip Revision** - Hardware revision
 - **CPU Cores** - Number of processor cores
-- **Free Heap** - Available memory
+- **CPU Frequency** - Clock speed
+- **Flash Size / Speed** - Storage capacity and bus speed
+- **Firmware Version** - Currently installed firmware
 
 ## Driver Telemetry
 
 Real-time performance metrics:
 
-- **FPS** - Current frames per second
-- **Uptime** - Time since last reboot
-- **Last Seen** - Timestamp of last communication
+- **Frame Rate** - Current FPS with min/max range
+- **Frame Timing** - Render timing breakdown (microseconds)
+- **Last Reset Reason** - Why the driver last rebooted
+- **Crash Count** - Number of crashes since flash
+- **Driver Uptime** - Time since last reboot
+- **Memory** - Free heap, min free heap, max allocatable, PSRAM
+- **WiFi Signal** - RSSI signal strength
+- **MQTT Messages / Errors** - Message and error counts
+- **Last Updated** - Timestamp of last telemetry report
 
 ## Actions
 
@@ -48,6 +66,7 @@ Available actions for the driver:
 
 - **Test LED** - Toggle LED test pattern to verify the driver is communicating and LEDs are working. See [Test LEDs](../getting-started/test-leds.md) for details.
 - **Configure Driver** - Edit driver settings (see [LED Configuration](../hardware/configure.md))
+- **Open Driver Log** - View logs from this specific driver
 - **Reset** - Factory reset (erases ID, LED config, WiFi)
 - **Restart** - Reboot the driver
 - **Disable/Enable** - Toggle driver participation

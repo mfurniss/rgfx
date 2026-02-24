@@ -2,12 +2,9 @@
 -- Hardware: Motorola MC6809E @ 1MHz (big-endian)
 -- Memory map sourced from Sean Riddle's disassembly
 
--- ram module is loaded via package.path set by rgfx.lua
+_G.boot_delay(13)
+
 local ram = require("ram")
-
--- Skip diagnostics and attract mode
-boot_delay(13)
-
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
 

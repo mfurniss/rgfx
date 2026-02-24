@@ -38,7 +38,7 @@ For detailed hardware recommendations and wiring guidance, see [Choosing Hardwar
 |------|--------|
 | ESP32-WROOM-32 | Recommended — widely tested, dual-core |
 | ESP32-S3 | Works well — newer generation |
-| ESP32-C3 Super Mini | Works — smaller and cheaper, but requires soldering headers |
+| ESP32-S3 Mini | Works — smaller and cheaper, but requires soldering headers |
 
 ## Next Step
 

@@ -14,7 +14,7 @@ The ESP32's onboard 5V pin is the recommended connection point for powering your
 
 ### GPIO Pin
 
-RGFX uses a single data pin to drive all connected LEDs. The default is GPIO 16, but you can configure any valid GPIO pin (0-39) in the driver settings. This single-pin approach keeps wiring simple — one data wire from the ESP32 to the first LED in the chain.
+RGFX uses a single data pin to drive all connected LEDs. The default is GPIO 16, but you can configure any valid GPIO pin (0-48 depending on your ESP32 variant) in the driver settings. This single-pin approach keeps wiring simple — one data wire from the ESP32 to the first LED in the chain.
 
 ### Data Direction
 

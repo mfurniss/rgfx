@@ -1727,10 +1727,10 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">ram</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">"ram"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="boot-delay">Boot Delay<a class="headerlink" href="#boot-delay" title="Permanent link">¶</a></h2>
-<p>Most games run hardware tests or show attract screens before gameplay. Use boot delay to wait until the game reaches a stable state before monitoring begins:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">ram</span><span class="p">.</span><span class="nf">set_boot_delay</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Wait 6 seconds before monitoring</span>
+<p>Most games run hardware tests or show attract screens before gameplay. Use <code>_G.boot_delay()</code> to suppress events until the game reaches a stable state:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">_G</span><span class="p">.</span><span class="nf">boot_delay</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Suppress events for 6 seconds</span>
 </code></pre></div>
-<p>The module displays a countdown in the MAME console and activates monitoring when the delay expires. This prevents spurious events from memory changes during boot sequences.</p>
+<p>During the delay, all events are silently dropped except <code>/init</code> topics. A countdown is displayed in the MAME console. This is a global function defined by the <code>event</code> module — not part of <code>ram</code>.</p>
 <h2 id="installing-monitors">Installing Monitors<a class="headerlink" href="#installing-monitors" title="Permanent link">¶</a></h2>
 <p>There are two ways to set up memory monitoring.</p>
 <h3 id="option-1-monitor-map-recommended">Option 1: Monitor Map (Recommended)<a class="headerlink" href="#option-1-monitor-map-recommended" title="Permanent link">¶</a></h3>
@@ -1834,7 +1834,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 18, 2026 00:37:45 UTC">February 18, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 23, 2026 03:00:52 UTC">February 23, 2026</span>
   </span>
 
     

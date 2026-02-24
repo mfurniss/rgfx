@@ -43,8 +43,16 @@ end
 ## Emulator Callbacks
 
 ```lua
+emu.register_prestart(function()
+    -- Called when the machine is about to start
+end)
+
 emu.register_frame_done(function()
-    -- Called after each frame
+    -- Called after each frame is rendered
+end, "optional_name")  -- Optional name for debugging
+
+emu.add_machine_frame_notifier(function()
+    -- Called at each machine frame (alternative to register_frame_done)
 end)
 
 emu.register_sound_update(function(samples)

@@ -72,6 +72,17 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 
 **Do NOT run `npm run docs:build` or `mkdocs build` yourself.** The user has a watch process that rebuilds automatically.
 
+### Key Technical Facts (Verified Feb 2026)
+
+- Boot delay API is `_G.boot_delay()` (defined in event.lua), NOT `ram.set_boot_delay()`
+- Transformer cascade tiers: game → subject → property → default (the third tier is "Property", not "Pattern")
+- Transformer utils live in `transformers/utils/` directory (import from `../utils/index.js`)
+- Transformer context services include: `broadcast`, `send`, `drivers`, `log`, `state`, `hslToHex`, `udp`, `mqtt`, `http`
+- ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
+- GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
+- FFT module requires `emit_events = true` to emit events (defaults to false)
+- Interceptor and transformer docs are cross-linked — related pages link to their counterpart (e.g., ambilight interceptor ↔ ambilight transformer, events → transformers, writing-interceptors → writing-transformers)
+
 ### When Adding New Features
 
 If you implement a new feature in the codebase, you MUST update the corresponding documentation page. Undocumented features are bugs.

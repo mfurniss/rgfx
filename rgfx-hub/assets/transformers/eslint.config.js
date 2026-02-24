@@ -6,9 +6,6 @@ export default [
       globals: {
         console: 'readonly',
         setTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearTimeout: 'readonly',
-        clearInterval: 'readonly',
         Promise: 'readonly',
       },
     },

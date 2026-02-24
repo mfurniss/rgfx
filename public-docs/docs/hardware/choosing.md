@@ -21,10 +21,9 @@ A 38-pin breakout board makes wiring easy — the 5V, GND, and DATA pins connect
 | Board | Notes |
 |-------|-------|
 | ESP32-S3 DevKitC | Newer generation, works well with RGFX |
+| ESP32-S3 Mini | Smallest and cheapest option, but requires soldering headers and has fewer breakout options |
 | NodeMCU-32S | Common WROOM-32 variant |
 | Wemos D1 Mini ESP32 | Compact form factor |
-| ESP32-C3 Super Mini | Smallest and cheapest option, but requires soldering headers and has fewer breakout options |
-
 Any ESP32 dev board using a WROOM-32 or S3 chip should work. The Hub detects the chip type automatically when flashing firmware.
 
 ## LED Types
