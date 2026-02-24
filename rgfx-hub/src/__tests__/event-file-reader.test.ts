@@ -149,6 +149,35 @@ describe('EventFileReader', () => {
     expect(events[0]).toEqual(['game/init', 'pacman']);
   });
 
+  it('should resume reading after file truncation and new append', async () => {
+    const events: [string, string][] = [];
+
+    // Create file with substantial content so truncation is detectable
+    const padding = 'game/pad data\n'.repeat(50);
+    writeFileSync(testFilePath, padding);
+    reader.start((topic, msg) => events.push([topic, msg]));
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Append an event (reader is positioned at end)
+    writeFileSync(testFilePath, 'game/before truncation\n', { flag: 'a' });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(events).toHaveLength(1);
+    expect(events[0][0]).toBe('game/before');
+
+    // Truncate file to something smaller
+    writeFileSync(testFilePath, 'game/small reset\n');
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Now append new data after truncation
+    writeFileSync(testFilePath, 'game/after recovery\n', { flag: 'a' });
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Should have picked up the new event after truncation recovery
+    const afterEvents = events.filter(([topic]) => topic === 'game/after');
+    expect(afterEvents.length).toBeGreaterThanOrEqual(1);
+  });
+
   it('should stop watching when stopped', async () => {
     const events: [string, string][] = [];
 
@@ -500,4 +529,5 @@ describe('getFileSizeBytes', () => {
 
     expect(size2).toBeGreaterThan(size1);
   });
+
 });

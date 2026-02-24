@@ -85,7 +85,7 @@ The transformer broadcasts `background` effects with gradient data:
   props: {
     gradient: {
       colors: ['#FF0000', '#00FF00', '#0000FF', ...],
-      orientation: 'horizontal'
+      orientation: 'horizontal'  // 'vertical' for left/right edges
     },
     fadeDuration: 200
   },
@@ -94,3 +94,7 @@ The transformer broadcasts `background` effects with gradient data:
 ```
 
 The 200ms fade duration smooths transitions between frames.
+
+---
+
+**See also:** [Ambilight Interceptor](../interceptors/ambilight.md) — how screen colors are sampled in MAME

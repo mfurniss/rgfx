@@ -1,7 +1,5 @@
 import { formatNumber, sleep, randomInt } from '../utils/index.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
-import test from 'node:test';
-import { text } from 'stream/consumers';
 
 const STARFIELD_DRIVERS = [
   ...MATRIX_DRIVERS,

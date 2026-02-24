@@ -1,15 +1,4 @@
--- ram module is loaded via package.path set by rgfx.lua
 local ram = require("ram")
-
-
--- local ambilight = require("ambilight")
-
--- ambilight.init({
--- 	zones = 12,
--- 	depth = 10,
--- 	event_interval = 3,
--- })
-
 
 -- Super Mario Bros (NES) RAM Map
 -- Reference: https://datacrystal.tcrf.net/wiki/Super_Mario_Bros.:RAM_map

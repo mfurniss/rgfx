@@ -134,7 +134,6 @@ rgfx/
 │   │   ├── network/                 # MQTT and UDP modules
 │   │   └── ...
 │   └── platformio.ini
-├── esp32-installer/       # Pre-built firmware + web flasher
 ├── public-docs/           # Documentation site (rgfx.io)
 └── scripts/               # Build and development scripts
 ```

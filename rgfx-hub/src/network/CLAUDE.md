@@ -19,6 +19,7 @@ The `MqttBroker` class wraps the [Aedes](https://github.com/moscajs/aedes) MQTT 
 - Provides pub/sub interface with QoS 2 (exactly-once delivery)
 - Supports MQTT wildcard subscriptions (`+` single-level, `#` multi-level)
 - Coordinates discovery services to advertise the broker
+- `publishAndAwaitResponse()` implements MQTT request-response pattern with timeout and double-resolution guard
 - Exposes `isRunning` and `isDiscoveryActive` getters for status reporting
 
 ### ssdp-discovery.ts

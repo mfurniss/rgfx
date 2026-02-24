@@ -1,15 +1,10 @@
 -- Star Wars (Atari 1983) RGFX Interceptor
 -- Hardware: Motorola MC6809E @ 1.512 MHz (big-endian)
 
+_G.boot_delay(2)
 local ram = require("ram")
-
--- Skip attract mode and RAM tests
-boot_delay(2)
-
 local cpu = manager.machine.devices[":maincpu"]
 local mem = cpu.spaces["program"]
-
-print("=== Star Wars RGFX Interceptor Loaded ===")
 
 -- Score delta to event lookup table
 local SCORE_EVENTS = {

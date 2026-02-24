@@ -155,7 +155,7 @@ try {
   const sprite = await loadGif('bitmaps/bonus.gif');
   // Use sprite...
 } catch (err) {
-  console.error('Failed to load sprite:', err);
+  context.log.error('Failed to load sprite:', err);
   // Fallback behavior or skip the effect
 }
 ```

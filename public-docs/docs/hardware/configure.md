@@ -20,7 +20,7 @@ If your hardware isn't listed, you can add custom definitions to the `led-hardwa
 
 ### GPIO Pin
 
-The ESP32 GPIO pin connected to your LED data line. Valid range: 0-39. Default: 16. See [Wiring & Power](wiring.md) for connection details.
+The ESP32 GPIO pin connected to your LED data line. Valid range: 0-48 (varies by chip variant). Default: 16. See [Wiring & Power](wiring.md) for connection details.
 
 ### LED Offset
 
@@ -28,7 +28,11 @@ Optional starting index offset. Use this if you want to skip LEDs at the beginni
 
 ### Maximum Brightness
 
-Limits the maximum brightness (0-255). Useful for power management or reducing eye strain.
+Limits the maximum per-LED brightness (0-255). Useful for power management or reducing eye strain.
+
+### Global Brightness Limit
+
+An additional global cap on overall brightness (0-255), applied after maximum brightness. Allows finer control over display intensity.
 
 ### Power Settings
 
@@ -57,6 +61,17 @@ Values at or below this threshold become 0 (off). Useful for eliminating dim fli
 When enabled, logical LED index 0 maps to the last physical LED. Use this if your strip is mounted in the opposite direction.
 
 ## Matrix-Specific Settings
+
+### Panel Rotation
+
+For single-panel matrices (not using unified multi-panel layout), rotate the display:
+
+- `0` degrees (default)
+- `90` degrees
+- `180` degrees
+- `270` degrees
+
+Multi-panel unified layouts use per-panel rotation in the layout editor instead.
 
 ### Unified Multi-Panel Layout
 
