@@ -2,9 +2,8 @@
 """
 Firmware Build Post-Processing Script
 
-Copies compiled ESP32 firmware files to:
-1. esp32-installer/ (for serial flashing via esptool)
-2. rgfx-hub/assets/esp32/firmware/ (for OTA updates from Hub)
+Copies compiled ESP32 firmware files to rgfx-hub/assets/esp32/firmware/ for
+OTA updates and USB flashing from the Hub app.
 
 Supports multiple chip variants (ESP32, ESP32-S3) with chip-specific firmware files
 and a unified manifest containing all variants.
@@ -13,7 +12,6 @@ This script runs automatically after PlatformIO builds via extra_scripts in plat
 Can also be run standalone for manual deployment.
 """
 
-import shutil
 import hashlib
 import json
 from datetime import datetime, timezone
@@ -272,33 +270,6 @@ def copy_variant_to_hub(project_root, build_dir, env_name):
     print(f"{chip} firmware v{version} copied to Hub\n")
 
 
-def copy_to_installer(project_root, build_dir, env_name):
-    """Copy firmware files to esp32-installer folder for serial flashing"""
-    if env_name not in CHIP_VARIANTS:
-        return
-
-    config = CHIP_VARIANTS[env_name]
-    chip_suffix = config['chip'].lower().replace('-', '')
-
-    installer_dir = project_root / 'esp32-installer'
-    installer_dir.mkdir(parents=True, exist_ok=True)
-
-    files_to_copy = {
-        f'firmware-{chip_suffix}.bin': build_dir / 'firmware.bin',
-        f'bootloader-{chip_suffix}.bin': build_dir / 'bootloader.bin',
-        f'partitions-{chip_suffix}.bin': build_dir / 'partitions.bin',
-    }
-
-    print(f"Copying {config['chip']} files to esp32-installer:")
-    for dest_name, source_path in files_to_copy.items():
-        dest_path = installer_dir / dest_name
-        if source_path.exists():
-            shutil.copy2(source_path, dest_path)
-            print(f"  ✓ {dest_name}")
-        else:
-            print(f"  ✗ {dest_name} not found at {source_path}")
-
-
 def copy_firmware_standalone():
     """Copy compiled firmware for all built environments (standalone mode)"""
     script_dir = Path(__file__).parent
@@ -313,14 +284,7 @@ def copy_firmware_standalone():
             print(f"Skipping {env_name} (not built)")
             continue
 
-        copy_to_installer(project_root, build_dir, env_name)
         copy_variant_to_hub(project_root, build_dir, env_name)
-
-    # Check if boot_app0.bin exists in installer dir
-    installer_dir = project_root / 'esp32-installer'
-    boot_app0_path = installer_dir / 'boot_app0.bin'
-    if boot_app0_path.exists():
-        print(f"  ✓ boot_app0.bin (already present)")
 
     print("\nAll files copied successfully!")
 
@@ -336,14 +300,7 @@ def copy_firmware_pio(source, target, env):
 
     print(f"\ncopy_firmware_pio([{firmware_source}], [{target[0]}])")
 
-    copy_to_installer(project_root, build_dir, env_name)
     copy_variant_to_hub(project_root, build_dir, env_name)
-
-    # Check if boot_app0.bin exists in installer dir
-    installer_dir = project_root / 'esp32-installer'
-    boot_app0_path = installer_dir / 'boot_app0.bin'
-    if boot_app0_path.exists():
-        print(f"  ✓ boot_app0.bin (already present)")
 
 
 # Detect if running standalone or as PlatformIO script
