@@ -21,7 +21,7 @@ Main process modules at the root of `src/`. Subdirectories have their own CLAUDE
 
 ## Event & Transformer Pipeline
 
-- `event-file-reader.ts` — Watches MAME event log file; emits events as new entries appear
+- `event-file-reader.ts` — Watches MAME event log file; emits events as new entries appear. Handles file truncation (resets position), I/O errors (falls back to polling), and log trimming when file exceeds size threshold.
 - `transformer-engine.ts` — Transforms game events into LED effects using cascading handler precedence
 - `gif-loader.ts` — Loads animated GIFs and converts to bitmap effect format
 

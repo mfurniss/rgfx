@@ -512,6 +512,168 @@ describe('MqttBroker', () => {
     });
   });
 
+  describe('publishAndAwaitResponse', () => {
+    it('should resolve with payload when response arrives', async () => {
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === 'publish',
+      )?.[1];
+
+      const promise = mqtt.publishAndAwaitResponse(
+        'request/topic',
+        'request-payload',
+        'response/topic',
+        5000,
+      );
+
+      // Simulate response arriving via the publish event
+      publishHandler(
+        { topic: 'response/topic', payload: Buffer.from('response-data') },
+        { id: 'responder' },
+      );
+
+      const result = await promise;
+      expect(result).toBe('response-data');
+    });
+
+    it('should resolve with null on timeout', async () => {
+      vi.useFakeTimers();
+
+      const promise = mqtt.publishAndAwaitResponse(
+        'request/topic',
+        'request-payload',
+        'response/topic',
+        1000,
+      );
+
+      vi.advanceTimersByTime(1000);
+
+      const result = await promise;
+      expect(result).toBeNull();
+
+      vi.useRealTimers();
+    });
+
+    it('should resolve with null on publish error', async () => {
+      mockAedes.publish.mockImplementation((_packet: any, callback: any) => {
+        if (callback) {
+          callback(new Error('publish failed'));
+        }
+      });
+
+      const result = await mqtt.publishAndAwaitResponse(
+        'request/topic',
+        'request-payload',
+        'response/topic',
+        5000,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should unsubscribe from response topic after response', async () => {
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === 'publish',
+      )?.[1];
+
+      const unsubscribeSpy = vi.spyOn(mqtt, 'unsubscribe');
+
+      const promise = mqtt.publishAndAwaitResponse(
+        'request/topic',
+        'request-payload',
+        'response/topic',
+        5000,
+      );
+
+      publishHandler(
+        { topic: 'response/topic', payload: Buffer.from('data') },
+        { id: 'client' },
+      );
+
+      await promise;
+      expect(unsubscribeSpy).toHaveBeenCalledWith('response/topic');
+    });
+
+    it('should not resolve twice if response and timeout both fire', async () => {
+      vi.useFakeTimers();
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === 'publish',
+      )?.[1];
+
+      const promise = mqtt.publishAndAwaitResponse(
+        'request/topic',
+        'request-payload',
+        'response/topic',
+        1000,
+      );
+
+      // Response arrives first
+      publishHandler(
+        { topic: 'response/topic', payload: Buffer.from('response-data') },
+        { id: 'client' },
+      );
+
+      // Timeout fires after (should be ignored)
+      vi.advanceTimersByTime(1000);
+
+      const result = await promise;
+      expect(result).toBe('response-data');
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe('topicMatches edge cases', () => {
+    it('should not match # pattern when topic has fewer segments than prefix', () => {
+      const callback = vi.fn();
+      mqtt.subscribe('rgfx/driver/status/#', callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === 'publish',
+      )?.[1];
+
+      // Topic has fewer segments than the prefix before #
+      publishHandler(
+        { topic: 'rgfx/driver', payload: Buffer.from('data') },
+        { id: 'client' },
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not match # pattern when prefix segments differ', () => {
+      const callback = vi.fn();
+      mqtt.subscribe('rgfx/driver/#', callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === 'publish',
+      )?.[1];
+
+      publishHandler(
+        { topic: 'rgfx/sensor/something', payload: Buffer.from('data') },
+        { id: 'client' },
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should match # with + in prefix', () => {
+      const callback = vi.fn();
+      mqtt.subscribe('rgfx/+/#', callback);
+
+      const publishHandler = mockAedes.on.mock.calls.find(
+        (call: any) => call[0] === 'publish',
+      )?.[1];
+
+      publishHandler(
+        { topic: 'rgfx/driver/status/online', payload: Buffer.from('data') },
+        { id: 'client' },
+      );
+
+      expect(callback).toHaveBeenCalled();
+    });
+  });
+
   describe('error handling', () => {
     it('should handle server errors', () => {
       const errorHandler = mockServer.on.mock.calls.find((call: any) => call[0] === 'error')?.[1];

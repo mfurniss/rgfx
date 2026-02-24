@@ -60,6 +60,11 @@ After modifying files in the hub project always run `scripts/check-code.sh`
 
 After modifying files in the esp32 project always run `pio run` to verify the build compiles successfully. Do not report the task as complete until the build passes.
 
+**Test Coverage Reports**
+
+- **Hub:** `cd rgfx-hub && npm run test:coverage` — vitest + v8 provider, outputs text/JSON/HTML to `coverage/`. Config in `vitest.config.ts`. Works out of the box.
+- **ESP32:** `cd esp32 && pio test -e native-coverage` runs tests with LLVM instrumentation but **cannot produce a combined line-coverage report** because PlatformIO overwrites the test binary per suite. Tests and pass/fail counts are still reported. A custom script to save each binary would be needed for full `llvm-cov` reporting.
+
 **Separation of concerns is paramount.** This makes testing and maintenance much more effective.
 
 **Do not guess or hallucinate.** When solving problems it's okay to not know the answer. Say "I don't know, but I'll find out". Do not go down rabbit holes. If we have been stuck on a problem for a couple of iterations, go research the issue online.
