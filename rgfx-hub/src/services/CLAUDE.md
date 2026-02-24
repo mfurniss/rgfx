@@ -58,6 +58,7 @@ Factory for creating and wiring up all main process services.
 - Creates instances of all services with dependency injection
 - `SystemMonitor` receives `MqttBroker` to query actual service status
 - Wraps transformer `broadcast` with `validateTransformerEffect` to apply Zod schema defaults before sending to drivers
+- Contains `parseAmbilight()` (12-bit → 24-bit color expansion) and `hslToHex()` (HSL → hex conversion) utility functions passed to transformer engine context
 - Provides `ServiceContainer` interface for accessing services
 - Used by `service-startup.ts` for initialization
 
@@ -68,6 +69,7 @@ Orchestrates service initialization on app startup.
 - Initializes services in correct order with dependency resolution
 - Passes `systemMonitor` to IPC handlers for cleanup operations (e.g., clearing UDP stats on driver delete)
 - Starts MQTT broker, network manager, and other services
+- Creates `eventProcessor` callback that forwards events to transformer engine, increments stats, sends IPC events, and emits system:error for interceptor errors
 - Sets up firmware monitoring callback to broadcast system status updates
 - Returns `PowerSaveHandle` for cleanup during app shutdown
 
