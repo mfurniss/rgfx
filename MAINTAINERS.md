@@ -8,11 +8,11 @@ This document outlines the current maintainers of the RGFX project and provides 
 
 **Matt Furniss**
 - Email: furniss@gmail.com
-- GitLab: [@furniss](https://gitlab.com/furniss)
+- GitHub: [@mfurniss](https://github.com/mfurniss)
 - Role: Project creator, lead developer, and primary maintainer
 - Responsibilities:
   - Overall project direction and architecture decisions
-  - Code review and merge request approval
+  - Code review and pull request approval
   - Release management and version control
   - CI/CD pipeline maintenance
   - Community management and issue triage
@@ -31,7 +31,7 @@ For development setup, code standards, and how to submit changes, see [CONTRIBUT
 
 ### Review Criteria
 
-Maintainers evaluate merge requests based on:
+Maintainers evaluate pull requests based on:
 
 1. **Correctness** - Does the code work as intended?
 2. **Code Quality** - Is it clean, readable, and maintainable?
@@ -43,15 +43,15 @@ Maintainers evaluate merge requests based on:
 
 ### Merge Authority
 
-- **Lead Maintainer** - Can merge any MR after review
-- **Protected Branch** - `main` branch requires MR approval (no direct pushes)
+- **Lead Maintainer** - Can merge any PR after review
+- **Protected Branch** - `main` branch requires PR approval (no direct pushes)
 - **CI/CD Gate** - All automated checks must pass before merge is possible
 
 ## Issue Triage
 
 ### Issue Labels
 
-We use GitLab labels to categorize issues:
+We use GitHub labels to categorize issues:
 
 - `bug` - Something isn't working correctly
 - `enhancement` - New feature or improvement request
@@ -80,15 +80,13 @@ RGFX follows [Semantic Versioning](https://semver.org/):
 
 ### Release Process
 
-Releases are triggered by git tags and managed via GitLab CI/CD:
+Releases are triggered by git tags and managed via GitHub Actions:
 
-1. **Create tag** on `main` branch: `git tag v1.0.0`
-2. **Push tag**: `git push origin v1.0.0`
-3. **CI builds artifacts**: DMG installer, ESP32 firmware
-4. **Manual approval**: Click "Play" on release job in GitLab
-5. **Release published**: GitLab Release with artifacts attached
-
-See [docs/release-workflow.md](docs/release-workflow.md) for detailed instructions.
+1. **Prepare release**: `npm run prepare-release -- v1.0.0` (bumps version, opens PR)
+2. **Merge PR** and pull main
+3. **Run release**: `npm run release -- v1.0.0` (validates, tags, pushes)
+4. **GitHub Actions builds**: macOS DMG, Windows EXE, ESP32 firmware
+5. **Release published**: GitHub Release with installers attached
 
 ## Decision Making
 
@@ -96,7 +94,7 @@ See [docs/release-workflow.md](docs/release-workflow.md) for detailed instructio
 
 Major architectural decisions are made by the lead maintainer with community input:
 
-1. **Proposal** - Create GitLab issue describing the change
+1. **Proposal** - Create GitHub issue describing the change
 2. **Discussion** - Community provides feedback and alternatives
 3. **Decision** - Lead maintainer makes final call based on:
    - Technical merit
@@ -133,8 +131,8 @@ New features must align with project goals:
 
 ### Primary Channels
 
-- **GitLab Issues** - Bug reports, feature requests, discussions
-- **GitLab Merge Requests** - Code contributions and reviews
+- **GitHub Issues** - Bug reports, feature requests, discussions
+- **GitHub Pull Requests** - Code contributions and reviews
 - **Email** - Direct contact with maintainers (furniss@gmail.com)
 
 ### Response Expectations
@@ -142,7 +140,7 @@ New features must align with project goals:
 Maintainers are volunteers. Please allow reasonable time for responses:
 
 - **Issues**: 2-5 business days
-- **Merge Requests**: 3-14 days depending on complexity
+- **Pull Requests**: 3-14 days depending on complexity
 - **Email**: 3-7 business days
 
 ## Becoming a Maintainer
@@ -176,10 +174,10 @@ For questions about contributing or project governance:
 
 **Matt Furniss**
 Email: furniss@gmail.com
-GitLab: [@furniss](https://gitlab.com/furniss)
+GitHub: [@mfurniss](https://github.com/mfurniss)
 
 ---
 
 **Thank you for contributing to RGFX!**
 
-*Last updated: 2026-02-11*
+*Last updated: 2026-02-24*

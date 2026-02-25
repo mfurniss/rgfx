@@ -1,0 +1,83 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: pr-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-hub:
+    name: Hub Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rgfx-hub
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: .
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  test-driver:
+    name: Driver Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            esp32/.pio
+          key: pio-${{ hashFiles('esp32/platformio.ini') }}
+          restore-keys: pio-
+
+      - name: Inject version
+        run: node scripts/inject-version-driver.js
+
+      - name: Generate HTML headers
+        run: python3 esp32/html_to_progmem.py
+
+      - name: Build firmware
+        run: pio run --project-dir esp32
+
+      - name: Run native tests
+        env:
+          # PIE flags fix ASAN+ASLR conflict in Docker/CI (LLVM bug #164989)
+          CFLAGS: "-fno-pie"
+          CXXFLAGS: "-fno-pie"
+          LDFLAGS: "-no-pie"
+          # Disable LeakSanitizer — issues with Docker/ptrace
+          ASAN_OPTIONS: "detect_leaks=0"
+        run: pio test -e native --project-dir esp32
