@@ -1705,7 +1705,7 @@
 <li><strong>Track game state</strong> — Interceptors know whether you're in attract mode, actively playing, or between levels, and can track progression through the game.</li>
 <li><strong>Sample screen colors</strong> — The ambilight feature captures colors from screen edges to create ambient lighting effects.</li>
 <li><strong>Analyze audio</strong> — The FFT module performs real-time frequency analysis of game audio for sound-reactive lighting.</li>
-<li><strong>Handle timing</strong> — Boot delays let interceptors skip past hardware tests and attract modes before monitoring begins.</li>
+<li><strong>Handle timing</strong> — Boot delays suppress events during the power-on self test, preventing false triggers before gameplay begins.</li>
 </ul>
 <h2 id="how-the-system-works">How the System Works<a class="headerlink" href="#how-the-system-works" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart TB
