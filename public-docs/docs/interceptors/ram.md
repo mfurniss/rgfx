@@ -8,7 +8,7 @@ local ram = require("ram")
 
 ## Boot Delay
 
-Most games run hardware tests or show attract screens before gameplay. Use `_G.boot_delay()` to suppress events until the game reaches a stable state:
+Most arcade games run a power-on self test before gameplay. Use `_G.boot_delay()` to suppress events until the game reaches a stable state:
 
 ```lua
 _G.boot_delay(6)  -- Suppress events for 6 seconds

@@ -30,7 +30,7 @@ Create a new file in the `interceptors/games/` folder of your [config directory]
 
 local ram = require("ram")
 
--- Skip the title screen and attract mode
+-- Suppress events during the power-on self test
 _G.boot_delay(8)
 
 -- Get access to the CPU's memory

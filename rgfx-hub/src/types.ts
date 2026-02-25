@@ -17,7 +17,7 @@ export interface AppInfo {
 /**
  * LED Configuration Types
  */
-type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
+type LEDChipset = 'WS2812B' | 'WS2811' | 'SK6812' | 'WS2814';
 type ColorOrder = 'RGB' | 'GRB' | 'BGR' | 'RBG' | 'GBR' | 'BRG';
 
 type LEDLayoutType =

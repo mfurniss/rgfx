@@ -146,7 +146,7 @@ describe('LEDHardwareSchema', () => {
     });
 
     it('should accept chipset variants', () => {
-      const chipsets = ['WS2812B', 'SK6812', 'APA102', 'WS2811', 'NEOPIXEL'];
+      const chipsets = ['WS2812B', 'WS2811', 'SK6812', 'WS2814', 'NEOPIXEL'];
 
       for (const chipset of chipsets) {
         const result = LEDHardwareSchema.safeParse({

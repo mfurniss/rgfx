@@ -61,6 +61,7 @@ nav:
     - Build Examples: hardware/examples.md
     - Wiring & Power: hardware/wiring.md
     - Configuration: hardware/configure.md
+    - Hardware Definitions: hardware/definitions.md
     - Visual Effects: hardware/effects.md
   - Interceptors:
     - Introduction: interceptors/index.md

@@ -1037,6 +1037,34 @@
   
   
     <li class="md-nav__item">
+      <a href="hardware/definitions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="hardware/effects.html" class="md-nav__link">
         
   
@@ -1656,8 +1684,8 @@
 <p>RGFX connects three things together:</p>
 <ol>
 <li><strong>MAME</strong> runs your game with a Lua interceptor that watches for gameplay events</li>
-<li><strong>RGFX Hub</strong> picks up those events and decides which LED effects to trigger</li>
-<li><strong>ESP32 drivers</strong> receive the commands over WiFi and render effects on your LED strips and matrices — in real-time</li>
+<li><strong>RGFX Hub</strong> processes those events and converts them to LED effect commands</li>
+<li><strong>ESP32 drivers</strong> receives the commands over WiFi and render effects on your LED strips and matrices</li>
 </ol>
 <p>This is the flow, using three example games. Of course, many MAME roms are compatible.</p>
 <pre class="mermaid"><code>---
@@ -1698,7 +1726,7 @@ flowchart TB
 <li><strong>Example games</strong> with interceptors ready to use and modify</li>
 <li><strong>Visual effects</strong> — pulses, explosions, plasma, particle fields, scrolling text, warp tunnels, and more</li>
 <li><strong>Ambilight mode</strong> — sample screen edge colors for ambient lighting that follows the game</li>
-<li><strong>LED strips and matrices</strong> — works with WS2812B and SK6812 addressable LEDs in any layout</li>
+<li><strong>LED strips and matrices</strong> — works with WS2812B and SK6812 addressable LEDs</li>
 <li><strong>Multiple drivers</strong> — run several ESP32 boards with different LED setups, all synchronized</li>
 </ul>
 <h2 id="get-started">Get Started<a class="headerlink" href="#get-started" title="Permanent link">¶</a></h2>

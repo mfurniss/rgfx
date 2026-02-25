@@ -29,7 +29,7 @@ Schemas for driver configuration:
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 
 ### led-hardware.ts
-`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Note: `name` was removed - hardware is identified by its filename.
+`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Supported chipsets: WS2812B, WS2811, SK6812, WS2814. Note: `name` was removed - hardware is identified by its filename.
 
 ### firmware-manifest.ts
 `FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with per-variant versioning, allowing different chip types to be built at different times without causing false "update needed" notifications.

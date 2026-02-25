@@ -959,6 +959,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../hardware/definitions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../hardware/effects.html" class="md-nav__link">
         
   
@@ -1727,7 +1755,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">ram</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">require</span><span class="p">(</span><span class="s2">"ram"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="boot-delay">Boot Delay<a class="headerlink" href="#boot-delay" title="Permanent link">¶</a></h2>
-<p>Most games run hardware tests or show attract screens before gameplay. Use <code>_G.boot_delay()</code> to suppress events until the game reaches a stable state:</p>
+<p>Most arcade games run a power-on self test before gameplay. Use <code>_G.boot_delay()</code> to suppress events until the game reaches a stable state:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">_G</span><span class="p">.</span><span class="nf">boot_delay</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Suppress events for 6 seconds</span>
 </code></pre></div>
 <p>During the delay, all events are silently dropped except <code>/init</code> topics. A countdown is displayed in the MAME console. This is a global function defined by the <code>event</code> module — not part of <code>ram</code>.</p>
