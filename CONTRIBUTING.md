@@ -11,7 +11,7 @@ Thanks for your interest in contributing to RGFX! Whether it's a bug report, new
 - [Making Changes](#making-changes)
 - [Code Standards](#code-standards)
 - [Testing](#testing)
-- [Submitting a Merge Request](#submitting-a-merge-request)
+- [Submitting a Pull Request](#submitting-a-pull-request)
 - [Reporting Bugs](#reporting-bugs)
 - [Requesting Features](#requesting-features)
 
@@ -147,7 +147,7 @@ rgfx/
 
 ### Branch Workflow
 
-1. **Fork** the repository on GitLab
+1. **Fork** the repository on GitHub
 2. **Clone** your fork locally
 3. **Create a feature branch** from `main`:
    ```bash
@@ -158,7 +158,7 @@ rgfx/
    ```bash
    ./scripts/check-code.sh --all
    ```
-6. **Push** to your fork and open a merge request
+6. **Push** to your fork and open a pull request
 
 ### Commit Messages
 
@@ -231,12 +231,12 @@ pio run              # Verify firmware compiles
 - Quality over coverage - a few good integration tests beat many shallow unit tests
 - If a test is difficult to write, that's often a signal the code needs restructuring
 
-## Submitting a Merge Request
+## Submitting a Pull Request
 
 1. Ensure all checks pass: `./scripts/check-code.sh --all`
 2. Update `CHANGELOG.md` under the `[Unreleased]` section
-3. Push your branch and create a merge request on GitLab
-4. Fill in the [merge request template](.gitlab/merge_request_templates/default.md)
+3. Push your branch and create a pull request on GitHub
+4. Fill in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)
 5. Wait for CI to pass and a maintainer to review
 
 ### What to Expect
@@ -249,7 +249,7 @@ Maintainers may request changes - this is normal and collaborative. See [MAINTAI
 
 ## Reporting Bugs
 
-Use the [bug report template](.gitlab/issue_templates/bug_report.md) when opening an issue. Include:
+Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) when opening an issue. Include:
 
 - Clear description of the problem
 - Steps to reproduce
@@ -259,7 +259,7 @@ Use the [bug report template](.gitlab/issue_templates/bug_report.md) when openin
 
 ## Requesting Features
 
-Use the [feature request template](.gitlab/issue_templates/feature_request.md). Describe:
+Use the [feature request template](.github/ISSUE_TEMPLATE/feature_request.md). Describe:
 
 - The problem your feature would solve
 - Your proposed solution

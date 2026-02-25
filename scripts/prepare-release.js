@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Prepare a release by bumping package.json and opening an MR.
+ * Prepare a release by bumping package.json and opening a PR.
  *
  * Usage:
  *   npm run prepare-release -- v0.7.0
@@ -8,9 +8,9 @@
  * What it does:
  *   1. Creates branch release/v0.7.0
  *   2. Bumps rgfx-hub/package.json to 0.7.0
- *   3. Commits, pushes, and opens a merge request
+ *   3. Commits, pushes, and opens a pull request
  *
- * After merging the MR, run: npm run release -- v0.7.0
+ * After merging the PR, run: npm run release -- v0.7.0
  */
 
 const { execSync } = require('child_process');
@@ -70,10 +70,10 @@ console.log(`  Updated rgfx-hub/package.json to ${version}`);
 run('git add rgfx-hub/package.json');
 run(`git commit -m "Bump hub version to ${version}"`);
 run(`git push -u origin ${branch}`);
-run(`glab mr create --title "Release ${tag}" --target-branch main --remove-source-branch --fill`);
+run(`gh pr create --title "Release ${tag}" --base main --fill`);
 
 // --- Return to main ---
 run('git checkout main');
 
-console.log(`\nDone! Merge the MR, pull main, then run:`);
+console.log(`\nDone! Merge the PR, pull main, then run:`);
 console.log(`  npm run release -- ${tag}\n`);

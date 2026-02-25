@@ -24,11 +24,11 @@
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/furniss/rgfx.git"
+    "url": "https://github.com/mfurniss/rgfx.git"
   },
-  "homepage": "https://gitlab.com/furniss/rgfx",
+  "homepage": "https://github.com/mfurniss/rgfx",
   "bugs": {
-    "url": "https://gitlab.com/furniss/rgfx/-/issues"
+    "url": "https://github.com/mfurniss/rgfx/issues"
   },
   "scripts": {
     "postinstall": "echo 'RGFX workspace initialized. See README.md for setup instructions.'",

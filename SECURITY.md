@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in RGFX, please open a [GitLab issue](https://gitlab.com/furniss/rgfx/-/issues/new) using the **bug report** template and add the `security` label.
+If you discover a security vulnerability in RGFX, please open a [GitHub issue](https://github.com/mfurniss/rgfx/issues/new) using the **bug report** template and add the `security` label.
 
 Include as much detail as possible:
 

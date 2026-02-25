@@ -10,9 +10,9 @@ import { execSync } from "child_process";
 const config: ForgeConfig = {
   hooks: {
     generateAssets: async () => {
-      // Skip docs build on Windows (requires bash/mkdocs)
-      if (process.platform === "win32") {
-        console.log("Skipping docs build on Windows");
+      // Skip docs build on Windows (requires bash/mkdocs) and in CI (docs are pre-built)
+      if (process.platform === "win32" || process.env.CI) {
+        console.log("Skipping docs build (CI or Windows)");
         return;
       }
       console.log("Building documentation...");
