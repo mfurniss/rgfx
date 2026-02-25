@@ -9,8 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Get version from get-version.js
-const version = execSync('node scripts/get-version.js', {
+// Accept explicit version from CLI arg, or derive from git tag
+const version = process.argv[2] || execSync('node scripts/get-version.js', {
   cwd: path.join(__dirname, '..'),
   encoding: 'utf-8'
 }).trim();
