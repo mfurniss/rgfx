@@ -190,6 +190,7 @@ export default tseslint.config(
       'eslint.config.js',
       'eslint.config.mjs',
       '*.config.ts',
+      '*.config.js',
       'assets/transformers/**/*.js', // User-editable transformer files (JavaScript, not TypeScript)
       'scripts/**/*.js', // Build scripts (Node.js scripts, not TypeScript)
       'scripts/**/*.mjs', // ESM build scripts

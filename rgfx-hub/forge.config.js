@@ -1,13 +1,14 @@
-import type { ForgeConfig } from "@electron-forge/shared-types";
-import { MakerSquirrel } from "@electron-forge/maker-squirrel";
-import { MakerDMG } from "@electron-forge/maker-dmg";
-import { VitePlugin } from "@electron-forge/plugin-vite";
-import { FuseV1Options, flipFuses, FuseVersion } from "@electron/fuses";
-import path from "path";
-import fs from "fs";
-import { execSync } from "child_process";
+// @ts-check
+const { MakerSquirrel } = require("@electron-forge/maker-squirrel");
+const { MakerDMG } = require("@electron-forge/maker-dmg");
+const { VitePlugin } = require("@electron-forge/plugin-vite");
+const { FuseV1Options, flipFuses, FuseVersion } = require("@electron/fuses");
+const path = require("path");
+const fs = require("fs");
+const { execSync } = require("child_process");
 
-const config: ForgeConfig = {
+/** @type {import("@electron-forge/shared-types").ForgeConfig} */
+const config = {
   hooks: {
     generateAssets: async () => {
       // Skip docs build on Windows (requires bash/mkdocs) and in CI (docs are pre-built)
@@ -43,13 +44,7 @@ const config: ForgeConfig = {
     ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [
-      async (
-        buildPath: string,
-        electronVersion: string,
-        platform: NodeJS.Platform,
-        arch: string,
-        callback?: () => void,
-      ) => {
+      async (buildPath, electronVersion, platform, arch, callback) => {
         const appPath = path.join(buildPath, "resources", "app.asar.unpacked");
         if (fs.existsSync(appPath)) {
           await flipFuses(appPath, {
@@ -65,7 +60,7 @@ const config: ForgeConfig = {
         if (callback) callback();
       },
     ],
-  } as any,
+  },
 
   rebuildConfig: {},
 
@@ -104,4 +99,4 @@ const config: ForgeConfig = {
   ],
 };
 
-export default config;
+module.exports = config;
