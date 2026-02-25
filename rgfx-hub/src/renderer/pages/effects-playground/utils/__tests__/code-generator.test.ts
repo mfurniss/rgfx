@@ -56,6 +56,63 @@ describe('generateBroadcastCode', () => {
     });
   });
 
+  describe('bitmap easing', () => {
+    it('should exclude easing when endX and endY are not defined', () => {
+      const result = generateBroadcastCode(
+        'bitmap',
+        { centerX: 0, centerY: 0, easing: 'linear', duration: 3000 },
+        [],
+        true,
+      );
+
+      expect(result).not.toContain('easing');
+    });
+
+    it('should include easing when endX is defined', () => {
+      const result = generateBroadcastCode(
+        'bitmap',
+        { centerX: 0, centerY: 0, endX: 50, easing: 'linear', duration: 3000 },
+        [],
+        true,
+      );
+
+      expect(result).toContain("easing: 'linear'");
+    });
+
+    it('should include easing when endY is defined', () => {
+      const result = generateBroadcastCode(
+        'bitmap',
+        { centerX: 0, centerY: 0, endY: 75, easing: 'bounceOut', duration: 3000 },
+        [],
+        true,
+      );
+
+      expect(result).toContain("easing: 'bounceOut'");
+    });
+
+    it('should exclude easing from GIF bitmap when endX and endY are not defined', () => {
+      const result = generateBroadcastCode(
+        'bitmap',
+        { __gifPath: '/test.gif', images: [], palette: [], easing: 'linear', duration: 3000 },
+        [],
+        true,
+      );
+
+      expect(result).not.toContain('easing');
+    });
+
+    it('should include easing in GIF bitmap when endX is defined', () => {
+      const result = generateBroadcastCode(
+        'bitmap',
+        { __gifPath: '/test.gif', images: [], palette: [], endX: 50, easing: 'linear', duration: 3000 },
+        [],
+        true,
+      );
+
+      expect(result).toContain("easing: 'linear'");
+    });
+  });
+
   describe('GIF bitmap effects', () => {
     it('should generate cached loadGif and broadcast call for bitmap effects', () => {
       const props = {

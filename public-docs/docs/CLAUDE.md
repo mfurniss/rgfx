@@ -59,7 +59,7 @@ docs/
 ├── hub-app/                    # Hub application reference (9 pages, settings includes driver fallback toggle)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, definitions, effects with blend modes, examples)
 ├── interceptors/               # Lua interceptor docs (7 pages, all examples use _G.event() with real game events)
-└── transformers/               # JS transformer docs (6 pages, ambilight has single/multi driver modes)
+└── transformers/               # JS transformer docs (6 pages, bitmaps.md covers inline + GIF bitmaps + movement/easing, ambilight has single/multi driver modes)
 ```
 
 ### Config Directory References

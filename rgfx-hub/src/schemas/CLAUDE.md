@@ -66,6 +66,8 @@ Single source of truth for all effect property defaults. Consumed by Zod schemas
 - `isEffectName()` - Type guard for valid effect names
 - `safeValidateEffectProps()` - Validates props for a given effect type
 - Per-effect `randomize()` functions exported for Effects Playground
+- `effectCodeGenerators` - Map of effect names to custom `CodeGenerator` functions (bypass generic broadcast template)
+- `effectCodePropsTransforms` - Map of effect names to `CodePropsTransform` functions (strip irrelevant props before code gen)
 
 ### effects/preset-config.ts
 Schema for effect preset configurations, used by preset selector modal.
@@ -83,7 +85,7 @@ Note: `color-gradient.ts` was removed - gradient colors are now in effect schema
 ### Effect Schemas
 Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `background.ts` - Gradient-only background (color field removed, uses gradient array)
-- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix
+- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix. Exports `cleanCodeProps` (strips easing when no movement) and `generateCode` (GIF-specific code gen) for the Effects Playground code preview.
 - `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize
 - `particle-field.ts` - Particle field effect with configurable behavior
 - `plasma.ts` - Perlin noise plasma with gradient colors

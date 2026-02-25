@@ -2,7 +2,7 @@ import { z } from 'zod';
 import pulseSchema, { randomize as randomizePulse } from './pulse';
 import wipeSchema, { randomize as randomizeWipe } from './wipe';
 import explodeSchema, { randomize as randomizeExplode, fieldTypes as explodeFieldTypes } from './explode';
-import bitmapSchema, { randomize as randomizeBitmap, fieldTypes as bitmapFieldTypes } from './bitmap';
+import bitmapSchema, { randomize as randomizeBitmap, fieldTypes as bitmapFieldTypes, generateCode as bitmapGenerateCode, cleanCodeProps as bitmapCleanCodeProps } from './bitmap';
 import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig, fieldTypes as backgroundFieldTypes } from './background';
 import projectileSchema, { randomize as randomizeProjectile } from './projectile';
 import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig, fieldTypes as textFieldTypes, layoutConfig as textLayoutConfig } from './text';
@@ -12,6 +12,7 @@ import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfi
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
 import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes } from './sparkle';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import type { CodeGenerator, CodePropsTransform } from '@/renderer/pages/effects-playground/utils/code-generator';
 
 /**
  * Layout configuration for effect forms.
@@ -175,4 +176,20 @@ export const effectFieldTypes: Record<string, FieldTypeMap | undefined> = {
 export const effectLayoutConfigs: Record<string, LayoutConfig | undefined> = {
   text: textLayoutConfig,
   scroll_text: scrollTextLayoutConfig,
+};
+
+/**
+ * Map of effect names to custom code generators.
+ * When present and returning a string, bypasses the generic broadcast template.
+ */
+export const effectCodeGenerators: Record<string, CodeGenerator | undefined> = {
+  bitmap: bitmapGenerateCode,
+};
+
+/**
+ * Map of effect names to prop transformers for code preview.
+ * Applied before code generation to strip irrelevant props.
+ */
+export const effectCodePropsTransforms: Record<string, CodePropsTransform | undefined> = {
+  bitmap: bitmapCleanCodeProps,
 };

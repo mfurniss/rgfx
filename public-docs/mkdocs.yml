@@ -76,7 +76,7 @@ nav:
     - Writing Transformers: transformers/writing-transformers.md
     - Global Configuration: transformers/global.md
     - Utilities: transformers/utils.md
-    - GIF Bitmaps: transformers/gif-bitmaps.md
+    - Bitmaps: transformers/bitmaps.md
     - Ambilight: transformers/ambilight.md
   - FAQ / Troubleshooting: faq.md
 
