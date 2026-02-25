@@ -40,10 +40,6 @@
 
 This project has specialized Claude agents available for specific domains. **ALWAYS use these agents** when working with their respective technologies.
 
-**gitlab-expert**
-- **Use for**: GitLab CI/CD pipelines, GitLab Pages, jobs, runners, merge requests, branch protection, tags, releases, glab CLI
-- **Also use for**: Debugging pipeline failures, configuring `.gitlab-ci.yml`, troubleshooting build artifacts, understanding GitLab's browser UI
-
 **platformio-esp32-expert**
 - **Use for**: PlatformIO development for ESP32 microcontrollers
 - **Topics include**:
@@ -125,9 +121,9 @@ npm test               # Run unit tests
 
 **CRITICAL - FEATURE BRANCH WORKFLOW:**
 
-This project uses a **feature branch workflow** with CI/CD testing and merge request approvals. The `main` branch is **protected** - you cannot push directly to it.
+This project uses a **feature branch workflow** with CI/CD testing and pull request approvals. The `main` branch is **protected** - you cannot push directly to it.
 
-**ALL changes must go through feature branches and merge requests.** No exceptions.
+**ALL changes must go through feature branches and pull requests.** No exceptions.
 
 ### Workflow Steps:
 
@@ -141,69 +137,44 @@ git commit -m "Add new feature"
 git push origin feature/my-new-feature
 ```
 
-**2. CI runs automatically:**
-- **Test stage** runs on your feature branch
-- TypeScript checks, ESLint, unit tests, ESP32 compilation
+**2. GitHub Actions CI runs automatically on PRs:**
+- Hub: TypeScript checks, ESLint, unit tests
+- Driver: ESP32 compilation, native tests
 - Must pass before you can merge
 
-**3. Create a merge request:**
+**3. Create a pull request:**
 
 ```bash
-glab mr create --fill --yes
+gh pr create --fill
 ```
 
-**CRITICAL - MR OVERVIEW MUST SUMMARIZE ALL COMMITS:**
+**CRITICAL - PR DESCRIPTION MUST SUMMARIZE ALL COMMITS:**
 
-When creating the MR overview/description, **ALWAYS summarize ALL commits** in the merge request, not just the first one. The overview should provide a comprehensive summary of the entire branch's changes.
+When creating the PR description, **ALWAYS summarize ALL commits** in the pull request, not just the first one. The description should provide a comprehensive summary of the entire branch's changes.
 
-**CRITICAL - ALWAYS MONITOR CI PIPELINES:**
+**4. Monitor CI:**
 
-After pushing a feature branch or creating a merge request, **ALWAYS actively monitor the CI pipeline** until completion.
-
-**Required workflow:**
-1. After `git push` or `glab mr create`, immediately check initial status:
-   ```bash
-   glab ci status -b <branch-name>
-   ```
-2. **Inform the user immediately**:
-   - "Pipeline started. Jobs: test:hub, test:driver (~5 min typical duration)"
-   - Provide pipeline URL for manual monitoring
-   - State: "I will actively monitor and notify you when it completes"
-3. **Set up active polling loop:**
-   - Every 60 seconds (1 minute), run: `glab ci status -b <branch-name>`
-   - Parse the output to detect state changes
-   - Look for "Pipeline state: running" vs "Pipeline state: success/failed"
-4. **When pipeline completes**, notify the user IMMEDIATELY with a clear message:
-   - **Success**: "PIPELINE PASSED! All tests successful (test:hub: 2m 48s, test:driver: 4m 27s)"
-   - **Failure**: "PIPELINE FAILED! Job '<job-name>' failed. Fetching logs..." then run `glab ci trace <job-name>`
-5. If failed, automatically fetch and analyze error logs
-
-**Why active polling instead of --live background:**
-- Background `--live` processes exit unpredictably and don't trigger notifications
-- Active polling ensures reliable state change detection
-- Direct control over when to check and when to notify
-- Can parse output reliably and trigger immediate user alerts
-
-**DO NOT use `--live` with `run_in_background`** - it doesn't work for reliable monitoring
-
-**4. Main branch updated** - Test + Build stages run, artifacts created
+```bash
+gh run watch          # Watch the current run
+gh run list           # List recent runs
+gh run view <run-id>  # View a specific run
+```
 
 **5. Create a release:**
 ```bash
-git checkout main
-git pull origin main
-git tag v1.0.0
-git push origin v1.0.0
+npm run prepare-release -- v1.0.0  # Bump version, open PR
+# Merge the PR, then:
+npm run release -- v1.0.0          # Tag, push — Actions does the rest
 ```
 
-### GitLab CLI (glab)
+### GitHub CLI (gh)
 
 ```bash
-brew install glab
-glab auth login  # First-time authentication
-glab mr create --fill --yes
-glab mr list
-glab ci status -b <branch-name>
+brew install gh
+gh auth login  # First-time authentication
+gh pr create --fill
+gh pr list
+gh run watch
 ```
 
 ## Scripting Language Preference
@@ -229,24 +200,25 @@ glab ci status -b <branch-name>
 
 ## Release Management
 
-Single command handles the full release workflow:
+Two-step release workflow:
 
 ```bash
-npm run release -- v0.5.0
+npm run prepare-release -- v0.5.0   # Bump version, open PR
+# Merge the PR, pull main, then:
+npm run release -- v0.5.0           # Validate, tag, push
 ```
 
-The script:
-1. Injects version, builds docs, runs quality checks (fails fast before pushing)
-2. Creates the git tag and pushes to origin
-3. Waits for CI pipeline (tests, driver build, pages deploy, release creation)
-4. Builds the Hub installer (DMG on macOS, EXE on Windows)
-5. Uploads the installer to the GitLab release
+`release.js` runs quality checks locally (typecheck, lint, test), creates the git tag, and pushes it to GitHub. GitHub Actions then:
+1. Builds ESP32 firmware
+2. Builds Hub installers (macOS DMG + Windows EXE) on native runners
+3. Deploys GitHub Pages (landing page + docs)
+4. Creates GitHub Release with installers attached
 
-The script is idempotent — if interrupted, re-run the same command to resume from where it left off. It detects existing tags, pushed tags, and created releases, skipping completed steps.
+The script is idempotent — if interrupted, re-run the same command to resume.
 
-**View a release:** `glab release view v0.5.0`
+**View a release:** `gh release view v0.5.0`
 
-Version injection (used internally by `release.js`):
+Version injection (used internally by CI):
 ```bash
 node scripts/inject-version-hub.js     # Updates rgfx-hub/package.json
 node scripts/inject-version-driver.js  # Generates esp32/src/version.h

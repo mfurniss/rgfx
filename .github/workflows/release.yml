@@ -1,0 +1,207 @@
+name: Release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-driver:
+    name: Build Driver Firmware
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            esp32/.pio
+          key: pio-${{ hashFiles('esp32/platformio.ini') }}
+          restore-keys: pio-
+
+      - name: Inject version
+        run: node scripts/inject-version-driver.js
+
+      - name: Generate HTML headers
+        run: python3 esp32/html_to_progmem.py
+
+      - name: Build firmware
+        run: pio run --project-dir esp32
+
+      - name: Copy firmware to Hub assets
+        run: python3 esp32/copy_firmware.py
+
+      - name: Upload firmware assets for Hub builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: hub-firmware-assets
+          path: rgfx-hub/assets/esp32/firmware/
+
+  build-hub-macos:
+    name: Build Hub (macOS)
+    needs: build-driver
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download firmware assets
+        uses: actions/download-artifact@v4
+        with:
+          name: hub-firmware-assets
+          path: rgfx-hub/assets/esp32/firmware/
+
+      - name: Inject Hub version
+        run: node scripts/inject-version-hub.js
+
+      - name: Build installer
+        run: npm run make
+        working-directory: rgfx-hub
+
+      - name: Rename installer
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH=$(uname -m)
+          DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
+          DEST="rgfx-${VERSION}-macos-${ARCH}.dmg"
+          cp "$DMG" "$DEST"
+          echo "ARTIFACT_NAME=$DEST" >> "$GITHUB_ENV"
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: hub-installer-macos
+          path: ${{ env.ARTIFACT_NAME }}
+
+  build-hub-windows:
+    name: Build Hub (Windows)
+    needs: build-driver
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download firmware assets
+        uses: actions/download-artifact@v4
+        with:
+          name: hub-firmware-assets
+          path: rgfx-hub/assets/esp32/firmware/
+
+      - name: Inject Hub version
+        run: node scripts/inject-version-hub.js
+
+      - name: Build installer
+        run: npm run make
+        working-directory: rgfx-hub
+
+      - name: Rename installer
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $exe = Get-ChildItem -Path "rgfx-hub/out/make" -Filter "*.exe" -Recurse | Select-Object -First 1
+          $dest = "rgfx-${version}-windows-x64.exe"
+          Copy-Item $exe.FullName $dest
+          "ARTIFACT_NAME=$dest" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: hub-installer-windows
+          path: ${{ env.ARTIFACT_NAME }}
+
+  deploy-pages:
+    name: Deploy Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/docs _site/assets
+          cp rgfx.io/index.html _site/
+          cp rgfx.io/favicon.ico _site/
+          cp -r rgfx.io/assets/* _site/assets/
+          cp -r public-docs/site/* _site/docs/
+          echo "rgfx.io" > _site/CNAME
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  create-release:
+    name: Create Release
+    needs: [build-hub-macos, build-hub-windows]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download macOS installer
+        uses: actions/download-artifact@v4
+        with:
+          name: hub-installer-macos
+          path: artifacts/
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: hub-installer-windows
+          path: artifacts/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "RGFX ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: artifacts/*

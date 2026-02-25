@@ -76,4 +76,4 @@ LED hardware definition files (JSON):
 
 ### Build Packaging
 
-Assets are bundled by `forge.config.ts` via `extraResource`. The macOS build is unsigned (no Apple Developer certificate) — `entitlements.mac.plist` exists at the hub root for future use if signing is added.
+Assets are bundled by `forge.config.ts` via `extraResource`. The `generateAssets` hook skips the docs build on Windows and in CI environments. The macOS build is unsigned (no Apple Developer certificate) — `entitlements.mac.plist` exists at the hub root for future use if signing is added.
