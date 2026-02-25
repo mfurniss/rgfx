@@ -37,6 +37,7 @@
     "docs:setup": "cd public-docs && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
     "docs:build": "./public-docs/build.sh",
     "docs:serve": "cd public-docs && .venv/bin/mkdocs serve",
+    "prepare-release": "node scripts/prepare-release.js",
     "release": "node scripts/release.js"
   },
   "engines": {

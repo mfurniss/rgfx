@@ -7,15 +7,17 @@
  *   npm run release               # Resume — auto-detect tag from current HEAD
  *
  * What it does:
- *   1. Builds docs, runs quality checks (before pushing)
- *   2. Creates git tag and pushes to origin
- *   3. Waits for CI pipeline to finish and create the GitLab release
- *   4. Injects version into Hub package.json, builds installer (DMG/EXE)
- *   5. Copies installer to rgfx-hub/out/release/<platform>/
- *   6. Uploads to the GitLab release via Package Registry
- *   7. Creates matching GitHub release and uploads installer
+ *   1. Verifies package.json version matches the release tag
+ *   2. Builds docs, runs quality checks (before pushing)
+ *   3. Creates git tag and pushes to origin
+ *   4. Waits for CI pipeline to finish and create the GitLab release
+ *   5. Builds installer (DMG/EXE)
+ *   6. Copies installer to rgfx-hub/out/release/<platform>/
+ *   7. Uploads to the GitLab release via Package Registry
+ *   8. Creates matching GitHub release and uploads installer
  *
  * Prerequisites:
+ *   - Run prepare-release first: npm run prepare-release -- v0.5.0
  *   - glab CLI authenticated (glab auth status)
  *   - gh CLI authenticated (gh auth login)
  *   - Working tree must be clean
@@ -229,9 +231,9 @@ async function waitForCI(tagName) {
 
   // --- Pre-flight checks ---
 
-  // Must be on main branch (or detached HEAD on a tag for resume)
+  // Must be on main branch
   const branch = runCapture('git rev-parse --abbrev-ref HEAD');
-  if (branch !== 'main' && branch !== 'HEAD') {
+  if (branch !== 'main') {
     fail(`Must be on main branch to release. Currently on '${branch}'.\nRun: git checkout main`);
   }
 
@@ -253,6 +255,16 @@ async function waitForCI(tagName) {
     runCapture('gh auth status');
   } catch {
     fail('gh CLI not authenticated. Run: gh auth login');
+  }
+
+  // Verify package.json version matches the release
+  const pkgPath = path.join(HUB_DIR, 'package.json');
+  const pkgVersion = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version;
+  if (pkgVersion !== version) {
+    fail(
+      `rgfx-hub/package.json version is '${pkgVersion}' but releasing '${version}'.\n` +
+      `Run first: npm run prepare-release -- ${tag}`
+    );
   }
 
   console.log('Pre-flight checks passed.\n');
@@ -285,16 +297,6 @@ async function waitForCI(tagName) {
     run(`git push origin ${tag}`);
   }
 
-  // Checkout the tag so HEAD is at the exact release commit
-  const currentTag = (() => {
-    try { return runCapture('git describe --exact-match --tags HEAD'); }
-    catch { return null; }
-  })();
-  if (currentTag !== tag) {
-    console.log(`Checking out ${tag}...`);
-    run(`git checkout ${tag}`);
-  }
-
   // --- Step 5: Wait for CI and release creation ---
   if (releaseExists(tag)) {
     console.log(`GitLab release ${tag} already exists.`);
@@ -317,11 +319,7 @@ async function waitForCI(tagName) {
     }
   }
 
-  // --- Step 6: Inject version and build installer ---
-  // Version injection must happen AFTER tag checkout so git checkout doesn't revert it
-  console.log('\nInjecting version...');
-  run('node scripts/inject-version-hub.js');
-
+  // --- Step 6: Build installer ---
   // Clean previous build so Electron Forge doesn't reuse stale output
   const outDir = path.join(HUB_DIR, 'out');
   fs.rmSync(outDir, { recursive: true, force: true });
