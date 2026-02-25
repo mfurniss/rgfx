@@ -7,7 +7,7 @@
       
       
       
-        <link rel="canonical" href="https://rgfx.io/transformers/gif-bitmaps.html">
+        <link rel="canonical" href="https://rgfx.io/transformers/bitmaps.html">
       
       
         <link rel="prev" href="utils.html">
@@ -24,7 +24,7 @@
     
     
       
-        <title>GIF Bitmaps - RGFX Documentation</title>
+        <title>Bitmaps - RGFX Documentation</title>
       
     
     
@@ -87,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#gif-bitmaps" class="md-skip">
+        <a href="#bitmaps" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              GIF Bitmaps
+              Bitmaps
             
           </span>
         </div>
@@ -1449,7 +1449,7 @@
   <span class="md-ellipsis">
     
   
-    GIF Bitmaps
+    Bitmaps
   
 
     
@@ -1460,14 +1460,14 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="gif-bitmaps.html" class="md-nav__link md-nav__link--active">
+      <a href="bitmaps.html" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    GIF Bitmaps
+    Bitmaps
   
 
     
@@ -1493,10 +1493,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#inline-bitmaps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Usage
+        Inline Bitmaps
       
     </span>
   </a>
@@ -1504,6 +1504,18 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#loading-gif-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loading GIF Files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loading GIF Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1513,8 +1525,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#return-value" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1524,8 +1536,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#using-with-bitmap-effect" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1535,19 +1547,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#caching-loaded-sprites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caching Loaded Sprites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#animation-support" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1557,8 +1558,19 @@
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-loaded-sprites" class="md-nav__link">
+    <span class="md-ellipsis">
       
-        <li class="md-nav__item">
+        Caching Loaded Sprites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#file-location" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1568,8 +1580,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#color-palette-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1579,8 +1591,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#error-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1588,6 +1600,39 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#movement-and-easing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Movement and Easing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Movement and Easing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#easing-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available easing functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1689,10 +1734,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#inline-bitmaps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Usage
+        Inline Bitmaps
       
     </span>
   </a>
@@ -1700,6 +1745,18 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#loading-gif-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loading GIF Files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loading GIF Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1709,8 +1766,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#return-value" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1720,8 +1777,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#using-with-bitmap-effect" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1731,19 +1788,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#caching-loaded-sprites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caching Loaded Sprites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#animation-support" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1753,8 +1799,19 @@
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-loaded-sprites" class="md-nav__link">
+    <span class="md-ellipsis">
       
-        <li class="md-nav__item">
+        Caching Loaded Sprites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#file-location" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1764,8 +1821,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#color-palette-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1775,8 +1832,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#error-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1784,6 +1841,39 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#movement-and-easing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Movement and Easing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Movement and Easing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#easing-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available easing functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1804,19 +1894,73 @@
 
 
 
-<h1 id="gif-bitmaps">GIF Bitmaps<a class="headerlink" href="#gif-bitmaps" title="Permanent link">¶</a></h1>
-<p>The <code>loadGif</code> function loads animated GIF files and converts them to the bitmap effect format used by RGFX drivers.</p>
+<h1 id="bitmaps">Bitmaps<a class="headerlink" href="#bitmaps" title="Permanent link">¶</a></h1>
+<p>The bitmap effect displays sprite images on LED matrices. Bitmaps can be defined inline as string arrays or loaded from GIF files.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/rgfx-bitmap-bub.jpg" data-title="Bitmap sprite displayed on an LED matrix" data-desc-position="bottom"><img alt="Bitmap sprite displayed on an LED matrix" src="../assets/images/rgfx-bitmap-bub.jpg"></a></p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/cherry.gif'</span><span class="p">);</span>
+<h2 id="inline-bitmaps">Inline Bitmaps<a class="headerlink" href="#inline-bitmaps" title="Permanent link">¶</a></h2>
+<p>Bitmaps can be defined directly as string arrays. Each character is a hex palette index (<code>0</code>–<code>F</code>), and <code>.</code> represents a transparent pixel:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'bitmap'</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nx">reset</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nx">centerX</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nx">centerY</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">1500</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nx">fadeIn</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nx">fadeOut</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nx">images</span><span class="o">:</span><span class="w"> </span><span class="p">[[</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="s1">'.......A........'</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="s1">'......AAA.......'</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="s1">'....BBBBBAAAA...'</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="s1">'...BBBBBBBAA....'</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="s1">'..B7B77BBBB.....'</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="s1">'..70B077BBBAAA..'</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="s1">'..70B077BBBBA...'</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="s1">'.B70B077AABB....'</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">      </span><span class="s1">'.A70B077AAABAA..'</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="s1">'.BB7B77BA0BBA...'</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="s1">'..0070000BEB....'</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="s1">'..BBBBBBBEEEB...'</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="s1">'...7777BEEEEB...'</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="s1">'..777777BEEBBA..'</span><span class="p">,</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="s1">'EEE777EEBBBBBBA.'</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">      </span><span class="s1">'.EE77EEEEEBBBBBB'</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p">]],</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="p">});</span>
+</code></pre></div>
+<p>This is useful for small, hand-crafted sprites or when you want to embed bitmap data directly in a transformer without managing separate GIF files.</p>
+<p>When no <code>palette</code> is provided, the bitmap effect uses the <strong>PICO-8 palette</strong> as the default. The hex characters in your image data map directly to these 16 colors:</p>
+<div class="pico8-palette">
+  <span style="background:#000000;color:#fff">0 Black</span>
+  <span style="background:#1D2B53;color:#fff">1 Dark Blue</span>
+  <span style="background:#7E2553;color:#fff">2 Purple</span>
+  <span style="background:#008751;color:#fff">3 Dark Green</span>
+  <span style="background:#AB5236;color:#fff">4 Brown</span>
+  <span style="background:#5F574F;color:#fff">5 Dark Gray</span>
+  <span style="background:#C2C3C7;color:#000">6 Light Gray</span>
+  <span style="background:#FFF1E8;color:#000">7 White</span>
+  <span style="background:#FF004D;color:#fff">8 Red</span>
+  <span style="background:#FFA300;color:#000">9 Orange</span>
+  <span style="background:#FFEC27;color:#000">A Yellow</span>
+  <span style="background:#00E436;color:#000">B Green</span>
+  <span style="background:#29ADFF;color:#000">C Blue</span>
+  <span style="background:#83769C;color:#fff">D Lavender</span>
+  <span style="background:#FF77A8;color:#000">E Pink</span>
+  <span style="background:#FFCCAA;color:#000">F Peach</span>
+</div>
+
+<h2 id="loading-gif-files">Loading GIF Files<a class="headerlink" href="#loading-gif-files" title="Permanent link">¶</a></h2>
+<p>The <code>loadGif</code> function loads animated GIF files and converts them to the bitmap effect format.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/cherry.gif'</span><span class="p">);</span>
 </code></pre></div>
 <p>The function is available on the transformer context object:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">loadGif</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/my-sprite.gif'</span><span class="p">);</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="c1">// ...</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">loadGif</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/my-sprite.gif'</span><span class="p">);</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="c1">// ...</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">¶</a></h2>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">¶</a></h3>
 <table>
 <thead>
 <tr>
@@ -1833,7 +1977,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">¶</a></h2>
+<h3 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">¶</a></h3>
 <p>Returns a <code>GifBitmapResult</code> object:</p>
 <table>
 <thead>
@@ -1876,53 +2020,22 @@
 </tr>
 </tbody>
 </table>
-<h2 id="using-with-bitmap-effect">Using with Bitmap Effect<a class="headerlink" href="#using-with-bitmap-effect" title="Permanent link">¶</a></h2>
+<h3 id="using-with-bitmap-effect">Using with Bitmap Effect<a class="headerlink" href="#using-with-bitmap-effect" title="Permanent link">¶</a></h3>
 <p>The result from <code>loadGif</code> provides everything needed for the <code>bitmap</code> effect:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/cherry.gif'</span><span class="p">);</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'bitmap'</span><span class="p">,</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nx">images</span><span class="o">:</span><span class="w"> </span><span class="nx">sprite</span><span class="p">.</span><span class="nx">images</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nx">palette</span><span class="o">:</span><span class="w"> </span><span class="nx">sprite</span><span class="p">.</span><span class="nx">palette</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nx">centerX</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nx">centerY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">2000</span><span class="p">,</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/cherry.gif'</span><span class="p">);</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'bitmap'</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nx">images</span><span class="o">:</span><span class="w"> </span><span class="nx">sprite</span><span class="p">.</span><span class="nx">images</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nx">palette</span><span class="o">:</span><span class="w"> </span><span class="nx">sprite</span><span class="p">.</span><span class="nx">palette</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="nx">centerX</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="nx">centerY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">2000</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">});</span>
 </code></pre></div>
-<h2 id="caching-loaded-sprites">Caching Loaded Sprites<a class="headerlink" href="#caching-loaded-sprites" title="Permanent link">¶</a></h2>
-<p>GIF files should be loaded once and cached for reuse. Loading the same file repeatedly impacts performance:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">BONUS_ITEMS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">cherry</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="mf">100</span><span class="p">,</span><span class="w"> </span><span class="nx">file</span><span class="o">:</span><span class="w"> </span><span class="s1">'pac-bonus-1-cherry.gif'</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">strawberry</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="p">,</span><span class="w"> </span><span class="nx">file</span><span class="o">:</span><span class="w"> </span><span class="s1">'pac-bonus-2-strawberry.gif'</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">};</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">loadGif</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'player'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'eat'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">bonusItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BONUS_ITEMS</span><span class="p">[</span><span class="nx">payload</span><span class="p">];</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">bonusItem</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">      </span><span class="c1">// Load sprite only once, then cache it</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="sb">`bitmaps/</span><span class="si">${</span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">file</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">      </span><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">        </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'bitmap'</span><span class="p">,</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">        </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">          </span><span class="nx">images</span><span class="o">:</span><span class="w"> </span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="p">.</span><span class="nx">images</span><span class="p">,</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">          </span><span class="nx">palette</span><span class="o">:</span><span class="w"> </span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="p">.</span><span class="nx">palette</span><span class="p">,</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">          </span><span class="nx">centerX</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">          </span><span class="nx">centerY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">          </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">1000</span><span class="p">,</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">      </span><span class="p">});</span>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="p">}</span>
-</code></pre></div>
-<h2 id="animation-support">Animation Support<a class="headerlink" href="#animation-support" title="Permanent link">¶</a></h2>
+<h3 id="animation-support">Animation Support<a class="headerlink" href="#animation-support" title="Permanent link">¶</a></h3>
 <p>For animated GIFs, the <code>frameRate</code> property indicates the playback speed:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">animatedSprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/explosion.gif'</span><span class="p">);</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
@@ -1949,37 +2062,196 @@
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="p">},</span>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">});</span>
 </code></pre></div>
-<h2 id="file-location">File Location<a class="headerlink" href="#file-location" title="Permanent link">¶</a></h2>
-<p>Place GIF files in subdirectories under <code>transformers/</code> in your config directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>transformers/
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>├── bitmaps/
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>│   ├── cherry.gif
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>│   ├── explosion.gif
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>│   └── powerup.gif
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>└── games/
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    └── pacman.js
+<h3 id="caching-loaded-sprites">Caching Loaded Sprites<a class="headerlink" href="#caching-loaded-sprites" title="Permanent link">¶</a></h3>
+<p>GIF files should be loaded once and cached for reuse. Loading the same file repeatedly impacts performance:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">BONUS_ITEMS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">cherry</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="mf">100</span><span class="p">,</span><span class="w"> </span><span class="nx">file</span><span class="o">:</span><span class="w"> </span><span class="s1">'pac-bonus-1-cherry.gif'</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">strawberry</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="mf">300</span><span class="p">,</span><span class="w"> </span><span class="nx">file</span><span class="o">:</span><span class="w"> </span><span class="s1">'pac-bonus-2-strawberry.gif'</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">};</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">loadGif</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'player'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'eat'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">bonusItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BONUS_ITEMS</span><span class="p">[</span><span class="nx">payload</span><span class="p">];</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">bonusItem</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="c1">// Load sprite only once, then cache it</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="sb">`bitmaps/</span><span class="si">${</span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">file</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">      </span><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">        </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'bitmap'</span><span class="p">,</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">        </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">          </span><span class="nx">images</span><span class="o">:</span><span class="w"> </span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="p">.</span><span class="nx">images</span><span class="p">,</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">          </span><span class="nx">palette</span><span class="o">:</span><span class="w"> </span><span class="nx">bonusItem</span><span class="p">.</span><span class="nx">sprite</span><span class="p">.</span><span class="nx">palette</span><span class="p">,</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">          </span><span class="nx">centerX</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">          </span><span class="nx">centerY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">          </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">1000</span><span class="p">,</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">      </span><span class="p">});</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="color-palette-limitations">Color Palette Limitations<a class="headerlink" href="#color-palette-limitations" title="Permanent link">¶</a></h2>
+<h3 id="file-location">File Location<a class="headerlink" href="#file-location" title="Permanent link">¶</a></h3>
+<p>Place GIF files in subdirectories under <code>transformers/</code> in your config directory:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>transformers/
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── bitmaps/
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>│   ├── cherry.gif
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│   ├── explosion.gif
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>│   └── powerup.gif
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>└── games/
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    └── pacman.js
+</code></pre></div>
+<h3 id="color-palette-limitations">Color Palette Limitations<a class="headerlink" href="#color-palette-limitations" title="Permanent link">¶</a></h3>
 <ul>
 <li>GIFs are converted to a 16-color palette</li>
 <li>Colors beyond the first 16 in the GIF's color table are mapped using modulo</li>
 <li>Transparent pixels are preserved (rendered as spaces in the bitmap data)</li>
 </ul>
-<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h2>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
 <p>Handle loading errors gracefully to prevent transformer failures:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/bonus.gif'</span><span class="p">);</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="c1">// Use sprite...</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nx">context</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">'Failed to load sprite:'</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">);</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="c1">// Fallback behavior or skip the effect</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">sprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadGif</span><span class="p">(</span><span class="s1">'bitmaps/bonus.gif'</span><span class="p">);</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="c1">// Use sprite...</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nx">context</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">'Failed to load sprite:'</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">);</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="c1">// Fallback behavior or skip the effect</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">}</span>
 </code></pre></div>
-<p>Common errors:
-- File not found at the specified path
-- Invalid or corrupted GIF file
-- GIF contains no frames
-- GIF has no color table</p>
+<p>Common errors:</p>
+<ul>
+<li>File not found at the specified path</li>
+<li>Invalid or corrupted GIF file</li>
+<li>GIF contains no frames</li>
+<li>GIF has no color table</li>
+</ul>
+<h2 id="movement-and-easing">Movement and Easing<a class="headerlink" href="#movement-and-easing" title="Permanent link">¶</a></h2>
+<p>Bitmaps can animate from a start position to an end position over the <code>duration</code>. Set <code>endX</code> and/or <code>endY</code> to define the destination:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'bitmap'</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nx">images</span><span class="o">:</span><span class="w"> </span><span class="nx">sprite</span><span class="p">.</span><span class="nx">images</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nx">palette</span><span class="o">:</span><span class="w"> </span><span class="nx">sprite</span><span class="p">.</span><span class="nx">palette</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nx">centerX</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nx">centerY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nx">endX</span><span class="o">:</span><span class="w"> </span><span class="mf">100</span><span class="p">,</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nx">endY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">2000</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nx">easing</span><span class="o">:</span><span class="w"> </span><span class="s1">'cubicInOut'</span><span class="p">,</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="p">});</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>endX</code></td>
+<td><code>number</code> | <code>'random'</code></td>
+<td>—</td>
+<td>End X position (0–100 or <code>'random'</code>). If omitted, the bitmap stays at <code>centerX</code>.</td>
+</tr>
+<tr>
+<td><code>endY</code></td>
+<td><code>number</code> | <code>'random'</code></td>
+<td>—</td>
+<td>End Y position (0–100 or <code>'random'</code>). If omitted, the bitmap stays at <code>centerY</code>.</td>
+</tr>
+<tr>
+<td><code>easing</code></td>
+<td><code>string</code></td>
+<td><code>'quadraticInOut'</code></td>
+<td>Easing curve for the movement. Only applies when <code>endX</code> or <code>endY</code> is set.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="easing-functions">Available easing functions<a class="headerlink" href="#easing-functions" title="Permanent link">¶</a></h3>
+<p>See <a href="https://easings.net/">easings.net</a> for visual examples of each curve.</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>In</th>
+<th>Out</th>
+<th>In-Out</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linear</td>
+<td><code>linear</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Quadratic</td>
+<td><code>quadraticIn</code></td>
+<td><code>quadraticOut</code></td>
+<td><code>quadraticInOut</code></td>
+</tr>
+<tr>
+<td>Cubic</td>
+<td><code>cubicIn</code></td>
+<td><code>cubicOut</code></td>
+<td><code>cubicInOut</code></td>
+</tr>
+<tr>
+<td>Quartic</td>
+<td><code>quarticIn</code></td>
+<td><code>quarticOut</code></td>
+<td><code>quarticInOut</code></td>
+</tr>
+<tr>
+<td>Quintic</td>
+<td><code>quinticIn</code></td>
+<td><code>quinticOut</code></td>
+<td><code>quinticInOut</code></td>
+</tr>
+<tr>
+<td>Sine</td>
+<td><code>sineIn</code></td>
+<td><code>sineOut</code></td>
+<td><code>sineInOut</code></td>
+</tr>
+<tr>
+<td>Circular</td>
+<td><code>circularIn</code></td>
+<td><code>circularOut</code></td>
+<td><code>circularInOut</code></td>
+</tr>
+<tr>
+<td>Exponential</td>
+<td><code>exponentialIn</code></td>
+<td><code>exponentialOut</code></td>
+<td><code>exponentialInOut</code></td>
+</tr>
+<tr>
+<td>Elastic</td>
+<td><code>elasticIn</code></td>
+<td><code>elasticOut</code></td>
+<td><code>elasticInOut</code></td>
+</tr>
+<tr>
+<td>Back</td>
+<td><code>backIn</code></td>
+<td><code>backOut</code></td>
+<td><code>backInOut</code></td>
+</tr>
+<tr>
+<td>Bounce</td>
+<td><code>bounceIn</code></td>
+<td><code>bounceOut</code></td>
+<td><code>bounceInOut</code></td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -2000,7 +2272,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 23, 2026 03:00:52 UTC">February 23, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 25, 2026 20:05:13 UTC">February 25, 2026</span>
   </span>
 
     
