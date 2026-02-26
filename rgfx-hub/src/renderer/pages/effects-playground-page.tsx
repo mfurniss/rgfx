@@ -119,22 +119,20 @@ export default function TestEffectsPage() {
   const propsJsonRef = useRef(propsJson);
   propsJsonRef.current = propsJson;
 
-  // Remove disconnected drivers from selection (but don't auto-select new ones).
+  // Auto-select reconnected drivers and remove disconnected ones from selection.
   // Reads current values from refs so the effect only fires on actual connection changes.
   useEffect(() => {
     const connectedIds = new Set(connectedDriverIds);
     const currentSelection = selectedDriversRef.current;
-    const stillConnected = new Set(
-      Array.from(currentSelection).filter((id) => connectedIds.has(id)),
-    );
 
-    if (stillConnected.size !== currentSelection.size) {
-      setSelectedDrivers(stillConnected);
-      setTestEffectsState(
-        selectedEffectRef.current,
-        propsJsonRef.current,
-        stillConnected,
-      );
+    const updated = new Set(connectedIds);
+
+    const changed = updated.size !== currentSelection.size
+      || !Array.from(updated).every((id) => currentSelection.has(id));
+
+    if (changed) {
+      setSelectedDrivers(updated);
+      setTestEffectsState(selectedEffectRef.current, propsJsonRef.current, updated);
     }
   }, [connectedDriverIds, setTestEffectsState]);
 
