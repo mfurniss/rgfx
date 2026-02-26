@@ -580,6 +580,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Shows validation errors from form state
 - Uses `field-utils.ts` for label formatting and tooltips
 
+### CenterField
+
+**File:** [effect-form/fields/center-field.tsx](effect-form/fields/center-field.tsx)
+
+**Purpose:** Input field for center/position coordinates that accept a number (0-100) or the string 'random'.
+
+**Features:**
+- Validates input against `z.union([z.literal('random'), z.number()])`
+- Emits `undefined` when cleared (not empty string) so optional schema fields validate correctly
+- Used for bitmap centerX/centerY/endX/endY and explode centerX/centerY
+
+---
+
 ### ColorPicker
 
 **File:** [effect-form/fields/color-picker.tsx](effect-form/fields/color-picker.tsx)

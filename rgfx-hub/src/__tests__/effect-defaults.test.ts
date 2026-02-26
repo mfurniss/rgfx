@@ -211,7 +211,6 @@ describe('effect defaults', () => {
   });
 
   describe('completeness — schema props covered in defaults', () => {
-    // Properties intentionally optional with no default in JSON
     const excludedProps: Record<string, string[]> = {
       bitmap: ['endX', 'endY'],
     };

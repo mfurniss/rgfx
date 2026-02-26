@@ -84,7 +84,7 @@ describe('bitmapSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept endX override while endY stays undefined', () => {
+    it('should accept endX override while endY stays at default', () => {
       const result = bitmapSchema.safeParse({ endX: 50 });
       expect(result.success).toBe(true);
 
@@ -94,7 +94,7 @@ describe('bitmapSchema', () => {
       }
     });
 
-    it('should accept endY override while endX stays undefined', () => {
+    it('should accept endY override while endX stays at default', () => {
       const result = bitmapSchema.safeParse({ endY: 50 });
       expect(result.success).toBe(true);
 

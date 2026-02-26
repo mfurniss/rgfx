@@ -67,7 +67,8 @@ Single source of truth for all effect property defaults. Consumed by Zod schemas
 - `safeValidateEffectProps()` - Validates props for a given effect type
 - Per-effect `randomize()` functions exported for Effects Playground
 - `effectCodeGenerators` - Map of effect names to custom `CodeGenerator` functions (bypass generic broadcast template)
-- `effectCodePropsTransforms` - Map of effect names to `CodePropsTransform` functions (strip irrelevant props before code gen)
+- `effectCodePropsTransforms` - Map of effect names to `CodePropsTransform` functions (strip no-op default props before code gen)
+- `effectFormDefaults` - Map of effect names to form-only default overrides (merged on top of schema defaults in the playground UI, not sent on the wire)
 
 ### effects/preset-config.ts
 Schema for effect preset configurations, used by preset selector modal.
@@ -79,23 +80,24 @@ Reusable property schemas shared across effects (kebab-case filenames):
 - `color.ts` - RGB color validation with empty string handling
 - `center-x.ts` / `center-y.ts` - Center point for radial effects
 - `easing.ts` - Animation easing function names
+- `clean-props.ts` - `removeDefaultNoOps()` and `createNoOpCleaner()` utilities for stripping no-op default props from generated code
 
 Note: `color-gradient.ts` was removed - gradient colors are now in effect schemas directly.
 
 ### Effect Schemas
 Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `background.ts` - Gradient-only background (color field removed, uses gradient array)
-- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix. Exports `cleanCodeProps` (strips easing when no movement) and `generateCode` (GIF-specific code gen) for the Effects Playground code preview.
-- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize
+- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix. Exports `cleanCodeProps` (strips reset:false, endX/endY:'random', easing when no movement), `generateCode` (GIF-specific code gen), `formDefaults` (endX/endY default to 'random' in playground form only), and `layoutConfig` (custom row-based layout).
+- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize. Exports `cleanCodeProps` (strips reset:false, gravity:0, hueSpread:0).
 - `particle-field.ts` - Particle field effect with configurable behavior
 - `plasma.ts` - Perlin noise plasma with gradient colors
-- `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog
-- `pulse.ts` - Full-screen color pulse with fade and collapse options
-- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered). Exports `scrollTextBaseSchema` for `.omit()` operations (Zod 4 doesn't allow `.omit()` on refined schemas)
-- `text.ts` - Static text rendering with gradient and optional accent color (defaults to null/no accent). `reset` defaults to `false` (preserve existing text). `gradientScale` supports negative values (-20 to 20) to reverse gradient direction.
+- `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog. Exports `cleanCodeProps` (strips reset:false, particleDensity:0).
+- `pulse.ts` - Full-screen color pulse with fade and collapse options. Exports `cleanCodeProps` (strips reset:false).
+- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered). Exports `scrollTextBaseSchema` for `.omit()` operations (Zod 4 doesn't allow `.omit()` on refined schemas). Exports `cleanCodeProps` (strips reset:true, accentColor:null, repeat:false, snapToLed:true).
+- `text.ts` - Static text rendering with gradient and optional accent color (defaults to null/no accent). `reset` defaults to `false` (preserve existing text). `gradientScale` supports negative values (-20 to 20) to reverse gradient direction. Exports `cleanCodeProps` (strips reset:false, accentColor:null).
 - `warp.ts` - Center-radiating animated gradient with linear perspective scale. Uses `enabled` enum with fade support.
-- `wipe.ts` - Color wipe sweeping across the display with random blend mode option
-- `sparkle.ts` - Sparkling particles cycling through a gradient with bloom support
+- `wipe.ts` - Color wipe sweeping across the display with random blend mode option. Exports `cleanCodeProps` (strips reset:false).
+- `sparkle.ts` - Sparkling particles cycling through a gradient with bloom support. Exports `cleanCodeProps` (strips reset:false).
 
 ### Per-Effect Randomize Functions
 Each effect schema exports a `randomize()` function that generates randomized props:
