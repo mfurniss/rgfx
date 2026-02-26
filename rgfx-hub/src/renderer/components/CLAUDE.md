@@ -76,6 +76,20 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### SystemErrors
+
+**File:** [system/system-errors.tsx](system/system-errors.tsx)
+
+**Purpose:** Sortable table displaying system errors on the System Status page.
+
+**Features:**
+- Columns: Time, Error Type, Message
+- Renders optional `filePath` and `details` fields below the message when present
+- Details rendered as `<pre>` for stack trace readability
+- Shows success alert when no errors
+
+---
+
 ### SystemStatus
 
 **File:** [system-status.tsx](system-status.tsx)

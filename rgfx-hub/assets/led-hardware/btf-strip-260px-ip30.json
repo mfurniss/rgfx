@@ -1,0 +1,9 @@
+{
+  "description": "WS2812B LED strip, 60 pixels/m, non-waterproof (IP30)",
+  "sku": null,
+  "asin": null,
+  "layout": "strip",
+  "count": 260,
+  "chipset": "WS2812B",
+  "colorOrder": "GRB"
+}

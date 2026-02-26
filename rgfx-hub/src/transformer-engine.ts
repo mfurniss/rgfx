@@ -450,9 +450,17 @@ export class TransformerEngine {
     } catch (error) {
       // Log error for debugging but don't crash
       // Game will fall through to generic handlers
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.context.log.warn(
-        `Could not load game transformer for ${gameName}: ${error instanceof Error ? error.message : String(error)}`,
+        `Could not load game transformer for ${gameName}: ${errorMessage}`,
       );
+      eventBus.emit('system:error', {
+        errorType: 'transformer',
+        message: `Could not load game transformer: ${errorMessage}`,
+        timestamp: Date.now(),
+        filePath: join(getTransformersDir(), 'games', `${gameName}.js`),
+        details: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 

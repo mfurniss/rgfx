@@ -32,6 +32,14 @@ vi.mock('../transformer-installer', () => ({
   getTransformersDir: vi.fn(() => '/mock/transformers'),
 }));
 
+// Mock event bus
+const mockEventBusEmit = vi.fn();
+vi.mock('../services/event-bus', () => ({
+  eventBus: {
+    emit: (...args: unknown[]) => mockEventBusEmit(...args),
+  },
+}));
+
 describe('TransformerEngine', () => {
   let mockContext: TransformerContext;
   let engine: TransformerEngine;
@@ -75,6 +83,7 @@ describe('TransformerEngine', () => {
     };
 
     engine = new TransformerEngine(mockContext);
+    mockEventBusEmit.mockClear();
   });
 
   describe('payload handling', () => {
@@ -545,6 +554,10 @@ describe('TransformerEngine', () => {
       expect(mockContext.log.warn).toHaveBeenCalledWith(
         expect.stringContaining('Could not load game transformer for nonexistent'),
       );
+      expect(mockEventBusEmit).toHaveBeenCalledWith('system:error', expect.objectContaining({
+        errorType: 'transformer',
+        filePath: '/mock/transformers/games/nonexistent.js',
+      }));
       expect(defaultHandler).toHaveBeenCalled();
     });
   });
@@ -1038,6 +1051,11 @@ describe('TransformerEngine', () => {
       expect(mockContext.log.warn).toHaveBeenCalledWith(
         expect.stringContaining('Could not load game transformer for nonexistent'),
       );
+      expect(mockEventBusEmit).toHaveBeenCalledWith('system:error', expect.objectContaining({
+        errorType: 'transformer',
+        message: expect.stringContaining('File not found'),
+        filePath: '/mock/transformers/games/nonexistent.js',
+      }));
       expect((testEngine as any).gameHandlers.has('nonexistent')).toBe(false);
     });
 
