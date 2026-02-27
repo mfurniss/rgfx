@@ -149,6 +149,19 @@ local function pixels_to_image(pixels, width, height, color_map, transparent_pix
 		while #rows > 0 and rows[1] == "" do
 			table.remove(rows, 1)
 		end
+		-- Strip common leading spaces
+		local min_lead = math.huge
+		for _, row in ipairs(rows) do
+			local lead = row:find("%S")
+			if lead and lead - 1 < min_lead then
+				min_lead = lead - 1
+			end
+		end
+		if min_lead > 0 and min_lead < math.huge then
+			for i, row in ipairs(rows) do
+				rows[i] = row:sub(min_lead + 1)
+			end
+		end
 	end
 
 	return rows

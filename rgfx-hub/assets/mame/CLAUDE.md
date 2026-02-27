@@ -148,6 +148,17 @@ Extracts sprite graphics from MAME ROM regions and writes them as JSON files. Ca
 
 NES sprites larger than 8x8 are composed from multiple tiles. Specify `tiles` (array of tile indices in row-major order) and `grid` (`{cols, rows}`). Tile index `0xFC` is treated as blank. Example: a 16x16 sprite uses `grid = {2, 2}` with 4 tile indices.
 
-### Multi-Frame Alignment
+### Image Trimming
 
-Multi-frame sprites use `align_frames()` to ensure all frames share identical dimensions. Each frame is rendered at full tile size (no trimming), then all frames are cropped to a unified bounding box computed across all frames. This prevents animation jitter from differently-sized frames.
+Single-frame sprites are automatically trimmed: empty top/bottom rows removed, trailing spaces removed, and common leading whitespace stripped. Multi-frame sprites skip per-frame trimming and instead use `align_frames()` to crop all frames to a unified bounding box, preventing animation jitter from differently-sized frames.
+
+### JSON Output Format
+
+Output matches the `GifBitmapResult` TypeScript interface used by `loadSprite()`:
+
+```json
+{ "images": [["row1", "row2"]], "palette": ["#FF0000"], "width": 16, "height": 16, "frameCount": 1 }
+```
+
+- `palette` is only included when using ROM color PROMs (not when using `color_map`)
+- Sprites using `color_map` rely on the default PICO-8 palette in the hub
