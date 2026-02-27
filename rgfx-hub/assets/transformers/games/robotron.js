@@ -12,6 +12,52 @@ export async function transform(
     return false;
   }
 
+  if (subject === 'entity' && property === 'tank') {
+    if (qualifier === 'spawn') {
+      const props = {
+        speed: 5,
+        scale: 1.7,
+        gradient: [
+          '#000000',
+          '#FF0000',
+          '#000000',
+          '#000000',
+          '#A0A0A0',
+          '#000000',
+          '#000000',
+          '#FF0000',
+          '#000000',
+        ],
+      };
+      broadcast({ effect: 'plasma', props: { ...props, enabled: 'on' } });
+      broadcast({ effect: 'plasma', props: { ...props, enabled: 'fadeOut' } });
+    }
+    if (qualifier === 'destroy') {
+      const event = {
+        effect: 'explode',
+        props: {
+          color: '#FF0000',
+          reset: false,
+          centerX: randomInt(100),
+          centerY: randomInt(100),
+          friction: 1,
+          // gravity: 0,
+          // hueSpread: 0,
+          lifespan: 700,
+          lifespanSpread: 50,
+          particleCount: 100,
+          particleSize: 6,
+          power: 150,
+          powerSpread: 80,
+        },
+      };
+      broadcast(event);
+      event.props.color = '#FFFFFF';
+      event.props.particleCount = 50;
+      broadcast(event);
+    }
+  }
+
   if (subject === 'sfx') {
     if (property === 'game-start') {
       const props = {
@@ -178,25 +224,25 @@ export async function transform(
       return true;
     }
 
-    if (property === 'tank-appear') {
-      const props = {
-        speed: 5,
-        scale: 1.7,
-        gradient: [
-          '#000000',
-          '#FF0000',
-          '#000000',
-          '#000000',
-          '#A0A0A0',
-          '#000000',
-          '#000000',
-          '#FF0000',
-          '#000000',
-        ],
-      };
-      broadcast({ effect: 'plasma', props: { ...props, enabled: 'on' } });
-      broadcast({ effect: 'plasma', props: { ...props, enabled: 'fadeOut' } });
-    }
+    // if (property === 'tank-appear') {
+    //   const props = {
+    //     speed: 5,
+    //     scale: 1.7,
+    //     gradient: [
+    //       '#000000',
+    //       '#FF0000',
+    //       '#000000',
+    //       '#000000',
+    //       '#A0A0A0',
+    //       '#000000',
+    //       '#000000',
+    //       '#FF0000',
+    //       '#000000',
+    //     ],
+    //   };
+    //   broadcast({ effect: 'plasma', props: { ...props, enabled: 'on' } });
+    //   broadcast({ effect: 'plasma', props: { ...props, enabled: 'fadeOut' } });
+    // }
 
     if (property === 'human-programming') {
       let h = randomInt(359);

@@ -15,6 +15,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
 | `rgfx.lua` | Bootstrap entry point — sets up paths, detects ROM/cartridge, loads interceptor |
 | `event.lua` | Event logging — writes to `~/.rgfx/interceptor-events.log`, defines `_G.event()` and `_G.boot_delay()` |
 | `ram.lua` | RAM monitoring — watches memory addresses and fires callbacks on value changes |
+| `sprite-extract.lua` | Extracts sprite graphics from ROM regions and writes JSON files matching GifBitmapResult format |
 
 ---
 
@@ -105,3 +106,35 @@ handle.remove()   -- Permanently remove
 | `callback_changed` | No | `function(current, previous)` — simpler form for single addresses |
 
 Monitors run on `emu.register_frame_done` — values are checked every frame.
+
+---
+
+## Sprite Extraction (sprite-extract.lua)
+
+Extracts sprite graphics from MAME ROM regions and writes them as JSON files. Called by game interceptors with a manifest table describing which sprites to extract and how to decode them.
+
+### Manifest Fields
+
+| Field | Description |
+|-------|-------------|
+| `gfx_region` | MAME memory region tag (e.g., `":gfx1"`) |
+| `sprite_offset` | Byte offset where sprites start |
+| `tile_format` | `{ format, width, height, bytes_per_sprite }` |
+| `color_prom` | `{ region, offset, count, format }` |
+| `palette_prom` | `{ region, offset, colors_per_entry }` |
+| `rotation` | Screen rotation in degrees (0, 90, 180, 270) |
+| `output_dir` | Output directory for JSON files |
+
+### Per-Sprite Options
+
+| Option | Description |
+|--------|-------------|
+| `index` | ROM sprite index (single-frame) |
+| `palette` | Palette PROM index (ROM-derived palette) |
+| `frames` | Array of `{ index, color_map, transparent_pixels }` for multi-frame sprites |
+| `color_map` | Remap ROM pixel values to output palette indices (e.g., `{ [3] = 0xA }`) |
+| `transparent_pixels` | Pixel values to treat as transparent (e.g., `{ 3 }` masks ghost body) |
+
+### Multi-Frame Alignment
+
+Multi-frame sprites use `align_frames()` to ensure all frames share identical dimensions. Each frame is rendered at full tile size (no trimming), then all frames are cropped to a unified bounding box computed across all frames. This prevents animation jitter from differently-sized frames.

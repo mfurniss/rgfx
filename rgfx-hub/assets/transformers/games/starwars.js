@@ -116,7 +116,11 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.leftStrip],
+        drivers: [
+          NAMED_DRIVERS.leftMatrix,
+          NAMED_DRIVERS.leftStrip,
+          NAMED_DRIVERS.rightStrip,
+        ],
         props: {
           direction: 'left',
           ...commonProps,
@@ -125,21 +129,12 @@ export async function transform(
 
       broadcast({
         effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.rightMatrix, NAMED_DRIVERS.rightStrip],
+        drivers: [NAMED_DRIVERS.rightMatrix],
         props: {
           direction: 'right',
           ...commonProps,
         },
       });
-
-      // broadcast({
-      //   effect: 'particle_field',
-      //   drivers: [NAMED_DRIVERS.rightStrip],
-      //   props: {
-      //     direction: 'right',
-      //     ...commonProps,
-      //   },
-      // });
 
       await sleep(500);
 

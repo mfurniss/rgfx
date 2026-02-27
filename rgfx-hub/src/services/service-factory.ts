@@ -15,6 +15,7 @@ import { StateStoreImpl } from '../transformer/state-store';
 import { LoggerWrapper } from '../transformer/logger-wrapper';
 import { getTransformersDir } from '../transformer-installer';
 import { loadGif } from '../gif-loader';
+import { loadSprite } from '../sprite-loader';
 import { validateTransformerEffect } from '../transformer/validate-effect';
 import { createUploadConfigToDriver } from '../upload-config-to-driver';
 import { MQTT_DEFAULT_PORT } from '../config/constants';
@@ -103,6 +104,18 @@ function createGifLoader() {
       ? gifPath
       : path.resolve(getTransformersDir(), gifPath);
     return loadGif(resolvedPath);
+  };
+}
+
+/**
+ * Create sprite loader that resolves relative paths from transformers directory.
+ */
+function createSpriteLoader() {
+  return (spritePath: string) => {
+    const resolvedPath = path.isAbsolute(spritePath)
+      ? spritePath
+      : path.resolve(getTransformersDir(), spritePath);
+    return loadSprite(resolvedPath);
   };
 }
 
@@ -233,6 +246,7 @@ export function createServices(
     log: loggerWrapper,
     drivers: driverRegistry,
     loadGif: createGifLoader(),
+    loadSprite: createSpriteLoader(),
     parseAmbilight,
     hslToHex,
   });

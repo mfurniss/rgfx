@@ -63,10 +63,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
   - `init.js` - Game init subject (clears effects, displays world record)
   - `ambilight.js` - Ambilight effect subject
   - `audio.js` - Audio-reactive effect subject
-- `bitmaps/` - Sprite bitmaps for bitmap effects
-  - Pac-Man bonus fruit sprites (pac-bonus-*.gif)
-  - Mario coin sprite (mario-coin.gif)
-  - `pacman-sprites.js` - Pac-Man sprite definitions
+- `bitmaps/` - Sprite bitmaps for bitmap effects. JSON sprites are extracted from ROM at runtime by `sprite-extract.lua` and written to `~/.rgfx/transformers/bitmaps/`. These generated files are excluded from `sync-assets.sh` and should NOT be committed to the repo.
 
 ### led-hardware/
 LED hardware definition files (JSON):

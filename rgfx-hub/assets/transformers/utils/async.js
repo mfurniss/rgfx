@@ -89,9 +89,7 @@ export function debounce(fn, ms) {
   return (...args) => {
     if (!ready) return;
     ready = false;
-    trackedTimeout(() => {
-      ready = true;
-    }, ms);
+    trackedTimeout(() => { ready = true; }, ms);
     fn(...args);
   };
 }

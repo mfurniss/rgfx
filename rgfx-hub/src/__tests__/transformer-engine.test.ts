@@ -78,6 +78,7 @@ describe('TransformerEngine', () => {
       },
       drivers: {} as any,
       loadGif: vi.fn(),
+      loadSprite: vi.fn(),
       parseAmbilight: vi.fn().mockReturnValue({ colors: [], orientation: 'horizontal' }),
       hslToHex: vi.fn().mockReturnValue('#FF0000'),
     };

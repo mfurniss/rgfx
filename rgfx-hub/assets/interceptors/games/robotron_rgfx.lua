@@ -37,6 +37,21 @@ local function get_fire_direction(h_dir, v_dir)
 	return "none"
 end
 
+-- Factory for RAM monitors that emit spawn/destroy events from a counter address
+local function counter_events(addr, name)
+	return {
+		addr_start = addr,
+		callback_changed = function(current, previous)
+      _G.event("robotron/entity/" .. name .. "/count", current)
+			if current > previous then
+				_G.event("robotron/entity/" .. name .. "/spawn", current - previous)
+			elseif current < previous then
+				_G.event("robotron/entity/" .. name .. "/destroy", previous - current)
+			end
+		end,
+	}
+end
+
 local map = {
 	player_one_score = {
 		addr_start = 0xBDE4,
@@ -71,103 +86,20 @@ local map = {
 			end
 		end,
 	},
-	enforcer_count = {
-		addr_start = 0x98ED,
-		callback_changed = function(current, previous)
-			_G.event("robotron/enemy/enforcer/count", current)
-			if current > previous then
-				_G.event("robotron/enemy/enforcer/spawn", current - previous)
-			elseif current < previous then
-				_G.event("robotron/enemy/enforcer/destroy", previous - current)
-			end
-		end,
-	},
-	spark_count = {
-		addr_start = 0x988A,
-		callback_changed = function(current)
-			_G.event("robotron/enemy/spark/count", current)
-		end,
-	},
-	cruise_count = {
-		addr_start = 0x988E,
-		callback_changed = function(current)
-			_G.event("robotron/enemy/cruise/count", current)
-		end,
-	},
-	electrode_count = {
-		addr_start = 0x9892,
-		callback_changed = function(current)
-			_G.event("robotron/enemy/electrode/count", current)
-		end,
-	},
-
-	-- Enemy type counters (0xBE68-0xBE71)
-	grunt_count = {
-		addr_start = 0xBE68,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/enemy/grunt/destroy", previous - current)
-			end
-		end,
-	},
-	-- brain_count = {
-	-- 	addr_start = 0xBE6E,
-	-- 	callback_changed = function(current, previous)
-	-- 		if current < previous then
-	-- 			_G.event("robotron/enemy/brain/destroy", previous - current)
-	-- 		end
-	-- 	end,
-	-- },
-	-- spheroid_count = {
-	-- 	addr_start = 0xBE6F,
-	-- 	callback_changed = function(current, previous)
-	-- 		if current < previous then
-	-- 			_G.event("robotron/enemy/spheroid/destroy", previous - current)
-	-- 		end
-	-- 	end,
-	-- },
-	-- quark_count = {
-	-- 	addr_start = 0xBE70,
-	-- 	callback_changed = function(current, previous)
-	-- 		if current < previous then
-	-- 			_G.event("robotron/enemy/quark/destroy", previous - current)
-	-- 		end
-	-- 	end,
-	-- },
-	-- tank_count = {
-	-- 	addr_start = 0xBE71,
-	-- 	callback_changed = function(current, previous)
-	-- 		if current < previous then
-	-- 			_G.event("robotron/enemy/tank/destroy", previous - current)
-	-- 		end
-	-- 	end,
-	-- },
+	enforcer = counter_events(0x98ED, "enforcer"),
+	spark = counter_events(0x988A, "spark"),
+	cruise = counter_events(0x988E, "cruise"),
+	electrode = counter_events(0x9892, "electrode"),
+	grunt = counter_events(0xBE68, "grunt"),
+	brain = counter_events(0xBE6E, "brain"),
+	spheroid = counter_events(0xBE6F, "spheroid"),
+	quark = counter_events(0xBE70, "quark"),
+	tank = counter_events(0xBE71, "tank"),
 
 	-- Family member counters (0xBE6A-0xBE6C)
-	mommie_count = {
-		addr_start = 0xBE6A,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/family/rescue", "mommie")
-			end
-		end,
-	},
-	daddie_count = {
-		addr_start = 0xBE6B,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/family/rescue", "daddie")
-			end
-		end,
-	},
-	mikey_count = {
-		addr_start = 0xBE6C,
-		callback_changed = function(current, previous)
-			if current < previous then
-				_G.event("robotron/family/rescue", "mikey")
-			end
-		end,
-	},
+	mommie = counter_events(0xBE6A, "mommie"),
+	daddie = counter_events(0xBE6B, "daddie"),
+	mikey = counter_events(0xBE6C, "mikey"),
 }
 
 ram.install_monitors(map, mem)
