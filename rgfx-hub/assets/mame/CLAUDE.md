@@ -154,12 +154,13 @@ Single-frame sprites are automatically trimmed: empty top/bottom rows removed, t
 
 ### JSON Output Format
 
-Output matches the `GifBitmapResult` TypeScript interface used by `loadSprite()`:
+Output contains only `images` and optionally `palette`. Dimensions and frame count are derived by the hub's `loadSprite()` function from the images array.
 
 ```json
-{ "images": [["row1", "row2"]], "palette": ["#FF0000"], "width": 16, "height": 16, "frameCount": 1 }
+{ "images": [["row1", "row2"]], "palette": ["#FF0000"] }
 ```
 
 - `palette` is only included when using ROM color PROMs (not when using `color_map`)
 - Sprites using `color_map` rely on the default PICO-8 palette in the hub
 - Palette uses 1-based Lua indexing internally so `ipairs` writes all entries correctly
+- Extraction log reports actual trimmed dimensions (not raw tile grid size)

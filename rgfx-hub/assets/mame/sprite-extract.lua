@@ -214,9 +214,9 @@ local function json_escape(s)
 	return s:gsub("\\", "\\\\"):gsub('"', '\\"')
 end
 
--- Write sprite data as JSON file matching GifBitmapResult format.
+-- Write sprite data as JSON file.
 -- all_images is an array of image_rows arrays (one per frame).
-local function write_json(filepath, all_images, palette, width, height)
+local function write_json(filepath, all_images, palette)
 	local f = io.open(filepath, "w")
 	if not f then
 		print("ERROR: Cannot write sprite file: " .. filepath)
@@ -242,9 +242,9 @@ local function write_json(filepath, all_images, palette, width, height)
 		end
 		f:write("\n")
 	end
-	f:write("  ],\n")
 
 	if palette then
+		f:write("  ],\n")
 		f:write('  "palette": [')
 		for i, color in ipairs(palette) do
 			f:write(string.format('"%s"', color))
@@ -252,12 +252,11 @@ local function write_json(filepath, all_images, palette, width, height)
 				f:write(", ")
 			end
 		end
-		f:write("],\n")
+		f:write("]\n")
+	else
+		f:write("  ]\n")
 	end
 
-	f:write(string.format('  "width": %d,\n', width))
-	f:write(string.format('  "height": %d,\n', height))
-	f:write(string.format('  "frameCount": %d\n', frame_count))
 	f:write("}\n")
 
 	f:close()
@@ -426,10 +425,15 @@ function exports.extract(manifest)
 					pixels, w, h, sprite_def.color_map, sprite_def.transparent_pixels)
 			end
 
-			if write_json(filepath, all_images, palette, w, h) then
+			if write_json(filepath, all_images, palette) then
 				extracted = extracted + 1
+				local actual_h = #(all_images[1] or {})
+				local actual_w = 0
+				for _, row in ipairs(all_images[1] or {}) do
+					if #row > actual_w then actual_w = #row end
+				end
 				print(string.format("  Extracted: %s (%d frames, %dx%d)",
-					sprite_def.name, #all_images, w, h))
+					sprite_def.name, #all_images, actual_w, actual_h))
 			end
 		end
 	end

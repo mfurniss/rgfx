@@ -15,9 +15,6 @@ const VALID_SPRITE_JSON = JSON.stringify({
     ['  12  ', ' 1221 ', '122221', '122221', ' 1221 ', '  12  '],
   ],
   palette: ['#000000', '#FF0000', '#DE9751', '#DEDEFF'],
-  width: 16,
-  height: 16,
-  frameCount: 1,
 });
 
 const ANIMATED_SPRITE_JSON = JSON.stringify({
@@ -26,10 +23,6 @@ const ANIMATED_SPRITE_JSON = JSON.stringify({
     ['22', '22'],
   ],
   palette: ['#000000', '#FF0000', '#0000FF'],
-  width: 8,
-  height: 8,
-  frameCount: 2,
-  frameRate: 10,
 });
 
 describe('loadSprite', () => {
@@ -43,31 +36,23 @@ describe('loadSprite', () => {
     const result = await loadSprite('/test/cherry.json');
 
     expect(result.palette).toEqual(['#000000', '#FF0000', '#DE9751', '#DEDEFF']);
-    expect(result.width).toBe(16);
-    expect(result.height).toBe(16);
+    expect(result.width).toBe(6);
+    expect(result.height).toBe(6);
     expect(result.frameCount).toBe(1);
-    expect(result.frameRate).toBeUndefined();
     expect(result.images).toHaveLength(1);
     expect(result.images[0]).toHaveLength(6);
     expect(result.images[0][0]).toBe('  12  ');
   });
 
-  it('should load an animated sprite with frameRate', async () => {
+  it('should derive dimensions from image data', async () => {
     mockReadFile.mockResolvedValue(ANIMATED_SPRITE_JSON as never);
 
     const result = await loadSprite('/test/animated.json');
 
     expect(result.frameCount).toBe(2);
-    expect(result.frameRate).toBe(10);
+    expect(result.width).toBe(2);
+    expect(result.height).toBe(2);
     expect(result.images).toHaveLength(2);
-  });
-
-  it('should not include frameRate when absent', async () => {
-    mockReadFile.mockResolvedValue(VALID_SPRITE_JSON as never);
-
-    const result = await loadSprite('/test/sprite.json');
-
-    expect(result).not.toHaveProperty('frameRate');
   });
 
   it('should throw on invalid JSON', async () => {
@@ -78,7 +63,7 @@ describe('loadSprite', () => {
 
   it('should throw on missing images array', async () => {
     mockReadFile.mockResolvedValue(
-      JSON.stringify({ palette: ['#FF0000'], width: 8, height: 8, frameCount: 1 }) as never,
+      JSON.stringify({ palette: ['#FF0000'] }) as never,
     );
 
     await expect(loadSprite('/test/no-images.json')).rejects.toThrow(
@@ -88,13 +73,56 @@ describe('loadSprite', () => {
 
   it('should load sprite without palette (color_map sprites use default PICO-8)', async () => {
     mockReadFile.mockResolvedValue(
-      JSON.stringify({ images: [['AA']], width: 8, height: 8, frameCount: 1 }) as never,
+      JSON.stringify({ images: [['AA']] }) as never,
     );
 
     const result = await loadSprite('/test/no-palette.json');
 
     expect(result).not.toHaveProperty('palette');
     expect(result.images).toHaveLength(1);
+  });
+
+  it('should derive width from the longest row across all frames', async () => {
+    mockReadFile.mockResolvedValue(
+      JSON.stringify({
+        images: [
+          ['A', 'AA'],
+          ['AAAA', 'AA'],
+        ],
+      }) as never,
+    );
+
+    const result = await loadSprite('/test/varying-widths.json');
+
+    expect(result.width).toBe(4);
+    expect(result.height).toBe(2);
+    expect(result.frameCount).toBe(2);
+  });
+
+  it('should handle empty images array', async () => {
+    mockReadFile.mockResolvedValue(
+      JSON.stringify({ images: [] }) as never,
+    );
+
+    const result = await loadSprite('/test/empty.json');
+
+    expect(result.width).toBe(0);
+    expect(result.height).toBe(0);
+    expect(result.frameCount).toBe(0);
+    expect(result.images).toHaveLength(0);
+  });
+
+  it('should handle a single pixel sprite', async () => {
+    mockReadFile.mockResolvedValue(
+      JSON.stringify({ images: [['A']], palette: ['#FF0000', '#00FF00'] }) as never,
+    );
+
+    const result = await loadSprite('/test/pixel.json');
+
+    expect(result.width).toBe(1);
+    expect(result.height).toBe(1);
+    expect(result.frameCount).toBe(1);
+    expect(result.palette).toEqual(['#FF0000', '#00FF00']);
   });
 
   it('should throw when file does not exist', async () => {

@@ -11,25 +11,21 @@ import type { GifBitmapResult } from './types/transformer-types';
 interface SpriteFileData {
   images: string[][];
   palette?: string[];
-  width: number;
-  height: number;
-  frameCount: number;
-  frameRate?: number;
 }
 
 function isSpriteFileData(data: unknown): data is SpriteFileData {
   if (typeof data !== 'object' || data === null) {
     return false;
   }
+
   const obj = data as Record<string, unknown>;
+
   return Array.isArray(obj.images);
 }
 
 /**
- * Load a JSON sprite file and return it as bitmap effect format
- *
- * @param filePath - Absolute path to the JSON sprite file
- * @returns Promise resolving to GifBitmapResult with images, palette, dimensions, and frame info
+ * Load a JSON sprite file and return it as bitmap effect format.
+ * Dimensions and frame count are derived from the images array.
  */
 export async function loadSprite(filePath: string): Promise<GifBitmapResult> {
   const json = await readFile(filePath, 'utf-8');
@@ -39,12 +35,18 @@ export async function loadSprite(filePath: string): Promise<GifBitmapResult> {
     throw new Error(`Invalid sprite file format: ${filePath}`);
   }
 
+  const frameCount = data.images.length;
+  const height = data.images[0]?.length ?? 0;
+  const width = data.images.reduce(
+    (max, frame) => Math.max(max, ...frame.map((row) => row.length)),
+    0,
+  );
+
   return {
     images: data.images,
     ...(data.palette != null && { palette: data.palette }),
-    width: data.width,
-    height: data.height,
-    frameCount: data.frameCount,
-    ...(data.frameRate != null && { frameRate: data.frameRate }),
+    width,
+    height,
+    frameCount,
   };
 }
