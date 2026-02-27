@@ -113,15 +113,22 @@ Monitors run on `emu.register_frame_done` — values are checked every frame.
 
 Extracts sprite graphics from MAME ROM regions and writes them as JSON files. Called by game interceptors with a manifest table describing which sprites to extract and how to decode them.
 
+### Supported Formats
+
+| Format | Tile Size | Description |
+|--------|-----------|-------------|
+| `namco` | 16x16 | Namco 2bpp strip-based (Pac-Man, Galaga) |
+| `nes_2bpp` | 8x8 | NES 2bpp planar (Super Mario Bros, etc.) |
+
 ### Manifest Fields
 
 | Field | Description |
 |-------|-------------|
-| `gfx_region` | MAME memory region tag (e.g., `":gfx1"`) |
+| `gfx_region` | MAME memory region tag (e.g., `":gfx1"`, `":nes_slot:cart:chr_rom"`) |
 | `sprite_offset` | Byte offset where sprites start |
 | `tile_format` | `{ format, width, height, bytes_per_sprite }` |
-| `color_prom` | `{ region, offset, count, format }` |
-| `palette_prom` | `{ region, offset, colors_per_entry }` |
+| `color_prom` | `{ region, offset, count, format }` (optional for NES) |
+| `palette_prom` | `{ region, offset, colors_per_entry }` (optional for NES) |
 | `rotation` | Screen rotation in degrees (0, 90, 180, 270) |
 | `output_dir` | Output directory for JSON files |
 
@@ -129,11 +136,17 @@ Extracts sprite graphics from MAME ROM regions and writes them as JSON files. Ca
 
 | Option | Description |
 |--------|-------------|
-| `index` | ROM sprite index (single-frame) |
+| `index` | ROM sprite index (single-frame, single-tile) |
+| `tiles` | Array of tile indices in row-major order for meta-sprite composition |
+| `grid` | `{cols, rows}` tile arrangement (default `{1,1}`) |
 | `palette` | Palette PROM index (ROM-derived palette) |
-| `frames` | Array of `{ index, color_map, transparent_pixels }` for multi-frame sprites |
+| `frames` | Array of `{ index/tiles, color_map, transparent_pixels }` for multi-frame sprites |
 | `color_map` | Remap ROM pixel values to output palette indices (e.g., `{ [3] = 0xA }`) |
 | `transparent_pixels` | Pixel values to treat as transparent (e.g., `{ 3 }` masks ghost body) |
+
+### Meta-Sprite Composition
+
+NES sprites larger than 8x8 are composed from multiple tiles. Specify `tiles` (array of tile indices in row-major order) and `grid` (`{cols, rows}`). Tile index `0xFC` is treated as blank. Example: a 16x16 sprite uses `grid = {2, 2}` with 4 tile indices.
 
 ### Multi-Frame Alignment
 

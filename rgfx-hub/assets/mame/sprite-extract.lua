@@ -251,9 +251,62 @@ local function write_json(filepath, all_images, palette, width, height)
 	return true
 end
 
+-- NES 2bpp planar: 16 bytes per 8x8 tile.
+-- Bytes 0-7 = plane 0 (low bit), bytes 8-15 = plane 1 (high bit).
+-- MSB = leftmost pixel within each row.
+local function decode_nes_tile(region, base_offset)
+	local pixels = {}
+	for y = 0, 7 do
+		pixels[y] = {}
+		local plane0 = region:read_u8(base_offset + y)
+		local plane1 = region:read_u8(base_offset + y + 8)
+		for x = 0, 7 do
+			local bit = 7 - x
+			local lo = (plane0 >> bit) & 1
+			local hi = (plane1 >> bit) & 1
+			pixels[y][x] = (hi << 1) | lo
+		end
+	end
+	return pixels
+end
+
+-- Compose a meta-sprite from multiple tiles arranged in a grid.
+-- tile_indices: array of tile indices in row-major order (blank_tile = skip)
+-- grid: {cols, rows}
+local function compose_meta_sprite(region, tile_indices, grid, format, decode, sprite_offset)
+	local cols, rows = grid[1], grid[2]
+	local tw, th = format.width, format.height
+	local blank = 0xFC
+
+	local pixels = {}
+	for y = 0, rows * th - 1 do
+		pixels[y] = {}
+		for x = 0, cols * tw - 1 do
+			pixels[y][x] = 0
+		end
+	end
+
+	for i, tile_idx in ipairs(tile_indices) do
+		if tile_idx ~= blank then
+			local col = (i - 1) % cols
+			local row = math.floor((i - 1) / cols)
+			local offset = sprite_offset + tile_idx * format.bytes_per_sprite
+			local tile_pixels = decode(region, offset)
+			for ty = 0, th - 1 do
+				for tx = 0, tw - 1 do
+					pixels[row * th + ty][col * tw + tx] = tile_pixels[ty][tx]
+				end
+			end
+		end
+	end
+
+	return pixels
+end
+
 -- Sprite decoders by format name
 local sprite_decoders = {
 	namco = decode_namco_sprite,
+	nes_2bpp = decode_nes_tile,
 }
 
 -- Main extraction function. Called by game interceptors with a manifest table.
@@ -268,11 +321,13 @@ local sprite_decoders = {
 --   sprites (array): sprite definitions, each with:
 --     name (string): output filename (without .json)
 --     index (number): sprite index (single-frame sprites)
+--     tiles (array, optional): tile indices for meta-sprite composition (row-major)
+--     grid (table, optional): {cols, rows} for meta-sprite layout (default {1,1})
 --     palette (number): palette PROM index (when not using color_map)
 --     color_map (table, optional): remap pixel values {[px_val] = output_index}
 --     transparent_pixels (array, optional): pixel values to treat as transparent
 --     frames (array, optional): multi-frame sprite, each frame with:
---       index, color_map, transparent_pixels (falls back to sprite-level)
+--       index or tiles, color_map, transparent_pixels (falls back to sprite-level)
 --   output_dir (string): directory path for JSON output (relative to ~ or absolute)
 function exports.extract(manifest)
 	-- Resolve output directory
@@ -316,17 +371,26 @@ function exports.extract(manifest)
 
 		if has_color_map or palette then
 			local all_images = {}
-			local w, h = format.width, format.height
+			local grid = sprite_def.grid or { 1, 1 }
+			local w = grid[1] * format.width
+			local h = grid[2] * format.height
 			if manifest.rotation == 90 then
 				w, h = h, w
 			end
 
 			if sprite_def.frames then
 				for _, frame in ipairs(sprite_def.frames) do
-					local base_offset = manifest.sprite_offset + frame.index * format.bytes_per_sprite
-					local pixels = decode(gfx_region, base_offset)
+					local pixels
+					local frame_tiles = frame.tiles or sprite_def.tiles
+					if frame_tiles then
+						pixels = compose_meta_sprite(
+							gfx_region, frame_tiles, grid, format, decode, manifest.sprite_offset)
+					else
+						local base_offset = manifest.sprite_offset + frame.index * format.bytes_per_sprite
+						pixels = decode(gfx_region, base_offset)
+					end
 					if manifest.rotation == 90 then
-						pixels = rotate_90cw(pixels, format.width, format.height)
+						pixels = rotate_90cw(pixels, grid[1] * format.width, grid[2] * format.height)
 					end
 					local cm = frame.color_map or sprite_def.color_map
 					local tp = frame.transparent_pixels or sprite_def.transparent_pixels
@@ -334,10 +398,16 @@ function exports.extract(manifest)
 				end
 				all_images = align_frames(all_images)
 			else
-				local base_offset = manifest.sprite_offset + sprite_def.index * format.bytes_per_sprite
-				local pixels = decode(gfx_region, base_offset)
+				local pixels
+				if sprite_def.tiles then
+					pixels = compose_meta_sprite(
+						gfx_region, sprite_def.tiles, grid, format, decode, manifest.sprite_offset)
+				else
+					local base_offset = manifest.sprite_offset + sprite_def.index * format.bytes_per_sprite
+					pixels = decode(gfx_region, base_offset)
+				end
 				if manifest.rotation == 90 then
-					pixels = rotate_90cw(pixels, format.width, format.height)
+					pixels = rotate_90cw(pixels, grid[1] * format.width, grid[2] * format.height)
 				end
 				all_images[#all_images + 1] = pixels_to_image(
 					pixels, w, h, sprite_def.color_map, sprite_def.transparent_pixels)
@@ -345,17 +415,8 @@ function exports.extract(manifest)
 
 			if write_json(filepath, all_images, palette, w, h) then
 				extracted = extracted + 1
-				if sprite_def.frames then
-					local indices = {}
-					for _, frame in ipairs(sprite_def.frames) do
-						indices[#indices + 1] = tostring(frame.index)
-					end
-					print(string.format("  Extracted: %s (%d frames, sprites %s)",
-						sprite_def.name, #sprite_def.frames, table.concat(indices, ",")))
-				else
-					print(string.format("  Extracted: %s (sprite %d, palette %d)",
-						sprite_def.name, sprite_def.index, sprite_def.palette or 0))
-				end
+				print(string.format("  Extracted: %s (%d frames, %dx%d)",
+					sprite_def.name, #all_images, w, h))
 			end
 		end
 	end
