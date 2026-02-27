@@ -3,19 +3,20 @@
 import { randomInt, sleep } from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
-let coinGif = null;
+let coinSprite;
 
 export async function transform(
   { subject, property, _qualifier, payload },
-  { broadcast, loadGif, state },
+  { broadcast, loadSprite, state },
 ) {
   async function loadBitmaps() {
-    if (!coinGif) {
-      try {
-        coinGif = await loadGif('bitmaps/mario-coin.gif');
-      } catch (err) {
-        console.error('Failed to load coin GIF:', err);
-      }
+    try {
+      [coinSprite] = await Promise.all([
+        loadSprite('bitmaps/smb-coin.json'),
+        loadSprite('bitmaps/smb-mario-small.json'),
+      ]);
+    } catch (err) {
+      console.error('Failed to load SMB sprites:', err);
     }
   }
   // Reset transformer state when game initializes
@@ -43,15 +44,14 @@ export async function transform(
   if (subject === 'sfx') {
     if (property === 'coin') {
       await loadBitmaps();
-      if (coinGif) {
+      if (coinSprite) {
         const centerX = randomInt(0, 100);
 
         broadcast({
           effect: 'bitmap',
           drivers: MATRIX_DRIVERS,
           props: {
-            images: coinGif.images,
-            palette: coinGif.palette,
+            images: coinSprite.images,
             centerX,
             centerY: 140,
             endX: centerX,

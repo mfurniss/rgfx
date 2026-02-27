@@ -162,7 +162,15 @@ export class TransformerEngine {
   private startFileWatcher(transformersDir: string): void {
     try {
       this.watcher = watch(transformersDir, { recursive: true }, (_eventType, filename) => {
-        if (!filename?.endsWith('.js')) {
+        if (!filename) {
+          return;
+        }
+
+        const isBitmapChange =
+          (filename.startsWith('bitmaps/') || filename.startsWith('bitmaps\\')) &&
+          filename.endsWith('.json');
+
+        if (!filename.endsWith('.js') && !isBitmapChange) {
           return;
         }
 
@@ -182,6 +190,12 @@ export class TransformerEngine {
   private async reloadTransformer(transformersDir: string, filename: string): Promise<void> {
     try {
       const filePath = join(transformersDir, filename);
+
+      if (filename.startsWith('bitmaps/') || filename.startsWith('bitmaps\\')) {
+        await this.reloadAllTransformers(transformersDir);
+        this.context.log.info(`Bitmap changed: ${filename} — reloaded all transformers`);
+        return;
+      }
 
       if (filename.startsWith('games/') || filename.startsWith('games\\')) {
         // games/ subdirectory

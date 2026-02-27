@@ -22,15 +22,31 @@ export async function transform(
   { subject, property, payload },
   { broadcast, loadSprite },
 ) {
+  async function loadBitmaps() {
+    try {
+      [pacRight, pacRightDim, ghostScared, ghostEyesR, ghostEyesL] =
+        await Promise.all([
+          loadSprite('bitmaps/pac-right.json'),
+          loadSprite('bitmaps/pac-right-dim.json'),
+          loadSprite('bitmaps/ghost-scared.json'),
+          loadSprite('bitmaps/ghost-eyes-right.json'),
+          loadSprite('bitmaps/ghost-eyes-left.json'),
+        ]);
+      for (const item of Object.values(BONUS_ITEMS)) {
+        item.sprite = null;
+      }
+    } catch (err) {
+      console.error('Failed to load Pac-Man sprites:', err);
+    }
+  }
+
+  if (subject === 'init') {
+    await loadBitmaps();
+    return true;
+  }
+
   if (!pacRight) {
-    [pacRight, pacRightDim, ghostScared, ghostEyesR, ghostEyesL] =
-      await Promise.all([
-        loadSprite('bitmaps/pac-right.json'),
-        loadSprite('bitmaps/pac-right-dim.json'),
-        loadSprite('bitmaps/ghost-scared.json'),
-        loadSprite('bitmaps/ghost-eyes-right.json'),
-        loadSprite('bitmaps/ghost-eyes-left.json'),
-      ]);
+    await loadBitmaps();
   }
 
   if (bonusLatch === false && subject === 'player' && property === 'score') {

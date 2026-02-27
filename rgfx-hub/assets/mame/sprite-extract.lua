@@ -91,7 +91,7 @@ local function build_palette(manifest, palette_index)
 		local prom_offset = manifest.palette_prom.offset + palette_index * colors_per_entry + c
 		local color_idx = proms_region:read_u8(prom_offset)
 		local color_byte = proms_region:read_u8(manifest.color_prom.offset + color_idx)
-		palette[c] = decoder(color_byte)
+		palette[c + 1] = decoder(color_byte)
 	end
 
 	return palette

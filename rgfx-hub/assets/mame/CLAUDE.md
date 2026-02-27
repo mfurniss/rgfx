@@ -162,3 +162,4 @@ Output matches the `GifBitmapResult` TypeScript interface used by `loadSprite()`
 
 - `palette` is only included when using ROM color PROMs (not when using `color_map`)
 - Sprites using `color_map` rely on the default PICO-8 palette in the hub
+- Palette uses 1-based Lua indexing internally so `ipairs` writes all entries correctly
