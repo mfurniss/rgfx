@@ -43,7 +43,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 
 ## Type Declarations
 
-- `types.ts` — Shared types for IPC (AppInfo, LED configs: LEDChipset supports WS2812B/WS2811/SK6812/WS2814)
+- `types.ts` — Shared types for IPC (AppInfo, LED configs: LEDChipset supports WS2812B/WS2811/SK6812/WS2814, DriverTelemetry includes `ledHealthy?: boolean`)
 - `css-modules.d.ts` — CSS module import declarations
 - `vite-env.d.ts` — Vite environment variable declarations
 

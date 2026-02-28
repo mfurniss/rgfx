@@ -75,7 +75,7 @@ uint8_t g_gammaLutG[256];
 uint8_t g_gammaLutB[256];
 
 // testModeActive (required by effect_processor.cpp)
-bool testModeActive = false;
+std::atomic<bool> testModeActive(false);
 
 // HAL types (CRGB, fill_solid, etc.)
 #include "hal/types.h"

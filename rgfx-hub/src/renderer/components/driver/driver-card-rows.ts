@@ -39,6 +39,9 @@ export function buildTelemetryRows({
   now,
 }: TelemetryRowsParams): InfoRowData[] {
   return [
+    ...(telemetry?.ledHealthy === false
+      ? [['LED Health', 'RMT output failure detected'] as InfoRowData]
+      : []),
     ...(telemetry
       ? [['Frame Rate', `${telemetry.currentFps.toFixed(1)} FPS (min: ${telemetry.minFps.toFixed(1)}, max: ${telemetry.maxFps.toFixed(1)})`] as InfoRowData]
       : []),

@@ -69,5 +69,8 @@ JsonDocument Telemetry::getTelemetry() {
 	frameTiming["showUs"] = timing.showUs;
 	frameTiming["totalUs"] = timing.totalUs;
 
+	// LED health status
+	doc["ledHealthy"] = getLedHealthy();
+
 	return doc;
 }

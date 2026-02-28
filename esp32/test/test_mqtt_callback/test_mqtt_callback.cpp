@@ -29,6 +29,7 @@ MQTTClient mqttClient(512);
 uint32_t mqttMessagesReceived = 0;
 std::atomic<bool> testModeActive(false);
 std::atomic<bool> mqttEventReceived(false);
+std::atomic<bool> pendingClearEffects(false);
 static constexpr unsigned long MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS = 200;
 
 // Tracking stubs for commands and dependencies
@@ -127,9 +128,7 @@ void mqttCallback(String& topic, String& payload) {
 	} else if (startsWith(topic, "rgfx/driver/") && endsWith(topic, "/reboot")) {
 		Commands::reboot("");
 	} else if (startsWith(topic, "rgfx/driver/") && endsWith(topic, "/clear-effects")) {
-		if (effectProcessor != nullptr) {
-			effectProcessor->clearEffects();
-		}
+		pendingClearEffects.store(true);
 	} else if (startsWith(topic, "rgfx/driver/") && endsWith(topic, "/logging")) {
 		pendingLoggingConfig = true;
 		pendingLoggingPayload = payload;
@@ -162,9 +161,7 @@ void processPendingMqttOperations() {
 			publishTestState("on");
 		} else {
 			testModeActive = false;
-			if (effectProcessor != nullptr) {
-				effectProcessor->clearEffects();
-			}
+			pendingClearEffects.store(true);
 			publishTestState("off");
 		}
 	}
@@ -215,6 +212,7 @@ void setUp(void) {
 	resetCalled = false;
 	rebootCalled = false;
 	clearEffectsCalled = false;
+	pendingClearEffects.store(false);
 	lastHandledConfig = "";
 	lastTestStatePublished = "";
 	lastLoggingLevel = "";
@@ -281,10 +279,11 @@ void test_callback_reboot_executes_immediately() {
 	TEST_ASSERT_TRUE(rebootCalled);
 }
 
-void test_callback_clear_effects_executes_immediately() {
+void test_callback_clear_effects_defers_to_core1() {
 	sendMessage("rgfx/driver/AA:BB:CC:DD:EE:FF/clear-effects", "");
 
-	TEST_ASSERT_TRUE(clearEffectsCalled);
+	TEST_ASSERT_TRUE(pendingClearEffects.load());
+	TEST_ASSERT_FALSE(clearEffectsCalled);
 }
 
 void test_callback_queues_logging_config() {
@@ -353,14 +352,15 @@ void test_process_test_mode_on() {
 	TEST_ASSERT_EQUAL_STRING("on", lastTestStatePublished.c_str());
 }
 
-void test_process_test_mode_off_clears_effects() {
+void test_process_test_mode_off_defers_clear_to_core1() {
 	testModeActive = true;
 	sendMessage("rgfx/driver/AA:BB:CC:DD:EE:FF/test", "off");
 
 	processPendingMqttOperations();
 
 	TEST_ASSERT_FALSE(testModeActive.load());
-	TEST_ASSERT_TRUE(clearEffectsCalled);
+	TEST_ASSERT_TRUE(pendingClearEffects.load());
+	TEST_ASSERT_FALSE(clearEffectsCalled);
 	TEST_ASSERT_EQUAL_STRING("off", lastTestStatePublished.c_str());
 }
 
@@ -416,7 +416,7 @@ int main(int /* argc */, char** /* argv */) {
 	RUN_TEST(test_callback_queues_test_mode_off);
 	RUN_TEST(test_callback_reset_executes_immediately);
 	RUN_TEST(test_callback_reboot_executes_immediately);
-	RUN_TEST(test_callback_clear_effects_executes_immediately);
+	RUN_TEST(test_callback_clear_effects_defers_to_core1);
 	RUN_TEST(test_callback_queues_logging_config);
 	RUN_TEST(test_callback_queues_wifi_config);
 	RUN_TEST(test_callback_wifi_rejects_invalid_json);
@@ -427,7 +427,7 @@ int main(int /* argc */, char** /* argv */) {
 	// Deferred processing
 	RUN_TEST(test_process_pending_config);
 	RUN_TEST(test_process_test_mode_on);
-	RUN_TEST(test_process_test_mode_off_clears_effects);
+	RUN_TEST(test_process_test_mode_off_defers_clear_to_core1);
 	RUN_TEST(test_process_logging_config);
 	RUN_TEST(test_process_logging_invalid_json_no_crash);
 	RUN_TEST(test_process_wifi_config);

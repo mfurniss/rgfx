@@ -1,4 +1,5 @@
 #include "network/mqtt.h"
+#include "network/network_init.h"
 #include "log.h"
 #include "utils.h"
 #include "safe_restart.h"
@@ -69,12 +70,10 @@ void mqttCallback(String& topic, String& payload) {
 		Commands::reboot("");
 	}
 
-	// Handle clear-effects command - safe to execute directly (no MQTT operations)
+	// Handle clear-effects command - defer to Core 1 to avoid cross-core FastLED.show() race
 	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/clear-effects")) {
 		log("Clear effects command received");
-		if (effectProcessor != nullptr) {
-			effectProcessor->clearEffects();
-		}
+		pendingClearEffects.store(true);
 	}
 
 	// Handle logging configuration - queue for deferred processing
@@ -133,10 +132,8 @@ void processPendingMqttOperations() {
 		} else {
 			testModeActive = false;
 
-			// Clear LEDs when turning off test mode
-			if (effectProcessor != nullptr) {
-				effectProcessor->clearEffects();
-			}
+			// Defer LED clear to Core 1 to avoid cross-core FastLED.show() race
+			pendingClearEffects.store(true);
 
 			log("Test mode DISABLED");
 			publishTestState("off");

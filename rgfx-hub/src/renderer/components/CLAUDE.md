@@ -222,9 +222,12 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Connected: green chip, Disconnected: red chip
+- Disabled: grey chip (takes precedence over connection state)
 - Orange warning icon when firmware update available (chip-aware version comparison)
+- Orange warning icon when LED hardware not configured
+- Red warning icon when `telemetry.ledHealthy === false` (RMT output failure)
 - Uses `mapChipNameToVariant()` to match driver's chip model to correct target version
-- Clicking warning navigates to firmware page
+- Clicking firmware warning navigates to firmware page; clicking config warning navigates to driver config
 
 ---
 

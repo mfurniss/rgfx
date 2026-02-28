@@ -52,5 +52,7 @@ export const TelemetryPayloadSchema = z.object({
       totalUs: z.number(),
     })
     .optional(),
+  // LED health status (false = RMT peripheral appears corrupted)
+  ledHealthy: z.boolean().optional(),
 });
 

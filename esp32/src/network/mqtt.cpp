@@ -122,10 +122,10 @@ void reconnectMQTT() {
 		log("MQTT connected!");
 		mqttConsecutiveFailures = 0;  // Reset failure counter on successful connection
 
-		// Clear any lingering effects from before reconnection
-		if (effectProcessor != nullptr) {
-			effectProcessor->clearEffects();
-		}
+		// Request Core 1 to clear lingering effects from before reconnection
+		// Must NOT call clearEffects() directly — it calls FastLED.show() which
+		// would race with Core 1's rendering loop and corrupt the RMT peripheral
+		pendingClearEffects.store(true);
 
 		// Seed random number generator with unique values per driver
 		IPAddress ip = WiFi.localIP();

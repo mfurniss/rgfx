@@ -167,8 +167,8 @@ export interface DriverTelemetry {
     totalUs: number;
   };
 
-  // Note: LED configuration is managed by Hub (in Driver.ledConfig)
-  // and pushed to drivers via MQTT - not reported in telemetry
+  // LED health status (false = RMT peripheral appears corrupted, needs restart)
+  ledHealthy?: boolean;
 }
 
 /**
