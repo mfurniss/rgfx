@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FirmwarePage from '../firmware-page';
+import { useDriverStore } from '../../store/driver-store';
 import { useUiStore } from '../../store/ui-store';
 import { useFlashState } from '../../hooks/use-flash-state';
 
@@ -104,8 +105,27 @@ vi.mock('../../services/ota-flash-service', () => ({
   generateResultMessage: vi.fn(),
 }));
 
+const defaultDriverStoreImpl = ((selector: any) => {
+  const state = { drivers: [] };
+  return selector(state);
+}) as any;
+
+const defaultUiStoreImpl = ((selector: any) => {
+  const state = {
+    firmwareFlashMethod: 'usb',
+    firmwareDriverFlashStatus: {},
+    setFirmwareState: vi.fn(),
+    setFirmwareDriverFlashStatus: vi.fn(),
+    isFlashingFirmware: false,
+    setIsFlashingFirmware: vi.fn(),
+  };
+  return selector(state);
+}) as any;
+
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(useDriverStore).mockImplementation(defaultDriverStoreImpl);
+  vi.mocked(useUiStore).mockImplementation(defaultUiStoreImpl);
 });
 
 afterEach(() => {
@@ -183,6 +203,112 @@ describe('FirmwarePage', () => {
       fireEvent.click(screen.getByText('OTA WiFi'));
 
       expect(screen.getByText(/Update firmware on already-configured drivers over WiFi/)).toBeDefined();
+    });
+  });
+
+  describe('default tab selection', () => {
+    it('defaults to USB when no drivers exist', () => {
+      render(<FirmwarePage />);
+
+      // USB content should be visible
+      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
+      expect(screen.queryByTestId('target-drivers-picker')).toBeNull();
+    });
+
+    it('switches to OTA when configured drivers load', () => {
+      // Start with no drivers
+      const { rerender } = render(<FirmwarePage />);
+      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
+
+      // Simulate drivers arriving via IPC
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = {
+          drivers: [{ id: 'rgfx-driver-0001', state: 'disconnected' }],
+        };
+        return selector(state);
+      }) as any);
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        const state = {
+          firmwareFlashMethod: 'ota',
+          firmwareDriverFlashStatus: {},
+          setFirmwareState: vi.fn(),
+          setFirmwareDriverFlashStatus: vi.fn(),
+          isFlashingFirmware: false,
+          setIsFlashingFirmware: vi.fn(),
+        };
+        return selector(state);
+      }) as any);
+
+      rerender(<FirmwarePage />);
+
+      // OTA content should now be visible
+      expect(screen.getByTestId('target-drivers-picker')).toBeDefined();
+      expect(screen.queryByTestId('serial-port-selector')).toBeNull();
+    });
+
+    it('respects user tab choice when drivers load later', () => {
+      // Start with no drivers, showing USB
+      const { rerender } = render(<FirmwarePage />);
+      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
+
+      // User clicks OTA then back to USB (manual choice)
+      fireEvent.click(screen.getByText('OTA WiFi'));
+      fireEvent.click(screen.getByText('USB Serial'));
+      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
+
+      // Drivers arrive - should NOT override the user's manual choice
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = {
+          drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
+        };
+        return selector(state);
+      }) as any);
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        const state = {
+          firmwareFlashMethod: 'ota',
+          firmwareDriverFlashStatus: {},
+          setFirmwareState: vi.fn(),
+          setFirmwareDriverFlashStatus: vi.fn(),
+          isFlashingFirmware: false,
+          setIsFlashingFirmware: vi.fn(),
+        };
+        return selector(state);
+      }) as any);
+
+      rerender(<FirmwarePage />);
+
+      // Should still show USB because user manually selected it
+      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
+      expect(screen.queryByTestId('target-drivers-picker')).toBeNull();
+    });
+
+    it('defaults to OTA when drivers exist and storedFlashMethod is ota', () => {
+      // Drivers already present on first render
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = {
+          drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
+        };
+        return selector(state);
+      }) as any);
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        const state = {
+          firmwareFlashMethod: 'ota',
+          firmwareDriverFlashStatus: {},
+          setFirmwareState: vi.fn(),
+          setFirmwareDriverFlashStatus: vi.fn(),
+          isFlashingFirmware: false,
+          setIsFlashingFirmware: vi.fn(),
+        };
+        return selector(state);
+      }) as any);
+
+      render(<FirmwarePage />);
+
+      expect(screen.getByTestId('target-drivers-picker')).toBeDefined();
+      expect(screen.queryByTestId('serial-port-selector')).toBeNull();
     });
   });
 
