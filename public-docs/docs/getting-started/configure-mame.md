@@ -40,16 +40,23 @@ Replace `pacman` with any ROM name and adjust the path to match where you instal
 !!! tip "ROM names"
     The ROM name is the filename of your ROM file without the extension — for example, `pacman.zip` has the ROM name `pacman`. This is the same name MAME uses on the command line.
 
-### macOS Launch Script
+### Launch Scripts
 
-RGFX also includes a convenience shell script at `RGFX Hub.app/Contents/MacOS/launch-mame.sh` that handles the `-autoboot_script` path automatically:
+RGFX includes convenience launch scripts that handle the `-autoboot_script` path automatically:
+
+**macOS:**
 
 ```bash
-# From the RGFX Hub app bundle:
 "/Applications/RGFX Hub.app/Contents/MacOS/launch-mame.sh" pacman
 ```
 
-The script finds `rgfx.lua` in the app bundle, locates your MAME installation, and launches the game with the correct flags.
+**Windows:**
+
+```
+"C:\Program Files\RGFX Hub\launch-mame.bat" pacman
+```
+
+The scripts find `rgfx.lua` in the app bundle, locate your MAME installation, and launch the game with the correct flags.
 
 ## Frontend Integration
 
@@ -57,11 +64,17 @@ RGFX works with any emulation frontend — LaunchBox, AttractMode, EmulationStat
 
 To configure your frontend, add the `-autoboot_script` argument to your MAME emulator settings. Most frontends have a field for additional command-line arguments. Add:
 
+**macOS:**
 ```
--autoboot_script "/path/to/RGFX Hub.app/Contents/Resources/mame/rgfx.lua"
+-autoboot_script "/Applications/RGFX Hub.app/Contents/Resources/mame/rgfx.lua"
 ```
 
-Adjust the path for your platform and installation location. The frontend doesn't need to know anything else about RGFX — the script handles everything from there.
+**Windows:**
+```
+-autoboot_script "C:\Program Files\RGFX Hub\resources\mame\rgfx.lua"
+```
+
+Adjust the path to match where you installed RGFX Hub. The frontend doesn't need to know anything else about RGFX — the script handles everything from there.
 
 ## What Happens at Launch
 

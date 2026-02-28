@@ -75,14 +75,9 @@ Launch MAME with RGFX monitoring:
 ./scripts/launch-mame.sh pacman
 ```
 
-**Windows (Git Bash or WSL):**
-```bash
-./scripts/launch-mame.sh pacman
+**Windows:**
 ```
-
-**Windows (manual):**
-```powershell
-mame pacman -rompath ~/mame-roms -window -autoboot_script path\to\rgfx-hub\assets\mame\rgfx.lua
+scripts\launch-mame.bat pacman
 ```
 
 Use the Hub's **Event Monitor** to see events in real time, or the **Simulator** to test effects without hardware.
@@ -140,7 +135,7 @@ pip install platformio
 # Install luacheck and stylua via LuaRocks or download binaries from GitHub
 ```
 
-> **Windows note:** RGFX is primarily developed on macOS. The Hub and ESP32 firmware work cross-platform, but the MAME launch script (`scripts/launch-mame.sh`) is a bash script. On Windows, use **Git Bash**, **WSL**, or run MAME manually with the `-autoboot_script` flag pointing to `rgfx-hub/assets/mame/rgfx.lua`.
+> **Windows note:** RGFX is primarily developed on macOS. The Hub and ESP32 firmware work cross-platform. Launch scripts are provided for both platforms: `scripts/launch-mame.sh` (macOS) and `scripts/launch-mame.bat` (Windows).
 
 ### Clone and Install
 

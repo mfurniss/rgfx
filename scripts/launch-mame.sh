@@ -41,7 +41,6 @@ RGFX_LUA="$(cd "$(dirname "$RGFX_LUA")" && pwd)/$(basename "$RGFX_LUA")"
 # Find MAME executable
 if command -v mame &> /dev/null; then
     MAME_EXEC="$(command -v mame)"
-    MAME_DIR="$(dirname "$MAME_EXEC")"
 else
     echo "Error: 'mame' command not found in PATH"
     echo ""
@@ -51,6 +50,7 @@ else
 fi
 
 # Change to MAME home directory so relative paths in mame.ini (inp, snap, cfg, etc.) resolve here
+mkdir -p "$HOME/.mame"
 cd "$HOME/.mame" || exit 1
 
 # Parse ROM name from args (first non-flag argument)
@@ -87,16 +87,14 @@ echo "  Game: $GAME_NAME"
 echo ""
 
 # Run MAME with autoboot script using absolute path to the script
-# Vector settings loaded from ~/.mame/vector.ini (requires -video opengl)
 "$MAME_EXEC" "$@" \
   -rompath ~/mame-roms \
-  -pluginspath "$MAME_DIR/plugins" \
   -window -nomaximize -skip_gameinfo \
-  -video bgfx \
   -autoboot_script "$RGFX_LUA"
 MAME_EXIT_CODE=$?
 
 # Emit shutdown event after MAME exits (catches all exit methods: quit, crash, force quit)
+mkdir -p "$(dirname "$EVENT_LOG")"
 if [[ -n "$GAME_NAME" ]]; then
     printf '%s\n' "rgfx/mame-exit $GAME_NAME" >> "$EVENT_LOG"
 else
