@@ -89,32 +89,20 @@ def get_file_info(filepath, address):
     }
 
 
-def get_variant_version(hub_firmware_dir, chip_suffix):
+def get_variant_version(hub_firmware_dir, chip):
     """
-    Get the version for a specific chip variant from its versioned firmware file.
+    Get the version for a specific chip variant from the existing manifest.
 
-    Looks for files matching pattern: rgfx-firmware-{chip_suffix}.{version}.bin
-    Returns the version string, or None if not found.
+    Returns the full version string (including content hash), or None if not found.
     """
-    pattern = f'rgfx-firmware-{chip_suffix}.*.bin'
-    matches = list(hub_firmware_dir.glob(pattern))
-
-    if not matches:
+    manifest_path = hub_firmware_dir / 'manifest.json'
+    if not manifest_path.exists():
         return None
-
-    # Should only be one versioned file per variant (old ones are deleted on build)
-    versioned_file = matches[0]
-
-    # Extract version from filename: rgfx-firmware-esp32s3.0.1.0-dev+hash.bin -> 0.1.0-dev+hash
-    filename = versioned_file.name
-    prefix = f'rgfx-firmware-{chip_suffix}.'
-    suffix = '.bin'
-
-    if filename.startswith(prefix) and filename.endswith(suffix):
-        version = filename[len(prefix):-len(suffix)]
-        return version
-
-    return None
+    try:
+        manifest = json.loads(manifest_path.read_text())
+        return manifest.get('variants', {}).get(chip, {}).get('version')
+    except (json.JSONDecodeError, IOError):
+        return None
 
 
 def generate_multi_chip_manifest(hub_firmware_dir, current_build_version, current_build_chip=None):
@@ -163,7 +151,7 @@ def generate_multi_chip_manifest(hub_firmware_dir, current_build_version, curren
         if current_build_chip and chip == current_build_chip:
             variant_version = current_build_version
         else:
-            variant_version = get_variant_version(hub_firmware_dir, chip_suffix)
+            variant_version = get_variant_version(hub_firmware_dir, chip)
             if not variant_version:
                 # Fallback to current build version if no versioned file exists
                 variant_version = current_build_version
@@ -249,7 +237,9 @@ def copy_variant_to_hub(project_root, build_dir, env_name):
     version = get_version(project_root)
     firmware_src = build_dir / 'firmware.bin'
     if firmware_src.exists():
-        versioned_name = f'rgfx-firmware-{chip_suffix}.{version}.bin'
+        # Use tag version only for filename (content hash changes on non-code edits)
+        tag_version = version.split('+')[0]
+        versioned_name = f'rgfx-firmware-{chip_suffix}.{tag_version}.bin'
         versioned_path = hub_firmware_dir / versioned_name
 
         if files_are_identical(firmware_src, versioned_path):
