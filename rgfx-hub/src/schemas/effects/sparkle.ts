@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createNoOpCleaner } from './properties';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomInt, randomColor, randomFloat } from '@/utils/random';
@@ -7,6 +8,8 @@ import { hslToHex } from '@/renderer/utils/color';
 import defaults from './defaults.json';
 
 const d = defaults.sparkle;
+
+export const cleanCodeProps = createNoOpCleaner({ reset: false });
 
 export const fieldTypes: FieldTypeMap = {
   gradient: 'gradientArray',

@@ -30,6 +30,7 @@ export {
   effectRandomizers,
   effectPresetConfigs,
   effectFieldTypes,
+  effectFormDefaults,
   effectLayoutConfigs,
   isEffectName,
   safeValidateEffectProps,

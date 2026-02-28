@@ -17,18 +17,25 @@ import {
 const mockSetTestEffectsState = vi.fn();
 const mockTriggerEffect = vi.fn().mockResolvedValue(undefined);
 
+interface MockDriver {
+  id: string;
+  ip?: string;
+  state: 'connected' | 'disconnected';
+  telemetry: { chipModel: string };
+}
+
+let mockDrivers: MockDriver[] = [
+  {
+    id: 'driver-1',
+    ip: '192.168.1.100',
+    state: 'connected',
+    telemetry: { chipModel: 'ESP32' },
+  },
+];
+
 vi.mock('../../../store/driver-store', () => ({
   useDriverStore: vi.fn((selector) =>
-    selector({
-      drivers: [
-        {
-          id: 'driver-1',
-          ip: '192.168.1.100',
-          state: 'connected',
-          telemetry: { chipModel: 'ESP32' },
-        },
-      ],
-    }),
+    selector({ drivers: mockDrivers }),
   ),
 }));
 
@@ -122,6 +129,14 @@ describe('TestEffectsPage', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    mockDrivers = [
+      {
+        id: 'driver-1',
+        ip: '192.168.1.100',
+        state: 'connected',
+        telemetry: { chipModel: 'ESP32' },
+      },
+    ];
     (
       window as unknown as {
         rgfx: Record<string, unknown>;
@@ -134,6 +149,80 @@ describe('TestEffectsPage', () => {
   afterEach(() => {
     vi.useRealTimers();
     cleanup();
+  });
+
+  describe('driver auto-selection', () => {
+    it('should auto-select drivers that reconnect', () => {
+      // Start with two connected drivers
+      mockDrivers = [
+        {
+          id: 'driver-1',
+          ip: '192.168.1.100',
+          state: 'connected',
+          telemetry: { chipModel: 'ESP32' },
+        },
+        {
+          id: 'driver-2',
+          ip: '192.168.1.101',
+          state: 'connected',
+          telemetry: { chipModel: 'ESP32' },
+        },
+      ];
+
+      const { rerender } = renderPage();
+
+      // driver-2 goes offline
+      mockDrivers = [
+        {
+          id: 'driver-1',
+          ip: '192.168.1.100',
+          state: 'connected',
+          telemetry: { chipModel: 'ESP32' },
+        },
+        {
+          id: 'driver-2',
+          state: 'disconnected',
+          telemetry: { chipModel: 'ESP32' },
+        },
+      ];
+
+      rerender(
+        <MemoryRouter>
+          <TestEffectsPage />
+        </MemoryRouter>,
+      );
+
+      // driver-2 comes back online
+      mockDrivers = [
+        {
+          id: 'driver-1',
+          ip: '192.168.1.100',
+          state: 'connected',
+          telemetry: { chipModel: 'ESP32' },
+        },
+        {
+          id: 'driver-2',
+          ip: '192.168.1.101',
+          state: 'connected',
+          telemetry: { chipModel: 'ESP32' },
+        },
+      ];
+
+      rerender(
+        <MemoryRouter>
+          <TestEffectsPage />
+        </MemoryRouter>,
+      );
+
+      // Store should have been called with both drivers selected
+      const lastCall =
+        mockSetTestEffectsState.mock.calls[
+          mockSetTestEffectsState.mock.calls.length - 1
+        ];
+      const selectedDrivers = lastCall[2] as Set<string>;
+      expect(selectedDrivers.has('driver-1')).toBe(true);
+      expect(selectedDrivers.has('driver-2')).toBe(true);
+    });
   });
 
   describe('debounced form updates', () => {

@@ -71,6 +71,30 @@ export function trackedInterval(fn, ms) {
 }
 
 /**
+ * Create a debounced version of a function that suppresses repeated calls
+ * within a cooldown period (leading-edge). Uses trackedTimeout so the
+ * internal timer is cancelled on game exit.
+ *
+ * @param {Function} fn - Function to debounce
+ * @param {number} ms - Cooldown period in milliseconds
+ * @returns {Function} Debounced function — invokes fn on first call, suppresses subsequent calls until cooldown expires
+ *
+ * @example
+ * const explode = debounce((color) => { broadcast({ color }); }, 500);
+ * explode('red');  // fires
+ * explode('blue'); // suppressed (within 500ms)
+ */
+export function debounce(fn, ms) {
+  let ready = true;
+  return (...args) => {
+    if (!ready) return;
+    ready = false;
+    trackedTimeout(() => { ready = true; }, ms);
+    fn(...args);
+  };
+}
+
+/**
  * Cancel all pending sleep(), trackedTimeout(), and trackedInterval() timers.
  * Sleep promises will never resolve — their async chains stop in place.
  * Called by the transformer engine on game exit.

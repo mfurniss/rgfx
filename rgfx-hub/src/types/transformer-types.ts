@@ -14,8 +14,8 @@ export interface GifBitmapResult {
   /** Array of frames, each frame is array of row strings using hex chars (0-F) */
   images: string[][];
 
-  /** Array of up to 16 hex color strings extracted from the GIF */
-  palette: string[];
+  /** Array of up to 16 hex color strings (optional for sprites using default PICO-8 palette) */
+  palette?: string[];
 
   /** Width of the GIF in pixels */
   width: number;
@@ -228,6 +228,9 @@ export interface TransformerContext {
 
   /** Load an animated GIF and convert to bitmap effect format */
   loadGif(path: string): Promise<GifBitmapResult>;
+
+  /** Load a JSON sprite file extracted from ROM data */
+  loadSprite(path: string): Promise<GifBitmapResult>;
 
   /**
    * Parse ambilight payload (12-bit colors) to background effect gradient props

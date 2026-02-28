@@ -1,10 +1,12 @@
 import { z } from 'zod';
-import { baseEffect } from './properties';
+import { baseEffect, createNoOpCleaner } from './properties';
 import { randomColor, randomFloat, randomInt, randomString } from '@/utils/random';
 import { roundFloat } from '@/utils/math';
 import defaults from './defaults.json';
 
 const d = defaults.projectile;
+
+export const cleanCodeProps = createNoOpCleaner({ reset: false, particleDensity: 0 });
 
 export function randomize(): Record<string, unknown> {
   return {

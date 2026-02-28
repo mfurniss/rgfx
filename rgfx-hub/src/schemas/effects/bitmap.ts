@@ -1,11 +1,19 @@
 import { z } from 'zod';
-import { baseEffect, centerX, centerY, easing } from './properties';
+import { baseEffect, centerX, centerY, easing, removeDefaultNoOps } from './properties';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import type { CodeGenerator, CodePropsTransform } from '@/renderer/pages/effects-playground/utils/code-generator';
+import type { LayoutConfig } from './index';
 import { randomInt } from '@/utils/random';
 import { spritePresets } from '@/utils/sprite-presets';
 import defaults from './defaults.json';
 
 const d = defaults.bitmap;
+
+/** Extra defaults for the playground form (not schema defaults — optional on the wire). */
+export const formDefaults: Record<string, unknown> = {
+  endX: 'random',
+  endY: 'random',
+};
 
 export const fieldTypes: FieldTypeMap = {
   centerX: 'centerXY',
@@ -16,6 +24,15 @@ export const fieldTypes: FieldTypeMap = {
   images: 'spritePreset',
 };
 
+export const layoutConfig: LayoutConfig = [
+  ['reset'],        ['images'],
+  ['centerX'],      ['centerY'],
+  ['endX'],         ['endY'],
+  ['duration'],     ['easing'],
+  ['fadeIn'],       ['fadeOut'],
+  ['frameRate'],
+];
+
 export function randomize(): Record<string, unknown> {
   // Randomly select one of the sprite presets
   const randomPreset = spritePresets[randomInt(0, spritePresets.length - 1)];
@@ -24,6 +41,64 @@ export function randomize(): Record<string, unknown> {
     images: [randomPreset.image], // Wrap in array for multi-frame format
   };
 }
+
+export const cleanCodeProps: CodePropsTransform = (props) => {
+  const clean = removeDefaultNoOps(props, {
+    reset: false, endX: 'random', endY: 'random',
+  });
+
+  // Easing only applies to movement — exclude when no end position
+  if (clean.endX == null && clean.endY == null) {
+    delete clean.easing;
+  }
+
+  return clean;
+};
+
+export const generateCode: CodeGenerator = (props, drivers, isAllDrivers, formatValue) => {
+  const gifPath = props.__gifPath as string | undefined;
+
+  if (!gifPath) {
+    return null;
+  }
+
+  const otherProps: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(props)) {
+    if (!['images', 'palette', 'frameRate', '__gifPath'].includes(key)) {
+      otherProps[key] = value;
+    }
+  }
+
+  const lines: string[] = [
+    'let sprite;',
+    '',
+    'if (!sprite) {',
+    `  sprite = await loadGif('${gifPath}');`,
+    '}',
+    '',
+    'broadcast({',
+    "  effect: 'bitmap',",
+  ];
+
+  if (!isAllDrivers && drivers.length > 0) {
+    lines.push(`  drivers: ${formatValue(drivers, 1)},`);
+  }
+
+  lines.push('  props: {');
+  lines.push('    images: sprite.images,');
+  lines.push('    palette: sprite.palette,');
+  lines.push('    ...(sprite.frameRate && { frameRate: sprite.frameRate }),');
+
+  for (const [key, value] of Object.entries(otherProps)) {
+    lines.push(`    ${key}: ${formatValue(value, 2)},`);
+  }
+
+  lines.push('  },');
+  lines.push('});');
+
+  return lines.join('\n');
+};
 
 // Hex color string for palette entries
 const paletteColorSchema = z.string().regex(

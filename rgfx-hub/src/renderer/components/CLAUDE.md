@@ -76,6 +76,20 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### SystemErrors
+
+**File:** [system/system-errors.tsx](system/system-errors.tsx)
+
+**Purpose:** Sortable table displaying system errors on the System Status page.
+
+**Features:**
+- Columns: Time, Error Type, Message
+- Renders optional `filePath` and `details` fields below the message when present
+- Details rendered as `<pre>` for stack trace readability
+- Shows success alert when no errors
+
+---
+
 ### SystemStatus
 
 **File:** [system-status.tsx](system-status.tsx)
@@ -208,9 +222,12 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Connected: green chip, Disconnected: red chip
+- Disabled: grey chip (takes precedence over connection state)
 - Orange warning icon when firmware update available (chip-aware version comparison)
+- Orange warning icon when LED hardware not configured
+- Red warning icon when `telemetry.ledHealthy === false` (RMT output failure)
 - Uses `mapChipNameToVariant()` to match driver's chip model to correct target version
-- Clicking warning navigates to firmware page
+- Clicking firmware warning navigates to firmware page; clicking config warning navigates to driver config
 
 ---
 
@@ -565,6 +582,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Integrates with react-hook-form Controller
 - Shows validation errors from form state
 - Uses `field-utils.ts` for label formatting and tooltips
+
+### CenterField
+
+**File:** [effect-form/fields/center-field.tsx](effect-form/fields/center-field.tsx)
+
+**Purpose:** Input field for center/position coordinates that accept a number (0-100) or the string 'random'.
+
+**Features:**
+- Validates input against `z.union([z.literal('random'), z.number()])`
+- Emits `undefined` when cleared (not empty string) so optional schema fields validate correctly
+- Used for bitmap centerX/centerY/endX/endY and explode centerX/centerY
+
+---
 
 ### ColorPicker
 

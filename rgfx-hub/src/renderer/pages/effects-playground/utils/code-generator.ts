@@ -1,49 +1,16 @@
+import { effectCodeGenerators, effectCodePropsTransforms } from '@/schemas/effects';
 import { createValueFormatter, type ValueFormatter } from './value-formatter';
 
-function generateGifBitmapCode(
-  gifPath: string,
+/** Full override of code generation for an effect. Return null to fall through to generic. */
+export type CodeGenerator = (
   props: Record<string, unknown>,
   drivers: string[],
   isAllDrivers: boolean,
   formatValue: ValueFormatter,
-): string {
-  const otherProps: Record<string, unknown> = {};
+) => string | null;
 
-  for (const [key, value] of Object.entries(props)) {
-    if (!['images', 'palette', 'frameRate', '__gifPath'].includes(key)) {
-      otherProps[key] = value;
-    }
-  }
-
-  const lines: string[] = [
-    'let sprite;',
-    '',
-    'if (!sprite) {',
-    `  sprite = await loadGif('${gifPath}');`,
-    '}',
-    '',
-    'broadcast({',
-    "  effect: 'bitmap',",
-  ];
-
-  if (!isAllDrivers && drivers.length > 0) {
-    lines.push(`  drivers: ${formatValue(drivers, 1)},`);
-  }
-
-  lines.push('  props: {');
-  lines.push('    images: sprite.images,');
-  lines.push('    palette: sprite.palette,');
-  lines.push('    ...(sprite.frameRate && { frameRate: sprite.frameRate }),');
-
-  for (const [key, value] of Object.entries(otherProps)) {
-    lines.push(`    ${key}: ${formatValue(value, 2)},`);
-  }
-
-  lines.push('  },');
-  lines.push('});');
-
-  return lines.join('\n');
-}
+/** Transform props before code generation (e.g. strip irrelevant fields). */
+export type CodePropsTransform = (props: Record<string, unknown>) => Record<string, unknown>;
 
 export function generateBroadcastCode(
   effect: string,
@@ -53,18 +20,29 @@ export function generateBroadcastCode(
 ): string {
   const formatValue = createValueFormatter();
 
-  // Check if this is a bitmap effect with a loaded GIF
-  const gifPath = props.__gifPath as string | undefined;
-  const isGifBitmap = effect === 'bitmap' && gifPath;
+  // Apply per-effect prop transformations first
+  let cleanProps = { ...props };
+  const transform = effectCodePropsTransforms[effect];
 
-  if (isGifBitmap) {
-    // Generate loadGif-based code for GIF bitmaps
-    return generateGifBitmapCode(gifPath, props, drivers, isAllDrivers, formatValue);
+  if (transform) {
+    cleanProps = transform(cleanProps);
   }
 
-  // Strip internal markers before generating code
-  const cleanProps = { ...props };
-  delete cleanProps.__gifPath;
+  // Check for per-effect code generation override
+  const customGenerator = effectCodeGenerators[effect];
+
+  if (customGenerator) {
+    const result = customGenerator(cleanProps, drivers, isAllDrivers, formatValue);
+
+    if (result) {
+      return result;
+    }
+  }
+
+  // Strip internal markers (__ prefixed props)
+  cleanProps = Object.fromEntries(
+    Object.entries(cleanProps).filter(([key]) => !key.startsWith('__')),
+  );
 
   // Exclude color when gradient is present (gradient overrides color)
   // Handle both array format (plasma, text) and object format (background)

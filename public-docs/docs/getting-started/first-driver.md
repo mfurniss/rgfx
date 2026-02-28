@@ -11,7 +11,7 @@ Plug your ESP32 development board into your computer using a USB cable.
 
 ## Flash the Firmware
 
-1. In RGFX Hub, go to **Firmware** in the sidebar
+1. In RGFX Hub, go to [**Firmware**](../hub-app/firmware.md) in the sidebar
 2. Select **USB Serial** as the update method
 3. Choose the serial port from the dropdown
 4. Click **Update Firmware** and wait for completion
@@ -30,14 +30,14 @@ After flashing:
 
 ![Configure driver WiFi](../assets/images/configure-driver-wifi.png){ width="50%" }
 
-The ESP32 reboots and joins your network. Once connected, the driver appears on the Hub's **Drivers** page with a green "Connected" status.
+The ESP32 reboots and joins your network. Once connected, the driver appears on the Hub's [**Drivers**](../hub-app/drivers.md) page with a green "Connected" status.
 
 ## Configure LED Hardware
 
 Now tell the driver what LEDs are connected to it:
 
 1. Click on your driver in the [Drivers](../hub-app/drivers.md) list
-2. Click **Configure Driver**
+2. Click [**Configure Driver**](../hardware/configure.md)
 3. Select your LED hardware definition from the dropdown (or add a custom one)
 4. Set the **GPIO pin** connected to your LED data line (default: 16)
 5. Adjust **brightness** and **power limits** to match your setup

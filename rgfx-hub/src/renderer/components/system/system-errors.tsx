@@ -77,6 +77,29 @@ export const SystemErrors: React.FC<SystemErrorsProps> = ({ errors }) => {
                   >
                     {err.message}
                   </Typography>
+                  {err.filePath && (
+                    <Typography
+                      variant="caption"
+                      sx={{ fontFamily: 'monospace', color: 'text.secondary', display: 'block', mt: 0.5 }}
+                    >
+                      {err.filePath}
+                    </Typography>
+                  )}
+                  {err.details && (
+                    <Typography
+                      variant="caption"
+                      component="pre"
+                      sx={{
+                        fontFamily: 'monospace',
+                        color: 'text.secondary',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        mt: 0.5,
+                      }}
+                    >
+                      {err.details}
+                    </Typography>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

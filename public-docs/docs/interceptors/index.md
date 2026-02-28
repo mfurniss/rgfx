@@ -13,7 +13,7 @@ Interceptors go far beyond simple memory monitoring. They:
 - **Track game state** — Interceptors know whether you're in attract mode, actively playing, or between levels, and can track progression through the game.
 - **Sample screen colors** — The ambilight feature captures colors from screen edges to create ambient lighting effects.
 - **Analyze audio** — The FFT module performs real-time frequency analysis of game audio for sound-reactive lighting.
-- **Handle timing** — Boot delays let interceptors skip past hardware tests and attract modes before monitoring begins.
+- **Handle timing** — Boot delays suppress events during the power-on self test, preventing false triggers before gameplay begins.
 
 ## How the System Works
 

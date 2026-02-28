@@ -4,6 +4,7 @@ import {
   randomInt,
   hslToRgb,
   trackedTimeout,
+  debounce,
 } from '../utils/index.js';
 
 import {
@@ -11,6 +12,26 @@ import {
   NAMED_DRIVERS,
   SECONDARY_MATRIX_DRIVERS,
 } from '../global.js';
+
+const smallExplosion = debounce((broadcast, color, delta) => {
+  broadcast({
+    effect: 'explode',
+    drivers: MATRIX_DRIVERS,
+    props: {
+      color,
+      centerX: 'random',
+      centerY: 'random',
+      particleCount: Math.min(delta, 500),
+      power: 150 + delta / 5,
+      lifespan: 320 + delta,
+      powerSpread: Math.max(30, Math.min(90, Math.round(delta / 3))),
+      particleSize: 4,
+      hueSpread: 50,
+      friction: 3,
+      lifespanSpread: 40,
+    },
+  });
+}, 500);
 
 const STARFIELD_DRIVERS = [
   ...MATRIX_DRIVERS,
@@ -30,7 +51,7 @@ export async function transform(
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         text: formatNumber(score),
-        gradient: ['#A0A0A0'],
+        gradient: ['#808080'],
         accentColor: '#000000',
         duration: 6000,
         reset: true,
@@ -105,7 +126,9 @@ export async function transform(
   }
 
   if (subject === 'screen' && property === 'text') {
-    if (payload === 'START!' || payload === 'READY') {
+    if (payload === 'DIMENSION WARP') {
+      particleWarp();
+    } else if (payload === 'START!' || payload === 'READY') {
       broadcast({
         effect: 'text',
         drivers: [NAMED_DRIVERS.primaryMatrix],
@@ -271,23 +294,29 @@ export async function transform(
       log.warn('unknown enemy type', qualifier, delta);
     }
 
-    broadcast({
-      effect: 'explode',
-      drivers: MATRIX_DRIVERS,
-      props: {
-        color: colors[qualifier] ?? '#409040',
-        centerX: 'random',
-        centerY: 'random',
-        particleCount: Math.min(delta, 500),
-        power: 150 + delta / 5,
-        lifespan: 320 + delta,
-        powerSpread: Math.max(30, Math.min(90, Math.round(delta / 3))),
-        particleSize: 4,
-        hueSpread: 50,
-        friction: 3,
-        lifespanSpread: 40,
-      },
-    });
+    const color = colors[qualifier] ?? '#409040';
+
+    if (delta === 100) {
+      smallExplosion(broadcast, color, delta);
+    } else {
+      broadcast({
+        effect: 'explode',
+        drivers: MATRIX_DRIVERS,
+        props: {
+          color,
+          centerX: 'random',
+          centerY: 'random',
+          particleCount: Math.min(delta, 500),
+          power: 150 + delta / 5,
+          lifespan: 320 + delta,
+          powerSpread: Math.max(30, Math.min(90, Math.round(delta / 3))),
+          particleSize: 4,
+          hueSpread: 50,
+          friction: 3,
+          lifespanSpread: 40,
+        },
+      });
+    }
 
     if (delta > 500 && delta <= 9999) {
       await sleep(150);

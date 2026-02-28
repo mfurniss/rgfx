@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { baseEffect, easing } from './properties';
+import { baseEffect, easing, createNoOpCleaner } from './properties';
 import defaults from './defaults.json';
 
 const d = defaults.pulse;
+
+export const cleanCodeProps = createNoOpCleaner({ reset: false });
 
 export function randomize(): Record<string, unknown> {
   return {};

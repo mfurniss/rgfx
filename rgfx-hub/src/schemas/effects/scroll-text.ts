@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { baseEffect } from './properties';
+import { baseEffect, createNoOpCleaner } from './properties';
 import { MAX_GRADIENT_COLORS } from '@/config/constants';
 import { colorStringSchema } from './properties/color';
 import { randomColor, randomInt, randomGradient, randomFloat } from '@/utils/random';
@@ -8,6 +8,10 @@ import type { PresetConfig, LayoutConfig } from './index';
 import defaults from './defaults.json';
 
 const d = defaults.scroll_text;
+
+export const cleanCodeProps = createNoOpCleaner({
+  reset: true, accentColor: null, repeat: false, snapToLed: true,
+});
 
 export const fieldTypes: FieldTypeMap = {
   accentColor: 'color',

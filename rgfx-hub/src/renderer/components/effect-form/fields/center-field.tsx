@@ -31,7 +31,7 @@ export function CenterField<T extends FieldValues>({
           const val = e.target.value.trim().toLowerCase();
 
           if (val === '' || val === 'random') {
-            field.onChange(val === '' ? '' : 'random');
+            field.onChange(val === '' ? undefined : 'random');
           } else {
             const num = parseFloat(val);
             field.onChange(isNaN(num) ? val : num);

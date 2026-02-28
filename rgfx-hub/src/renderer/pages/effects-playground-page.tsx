@@ -28,7 +28,7 @@ import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
 import type { EffectPayload } from '@/types/transformer-types';
-import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, effectLayoutConfigs, isEffectName } from '@/schemas';
+import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, effectFormDefaults, effectLayoutConfigs, isEffectName } from '@/schemas';
 import type { PresetData } from '@/schemas';
 import { EffectForm } from '../components/effect-form';
 import { PresetSelectorModal } from '../components/effect-form/preset-selector-modal';
@@ -61,6 +61,17 @@ export default function TestEffectsPage() {
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
   const stripLifespanScale = useUiStore((state) => state.stripLifespanScale);
 
+  const getDefaultProps = useCallback((effect: string) => {
+    if (!isEffectName(effect)) {
+      return '{}';
+    }
+    const schemaDefaults = effectPropsSchemas[effect].parse({});
+    const extras = effectFormDefaults[effect];
+    return JSON.stringify(
+      extras ? { ...schemaDefaults, ...extras } : schemaDefaults, null, 2,
+    );
+  }, []);
+
   // Get props JSON for current effect, falling back to defaults if not in map
   const propsJson = useMemo(() => {
     const savedProps = propsMap[selectedEffect];
@@ -69,12 +80,8 @@ export default function TestEffectsPage() {
       return savedProps;
     }
 
-    if (isEffectName(selectedEffect)) {
-      return JSON.stringify(effectPropsSchemas[selectedEffect].parse({}), null, 2);
-    }
-
-    return '{}';
-  }, [propsMap, selectedEffect]);
+    return getDefaultProps(selectedEffect);
+  }, [propsMap, selectedEffect, getDefaultProps]);
 
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     new Set(connectedDrivers.map((d) => d.id)),
@@ -119,22 +126,20 @@ export default function TestEffectsPage() {
   const propsJsonRef = useRef(propsJson);
   propsJsonRef.current = propsJson;
 
-  // Remove disconnected drivers from selection (but don't auto-select new ones).
+  // Auto-select reconnected drivers and remove disconnected ones from selection.
   // Reads current values from refs so the effect only fires on actual connection changes.
   useEffect(() => {
     const connectedIds = new Set(connectedDriverIds);
     const currentSelection = selectedDriversRef.current;
-    const stillConnected = new Set(
-      Array.from(currentSelection).filter((id) => connectedIds.has(id)),
-    );
 
-    if (stillConnected.size !== currentSelection.size) {
-      setSelectedDrivers(stillConnected);
-      setTestEffectsState(
-        selectedEffectRef.current,
-        propsJsonRef.current,
-        stillConnected,
-      );
+    const updated = new Set(connectedIds);
+
+    const changed = updated.size !== currentSelection.size
+      || !Array.from(updated).every((id) => currentSelection.has(id));
+
+    if (changed) {
+      setSelectedDrivers(updated);
+      setTestEffectsState(selectedEffectRef.current, propsJsonRef.current, updated);
     }
   }, [connectedDriverIds, setTestEffectsState]);
 
@@ -142,8 +147,7 @@ export default function TestEffectsPage() {
     if (effect !== selectedEffect && isEffectName(effect)) {
       // Get saved props for this effect, or use defaults
       const savedProps = propsMap[effect];
-      const defaultProps = JSON.stringify(effectPropsSchemas[effect].parse({}), null, 2);
-      setTestEffectsState(effect, savedProps || defaultProps, selectedDrivers);
+      setTestEffectsState(effect, savedProps || getDefaultProps(effect), selectedDrivers);
     }
   };
 
@@ -190,8 +194,7 @@ export default function TestEffectsPage() {
 
   const handleResetToDefaults = () => {
     if (isEffectName(selectedEffect)) {
-      const defaultProps = JSON.stringify(effectPropsSchemas[selectedEffect].parse({}), null, 2);
-      setTestEffectsState(selectedEffect, defaultProps, selectedDrivers);
+      setTestEffectsState(selectedEffect, getDefaultProps(selectedEffect), selectedDrivers);
     }
   };
 

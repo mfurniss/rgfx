@@ -1,3 +1,5 @@
+/* Always use CSS nesting (&) for descendant selectors */
+
 .md-header {
   background-color: #1a1a1a;
 }
@@ -17,22 +19,24 @@
 }
 
 /* Dark background for glightbox overlay */
-.glightbox-clean .gslide-media {
-  box-shadow: none;
-}
+.glightbox-clean {
+  & .gslide-media {
+    box-shadow: none;
+  }
 
-.glightbox-clean .goverlay {
-  background: rgba(0, 0, 0, 0.9);
-}
+  & .goverlay {
+    background: rgba(0, 0, 0, 0.9);
+  }
 
-.glightbox-clean .gslide-image img {
-  background: transparent;
-}
+  & .gslide-image img {
+    background: transparent;
+  }
 
-.glightbox-clean .gdesc-inner,
-.glightbox-clean .gslide-desc {
-  background: transparent;
-  color: #ccc;
+  & .gdesc-inner,
+  & .gslide-desc {
+    background: transparent;
+    color: #ccc;
+  }
 }
 
 
@@ -144,33 +148,45 @@
   padding: 12px;
   margin: 16px 0;
   width: fit-content;
+
+  & .edge-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  & .edge-label {
+    font-size: 10px;
+    color: #888;
+  }
+
+  & .zones {
+    display: flex;
+
+    & div {
+      width: 20px;
+      height: 16px;
+
+      &:first-child { border-radius: 2px 0 0 2px; }
+      &:last-child { border-radius: 0 2px 2px 0; }
+    }
+  }
 }
 
-.ambilight-strip .edge-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* PICO-8 palette swatches */
+.pico8-palette {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
   gap: 4px;
-}
+  margin: 16px 0;
+  width: fit-content;
 
-.ambilight-strip .edge-label {
-  font-size: 10px;
-  color: #888;
-}
-
-.ambilight-strip .zones {
-  display: flex;
-}
-
-.ambilight-strip .zones div {
-  width: 20px;
-  height: 16px;
-}
-
-.ambilight-strip .zones div:first-child {
-  border-radius: 2px 0 0 2px;
-}
-
-.ambilight-strip .zones div:last-child {
-  border-radius: 0 2px 2px 0;
+  & span {
+    padding: 6px 4px;
+    font-size: 13px;
+    text-align: center;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
 }

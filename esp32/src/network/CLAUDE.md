@@ -63,9 +63,11 @@ The `log()` function uses a FreeRTOS queue to safely pass log messages from any 
 
 When adding new MQTT publish calls, always use the log queue pattern or ensure the call is made from the network task.
 
-## Cross-Core Watchdog
+## Cross-Core Safety
 
-For effects running on Core 1 (like projectile), a cross-core watchdog mechanism is used:
+**Effect clearing:** All code paths that need to clear effects (MQTT reconnection, `/clear-effects` command, test-mode-off) set the `pendingClearEffects` atomic flag instead of calling `effectProcessor->clearEffects()` directly. Core 1 consumes this flag at the top of `loop()`. This prevents cross-core `FastLED.show()` races that corrupt the RMT peripheral.
+
+**Cross-core watchdog:** For effects running on Core 1 (like projectile), a cross-core watchdog mechanism is used:
 - Core 1 writes effect completion status to a shared flag
 - Core 0 monitors this flag and can terminate runaway effects
 - Prevents infinite animation loops from blocking rendering

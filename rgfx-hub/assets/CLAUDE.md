@@ -49,7 +49,7 @@ MAME event handling utilities:
 JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, utils/, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game shared constants (driver IDs, named drivers, ambilight config)
-- `utils/` - Shared utility modules (index.js barrel, math.js with hslToRgb, async.js with tracked timers including trackedInterval for cleanup on game exit, format.js, world-record.js)
+- `utils/` - Shared utility modules (index.js barrel, math.js with hslToRgb, async.js with tracked timers including trackedInterval and leading-edge debounce for cleanup on game exit, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
@@ -63,10 +63,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
   - `init.js` - Game init subject (clears effects, displays world record)
   - `ambilight.js` - Ambilight effect subject
   - `audio.js` - Audio-reactive effect subject
-- `bitmaps/` - Sprite bitmaps for bitmap effects
-  - Pac-Man bonus fruit sprites (pac-bonus-*.gif)
-  - Mario coin sprite (mario-coin.gif)
-  - `pacman-sprites.js` - Pac-Man sprite definitions
+- `bitmaps/` - Sprite bitmaps for bitmap effects. JSON sprites are extracted from ROM at runtime by `sprite-extract.lua` and written to `~/.rgfx/transformers/bitmaps/`. These generated files are excluded from `sync-assets.sh` and should NOT be committed to the repo. Changes to `.json` files in this directory trigger hot-reload of all transformers via `TransformerEngine`.
 
 ### led-hardware/
 LED hardware definition files (JSON):

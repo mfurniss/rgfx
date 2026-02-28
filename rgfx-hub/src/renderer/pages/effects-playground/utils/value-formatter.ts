@@ -23,7 +23,7 @@ export function createValueFormatter(): ValueFormatter {
 
       // Format short arrays inline, longer arrays on multiple lines
       if (value.length <= 3) {
-        const items = value.map((v) => formatValue(v, 0)).join(', ');
+        const items = value.map((v) => formatValue(v, indent)).join(', ');
 
         return `[${items}]`;
       }

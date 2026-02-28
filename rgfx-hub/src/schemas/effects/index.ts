@@ -1,17 +1,18 @@
 import { z } from 'zod';
-import pulseSchema, { randomize as randomizePulse } from './pulse';
-import wipeSchema, { randomize as randomizeWipe } from './wipe';
-import explodeSchema, { randomize as randomizeExplode, fieldTypes as explodeFieldTypes } from './explode';
-import bitmapSchema, { randomize as randomizeBitmap, fieldTypes as bitmapFieldTypes } from './bitmap';
+import pulseSchema, { randomize as randomizePulse, cleanCodeProps as pulseCleanCodeProps } from './pulse';
+import wipeSchema, { randomize as randomizeWipe, cleanCodeProps as wipeCleanCodeProps } from './wipe';
+import explodeSchema, { randomize as randomizeExplode, fieldTypes as explodeFieldTypes, cleanCodeProps as explodeCleanCodeProps } from './explode';
+import bitmapSchema, { randomize as randomizeBitmap, fieldTypes as bitmapFieldTypes, layoutConfig as bitmapLayoutConfig, generateCode as bitmapGenerateCode, cleanCodeProps as bitmapCleanCodeProps, formDefaults as bitmapFormDefaults } from './bitmap';
 import backgroundSchema, { randomize as randomizeBackground, presetConfig as backgroundPresetConfig, fieldTypes as backgroundFieldTypes } from './background';
-import projectileSchema, { randomize as randomizeProjectile } from './projectile';
-import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig, fieldTypes as textFieldTypes, layoutConfig as textLayoutConfig } from './text';
-import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig, fieldTypes as scrollTextFieldTypes, layoutConfig as scrollTextLayoutConfig } from './scroll-text';
+import projectileSchema, { randomize as randomizeProjectile, cleanCodeProps as projectileCleanCodeProps } from './projectile';
+import textSchema, { randomize as randomizeText, presetConfig as textPresetConfig, fieldTypes as textFieldTypes, layoutConfig as textLayoutConfig, cleanCodeProps as textCleanCodeProps } from './text';
+import scrollTextSchema, { scrollTextBaseSchema, randomize as randomizeScrollText, presetConfig as scrollTextPresetConfig, fieldTypes as scrollTextFieldTypes, layoutConfig as scrollTextLayoutConfig, cleanCodeProps as scrollTextCleanCodeProps } from './scroll-text';
 import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPresetConfig, fieldTypes as plasmaFieldTypes } from './plasma';
 import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig, fieldTypes as warpFieldTypes } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
-import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes } from './sparkle';
+import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes, cleanCodeProps as sparkleCleanCodeProps } from './sparkle';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
+import type { CodeGenerator, CodePropsTransform } from '@/renderer/pages/effects-playground/utils/code-generator';
 
 /**
  * Layout configuration for effect forms.
@@ -173,6 +174,38 @@ export const effectFieldTypes: Record<string, FieldTypeMap | undefined> = {
  * Effects not listed here use the default flat 2-column layout.
  */
 export const effectLayoutConfigs: Record<string, LayoutConfig | undefined> = {
+  bitmap: bitmapLayoutConfig,
   text: textLayoutConfig,
   scroll_text: scrollTextLayoutConfig,
+};
+
+/**
+ * Extra form defaults for the playground UI (not schema defaults).
+ * Merged on top of schema.parse({}) when initializing the form.
+ */
+export const effectFormDefaults: Record<string, Record<string, unknown> | undefined> = {
+  bitmap: bitmapFormDefaults,
+};
+
+/**
+ * Map of effect names to custom code generators.
+ * When present and returning a string, bypasses the generic broadcast template.
+ */
+export const effectCodeGenerators: Record<string, CodeGenerator | undefined> = {
+  bitmap: bitmapGenerateCode,
+};
+
+/**
+ * Map of effect names to prop transformers for code preview.
+ * Applied before code generation to strip irrelevant props.
+ */
+export const effectCodePropsTransforms: Record<string, CodePropsTransform | undefined> = {
+  pulse: pulseCleanCodeProps,
+  wipe: wipeCleanCodeProps,
+  explode: explodeCleanCodeProps,
+  bitmap: bitmapCleanCodeProps,
+  projectile: projectileCleanCodeProps,
+  text: textCleanCodeProps,
+  scroll_text: scrollTextCleanCodeProps,
+  sparkle: sparkleCleanCodeProps,
 };
