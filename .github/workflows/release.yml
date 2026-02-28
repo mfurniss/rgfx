@@ -3,6 +3,12 @@ name: Release
 on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., v0.7.0)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -10,13 +16,84 @@ permissions:
   id-token: write
 
 jobs:
+  prepare:
+    name: Prepare Release
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      sha: ${{ steps.push.outputs.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Validate version
+        id: tag
+        run: |
+          TAG="${{ inputs.version }}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version must match vMAJOR.MINOR.PATCH (e.g., v0.7.0)"
+            exit 1
+          fi
+          if git rev-parse "refs/tags/$TAG" &>/dev/null; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run quality checks
+        working-directory: rgfx-hub
+        run: |
+          npm run typecheck
+          npm run lint
+          npm test
+
+      - name: Bump version
+        run: |
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('rgfx-hub/package.json', 'utf-8'));
+            pkg.version = '${VERSION}';
+            fs.writeFileSync('rgfx-hub/package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Commit and tag
+        id: push
+        run: |
+          TAG="${{ inputs.version }}"
+          VERSION="${TAG#v}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add rgfx-hub/package.json
+          git commit -m "Bump hub version to ${VERSION}"
+          git tag "$TAG"
+          git push origin main
+          git push origin "$TAG"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
   build-driver:
     name: Build Driver Firmware
+    needs: [prepare]
+    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.prepare.outputs.sha || github.ref }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -59,12 +136,14 @@ jobs:
 
   build-hub-macos:
     name: Build Hub (macOS)
-    needs: build-driver
+    needs: [prepare, build-driver]
+    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') && needs.build-driver.result == 'success' }}
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.prepare.outputs.sha || github.ref }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -90,7 +169,8 @@ jobs:
 
       - name: Rename installer
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          TAG="${{ needs.prepare.outputs.tag || github.ref_name }}"
+          VERSION="${TAG#v}"
           ARCH=$(uname -m)
           DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
           DEST="rgfx-${VERSION}-macos-${ARCH}.dmg"
@@ -105,12 +185,14 @@ jobs:
 
   build-hub-windows:
     name: Build Hub (Windows)
-    needs: build-driver
+    needs: [prepare, build-driver]
+    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') && needs.build-driver.result == 'success' }}
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.prepare.outputs.sha || github.ref }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -137,7 +219,9 @@ jobs:
       - name: Rename installer
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}".TrimStart("v")
+          $tag = "${{ needs.prepare.outputs.tag }}"
+          if (-not $tag) { $tag = "${{ github.ref_name }}" }
+          $version = $tag.TrimStart("v")
           $exe = Get-ChildItem -Path "rgfx-hub/out/make" -Filter "*.exe" -Recurse | Select-Object -First 1
           $dest = "rgfx-${version}-windows-x64.exe"
           Copy-Item $exe.FullName $dest
@@ -151,6 +235,8 @@ jobs:
 
   deploy-pages:
     name: Deploy Pages
+    needs: [prepare]
+    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -158,6 +244,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha || github.ref }}
 
       - name: Assemble site
         run: |
@@ -179,12 +267,14 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [build-hub-macos, build-hub-windows]
+    needs: [prepare, build-hub-macos, build-hub-windows]
+    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') && needs.build-hub-macos.result == 'success' && needs.build-hub-windows.result == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.prepare.outputs.sha || github.ref }}
           fetch-depth: 0
 
       - name: Download macOS installer
@@ -202,6 +292,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "RGFX ${{ github.ref_name }}"
+          tag_name: ${{ needs.prepare.outputs.tag || github.ref_name }}
+          name: "RGFX ${{ needs.prepare.outputs.tag || github.ref_name }}"
           generate_release_notes: true
           files: artifacts/*
