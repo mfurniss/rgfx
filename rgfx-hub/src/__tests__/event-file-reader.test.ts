@@ -344,7 +344,7 @@ describe('isValidTopic', () => {
 
   describe('invalid topics', () => {
     it('should reject file paths', () => {
-      expect(isValidTopic('/Users/matt/.rgfx/interceptors/game.lua')).toBe(false);
+      expect(isValidTopic('/tmp/test/.rgfx/interceptors/game.lua')).toBe(false);
       expect(isValidTopic('/home/user/file.txt')).toBe(false);
     });
 
@@ -425,7 +425,7 @@ describe('EventFileReader invalid topic handling', () => {
     // Write mix of valid and invalid topics
     writeFileSync(
       testFilePath,
-      'pacman/init pacman\n/Users/matt/file.lua:17: syntax error\ngame/start 1\n',
+      'pacman/init pacman\n/tmp/test/file.lua:17: syntax error\ngame/start 1\n',
       { flag: 'a' },
     );
     await new Promise((r) => setTimeout(r, 50));
@@ -447,13 +447,13 @@ describe('EventFileReader invalid topic handling', () => {
     );
     await new Promise((r) => setTimeout(r, 50));
 
-    writeFileSync(testFilePath, '/Users/matt/file.lua:17: syntax error\n', { flag: 'a' });
+    writeFileSync(testFilePath, '/tmp/test/file.lua:17: syntax error\n', { flag: 'a' });
     await new Promise((r) => setTimeout(r, 50));
 
     expect(events).toHaveLength(0);
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain('Invalid topic');
-    expect(errors[0]).toContain('/Users/matt/file.lua:17:');
+    expect(errors[0]).toContain('/tmp/test/file.lua:17:');
   });
 
   it('should continue processing after invalid topic', async () => {
