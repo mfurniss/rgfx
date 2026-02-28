@@ -76,6 +76,33 @@ export async function transform({ subject, property, payload }, { broadcast }) {
 
 `broadcast()` returns a truthy value, so `return broadcast(...)` both sends the effect and claims the event in one line.
 
+!!! tip "Throttle rapid score events"
+    Some games emit score events very rapidly during bonus phases or end-of-level counting. Use [`throttleLatest()`](utils.md#throttlelatest) to consolidate these bursts — the first event fires immediately (zero latency during normal play) and rapid follow-ups are collapsed into a single broadcast of the final value:
+
+    ```javascript
+    import { throttleLatest } from '../utils/index.js';
+
+    let updateScore;
+
+    export async function transform({ subject, property, payload }, { broadcast }) {
+      if (!updateScore) {
+        updateScore = throttleLatest((score) => {
+          broadcast({
+            effect: 'text',
+            props: { text: score, gradient: ['#FFFF00'], duration: 5000, reset: true },
+          });
+        }, 100);
+      }
+
+      if (subject === 'player' && property === 'score') {
+        updateScore(payload);
+        return true;
+      }
+
+      return false;
+    }
+    ```
+
 See [Visual Effects](../hardware/effects.md) for the full list of effects and their parameters.
 
 ## Step 4: Target Drivers

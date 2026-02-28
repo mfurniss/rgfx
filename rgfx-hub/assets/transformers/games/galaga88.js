@@ -3,7 +3,7 @@ import {
   formatNumber,
   randomInt,
   hslToRgb,
-  trackedTimeout,
+  throttleLatest,
   debounce,
 } from '../utils/index.js';
 
@@ -13,10 +13,12 @@ import {
   SECONDARY_MATRIX_DRIVERS,
 } from '../global.js';
 
+const EXPLOSION_DRIVERS = [...MATRIX_DRIVERS, NAMED_DRIVERS.frontStrip];
+
 const smallExplosion = debounce((broadcast, color, delta) => {
   broadcast({
     effect: 'explode',
-    drivers: MATRIX_DRIVERS,
+    drivers: EXPLOSION_DRIVERS,
     props: {
       color,
       centerX: 'random',
@@ -33,6 +35,8 @@ const smallExplosion = debounce((broadcast, color, delta) => {
   });
 }, 500);
 
+let throttledScoreBroadcast;
+
 const STARFIELD_DRIVERS = [
   ...MATRIX_DRIVERS,
   NAMED_DRIVERS.leftStrip,
@@ -41,22 +45,22 @@ const STARFIELD_DRIVERS = [
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, log, state },
+  { broadcast, log },
 ) {
-  const SCORE_THROTTLE_MS = 100;
-
-  function broadcastScore(score) {
-    broadcast({
-      effect: 'text',
-      drivers: [NAMED_DRIVERS.primaryMatrix],
-      props: {
-        text: formatNumber(score),
-        gradient: ['#808080'],
-        accentColor: '#000000',
-        duration: 6000,
-        reset: true,
-      },
-    });
+  if (!throttledScoreBroadcast) {
+    throttledScoreBroadcast = throttleLatest((score) => {
+      broadcast({
+        effect: 'text',
+        drivers: [NAMED_DRIVERS.primaryMatrix],
+        props: {
+          text: formatNumber(score),
+          gradient: ['#808080'],
+          accentColor: '#000000',
+          duration: 6000,
+          reset: true,
+        },
+      });
+    }, 100);
   }
 
   function starfield() {
@@ -122,12 +126,25 @@ export async function transform(
 
   if (subject === 'init') {
     starfield();
-    state.delete('score');
   }
 
   if (subject === 'screen' && property === 'text') {
     if (payload === 'DIMENSION WARP') {
       particleWarp();
+    } else if (payload === 'GALACTIC DANCIN') {
+      broadcast({
+        effect: 'scroll_text',
+        drivers: MATRIX_DRIVERS,
+        props: {
+          reset: true,
+          text: "THAT'S GALACTIC DANCIN\'",
+          gradient: ['#008000'],
+          accentColor: '#000000',
+          speed: 350,
+          repeat: false,
+          snapToLed: true,
+        },
+      });
     } else if (payload === 'START!' || payload === 'READY') {
       broadcast({
         effect: 'text',
@@ -150,7 +167,7 @@ export async function transform(
         effect: 'text',
         drivers: ['rgfx-driver-0005'],
         props: {
-          reset: false,
+          reset: true,
           text: 'PERFECT !!',
           gradient: [
             '#FF0000',
@@ -159,10 +176,10 @@ export async function transform(
             '#00FFFF',
             '#0000FF',
             '#FF00FF',
+            '#FFFFFF,',
             '#FF0000',
           ],
-          gradientSpeed: 5,
-          gradientScale: 5,
+          gradientSpeed: 12,
           accentColor: '#000000',
           duration: 5000,
         },
@@ -212,25 +229,7 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score') {
-    const s = state.get('score') || { lastSent: 0 };
-    s.latest = payload;
-
-    const now = Date.now();
-
-    if (now - s.lastSent >= SCORE_THROTTLE_MS) {
-      broadcastScore(payload);
-      s.lastSent = now;
-    } else if (!s.timerPending) {
-      s.timerPending = true;
-      const delay = SCORE_THROTTLE_MS - (now - s.lastSent);
-      trackedTimeout(() => {
-        s.timerPending = false;
-        broadcastScore(s.latest);
-        s.lastSent = Date.now();
-      }, delay);
-    }
-
-    state.set('score', s);
+    throttledScoreBroadcast(payload);
     return true;
   }
 
@@ -301,7 +300,7 @@ export async function transform(
     } else {
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color,
           centerX: 'random',

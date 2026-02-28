@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { sleep, trackedTimeout, trackedInterval, clearAllTimers } from '../async.js';
+import { sleep, trackedTimeout, trackedInterval, throttleLatest, clearAllTimers } from '../async.js';
 
 describe('sleep', () => {
   beforeEach(() => {
@@ -150,6 +150,87 @@ describe('clearAllTimers', () => {
 
     await new Promise((r) => setTimeout(r, 100));
     assert.equal(fired, true, 'untracked setTimeout should still fire');
+  });
+});
+
+describe('throttleLatest', () => {
+  beforeEach(() => {
+    clearAllTimers();
+  });
+
+  it('fires immediately on first call', () => {
+    const calls = [];
+    const fn = throttleLatest((v) => calls.push(v), 100);
+
+    fn('a');
+    assert.deepEqual(calls, ['a']);
+  });
+
+  it('suppresses calls within the throttle window', async () => {
+    const calls = [];
+    const fn = throttleLatest((v) => calls.push(v), 100);
+
+    fn('a');
+    fn('b');
+    fn('c');
+
+    assert.deepEqual(calls, ['a'], 'only first call should fire immediately');
+  });
+
+  it('fires the latest value after the throttle window', async () => {
+    const calls = [];
+    const fn = throttleLatest((v) => calls.push(v), 50);
+
+    fn('a');
+    fn('b');
+    fn('c');
+
+    await new Promise((r) => setTimeout(r, 100));
+    assert.deepEqual(calls, ['a', 'c'], 'should fire first immediately, then latest after delay');
+  });
+
+  it('fires immediately again after the throttle window expires', async () => {
+    const calls = [];
+    const fn = throttleLatest((v) => calls.push(v), 50);
+
+    fn('a');
+    await new Promise((r) => setTimeout(r, 100));
+
+    fn('b');
+    assert.deepEqual(calls, ['a', 'b'], 'second call after cooldown should fire immediately');
+  });
+
+  it('does not fire deferred callback after clearAllTimers', async () => {
+    const calls = [];
+    const fn = throttleLatest((v) => calls.push(v), 50);
+
+    fn('a');
+    fn('b');
+
+    clearAllTimers();
+
+    await new Promise((r) => setTimeout(r, 100));
+    assert.deepEqual(calls, ['a'], 'deferred call should have been cancelled');
+  });
+
+  it('passes all arguments to the callback', () => {
+    const calls = [];
+    const fn = throttleLatest((a, b, c) => calls.push([a, b, c]), 100);
+
+    fn(1, 2, 3);
+    assert.deepEqual(calls, [[1, 2, 3]]);
+  });
+
+  it('deferred call uses the latest arguments', async () => {
+    const calls = [];
+    const fn = throttleLatest((a, b) => calls.push([a, b]), 50);
+
+    fn('x', 1);
+    fn('y', 2);
+    fn('z', 3);
+
+    await new Promise((r) => setTimeout(r, 100));
+    assert.deepEqual(calls, [['x', 1], ['z', 3]]);
   });
 });
 
