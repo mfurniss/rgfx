@@ -14,12 +14,30 @@ RGFX stores all user-editable files in a single config directory:
 The directory structure:
 
 ```
-interceptors/          # Lua scripts for MAME game monitoring
-transformers/          # JavaScript scripts mapping events to effects
-led-hardware/          # LED hardware definitions
-drivers.json           # Driver configurations (auto-generated)
-logs/                  # Log files (auto-generated)
-interceptor-events.log # Event output (auto-generated)
+interceptors/
+├── rom_map.lua                # Maps ROM names to interceptors
+├── ambilight.lua              # Screen color sampling module
+├── fft.lua                    # Audio analysis module
+├── sprite-extract.lua         # ROM sprite extraction
+└── games/
+    ├── pacman_rgfx.lua        # Pac-Man interceptor
+    ├── galaga_rgfx.lua        # Galaga interceptor
+    ├── robotron_rgfx.lua      # Robotron interceptor
+    └── ...                    # More example games
+transformers/
+├── default.js                 # Default effect handler
+├── global.js                  # Driver group configuration
+├── games/
+│   ├── pacman.js              # Pac-Man effects
+│   ├── galaga.js              # Galaga effects
+│   └── ...                    # More example games
+├── subjects/                  # Shared handlers (audio, ambilight)
+├── properties/                # Generic property handlers
+└── utils/                     # Utility functions
+led-hardware/                  # LED hardware definitions
+drivers.json                   # Driver configurations (auto-generated)
+logs/                          # Log files (auto-generated)
+interceptor-events.log         # Event output (auto-generated)
 ```
 
 You can change this location in [Settings](../hub-app/settings.md), but the default is recommended.
@@ -34,7 +52,7 @@ The Hub also starts an embedded MQTT message broker automatically — this is ho
 
 Go to **[Settings](../hub-app/settings.md)** in the sidebar and configure:
 
-![Settings](../assets/images/rgfx-hub-settings-1.png)
+![Settings](../assets/images/rgfx-hub-settings.png)
 
 ### MAME ROMs Directory
 

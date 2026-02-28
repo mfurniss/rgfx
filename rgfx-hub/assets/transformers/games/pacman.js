@@ -42,7 +42,7 @@ export async function transform(
 
   if (subject === 'init') {
     await loadBitmaps();
-    return true;
+    return false;
   }
 
   if (!pacRight) {

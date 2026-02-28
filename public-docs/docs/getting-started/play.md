@@ -8,7 +8,7 @@ Check the [Example Games](../example-games.md) page for the full list of include
 
 ## Launch MAME
 
-Start the game in MAME as you normally would. RGFX works behind the scenes — when MAME launches, the `rgfx.lua` script automatically detects which game is running and loads the matching interceptor.
+Launch your game using the MAME command from the [Configure MAME](configure-mame.md) step. The `rgfx.lua` script automatically detects which game is running and loads the matching interceptor.
 
 ## What to Expect
 

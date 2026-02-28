@@ -126,6 +126,7 @@ export async function transform(
 
   if (subject === 'init') {
     starfield();
+    return false;
   }
 
   if (subject === 'screen' && property === 'text') {

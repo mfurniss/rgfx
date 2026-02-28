@@ -28,7 +28,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
    - Looks up interceptor via `rom_map.lua`, falls back to `{name}_rgfx`
    - Sends `rgfx/reset` event to clear driver state
    - Loads the game-specific interceptor
-   - Waits 30 frames (~500ms) then sends `{game}/init` event
+   - Waits 30 frames (~500ms) then sends `{game}/init` event with the MAME system description as payload
 
 ---
 

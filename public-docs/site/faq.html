@@ -401,6 +401,34 @@
   
   
     <li class="md-nav__item">
+      <a href="getting-started/configure-mame.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure MAME
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="getting-started/play.html" class="md-nav__link">
         
   
@@ -2109,7 +2137,7 @@
 <p>RGFX does not include or distribute game ROMs. You should only play games you legally own. ROM files for arcade games you own can be found by searching the internet — I can't link to specific sources.</p>
 <p>Once you have ROM files, place them in a folder and point RGFX Hub to that folder in <a href="hub-app/settings.html">Settings</a>.</p>
 <h2 id="does-rgfx-work-with-my-emulation-frontend">Does RGFX work with my emulation frontend?<a class="headerlink" href="#does-rgfx-work-with-my-emulation-frontend" title="Permanent link">¶</a></h2>
-<p>Yes. RGFX works with any frontend (LaunchBox, AttractMode, EmulationStation, etc.) as long as it launches MAME as an external application. RGFX monitors MAME directly via its Lua plugin system — the frontend doesn't need to know about RGFX at all.</p>
+<p>Yes. RGFX works with any frontend (LaunchBox, AttractMode, EmulationStation, etc.) as long as it launches MAME as an external application. You'll need to add the <code>-autoboot_script</code> argument pointing to <code>rgfx.lua</code> in your frontend's MAME emulator settings. See <a href="getting-started/configure-mame.html#frontend-integration">Configure MAME</a> for details.</p>
 <h2 id="does-rgfx-work-with-emulators-other-than-mame">Does RGFX work with emulators other than MAME?<a class="headerlink" href="#does-rgfx-work-with-emulators-other-than-mame" title="Permanent link">¶</a></h2>
 <p>Not yet. RGFX currently relies on MAME's Lua plugin API to monitor game memory and detect events. I'd like to support other emulators in the future — if your favorite emulator exposes a scripting or plugin interface, that's a good candidate. For now, MAME version 0.250 or later is required.</p>
 <h2 id="do-i-need-to-know-javascript-and-lua">Do I need to know JavaScript and Lua?<a class="headerlink" href="#do-i-need-to-know-javascript-and-lua" title="Permanent link">¶</a></h2>
@@ -2220,12 +2248,16 @@
 </thead>
 <tbody>
 <tr>
+<td>MAME launch</td>
+<td>MAME must be launched with the <code>-autoboot_script</code> flag pointing to <code>rgfx.lua</code>. See <a href="getting-started/configure-mame.html">Configure MAME</a>.</td>
+</tr>
+<tr>
 <td>MAME version</td>
 <td>RGFX requires MAME 0.250 or later for the Lua plugin API.</td>
 </tr>
 <tr>
 <td>ROM name</td>
-<td>The interceptor matches by ROM name. The ROM filename must match an entry in <code>interceptors/rom_map.lua</code> in your <a href="getting-started/hub-setup.html#config-directory">config directory</a>.</td>
+<td>The interceptor matches by ROM name — the filename of your ROM file without the extension (e.g., <code>pacman.zip</code> → <code>pacman</code>). The name must match an entry in <code>interceptors/rom_map.lua</code> in your <a href="getting-started/hub-setup.html#config-directory">config directory</a>.</td>
 </tr>
 <tr>
 <td>Interceptor loading</td>
@@ -2372,7 +2404,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 28, 2026 02:51:31 UTC">February 28, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 28, 2026 17:33:37 UTC">February 28, 2026</span>
   </span>
 
     

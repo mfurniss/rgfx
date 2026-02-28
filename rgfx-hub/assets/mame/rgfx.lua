@@ -106,7 +106,7 @@ local load_interceptor = function()
 			init_frames = init_frames + 1
 			if init_frames >= 30 then
 				init_sent = true
-				event(lookup_key .. "/init", lookup_key)
+				event(lookup_key .. "/init", manager.machine.system.description)
 			end
 		end, "init_delay")
 	else

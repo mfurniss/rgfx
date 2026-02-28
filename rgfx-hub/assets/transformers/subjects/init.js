@@ -1,7 +1,7 @@
 import { MATRIX_DRIVERS } from '../global.js';
 import { getWorldRecord } from '../utils/world-record.js';
 
-export async function transform({ namespace, subject }, ctx) {
+export async function transform({ namespace, subject, payload }, ctx) {
   if (subject === 'init') {
     ctx.broadcast({ effect: 'clear' });
 
@@ -12,7 +12,7 @@ export async function transform({ namespace, subject }, ctx) {
           drivers: MATRIX_DRIVERS,
           props: {
             reset: true,
-            text: `${wr.romName.toUpperCase()} WR: ${wr.score} by ${wr.player}, ${
+            text: `${payload.replace(/\s*\(.*?\)\s*$/, '')} WR: ${wr.score} by ${wr.player}, ${
               wr.date
             }`,
             repeat: false,

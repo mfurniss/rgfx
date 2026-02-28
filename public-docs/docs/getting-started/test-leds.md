@@ -125,7 +125,7 @@ Click **Random Trigger** to discover interesting parameter combinations automati
 
 ## Next Step
 
-Ready to play? [Play a game :material-arrow-right:](../getting-started/play.md)
+[Configure MAME :material-arrow-right:](configure-mame.md)
 
 ## See Also
 

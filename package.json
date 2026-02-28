@@ -36,9 +36,7 @@
     "esp32:copy-firmware": "cd esp32 && python3 copy_firmware.py",
     "docs:setup": "cd public-docs && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
     "docs:build": "./public-docs/build.sh",
-    "docs:serve": "cd public-docs && .venv/bin/mkdocs serve",
-    "prepare-release": "node scripts/prepare-release.js",
-    "release": "node scripts/release.js"
+    "docs:serve": "cd public-docs && .venv/bin/mkdocs serve"
   },
   "engines": {
     "node": ">=18.0.0"

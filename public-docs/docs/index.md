@@ -22,7 +22,7 @@ RGFX connects three things together:
 
 1. **MAME** runs your game with a Lua interceptor that watches for gameplay events
 2. **RGFX Hub** processes those events and converts them to LED effect commands
-3. **ESP32 drivers** receives the commands over WiFi and render effects on your LED strips and matrices
+3. **ESP32 drivers** receive the commands over WiFi and render effects on your LED strips and matrices
 
 This is the flow, using three example games. Of course, many MAME roms are compatible.
 
