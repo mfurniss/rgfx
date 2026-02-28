@@ -34,6 +34,9 @@ struct FrameTimingMetrics {
 // Get averaged frame timing metrics (call from telemetry)
 FrameTimingMetrics getFrameTimingMetrics();
 
+// LED health status — false when RMT peripheral appears corrupted
+bool getLedHealthy();
+
 /**
  * Effect Processor
  *

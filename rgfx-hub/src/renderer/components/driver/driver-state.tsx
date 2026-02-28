@@ -69,6 +69,9 @@ const DriverState: React.FC<DriverStateProps> = ({ driver, firmwareVersions }) =
   // Show LED config warning when connected but no LED hardware configured
   const needsLedConfig = state === 'connected' && !ledConfig;
 
+  // Show LED health warning when connected but RMT output is broken
+  const ledUnhealthy = state === 'connected' && telemetry?.ledHealthy === false;
+
   const chip = <Chip label={label} color={color} size="small" />;
 
   if (state === 'updating') {
@@ -119,6 +122,17 @@ const DriverState: React.FC<DriverStateProps> = ({ driver, firmwareVersions }) =
           >
             <WarningIcon sx={{ color: 'warning.main', fontSize: 18 }} />
           </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  if (ledUnhealthy) {
+    return (
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+        {chip}
+        <Tooltip title="LED output not functioning — driver will auto-restart" arrow>
+          <WarningIcon sx={{ color: 'error.main', fontSize: 18 }} />
         </Tooltip>
       </Box>
     );

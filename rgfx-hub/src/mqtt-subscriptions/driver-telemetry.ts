@@ -68,6 +68,9 @@ function createMinimalRegistration(minimal: MinimalDriverRegistration) {
 export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
   const { mqtt, driverRegistry, getMainWindow } = deps;
 
+  // Track drivers with active LED health errors to debounce system error emissions
+  const ledUnhealthyDrivers = new Set<string>();
+
   mqtt.subscribe('rgfx/system/driver/telemetry', (_topic, payload) => {
     const mqttReceiveTime = Date.now();
     log.debug(`Driver telemetry MQTT received at ${mqttReceiveTime}`);
@@ -97,6 +100,21 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
         log.debug(
           `registerDriver completed for ${macAddress} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
         );
+
+        // LED health check: emit system error on transition to unhealthy
+        if (parsed.ledHealthy === false) {
+          if (!ledUnhealthyDrivers.has(macAddress)) {
+            ledUnhealthyDrivers.add(macAddress);
+            log.error(`Driver ${driver.id} (${macAddress}): LED output failure detected`);
+            eventBus.emit('system:error', {
+              errorType: 'driver',
+              message: `Driver ${driver.id}: LED output failure detected (auto-restart pending)`,
+              timestamp: Date.now(),
+            });
+          }
+        } else {
+          ledUnhealthyDrivers.delete(macAddress);
+        }
 
         // Notify renderer of driver update
         log.debug(`Sending driver:updated to renderer for ${driver.id}`);

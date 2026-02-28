@@ -15,6 +15,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
 | `rgfx.lua` | Bootstrap entry point — sets up paths, detects ROM/cartridge, loads interceptor |
 | `event.lua` | Event logging — writes to `~/.rgfx/interceptor-events.log`, defines `_G.event()` and `_G.boot_delay()` |
 | `ram.lua` | RAM monitoring — watches memory addresses and fires callbacks on value changes |
+| `sprite-extract.lua` | Extracts sprite graphics from ROM regions and writes JSON files matching GifBitmapResult format |
 
 ---
 
@@ -105,3 +106,61 @@ handle.remove()   -- Permanently remove
 | `callback_changed` | No | `function(current, previous)` — simpler form for single addresses |
 
 Monitors run on `emu.register_frame_done` — values are checked every frame.
+
+---
+
+## Sprite Extraction (sprite-extract.lua)
+
+Extracts sprite graphics from MAME ROM regions and writes them as JSON files. Called by game interceptors with a manifest table describing which sprites to extract and how to decode them.
+
+### Supported Formats
+
+| Format | Tile Size | Description |
+|--------|-----------|-------------|
+| `namco` | 16x16 | Namco 2bpp strip-based (Pac-Man, Galaga) |
+| `nes_2bpp` | 8x8 | NES 2bpp planar (Super Mario Bros, etc.) |
+
+### Manifest Fields
+
+| Field | Description |
+|-------|-------------|
+| `gfx_region` | MAME memory region tag (e.g., `":gfx1"`, `":nes_slot:cart:chr_rom"`) |
+| `sprite_offset` | Byte offset where sprites start |
+| `tile_format` | `{ format, width, height, bytes_per_sprite }` |
+| `color_prom` | `{ region, offset, count, format }` (optional for NES) |
+| `palette_prom` | `{ region, offset, colors_per_entry }` (optional for NES) |
+| `rotation` | Screen rotation in degrees (0, 90, 180, 270) |
+| `output_dir` | Output directory for JSON files |
+
+### Per-Sprite Options
+
+| Option | Description |
+|--------|-------------|
+| `index` | ROM sprite index (single-frame, single-tile) |
+| `tiles` | Array of tile indices in row-major order for meta-sprite composition |
+| `grid` | `{cols, rows}` tile arrangement (default `{1,1}`) |
+| `palette` | Palette PROM index (ROM-derived palette) |
+| `frames` | Array of `{ index/tiles, color_map, transparent_pixels }` for multi-frame sprites |
+| `color_map` | Remap ROM pixel values to output palette indices (e.g., `{ [3] = 0xA }`) |
+| `transparent_pixels` | Pixel values to treat as transparent (e.g., `{ 3 }` masks ghost body) |
+
+### Meta-Sprite Composition
+
+NES sprites larger than 8x8 are composed from multiple tiles. Specify `tiles` (array of tile indices in row-major order) and `grid` (`{cols, rows}`). Tile index `0xFC` is treated as blank. Example: a 16x16 sprite uses `grid = {2, 2}` with 4 tile indices.
+
+### Image Trimming
+
+Single-frame sprites are automatically trimmed: empty top/bottom rows removed, trailing spaces removed, and common leading whitespace stripped. Multi-frame sprites skip per-frame trimming and instead use `align_frames()` to crop all frames to a unified bounding box, preventing animation jitter from differently-sized frames.
+
+### JSON Output Format
+
+Output contains only `images` and optionally `palette`. Dimensions and frame count are derived by the hub's `loadSprite()` function from the images array.
+
+```json
+{ "images": [["row1", "row2"]], "palette": ["#FF0000"] }
+```
+
+- `palette` is only included when using ROM color PROMs (not when using `color_map`)
+- Sprites using `color_map` rely on the default PICO-8 palette in the hub
+- Palette uses 1-based Lua indexing internally so `ipairs` writes all entries correctly
+- Extraction log reports actual trimmed dimensions (not raw tile grid size)

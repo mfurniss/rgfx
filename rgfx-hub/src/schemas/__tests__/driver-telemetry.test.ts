@@ -133,6 +133,44 @@ describe('DriverTelemetrySchema', () => {
     });
   });
 
+  describe('ledHealthy field', () => {
+    it('should accept telemetry with ledHealthy true', () => {
+      const result = DriverTelemetrySchema.safeParse({
+        ...validTelemetry,
+        ledHealthy: true,
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.ledHealthy).toBe(true);
+      }
+    });
+
+    it('should accept telemetry with ledHealthy false', () => {
+      const result = DriverTelemetrySchema.safeParse({
+        ...validTelemetry,
+        ledHealthy: false,
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.ledHealthy).toBe(false);
+      }
+    });
+
+    it('should accept telemetry without ledHealthy (backward compatibility)', () => {
+      const result = DriverTelemetrySchema.safeParse(validTelemetry);
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.ledHealthy).toBeUndefined();
+      }
+    });
+  });
+
   describe('type validation', () => {
     it('should reject non-number chipRevision', () => {
       const result = DriverTelemetrySchema.safeParse({

@@ -21,6 +21,7 @@ const mockLoggerWrapper = vi.fn();
 const mockNetworkManager = vi.fn();
 const mockCreateUploadConfigToDriver = vi.fn().mockReturnValue(vi.fn());
 const mockLoadGif = vi.fn();
+const mockLoadSprite = vi.fn();
 const mockGetTransformersDir = vi.fn().mockReturnValue('/mock/transformers');
 
 vi.mock('../../network', () => ({
@@ -78,6 +79,10 @@ vi.mock('../../transformer-installer', () => ({
 
 vi.mock('../../gif-loader', () => ({
   loadGif: mockLoadGif,
+}));
+
+vi.mock('../../sprite-loader', () => ({
+  loadSprite: mockLoadSprite,
 }));
 
 vi.mock('../../upload-config-to-driver', () => ({
@@ -196,6 +201,7 @@ describe('createServices', () => {
       log: expect.anything(),
       drivers: expect.anything(),
       loadGif: expect.any(Function),
+      loadSprite: expect.any(Function),
       parseAmbilight: expect.any(Function),
       hslToHex: expect.any(Function),
     });
@@ -504,6 +510,41 @@ describe('GIF loader', () => {
 
     expect(mockLoadGif).toHaveBeenCalledWith(
       expect.stringContaining('assets/image.gif'),
+    );
+  });
+});
+
+describe('Sprite loader', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetTransformersDir.mockReturnValue('/transformers');
+  });
+
+  it('should resolve absolute paths directly', async () => {
+    const { createServices } = await import('../service-factory.js');
+
+    createServices('/test/config', {} as never);
+
+    const callArgs = mockTransformerEngine.mock.calls[0][0];
+    const loadSpriteFn = callArgs.loadSprite;
+
+    loadSpriteFn('/absolute/path/sprite.json');
+
+    expect(mockLoadSprite).toHaveBeenCalledWith('/absolute/path/sprite.json');
+  });
+
+  it('should resolve relative paths from transformers directory', async () => {
+    const { createServices } = await import('../service-factory.js');
+
+    createServices('/test/config', {} as never);
+
+    const callArgs = mockTransformerEngine.mock.calls[0][0];
+    const loadSpriteFn = callArgs.loadSprite;
+
+    loadSpriteFn('bitmaps/cherry.json');
+
+    expect(mockLoadSprite).toHaveBeenCalledWith(
+      expect.stringContaining('bitmaps/cherry.json'),
     );
   });
 });

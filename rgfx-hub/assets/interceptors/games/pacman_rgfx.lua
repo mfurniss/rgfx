@@ -1,6 +1,71 @@
 -- Don't emit any events during power-on test
 _G.boot_delay(6)
 
+-- Extract bonus fruit sprites from ROM (cached after first run)
+local sprite_extract = require("sprite-extract")
+sprite_extract.extract({
+	gfx_region = ":gfx1",
+	sprite_offset = 0x1000,
+	tile_format = {
+		format = "namco",
+		width = 16, height = 16,
+		bytes_per_sprite = 64,
+	},
+	color_prom = {
+		region = ":proms",
+		offset = 0x00,
+		count = 32,
+		format = "pacman",
+	},
+	palette_prom = {
+		region = ":proms",
+		offset = 0x20,
+		colors_per_entry = 4,
+	},
+	-- Pac-Man uses a rotated screen (ROT90 in MAME)
+	rotation = 90,
+	sprites = {
+		-- Bonus fruit (ROM palettes, no color_map)
+		{ name = "pac-bonus-1-cherry",     index = 0, palette = 20 },
+		{ name = "pac-bonus-2-strawberry", index = 1, palette = 15 },
+		{ name = "pac-bonus-3-orange",     index = 2, palette = 21 },
+		{ name = "pac-bonus-4-apple",      index = 4, palette = 20 },
+		{ name = "pac-bonus-5-melon",      index = 5, palette = 23 },
+		{ name = "pac-bonus-6-galaxian",   index = 6, palette = 9 },
+		{ name = "pac-bonus-7-bell",       index = 3, palette = 22 },
+		{ name = "pac-bonus-8-key",        index = 7, palette = 22 },
+
+		-- Pac-Man 3-frame eating animation (right-facing)
+		-- ROM pixel value 3 = body, remapped to PICO-8 0xA (yellow)
+		{ name = "pac-right", frames = {
+			{ index = 44, color_map = { [3] = 0xA } },  -- fully open mouth
+			{ index = 46, color_map = { [3] = 0xA } },  -- half-open mouth
+			{ index = 48, color_map = { [3] = 0xA } },  -- closed (circle)
+		}},
+		-- Dim variant for dot eating
+		{ name = "pac-right-dim", frames = {
+			{ index = 44, color_map = { [3] = 0x5 } },
+			{ index = 46, color_map = { [3] = 0x5 } },
+			{ index = 48, color_map = { [3] = 0x5 } },
+		}},
+
+		-- Frightened ghost (2-frame blue/white flash)
+		-- ROM pixel 2 = body, pixel 3 = face detail
+		{ name = "ghost-scared", frames = {
+			{ index = 28, color_map = { [2] = 0xC, [3] = 0xF } },  -- blue
+			{ index = 29, color_map = { [2] = 0x6, [3] = 0x8 } },  -- white
+		}},
+
+		-- Ghost eyes (body masked transparent, only eyes remain)
+		-- ROM pixel 3 = body (masked), pixel 1 = sclera, pixel 2 = pupil
+		{ name = "ghost-eyes-right", index = 32,
+			color_map = { [1] = 0x7, [2] = 0xC }, transparent_pixels = { 3 } },
+		{ name = "ghost-eyes-left", index = 36,
+			color_map = { [1] = 0x7, [2] = 0xC }, transparent_pixels = { 3 } },
+	},
+	output_dir = "~/.rgfx/transformers/bitmaps",
+})
+
 local ram = require("ram")
 local cpu = manager.machine.devices[":maincpu"]
 
@@ -15,7 +80,7 @@ local SCORE_EVENTS = {
   [300] = "strawberry",
   [500] = "orange",
   [700] = "apple",
-  [1000] = "pineapple",
+  [1000] = "melon",
   [2000] = "galaxian",
   [3000] = "bell",
   [5000] = "key"

@@ -10,10 +10,10 @@ This module contains [Zod](https://zod.dev/) schemas for validating data structu
 Public exports for all schemas and types.
 
 ### telemetry-payload.ts
-`TelemetryPayloadSchema` - Validates telemetry data sent by ESP32 drivers via the `rgfx/system/driver/telemetry` MQTT topic. Includes network info, runtime metrics, and hardware details.
+`TelemetryPayloadSchema` - Validates telemetry data sent by ESP32 drivers via the `rgfx/system/driver/telemetry` MQTT topic. Includes network info, runtime metrics, hardware details, and `ledHealthy` (optional boolean, false when RMT peripheral appears corrupted).
 
 ### driver-telemetry.ts
-`DriverTelemetrySchema` - A subset of telemetry focused on hardware/firmware information (chip model, flash size, firmware version, etc.). Stored in `Driver.telemetry`.
+`DriverTelemetrySchema` - A subset of telemetry focused on hardware/firmware information (chip model, flash size, firmware version, `ledHealthy`, etc.). Stored in `Driver.telemetry`.
 
 ### driver-registration.ts
 `DriverRegistrationSchema` - Combines network info, runtime metrics, and telemetry for the `registerDriver()` function. Composed from `TelemetryPayloadSchema.pick()`.
@@ -29,7 +29,7 @@ Schemas for driver configuration:
 - `DriversConfigFileRawSchema` - File format for `drivers.json`
 
 ### led-hardware.ts
-`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Note: `name` was removed - hardware is identified by its filename.
+`LEDHardwareSchema` - Validates LED hardware definition files from the `led-hardware/` directory. Defines physical LED products (SKU, layout, count, chipset, color order). Supported chipsets: WS2812B, WS2811, SK6812, WS2814. Note: `name` was removed - hardware is identified by its filename.
 
 ### firmware-manifest.ts
 `FirmwareManifestSchema` - Validates firmware manifest files for USB serial and OTA flashing. Supports multi-chip firmware with per-variant versioning, allowing different chip types to be built at different times without causing false "update needed" notifications.
@@ -66,6 +66,9 @@ Single source of truth for all effect property defaults. Consumed by Zod schemas
 - `isEffectName()` - Type guard for valid effect names
 - `safeValidateEffectProps()` - Validates props for a given effect type
 - Per-effect `randomize()` functions exported for Effects Playground
+- `effectCodeGenerators` - Map of effect names to custom `CodeGenerator` functions (bypass generic broadcast template)
+- `effectCodePropsTransforms` - Map of effect names to `CodePropsTransform` functions (strip no-op default props before code gen)
+- `effectFormDefaults` - Map of effect names to form-only default overrides (merged on top of schema defaults in the playground UI, not sent on the wire)
 
 ### effects/preset-config.ts
 Schema for effect preset configurations, used by preset selector modal.
@@ -77,23 +80,24 @@ Reusable property schemas shared across effects (kebab-case filenames):
 - `color.ts` - RGB color validation with empty string handling
 - `center-x.ts` / `center-y.ts` - Center point for radial effects
 - `easing.ts` - Animation easing function names
+- `clean-props.ts` - `removeDefaultNoOps()` and `createNoOpCleaner()` utilities for stripping no-op default props from generated code
 
 Note: `color-gradient.ts` was removed - gradient colors are now in effect schemas directly.
 
 ### Effect Schemas
 Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `background.ts` - Gradient-only background (color field removed, uses gradient array)
-- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix
-- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize
+- `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix. Exports `cleanCodeProps` (strips reset:false, endX/endY:'random', easing when no movement), `generateCode` (GIF-specific code gen), `formDefaults` (endX/endY default to 'random' in playground form only), and `layoutConfig` (custom row-based layout).
+- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize. Exports `cleanCodeProps` (strips reset:false, gravity:0, hueSpread:0).
 - `particle-field.ts` - Particle field effect with configurable behavior
 - `plasma.ts` - Perlin noise plasma with gradient colors
-- `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog
-- `pulse.ts` - Full-screen color pulse with fade and collapse options
-- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered). Exports `scrollTextBaseSchema` for `.omit()` operations (Zod 4 doesn't allow `.omit()` on refined schemas)
-- `text.ts` - Static text rendering with gradient and optional accent color (defaults to null/no accent). `reset` defaults to `false` (preserve existing text). `gradientScale` supports negative values (-20 to 20) to reverse gradient direction.
+- `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog. Exports `cleanCodeProps` (strips reset:false, particleDensity:0).
+- `pulse.ts` - Full-screen color pulse with fade and collapse options. Exports `cleanCodeProps` (strips reset:false).
+- `scroll-text.ts` - Horizontally scrolling text with gradient (y property removed, auto-centered). Exports `scrollTextBaseSchema` for `.omit()` operations (Zod 4 doesn't allow `.omit()` on refined schemas). Exports `cleanCodeProps` (strips reset:true, accentColor:null, repeat:false, snapToLed:true).
+- `text.ts` - Static text rendering with gradient and optional accent color (defaults to null/no accent). `reset` defaults to `false` (preserve existing text). `gradientScale` supports negative values (-20 to 20) to reverse gradient direction. Exports `cleanCodeProps` (strips reset:false, accentColor:null).
 - `warp.ts` - Center-radiating animated gradient with linear perspective scale. Uses `enabled` enum with fade support.
-- `wipe.ts` - Color wipe sweeping across the display with random blend mode option
-- `sparkle.ts` - Sparkling particles cycling through a gradient with bloom support
+- `wipe.ts` - Color wipe sweeping across the display with random blend mode option. Exports `cleanCodeProps` (strips reset:false).
+- `sparkle.ts` - Sparkling particles cycling through a gradient with bloom support. Exports `cleanCodeProps` (strips reset:false).
 
 ### Per-Effect Randomize Functions
 Each effect schema exports a `randomize()` function that generates randomized props:

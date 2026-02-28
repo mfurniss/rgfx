@@ -87,6 +87,8 @@ Key global variables shared between cores:
 - **Config updates:** `g_configUpdateInProgress` flag prevents race conditions when Matrix/EffectProcessor are being recreated
 - **MQTT publishing:** Only Core 0 touches the MQTT client
 - **LED rendering:** Only Core 1 touches FastLED
+- **Cross-core effect clearing:** Core 0 sets `pendingClearEffects` atomic flag; Core 1 consumes it at the top of `loop()`. Direct `clearEffects()` from Core 0 is forbidden — it calls `FastLED.show()` which races with Core 1's rendering loop and corrupts the RMT peripheral.
+- **LED health auto-recovery:** If `getLedHealthy()` returns false for 30 consecutive seconds, Core 1 triggers `safeRestart()` to reinitialize the RMT peripheral.
 
 ---
 

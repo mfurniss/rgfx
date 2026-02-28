@@ -17,7 +17,7 @@ export interface AppInfo {
 /**
  * LED Configuration Types
  */
-type LEDChipset = 'WS2812B' | 'WS2811' | 'APA102' | 'SK6812' | 'SK9822';
+type LEDChipset = 'WS2812B' | 'WS2811' | 'SK6812' | 'WS2814';
 type ColorOrder = 'RGB' | 'GRB' | 'BGR' | 'RBG' | 'GBR' | 'BRG';
 
 type LEDLayoutType =
@@ -167,8 +167,8 @@ export interface DriverTelemetry {
     totalUs: number;
   };
 
-  // Note: LED configuration is managed by Hub (in Driver.ledConfig)
-  // and pushed to drivers via MQTT - not reported in telemetry
+  // LED health status (false = RMT peripheral appears corrupted, needs restart)
+  ledHealthy?: boolean;
 }
 
 /**

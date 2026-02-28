@@ -21,8 +21,8 @@ RGFX monitors game state in MAME and drives real-time LED effects on ESP32 hardw
 RGFX connects three things together:
 
 1. **MAME** runs your game with a Lua interceptor that watches for gameplay events
-2. **RGFX Hub** picks up those events and decides which LED effects to trigger
-3. **ESP32 drivers** receive the commands over WiFi and render effects on your LED strips and matrices — in real-time
+2. **RGFX Hub** processes those events and converts them to LED effect commands
+3. **ESP32 drivers** receives the commands over WiFi and render effects on your LED strips and matrices
 
 This is the flow, using three example games. Of course, many MAME roms are compatible.
 
@@ -67,7 +67,7 @@ flowchart TB
 - **Example games** with interceptors ready to use and modify
 - **Visual effects** — pulses, explosions, plasma, particle fields, scrolling text, warp tunnels, and more
 - **Ambilight mode** — sample screen edge colors for ambient lighting that follows the game
-- **LED strips and matrices** — works with WS2812B and SK6812 addressable LEDs in any layout
+- **LED strips and matrices** — works with WS2812B and SK6812 addressable LEDs
 - **Multiple drivers** — run several ESP32 boards with different LED setups, all synchronized
 
 ## Get Started

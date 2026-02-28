@@ -1,3 +1,29 @@
+-- Extract sprites from CHR ROM
+local sprite_extract = require("sprite-extract")
+sprite_extract.extract({
+	gfx_region = ":nes_slot:cart:chr_rom",
+	sprite_offset = 0,
+	tile_format = {
+		format = "nes_2bpp",
+		width = 8, height = 8,
+		bytes_per_sprite = 16,
+	},
+	sprites = {
+		-- Coin: single 16x16 image from PT1 background tiles
+		{ name = "smb-coin", grid = { 2, 2 },
+			tiles = { 0x1A5, 0x1A6, 0x1A7, 0x1A8 },
+			color_map = { [1] = 0xA, [2] = 0x4, [3] = 0xC } },
+		-- Small Mario: standing + 3 walk frames (2x2 grid, 16x16)
+		{ name = "smb-mario-small", grid = { 2, 2 }, frames = {
+			{ tiles = { 0x3A, 0x37, 0x4F, 0x4F } },  -- standing
+			{ tiles = { 0x32, 0x33, 0x34, 0x35 } },  -- walk 1
+			{ tiles = { 0x36, 0x37, 0x38, 0x39 } },  -- walk 2
+			{ tiles = { 0x3A, 0x37, 0x3B, 0x3C } },  -- walk 3
+		}, color_map = { [1] = 0x5, [2] = 0x9, [3] = 0x8 } },
+	},
+	output_dir = "~/.rgfx/transformers/bitmaps",
+})
+
 local ram = require("ram")
 
 -- Super Mario Bros (NES) RAM Map

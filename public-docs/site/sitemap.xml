@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rgfx.io/index.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -12,12 +12,12 @@
   </url>
   <url>
     <loc>https://rgfx.io/faq.html</loc>
-    <lastmod>2026-02-22T17:02:51+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/getting-started/first-driver.html</loc>
-    <lastmod>2026-02-21T22:20:20+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -47,7 +47,12 @@
   </url>
   <url>
     <loc>https://rgfx.io/hardware/configure.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://rgfx.io/hardware/definitions.html</loc>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -117,7 +122,7 @@
   </url>
   <url>
     <loc>https://rgfx.io/interceptors/index.html</loc>
-    <lastmod>2026-02-21T22:20:20+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -127,12 +132,12 @@
   </url>
   <url>
     <loc>https://rgfx.io/interceptors/events.html</loc>
-    <lastmod>2026-02-21T22:20:20+00:00</lastmod>
+    <lastmod>2026-02-23T04:11:49+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/interceptors/fft.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-23T04:11:49+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -142,27 +147,27 @@
   </url>
   <url>
     <loc>https://rgfx.io/interceptors/ram.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/interceptors/writing-interceptors.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-25T14:56:42+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/transformers/index.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-23T04:11:49+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/transformers/ambilight.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-23T04:11:49+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://rgfx.io/transformers/gif-bitmaps.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <loc>https://rgfx.io/transformers/bitmaps.html</loc>
+    <lastmod>2026-02-25T20:05:13+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>

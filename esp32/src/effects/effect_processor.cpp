@@ -3,6 +3,7 @@
 #include "driver_config.h"
 #include "effects/effect_utils.h"
 #include "hal/platform.h"
+#include <atomic>
 
 // Frame timing accumulator (reset every second when FPS is calculated)
 static uint32_t g_clearUsAccum = 0;
@@ -16,8 +17,19 @@ static uint32_t g_lastTimingCalcTime = 0;
 // Averaged metrics (updated once per second)
 static FrameTimingMetrics g_avgMetrics = {0, 0, 0, 0, 0};
 
+// LED health detection — tracks RMT peripheral state
+// If showUs is abnormally low while effects are running, the RMT is likely corrupted
+static bool g_ledHealthy = true;
+static uint8_t g_consecutiveUnhealthySeconds = 0;
+static constexpr uint8_t LED_HEALTH_FAILURE_THRESHOLD_SECONDS = 5;
+static constexpr uint32_t MIN_EXPECTED_SHOW_US = 100;
+
 FrameTimingMetrics getFrameTimingMetrics() {
 	return g_avgMetrics;
+}
+
+bool getLedHealthy() {
+	return g_ledHealthy;
 }
 
 EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
@@ -70,7 +82,7 @@ void EffectProcessor::update() {
 	}
 
 	// Check if in test mode FIRST
-	extern bool testModeActive;
+	extern std::atomic<bool> testModeActive;
 	if (testModeActive) {
 		// Test mode: clear canvas and render test pattern
 		canvas.clear();
@@ -151,6 +163,18 @@ void EffectProcessor::update() {
 		g_avgMetrics.downsampleUs = g_downsampleUsAccum / g_timingFrameCount;
 		g_avgMetrics.showUs = g_showUsAccum / g_timingFrameCount;
 		g_avgMetrics.totalUs = g_totalUsAccum / g_timingFrameCount;
+
+		// LED health detection: if effects are rendering but show() returns
+		// near-instantly, the RMT peripheral may be corrupted
+		if (g_avgMetrics.effectsUs > 500 && g_avgMetrics.showUs < MIN_EXPECTED_SHOW_US) {
+			g_consecutiveUnhealthySeconds++;
+			if (g_consecutiveUnhealthySeconds >= LED_HEALTH_FAILURE_THRESHOLD_SECONDS) {
+				g_ledHealthy = false;
+			}
+		} else {
+			g_consecutiveUnhealthySeconds = 0;
+			g_ledHealthy = true;
+		}
 
 		// Reset accumulators
 		g_clearUsAccum = 0;

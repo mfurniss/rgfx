@@ -58,7 +58,7 @@ Factory for creating and wiring up all main process services.
 - Creates instances of all services with dependency injection
 - `SystemMonitor` receives `MqttBroker` to query actual service status
 - Wraps transformer `broadcast` with `validateTransformerEffect` to apply Zod schema defaults before sending to drivers
-- Contains `parseAmbilight()` (12-bit → 24-bit color expansion) and `hslToHex()` (HSL → hex conversion) utility functions passed to transformer engine context
+- Contains `parseAmbilight()` (12-bit → 24-bit color expansion), `hslToHex()` (HSL → hex conversion), `createGifLoader()`, and `createSpriteLoader()` utility functions passed to transformer engine context
 - Provides `ServiceContainer` interface for accessing services
 - Used by `service-startup.ts` for initialization
 

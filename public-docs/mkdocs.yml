@@ -61,6 +61,7 @@ nav:
     - Build Examples: hardware/examples.md
     - Wiring & Power: hardware/wiring.md
     - Configuration: hardware/configure.md
+    - Hardware Definitions: hardware/definitions.md
     - Visual Effects: hardware/effects.md
   - Interceptors:
     - Introduction: interceptors/index.md
@@ -75,7 +76,7 @@ nav:
     - Writing Transformers: transformers/writing-transformers.md
     - Global Configuration: transformers/global.md
     - Utilities: transformers/utils.md
-    - GIF Bitmaps: transformers/gif-bitmaps.md
+    - Bitmaps: transformers/bitmaps.md
     - Ambilight: transformers/ambilight.md
   - FAQ / Troubleshooting: faq.md
 

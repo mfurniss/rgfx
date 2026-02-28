@@ -114,8 +114,8 @@ describe('loadGif', () => {
     const result = await loadGif('/test/image.gif');
 
     expect(result.palette).toHaveLength(2);
-    expect(result.palette[0]).toBe('#FF0000'); // red
-    expect(result.palette[1]).toBe('#0000FF'); // blue
+    expect(result.palette![0]).toBe('#FF0000'); // red
+    expect(result.palette![1]).toBe('#0000FF'); // blue
     expect(result.width).toBe(2);
     expect(result.height).toBe(2);
     expect(result.frameCount).toBe(1);
@@ -179,7 +179,7 @@ describe('loadGif', () => {
 
     const result = await loadGif('/test/image.gif');
 
-    expect(result.palette.length).toBeLessThanOrEqual(16);
+    expect(result.palette!.length).toBeLessThanOrEqual(16);
   });
 
   it('should clamp frameRate to reasonable range', async () => {
@@ -200,8 +200,8 @@ describe('loadGif', () => {
 
     // Should extract palette from the local color table
     expect(result.palette).toHaveLength(2);
-    expect(result.palette[0]).toBe('#00FF00'); // green
-    expect(result.palette[1]).toBe('#FFFF00'); // yellow
+    expect(result.palette![0]).toBe('#00FF00'); // green
+    expect(result.palette![1]).toBe('#FFFF00'); // yellow
     expect(result.width).toBe(2);
     expect(result.height).toBe(2);
     expect(result.frameCount).toBe(1);

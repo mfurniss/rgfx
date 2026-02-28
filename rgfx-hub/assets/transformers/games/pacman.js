@@ -1,26 +1,18 @@
 import { randomInt, sleep, trackedTimeout } from '../utils/index.js';
 import { PICO8_PALETTE } from '../palettes.js';
-import {
-  PACMAN_SPRITE_OPEN_MOUTH,
-  PACMAN_SPRITE_CLOSED_MOUTH,
-  PACMAN_SPRITE_DIM_OPEN_MOUTH,
-  PACMAN_SPRITE_DIM_CLOSED_MOUTH,
-  GHOST_SCARED_BLUE,
-  GHOST_SCARED_WHITE,
-  GHOST_EYES_RIGHT,
-  GHOST_EYES_LEFT,
-} from '../bitmaps/pacman-sprites.js';
 import { STRIP_DRIVERS, NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
+let pacRight, pacRightDim, ghostScared, ghostEyesR, ghostEyesL;
+
 const BONUS_ITEMS = {
-  cherry: { score: 100, file: 'pac-bonus-1-cherry.gif' },
-  strawberry: { score: 300, file: 'pac-bonus-2-strawberry.gif' },
-  orange: { score: 500, file: 'pac-bonus-3-orange.gif' },
-  apple: { score: 700, file: 'pac-bonus-4-apple.gif' },
-  melon: { score: 1000, file: 'pac-bonus-5-melon.gif' },
-  galaxian: { score: 2000, file: 'pac-bonus-6-galaxian.gif' },
-  bell: { score: 3000, file: 'pac-bonus-7-bell.gif' },
-  key: { score: 5000, file: 'pac-bonus-8-key.gif' },
+  cherry: { score: 100, file: 'pac-bonus-1-cherry.json' },
+  strawberry: { score: 300, file: 'pac-bonus-2-strawberry.json' },
+  orange: { score: 500, file: 'pac-bonus-3-orange.json' },
+  apple: { score: 700, file: 'pac-bonus-4-apple.json' },
+  melon: { score: 1000, file: 'pac-bonus-5-melon.json' },
+  galaxian: { score: 2000, file: 'pac-bonus-6-galaxian.json' },
+  bell: { score: 3000, file: 'pac-bonus-7-bell.json' },
+  key: { score: 5000, file: 'pac-bonus-8-key.json' },
 };
 
 let dotCount = 0;
@@ -28,8 +20,35 @@ let bonusLatch = false;
 
 export async function transform(
   { subject, property, payload },
-  { broadcast, loadGif },
+  { broadcast, loadSprite },
 ) {
+  async function loadBitmaps() {
+    try {
+      [pacRight, pacRightDim, ghostScared, ghostEyesR, ghostEyesL] =
+        await Promise.all([
+          loadSprite('bitmaps/pac-right.json'),
+          loadSprite('bitmaps/pac-right-dim.json'),
+          loadSprite('bitmaps/ghost-scared.json'),
+          loadSprite('bitmaps/ghost-eyes-right.json'),
+          loadSprite('bitmaps/ghost-eyes-left.json'),
+        ]);
+      for (const item of Object.values(BONUS_ITEMS)) {
+        item.sprite = null;
+      }
+    } catch (err) {
+      console.error('Failed to load Pac-Man sprites:', err);
+    }
+  }
+
+  if (subject === 'init') {
+    await loadBitmaps();
+    return true;
+  }
+
+  if (!pacRight) {
+    await loadBitmaps();
+  }
+
   if (bonusLatch === false && subject === 'player' && property === 'score') {
     return broadcast({
       effect: 'text',
@@ -106,11 +125,7 @@ export async function transform(
           fadeIn: 200,
           fadeOut: 200,
           palette: PICO8_PALETTE,
-          images: [
-            dotCount & 1
-              ? PACMAN_SPRITE_DIM_OPEN_MOUTH
-              : PACMAN_SPRITE_DIM_CLOSED_MOUTH,
-          ],
+          images: [pacRightDim.images[dotCount % 3]],
         },
       });
     }
@@ -143,7 +158,7 @@ export async function transform(
           fadeIn: 300,
           fadeOut: 300,
           palette: PICO8_PALETTE,
-          images: [GHOST_SCARED_BLUE, GHOST_SCARED_WHITE],
+          images: ghostScared.images,
           frameRate: 3,
         },
       });
@@ -164,8 +179,8 @@ export async function transform(
           fadeIn: 300,
           fadeOut: 300,
           palette: PICO8_PALETTE,
-          images: [PACMAN_SPRITE_OPEN_MOUTH, PACMAN_SPRITE_CLOSED_MOUTH],
-          frameRate: 7,
+          images: pacRight.images,
+          frameRate: 12,
         },
       });
     }
@@ -227,7 +242,7 @@ export async function transform(
           fadeIn: 300,
           fadeOut: 300,
           palette: PICO8_PALETTE,
-          images: [i ? GHOST_EYES_RIGHT : GHOST_EYES_LEFT],
+          images: [i ? ghostEyesR.images[0] : ghostEyesL.images[0]],
           frameRate: 3,
         },
       });
@@ -238,7 +253,7 @@ export async function transform(
     if (bonusItem) {
       if (!bonusItem.sprite) {
         try {
-          bonusItem.sprite = await loadGif(`bitmaps/${bonusItem.file}`);
+          bonusItem.sprite = await loadSprite(`bitmaps/${bonusItem.file}`);
         } catch (err) {
           console.error(`Failed to load bonus sprite ${payload}:`, err);
         }

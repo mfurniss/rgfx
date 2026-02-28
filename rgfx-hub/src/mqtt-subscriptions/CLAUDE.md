@@ -48,6 +48,7 @@ Receives periodic heartbeat messages containing:
 - Registers new drivers or updates existing ones
 - Sends `driver:updated` IPC to renderer
 - Supports fallback for old firmware (minimal validation)
+- Emits `system:error` when `ledHealthy === false` (debounced per-driver using a `Set<string>` of MAC addresses to avoid firing every telemetry cycle)
 
 ### Driver Status
 

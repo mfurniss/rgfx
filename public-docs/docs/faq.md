@@ -96,7 +96,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | Interceptor loading | Check MAME's console output for errors. If the interceptor has a Lua syntax error, MAME will report it. |
 | Config directory | Verify the RGFX Config Directory in [Settings](hub-app/settings.md) points to your config directory. |
 | Event log | Check that `interceptor-events.log` is being created and updated in your config directory while the game runs. |
-| Boot delay | Some interceptors have a boot delay to skip past hardware tests and attract modes. Wait for gameplay to begin before expecting events. |
+| Boot delay | Some interceptors have a boot delay that suppresses events during the power-on self test. Wait for the delay to expire before expecting events. |
 
 ### My LEDs flicker or show wrong colors
 

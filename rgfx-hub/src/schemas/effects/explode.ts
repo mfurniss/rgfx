@@ -1,10 +1,12 @@
 import { z } from 'zod';
-import { baseEffect, centerX, centerY } from './properties';
+import { baseEffect, centerX, centerY, createNoOpCleaner } from './properties';
 import { randomInt, randomColor } from '@/utils/random';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import defaults from './defaults.json';
 
 const d = defaults.explode;
+
+export const cleanCodeProps = createNoOpCleaner({ reset: false, gravity: 0, hueSpread: 0 });
 
 export const fieldTypes: FieldTypeMap = {
   centerX: 'centerXY',

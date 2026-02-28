@@ -130,7 +130,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 | File | Purpose |
 |------|---------|
 | `effect.h` | Base `IEffect` interface |
-| `effect_processor.h/cpp` | Manages effects, frame timing, and rendering |
+| `effect_processor.h/cpp` | Manages effects, frame timing, rendering, and LED health detection |
 | `effect_utils.h/cpp` | Shared utilities: color parsing, `FadeState` for fade in/out transitions |
 | `gradient_utils.h/cpp` | Gradient LUT generation and color parsing |
 | `text_rendering.h/cpp` | Low-level text rendering utilities (character drawing, string measurement) |
@@ -168,6 +168,7 @@ Text, Scroll Text, and Plasma effects support gradient colors:
 ## Key Concepts
 
 - **Canvas:** 4x resolution buffer for anti-aliased rendering, downsampled to Matrix
+- **LED Health Detection:** `getLedHealthy()` monitors RMT peripheral state by comparing `showUs` vs `effectsUs` timing. If `show()` returns near-instantly (<100µs) while effects are active (>500µs) for 5 consecutive seconds, reports unhealthy. Included in telemetry payload as `ledHealthy`.
 - **Delta Time:** Frame-independent animation using elapsed time in seconds
 - **Multiple Instances:** Each effect can have multiple active instances (e.g., overlapping pulses)
 - **Easing Functions:** Located in `utils/easing.h`, used for smooth animation curves

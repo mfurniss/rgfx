@@ -108,10 +108,12 @@ Refactored components, hooks, and utilities extracted from the main page:
 - Preset selection modal for gradient and plasma effects
 - State persisted in `UiStore` across navigation
 - Code generation tab showing JavaScript code for transformers
+- **Per-effect form defaults:** `getDefaultProps()` merges `effectFormDefaults` on top of schema defaults (e.g., bitmap endX/endY default to 'random' in the form without changing wire schema)
 - **Form validation gate:** Trigger and Random Trigger buttons are disabled when the form has validation errors (`isFormValid` state, fed by `EffectForm.onValidityChange`)
 - **Debounced store writes:** `handlePropsChange` uses lodash `debounce` (150ms) with `useRef` for stable callback identity, preventing rapid keystrokes from thrashing the store. Debounce is flushed before triggering effects or randomizing to ensure store is current
 - **Single driver store subscription:** uses one `drivers` subscription with `useMemo` to derive `connectedDrivers` and `connectedDriverIds`, avoiding redundant store subscriptions
-- **Narrow useEffect deps for driver pruning:** the effect that removes disconnected drivers from selection reads current values from refs so it only fires when `connectedDriverIds` changes, not on every form keystroke
+- **Auto-select on reconnect:** the useEffect that reacts to `connectedDriverIds` changes sets the selection to all connected drivers, so reconnecting drivers are automatically selected
+- **Narrow useEffect deps:** the driver selection effect reads current values from refs so it only fires when `connectedDriverIds` changes, not on every form keystroke
 
 ### Effects Playground Subdirectory
 
@@ -123,7 +125,7 @@ Refactored components and utilities extracted from the main page:
 |------|---------|
 | `components/tab-panel.tsx` | Tab panel wrapper for tabbed interface |
 | `effect-helpers.ts` | Effect manipulation helpers (randomize, defaults) |
-| `utils/code-generator.ts` | Generates JavaScript code from effect props |
+| `utils/code-generator.ts` | Generic JavaScript code generator; per-effect overrides via `effectCodeGenerators` and `effectCodePropsTransforms` maps from schemas |
 | `utils/value-formatter.ts` | Formats values for code output (escapes single quotes and backslashes in strings) |
 
 ---

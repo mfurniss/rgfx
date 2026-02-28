@@ -19,6 +19,7 @@
 #include "version.h"
 #include "serial.h"
 #include "crash_handler.h"
+#include "safe_restart.h"
 #include "graphics/downsample_to_matrix.h"
 #include "hal/display.h"
 #include "hal/led_controller.h"
@@ -289,12 +290,12 @@ static void createMatrixIfNeeded() {
 // Main loop - runs on Core 1 (application core)
 // Focused on time-critical LED effects and low-latency UDP processing
 void loop() {
-	// Process pending effect clear request from Core 0 (OTA start)
+	// Process pending effect clear request from Core 0
 	// Must happen on Core 1 to avoid cross-core FastLED.show() race condition
 	if (pendingClearEffects.exchange(false)) {
 		if (effectProcessor != nullptr && !g_configUpdateInProgress) {
 			effectProcessor->clearEffects();
-			log("Effects cleared for OTA");
+			log("Effects cleared (requested by Core 0)");
 		}
 	}
 
@@ -452,6 +453,22 @@ void loop() {
 			effectProcessor->update();
 			g_frameCount++;
 		}
+	}
+
+	// LED health auto-recovery: if LED output is broken for extended period, restart
+	static uint32_t ledUnhealthySinceMs = 0;
+	if (effectProcessor != nullptr && !getLedHealthy()) {
+		if (ledUnhealthySinceMs == 0) {
+			ledUnhealthySinceMs = millis();
+			log("LED health: RMT output appears broken", LogLevel::ERROR);
+		} else if (millis() - ledUnhealthySinceMs > 30000) {
+			log("LED health: broken for 30s, restarting", LogLevel::ERROR);
+			pendingRestart.store(true);
+			delay(200);  // Allow log messages to be published by Core 0
+			safeRestart();
+		}
+	} else {
+		ledUnhealthySinceMs = 0;
 	}
 
 	// Respond to watchdog ping from Core 0 - MUST be outside conditional block

@@ -16,7 +16,7 @@ Configure your driver's LED strip or matrix settings in RGFX Hub.
 
 Select your LED hardware from the dropdown. Hardware definitions describe physical properties like LED count, chipset, color order, and layout type. See [Choosing Hardware](choosing.md) for guidance.
 
-If your hardware isn't listed, you can add custom definitions to the `led-hardware/` folder in your [config directory](../getting-started/hub-setup.md#config-directory).
+If your hardware isn't listed, you can [create custom definitions](definitions.md) in the `led-hardware/` folder in your [config directory](../getting-started/hub-setup.md#config-directory).
 
 ### GPIO Pin
 
