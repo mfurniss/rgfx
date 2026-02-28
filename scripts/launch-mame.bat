@@ -36,17 +36,29 @@ if not exist "%RGFX_LUA%" (
     exit /b 1
 )
 
-:: Find MAME executable
-where mame >nul 2>&1
-if errorlevel 1 (
-    echo Error: 'mame' command not found in PATH
+:: Find MAME executable - check common locations first, then PATH
+set "MAME_EXEC="
+if exist "%USERPROFILE%\mame\mame.exe" (
+    set "MAME_EXEC=%USERPROFILE%\mame\mame.exe"
+) else if exist "C:\mame\mame.exe" (
+    set "MAME_EXEC=C:\mame\mame.exe"
+) else (
+    where mame >nul 2>&1
+    if not errorlevel 1 (
+        for /f "delims=" %%i in ('where mame') do set "MAME_EXEC=%%i"
+    )
+)
+if not defined MAME_EXEC (
+    echo Error: MAME not found
     echo.
-    echo Please install MAME and ensure it's in your PATH:
-    echo   1. Download from https://www.mamedev.org/release.html
-    echo   2. Add the MAME folder to your system PATH
+    echo Checked locations:
+    echo   - %USERPROFILE%\mame\mame.exe
+    echo   - C:\mame\mame.exe
+    echo   - PATH
+    echo.
+    echo Please install MAME to one of these locations or add it to your PATH.
     exit /b 1
 )
-for /f "delims=" %%i in ('where mame') do set "MAME_EXEC=%%i"
 
 :: Create MAME home directory if needed
 if not exist "%USERPROFILE%\.mame" mkdir "%USERPROFILE%\.mame"

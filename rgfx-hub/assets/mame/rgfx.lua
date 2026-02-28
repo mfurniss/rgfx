@@ -2,21 +2,26 @@
 -- This file is the entry point for MAME's -autoboot_script option.
 -- It loads system modules from the app bundle and user interceptors from ~/.rgfx/interceptors/
 
+-- Detect OS and set path separator
+local is_windows = package.config:sub(1, 1) == "\\"
+local sep = is_windows and "\\" or "/"
+
 -- System modules path (where this file lives - app bundle)
-local system_path = debug.getinfo(1, "S").source:sub(2):match("(.*/)") or "./"
+local script_path = debug.getinfo(1, "S").source:sub(2)
+local system_path = script_path:match("(.*[/\\])") or ("." .. sep)
 
 -- User interceptors path (~/.rgfx/interceptors/)
 local home = os.getenv("HOME") or os.getenv("USERPROFILE")
 if not home then
 	error("Could not determine home directory")
 end
-local user_path = home .. "/.rgfx/interceptors/"
+local user_path = home .. sep .. ".rgfx" .. sep .. "interceptors" .. sep
 
 -- Load system modules from bundle (event.lua, ram.lua)
 package.path = system_path .. "?.lua;" .. package.path
 
 -- Load user files from ~/.rgfx/interceptors/ (rom_map.lua, game interceptors)
-package.path = user_path .. "?.lua;" .. user_path .. "games/?.lua;" .. package.path
+package.path = user_path .. "?.lua;" .. user_path .. "games" .. sep .. "?.lua;" .. package.path
 
 -- Load event logging module (defines _G.event and event_file)
 require("event")
