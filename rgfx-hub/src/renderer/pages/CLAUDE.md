@@ -157,7 +157,8 @@ Refactored components and utilities extracted from the main page:
 **Purpose:** Firmware flashing interface for ESP32 drivers.
 
 **Features:**
-- Two flash methods: USB Serial and OTA WiFi
+- Two flash methods: USB Serial and OTA WiFi (auto-selects OTA when configured drivers exist, USB otherwise)
+- Tab auto-selection uses a `useEffect` watching `drivers.length` with a `userChangedTab` ref to avoid overriding manual user choice
 - **USB Serial:**
   - Serial port selection via Web Serial API
   - Uses `esptool-js` for direct ESP32 flashing

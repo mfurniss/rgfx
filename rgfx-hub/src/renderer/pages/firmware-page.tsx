@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Typography,
   Box,
@@ -64,10 +64,9 @@ const FirmwarePage: React.FC = () => {
   // Flash state from hook
   const flashState = useFlashState(new Map(Object.entries(storedDriverFlashStatus)));
 
-  // Local UI state - default to USB when no drivers exist
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>(
-    drivers.length === 0 ? 'usb' : storedFlashMethod,
-  );
+  // Local UI state - default to USB, switch to OTA once configured drivers load
+  const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
+  const userChangedTab = useRef(false);
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     () => new Set(driversNeedingUpdate.map((d) => d.id)),
@@ -82,6 +81,13 @@ const FirmwarePage: React.FC = () => {
     addLog: flashState.addLog,
     setDriverFlashStatus: flashState.setDriverFlashStatus,
   });
+
+  // Switch to OTA once configured drivers are loaded (async from IPC)
+  useEffect(() => {
+    if (drivers.length > 0 && !userChangedTab.current) {
+      setFlashMethod(storedFlashMethod);
+    }
+  }, [drivers.length, storedFlashMethod]);
 
   // Reset port selection when switching methods
   useEffect(() => {
@@ -236,6 +242,7 @@ const FirmwarePage: React.FC = () => {
             exclusive
             onChange={(_event, newMethod: FlashMethod | null) => {
               if (newMethod !== null) {
+                userChangedTab.current = true;
                 setFlashMethod(newMethod);
                 flashState.setError(null);
               }

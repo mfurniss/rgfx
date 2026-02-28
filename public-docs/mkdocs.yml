@@ -69,6 +69,7 @@ nav:
     - RAM Monitoring: interceptors/ram.md
     - Ambilight: interceptors/ambilight.md
     - Spectrum Analyzer: interceptors/fft.md
+    - Sprite Extraction: interceptors/sprite-extraction.md
     - Writing Interceptors: interceptors/writing-interceptors.md
     - MAME API: interceptors/mame-api.md
   - Transformers:

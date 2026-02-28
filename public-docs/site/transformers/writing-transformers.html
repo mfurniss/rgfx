@@ -1209,6 +1209,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interceptors/sprite-extraction.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprite Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../interceptors/writing-interceptors.html" class="md-nav__link">
         
   
@@ -1464,10 +1492,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-6-test" class="md-nav__link">
+  <a href="#step-6-handle-initialization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 6: Test
+        Step 6: Handle Initialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Test
       
     </span>
   </a>
@@ -1711,10 +1750,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-6-test" class="md-nav__link">
+  <a href="#step-6-handle-initialization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 6: Test
+        Step 6: Handle Initialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Test
       
     </span>
   </a>
@@ -1907,7 +1957,28 @@
 <p class="admonition-title">Do not use setTimeout or setInterval</p>
 <p>Always use <code>sleep()</code>, <code>trackedTimeout()</code>, and <code>trackedInterval()</code> from <a href="utils.html">utils</a> instead of the native <code>setTimeout</code> and <code>setInterval</code>. The utils versions are tracked by the transformer engine and automatically cancelled when the game exits. Native timers would continue firing after the game ends, causing stale effects on your LEDs.</p>
 </div>
-<h2 id="step-6-test">Step 6: Test<a class="headerlink" href="#step-6-test" title="Permanent link">¶</a></h2>
+<h2 id="step-6-handle-initialization">Step 6: Handle Initialization<a class="headerlink" href="#step-6-handle-initialization" title="Permanent link">¶</a></h2>
+<p>The RGFX framework emits an <a href="../interceptors/events.html#init-events">init event</a> when a game starts. Use it to load sprites, reset state, or perform one-time setup:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">let</span><span class="w"> </span><span class="nx">mySprite</span><span class="p">;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">loadSprite</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'init'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nx">mySprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadSprite</span><span class="p">(</span><span class="s1">'bitmaps/my-sprite.json'</span><span class="p">);</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="c1">// Fallback: load on first event if init was missed</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">mySprite</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nx">mySprite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadSprite</span><span class="p">(</span><span class="s1">'bitmaps/my-sprite.json'</span><span class="p">);</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span><span class="c1">// Handle gameplay events...</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="p">}</span>
+</code></pre></div>
+<p>The init handler is also useful for resetting transformer state — clearing cached sprites forces them to reload, which is helpful during development when sprite extraction output changes.</p>
+<p>See <a href="bitmaps.html#caching-and-initialization">Bitmaps</a> for more on sprite loading and caching patterns.</p>
+<h2 id="step-7-test">Step 7: Test<a class="headerlink" href="#step-7-test" title="Permanent link">¶</a></h2>
 <p>Save the file. The Hub watches the transformers directory and reloads changes immediately — no restart needed.</p>
 <p>Three ways to test without replaying the game:</p>
 <ul>

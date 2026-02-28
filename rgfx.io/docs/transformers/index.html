@@ -1209,6 +1209,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interceptors/sprite-extraction.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprite Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../interceptors/writing-interceptors.html" class="md-nav__link">
         
   
@@ -2137,6 +2165,10 @@
 <td>Load GIF for bitmap effects</td>
 </tr>
 <tr>
+<td><code>loadSprite(path)</code></td>
+<td>Load JSON sprite for bitmap effects</td>
+</tr>
+<tr>
 <td><code>parseAmbilight(payload)</code></td>
 <td>Parse ambilight color data</td>
 </tr>
@@ -2223,7 +2255,7 @@
 </code></pre></div>
 <h2 id="hot-reload">Hot Reload<a class="headerlink" href="#hot-reload" title="Permanent link">¶</a></h2>
 <p>The Hub watches the transformers directory for changes. Edit a game transformer and the change takes effect immediately without restarting.</p>
-<p>Changes to shared files — <code>global.js</code> and anything in <code>utils/</code> — trigger a full reload of <strong>all</strong> loaded transformers, since any transformer may import from these modules.</p>
+<p>Changes to shared files — <code>global.js</code> and anything in <code>utils/</code> — trigger a full reload of <strong>all</strong> loaded transformers, since any transformer may import from these modules. Changes to <code>.json</code> files in <code>bitmaps/</code> also trigger a full reload, so updated <a href="../interceptors/sprite-extraction.html">sprite extractions</a> take effect immediately.</p>
 <h2 id="next-step">Next Step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
 <p>For a complete walkthrough of creating a game transformer from scratch, see the <a href="writing-transformers.html">Writing Transformers</a> guide.</p>
 

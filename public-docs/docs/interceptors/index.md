@@ -13,6 +13,7 @@ Interceptors go far beyond simple memory monitoring. They:
 - **Track game state** — Interceptors know whether you're in attract mode, actively playing, or between levels, and can track progression through the game.
 - **Sample screen colors** — The ambilight feature captures colors from screen edges to create ambient lighting effects.
 - **Analyze audio** — The FFT module performs real-time frequency analysis of game audio for sound-reactive lighting.
+- **Extract sprite graphics** — The [sprite extraction](sprite-extraction.md) module reads ROM data to generate sprite images for use in LED bitmap effects.
 - **Handle timing** — Boot delays suppress events during the power-on self test, preventing false triggers before gameplay begins.
 
 ## How the System Works
@@ -42,6 +43,7 @@ interceptors/
 ├── rom_map.lua           # Maps ROM names to interceptors
 ├── ambilight.lua         # Screen color sampling utility
 ├── fft.lua               # Audio analysis utility
+├── sprite-extract.lua    # ROM sprite extraction utility
 └── games/
     ├── pacman_rgfx.lua
     ├── galaga_rgfx.lua
@@ -56,6 +58,7 @@ When RGFX Hub first runs, it copies default interceptors to this location. You c
 - [RAM Monitoring](ram.md) — Watch memory addresses for changes
 - [Ambilight](ambilight.md) — Sample screen colors for ambient lighting
 - [FFT Audio](fft.md) — React to game audio frequencies
+- [Sprite Extraction](sprite-extraction.md) — Extract sprite graphics from ROM data
 - [Writing Interceptors](writing-interceptors.md) — Create your own interceptor
 - [MAME API Reference](mame-api.md) — Access MAME's Lua environment
 
