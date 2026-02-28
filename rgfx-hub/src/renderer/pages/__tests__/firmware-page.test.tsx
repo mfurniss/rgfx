@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FirmwarePage from '../firmware-page';
 import { useDriverStore } from '../../store/driver-store';
@@ -367,6 +367,93 @@ describe('FirmwarePage', () => {
       render(<FirmwarePage />);
 
       expect(screen.queryByText('No connected drivers selected')).toBeNull();
+    });
+  });
+
+  describe('infinite loop prevention', () => {
+    it('should not re-render excessively when drivers load and store syncs', () => {
+      // Track how many times setFirmwareState is called
+      const setFirmwareStateMock = vi.fn();
+      let callCount = 0;
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        const state = {
+          firmwareFlashMethod: 'ota',
+          firmwareDriverFlashStatus: {},
+          setFirmwareState: () => {
+            callCount++;
+            setFirmwareStateMock();
+
+            if (callCount > 10) {
+              throw new Error('Infinite loop detected: setFirmwareState called too many times');
+            }
+          },
+          setFirmwareDriverFlashStatus: vi.fn(),
+          isFlashingFirmware: false,
+          setIsFlashingFirmware: vi.fn(),
+        };
+        return selector(state);
+      }) as any);
+
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = {
+          drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
+        };
+        return selector(state);
+      }) as any);
+
+      // This should not throw - if it does, there's an infinite loop
+      expect(() => {
+        render(<FirmwarePage />);
+      }).not.toThrow();
+
+      // setFirmwareState should be called a reasonable number of times (1-3)
+      expect(callCount).toBeLessThanOrEqual(5);
+    });
+
+    it('should initialize from store only once when drivers arrive', () => {
+      let setFlashMethodCallCount = 0;
+
+      // Start with no drivers
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = { drivers: [] };
+        return selector(state);
+      }) as any);
+
+      const setFirmwareStateMock = vi.fn(() => {
+        setFlashMethodCallCount++;
+      });
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        const state = {
+          firmwareFlashMethod: 'ota',
+          firmwareDriverFlashStatus: {},
+          setFirmwareState: setFirmwareStateMock,
+          setFirmwareDriverFlashStatus: vi.fn(),
+          isFlashingFirmware: false,
+          setIsFlashingFirmware: vi.fn(),
+        };
+        return selector(state);
+      }) as any);
+
+      const { rerender } = render(<FirmwarePage />);
+      const initialCallCount = setFlashMethodCallCount;
+
+      // Simulate drivers arriving
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = {
+          drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
+        };
+        return selector(state);
+      }) as any);
+
+      act(() => {
+        rerender(<FirmwarePage />);
+      });
+
+      // Should have been called a limited number of additional times (not infinitely)
+      const additionalCalls = setFlashMethodCallCount - initialCallCount;
+      expect(additionalCalls).toBeLessThanOrEqual(3);
     });
   });
 });
