@@ -34,7 +34,7 @@ The Hub also starts an embedded MQTT message broker automatically — this is ho
 
 Go to **[Settings](../hub-app/settings.md)** in the sidebar and configure:
 
-![Settings](../assets/images/rgfx-hub-settings-1.png)
+![Settings](../assets/images/rgfx-hub-settings.png)
 
 ### MAME ROMs Directory
 

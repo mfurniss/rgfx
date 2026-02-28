@@ -81,6 +81,8 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - Init events (`<game>/init`) are emitted automatically by the framework ~500ms after interceptor load; they bypass boot delay
 - Sprite extraction (`sprite-extract.lua`) reads ROM graphics at runtime; manifests declared in interceptors; outputs JSON to `transformers/bitmaps/`
 - `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
+- Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
+- Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
 - FFT module requires `emit_events = true` to emit events (defaults to false)

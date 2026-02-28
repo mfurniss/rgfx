@@ -1,16 +1,15 @@
 # Contributing to RGFX
 
-Thanks for your interest in contributing to RGFX! Whether it's a bug report, new game interceptor, LED effect, documentation improvement, or a code fix - all contributions are welcome.
+Thanks for your interest in contributing to RGFX! Whether it's a new game interceptor, LED effect, bug fix, or documentation improvement - all contributions are welcome.
 
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [Ways to Contribute](#ways-to-contribute)
-- [Development Setup](#development-setup)
+- [Adding Game Support](#adding-game-support-interceptors--transformers) - for hobbyists and retro gaming enthusiasts
+- [Working on the Hub or ESP32 Driver](#working-on-the-hub-or-esp32-driver) - for experienced developers
 - [Project Structure](#project-structure)
 - [Making Changes](#making-changes)
-- [Code Standards](#code-standards)
-- [Testing](#testing)
 - [Submitting a Pull Request](#submitting-a-pull-request)
 - [Reporting Bugs](#reporting-bugs)
 - [Requesting Features](#requesting-features)
@@ -21,29 +20,104 @@ This project follows the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md). By par
 
 ## Ways to Contribute
 
-- **Bug reports** - Found something broken? [Open an issue](#reporting-bugs)
 - **Game interceptors** - Add support for a new retro game
-- **LED effects** - Create new visual effects for the ESP32 drivers
-- **Code improvements** - Bug fixes, refactoring, performance
+- **Event transformers** - Create new visual effects for existing games
+- **Code improvements** - Bug fixes, refactoring, performance (Hub or ESP32)
 - **Documentation** - Fix typos, improve guides, add examples
-- **Testing** - Write meaningful tests, improve coverage
+- **Bug reports** - Found something broken? [Open an issue](#reporting-bugs)
 
-## Development Setup
+---
 
-RGFX has three components: the **Hub** (Electron app), **ESP32 Driver** (firmware), and **MAME scripts** (Lua). You don't need all three to contribute - set up only what you need.
+## Adding Game Support (Interceptors & Transformers)
+
+This is the most common way to contribute. You don't need to know TypeScript or C++ — just Lua (for interceptors), JavaScript (for transformers), or both.
+
+### What You Need
+
+- **MAME 0.250+** — [mamedev.org](https://www.mamedev.org/release.html) or `brew install mame` on macOS
+- **RGFX Hub** — [download from GitHub](https://github.com/mfurniss/rgfx/releases/latest)
+- A text editor
+- ROM files for the game you want to support
+
+### What Are Interceptors and Transformers?
+
+**Interceptors** are Lua scripts that run inside MAME. They monitor game RAM — reading memory addresses to detect events like score changes, player deaths, level transitions, and entity spawns. Each interceptor emits events to a log file.
+
+**Transformers** are JavaScript scripts that run in the Hub. They receive events from interceptors and decide what LED effects to trigger — pulses, ripples, scrolling text, sprite rendering, and more.
+
+Together, they form the pipeline: **Game RAM → Interceptor (Lua) → Events → Transformer (JS) → LED Effects**.
+
+### Getting Started
+
+```bash
+git clone https://github.com/mfurniss/rgfx.git
+cd rgfx
+```
+
+Look at existing examples to understand the patterns:
+
+- **Interceptors:** `rgfx-hub/assets/interceptors/games/` — Pac-Man, Galaga, Robotron, and more
+- **Transformers:** `rgfx-hub/assets/transformers/games/` — matching transformer for each game
+
+### Writing Guides
+
+Detailed guides are available in the documentation:
+
+- [Writing Interceptors](https://rgfx.io/docs/interceptors/writing-interceptors/) — covers MAME debugger workflow, RAM monitoring patterns, BCD decoding, state tracking
+- [Writing Transformers](https://rgfx.io/docs/transformers/writing-transformers/) — covers event matching, effect types, driver targeting, sprite loading, sequencing
+
+### Testing Your Changes
+
+Launch MAME with RGFX monitoring:
+
+**macOS:**
+```bash
+./scripts/launch-mame.sh pacman
+```
+
+**Windows (Git Bash or WSL):**
+```bash
+./scripts/launch-mame.sh pacman
+```
+
+**Windows (manual):**
+```powershell
+mame pacman -rompath ~/mame-roms -window -autoboot_script path\to\rgfx-hub\assets\mame\rgfx.lua
+```
+
+Use the Hub's **Event Monitor** to see events in real time, or the **Simulator** to test effects without hardware.
+
+Transformer changes are hot-reloaded — no restart needed.
+
+### Linting
+
+Lua scripts must pass linting before submission:
+
+```bash
+luacheck path/to/your_interceptor.lua
+stylua --check path/to/your_interceptor.lua
+```
+
+Install with `brew install luacheck stylua` (macOS) or download from GitHub.
+
+---
+
+## Working on the Hub or ESP32 Driver
+
+This section is for developers contributing to the Hub application (TypeScript/Electron) or the ESP32 driver firmware (C++).
 
 ### Prerequisites
 
 #### macOS
 
 ```bash
-# Node.js 18+ (for Hub)
+# Node.js 20+ (for Hub)
 brew install node
 
 # PlatformIO (for ESP32 firmware)
 brew install platformio
 
-# MAME 0.281+ (for game emulation)
+# MAME 0.250+ (for game emulation)
 brew install mame
 
 # Lua tools (for Lua script linting)
@@ -54,14 +128,13 @@ brew install stylua
 #### Windows
 
 ```powershell
-# Node.js 18+ - download from https://nodejs.org or use winget:
-winget install OpenJS.NodeJS.LTS
+# Node.js 20+
 
 # PlatformIO - install via pip or the VSCode extension:
 pip install platformio
 # Or install the PlatformIO IDE extension in VSCode
 
-# MAME 0.281+ - download from https://www.mamedev.org/release.html
+# MAME 0.250+ - download from https://www.mamedev.org/release.html
 
 # Lua tools (for Lua script linting)
 # Install luacheck and stylua via LuaRocks or download binaries from GitHub
@@ -84,6 +157,23 @@ npm install
 npm start        # Launch the Hub in development mode
 ```
 
+**Code standards:**
+
+- Zero TypeScript errors — strict mode, no `any` types
+- Zero ESLint warnings — all warnings are treated as errors
+- camelCase for variables and functions, PascalCase for types/interfaces/classes
+- No unused exports
+- Separation of concerns — keep modules focused
+
+**Testing:**
+
+```bash
+cd rgfx-hub
+npm test             # Run all tests
+npm run typecheck    # TypeScript compilation check
+npm run lint         # ESLint
+```
+
 ### ESP32 Firmware
 
 ```bash
@@ -93,24 +183,11 @@ pio run -t upload    # Flash via USB (requires connected ESP32)
 pio test -e native   # Run unit tests
 ```
 
-### MAME Integration
+**Code standards:**
 
-Launch MAME with RGFX game monitoring:
-
-**macOS:**
-```bash
-./scripts/launch-mame.sh pacman
-```
-
-**Windows (Git Bash or WSL):**
-```bash
-./scripts/launch-mame.sh pacman
-```
-
-**Windows (manual):**
-```powershell
-mame pacman -rompath ~/mame-roms -window -autoboot_script path\to\rgfx-hub\assets\mame\rgfx.lua
-```
+- Follow existing patterns in `esp32/src/`
+- Use `.clang-format` for formatting
+- Firmware must compile with `pio run`
 
 ### Running All Checks
 
@@ -120,7 +197,16 @@ Before submitting any changes, run the check script:
 ./scripts/check-code.sh --all
 ```
 
-This runs TypeScript compilation, ESLint, unit tests, ESP32 build verification, and Lua linting - depending on which files you changed. The same checks run in CI.
+This runs TypeScript compilation, ESLint, unit tests, ESP32 build verification, and Lua linting — depending on which files you changed. The same checks run in CI.
+
+### Testing Philosophy
+
+- **Tests must be meaningful** — test real behavior, not mocks
+- Don't write tests that only verify mock setup
+- Quality over coverage — a few good integration tests beat many shallow unit tests
+- If a test is difficult to write, that's often a signal the code needs restructuring
+
+---
 
 ## Project Structure
 
@@ -153,7 +239,7 @@ rgfx/
    ```bash
    git checkout -b feature/my-change
    ```
-4. **Make your changes** - keep commits focused and atomic
+4. **Make your changes** — keep commits focused and atomic
 5. **Run checks** before pushing:
    ```bash
    ./scripts/check-code.sh --all
@@ -176,68 +262,25 @@ and level completion.
 - First line under 72 characters
 - Add detail in the body when the "why" isn't obvious
 
-## Code Standards
-
-### TypeScript (Hub)
-
-- Zero TypeScript errors - strict mode, no `any` types
-- Zero ESLint warnings - all warnings are treated as errors
-- camelCase for variables and functions, PascalCase for types/interfaces/classes
-- No unused exports
-- Separation of concerns - keep modules focused
-
-### C++ (ESP32 Firmware)
-
-- Follow existing patterns in `esp32/src/`
-- Use `.clang-format` for formatting
-- Firmware must compile with `pio run`
-
-### Lua (MAME Scripts)
-
-- Must pass `luacheck` and `stylua` formatting
-- Follow the interceptor pattern used in existing game scripts
-- See `rgfx-hub/assets/interceptors/` for examples
-
-### General
+### General Code Standards
 
 - Comments explain **why**, not what
-- No unnecessary abstractions - three similar lines beats a premature helper function
+- No unnecessary abstractions — three similar lines beats a premature helper function
 - Keep functions small and focused
 - Update documentation for significant changes
 
-## Testing
+### AI-Assisted Contributions
 
-### Hub Tests
-
-```bash
-cd rgfx-hub
-npm test             # Run all tests
-npm run typecheck    # TypeScript compilation check
-npm run lint         # ESLint
-```
-
-### ESP32 Tests
-
-```bash
-cd esp32
-pio test -e native   # Run unit tests
-pio run              # Verify firmware compiles
-```
-
-### Testing Philosophy
-
-- **Tests must be meaningful** - test real behavior, not mocks
-- Don't write tests that only verify mock setup
-- Quality over coverage - a few good integration tests beat many shallow unit tests
-- If a test is difficult to write, that's often a signal the code needs restructuring
+This project was developed with the help of [Claude Code](https://claude.ai/claude-code). Contributions that use generative AI tools (Claude, Copilot, ChatGPT, etc.) are welcome — provided you understand the code you're submitting and have reviewed it for correctness and quality. AI-generated code that the contributor can't explain or defend in review will be sent back.
 
 ## Submitting a Pull Request
 
 1. Ensure all checks pass: `./scripts/check-code.sh --all`
-2. Update `CHANGELOG.md` under the `[Unreleased]` section
-3. Push your branch and create a pull request on GitHub
-4. Fill in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)
-5. Wait for CI to pass and a maintainer to review
+2. Push your branch and create a pull request on GitHub
+3. Fill in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)
+4. Wait for CI to pass and a maintainer to review
+
+Changelogs are maintained by the project maintainer at release time.
 
 ### What to Expect
 
