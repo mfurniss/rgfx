@@ -1307,6 +1307,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Step 1: Find Memory Addresses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-mame-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the MAME Debugger
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1770,6 +1787,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Step 1: Find Memory Addresses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-mame-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the MAME Debugger
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1925,25 +1959,56 @@
 <h1 id="writing-interceptors">Writing Interceptors<a class="headerlink" href="#writing-interceptors" title="Permanent link">¶</a></h1>
 <p>This guide walks through creating a custom interceptor for a new game.</p>
 <h2 id="step-1-find-memory-addresses">Step 1: Find Memory Addresses<a class="headerlink" href="#step-1-find-memory-addresses" title="Permanent link">¶</a></h2>
-<p>Use MAME's built-in debugger to discover where the game stores its state.</p>
+<p>The first step — and often the most time-consuming — is finding where the game stores its state in RAM. MAME's built-in debugger is the primary tool for this.</p>
+<h3 id="using-the-mame-debugger">Using the MAME Debugger<a class="headerlink" href="#using-the-mame-debugger" title="Permanent link">¶</a></h3>
+<p>Launch MAME with the debugger enabled:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mame<span class="w"> </span>mygame<span class="w"> </span>-debug
+</code></pre></div>
+<p>The game pauses immediately at the debugger prompt. From here you can set watchpoints, inspect memory, and step through execution.</p>
+<p><strong>Key debugger commands:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wpset 0x4000,0x100,w</code></td>
+<td>Break when anything writes to addresses <code>0x4000</code>–<code>0x40FF</code></td>
+</tr>
+<tr>
+<td><code>wpset 0x4E00,1,w,wpdata==3</code></td>
+<td>Break only when value <code>3</code> is written to <code>0x4E00</code></td>
+</tr>
+<tr>
+<td><code>go</code></td>
+<td>Resume execution</td>
+</tr>
+<tr>
+<td><code>d 0x4000,0x4100</code></td>
+<td>Dump memory from <code>0x4000</code> to <code>0x4100</code></td>
+</tr>
+<tr>
+<td><code>wpdisable</code></td>
+<td>Disable all watchpoints (useful when you're done hunting)</td>
+</tr>
+<tr>
+<td><code>history</code></td>
+<td>Show recent CPU execution history</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Typical workflow:</strong></p>
 <ol>
-<li>
-<p>Launch MAME with debugging enabled:
-   </p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mame<span class="w"> </span>mygame<span class="w"> </span>-debug
-</code></pre></div><p></p>
-</li>
-<li>
-<p>Use watchpoints to find addresses:</p>
-<ul>
-<li>Set a watchpoint on a memory range: <code>wpset 0x4000,0x1000,w</code></li>
-<li>Play the game and trigger the event you want to track</li>
-<li>Check which addresses changed</li>
-</ul>
-</li>
-<li>
-<p>Note the data format (BCD, binary, etc.) by examining values before and after changes.</p>
-</li>
+<li>Set a write watchpoint on a broad RAM range (e.g., <code>wpset 0x4000,0x1000,w</code>)</li>
+<li>Resume the game with <code>go</code> and trigger the event you're looking for (eat a dot, lose a life, etc.)</li>
+<li>When the debugger breaks, note the address and value being written</li>
+<li>Narrow the watchpoint range and repeat until you've isolated the exact address</li>
+<li>Examine values before and after changes to determine the data format (BCD, binary counter, bit flags, etc.)</li>
 </ol>
+<p>For full documentation on all debugger commands, see the <a href="https://docs.mamedev.org/debugger/index.html">MAME Debugger Reference</a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Shortcut: MAME Cheat Files</p>
 <p>Before firing up the debugger, check <a href="https://www.mamecheat.co.uk/mame_downloads.htm">MAME Cheat Downloads</a> for existing cheat files. These contain known memory addresses for thousands of games (lives, scores, timers, etc.) and can save significant reverse-engineering effort. Even if a cheat file doesn't cover exactly what you need, it's a great starting point for finding nearby addresses.</p>
