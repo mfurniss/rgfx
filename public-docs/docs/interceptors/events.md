@@ -43,6 +43,23 @@ galaga/player/captured
 
 The Hub watches this file and processes events as they arrive. The file is recreated each time MAME starts.
 
+## Init Events { #init-events }
+
+The RGFX framework automatically emits an init event when a game starts:
+
+```
+pacman/init pacman
+```
+
+The topic is `<gamename>/init` and the payload is the game name. This event is emitted approximately 500ms after the interceptor loads, giving time for MQTT connections to settle before effects start firing.
+
+Init events **bypass boot delay** — they are delivered even while other events are suppressed during the power-on self test. This allows transformers to perform setup (loading sprites, initializing state) before gameplay begins.
+
+You don't need to emit init events yourself — the framework handles this. Interceptors can focus on gameplay events.
+
+!!! tip "Using init events in transformers"
+    The init event is the recommended place to load [sprites](../transformers/bitmaps.md#caching-and-initialization) and reset game state. See [Writing Transformers](../transformers/writing-transformers.md) for the init handler pattern.
+
 ---
 
 **Next:** [Transformers](../transformers/index.md) — how the Hub converts these events into LED effects
