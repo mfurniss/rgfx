@@ -200,23 +200,26 @@ gh run watch
 
 ## Release Management
 
-Two-step release workflow:
+One-click release via GitHub Actions:
 
-```bash
-npm run prepare-release -- v0.5.0   # Bump version, open PR
-# Merge the PR, pull main, then:
-npm run release -- v0.5.0           # Validate, tag, push
-```
+1. Go to **Actions → Release → Run workflow**
+2. Enter the version (e.g., `v0.7.0`) and click **Run workflow**
 
-`release.js` runs quality checks locally (typecheck, lint, test), creates the git tag, and pushes it to GitHub. GitHub Actions then:
-1. Builds ESP32 firmware
-2. Builds Hub installers (macOS DMG + Windows EXE) on native runners
-3. Deploys GitHub Pages (landing page + docs)
-4. Creates GitHub Release with installers attached
+The workflow automatically:
+1. Validates the version format and checks the tag doesn't exist
+2. Runs quality checks (typecheck, lint, test)
+3. Bumps `rgfx-hub/package.json` and commits to `main`
+4. Creates the git tag
+5. Builds ESP32 firmware
+6. Builds Hub installers (macOS DMG + Windows EXE) on native runners
+7. Deploys GitHub Pages (landing page + docs)
+8. Creates GitHub Release with installers attached
 
-The script is idempotent — if interrupted, re-run the same command to resume.
+The old tag-push trigger still works for backwards compatibility — manually pushing a `vX.Y.Z` tag will trigger the same build pipeline (skipping the prepare step).
 
-**View a release:** `gh release view v0.5.0`
+**Monitor a release:** `gh run watch` or visit the Actions tab.
+
+**View a release:** `gh release view v0.7.0`
 
 Version injection (used internally by CI):
 ```bash

@@ -54,7 +54,7 @@ See the [full game list](https://rgfx.io/hub-app/games/) for details on each gam
 ### Prerequisites
 
 - **macOS or Windows**
-- **MAME** 0.281+
+- **MAME** 0.250+
 - **ESP32 hardware** with connected LED strips or matrices
 
 ### Install the RGFX Package
@@ -65,7 +65,7 @@ Download the latest installer from the [Releases](https://github.com/mfurniss/rg
 
 ### Launch MAME
 
-Start MAME with the RGFX autofire script. The Hub app configures the correct MAME launch parameters — see the [Getting Started guide](https://rgfx.io/getting-started/) for details.
+Start MAME with the RGFX autoboot script. See the [Getting Started guide](https://rgfx.io/docs/getting-started/configure-mame.html) for launch instructions.
 
 ## Documentation
 

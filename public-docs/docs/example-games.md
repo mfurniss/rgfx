@@ -46,7 +46,7 @@ RGFX is a community project. If you've written an interceptor or transformer for
 
 1. **Write your script** following the patterns in the [Writing Interceptors](interceptors/writing-interceptors.md) guide
 2. **Test it** with several plays through the game to make sure events fire reliably
-3. **Submit it** — when RGFX goes open-source, contributions will be accepted via pull request on GitHub
+3. **Submit it** — contributions are accepted via pull request on [GitHub](https://github.com/mfurniss/rgfx)
 
 ### What Makes a Good Submission
 

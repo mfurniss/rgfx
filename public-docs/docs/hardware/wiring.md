@@ -31,7 +31,7 @@ The power supply you need depends on how many LEDs you're driving. Each WS2812B 
 | 100 | ~6A | 5V 8A supply |
 | 256 (16x16 matrix) | ~15A | 5V 20A supply |
 
-For small setups, USB power alone is sufficient. For larger builds, use an external 5V power supply connected to the breakout board — the 5V pin distributes power to both the ESP32 and the LEDs.
+For small setups (30 LEDs or fewer), USB power alone is sufficient. For larger builds, use an external 5V power supply — search for "5V LED power supply" on Amazon or your preferred electronics supplier. These are typically barrel-jack or screw-terminal supplies in the $10–15 range. Connect the supply's 5V and GND outputs to the matching pins on your ESP32 breakout board, which distributes power to both the ESP32 and the LEDs.
 
 !!! tip
     In practice, effects rarely drive all LEDs at full white simultaneously. RGFX's driver firmware includes a **max power (mA) setting** that dynamically scales brightness to stay within your power supply's capacity. Always configure this limit to match your actual power supply.

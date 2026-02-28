@@ -43,6 +43,7 @@ nav:
     - Set Up RGFX Hub: getting-started/hub-setup.md
     - Flash Your First Driver: getting-started/first-driver.md
     - Test LEDs: getting-started/test-leds.md
+    - Configure MAME: getting-started/configure-mame.md
     - Play a Game: getting-started/play.md
     - Example Games: example-games.md
   - Hub App:

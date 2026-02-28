@@ -40,7 +40,7 @@ MAME Lua scripts that intercept game state and emit events:
 
 ### mame/
 MAME event handling utilities:
-- `rgfx.lua` - Main RGFX bootstrap, registers prestart and frame callbacks to load interceptors. Emits `rgfx/reset` before loading to clear all driver effects, then delays `{game}/init` by ~500ms (30 frames) so MQTT clears reach drivers first. Uses a boolean guard (`init_sent`) to ensure init fires exactly once. Screen info is printed after 10 frames via `register_frame_done` callback to ensure screen properties are initialized. Note: MAME shutdown detection is handled by `scripts/launch-mame.sh` (not Lua) because `emu.add_machine_stop_notifier` is unreliable.
+- `rgfx.lua` - Main RGFX bootstrap, registers prestart and frame callbacks to load interceptors. Emits `rgfx/reset` before loading to clear all driver effects, then delays `{game}/init` by ~500ms (30 frames) so MQTT clears reach drivers first. Init payload is the MAME system description (e.g., "Pac-Man (Midway)") for display in the world record scroll text. Uses a boolean guard (`init_sent`) to ensure init fires exactly once. Screen info is printed after 10 frames via `register_frame_done` callback to ensure screen properties are initialized. Note: MAME shutdown detection is handled by `scripts/launch-mame.sh` (not Lua) because `emu.add_machine_stop_notifier` is unreliable.
 - `event.lua` - Event emission and logging utilities; writes to `interceptor-events.log`; defines `_G.boot_delay(seconds)` to suppress all events except `/init` during boot. All interceptors call `_G.boot_delay()` before `require("ram")` to avoid emitting events during power-on tests.
 - `ram.lua` - RAM monitoring and memory read helpers
 - `docs/` - Documentation for MAME integration
@@ -54,13 +54,13 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
   - galaga88.js and smb.js use `throttleLatest()` (100ms) for score broadcasts — fires immediately during normal play, consolidates rapid bursts during bonus/end-of-level phases. `particleWarp()` in galaga88.js uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation.
-  - pacman.js ripple effects omit endX/endY when not needed (empty strings fail validation)
+  - pacman.js init handler returns false to allow cascade to subject init handler (world record display); ripple effects omit endX/endY when not needed (empty strings fail validation)
   - starwars.js particle_field density capped at 100 (max allowed by driver validation)
 - `eslint.config.js` - ESLint flat config for transformer JS files (defines globals: setTimeout, Promise)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions
 - `subjects/` - Subject definitions for effect targeting
-  - `init.js` - Game init subject (clears effects, displays world record)
+  - `init.js` - Game init subject (clears effects, displays world record using MAME system description from init payload)
   - `ambilight.js` - Ambilight effect subject
   - `audio.js` - Audio-reactive effect subject
 - `bitmaps/` - Sprite bitmaps for bitmap effects. JSON sprites are extracted from ROM at runtime by `sprite-extract.lua` and written to `~/.rgfx/transformers/bitmaps/`. These generated files are excluded from `sync-assets.sh` and should NOT be committed to the repo. Changes to `.json` files in this directory trigger hot-reload of all transformers via `TransformerEngine`.

@@ -8,7 +8,7 @@ Once you have ROM files, place them in a folder and point RGFX Hub to that folde
 
 ## Does RGFX work with my emulation frontend?
 
-Yes. RGFX works with any frontend (LaunchBox, AttractMode, EmulationStation, etc.) as long as it launches MAME as an external application. RGFX monitors MAME directly via its Lua plugin system — the frontend doesn't need to know about RGFX at all.
+Yes. RGFX works with any frontend (LaunchBox, AttractMode, EmulationStation, etc.) as long as it launches MAME as an external application. You'll need to add the `-autoboot_script` argument pointing to `rgfx.lua` in your frontend's MAME emulator settings. See [Configure MAME](getting-started/configure-mame.md#frontend-integration) for details.
 
 ## Does RGFX work with emulators other than MAME?
 
@@ -91,8 +91,9 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 
 | Check | Details |
 |-------|---------|
+| MAME launch | MAME must be launched with the `-autoboot_script` flag pointing to `rgfx.lua`. See [Configure MAME](getting-started/configure-mame.md). |
 | MAME version | RGFX requires MAME 0.250 or later for the Lua plugin API. |
-| ROM name | The interceptor matches by ROM name. The ROM filename must match an entry in `interceptors/rom_map.lua` in your [config directory](getting-started/hub-setup.md#config-directory). |
+| ROM name | The interceptor matches by ROM name — the filename of your ROM file without the extension (e.g., `pacman.zip` → `pacman`). The name must match an entry in `interceptors/rom_map.lua` in your [config directory](getting-started/hub-setup.md#config-directory). |
 | Interceptor loading | Check MAME's console output for errors. If the interceptor has a Lua syntax error, MAME will report it. |
 | Config directory | Verify the RGFX Config Directory in [Settings](hub-app/settings.md) points to your config directory. |
 | Event log | Check that `interceptor-events.log` is being created and updated in your config directory while the game runs. |

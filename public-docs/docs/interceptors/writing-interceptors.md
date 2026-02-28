@@ -4,19 +4,38 @@ This guide walks through creating a custom interceptor for a new game.
 
 ## Step 1: Find Memory Addresses
 
-Use MAME's built-in debugger to discover where the game stores its state.
+The first step — and often the most time-consuming — is finding where the game stores its state in RAM. MAME's built-in debugger is the primary tool for this.
 
-1. Launch MAME with debugging enabled:
-   ```bash
-   mame mygame -debug
-   ```
+### Using the MAME Debugger
 
-2. Use watchpoints to find addresses:
-   - Set a watchpoint on a memory range: `wpset 0x4000,0x1000,w`
-   - Play the game and trigger the event you want to track
-   - Check which addresses changed
+Launch MAME with the debugger enabled:
 
-3. Note the data format (BCD, binary, etc.) by examining values before and after changes.
+```bash
+mame mygame -debug
+```
+
+The game pauses immediately at the debugger prompt. From here you can set watchpoints, inspect memory, and step through execution.
+
+**Key debugger commands:**
+
+| Command | What it does |
+|---------|-------------|
+| `wpset 0x4000,0x100,w` | Break when anything writes to addresses `0x4000`–`0x40FF` |
+| `wpset 0x4E00,1,w,wpdata==3` | Break only when value `3` is written to `0x4E00` |
+| `go` | Resume execution |
+| `d 0x4000,0x4100` | Dump memory from `0x4000` to `0x4100` |
+| `wpdisable` | Disable all watchpoints (useful when you're done hunting) |
+| `history` | Show recent CPU execution history |
+
+**Typical workflow:**
+
+1. Set a write watchpoint on a broad RAM range (e.g., `wpset 0x4000,0x1000,w`)
+2. Resume the game with `go` and trigger the event you're looking for (eat a dot, lose a life, etc.)
+3. When the debugger breaks, note the address and value being written
+4. Narrow the watchpoint range and repeat until you've isolated the exact address
+5. Examine values before and after changes to determine the data format (BCD, binary counter, bit flags, etc.)
+
+For full documentation on all debugger commands, see the [MAME Debugger Reference](https://docs.mamedev.org/debugger/index.html).
 
 !!! tip "Shortcut: MAME Cheat Files"
     Before firing up the debugger, check [MAME Cheat Downloads](https://www.mamecheat.co.uk/mame_downloads.htm) for existing cheat files. These contain known memory addresses for thousands of games (lives, scores, timers, etc.) and can save significant reverse-engineering effort. Even if a cheat file doesn't cover exactly what you need, it's a great starting point for finding nearby addresses.
