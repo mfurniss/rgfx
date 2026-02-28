@@ -7,14 +7,14 @@ Helper functions available to all transformers.
 ## Import
 
 ```javascript
-import { scaleLinear, randomInt, randomElement, hslToRgb, sleep, trackedTimeout, trackedInterval, formatNumber } from '../utils/index.js';
+import { scaleLinear, randomInt, randomElement, hslToRgb, sleep, trackedTimeout, trackedInterval, debounce, throttleLatest, formatNumber } from '../utils/index.js';
 ```
 
 Or import from individual modules:
 
 ```javascript
 import { scaleLinear, randomInt, randomElement, hslToRgb } from '../utils/math.js';
-import { sleep, trackedTimeout, trackedInterval } from '../utils/async.js';
+import { sleep, trackedTimeout, trackedInterval, debounce, throttleLatest } from '../utils/async.js';
 import { formatNumber } from '../utils/format.js';
 ```
 
@@ -97,6 +97,42 @@ trackedInterval(() => {
 ```
 
 Useful for repeating actions on a fixed schedule (e.g., periodic ambient effects).
+
+### debounce
+
+Create a leading-edge debounced function that fires on the first call then suppresses subsequent calls for a cooldown period. Useful for effects that shouldn't repeat too rapidly (e.g., explosion visuals from rapid enemy kills).
+
+```javascript
+const explode = debounce((color) => {
+  broadcast({ effect: 'explode', props: { color } });
+}, 500);
+
+explode('red');   // fires
+explode('blue');  // suppressed (within 500ms)
+// After 500ms...
+explode('green'); // fires
+```
+
+### throttleLatest
+
+Create a leading+trailing throttle that fires immediately on the first call, then during rapid bursts suppresses intermediate calls and fires once more with the latest arguments after the cooldown expires. This guarantees the most recent value is always delivered.
+
+```javascript
+const updateScore = throttleLatest((score) => {
+  broadcast({
+    effect: 'text',
+    props: { text: score, reset: true, duration: 5000 },
+    drivers: [NAMED_DRIVERS.primaryMatrix],
+  });
+}, 100);
+
+updateScore(100);   // fires immediately
+updateScore(200);   // suppressed, schedules deferred
+updateScore(300);   // suppressed, updates deferred args
+// ~100ms later: fires with 300
+```
+
+Ideal for score displays where you want zero latency during normal gameplay but need to consolidate rapid bursts (end-of-level bonuses, rapid coin collection).
 
 ### clearAllTimers
 

@@ -1,4 +1,4 @@
-export { sleep, trackedTimeout, trackedInterval, debounce, clearAllTimers } from './async.js';
+export { sleep, trackedTimeout, trackedInterval, debounce, throttleLatest, clearAllTimers } from './async.js';
 export { scaleLinear, randomInt, randomElement, hslToRgb } from './math.js';
 export { getWorldRecord } from './world-record.js';
 
