@@ -58,8 +58,8 @@ docs/
 ├── getting-started/            # 5-page onboarding flow (requirements has download links, test-leds moved here)
 ├── hub-app/                    # Hub application reference (9 pages, settings includes driver fallback toggle)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, definitions, effects with blend modes, examples)
-├── interceptors/               # Lua interceptor docs (7 pages, all examples use _G.event() with real game events)
-└── transformers/               # JS transformer docs (6 pages, bitmaps.md covers inline + GIF bitmaps + movement/easing, ambilight has single/multi driver modes)
+├── interceptors/               # Lua interceptor docs (8 pages incl. sprite-extraction.md, all examples use _G.event() with real game events)
+└── transformers/               # JS transformer docs (6 pages, bitmaps.md covers inline + GIF + JSON sprites + movement/easing, ambilight has single/multi driver modes)
 ```
 
 ### Config Directory References
@@ -77,7 +77,10 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - Boot delay API is `_G.boot_delay()` (defined in event.lua), NOT `ram.set_boot_delay()`. It suppresses events during the power-on self test — it does not skip title screens or attract modes.
 - Transformer cascade tiers: game → subject → property → default (the third tier is "Property", not "Pattern")
 - Transformer utils live in `transformers/utils/` directory (import from `../utils/index.js`)
-- Transformer context services include: `broadcast`, `send`, `drivers`, `log`, `state`, `hslToHex`, `udp`, `mqtt`, `http`
+- Transformer context services include: `broadcast`, `send`, `drivers`, `log`, `state`, `hslToHex`, `udp`, `mqtt`, `http`, `loadGif`, `loadSprite`, `parseAmbilight`
+- Init events (`<game>/init`) are emitted automatically by the framework ~500ms after interceptor load; they bypass boot delay
+- Sprite extraction (`sprite-extract.lua`) reads ROM graphics at runtime; manifests declared in interceptors; outputs JSON to `transformers/bitmaps/`
+- `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
 - FFT module requires `emit_events = true` to emit events (defaults to false)

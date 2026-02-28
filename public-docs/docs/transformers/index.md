@@ -97,6 +97,7 @@ The context provides services for transformers:
 | `log` | Logger (debug, info, warn, error) |
 | `drivers` | Registry of connected drivers |
 | `loadGif(path)` | Load GIF for bitmap effects |
+| `loadSprite(path)` | Load JSON sprite for bitmap effects |
 | `parseAmbilight(payload)` | Parse ambilight color data |
 | `hslToHex(h, s, l)` | Convert HSL to hex color (h: 0–360, s: 0–100, l: 0–100) |
 
@@ -182,7 +183,7 @@ transformers/
 
 The Hub watches the transformers directory for changes. Edit a game transformer and the change takes effect immediately without restarting.
 
-Changes to shared files — `global.js` and anything in `utils/` — trigger a full reload of **all** loaded transformers, since any transformer may import from these modules.
+Changes to shared files — `global.js` and anything in `utils/` — trigger a full reload of **all** loaded transformers, since any transformer may import from these modules. Changes to `.json` files in `bitmaps/` also trigger a full reload, so updated [sprite extractions](../interceptors/sprite-extraction.md) take effect immediately.
 
 ## Next Step
 

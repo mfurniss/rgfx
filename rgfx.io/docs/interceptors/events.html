@@ -1191,6 +1191,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#init-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Init Events
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1271,6 +1282,34 @@
     
   
     Spectrum Analyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="sprite-extraction.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprite Extraction
   
 
     
@@ -1655,6 +1694,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#init-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Init Events
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1702,6 +1752,17 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>galaga/player/captured
 </code></pre></div>
 <p>The Hub watches this file and processes events as they arrive. The file is recreated each time MAME starts.</p>
+<h2 id="init-events">Init Events<a class="headerlink" href="#init-events" title="Permanent link">¶</a></h2>
+<p>The RGFX framework automatically emits an init event when a game starts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pacman/init pacman
+</code></pre></div>
+<p>The topic is <code>&lt;gamename&gt;/init</code> and the payload is the game name. This event is emitted approximately 500ms after the interceptor loads, giving time for MQTT connections to settle before effects start firing.</p>
+<p>Init events <strong>bypass boot delay</strong> — they are delivered even while other events are suppressed during the power-on self test. This allows transformers to perform setup (loading sprites, initializing state) before gameplay begins.</p>
+<p>You don't need to emit init events yourself — the framework handles this. Interceptors can focus on gameplay events.</p>
+<div class="admonition tip">
+<p class="admonition-title">Using init events in transformers</p>
+<p>The init event is the recommended place to load <a href="../transformers/bitmaps.html#caching-and-initialization">sprites</a> and reset game state. See <a href="../transformers/writing-transformers.html">Writing Transformers</a> for the init handler pattern.</p>
+</div>
 <hr>
 <p><strong>Next:</strong> <a href="../transformers/index.html">Transformers</a> — how the Hub converts these events into LED effects</p>
 

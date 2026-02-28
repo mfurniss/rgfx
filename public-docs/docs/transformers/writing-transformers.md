@@ -163,7 +163,34 @@ trackedTimeout(() => {
 !!! warning "Do not use setTimeout or setInterval"
     Always use `sleep()`, `trackedTimeout()`, and `trackedInterval()` from [utils](utils.md) instead of the native `setTimeout` and `setInterval`. The utils versions are tracked by the transformer engine and automatically cancelled when the game exits. Native timers would continue firing after the game ends, causing stale effects on your LEDs.
 
-## Step 6: Test
+## Step 6: Handle Initialization
+
+The RGFX framework emits an [init event](../interceptors/events.md#init-events) when a game starts. Use it to load sprites, reset state, or perform one-time setup:
+
+```javascript
+let mySprite;
+
+export async function transform({ subject, property, payload }, { broadcast, loadSprite }) {
+  if (subject === 'init') {
+    mySprite = await loadSprite('bitmaps/my-sprite.json');
+    return true;
+  }
+
+  // Fallback: load on first event if init was missed
+  if (!mySprite) {
+    mySprite = await loadSprite('bitmaps/my-sprite.json');
+  }
+
+  // Handle gameplay events...
+  return false;
+}
+```
+
+The init handler is also useful for resetting transformer state — clearing cached sprites forces them to reload, which is helpful during development when sprite extraction output changes.
+
+See [Bitmaps](bitmaps.md#caching-and-initialization) for more on sprite loading and caching patterns.
+
+## Step 7: Test
 
 Save the file. The Hub watches the transformers directory and reloads changes immediately — no restart needed.
 
