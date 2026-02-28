@@ -20,6 +20,9 @@ esp32/src/version.h
 # CMake build directories
 tools/led-sim/build/
 
+# Generated docs (local preview copy — CI builds from public-docs/site/)
+rgfx.io/docs/
+
 # Claude Code local settings (user-specific permissions)
 .claude/settings.local.json
 rgfx-hub/.claude/settings.local.json
