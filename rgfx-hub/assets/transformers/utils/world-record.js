@@ -3,6 +3,7 @@ const AURCADE_IDS = {
   defender: 66,
   pacman: 10,
   galaga: 12,
+  galaga88: 471,
   robotron: 185,
   starwars: 207,
   // Add more as needed

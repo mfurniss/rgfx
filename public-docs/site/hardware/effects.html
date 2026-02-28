@@ -403,6 +403,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../getting-started/configure-mame.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure MAME
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../getting-started/play.html" class="md-nav__link">
         
   
@@ -1053,6 +1081,17 @@
     <span class="md-ellipsis">
       
         How Effects Work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility
       
     </span>
   </a>
@@ -1822,6 +1861,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#effects-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2024,6 +2074,89 @@
 <p>These are the visual effects available on RGFX drivers. Use the <a href="../hub-app/fx-playground.html">FX Playground</a> to experiment with any effect interactively — adjust parameters, trigger effects, and see results on your LEDs in real-time.</p>
 <h2 id="how-effects-work">How Effects Work<a class="headerlink" href="#how-effects-work" title="Permanent link">¶</a></h2>
 <p>Effects are sent from the Hub to drivers as JSON commands over WiFi. The driver renders effects to an internal canvas at 4x resolution, then downsamples to the physical LED layout. Multiple effects can composite together, with the background rendering first and other effects layering on top.</p>
+<h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">¶</a></h2>
+<p>Most effects work on both LED strips and matrices. A few require a 2D layout:</p>
+<table>
+<thead>
+<tr>
+<th>Effect</th>
+<th style="text-align: center;">Strip</th>
+<th style="text-align: center;">Matrix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Background</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Pulse</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Bitmap</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Wipe</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Explode</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Projectile</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Text</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Scroll Text</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Plasma</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Warp</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Particle Field</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Sparkle</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Spectrum</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Music</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
 <h2 id="effects-reference">Effects Reference<a class="headerlink" href="#effects-reference" title="Permanent link">¶</a></h2>
 <h3 id="background">Background<a class="headerlink" href="#background" title="Permanent link">¶</a></h3>
 <p>Fills the entire display with a solid color or gradient. Renders first, allowing other effects to layer on top. Supports smooth cross-fading between colors.</p>
@@ -2082,7 +2215,7 @@
 </tbody>
 </table>
 <h3 id="bitmap">Bitmap<a class="headerlink" href="#bitmap" title="Permanent link">¶</a></h3>
-<p>Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette).</p>
+<p>Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette). Matrix only.</p>
 <table>
 <thead>
 <tr>
@@ -2298,7 +2431,7 @@
 </tbody>
 </table>
 <h3 id="scroll-text">Scroll Text<a class="headerlink" href="#scroll-text" title="Permanent link">¶</a></h3>
-<p>Horizontally scrolling text with gradient animation.</p>
+<p>Horizontally scrolling text with gradient animation. Matrix only.</p>
 <table>
 <thead>
 <tr>

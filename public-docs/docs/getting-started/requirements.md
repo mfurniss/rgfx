@@ -24,7 +24,7 @@ Before you begin, here's what you'll need to set up RGFX. The minimum viable set
 !!! tip "RGBW LEDs (SK6812)"
     RGFX also supports SK6812 RGBW strips and matrices. These have a dedicated white LED alongside the RGB LEDs, producing cleaner whites and pastels. The tradeoff is 4 bytes per pixel instead of 3, so maximum strip length per pin is shorter. WS2812B (RGB) is the safer starting point — widely available, cheaper, and works with all effects out of the box.
 
-That's it for a basic setup. One ESP32, some LEDs, and a USB cable to connect them to your computer.
+That's it for a basic setup. One ESP32, some LEDs, and a USB cable to connect them to your computer. Budget around **$25–35** for a basic strip setup, or **$45–60** if you include an LED matrix panel.
 
 ### Optional Upgrades
 

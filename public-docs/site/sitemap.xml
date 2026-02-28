@@ -16,13 +16,18 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://rgfx.io/getting-started/configure-mame.html</loc>
+    <lastmod>2026-02-28T17:35:06+00:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://rgfx.io/getting-started/first-driver.html</loc>
     <lastmod>2026-02-28T02:51:31+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://rgfx.io/getting-started/hub-setup.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-28T16:37:58+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -32,7 +37,7 @@
   </url>
   <url>
     <loc>https://rgfx.io/getting-started/requirements.html</loc>
-    <lastmod>2026-02-23T03:00:52+00:00</lastmod>
+    <lastmod>2026-02-28T16:37:58+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
@@ -157,7 +162,7 @@
   </url>
   <url>
     <loc>https://rgfx.io/interceptors/writing-interceptors.html</loc>
-    <lastmod>2026-02-28T02:51:31+00:00</lastmod>
+    <lastmod>2026-02-28T16:37:58+00:00</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>

@@ -92,7 +92,7 @@ echo ""
   -rompath ~/mame-roms \
   -pluginspath "$MAME_DIR/plugins" \
   -window -nomaximize -skip_gameinfo \
-  -video opengl -joystick_deadzone 0.1 \
+  -video bgfx \
   -autoboot_script "$RGFX_LUA"
 MAME_EXIT_CODE=$?
 

@@ -21,7 +21,7 @@ Interceptors go far beyond simple memory monitoring. They:
 ```mermaid
 flowchart TB
     subgraph MAME["MAME Emulator"]
-        rgfx["rgfx.lua<br/>(automatically loaded)"]
+        rgfx["rgfx.lua<br/>(via -autoboot_script)"]
         detect["Detects which game is running"]
         load["Loads interceptor from rom_map.lua"]
         intercept["Game Interceptor"]
@@ -33,6 +33,8 @@ flowchart TB
     logfile --> hub["RGFX Hub"]
     hub --> led["LED Effects"]
 ```
+
+MAME loads `rgfx.lua` via the `-autoboot_script` command-line flag. See [Configure MAME](../getting-started/configure-mame.md) for setup instructions.
 
 ## Where Interceptors Live
 

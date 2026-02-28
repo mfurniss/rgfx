@@ -6,6 +6,27 @@ These are the visual effects available on RGFX drivers. Use the [FX Playground](
 
 Effects are sent from the Hub to drivers as JSON commands over WiFi. The driver renders effects to an internal canvas at 4x resolution, then downsamples to the physical LED layout. Multiple effects can composite together, with the background rendering first and other effects layering on top.
 
+## Compatibility
+
+Most effects work on both LED strips and matrices. A few require a 2D layout:
+
+| Effect | Strip | Matrix |
+|--------|:-----:|:------:|
+| Background | yes | yes |
+| Pulse | yes | yes |
+| Bitmap | — | yes |
+| Wipe | yes | yes |
+| Explode | yes | yes |
+| Projectile | yes | yes |
+| Text | — | yes |
+| Scroll Text | — | yes |
+| Plasma | yes | yes |
+| Warp | yes | yes |
+| Particle Field | yes | yes |
+| Sparkle | yes | yes |
+| Spectrum | — | yes |
+| Music | — | yes |
+
 ## Effects Reference
 
 ### Background
@@ -32,7 +53,7 @@ Pulsing color overlay that expands and contracts. Supports multiple simultaneous
 
 ### Bitmap
 
-Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette).
+Animated sprite display with frame-based animation, movement, and fading. Uses up to 16-color palettes (defaults to PICO-8 palette). Matrix only.
 
 | Parameter | Description |
 |-----------|-------------|
@@ -106,7 +127,7 @@ Static text display with optional gradient animation. Matrix only.
 
 ### Scroll Text
 
-Horizontally scrolling text with gradient animation.
+Horizontally scrolling text with gradient animation. Matrix only.
 
 | Parameter | Description |
 |-----------|-------------|

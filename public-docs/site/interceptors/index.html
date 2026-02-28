@@ -403,6 +403,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../getting-started/configure-mame.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure MAME
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../getting-started/play.html" class="md-nav__link">
         
   
@@ -1739,7 +1767,7 @@
 <h2 id="how-the-system-works">How the System Works<a class="headerlink" href="#how-the-system-works" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart TB
     subgraph MAME["MAME Emulator"]
-        rgfx["rgfx.lua&lt;br/&gt;(automatically loaded)"]
+        rgfx["rgfx.lua&lt;br/&gt;(via -autoboot_script)"]
         detect["Detects which game is running"]
         load["Loads interceptor from rom_map.lua"]
         intercept["Game Interceptor"]
@@ -1750,6 +1778,7 @@
     intercept --&gt; |"_G.event()"| logfile["interceptor-events.log"]
     logfile --&gt; hub["RGFX Hub"]
     hub --&gt; led["LED Effects"]</code></pre>
+<p>MAME loads <code>rgfx.lua</code> via the <code>-autoboot_script</code> command-line flag. See <a href="../getting-started/configure-mame.html">Configure MAME</a> for setup instructions.</p>
 <h2 id="where-interceptors-live">Where Interceptors Live<a class="headerlink" href="#where-interceptors-live" title="Permanent link">¶</a></h2>
 <p>Interceptors are stored in the <code>interceptors/</code> subdirectory of your <a href="../getting-started/hub-setup.html#config-directory">config directory</a>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>interceptors/
