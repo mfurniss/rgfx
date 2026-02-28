@@ -1,14 +1,31 @@
 // Super Mario Bros game-specific mapper
 
-import { randomInt, sleep } from '../utils/index.js';
+import { randomInt, sleep, throttleLatest } from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let coinSprite;
+let throttledScoreBroadcast;
 
 export async function transform(
   { subject, property, _qualifier, payload },
   { broadcast, loadSprite, state },
 ) {
+  if (!throttledScoreBroadcast) {
+    throttledScoreBroadcast = throttleLatest((score) => {
+      broadcast({
+        effect: 'text',
+        props: {
+          text: score,
+          gradient: ['#D0D0A0'],
+          accentColor: '#700000',
+          align: 'center',
+          reset: true,
+          duration: 10000,
+        },
+        drivers: [NAMED_DRIVERS.primaryMatrix],
+      });
+    }, 100);
+  }
   async function loadBitmaps() {
     try {
       [coinSprite] = await Promise.all([
@@ -27,18 +44,8 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score') {
-    return broadcast({
-      effect: 'text',
-      props: {
-        text: payload,
-        gradient: ['#D0D0A0'],
-        accentColor: '#700000',
-        align: 'center',
-        reset: true,
-        duration: 10000,
-      },
-      drivers: [NAMED_DRIVERS.primaryMatrix],
-    });
+    throttledScoreBroadcast(payload);
+    return true;
   }
 
   if (subject === 'sfx') {

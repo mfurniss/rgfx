@@ -95,6 +95,44 @@ export function debounce(fn, ms) {
 }
 
 /**
+ * Leading+trailing throttle that always delivers the latest arguments.
+ * First call fires immediately (zero latency). During rapid bursts,
+ * intermediate calls are suppressed and a single deferred call fires
+ * with the most recent arguments after the cooldown expires.
+ *
+ * @param {Function} fn - Function to throttle
+ * @param {number} ms - Minimum interval between invocations
+ * @returns {Function} Throttled function
+ *
+ * @example
+ * const update = throttleLatest((score) => { render(score); }, 100);
+ * update(100);  // fires immediately
+ * update(200);  // suppressed, schedules deferred
+ * update(300);  // suppressed, updates deferred args
+ * // ~100ms later: fires with 300
+ */
+export function throttleLatest(fn, ms) {
+  let timerId = null;
+  let latestArgs = null;
+  let lastFired = 0;
+  return (...args) => {
+    latestArgs = args;
+    const now = Date.now();
+    if (now - lastFired >= ms) {
+      lastFired = now;
+      fn(...args);
+    } else if (timerId === null) {
+      const delay = ms - (now - lastFired);
+      timerId = trackedTimeout(() => {
+        timerId = null;
+        lastFired = Date.now();
+        fn(...latestArgs);
+      }, delay);
+    }
+  };
+}
+
+/**
  * Cancel all pending sleep(), trackedTimeout(), and trackedInterval() timers.
  * Sleep promises will never resolve — their async chains stop in place.
  * Called by the transformer engine on game exit.

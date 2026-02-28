@@ -76,7 +76,7 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 
 - Boot delay API is `_G.boot_delay()` (defined in event.lua), NOT `ram.set_boot_delay()`. It suppresses events during the power-on self test — it does not skip title screens or attract modes.
 - Transformer cascade tiers: game → subject → property → default (the third tier is "Property", not "Pattern")
-- Transformer utils live in `transformers/utils/` directory (import from `../utils/index.js`)
+- Transformer utils live in `transformers/utils/` directory (import from `../utils/index.js`); async utils include `debounce` (leading-edge), `throttleLatest` (leading+trailing), `sleep`, `trackedTimeout`, `trackedInterval`
 - Transformer context services include: `broadcast`, `send`, `drivers`, `log`, `state`, `hslToHex`, `udp`, `mqtt`, `http`, `loadGif`, `loadSprite`, `parseAmbilight`
 - Init events (`<game>/init`) are emitted automatically by the framework ~500ms after interceptor load; they bypass boot delay
 - Sprite extraction (`sprite-extract.lua`) reads ROM graphics at runtime; manifests declared in interceptors; outputs JSON to `transformers/bitmaps/`

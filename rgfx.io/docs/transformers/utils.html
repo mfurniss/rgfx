@@ -1610,6 +1610,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#debounce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        debounce
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#throttlelatest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        throttleLatest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#clearalltimers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1896,6 +1918,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#debounce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        debounce
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#throttlelatest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        throttleLatest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#clearalltimers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1960,11 +2004,11 @@
 <p>Helper functions available to all transformers.</p>
 <p><strong>Location:</strong> <code>transformers/utils/</code> directory in your <a href="../getting-started/hub-setup.html#config-directory">config directory</a>, with a barrel export via <code>utils/index.js</code></p>
 <h2 id="import">Import<a class="headerlink" href="#import" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">scaleLinear</span><span class="p">,</span><span class="w"> </span><span class="nx">randomInt</span><span class="p">,</span><span class="w"> </span><span class="nx">randomElement</span><span class="p">,</span><span class="w"> </span><span class="nx">hslToRgb</span><span class="p">,</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedTimeout</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedInterval</span><span class="p">,</span><span class="w"> </span><span class="nx">formatNumber</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/index.js'</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">scaleLinear</span><span class="p">,</span><span class="w"> </span><span class="nx">randomInt</span><span class="p">,</span><span class="w"> </span><span class="nx">randomElement</span><span class="p">,</span><span class="w"> </span><span class="nx">hslToRgb</span><span class="p">,</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedTimeout</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedInterval</span><span class="p">,</span><span class="w"> </span><span class="nx">debounce</span><span class="p">,</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="p">,</span><span class="w"> </span><span class="nx">formatNumber</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/index.js'</span><span class="p">;</span>
 </code></pre></div>
 <p>Or import from individual modules:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">scaleLinear</span><span class="p">,</span><span class="w"> </span><span class="nx">randomInt</span><span class="p">,</span><span class="w"> </span><span class="nx">randomElement</span><span class="p">,</span><span class="w"> </span><span class="nx">hslToRgb</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/math.js'</span><span class="p">;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedTimeout</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedInterval</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/async.js'</span><span class="p">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedTimeout</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedInterval</span><span class="p">,</span><span class="w"> </span><span class="nx">debounce</span><span class="p">,</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/async.js'</span><span class="p">;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">formatNumber</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/format.js'</span><span class="p">;</span>
 </code></pre></div>
 <h2 id="math-functions">Math Functions<a class="headerlink" href="#math-functions" title="Permanent link">¶</a></h2>
@@ -2012,14 +2056,41 @@
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
 </code></pre></div>
 <p>Useful for repeating actions on a fixed schedule (e.g., periodic ambient effects).</p>
+<h3 id="debounce">debounce<a class="headerlink" href="#debounce" title="Permanent link">¶</a></h3>
+<p>Create a leading-edge debounced function that fires on the first call then suppresses subsequent calls for a cooldown period. Useful for effects that shouldn't repeat too rapidly (e.g., explosion visuals from rapid enemy kills).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">explode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">debounce</span><span class="p">((</span><span class="nx">color</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'explode'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">500</span><span class="p">);</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'red'</span><span class="p">);</span><span class="w">   </span><span class="c1">// fires</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'blue'</span><span class="p">);</span><span class="w">  </span><span class="c1">// suppressed (within 500ms)</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1">// After 500ms...</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'green'</span><span class="p">);</span><span class="w"> </span><span class="c1">// fires</span>
+</code></pre></div>
+<h3 id="throttlelatest">throttleLatest<a class="headerlink" href="#throttlelatest" title="Permanent link">¶</a></h3>
+<p>Create a leading+trailing throttle that fires immediately on the first call, then during rapid bursts suppresses intermediate calls and fires once more with the latest arguments after the cooldown expires. This guarantees the most recent value is always delivered.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="p">((</span><span class="nx">score</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">score</span><span class="p">,</span><span class="w"> </span><span class="nx">reset</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">5000</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">NAMED_DRIVERS</span><span class="p">.</span><span class="nx">primaryMatrix</span><span class="p">],</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="p">});</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">},</span><span class="w"> </span><span class="mf">100</span><span class="p">);</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">100</span><span class="p">);</span><span class="w">   </span><span class="c1">// fires immediately</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">200</span><span class="p">);</span><span class="w">   </span><span class="c1">// suppressed, schedules deferred</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">300</span><span class="p">);</span><span class="w">   </span><span class="c1">// suppressed, updates deferred args</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="c1">// ~100ms later: fires with 300</span>
+</code></pre></div>
+<p>Ideal for score displays where you want zero latency during normal gameplay but need to consolidate rapid bursts (end-of-level bonuses, rapid coin collection).</p>
 <h3 id="clearalltimers">clearAllTimers<a class="headerlink" href="#clearalltimers" title="Permanent link">¶</a></h3>
 <p>Cancel all pending <code>sleep()</code>, <code>trackedTimeout()</code>, and <code>trackedInterval()</code> timers. Called automatically by the transformer engine on game exit — you don't need to call this yourself.</p>
 <h2 id="formatting-functions">Formatting Functions<a class="headerlink" href="#formatting-functions" title="Permanent link">¶</a></h2>
 <h3 id="formatnumber">formatNumber<a class="headerlink" href="#formatnumber" title="Permanent link">¶</a></h3>
 <p>Format a number with locale-appropriate thousands separators.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">12340</span><span class="p">);</span><span class="w">    </span><span class="c1">// returns "12,340"</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="s2">"99850"</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "99,850"</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">1000000</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "1,000,000"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">12340</span><span class="p">);</span><span class="w">    </span><span class="c1">// returns "12,340"</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="s2">"99850"</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "99,850"</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">1000000</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "1,000,000"</span>
 </code></pre></div>
 <p>Useful for displaying scores on matrix displays.</p>
 
