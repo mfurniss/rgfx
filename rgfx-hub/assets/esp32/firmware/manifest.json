@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-01T01:07:39.144437+00:00",
+  "generatedAt": "2026-03-01T06:24:08.569043+00:00",
   "variants": {
     "ESP32": {
       "version": "0.6.6-dev+f6ab4df9",
@@ -20,7 +20,7 @@
           "name": "firmware-esp32.bin",
           "address": 65536,
           "size": 1214752,
-          "sha256": "562472067ffbf972329947dbb2eec906f0db9803c4c51c8c9712596fff1f71fd"
+          "sha256": "a9890229badda0c81bfce2b01424b670a20d8cd07c030990f792c0ca2411d888"
         }
       ]
     },
@@ -43,7 +43,7 @@
           "name": "firmware-esp32s3.bin",
           "address": 65536,
           "size": 1343952,
-          "sha256": "787c2e490c6dcbd2f698fe9ae0e8386b72a18aaa2929362ed4738c6471a0d85c"
+          "sha256": "3491c4c39d8684b00b414cb85cfedf961a8c6fb2945066aa384ce2a5039a1d0d"
         }
       ]
     }

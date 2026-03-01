@@ -24,6 +24,7 @@ export const plasmaPresets: PlasmaPreset[] = [
   { name: 'Speculation', speed: 2, scale: 0.35 },
   { name: 'Hive Mind', speed: 3.25, scale: 7.83 },
   { name: 'Candy Apple', speed: 2.6, scale: 1.2 },
+  { name: '8-Bit Flux', speed: 6, scale: 1.5 },
 ];
 
 export function getGradientForPreset(preset: PlasmaPreset): string[] {
