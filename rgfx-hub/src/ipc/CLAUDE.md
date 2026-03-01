@@ -359,6 +359,14 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 
 ---
 
+## Tests
+
+### `firmware-assets.test.ts`
+
+**Purpose:** Integration test that validates firmware binaries referenced in `manifest.json` actually exist on disk with correct sizes and SHA256 checksums. Prevents broken firmware assets from being committed. Uses real file I/O — no mocks.
+
+---
+
 ## Error Handling
 
 All handlers follow a standardized error handling pattern:

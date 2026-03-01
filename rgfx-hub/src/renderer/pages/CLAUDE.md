@@ -157,8 +157,8 @@ Refactored components and utilities extracted from the main page:
 **Purpose:** Firmware flashing interface for ESP32 drivers.
 
 **Features:**
-- Two flash methods: USB Serial and OTA WiFi (auto-selects OTA when configured drivers exist, USB otherwise)
-- Tab auto-selection uses a `useEffect` watching `drivers.length` with a `userChangedTab` ref to avoid overriding manual user choice
+- Two flash methods: USB Serial and OTA WiFi
+- Flash method is read directly from the UI store (no local state) — eliminates the bidirectional sync that caused infinite loops on Windows
 - **USB Serial:**
   - Serial port selection via Web Serial API
   - Uses `esptool-js` for direct ESP32 flashing
@@ -263,7 +263,7 @@ The renderer runs on both macOS and Windows. **Windows has different timer resol
 
 **Pattern to avoid:** Bidirectional sync between local state and Zustand store:
 ```tsx
-// DANGEROUS - creates infinite loop on Windows
+// DANGEROUS - creates infinite loop when both effects fire in same render cycle
 useEffect(() => {
   setLocalState(storedValue);  // Store → Local
 }, [storedValue]);
@@ -273,13 +273,21 @@ useEffect(() => {
 }, [localState]);
 ```
 
-**Solution:** Use refs to initialize from store only once:
+**Preferred solution:** Read directly from the store — no local state, no sync:
 ```tsx
-const initializedFromStore = useRef(false);
+const value = useUiStore((state) => state.someValue);
+const setValue = useUiStore((state) => state.setSomeValue);
+// Use value and setValue directly — no local copy, no effects
+```
+
+**Fallback for forms** (where local state is needed for typing before save):
+Use a ref to initialize from store only once:
+```tsx
+const initialized = useRef(false);
 
 useEffect(() => {
-  if (!initializedFromStore.current && storedValue) {
-    initializedFromStore.current = true;
+  if (!initialized.current && storedValue) {
+    initialized.current = true;
     setLocalState(storedValue);
   }
 }, [storedValue]);
