@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+import path from 'path';
 import { registerListGamesHandler } from '@/ipc/list-games-handler';
 import * as fs from 'fs';
 import type { GameInfo } from '@/types';
@@ -31,6 +32,9 @@ vi.mock('@/config/paths', () => ({
 vi.mock('@/utils/expand-path', () => ({
   expandPath: mockExpandPath,
 }));
+
+// Cross-platform path fragment for mock checks
+const INTERCEPTORS_GAMES = path.join('interceptors', 'games');
 
 describe('registerListGamesHandler', () => {
   let registeredHandler: (_event: unknown, romsDirectory?: string) => GameInfo[];
@@ -82,7 +86,7 @@ describe('registerListGamesHandler', () => {
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return ['pacman_rgfx.lua', 'galaga_rgfx.lua'];
         }
         return [];
@@ -116,7 +120,7 @@ describe('registerListGamesHandler', () => {
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return ['dkong_rgfx.lua'];
         }
         return [];
@@ -145,7 +149,7 @@ describe('registerListGamesHandler', () => {
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return ['test_rgfx.lua'];
         }
         return [];
@@ -182,7 +186,7 @@ describe('registerListGamesHandler', () => {
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return ['pacman_rgfx.lua'];
         }
         return [];
@@ -227,7 +231,7 @@ describe('registerListGamesHandler', () => {
           ];
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return [
             'pacman_rgfx.lua',
             'mario_rgfx.lua',
@@ -293,7 +297,7 @@ describe('registerListGamesHandler', () => {
           return true;
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return true;
         }
 
@@ -310,7 +314,7 @@ describe('registerListGamesHandler', () => {
           return ['pacman.zip'];
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return [];
         }
         return [];
@@ -331,7 +335,7 @@ describe('registerListGamesHandler', () => {
           return false;
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return true;
         }
         return false;
@@ -340,7 +344,7 @@ describe('registerListGamesHandler', () => {
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return ['orphan_rgfx.lua'];
         }
         return [];
@@ -374,7 +378,7 @@ describe('registerListGamesHandler', () => {
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return [];
         }
         return [];
@@ -441,7 +445,7 @@ describe('registerListGamesHandler', () => {
           return ['dkong.zip'];
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return [];
         }
         return [];
@@ -491,7 +495,7 @@ describe('registerListGamesHandler', () => {
           return ['pacman.zip'];
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return [];
         }
         return [];
@@ -544,7 +548,7 @@ describe('registerListGamesHandler', () => {
           return ['game.zip'];
         }
 
-        if (pathStr.includes('interceptors/games')) {
+        if (pathStr.includes(INTERCEPTORS_GAMES)) {
           return [];
         }
         return [];

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { homedir } from 'os';
 import { expandPath } from '../expand-path';
+import { np } from '@/__tests__/test-utils';
 
 describe('expandPath', () => {
   const home = homedir();
@@ -8,22 +9,22 @@ describe('expandPath', () => {
   describe('tilde expansion', () => {
     it('expands ~ to home directory', () => {
       const result = expandPath('~/Documents');
-      expect(result).toBe(`${home}/Documents`);
+      expect(np(result)).toBe(`${np(home)}/Documents`);
     });
 
     it('expands ~/path without double slashes', () => {
       const result = expandPath('~/foo/bar');
-      expect(result).toBe(`${home}/foo/bar`);
+      expect(np(result)).toBe(`${np(home)}/foo/bar`);
     });
 
     it('expands ~ alone to home directory', () => {
       const result = expandPath('~');
-      expect(result).toBe(home);
+      expect(np(result)).toBe(np(home));
     });
 
     it('handles nested paths after tilde', () => {
       const result = expandPath('~/a/b/c/d');
-      expect(result).toBe(`${home}/a/b/c/d`);
+      expect(np(result)).toBe(`${np(home)}/a/b/c/d`);
     });
   });
 

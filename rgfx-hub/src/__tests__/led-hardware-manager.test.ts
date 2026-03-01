@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import path from 'path';
 import * as fs from 'fs';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { ConfigError } from '../errors/config-error';
@@ -129,7 +130,7 @@ describe('LEDHardwareManager', () => {
       const manager = new LEDHardwareManager('/custom/base');
       manager.loadHardware('led-hardware/test.json');
 
-      expect(mockFs.existsSync).toHaveBeenCalledWith(expect.stringContaining('/custom/base'));
+      expect(mockFs.existsSync).toHaveBeenCalledWith(expect.stringContaining(path.join('/custom', 'base')));
     });
   });
 

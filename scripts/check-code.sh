@@ -217,9 +217,14 @@ if [ "$HUB_CHANGES" = true ]; then
     npm run lint
     echo "✅ ESLint passed"
 
-    echo "🔍 Checking for unused exports..."
-    npm run unused-exports
-    echo "✅ No unused exports found"
+    # ts-unused-exports has a known Windows bug with barrel re-exports (issue #302)
+    if [[ "$(uname -s)" != MINGW* && "$(uname -s)" != MSYS* && "$(uname -s)" != CYGWIN* ]]; then
+        echo "🔍 Checking for unused exports..."
+        npm run unused-exports
+        echo "✅ No unused exports found"
+    else
+        echo "⏭️  Skipping unused exports check (known Windows bug in ts-unused-exports #302)"
+    fi
 
     notify "Running Hub tests..."
     echo "🧪 Running tests..."

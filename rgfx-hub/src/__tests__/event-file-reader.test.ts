@@ -53,7 +53,11 @@ describe('EventFileReader', () => {
   });
 
   it('should read events from file created after reader starts', async () => {
-    vi.useFakeTimers();
+    // Use fake timers but only for setTimeout/setInterval — keep Date real
+    // so chokidar's mtime comparisons work on Windows
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'setInterval', 'clearTimeout', 'clearInterval'],
+    });
 
     const events: [string, string][] = [];
     const onEvent = (topic: string, message: string) => events.push([topic, message]);
@@ -63,12 +67,16 @@ describe('EventFileReader', () => {
     // Create empty file first
     writeFileSync(testFilePath, '');
 
-    // Advance time to trigger poll interval (5000ms)
+    // Advance time to trigger poll interval (5000ms) → finds file → starts watching
     await vi.advanceTimersByTimeAsync(5000);
 
-    // Then append data - this triggers the file watcher
+    // Switch to real timers so chokidar (Windows) can initialize properly
+    vi.useRealTimers();
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Append data — chokidar detects change and triggers readNewLines
     writeFileSync(testFilePath, 'game/init pacman\n', { flag: 'a' });
-    await vi.advanceTimersByTimeAsync(50);
+    await new Promise((r) => setTimeout(r, 100));
 
     expect(events).toEqual([['game/init', 'pacman']]);
   });
@@ -156,22 +164,23 @@ describe('EventFileReader', () => {
     const padding = 'game/pad data\n'.repeat(50);
     writeFileSync(testFilePath, padding);
     reader.start((topic, msg) => events.push([topic, msg]));
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 200));
 
     // Append an event (reader is positioned at end)
     writeFileSync(testFilePath, 'game/before truncation\n', { flag: 'a' });
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 200));
 
     expect(events).toHaveLength(1);
     expect(events[0][0]).toBe('game/before');
 
     // Truncate file to something smaller
     writeFileSync(testFilePath, 'game/small reset\n');
-    await new Promise((r) => setTimeout(r, 100));
+    // Windows chokidar polling needs time to detect truncation and reset position
+    await new Promise((r) => setTimeout(r, 1000));
 
     // Now append new data after truncation
     writeFileSync(testFilePath, 'game/after recovery\n', { flag: 'a' });
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 1000));
 
     // Should have picked up the new event after truncation recovery
     const afterEvents = events.filter(([topic]) => topic === 'game/after');

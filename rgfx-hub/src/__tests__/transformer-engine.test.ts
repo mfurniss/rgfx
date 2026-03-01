@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { join } from 'node:path';
 import { TransformerEngine } from '../transformer-engine';
 import type { TransformerContext, RgfxTopic } from '../types/transformer-types';
 import * as fs from 'node:fs/promises';
@@ -557,7 +558,7 @@ describe('TransformerEngine', () => {
       );
       expect(mockEventBusEmit).toHaveBeenCalledWith('system:error', expect.objectContaining({
         errorType: 'transformer',
-        filePath: '/mock/transformers/games/nonexistent.js',
+        filePath: join('/mock/transformers', 'games', 'nonexistent.js'),
       }));
       expect(defaultHandler).toHaveBeenCalled();
     });
@@ -1013,7 +1014,7 @@ describe('TransformerEngine', () => {
 
       // No game imports should have been attempted
       const gameImportCalls = mockImportModule.mock.calls.filter(
-        (call: string[]) => call[0].includes('games/'),
+        (call: string[]) => call[0].includes('games/') || call[0].includes('games\\'),
       );
       expect(gameImportCalls).toHaveLength(0);
       expect((testEngine as any).gameHandlers.size).toBe(0);
@@ -1036,7 +1037,7 @@ describe('TransformerEngine', () => {
       });
       await (testEngine as any).loadGameTransformer('pacman');
 
-      expect(mockImportModule).toHaveBeenCalledWith(expect.stringMatching(/games\/pacman\.js$/));
+      expect(mockImportModule).toHaveBeenCalledWith(expect.stringMatching(/games[/\\]pacman\.js$/));
       expect((testEngine as any).gameHandlers.has('pacman')).toBe(true);
       expect(mockContext.log.info).toHaveBeenCalledWith('Loaded game transformer: pacman');
     });
@@ -1055,7 +1056,7 @@ describe('TransformerEngine', () => {
       expect(mockEventBusEmit).toHaveBeenCalledWith('system:error', expect.objectContaining({
         errorType: 'transformer',
         message: expect.stringContaining('File not found'),
-        filePath: '/mock/transformers/games/nonexistent.js',
+        filePath: join('/mock/transformers', 'games', 'nonexistent.js'),
       }));
       expect((testEngine as any).gameHandlers.has('nonexistent')).toBe(false);
     });
@@ -1090,8 +1091,8 @@ describe('TransformerEngine', () => {
       });
       await (testEngine as any).loadSubjectTransformers('/mock/subjects');
 
-      expect(mockImportModule).toHaveBeenCalledWith('/mock/subjects/player.js');
-      expect(mockImportModule).toHaveBeenCalledWith('/mock/subjects/enemy.js');
+      expect(mockImportModule).toHaveBeenCalledWith(join('/mock/subjects', 'player.js'));
+      expect(mockImportModule).toHaveBeenCalledWith(join('/mock/subjects', 'enemy.js'));
       expect((testEngine as any).subjectHandlers.has('player')).toBe(true);
       expect((testEngine as any).subjectHandlers.has('enemy')).toBe(true);
     });
@@ -1106,7 +1107,7 @@ describe('TransformerEngine', () => {
       await (testEngine as any).loadSubjectTransformers('/mock/subjects');
 
       expect(mockImportModule).toHaveBeenCalledTimes(1);
-      expect(mockImportModule).toHaveBeenCalledWith('/mock/subjects/player.js');
+      expect(mockImportModule).toHaveBeenCalledWith(join('/mock/subjects', 'player.js'));
     });
 
     it('should swallow ENOENT when subject directory missing', async () => {
@@ -1167,7 +1168,7 @@ describe('TransformerEngine', () => {
       });
       await (testEngine as any).loadPropertyTransformers('/mock/properties');
 
-      expect(mockImportModule).toHaveBeenCalledWith('/mock/properties/score.js');
+      expect(mockImportModule).toHaveBeenCalledWith(join('/mock/properties', 'score.js'));
       expect((testEngine as any).propertyHandlers).toHaveLength(1);
     });
 
@@ -1495,12 +1496,12 @@ describe('TransformerEngine', () => {
       });
 
       const testEngine = new TransformerEngine(mockContext, {
-        importModule: (path: string) => {
-          if (path.includes('games/testgame')) {
+        importModule: (p: string) => {
+          if (p.includes(join('games', 'testgame'))) {
             return Promise.resolve({ transform: transformFn });
           }
 
-          return Promise.reject(new Error(`Module not found: ${path}`));
+          return Promise.reject(new Error(`Module not found: ${p}`));
         },
       });
 
@@ -1533,12 +1534,12 @@ describe('TransformerEngine', () => {
       });
 
       const testEngine = new TransformerEngine(mockContext, {
-        importModule: (path: string) => {
-          if (path.includes('games/testgame')) {
+        importModule: (p: string) => {
+          if (p.includes(join('games', 'testgame'))) {
             return Promise.resolve({ transform: transformFn });
           }
 
-          return Promise.reject(new Error(`Module not found: ${path}`));
+          return Promise.reject(new Error(`Module not found: ${p}`));
         },
       });
 

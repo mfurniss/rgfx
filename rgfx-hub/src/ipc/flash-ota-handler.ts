@@ -4,7 +4,7 @@ import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { INVOKE_CHANNELS } from './contract';
 import { eventBus } from '../services/event-bus';
-import { setActiveOtaDriver, clearActiveOtaDriver } from '../services/global-error-handler';
+import { addActiveOtaDriver, removeActiveOtaDriver } from '../services/global-error-handler';
 import {
   type SupportedChip,
   getOtaFirmwareFilename,
@@ -75,7 +75,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     log.info(`Starting OTA flash to ${driverId} (${ipAddress}), chip: ${chipType}...`);
 
     // Track active OTA driver for error context in global error handler
-    setActiveOtaDriver(driverId);
+    addActiveOtaDriver(driverId);
 
     // Mark driver as updating - this prevents LWT "offline" from disconnecting it
     // and shows "Updating" state in the UI
@@ -92,7 +92,8 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     }
 
     const EspOTA = (await import('esp-ota')).default;
-    const esp = new EspOTA();
+    // Pass explicit defaults for host/port/chunkSize to set timeout (4th param) to 30s
+    const esp = new EspOTA('0.0.0.0', 0, 1460, 30);
 
     // Note: Socket errors (ECONNRESET, etc.) are handled by the global error handler
     // in global-error-handler.ts. The esp.on('error') handler below handles errors
@@ -194,7 +195,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       throw error;
     } finally {
       // Clear active OTA driver tracking regardless of success/failure
-      clearActiveOtaDriver();
+      removeActiveOtaDriver(driverId);
     }
   });
 }

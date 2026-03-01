@@ -11,17 +11,17 @@ const SOCKET_ERRORS = [
   'ENETUNREACH',
 ];
 
-// Track which driver is currently being OTA updated (for error context)
-let activeOtaDriverId: string | undefined;
+// Track which drivers are currently being OTA updated (for error context)
+const activeOtaDrivers = new Set<string>();
 // Suppress socket errors during shutdown to prevent EPIPE flood
 let shuttingDown = false;
 
-export function setActiveOtaDriver(driverId: string): void {
-  activeOtaDriverId = driverId;
+export function addActiveOtaDriver(driverId: string): void {
+  activeOtaDrivers.add(driverId);
 }
 
-export function clearActiveOtaDriver(): void {
-  activeOtaDriverId = undefined;
+export function removeActiveOtaDriver(driverId: string): void {
+  activeOtaDrivers.delete(driverId);
 }
 
 export function setShuttingDown(): void {
@@ -42,18 +42,20 @@ function handleError(
     return;
   }
 
+  // ECONNRESET during OTA is expected — ESP32 devices stop MQTT keepalives
+  // when entering OTA mode, causing the broker to see connection drops
+  if (isSocketError && activeOtaDrivers.size > 0 && message.includes('ECONNRESET')) {
+    log.warn(`${label} (suppressed during OTA):`, message);
+    return;
+  }
+
   if (isSocketError) {
     log.warn(`${label} (recovered):`, message);
     eventBus.emit('system:error', {
       errorType: 'network',
-      message: activeOtaDriverId
-        ? `OTA update failed: ${message}`
-        : `Socket error: ${message}`,
+      message: `Socket error: ${message}`,
       timestamp: Date.now(),
-      details: activeOtaDriverId
-        ? 'Connection to driver was lost during firmware update'
-        : 'Network connection failed',
-      driverId: activeOtaDriverId,
+      details: 'Network connection failed',
     } satisfies SystemError);
   } else {
     log.error(`${label}:`, raw);
@@ -62,7 +64,6 @@ function handleError(
       message,
       timestamp: Date.now(),
       details: stack,
-      driverId: activeOtaDriverId,
     } satisfies SystemError);
   }
 }

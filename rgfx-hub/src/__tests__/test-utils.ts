@@ -1,5 +1,14 @@
 import { writeFileSync, existsSync } from 'node:fs';
 
+/**
+ * Normalize path separators to forward slashes for cross-platform test assertions.
+ * On Windows, path.join() produces backslashes. This helper lets tests assert
+ * with forward slashes on all platforms.
+ */
+export function np(p: string): string {
+  return p.replace(/\\/g, '/');
+}
+
 const TEST_FILE_WATCHER_RETRY_DELAY_MS = 50;
 const TEST_FILE_WATCHER_MAX_RETRIES = 40;
 
