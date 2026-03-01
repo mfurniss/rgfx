@@ -53,7 +53,9 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
+  - defender.js uses EXPLOSION_DRIVERS (all matrices + front strip) for enemy kill and player death effects so explosions fire on both matrices and the front LED strip.
   - galaga88.js and smb.js use `throttleLatest()` (100ms) for score broadcasts — fires immediately during normal play, consolidates rapid bursts during bonus/end-of-level phases. `particleWarp()` in galaga88.js uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation.
+  - smb.js mario-fireball broadcasts dual projectiles on both strips — a bright orange core and a softer trailing glow — for a richer fireball effect.
   - pacman.js init handler returns false to allow cascade to subject init handler (world record display); ripple effects omit endX/endY when not needed (empty strings fail validation)
   - starwars.js particle_field density capped at 100 (max allowed by driver validation)
 - `eslint.config.js` - ESLint flat config for transformer JS files (defines globals: setTimeout, Promise)

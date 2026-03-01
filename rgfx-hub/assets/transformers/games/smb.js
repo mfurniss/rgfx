@@ -128,27 +128,32 @@ export async function transform(
     }
 
     if (property === 'mario-fireball') {
-      const props = {
-        color: '#FF8000',
-        reset: false,
-        direction: 'left',
-        velocity: 1500,
-        friction: 0.5,
-        trail: 0.2,
-        width: 16,
-        height: 6,
-        lifespan: 1200,
-      };
       broadcast({
         effect: 'projectile',
-        drivers: [NAMED_DRIVERS.rightStrip],
-        props,
+        drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightStrip],
+        props: {
+          color: '#FF8000',
+          velocity: 1500,
+          friction: 0.5,
+          trail: 0.2,
+          width: 16,
+          height: 1,
+          lifespan: 1200,
+          direction: 'right',
+        },
       });
       broadcast({
         effect: 'projectile',
-        drivers: [NAMED_DRIVERS.leftStrip],
+        drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightStrip],
         props: {
-          ...props,
+          color: '#FFC000',
+          velocity: 1500,
+          friction: 0.45,
+          trail: 0.2,
+          width: 4,
+          height: 1,
+          particleDensity: 30,
+          lifespan: 1200,
           direction: 'right',
         },
       });
