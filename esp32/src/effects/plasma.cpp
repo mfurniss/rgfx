@@ -4,7 +4,8 @@
 #include "hal/types.h"
 #include <cmath>
 
-PlasmaEffect::PlasmaEffect(Canvas& c) : state{0.0f, 0.0f, 0.0f, {}}, canvas(c) {
+PlasmaEffect::PlasmaEffect(Canvas& c) : state{0.0f, 0.0f, 0.0f, 0, {}}, canvas(c) {
+	state.phaseOffset = static_cast<uint16_t>(hal::random(65536));
 	generateDefaultRainbowLut(state.gradientLut);
 }
 
@@ -80,7 +81,7 @@ void PlasmaEffect::render() {
 		CRGB* pixels = canvas.getPixels();
 		uint8_t invAlpha = 255 - alpha;
 		for (uint16_t x = 0; x < width; x += step) {
-			uint8_t noise = inoise8(x * noiseScale, 0, timeOffset);
+			uint8_t noise = inoise8(x * noiseScale + state.phaseOffset, 0, timeOffset);
 			uint8_t shiftedNoise = (uint8_t)(noise + gradientOffset);
 			uint8_t lutIndex = (uint8_t)((uint16_t)shiftedNoise * (GRADIENT_LUT_SIZE - 1) / 255);
 			CRGB color = state.gradientLut[lutIndex];
@@ -103,7 +104,7 @@ void PlasmaEffect::render() {
 	for (uint16_t y = 0; y < height; y += step) {
 		for (uint16_t x = 0; x < width; x += step) {
 			// 3D Perlin noise: x, y for position, time for animation
-			uint8_t noise = inoise8(x * noiseScale, y * noiseScale, timeOffset);
+			uint8_t noise = inoise8(x * noiseScale + state.phaseOffset, y * noiseScale + state.phaseOffset, timeOffset);
 
 			// Map noise (0-255) + offset to LUT index (0-99)
 			uint8_t shiftedNoise = (uint8_t)(noise + gradientOffset);
