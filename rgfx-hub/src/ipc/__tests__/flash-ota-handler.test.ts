@@ -1,3 +1,4 @@
+import path from 'path';
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerFlashOtaHandler } from '../flash-ota-handler';
@@ -233,7 +234,7 @@ describe('registerFlashOtaHandler', () => {
       await registeredHandler({}, 'rgfx-driver-0001');
 
       expect(existsSyncMock).toHaveBeenCalledWith(
-        expect.stringContaining('assets/esp32/firmware/firmware-esp32.bin'),
+        expect.stringContaining(path.join('assets', 'esp32', 'firmware', 'firmware-esp32.bin')),
       );
     });
   });

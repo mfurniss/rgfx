@@ -1,3 +1,4 @@
+import path from 'path';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { installDefaultInterceptors } from '@/interceptor-installer';
 
@@ -196,7 +197,7 @@ describe('interceptor-installer', () => {
       await installDefaultInterceptors();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('/app/assets/interceptors'),
+        expect.stringContaining(path.join('app', 'assets', 'interceptors')),
       );
     });
 
@@ -217,7 +218,7 @@ describe('interceptor-installer', () => {
       await installDefaultInterceptors();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('/resources/assets/interceptors'),
+        expect.stringContaining(path.join('resources', 'assets', 'interceptors')),
       );
 
       // Cleanup

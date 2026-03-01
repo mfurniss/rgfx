@@ -143,41 +143,47 @@ describe('registerGlobalErrorHandlers', () => {
       }));
     });
 
-    it('should include driverId in emitted SystemError when set', async () => {
+    it('should suppress ECONNRESET errors when OTA is active', async () => {
       const {
         registerGlobalErrorHandlers,
-        setActiveOtaDriver,
-        clearActiveOtaDriver,
+        addActiveOtaDriver,
+        removeActiveOtaDriver,
       } = await import('../global-error-handler.js');
       registerGlobalErrorHandlers(mockLog);
 
-      setActiveOtaDriver('rgfx-driver-0007');
+      addActiveOtaDriver('rgfx-driver-0007');
 
       const error = new Error('read ECONNRESET');
       uncaughtExceptionHandler!(error);
 
-      expect(mockEventBus.emit).toHaveBeenCalledWith('system:error', expect.objectContaining({
-        driverId: 'rgfx-driver-0007',
-      }));
+      expect(mockLogFns.warn).toHaveBeenCalledWith(
+        'Uncaught exception (suppressed during OTA):',
+        error.message,
+      );
+      expect(mockEventBus.emit).not.toHaveBeenCalled();
 
-      clearActiveOtaDriver();
+      removeActiveOtaDriver('rgfx-driver-0007');
     });
 
-    it('should include undefined driverId when not set', async () => {
+    it('should not suppress non-ECONNRESET socket errors during OTA', async () => {
       const {
         registerGlobalErrorHandlers,
-        clearActiveOtaDriver,
+        addActiveOtaDriver,
+        removeActiveOtaDriver,
       } = await import('../global-error-handler.js');
       registerGlobalErrorHandlers(mockLog);
 
-      clearActiveOtaDriver();
+      addActiveOtaDriver('rgfx-driver-0007');
 
-      const error = new Error('read ECONNRESET');
+      const error = new Error('write EPIPE');
       uncaughtExceptionHandler!(error);
 
+      expect(mockLogFns.warn).toHaveBeenCalledWith('Uncaught exception (recovered):', error.message);
       expect(mockEventBus.emit).toHaveBeenCalledWith('system:error', expect.objectContaining({
-        driverId: undefined,
+        errorType: 'network',
       }));
+
+      removeActiveOtaDriver('rgfx-driver-0007');
     });
   });
 

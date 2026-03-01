@@ -1,3 +1,4 @@
+import path from 'path';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { installDefaultTransformers, getTransformersDir } from '@/transformer-installer';
 
@@ -162,7 +163,7 @@ describe('transformer-installer', () => {
 
       // In dev mode, should use app.getAppPath() + assets/transformers
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('/app/assets/transformers'),
+        expect.stringContaining(path.join('app', 'assets', 'transformers')),
       );
     });
 
@@ -183,7 +184,7 @@ describe('transformer-installer', () => {
       await installDefaultTransformers();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('/resources/assets/transformers'),
+        expect.stringContaining(path.join('resources', 'assets', 'transformers')),
       );
 
       // Cleanup

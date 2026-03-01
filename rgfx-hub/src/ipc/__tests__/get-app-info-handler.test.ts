@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { registerGetAppInfoHandler } from '@/ipc/get-app-info-handler';
 import type { AppInfo } from '@/types';
+import { np } from '@/__tests__/test-utils';
 import pkg from '../../../package.json';
 
 vi.mock('electron', () => ({
@@ -53,7 +54,7 @@ describe('registerGetAppInfoHandler', () => {
   describe('license path', () => {
     it('should return development license path when not packaged', () => {
       const result = registeredHandler();
-      expect(result.licensePath).toBe('/app/LICENSE');
+      expect(np(result.licensePath)).toBe('/app/LICENSE');
     });
 
     it('should return packaged license path when app is packaged', async () => {
@@ -68,7 +69,7 @@ describe('registerGetAppInfoHandler', () => {
       });
 
       const result = registeredHandler();
-      expect(result.licensePath).toBe('/resources/LICENSE');
+      expect(np(result.licensePath)).toBe('/resources/LICENSE');
 
       Object.defineProperty(process, 'resourcesPath', {
         value: originalResourcesPath,

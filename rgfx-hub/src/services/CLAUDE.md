@@ -38,17 +38,17 @@ Key methods:
 
 Centralized error handling for uncaught exceptions and unhandled rejections.
 
-- Prevents app crashes from OTA ECONNRESET errors
+- Prevents app crashes from socket errors (ECONNRESET, EPIPE, etc.)
+- Suppresses ECONNRESET during OTA (expected from MQTT connections dropping)
 - Sends error events to renderer via `system:error` event bus
 - Logs all errors via electron-log
-- Tracks driver ID context for OTA-related errors
 - Suppresses socket errors during shutdown (EPIPE flood prevention)
 - Shared `handleError()` eliminates duplication between exception and rejection handlers
 
 Key methods:
 - `registerGlobalErrorHandlers(log)`: installs process error handlers
-- `setActiveOtaDriver(driverId)`: sets context for OTA error attribution
-- `clearActiveOtaDriver()`: clears OTA context
+- `addActiveOtaDriver(driverId)`: tracks driver as actively updating (suppresses ECONNRESET)
+- `removeActiveOtaDriver(driverId)`: removes driver from active OTA set
 - `setShuttingDown()`: suppresses socket errors during app quit
 
 ### service-factory.ts

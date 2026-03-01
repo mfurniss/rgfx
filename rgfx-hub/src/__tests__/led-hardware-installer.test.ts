@@ -1,3 +1,4 @@
+import path from 'path';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { installDefaultLedHardware } from '@/led-hardware-installer';
 
@@ -74,8 +75,8 @@ describe('led-hardware-installer', () => {
 
       expect(mockMkdir).toHaveBeenCalledWith('/mock/user/.rgfx/led-hardware', { recursive: true });
       expect(mockCopyFile).toHaveBeenCalledWith(
-        '/app/assets/led-hardware/matrix-8x8.json',
-        '/mock/user/.rgfx/led-hardware/matrix-8x8.json',
+        path.join('/app', 'assets', 'led-hardware', 'matrix-8x8.json'),
+        path.join('/mock/user/.rgfx/led-hardware', 'matrix-8x8.json'),
       );
     });
 
@@ -189,7 +190,7 @@ describe('led-hardware-installer', () => {
       await installDefaultLedHardware();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('/app/assets/led-hardware'),
+        expect.stringContaining(path.join('app', 'assets', 'led-hardware')),
       );
     });
 
@@ -210,7 +211,7 @@ describe('led-hardware-installer', () => {
       await installDefaultLedHardware();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('/resources/assets/led-hardware'),
+        expect.stringContaining(path.join('resources', 'assets', 'led-hardware')),
       );
 
       Object.defineProperty(process, 'resourcesPath', {

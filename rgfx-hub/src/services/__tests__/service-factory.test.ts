@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import path from 'path';
 
 // Mock all service constructors
 const mockMqttBroker = vi.fn();
@@ -509,7 +510,7 @@ describe('GIF loader', () => {
     loadGifFn('assets/image.gif');
 
     expect(mockLoadGif).toHaveBeenCalledWith(
-      expect.stringContaining('assets/image.gif'),
+      expect.stringContaining(path.join('assets', 'image.gif')),
     );
   });
 });
@@ -544,7 +545,7 @@ describe('Sprite loader', () => {
     loadSpriteFn('bitmaps/cherry.json');
 
     expect(mockLoadSprite).toHaveBeenCalledWith(
-      expect.stringContaining('bitmaps/cherry.json'),
+      expect.stringContaining(path.join('bitmaps', 'cherry.json')),
     );
   });
 });

@@ -87,7 +87,7 @@ describe('registerBackupHandler', () => {
     expect(result).toEqual({ success: false });
   });
 
-  it('calls zip with correct args on macOS', async () => {
+  it('calls correct zip command for current platform', async () => {
     const { dialog } = await import('electron');
     const { execFile } = await import('child_process');
 
@@ -97,19 +97,30 @@ describe('registerBackupHandler', () => {
     });
 
     (execFile as unknown as Mock).mockImplementation(
-      (_cmd: string, _args: string[], _opts: unknown, cb: (err: null) => void) => {
+      (...args: unknown[]) => {
+        // execFile has different signatures for win32 (3 args + cb) vs macOS (4 args + cb)
+        const cb = args[args.length - 1] as (err: null) => void;
         cb(null);
       },
     );
 
     const result = await handler({});
 
-    expect(execFile).toHaveBeenCalledWith(
-      'zip',
-      ['-r', '/tmp/backup.zip', '.'],
-      { cwd: '/mock/.rgfx' },
-      expect.any(Function),
-    );
+    if (process.platform === 'win32') {
+      expect(execFile).toHaveBeenCalledWith(
+        'powershell',
+        expect.arrayContaining(['-NoProfile', '-Command']),
+        expect.any(Function),
+      );
+    } else {
+      expect(execFile).toHaveBeenCalledWith(
+        'zip',
+        ['-r', '/tmp/backup.zip', '.'],
+        { cwd: '/mock/.rgfx' },
+        expect.any(Function),
+      );
+    }
+
     expect(result).toEqual({ success: true });
   });
 
@@ -123,10 +134,8 @@ describe('registerBackupHandler', () => {
     });
 
     (execFile as unknown as Mock).mockImplementation(
-      (
-        _cmd: string, _args: string[], _opts: unknown,
-        cb: (err: Error, stdout: string, stderr: string) => void,
-      ) => {
+      (...args: unknown[]) => {
+        const cb = args[args.length - 1] as (err: Error, stdout: string, stderr: string) => void;
         cb(new Error('zip not found'), '', 'zip: command not found');
       },
     );
@@ -146,10 +155,8 @@ describe('registerBackupHandler', () => {
     });
 
     (execFile as unknown as Mock).mockImplementation(
-      (
-        _cmd: string, _args: string[], _opts: unknown,
-        cb: (err: Error, stdout: string, stderr: string) => void,
-      ) => {
+      (...args: unknown[]) => {
+        const cb = args[args.length - 1] as (err: Error, stdout: string, stderr: string) => void;
         cb(new Error('spawn ENOENT'), '', '');
       },
     );
@@ -169,7 +176,8 @@ describe('registerBackupHandler', () => {
     });
 
     (execFile as unknown as Mock).mockImplementation(
-      (_cmd: string, _args: string[], _opts: unknown, cb: (err: null) => void) => {
+      (...args: unknown[]) => {
+        const cb = args[args.length - 1] as (err: null) => void;
         cb(null);
       },
     );
@@ -190,10 +198,8 @@ describe('registerBackupHandler', () => {
 
     const zipError = new Error('disk full');
     (execFile as unknown as Mock).mockImplementation(
-      (
-        _cmd: string, _args: string[], _opts: unknown,
-        cb: (err: Error, stdout: string, stderr: string) => void,
-      ) => {
+      (...args: unknown[]) => {
+        const cb = args[args.length - 1] as (err: Error, stdout: string, stderr: string) => void;
         cb(zipError, '', '');
       },
     );
