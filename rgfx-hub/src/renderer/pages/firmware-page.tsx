@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Typography,
   Box,
@@ -53,21 +53,25 @@ const FirmwarePage: React.FC = () => {
     ? Object.values(firmwareVersions)[0] ?? ''
     : '';
 
-  // Persisted state from store
-  const storedFlashMethod = useUiStore((state) => state.firmwareFlashMethod);
-  const storedDriverFlashStatus = useUiStore((state) => state.firmwareDriverFlashStatus);
+  // Store state
+  const flashMethod = useUiStore((state) => state.firmwareFlashMethod);
+  const storedDriverFlashStatus = useUiStore(
+    (state) => state.firmwareDriverFlashStatus,
+  );
+  const setFirmwareFlashMethod = useUiStore(
+    (state) => state.setFirmwareFlashMethod,
+  );
   const setFirmwareState = useUiStore((state) => state.setFirmwareState);
-  const setFirmwareDriverFlashStatus = useUiStore((state) => state.setFirmwareDriverFlashStatus);
+  const setFirmwareDriverFlashStatus = useUiStore(
+    (state) => state.setFirmwareDriverFlashStatus,
+  );
   const isFlashing = useUiStore((state) => state.isFlashingFirmware);
   const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
 
   // Flash state from hook
   const flashState = useFlashState(new Map(Object.entries(storedDriverFlashStatus)));
 
-  // Local UI state - default to USB, switch to OTA once configured drivers load
-  const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
-  const userChangedTab = useRef(false);
-  const initializedFromStore = useRef(false);
+  // Local UI state
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     () => new Set(driversNeedingUpdate.map((d) => d.id)),
@@ -83,15 +87,6 @@ const FirmwarePage: React.FC = () => {
     setDriverFlashStatus: flashState.setDriverFlashStatus,
   });
 
-  // Initialize flash method from store once when drivers first load
-  // Uses ref to prevent re-initialization which would cause infinite loop on Windows
-  useEffect(() => {
-    if (drivers.length > 0 && !userChangedTab.current && !initializedFromStore.current) {
-      initializedFromStore.current = true;
-      setFlashMethod(storedFlashMethod);
-    }
-  }, [drivers.length, storedFlashMethod]);
-
   // Reset port selection when switching methods
   useEffect(() => {
     if (flashMethod === 'usb') {
@@ -99,9 +94,11 @@ const FirmwarePage: React.FC = () => {
     }
   }, [flashMethod]);
 
-  // Sync state changes to store for persistence across navigation
+  // Sync local selection state to store for persistence across navigation
   useEffect(() => {
-    setFirmwareState(flashMethod, Array.from(selectedDrivers), selectAll);
+    setFirmwareState(
+      flashMethod, Array.from(selectedDrivers), selectAll,
+    );
   }, [flashMethod, selectedDrivers, selectAll, setFirmwareState]);
 
   // Sync driver flash status to store
@@ -245,8 +242,7 @@ const FirmwarePage: React.FC = () => {
             exclusive
             onChange={(_event, newMethod: FlashMethod | null) => {
               if (newMethod !== null) {
-                userChangedTab.current = true;
-                setFlashMethod(newMethod);
+                setFirmwareFlashMethod(newMethod);
                 flashState.setError(null);
               }
             }}

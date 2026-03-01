@@ -215,6 +215,7 @@ interface Notification {
 - `setWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
 - `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
 - `setDriverFallbackEnabled(enabled)` - Toggles driver fallback mode
+- `setFirmwareFlashMethod(method)` - Sets firmware flash method ('ota' | 'usb'). Used directly by firmware page ToggleButtonGroup — no local state copy, avoids bidirectional sync loops
 
 **Features:**
 - Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates

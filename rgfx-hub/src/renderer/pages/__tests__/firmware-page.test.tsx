@@ -58,18 +58,21 @@ vi.mock('../../store/system-status-store', () => ({
   }),
 }));
 
+function createUiState(overrides = {}) {
+  return {
+    firmwareFlashMethod: 'ota',
+    firmwareDriverFlashStatus: {},
+    setFirmwareFlashMethod: vi.fn(),
+    setFirmwareState: vi.fn(),
+    setFirmwareDriverFlashStatus: vi.fn(),
+    isFlashingFirmware: false,
+    setIsFlashingFirmware: vi.fn(),
+    ...overrides,
+  };
+}
+
 vi.mock('../../store/ui-store', () => ({
-  useUiStore: vi.fn((selector) => {
-    const state = {
-      firmwareFlashMethod: 'usb',
-      firmwareDriverFlashStatus: {},
-      setFirmwareState: vi.fn(),
-      setFirmwareDriverFlashStatus: vi.fn(),
-      isFlashingFirmware: false,
-      setIsFlashingFirmware: vi.fn(),
-    };
-    return selector(state);
-  }),
+  useUiStore: vi.fn((selector) => selector(createUiState())),
 }));
 
 // Mock hooks
@@ -111,15 +114,7 @@ const defaultDriverStoreImpl = ((selector: any) => {
 }) as any;
 
 const defaultUiStoreImpl = ((selector: any) => {
-  const state = {
-    firmwareFlashMethod: 'usb',
-    firmwareDriverFlashStatus: {},
-    setFirmwareState: vi.fn(),
-    setFirmwareDriverFlashStatus: vi.fn(),
-    isFlashingFirmware: false,
-    setIsFlashingFirmware: vi.fn(),
-  };
-  return selector(state);
+  return selector(createUiState());
 }) as any;
 
 beforeEach(() => {
@@ -167,21 +162,39 @@ describe('FirmwarePage', () => {
   });
 
   describe('flash method selection', () => {
-    it('shows USB Serial content by default when no drivers', () => {
+    it('shows OTA content by default (store default is ota)', () => {
+      render(<FirmwarePage />);
+
+      expect(screen.getByTestId('target-drivers-picker')).toBeDefined();
+      expect(screen.queryByTestId('serial-port-selector')).toBeNull();
+    });
+
+    it('shows USB content when store flash method is usb', () => {
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        return selector(createUiState({ firmwareFlashMethod: 'usb' }));
+      }) as any);
+
       render(<FirmwarePage />);
 
       expect(screen.getByTestId('serial-port-selector')).toBeDefined();
-      expect(screen.getByTestId('wifi-config-button')).toBeDefined();
+      expect(screen.queryByTestId('target-drivers-picker')).toBeNull();
     });
 
-    it('shows different content for OTA method', () => {
+    it('calls setFirmwareFlashMethod when switching tabs', () => {
+      const setFirmwareFlashMethodMock = vi.fn();
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        return selector(createUiState({
+          setFirmwareFlashMethod: setFirmwareFlashMethodMock,
+        }));
+      }) as any);
+
       render(<FirmwarePage />);
 
-      // Click OTA button
-      fireEvent.click(screen.getByText('OTA WiFi'));
+      // Click USB button
+      fireEvent.click(screen.getByText('USB Serial'));
 
-      expect(screen.getByTestId('target-drivers-picker')).toBeDefined();
-      expect(screen.getByTestId('wifi-config-ota-button')).toBeDefined();
+      expect(setFirmwareFlashMethodMock).toHaveBeenCalledWith('usb');
     });
 
     it('shows Update Firmware button', () => {
@@ -192,115 +205,57 @@ describe('FirmwarePage', () => {
 
   describe('method descriptions', () => {
     it('shows USB description when USB selected', () => {
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        return selector(createUiState({ firmwareFlashMethod: 'usb' }));
+      }) as any);
+
       render(<FirmwarePage />);
 
-      expect(screen.getByText(/Connect a new ESP32 or existing driver via USB/)).toBeDefined();
+      expect(
+        screen.getByText(/Connect a new ESP32 or existing driver via USB/),
+      ).toBeDefined();
     });
 
     it('shows OTA description when OTA selected', () => {
       render(<FirmwarePage />);
 
-      fireEvent.click(screen.getByText('OTA WiFi'));
-
-      expect(screen.getByText(/Update firmware on already-configured drivers over WiFi/)).toBeDefined();
+      expect(
+        screen.getByText(
+          /Update firmware on already-configured drivers over WiFi/,
+        ),
+      ).toBeDefined();
     });
   });
 
-  describe('default tab selection', () => {
-    it('defaults to USB when no drivers exist', () => {
+  describe('flash method reads from store', () => {
+    it('shows OTA when store has ota', () => {
       render(<FirmwarePage />);
 
-      // USB content should be visible
-      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
-      expect(screen.queryByTestId('target-drivers-picker')).toBeNull();
-    });
-
-    it('switches to OTA when configured drivers load', () => {
-      // Start with no drivers
-      const { rerender } = render(<FirmwarePage />);
-      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
-
-      // Simulate drivers arriving via IPC
-      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
-        const state = {
-          drivers: [{ id: 'rgfx-driver-0001', state: 'disconnected' }],
-        };
-        return selector(state);
-      }) as any);
-
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
-        const state = {
-          firmwareFlashMethod: 'ota',
-          firmwareDriverFlashStatus: {},
-          setFirmwareState: vi.fn(),
-          setFirmwareDriverFlashStatus: vi.fn(),
-          isFlashingFirmware: false,
-          setIsFlashingFirmware: vi.fn(),
-        };
-        return selector(state);
-      }) as any);
-
-      rerender(<FirmwarePage />);
-
-      // OTA content should now be visible
       expect(screen.getByTestId('target-drivers-picker')).toBeDefined();
       expect(screen.queryByTestId('serial-port-selector')).toBeNull();
     });
 
-    it('respects user tab choice when drivers load later', () => {
-      // Start with no drivers, showing USB
-      const { rerender } = render(<FirmwarePage />);
-      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
-
-      // User clicks OTA then back to USB (manual choice)
-      fireEvent.click(screen.getByText('OTA WiFi'));
-      fireEvent.click(screen.getByText('USB Serial'));
-      expect(screen.getByTestId('serial-port-selector')).toBeDefined();
-
-      // Drivers arrive - should NOT override the user's manual choice
-      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
-        const state = {
-          drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
-        };
-        return selector(state);
-      }) as any);
-
+    it('shows USB when store has usb', () => {
       vi.mocked(useUiStore).mockImplementation(((selector: any) => {
-        const state = {
-          firmwareFlashMethod: 'ota',
-          firmwareDriverFlashStatus: {},
-          setFirmwareState: vi.fn(),
-          setFirmwareDriverFlashStatus: vi.fn(),
-          isFlashingFirmware: false,
-          setIsFlashingFirmware: vi.fn(),
-        };
-        return selector(state);
+        return selector(createUiState({ firmwareFlashMethod: 'usb' }));
       }) as any);
 
-      rerender(<FirmwarePage />);
+      render(<FirmwarePage />);
 
-      // Should still show USB because user manually selected it
       expect(screen.getByTestId('serial-port-selector')).toBeDefined();
       expect(screen.queryByTestId('target-drivers-picker')).toBeNull();
     });
 
-    it('defaults to OTA when drivers exist and storedFlashMethod is ota', () => {
-      // Drivers already present on first render
+    it('shows OTA regardless of driver presence', () => {
+      // No drivers, but store says OTA
+      render(<FirmwarePage />);
+      expect(screen.getByTestId('target-drivers-picker')).toBeDefined();
+    });
+
+    it('shows OTA when drivers already connected', () => {
       vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
         const state = {
           drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
-        };
-        return selector(state);
-      }) as any);
-
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
-        const state = {
-          firmwareFlashMethod: 'ota',
-          firmwareDriverFlashStatus: {},
-          setFirmwareState: vi.fn(),
-          setFirmwareDriverFlashStatus: vi.fn(),
-          isFlashingFirmware: false,
-          setIsFlashingFirmware: vi.fn(),
         };
         return selector(state);
       }) as any);
@@ -319,7 +274,9 @@ describe('FirmwarePage', () => {
         driverFlashStatus: new Map(),
         logMessages: [],
         error: 'No connected drivers selected',
-        resultModal: { open: false, success: false, message: '', flashMethod: null },
+        resultModal: {
+          open: false, success: false, message: '', flashMethod: null,
+        },
         setProgress: vi.fn(),
         setDriverFlashStatus: vi.fn(),
         addLog: vi.fn(),
@@ -337,15 +294,7 @@ describe('FirmwarePage', () => {
 
     it('hides error alert when flashing is in progress', () => {
       vi.mocked(useUiStore).mockImplementation(((selector: any) => {
-        const state = {
-          firmwareFlashMethod: 'ota',
-          firmwareDriverFlashStatus: {},
-          setFirmwareState: vi.fn(),
-          setFirmwareDriverFlashStatus: vi.fn(),
-          isFlashingFirmware: true,
-          setIsFlashingFirmware: vi.fn(),
-        };
-        return selector(state);
+        return selector(createUiState({ isFlashingFirmware: true }));
       }) as any);
 
       vi.mocked(useFlashState).mockReturnValue({
@@ -353,7 +302,9 @@ describe('FirmwarePage', () => {
         driverFlashStatus: new Map(),
         logMessages: [],
         error: 'No connected drivers selected',
-        resultModal: { open: false, success: false, message: '', flashMethod: null },
+        resultModal: {
+          open: false, success: false, message: '', flashMethod: null,
+        },
         setProgress: vi.fn(),
         setDriverFlashStatus: vi.fn(),
         addLog: vi.fn(),
@@ -366,33 +317,30 @@ describe('FirmwarePage', () => {
 
       render(<FirmwarePage />);
 
-      expect(screen.queryByText('No connected drivers selected')).toBeNull();
+      expect(
+        screen.queryByText('No connected drivers selected'),
+      ).toBeNull();
     });
   });
 
-  describe('infinite loop prevention', () => {
-    it('should not re-render excessively when drivers load and store syncs', () => {
-      // Track how many times setFirmwareState is called
+  describe('no infinite loop', () => {
+    it('does not loop when drivers are already connected on mount', () => {
       const setFirmwareStateMock = vi.fn();
       let callCount = 0;
 
       vi.mocked(useUiStore).mockImplementation(((selector: any) => {
-        const state = {
-          firmwareFlashMethod: 'ota',
-          firmwareDriverFlashStatus: {},
+        return selector(createUiState({
           setFirmwareState: () => {
             callCount++;
             setFirmwareStateMock();
 
             if (callCount > 10) {
-              throw new Error('Infinite loop detected: setFirmwareState called too many times');
+              throw new Error(
+                'Infinite loop: setFirmwareState called too many times',
+              );
             }
           },
-          setFirmwareDriverFlashStatus: vi.fn(),
-          isFlashingFirmware: false,
-          setIsFlashingFirmware: vi.fn(),
-        };
-        return selector(state);
+        }));
       }) as any);
 
       vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
@@ -402,42 +350,33 @@ describe('FirmwarePage', () => {
         return selector(state);
       }) as any);
 
-      // This should not throw - if it does, there's an infinite loop
       expect(() => {
         render(<FirmwarePage />);
       }).not.toThrow();
 
-      // setFirmwareState should be called a reasonable number of times (1-3)
       expect(callCount).toBeLessThanOrEqual(5);
     });
 
-    it('should initialize from store only once when drivers arrive', () => {
-      let setFlashMethodCallCount = 0;
+    it('does not loop when drivers arrive after mount', () => {
+      let callCount = 0;
 
-      // Start with no drivers
+      const setFirmwareStateMock = vi.fn(() => {
+        callCount++;
+      });
+
+      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+        return selector(createUiState({
+          setFirmwareState: setFirmwareStateMock,
+        }));
+      }) as any);
+
       vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
         const state = { drivers: [] };
         return selector(state);
       }) as any);
 
-      const setFirmwareStateMock = vi.fn(() => {
-        setFlashMethodCallCount++;
-      });
-
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
-        const state = {
-          firmwareFlashMethod: 'ota',
-          firmwareDriverFlashStatus: {},
-          setFirmwareState: setFirmwareStateMock,
-          setFirmwareDriverFlashStatus: vi.fn(),
-          isFlashingFirmware: false,
-          setIsFlashingFirmware: vi.fn(),
-        };
-        return selector(state);
-      }) as any);
-
       const { rerender } = render(<FirmwarePage />);
-      const initialCallCount = setFlashMethodCallCount;
+      const initialCallCount = callCount;
 
       // Simulate drivers arriving
       vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
@@ -451,8 +390,7 @@ describe('FirmwarePage', () => {
         rerender(<FirmwarePage />);
       });
 
-      // Should have been called a limited number of additional times (not infinitely)
-      const additionalCalls = setFlashMethodCallCount - initialCallCount;
+      const additionalCalls = callCount - initialCallCount;
       expect(additionalCalls).toBeLessThanOrEqual(3);
     });
   });

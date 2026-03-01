@@ -70,6 +70,7 @@ interface UiState {
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
   setMameRomsDirectory: (path: string) => void;
+  setFirmwareFlashMethod: (method: FlashMethod) => void;
   setFirmwareState: (
     flashMethod: FlashMethod,
     selectedDrivers: string[],
@@ -157,6 +158,10 @@ export const useUiStore = create<UiState>()(
 
       setMameRomsDirectory: (path) => {
         set({ mameRomsDirectory: path });
+      },
+
+      setFirmwareFlashMethod: (method) => {
+        set({ firmwareFlashMethod: method });
       },
 
       setFirmwareState: (flashMethod, selectedDrivers, selectAll) => {
