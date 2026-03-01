@@ -38,14 +38,28 @@ fi
 # Get absolute path for MAME
 RGFX_LUA="$(cd "$(dirname "$RGFX_LUA")" && pwd)/$(basename "$RGFX_LUA")"
 
-# Find MAME executable
-if command -v mame &> /dev/null; then
+# Find MAME executable - check common locations first, then PATH
+MAME_EXEC=""
+if [[ -x "$HOME/mame/mame" ]]; then
+    MAME_EXEC="$HOME/mame/mame"
+elif [[ -x "/opt/homebrew/bin/mame" ]]; then
+    MAME_EXEC="/opt/homebrew/bin/mame"
+elif [[ -x "/usr/local/bin/mame" ]]; then
+    MAME_EXEC="/usr/local/bin/mame"
+elif command -v mame &> /dev/null; then
     MAME_EXEC="$(command -v mame)"
-else
-    echo "Error: 'mame' command not found in PATH"
+fi
+
+if [[ -z "$MAME_EXEC" ]]; then
+    echo "Error: MAME not found"
     echo ""
-    echo "Please install MAME and ensure it's in your PATH, or create a symlink:"
-    echo "  ln -s /path/to/your/mame /usr/local/bin/mame"
+    echo "Checked locations:"
+    echo "  - $HOME/mame/mame"
+    echo "  - /opt/homebrew/bin/mame"
+    echo "  - /usr/local/bin/mame"
+    echo "  - PATH"
+    echo ""
+    echo "Please install MAME to one of these locations or add it to your PATH."
     exit 1
 fi
 

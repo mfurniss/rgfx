@@ -251,4 +251,62 @@ Refactored components and utilities extracted from the main page:
 - Technology stack details
 - License and copyright information (MPL 2.0)
 
-<\!-- No per-file license headers — see root LICENSE -->
+---
+
+## Cross-Platform Considerations
+
+**CRITICAL: All fixes for Windows issues MUST NOT break existing macOS code.** The app must work on both platforms. Always test fixes on macOS or ensure the change is logically compatible.
+
+### Windows vs macOS Timing Issues
+
+The renderer runs on both macOS and Windows. **Windows has different timer resolution and event loop timing** which can expose bugs that don't manifest on macOS.
+
+**Pattern to avoid:** Bidirectional sync between local state and Zustand store:
+```tsx
+// DANGEROUS - creates infinite loop on Windows
+useEffect(() => {
+  setLocalState(storedValue);  // Store → Local
+}, [storedValue]);
+
+useEffect(() => {
+  updateStore(localState);  // Local → Store
+}, [localState]);
+```
+
+**Solution:** Use refs to initialize from store only once:
+```tsx
+const initializedFromStore = useRef(false);
+
+useEffect(() => {
+  if (!initializedFromStore.current && storedValue) {
+    initializedFromStore.current = true;
+    setLocalState(storedValue);
+  }
+}, [storedValue]);
+```
+
+---
+
+## ESLint Rules to Remember
+
+Before writing code, review these rules from `eslint.config.mjs`:
+
+1. **Blank line before control statements** (`padding-line-between-statements`):
+   ```tsx
+   const value = something;
+
+   if (condition) { ... }  // ✅ Blank line required before if/for/while/switch/try
+   ```
+
+2. **No unused imports** (`@typescript-eslint/no-unused-vars`):
+   - Prefix unused vars with `_` to ignore: `const _unused = value;`
+
+3. **Single quotes** (`@stylistic/quotes`): Use `'string'` not `"string"`
+
+4. **Max line length** (`@stylistic/max-len`): 100 chars (URLs, strings, templates exempt)
+
+5. **Trailing commas** (`@stylistic/comma-dangle`): Required in multiline
+
+6. **Object shorthand** (`object-shorthand`): Use `{ foo }` not `{ foo: foo }`
+
+<!-- No per-file license headers — see root LICENSE -->

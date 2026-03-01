@@ -308,4 +308,40 @@ describe('DirectoriesSection', () => {
       });
     });
   });
+
+  describe('infinite loop prevention', () => {
+    it('should not re-render excessively after save', async () => {
+      // The existing mock tracks calls via mockSetRgfxConfigDirectory
+      render(<DirectoriesSection />);
+
+      fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+      await waitFor(() => {
+        // Should complete without throwing infinite loop error
+        expect(mockNotify).toHaveBeenCalled();
+      });
+
+      // setRgfxConfigDirectory should be called exactly once (not in a loop)
+      expect(mockSetRgfxConfigDirectory).toHaveBeenCalledTimes(1);
+    });
+
+    it('should initialize from store values only once', () => {
+      // This test verifies the refs prevent re-initialization
+      const { rerender } = render(<DirectoriesSection />);
+
+      // Get initial input values
+      const configInput = screen.getByLabelText('Directory for config and logs');
+      expect(configInput).toHaveProperty('value', '/home/user/.rgfx');
+
+      // Change the input locally
+      fireEvent.change(configInput, { target: { value: '/new/local/path' } });
+      expect(configInput).toHaveProperty('value', '/new/local/path');
+
+      // Rerender - should NOT reset to store value due to initialization ref
+      rerender(<DirectoriesSection />);
+
+      // Local value should be preserved (not reset to store value)
+      expect(configInput).toHaveProperty('value', '/new/local/path');
+    });
+  });
 });

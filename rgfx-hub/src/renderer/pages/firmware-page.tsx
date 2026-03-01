@@ -67,6 +67,7 @@ const FirmwarePage: React.FC = () => {
   // Local UI state - default to USB, switch to OTA once configured drivers load
   const [flashMethod, setFlashMethod] = useState<FlashMethod>('usb');
   const userChangedTab = useRef(false);
+  const initializedFromStore = useRef(false);
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
     () => new Set(driversNeedingUpdate.map((d) => d.id)),
@@ -82,9 +83,11 @@ const FirmwarePage: React.FC = () => {
     setDriverFlashStatus: flashState.setDriverFlashStatus,
   });
 
-  // Switch to OTA once configured drivers are loaded (async from IPC)
+  // Initialize flash method from store once when drivers first load
+  // Uses ref to prevent re-initialization which would cause infinite loop on Windows
   useEffect(() => {
-    if (drivers.length > 0 && !userChangedTab.current) {
+    if (drivers.length > 0 && !userChangedTab.current && !initializedFromStore.current) {
+      initializedFromStore.current = true;
       setFlashMethod(storedFlashMethod);
     }
   }, [drivers.length, storedFlashMethod]);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Stack } from '@mui/material';
 import { Save } from '@mui/icons-material';
 import { useUiStore } from '../../store/ui-store';
@@ -22,12 +22,26 @@ export function DirectoriesSection() {
   const [romsDirError, setRomsDirError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Track initialization to prevent infinite loops on Windows
+  const configDirInitialized = useRef(false);
+  const romsDirInitialized = useRef(false);
+
+  // Initialize config dir from store once (async appInfo may load after mount)
   useEffect(() => {
-    setConfigDir(storedRgfxConfigDirectory || defaultConfigDir);
+    const newValue = storedRgfxConfigDirectory || defaultConfigDir;
+
+    if (!configDirInitialized.current && newValue) {
+      configDirInitialized.current = true;
+      setConfigDir(newValue);
+    }
   }, [storedRgfxConfigDirectory, defaultConfigDir]);
 
+  // Initialize roms dir from store once
   useEffect(() => {
-    setRomsDir(storedMameRomsDirectory);
+    if (!romsDirInitialized.current && storedMameRomsDirectory) {
+      romsDirInitialized.current = true;
+      setRomsDir(storedMameRomsDirectory);
+    }
   }, [storedMameRomsDirectory]);
 
   const handleSave = () => {
