@@ -133,6 +133,34 @@ export function throttleLatest(fn, ms) {
 }
 
 /**
+ * Wrap an async function so only the latest invocation runs.
+ * If called again while a previous call is still awaiting, the
+ * previous call's `cancelled()` check returns true, allowing it
+ * to bail out early.
+ *
+ * @param {(cancelled: () => boolean, ...args: any[]) => Promise<any>} fn
+ * @returns {(...args: any[]) => Promise<any>}
+ *
+ * @example
+ * const flashColors = exclusive(async (cancelled, colors) => {
+ *   for (const color of colors) {
+ *     if (cancelled()) break;
+ *     broadcast({ effect: 'background', props: { color } });
+ *     await sleep(70);
+ *   }
+ * });
+ * flashColors(['#FF0000', '#00FF00']); // starts
+ * flashColors(['#0000FF', '#FFFF00']); // cancels previous, starts new
+ */
+export function exclusive(fn) {
+  let gen = 0;
+  return (...args) => {
+    const mine = ++gen;
+    return fn(() => mine !== gen, ...args);
+  };
+}
+
+/**
  * Cancel all pending sleep(), trackedTimeout(), and trackedInterval() timers.
  * Sleep promises will never resolve — their async chains stop in place.
  * Called by the transformer engine on game exit.
