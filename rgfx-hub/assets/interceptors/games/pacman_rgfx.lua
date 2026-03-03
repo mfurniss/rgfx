@@ -130,22 +130,16 @@ local map = {
 			_G.event("pacman/player/score/p1", current_score)
 		end,
 	},
-	-- power_pill = {
-	-- 	addr_start = 0x4DA6,
-	-- 	callback = function(value, _, _)
-	-- 		_G.event("pacman/player/pill/state", value)
-	-- 	end,
-	-- },
-	-- -- GHOST STATES
-	-- -- 0x01 = red (normal)
-	-- -- 0x03 = pink (normal)
-	-- -- 0x05 = cyan (normal)
-	-- -- 0x07 = orange (normal)
-	-- -- 0x11 (17) = blue (vulnerable - power pill active)
-	-- -- 0x12 (18) = white (flashing - power pill wearing off)
-	-- -- 0x18 (24) = score display (200/400/800/1600 - ghost being eaten)
-	-- -- 0x19 (25) = eyes (returning to ghost home after being eaten)
-	-- -- 0x1d (29) = cutscene color (intermissions only)
+	-- GHOST STATES
+	-- 0x01 = red (normal)
+	-- 0x03 = pink (normal)
+	-- 0x05 = cyan (normal)
+	-- 0x07 = orange (normal)
+	-- 0x11 (17) = blue (vulnerable - power pill active)
+	-- 0x12 (18) = white (flashing - power pill wearing off)
+	-- 0x18 (24) = score display (200/400/800/1600 - ghost being eaten)
+	-- 0x19 (25) = eyes (returning to ghost home after being eaten)
+	-- 0x1d (29) = cutscene color (intermissions only)
 	red_ghost_state = {
 		addr_start = 0x4C03,
 		callback = function(value, _, _)
@@ -194,29 +188,13 @@ local map = {
 			end
 		end,
 	},
-	-- sound_ch2_cmd = {
-	-- 	addr_start = 0x4EAC,
-	-- 	callback_changed = function(value, _)
-	-- 		if value == 0x21 then
-	-- 			_G.event("pacman/player/eat/power-pill")
-	-- 		elseif value == 0x61 then
-	-- 			_G.event("pacman/ghost/eyes")
-	-- 		end
-	-- 	end,
-	-- },
 	sound_ch3_cmd = {
 		addr_start = 0x4EBC,
 		callback_changed = function(value, _)
-			if value == 0x01 or value == 0x02 then
-	--			_G.event("pacman/player/eat/pill", value)
-			elseif value == 0x10 then
+			if value == 0x10 then
 				_G.event("pacman/player/die", 1)
 			elseif value == 0x20 then
 				_G.event("pacman/player/die", 2)
-			elseif value == 0x04 then
---				_G.event("pacman/player/eat/bonus")
-			elseif value == 0x08 then
---				_G.event("pacman/player/eat/ghost")
 			end
 		end,
 	},

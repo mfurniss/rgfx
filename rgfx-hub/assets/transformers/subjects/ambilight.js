@@ -145,8 +145,6 @@ function handleSingleDriver(edges, context) {
 
   if (combinedColors.length === 0) return;
 
-  console.log('combinedColors', combinedColors);
-
   broadcast({
     effect: 'background',
     props: {

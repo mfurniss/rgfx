@@ -211,8 +211,6 @@ export async function transform(
 
     state.set('musicTrack', payload);
 
-    console.log('musicTrack', payload);
-
     // Fade out all ambient effects
     broadcast({
       effect: 'background',

@@ -62,7 +62,6 @@ local map = {
 	laser_count = {
 		addr_start = 0xA0B5,
 		callback_changed = function(current, previous)
-			print(string.format("[DEFENDER] laser_count: %d -> %d", previous, current))
 			if current > previous then
 				_G.event("defender/player/fire", current - previous)
 			end
@@ -139,17 +138,6 @@ local map = {
 		end,
 	},
 
-	-- =========================================================================
-	-- Medium confidence - enable after MAME debugger verification
-	-- =========================================================================
-
-	-- game_state = {
-	-- 	addr_start = 0xA0BA,
-	-- 	callback_changed = function(current, previous)
-	-- 		_G.event("defender/game/state", current)
-	-- 	end,
-	-- },
-
 	-- STATUS register: $7F=alive, $58=exploding, $77=hyperspace, $FF=game over
 	player_status = {
 		addr_start = 0xA0BA,
@@ -160,71 +148,6 @@ local map = {
 		end,
 	},
 
-	-- ship_world_x = {
-	-- 	addr_start = 0xA0C3,
-	-- 	size = 2,
-	-- 	callback_changed = function(current, previous)
-	-- 		_G.event("defender/player/position-x", current)
-	-- 	end,
-	-- },
-
-	-- ship_world_y = {
-	-- 	addr_start = 0xA0C5,
-	-- 	size = 2,
-	-- 	callback_changed = function(current, previous)
-	-- 		_G.event("defender/player/position-y", current)
-	-- 	end,
-	-- },
 }
 
 ram.install_monitors(map, mem)
-
--- =============================================================================
--- DEBUG: RAM scanner to find fire/bullet address
--- Scans a range, suppresses addresses that change too often (noise)
--- =============================================================================
-local DEBUG_SCANNER = false
-
-if DEBUG_SCANNER then
-	local scan_start = 0x9800
-	local scan_end = 0x9A00
-	-- Skip addresses we already monitor
-	local skip = {
-		[0xA0FA] = true, -- humanoid_count
-		[0xA112] = true, [0xA113] = true, [0xA114] = true, -- enemy counts
-		[0xA115] = true, [0xA116] = true, [0xA119] = true,
-		[0xA1C3] = true, [0xA1C4] = true, [0xA1C5] = true, -- score
-		[0xA1C9] = true, -- lives
-		[0xA1CB] = true, -- smart bombs
-	}
-
-	local scan_prev = {}
-	local change_count = {}
-	for addr = scan_start, scan_end do
-		scan_prev[addr] = 0
-		change_count[addr] = 0
-	end
-
-	local frame_num = 0
-	emu.register_frame_done(function()
-		frame_num = frame_num + 1
-
-		for addr = scan_start, scan_end do
-			if not skip[addr] then
-				local val = mem:read_u8(addr)
-				if val ~= scan_prev[addr] then
-					change_count[addr] = change_count[addr] + 1
-					if change_count[addr] <= 20 then
-						print(string.format("[SCAN] F%d $%04X: %d -> %d (0x%02X -> 0x%02X)",
-							frame_num, addr, scan_prev[addr], val, scan_prev[addr], val))
-					elseif change_count[addr] == 21 then
-						print(string.format("[SCAN] $%04X suppressed (too noisy)", addr))
-					end
-					scan_prev[addr] = val
-				end
-			end
-		end
-	end, "debug_scanner")
-
-	print("[DEFENDER] DEBUG scanner active: $9800-$9A00 (noise-filtered)")
-end
