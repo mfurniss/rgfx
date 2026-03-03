@@ -520,20 +520,7 @@ export async function transform(
       });
     }
 
-    // console.log('sfx for', property, 'undefined');
   }
-  // Player fire - directional green wipe
-  // if (subject === 'player' && property === 'fire') {
-  //   const wipeDirection = FIRE_DIRECTION_MAP[payload] || 'right';
-  //   return broadcast({
-  //     effect: 'wipe',
-  //     props: {
-  //       color: '#00FF00',
-  //       duration: 250,
-  //       direction: wipeDirection,
-  //     },
-  //   });
-  // }
 
   if (subject === 'wave' && property === 'number' && payload > 1) {
     const props = {
@@ -630,34 +617,6 @@ export async function transform(
       },
     });
   }
-
-  // if (subject === 'player' && property === 'lives') {
-  //   if (payload != livesRemaining) {
-  //     livesRemaining = payload;
-  //     broadcast({
-  //       effect: 'text',
-  //       drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
-  //       props: {
-  //         align: 'center',
-  //         text: `L:${Number(livesRemaining) + 1}`,
-  //         duration: 6000,
-  //         reset: true,
-  //         gradient: [
-  //           '#FF0000',
-  //           '#FFFF00',
-  //           '#00FF00',
-  //           '#00FFFF',
-  //           '#0000FF',
-  //           '#FF00FF',
-  //           '#FF0000',
-  //         ],
-  //         gradientSpeed: 3,
-  //         gradientScale: 0,
-  //         accentColor: '#0000C0',
-  //       },
-  //     });
-  //   }
-  // }
 
   return true;
 }

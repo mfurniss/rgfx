@@ -34,6 +34,7 @@ interface TransformerEngineOptions {
  */
 export class TransformerEngine {
   private gameHandlers = new Map<string, TransformerHandler>();
+  private failedGameLoads = new Set<string>();
   private subjectHandlers = new Map<string, TransformerHandler>();
   private propertyHandlers: TransformerHandler[] = [];
   private defaultHandler?: TransformerHandler;
@@ -201,6 +202,7 @@ export class TransformerEngine {
         // games/ subdirectory
         const gameName = basename(filename, '.js');
         this.gameHandlers.delete(gameName);
+        this.failedGameLoads.delete(gameName);
         await this.loadGameTransformer(gameName);
         this.context.log.info(`Reloaded game transformer: ${gameName}`);
       } else if (filename.startsWith('subjects/') || filename.startsWith('subjects\\')) {
@@ -238,6 +240,7 @@ export class TransformerEngine {
    * Reload all loaded transformers (used when a shared dependency changes)
    */
   private async reloadAllTransformers(transformersDir: string): Promise<void> {
+    this.failedGameLoads.clear();
     const gameNames = [...this.gameHandlers.keys()];
 
     for (const gameName of gameNames) {
@@ -372,7 +375,12 @@ export class TransformerEngine {
 
       // Auto-load game transformer on first event from game
       // Skip for 'rgfx' namespace - reserved for system-level events (audio, driver, etc.)
-      if (namespace && namespace !== 'rgfx' && !this.gameHandlers.has(namespace)) {
+      if (
+        namespace &&
+        namespace !== 'rgfx' &&
+        !this.gameHandlers.has(namespace) &&
+        !this.failedGameLoads.has(namespace)
+      ) {
         await this.loadGameTransformer(namespace);
       }
 
@@ -462,8 +470,8 @@ export class TransformerEngine {
         this.context.log.warn(`Game transformer ${gameName}.js has no valid transform function`);
       }
     } catch (error) {
-      // Log error for debugging but don't crash
-      // Game will fall through to generic handlers
+      // Cache failure so we don't retry on every event from this game
+      this.failedGameLoads.add(gameName);
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.context.log.warn(
         `Could not load game transformer for ${gameName}: ${errorMessage}`,

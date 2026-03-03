@@ -52,7 +52,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 - `utils/` - Shared utility modules (index.js barrel with pick() for random array subset selection, math.js with hslToRgb and randomElement, async.js with tracked timers including trackedInterval, leading-edge debounce, throttleLatest, and exclusive() for cancelling overlapping async loops, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
-- `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
+- `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, ssf2.js, starwars.js, etc.)
   - defender.js uses EXPLOSION_DRIVERS (all matrices + front strip) for enemy kill and player death effects so explosions fire on both matrices and the front LED strip.
   - galaga88.js and smb.js use `throttleLatest()` (100ms) for score broadcasts — fires immediately during normal play, consolidates rapid bursts during bonus/end-of-level phases. `particleWarp()` in galaga88.js uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation.
   - smb.js mario-fireball broadcasts dual projectiles on both strips — a bright orange core and a softer trailing glow — for a richer fireball effect.
@@ -66,6 +66,8 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
   - `init.js` - Game init subject (clears effects, displays world record using MAME system description from init payload)
   - `ambilight.js` - Ambilight effect subject
   - `audio.js` - Audio-reactive effect subject
+  - `enemy.js` - Enemy subject stub (disabled, game transformers handle enemy events)
+  - `player.js` - Player subject stub (disabled, game transformers handle player events)
 - `bitmaps/` - Sprite bitmaps for bitmap effects. JSON sprites are extracted from ROM at runtime by `sprite-extract.lua` and written to `~/.rgfx/transformers/bitmaps/`. These generated files are excluded from `sync-assets.sh` and should NOT be committed to the repo. Changes to `.json` files in this directory trigger hot-reload of all transformers via `TransformerEngine`.
 
 ### led-hardware/

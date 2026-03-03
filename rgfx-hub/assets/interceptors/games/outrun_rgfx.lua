@@ -59,16 +59,6 @@ end
 -- 16 channels × 8 bytes, split across low (0x00-0x7F) and high (0x80-0xFF):
 --   Low +7: delta/frequency (playback rate, 0-255)
 --   High +6 (8*ch + 0x86): control (bit 0 = active)
--- local PCM_BASE = 0xF000
--- local PCM_CTRL_OFFSET = 0x86
--- local PCM_DELTA_OFFSET = 7
--- local PCM_STRIDE = 8
-
--- local function delta_to_char(delta)
--- 	if delta == 0 then return "1" end
--- 	local char_idx = math.floor(delta * 34 / 255) + 1
--- 	return PITCH_CHARS:sub(char_idx, char_idx)
--- end
 
 -- ============================================================================
 -- Shared state
@@ -82,7 +72,6 @@ local mainmem = nil
 local prev_fm_ch = {}   -- Per-channel hex value from previous frame
 local prev_fm_dur = {}  -- Per-channel duration counter from previous frame
 local prev_time = -1
--- local prev_pcm_state = ""
 
 local function init()
 	soundcpu = manager.machine.devices[":soundcpu"]
@@ -119,19 +108,6 @@ local function init()
 			prev_fm_ch[ch] = ".."
 		end
 	end
-
-	-- -- Snapshot initial PCM state
-	-- local pcm_chars = {}
-	-- for ch = 0, 15 do
-	-- 	local ctrl = mem:read_u8(PCM_BASE + PCM_CTRL_OFFSET + ch * PCM_STRIDE)
-	-- 	if (ctrl & 0x01) ~= 0 then
-	-- 		local delta = mem:read_u8(PCM_BASE + ch * PCM_STRIDE + PCM_DELTA_OFFSET)
-	-- 		pcm_chars[ch + 1] = delta_to_char(delta)
-	-- 	else
-	-- 		pcm_chars[ch + 1] = "0"
-	-- 	end
-	-- end
-	-- prev_pcm_state = table.concat(pcm_chars)
 
 	return true
 end
@@ -192,27 +168,6 @@ local function poll_time()
 	end
 end
 
--- local function poll_pcm()
--- 	local chars = {}
--- 	for ch = 0, 15 do
--- 		local ctrl = mem:read_u8(PCM_BASE + PCM_CTRL_OFFSET + ch * PCM_STRIDE)
--- 		local active = (ctrl & 0x01) ~= 0
-
--- 		if active then
--- 			local delta = mem:read_u8(PCM_BASE + ch * PCM_STRIDE + PCM_DELTA_OFFSET)
--- 			chars[ch + 1] = delta_to_char(delta)
--- 		else
--- 			chars[ch + 1] = "0"
--- 		end
--- 	end
-
--- 	local state = table.concat(chars)
--- 	if state ~= prev_pcm_state then
--- 		_G.event("outrun/music/pcm", state)
--- 		prev_pcm_state = state
--- 	end
--- end
-
 -- ============================================================================
 -- Initialization
 -- ============================================================================
@@ -231,7 +186,6 @@ emu.register_frame_done(function()
 	if ready and frame_count > BOOT_FRAMES then
 		poll_fm()
 		poll_time()
-		-- poll_pcm()
 	end
 end, "outrun_sound_monitor")
 

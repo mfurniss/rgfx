@@ -562,6 +562,42 @@ describe('TransformerEngine', () => {
       }));
       expect(defaultHandler).toHaveBeenCalled();
     });
+
+    it('should not retry loading a game transformer that previously failed', async () => {
+      const loadSpy = vi.spyOn(engine as any, 'loadGameTransformer');
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('broken/player/score', '1000');
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      // Second event from same game should NOT retry the load
+      await engine.handleEvent('broken/player/score', '2000');
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      // Events still cascade to default handler
+      expect(defaultHandler).toHaveBeenCalledTimes(2);
+    });
+
+    it('should cache failed load in failedGameLoads set', async () => {
+      const defaultHandler = vi.fn().mockReturnValue(true);
+      (engine as any).defaultHandler = defaultHandler;
+
+      await engine.handleEvent('missing/player/score', '1000');
+
+      expect((engine as any).failedGameLoads.has('missing')).toBe(true);
+      expect((engine as any).gameHandlers.has('missing')).toBe(false);
+    });
+
+    it('should clear failedGameLoads on full reload', async () => {
+      (engine as any).failedGameLoads.add('broken');
+      (engine as any).failedGameLoads.add('missing');
+
+      vi.mocked(fs.readdir).mockResolvedValue([] as any);
+      await (engine as any).reloadAllTransformers('/mock/transformers');
+
+      expect((engine as any).failedGameLoads.size).toBe(0);
+    });
   });
 
   describe('topic parsing', () => {
@@ -836,6 +872,26 @@ describe('TransformerEngine', () => {
       // Simulate file change via watcher
       await (testEngine as any).reloadTransformer('/mock/transformers', 'games/pacman.js');
       expect((testEngine as any).gameHandlers.get('pacman')).toBe(handlerV2);
+    });
+
+    it('should clear failedGameLoads entry when game file is reloaded', async () => {
+      const mockHandler = vi.fn().mockReturnValue(true);
+      const mockImportModule = vi.fn().mockResolvedValue({ transform: mockHandler });
+
+      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
+        importModule: mockImportModule,
+      });
+
+      // Simulate a previously failed load
+      (testEngine as any).failedGameLoads.add('ssf2');
+      expect((testEngine as any).failedGameLoads.has('ssf2')).toBe(true);
+
+      // Simulate file change (user creates the missing file)
+      await (testEngine as any).reloadTransformer('/mock/transformers', 'games/ssf2.js');
+
+      // Failed entry should be cleared and handler loaded
+      expect((testEngine as any).failedGameLoads.has('ssf2')).toBe(false);
+      expect((testEngine as any).gameHandlers.has('ssf2')).toBe(true);
     });
 
     it('should replace subject handler when file changes', async () => {
