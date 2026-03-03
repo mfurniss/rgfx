@@ -49,11 +49,14 @@ MAME event handling utilities:
 JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, utils/, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game shared constants (driver IDs, named drivers, ambilight config)
-- `utils/` - Shared utility modules (index.js barrel, math.js with hslToRgb, async.js with tracked timers including trackedInterval, leading-edge debounce, and throttleLatest for cleanup on game exit, format.js, world-record.js)
+- `utils/` - Shared utility modules (index.js barrel with pick() for random array subset selection, math.js with hslToRgb and randomElement, async.js with tracked timers including trackedInterval, leading-edge debounce, throttleLatest, and exclusive() for cancelling overlapping async loops, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, starwars.js, etc.)
+  - defender.js uses EXPLOSION_DRIVERS (all matrices + front strip) for enemy kill and player death effects so explosions fire on both matrices and the front LED strip.
   - galaga88.js and smb.js use `throttleLatest()` (100ms) for score broadcasts — fires immediately during normal play, consolidates rapid bursts during bonus/end-of-level phases. `particleWarp()` in galaga88.js uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation.
+  - smb.js mario-fireball broadcasts dual projectiles on both strips — a bright orange core and a softer trailing glow — for a richer fireball effect.
+  - robotron.js uses exclusive() wrapper for human-programming flash effect to cancel overlapping async loops. Entity events (spawn/destroy) are handled under proper entity subject with qualifier routing rather than sfx subject.
   - pacman.js init handler returns false to allow cascade to subject init handler (world record display); ripple effects omit endX/endY when not needed (empty strings fail validation)
   - starwars.js particle_field density capped at 100 (max allowed by driver validation)
 - `eslint.config.js` - ESLint flat config for transformer JS files (defines globals: setTimeout, Promise)

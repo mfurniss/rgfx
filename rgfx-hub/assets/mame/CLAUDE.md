@@ -54,7 +54,7 @@ _G.event(topic, message)
 ```
 
 - Writes `topic message\n` to `~/.rgfx/interceptor-events.log`
-- File is opened with `setvbuf("no")` for immediate flushing
+- File is opened in append mode (`"a"`) with `setvbuf("no")` for immediate flushing. Append mode uses `O_APPEND` so writes always go to EOF, even if the hub trims the file mid-session.
 - Topics must be 1-4 segments of lowercase alphanumeric, hyphens, underscores (validated)
 - Auto-recovers if the log file is deleted (periodic existence check every 5 seconds)
 - Sanitizes newlines/tabs in messages to keep events on single lines

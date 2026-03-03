@@ -465,6 +465,53 @@ describe('EventFileReader invalid topic handling', () => {
     expect(errors[0]).toContain('/tmp/test/file.lua:17:');
   });
 
+  it('should strip null bytes and process surrounding valid events', async () => {
+    const events: [string, string][] = [];
+    const errors: string[] = [];
+
+    writeFileSync(testFilePath, '');
+    reader.start(
+      (topic, msg) => events.push([topic, msg]),
+      (errorMsg) => errors.push(errorMsg),
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Write valid events with a block of null bytes between them
+    const nullBlock = Buffer.alloc(1000, 0);
+    const before = Buffer.from('game/init pacman\n');
+    const after = Buffer.from('\ngame/start galaga\n');
+    const combined = Buffer.concat([before, nullBlock, after]);
+    writeFileSync(testFilePath, combined, { flag: 'a' });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(events).toHaveLength(2);
+    expect(events[0]).toEqual(['game/init', 'pacman']);
+    expect(events[1]).toEqual(['game/start', 'galaga']);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should truncate long invalid topics in error messages', async () => {
+    const events: [string, string][] = [];
+    const errors: string[] = [];
+
+    writeFileSync(testFilePath, '');
+    reader.start(
+      (topic, msg) => events.push([topic, msg]),
+      (errorMsg) => errors.push(errorMsg),
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Write a 200-character invalid topic (uppercase, so it fails validation)
+    const longTopic = 'INVALID_' + 'X'.repeat(192);
+    writeFileSync(testFilePath, `${longTopic} some message\n`, { flag: 'a' });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(events).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].length).toBeLessThan(150);
+    expect(errors[0]).toContain('...');
+  });
+
   it('should continue processing after invalid topic', async () => {
     const events: [string, string][] = [];
     const errors: string[] = [];

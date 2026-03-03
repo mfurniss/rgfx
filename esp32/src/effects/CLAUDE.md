@@ -47,7 +47,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Explode** | [explode.h](explode.h)/[explode.cpp](explode.cpp) | Radial explosion effect from a center point. |
 | **Particle Field** | [particle_field.h](particle_field.h)/[particle_field.cpp](particle_field.cpp) | Directional particle field with per-particle color, gradual density transitions, and incremental prop updates. |
 | **Sparkle** | [sparkle.h](sparkle.h)/[sparkle.cpp](sparkle.cpp) | Twinkling single-LED particles cycling through a gradient. Cloud-based spawning with FIFO particle buffer. |
-| **Plasma** | [plasma.h](plasma.h)/[plasma.cpp](plasma.cpp) | Animated plasma effect using Perlin noise with gradient colors. |
+| **Plasma** | [plasma.h](plasma.h)/[plasma.cpp](plasma.cpp) | Animated plasma effect using Perlin noise with gradient colors. Per-driver `phaseOffset` shifts each device into a different region of noise space. |
 | **Projectile** | [projectile.h](projectile.h)/[projectile.cpp](projectile.cpp) | Moving rectangular object with direction, velocity, friction, and optional trail. |
 | **Pulse** | [pulse.h](pulse.h)/[pulse.cpp](pulse.cpp) | Pulsing color overlay with easing functions. Supports fade, collapse modes, and duration. |
 | **Scroll Text** | [scroll_text.h](scroll_text.h)/[scroll_text.cpp](scroll_text.cpp) | Horizontally scrolling text with gradient color animation. Color is optional when gradient is provided. |

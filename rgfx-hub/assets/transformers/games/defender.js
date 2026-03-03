@@ -5,6 +5,8 @@ import {
   SECONDARY_MATRIX_DRIVERS,
 } from '../global.js';
 
+const EXPLOSION_DRIVERS = [...MATRIX_DRIVERS, NAMED_DRIVERS.frontStrip];
+
 let scoreHue = 0;
 
 export async function transform(
@@ -165,7 +167,7 @@ export async function transform(
     if (property === 'lander') {
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color: '#00FF00',
           centerX: 'random',
@@ -183,7 +185,7 @@ export async function transform(
     if (property === 'mutant') {
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color: '#FF00FF',
           centerX: 'random',
@@ -203,7 +205,7 @@ export async function transform(
     if (property === 'baiter') {
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color: '#80FF00',
           centerX: 'random',
@@ -232,7 +234,7 @@ export async function transform(
       };
 
       broadcast({
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         effect: 'pulse',
         props,
       });
@@ -243,7 +245,7 @@ export async function transform(
       props.collapse = 'vertical';
 
       broadcast({
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         effect: 'pulse',
         props,
       });
@@ -255,7 +257,7 @@ export async function transform(
 
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color: '#FFFFFF',
           centerX,
@@ -272,7 +274,7 @@ export async function transform(
 
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color: '#FF0000',
           centerX,
@@ -291,7 +293,7 @@ export async function transform(
     if (property === 'swarmer') {
       broadcast({
         effect: 'explode',
-        drivers: MATRIX_DRIVERS,
+        drivers: EXPLOSION_DRIVERS,
         props: {
           color: '#FF0000',
           centerX: 'random',

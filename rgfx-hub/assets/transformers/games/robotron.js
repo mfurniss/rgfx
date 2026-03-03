@@ -1,7 +1,44 @@
-import { randomInt, sleep, formatNumber } from '../utils/index.js';
-import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
+import {
+  randomInt,
+  randomElement,
+  sleep,
+  formatNumber,
+  pick,
+  exclusive,
+} from '../utils/index.js';
+import { ALL_DRIVERS, MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
-let livesRemaining;
+function randomDrivers(n = 2) {
+  return pick(ALL_DRIVERS, n);
+}
+
+const flashHumanProgramming = exclusive(
+  async (cancelled, broadcast, hslToHex) => {
+    let h = randomInt(359);
+    const colors = [
+      ...Array.from({ length: 15 }, () => {
+        const color = hslToHex(h, 100, 50);
+        h = (h + randomInt(80, 280)) % 360;
+        return color;
+      }),
+      '#000000',
+    ];
+    for (const color of colors) {
+      if (cancelled()) break;
+      broadcast({
+        effect: 'background',
+        props: {
+          gradient: {
+            colors: [color],
+            orientation: 'horizontal',
+          },
+          fadeDuration: 0,
+        },
+      });
+      await sleep(70);
+    }
+  },
+);
 
 export async function transform(
   { subject, property, qualifier, payload },
@@ -12,79 +49,18 @@ export async function transform(
     return false;
   }
 
-  if (subject === 'entity' && property === 'tank') {
-    if (qualifier === 'spawn') {
-      const props = {
-        speed: 5,
-        scale: 1.7,
-        gradient: [
-          '#000000',
-          '#FF0000',
-          '#000000',
-          '#000000',
-          '#A0A0A0',
-          '#000000',
-          '#000000',
-          '#FF0000',
-          '#000000',
-        ],
-      };
-      broadcast({ effect: 'plasma', props: { ...props, enabled: 'on' } });
-      broadcast({ effect: 'plasma', props: { ...props, enabled: 'fadeOut' } });
-    }
-    if (qualifier === 'destroy') {
-      const event = {
-        effect: 'explode',
+  if (subject === 'entity' && qualifier === 'spawn') {
+    if (property === 'enforcer') {
+      broadcast({
+        effect: 'sparkle',
         props: {
-          color: '#FF0000',
+          duration: 400,
+          density: 100,
+          gradient: ['#000000', '#00FFFF', '#000000'],
+          speed: 2,
+          bloom: 90,
           reset: false,
-          centerX: randomInt(100),
-          centerY: randomInt(100),
-          friction: 1,
-          // gravity: 0,
-          // hueSpread: 0,
-          lifespan: 700,
-          lifespanSpread: 50,
-          particleCount: 100,
-          particleSize: 6,
-          power: 150,
-          powerSpread: 80,
         },
-      };
-      broadcast(event);
-      event.props.color = '#FFFFFF';
-      event.props.particleCount = 50;
-      broadcast(event);
-    }
-  }
-
-  if (subject === 'sfx') {
-    if (property === 'game-start') {
-      const props = {
-        speed: 3.25,
-        scale: 7.83,
-        gradient: [
-          '#18617b',
-          '#090a05',
-          '#d96330',
-          '#6d396f',
-          '#211e25',
-          '#161313',
-          '#308aa1',
-          '#18617b',
-        ],
-      };
-
-      broadcast({
-        effect: 'plasma',
-        props: { ...props, enabled: 'on' },
-      });
-
-      await sleep(700);
-
-      broadcast({
-        effect: 'plasma',
-        props: { ...props, enabled: 'fadeOut' },
       });
     }
 
@@ -131,6 +107,227 @@ export async function transform(
           },
         });
       }
+    }
+  }
+
+  if (subject === 'entity' && qualifier === 'destroy') {
+    if (property === 'electrode') {
+      return broadcast({
+        effect: 'pulse',
+        drivers: randomDrivers(),
+        props: {
+          color: 'random',
+          reset: false,
+          duration: 700,
+          easing: 'quinticOut',
+          fade: true,
+          collapse: 'random',
+        },
+      });
+    }
+
+    if (property === 'enforcer') {
+      broadcast({
+        effect: 'explode',
+        drivers: ['*', '*'],
+        props: {
+          color: '#80D0FF',
+          centerX: 'random',
+          centerY: 'random',
+          friction: 6,
+          lifespan: 800,
+          lifespanSpread: 0,
+          particleCount: 150,
+          particleSize: 3,
+          power: 400,
+          powerSpread: 100,
+        },
+      });
+    }
+
+    if (property === 'brain') {
+      broadcast({
+        effect: 'explode',
+        drivers: ['*', '*'],
+        props: {
+          color: '#0000FF',
+          centerX: 'random',
+          centerY: 'random',
+          friction: 3,
+          hueSpread: 140,
+          lifespan: 800,
+          lifespanSpread: 80,
+          particleCount: 250,
+          particleSize: 4,
+          power: 200,
+          powerSpread: 90,
+        },
+      });
+    }
+
+    if (property === 'grunt') {
+      const drivers = randomDrivers();
+
+      for (const collapse of ['vertical', 'horizontal']) {
+        broadcast({
+          effect: 'pulse',
+          drivers,
+          props: {
+            color: '#B00000',
+            reset: false,
+            duration: 600,
+            easing: 'quinticOut',
+            fade: true,
+            collapse,
+          },
+        });
+
+        await sleep(100);
+      }
+    }
+
+    if (property === 'quark') {
+      const drivers = randomDrivers();
+
+      for (const collapse of ['horizontal', 'vertical', 'horizontal']) {
+        broadcast({
+          effect: 'pulse',
+          drivers,
+          props: {
+            color: randomElement(['#0000FF', '#C000C0', '#00C0C0']),
+            reset: false,
+            duration: 600,
+            easing: 'quinticOut',
+            fade: true,
+            collapse,
+          },
+        });
+
+        await sleep(70);
+      }
+    }
+
+    if (property === 'tank') {
+      const event = {
+        effect: 'explode',
+        drivers: randomDrivers(),
+        props: {
+          color: '#FF0000',
+          reset: false,
+          centerX: randomInt(100),
+          centerY: randomInt(100),
+          friction: 1,
+          lifespan: 700,
+          lifespanSpread: 50,
+          particleCount: 100,
+          particleSize: 6,
+          power: 150,
+          powerSpread: 80,
+        },
+      };
+      broadcast(event);
+      event.props.color = '#FFFFFF';
+      event.props.particleCount = 50;
+      broadcast(event);
+    }
+
+    if (property === 'spheroid') {
+      const centerX = randomInt(100);
+      const centerY = randomInt(100);
+      const drivers = randomDrivers();
+
+      broadcast({
+        effect: 'explode',
+        drivers,
+        props: {
+          color: '#B0B0B0',
+          reset: false,
+          centerX,
+          centerY,
+          friction: 3,
+          gravity: 0,
+          hueSpread: 0,
+          lifespan: 600,
+          lifespanSpread: 0,
+          particleCount: 70,
+          particleSize: 6,
+          power: 120,
+          powerSpread: 0,
+        },
+      });
+      await sleep(120);
+      broadcast({
+        effect: 'explode',
+        drivers,
+        props: {
+          color: '#FF0000',
+          reset: false,
+          centerX,
+          centerY,
+          friction: 3,
+          gravity: 0,
+          hueSpread: 0,
+          lifespan: 700,
+          lifespanSpread: 0,
+          particleCount: 70,
+          particleSize: 6,
+          power: 160,
+          powerSpread: 20,
+        },
+      });
+    }
+  }
+
+  if (subject === 'entity' && property === 'tank') {
+    if (qualifier === 'spawn') {
+      const props = {
+        speed: 5,
+        scale: 1.7,
+        gradient: [
+          '#000000',
+          '#FF0000',
+          '#000000',
+          '#000000',
+          '#A0A0A0',
+          '#000000',
+          '#000000',
+          '#FF0000',
+          '#000000',
+        ],
+      };
+      broadcast({ effect: 'plasma', props: { ...props, enabled: 'on' } });
+      broadcast({ effect: 'plasma', props: { ...props, enabled: 'fadeOut' } });
+    }
+  }
+
+  if (subject === 'sfx') {
+    if (property === 'game-start') {
+      const props = {
+        speed: 3.25,
+        scale: 7.83,
+        gradient: [
+          '#18617b',
+          '#090a05',
+          '#d96330',
+          '#6d396f',
+          '#211e25',
+          '#161313',
+          '#308aa1',
+          '#18617b',
+        ],
+      };
+
+      broadcast({
+        effect: 'plasma',
+        props: { ...props, enabled: 'on' },
+      });
+
+      await sleep(700);
+
+      broadcast({
+        effect: 'plasma',
+        props: { ...props, enabled: 'fadeOut' },
+      });
     }
 
     if (property === 'shoot-hulk') {
@@ -221,52 +418,10 @@ export async function transform(
           },
         });
       }
-      return true;
     }
 
-    // if (property === 'tank-appear') {
-    //   const props = {
-    //     speed: 5,
-    //     scale: 1.7,
-    //     gradient: [
-    //       '#000000',
-    //       '#FF0000',
-    //       '#000000',
-    //       '#000000',
-    //       '#A0A0A0',
-    //       '#000000',
-    //       '#000000',
-    //       '#FF0000',
-    //       '#000000',
-    //     ],
-    //   };
-    //   broadcast({ effect: 'plasma', props: { ...props, enabled: 'on' } });
-    //   broadcast({ effect: 'plasma', props: { ...props, enabled: 'fadeOut' } });
-    // }
-
     if (property === 'human-programming') {
-      let h = randomInt(359);
-      const colors = [
-        ...Array.from({ length: 15 }, () => {
-          const color = hslToHex(h, 100, 50);
-          h = (h + randomInt(80, 280)) % 360;
-          return color;
-        }),
-        '#000000',
-      ];
-      for (const color of colors) {
-        broadcast({
-          effect: 'background',
-          props: {
-            gradient: {
-              colors: [color],
-              orientation: 'horizontal',
-            },
-            fadeDuration: 0,
-          },
-        });
-        await sleep(70);
-      }
+      flashHumanProgramming(broadcast, hslToHex);
     }
 
     if (property === 'human-die') {
@@ -304,7 +459,6 @@ export async function transform(
           },
         });
       }
-      return true;
     }
 
     if (property === 'enforcer-spawn') {
@@ -319,8 +473,6 @@ export async function transform(
           reset: false,
         },
       });
-
-      return true;
     }
 
     if (property == 'extra-life') {
@@ -343,23 +495,6 @@ export async function transform(
           speed: 300,
           repeat: false,
           snapToLed: true,
-        },
-      });
-
-      return true;
-    }
-
-    if (property === 'destroy-electrode') {
-      return broadcast({
-        effect: 'pulse',
-        drivers: ['*', '*'],
-        props: {
-          color: 'random',
-          reset: false,
-          duration: 700,
-          easing: 'quinticOut',
-          fade: true,
-          collapse: 'random',
         },
       });
     }
@@ -385,53 +520,7 @@ export async function transform(
       });
     }
 
-    if (property === 'destroy-spheroid') {
-      const centerX = randomInt(100);
-      const centerY = randomInt(100);
-
-      broadcast({
-        effect: 'explode',
-        props: {
-          color: '#B0B0B0',
-          reset: false,
-          centerX,
-          centerY,
-          friction: 3,
-          gravity: 0,
-          hueSpread: 0,
-          lifespan: 600,
-          lifespanSpread: 0,
-          particleCount: 70,
-          particleSize: 6,
-          power: 120,
-          powerSpread: 0,
-        },
-      });
-      await sleep(120);
-      broadcast({
-        effect: 'explode',
-        props: {
-          color: '#FF0000',
-          reset: false,
-          centerX,
-          centerY,
-          friction: 3,
-          gravity: 0,
-          hueSpread: 0,
-          lifespan: 700,
-          lifespanSpread: 0,
-          particleCount: 70,
-          particleSize: 6,
-          power: 160,
-          powerSpread: 20,
-        },
-      });
-      return true;
-    }
-
-    console.log('sfx for', property, 'undefined');
-
-    return true;
+    // console.log('sfx for', property, 'undefined');
   }
   // Player fire - directional green wipe
   // if (subject === 'player' && property === 'fire') {
@@ -517,7 +606,7 @@ export async function transform(
     });
   }
 
-  if (subject === 'player' && property === 'score') {
+  if (subject === 'player' && property === 'score' && Number(payload) > 0) {
     broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
@@ -540,52 +629,35 @@ export async function transform(
         gradientScale: 0,
       },
     });
-    return true;
   }
 
-  if (subject === 'player' && property === 'lives') {
-    if (payload != livesRemaining) {
-      livesRemaining = payload;
-      broadcast({
-        effect: 'text',
-        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
-        props: {
-          align: 'center',
-          text: `L:${Number(livesRemaining) + 1}`,
-          duration: 6000,
-          reset: true,
-          gradient: [
-            '#FF0000',
-            '#FFFF00',
-            '#00FF00',
-            '#00FFFF',
-            '#0000FF',
-            '#FF00FF',
-            '#FF0000',
-          ],
-          gradientSpeed: 3,
-          gradientScale: 0,
-          accentColor: '#0000C0',
-        },
-      });
-    }
-    return true;
-  }
-
-  if (subject === 'enemy' && property === 'grunt' && qualifier === 'destroy') {
-    broadcast({
-      effect: 'pulse',
-      drivers: ['*', '*'],
-      props: {
-        color: '#B00000',
-        reset: false,
-        duration: 600,
-        easing: 'quinticOut',
-        fade: true,
-        collapse: 'random',
-      },
-    });
-  }
+  // if (subject === 'player' && property === 'lives') {
+  //   if (payload != livesRemaining) {
+  //     livesRemaining = payload;
+  //     broadcast({
+  //       effect: 'text',
+  //       drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+  //       props: {
+  //         align: 'center',
+  //         text: `L:${Number(livesRemaining) + 1}`,
+  //         duration: 6000,
+  //         reset: true,
+  //         gradient: [
+  //           '#FF0000',
+  //           '#FFFF00',
+  //           '#00FF00',
+  //           '#00FFFF',
+  //           '#0000FF',
+  //           '#FF00FF',
+  //           '#FF0000',
+  //         ],
+  //         gradientSpeed: 3,
+  //         gradientScale: 0,
+  //         accentColor: '#0000C0',
+  //       },
+  //     });
+  //   }
+  // }
 
   return true;
 }

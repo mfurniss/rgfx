@@ -156,32 +156,12 @@ inline void fill_solid(T* leds, int count, const CRGB& color) {
 struct WS2812B {};
 struct GRB {};
 
-// Random number generation (seeded for reproducible tests)
-static uint16_t mockRandomSeed = 12345;
+// random8(), random16() are defined in hal/types.h and route through hal::random().
+// random16_set_seed() seeds the HAL test platform's xorshift RNG.
+#include "hal/test/test_platform.h"
 
 inline void random16_set_seed(uint16_t seed) {
-	mockRandomSeed = seed;
-	srand(seed);
-}
-
-inline uint16_t random16() {
-	return static_cast<uint16_t>(rand());
-}
-
-inline uint8_t random8() {
-	return static_cast<uint8_t>(rand() & 0xFF);
-}
-
-inline uint8_t random8(uint8_t max) {
-	return random8() % max;
-}
-
-inline long random(long max) {
-	return rand() % max;
-}
-
-inline long random(long min, long max) {
-	return min + (rand() % (max - min));
+	hal::test::seedRandom(seed);
 }
 
 // Math constants

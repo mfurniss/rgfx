@@ -219,7 +219,7 @@ export class EventFileReader {
           closeSync(fd);
         }
 
-        const newData = buffer.toString('utf-8');
+        const newData = buffer.toString('utf-8').replace(/\0/g, '');
         this.filePosition = currentSize;
 
         const lines = newData.split('\n').filter((line) => line.trim().length > 0);
@@ -236,7 +236,8 @@ export class EventFileReader {
           const message = firstSpaceIndex > 0 ? line.substring(firstSpaceIndex + 1).trim() : '';
 
           if (!isValidTopic(topic)) {
-            const errorMsg = `Invalid topic in event log: "${topic}"`;
+            const displayTopic = topic.length > 80 ? topic.substring(0, 80) + '...' : topic;
+            const errorMsg = `Invalid topic in event log: "${displayTopic}"`;
             log.error(errorMsg);
 
             if (this.onErrorCallback) {

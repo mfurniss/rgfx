@@ -42,9 +42,9 @@ function getSourceHash() {
       .split('\n')
       .filter(Boolean);
 
-    // Exclude generated files (version.h) from hash to prevent circular dependency
+    // Only hash files that affect the compiled firmware binary
     const allFiles = [...new Set([...trackedFiles, ...untrackedFiles])]
-      .filter(f => !f.endsWith('version.h'))
+      .filter(f => /\.(cpp|c|h|hpp|ini|py)$/.test(f))
       .sort();
 
     for (const file of allFiles) {

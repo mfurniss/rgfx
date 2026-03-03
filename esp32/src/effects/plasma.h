@@ -19,6 +19,7 @@ class PlasmaEffect : public IEffect {
 		float time;   // Accumulated time in seconds
 		float scale;  // Pattern frequency (0.1 - 10.0)
 		float speed;  // Speed multiplier (1.0 = normal)
+		uint16_t phaseOffset;  // Per-driver offset into noise space
 		CRGB gradientLut[GRADIENT_LUT_SIZE];
 	};
 

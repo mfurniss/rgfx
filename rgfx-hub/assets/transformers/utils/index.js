@@ -1,17 +1,26 @@
-export { sleep, trackedTimeout, trackedInterval, debounce, throttleLatest, clearAllTimers } from './async.js';
+export {
+  sleep,
+  trackedTimeout,
+  trackedInterval,
+  debounce,
+  throttleLatest,
+  clearAllTimers,
+  exclusive,
+} from './async.js';
+
 export { scaleLinear, randomInt, randomElement, hslToRgb } from './math.js';
 export { getWorldRecord } from './world-record.js';
 
-/**
- * Format a number with locale-appropriate thousands separators.
- *
- * @param {number|string} value - Number to format
- * @returns {string} Formatted number (e.g., "12,340")
- *
- * @example
- * formatNumber(12340);   // returns "12,340"
- * formatNumber("99850"); // returns "99,850"
- */
 export function formatNumber(value) {
   return Number(value).toLocaleString();
+}
+
+export function pick(array, count) {
+  const n = Math.min(count, array.length);
+  const copy = array.slice();
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(Math.random() * (copy.length - i));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
 }
