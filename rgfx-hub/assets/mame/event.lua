@@ -20,9 +20,15 @@ end
 
 local event_file_path = get_event_file_path()
 
-local event_file = io.open(event_file_path, "w")
+-- Truncate stale data from previous session
+local init_file = io.open(event_file_path, "w")
+if init_file then init_file:close() end
+
+-- Reopen in append mode so writes always go to EOF
+-- even after the hub trims the file mid-session
+local event_file = io.open(event_file_path, "a")
 if event_file then
-	event_file:setvbuf("no") -- flush immediately
+	event_file:setvbuf("no")
 	print("Event file opened at: " .. event_file_path)
 else
 	print("Failed to open event file at: " .. event_file_path)

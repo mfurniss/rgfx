@@ -21,7 +21,7 @@ Main process modules at the root of `src/`. Subdirectories have their own CLAUDE
 
 ## Event & Transformer Pipeline
 
-- `event-file-reader.ts` — Watches MAME event log file; emits events as new entries appear. Handles file truncation (resets position), I/O errors (falls back to polling), and log trimming when file exceeds size threshold. Tests use generic paths (`/tmp/test/`) for test data.
+- `event-file-reader.ts` — Watches MAME event log file; emits events as new entries appear. Handles file truncation (resets position), I/O errors (falls back to polling), and log trimming when file exceeds size threshold. Strips null bytes from read buffers (guards against sparse file holes) and truncates long invalid topics in error messages to prevent console flooding. Tests use generic paths (`/tmp/test/`) for test data.
 - `transformer-engine.ts` — Transforms game events into LED effects using cascading handler precedence. Emits `system:error` events (with filePath and stack trace) when game transformers fail to load. File watcher hot-reloads `.js` transformers on save; also watches `bitmaps/*.json` and reloads all transformers when sprite files change.
 - `gif-loader.ts` — Loads animated GIFs and converts to bitmap effect format (palette + frame arrays)
 - `sprite-loader.ts` — Loads JSON sprite files extracted from ROM data by `sprite-extract.lua`; derives width/height/frameCount from the images array. Returns `GifBitmapResult` (palette is optional for sprites using default PICO-8 palette)
