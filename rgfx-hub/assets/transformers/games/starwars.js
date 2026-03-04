@@ -22,8 +22,13 @@ import {
   sleep,
   formatNumber,
   trackedTimeout,
+  pick,
 } from '../utils/index.js';
-import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
+import { NAMED_DRIVERS, ALL_DRIVERS } from '../global.js';
+
+function randomDrivers() {
+  return pick(ALL_DRIVERS, 3);
+}
 
 let laserIndex = 0;
 let gameState;
@@ -50,7 +55,7 @@ export async function transform(
         props: {
           gradient: ['#409040'],
           reset: true,
-          text: 'Remember, The Force will be with you',
+          text: 'Remember, The Force will be with you - always',
           speed: 300,
           repeat: false,
           snapToLed: true,
@@ -286,7 +291,12 @@ export async function transform(
   }
 
   // Player fires X-wing laser cannons
-  if (gameState !== 14 && subject === 'player' && property === 'fire') {
+  if (
+    gameState !== 14 &&
+    gameState !== 87 &&
+    subject === 'player' &&
+    property === 'fire'
+  ) {
     const direction = laserIndex++ & 1 ? 'left' : 'right';
 
     const drivers =
@@ -295,52 +305,48 @@ export async function transform(
         : [NAMED_DRIVERS.rightStrip];
 
     const commonProps = {
-      direction,
       velocity: 3000,
       friction: 0.5,
       width: 32,
       height: 4,
       lifespan: 1000,
+      direction: 'right',
     };
 
-    for (var i = 0; i < 2; i++) {
-      broadcast({
-        effect: 'projectile',
-        drivers,
-        props: {
-          ...commonProps,
-          color: i === 0 ? '#007070' : '#005050',
-          trail: 0.1,
-        },
-      });
+    broadcast({
+      effect: 'projectile',
+      drivers,
+      props: {
+        ...commonProps,
+        color: '#007070',
+        trail: 0.1,
+      },
+    });
 
-      await sleep(100);
+    await sleep(100);
 
-      broadcast({
-        effect: 'projectile',
-        drivers,
-        props: {
-          ...commonProps,
-          color: i === 0 ? '#000060' : '#000040',
-          trail: 0.2,
-        },
-      });
-
-      await sleep(100);
-    }
+    broadcast({
+      effect: 'projectile',
+      drivers,
+      props: {
+        ...commonProps,
+        color: '#000060',
+        trail: 0.2,
+      },
+    });
   }
 
   // TIE fighter destroyed
   if (subject === 'enemy' && property === 'destroy' && qualifier === 'tie') {
     const centerX = randomInt(0, 100);
     const centerY = randomInt(0, 100);
+    const drivers = randomDrivers();
 
     broadcast({
       effect: 'explode',
-      drivers: MATRIX_DRIVERS,
+      drivers,
       props: {
         color: 'green',
-        reset: false,
         centerX,
         centerY,
         friction: 1,
@@ -356,10 +362,9 @@ export async function transform(
 
     return broadcast({
       effect: 'explode',
-      drivers: MATRIX_DRIVERS,
+      drivers,
       props: {
         color: 'white',
-        reset: false,
         centerX,
         centerY,
         friction: 3,
@@ -382,10 +387,9 @@ export async function transform(
   ) {
     broadcast({
       effect: 'explode',
-      drivers: MATRIX_DRIVERS,
+      drivers: randomDrivers(),
       props: {
         color: '#600060',
-        reset: false,
         centerX: randomInt(0, 100),
         centerY: randomInt(0, 100),
         friction: 3,
@@ -407,10 +411,11 @@ export async function transform(
   ) {
     const centerX = randomInt(0, 100);
     const centerY = randomInt(0, 100);
+    const drivers = randomDrivers();
 
     broadcast({
       effect: 'explode',
-      drivers: MATRIX_DRIVERS,
+      drivers,
       props: {
         color: 'red',
         reset: false,
@@ -429,7 +434,7 @@ export async function transform(
 
     broadcast({
       effect: 'explode',
-      drivers: MATRIX_DRIVERS,
+      drivers,
       props: {
         color: '#FFFF00',
         reset: false,
@@ -455,8 +460,11 @@ export async function transform(
     property === 'destroy' &&
     qualifier === 'laser-tower'
   ) {
+    const drivers = randomDrivers();
+
     broadcast({
       effect: 'explode',
+      drivers,
       props: {
         color: 'white',
         reset: false,
@@ -473,8 +481,10 @@ export async function transform(
         powerSpread: 80,
       },
     });
+
     broadcast({
       effect: 'pulse',
+      drivers,
       props: {
         color: '#A0A000',
         reset: false,
@@ -499,11 +509,13 @@ export async function transform(
         collapse: 'random',
       },
     });
+
     await sleep(100);
+
     for (var i = 0; i < 8; i++) {
       broadcast({
         effect: 'explode',
-        drivers: ['*', '*'],
+        drivers: ['*', '*', '*'],
         props: {
           color: '#FF00FF',
           reset: false,
