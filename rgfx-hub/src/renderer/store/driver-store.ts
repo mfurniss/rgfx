@@ -29,6 +29,25 @@ function notifyStateChange(
   }
 }
 
+/**
+ * Upsert a driver into the list, handling MAC-based ID migration.
+ */
+function upsertDriver(drivers: Driver[], driver: Driver): Driver[] {
+  const existsById = drivers.find((d) => d.id === driver.id);
+  const existsByMac = driver.mac
+    ? drivers.find((d) => d.mac === driver.mac && d.id !== driver.id)
+    : undefined;
+
+  if (existsByMac) {
+    // Driver ID changed (MAC → custom ID migration)
+    return [...drivers.filter((d) => d.mac !== driver.mac), driver];
+  } else if (existsById) {
+    return drivers.map((d) => (d.id === driver.id ? driver : d));
+  } else {
+    return [...drivers, driver];
+  }
+}
+
 interface DriverStoreState {
   // State
   drivers: Driver[];
@@ -62,37 +81,9 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
       // Notify state change
       notifyStateChange(driver.id, existingDriver?.state, driver.state);
 
-      set((state) => {
-        const existsById = state.drivers.find((d) => d.id === driver.id);
-
-        // Check if driver exists by MAC (handles ID migration)
-        const existsByMac = driver.mac
-          ? state.drivers.find(
-            (d) => d.mac === driver.mac && d.id !== driver.id,
-          )
-          : undefined;
-
-        if (existsByMac) {
-          // Driver ID changed (MAC → custom ID migration)
-          // Remove old entry and add new one
-          return {
-            drivers: [
-              ...state.drivers.filter((d) => d.mac !== driver.mac),
-              driver,
-            ],
-          };
-        } else if (existsById) {
-          // Update existing driver
-          return {
-            drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
-          };
-        } else {
-          // New driver
-          return {
-            drivers: [...state.drivers, driver],
-          };
-        }
-      });
+      set((state) => ({
+        drivers: upsertDriver(state.drivers, driver),
+      }));
     },
 
     onDriverDisconnected: (driver) => {
@@ -128,36 +119,9 @@ export const useDriverStore = create<DriverStoreState>()((set, get) => {
         });
       }
 
-      set((state) => {
-        const existsById = state.drivers.find((d) => d.id === driver.id);
-
-        // Check if driver exists by MAC (handles ID migration during update)
-        const existsByMac = driver.mac
-          ? state.drivers.find(
-            (d) => d.mac === driver.mac && d.id !== driver.id,
-          )
-          : undefined;
-
-        if (existsByMac) {
-          // Driver ID changed - remove old entry and add new one
-          return {
-            drivers: [
-              ...state.drivers.filter((d) => d.mac !== driver.mac),
-              driver,
-            ],
-          };
-        } else if (existsById) {
-          // Normal update by ID
-          return {
-            drivers: state.drivers.map((d) => (d.id === driver.id ? driver : d)),
-          };
-        } else {
-          // New driver - add it
-          return {
-            drivers: [...state.drivers, driver],
-          };
-        }
-      });
+      set((state) => ({
+        drivers: upsertDriver(state.drivers, driver),
+      }));
     },
 
     onDriverRestarting: (driver) => {

@@ -1,5 +1,5 @@
 import type { Driver } from '@/types';
-import type { DriverFlashStatus } from '../store/ui-store';
+import type { DriverFlashStatus } from '../store/firmware-flash-store';
 
 export interface OtaFlashCallbacks {
   onLog: (message: string) => void;

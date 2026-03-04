@@ -11,14 +11,10 @@ interface DriverStatusDeps {
   driverRegistry: DriverRegistry;
   getMainWindow: () => Electron.BrowserWindow | null;
   systemMonitor: SystemMonitor;
-  getEventsProcessed: () => number;
-  getEventLogSizeBytes: () => number;
 }
 
 export function subscribeDriverStatus(deps: DriverStatusDeps): void {
-  const {
-    mqtt, driverRegistry, getMainWindow, systemMonitor, getEventsProcessed, getEventLogSizeBytes,
-  } = deps;
+  const { mqtt, driverRegistry, getMainWindow, systemMonitor } = deps;
 
   mqtt.subscribe('rgfx/driver/+/status', (topic, payload) => {
     log.info(`Driver status change: ${topic} = ${payload}`);
@@ -51,14 +47,7 @@ export function subscribeDriverStatus(deps: DriverStatusDeps): void {
       driver.state = 'disconnected';
 
       sendToRenderer(getMainWindow, IPC.DRIVER_DISCONNECTED, driver);
-
-      const status = systemMonitor.getSystemStatus(
-        driverRegistry.getConnectedCount(),
-        driverRegistry.getAllDrivers().length,
-        getEventsProcessed(),
-        getEventLogSizeBytes(),
-      );
-      sendToRenderer(getMainWindow, IPC.SYSTEM_STATUS, status);
+      sendToRenderer(getMainWindow, IPC.SYSTEM_STATUS, systemMonitor.getFullStatus());
     } else if (payload === 'online') {
       log.info(`Driver ${driver.id} LWT status: online (waiting for connect message)`);
     }

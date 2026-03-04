@@ -151,8 +151,8 @@ describe('TestEffectsPage', () => {
     cleanup();
   });
 
-  describe('driver auto-selection', () => {
-    it('should auto-select drivers that reconnect', () => {
+  describe('driver selection', () => {
+    it('should not auto-modify selection when drivers reconnect', () => {
       // Start with two connected drivers
       mockDrivers = [
         {
@@ -171,7 +171,7 @@ describe('TestEffectsPage', () => {
 
       const { rerender } = renderPage();
 
-      // driver-2 goes offline
+      // driver-2 goes offline then comes back
       mockDrivers = [
         {
           id: 'driver-1',
@@ -192,7 +192,6 @@ describe('TestEffectsPage', () => {
         </MemoryRouter>,
       );
 
-      // driver-2 comes back online
       mockDrivers = [
         {
           id: 'driver-1',
@@ -214,14 +213,8 @@ describe('TestEffectsPage', () => {
         </MemoryRouter>,
       );
 
-      // Store should have been called with both drivers selected
-      const lastCall =
-        mockSetTestEffectsState.mock.calls[
-          mockSetTestEffectsState.mock.calls.length - 1
-        ];
-      const selectedDrivers = lastCall[2] as Set<string>;
-      expect(selectedDrivers.has('driver-1')).toBe(true);
-      expect(selectedDrivers.has('driver-2')).toBe(true);
+      // Selection is user-managed — no auto-sync calls
+      expect(mockSetTestEffectsState).not.toHaveBeenCalled();
     });
   });
 

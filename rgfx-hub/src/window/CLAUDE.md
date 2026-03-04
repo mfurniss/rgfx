@@ -15,7 +15,7 @@ Manages the main application window lifecycle:
 - Manages devtools in development mode
 - Sets up preload script for IPC bridge
 - Handles window bounds persistence
-- Provides `sendSystemStatus()` (synchronous) for broadcasting system status to renderer
+- Provides `sendSystemStatus()` for broadcasting system status to renderer; uses `systemMonitor.getFullStatus()` for status assembly
 - Note: electron-trpc `createIPCHandler` was removed — all IPC is handled by the contract-based system in `src/ipc/`
 
 ### index.ts

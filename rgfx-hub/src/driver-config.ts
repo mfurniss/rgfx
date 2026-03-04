@@ -11,6 +11,7 @@ import {
   type DriversConfigFile,
 } from './schemas';
 import { ConfigError, formatZodError } from './errors/config-error';
+import { getErrorMessage } from './utils/driver-utils';
 
 /**
  * Re-export the Zod-inferred type as ConfiguredDriver for external use
@@ -68,11 +69,10 @@ export class DriverConfig {
     try {
       parsed = JSON.parse(data);
     } catch (error) {
-      const details = error instanceof Error ? error.message : String(error);
       throw new ConfigError(
         'Failed to parse driver configuration file',
         this.configFile,
-        details,
+        getErrorMessage(error),
       );
     }
 
@@ -119,8 +119,7 @@ export class DriverConfig {
       fs.writeFileSync(this.configFile, json, 'utf8');
       log.info(`Saved ${this.drivers.size} drivers to ${this.configFile}`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log.error(`Failed to save drivers config: ${errorMessage}`);
+      log.error(`Failed to save drivers config: ${getErrorMessage(error)}`);
       throw error;
     }
   }

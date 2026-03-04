@@ -429,7 +429,7 @@ describe('TransformerEngine', () => {
       const handleFn = vi.fn();
       const module = { transform: handleFn };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBe(handleFn);
     });
@@ -438,7 +438,7 @@ describe('TransformerEngine', () => {
       const handleFn = vi.fn();
       const module = { default: { transform: handleFn } };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBe(handleFn);
     });
@@ -447,7 +447,7 @@ describe('TransformerEngine', () => {
       const defaultFn = vi.fn();
       const module = { default: defaultFn };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBe(defaultFn);
     });
@@ -455,7 +455,7 @@ describe('TransformerEngine', () => {
     it('should return null if no handler found', () => {
       const module = { someOtherExport: 'value' };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBeNull();
     });
@@ -465,7 +465,7 @@ describe('TransformerEngine', () => {
       const defaultHandle = vi.fn();
       const module = { transform: namedHandle, default: { transform: defaultHandle } };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBe(namedHandle);
     });
@@ -473,7 +473,7 @@ describe('TransformerEngine', () => {
     it('should return null for empty module', () => {
       const module = {};
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBeNull();
     });
@@ -481,7 +481,7 @@ describe('TransformerEngine', () => {
     it('should return null if transform is not a function', () => {
       const module = { transform: 'not a function' };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBeNull();
     });
@@ -489,7 +489,7 @@ describe('TransformerEngine', () => {
     it('should return null if default.transform is not a function', () => {
       const module = { default: { transform: 42 } };
 
-      const handler = (engine as any).extractTransformer(module);
+      const handler = (engine as any).loader.extractHandler(module);
 
       expect(handler).toBeNull();
     });
@@ -912,8 +912,8 @@ describe('TransformerEngine', () => {
         importModule: mockImportModule,
       });
 
-      // Initial load via loadSubjectTransformers
-      await (testEngine as any).loadSubjectTransformers('/mock/transformers/subjects');
+      // Initial load via loader
+      (testEngine as any).subjectHandlers = await (testEngine as any).loader.loadHandlersFromDir('/mock/transformers/subjects');
       expect((testEngine as any).subjectHandlers.get('player')).toBe(handlerV1);
 
       // Simulate file change via watcher
@@ -963,8 +963,9 @@ describe('TransformerEngine', () => {
         importModule: mockImportModule,
       });
 
-      // Initial load
-      await (testEngine as any).loadPropertyTransformers('/mock/transformers/properties');
+      // Initial load via loader
+      const propMap = await (testEngine as any).loader.loadHandlersFromDir('/mock/transformers/properties');
+      (testEngine as any).propertyHandlers = [...propMap.values()];
       expect((testEngine as any).propertyHandlers).toHaveLength(1);
       expect((testEngine as any).propertyHandlers[0]).toBe(handlerV1);
 
@@ -1039,8 +1040,8 @@ describe('TransformerEngine', () => {
         importModule: mockImportModule,
       });
 
-      // Initial load
-      await (testEngine as any).loadSubjectTransformers('/mock/transformers/subjects');
+      // Initial load via loader
+      (testEngine as any).subjectHandlers = await (testEngine as any).loader.loadHandlersFromDir('/mock/transformers/subjects');
       await (testEngine as any).loadDefaultTransformer('/mock/transformers/default.js');
       expect((testEngine as any).subjectHandlers.get('init')).toBe(handlerV1);
       expect((testEngine as any).defaultHandler).toBe(handlerV1);
@@ -1135,7 +1136,7 @@ describe('TransformerEngine', () => {
     });
 
 
-    it('should load subject transformers from directory', async () => {
+    it('should load handlers from directory', async () => {
       const subjectHandler = vi.fn().mockReturnValue(true);
       const mockImportModule = vi.fn().mockResolvedValue({
         transform: subjectHandler,
@@ -1146,111 +1147,49 @@ describe('TransformerEngine', () => {
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadSubjectTransformers('/mock/subjects');
+      const handlers = await (testEngine as any).loader.loadHandlersFromDir('/mock/subjects');
 
       expect(mockImportModule).toHaveBeenCalledWith(join('/mock/subjects', 'player.js'));
       expect(mockImportModule).toHaveBeenCalledWith(join('/mock/subjects', 'enemy.js'));
-      expect((testEngine as any).subjectHandlers.has('player')).toBe(true);
-      expect((testEngine as any).subjectHandlers.has('enemy')).toBe(true);
+      expect(handlers.has('player')).toBe(true);
+      expect(handlers.has('enemy')).toBe(true);
     });
 
-    it('should filter non-.js files in subject loading', async () => {
+    it('should filter non-.js files in directory loading', async () => {
       const mockImportModule = vi.fn().mockResolvedValue({ transform: vi.fn() });
       vi.mocked(fs.readdir).mockResolvedValue(['player.js', 'readme.md', '.gitkeep'] as any);
 
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadSubjectTransformers('/mock/subjects');
+      await (testEngine as any).loader.loadHandlersFromDir('/mock/subjects');
 
       expect(mockImportModule).toHaveBeenCalledTimes(1);
       expect(mockImportModule).toHaveBeenCalledWith(join('/mock/subjects', 'player.js'));
     });
 
-    it('should swallow ENOENT when subject directory missing', async () => {
+    it('should swallow ENOENT when directory missing', async () => {
       const enoentError: any = new Error('No such directory');
       enoentError.code = 'ENOENT';
       vi.mocked(fs.readdir).mockRejectedValue(enoentError);
 
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
       await expect(
-        (testEngine as any).loadSubjectTransformers('/mock/subjects'),
+        (testEngine as any).loader.loadHandlersFromDir('/mock/subjects'),
       ).resolves.not.toThrow();
     });
 
-    it('should re-throw non-ENOENT errors from subject loading', async () => {
-      const permError = new Error('Permission denied');
-      vi.mocked(fs.readdir).mockRejectedValue(permError);
-
-      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
-      await expect((testEngine as any).loadSubjectTransformers('/mock/subjects')).rejects.toThrow(
-        'Permission denied',
-      );
-    });
-
-    it('should continue loading when individual subject transformer fails', async () => {
-      let callCount = 0;
-      const mockImportModule = vi.fn().mockImplementation(() => {
-        callCount++;
-
-        if (callCount === 1) {
-          return Promise.reject(new Error('Syntax error'));
-        }
-
-        return Promise.resolve({ transform: vi.fn() });
-      });
-      vi.mocked(fs.readdir).mockResolvedValue(['broken.js', 'good.js'] as any);
-
-      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
-        importModule: mockImportModule,
-      });
-      await (testEngine as any).loadSubjectTransformers('/mock/subjects');
-
-      expect(mockContext.log.error).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to load subject transformer broken.js'),
-        expect.any(Error),
-      );
-      expect((testEngine as any).subjectHandlers.has('good')).toBe(true);
-    });
-
-    it('should load property transformers from directory', async () => {
-      const propHandler = vi.fn().mockReturnValue(true);
-      const mockImportModule = vi.fn().mockResolvedValue({
-        transform: propHandler,
-      });
-      vi.mocked(fs.readdir).mockResolvedValue(['score.js'] as any);
-
-      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
-        importModule: mockImportModule,
-      });
-      await (testEngine as any).loadPropertyTransformers('/mock/properties');
-
-      expect(mockImportModule).toHaveBeenCalledWith(join('/mock/properties', 'score.js'));
-      expect((testEngine as any).propertyHandlers).toHaveLength(1);
-    });
-
-    it('should swallow ENOENT when property directory missing', async () => {
-      const enoentError: any = new Error('No such directory');
-      enoentError.code = 'ENOENT';
-      vi.mocked(fs.readdir).mockRejectedValue(enoentError);
-
-      const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
-      await expect(
-        (testEngine as any).loadPropertyTransformers('/mock/properties'),
-      ).resolves.not.toThrow();
-    });
-
-    it('should re-throw non-ENOENT errors from property loading', async () => {
+    it('should re-throw non-ENOENT errors from directory loading', async () => {
       const permError = new Error('Permission denied');
       vi.mocked(fs.readdir).mockRejectedValue(permError);
 
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext);
       await expect(
-        (testEngine as any).loadPropertyTransformers('/mock/properties'),
+        (testEngine as any).loader.loadHandlersFromDir('/mock/subjects'),
       ).rejects.toThrow('Permission denied');
     });
 
-    it('should continue loading when individual property transformer fails', async () => {
+    it('should continue loading when individual transformer fails', async () => {
       let callCount = 0;
       const mockImportModule = vi.fn().mockImplementation(() => {
         callCount++;
@@ -1266,13 +1205,13 @@ describe('TransformerEngine', () => {
       const testEngine = new (await import('../transformer-engine.js')).TransformerEngine(mockContext, {
         importModule: mockImportModule,
       });
-      await (testEngine as any).loadPropertyTransformers('/mock/properties');
+      const handlers = await (testEngine as any).loader.loadHandlersFromDir('/mock/subjects');
 
       expect(mockContext.log.error).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to load property transformer broken.js'),
+        expect.stringContaining('Failed to load transformer broken.js'),
         expect.any(Error),
       );
-      expect((testEngine as any).propertyHandlers).toHaveLength(1);
+      expect(handlers.has('good')).toBe(true);
     });
 
     it('should load default transformer', async () => {

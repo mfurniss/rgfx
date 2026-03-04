@@ -26,9 +26,10 @@ import {
 import { PageTitle } from '../components/layout/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { useSystemStatusStore } from '../store/system-status-store';
-import { useUiStore, type FlashMethod, type DriverFlashStatus } from '../store/ui-store';
+import { useFirmwareFlashStore, type FlashMethod, type DriverFlashStatus } from '../store/firmware-flash-store';
 import { useFlashState } from '../hooks/use-flash-state';
 import { useOtaFlashEvents } from '../hooks/use-ota-flash-events';
+import { useDriverSelection } from '../hooks/use-driver-selection';
 import { flashViaUSB } from '../services/usb-flash-service';
 import {
   flashViaOTA,
@@ -54,31 +55,31 @@ const FirmwarePage: React.FC = () => {
     : '';
 
   // Store state
-  const flashMethod = useUiStore((state) => state.firmwareFlashMethod);
-  const storedDriverFlashStatus = useUiStore(
+  const flashMethod = useFirmwareFlashStore((state) => state.firmwareFlashMethod);
+  const storedDriverFlashStatus = useFirmwareFlashStore(
     (state) => state.firmwareDriverFlashStatus,
   );
-  const setFirmwareFlashMethod = useUiStore(
+  const setFirmwareFlashMethod = useFirmwareFlashStore(
     (state) => state.setFirmwareFlashMethod,
   );
-  const setFirmwareState = useUiStore((state) => state.setFirmwareState);
-  const setFirmwareDriverFlashStatus = useUiStore(
+  const setFirmwareState = useFirmwareFlashStore((state) => state.setFirmwareState);
+  const setFirmwareDriverFlashStatus = useFirmwareFlashStore(
     (state) => state.setFirmwareDriverFlashStatus,
   );
-  const isFlashing = useUiStore((state) => state.isFlashingFirmware);
-  const setIsFlashing = useUiStore((state) => state.setIsFlashingFirmware);
+  const isFlashing = useFirmwareFlashStore((state) => state.isFlashingFirmware);
+  const setIsFlashing = useFirmwareFlashStore((state) => state.setIsFlashingFirmware);
 
   // Flash state from hook
   const flashState = useFlashState(new Map(Object.entries(storedDriverFlashStatus)));
 
+  // Driver selection (derived selectAll fixes stale sync bug)
+  const { selectedDrivers, selectAll, handleDriverToggle, handleSelectAll } = useDriverSelection({
+    connectedDrivers,
+    initialSelectedIds: driversNeedingUpdate.map((d) => d.id),
+  });
+
   // Local UI state
   const [getPort, setGetPort] = useState<(() => Promise<SerialPort>) | null>(null);
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    () => new Set(driversNeedingUpdate.map((d) => d.id)),
-  );
-  const [selectAll, setSelectAll] = useState(
-    () => driversNeedingUpdate.length === connectedDrivers.length && connectedDrivers.length > 0,
-  );
   const [confirmModal, setConfirmModal] = useState(false);
 
   // Subscribe to OTA flash events
@@ -195,28 +196,6 @@ const FirmwarePage: React.FC = () => {
       void handleFlashViaUSB();
     } else {
       void handleFlashViaOTA();
-    }
-  };
-
-  const handleDriverToggle = (driverId: string) => {
-    const newSelected = new Set(selectedDrivers);
-
-    if (newSelected.has(driverId)) {
-      newSelected.delete(driverId);
-    } else {
-      newSelected.add(driverId);
-    }
-    setSelectedDrivers(newSelected);
-    setSelectAll(newSelected.size === connectedDrivers.length && connectedDrivers.length > 0);
-  };
-
-  const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectedDrivers(new Set());
-      setSelectAll(false);
-    } else {
-      setSelectedDrivers(new Set(connectedDrivers.map((d) => d.id)));
-      setSelectAll(true);
     }
   };
 

@@ -18,8 +18,6 @@ interface MqttSubscriptionsDeps {
   systemMonitor: SystemMonitor;
   driverLogPersistence: DriverLogPersistence;
   getMainWindow: () => BrowserWindow | null;
-  getEventsProcessed: () => number;
-  getEventLogSizeBytes: () => number;
 }
 
 export function registerMqttSubscriptions(deps: MqttSubscriptionsDeps): void {

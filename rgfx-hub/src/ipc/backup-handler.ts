@@ -4,6 +4,7 @@ import log from 'electron-log/main';
 import { format } from 'date-fns';
 import { CONFIG_DIRECTORY } from '../config/paths';
 import { INVOKE_CHANNELS } from './contract';
+import { getErrorMessage } from '../utils/driver-utils';
 
 export function registerBackupHandler(): void {
   ipcMain.handle(
@@ -26,7 +27,7 @@ export function registerBackupHandler(): void {
         log.info(`Backup saved to ${result.filePath}`);
         return { success: true };
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = getErrorMessage(error);
         log.error(`Backup failed: ${message}`, error);
         return { success: false, error: message };
       }

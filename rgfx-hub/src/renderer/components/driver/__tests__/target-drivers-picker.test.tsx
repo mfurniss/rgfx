@@ -2,18 +2,17 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TargetDriversPicker } from '../target-drivers-picker';
+import { createMockDriver } from '@/__tests__/factories';
 
-interface Driver {
-  id: string;
-  ip?: string;
-  state: 'connected' | 'disconnected' | 'updating';
-}
-
-const createMockDrivers = (): Driver[] => [
-  { id: 'driver-1', ip: '192.168.1.10', state: 'connected' },
-  { id: 'driver-2', ip: '192.168.1.11', state: 'connected' },
-  { id: 'driver-3', state: 'disconnected' }, // No IP for disconnected driver
-];
+const createMockDrivers = () => {
+  const disconnected = createMockDriver({ id: 'driver-3', state: 'disconnected' });
+  disconnected.ip = undefined;
+  return [
+    createMockDriver({ id: 'driver-1', ip: '192.168.1.10', state: 'connected' }),
+    createMockDriver({ id: 'driver-2', ip: '192.168.1.11', state: 'connected' }),
+    disconnected,
+  ];
+};
 
 describe('TargetDriversPicker', () => {
   afterEach(() => {

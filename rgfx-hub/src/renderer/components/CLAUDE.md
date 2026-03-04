@@ -228,6 +228,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Red warning icon when `telemetry.ledHealthy === false` (RMT output failure)
 - Uses `mapChipNameToVariant()` to match driver's chip model to correct target version
 - Clicking firmware warning navigates to firmware page; clicking config warning navigates to driver config
+- Extracted `ChipWithWarning` helper component for reuse
 
 ---
 
@@ -235,7 +236,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **File:** [target-drivers-picker.tsx](target-drivers-picker.tsx)
 
-**Purpose:** Dropdown popover for selecting which drivers to target for firmware flashing or effects.
+**Purpose:** Dropdown popover for selecting which drivers to target for firmware flashing or effects. Imports `Driver` type from `@/types` (no local interface).
 
 **Props:**
 - `drivers: Driver[]` - Available drivers
@@ -403,7 +404,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Features:**
 - Shown when any connected driver has different firmware version than its chip type's target
 - Uses chip-aware version comparison via `mapChipNameToVariant()` to match each driver's chip model to the correct target version
-- Hidden automatically during OTA flashing operations
+- Hidden automatically during OTA flashing operations (reads state from `firmware-flash-store`)
 - Navigates to firmware page when clicked
 
 ---

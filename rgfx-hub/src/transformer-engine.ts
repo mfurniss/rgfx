@@ -7,13 +7,13 @@
  * The first matching handler wins and stops the cascade.
  */
 
-import { promises as fs, watch } from 'node:fs';
-import { join, basename, dirname, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { createHash } from 'node:crypto';
+import { watch } from 'node:fs';
+import { join, basename } from 'node:path';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
 import { getTransformersDir } from './transformer-installer';
 import { eventBus } from './services/event-bus';
+import { getErrorMessage } from './utils/driver-utils';
+import { createTransformerModuleLoader, type TransformerModuleLoader } from './transformer-module-loader';
 
 /**
  * Options for TransformerEngine constructor
@@ -43,78 +43,14 @@ export class TransformerEngine {
   private defaultHandler?: TransformerHandler;
   private watcher?: ReturnType<typeof watch>;
   private clearAllTimersFn?: () => void;
-  private importModule: (path: string) => Promise<Record<string, unknown>>;
+  private loader: TransformerModuleLoader;
+
   constructor(
     private context: TransformerContext,
     options?: TransformerEngineOptions,
   ) {
     this.clearAllTimersFn = options?.clearAllTimers;
-
-    if (options?.importModule) {
-      this.importModule = options.importModule;
-    } else {
-      // Content-hash URL prevents V8 module cache leak. Relative imports
-      // are rewritten with dependency content hashes so shared modules
-      // (global.js, utils/) are always loaded fresh after changes.
-      this.importModule = async (filePath: string) => {
-        const content = await fs.readFile(filePath, 'utf-8');
-        const rewritten = await this.rewriteRelativeImports(filePath, content);
-        const hash = createHash('sha1').update(rewritten).digest('hex').slice(0, 12);
-
-        if (rewritten === content) {
-          // No relative imports — use direct URL with cache-bust
-          const url = pathToFileURL(filePath).href;
-          return (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
-        }
-
-        // Temp file in same directory preserves relative path resolution.
-        // The .mjs extension is ignored by the file watcher (.js filter).
-        const tempPath = join(dirname(filePath), `.rgfx-${hash}.mjs`);
-        await fs.writeFile(tempPath, rewritten);
-
-        try {
-          const url = pathToFileURL(tempPath).href;
-
-          return (await import(url)) as Record<string, unknown>;
-        } finally {
-          await fs.unlink(tempPath).catch(() => undefined);
-        }
-      };
-    }
-  }
-
-  /**
-   * Rewrite relative import specifiers with content-hash cache-busting.
-   * Ensures dependencies are always loaded fresh from disk on hot reload.
-   */
-  private async rewriteRelativeImports(filePath: string, content: string): Promise<string> {
-    const dir = dirname(filePath);
-    const importRegex = /from\s+['"](\.[^'"]+)['"]/g;
-    let result = content;
-    const seen = new Set<string>();
-
-    for (const match of content.matchAll(importRegex)) {
-      const specifier = match[1];
-
-      if (seen.has(specifier)) {
-        continue;
-      }
-
-      seen.add(specifier);
-
-      const depPath = resolve(dir, specifier);
-
-      try {
-        const depContent = await fs.readFile(depPath, 'utf-8');
-        const depHash = createHash('sha1').update(depContent).digest('hex').slice(0, 12);
-        result = result.replaceAll(`'${specifier}'`, `'${specifier}?v=${depHash}'`);
-        result = result.replaceAll(`"${specifier}"`, `"${specifier}?v=${depHash}"`);
-      } catch {
-        // Dependency doesn't exist — skip rewriting
-      }
-    }
-
-    return result;
+    this.loader = createTransformerModuleLoader(options?.importModule, context.log);
   }
 
   /**
@@ -125,11 +61,15 @@ export class TransformerEngine {
     const transformersDir = getTransformersDir();
 
     try {
-      // Load subject transformers
-      await this.loadSubjectTransformers(join(transformersDir, 'subjects'));
+      // Load subject and property transformers via shared loader
+      this.subjectHandlers = await this.loader.loadHandlersFromDir(
+        join(transformersDir, 'subjects'),
+      );
 
-      // Load property transformers
-      await this.loadPropertyTransformers(join(transformersDir, 'properties'));
+      const propertyMap = await this.loader.loadHandlersFromDir(
+        join(transformersDir, 'properties'),
+      );
+      this.propertyHandlers = [...propertyMap.values()];
 
       // Load default transformer
       await this.loadDefaultTransformer(join(transformersDir, 'default.js'));
@@ -201,8 +141,8 @@ export class TransformerEngine {
         // subjects/ subdirectory
         const subjectName = basename(filename, '.js');
         this.subjectHandlers.delete(subjectName);
-        const module = await this.importModule(filePath);
-        const handler = this.extractTransformer(module);
+        const module = await this.loader.importModule(filePath);
+        const handler = this.loader.extractHandler(module);
 
         if (handler) {
           this.subjectHandlers.set(subjectName, handler);
@@ -210,8 +150,10 @@ export class TransformerEngine {
         }
       } else if (filename.startsWith('properties/') || filename.startsWith('properties\\')) {
         // properties/ subdirectory
-        this.propertyHandlers = [];
-        await this.loadPropertyTransformers(join(transformersDir, 'properties'));
+        const propertyMap = await this.loader.loadHandlersFromDir(
+          join(transformersDir, 'properties'),
+        );
+        this.propertyHandlers = [...propertyMap.values()];
         this.context.log.info('Reloaded property transformers');
       } else if (filename === 'default.js') {
         // default.js in root
@@ -240,11 +182,14 @@ export class TransformerEngine {
       await this.loadGameTransformer(gameName);
     }
 
-    this.subjectHandlers.clear();
-    await this.loadSubjectTransformers(join(transformersDir, 'subjects'));
+    this.subjectHandlers = await this.loader.loadHandlersFromDir(
+      join(transformersDir, 'subjects'),
+    );
 
-    this.propertyHandlers = [];
-    await this.loadPropertyTransformers(join(transformersDir, 'properties'));
+    const propertyMap = await this.loader.loadHandlersFromDir(
+      join(transformersDir, 'properties'),
+    );
+    this.propertyHandlers = [...propertyMap.values()];
 
     this.defaultHandler = undefined;
     await this.loadDefaultTransformer(join(transformersDir, 'default.js'));
@@ -428,14 +373,12 @@ export class TransformerEngine {
         this.context.log.warn(`No handler found for event: ${topic}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : undefined;
       this.context.log.error(`Error handling event ${topic}:`, error);
       eventBus.emit('system:error', {
         errorType: 'transformer',
-        message: `Transformer error for ${topic}: ${errorMessage}`,
+        message: `Transformer error for ${topic}: ${getErrorMessage(error)}`,
         timestamp: Date.now(),
-        details: errorStack,
+        details: error instanceof Error ? error.stack : undefined,
       });
     }
   }
@@ -452,8 +395,8 @@ export class TransformerEngine {
       const transformersDir = getTransformersDir();
       const filePath = join(transformersDir, 'games', `${gameName}.js`);
 
-      const module = await this.importModule(filePath);
-      const handler = this.extractTransformer(module);
+      const module = await this.loader.importModule(filePath);
+      const handler = this.loader.extractHandler(module);
 
       if (handler) {
         this.gameHandlers.set(gameName, handler);
@@ -464,13 +407,12 @@ export class TransformerEngine {
     } catch (error) {
       // Cache failure so we don't retry on every event from this game
       this.failedGameLoads.add(gameName);
-      const errorMessage = error instanceof Error ? error.message : String(error);
       this.context.log.warn(
-        `Could not load game transformer for ${gameName}: ${errorMessage}`,
+        `Could not load game transformer for ${gameName}: ${getErrorMessage(error)}`,
       );
       eventBus.emit('system:error', {
         errorType: 'transformer',
-        message: `Could not load game transformer: ${errorMessage}`,
+        message: `Could not load game transformer: ${getErrorMessage(error)}`,
         timestamp: Date.now(),
         filePath: join(getTransformersDir(), 'games', `${gameName}.js`),
         details: error instanceof Error ? error.stack : undefined,
@@ -479,77 +421,12 @@ export class TransformerEngine {
   }
 
   /**
-   * Load subject transformers from subjects/ directory
-   */
-  private async loadSubjectTransformers(subjectsDir: string): Promise<void> {
-    try {
-      const files = await fs.readdir(subjectsDir);
-
-      for (const file of files) {
-        if (!file.endsWith('.js')) {
-          continue;
-        }
-
-        const subjectName = file.replace('.js', '');
-        const filePath = join(subjectsDir, file);
-
-        try {
-          const module = await this.importModule(filePath);
-          const handler = this.extractTransformer(module);
-
-          if (handler) {
-            this.subjectHandlers.set(subjectName, handler);
-          }
-        } catch (error) {
-          this.context.log.error(`Failed to load subject transformer ${file}:`, error);
-        }
-      }
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error;
-      }
-    }
-  }
-
-  /**
-   * Load property transformers from properties/ directory
-   */
-  private async loadPropertyTransformers(propertiesDir: string): Promise<void> {
-    try {
-      const files = await fs.readdir(propertiesDir);
-
-      for (const file of files) {
-        if (!file.endsWith('.js')) {
-          continue;
-        }
-
-        const filePath = join(propertiesDir, file);
-
-        try {
-          const module = await this.importModule(filePath);
-          const handler = this.extractTransformer(module);
-
-          if (handler) {
-            this.propertyHandlers.push(handler);
-          }
-        } catch (error) {
-          this.context.log.error(`Failed to load property transformer ${file}:`, error);
-        }
-      }
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error;
-      }
-    }
-  }
-
-  /**
    * Load default transformer
    */
   private async loadDefaultTransformer(filePath: string): Promise<void> {
     try {
-      const module = await this.importModule(filePath);
-      const handler = this.extractTransformer(module);
+      const module = await this.loader.importModule(filePath);
+      const handler = this.loader.extractHandler(module);
 
       if (handler) {
         this.defaultHandler = handler;
@@ -559,30 +436,5 @@ export class TransformerEngine {
         this.context.log.error('Failed to load default transformer:', error);
       }
     }
-  }
-
-  /**
-   * Extract transform function from transformer module
-   * Supports both named export and default export patterns
-   */
-  private extractTransformer(module: Record<string, unknown>): TransformerHandler | null {
-    // Try named export 'transform'
-    if (typeof module.transform === 'function') {
-      return module.transform as TransformerHandler;
-    }
-
-    // Try default export with transform property
-    const defaultExport = module.default as Record<string, unknown> | undefined;
-
-    if (defaultExport && typeof defaultExport.transform === 'function') {
-      return defaultExport.transform as TransformerHandler;
-    }
-
-    // Try default export as function
-    if (typeof defaultExport === 'function') {
-      return defaultExport as TransformerHandler;
-    }
-
-    return null;
   }
 }

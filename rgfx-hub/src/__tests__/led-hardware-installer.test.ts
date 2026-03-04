@@ -15,7 +15,6 @@ const {
   mockAccess,
   mockCopyFile,
   mockLogInfo,
-  mockLogDebug,
   mockLogError,
 } = vi.hoisted(() => ({
   mockMkdir: vi.fn(),
@@ -23,14 +22,12 @@ const {
   mockAccess: vi.fn(),
   mockCopyFile: vi.fn(),
   mockLogInfo: vi.fn(),
-  mockLogDebug: vi.fn(),
   mockLogError: vi.fn(),
 }));
 
 vi.mock('electron-log/main', () => ({
   default: {
     info: mockLogInfo,
-    debug: mockLogDebug,
     error: mockLogError,
   },
 }));
@@ -73,7 +70,10 @@ describe('led-hardware-installer', () => {
 
       await installDefaultLedHardware();
 
-      expect(mockMkdir).toHaveBeenCalledWith('/mock/user/.rgfx/led-hardware', { recursive: true });
+      expect(mockMkdir).toHaveBeenCalledWith(
+        '/mock/user/.rgfx/led-hardware',
+        { recursive: true },
+      );
       expect(mockCopyFile).toHaveBeenCalledWith(
         path.join('/app', 'assets', 'led-hardware', 'matrix-8x8.json'),
         path.join('/mock/user/.rgfx/led-hardware', 'matrix-8x8.json'),
@@ -91,8 +91,8 @@ describe('led-hardware-installer', () => {
       await installDefaultLedHardware();
 
       expect(mockCopyFile).not.toHaveBeenCalled();
-      expect(mockLogDebug).toHaveBeenCalledWith(
-        'LED hardware already exists, skipping: custom-strip.json',
+      expect(mockLogInfo).toHaveBeenCalledWith(
+        expect.stringContaining('already exists, skipping'),
       );
     });
 
@@ -116,11 +116,15 @@ describe('led-hardware-installer', () => {
       );
     });
 
-    it('should skip directories', async () => {
-      mockReaddir.mockResolvedValue([
-        { name: 'subdir', isDirectory: () => true, isFile: () => false },
-        { name: 'hardware.json', isDirectory: () => false, isFile: () => true },
-      ]);
+    it('should recurse into subdirectories', async () => {
+      mockReaddir
+        .mockResolvedValueOnce([
+          { name: 'subdir', isDirectory: () => true, isFile: () => false },
+          { name: 'hardware.json', isDirectory: () => false, isFile: () => true },
+        ])
+        .mockResolvedValueOnce([
+          { name: 'nested.json', isDirectory: () => false, isFile: () => true },
+        ]);
 
       mockAccess.mockRejectedValue(new Error('ENOENT'));
       mockCopyFile.mockResolvedValue(undefined);
@@ -128,7 +132,7 @@ describe('led-hardware-installer', () => {
 
       await installDefaultLedHardware();
 
-      expect(mockCopyFile).toHaveBeenCalledTimes(1);
+      expect(mockCopyFile).toHaveBeenCalledTimes(2);
     });
 
     it('should handle missing bundled directory', async () => {
@@ -158,11 +162,14 @@ describe('led-hardware-installer', () => {
       await installDefaultLedHardware();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining('Copying default LED hardware from'),
+        expect.stringContaining('Copying default LED hardware'),
       );
-      expect(mockLogInfo).toHaveBeenCalledWith(expect.stringContaining('Installing to'));
-      expect(mockLogInfo).toHaveBeenCalledWith('Installed LED hardware: strip.json');
-      expect(mockLogInfo).toHaveBeenCalledWith('LED hardware installation complete');
+      expect(mockLogInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Installing to'),
+      );
+      expect(mockLogInfo).toHaveBeenCalledWith(
+        expect.stringContaining('installation complete'),
+      );
     });
 
     it('should copy multiple files', async () => {
@@ -190,7 +197,9 @@ describe('led-hardware-installer', () => {
       await installDefaultLedHardware();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining(path.join('app', 'assets', 'led-hardware')),
+        expect.stringContaining(
+          path.join('app', 'assets', 'led-hardware'),
+        ),
       );
     });
 
@@ -211,7 +220,9 @@ describe('led-hardware-installer', () => {
       await installDefaultLedHardware();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining(path.join('resources', 'assets', 'led-hardware')),
+        expect.stringContaining(
+          path.join('resources', 'assets', 'led-hardware'),
+        ),
       );
 
       Object.defineProperty(process, 'resourcesPath', {

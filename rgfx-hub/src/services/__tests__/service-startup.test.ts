@@ -49,6 +49,11 @@ vi.mock('../../led-hardware-installer', () => ({
   installDefaultLedHardware: mockInstallDefaultLedHardware,
 }));
 
+const mockDriverConnectService = { onDriverConnected: vi.fn() };
+vi.mock('../driver-connect-service', () => ({
+  createDriverConnectService: vi.fn(() => mockDriverConnectService),
+}));
+
 vi.mock('../event-bus', () => ({
   eventBus: {
     emit: vi.fn(),
@@ -74,7 +79,10 @@ describe('startServices', () => {
       driverConfig: {},
       driverLogPersistence: {},
       ledHardwareManager: {},
-      systemMonitor: { startFirmwareMonitoring: vi.fn() },
+      systemMonitor: {
+        startFirmwareMonitoring: vi.fn(),
+        registerStatusSources: vi.fn(),
+      },
       transformerEngine: {
         loadTransformers: vi.fn().mockResolvedValue(undefined),
         handleEvent: vi.fn(),
@@ -175,10 +183,8 @@ describe('startServices', () => {
 
     expect(mockSetupDriverEventHandlers).toHaveBeenCalledWith(
       expect.objectContaining({
-        driverRegistry: mockServices.driverRegistry,
-        driverConfig: mockServices.driverConfig,
         systemMonitor: mockServices.systemMonitor,
-        mqtt: mockServices.mqtt,
+        driverConnectService: mockDriverConnectService,
       }),
     );
   });

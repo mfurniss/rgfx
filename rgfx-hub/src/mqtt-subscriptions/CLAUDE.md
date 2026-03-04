@@ -62,7 +62,7 @@ Receives MQTT Last Will and Testament (LWT) messages. The topic contains the dri
 - Marks driver as disconnected
 - Ignores offline during OTA updates (expected disconnect)
 - Sends `driver:disconnected` IPC to renderer
-- Updates system status
+- Updates system status via `systemMonitor.getFullStatus()` (replaces inline assembly)
 - Logs use `driver.id` (not raw MAC from topic) for readable output
 
 ### Driver Test State
@@ -121,7 +121,7 @@ interface MqttSubscriptionsDeps {
 }
 ```
 
-**Note:** `SystemMonitor.getSystemStatus()` is synchronous. Tests mock it with `mockReturnValue()` not `mockResolvedValue()`. The returned `SystemStatus` includes `discovery` (not `udpServer`) for discovery service state.
+**Note:** `SystemMonitor.getFullStatus()` provides the complete assembled system status. `driver-wifi-response` uses `getErrorMessage()` utility for error handling. The returned `SystemStatus` includes `discovery` (not `udpServer`) for discovery service state.
 
 ---
 

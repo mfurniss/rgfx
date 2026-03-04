@@ -1,18 +1,4 @@
-// Shared types for IPC communication between main and renderer processes
-
-import type { RemoteLoggingLevel } from './schemas';
-import type { RgfxAPI } from './ipc/contract';
-
-/**
- * Static application information returned by a single IPC call at startup
- */
-export interface AppInfo {
-  version: string;
-  licensePath: string;
-  docsPath: string;
-  defaultRgfxConfigDir: string;
-  defaultMameRomsDir: string;
-}
+import type { RemoteLoggingLevel } from '../schemas';
 
 /**
  * LED Configuration Types
@@ -39,12 +25,14 @@ type LEDLayoutType =
   | 'matrix-br-v'
   | 'matrix-br-v-snake';
 
-type ColorCorrection = 'TypicalLEDStrip' | 'Typical8mmPixel' | 'UncorrectedColor';
+type ColorCorrection =
+  | 'TypicalLEDStrip'
+  | 'Typical8mmPixel'
+  | 'UncorrectedColor';
 
 /**
  * LED Hardware definition - describes physical LED hardware only
  * Stored in led-hardware/ directory and shared across all users
- * This is a flat object containing only hardware specs, no user-configurable data
  */
 export interface LEDHardware {
   description?: string;
@@ -62,7 +50,6 @@ export interface LEDHardware {
 /**
  * Driver LED Configuration - combines hardware reference with driver-specific settings
  * Stored per-driver in drivers.json
- * Settings are flattened directly into this object (no nested settings object)
  */
 export interface DriverLEDConfig {
   hardwareRef: string;
@@ -127,11 +114,8 @@ export interface DriverLEDConfig {
 
 /**
  * Driver telemetry - hardware and firmware information reported by driver
- * Contains static/semi-static information that only the driver can know
- * Sent periodically via rgfx/system/driver/telemetry topic
  */
 export interface DriverTelemetry {
-  // Hardware information
   chipModel: string;
   chipRevision: number;
   chipCores: number;
@@ -143,22 +127,18 @@ export interface DriverTelemetry {
   psramSize: number;
   freePsram: number;
 
-  // Firmware information
   firmwareVersion?: string;
   sdkVersion: string;
   sketchSize: number;
   freeSketchSpace: number;
 
-  // Crash/reset information
   lastResetReason?: string;
   crashCount?: number;
 
-  // FPS metrics
   currentFps: number;
   minFps: number;
   maxFps: number;
 
-  // Frame timing metrics (microseconds per frame, averaged)
   frameTiming?: {
     clearUs: number;
     effectsUs: number;
@@ -167,36 +147,23 @@ export interface DriverTelemetry {
     totalUs: number;
   };
 
-  // LED health status (false = RMT peripheral appears corrupted, needs restart)
   ledHealthy?: boolean;
 }
 
-/**
- * Driver connection state enum
- */
 export type DriverState = 'connected' | 'disconnected' | 'updating';
 
-/**
- * Driver Statistics - accumulated counters
- */
 interface DriverStats {
   telemetryEventsReceived: number;
   mqttMessagesReceived: number;
   mqttMessagesFailed: number;
 }
 
-/**
- * Driver Identity - immutable after creation
- */
 interface DriverIdentity {
   id: string;
   mac?: string;
   description?: string;
 }
 
-/**
- * Driver Network State - changes when driver connects
- */
 interface DriverNetworkState {
   ip?: string;
   hostname?: string;
@@ -204,9 +171,6 @@ interface DriverNetworkState {
   rssi?: number;
 }
 
-/**
- * Driver Metrics - updated every telemetry message
- */
 interface DriverMetrics {
   freeHeap?: number;
   minFreeHeap?: number;
@@ -214,9 +178,6 @@ interface DriverMetrics {
   lastSeenAt?: number;
 }
 
-/**
- * Driver Config - user-defined, persisted
- */
 interface DriverConfigData {
   remoteLogging?: RemoteLoggingLevel;
   ledConfig?: DriverLEDConfig | null;
@@ -224,16 +185,10 @@ interface DriverConfigData {
   disabled: boolean;
 }
 
-/**
- * Driver Hardware Info - semi-static, from device
- */
 interface DriverHardwareInfo {
   telemetry?: DriverTelemetry;
 }
 
-/**
- * Driver Connection State - internal state tracking
- */
 interface DriverConnectionState {
   state: DriverState;
   lastSeen: number;
@@ -245,7 +200,6 @@ interface DriverConnectionState {
 
 /**
  * Driver - composite type combining all driver-related interfaces
- * This is a plain object, not a class - use createDriver() to construct
  */
 export type Driver = DriverIdentity
   & DriverNetworkState
@@ -255,49 +209,33 @@ export type Driver = DriverIdentity
   & { stats: DriverStats }
   & DriverConnectionState;
 
-/**
- * Input type for createDriver - all fields optional except id
- */
 export type DriverInput = Partial<Driver> & { id: string };
 
-/**
- * Default values for Driver fields
- */
 const defaultDriverStats: DriverStats = {
   telemetryEventsReceived: 0,
   mqttMessagesReceived: 0,
   mqttMessagesFailed: 0,
 };
 
-/**
- * Factory function to create a Driver object with defaults
- */
 export function createDriver(data: DriverInput): Driver {
   return {
-    // Identity
     id: data.id,
     mac: data.mac,
     description: data.description,
-    // Network
     ip: data.ip,
     hostname: data.hostname,
     ssid: data.ssid,
     rssi: data.rssi,
-    // Metrics
     freeHeap: data.freeHeap,
     minFreeHeap: data.minFreeHeap,
     uptimeMs: data.uptimeMs,
     lastSeenAt: data.lastSeenAt,
-    // Config
     remoteLogging: data.remoteLogging,
     ledConfig: data.ledConfig,
     resolvedHardware: data.resolvedHardware,
     disabled: data.disabled ?? false,
-    // Hardware
     telemetry: data.telemetry,
-    // Stats
     stats: data.stats ?? { ...defaultDriverStats },
-    // Connection
     state: data.state ?? 'disconnected',
     lastSeen: data.lastSeen ?? 0,
     failedHeartbeats: data.failedHeartbeats ?? 0,
@@ -307,51 +245,4 @@ export function createDriver(data: DriverInput): Driver {
   };
 }
 
-
-export interface SystemError {
-  errorType: 'interceptor' | 'config' | 'driver' | 'network' | 'transformer' | 'general';
-  message: string;
-  timestamp: number;
-  filePath?: string;
-  details?: string;
-  driverId?: string;
-}
-
-export interface UdpStats {
-  sent: number;
-  failed: number;
-}
-
-export interface SystemStatus {
-  mqttBroker: 'running' | 'stopped' | 'error';
-  discovery: 'active' | 'inactive' | 'error';
-  eventReader: 'monitoring' | 'stopped' | 'error';
-  driversConnected: number;
-  driversTotal: number;
-  hubIp: string;
-  eventsProcessed: number;
-  eventLogSizeBytes: number;
-  hubStartTime: number;
-  /** Firmware versions indexed by chip type (ESP32, ESP32-S3) */
-  firmwareVersions?: Record<string, string>;
-  udpMessagesSent: number;
-  udpMessagesFailed: number;
-  udpStatsByDriver: Record<string, UdpStats>;
-  systemErrors: readonly SystemError[];
-}
-
 export type DisconnectReason = 'disconnected' | 'restarting' | 'timeout';
-
-declare global {
-  interface Window {
-    rgfx: RgfxAPI;
-  }
-}
-
-export interface GameInfo {
-  romName: string | null;
-  interceptorPath: string | null;
-  interceptorName: string | null;
-  transformerPath: string | null;
-  transformerName: string | null;
-}

@@ -27,6 +27,7 @@ import { TargetDriversPicker } from '../components/driver/target-drivers-picker'
 import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
 import { useUiStore } from '../store/ui-store';
+import { useDriverSelection } from '../hooks/use-driver-selection';
 import type { EffectPayload } from '@/types/transformer-types';
 import { effectPropsSchemas, effectRandomizers, effectPresetConfigs, effectFieldTypes, effectFormDefaults, effectLayoutConfigs, isEffectName } from '@/schemas';
 import type { PresetData } from '@/schemas';
@@ -51,11 +52,6 @@ export default function TestEffectsPage() {
     () => drivers.filter((d) => d.state === 'connected'),
     [drivers],
   );
-  const connectedDriverIds = useMemo(
-    () => connectedDrivers.map((d) => d.id).sort(),
-    [connectedDrivers],
-  );
-
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
   const propsMap = useUiStore((state) => state.testEffectsPropsMap);
   const setTestEffectsState = useUiStore((state) => state.setTestEffectsState);
@@ -83,15 +79,8 @@ export default function TestEffectsPage() {
     return getDefaultProps(selectedEffect);
   }, [propsMap, selectedEffect, getDefaultProps]);
 
-  const [selectedDrivers, setSelectedDrivers] = useState<Set<string>>(
-    new Set(connectedDrivers.map((d) => d.id)),
-  );
-
-  // Derive selectAll from current state - fixes bug where stored selectAll could become stale
-  const selectAll = useMemo(
-    () => connectedDrivers.length > 0 && connectedDrivers.every((d) => selectedDrivers.has(d.id)),
-    [connectedDrivers, selectedDrivers],
-  );
+  const { selectedDrivers, selectAll, handleDriverToggle, handleSelectAll, setSelectedDrivers } =
+    useDriverSelection({ connectedDrivers });
 
   // Parse current props from JSON
   const currentProps = useMemo(() => {
@@ -118,30 +107,13 @@ export default function TestEffectsPage() {
     ? effectLayoutConfigs[selectedEffect]
     : undefined;
 
-  // Refs keep the debounced callback and pruning effect stable while reading current values
+  // Refs keep the debounced callback stable while reading current values
   const selectedEffectRef = useRef(selectedEffect);
   selectedEffectRef.current = selectedEffect;
   const selectedDriversRef = useRef(selectedDrivers);
   selectedDriversRef.current = selectedDrivers;
   const propsJsonRef = useRef(propsJson);
   propsJsonRef.current = propsJson;
-
-  // Auto-select reconnected drivers and remove disconnected ones from selection.
-  // Reads current values from refs so the effect only fires on actual connection changes.
-  useEffect(() => {
-    const connectedIds = new Set(connectedDriverIds);
-    const currentSelection = selectedDriversRef.current;
-
-    const updated = new Set(connectedIds);
-
-    const changed = updated.size !== currentSelection.size
-      || !Array.from(updated).every((id) => currentSelection.has(id));
-
-    if (changed) {
-      setSelectedDrivers(updated);
-      setTestEffectsState(selectedEffectRef.current, propsJsonRef.current, updated);
-    }
-  }, [connectedDriverIds, setTestEffectsState]);
 
   const handleEffectChange = (effect: string) => {
     if (effect !== selectedEffect && isEffectName(effect)) {
@@ -168,28 +140,23 @@ export default function TestEffectsPage() {
     handlePropsChange.cancel();
   }, [handlePropsChange]);
 
-  const handleDriverToggle = (driverId: string) => {
-    const newSelected = new Set(selectedDrivers);
-
-    if (newSelected.has(driverId)) {
-      newSelected.delete(driverId);
-    } else {
-      newSelected.add(driverId);
-    }
-    setSelectedDrivers(newSelected);
-    setTestEffectsState(selectedEffect, propsJson, newSelected);
+  // Wrap toggle/selectAll to also persist to test effects store
+  const handleDriverToggleWithPersist = (driverId: string) => {
+    handleDriverToggle(driverId);
+    // Use functional update to get the post-toggle value
+    setSelectedDrivers((current) => {
+      setTestEffectsState(selectedEffect, propsJson, current);
+      return current;
+    });
   };
 
-  const handleSelectAll = () => {
-    if (selectAll) {
-      const emptySet = new Set<string>();
-      setSelectedDrivers(emptySet);
-      setTestEffectsState(selectedEffect, propsJson, emptySet);
-    } else {
-      const allSelected = new Set(connectedDrivers.map((d) => d.id));
-      setSelectedDrivers(allSelected);
-      setTestEffectsState(selectedEffect, propsJson, allSelected);
-    }
+  const handleSelectAllWithPersist = () => {
+    handleSelectAll();
+    // Use functional update to get the post-toggle value
+    setSelectedDrivers((current) => {
+      setTestEffectsState(selectedEffect, propsJson, current);
+      return current;
+    });
   };
 
   const handleResetToDefaults = () => {
@@ -232,28 +199,26 @@ export default function TestEffectsPage() {
     // Flush debounced form changes so store is current
     handlePropsChange.flush();
 
-    void (async () => {
-      try {
-        // Read from store after flush (reactive state may lag this render cycle)
-        const storeProps =
-          useUiStore.getState().testEffectsPropsMap[selectedEffect] ?? propsJson;
-        const props = JSON.parse(storeProps) as Record<string, unknown>;
-        // Strip internal markers before sending to driver
-        const cleanProps = { ...props };
-        delete cleanProps.__gifPath;
+    try {
+      // Read from store after flush (reactive state may lag this render cycle)
+      const storeProps =
+        useUiStore.getState().testEffectsPropsMap[selectedEffect] ?? propsJson;
+      const props = JSON.parse(storeProps) as Record<string, unknown>;
+      // Strip internal markers before sending to driver
+      const cleanProps = { ...props };
+      delete cleanProps.__gifPath;
 
-        const payload: EffectPayload = {
-          effect: selectedEffect,
-          props: cleanProps,
-          drivers: Array.from(selectedDrivers),
-          stripLifespanScale,
-        };
+      const payload: EffectPayload = {
+        effect: selectedEffect,
+        props: cleanProps,
+        drivers: Array.from(selectedDrivers),
+        stripLifespanScale,
+      };
 
-        await window.rgfx.triggerEffect(payload);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
+      void window.rgfx.triggerEffect(payload);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleRandomTrigger = () => {
@@ -267,26 +232,24 @@ export default function TestEffectsPage() {
 
     handlePropsChange.flush();
 
-    void (async () => {
-      try {
-        const randomizedProps = effectRandomizers[selectedEffect]();
-        const mergedProps = { ...currentProps, ...randomizedProps };
-        const mergedPropsJson = JSON.stringify(mergedProps, null, 2);
+    try {
+      const randomizedProps = effectRandomizers[selectedEffect]();
+      const mergedProps = { ...currentProps, ...randomizedProps };
+      const mergedPropsJson = JSON.stringify(mergedProps, null, 2);
 
-        setTestEffectsState(selectedEffect, mergedPropsJson, selectedDrivers);
+      setTestEffectsState(selectedEffect, mergedPropsJson, selectedDrivers);
 
-        const payload: EffectPayload = {
-          effect: selectedEffect,
-          props: mergedProps,
-          drivers: Array.from(selectedDrivers),
-          stripLifespanScale,
-        };
+      const payload: EffectPayload = {
+        effect: selectedEffect,
+        props: mergedProps,
+        drivers: Array.from(selectedDrivers),
+        stripLifespanScale,
+      };
 
-        await window.rgfx.triggerEffect(payload);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
+      void window.rgfx.triggerEffect(payload);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleCopyCode = async () => {
@@ -335,8 +298,8 @@ export default function TestEffectsPage() {
               drivers={drivers}
               selectedDrivers={selectedDrivers}
               selectAll={selectAll}
-              onDriverToggle={handleDriverToggle}
-              onSelectAll={handleSelectAll}
+              onDriverToggle={handleDriverToggleWithPersist}
+              onSelectAll={handleSelectAllWithPersist}
             />
             <SuperButton
               variant="contained"

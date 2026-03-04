@@ -25,7 +25,6 @@ describe('subscribeDriverStatus', () => {
   let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let subscribedCallback: (topic: string, payload: string) => void;
   let mockDriver: Driver;
-  let mockGetEventsProcessed: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -62,12 +61,10 @@ describe('subscribeDriverStatus', () => {
     };
 
     mockSystemMonitor = mock<SystemMonitor>();
-    mockSystemMonitor.getSystemStatus.mockReturnValue(mockStatus);
+    mockSystemMonitor.getFullStatus.mockReturnValue(mockStatus);
 
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);
-
-    mockGetEventsProcessed = vi.fn(() => 100);
   });
 
   describe('subscription setup', () => {
@@ -77,8 +74,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
 
       expect(mockMqtt.subscribe).toHaveBeenCalledWith(
@@ -95,8 +90,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -126,8 +119,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -169,15 +160,12 @@ describe('subscribeDriverStatus', () => {
       });
     });
 
-    it('should call getSystemStatus with current driver count and events', () => {
+    it('should call getFullStatus when driver goes offline', () => {
       mockDriver.state = 'connected';
-      mockDriverRegistry.getConnectedCount.mockReturnValue(2);
-      mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver, mockDriver, mockDriver]);
-      mockGetEventsProcessed.mockReturnValue(500);
 
       subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
-      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(2, 3, 500, 0);
+      expect(mockSystemMonitor.getFullStatus).toHaveBeenCalled();
     });
 
     it('should NOT process offline if driver was already disconnected', () => {
@@ -196,8 +184,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -223,8 +209,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -251,8 +235,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -271,8 +253,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => null,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
 
       const callback = mockMqtt.subscribe.mock.calls[1][1] as (
@@ -293,8 +273,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -324,8 +302,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 
@@ -364,8 +340,6 @@ describe('subscribeDriverStatus', () => {
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
       });
     });
 

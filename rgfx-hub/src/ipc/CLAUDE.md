@@ -10,10 +10,10 @@ All IPC channels, type signatures, and the preload bridge are driven from a sing
 
 ### contract.ts
 
-Single source of truth for all 40 IPC methods:
-- `INVOKE_CHANNELS` — maps method names to channel strings (28 entries)
-- `PUSH_CHANNELS` — push event channels from main → renderer (10 entries)
-- `SEND_CHANNELS` — fire-and-forget channels from renderer → main (2 entries)
+Single source of truth for all IPC methods:
+- `INVOKE_CHANNELS` — maps method names to channel strings (includes `setDriverId`)
+- `PUSH_CHANNELS` — push event channels from main → renderer
+- `SEND_CHANNELS` — fire-and-forget channels from renderer → main
 - `InvokeContract`, `PushContract`, `SendContract` — type contracts
 - `RgfxAPI` — auto-derived type used by `Window.rgfx` in `types.ts`
 - Compile-time checks ensure channel map keys match contract keys
@@ -63,6 +63,7 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 1. Validates the new ID format using `validateDriverId()`
 2. Looks up the driver in the registry
 3. Publishes MQTT message to `rgfx/driver/{driverId}/set-id` with payload `{ id: newId }`
+4. Uses `INVOKE_CHANNELS.setDriverId` constant for the channel name
 
 ---
 
@@ -260,6 +261,8 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 - `firmware:get-manifest` - Loads and returns `manifest.json` with firmware version and checksums
 - `firmware:get-file` - Loads a firmware binary file by name (with path traversal protection)
 
+Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path resolution.
+
 **Returns:** JSON object (manifest) or Buffer (firmware file)
 
 ---
@@ -373,5 +376,6 @@ All handlers follow a standardized error handling pattern:
 - Validation errors return `{ success: false, error: string }`
 - Unexpected errors are logged and re-thrown
 - OTA errors are tracked via global error handler with driver ID context
+- `backup-handler`, `load-gif-handler`, and others use `getErrorMessage()` utility for safe error-to-string conversion
 
 <\!-- No per-file license headers — see root LICENSE -->

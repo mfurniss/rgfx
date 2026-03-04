@@ -6,6 +6,7 @@ import type { EventStats } from './event-stats';
 import { registerIpcHandlers } from '../ipc';
 import { registerMqttSubscriptions } from '../mqtt-subscriptions';
 import { setupDriverEventHandlers } from '../driver-callbacks';
+import { createDriverConnectService } from './driver-connect-service';
 import { installDefaultTransformers } from '../transformer-installer';
 import { installDefaultInterceptors } from '../interceptor-installer';
 import { installDefaultLedHardware } from '../led-hardware-installer';
@@ -86,17 +87,27 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
     log.error('Failed to install LED hardware definitions:', error);
   });
 
-  // Register driver event handlers
-  setupDriverEventHandlers({
-    driverRegistry: services.driverRegistry,
-    driverConfig: services.driverConfig,
-    systemMonitor: services.systemMonitor,
-    mqtt: services.mqtt,
-    getMainWindow: () => windowManager.getWindow(),
+  // Register status data sources so getFullStatus() works everywhere
+  services.systemMonitor.registerStatusSources({
+    getConnectedCount: () => services.driverRegistry.getConnectedCount(),
+    getTotalCount: () => services.driverRegistry.getAllDrivers().length,
     getEventsProcessed: () => eventStats.getCount(),
     getEventLogSizeBytes: () => services.eventReader.getFileSizeBytes(),
-    getSystemErrors: () => systemErrorTracker.errors,
+    getErrors: () => systemErrorTracker.errors,
+  });
+
+  // Create driver connect service (handles config upload + logging sync)
+  const driverConnectService = createDriverConnectService({
+    driverConfig: services.driverConfig,
+    mqtt: services.mqtt,
     uploadConfigToDriver: services.uploadConfigToDriver,
+  });
+
+  // Register driver event handlers (IPC routing + status updates)
+  setupDriverEventHandlers({
+    systemMonitor: services.systemMonitor,
+    driverConnectService,
+    getMainWindow: () => windowManager.getWindow(),
   });
 
   // Register IPC handlers
@@ -133,8 +144,6 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
     systemMonitor: services.systemMonitor,
     driverLogPersistence: services.driverLogPersistence,
     getMainWindow: () => windowManager.getWindow(),
-    getEventsProcessed: () => eventStats.getCount(),
-    getEventLogSizeBytes: () => services.eventReader.getFileSizeBytes(),
   });
 
   // Start reading events and send to transformer engine for processing

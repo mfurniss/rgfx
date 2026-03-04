@@ -4,6 +4,7 @@ import { app } from 'electron';
 import log from 'electron-log/main';
 import type { DriverLogPersistence } from './driver-log-persistence';
 import { EVENT_LOG_FILENAME } from './config/constants';
+import { getErrorMessage } from './utils/driver-utils';
 
 interface LogInfo {
   path: string;
@@ -134,8 +135,7 @@ export class LogManager {
     try {
       await fs.promises.writeFile(filePath, '', 'utf8');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log.error(`Failed to clear log file ${filePath}: ${errorMessage}`);
+      log.error(`Failed to clear log file ${filePath}: ${getErrorMessage(error)}`);
     }
   }
 }

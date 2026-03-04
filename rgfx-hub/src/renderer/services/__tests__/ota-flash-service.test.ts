@@ -7,7 +7,7 @@ import {
   type OtaFlashResult,
 } from '../ota-flash-service';
 import { createMockDriver } from '@/__tests__/factories';
-import type { DriverFlashStatus } from '@/renderer/store/ui-store';
+import type { DriverFlashStatus } from '@/renderer/store/firmware-flash-store';
 
 // Mock window.rgfx
 const mockFlashOTA = vi.fn();

@@ -2,6 +2,7 @@ import log from 'electron-log/main';
 import type { MqttBroker } from '../network';
 import type { DriverRegistry } from '../driver-registry';
 import { eventBus } from '../services/event-bus';
+import { getErrorMessage } from '../utils/driver-utils';
 
 interface DriverWifiResponseDeps {
   mqtt: MqttBroker;
@@ -50,8 +51,7 @@ export function subscribeDriverWifiResponse(deps: DriverWifiResponseDeps): void 
         log.error(`Driver ${driver.id} failed to save WiFi credentials: ${response.error}`);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      log.error(`Failed to parse WiFi response from ${driverId}: ${message}`);
+      log.error(`Failed to parse WiFi response from ${driverId}: ${getErrorMessage(err)}`);
     }
   });
 }

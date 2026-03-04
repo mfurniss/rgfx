@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerSetIdHandler } from '../set-id-handler';
+import { INVOKE_CHANNELS } from '../contract';
 import type { DriverRegistry } from '@/driver-registry';
 import type { MqttBroker } from '@/network';
 import { Driver } from '@/types';
@@ -57,7 +58,10 @@ describe('registerSetIdHandler', () => {
   describe('handler registration', () => {
     it('should register handler for driver:set-id channel', async () => {
       const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('driver:set-id', expect.any(Function));
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        INVOKE_CHANNELS.setDriverId,
+        expect.any(Function),
+      );
     });
   });
 

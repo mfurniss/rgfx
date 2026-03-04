@@ -36,6 +36,35 @@ function getTargetVersion(
   return firmwareVersions[chipType] ?? null;
 }
 
+function ChipWithWarning({
+  chip,
+  tooltip,
+  iconColor,
+  onClick,
+}: {
+  chip: React.ReactElement;
+  tooltip: string;
+  iconColor: string;
+  onClick?: (e: React.MouseEvent) => void;
+}) {
+  const icon = <WarningIcon sx={{ color: iconColor, fontSize: 18 }} />;
+
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+      {chip}
+      <Tooltip title={tooltip} arrow>
+        {onClick ? (
+          <IconButton size="small" onClick={onClick} sx={{ p: 0.25 }}>
+            {icon}
+          </IconButton>
+        ) : (
+          <Box component="span" sx={{ display: 'inline-flex' }}>{icon}</Box>
+        )}
+      </Tooltip>
+    </Box>
+  );
+}
+
 /**
  * Displays driver connection state as a chip with optional warning indicators.
  * - Disabled: grey chip (takes precedence over connection state)
@@ -86,55 +115,39 @@ const DriverState: React.FC<DriverStateProps> = ({ driver, firmwareVersions }) =
   // Firmware update takes priority over LED config warning
   if (needsFirmwareUpdate) {
     return (
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-        {chip}
-        <Tooltip
-          title={`Firmware update: v${telemetry.firmwareVersion} → v${targetVersion}`}
-          arrow
-        >
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              void navigate('/firmware');
-            }}
-            sx={{ p: 0.25 }}
-          >
-            <WarningIcon sx={{ color: 'warning.main', fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-      </Box>
+      <ChipWithWarning
+        chip={chip}
+        tooltip={`Firmware update: v${telemetry.firmwareVersion} → v${targetVersion}`}
+        iconColor="warning.main"
+        onClick={(e) => {
+          e.stopPropagation();
+          void navigate('/firmware');
+        }}
+      />
     );
   }
 
   if (needsLedConfig) {
     return (
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-        {chip}
-        <Tooltip title="LED hardware not configured" arrow>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              void navigate(`/drivers/${driver.mac}/config`);
-            }}
-            sx={{ p: 0.25 }}
-          >
-            <WarningIcon sx={{ color: 'warning.main', fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-      </Box>
+      <ChipWithWarning
+        chip={chip}
+        tooltip="LED hardware not configured"
+        iconColor="warning.main"
+        onClick={(e) => {
+          e.stopPropagation();
+          void navigate(`/drivers/${driver.mac}/config`);
+        }}
+      />
     );
   }
 
   if (ledUnhealthy) {
     return (
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-        {chip}
-        <Tooltip title="LED output not functioning — driver will auto-restart" arrow>
-          <WarningIcon sx={{ color: 'error.main', fontSize: 18 }} />
-        </Tooltip>
-      </Box>
+      <ChipWithWarning
+        chip={chip}
+        tooltip="LED output not functioning — driver will auto-restart"
+        iconColor="error.main"
+      />
     );
   }
 
