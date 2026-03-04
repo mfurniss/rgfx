@@ -18,6 +18,7 @@ import { loadGif } from '../gif-loader';
 import { loadSprite } from '../sprite-loader';
 import { validateTransformerEffect } from '../transformer/validate-effect';
 import { createUploadConfigToDriver } from '../upload-config-to-driver';
+import { createTransformerUtils } from '../transformer-utils';
 import { MQTT_DEFAULT_PORT } from '../config/constants';
 import type { AmbilightGradient } from '../types/transformer-types';
 
@@ -232,24 +233,29 @@ export function createServices(
   const mqttClient = new MqttClientWrapper(mqtt);
   const stateStore = new StateStoreImpl();
   const loggerWrapper = new LoggerWrapper(logger);
+  const { utils, clearAllTimers } = createTransformerUtils();
 
   // Initialize transformer engine with all context services
-  const transformerEngine = new TransformerEngine({
-    broadcast: (payload) => {
-      const validated = validateTransformerEffect(payload, loggerWrapper);
-      return udpClient.broadcast(validated);
+  const transformerEngine = new TransformerEngine(
+    {
+      broadcast: (payload) => {
+        const validated = validateTransformerEffect(payload, loggerWrapper);
+        return udpClient.broadcast(validated);
+      },
+      udp: udpClient,
+      mqtt: mqttClient,
+      http: createHttpContext(),
+      state: stateStore,
+      log: loggerWrapper,
+      drivers: driverRegistry,
+      loadGif: createGifLoader(),
+      loadSprite: createSpriteLoader(),
+      parseAmbilight,
+      hslToHex,
+      utils,
     },
-    udp: udpClient,
-    mqtt: mqttClient,
-    http: createHttpContext(),
-    state: stateStore,
-    log: loggerWrapper,
-    drivers: driverRegistry,
-    loadGif: createGifLoader(),
-    loadSprite: createSpriteLoader(),
-    parseAmbilight,
-    hslToHex,
-  });
+    { clearAllTimers },
+  );
 
   // Network manager to handle network changes (emits network:changed events)
   const networkManager = new NetworkManager(mqtt);

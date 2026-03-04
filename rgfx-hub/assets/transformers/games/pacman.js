@@ -1,4 +1,3 @@
-import { randomInt, sleep, trackedTimeout } from '../utils/index.js';
 import { PICO8_PALETTE } from '../palettes.js';
 import { STRIP_DRIVERS, NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
@@ -20,8 +19,9 @@ let bonusLatch = false;
 
 export async function transform(
   { subject, property, payload },
-  { broadcast, loadSprite },
+  { broadcast, loadSprite, utils },
 ) {
+  const { randomInt, sleep, trackedTimeout } = utils;
   async function loadBitmaps() {
     try {
       [pacRight, pacRightDim, ghostScared, ghostEyesR, ghostEyesL] =

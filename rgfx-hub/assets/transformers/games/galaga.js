@@ -1,4 +1,3 @@
-import { formatNumber, sleep, randomInt } from '../utils/index.js';
 import { MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
 const STARFIELD_DRIVERS = [
@@ -31,7 +30,8 @@ const bonusColors = {
 
 let tractorBeam = false;
 
-export async function transform({ subject, property, payload }, { broadcast }) {
+export async function transform({ subject, property, payload }, { broadcast, utils }) {
+  const { formatNumber, sleep, randomInt } = utils;
   if (subject === 'init') {
     broadcast({
       effect: 'particle_field',

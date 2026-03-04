@@ -1,21 +1,42 @@
 # Utilities
 
-Helper functions available to all transformers.
+Helper functions available to all transformers via the `utils` object on the [transformer context](./index.md#context-object).
 
-**Location:** `transformers/utils/` directory in your [config directory](../getting-started/hub-setup.md#config-directory), with a barrel export via `utils/index.js`
+## Usage
 
-## Import
+Destructure the functions you need from `utils` in your transform function:
 
 ```javascript
-import { scaleLinear, randomInt, randomElement, hslToRgb, sleep, trackedTimeout, trackedInterval, debounce, throttleLatest, formatNumber } from '../utils/index.js';
+export async function transform({ subject, property, payload }, { broadcast, utils }) {
+  const { sleep, randomInt, formatNumber } = utils;
+
+  if (subject === 'player' && property === 'score') {
+    broadcast({
+      effect: 'text',
+      props: { text: formatNumber(payload), duration: 5000 },
+    });
+    return true;
+  }
+}
 ```
 
-Or import from individual modules:
+For functions needed at module level (e.g., `debounce`, `throttleLatest`, `exclusive`), use lazy initialization with `??=`:
 
 ```javascript
-import { scaleLinear, randomInt, randomElement, hslToRgb } from '../utils/math.js';
-import { sleep, trackedTimeout, trackedInterval, debounce, throttleLatest } from '../utils/async.js';
-import { formatNumber } from '../utils/format.js';
+let throttledScore;
+
+export async function transform({ subject, property, payload }, { broadcast, utils }) {
+  const { throttleLatest } = utils;
+
+  throttledScore ??= throttleLatest((score) => {
+    broadcast({ effect: 'text', props: { text: score, reset: true } });
+  }, 100);
+
+  if (subject === 'player' && property === 'score') {
+    throttledScore(payload);
+    return true;
+  }
+}
 ```
 
 ## Math Functions
@@ -58,6 +79,14 @@ Convert HSL color to a hex string. Note: `s` and `l` use the 0â€“1 range (not 0â
 ```javascript
 hslToRgb(0, 1, 0.5);    // returns "#FF0000"
 hslToRgb(120, 1, 0.5);  // returns "#00FF00"
+```
+
+### pick
+
+Pick `count` random elements from an array (without duplicates).
+
+```javascript
+pick(['a', 'b', 'c', 'd', 'e'], 3);  // returns 3 random elements
 ```
 
 ## Async Functions
@@ -133,6 +162,32 @@ updateScore(300);   // suppressed, updates deferred args
 ```
 
 Ideal for score displays where you want zero latency during normal gameplay but need to consolidate rapid bursts (end-of-level bonuses, rapid coin collection).
+
+### exclusive
+
+Wrap an async function so only the latest invocation runs. If called again while a previous call is still awaiting, the previous call's `cancelled()` check returns true, allowing it to bail out early.
+
+```javascript
+let goingInEffect;
+
+export async function transform({ subject, property, payload }, { broadcast, utils }) {
+  const { sleep, exclusive } = utils;
+
+  goingInEffect ??= exclusive(async (cancelled, bcast) => {
+    bcast({ effect: 'particle_field', props: { enabled: 'fadeIn' } });
+    await sleep(500);
+    if (cancelled()) return;
+    bcast({ effect: 'scroll_text', props: { text: "I'm going in" } });
+    await sleep(3500);
+    if (cancelled()) return;
+    bcast({ effect: 'particle_field', props: { enabled: 'fadeOut' } });
+  });
+
+  if (subject === 'game' && property === 'going-in') {
+    goingInEffect(broadcast);
+  }
+}
+```
 
 ### clearAllTimers
 

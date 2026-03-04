@@ -24,6 +24,9 @@ interface TransformerEngineOptions {
    * Defaults to dynamic import with cache-busting in production
    */
   importModule?: (path: string) => Promise<Record<string, unknown>>;
+
+  /** Cancel all pending transformer timers (injected from service factory) */
+  clearAllTimers?: () => void;
 }
 
 /**
@@ -45,6 +48,8 @@ export class TransformerEngine {
     private context: TransformerContext,
     options?: TransformerEngineOptions,
   ) {
+    this.clearAllTimersFn = options?.clearAllTimers;
+
     if (options?.importModule) {
       this.importModule = options.importModule;
     } else {
@@ -135,19 +140,6 @@ export class TransformerEngine {
           `${this.propertyHandlers.length} properties, ` +
           `${this.defaultHandler ? '1' : '0'} default`,
       );
-
-      // Load timer cleanup from transformer utils (plain import — no cache-bust
-      // so we get the same module instance the transformers use)
-      try {
-        const asyncUtilsUrl = pathToFileURL(join(transformersDir, 'utils', 'async.js')).href;
-        const asyncUtils = (await import(asyncUtilsUrl)) as Record<string, unknown>;
-
-        if (typeof asyncUtils.clearAllTimers === 'function') {
-          this.clearAllTimersFn = asyncUtils.clearAllTimers as () => void;
-        }
-      } catch {
-        this.context.log.warn('Could not load clearAllTimers from transformer utils');
-      }
 
       // Start watching for file changes
       this.startFileWatcher(transformersDir);

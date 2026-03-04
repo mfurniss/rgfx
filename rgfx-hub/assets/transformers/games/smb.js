@@ -1,6 +1,5 @@
 // Super Mario Bros game-specific mapper
 
-import { randomInt, sleep, throttleLatest } from '../utils/index.js';
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let coinSprite;
@@ -8,8 +7,10 @@ let throttledScoreBroadcast;
 
 export async function transform(
   { subject, property, _qualifier, payload },
-  { broadcast, loadSprite, state },
+  { broadcast, loadSprite, state, utils },
 ) {
+  const { randomInt, sleep, throttleLatest } = utils;
+
   if (!throttledScoreBroadcast) {
     throttledScoreBroadcast = throttleLatest((score) => {
       broadcast({

@@ -46,10 +46,9 @@ MAME event handling utilities:
 - `docs/` - Documentation for MAME integration
 
 ### transformers/
-JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, utils/, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
+JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game shared constants (driver IDs, named drivers, ambilight config)
-- `utils/` - Shared utility modules (index.js barrel with pick() for random array subset selection, math.js with hslToRgb and randomElement, async.js with tracked timers including trackedInterval, leading-edge debounce, throttleLatest, and exclusive() for cancelling overlapping async loops, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, ssf2.js, starwars.js, etc.)

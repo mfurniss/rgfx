@@ -17,35 +17,91 @@
 // 17,18 fly away from death star
 // 42 DS surface
 
-import {
-  randomInt,
-  sleep,
-  formatNumber,
-  trackedTimeout,
-  pick,
-} from '../utils/index.js';
 import { NAMED_DRIVERS, ALL_DRIVERS } from '../global.js';
-
-function randomDrivers() {
-  return pick(ALL_DRIVERS, 3);
-}
 
 let laserIndex = 0;
 let gameState;
 let scoreLatch = true;
-let goingIn = false;
-
-function blockScore() {
-  scoreLatch = false;
-  trackedTimeout(() => {
-    scoreLatch = true;
-  }, 3000);
-}
+let blockScoreFn;
+let goingInEffect;
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast },
+  { broadcast, utils },
 ) {
+  const { randomInt, sleep, formatNumber, trackedTimeout, pick, exclusive } = utils;
+
+  function randomDrivers() {
+    return pick(ALL_DRIVERS, 3);
+  }
+
+  blockScoreFn ??= () => {
+    scoreLatch = false;
+    trackedTimeout(() => { scoreLatch = true; }, 3000);
+  };
+
+  goingInEffect ??= exclusive(async (cancelled, bcast) => {
+    const commonProps = {
+      density: 100,
+      speed: 320,
+      size: 16,
+      color: '#808080',
+      enabled: 'fadeIn',
+    };
+
+    bcast({
+      effect: 'particle_field',
+      drivers: [
+        NAMED_DRIVERS.leftMatrix,
+        NAMED_DRIVERS.leftStrip,
+        NAMED_DRIVERS.rightStrip,
+      ],
+      props: {
+        direction: 'left',
+        ...commonProps,
+      },
+    });
+
+    bcast({
+      effect: 'particle_field',
+      drivers: [NAMED_DRIVERS.rightMatrix],
+      props: {
+        direction: 'right',
+        ...commonProps,
+      },
+    });
+
+    await sleep(500);
+    if (cancelled()) return;
+
+    bcast({
+      effect: 'scroll_text',
+      drivers: [NAMED_DRIVERS.primaryMatrix],
+      props: {
+        gradient: ['#D00000'],
+        reset: true,
+        text: "Red Five - I'm going in",
+        speed: 400,
+        snapToLed: true,
+      },
+    });
+
+    await sleep(3500);
+    if (cancelled()) return;
+
+    bcast({
+      effect: 'particle_field',
+      drivers: [
+        NAMED_DRIVERS.rightStrip,
+        NAMED_DRIVERS.leftStrip,
+        NAMED_DRIVERS.rightMatrix,
+        NAMED_DRIVERS.leftMatrix,
+      ],
+      props: {
+        enabled: 'fadeOut',
+      },
+    });
+  });
   if (subject === 'game' && property === 'state') {
     gameState = payload;
 
@@ -82,7 +138,7 @@ export async function transform(
 
     // trench
     if (payload == 39 || payload == 46) {
-      blockScore();
+      blockScoreFn();
 
       return broadcast({
         effect: 'scroll_text',
@@ -101,79 +157,11 @@ export async function transform(
 
     // going in
     if (payload == 36 || payload == 37 || payload == 38) {
-      if (goingIn) {
-        //return true;
-      }
-
-      trackedTimeout(() => {
-        goingIn = false;
-      }, 10000);
-
-      goingIn = true;
-
-      const commonProps = {
-        density: 100,
-        speed: 320,
-        size: 16,
-        color: '#808080',
-        enabled: 'fadeIn',
-      };
-
-      broadcast({
-        effect: 'particle_field',
-        drivers: [
-          NAMED_DRIVERS.leftMatrix,
-          NAMED_DRIVERS.leftStrip,
-          NAMED_DRIVERS.rightStrip,
-        ],
-        props: {
-          direction: 'left',
-          ...commonProps,
-        },
-      });
-
-      broadcast({
-        effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.rightMatrix],
-        props: {
-          direction: 'right',
-          ...commonProps,
-        },
-      });
-
-      await sleep(500);
-
-      broadcast({
-        effect: 'scroll_text',
-        drivers: [NAMED_DRIVERS.primaryMatrix],
-        props: {
-          gradient: ['#D00000'],
-          reset: true,
-          text: "Red Five - I'm going in",
-          reset: true,
-          speed: 400,
-          snapToLed: true,
-        },
-      });
-
-      await sleep(3500);
-
-      broadcast({
-        effect: 'particle_field',
-        drivers: [
-          NAMED_DRIVERS.rightStrip,
-          NAMED_DRIVERS.leftStrip,
-          NAMED_DRIVERS.rightMatrix,
-          NAMED_DRIVERS.leftMatrix,
-        ],
-        props: {
-          enabled: 'fadeOut',
-        },
-      });
+      goingInEffect(broadcast);
     }
 
     if (payload == 51) {
-      blockScore();
+      blockScoreFn();
 
       await sleep(1000);
 
@@ -276,7 +264,7 @@ export async function transform(
       },
       drivers: [NAMED_DRIVERS.primaryMatrix], // 96x8 matrix
     });
-    // await sleep(1);
+
     broadcast({
       effect: 'text',
       props: {
@@ -284,7 +272,6 @@ export async function transform(
         gradient: ['#80FF80'],
         duration: 200,
         align: 'center',
-        // reset: false,
       },
       drivers: [NAMED_DRIVERS.primaryMatrix], // 96x8 matrix
     });

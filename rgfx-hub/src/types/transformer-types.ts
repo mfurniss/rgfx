@@ -6,6 +6,7 @@
  */
 
 import type { DriverRegistry } from '../driver-registry';
+import type { TransformerUtils } from '../transformer-utils';
 
 /**
  * Result from loading an animated GIF for use with bitmap effects
@@ -251,6 +252,9 @@ export interface TransformerContext {
    * @returns Hex color string (e.g., "#FF77A8")
    */
   hslToHex(h: number, s: number, l: number): string;
+
+  /** Utility functions for transformers (async, math, formatting) */
+  utils: TransformerUtils;
 }
 
 /**

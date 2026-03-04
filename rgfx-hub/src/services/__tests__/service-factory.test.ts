@@ -188,24 +188,34 @@ describe('createServices', () => {
 
     createServices('/test/config', mockLogger);
 
-    expect(mockTransformerEngine).toHaveBeenCalledWith({
-      broadcast: expect.any(Function),
-      udp: expect.anything(),
-      mqtt: expect.anything(),
-      http: expect.objectContaining({
-        get: expect.any(Function),
-        post: expect.any(Function),
-        put: expect.any(Function),
-        delete: expect.any(Function),
-      }),
-      state: expect.anything(),
-      log: expect.anything(),
-      drivers: expect.anything(),
-      loadGif: expect.any(Function),
-      loadSprite: expect.any(Function),
-      parseAmbilight: expect.any(Function),
-      hslToHex: expect.any(Function),
-    });
+    expect(mockTransformerEngine).toHaveBeenCalledWith(
+      {
+        broadcast: expect.any(Function),
+        udp: expect.anything(),
+        mqtt: expect.anything(),
+        http: expect.objectContaining({
+          get: expect.any(Function),
+          post: expect.any(Function),
+          put: expect.any(Function),
+          delete: expect.any(Function),
+        }),
+        state: expect.anything(),
+        log: expect.anything(),
+        drivers: expect.anything(),
+        loadGif: expect.any(Function),
+        loadSprite: expect.any(Function),
+        parseAmbilight: expect.any(Function),
+        hslToHex: expect.any(Function),
+        utils: expect.objectContaining({
+          sleep: expect.any(Function),
+          randomInt: expect.any(Function),
+          formatNumber: expect.any(Function),
+        }),
+      },
+      {
+        clearAllTimers: expect.any(Function),
+      },
+    );
   });
 
   it('should create NetworkManager with mqtt broker', async () => {

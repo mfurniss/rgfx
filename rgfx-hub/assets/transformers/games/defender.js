@@ -1,4 +1,3 @@
-import { sleep, formatNumber, randomInt } from '../utils/index.js';
 import {
   MATRIX_DRIVERS,
   NAMED_DRIVERS,
@@ -11,8 +10,9 @@ let scoreHue = 0;
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, hslToHex },
+  { broadcast, hslToHex, utils },
 ) {
+  const { sleep, formatNumber, randomInt } = utils;
   if (subject === 'init') {
     broadcast({
       effect: 'sparkle',
