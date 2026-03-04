@@ -1,8 +1,6 @@
 name: Release
 
 on:
-  push:
-    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
     inputs:
       version:
@@ -18,7 +16,6 @@ permissions:
 jobs:
   prepare:
     name: Prepare Release
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
@@ -88,13 +85,13 @@ jobs:
   build-driver:
     name: Build Driver Firmware
     needs: [prepare]
-    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.sha || github.ref }}
+          ref: ${{ needs.prepare.outputs.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -138,13 +135,13 @@ jobs:
   build-hub-macos:
     name: Build Hub (macOS)
     needs: [prepare, build-driver]
-    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') && needs.build-driver.result == 'success' }}
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.build-driver.result == 'success' }}
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.sha || github.ref }}
+          ref: ${{ needs.prepare.outputs.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -170,7 +167,7 @@ jobs:
 
       - name: Rename installer
         run: |
-          TAG="${{ needs.prepare.outputs.tag || github.ref_name }}"
+          TAG="${{ needs.prepare.outputs.tag }}"
           VERSION="${TAG#v}"
           ARCH=$(uname -m)
           DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
@@ -187,13 +184,13 @@ jobs:
   build-hub-windows:
     name: Build Hub (Windows)
     needs: [prepare, build-driver]
-    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') && needs.build-driver.result == 'success' }}
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.build-driver.result == 'success' }}
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.sha || github.ref }}
+          ref: ${{ needs.prepare.outputs.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -221,7 +218,6 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ needs.prepare.outputs.tag }}"
-          if (-not $tag) { $tag = "${{ github.ref_name }}" }
           $version = $tag.TrimStart("v")
           $exe = Get-ChildItem -Path "rgfx-hub/out/make" -Filter "*.exe" -Recurse | Select-Object -First 1
           $dest = "rgfx-${version}-windows-x64.exe"
@@ -237,7 +233,7 @@ jobs:
   deploy-pages:
     name: Deploy Pages
     needs: [prepare]
-    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -246,7 +242,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.sha || github.ref }}
+          ref: ${{ needs.prepare.outputs.sha }}
 
       - name: Assemble site
         run: |
@@ -269,13 +265,13 @@ jobs:
   create-release:
     name: Create Release
     needs: [prepare, build-hub-macos, build-hub-windows]
-    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') && needs.build-hub-macos.result == 'success' && needs.build-hub-windows.result == 'success' }}
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.build-hub-macos.result == 'success' && needs.build-hub-windows.result == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.sha || github.ref }}
+          ref: ${{ needs.prepare.outputs.sha }}
           fetch-depth: 0
 
       - name: Download macOS installer
@@ -293,7 +289,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.prepare.outputs.tag || github.ref_name }}
-          name: "RGFX ${{ needs.prepare.outputs.tag || github.ref_name }}"
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: "RGFX ${{ needs.prepare.outputs.tag }}"
           generate_release_notes: true
           files: artifacts/*
