@@ -82,6 +82,7 @@ describe('TransformerEngine', () => {
       loadSprite: vi.fn(),
       parseAmbilight: vi.fn().mockReturnValue({ colors: [], orientation: 'horizontal' }),
       hslToHex: vi.fn().mockReturnValue('#FF0000'),
+      utils: {} as any,
     };
 
     engine = new TransformerEngine(mockContext);

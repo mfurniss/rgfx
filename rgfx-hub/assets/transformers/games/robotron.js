@@ -1,49 +1,44 @@
-import {
-  randomInt,
-  randomElement,
-  sleep,
-  formatNumber,
-  pick,
-  exclusive,
-} from '../utils/index.js';
 import { ALL_DRIVERS, MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
 
-function randomDrivers(n = 2) {
-  return pick(ALL_DRIVERS, n);
-}
-
-const flashHumanProgramming = exclusive(
-  async (cancelled, broadcast, hslToHex) => {
-    let h = randomInt(359);
-    const colors = [
-      ...Array.from({ length: 15 }, () => {
-        const color = hslToHex(h, 100, 50);
-        h = (h + randomInt(80, 280)) % 360;
-        return color;
-      }),
-      '#000000',
-    ];
-    for (const color of colors) {
-      if (cancelled()) break;
-      broadcast({
-        effect: 'background',
-        props: {
-          gradient: {
-            colors: [color],
-            orientation: 'horizontal',
-          },
-          fadeDuration: 0,
-        },
-      });
-      await sleep(70);
-    }
-  },
-);
+let flashHumanProgramming;
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, hslToHex },
+  { broadcast, hslToHex, utils },
 ) {
+  const { randomInt, randomElement, sleep, formatNumber, pick, exclusive } = utils;
+
+  function randomDrivers(n = 2) {
+    return pick(ALL_DRIVERS, n);
+  }
+
+  flashHumanProgramming ??= exclusive(
+    async (cancelled, bcast, hslFn) => {
+      let h = randomInt(359);
+      const colors = [
+        ...Array.from({ length: 15 }, () => {
+          const color = hslFn(h, 100, 50);
+          h = (h + randomInt(80, 280)) % 360;
+          return color;
+        }),
+        '#000000',
+      ];
+      for (const color of colors) {
+        if (cancelled()) break;
+        bcast({
+          effect: 'background',
+          props: {
+            gradient: {
+              colors: [color],
+              orientation: 'horizontal',
+            },
+            fadeDuration: 0,
+          },
+        });
+        await sleep(70);
+      }
+    },
+  );
   // Let init events pass through to subject handlers (for world record fetch)
   if (subject === 'init') {
     return false;

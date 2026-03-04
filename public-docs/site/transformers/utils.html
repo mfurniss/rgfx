@@ -1521,10 +1521,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#import" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Import
+        Usage
       
     </span>
   </a>
@@ -1581,6 +1581,17 @@
     <span class="md-ellipsis">
       
         hslToRgb
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pick
       
     </span>
   </a>
@@ -1653,6 +1664,17 @@
     <span class="md-ellipsis">
       
         throttleLatest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exclusive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exclusive
       
     </span>
   </a>
@@ -1829,10 +1851,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#import" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Import
+        Usage
       
     </span>
   </a>
@@ -1889,6 +1911,17 @@
     <span class="md-ellipsis">
       
         hslToRgb
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pick
       
     </span>
   </a>
@@ -1968,6 +2001,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#exclusive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exclusive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#clearalltimers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2029,15 +2073,36 @@
 
 
 <h1 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">¶</a></h1>
-<p>Helper functions available to all transformers.</p>
-<p><strong>Location:</strong> <code>transformers/utils/</code> directory in your <a href="../getting-started/hub-setup.html#config-directory">config directory</a>, with a barrel export via <code>utils/index.js</code></p>
-<h2 id="import">Import<a class="headerlink" href="#import" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">scaleLinear</span><span class="p">,</span><span class="w"> </span><span class="nx">randomInt</span><span class="p">,</span><span class="w"> </span><span class="nx">randomElement</span><span class="p">,</span><span class="w"> </span><span class="nx">hslToRgb</span><span class="p">,</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedTimeout</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedInterval</span><span class="p">,</span><span class="w"> </span><span class="nx">debounce</span><span class="p">,</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="p">,</span><span class="w"> </span><span class="nx">formatNumber</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/index.js'</span><span class="p">;</span>
+<p>Helper functions available to all transformers via the <code>utils</code> object on the <a href="index.html#context-object">transformer context</a>.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
+<p>Destructure the functions you need from <code>utils</code> in your transform function:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">utils</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">randomInt</span><span class="p">,</span><span class="w"> </span><span class="nx">formatNumber</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'player'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'score'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">formatNumber</span><span class="p">(</span><span class="nx">payload</span><span class="p">),</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">5000</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="p">});</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
 </code></pre></div>
-<p>Or import from individual modules:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">scaleLinear</span><span class="p">,</span><span class="w"> </span><span class="nx">randomInt</span><span class="p">,</span><span class="w"> </span><span class="nx">randomElement</span><span class="p">,</span><span class="w"> </span><span class="nx">hslToRgb</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/math.js'</span><span class="p">;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedTimeout</span><span class="p">,</span><span class="w"> </span><span class="nx">trackedInterval</span><span class="p">,</span><span class="w"> </span><span class="nx">debounce</span><span class="p">,</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/async.js'</span><span class="p">;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">formatNumber</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../utils/format.js'</span><span class="p">;</span>
+<p>For functions needed at module level (e.g., <code>debounce</code>, <code>throttleLatest</code>, <code>exclusive</code>), use lazy initialization with <code>??=</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">let</span><span class="w"> </span><span class="nx">throttledScore</span><span class="p">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">utils</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">throttledScore</span><span class="w"> </span><span class="o">??=</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="p">((</span><span class="nx">score</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">score</span><span class="p">,</span><span class="w"> </span><span class="nx">reset</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="mf">100</span><span class="p">);</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'player'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'score'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nx">throttledScore</span><span class="p">(</span><span class="nx">payload</span><span class="p">);</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="math-functions">Math Functions<a class="headerlink" href="#math-functions" title="Permanent link">¶</a></h2>
 <h3 id="scalelinear">scaleLinear<a class="headerlink" href="#scalelinear" title="Permanent link">¶</a></h3>
@@ -2063,62 +2128,88 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">hslToRgb</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span><span class="w">    </span><span class="c1">// returns "#FF0000"</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">hslToRgb</span><span class="p">(</span><span class="mf">120</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "#00FF00"</span>
 </code></pre></div>
+<h3 id="pick">pick<a class="headerlink" href="#pick" title="Permanent link">¶</a></h3>
+<p>Pick <code>count</code> random elements from an array (without duplicates).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">pick</span><span class="p">([</span><span class="s1">'a'</span><span class="p">,</span><span class="w"> </span><span class="s1">'b'</span><span class="p">,</span><span class="w"> </span><span class="s1">'c'</span><span class="p">,</span><span class="w"> </span><span class="s1">'d'</span><span class="p">,</span><span class="w"> </span><span class="s1">'e'</span><span class="p">],</span><span class="w"> </span><span class="mf">3</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns 3 random elements</span>
+</code></pre></div>
 <h2 id="async-functions">Async Functions<a class="headerlink" href="#async-functions" title="Permanent link">¶</a></h2>
 <p>Always use these tracked functions instead of native <code>setTimeout</code> and <code>setInterval</code>. Tracked timers are automatically cancelled when the game exits, preventing stale callbacks from firing after a game change or reset.</p>
 <h3 id="sleep">sleep<a class="headerlink" href="#sleep" title="Permanent link">¶</a></h3>
 <p>Pause execution for a specified duration.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">await</span><span class="w"> </span><span class="nx">sleep</span><span class="p">(</span><span class="mf">100</span><span class="p">);</span><span class="w">  </span><span class="c1">// wait 100ms</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">await</span><span class="w"> </span><span class="nx">sleep</span><span class="p">(</span><span class="mf">100</span><span class="p">);</span><span class="w">  </span><span class="c1">// wait 100ms</span>
 </code></pre></div>
 <p>Useful for sequencing effects or adding delays between broadcasts.</p>
 <h3 id="trackedtimeout">trackedTimeout<a class="headerlink" href="#trackedtimeout" title="Permanent link">¶</a></h3>
 <p>Tracked wrapper around <code>setTimeout</code>. Like <code>sleep</code>, the timer is tracked and auto-cancelled when the game exits.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nx">trackedTimeout</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nx">bonusLatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">3000</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nx">trackedTimeout</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nx">bonusLatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">3000</span><span class="p">);</span>
 </code></pre></div>
 <p>Useful for resetting flags or latches after a delay without blocking the transform function.</p>
 <h3 id="trackedinterval">trackedInterval<a class="headerlink" href="#trackedinterval" title="Permanent link">¶</a></h3>
 <p>Tracked wrapper around <code>setInterval</code>. The interval is tracked and auto-cancelled when the game exits.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nx">trackedInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nx">pulse</span><span class="p">();</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">trackedInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">pulse</span><span class="p">();</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
 </code></pre></div>
 <p>Useful for repeating actions on a fixed schedule (e.g., periodic ambient effects).</p>
 <h3 id="debounce">debounce<a class="headerlink" href="#debounce" title="Permanent link">¶</a></h3>
 <p>Create a leading-edge debounced function that fires on the first call then suppresses subsequent calls for a cooldown period. Useful for effects that shouldn't repeat too rapidly (e.g., explosion visuals from rapid enemy kills).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">explode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">debounce</span><span class="p">((</span><span class="nx">color</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'explode'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">500</span><span class="p">);</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'red'</span><span class="p">);</span><span class="w">   </span><span class="c1">// fires</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'blue'</span><span class="p">);</span><span class="w">  </span><span class="c1">// suppressed (within 500ms)</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1">// After 500ms...</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'green'</span><span class="p">);</span><span class="w"> </span><span class="c1">// fires</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">explode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">debounce</span><span class="p">((</span><span class="nx">color</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nx">broadcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'explode'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="p">},</span><span class="w"> </span><span class="mf">500</span><span class="p">);</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'red'</span><span class="p">);</span><span class="w">   </span><span class="c1">// fires</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'blue'</span><span class="p">);</span><span class="w">  </span><span class="c1">// suppressed (within 500ms)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1">// After 500ms...</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="nx">explode</span><span class="p">(</span><span class="s1">'green'</span><span class="p">);</span><span class="w"> </span><span class="c1">// fires</span>
 </code></pre></div>
 <h3 id="throttlelatest">throttleLatest<a class="headerlink" href="#throttlelatest" title="Permanent link">¶</a></h3>
 <p>Create a leading+trailing throttle that fires immediately on the first call, then during rapid bursts suppresses intermediate calls and fires once more with the latest arguments after the cooldown expires. This guarantees the most recent value is always delivered.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="p">((</span><span class="nx">score</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nx">broadcast</span><span class="p">({</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">score</span><span class="p">,</span><span class="w"> </span><span class="nx">reset</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">5000</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">NAMED_DRIVERS</span><span class="p">.</span><span class="nx">primaryMatrix</span><span class="p">],</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="p">});</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">},</span><span class="w"> </span><span class="mf">100</span><span class="p">);</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">100</span><span class="p">);</span><span class="w">   </span><span class="c1">// fires immediately</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">200</span><span class="p">);</span><span class="w">   </span><span class="c1">// suppressed, schedules deferred</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">300</span><span class="p">);</span><span class="w">   </span><span class="c1">// suppressed, updates deferred args</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="c1">// ~100ms later: fires with 300</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">throttleLatest</span><span class="p">((</span><span class="nx">score</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nx">broadcast</span><span class="p">({</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">score</span><span class="p">,</span><span class="w"> </span><span class="nx">reset</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="o">:</span><span class="w"> </span><span class="mf">5000</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nx">drivers</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">NAMED_DRIVERS</span><span class="p">.</span><span class="nx">primaryMatrix</span><span class="p">],</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="p">});</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="p">},</span><span class="w"> </span><span class="mf">100</span><span class="p">);</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">100</span><span class="p">);</span><span class="w">   </span><span class="c1">// fires immediately</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">200</span><span class="p">);</span><span class="w">   </span><span class="c1">// suppressed, schedules deferred</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="nx">updateScore</span><span class="p">(</span><span class="mf">300</span><span class="p">);</span><span class="w">   </span><span class="c1">// suppressed, updates deferred args</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1">// ~100ms later: fires with 300</span>
 </code></pre></div>
 <p>Ideal for score displays where you want zero latency during normal gameplay but need to consolidate rapid bursts (end-of-level bonuses, rapid coin collection).</p>
+<h3 id="exclusive">exclusive<a class="headerlink" href="#exclusive" title="Permanent link">¶</a></h3>
+<p>Wrap an async function so only the latest invocation runs. If called again while a previous call is still awaiting, the previous call's <code>cancelled()</code> check returns true, allowing it to bail out early.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">let</span><span class="w"> </span><span class="nx">goingInEffect</span><span class="p">;</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">transform</span><span class="p">({</span><span class="w"> </span><span class="nx">subject</span><span class="p">,</span><span class="w"> </span><span class="nx">property</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">broadcast</span><span class="p">,</span><span class="w"> </span><span class="nx">utils</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sleep</span><span class="p">,</span><span class="w"> </span><span class="nx">exclusive</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">;</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="nx">goingInEffect</span><span class="w"> </span><span class="o">??=</span><span class="w"> </span><span class="nx">exclusive</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">cancelled</span><span class="p">,</span><span class="w"> </span><span class="nx">bcast</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="nx">bcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'particle_field'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">enabled</span><span class="o">:</span><span class="w"> </span><span class="s1">'fadeIn'</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">sleep</span><span class="p">(</span><span class="mf">500</span><span class="p">);</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">cancelled</span><span class="p">())</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="nx">bcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'scroll_text'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="s2">"I'm going in"</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">sleep</span><span class="p">(</span><span class="mf">3500</span><span class="p">);</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">cancelled</span><span class="p">())</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="nx">bcast</span><span class="p">({</span><span class="w"> </span><span class="nx">effect</span><span class="o">:</span><span class="w"> </span><span class="s1">'particle_field'</span><span class="p">,</span><span class="w"> </span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">enabled</span><span class="o">:</span><span class="w"> </span><span class="s1">'fadeOut'</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">  </span><span class="p">});</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">subject</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'game'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">property</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'going-in'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">    </span><span class="nx">goingInEffect</span><span class="p">(</span><span class="nx">broadcast</span><span class="p">);</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="p">}</span>
+</code></pre></div>
 <h3 id="clearalltimers">clearAllTimers<a class="headerlink" href="#clearalltimers" title="Permanent link">¶</a></h3>
 <p>Cancel all pending <code>sleep()</code>, <code>trackedTimeout()</code>, and <code>trackedInterval()</code> timers. Called automatically by the transformer engine on game exit — you don't need to call this yourself.</p>
 <h2 id="formatting-functions">Formatting Functions<a class="headerlink" href="#formatting-functions" title="Permanent link">¶</a></h2>
 <h3 id="formatnumber">formatNumber<a class="headerlink" href="#formatnumber" title="Permanent link">¶</a></h3>
 <p>Format a number with locale-appropriate thousands separators.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">12340</span><span class="p">);</span><span class="w">    </span><span class="c1">// returns "12,340"</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="s2">"99850"</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "99,850"</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">1000000</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "1,000,000"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">12340</span><span class="p">);</span><span class="w">    </span><span class="c1">// returns "12,340"</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="s2">"99850"</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "99,850"</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nx">formatNumber</span><span class="p">(</span><span class="mf">1000000</span><span class="p">);</span><span class="w">  </span><span class="c1">// returns "1,000,000"</span>
 </code></pre></div>
 <p>Useful for displaying scores on matrix displays.</p>
 

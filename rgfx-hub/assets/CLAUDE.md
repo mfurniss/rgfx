@@ -46,10 +46,9 @@ MAME event handling utilities:
 - `docs/` - Documentation for MAME integration
 
 ### transformers/
-JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, utils/, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
+JavaScript modules that transform game events into LED effects. Hot-reloaded by `TransformerEngine` — changes to shared modules (global.js, palettes.js) trigger a full reload of all loaded transformers with dependency cache-busting:
 - `default.js` - Default transformer for unmapped events
 - `global.js` - Cross-game shared constants (driver IDs, named drivers, ambilight config)
-- `utils/` - Shared utility modules (index.js barrel with pick() for random array subset selection, math.js with hslToRgb and randomElement, async.js with tracked timers including trackedInterval, leading-edge debounce, throttleLatest, and exclusive() for cancelling overlapping async loops, format.js, world-record.js)
 - `properties/` - Reusable property helper functions
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, ssf2.js, starwars.js, etc.)
@@ -58,7 +57,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
   - smb.js mario-fireball broadcasts dual projectiles on both strips — a bright orange core and a softer trailing glow — for a richer fireball effect.
   - robotron.js uses exclusive() wrapper for human-programming flash effect to cancel overlapping async loops. Entity events (spawn/destroy) are handled under proper entity subject with qualifier routing rather than sfx subject.
   - pacman.js init handler returns false to allow cascade to subject init handler (world record display); ripple effects omit endX/endY when not needed (empty strings fail validation)
-  - starwars.js particle_field density capped at 100 (max allowed by driver validation)
+  - starwars.js uses randomDrivers() (pick 3 from ALL_DRIVERS) to spread explosions across random drivers instead of only matrices. Laser fire blocked during game states 14 and 87. Particle_field density capped at 100 (max allowed by driver validation)
 - `eslint.config.js` - ESLint flat config for transformer JS files (defines globals: setTimeout, Promise)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions

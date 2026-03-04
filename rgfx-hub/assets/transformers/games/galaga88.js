@@ -1,13 +1,4 @@
 import {
-  sleep,
-  formatNumber,
-  randomInt,
-  hslToRgb,
-  throttleLatest,
-  debounce,
-} from '../utils/index.js';
-
-import {
   MATRIX_DRIVERS,
   NAMED_DRIVERS,
   SECONDARY_MATRIX_DRIVERS,
@@ -15,26 +6,7 @@ import {
 
 const EXPLOSION_DRIVERS = [...MATRIX_DRIVERS, NAMED_DRIVERS.frontStrip];
 
-const smallExplosion = debounce((broadcast, color, delta) => {
-  broadcast({
-    effect: 'explode',
-    drivers: EXPLOSION_DRIVERS,
-    props: {
-      color,
-      centerX: 'random',
-      centerY: 'random',
-      particleCount: Math.min(delta, 500),
-      power: 150 + delta / 5,
-      lifespan: 320 + delta,
-      powerSpread: Math.max(30, Math.min(90, Math.round(delta / 3))),
-      particleSize: 4,
-      hueSpread: 50,
-      friction: 3,
-      lifespanSpread: 40,
-    },
-  });
-}, 500);
-
+let smallExplosion;
 let throttledScoreBroadcast;
 
 const STARFIELD_DRIVERS = [
@@ -45,8 +17,30 @@ const STARFIELD_DRIVERS = [
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, log },
+  { broadcast, log, utils },
 ) {
+  const { sleep, formatNumber, randomInt, hslToRgb, throttleLatest, debounce } = utils;
+
+  smallExplosion ??= debounce((bcast, color, delta) => {
+    bcast({
+      effect: 'explode',
+      drivers: EXPLOSION_DRIVERS,
+      props: {
+        color,
+        centerX: 'random',
+        centerY: 'random',
+        particleCount: Math.min(delta, 500),
+        power: 150 + delta / 5,
+        lifespan: 320 + delta,
+        powerSpread: Math.max(30, Math.min(90, Math.round(delta / 3))),
+        particleSize: 4,
+        hueSpread: 50,
+        friction: 3,
+        lifespanSpread: 40,
+      },
+    });
+  }, 500);
+
   if (!throttledScoreBroadcast) {
     throttledScoreBroadcast = throttleLatest((score) => {
       broadcast({

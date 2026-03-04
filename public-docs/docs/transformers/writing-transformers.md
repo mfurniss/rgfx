@@ -80,19 +80,17 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     Some games emit score events very rapidly during bonus phases or end-of-level counting. Use [`throttleLatest()`](utils.md#throttlelatest) to consolidate these bursts — the first event fires immediately (zero latency during normal play) and rapid follow-ups are collapsed into a single broadcast of the final value:
 
     ```javascript
-    import { throttleLatest } from '../utils/index.js';
-
     let updateScore;
 
-    export async function transform({ subject, property, payload }, { broadcast }) {
-      if (!updateScore) {
-        updateScore = throttleLatest((score) => {
-          broadcast({
-            effect: 'text',
-            props: { text: score, gradient: ['#FFFF00'], duration: 5000, reset: true },
-          });
-        }, 100);
-      }
+    export async function transform({ subject, property, payload }, { broadcast, utils }) {
+      const { throttleLatest } = utils;
+
+      updateScore ??= throttleLatest((score) => {
+        broadcast({
+          effect: 'text',
+          props: { text: score, gradient: ['#FFFF00'], duration: 5000, reset: true },
+        });
+      }, 100);
 
       if (subject === 'player' && property === 'score') {
         updateScore(payload);
@@ -146,9 +144,9 @@ Use multiple wildcards to hit multiple random drivers: `drivers: ['*', '*']`.
 Use `await` with `sleep()` to create multi-step effect sequences:
 
 ```javascript
-import { sleep } from '../utils/index.js';
-
 // In your transform function:
+const { sleep } = utils;
+
 if (subject === 'level' && property === 'complete') {
   await sleep(2000);  // Wait for the game's own animation
 
@@ -176,11 +174,11 @@ if (subject === 'level' && property === 'complete') {
 For delayed actions that don't need to block the function (e.g., resetting a flag after a cooldown), use [`trackedTimeout()`](utils.md#trackedtimeout) instead of `sleep()`:
 
 ```javascript
-import { trackedTimeout } from '../utils/index.js';
-
 let bonusLatch = false;
 
-// Later, inside your transform function:
+// Inside your transform function:
+const { trackedTimeout } = utils;
+
 bonusLatch = true;
 trackedTimeout(() => {
   bonusLatch = false;
@@ -188,7 +186,7 @@ trackedTimeout(() => {
 ```
 
 !!! warning "Do not use setTimeout or setInterval"
-    Always use `sleep()`, `trackedTimeout()`, and `trackedInterval()` from [utils](utils.md) instead of the native `setTimeout` and `setInterval`. The utils versions are tracked by the transformer engine and automatically cancelled when the game exits. Native timers would continue firing after the game ends, causing stale effects on your LEDs.
+    Always use `sleep()`, `trackedTimeout()`, and `trackedInterval()` from the [`utils`](utils.md) context object instead of the native `setTimeout` and `setInterval`. The utils versions are tracked by the transformer engine and automatically cancelled when the game exits. Native timers would continue firing after the game ends, causing stale effects on your LEDs.
 
 ## Step 6: Handle Initialization
 
