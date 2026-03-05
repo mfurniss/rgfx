@@ -1,29 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, mockDeep, type MockProxy, type DeepMockProxy } from 'vitest-mock-extended';
 import { subscribeDriverStatus } from '../driver-status';
-import type { MqttBroker } from '@/network';
 import type { DriverRegistry } from '@/driver-registry';
 import type { SystemMonitor } from '@/system-monitor';
 import type { BrowserWindow } from 'electron';
 import { Driver, type SystemStatus } from '@/types';
-import { createMockDriver } from '@/__tests__/factories';
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
+import { createMockDriver, createMqttSubscriptionMock } from '@/__tests__/factories';
 
 describe('subscribeDriverStatus', () => {
-  let mockMqtt: MockProxy<MqttBroker>;
+  let mqttMock: ReturnType<typeof createMqttSubscriptionMock>;
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockSystemMonitor: MockProxy<SystemMonitor>;
   let mockMainWindow: DeepMockProxy<BrowserWindow>;
-  let subscribedCallback: (topic: string, payload: string) => void;
   let mockDriver: Driver;
 
   beforeEach(() => {
@@ -31,12 +19,7 @@ describe('subscribeDriverStatus', () => {
 
     mockDriver = createMockDriver();
 
-    mockMqtt = mock<MqttBroker>();
-    mockMqtt.subscribe.mockImplementation(
-      (topic: string, callback: (topic: string, payload: string) => void) => {
-        subscribedCallback = callback;
-      },
-    );
+    mqttMock = createMqttSubscriptionMock();
 
     mockDriverRegistry = mock<DriverRegistry>();
     mockDriverRegistry.getDriverByMac.mockReturnValue(mockDriver);
@@ -70,13 +53,13 @@ describe('subscribeDriverStatus', () => {
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic pattern', () => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
       });
 
-      expect(mockMqtt.subscribe).toHaveBeenCalledWith(
+      expect(mqttMock.mockMqtt.subscribe).toHaveBeenCalledWith(
         'rgfx/driver/+/status',
         expect.any(Function),
       );
@@ -86,7 +69,7 @@ describe('subscribeDriverStatus', () => {
   describe('topic parsing', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -94,19 +77,19 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should extract MAC address from topic and look up driver', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriverRegistry.getDriverByMac).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
     });
 
     it('should handle invalid topic format gracefully', () => {
-      subscribedCallback('rgfx/invalid/topic', 'offline');
+      mqttMock.triggerMessage('rgfx/invalid/topic', 'offline');
 
       expect(mockDriverRegistry.getDriverByMac).not.toHaveBeenCalled();
     });
 
     it('should handle topic missing status suffix', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF', 'offline');
 
       expect(mockDriverRegistry.getDriverByMac).not.toHaveBeenCalled();
     });
@@ -115,7 +98,7 @@ describe('subscribeDriverStatus', () => {
   describe('offline status handling (LWT)', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -126,7 +109,7 @@ describe('subscribeDriverStatus', () => {
       mockDriver.state = 'connected';
       mockDriver.ip = '192.168.1.100';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.ip).toBeUndefined();
     });
@@ -134,7 +117,7 @@ describe('subscribeDriverStatus', () => {
     it('should send driver:disconnected IPC message when driver goes offline', () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         'driver:disconnected',
@@ -147,7 +130,7 @@ describe('subscribeDriverStatus', () => {
     it('should send system:status IPC message when driver goes offline', async () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       // Wait for async sendSystemStatus() to complete
       await vi.waitFor(() => {
@@ -163,7 +146,7 @@ describe('subscribeDriverStatus', () => {
     it('should call getFullStatus when driver goes offline', () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockSystemMonitor.getFullStatus).toHaveBeenCalled();
     });
@@ -171,7 +154,7 @@ describe('subscribeDriverStatus', () => {
     it('should NOT process offline if driver was already disconnected', () => {
       mockDriver.state = 'disconnected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -180,7 +163,7 @@ describe('subscribeDriverStatus', () => {
   describe('online status handling', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -188,7 +171,7 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should NOT send IPC messages for online status (handled by telemetry)', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'online');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'online');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -196,7 +179,7 @@ describe('subscribeDriverStatus', () => {
     it('should NOT modify driver state for online status', () => {
       const originalIp = mockDriver.ip;
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'online');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'online');
 
       expect(mockDriver.ip).toBe(originalIp);
     });
@@ -205,7 +188,7 @@ describe('subscribeDriverStatus', () => {
   describe('unknown driver handling', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -216,13 +199,13 @@ describe('subscribeDriverStatus', () => {
       mockDriverRegistry.getDriverByMac.mockReturnValue(undefined);
 
       expect(() => {
-        subscribedCallback('rgfx/driver/FF:FF:FF:FF:FF:FF/status', 'offline');
+        mqttMock.triggerMessage('rgfx/driver/FF:FF:FF:FF:FF:FF/status', 'offline');
       }).not.toThrow();
     });
 
     it('should not send IPC messages for unknown driver', () => {
       mockDriverRegistry.getDriverByMac.mockReturnValue(undefined);
-      subscribedCallback('rgfx/driver/FF:FF:FF:FF:FF:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/FF:FF:FF:FF:FF:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -231,7 +214,7 @@ describe('subscribeDriverStatus', () => {
   describe('window availability', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -242,20 +225,20 @@ describe('subscribeDriverStatus', () => {
       mockDriver.state = 'connected';
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it('should not send IPC message if window is null', () => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => null,
         systemMonitor: mockSystemMonitor,
       });
 
-      const callback = mockMqtt.subscribe.mock.calls[1][1] as (
+      const callback = mqttMock.mockMqtt.subscribe.mock.calls[1][1] as (
         topic: string,
         payload: string,
       ) => void;
@@ -269,7 +252,7 @@ describe('subscribeDriverStatus', () => {
   describe('unexpected payload values', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -277,19 +260,19 @@ describe('subscribeDriverStatus', () => {
     });
 
     it('should ignore unexpected payload values', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'unknown');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'unknown');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it('should ignore empty payload', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', '');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', '');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it('should handle whitespace payload', () => {
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', '  ');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', '  ');
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -298,7 +281,7 @@ describe('subscribeDriverStatus', () => {
   describe('state preservation', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -309,7 +292,7 @@ describe('subscribeDriverStatus', () => {
       const originalId = mockDriver.id;
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.id).toBe(originalId);
     });
@@ -318,7 +301,7 @@ describe('subscribeDriverStatus', () => {
       const originalMac = mockDriver.mac;
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.mac).toBe(originalMac);
     });
@@ -327,7 +310,7 @@ describe('subscribeDriverStatus', () => {
       const originalTelemetry = { ...mockDriver.telemetry };
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.telemetry).toEqual(originalTelemetry);
     });
@@ -336,7 +319,7 @@ describe('subscribeDriverStatus', () => {
   describe('OTA state handling', () => {
     beforeEach(() => {
       subscribeDriverStatus({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverRegistry: mockDriverRegistry,
         getMainWindow: () => mockMainWindow,
         systemMonitor: mockSystemMonitor,
@@ -348,7 +331,7 @@ describe('subscribeDriverStatus', () => {
       mockDriver.state = 'updating';
       mockDriver.ip = '192.168.1.100';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       // Driver should remain in updating state during OTA
       expect(mockDriver.state).toBe('updating');
@@ -359,7 +342,7 @@ describe('subscribeDriverStatus', () => {
     it('should process offline normally when driver state is connected', () => {
       mockDriver.state = 'connected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       expect(mockDriver.state).toBe('disconnected');
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
@@ -371,7 +354,7 @@ describe('subscribeDriverStatus', () => {
     it('should not process offline if driver already disconnected', () => {
       mockDriver.state = 'disconnected';
 
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/status', 'offline');
 
       // Should not send notification since driver was already disconnected
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();

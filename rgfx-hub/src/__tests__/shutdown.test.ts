@@ -5,15 +5,6 @@ import type { DriverRegistry } from '../driver-registry';
 import type { MqttBroker } from '../network';
 import type { Driver } from '../types';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 describe('clearEffectsOnAllDrivers', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockMqtt: MockProxy<MqttBroker>;

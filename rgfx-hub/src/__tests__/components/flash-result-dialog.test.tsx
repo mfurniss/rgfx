@@ -1,12 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import FlashResultDialog from '@/renderer/components/firmware/flash-result-dialog';
 
 describe('FlashResultDialog', () => {
-  afterEach(() => {
-    cleanup();
-  });
   it('renders success state correctly', () => {
     const onClose = vi.fn();
     render(

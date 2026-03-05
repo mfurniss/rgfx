@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { useForm } from 'react-hook-form';
 import { NumberField } from '@/renderer/components/common/number-field';
 
@@ -9,7 +9,6 @@ interface TestFormValues {
   brightness: number | null;
   voltage: number | null;
 }
-
 
 // Standalone test component with its own form
 const TestNumberField: React.FC<{
@@ -39,10 +38,6 @@ const TestNumberField: React.FC<{
 };
 
 describe('NumberField', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   it('renders with label', () => {
     render(<TestNumberField label="GPIO Pin" />);
 

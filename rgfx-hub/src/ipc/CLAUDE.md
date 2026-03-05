@@ -364,6 +364,14 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 
 ## Tests
 
+### Test Pattern
+
+IPC handler tests use `setupIpcHandlerCapture()` from `@/__tests__/helpers/ipc-handler.helper`. This helper captures handlers registered via `ipcMain.handle()` and provides:
+- `getHandler(channel)` — retrieves the registered handler function
+- `assertChannel(channel)` — asserts a handler was registered for the channel
+
+Files needing additional electron mocks (`app`, `shell`, `dialog`) provide their own `vi.mock('electron')` which overrides the global one.
+
 ### `firmware-assets.test.ts`
 
 **Purpose:** Integration test that validates firmware binaries referenced in `manifest.json` actually exist on disk with correct sizes and SHA256 checksums. Prevents broken firmware assets from being committed. Uses real file I/O — no mocks.

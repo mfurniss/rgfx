@@ -3,6 +3,7 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerTriggerEffectHandler } from '../trigger-effect-handler';
 import type { UdpClient, EffectPayload } from '@/types/transformer-types';
 import type { DriverRegistry } from '@/driver-registry';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 const { mockLog, mockEventBus } = vi.hoisted(() => ({
   mockLog: {
@@ -34,6 +35,7 @@ describe('registerTriggerEffectHandler', () => {
   let mockUdpClient: MockProxy<UdpClient>;
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let registeredHandler: (event: unknown, payload: EffectPayload) => void;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -41,22 +43,18 @@ describe('registerTriggerEffectHandler', () => {
     mockUdpClient = mock<UdpClient>();
     mockDriverRegistry = mock<DriverRegistry>();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (event: unknown, payload: EffectPayload) => void) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerTriggerEffectHandler({
       udpClient: mockUdpClient,
       driverRegistry: mockDriverRegistry,
     });
+
+    registeredHandler = ipc.getHandler('effect:trigger') as typeof registeredHandler;
   });
 
-  it('should register handler for effect:trigger channel', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('effect:trigger', expect.any(Function));
+  it('should register handler for effect:trigger channel', () => {
+    ipc.assertChannel('effect:trigger');
   });
 
   it('should pass validated payload with schema defaults to udpClient.broadcast', () => {

@@ -1,13 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import ConfirmFlashDialog from '@/renderer/components/firmware/confirm-flash-dialog';
 
 describe('ConfirmFlashDialog', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   it('renders USB warning content when open', () => {
     const onConfirm = vi.fn();
     const onCancel = vi.fn();

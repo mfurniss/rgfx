@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ClearAllEffectsButton } from '../clear-all-effects-button';
 import { useDriverStore } from '@/renderer/store/driver-store';
@@ -24,7 +24,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  cleanup();
   useDriverStore.setState({ drivers: [] });
 });
 

@@ -4,27 +4,14 @@ import { registerUpdateDriverConfigHandler } from '../update-driver-config-handl
 import type { DriverRegistry } from '@/driver-registry';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerUpdateDriverConfigHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -36,23 +23,19 @@ describe('registerUpdateDriverConfigHandler', () => {
 
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (event: unknown, driverId: string) => Promise<void>) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerUpdateDriverConfigHandler({
       driverRegistry: mockDriverRegistry,
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
+
+    registeredHandler = ipc.getHandler('driver:update-config') as typeof registeredHandler;
   });
 
   describe('handler registration', () => {
-    it('should register handler for driver:update-config channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('driver:update-config', expect.any(Function));
+    it('should register handler for driver:update-config channel', () => {
+      ipc.assertChannel('driver:update-config');
     });
   });
 

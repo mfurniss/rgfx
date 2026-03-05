@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { Dialog, IconButton } from '@mui/material';
 import { Warning as WarningIcon, Error as ErrorIcon, Close as CloseIcon } from '@mui/icons-material';
 import { DialogTitleWithIcon } from '../dialog-title-with-icon';
@@ -10,10 +10,6 @@ const renderWithDialog = (ui: React.ReactElement) => {
 };
 
 describe('DialogTitleWithIcon', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('basic rendering', () => {
     it('renders the title text', () => {
       renderWithDialog(

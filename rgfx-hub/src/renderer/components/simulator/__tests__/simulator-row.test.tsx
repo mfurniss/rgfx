@@ -3,7 +3,6 @@ import {
   render,
   screen,
   fireEvent,
-  cleanup,
   act,
 } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -34,7 +33,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  cleanup();
   vi.useRealTimers();
   useUiStore.setState({ simulatorRows: defaultRows() });
 });

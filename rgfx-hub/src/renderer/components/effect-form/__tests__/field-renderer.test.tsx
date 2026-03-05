@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { useForm, FormProvider } from 'react-hook-form';
 import { FieldRenderer } from '../field-renderer';
 import type { FieldMetadata } from '@/renderer/utils/zod-introspection';
@@ -39,10 +39,6 @@ function TestWrapper({ field, defaultValue }: TestWrapperProps) {
 }
 
 describe('FieldRenderer', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('color field type', () => {
     const colorField: FieldMetadata = {
       name: 'testField',

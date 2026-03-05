@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DeleteDriverButton from '../delete-driver-button';
 import { createMockDriver } from '@/__tests__/factories';
 
@@ -16,10 +16,6 @@ beforeEach(() => {
   (window as unknown as { rgfx: { deleteDriver: typeof mockDeleteDriver } }).rgfx = {
     deleteDriver: mockDeleteDriver,
   };
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 describe('DeleteDriverButton', () => {

@@ -10,3 +10,4 @@ export {
   createMockIpcMainHandle,
   createMockElectronApp,
 } from './electron.factory';
+export { createMqttSubscriptionMock } from './mqtt.factory';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor, within } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import DriverConfigPage from '@/renderer/pages/driver-config-page';
 import { Driver } from '@/types';
@@ -53,10 +53,6 @@ beforeEach(() => {
       system: null, events: null, drivers: [],
     }),
   });
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 const renderWithRouter = (mac: string) => {

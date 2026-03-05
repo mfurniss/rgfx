@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { openFile, registerOpenFileHandler } from '../open-file-handler';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -12,15 +13,6 @@ vi.mock('electron', () => ({
 
 vi.mock('fs', () => ({
   existsSync: vi.fn(),
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
 }));
 
 describe('openFile', () => {
@@ -86,24 +78,21 @@ describe('openFile', () => {
 
 describe('registerOpenFileHandler', () => {
   let registeredHandler: (event: unknown, filePath: string) => Promise<void>;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (event: unknown, filePath: string) => Promise<void>) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerOpenFileHandler();
+
+    registeredHandler = ipc.getHandler('file:open') as typeof registeredHandler;
   });
 
   describe('handler registration', () => {
-    it('should register handler for file:open channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('file:open', expect.any(Function));
+    it('should register handler for file:open channel', () => {
+      ipc.assertChannel('file:open');
     });
   });
 

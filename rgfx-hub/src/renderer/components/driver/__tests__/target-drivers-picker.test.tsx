@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { TargetDriversPicker } from '../target-drivers-picker';
 import { createMockDriver } from '@/__tests__/factories';
 
@@ -15,10 +15,6 @@ const createMockDrivers = () => {
 };
 
 describe('TargetDriversPicker', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('rendering', () => {
     it('should render button with driver count', () => {
       const drivers = createMockDrivers();

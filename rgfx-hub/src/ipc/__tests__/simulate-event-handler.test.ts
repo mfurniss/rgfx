@@ -1,46 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { registerSimulateEventHandler } from '../simulate-event-handler';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerSimulateEventHandler', () => {
   let mockOnEventProcessed: ReturnType<typeof vi.fn>;
   let registeredHandler: (event: unknown, eventLine: string) => void;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     mockOnEventProcessed = vi.fn();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: typeof registeredHandler) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerSimulateEventHandler({
       onEventProcessed: mockOnEventProcessed,
     });
+
+    registeredHandler = ipc.getHandler('event:simulate') as typeof registeredHandler;
   });
 
   describe('handler registration', () => {
-    it('registers handler for event:simulate channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('event:simulate', expect.any(Function));
+    it('registers handler for event:simulate channel', () => {
+      ipc.assertChannel('event:simulate');
     });
   });
 

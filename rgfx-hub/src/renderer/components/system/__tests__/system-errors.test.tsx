@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SystemErrors } from '../system-errors';
 import type { SystemError } from '@/types';
 
@@ -15,11 +15,6 @@ describe('SystemErrors', () => {
   beforeEach(() => {
     // Reset any state between tests
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('empty state', () => {
     it('shows success alert when no errors', () => {
       render(<SystemErrors errors={[]} />);

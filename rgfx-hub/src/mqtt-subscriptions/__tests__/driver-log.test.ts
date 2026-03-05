@@ -1,32 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { subscribeDriverLog } from '../driver-log';
-import type { MqttBroker } from '@/network';
 import type { DriverLogPersistence } from '@/driver-log-persistence';
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { createMqttSubscriptionMock } from '@/__tests__/factories';
 
 describe('subscribeDriverLog', () => {
-  let mockMqtt: MockProxy<MqttBroker>;
+  let mqttMock: ReturnType<typeof createMqttSubscriptionMock>;
   let mockDriverLogPersistence: MockProxy<DriverLogPersistence>;
-  let subscribedCallback: (topic: string, payload: string) => void;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockMqtt = mock<MqttBroker>();
-    mockMqtt.subscribe.mockImplementation(
-      (topic: string, callback: (topic: string, payload: string) => void) => {
-        subscribedCallback = callback;
-      },
-    );
+    mqttMock = createMqttSubscriptionMock();
 
     mockDriverLogPersistence = mock<DriverLogPersistence>();
   });
@@ -34,11 +19,11 @@ describe('subscribeDriverLog', () => {
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic pattern', () => {
       subscribeDriverLog({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverLogPersistence: mockDriverLogPersistence,
       });
 
-      expect(mockMqtt.subscribe).toHaveBeenCalledWith(
+      expect(mqttMock.mockMqtt.subscribe).toHaveBeenCalledWith(
         'rgfx/driver/+/log',
         expect.any(Function),
       );
@@ -48,7 +33,7 @@ describe('subscribeDriverLog', () => {
   describe('topic parsing', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverLogPersistence: mockDriverLogPersistence,
       });
     });
@@ -59,7 +44,7 @@ describe('subscribeDriverLog', () => {
         message: 'test',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -75,7 +60,7 @@ describe('subscribeDriverLog', () => {
         message: 'test',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/AA:BB:CC:DD:EE:FF/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/AA:BB:CC:DD:EE:FF/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'AA:BB:CC:DD:EE:FF',
@@ -91,7 +76,7 @@ describe('subscribeDriverLog', () => {
         message: 'test',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/invalid/topic', payload);
+      mqttMock.triggerMessage('rgfx/invalid/topic', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -102,7 +87,7 @@ describe('subscribeDriverLog', () => {
         message: 'test',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -111,7 +96,7 @@ describe('subscribeDriverLog', () => {
   describe('log message validation', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverLogPersistence: mockDriverLogPersistence,
       });
     });
@@ -122,7 +107,7 @@ describe('subscribeDriverLog', () => {
         message: 'Test info message',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -138,7 +123,7 @@ describe('subscribeDriverLog', () => {
         message: 'Test error message',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -154,7 +139,7 @@ describe('subscribeDriverLog', () => {
         message: 'Test message',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -164,7 +149,7 @@ describe('subscribeDriverLog', () => {
         message: 'Test message',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -174,7 +159,7 @@ describe('subscribeDriverLog', () => {
         level: 'info',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -184,7 +169,7 @@ describe('subscribeDriverLog', () => {
         level: 'info',
         message: 'Test message',
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -195,7 +180,7 @@ describe('subscribeDriverLog', () => {
         message: 12345,
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -206,7 +191,7 @@ describe('subscribeDriverLog', () => {
         message: 'Test message',
         timestamp: 'invalid',
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -215,14 +200,14 @@ describe('subscribeDriverLog', () => {
   describe('error handling', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverLogPersistence: mockDriverLogPersistence,
       });
     });
 
     it('should handle invalid JSON gracefully', () => {
       expect(() => {
-        subscribedCallback('rgfx/driver/rgfx-driver-0001/log', 'not-json');
+        mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', 'not-json');
       }).not.toThrow();
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
@@ -230,20 +215,20 @@ describe('subscribeDriverLog', () => {
 
     it('should handle empty payload gracefully', () => {
       expect(() => {
-        subscribedCallback('rgfx/driver/rgfx-driver-0001/log', '');
+        mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', '');
       }).not.toThrow();
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
 
     it('should handle empty object payload', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', '{}');
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', '{}');
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
 
     it('should handle array payload', () => {
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', '[]');
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', '[]');
 
       expect(mockDriverLogPersistence.appendLog).not.toHaveBeenCalled();
     });
@@ -255,7 +240,7 @@ describe('subscribeDriverLog', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00Z'));
 
       subscribeDriverLog({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverLogPersistence: mockDriverLogPersistence,
       });
     });
@@ -271,7 +256,7 @@ describe('subscribeDriverLog', () => {
         message: 'Test message',
         timestamp: driverUptime,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -285,7 +270,7 @@ describe('subscribeDriverLog', () => {
   describe('message content', () => {
     beforeEach(() => {
       subscribeDriverLog({
-        mqtt: mockMqtt,
+        mqtt: mqttMock.mockMqtt,
         driverLogPersistence: mockDriverLogPersistence,
       });
     });
@@ -297,7 +282,7 @@ describe('subscribeDriverLog', () => {
         message,
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -314,7 +299,7 @@ describe('subscribeDriverLog', () => {
         message,
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -330,7 +315,7 @@ describe('subscribeDriverLog', () => {
         message: '',
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',
@@ -347,7 +332,7 @@ describe('subscribeDriverLog', () => {
         message,
         timestamp: 1000,
       });
-      subscribedCallback('rgfx/driver/rgfx-driver-0001/log', payload);
+      mqttMock.triggerMessage('rgfx/driver/rgfx-driver-0001/log', payload);
 
       expect(mockDriverLogPersistence.appendLog).toHaveBeenCalledWith(
         'rgfx-driver-0001',

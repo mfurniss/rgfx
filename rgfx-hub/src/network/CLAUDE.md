@@ -63,5 +63,6 @@ See [broker-discovery.md](../../../.claude/docs/broker-discovery.md) for the dis
 - `MqttBroker.start()` calls `startDiscoveryServices()` synchronously in the listen callback
 - `NetworkManager` tests use `vi.advanceTimersByTimeAsync()` with fake timers to test recovery scheduling
 - `getLocalIP()` is synchronous - tests mock it with `mockReturnValue()` not `mockResolvedValue()`
+- Global `vi.mock('electron-log/main')` in setup.ts provides default log mock; tests needing custom log refs override per-file
 
 <\!-- No per-file license headers — see root LICENSE -->

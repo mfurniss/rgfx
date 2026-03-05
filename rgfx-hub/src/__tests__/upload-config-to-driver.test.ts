@@ -5,15 +5,6 @@ import type { DriverConfig } from '../driver-config';
 import type { LEDHardwareManager } from '../led-hardware-manager';
 import type { MqttBroker } from '../network';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 describe('createUploadConfigToDriver', () => {
   let mockDriverConfig: MockProxy<DriverConfig>;
   let mockLedHardwareManager: MockProxy<LEDHardwareManager>;

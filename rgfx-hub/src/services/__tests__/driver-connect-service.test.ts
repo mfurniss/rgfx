@@ -4,15 +4,6 @@ import type { DriverConfig, ConfiguredDriver } from '../../driver-config';
 import type { MqttBroker } from '../../network';
 import type { Driver } from '../../types';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 describe('createDriverConnectService', () => {
   let mockDriverConfig: {
     getDriver: ReturnType<typeof vi.fn>;

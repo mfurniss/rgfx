@@ -4,15 +4,6 @@ import path from 'path';
 import { LogManager } from '../log-manager';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
 vi.mock('electron', () => ({
   app: {
     getPath: vi.fn((name: string) => {

@@ -7,21 +7,7 @@ import type { MqttBroker } from '@/network';
 import type { BrowserWindow } from 'electron';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerSetDriverDisabledHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
@@ -34,6 +20,7 @@ describe('registerSetDriverDisabledHandler', () => {
     driverId: string,
     disabled: boolean,
   ) => { success: boolean };
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -55,15 +42,7 @@ describe('registerSetDriverDisabledHandler', () => {
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (
-        _channel: string,
-        handler: (event: unknown, driverId: string, disabled: boolean) => { success: boolean },
-      ) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerSetDriverDisabledHandler({
       driverRegistry: mockDriverRegistry,
@@ -71,11 +50,12 @@ describe('registerSetDriverDisabledHandler', () => {
       mqtt: mockMqtt,
       getMainWindow: () => mockMainWindow,
     });
+
+    registeredHandler = ipc.getHandler('driver:set-disabled') as typeof registeredHandler;
   });
 
-  it('registers the driver:set-disabled handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('driver:set-disabled', expect.any(Function));
+  it('registers the driver:set-disabled handler', () => {
+    ipc.assertChannel('driver:set-disabled');
   });
 
   describe('handler behavior', () => {

@@ -5,16 +5,6 @@ import { LEDHardwareManager } from '../led-hardware-manager';
 import { createMockTelemetryData } from './factories';
 import { eventBus } from '../services/event-bus';
 
-// Mock electron-log
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 // Spy on eventBus
 const emitSpy = vi.spyOn(eventBus, 'emit');
 
@@ -66,7 +56,6 @@ describe('DriverRegistry', () => {
       expect(device1.id).toBe('rgfx-driver-0001');
       expect(device2.id).toBe('rgfx-driver-0002');
     });
-
 
     it('should initialize stats on first registration', () => {
       const telemetryData = createMockTelemetryData();

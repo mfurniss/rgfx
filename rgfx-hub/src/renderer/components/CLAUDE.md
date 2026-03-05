@@ -757,4 +757,11 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Three-way result: success → green notify, error → red notify, cancel → no notification
 - Wrapped in `SettingsSection` with title and subtitle
 
+---
+
+## Testing Notes
+
+- **Do NOT call `cleanup()` in component tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.
+- **Do NOT add `vi.mock('electron-log/main')` or `vi.mock('electron')` unless you need custom mock refs.** Global mocks in `setup.ts` cover the standard cases.
+
 <\!-- No per-file license headers — see root LICENSE -->

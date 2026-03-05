@@ -254,6 +254,10 @@ Refactored components and utilities extracted from the main page:
 
 ---
 
+## Testing Notes
+
+- **Do NOT call `cleanup()` in page tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.
+
 ## Cross-Platform Considerations
 
 **CRITICAL: All fixes for Windows issues MUST NOT break existing macOS code.** The app must work on both platforms. Always test fixes on macOS or ensure the change is logically compatible.

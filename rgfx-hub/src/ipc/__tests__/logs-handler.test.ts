@@ -2,41 +2,28 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerLogsHandler } from '../logs-handler';
 import type { LogManager, LogSizes } from '@/log-manager';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerLogsHandler', () => {
   let mockLogManager: MockProxy<LogManager>;
-  let handlers: Record<string, (...args: unknown[]) => unknown>;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    handlers = {};
 
     mockLogManager = mock<LogManager>();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (channel: string, handler: (...args: unknown[]) => unknown) => {
-        handlers[channel] = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerLogsHandler({ logManager: mockLogManager });
   });
 
-  it('registers logs:get-sizes handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('logs:get-sizes', expect.any(Function));
+  it('registers logs:get-sizes handler', () => {
+    ipc.assertChannel('logs:get-sizes');
   });
 
-  it('registers logs:clear-all handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('logs:clear-all', expect.any(Function));
+  it('registers logs:clear-all handler', () => {
+    ipc.assertChannel('logs:clear-all');
   });
 
   it('get-sizes delegates to logManager.getSizes()', async () => {
@@ -47,7 +34,8 @@ describe('registerLogsHandler', () => {
     };
     mockLogManager.getSizes.mockResolvedValue(mockSizes);
 
-    const result = await handlers['logs:get-sizes']({});
+    const handler = ipc.getHandler('logs:get-sizes') as (event: unknown) => Promise<LogSizes>;
+    const result = await handler({});
 
     expect(mockLogManager.getSizes).toHaveBeenCalled();
     expect(result).toEqual(mockSizes);
@@ -56,7 +44,8 @@ describe('registerLogsHandler', () => {
   it('clear-all delegates to logManager.clearAll()', async () => {
     mockLogManager.clearAll.mockResolvedValue(undefined);
 
-    await handlers['logs:clear-all']({});
+    const handler = ipc.getHandler('logs:clear-all') as (event: unknown) => Promise<void>;
+    await handler({});
 
     expect(mockLogManager.clearAll).toHaveBeenCalled();
   });

@@ -106,6 +106,10 @@ Simple pub/sub event bus for inter-service communication.
 - Used for system-wide events like errors, status updates
 - `AppEventMap` interface (internal, not exported) defines all event names and payload types
 
+## Testing Notes
+
+- Global `vi.mock('electron-log/main')` in `setup.ts` provides default log mock; tests needing custom log refs (e.g., `logging.test.ts`) override per-file with `vi.hoisted()`.
+
 ## Usage
 
 ```typescript

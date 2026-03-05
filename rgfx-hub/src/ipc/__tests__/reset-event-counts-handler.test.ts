@@ -1,45 +1,28 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { registerResetEventCountsHandler } from '../reset-event-counts-handler';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerResetEventCountsHandler', () => {
   let mockResetEventsProcessed: ReturnType<typeof vi.fn>;
   let registeredHandler: () => void;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     mockResetEventsProcessed = vi.fn();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: () => void) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerResetEventCountsHandler({
       resetEventsProcessed: mockResetEventsProcessed,
     });
+
+    registeredHandler = ipc.getHandler('event:reset') as () => void;
   });
 
-  it('registers the event:reset handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('event:reset', expect.any(Function));
+  it('registers the event:reset handler', () => {
+    ipc.assertChannel('event:reset');
   });
 
   describe('handler behavior', () => {

@@ -6,15 +6,6 @@ import type { BrowserWindow } from 'electron';
 import type { Driver, SystemStatus } from '../types';
 import { eventBus } from '../services/event-bus';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 describe('setupDriverEventHandlers', () => {
   let mockSystemMonitor: {
     getFullStatus: ReturnType<typeof vi.fn>;

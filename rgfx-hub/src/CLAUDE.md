@@ -51,6 +51,18 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `utils/firmware-paths.ts` — Firmware directory helpers: `getFirmwareDir`, `getFirmwareFilePath`
 - `utils/error-utils.ts` — `getErrorMessage` for safe error-to-string conversion
 
+## Test Infrastructure
+
+Global test setup (`__tests__/setup.ts`) provides:
+- `vi.mock('electron-log/main')` — default log mock (files needing custom log refs override per-file)
+- `vi.mock('electron')` — default ipcMain mock (files needing `app`, `shell`, `dialog` etc. override per-file)
+- `cleanup()` in `afterEach` — component tests should NOT call `cleanup()` themselves
+
+Key test helpers:
+- `__tests__/helpers/ipc-handler.helper.ts` — `setupIpcHandlerCapture()` for IPC handler tests
+- `__tests__/factories/` — Mock factories for drivers, electron, MQTT subscriptions
+- `__tests__/factories/mqtt.factory.ts` — `createMqttSubscriptionMock()` for MQTT subscription tests
+
 ## Type Declarations
 
 - `types/` — Shared types split into focused modules:

@@ -3,16 +3,8 @@ import { mock } from 'vitest-mock-extended';
 import type { DriverRegistry } from '@/driver-registry';
 import { createDriver, type Driver } from '@/types';
 import { subscribeDriverWifiResponse } from '@/mqtt-subscriptions/driver-wifi-response';
-import { createMqttSubscriptionMock } from '../shared/mqtt-subscription.shared';
+import { createMqttSubscriptionMock } from '../factories';
 import { eventBus } from '@/services/event-bus';
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
 
 vi.mock('@/services/event-bus', () => ({
   eventBus: {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
 import TelemetryCharts from '../telemetry-charts';
 import { useTelemetryHistoryStore, type TelemetryDataPoint } from '@/renderer/store/telemetry-history-store';
 
@@ -24,10 +24,6 @@ const createDataPoint = (
 describe('TelemetryCharts', () => {
   beforeEach(() => {
     useTelemetryHistoryStore.getState().clearAllHistory();
-  });
-
-  afterEach(() => {
-    cleanup();
   });
 
   describe('with no data', () => {

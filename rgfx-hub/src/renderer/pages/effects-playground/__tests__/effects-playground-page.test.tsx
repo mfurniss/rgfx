@@ -3,7 +3,6 @@ import {
   render,
   screen,
   fireEvent,
-  cleanup,
   act,
 } from '@testing-library/react';
 import {
@@ -12,7 +11,6 @@ import {
   expect,
   vi,
   beforeEach,
-  afterEach,
 } from 'vitest';
 const mockSetTestEffectsState = vi.fn();
 const mockTriggerEffect = vi.fn().mockResolvedValue(undefined);
@@ -148,7 +146,6 @@ describe('TestEffectsPage', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    cleanup();
   });
 
   describe('driver selection', () => {

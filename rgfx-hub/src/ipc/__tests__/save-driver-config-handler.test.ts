@@ -8,23 +8,9 @@ import type { MqttBroker } from '@/network';
 import type { ConfiguredDriverInput } from '@/schemas';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 vi.mocked(eventBus);
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
 
 vi.mock('@/services/event-bus', () => ({
   eventBus: {
@@ -42,6 +28,7 @@ describe('registerSaveDriverConfigHandler', () => {
     config: ConfiguredDriverInput
   ) => Promise<{ success: boolean; driverRebooted: boolean }>;
   let registeredHandler: HandlerFn;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   const existingDriver: ConfiguredDriver = {
     id: 'old-driver-id',
@@ -81,12 +68,7 @@ describe('registerSaveDriverConfigHandler', () => {
     mockMqtt.publish.mockResolvedValue(undefined);
     mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: HandlerFn) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerSaveDriverConfigHandler({
       driverConfig: mockDriverConfig,
@@ -94,12 +76,13 @@ describe('registerSaveDriverConfigHandler', () => {
       mqtt: mockMqtt,
       uploadConfigToDriver: mockUploadConfigToDriver,
     });
+
+    registeredHandler = ipc.getHandler('driver:save-config') as HandlerFn;
   });
 
   describe('handler registration', () => {
-    it('should register handler for driver:save-config channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('driver:save-config', expect.any(Function));
+    it('should register handler for driver:save-config channel', () => {
+      ipc.assertChannel('driver:save-config');
     });
   });
 

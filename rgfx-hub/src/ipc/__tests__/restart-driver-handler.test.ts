@@ -5,22 +5,8 @@ import type { DriverRegistry } from '@/driver-registry';
 import type { MqttBroker } from '@/network';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 import { eventBus } from '@/services/event-bus';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
 
 vi.mock('@/services/event-bus', () => ({
   eventBus: {
@@ -37,6 +23,8 @@ describe('registerRestartDriverHandler', () => {
     driverId: string,
   ) => Promise<{ success: boolean }>;
 
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
+
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -48,25 +36,18 @@ describe('registerRestartDriverHandler', () => {
     mockMqtt = mock<MqttBroker>();
     mockMqtt.publish.mockResolvedValue(undefined);
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (
-        _channel: string,
-        handler: (event: unknown, driverId: string) => Promise<{ success: boolean }>,
-      ) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerRestartDriverHandler({
       driverRegistry: mockDriverRegistry,
       mqtt: mockMqtt,
     });
+
+    registeredHandler = ipc.getHandler('driver:restart') as typeof registeredHandler;
   });
 
-  it('registers the driver:restart handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('driver:restart', expect.any(Function));
+  it('registers the driver:restart handler', () => {
+    ipc.assertChannel('driver:restart');
   });
 
   describe('handler behavior', () => {

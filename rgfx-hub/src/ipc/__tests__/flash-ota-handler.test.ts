@@ -6,6 +6,7 @@ import { eventBus } from '@/services/event-bus';
 import type { DriverRegistry } from '@/driver-registry';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 vi.mocked(eventBus);
 
@@ -16,15 +17,6 @@ vi.mock('electron', () => ({
   app: {
     isPackaged: false,
     getAppPath: vi.fn(() => '/mock/app/path'),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
   },
 }));
 
@@ -74,6 +66,7 @@ describe('registerFlashOtaHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -92,22 +85,18 @@ describe('registerFlashOtaHandler', () => {
     mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
     mockDriverRegistry.touchDriver.mockReturnValue(mockDriver);
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (event: unknown, driverId: string) => Promise<void>) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerFlashOtaHandler({
       driverRegistry: mockDriverRegistry,
     });
+
+    registeredHandler = ipc.getHandler('driver:flash-ota') as typeof registeredHandler;
   });
 
   describe('handler registration', () => {
-    it('should register handler for driver:flash-ota channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('driver:flash-ota', expect.any(Function));
+    it('should register handler for driver:flash-ota channel', () => {
+      ipc.assertChannel('driver:flash-ota');
     });
   });
 

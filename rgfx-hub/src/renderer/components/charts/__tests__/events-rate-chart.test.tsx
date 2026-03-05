@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventsRateChart } from '../events-rate-chart';
 import { useEventsRateHistoryStore } from '@/renderer/store/events-rate-history-store';
 
@@ -20,11 +20,6 @@ describe('EventsRateChart', () => {
     vi.clearAllMocks();
     useEventsRateHistoryStore.getState().clear();
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('empty state', () => {
     it('renders nothing when no drivers are known', () => {
       const { container } = render(<EventsRateChart />);

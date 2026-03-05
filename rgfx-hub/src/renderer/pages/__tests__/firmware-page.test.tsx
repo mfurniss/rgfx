@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import FirmwarePage from '../firmware-page';
 import { useDriverStore } from '../../store/driver-store';
 import { useFirmwareFlashStore } from '../../store/firmware-flash-store';
@@ -121,10 +121,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useDriverStore).mockImplementation(defaultDriverStoreImpl);
   vi.mocked(useFirmwareFlashStore).mockImplementation(defaultUiStoreImpl);
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 describe('FirmwarePage', () => {

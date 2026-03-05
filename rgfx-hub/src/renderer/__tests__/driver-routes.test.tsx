@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { SidebarNav } from '../components/layout/sidebar-nav.js';
 import DriverCard from '../components/driver/driver-card.js';
@@ -72,11 +72,6 @@ describe('Driver Routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('Sidebar active state highlighting', () => {
     it('highlights Drivers menu when on /drivers list page', () => {
       renderSidebarWithRoute('/drivers');
@@ -136,11 +131,6 @@ describe('Driver Card back button navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   it('back button navigates to /drivers from driver detail page', () => {
     const driver = createMockDriver();
 
@@ -176,11 +166,6 @@ describe('Driver List Table navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   it('row click navigates to /drivers/:mac', () => {
     const driver = createMockDriver();
 

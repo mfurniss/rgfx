@@ -125,6 +125,10 @@ interface MqttSubscriptionsDeps {
 
 ---
 
+## Test Pattern
+
+MQTT subscription tests use `createMqttSubscriptionMock()` from `@/__tests__/factories/mqtt.factory` which provides a pre-configured mock with `mqtt.subscribe` callback capture, `driverRegistry`, `systemMonitor`, and other standard dependencies.
+
 ## Data Flow
 
 ```

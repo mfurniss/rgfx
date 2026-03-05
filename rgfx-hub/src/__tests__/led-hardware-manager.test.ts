@@ -4,15 +4,6 @@ import * as fs from 'fs';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { ConfigError } from '../errors/config-error';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
 vi.mock('fs');
 
 describe('LEDHardwareManager', () => {

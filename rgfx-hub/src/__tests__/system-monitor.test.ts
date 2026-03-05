@@ -29,15 +29,6 @@ vi.mock('../network/network-utils', () => ({
   getLocalIP: mockGetLocalIP,
 }));
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 import { SystemMonitor } from '../system-monitor';
 import type { MqttBroker } from '../network/mqtt-broker';
 
