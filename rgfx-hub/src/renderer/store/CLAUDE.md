@@ -212,6 +212,7 @@ interface Notification {
 - `setDriverTableSort(field, order)` - Updates driver table sort preferences
 - `setTestEffectsState(effect, props, drivers, selectAll)` - Saves test effects page state
 - `setSimulatorRow(index, eventLine, autoInterval)` - Updates a simulator row
+- `resetAllAutoIntervals()` - Sets all simulator rows' autoInterval to 'off' (used by Clear All Effects)
 - `setWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
 - `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
 - `setDriverFallbackEnabled(enabled)` - Toggles driver fallback mode

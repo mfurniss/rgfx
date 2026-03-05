@@ -58,6 +58,7 @@ interface UiState {
   setLastWifiCredentials: (ssid: string, password: string) => void;
   setDriverFallbackEnabled: (enabled: boolean) => void;
   setStripLifespanScale: (scale: number) => void;
+  resetAllAutoIntervals: () => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -137,6 +138,15 @@ export const useUiStore = create<UiState>()(
 
       setStripLifespanScale: (scale) => {
         set({ stripLifespanScale: scale });
+      },
+
+      resetAllAutoIntervals: () => {
+        set((state) => ({
+          simulatorRows: state.simulatorRows.map((row) => ({
+            ...row,
+            autoInterval: 'off' as SimulatorAutoInterval,
+          })),
+        }));
       },
     }),
     {

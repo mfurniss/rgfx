@@ -710,6 +710,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Purpose:** Button to clear all active effects on connected drivers.
 
 **Features:**
+- Resets all simulator auto-trigger intervals to 'off' (cancels timers via store subscription)
 - Calls `clearTransformerState` then sends `clear-effects` command to each connected driver
 - Disabled when no drivers are connected
 - Uses `useShallow` with string ID array selector to avoid re-renders on unrelated driver changes (e.g., telemetry updates)

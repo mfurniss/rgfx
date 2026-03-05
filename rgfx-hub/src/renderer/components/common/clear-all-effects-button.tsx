@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@mui/material';
 import { LayersClear as LayersClearIcon } from '@mui/icons-material';
 import { useDriverStore } from '../../store/driver-store';
+import { useUiStore } from '../../store/ui-store';
 
 export function ClearAllEffectsButton() {
   const connectedDriverIds = useDriverStore(
@@ -14,6 +15,8 @@ export function ClearAllEffectsButton() {
   );
 
   const handleClearEffects = () => {
+    useUiStore.getState().resetAllAutoIntervals();
+
     void (async () => {
       await window.rgfx.clearTransformerState();
 

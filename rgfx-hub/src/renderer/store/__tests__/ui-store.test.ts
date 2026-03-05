@@ -142,6 +142,48 @@ describe('useUiStore', () => {
     });
   });
 
+  describe('resetAllAutoIntervals', () => {
+    it('should set all rows to off', () => {
+      const { setSimulatorRow, resetAllAutoIntervals } = useUiStore.getState();
+
+      setSimulatorRow(0, 'event1', '1s');
+      setSimulatorRow(2, 'event2', '5s');
+      setSimulatorRow(5, 'event3', '1s');
+
+      resetAllAutoIntervals();
+
+      const { simulatorRows } = useUiStore.getState();
+      simulatorRows.forEach((row) => {
+        expect(row.autoInterval).toBe('off');
+      });
+    });
+
+    it('should preserve event lines', () => {
+      const { setSimulatorRow, resetAllAutoIntervals } = useUiStore.getState();
+
+      setSimulatorRow(0, 'game/pacman/score 1000', '5s');
+      setSimulatorRow(1, 'game/galaga/fire', '1s');
+
+      resetAllAutoIntervals();
+
+      const { simulatorRows } = useUiStore.getState();
+      expect(simulatorRows[0].eventLine).toBe('game/pacman/score 1000');
+      expect(simulatorRows[1].eventLine).toBe('game/galaga/fire');
+    });
+
+    it('should be a no-op when all rows are already off', () => {
+      const rowsBefore = useUiStore.getState().simulatorRows;
+
+      useUiStore.getState().resetAllAutoIntervals();
+
+      const rowsAfter = useUiStore.getState().simulatorRows;
+      rowsAfter.forEach((row, i) => {
+        expect(row.autoInterval).toBe('off');
+        expect(row.eventLine).toBe(rowsBefore[i].eventLine);
+      });
+    });
+  });
+
   describe('WiFi credentials persistence', () => {
     beforeEach(() => {
       useUiStore.setState({
