@@ -14,13 +14,6 @@ vi.mock('electron', () => ({
   },
 }));
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
 vi.mock('../../gif-loader', () => ({
   loadGif: (...args: unknown[]) => mockLoadGif(...args),
 }));

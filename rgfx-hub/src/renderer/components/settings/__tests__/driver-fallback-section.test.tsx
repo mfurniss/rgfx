@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DriverFallbackSection } from '../driver-fallback-section';
 
 const mockSetDriverFallbackEnabled = vi.fn();
@@ -22,10 +22,6 @@ const mockSetDriverFallbackEnabledIpc = vi.fn().mockResolvedValue({
 (window as unknown as { rgfx: Record<string, unknown> }).rgfx = {
   setDriverFallbackEnabled: mockSetDriverFallbackEnabledIpc,
 };
-
-afterEach(() => {
-  cleanup();
-});
 
 describe('DriverFallbackSection', () => {
   beforeEach(() => {

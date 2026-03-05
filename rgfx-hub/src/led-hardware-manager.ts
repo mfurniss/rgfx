@@ -5,6 +5,7 @@ import type { LEDHardware } from './types';
 import { CONFIG_DIRECTORY } from './config/paths';
 import { LEDHardwareSchema } from './schemas';
 import { ConfigError, formatZodError } from './errors/config-error';
+import { getErrorMessage } from './utils/driver-utils';
 
 /**
  * Manages LED hardware definition files
@@ -43,11 +44,10 @@ export class LEDHardwareManager {
     try {
       parsed = JSON.parse(data);
     } catch (error) {
-      const details = error instanceof Error ? error.message : String(error);
       throw new ConfigError(
         `Failed to parse LED hardware file: ${hardwareRef}`,
         hardwarePath,
-        details,
+        getErrorMessage(error),
       );
     }
 
@@ -99,8 +99,7 @@ export class LEDHardwareManager {
       log.info(`Found ${files.length} LED hardware definition files`);
       return files;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log.error(`Failed to list LED hardware definitions: ${errorMessage}`);
+      log.error(`Failed to list LED hardware definitions: ${getErrorMessage(error)}`);
       return [];
     }
   }

@@ -5,21 +5,7 @@ import type { DriverRegistry } from '@/driver-registry';
 import type { MqttBroker } from '@/network';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerSendDriverCommandHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
@@ -31,6 +17,7 @@ describe('registerSendDriverCommandHandler', () => {
     command: string,
     payload?: string,
   ) => Promise<void>;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -43,31 +30,19 @@ describe('registerSendDriverCommandHandler', () => {
     mockMqtt = mock<MqttBroker>();
     mockMqtt.publish.mockResolvedValue(undefined);
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (
-        _channel: string,
-        handler: (
-          event: unknown,
-          driverId: string,
-          command: string,
-          payload?: string,
-        ) => Promise<void>,
-      ) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerSendDriverCommandHandler({
       driverRegistry: mockDriverRegistry,
       mqtt: mockMqtt,
     });
+
+    registeredHandler = ipc.getHandler('driver:send-command') as typeof registeredHandler;
   });
 
   describe('handler registration', () => {
-    it('should register handler for driver:send-command channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('driver:send-command', expect.any(Function));
+    it('should register handler for driver:send-command channel', () => {
+      ipc.assertChannel('driver:send-command');
     });
   });
 

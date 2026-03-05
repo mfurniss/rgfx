@@ -11,13 +11,6 @@ vi.mock('fs', () => ({
   appendFileSync: (...args: unknown[]) => mockAppendFileSync(...args),
 }));
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
 describe('DriverLogPersistence', () => {
   let persistence: DriverLogPersistence;
 

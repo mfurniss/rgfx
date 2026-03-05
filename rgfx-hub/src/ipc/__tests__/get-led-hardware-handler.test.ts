@@ -3,35 +3,27 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerGetLEDHardwareHandler } from '../get-led-hardware-handler';
 import type { LEDHardwareManager } from '@/led-hardware-manager';
 import type { LEDHardware } from '@/types';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerGetLEDHardwareHandler', () => {
   let mockLedHardwareManager: MockProxy<LEDHardwareManager>;
   let registeredHandler: (event: unknown, hardwareRef: string) => LEDHardware | null;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     mockLedHardwareManager = mock<LEDHardwareManager>();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (event: unknown, hardwareRef: string) => LEDHardware | null) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerGetLEDHardwareHandler({ ledHardwareManager: mockLedHardwareManager });
+
+    registeredHandler = ipc.getHandler('led-hardware:get') as typeof registeredHandler;
   });
 
-  it('registers the led-hardware:get handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('led-hardware:get', expect.any(Function));
+  it('registers the led-hardware:get handler', () => {
+    ipc.assertChannel('led-hardware:get');
   });
 
   it('returns hardware when found', () => {

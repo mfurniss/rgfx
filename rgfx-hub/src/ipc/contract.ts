@@ -55,6 +55,7 @@ export const INVOKE_CHANNELS = {
   getLogSizes: 'logs:get-sizes',
   clearAllLogs: 'logs:clear-all',
   createBackup: 'backup:create',
+  setDriverId: 'driver:set-id',
 } as const;
 
 /** Push channels: main sends to renderer via webContents.send. */
@@ -194,6 +195,10 @@ export interface InvokeContract {
   createBackup: {
     args: [];
     return: { success: boolean; error?: string };
+  };
+  setDriverId: {
+    args: [driverId: string, newId: string];
+    return: undefined;
   };
 }
 

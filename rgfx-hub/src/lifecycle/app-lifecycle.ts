@@ -6,6 +6,7 @@ import type { PowerSaveHandle } from '../services/service-startup';
 import { configureSerialPort } from '../serial-port-config';
 import { clearEffectsOnAllDrivers } from '../shutdown';
 import { setShuttingDown } from '../services/global-error-handler';
+import { getErrorMessage } from '../utils/driver-utils';
 import pkg from '../../package.json';
 
 export interface AppLifecycleDeps {
@@ -20,6 +21,11 @@ export interface AppLifecycleDeps {
  */
 export function registerAppLifecycleHandlers(deps: AppLifecycleDeps): void {
   const { services, windowManager, powerSaveHandle, log } = deps;
+
+  // Focus existing window when a second instance is launched
+  app.on('second-instance', () => {
+    windowManager.focusWindow();
+  });
 
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
@@ -48,8 +54,7 @@ export function registerAppLifecycleHandlers(deps: AppLifecycleDeps): void {
           log.info('Loaded Redux DevTools extension');
         })
         .catch((err: unknown) => {
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          log.warn(`Redux DevTools not available: ${errorMessage}`);
+          log.warn(`Redux DevTools not available: ${getErrorMessage(err)}`);
         });
     }
 

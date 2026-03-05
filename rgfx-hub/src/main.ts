@@ -29,6 +29,13 @@ if (started) {
   app.quit();
 }
 
+// Prevent multiple instances — focus existing window if already running
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+}
+
 // Configure Zod for user-friendly error messages
 configureZod();
 
@@ -66,9 +73,7 @@ try {
 const windowManager = createWindowManager({
   systemMonitor: services.systemMonitor,
   driverRegistry: services.driverRegistry,
-  eventReader: services.eventReader,
   systemErrorTracker,
-  eventStats,
   log,
 });
 

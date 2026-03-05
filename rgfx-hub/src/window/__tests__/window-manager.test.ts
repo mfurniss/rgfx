@@ -90,27 +90,17 @@ describe('createWindowManager', () => {
 
     mockDeps = {
       systemMonitor: {
-        getSystemStatus: vi.fn().mockResolvedValue({
+        getFullStatus: vi.fn().mockReturnValue({
           mqttBroker: 'running',
           driversConnected: 1,
           driversTotal: 2,
         }),
       } as never,
       driverRegistry: {
-        getConnectedCount: vi.fn().mockReturnValue(1),
         getAllDrivers: vi.fn().mockReturnValue([]),
       } as never,
-      eventReader: {
-        getFileSizeBytes: vi.fn().mockReturnValue(1024),
-      } as never,
       systemErrorTracker: {
-        errors: [],
         hasCriticalError: vi.fn().mockReturnValue(false),
-      } as never,
-      eventStats: {
-        getCount: vi.fn().mockReturnValue(0),
-        increment: vi.fn(),
-        reset: vi.fn(),
       } as never,
       log: {
         info: vi.fn(),
@@ -190,7 +180,7 @@ describe('createWindowManager', () => {
 
     manager.sendSystemStatus();
 
-    expect(mockDeps.systemMonitor.getSystemStatus).not.toHaveBeenCalled();
+    expect(mockDeps.systemMonitor.getFullStatus).not.toHaveBeenCalled();
   });
 
   it('should send status when window is available', async () => {
@@ -200,7 +190,7 @@ describe('createWindowManager', () => {
     manager.createWindow();
     manager.sendSystemStatus();
 
-    expect(mockDeps.systemMonitor.getSystemStatus).toHaveBeenCalled();
+    expect(mockDeps.systemMonitor.getFullStatus).toHaveBeenCalled();
     expect(mockWebContents.send).toHaveBeenCalledWith('system:status', expect.anything());
   });
 
@@ -232,13 +222,13 @@ describe('createWindowManager', () => {
 
     // Advance timer to trigger interval
     vi.advanceTimersByTime(1000);
-    expect(mockDeps.systemMonitor.getSystemStatus).toHaveBeenCalled();
+    expect(mockDeps.systemMonitor.getFullStatus).toHaveBeenCalled();
 
     vi.clearAllMocks();
     manager.stopStatusUpdates();
 
     // Advance timer again - should not trigger
     vi.advanceTimersByTime(1000);
-    expect(mockDeps.systemMonitor.getSystemStatus).not.toHaveBeenCalled();
+    expect(mockDeps.systemMonitor.getFullStatus).not.toHaveBeenCalled();
   });
 });

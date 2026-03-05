@@ -6,6 +6,15 @@ Custom React hooks for the renderer process.
 
 ## Hooks
 
+### useDriverSelection
+
+**File:** [use-driver-selection.ts](use-driver-selection.ts)
+
+Shared hook for driver selection with derived `selectAll` state:
+- Returns `{ selectedDrivers, selectAll, toggleDriver, toggleSelectAll }`
+- Derives `selectAll` from whether all connected drivers are selected (no separate boolean)
+- Used by `effects-playground-page` and `firmware-page`
+
 ### useFlashState
 
 **File:** [use-flash-state.ts](use-flash-state.ts)
@@ -14,7 +23,7 @@ Manages flash operation state for both USB and OTA flashing:
 - Tracks progress, logs, errors, and driver flash status
 - Provides result modal state with flash method tracking ('usb' | 'ota')
 - Actions: setProgress, addLog, clearLogs, setError, showResult, closeResult, resetForNewFlash
-- Re-exports `FlashMethod` type from ui-store
+- Imports `FlashMethod` type from `firmware-flash-store`
 
 ### useSimulatorAutoTrigger
 
@@ -65,5 +74,6 @@ Subscribes to OTA flash progress events from main process:
 - Updates driver flash status map via callback
 - Auto-cleans up subscriptions on unmount
 - Used by FirmwarePage for real-time OTA progress tracking
+- Imports from `firmware-flash-store`
 
 <\!-- No per-file license headers — see root LICENSE -->

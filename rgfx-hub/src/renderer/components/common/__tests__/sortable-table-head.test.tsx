@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { Table, TableCell } from '@mui/material';
 import { SortableTableHead, type SortableColumn } from '../sortable-table-head';
 
@@ -19,10 +19,6 @@ const renderWithTable = (ui: React.ReactElement) => {
 };
 
 describe('SortableTableHead', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('rendering', () => {
     it('renders all column labels', () => {
       renderWithTable(

@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LineChart } from '../line-chart';
 
 // ResizeObserver and getComputedStyle are provided by the global test setup
@@ -22,11 +22,6 @@ describe('LineChart', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('rendering', () => {
     it('renders chart with title', () => {
       render(

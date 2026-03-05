@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import WifiConfigOtaButton from '../wifi-config-ota-button';
 import { createMockDriver } from '@/__tests__/factories';
 
@@ -41,10 +41,6 @@ beforeEach(() => {
     isSending: false,
     error: null,
   };
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 describe('WifiConfigOtaButton', () => {

@@ -2,55 +2,29 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerSetDriverFallbackHandler } from '../set-driver-fallback-handler';
 import type { UdpClient } from '@/types/transformer-types';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerSetDriverFallbackHandler', () => {
   let mockUdpClient: MockProxy<UdpClient>;
-  let registeredHandler: (
-    event: unknown,
-    enabled: boolean,
-  ) => { success: boolean };
+  let registeredHandler: (event: unknown, enabled: boolean) => { success: boolean };
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     mockUdpClient = mock<UdpClient>();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (
-        _channel: string,
-        handler: (event: unknown, enabled: boolean) => { success: boolean },
-      ) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerSetDriverFallbackHandler({
       udpClient: mockUdpClient,
     });
+
+    registeredHandler = ipc.getHandler('settings:set-driver-fallback') as typeof registeredHandler;
   });
 
-  it('registers the settings:set-driver-fallback handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith(
-      'settings:set-driver-fallback',
-      expect.any(Function),
-    );
+  it('registers the settings:set-driver-fallback handler', () => {
+    ipc.assertChannel('settings:set-driver-fallback');
   });
 
   it('calls setDriverFallbackEnabled with true', () => {

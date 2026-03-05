@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { registerGetAppInfoHandler } from '@/ipc/get-app-info-handler';
 import type { AppInfo } from '@/types';
 import { np } from '@/__tests__/test-utils';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 import pkg from '../../../package.json';
 
 vi.mock('electron', () => ({
@@ -16,6 +17,7 @@ vi.mock('electron', () => ({
 
 describe('registerGetAppInfoHandler', () => {
   let registeredHandler: () => AppInfo;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
   const originalEnv = process.env;
 
   beforeEach(async () => {
@@ -23,14 +25,11 @@ describe('registerGetAppInfoHandler', () => {
 
     process.env = { ...originalEnv, HOME: '/home/testuser' };
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: () => AppInfo) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerGetAppInfoHandler();
+
+    registeredHandler = ipc.getHandler('app:get-info') as () => AppInfo;
   });
 
   afterEach(() => {
@@ -38,9 +37,8 @@ describe('registerGetAppInfoHandler', () => {
   });
 
   describe('handler registration', () => {
-    it('should register handler for app:get-info channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('app:get-info', expect.any(Function));
+    it('should register handler for app:get-info channel', () => {
+      ipc.assertChannel('app:get-info');
     });
   });
 

@@ -19,13 +19,6 @@ vi.mock('node:fs/promises', () => ({
   },
 }));
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
 describe('registerFirmwareFilesHandler', () => {
   let handlers: Record<string, (...args: unknown[]) => unknown>;
 

@@ -1,36 +1,17 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { setupDriverEventHandlers } from '../driver-callbacks';
-import type { DriverRegistry } from '../driver-registry';
-import type { DriverConfig } from '../driver-config';
 import type { SystemMonitor } from '../system-monitor';
-import type { MqttBroker } from '../network';
+import type { DriverConnectService } from '../services/driver-connect-service';
 import type { BrowserWindow } from 'electron';
 import type { Driver, SystemStatus } from '../types';
-import type { ConfiguredDriver } from '../driver-config';
 import { eventBus } from '../services/event-bus';
 
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 describe('setupDriverEventHandlers', () => {
-  let mockDriverRegistry: {
-    getConnectedCount: ReturnType<typeof vi.fn>;
-    getAllDrivers: ReturnType<typeof vi.fn>;
-  };
-  let mockDriverConfig: {
-    getDriver: ReturnType<typeof vi.fn>;
-  };
   let mockSystemMonitor: {
-    getSystemStatus: ReturnType<typeof vi.fn>;
+    getFullStatus: ReturnType<typeof vi.fn>;
   };
-  let mockMqtt: {
-    publish: ReturnType<typeof vi.fn>;
+  let mockDriverConnectService: {
+    onDriverConnected: ReturnType<typeof vi.fn>;
   };
   let mockMainWindow: {
     isDestroyed: ReturnType<typeof vi.fn>;
@@ -40,8 +21,6 @@ describe('setupDriverEventHandlers', () => {
     };
   };
   let mockGetMainWindow: ReturnType<typeof vi.fn>;
-  let mockGetEventsProcessed: ReturnType<typeof vi.fn>;
-  let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   let mockDriver: Driver;
 
   // Track event handlers for cleanup
@@ -95,15 +74,6 @@ describe('setupDriverEventHandlers', () => {
       },
     };
 
-    mockDriverRegistry = {
-      getConnectedCount: vi.fn(() => 1),
-      getAllDrivers: vi.fn(() => [mockDriver]),
-    };
-
-    mockDriverConfig = {
-      getDriver: vi.fn(() => null),
-    };
-
     const mockStatus: SystemStatus = {
       mqttBroker: 'running',
       discovery: 'active',
@@ -122,11 +92,11 @@ describe('setupDriverEventHandlers', () => {
     };
 
     mockSystemMonitor = {
-      getSystemStatus: vi.fn(() => mockStatus),
+      getFullStatus: vi.fn(() => mockStatus),
     };
 
-    mockMqtt = {
-      publish: vi.fn(() => Promise.resolve()),
+    mockDriverConnectService = {
+      onDriverConnected: vi.fn(),
     };
 
     mockMainWindow = {
@@ -138,19 +108,11 @@ describe('setupDriverEventHandlers', () => {
     };
 
     mockGetMainWindow = vi.fn(() => mockMainWindow as unknown as BrowserWindow);
-    mockGetEventsProcessed = vi.fn(() => 100);
-    mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
 
     setupDriverEventHandlers({
-      driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-      driverConfig: mockDriverConfig as unknown as DriverConfig,
       systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
-      mqtt: mockMqtt as unknown as MqttBroker,
+      driverConnectService: mockDriverConnectService as unknown as DriverConnectService,
       getMainWindow: mockGetMainWindow,
-      getEventsProcessed: mockGetEventsProcessed,
-      getEventLogSizeBytes: vi.fn(() => 0),
-      getSystemErrors: vi.fn(() => []),
-      uploadConfigToDriver: mockUploadConfigToDriver,
     });
   });
 
@@ -192,7 +154,6 @@ describe('setupDriverEventHandlers', () => {
       it('should send system:status IPC message after driver:connected', async () => {
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        // Wait for async sendSystemStatus() to complete
         await vi.waitFor(() => {
           expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
             'system:status',
@@ -220,137 +181,21 @@ describe('setupDriverEventHandlers', () => {
       });
     });
 
-    describe('config upload', () => {
-      it('should upload config to driver with MAC address', () => {
+    describe('driver connect service delegation', () => {
+      it('should delegate to driverConnectService on connect', () => {
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockUploadConfigToDriver).toHaveBeenCalledWith('AA:BB:CC:DD:EE:FF');
-      });
-
-      it('should not upload config if driver has no MAC', () => {
-        mockDriver.mac = undefined;
-        eventBus.emit('driver:connected', { driver: mockDriver as any });
-
-        expect(mockUploadConfigToDriver).not.toHaveBeenCalled();
-      });
-
-      it('should handle config upload errors gracefully', () => {
-        mockUploadConfigToDriver.mockRejectedValue(new Error('Upload failed'));
-
-        expect(() => {
-          eventBus.emit('driver:connected', { driver: mockDriver as any });
-        }).not.toThrow();
-      });
-    });
-
-    describe('remote logging configuration', () => {
-      it('should publish logging config to driver', async () => {
-        eventBus.emit('driver:connected', { driver: mockDriver as any });
-
-        await vi.waitFor(() => {
-          expect(mockMqtt.publish).toHaveBeenCalledWith(
-            'rgfx/driver/AA:BB:CC:DD:EE:FF/logging',
-            JSON.stringify({ level: 'off' }),
-          );
-        });
-      });
-
-      it('should use persisted logging level if available', async () => {
-        const configuredDriver: ConfiguredDriver = {
-          id: 'rgfx-driver-0001',
-          macAddress: 'AA:BB:CC:DD:EE:FF',
-          remoteLogging: 'all',
-          disabled: false,
-        };
-        mockDriverConfig.getDriver.mockReturnValue(configuredDriver);
-
-        eventBus.emit('driver:connected', { driver: mockDriver as any });
-
-        await vi.waitFor(() => {
-          expect(mockMqtt.publish).toHaveBeenCalledWith(
-            'rgfx/driver/AA:BB:CC:DD:EE:FF/logging',
-            JSON.stringify({ level: 'all' }),
-          );
-        });
-      });
-
-      it('should default to "off" if no persisted driver exists', async () => {
-        mockDriverConfig.getDriver.mockReturnValue(null);
-
-        eventBus.emit('driver:connected', { driver: mockDriver as any });
-
-        await vi.waitFor(() => {
-          expect(mockMqtt.publish).toHaveBeenCalledWith(
-            'rgfx/driver/AA:BB:CC:DD:EE:FF/logging',
-            JSON.stringify({ level: 'off' }),
-          );
-        });
-      });
-
-      it('should not publish logging config if driver has no MAC', () => {
-        mockDriver.mac = undefined;
-        eventBus.emit('driver:connected', { driver: mockDriver as any });
-
-        expect(mockMqtt.publish).not.toHaveBeenCalled();
-      });
-
-      it('should handle MQTT publish errors gracefully', () => {
-        mockMqtt.publish.mockRejectedValue(new Error('MQTT error'));
-
-        expect(() => {
-          eventBus.emit('driver:connected', { driver: mockDriver as any });
-        }).not.toThrow();
+        expect(mockDriverConnectService.onDriverConnected)
+          .toHaveBeenCalledWith(mockDriver);
       });
     });
 
     describe('system status', () => {
-      it('should call getSystemStatus with current counts and errors', () => {
-        mockDriverRegistry.getConnectedCount.mockReturnValue(3);
-        const fourDrivers = [mockDriver, mockDriver, mockDriver, mockDriver];
-        mockDriverRegistry.getAllDrivers.mockReturnValue(fourDrivers);
-        mockGetEventsProcessed.mockReturnValue(500);
-
+      it('should call getFullStatus after driver connects', () => {
         eventBus.emit('driver:connected', { driver: mockDriver as any });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(3, 4, 500, 0, []);
+        expect(mockSystemMonitor.getFullStatus).toHaveBeenCalled();
       });
-    });
-  });
-
-  describe('system errors', () => {
-    it('should pass system errors to getSystemStatus', () => {
-      // Clean up existing handlers
-      for (const { event, handler } of eventHandlers) {
-        eventBus.off(event as any, handler);
-      }
-      eventHandlers.length = 0;
-
-      const mockErrors = [
-        { errorType: 'interceptor' as const, message: 'Test error', timestamp: Date.now() },
-      ];
-      const mockGetSystemErrors = vi.fn(() => mockErrors);
-
-      setupDriverEventHandlers({
-        driverRegistry: mockDriverRegistry as unknown as DriverRegistry,
-        driverConfig: mockDriverConfig as unknown as DriverConfig,
-        systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
-        mqtt: mockMqtt as unknown as MqttBroker,
-        getMainWindow: mockGetMainWindow,
-        getEventsProcessed: mockGetEventsProcessed,
-        getEventLogSizeBytes: vi.fn(() => 0),
-        getSystemErrors: mockGetSystemErrors,
-        uploadConfigToDriver: mockUploadConfigToDriver,
-      });
-
-      eventBus.emit('driver:connected', { driver: mockDriver as any });
-
-      expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Number),
-        mockErrors,
-      );
     });
   });
 
@@ -383,7 +228,6 @@ describe('setupDriverEventHandlers', () => {
       it('should send system:status IPC message after driver:disconnected', async () => {
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        // Wait for async sendSystemStatus() to complete
         await vi.waitFor(() => {
           expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
             'system:status',
@@ -412,14 +256,10 @@ describe('setupDriverEventHandlers', () => {
     });
 
     describe('system status', () => {
-      it('should call getSystemStatus with current counts and errors', () => {
-        mockDriverRegistry.getConnectedCount.mockReturnValue(0);
-        mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver]);
-        mockGetEventsProcessed.mockReturnValue(200);
-
+      it('should call getFullStatus after driver disconnects', () => {
         eventBus.emit('driver:disconnected', { driver: mockDriver as any, reason: 'disconnected' });
 
-        expect(mockSystemMonitor.getSystemStatus).toHaveBeenCalledWith(0, 1, 200, 0, []);
+        expect(mockSystemMonitor.getFullStatus).toHaveBeenCalled();
       });
     });
   });
@@ -514,16 +354,21 @@ describe('setupDriverEventHandlers', () => {
     });
 
     it('should send flash:ota:progress IPC message', () => {
-      const progressData = { driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50 };
+      const progressData = {
+        driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50,
+      };
       eventBus.emit('flash:ota:progress', progressData);
 
-      expect(mockMainWindow.webContents.send).toHaveBeenCalledWith('flash:ota:progress', progressData);
+      expect(mockMainWindow.webContents.send)
+        .toHaveBeenCalledWith('flash:ota:progress', progressData);
     });
 
     it('should not send IPC if window is destroyed', () => {
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
-      eventBus.emit('flash:ota:progress', { driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50 });
+      eventBus.emit('flash:ota:progress', {
+        driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50,
+      });
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -531,7 +376,9 @@ describe('setupDriverEventHandlers', () => {
     it('should not send IPC if window is null', () => {
       mockGetMainWindow.mockReturnValue(null);
 
-      eventBus.emit('flash:ota:progress', { driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50 });
+      eventBus.emit('flash:ota:progress', {
+        driverId: 'rgfx-driver-0001', sent: 512000, total: 1024000, percent: 50,
+      });
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -552,7 +399,9 @@ describe('setupDriverEventHandlers', () => {
     it('should not send IPC if window is destroyed', () => {
       mockMainWindow.isDestroyed.mockReturnValue(true);
 
-      eventBus.emit('flash:ota:error', { driverId: 'rgfx-driver-0001', error: 'Connection timeout' });
+      eventBus.emit('flash:ota:error', {
+        driverId: 'rgfx-driver-0001', error: 'Connection timeout',
+      });
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });
@@ -560,7 +409,9 @@ describe('setupDriverEventHandlers', () => {
     it('should not send IPC if window is null', () => {
       mockGetMainWindow.mockReturnValue(null);
 
-      eventBus.emit('flash:ota:error', { driverId: 'rgfx-driver-0001', error: 'Connection timeout' });
+      eventBus.emit('flash:ota:error', {
+        driverId: 'rgfx-driver-0001', error: 'Connection timeout',
+      });
 
       expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
     });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { UnifiedPanelEditor } from '../unified-panel-editor';
 
 describe('UnifiedPanelEditor', () => {
@@ -8,7 +8,6 @@ describe('UnifiedPanelEditor', () => {
 
   beforeEach(() => {
     mockOnChange.mockClear();
-    cleanup();
   });
 
   describe('empty state (single panel mode)', () => {

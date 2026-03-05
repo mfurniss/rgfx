@@ -16,6 +16,7 @@ Manages application startup and shutdown:
 - Handles 'window-all-closed' event
 - Configures app-level settings
 - Calls `setShuttingDown()` on 'before-quit' to suppress socket errors during shutdown
+- Uses `driver-connect-service` for driver connection lifecycle management
 
 ### index.ts
 

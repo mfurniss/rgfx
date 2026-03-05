@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useOtaFlashEvents } from '../use-ota-flash-events';
-import type { DriverFlashStatus } from '@/renderer/store/ui-store';
+import type { DriverFlashStatus } from '@/renderer/store/firmware-flash-store';
 
 type StateCallback = (data: { driverId: string; state: string }) => void;
 type ProgressCallback = (data: {

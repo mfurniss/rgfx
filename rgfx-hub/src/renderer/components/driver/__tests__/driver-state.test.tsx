@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import DriverState from '../driver-state';
 import type { Driver } from '@/types';
@@ -46,11 +46,6 @@ describe('DriverState', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('connection state chip', () => {
     it('shows Connected chip when driver is connected', () => {
       const driver = createMockDriver({ state: 'connected' });

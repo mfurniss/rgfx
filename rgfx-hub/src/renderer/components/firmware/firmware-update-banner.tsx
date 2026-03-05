@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDriverStore } from '@/renderer/store/driver-store';
 import { useSystemStatusStore } from '@/renderer/store/system-status-store';
-import { useUiStore } from '@/renderer/store/ui-store';
+import { useFirmwareFlashStore } from '@/renderer/store/firmware-flash-store';
 import { PageBanner } from '@/renderer/components/common/page-banner';
 import { driverNeedsUpdate } from '@/renderer/utils/firmware-helpers';
 
@@ -11,7 +11,7 @@ export function FirmwareUpdateBanner() {
   const firmwareVersions = useSystemStatusStore(
     (state) => state.systemStatus.firmwareVersions,
   );
-  const isFlashingFirmware = useUiStore((state) => state.isFlashingFirmware);
+  const isFlashingFirmware = useFirmwareFlashStore((state) => state.isFlashingFirmware);
 
   // Hide banner while firmware update is in progress
   if (isFlashingFirmware) {

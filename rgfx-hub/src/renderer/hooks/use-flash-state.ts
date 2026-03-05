@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { DriverFlashStatus, FlashMethod } from '../store/ui-store';
+import type { DriverFlashStatus, FlashMethod } from '../store/firmware-flash-store';
 
 export type { FlashMethod };
 

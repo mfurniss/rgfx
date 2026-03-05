@@ -51,6 +51,13 @@ Key methods:
 - `removeActiveOtaDriver(driverId)`: removes driver from active OTA set
 - `setShuttingDown()`: suppresses socket errors during app quit
 
+### driver-connect-service.ts
+
+Extracted from `driver-callbacks.ts` — contains business logic for driver connection lifecycle:
+- Handles driver connect/disconnect/update events
+- Manages driver registration and state transitions
+- Used by `app-lifecycle.ts` and `service-startup.ts`
+
 ### service-factory.ts
 
 Factory for creating and wiring up all main process services.
@@ -58,7 +65,8 @@ Factory for creating and wiring up all main process services.
 - Creates instances of all services with dependency injection
 - `SystemMonitor` receives `MqttBroker` to query actual service status
 - Wraps transformer `broadcast` with `validateTransformerEffect` to apply Zod schema defaults before sending to drivers
-- Contains `parseAmbilight()` (12-bit → 24-bit color expansion), `hslToHex()` (HSL → hex conversion), `createGifLoader()`, and `createSpriteLoader()` utility functions passed to transformer engine context
+- Color utilities (`parseAmbilight`, `hslToHex`) moved to `utils/color-utils.ts`; HTTP utilities moved to `utils/http-context.ts`
+- `createGifLoader()` and `createSpriteLoader()` utility functions passed to transformer engine context
 - Passes `utils` object (from `transformer-utils.ts`) into transformer engine context for use by game transformers
 - Provides `ServiceContainer` interface for accessing services
 - Used by `service-startup.ts` for initialization
@@ -69,6 +77,7 @@ Orchestrates service initialization on app startup.
 
 - Initializes services in correct order with dependency resolution
 - Passes `systemMonitor` to IPC handlers for cleanup operations (e.g., clearing UDP stats on driver delete)
+- Creates and initializes `driver-connect-service`
 - Starts MQTT broker, network manager, and other services
 - Creates `eventProcessor` callback that forwards events to transformer engine, increments stats, sends IPC events, and emits system:error for interceptor errors
 - Sets up firmware monitoring callback to broadcast system status updates
@@ -96,6 +105,10 @@ Simple pub/sub event bus for inter-service communication.
 - Decouples services from direct dependencies
 - Used for system-wide events like errors, status updates
 - `AppEventMap` interface (internal, not exported) defines all event names and payload types
+
+## Testing Notes
+
+- Global `vi.mock('electron-log/main')` in `setup.ts` provides default log mock; tests needing custom log refs (e.g., `logging.test.ts`) override per-file with `vi.hoisted()`.
 
 ## Usage
 

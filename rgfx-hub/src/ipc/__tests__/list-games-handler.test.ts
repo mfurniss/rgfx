@@ -3,6 +3,7 @@ import path from 'path';
 import { registerListGamesHandler } from '@/ipc/list-games-handler';
 import * as fs from 'fs';
 import type { GameInfo } from '@/types';
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -38,18 +39,16 @@ const INTERCEPTORS_GAMES = path.join('interceptors', 'games');
 
 describe('registerListGamesHandler', () => {
   let registeredHandler: (_event: unknown, romsDirectory?: string) => GameInfo[];
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (_event: unknown, romsDirectory?: string) => GameInfo[]) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerListGamesHandler();
+
+    registeredHandler = ipc.getHandler('games:list') as typeof registeredHandler;
   });
 
   afterEach(() => {
@@ -57,9 +56,8 @@ describe('registerListGamesHandler', () => {
   });
 
   describe('handler registration', () => {
-    it('should register handler for games:list channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('games:list', expect.any(Function));
+    it('should register handler for games:list channel', () => {
+      ipc.assertChannel('games:list');
     });
   });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TestLedButton from '../test-led-button';
 import type { Driver, DriverLEDConfig } from '@/types';
@@ -12,10 +12,6 @@ beforeEach(() => {
   (window as unknown as { rgfx: { sendDriverCommand: typeof mockSendDriverCommand } }).rgfx = {
     sendDriverCommand: mockSendDriverCommand,
   };
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 const createMockLedConfig = (): DriverLEDConfig => ({

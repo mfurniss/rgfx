@@ -1,5 +1,4 @@
-import { ipcMain, app } from 'electron';
-import path from 'node:path';
+import { ipcMain } from 'electron';
 import log from 'electron-log/main';
 import type { DriverRegistry } from '../driver-registry';
 import { INVOKE_CHANNELS } from './contract';
@@ -10,6 +9,7 @@ import {
   getOtaFirmwareFilename,
   mapChipNameToVariant,
 } from '../schemas/firmware-manifest';
+import { getFirmwareFilePath } from '../utils/firmware-paths';
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
@@ -37,15 +37,8 @@ function getChipType(chipModel: string | undefined): SupportedChip {
   return chipType;
 }
 
-/**
- * Get the firmware file path for a specific chip type
- */
 function getFirmwarePath(chipType: SupportedChip): string {
-  const filename = getOtaFirmwareFilename(chipType);
-
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'firmware', filename)
-    : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware', filename);
+  return getFirmwareFilePath(getOtaFirmwareFilename(chipType));
 }
 
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {

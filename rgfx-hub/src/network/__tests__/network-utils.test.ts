@@ -1,13 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { describe, it, expect } from 'vitest';
 
 import { getLocalIP, getBroadcastAddress } from '../network-utils';
 

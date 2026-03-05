@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DisableDriverButton from '../disable-driver-button';
 import type { Driver } from '@/types';
 
@@ -13,10 +13,6 @@ beforeEach(() => {
   (window as unknown as { rgfx: { setDriverDisabled: typeof mockSetDriverDisabled } }).rgfx = {
     setDriverDisabled: mockSetDriverDisabled,
   };
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 const createMockDriver = (overrides: Partial<Driver> = {}): Driver => ({

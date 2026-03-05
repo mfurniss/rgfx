@@ -33,7 +33,7 @@ Stores can call into each other:
 - `drivers: Driver[]` - Array of all known drivers (connected and disconnected)
 
 **Actions:**
-- `onDriverConnected(driver)` - Handles driver connection events. Adds new drivers or updates existing ones. Handles ID migration when a driver's MAC matches but ID differs.
+- `onDriverConnected(driver)` - Handles driver connection events. Adds new drivers or updates existing ones. Handles ID migration when a driver's MAC matches but ID differs. Uses extracted `upsertDriver` helper.
 - `onDriverDisconnected(driver)` - Handles driver disconnection events
 - `onDriverUpdated(driver)` - Updates driver state (telemetry, config changes, etc.)
 
@@ -212,10 +212,12 @@ interface Notification {
 - `setDriverTableSort(field, order)` - Updates driver table sort preferences
 - `setTestEffectsState(effect, props, drivers, selectAll)` - Saves test effects page state
 - `setSimulatorRow(index, eventLine, autoInterval)` - Updates a simulator row
+- `resetAllAutoIntervals()` - Sets all simulator rows' autoInterval to 'off' (used by Clear All Effects)
 - `setWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
 - `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
 - `setDriverFallbackEnabled(enabled)` - Toggles driver fallback mode
-- `setFirmwareFlashMethod(method)` - Sets firmware flash method ('ota' | 'usb'). Used directly by firmware page ToggleButtonGroup — no local state copy, avoids bidirectional sync loops
+
+**Note:** Firmware flash state (flash method, OTA progress, etc.) has been moved to `firmware-flash-store.ts`.
 
 **Features:**
 - Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates
@@ -249,5 +251,22 @@ interface AppInfo {
 - Loaded once at app startup
 - Provides default values for settings page
 - No persistence (always fetched fresh from main process)
+
+---
+
+### Firmware Flash Store
+
+**File:** [firmware-flash-store.ts](firmware-flash-store.ts)
+
+**Purpose:** Dedicated transient store for firmware flash state, extracted from `ui-store.ts`.
+
+**State:**
+- `flashMethod: FlashMethod` - Current flash method ('ota' | 'usb')
+- OTA progress tracking per driver
+
+**Actions:**
+- `setFirmwareFlashMethod(method)` - Sets flash method. Used directly by firmware page ToggleButtonGroup — no local state copy, avoids bidirectional sync loops
+
+**Note:** This store is *not* persisted — flash state is transient and resets on app restart.
 
 <\!-- No per-file license headers — see root LICENSE -->

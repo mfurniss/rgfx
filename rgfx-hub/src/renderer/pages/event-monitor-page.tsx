@@ -82,10 +82,9 @@ const EventMonitorPage: React.FC = () => {
 
   const handleConfirmReset = () => {
     setDialogOpen(false);
-    void (async () => {
-      await window.rgfx.resetEventCounts();
+    void window.rgfx.resetEventCounts().then(() => {
       reset();
-    })();
+    });
   };
 
   return (

@@ -1,13 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { ColorPicker } from '../color-picker';
 
 describe('ColorPicker', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('rendering', () => {
     it('should render color swatch and text input', () => {
       render(<ColorPicker value="#FF0000" onChange={vi.fn()} />);

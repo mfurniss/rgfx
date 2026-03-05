@@ -7,21 +7,7 @@ import type { SystemMonitor } from '@/system-monitor';
 import type { BrowserWindow } from 'electron';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerDeleteDriverHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
@@ -30,6 +16,7 @@ describe('registerDeleteDriverHandler', () => {
   let mockMainWindow: DeepMockProxy<BrowserWindow>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => { success: boolean };
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -48,12 +35,7 @@ describe('registerDeleteDriverHandler', () => {
     mockMainWindow = mockDeep<BrowserWindow>();
     mockMainWindow.isDestroyed.mockReturnValue(false);
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (_channel: string, handler: (event: unknown, driverId: string) => { success: boolean }) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerDeleteDriverHandler({
       driverRegistry: mockDriverRegistry,
@@ -61,11 +43,12 @@ describe('registerDeleteDriverHandler', () => {
       systemMonitor: mockSystemMonitor,
       getMainWindow: () => mockMainWindow,
     });
+
+    registeredHandler = ipc.getHandler('driver:delete') as typeof registeredHandler;
   });
 
-  it('registers the driver:delete handler', async () => {
-    const { ipcMain } = await import('electron');
-    expect(ipcMain.handle).toHaveBeenCalledWith('driver:delete', expect.any(Function));
+  it('registers the driver:delete handler', () => {
+    ipc.assertChannel('driver:delete');
   });
 
   describe('handler behavior', () => {

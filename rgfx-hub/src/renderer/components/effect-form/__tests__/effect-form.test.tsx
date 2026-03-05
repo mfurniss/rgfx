@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { z } from 'zod';
 import { EffectForm } from '../effect-form';
 import type { LayoutConfig } from '@/schemas/effects';
@@ -25,10 +25,6 @@ const defaultValues = {
 };
 
 describe('EffectForm', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('default layout (no layoutConfig)', () => {
     it('should render all fields', () => {
       const onChange = vi.fn();

@@ -1,14 +1,10 @@
-import { ipcMain, app } from 'electron';
+import { ipcMain } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import log from 'electron-log/main';
 import { INVOKE_CHANNELS } from './contract';
-
-function getFirmwareDir(): string {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'firmware')
-    : path.join(app.getAppPath(), 'assets', 'esp32', 'firmware');
-}
+import { getErrorMessage } from '../utils/driver-utils';
+import { getFirmwareDir } from '../utils/firmware-paths';
 
 export function registerFirmwareFilesHandler(): void {
   ipcMain.handle(INVOKE_CHANNELS.getFirmwareManifest, async () => {
@@ -21,7 +17,7 @@ export function registerFirmwareFilesHandler(): void {
       const content = await fs.readFile(manifestPath, 'utf-8');
       return JSON.parse(content) as unknown;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = getErrorMessage(error);
       log.error('Failed to load firmware manifest:', message);
       throw new Error(`Failed to load firmware manifest: ${message}`);
     }
@@ -42,7 +38,7 @@ export function registerFirmwareFilesHandler(): void {
       const buffer = await fs.readFile(filePath);
       return buffer;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = getErrorMessage(error);
       log.error(`Failed to load firmware file ${filename}:`, message);
       throw new Error(`Failed to load firmware file: ${message}`);
     }

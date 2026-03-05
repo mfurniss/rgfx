@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { DriverFlashStatus } from '../store/ui-store';
+import type { DriverFlashStatus } from '../store/firmware-flash-store';
 
 interface OtaFlashEventHandlers {
   addLog: (message: string) => void;

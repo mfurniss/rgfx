@@ -10,12 +10,21 @@ interface UdpStats {
   failed: number;
 }
 
+interface StatusSources {
+  getConnectedCount: () => number;
+  getTotalCount: () => number;
+  getEventsProcessed: () => number;
+  getEventLogSizeBytes: () => number;
+  getErrors: () => readonly SystemError[];
+}
+
 export class SystemMonitor {
   private readonly hubStartTime: number;
   private readonly firmwareWatcher: FirmwareWatcher;
   private readonly mqtt: MqttBroker;
   private onFirmwareUpdatedCallback?: (version: string | null) => void;
   private udpStatsByDriver = new Map<string, UdpStats>();
+  private statusSources?: StatusSources;
 
   constructor(mqtt: MqttBroker) {
     this.mqtt = mqtt;
@@ -69,6 +78,28 @@ export class SystemMonitor {
   stopFirmwareMonitoring(): void {
     log.info('[SystemMonitor] Stopping firmware monitoring');
     this.firmwareWatcher.stop();
+  }
+
+  registerStatusSources(sources: StatusSources): void {
+    this.statusSources = sources;
+  }
+
+  /**
+   * Build full system status using registered sources.
+   * Call registerStatusSources() during app init before using this.
+   */
+  getFullStatus(): SystemStatus {
+    if (!this.statusSources) {
+      throw new Error('Status sources not registered');
+    }
+    const s = this.statusSources;
+    return this.getSystemStatus(
+      s.getConnectedCount(),
+      s.getTotalCount(),
+      s.getEventsProcessed(),
+      s.getEventLogSizeBytes(),
+      s.getErrors(),
+    );
   }
 
   // Generate system status object

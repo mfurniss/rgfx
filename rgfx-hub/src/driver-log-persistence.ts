@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import log from 'electron-log/main';
+import { getErrorMessage } from './utils/driver-utils';
 
 /**
  * Manages persistent driver log files
@@ -44,8 +45,7 @@ export class DriverLogPersistence {
     try {
       fs.appendFileSync(logFile, logLine, 'utf8');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log.error(`Failed to write driver log for ${driverId}: ${errorMessage}`);
+      log.error(`Failed to write driver log for ${driverId}: ${getErrorMessage(error)}`);
     }
   }
 

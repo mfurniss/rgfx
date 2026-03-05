@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import FirmwarePage from '../firmware-page';
 import { useDriverStore } from '../../store/driver-store';
-import { useUiStore } from '../../store/ui-store';
+import { useFirmwareFlashStore } from '../../store/firmware-flash-store';
 import { useFlashState } from '../../hooks/use-flash-state';
 
 // Mock all child components
@@ -71,8 +71,8 @@ function createUiState(overrides = {}) {
   };
 }
 
-vi.mock('../../store/ui-store', () => ({
-  useUiStore: vi.fn((selector) => selector(createUiState())),
+vi.mock('../../store/firmware-flash-store', () => ({
+  useFirmwareFlashStore: vi.fn((selector) => selector(createUiState())),
 }));
 
 // Mock hooks
@@ -120,11 +120,7 @@ const defaultUiStoreImpl = ((selector: any) => {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useDriverStore).mockImplementation(defaultDriverStoreImpl);
-  vi.mocked(useUiStore).mockImplementation(defaultUiStoreImpl);
-});
-
-afterEach(() => {
-  cleanup();
+  vi.mocked(useFirmwareFlashStore).mockImplementation(defaultUiStoreImpl);
 });
 
 describe('FirmwarePage', () => {
@@ -170,7 +166,7 @@ describe('FirmwarePage', () => {
     });
 
     it('shows USB content when store flash method is usb', () => {
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({ firmwareFlashMethod: 'usb' }));
       }) as any);
 
@@ -183,7 +179,7 @@ describe('FirmwarePage', () => {
     it('calls setFirmwareFlashMethod when switching tabs', () => {
       const setFirmwareFlashMethodMock = vi.fn();
 
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({
           setFirmwareFlashMethod: setFirmwareFlashMethodMock,
         }));
@@ -205,7 +201,7 @@ describe('FirmwarePage', () => {
 
   describe('method descriptions', () => {
     it('shows USB description when USB selected', () => {
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({ firmwareFlashMethod: 'usb' }));
       }) as any);
 
@@ -236,7 +232,7 @@ describe('FirmwarePage', () => {
     });
 
     it('shows USB when store has usb', () => {
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({ firmwareFlashMethod: 'usb' }));
       }) as any);
 
@@ -293,7 +289,7 @@ describe('FirmwarePage', () => {
     });
 
     it('hides error alert when flashing is in progress', () => {
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({ isFlashingFirmware: true }));
       }) as any);
 
@@ -328,7 +324,7 @@ describe('FirmwarePage', () => {
       const setFirmwareStateMock = vi.fn();
       let callCount = 0;
 
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({
           setFirmwareState: () => {
             callCount++;
@@ -364,7 +360,7 @@ describe('FirmwarePage', () => {
         callCount++;
       });
 
-      vi.mocked(useUiStore).mockImplementation(((selector: any) => {
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
         return selector(createUiState({
           setFirmwareState: setFirmwareStateMock,
         }));

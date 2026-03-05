@@ -1,31 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerSetIdHandler } from '../set-id-handler';
+import { INVOKE_CHANNELS } from '../contract';
 import type { DriverRegistry } from '@/driver-registry';
 import type { MqttBroker } from '@/network';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: vi.fn(),
-  },
-}));
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerSetIdHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockMqtt: MockProxy<MqttBroker>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string, newId: string) => Promise<void>;
+  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -38,26 +26,19 @@ describe('registerSetIdHandler', () => {
     mockMqtt = mock<MqttBroker>();
     mockMqtt.publish.mockResolvedValue(undefined);
 
-    const { ipcMain } = await import('electron');
-    (ipcMain.handle as ReturnType<typeof vi.fn>).mockImplementation(
-      (
-        _channel: string,
-        handler: (event: unknown, driverId: string, newId: string) => Promise<void>,
-      ) => {
-        registeredHandler = handler;
-      },
-    );
+    ipc = await setupIpcHandlerCapture();
 
     registerSetIdHandler({
       driverRegistry: mockDriverRegistry,
       mqtt: mockMqtt,
     });
+
+    registeredHandler = ipc.getHandler(INVOKE_CHANNELS.setDriverId) as typeof registeredHandler;
   });
 
   describe('handler registration', () => {
-    it('should register handler for driver:set-id channel', async () => {
-      const { ipcMain } = await import('electron');
-      expect(ipcMain.handle).toHaveBeenCalledWith('driver:set-id', expect.any(Function));
+    it('should register handler for driver:set-id channel', () => {
+      ipc.assertChannel(INVOKE_CHANNELS.setDriverId);
     });
   });
 

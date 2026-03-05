@@ -1,17 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DriverConfig } from '../driver-config';
 import { ConfigError } from '../errors/config-error';
-
-// Mock electron-log
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
 
 describe('DriverConfig', () => {
   const testConfigDir = path.join(__dirname, '../test-config');

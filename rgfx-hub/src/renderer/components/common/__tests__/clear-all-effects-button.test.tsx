@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ClearAllEffectsButton } from '../clear-all-effects-button';
 import { useDriverStore } from '@/renderer/store/driver-store';
+import { useUiStore } from '@/renderer/store/ui-store';
 import type { Driver } from '@/types';
 
 const mockClearTransformerState = vi.fn();
@@ -23,7 +24,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  cleanup();
   useDriverStore.setState({ drivers: [] });
 });
 
@@ -121,6 +121,26 @@ describe('ClearAllEffectsButton', () => {
         expect(mockSendDriverCommand).toHaveBeenCalledWith('driver-1', 'clear-effects', '');
         expect(mockSendDriverCommand).toHaveBeenCalledWith('driver-2', 'clear-effects', '');
         expect(mockSendDriverCommand).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('resets all auto-trigger intervals to off', () => {
+      mockClearTransformerState.mockResolvedValue(undefined);
+      mockSendDriverCommand.mockResolvedValue({ success: true });
+
+      useUiStore.getState().setSimulatorRow(0, 'event1', '5s');
+      useUiStore.getState().setSimulatorRow(2, 'event2', '1s');
+
+      useDriverStore.setState({
+        drivers: [createMockDriver()],
+      });
+      render(<ClearAllEffectsButton />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      const { simulatorRows } = useUiStore.getState();
+      simulatorRows.forEach((row) => {
+        expect(row.autoInterval).toBe('off');
       });
     });
 

@@ -10,7 +10,7 @@ Services running in the renderer process for firmware flashing operations.
 
 **File:** [ota-flash-service.ts](ota-flash-service.ts)
 
-Handles Over-The-Air firmware updates to multiple drivers in parallel:
+Handles Over-The-Air firmware updates to multiple drivers in parallel. Imports types from `firmware-flash-store`:
 - `flashViaOTA(driversToFlash, firmwareVersion, callbacks)` - Flash multiple drivers concurrently
 - `getDriversToFlash(selectedDriverIds, allDrivers)` - Filter to connected drivers only
 - `generateResultMessage(result, firmwareVersion)` - Format success/failure message

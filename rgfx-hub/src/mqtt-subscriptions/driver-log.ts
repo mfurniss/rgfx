@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { MqttBroker } from '../network';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 import { eventBus } from '../services/event-bus';
+import { getErrorMessage } from '../utils/driver-utils';
 
 /**
  * Schema for driver log messages
@@ -65,9 +66,7 @@ export function subscribeDriverLog(deps: DriverLogDeps): void {
         Date.now(),
       );
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      log.error(`Failed to parse driver log from ${driverId}: ${errorMessage}`);
+      log.error(`Failed to parse driver log from ${driverId}: ${getErrorMessage(error)}`);
     }
   });
 }

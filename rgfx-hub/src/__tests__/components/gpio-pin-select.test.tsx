@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { useForm } from 'react-hook-form';
 import { GpioPinSelect } from '@/renderer/components/common/gpio-pin-select';
 
@@ -28,10 +28,6 @@ const TestGpioPinSelect: React.FC<{
 };
 
 describe('GpioPinSelect', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('rendering', () => {
     it('renders with GPIO Pin label', () => {
       render(<TestGpioPinSelect />);
@@ -173,14 +169,14 @@ describe('GpioPinSelect', () => {
 
   describe('unlisted pin warning', () => {
     it('shows warning for unlisted pin on ESP32', () => {
-      // Pin 6 is flash on ESP32 - not in the safe list
+    // Pin 6 is flash on ESP32 - not in the safe list
       render(<TestGpioPinSelect defaultValue={6} chipModel="ESP32" />);
 
       expect(screen.getByText(/GPIO 6 is not recommended/)).toBeDefined();
     });
 
     it('shows warning for unlisted pin on ESP32-S3', () => {
-      // Pin 19 is USB on S3 - not in the safe list
+    // Pin 19 is USB on S3 - not in the safe list
       render(<TestGpioPinSelect defaultValue={19} chipModel="ESP32-S3" />);
 
       expect(screen.getByText(/GPIO 19 is not recommended/)).toBeDefined();

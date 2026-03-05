@@ -3,10 +3,9 @@ import {
   render,
   screen,
   fireEvent,
-  cleanup,
 } from '@testing-library/react';
 import { Table, TableBody } from '@mui/material';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventRow } from '../event-row';
 
 const mockSimulateEvent = vi.fn();
@@ -18,10 +17,6 @@ beforeEach(() => {
   }).rgfx = {
     simulateEvent: mockSimulateEvent,
   };
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 function renderRow(props: {

@@ -15,13 +15,6 @@ interface TableSortPreference {
   order: SortOrder;
 }
 export type SimulatorAutoInterval = 'off' | '1s' | '5s';
-export type FlashMethod = 'usb' | 'ota';
-
-export interface DriverFlashStatus {
-  status: 'pending' | 'flashing' | 'success' | 'error';
-  progress: number;
-  error?: string;
-}
 
 interface SimulatorRow {
   eventLine: string;
@@ -52,16 +45,8 @@ interface UiState {
   driverFallbackEnabled: boolean;
   stripLifespanScale: number;
 
-  // Firmware update state (transient, not persisted)
-  isFlashingFirmware: boolean;
-  firmwareFlashMethod: FlashMethod;
-  firmwareSelectedDrivers: string[];
-  firmwareSelectAll: boolean;
-  firmwareDriverFlashStatus: Record<string, DriverFlashStatus>;
-
   // Actions
   setTableSort: (key: string, field: string, order: SortOrder) => void;
-  setIsFlashingFirmware: (isFlashing: boolean) => void;
   setTestEffectsState: (
     selectedEffect: string,
     propsJson: string,
@@ -70,16 +55,10 @@ interface UiState {
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
   setMameRomsDirectory: (path: string) => void;
-  setFirmwareFlashMethod: (method: FlashMethod) => void;
-  setFirmwareState: (
-    flashMethod: FlashMethod,
-    selectedDrivers: string[],
-    selectAll: boolean
-  ) => void;
-  setFirmwareDriverFlashStatus: (status: Record<string, DriverFlashStatus>) => void;
   setLastWifiCredentials: (ssid: string, password: string) => void;
   setDriverFallbackEnabled: (enabled: boolean) => void;
   setStripLifespanScale: (scale: number) => void;
+  resetAllAutoIntervals: () => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -113,13 +92,6 @@ export const useUiStore = create<UiState>()(
       driverFallbackEnabled: true,
       stripLifespanScale: 0.6,
 
-      // Firmware update state
-      isFlashingFirmware: false,
-      firmwareFlashMethod: 'ota' as FlashMethod,
-      firmwareSelectedDrivers: [],
-      firmwareSelectAll: false,
-      firmwareDriverFlashStatus: {},
-
       setTableSort: (key, field, order) => {
         set((state) => ({
           tableSortPreferences: {
@@ -127,10 +99,6 @@ export const useUiStore = create<UiState>()(
             [key]: { field, order },
           },
         }));
-      },
-
-      setIsFlashingFirmware: (isFlashing) => {
-        set({ isFlashingFirmware: isFlashing });
       },
 
       setTestEffectsState: (selectedEffect, propsJson, selectedDrivers) => {
@@ -160,22 +128,6 @@ export const useUiStore = create<UiState>()(
         set({ mameRomsDirectory: path });
       },
 
-      setFirmwareFlashMethod: (method) => {
-        set({ firmwareFlashMethod: method });
-      },
-
-      setFirmwareState: (flashMethod, selectedDrivers, selectAll) => {
-        set({
-          firmwareFlashMethod: flashMethod,
-          firmwareSelectedDrivers: selectedDrivers,
-          firmwareSelectAll: selectAll,
-        });
-      },
-
-      setFirmwareDriverFlashStatus: (status) => {
-        set({ firmwareDriverFlashStatus: status });
-      },
-
       setLastWifiCredentials: (ssid, password) => {
         set({ lastWifiSsid: ssid, lastWifiPassword: password });
       },
@@ -186,6 +138,15 @@ export const useUiStore = create<UiState>()(
 
       setStripLifespanScale: (scale) => {
         set({ stripLifespanScale: scale });
+      },
+
+      resetAllAutoIntervals: () => {
+        set((state) => ({
+          simulatorRows: state.simulatorRows.map((row) => ({
+            ...row,
+            autoInterval: 'off' as SimulatorAutoInterval,
+          })),
+        }));
       },
     }),
     {

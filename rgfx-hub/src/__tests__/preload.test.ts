@@ -164,7 +164,7 @@ describe('preload API', () => {
 
   describe('API completeness', () => {
     const expectedMethods = [
-      // Invoke (28)
+      // Invoke (29)
       'getAppInfo', 'sendDriverCommand', 'updateDriverConfig',
       'flashOTA', 'triggerDiscovery', 'triggerEffect',
       'saveDriverConfig', 'getLEDHardwareList', 'getLEDHardware',
@@ -174,7 +174,7 @@ describe('preload API', () => {
       'setDriverFallbackEnabled', 'resetEventCounts',
       'clearTransformerState', 'loadGif', 'restartDriver',
       'deleteDriver', 'showInFolder', 'getLogSizes', 'clearAllLogs',
-      'createBackup',
+      'createBackup', 'setDriverId',
       // Push (10)
       'onDriverConnected', 'onDriverDisconnected',
       'onDriverUpdated', 'onDriverRestarting', 'onDriverDeleted',
@@ -184,8 +184,8 @@ describe('preload API', () => {
       'rendererReady', 'quitApp',
     ];
 
-    it('has exactly 40 methods', () => {
-      expect(Object.keys(rgfxAPI)).toHaveLength(40);
+    it('has exactly 41 methods', () => {
+      expect(Object.keys(rgfxAPI)).toHaveLength(41);
     });
 
     it('contains all expected methods', () => {

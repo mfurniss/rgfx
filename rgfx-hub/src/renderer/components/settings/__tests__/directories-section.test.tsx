@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DirectoriesSection } from '../directories-section';
 
 const mockSetRgfxConfigDirectory = vi.fn();
@@ -38,10 +38,6 @@ vi.mock('../../../store/app-info-store', () => ({
 vi.mock('../../../store/notification-store', () => ({
   notify: (...args: unknown[]) => mockNotify(...args),
 }));
-
-afterEach(() => {
-  cleanup();
-});
 
 describe('DirectoriesSection', () => {
   let mockVerifyDirectory: ReturnType<typeof vi.fn>;

@@ -10,15 +10,7 @@ import {
   Chip,
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-
-interface Driver {
-  id: string;
-  ip?: string;
-  state: 'connected' | 'disconnected' | 'updating';
-  telemetry?: {
-    chipModel?: string;
-  };
-}
+import type { Driver } from '@/types';
 
 interface TargetDriversPickerProps {
   drivers: Driver[];

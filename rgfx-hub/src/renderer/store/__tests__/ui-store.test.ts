@@ -142,159 +142,44 @@ describe('useUiStore', () => {
     });
   });
 
-  describe('firmware page state', () => {
-    beforeEach(() => {
-      // Reset firmware state
-      useUiStore.setState({
-        isFlashingFirmware: false,
-        firmwareFlashMethod: 'ota',
-        firmwareSelectedDrivers: [],
-        firmwareSelectAll: false,
-        firmwareDriverFlashStatus: {},
+  describe('resetAllAutoIntervals', () => {
+    it('should set all rows to off', () => {
+      const { setSimulatorRow, resetAllAutoIntervals } = useUiStore.getState();
+
+      setSimulatorRow(0, 'event1', '1s');
+      setSimulatorRow(2, 'event2', '5s');
+      setSimulatorRow(5, 'event3', '1s');
+
+      resetAllAutoIntervals();
+
+      const { simulatorRows } = useUiStore.getState();
+      simulatorRows.forEach((row) => {
+        expect(row.autoInterval).toBe('off');
       });
     });
 
-    describe('initial state', () => {
-      it('should have default firmware state', () => {
-        const state = useUiStore.getState();
-        expect(state.isFlashingFirmware).toBe(false);
-        expect(state.firmwareFlashMethod).toBe('ota');
-        expect(state.firmwareSelectedDrivers).toEqual([]);
-        expect(state.firmwareSelectAll).toBe(false);
-        expect(state.firmwareDriverFlashStatus).toEqual({});
-      });
+    it('should preserve event lines', () => {
+      const { setSimulatorRow, resetAllAutoIntervals } = useUiStore.getState();
+
+      setSimulatorRow(0, 'game/pacman/score 1000', '5s');
+      setSimulatorRow(1, 'game/galaga/fire', '1s');
+
+      resetAllAutoIntervals();
+
+      const { simulatorRows } = useUiStore.getState();
+      expect(simulatorRows[0].eventLine).toBe('game/pacman/score 1000');
+      expect(simulatorRows[1].eventLine).toBe('game/galaga/fire');
     });
 
-    describe('setIsFlashingFirmware', () => {
-      it('should set flashing state to true', () => {
-        const { setIsFlashingFirmware } = useUiStore.getState();
+    it('should be a no-op when all rows are already off', () => {
+      const rowsBefore = useUiStore.getState().simulatorRows;
 
-        setIsFlashingFirmware(true);
+      useUiStore.getState().resetAllAutoIntervals();
 
-        expect(useUiStore.getState().isFlashingFirmware).toBe(true);
-      });
-
-      it('should set flashing state to false', () => {
-        useUiStore.setState({ isFlashingFirmware: true });
-        const { setIsFlashingFirmware } = useUiStore.getState();
-
-        setIsFlashingFirmware(false);
-
-        expect(useUiStore.getState().isFlashingFirmware).toBe(false);
-      });
-    });
-
-    describe('setFirmwareState', () => {
-      it('should update flash method', () => {
-        const { setFirmwareState } = useUiStore.getState();
-
-        setFirmwareState('usb', [], false);
-
-        expect(useUiStore.getState().firmwareFlashMethod).toBe('usb');
-      });
-
-      it('should update selected drivers', () => {
-        const { setFirmwareState } = useUiStore.getState();
-
-        setFirmwareState('ota', ['driver-1', 'driver-2'], false);
-
-        expect(useUiStore.getState().firmwareSelectedDrivers).toEqual(['driver-1', 'driver-2']);
-      });
-
-      it('should update select all flag', () => {
-        const { setFirmwareState } = useUiStore.getState();
-
-        setFirmwareState('ota', ['driver-1'], true);
-
-        expect(useUiStore.getState().firmwareSelectAll).toBe(true);
-      });
-
-      it('should update all firmware state at once', () => {
-        const { setFirmwareState } = useUiStore.getState();
-
-        setFirmwareState('usb', ['d1', 'd2', 'd3'], true);
-
-        const state = useUiStore.getState();
-        expect(state.firmwareFlashMethod).toBe('usb');
-        expect(state.firmwareSelectedDrivers).toEqual(['d1', 'd2', 'd3']);
-        expect(state.firmwareSelectAll).toBe(true);
-      });
-
-      it('should handle empty driver selection', () => {
-        const { setFirmwareState } = useUiStore.getState();
-
-        setFirmwareState('ota', [], false);
-
-        expect(useUiStore.getState().firmwareSelectedDrivers).toEqual([]);
-      });
-    });
-
-    describe('setFirmwareDriverFlashStatus', () => {
-      it('should set driver flash status', () => {
-        const { setFirmwareDriverFlashStatus } = useUiStore.getState();
-        const status = {
-          'driver-1': { status: 'flashing' as const, progress: 50 },
-          'driver-2': { status: 'pending' as const, progress: 0 },
-        };
-
-        setFirmwareDriverFlashStatus(status);
-
-        expect(useUiStore.getState().firmwareDriverFlashStatus).toEqual(status);
-      });
-
-      it('should update status with success state', () => {
-        const { setFirmwareDriverFlashStatus } = useUiStore.getState();
-        const status = {
-          'driver-1': { status: 'success' as const, progress: 100 },
-        };
-
-        setFirmwareDriverFlashStatus(status);
-
-        expect(useUiStore.getState().firmwareDriverFlashStatus['driver-1'].status).toBe('success');
-        expect(useUiStore.getState().firmwareDriverFlashStatus['driver-1'].progress).toBe(100);
-      });
-
-      it('should update status with error state', () => {
-        const { setFirmwareDriverFlashStatus } = useUiStore.getState();
-        const status = {
-          'driver-1': { status: 'error' as const, progress: 0, error: 'Connection failed' },
-        };
-
-        setFirmwareDriverFlashStatus(status);
-
-        const driverStatus = useUiStore.getState().firmwareDriverFlashStatus['driver-1'];
-        expect(driverStatus.status).toBe('error');
-        expect(driverStatus.error).toBe('Connection failed');
-      });
-
-      it('should clear status when set to empty object', () => {
-        useUiStore.setState({
-          firmwareDriverFlashStatus: {
-            'driver-1': { status: 'flashing', progress: 50 },
-          },
-        });
-        const { setFirmwareDriverFlashStatus } = useUiStore.getState();
-
-        setFirmwareDriverFlashStatus({});
-
-        expect(useUiStore.getState().firmwareDriverFlashStatus).toEqual({});
-      });
-
-      it('should replace entire status object', () => {
-        useUiStore.setState({
-          firmwareDriverFlashStatus: {
-            'old-driver': { status: 'success', progress: 100 },
-          },
-        });
-        const { setFirmwareDriverFlashStatus } = useUiStore.getState();
-
-        setFirmwareDriverFlashStatus({
-          'new-driver': { status: 'pending', progress: 0 },
-        });
-
-        const status = useUiStore.getState().firmwareDriverFlashStatus;
-        expect(status['old-driver']).toBeUndefined();
-        expect(status['new-driver']).toBeDefined();
+      const rowsAfter = useUiStore.getState().simulatorRows;
+      rowsAfter.forEach((row, i) => {
+        expect(row.autoInterval).toBe('off');
+        expect(row.eventLine).toBe(rowsBefore[i].eventLine);
       });
     });
   });

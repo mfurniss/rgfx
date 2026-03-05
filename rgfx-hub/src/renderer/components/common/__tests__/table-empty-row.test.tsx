@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { Table, TableBody } from '@mui/material';
 import { TableEmptyRow } from '../table-empty-row';
 
@@ -13,10 +13,6 @@ const renderWithTable = (ui: React.ReactElement) => {
 };
 
 describe('TableEmptyRow', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   describe('rendering', () => {
     it('renders the message text', () => {
       renderWithTable(<TableEmptyRow colSpan={3} message="No items found" />);

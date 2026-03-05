@@ -1,15 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { MinimalDriverRegistrationSchema } from '../schemas/minimal-driver-registration';
-
-// Mock electron-log
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
 
 describe('MinimalDriverRegistrationSchema', () => {
   describe('Valid minimal registration', () => {

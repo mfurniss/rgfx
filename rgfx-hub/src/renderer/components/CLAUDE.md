@@ -228,6 +228,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Red warning icon when `telemetry.ledHealthy === false` (RMT output failure)
 - Uses `mapChipNameToVariant()` to match driver's chip model to correct target version
 - Clicking firmware warning navigates to firmware page; clicking config warning navigates to driver config
+- Extracted `ChipWithWarning` helper component for reuse
 
 ---
 
@@ -235,7 +236,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **File:** [target-drivers-picker.tsx](target-drivers-picker.tsx)
 
-**Purpose:** Dropdown popover for selecting which drivers to target for firmware flashing or effects.
+**Purpose:** Dropdown popover for selecting which drivers to target for firmware flashing or effects. Imports `Driver` type from `@/types` (no local interface).
 
 **Props:**
 - `drivers: Driver[]` - Available drivers
@@ -403,7 +404,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Features:**
 - Shown when any connected driver has different firmware version than its chip type's target
 - Uses chip-aware version comparison via `mapChipNameToVariant()` to match each driver's chip model to the correct target version
-- Hidden automatically during OTA flashing operations
+- Hidden automatically during OTA flashing operations (reads state from `firmware-flash-store`)
 - Navigates to firmware page when clicked
 
 ---
@@ -709,6 +710,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Purpose:** Button to clear all active effects on connected drivers.
 
 **Features:**
+- Resets all simulator auto-trigger intervals to 'off' (cancels timers via store subscription)
 - Calls `clearTransformerState` then sends `clear-effects` command to each connected driver
 - Disabled when no drivers are connected
 - Uses `useShallow` with string ID array selector to avoid re-renders on unrelated driver changes (e.g., telemetry updates)
@@ -754,5 +756,12 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Uses `SuperButton` with busy state during backup
 - Three-way result: success → green notify, error → red notify, cancel → no notification
 - Wrapped in `SettingsSection` with title and subtitle
+
+---
+
+## Testing Notes
+
+- **Do NOT call `cleanup()` in component tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.
+- **Do NOT add `vi.mock('electron-log/main')` or `vi.mock('electron')` unless you need custom mock refs.** Global mocks in `setup.ts` cover the standard cases.
 
 <\!-- No per-file license headers — see root LICENSE -->

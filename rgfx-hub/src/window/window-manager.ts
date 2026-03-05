@@ -3,9 +3,7 @@ import path from 'node:path';
 import windowStateKeeper from 'electron-window-state';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverRegistry } from '../driver-registry';
-import type { EventFileReader } from '../event-file-reader';
 import type { SystemErrorTracker } from '../services/system-error-tracker';
-import type { EventStats } from '../services/event-stats';
 import type { Logger } from '../services/service-factory';
 import { sendToRenderer } from '../utils/driver-utils';
 import type { IpcChannel } from '../config/ipc-channels';
@@ -22,9 +20,7 @@ import { CONFIG_DIRECTORY } from '../config/paths';
 export interface WindowManagerDeps {
   systemMonitor: SystemMonitor;
   driverRegistry: DriverRegistry;
-  eventReader: EventFileReader;
   systemErrorTracker: SystemErrorTracker;
-  eventStats: EventStats;
   log: Logger;
 }
 
@@ -32,6 +28,7 @@ export interface WindowManager {
   getWindow(): BrowserWindow | null;
   isAvailable(): boolean;
   createWindow(): BrowserWindow;
+  focusWindow(): void;
   sendSystemStatus(): void;
   sendEventToRenderer(channel: IpcChannel, ...args: unknown[]): void;
   startStatusUpdates(): void;
@@ -43,7 +40,7 @@ export interface WindowManager {
  * state persistence, and renderer communication.
  */
 export function createWindowManager(deps: WindowManagerDeps): WindowManager {
-  const { systemMonitor, driverRegistry, eventReader, systemErrorTracker, eventStats, log } = deps;
+  const { systemMonitor, driverRegistry, systemErrorTracker, log } = deps;
 
   let mainWindow: BrowserWindow | null = null;
   let statusUpdateInterval: NodeJS.Timeout | null = null;
@@ -59,14 +56,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
       return;
     }
 
-    const status = systemMonitor.getSystemStatus(
-      driverRegistry.getConnectedCount(),
-      driverRegistry.getAllDrivers().length,
-      eventStats.getCount(),
-      eventReader.getFileSizeBytes(),
-      systemErrorTracker.errors,
-    );
-    sendToRenderer(getWindow, IPC.SYSTEM_STATUS, status);
+    sendToRenderer(getWindow, IPC.SYSTEM_STATUS, systemMonitor.getFullStatus());
   }
 
   function createWindow(): BrowserWindow {
@@ -209,6 +199,15 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
     isAvailable,
     createWindow,
     sendSystemStatus,
+
+    focusWindow(): void {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isMinimized()) {
+          mainWindow.restore();
+        }
+        mainWindow.focus();
+      }
+    },
 
     sendEventToRenderer(channel: IpcChannel, ...args: unknown[]): void {
       sendToRenderer(getWindow, channel, ...args);

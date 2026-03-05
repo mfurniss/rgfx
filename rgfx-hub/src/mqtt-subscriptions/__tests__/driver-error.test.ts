@@ -1,41 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mock, type MockProxy } from 'vitest-mock-extended';
 import { subscribeDriverError } from '../driver-error';
-import type { MqttBroker } from '@/network';
 import { eventBus } from '@/services/event-bus';
 import log from 'electron-log/main';
-
-vi.mock('electron-log/main', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+import { createMqttSubscriptionMock } from '@/__tests__/factories';
 
 const mockLog = vi.mocked(log);
 
 describe('subscribeDriverError', () => {
-  let mockMqtt: MockProxy<MqttBroker>;
-  let subscribedCallback: (topic: string, payload: string) => void;
+  let mqttMock: ReturnType<typeof createMqttSubscriptionMock>;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockMqtt = mock<MqttBroker>();
-    mockMqtt.subscribe.mockImplementation(
-      (_topic: string, callback: (topic: string, payload: string) => void) => {
-        subscribedCallback = callback;
-      },
-    );
+    mqttMock = createMqttSubscriptionMock();
   });
 
   describe('subscription setup', () => {
     it('should subscribe to correct MQTT topic', () => {
-      subscribeDriverError({ mqtt: mockMqtt });
+      subscribeDriverError({ mqtt: mqttMock.mockMqtt });
 
-      expect(mockMqtt.subscribe).toHaveBeenCalledWith(
+      expect(mqttMock.mockMqtt.subscribe).toHaveBeenCalledWith(
         'rgfx/system/driver/error',
         expect.any(Function),
       );
@@ -44,7 +28,7 @@ describe('subscribeDriverError', () => {
 
   describe('error event emission', () => {
     beforeEach(() => {
-      subscribeDriverError({ mqtt: mockMqtt });
+      subscribeDriverError({ mqtt: mqttMock.mockMqtt });
     });
 
     it('should emit system:error event with driver error details', () => {
@@ -57,7 +41,7 @@ describe('subscribeDriverError', () => {
         payload: { image: ['XXX'] },
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
@@ -81,7 +65,7 @@ describe('subscribeDriverError', () => {
         payload: { duration: 0 },
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
@@ -103,7 +87,7 @@ describe('subscribeDriverError', () => {
         payload: {},
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
@@ -125,7 +109,7 @@ describe('subscribeDriverError', () => {
         payload: { key: 'value', nested: { data: 123 } },
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
@@ -148,7 +132,7 @@ describe('subscribeDriverError', () => {
         payload: {},
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       const afterTime = Date.now();
       const emittedPayload = eventBusEmitSpy.mock.calls[0][1] as { timestamp: number };
@@ -171,7 +155,7 @@ describe('subscribeDriverError', () => {
         payload: {},
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(eventBusEmitSpy).toHaveBeenCalledWith(
         'system:error',
@@ -193,7 +177,7 @@ describe('subscribeDriverError', () => {
         payload: {},
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(mockLog.warn).toHaveBeenCalledWith(
         expect.stringContaining('Queue full - dropping messages'),
@@ -209,7 +193,7 @@ describe('subscribeDriverError', () => {
         payload: {},
       };
 
-      subscribedCallback('rgfx/system/driver/error', JSON.stringify(payload));
+      mqttMock.triggerMessage('rgfx/system/driver/error', JSON.stringify(payload));
 
       expect(mockLog.error).toHaveBeenCalledWith(
         expect.stringContaining('Invalid image format'),
@@ -220,13 +204,13 @@ describe('subscribeDriverError', () => {
 
   describe('invalid message handling', () => {
     beforeEach(() => {
-      subscribeDriverError({ mqtt: mockMqtt });
+      subscribeDriverError({ mqtt: mqttMock.mockMqtt });
     });
 
     it('should not emit event for invalid JSON', () => {
       const eventBusEmitSpy = vi.spyOn(eventBus, 'emit');
 
-      subscribedCallback('rgfx/system/driver/error', 'not valid json');
+      mqttMock.triggerMessage('rgfx/system/driver/error', 'not valid json');
 
       expect(eventBusEmitSpy).not.toHaveBeenCalled();
 
@@ -235,13 +219,13 @@ describe('subscribeDriverError', () => {
 
     it('should not throw for invalid JSON', () => {
       expect(() => {
-        subscribedCallback('rgfx/system/driver/error', '{invalid}');
+        mqttMock.triggerMessage('rgfx/system/driver/error', '{invalid}');
       }).not.toThrow();
     });
 
     it('should not throw for empty message', () => {
       expect(() => {
-        subscribedCallback('rgfx/system/driver/error', '');
+        mqttMock.triggerMessage('rgfx/system/driver/error', '');
       }).not.toThrow();
     });
   });

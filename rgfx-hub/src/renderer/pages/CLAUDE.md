@@ -88,6 +88,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 - Each row rendered as memoized `EventRow` component (only re-renders when its own props change)
 - Uses `EventStore` for reactive updates
 - Click-to-simulate: clicking a row triggers that event through the simulator
+- Simplified async pattern for event processing
 
 ---
 
@@ -112,8 +113,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 - **Form validation gate:** Trigger and Random Trigger buttons are disabled when the form has validation errors (`isFormValid` state, fed by `EffectForm.onValidityChange`)
 - **Debounced store writes:** `handlePropsChange` uses lodash `debounce` (150ms) with `useRef` for stable callback identity, preventing rapid keystrokes from thrashing the store. Debounce is flushed before triggering effects or randomizing to ensure store is current
 - **Single driver store subscription:** uses one `drivers` subscription with `useMemo` to derive `connectedDrivers` and `connectedDriverIds`, avoiding redundant store subscriptions
-- **Auto-select on reconnect:** the useEffect that reacts to `connectedDriverIds` changes sets the selection to all connected drivers, so reconnecting drivers are automatically selected
-- **Narrow useEffect deps:** the driver selection effect reads current values from refs so it only fires when `connectedDriverIds` changes, not on every form keystroke
+- **Driver selection:** uses shared `useDriverSelection` hook for driver picker state (removed local auto-reselect useEffect)
 
 ### Effects Playground Subdirectory
 
@@ -158,7 +158,8 @@ Refactored components and utilities extracted from the main page:
 
 **Features:**
 - Two flash methods: USB Serial and OTA WiFi
-- Flash method is read directly from the UI store (no local state) — eliminates the bidirectional sync that caused infinite loops on Windows
+- Flash method is read directly from `firmware-flash-store` (no local state) — eliminates the bidirectional sync that caused infinite loops on Windows
+- Uses shared `useDriverSelection` hook for driver picker state
 - **USB Serial:**
   - Serial port selection via Web Serial API
   - Uses `esptool-js` for direct ESP32 flashing
@@ -252,6 +253,10 @@ Refactored components and utilities extracted from the main page:
 - License and copyright information (MPL 2.0)
 
 ---
+
+## Testing Notes
+
+- **Do NOT call `cleanup()` in page tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.
 
 ## Cross-Platform Considerations
 
