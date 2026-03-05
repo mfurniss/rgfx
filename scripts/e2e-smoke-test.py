@@ -58,16 +58,18 @@ IGNORED_ERRORS = [
 
 
 # Event definitions: (topic, payload_options)
-# payload_options: None = no payload, list = pick random, "_score_" = random int, "_fm_" = FM data
+# payload_options: None = no payload, list = pick random, "_score_" = random int,
+#   "_fm_" = pipe-delimited hex pairs (XX|..|XX|..) matching interceptor FM channel format
+# IMPORTANT: These must match real interceptor topics and transformer handlers exactly.
 GAME_EVENTS = [
-    # Pac-Man
+    # Pac-Man (interceptor: pacman_rgfx.lua, transformer: pacman.js)
     ("pacman/player/eat", ["dot", "energizer", "ghost1", "ghost2", "ghost3", "ghost4",
                             "cherry", "strawberry", "orange", "apple", "melon", "galaxian", "bell", "key"]),
-    ("pacman/player/score", "_score_"),
+    ("pacman/player/score/p1", "_score_"),
     ("pacman/player/die", ["1", "2"]),
     ("pacman/player/insert-coin", None),
     ("pacman/level/complete", None),
-    # Super Mario Bros
+    # Super Mario Bros (interceptor: nes_smb_rgfx.lua, transformer: smb.js)
     ("smb/sfx/coin", None),
     ("smb/sfx/powerup-appear", None),
     ("smb/sfx/powerup-collect", None),
@@ -77,34 +79,38 @@ GAME_EVENTS = [
     ("smb/sfx/firework", None),
     ("smb/player/score", "_score_"),
     ("smb/music", ["overworld", "castle", "underworld", "flag", "swimming", "power-star"]),
-    # Robotron 2084
-    ("robotron/sfx/spark", None),
+    # Robotron 2084 (interceptor: robotron_rgfx.lua, transformer: robotron.js)
     ("robotron/sfx/shoot-hulk", None),
     ("robotron/sfx/brain-appear", None),
-    ("robotron/sfx/tank-appear", None),
     ("robotron/sfx/human-programming", None),
     ("robotron/sfx/human-die", None),
     ("robotron/sfx/rescue-human", None),
-    ("robotron/sfx/destroy-electrode", None),
-    ("robotron/sfx/destroy-spheroid", None),
     ("robotron/sfx/player-death", None),
     ("robotron/sfx/enforcer-spawn", None),
     ("robotron/sfx/extra-life", None),
     ("robotron/sfx/game-start", None),
-    ("robotron/enemy/grunt/destroy", None),
-    ("robotron/player/score", "_score_"),
-    ("robotron/player/lives", ["0", "1", "2", "3", "4", "5"]),
+    ("robotron/entity/enforcer/spawn", ["1", "2"]),
+    ("robotron/entity/spark/spawn", ["1", "2", "3"]),
+    ("robotron/entity/tank/spawn", ["1", "2"]),
+    ("robotron/entity/electrode/destroy", ["1"]),
+    ("robotron/entity/enforcer/destroy", ["1"]),
+    ("robotron/entity/brain/destroy", ["1"]),
+    ("robotron/entity/grunt/destroy", ["1", "2"]),
+    ("robotron/entity/quark/destroy", ["1"]),
+    ("robotron/entity/tank/destroy", ["1"]),
+    ("robotron/entity/spheroid/destroy", ["1"]),
+    ("robotron/player/score/p1", "_score_"),
     ("robotron/wave/number", ["1", "2", "3", "5", "10", "15", "20"]),
-    # Galaga
+    # Galaga (interceptor: galaga_rgfx.lua, transformer: galaga.js)
     ("galaga/player/fire", None),
     ("galaga/enemy/destroy", None),
-    ("galaga/player/score", "_score_"),
+    ("galaga/player/score/p1", "_score_"),
     ("galaga/stage", ["1", "2", "3", "5", "8", "10", "15"]),
     ("galaga/bonus/score", ["150", "400", "800", "1000", "1500", "1600", "2000", "3000"]),
     ("galaga/player/captured", None),
     ("galaga/boss/tractor-beam", None),
     ("galaga/bonus/perfect", None),
-    # Galaga '88
+    # Galaga '88 (interceptor: galaga88_rgfx.lua, transformer: galaga88.js)
     ("galaga88/player/fire", None),
     ("galaga88/enemy/destroy/zako", ["50", "100"]),
     ("galaga88/enemy/destroy/goei", ["80", "160"]),
@@ -113,9 +119,14 @@ GAME_EVENTS = [
     ("galaga88/enemy/destroy/don-attack", ["200"]),
     ("galaga88/enemy/destroy/hiyoko", ["600"]),
     ("galaga88/enemy/destroy/pan", ["1100", "1400"]),
-    ("galaga88/player/score", "_score_"),
-    ("galaga88/screen/text", ["START!", "READY", "PERFECT", "GALACTIC BONUS", "FIGHTER CAPTURED"]),
-    # Defender
+    ("galaga88/enemy/destroy/boss-convoy", ["800"]),
+    ("galaga88/enemy/destroy/daruma", ["400"]),
+    ("galaga88/enemy/destroy/babito", ["200"]),
+    ("galaga88/enemy/destroy/kan", ["300"]),
+    ("galaga88/player/score/p1", "_score_"),
+    ("galaga88/screen/text", ["START!", "READY", "PERFECT", "GALACTIC DANCIN",
+                               "FIGHTER CAPTURED", "GAME  OVER", "SELECT MODE", "DIMENSION WARP"]),
+    # Defender (interceptor: defender_rgfx.lua, transformer: defender.js)
     ("defender/player/fire", None),
     ("defender/enemy/lander/destroy", None),
     ("defender/enemy/mutant/destroy", None),
@@ -123,19 +134,17 @@ GAME_EVENTS = [
     ("defender/enemy/bomber/destroy", None),
     ("defender/enemy/pod/destroy", None),
     ("defender/enemy/swarmer/destroy", None),
-    ("defender/player/score", "_score_"),
+    ("defender/player/score/p1", "_score_"),
     ("defender/player/explode", None),
+    ("defender/humanoid/rescue", None),
     ("defender/humanoid/lost", None),
     ("defender/humanoid/all-lost", None),
-    ("defender/player/smart-bombs", ["0", "1", "2", "3"]),
-    ("defender/player/smart-bomb-used", None),
-    # OutRun
+    # OutRun (interceptor: outrun_rgfx.lua, transformer: outrun.js)
     ("outrun/music/fm", "_fm_"),
     ("outrun/game/time", ["80", "60", "40", "20", "10"]),
-    # Super Hang-On
+    # Super Hang-On (interceptor: shangon_rgfx.lua, transformer: shangon.js)
     ("shangon/music/fm", "_fm_"),
-    ("shangon/game/time", ["80", "60", "40", "20", "10"]),
-    # Star Wars
+    # Star Wars (interceptor: starwars_rgfx.lua, transformer: starwars.js)
     ("starwars/player/fire", None),
     ("starwars/enemy/destroy/tie", None),
     ("starwars/enemy/destroy/fireball", None),
@@ -146,7 +155,9 @@ GAME_EVENTS = [
     ("starwars/enemy/destroy/death-star", None),
     ("starwars/player/score", "_score_"),
     ("starwars/player/shield-reduced", None),
-    ("starwars/game/state", ["5", "6", "12", "14", "36", "37", "38", "39", "46", "51"]),
+    ("starwars/game/state", ["5", "6", "12", "14", "36", "37", "38", "39", "46", "51", "56", "58"]),
+    # SSF2 (interceptor: ssf2_rgfx.lua, transformer: ssf2.js)
+    ("ssf2/sound/cmd", ["64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75"]),
 ]
 
 # Game names derived from event topics
@@ -189,7 +200,12 @@ class EventGenerator:
         if options == "_score_":
             payload = str(random.randint(100, 99999))
         elif options == "_fm_":
-            payload = ",".join(str(random.randint(0, 255)) for _ in range(8))
+            # Pipe-delimited hex pairs matching interceptor format: XX|..|XX|..
+            # '..' = silent channel, 'XX' = hex pitch value
+            payload = "|".join(
+                f"{random.randint(0, 255):02X}" if random.random() > 0.4 else ".."
+                for _ in range(8)
+            )
         elif options is None:
             payload = ""
         else:
