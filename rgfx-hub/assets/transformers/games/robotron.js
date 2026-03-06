@@ -1,44 +1,49 @@
-import { ALL_DRIVERS, MATRIX_DRIVERS, NAMED_DRIVERS } from '../global.js';
+import {
+  ALL_DRIVERS,
+  MATRIX_DRIVERS,
+  NAMED_DRIVERS,
+  SECONDARY_MATRIX_DRIVERS,
+} from '../global.js';
 
 let flashHumanProgramming;
+let lastScore = 0;
 
 export async function transform(
   { subject, property, qualifier, payload },
   { broadcast, hslToHex, utils },
 ) {
-  const { randomInt, randomElement, sleep, formatNumber, pick, exclusive } = utils;
+  const { randomInt, randomElement, sleep, formatNumber, pick, exclusive } =
+    utils;
 
   function randomDrivers(n = 2) {
     return pick(ALL_DRIVERS, n);
   }
 
-  flashHumanProgramming ??= exclusive(
-    async (cancelled, bcast, hslFn) => {
-      let h = randomInt(359);
-      const colors = [
-        ...Array.from({ length: 15 }, () => {
-          const color = hslFn(h, 100, 50);
-          h = (h + randomInt(80, 280)) % 360;
-          return color;
-        }),
-        '#000000',
-      ];
-      for (const color of colors) {
-        if (cancelled()) break;
-        bcast({
-          effect: 'background',
-          props: {
-            gradient: {
-              colors: [color],
-              orientation: 'horizontal',
-            },
-            fadeDuration: 0,
+  flashHumanProgramming ??= exclusive(async (cancelled, bcast, hslFn) => {
+    let h = randomInt(359);
+    const colors = [
+      ...Array.from({ length: 15 }, () => {
+        const color = hslFn(h, 100, 50);
+        h = (h + randomInt(80, 280)) % 360;
+        return color;
+      }),
+      '#000000',
+    ];
+    for (const color of colors) {
+      if (cancelled()) break;
+      bcast({
+        effect: 'background',
+        props: {
+          gradient: {
+            colors: [color],
+            orientation: 'horizontal',
           },
-        });
-        await sleep(70);
-      }
-    },
-  );
+          fadeDuration: 0,
+        },
+      });
+      await sleep(70);
+    }
+  });
   // Let init events pass through to subject handlers (for world record fetch)
   if (subject === 'init') {
     return false;
@@ -514,7 +519,6 @@ export async function transform(
         },
       });
     }
-
   }
 
   if (subject === 'wave' && property === 'number' && payload > 1) {
@@ -589,12 +593,32 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score' && Number(payload) > 0) {
+    const score = Number(payload);
+    const delta = score - lastScore;
+    lastScore = score;
+
+    if (delta === 500 || delta === 1000 || delta === 1500 || delta === 2000) {
+      broadcast({
+        effect: 'text',
+        drivers: SECONDARY_MATRIX_DRIVERS,
+        props: {
+          text: String(delta),
+          gradient: ['#0080FF', '#FFFF00', '#FF0000', '#0080FF'],
+          gradientSpeed: 7,
+          gradientScale: 0,
+          accentColor: '#000000',
+          duration: 2500,
+          reset: true,
+        },
+      });
+    }
+
     broadcast({
       effect: 'text',
       drivers: [NAMED_DRIVERS.primaryMatrix],
       props: {
         align: 'center',
-        text: formatNumber(payload),
+        text: formatNumber(score),
         accentColor: '#000000',
         duration: 4000,
         reset: true,

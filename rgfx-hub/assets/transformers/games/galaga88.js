@@ -271,8 +271,6 @@ export async function transform(
           await sleep(80);
         }
       })();
-
-      return true;
     }
 
     let delta = Number(payload);
