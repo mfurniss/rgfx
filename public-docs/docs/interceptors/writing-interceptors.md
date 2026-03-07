@@ -80,20 +80,17 @@ local map = {
 ram.install_monitors(map, mem)
 ```
 
-## Step 3: Register in the ROM Map
+## Step 3: Register in the ROM Map (if needed)
 
-Edit `interceptors/rom_map.lua` in your config directory to add your game:
+Most games don't need a rom_map entry — the framework automatically loads `{romname}_rgfx.lua` by convention. You only need to edit `interceptors/rom_map.json` in your config directory if your ROM has variant/clone names that differ from the interceptor base name:
 
-```lua
-return {
-    -- Existing entries...
-    pacman = "pacman_rgfx",
-
-    -- Your new game
-    mygame = "mygame_rgfx",
-    mygame_v2 = "mygame_rgfx",  -- Alternate ROM version
+```json
+{
+    "mygame": ["mygame_v2", "mygame_alt"]
 }
 ```
+
+This maps both `mygame_v2` and `mygame_alt` ROMs to `mygame_rgfx.lua`.
 
 ## Step 4: Test Your Interceptor
 

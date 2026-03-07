@@ -17,9 +17,10 @@ const STARFIELD_DRIVERS = [
 
 export async function transform(
   { subject, property, qualifier, payload },
-  { broadcast, log, utils },
+  { broadcast, utils },
 ) {
-  const { sleep, formatNumber, randomInt, hslToRgb, throttleLatest, debounce } = utils;
+  const { sleep, formatNumber, randomInt, hslToRgb, throttleLatest, debounce } =
+    utils;
 
   smallExplosion ??= debounce((bcast, color, delta) => {
     bcast({
@@ -211,7 +212,7 @@ export async function transform(
         props: {
           reset: true,
           text: payload,
-          gradient: ['#B00000', '#B00000', '#D0D0D0', '#B00000', '#B00000'],
+          gradient: ['#A00000'],
           gradientSpeed: 7,
           gradientScale: -4.2,
           accentColor: null,
@@ -270,8 +271,6 @@ export async function transform(
           await sleep(80);
         }
       })();
-
-      return true;
     }
 
     let delta = Number(payload);
@@ -283,10 +282,6 @@ export async function transform(
       'don-attack': '#FFA0A0',
       hiyoko: '#A0A0A0',
     };
-
-    if (!colors[qualifier]) {
-      log.warn('unknown enemy type', qualifier, delta);
-    }
 
     const color = colors[qualifier] ?? '#409040';
 

@@ -61,12 +61,12 @@ describe('registerListGamesHandler', () => {
     });
   });
 
-  describe('rom_map.lua parsing', () => {
-    it('should parse standard entries: key = "value"', () => {
+  describe('rom_map.json parsing', () => {
+    it('should parse variant entries from JSON', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return true;
         }
 
@@ -76,10 +76,9 @@ describe('registerListGamesHandler', () => {
         return false;
       });
 
-      vi.mocked(fs.readFileSync).mockReturnValue(`
-        pacman = "pacman_rgfx"
-        galaga = "galaga_rgfx"
-      `);
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({ pacman: ['mspacman'], galaga: ['galaga3'] }),
+      );
 
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
@@ -97,11 +96,28 @@ describe('registerListGamesHandler', () => {
       expect(result.map((g) => g.interceptorName)).toContain('galaga_rgfx.lua');
     });
 
-    it('should parse bracket entries: ["key with spaces"] = "value"', () => {
+    it('should parse variant entries and resolve ROM to prefixed interceptor', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
+          return true;
+        }
+
+        if (pathStr === '/roms') {
+          return true;
+        }
+
+        if (pathStr.includes('nes_smb_rgfx.lua')) {
+          return true;
+        }
+
+        // nes_smb.js doesn't exist, but smb.js does (ROM-derived fallback)
+        if (pathStr.endsWith('nes_smb.js')) {
+          return false;
+        }
+
+        if (pathStr.endsWith('smb.js')) {
           return true;
         }
 
@@ -111,30 +127,36 @@ describe('registerListGamesHandler', () => {
         return false;
       });
 
-      vi.mocked(fs.readFileSync).mockReturnValue(`
-        ["donkey kong"] = "dkong_rgfx"
-      `);
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({ nes_smb: ['smb', 'smw'] }),
+      );
 
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
+        if (pathStr === '/roms') {
+          return ['smb.nes'];
+        }
+
         if (pathStr.includes(INTERCEPTORS_GAMES)) {
-          return ['dkong_rgfx.lua'];
+          return [];
         }
         return [];
       });
 
-      const result = registeredHandler({});
+      const result = registeredHandler({}, '/roms');
 
       expect(result).toHaveLength(1);
-      expect(result[0].interceptorName).toBe('dkong_rgfx.lua');
+      expect(result[0].romName).toBe('smb.nes');
+      expect(result[0].interceptorName).toBe('nes_smb_rgfx.lua');
+      expect(result[0].transformerName).toBe('smb.js');
     });
 
     it('should return empty map for missing rom_map file', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -159,11 +181,11 @@ describe('registerListGamesHandler', () => {
       expect(result).toHaveLength(1);
     });
 
-    it('should handle malformed entries gracefully', () => {
+    it('should handle malformed JSON gracefully and log error', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return true;
         }
 
@@ -173,13 +195,7 @@ describe('registerListGamesHandler', () => {
         return false;
       });
 
-      vi.mocked(fs.readFileSync).mockReturnValue(`
-        -- This is a comment
-        invalid entry without equals
-        pacman = "pacman_rgfx"
-        = "missing key"
-        "missing value" =
-      `);
+      vi.mocked(fs.readFileSync).mockReturnValue('not valid json {{{');
 
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
@@ -190,9 +206,10 @@ describe('registerListGamesHandler', () => {
         return [];
       });
 
-      // Should not throw
+      // Should not throw, but should log the parse error
       const result = registeredHandler({});
       expect(result).toHaveLength(1);
+      expect(mockLogError).toHaveBeenCalledWith(expect.stringContaining('Failed to parse rom_map.json'));
     });
   });
 
@@ -201,7 +218,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -253,7 +270,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -287,7 +304,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -329,7 +346,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -359,7 +376,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -391,7 +408,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -414,7 +431,7 @@ describe('registerListGamesHandler', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return true;
         }
 
@@ -422,7 +439,11 @@ describe('registerListGamesHandler', () => {
           return true;
         }
 
-        if (pathStr.includes('dkong_rgfx.lua')) {
+        if (pathStr.includes('pacman_rgfx.lua')) {
+          return true;
+        }
+
+        if (pathStr.includes('pacman.js')) {
           return true;
         }
 
@@ -432,15 +453,15 @@ describe('registerListGamesHandler', () => {
         return false;
       });
 
-      vi.mocked(fs.readFileSync).mockReturnValue(`
-        dkong = "dkong_rgfx"
-      `);
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({ pacman: ['mspacman'] }),
+      );
 
       (fs.readdirSync as Mock).mockImplementation((p: fs.PathLike) => {
         const pathStr = String(p);
 
         if (pathStr === '/roms') {
-          return ['dkong.zip'];
+          return ['mspacman.zip'];
         }
 
         if (pathStr.includes(INTERCEPTORS_GAMES)) {
@@ -452,15 +473,16 @@ describe('registerListGamesHandler', () => {
       const result = registeredHandler({}, '/roms');
 
       expect(result).toHaveLength(1);
-      expect(result[0].romName).toBe('dkong.zip');
-      expect(result[0].interceptorPath).toContain('dkong_rgfx.lua');
+      expect(result[0].romName).toBe('mspacman.zip');
+      expect(result[0].interceptorPath).toContain('pacman_rgfx.lua');
+      expect(result[0].transformerName).toBe('pacman.js');
     });
 
     it('should include transformer info when transformer exists', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 
@@ -529,7 +551,7 @@ describe('registerListGamesHandler', () => {
           return true;
         }
 
-        if (pathStr.includes('rom_map.lua')) {
+        if (pathStr.includes('rom_map.json')) {
           return false;
         }
 

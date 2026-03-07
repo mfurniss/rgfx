@@ -8,7 +8,7 @@ A framework which creates external visual effects for retro video games.
 
 The VSCode workspace contains three key projects.
 
-- MAME Lua scripts are bundled within rgfx-hub/assets/ in the `interceptors/` and `mame/` subdirectories. These scripts interface with MAME's internal APIs to monitor game state and generate events which are added to the events log. **Do NOT edit files in `rgfx-hub/assets/` — the user manages the assets directory. Only create and edit interceptors, transformers, and rom_map.lua in `~/.rgfx/`.**
+- MAME Lua scripts are bundled within rgfx-hub/assets/ in the `interceptors/` and `mame/` subdirectories. These scripts interface with MAME's internal APIs to monitor game state and generate events which are added to the events log. **Do NOT edit files in `rgfx-hub/assets/` — the user manages the assets directory. Only create and edit interceptors, transformers, and rom_map.json in `~/.rgfx/`.**
 - /rgfx-hub is the main controller app which converts event log entries to network messages. The native app uses Electron and is written in TypeScript and Material UI. When working on rgfx-hub delegate to the rgfx-hub-developer agent.
 - /esp32 is the driver firmware for ESP32 microcontrollers. It is a Platform IO project written in C++. The driver's job is to receive network messages from the hub and convert these to visual effects using the connected LED strips and LED matrices. Use the platformio-esp32-expert agent when working on the esp32 driver firmware.
 - /rgfx.io is the public website (rgfx.io). A static splash page with animated logo and hero video. Docs are served at /docs (from public-docs/site/).
@@ -43,7 +43,7 @@ You are a subject matter expert in Electron, TypeScript, ESP32 and C++.
 
 You are an expert in modern, scalable software architecture. 
 
-You use only the best SDLC practices as of 2024 and 2025 and beyond.
+You use only the best SDLC practices as of 2024 and beyond.
 
 Less code is the best code. Don't repeat yourself. 
 
@@ -97,11 +97,3 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 - Implementation priorities and roadmap
 - Technology stack and hardware requirements
 
-**When starting new conversations or planning features, always reference architecture.md first.**
-
-@.claude/docs/development-workflow.md
-@.claude/docs/coding-standards.md
-@.claude/docs/esp32-development.md
-@.claude/docs/mame-integration.md
-@.claude/docs/architecture.md
-@.claude/docs/broker-discovery.md

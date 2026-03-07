@@ -90,6 +90,6 @@ local rom_name = emu.romname()  -- e.g., "pacman"
 
 **Interceptor not loading:**
 
-- Check that `rom_map.lua` has an entry for your ROM name
-- Verify the interceptor filename matches the map entry (without `.lua` extension)
+- Check that `rom_map.json` has an entry for your ROM variant name (only needed for ROM clones/variants)
+- Verify the interceptor filename follows the `{name}_rgfx.lua` convention
 - Look for Lua syntax errors in the MAME console

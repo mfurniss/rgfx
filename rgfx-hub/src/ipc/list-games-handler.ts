@@ -25,17 +25,17 @@ function parseRomMap(romMapPath: string): Map<string, string> {
     return map;
   }
 
-  const content = fs.readFileSync(romMapPath, 'utf-8');
+  try {
+    const content = fs.readFileSync(romMapPath, 'utf-8');
+    const variants = JSON.parse(content) as Record<string, string[]>;
 
-  // Extract key-value pairs from rom_map.lua
-  // Format: key = "interceptor_name" or ["key with spaces"] = "interceptor_name"
-  const entryRegex = /(?:\["([^"]+)"\]|(\w+))\s*=\s*"([^"]+)"/g;
-  let match;
-
-  while ((match = entryRegex.exec(content)) !== null) {
-    const key = match[1] || match[2];
-    const interceptor = match[3];
-    map.set(key, interceptor);
+    for (const [baseName, variantNames] of Object.entries(variants)) {
+      for (const variant of variantNames) {
+        map.set(variant, `${baseName}_rgfx`);
+      }
+    }
+  } catch (error) {
+    log.error(`Failed to parse rom_map.json: ${String(error)}`);
   }
 
   return map;
@@ -46,7 +46,7 @@ export function registerListGamesHandler(): void {
     try {
       const interceptorsDir = path.join(CONFIG_DIRECTORY, 'interceptors', 'games');
       const transformersDir = path.join(CONFIG_DIRECTORY, 'transformers', 'games');
-      const romMapPath = path.join(CONFIG_DIRECTORY, 'interceptors', 'rom_map.lua');
+      const romMapPath = path.join(CONFIG_DIRECTORY, 'interceptors', 'rom_map.json');
 
       // Parse rom_map for alias resolution
       const romMap = parseRomMap(romMapPath);
@@ -77,7 +77,15 @@ export function registerListGamesHandler(): void {
           const interceptorBaseName = mappedInterceptor
             ? mappedInterceptor.replace(/_rgfx$/, '')
             : romBaseName;
-          const transformerName = `${interceptorBaseName}.js`;
+          // Check interceptor-derived name first, fall back to ROM basename
+          const interceptorTransformer = `${interceptorBaseName}.js`;
+          const romTransformer = `${romBaseName}.js`;
+          const interceptorTransformerExists = fs.existsSync(
+            path.join(transformersDir, interceptorTransformer),
+          );
+          const transformerName = interceptorTransformerExists
+            ? interceptorTransformer
+            : romTransformer;
           const transformerPath = path.join(transformersDir, transformerName);
           const transformerExists = fs.existsSync(transformerPath);
 

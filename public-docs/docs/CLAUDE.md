@@ -74,6 +74,7 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 
 ### Key Technical Facts (Verified Feb 2026)
 
+- ROM-to-interceptor mapping uses `rom_map.json` (not `.lua`). The framework auto-loads `{romname}_rgfx.lua` by convention; `rom_map.json` is only needed for variant/clone ROMs whose name differs from the interceptor base name. Writing interceptors Step 3 reflects this.
 - Boot delay API is `_G.boot_delay()` (defined in event.lua), NOT `ram.set_boot_delay()`. It suppresses events during the power-on self test — it does not skip title screens or attract modes.
 - Transformer cascade tiers: game → subject → property → default (the third tier is "Property", not "Pattern")
 - Transformer utils are provided via the `utils` object on the transformer context (not imported from files); includes `debounce` (leading-edge), `throttleLatest` (leading+trailing), `sleep`, `trackedTimeout`, `trackedInterval`, `exclusive`, `scaleLinear`, `randomInt`, `randomElement`, `hslToRgb`, `pick`, `formatNumber`

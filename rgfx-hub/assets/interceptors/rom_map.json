@@ -1,0 +1,9 @@
+{
+  "pacman": ["mspacman"],
+  "defender": ["defenderg", "defenderb", "defenderw"],
+  "outrun": ["outruna", "outrunb"],
+  "sharrier": ["sharrier1", "sharrierj"],
+  "shangon": ["shangon1", "shangon2", "shangon3", "shangon3d", "shangonle"],
+  "ssf2": ["ssf2u", "ssf2a", "ssf2j", "ssf2t", "ssf2tu", "ssf2ta", "ssf2tj"],
+  "nes_smb": ["smb", "smw"]
+}

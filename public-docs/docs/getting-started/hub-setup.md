@@ -15,7 +15,7 @@ The directory structure:
 
 ```
 interceptors/
-├── rom_map.lua                # Maps ROM names to interceptors
+├── rom_map.json               # Maps ROM variant names to interceptors
 ├── ambilight.lua              # Screen color sampling module
 ├── fft.lua                    # Audio analysis module
 ├── sprite-extract.lua         # ROM sprite extraction

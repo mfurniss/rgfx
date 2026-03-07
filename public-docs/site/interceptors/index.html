@@ -1769,7 +1769,7 @@
     subgraph MAME["MAME Emulator"]
         rgfx["rgfx.lua&lt;br/&gt;(via -autoboot_script)"]
         detect["Detects which game is running"]
-        load["Loads interceptor from rom_map.lua"]
+        load["Loads interceptor from rom_map.json"]
         intercept["Game Interceptor"]
 
         rgfx --&gt; detect --&gt; load --&gt; intercept
@@ -1782,7 +1782,7 @@
 <h2 id="where-interceptors-live">Where Interceptors Live<a class="headerlink" href="#where-interceptors-live" title="Permanent link">¶</a></h2>
 <p>Interceptors are stored in the <code>interceptors/</code> subdirectory of your <a href="../getting-started/hub-setup.html#config-directory">config directory</a>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>interceptors/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── rom_map.lua           # Maps ROM names to interceptors
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── rom_map.json          # Maps ROM variant names to interceptors
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── ambilight.lua         # Screen color sampling utility
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── fft.lua               # Audio analysis utility
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── sprite-extract.lua    # ROM sprite extraction utility

@@ -8,8 +8,8 @@ import {
 /** Files that should not be copied to user config (e.g. LSP type stubs) */
 const EXCLUDED_FILES = new Set(['mame.lua']);
 
-const isInstallableLuaFile = (name: string): boolean =>
-  name.endsWith('.lua') && !EXCLUDED_FILES.has(name);
+const isInstallableFile = (name: string): boolean =>
+  (name.endsWith('.lua') && !EXCLUDED_FILES.has(name)) || name.endsWith('.json');
 
 export async function installDefaultInterceptors(): Promise<void> {
   try {
@@ -17,7 +17,7 @@ export async function installDefaultInterceptors(): Promise<void> {
       bundledDir: getBundledAssetDir('interceptors'),
       targetDir: INTERCEPTORS_DIRECTORY,
       label: 'interceptors',
-      fileFilter: isInstallableLuaFile,
+      fileFilter: isInstallableFile,
     });
   } catch (error) {
     log.error('Failed to install default interceptors:', error);

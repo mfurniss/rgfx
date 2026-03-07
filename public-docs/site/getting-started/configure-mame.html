@@ -1912,7 +1912,7 @@
 <p>When MAME starts with the RGFX script:</p>
 <ol>
 <li><code>rgfx.lua</code> initializes and waits for the game to start</li>
-<li>It detects the ROM name (e.g., <code>pacman</code>) and looks up the matching interceptor in <code>rom_map.lua</code></li>
+<li>It detects the ROM name (e.g., <code>pacman</code>) and looks up the matching interceptor (via <code>rom_map.json</code> for variants, or by convention <code>{romname}_rgfx</code>)</li>
 <li>The interceptor loads and begins monitoring game memory for events</li>
 <li>Events are written to <code>interceptor-events.log</code> in your <a href="hub-setup.html#config-directory">config directory</a></li>
 <li>RGFX Hub picks up the events and triggers LED effects on your drivers</li>

@@ -1366,10 +1366,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-3-register-in-the-rom-map" class="md-nav__link">
+  <a href="#step-3-register-in-the-rom-map-if-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: Register in the ROM Map
+        Step 3: Register in the ROM Map (if needed)
       
     </span>
   </a>
@@ -1846,10 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-3-register-in-the-rom-map" class="md-nav__link">
+  <a href="#step-3-register-in-the-rom-map-if-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: Register in the ROM Map
+        Step 3: Register in the ROM Map (if needed)
       
     </span>
   </a>
@@ -2077,17 +2077,13 @@
 <a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="c1">-- Start monitoring</span>
 <a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="nv">ram</span><span class="p">.</span><span class="nf">install_monitors</span><span class="p">(</span><span class="nv">map</span><span class="p">,</span><span class="w"> </span><span class="nv">mem</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="step-3-register-in-the-rom-map">Step 3: Register in the ROM Map<a class="headerlink" href="#step-3-register-in-the-rom-map" title="Permanent link">¶</a></h2>
-<p>Edit <code>interceptors/rom_map.lua</code> in your config directory to add your game:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kr">return</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="c1">-- Existing entries...</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nv">pacman</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"pacman_rgfx"</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="c1">-- Your new game</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nv">mygame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"mygame_rgfx"</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nv">mygame_v2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"mygame_rgfx"</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Alternate ROM version</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">}</span>
+<h2 id="step-3-register-in-the-rom-map-if-needed">Step 3: Register in the ROM Map (if needed)<a class="headerlink" href="#step-3-register-in-the-rom-map-if-needed" title="Permanent link">¶</a></h2>
+<p>Most games don't need a rom_map entry — the framework automatically loads <code>{romname}_rgfx.lua</code> by convention. You only need to edit <code>interceptors/rom_map.json</code> in your config directory if your ROM has variant/clone names that differ from the interceptor base name:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">"mygame"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"mygame_v2"</span><span class="p">,</span><span class="w"> </span><span class="s2">"mygame_alt"</span><span class="p">]</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">}</span>
 </code></pre></div>
+<p>This maps both <code>mygame_v2</code> and <code>mygame_alt</code> ROMs to <code>mygame_rgfx.lua</code>.</p>
 <h2 id="step-4-test-your-interceptor">Step 4: Test Your Interceptor<a class="headerlink" href="#step-4-test-your-interceptor" title="Permanent link">¶</a></h2>
 <ol>
 <li>Start MAME with RGFX enabled</li>

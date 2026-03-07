@@ -12,7 +12,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
 
 | File | Purpose |
 |------|---------|
-| `rgfx.lua` | Bootstrap entry point — sets up paths, detects ROM/cartridge, loads interceptor |
+| `rgfx.lua` | Bootstrap entry point — sets up paths, detects ROM/cartridge, loads interceptor. Reads `rom_map.json` via MAME's built-in `json.parse()` |
 | `event.lua` | Event logging — writes to `~/.rgfx/interceptor-events.log`, defines `_G.event()` and `_G.boot_delay()` |
 | `ram.lua` | RAM monitoring — watches memory addresses and fires callbacks on value changes |
 | `sprite-extract.lua` | Extracts sprite graphics from ROM regions and writes JSON files matching GifBitmapResult format |
@@ -25,7 +25,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
 2. Loads `event.lua` (defines `_G.event` and `_G.boot_delay`)
 3. On machine prestart/first frame:
    - Detects cartridge name (console systems) or uses ROM name (arcade)
-   - Looks up interceptor via `rom_map.lua`, falls back to `{name}_rgfx`
+   - Looks up interceptor via `rom_map.json` (parsed with MAME's built-in `json.parse()`), falls back to `{name}_rgfx`
    - Sends `rgfx/reset` event to clear driver state
    - Loads the game-specific interceptor
    - Waits 30 frames (~500ms) then sends `{game}/init` event with the MAME system description as payload

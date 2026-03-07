@@ -226,10 +226,11 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 **Returns:** `GameInfo[]` - Array of game information objects
 
 **Behavior:**
-1. Parses `rom_map.lua` to extract unique interceptor names
-2. For each interceptor, derives the corresponding transformer name
-3. Checks file existence for both interceptor and transformer files
-4. Returns array with file paths (null if file doesn't exist)
+1. Parses `rom_map.json` to build variant-to-interceptor mapping
+2. Scans ROMs directory, resolving each ROM to its interceptor via rom_map or `{romname}_rgfx` convention
+3. Derives transformer name from interceptor (strips `_rgfx`), falls back to ROM basename
+4. Scans interceptors directory for orphan interceptors not matched to ROMs
+5. Returns array with file paths (null if file doesn't exist)
 
 ---
 
