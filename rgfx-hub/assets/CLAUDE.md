@@ -58,6 +58,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
   - robotron.js uses exclusive() wrapper for human-programming flash effect to cancel overlapping async loops. Entity events (spawn/destroy) are handled under proper entity subject with qualifier routing rather than sfx subject. Tracks cumulative score via `lastScore` and displays score delta text on secondary matrices when delta exactly matches 500, 1000, 1500, or 2000.
   - pacman.js init handler returns false to allow cascade to subject init handler (world record display); ripple effects omit endX/endY when not needed (empty strings fail validation)
   - starwars.js uses randomDrivers() (pick 3 from ALL_DRIVERS) to spread explosions across random drivers instead of only matrices. Laser fire blocked during game states 14 and 87. Particle_field density capped at 100 (max allowed by driver validation)
+- `rgfx.d.ts` - TypeScript declarations for IntelliSense in transformer files. Always overwritten on install (system file, not user-editable). Excluded from `sync-assets.sh` since it originates in the repo, not `~/.rgfx/`.
 - `eslint.config.js` - ESLint flat config for transformer JS files (defines globals: setTimeout, Promise)
 - `.prettierrc` - Prettier configuration for transformer JavaScript files
 - `patterns/` - Reusable effect pattern definitions

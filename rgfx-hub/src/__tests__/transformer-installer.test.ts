@@ -120,6 +120,30 @@ describe('transformer-installer', () => {
       expect(mockCopyFile).toHaveBeenCalledTimes(2);
     });
 
+    it('should always overwrite .d.ts files even when they exist', async () => {
+      mockReaddir.mockResolvedValue([
+        { name: 'rgfx.d.ts', isDirectory: () => false, isFile: () => true },
+        { name: 'default.js', isDirectory: () => false, isFile: () => true },
+      ]);
+
+      // Both files already exist
+      mockAccess.mockResolvedValue(undefined);
+      mockCopyFile.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await installDefaultTransformers();
+
+      // .d.ts should be overwritten
+      expect(mockCopyFile).toHaveBeenCalledTimes(1);
+      expect(mockCopyFile).toHaveBeenCalledWith(
+        expect.stringContaining('rgfx.d.ts'),
+        expect.stringContaining('rgfx.d.ts'),
+      );
+      // .js should be skipped
+      expect(mockLogInfo).toHaveBeenCalledWith(expect.stringContaining('already exists, skipping: default.js'));
+      expect(mockLogInfo).toHaveBeenCalledWith(expect.stringContaining('Updated system transformers: rgfx.d.ts'));
+    });
+
     it('should handle missing bundled directory', async () => {
       const error = new Error('ENOENT: no such file or directory');
       (error as NodeJS.ErrnoException).code = 'ENOENT';

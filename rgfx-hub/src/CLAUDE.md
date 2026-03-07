@@ -30,10 +30,10 @@ Main process modules at the root of `src/`. Subdirectories have their own CLAUDE
 
 ## Asset Installers
 
-Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserve user customizations).
+Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserve user customizations). Supports `alwaysOverwrite` predicate for system files (e.g., `.d.ts` type declarations) that should be refreshed on every launch.
 
 - `interceptor-installer.ts` — Installs interceptor scripts (`.lua`) and config files (`.json`, e.g. `rom_map.json`) to `~/.rgfx/interceptors/`. Excludes LSP type stubs (`mame.lua`) via `EXCLUDED_FILES`.
-- `transformer-installer.ts` — Installs transformer scripts to `~/.rgfx/transformers/`
+- `transformer-installer.ts` — Installs transformer scripts to `~/.rgfx/transformers/`. Uses `alwaysOverwrite` for `.d.ts` files (type declarations for IntelliSense).
 - `led-hardware-installer.ts` — Installs LED hardware definitions to `~/.rgfx/led-hardware/`
 - `led-hardware-manager.ts` — Loads and manages LED hardware definition files (JSON)
 
@@ -45,7 +45,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 
 ## Utilities
 
-- `utils/asset-installer.ts` — Shared asset installation logic used by interceptor/transformer/led-hardware installers
+- `utils/asset-installer.ts` — Shared asset installation logic used by interceptor/transformer/led-hardware installers. Supports `alwaysOverwrite` predicate for system files that should be refreshed on every launch rather than skipped if they exist.
 - `utils/color-utils.ts` — Color helpers: `parseAmbilight` (12-bit → 24-bit), `hslToHex` (HSL → hex)
 - `utils/http-context.ts` — HTTP helpers: `createHttpContext`, `mergeHeaders`
 - `utils/firmware-paths.ts` — Firmware directory helpers: `getFirmwareDir`, `getFirmwareFilePath`
