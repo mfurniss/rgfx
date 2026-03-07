@@ -34,7 +34,7 @@ Application icons in various formats and sizes:
 ### interceptors/
 MAME Lua scripts that intercept game state and emit events:
 - `mame.lua` - MAME/emu type stubs for Lua language server (callback name params are optional)
-- `rom_map.json` - Variant-only mapping (JSON); framework auto-loads `{romname}_rgfx` by convention, rom_map only needed for clones/variants whose name differs from the interceptor base name. Read natively by both MAME Lua (`json.parse()`) and hub TypeScript (`JSON.parse()`)
+- `rom_map.json` - Variant-only mapping (JSON); framework auto-loads `{romname}_rgfx` by convention, rom_map only needed for clones/variants whose name differs from the interceptor base name. Read by MAME Lua via inline `parse_json_map()` (MAME's json plugin isn't accessible from autoboot scripts) and hub TypeScript via `JSON.parse()`
 - `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga, Galaga 88)
   - Galaga 88 uses C117 address mapper for RAM access; fire detection reads shot counter at 0x3000C3 (work RAM). SCORE_LUT maps point values to kill qualifiers (don-attack, boss, hiyoko, etc.)
 
@@ -53,7 +53,7 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 - `palettes.js` - Color palette definitions (retro game palettes, gradients)
 - `games/` - Game-specific transformer modules (defender.js, galaga.js, galaga88.js, outrun.js, pacman.js, robotron.js, shangon.js, smb.js, ssf2.js, starwars.js, etc.)
   - defender.js uses EXPLOSION_DRIVERS (all matrices + front strip) for enemy kill and player death effects so explosions fire on both matrices and the front LED strip.
-  - galaga88.js and smb.js use `throttleLatest()` (100ms) for score broadcasts — fires immediately during normal play, consolidates rapid bursts during bonus/end-of-level phases. `particleWarp()` in galaga88.js uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation. Unrecognized enemy types fall back to default color (#409040) silently.
+  - galaga88.js and smb.js use `throttleLatest()` (100ms) for score broadcasts — fires immediately during normal play, consolidates rapid bursts during bonus/end-of-level phases. smb.js passes player qualifier (p1/p2) through throttle for per-player accent colors and includes underwater bubble effects for the swimming music track. `particleWarp()` in galaga88.js uses a local `update()` helper to build fresh event objects each broadcast, rounding density/size to integers for driver validation. Unrecognized enemy types fall back to default color (#409040) silently.
   - smb.js mario-fireball broadcasts dual projectiles on both strips — a bright orange core and a softer trailing glow — for a richer fireball effect.
   - robotron.js uses exclusive() wrapper for human-programming flash effect to cancel overlapping async loops. Entity events (spawn/destroy) are handled under proper entity subject with qualifier routing rather than sfx subject. Tracks cumulative score via `lastScore` and displays score delta text on secondary matrices when delta exactly matches 500, 1000, 1500, or 2000.
   - pacman.js init handler returns false to allow cascade to subject init handler (world record display); ripple effects omit endX/endY when not needed (empty strings fail validation)

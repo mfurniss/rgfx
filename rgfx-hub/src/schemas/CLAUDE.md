@@ -88,7 +88,7 @@ Note: `color-gradient.ts` was removed - gradient colors are now in effect schema
 Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `background.ts` - Gradient-only background (color field removed, uses gradient array)
 - `bitmap.ts` - Display a bitmap image with animation frames on the LED matrix. Exports `cleanCodeProps` (strips reset:false, endX/endY:'random', easing when no movement), `generateCode` (GIF-specific code gen), `formDefaults` (endX/endY default to 'random' in playground form only), and `layoutConfig` (custom row-based layout).
-- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize. Exports `cleanCodeProps` (strips reset:false, gravity:0, hueSpread:0).
+- `explode.ts` - Particle explosion with hueSpread, radiusScale, and per-effect randomize. `randomize()` uses full saturation range (0–1) for color generation. Exports `cleanCodeProps` (strips reset:false, gravity:0, hueSpread:0).
 - `particle-field.ts` - Particle field effect with configurable behavior
 - `plasma.ts` - Perlin noise plasma with gradient colors
 - `projectile.ts` - Moving rectangle with direction, velocity, friction, trail, and watchdog. Exports `cleanCodeProps` (strips reset:false, particleDensity:0).

@@ -1,3 +1,5 @@
+_G.boot_delay(2)
+
 -- Extract sprites from CHR ROM
 local sprite_extract = require("sprite-extract")
 sprite_extract.extract({
@@ -71,30 +73,44 @@ local sfx_noise_map = {
 }
 
 -- Helper function to read score (6 digits)
--- Score layout: 0x07DE-0x07E2 stores 5 digits as one byte per digit (ones digit is always 0)
-local function get_score()
+-- Score layout: 5 digits as one byte per digit (ones digit is always 0)
+-- P1: 0x07DE-0x07E2, P2: 0x07D8-0x07DC
+local function get_score(base_addr)
 	local score = 0
 	-- Read 5 bytes, each containing one digit (0-9)
 	for i = 0, 4 do
-		local digit = mem:read_u8(0x07DE + i)
+		local digit = mem:read_u8(base_addr + i)
 		score = score * 10 + digit
 	end
 	return score * 10 -- Multiply by 10 since ones digit is always 0
 end
 
-local last_score = -1
+local last_score_p1 = -1
+local last_score_p2 = -1
 
 -- RAM monitoring map
 local map = {
 	-- Score - monitor the 5 bytes that store the score (one digit per byte)
-	score = {
+	score_p1 = {
 		addr_start = 0x07DE,
 		addr_end = 0x07E2,
 		callback = function()
-			local score = get_score()
-			if score ~= last_score then
-				_G.event(game_name .. "/player/score", string.format("%06d", score))
-				last_score = score
+			local score = get_score(0x07DE)
+			if score ~= last_score_p1 then
+				_G.event(game_name .. "/player/score/p1", string.format("%06d", score))
+				last_score_p1 = score
+			end
+		end,
+	},
+
+	score_p2 = {
+		addr_start = 0x07D8,
+		addr_end = 0x07DC,
+		callback = function()
+			local score = get_score(0x07D8)
+			if score ~= last_score_p2 then
+				_G.event(game_name .. "/player/score/p2", string.format("%06d", score))
+				last_score_p2 = score
 			end
 		end,
 	},

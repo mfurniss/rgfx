@@ -15,7 +15,7 @@ export const fieldTypes: FieldTypeMap = {
 
 export function randomize(): Record<string, unknown> {
   return {
-    color: randomColor(0.25),
+    color: randomColor(0, 1),
     reset: false,
     centerX: 'random',
     centerY: 'random',
