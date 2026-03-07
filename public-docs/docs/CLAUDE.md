@@ -82,7 +82,8 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - Init events (`<game>/init`) are emitted automatically by the framework ~500ms after interceptor load; they bypass boot delay
 - Sprite extraction (`sprite-extract.lua`) reads ROM graphics at runtime; manifests declared in interceptors; outputs JSON to `transformers/bitmaps/`
 - `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
-- Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition; includes budget estimate ($25-35 strip, $45-60 with matrix)
+- Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
+- Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led and QuinLED for advanced setups
 - Configure MAME page (`getting-started/configure-mame.md`) documents the `-autoboot_script` flag, rgfx.lua locations per platform, launch scripts for both macOS (.sh) and Windows (.bat), and frontend integration with per-platform examples
 - Effects page includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
