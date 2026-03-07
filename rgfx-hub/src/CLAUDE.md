@@ -32,7 +32,7 @@ Main process modules at the root of `src/`. Subdirectories have their own CLAUDE
 
 Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserve user customizations).
 
-- `interceptor-installer.ts` — Installs interceptor scripts to `~/.rgfx/interceptors/`. Excludes LSP type stubs (`mame.lua`) via `EXCLUDED_FILES`.
+- `interceptor-installer.ts` — Installs interceptor scripts (`.lua`) and config files (`.json`, e.g. `rom_map.json`) to `~/.rgfx/interceptors/`. Excludes LSP type stubs (`mame.lua`) via `EXCLUDED_FILES`.
 - `transformer-installer.ts` — Installs transformer scripts to `~/.rgfx/transformers/`
 - `led-hardware-installer.ts` — Installs LED hardware definitions to `~/.rgfx/led-hardware/`
 - `led-hardware-manager.ts` — Loads and manages LED hardware definition files (JSON)

@@ -81,11 +81,11 @@ describe('interceptor-installer', () => {
       );
     });
 
-    it('should skip non-.lua files (.md, .asm, etc.)', async () => {
+    it('should skip non-.lua and non-.json files (.md, .asm, etc.)', async () => {
       mockReaddir.mockResolvedValue([
         { name: 'README.md', isDirectory: () => false, isFile: () => true },
         { name: 'pacman.asm', isDirectory: () => false, isFile: () => true },
-        { name: 'config.json', isDirectory: () => false, isFile: () => true },
+        { name: 'notes.txt', isDirectory: () => false, isFile: () => true },
       ]);
 
       mockMkdir.mockResolvedValue(undefined);
@@ -115,7 +115,7 @@ describe('interceptor-installer', () => {
       mockReaddir
         .mockResolvedValueOnce([
           { name: 'games', isDirectory: () => true, isFile: () => false },
-          { name: 'rom_map.lua', isDirectory: () => false, isFile: () => true },
+          { name: 'rom_map.json', isDirectory: () => false, isFile: () => true },
         ])
         // Second readdir call for games/ subdirectory
         .mockResolvedValueOnce([

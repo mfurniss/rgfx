@@ -4,6 +4,7 @@
 globals = {
     "emu",
     "manager",
+    "json",
 }
 
 -- Modules loaded via require

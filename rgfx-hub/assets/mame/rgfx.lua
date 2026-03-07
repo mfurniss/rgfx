@@ -79,8 +79,23 @@ local load_interceptor = function()
 		print("No image devices found!")
 	end
 
-	-- Load ROM-to-interceptor mapping from user directory
-	local rom_map = require("rom_map")
+	-- Load ROM-to-interceptor variant mapping from JSON
+	local rom_map = {}
+	local map_path = user_path .. "rom_map.json"
+	local map_file = io.open(map_path, "r")
+	if map_file then
+		local ok, variants = pcall(json.parse, map_file:read("*a"))
+		map_file:close()
+		if ok and type(variants) == "table" then
+			for base, names in pairs(variants) do
+				for _, name in ipairs(names) do
+					rom_map[name] = base .. "_rgfx"
+				end
+			end
+		else
+			print("Warning: failed to parse " .. map_path)
+		end
+	end
 
 	-- Lookup interceptor: prefer cart_name (console games), fallback to rom_name (arcade)
 	local lookup_key = cart_name or rom_name

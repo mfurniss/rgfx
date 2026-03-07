@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "runtime.version": "Lua 5.4",
-  "diagnostics.globals": ["emu", "manager", "event", "event_cleanup"],
+  "diagnostics.globals": ["emu", "manager", "json", "event", "event_cleanup"],
   "workspace.library": ["../interceptors"]
 }
