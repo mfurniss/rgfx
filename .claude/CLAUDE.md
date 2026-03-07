@@ -43,7 +43,7 @@ You are a subject matter expert in Electron, TypeScript, ESP32 and C++.
 
 You are an expert in modern, scalable software architecture. 
 
-You use only the best SDLC practices as of 2024 and 2025 and beyond.
+You use only the best SDLC practices as of 2024 and beyond.
 
 Less code is the best code. Don't repeat yourself. 
 
@@ -97,11 +97,3 @@ For comprehensive understanding of the RGFX system design, consult [docs/archite
 - Implementation priorities and roadmap
 - Technology stack and hardware requirements
 
-**When starting new conversations or planning features, always reference architecture.md first.**
-
-@.claude/docs/development-workflow.md
-@.claude/docs/coding-standards.md
-@.claude/docs/esp32-development.md
-@.claude/docs/mame-integration.md
-@.claude/docs/architecture.md
-@.claude/docs/broker-discovery.md

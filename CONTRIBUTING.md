@@ -6,8 +6,10 @@ Thanks for your interest in contributing to RGFX! Whether it's a new game interc
 
 - [Code of Conduct](#code-of-conduct)
 - [Ways to Contribute](#ways-to-contribute)
-- [Adding Game Support](#adding-game-support-interceptors--transformers) - for hobbyists and retro gaming enthusiasts
-- [Working on the Hub or ESP32 Driver](#working-on-the-hub-or-esp32-driver) - for experienced developers
+- [Game Interceptors](#game-interceptors) — Lua, retro game hardware knowledge
+- [Event Transformers](#event-transformers) — JavaScript
+- [Hub Application](#hub-application) — TypeScript, Electron, React
+- [ESP32 Driver Firmware](#esp32-driver-firmware) — C++, PlatformIO, FastLED
 - [Project Structure](#project-structure)
 - [Making Changes](#making-changes)
 - [Submitting a Pull Request](#submitting-a-pull-request)
@@ -20,17 +22,24 @@ This project follows the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md). By par
 
 ## Ways to Contribute
 
-- **Game interceptors** - Add support for a new retro game
-- **Event transformers** - Create new visual effects for existing games
-- **Code improvements** - Bug fixes, refactoring, performance (Hub or ESP32)
-- **Documentation** - Fix typos, improve guides, add examples
-- **Bug reports** - Found something broken? [Open an issue](#reporting-bugs)
+- **Game interceptors** — Add support for a new retro game
+- **Event transformers** — Create new visual effects for existing games
+- **Code improvements** — Bug fixes, refactoring, performance (Hub or ESP32)
+- **Documentation** — Fix typos, improve guides, add examples
+- **Bug reports** — Found something broken? [Open an issue](#reporting-bugs)
 
 ---
 
-## Adding Game Support (Interceptors & Transformers)
+## Game Interceptors
 
-This is the most common way to contribute. You don't need to know TypeScript or C++ — just Lua (for interceptors), JavaScript (for transformers), or both.
+Interceptors are Lua scripts that run inside MAME. They monitor game RAM — reading memory addresses to detect events like score changes, player deaths, level transitions, and entity spawns. Each interceptor emits events to a log file that the Hub processes.
+
+### Skills
+
+- **Lua** — scripting language used by MAME's plugin system
+- **Retro arcade hardware** — understanding CPU architectures (Z80, 6809, 68000), memory maps, and how classic games store state in RAM
+- **MAME debugger** — using MAME's built-in debugger to find and verify memory addresses, set watchpoints, and trace game logic
+- **Binary/hex** — reading hex dumps, BCD-encoded scores, bitfields, and flag registers
 
 ### What You Need
 
@@ -39,14 +48,6 @@ This is the most common way to contribute. You don't need to know TypeScript or 
 - A text editor
 - ROM files for the game you want to support
 
-### What Are Interceptors and Transformers?
-
-**Interceptors** are Lua scripts that run inside MAME. They monitor game RAM — reading memory addresses to detect events like score changes, player deaths, level transitions, and entity spawns. Each interceptor emits events to a log file.
-
-**Transformers** are JavaScript scripts that run in the Hub. They receive events from interceptors and decide what LED effects to trigger — pulses, ripples, scrolling text, sprite rendering, and more.
-
-Together, they form the pipeline: **Game RAM → Interceptor (Lua) → Events → Transformer (JS) → LED Effects**.
-
 ### Getting Started
 
 ```bash
@@ -54,19 +55,11 @@ git clone https://github.com/mfurniss/rgfx.git
 cd rgfx
 ```
 
-Look at existing examples to understand the patterns:
+Look at existing examples: `rgfx-hub/assets/interceptors/games/` — Pac-Man, Galaga, Robotron, and more.
 
-- **Interceptors:** `rgfx-hub/assets/interceptors/games/` — Pac-Man, Galaga, Robotron, and more
-- **Transformers:** `rgfx-hub/assets/transformers/games/` — matching transformer for each game
+Detailed guide: [Writing Interceptors](https://rgfx.io/docs/interceptors/writing-interceptors/) — covers MAME debugger workflow, RAM monitoring patterns, BCD decoding, state tracking.
 
-### Writing Guides
-
-Detailed guides are available in the documentation:
-
-- [Writing Interceptors](https://rgfx.io/docs/interceptors/writing-interceptors/) — covers MAME debugger workflow, RAM monitoring patterns, BCD decoding, state tracking
-- [Writing Transformers](https://rgfx.io/docs/transformers/writing-transformers/) — covers event matching, effect types, driver targeting, sprite loading, sequencing
-
-### Testing Your Changes
+### Testing
 
 Launch MAME with RGFX monitoring:
 
@@ -80,9 +73,7 @@ Launch MAME with RGFX monitoring:
 scripts\launch-mame.bat pacman
 ```
 
-Use the Hub's **Event Monitor** to see events in real time, or the **Simulator** to test effects without hardware.
-
-Transformer changes are hot-reloaded — no restart needed.
+Use the Hub's **Event Monitor** to see events in real time.
 
 ### Linting
 
@@ -97,62 +88,72 @@ Install with `brew install luacheck stylua` (macOS) or download from GitHub.
 
 ---
 
-## Working on the Hub or ESP32 Driver
+## Event Transformers
 
-This section is for developers contributing to the Hub application (TypeScript/Electron) or the ESP32 driver firmware (C++).
+Transformers are JavaScript scripts that run in the Hub. They receive events from interceptors and decide what LED effects to trigger — pulses, ripples, scrolling text, sprite rendering, and more.
+
+Together with interceptors, they form the pipeline: **Game RAM → Interceptor (Lua) → Events → Transformer (JS) → LED Effects**.
+
+### Skills
+
+- **JavaScript** — vanilla JS, no build step or framework required
+- **RGFX effects API** — the Hub provides helper functions for colours, timing, sprites, and driver targeting (covered in the writing guide)
+
+### What You Need
+
+- **RGFX Hub** — [download from GitHub](https://github.com/mfurniss/rgfx/releases/latest)
+- A text editor
+- A working interceptor for the game (existing or your own)
+
+### Getting Started
+
+Look at existing examples: `rgfx-hub/assets/transformers/games/` — matching transformer for each supported game.
+
+Detailed guide: [Writing Transformers](https://rgfx.io/docs/transformers/writing-transformers/) — covers event matching, effect types, driver targeting, sprite loading, sequencing.
+
+### Testing
+
+Transformer changes are **hot-reloaded** — no restart needed. Use the Hub's **Simulator** to test effects without hardware.
+
+---
+
+## Hub Application
+
+The Hub is a cross-platform Electron desktop app that processes game events from interceptors, runs transformers, and sends LED commands to ESP32 drivers over the network.
+
+### Skills
+
+- **TypeScript** — strict mode, no `any` types outside test files
+- **Electron** — main/renderer process architecture, IPC, cross-platform packaging
+- **React** — functional components, hooks, Material UI
+- **Node.js** — file watching, networking, MQTT client
 
 ### Prerequisites
 
-#### macOS
-
+**macOS:**
 ```bash
-# Node.js 20+ (for Hub)
-brew install node
-
-# PlatformIO (for ESP32 firmware)
-brew install platformio
-
-# MAME 0.250+ (for game emulation)
-brew install mame
-
-# Lua tools (for Lua script linting)
-brew install luacheck
-brew install stylua
+brew install node        # Node.js 20+
+brew install mame        # MAME 0.250+ (for testing with games)
+brew install luacheck stylua  # Lua linting tools
 ```
 
-#### Windows
-
+**Windows:**
 ```powershell
-# Node.js 20+
-
-# PlatformIO - install via pip or the VSCode extension:
-pip install platformio
-# Or install the PlatformIO IDE extension in VSCode
-
+# Node.js 20+ - download from nodejs.org
 # MAME 0.250+ - download from https://www.mamedev.org/release.html
-
-# Lua tools (for Lua script linting)
-# Install luacheck and stylua via LuaRocks or download binaries from GitHub
+# Lua tools - install luacheck and stylua via LuaRocks or download binaries
 ```
 
-> **Windows note:** RGFX is primarily developed on macOS. The Hub and ESP32 firmware work cross-platform. Launch scripts are provided for both platforms: `scripts/launch-mame.sh` (macOS) and `scripts/launch-mame.bat` (Windows).
-
-### Clone and Install
+### Getting Started
 
 ```bash
 git clone https://github.com/mfurniss/rgfx.git
-cd rgfx
-```
-
-### Hub (Electron App)
-
-```bash
-cd rgfx-hub
+cd rgfx/rgfx-hub
 npm install
 npm start        # Launch the Hub in development mode
 ```
 
-**Code standards:**
+### Code Standards
 
 - Zero TypeScript errors — strict mode, no `any` types
 - Zero ESLint warnings — all warnings are treated as errors
@@ -160,7 +161,7 @@ npm start        # Launch the Hub in development mode
 - No unused exports
 - Separation of concerns — keep modules focused
 
-**Testing:**
+### Testing
 
 ```bash
 cd rgfx-hub
@@ -169,22 +170,54 @@ npm run typecheck    # TypeScript compilation check
 npm run lint         # ESLint
 ```
 
-### ESP32 Firmware
+---
+
+## ESP32 Driver Firmware
+
+The driver firmware runs on ESP32 microcontrollers. It receives LED commands from the Hub over MQTT and renders visual effects on connected LED strips and matrices.
+
+### Skills
+
+- **C++** — modern C++ (C++17), embedded constraints (no heap fragmentation, no exceptions)
+- **PlatformIO** — build system, library management, board configuration, serial monitoring
+- **ESP32** — WiFi, FreeRTOS tasks, NVS storage, OTA updates, memory constraints
+- **FastLED** — LED strip/matrix control, colour math, palettes
+- **Embedded systems** — working within limited flash and RAM, real-time performance
+
+### Prerequisites
+
+**macOS:**
+```bash
+brew install platformio
+```
+
+**Windows:**
+```powershell
+pip install platformio
+# Or install the PlatformIO IDE extension in VSCode
+```
+
+### Getting Started
 
 ```bash
-cd esp32
+git clone https://github.com/mfurniss/rgfx.git
+cd rgfx/esp32
 pio run              # Compile firmware
 pio run -t upload    # Flash via USB (requires connected ESP32)
 pio test -e native   # Run unit tests
 ```
 
-**Code standards:**
+### Code Standards
 
 - Follow existing patterns in `esp32/src/`
 - Use `.clang-format` for formatting
 - Firmware must compile with `pio run`
 
-### Running All Checks
+> **New effects:** ESP32 flash and RAM are limited, so new LED effects must be generally useful across multiple games and configurable via the Hub. Before writing a new effect, please [open a discussion](https://github.com/mfurniss/rgfx/discussions) or contact the maintainer to confirm it will be accepted.
+
+---
+
+## Running All Checks
 
 Before submitting any changes, run the check script:
 
@@ -194,12 +227,31 @@ Before submitting any changes, run the check script:
 
 This runs TypeScript compilation, ESLint, unit tests, ESP32 build verification, and Lua linting — depending on which files you changed. The same checks run in CI.
 
-### Testing Philosophy
+## Testing Philosophy
 
 - **Tests must be meaningful** — test real behavior, not mocks
 - Don't write tests that only verify mock setup
 - Quality over coverage — a few good integration tests beat many shallow unit tests
 - If a test is difficult to write, that's often a signal the code needs restructuring
+
+## Smoke Testing
+
+The E2E smoke test script soaks the Hub and connected drivers with randomized game events while monitoring process health. It requires the Hub to be already running.
+
+```bash
+python scripts/e2e-smoke-test.py                  # 60s, medium density
+python scripts/e2e-smoke-test.py -d 300 -D high   # 5 minute stress test
+python scripts/e2e-smoke-test.py -v                # Verbose per-second stats
+python scripts/e2e-smoke-test.py -o results.json   # Save results to JSON
+```
+
+Requires `psutil` (`pip install psutil`).
+
+**Density levels:** `low` (~5/s), `medium` (~20/s), `high` (~100/s), `stress` (~200/s)
+
+The script generates randomized events for all supported games, monitors CPU/memory usage, watches logs for errors, and detects driver disconnections or crashes. It exits with code 0 on PASS, 1 on FAIL or WARN.
+
+When adding support for a new game, add matching event entries to the `GAME_EVENTS` list in the script so the smoke test covers the new game's events.
 
 ---
 
