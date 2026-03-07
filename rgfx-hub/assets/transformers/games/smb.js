@@ -40,13 +40,11 @@ export async function transform(
   if (subject === 'init') {
     state.delete('musicTrack');
     await loadBitmaps();
-
     return true;
   }
 
   if (subject === 'player' && property === 'score') {
     throttledScoreBroadcast(payload, qualifier);
-    return true;
   }
 
   if (subject === 'sfx') {
@@ -84,6 +82,7 @@ export async function transform(
             duration: 400,
           },
         });
+
         await sleep(200);
       }
     }
@@ -100,6 +99,7 @@ export async function transform(
             collapse: 'vertical',
           },
         });
+
         await sleep(150);
       }
     }
@@ -113,6 +113,7 @@ export async function transform(
           fadeDuration: 0,
         },
       });
+
       for (var i = 0; i < 3; i++) {
         broadcast({
           effect: 'wipe',
@@ -124,6 +125,7 @@ export async function transform(
             blendMode: 'replace',
           },
         });
+
         await sleep(300);
       }
     }
@@ -143,6 +145,7 @@ export async function transform(
           direction: 'right',
         },
       });
+
       broadcast({
         effect: 'projectile',
         drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightStrip],
@@ -297,6 +300,7 @@ export async function transform(
             powerSpread: 80,
           },
         });
+
         await sleep(250);
       }
     } else if (payload === 'swimming') {
@@ -319,6 +323,7 @@ export async function transform(
 
       (async function bubble() {
         const x = randomInt(20, 80);
+
         broadcast({
           effect: 'bitmap',
           drivers: pick(
@@ -353,6 +358,7 @@ export async function transform(
           enabled: 'off',
         },
       });
+
       async function loop() {
         broadcast({
           effect: 'wipe',
@@ -364,11 +370,14 @@ export async function transform(
             blendMode: 'additive',
           },
         });
+
         await sleep(400);
+
         if (state.get('musicTrack') === 'power-star') {
           loop();
         }
       }
+
       loop();
     }
   }

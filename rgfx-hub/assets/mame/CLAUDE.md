@@ -14,7 +14,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
 |------|---------|
 | `rgfx.lua` | Bootstrap entry point — sets up paths, detects ROM/cartridge, loads interceptor. Reads `rom_map.json` via inline `parse_json_map()` (MAME's json plugin isn't accessible from autoboot scripts) |
 | `event.lua` | Event logging — writes to `~/.rgfx/interceptor-events.log`, defines `_G.event()` and `_G.boot_delay()` |
-| `ram.lua` | RAM monitoring — watches memory addresses and fires callbacks on value changes |
+| `ram.lua` | RAM monitoring — watches memory addresses and fires callbacks on value changes. `install_monitors(map, mem)` takes a table of named monitor configs. |
 | `sprite-extract.lua` | Extracts sprite graphics from ROM regions and writes JSON files matching GifBitmapResult format |
 
 ---

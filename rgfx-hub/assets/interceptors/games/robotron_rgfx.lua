@@ -39,14 +39,17 @@ end
 
 -- Factory for RAM monitors that emit spawn/destroy events from a counter address
 local function counter_events(addr, name)
+	local topic_count   = "robotron/entity/" .. name .. "/count"
+	local topic_spawn   = "robotron/entity/" .. name .. "/spawn"
+	local topic_destroy = "robotron/entity/" .. name .. "/destroy"
 	return {
 		addr_start = addr,
 		callback_changed = function(current, previous)
-      _G.event("robotron/entity/" .. name .. "/count", current)
+			_G.event(topic_count, current)
 			if current > previous then
-				_G.event("robotron/entity/" .. name .. "/spawn", current - previous)
+				_G.event(topic_spawn, current - previous)
 			elseif current < previous then
-				_G.event("robotron/entity/" .. name .. "/destroy", previous - current)
+				_G.event(topic_destroy, previous - current)
 			end
 		end,
 	}
@@ -64,7 +67,7 @@ local map = {
 		addr_start = 0xBDEC,
 		callback_changed = function(current, previous)
 			_G.event("robotron/player/lives", current)
-			if current < previous and current >= 0 then
+			if current < previous then
 				_G.event("robotron/player/die", previous - current)
 			end
 		end,
@@ -150,7 +153,7 @@ local sound_lut = {
 	[0x38A1] = "explosion",
 	[0x38A3] = "destroy-electrode",
 	[0x38A6] = "destroy-electrode",
-  [0x4144] = "brain-appear",
+	[0x4144] = "brain-appear",
 	[0x4141] = "brain-appear",
 	[0xD0DE] = "wave",
 	[0xD0E3] = "wave",
@@ -158,20 +161,20 @@ local sound_lut = {
 	[0xD0F2] = "wave",
 	[0xEF08] = "sine-wave-boom",
 	[0xEF6E] = "attract",
-  [0x0029] = "human-die",
-  [0x002C] = "human-die",
-  [0x114A] = "spark",
-  [0x1152] = "destroy-spheroid",
-  [0x1154] = "spark",
-  [0x1157] = "spark",
-  [0x115C] = "destroy-enforcer",
-  [0x1ACE] = "human-programming",
-  [0x1AE8] = "human-programming",
-  [0x1AEB] = "human-programming",
-  [0x4B2F] = "tank-appear",
-  [0x4B32] = "tank-appear",
-  [0xD0C7] = "extra-life",
-  [0xD0CA] = "extra-life",
+	[0x0029] = "human-die",
+	[0x002C] = "human-die",
+	[0x114A] = "spark",
+	[0x1152] = "destroy-spheroid",
+	[0x1154] = "spark",
+	[0x1157] = "spark",
+	[0x115C] = "destroy-enforcer",
+	[0x1ACE] = "human-programming",
+	[0x1AE8] = "human-programming",
+	[0x1AEB] = "human-programming",
+	[0x4B2F] = "tank-appear",
+	[0x4B32] = "tank-appear",
+	[0xD0C7] = "extra-life",
+	[0xD0CA] = "extra-life",
 }
 
 local last_sound_ptr = 0

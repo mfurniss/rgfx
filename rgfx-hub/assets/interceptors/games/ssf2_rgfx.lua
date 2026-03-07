@@ -1,5 +1,6 @@
-local cpu = manager.machine.devices[":maincpu"]
-local mem = cpu.spaces["program"]
+_G.boot_delay(4)
+
+local mem = manager.machine.devices[":maincpu"].spaces["program"]
 
 -- Sound command byte at 0x618002 (low byte contains the command ID)
 -- Command ranges:
@@ -21,7 +22,7 @@ local mem = cpu.spaces["program"]
 --   0x54       = small smash
 --   0x55-0x56  = electric M-S
 --   0x57       = nothing
---   0x58-05D   = misc
+--   0x58-0x5D  = misc
 --   0x5E       = jet liner
 --   0x5F       = elephant
 --   0x60       = "soruken"
@@ -60,5 +61,5 @@ ambilight.init({
 	zones = 16,
 	depth = 12,
 	event_interval = 4,
-  brightness = 0.7,
+	brightness = 0.7,
 })

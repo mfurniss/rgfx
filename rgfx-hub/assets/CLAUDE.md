@@ -35,8 +35,9 @@ Application icons in various formats and sizes:
 MAME Lua scripts that intercept game state and emit events:
 - `mame.lua` - MAME/emu type stubs for Lua language server (callback name params are optional)
 - `rom_map.json` - Variant-only mapping (JSON); framework auto-loads `{romname}_rgfx` by convention, rom_map only needed for clones/variants whose name differs from the interceptor base name. Read by MAME Lua via inline `parse_json_map()` (MAME's json plugin isn't accessible from autoboot scripts) and hub TypeScript via `JSON.parse()`
-- `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga, Galaga 88)
+- `games/` - Game-specific interceptor scripts (e.g., Pac-Man, Galaga, Galaga 88, SMB, SSF2)
   - Galaga 88 uses C117 address mapper for RAM access; fire detection reads shot counter at 0x3000C3 (work RAM). SCORE_LUT maps point values to kill qualifiers (don-attack, boss, hiyoko, etc.)
+  - SMB (nes_smb_rgfx.lua) uses DisplayDigits buffer from SMB disassembly: P1 score at $07DE-$07E2, P2 score at $07E4-$07E8 (ScoreOffsets $0B/$11). Monitors SFX queues ($00FD-$00FF) and music track via MusicDataLow ($F5).
 
 ### mame/
 MAME event handling utilities:

@@ -20,7 +20,7 @@ local user_path = home .. sep .. ".rgfx" .. sep .. "interceptors" .. sep
 -- Load system modules from bundle (event.lua, ram.lua)
 package.path = system_path .. "?.lua;" .. package.path
 
--- Load user files from ~/.rgfx/interceptors/ (rom_map.lua, game interceptors)
+-- Load user files from ~/.rgfx/interceptors/ (rom_map.json, game interceptors)
 package.path = user_path .. "?.lua;" .. user_path .. "games" .. sep .. "?.lua;" .. package.path
 
 -- Minimal JSON decoder for rom_map.json (flat object with string array values)

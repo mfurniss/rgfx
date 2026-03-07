@@ -30,7 +30,10 @@ const bonusColors = {
 
 let tractorBeam = false;
 
-export async function transform({ subject, property, payload }, { broadcast, utils }) {
+export async function transform(
+  { subject, property, payload },
+  { broadcast, utils },
+) {
   const { formatNumber, sleep, randomInt } = utils;
   if (subject === 'init') {
     broadcast({
@@ -78,8 +81,7 @@ export async function transform({ subject, property, payload }, { broadcast, uti
       props: {
         text: isChallengingStage ? 'CHALLENGING STAGE' : `STAGE ${payload}`,
         gradient: ['#008050'],
-        speed: 220,
-        repeat: false,
+        speed: 280,
         snapToLed: true,
       },
     });

@@ -51,7 +51,7 @@ local map = {
 		addr_end = 0x83E8,
 		callback = function(_, _, _)
 			local score = get_galaga_score(0x83E3)
-			if score ~= last_score_p2 and score > 0 then
+			if score ~= last_score_p2 then
 				_G.event("galaga/player/score/p2", score)
 				last_score_p2 = score
 			end
@@ -116,7 +116,7 @@ local map = {
 	stage = {
 		addr_start = 0x9821,
 		callback = function(_, current, previous)
-			if current == previous + 1 then
+			if (current - previous) & 0xFF == 1 then
 				_G.event("galaga/stage", current)
 			end
 		end,

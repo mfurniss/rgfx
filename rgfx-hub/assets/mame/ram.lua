@@ -67,9 +67,6 @@ function exports.install_ram_monitor(options)
 			local current = read_func(mem, addr)
 
 			if current ~= prev_values[addr] then
-				if name then
-					-- print(name, string.format(hex_format, current))
-				end
 				if callback then
 					callback(addr, current, prev_values[addr])
 				end
