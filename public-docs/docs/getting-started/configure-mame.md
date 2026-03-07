@@ -81,7 +81,7 @@ Adjust the path to match where you installed RGFX Hub. The frontend doesn't need
 When MAME starts with the RGFX script:
 
 1. `rgfx.lua` initializes and waits for the game to start
-2. It detects the ROM name (e.g., `pacman`) and looks up the matching interceptor in `rom_map.lua`
+2. It detects the ROM name (e.g., `pacman`) and looks up the matching interceptor (via `rom_map.json` for variants, or by convention `{romname}_rgfx`)
 3. The interceptor loads and begins monitoring game memory for events
 4. Events are written to `interceptor-events.log` in your [config directory](hub-setup.md#config-directory)
 5. RGFX Hub picks up the events and triggers LED effects on your drivers

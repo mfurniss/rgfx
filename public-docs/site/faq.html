@@ -2257,7 +2257,7 @@
 </tr>
 <tr>
 <td>ROM name</td>
-<td>The interceptor matches by ROM name — the filename of your ROM file without the extension (e.g., <code>pacman.zip</code> → <code>pacman</code>). The name must match an entry in <code>interceptors/rom_map.lua</code> in your <a href="getting-started/hub-setup.html#config-directory">config directory</a>.</td>
+<td>The interceptor matches by ROM name — the filename of your ROM file without the extension (e.g., <code>pacman.zip</code> → <code>pacman</code>). The framework looks for <code>{romname}_rgfx.lua</code> by convention. For ROM variants/clones, check <code>interceptors/rom_map.json</code> in your <a href="getting-started/hub-setup.html#config-directory">config directory</a>.</td>
 </tr>
 <tr>
 <td>Interceptor loading</td>

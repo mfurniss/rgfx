@@ -23,7 +23,7 @@ flowchart TB
     subgraph MAME["MAME Emulator"]
         rgfx["rgfx.lua<br/>(via -autoboot_script)"]
         detect["Detects which game is running"]
-        load["Loads interceptor from rom_map.lua"]
+        load["Loads interceptor from rom_map.json"]
         intercept["Game Interceptor"]
 
         rgfx --> detect --> load --> intercept
@@ -42,7 +42,7 @@ Interceptors are stored in the `interceptors/` subdirectory of your [config dire
 
 ```
 interceptors/
-├── rom_map.lua           # Maps ROM names to interceptors
+├── rom_map.json          # Maps ROM variant names to interceptors
 ├── ambilight.lua         # Screen color sampling utility
 ├── fft.lua               # Audio analysis utility
 ├── sprite-extract.lua    # ROM sprite extraction utility

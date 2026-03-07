@@ -93,7 +93,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 |-------|---------|
 | MAME launch | MAME must be launched with the `-autoboot_script` flag pointing to `rgfx.lua`. See [Configure MAME](getting-started/configure-mame.md). |
 | MAME version | RGFX requires MAME 0.250 or later for the Lua plugin API. |
-| ROM name | The interceptor matches by ROM name — the filename of your ROM file without the extension (e.g., `pacman.zip` → `pacman`). The name must match an entry in `interceptors/rom_map.lua` in your [config directory](getting-started/hub-setup.md#config-directory). |
+| ROM name | The interceptor matches by ROM name — the filename of your ROM file without the extension (e.g., `pacman.zip` → `pacman`). The framework looks for `{romname}_rgfx.lua` by convention. For ROM variants/clones, check `interceptors/rom_map.json` in your [config directory](getting-started/hub-setup.md#config-directory). |
 | Interceptor loading | Check MAME's console output for errors. If the interceptor has a Lua syntax error, MAME will report it. |
 | Config directory | Verify the RGFX Config Directory in [Settings](hub-app/settings.md) points to your config directory. |
 | Event log | Check that `interceptor-events.log` is being created and updated in your config directory while the game runs. |
