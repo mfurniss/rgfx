@@ -51,6 +51,8 @@ When researching or adding a new feature, first search if an existing package or
 
 Do not drop out of plan mode without the user's explicit permission.
 
+**Plan mode requires thorough research.** Before proposing a plan, verify that every part of it is implementable. Search online for the most recent and official documentation — do not rely on training data alone. If an API, library, or approach might have changed, confirm it is current before including it in a plan. Do not present a plan and then discover during implementation that it's not feasible. Research first, plan second.
+
 **Typescript**
 
 - No unused exports
