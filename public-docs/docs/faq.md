@@ -129,12 +129,19 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 
 ### macOS: "can't be opened because Apple cannot verify the developer"
 
-RGFX Hub is not signed with an Apple Developer certificate. On first launch after downloading, macOS will block the app. To open it:
+RGFX Hub is not signed with an Apple Developer certificate. macOS will block the app after downloading. To allow it:
 
-1. **Right-click** (or Control-click) **RGFX Hub.app** and select **Open**
-2. Click **Open** in the confirmation dialog
+1. Try to open **RGFX Hub** — macOS will show a warning and refuse
+2. Open **System Settings → Privacy & Security**
+3. Scroll down to the **Security** section — you'll see a message about RGFX Hub being blocked
+4. Click **Open Anyway**, then confirm with **Open**
 
-You only need to do this once — subsequent launches will work normally.
+### Windows: "Windows protected your PC" (SmartScreen)
+
+RGFX Hub is not signed with a Microsoft code-signing certificate. Windows Defender SmartScreen may block the installer. To proceed:
+
+1. Click **More info** in the SmartScreen dialog
+2. Click **Run anyway**
 
 ### Serial commands
 

@@ -1,4 +1,4 @@
-import { app, ipcMain, shell } from 'electron';
+import { app, ipcMain, Menu, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import pkg from '../package.json';
@@ -76,6 +76,25 @@ const windowManager = createWindowManager({
   systemErrorTracker,
   log,
 });
+
+// Set application menu with Help > Documentation
+const isMac = process.platform === 'darwin';
+const menuTemplate: Electron.MenuItemConstructorOptions[] = [
+  ...(isMac ? [{ role: 'appMenu' as const }] : []),
+  { role: 'fileMenu' as const },
+  { role: 'editMenu' as const },
+  { role: 'viewMenu' as const },
+  {
+    role: 'help' as const,
+    submenu: [
+      {
+        label: 'Documentation',
+        click: () => void shell.openExternal('https://rgfx.io/docs'),
+      },
+    ],
+  },
+];
+Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
 
 // Subscribe to network changes to update system status
 eventBus.on('network:changed', () => {
