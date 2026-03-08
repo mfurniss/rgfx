@@ -118,7 +118,7 @@ The [FX Playground](../hub-app/fx-playground.md) lets you send any effect to you
 
 1. Go to **FX Playground** in the sidebar
 2. Select your driver from the target picker
-3. Choose an effect — try **Pulse** for a quick visual hit, or **Plasma** for something continuous
+3. Choose an effect
 4. Adjust the parameters (color, duration, speed) and click **Trigger Effect**
 
 Click **Random Trigger** to discover interesting parameter combinations automatically.

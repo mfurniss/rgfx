@@ -57,9 +57,11 @@ docs/
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 6-page onboarding flow (requirements → hub-setup → first-driver → test-leds → configure-mame → play)
 ├── hub-app/                    # Hub application reference (9 pages, settings includes driver fallback toggle)
-├── hardware/                   # LED hardware (choosing, wiring, configure, definitions, effects with blend modes + compatibility table, examples)
+├── hub-app/effects.md          # Visual Effects reference (standalone top-level nav item, not a Hub page)
+├── hardware/                   # LED hardware (choosing, wiring, configure, definitions, examples)
 ├── interceptors/               # Lua interceptor docs (8 pages incl. sprite-extraction.md, all examples use _G.event() with real game events)
-└── transformers/               # JS transformer docs (6 pages, bitmaps.md covers inline + GIF + JSON sprites + movement/easing, ambilight has single/multi driver modes)
+├── transformers/               # JS transformer docs (6 pages, bitmaps.md covers inline + GIF + JSON sprites + movement/easing, ambilight has single/multi driver modes)
+└── acknowledgements.md         # Credits and open-source project acknowledgements
 ```
 
 ### Config Directory References
@@ -85,7 +87,7 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
 - Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led and QuinLED for advanced setups
 - Configure MAME page (`getting-started/configure-mame.md`) documents the `-autoboot_script` flag, rgfx.lua locations per platform, launch scripts for both macOS (.sh) and Windows (.bat), and frontend integration with per-platform examples
-- Effects page includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
+- Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)

@@ -57,13 +57,13 @@ nav:
     - FX Playground: hub-app/fx-playground.md
     - Simulator: hub-app/simulator.md
     - Settings: hub-app/settings.md
+  - Visual Effects: hub-app/effects.md
   - LED Hardware:
     - Choosing Hardware: hardware/choosing.md
     - Build Examples: hardware/examples.md
     - Wiring & Power: hardware/wiring.md
     - Configuration: hardware/configure.md
     - Hardware Definitions: hardware/definitions.md
-    - Visual Effects: hardware/effects.md
   - Interceptors:
     - Introduction: interceptors/index.md
     - Event System: interceptors/events.md
@@ -81,6 +81,7 @@ nav:
     - Bitmaps: transformers/bitmaps.md
     - Ambilight: transformers/ambilight.md
   - FAQ / Troubleshooting: faq.md
+  - Acknowledgements: acknowledgements.md
 
 markdown_extensions:
   - attr_list

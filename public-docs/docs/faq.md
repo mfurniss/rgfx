@@ -8,7 +8,7 @@ Once you have ROM files, place them in a folder and point RGFX Hub to that folde
 
 ## Does RGFX work with my emulation frontend?
 
-Yes. RGFX works with any frontend (LaunchBox, AttractMode, EmulationStation, etc.) as long as it launches MAME as an external application. You'll need to add the `-autoboot_script` argument pointing to `rgfx.lua` in your frontend's MAME emulator settings. See [Configure MAME](getting-started/configure-mame.md#frontend-integration) for details.
+RGFX should work with most frontends (LaunchBox, AttractMode, EmulationStation, etc.) as long as the frontend launches MAME as an external application. You'll need to add the `-autoboot_script` argument pointing to `rgfx.lua` in your frontend's MAME emulator settings — refer to your frontend's documentation for how to add custom command-line arguments. See [Configure MAME](getting-started/configure-mame.md#advanced-frontend-integration) for the RGFX side of the setup.
 
 ## Does RGFX work with emulators other than MAME?
 
@@ -135,6 +135,21 @@ RGFX Hub is not signed with an Apple Developer certificate. On first launch afte
 2. Click **Open** in the confirmation dialog
 
 You only need to do this once — subsequent launches will work normally.
+
+### Serial commands
+
+Connect your ESP32 driver via USB and open a serial monitor at 115200 baud. The following commands are available:
+
+| Command | Description |
+|---------|-------------|
+| `help` | List available commands |
+| `wifi` | Show current WiFi credentials |
+| `wifi SSID PASSWORD` | Set WiFi credentials and restart (use quotes for spaces: `wifi "My Network" "My Password"`) |
+| `reboot` | Restart the device |
+| `reset` | Factory reset — erases all configuration and restarts |
+| `telemetry` | Display system info (network, memory, LEDs) as JSON |
+| `test_leds on\|off` | Enable or disable the LED test pattern |
+| `udp_reset` | Reinitialize the UDP socket |
 
 ### Still stuck?
 

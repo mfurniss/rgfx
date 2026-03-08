@@ -4,6 +4,9 @@ The Event Monitor shows game events streaming in real-time as you play. It's use
 
 ![Event Monitor](../assets/images/rgfx-hub-event-monitor.png)
 
+!!! tip
+    Click any row to replay that event through the transformer pipeline with its last recorded value — useful for testing effect mappings without restarting the game.
+
 ## Event Table
 
 | Column | Description |
@@ -17,10 +20,6 @@ The table is sortable by topic or count.
 ## Value Display
 
 Numeric values in the 16-bit range (0-65535) show both decimal and hexadecimal representations (e.g., `2,500 (0x09C4)`).
-
-## Click to Replay
-
-Click any row in the event table to immediately fire that event again through the transformer pipeline with its last recorded value. This triggers the same LED effects as the original event, making it easy to test and iterate on effect mappings without restarting the game.
 
 ## Reset Counts
 

@@ -8,7 +8,7 @@ RGFX runs on [ESP32](https://www.espressif.com/en/products/socs/esp32) microcont
 
 ### Recommended: ESP32-WROOM-32
 
-The ESP32-WROOM development board is the best starting point. It's widely available, well-documented, inexpensive (~$8), and has excellent WiFi. The dual-core processor handles real-time LED rendering and network communication simultaneously.
+The ESP32-WROOM development board is the best starting point. It's widely available, well-documented, inexpensive, and has excellent WiFi. The dual-core processor handles real-time LED rendering and network communication simultaneously.
 
 A 38-pin breakout board makes wiring easy — the 5V, GND, and DATA pins connect to LEDs using JST SM connectors for a clean plug-and-play setup.
 
@@ -16,14 +16,10 @@ A 38-pin breakout board makes wiring easy — the 5V, GND, and DATA pins connect
 
 > Note the **RESET** and **BOOT** buttons at the left and right of the USB input. The BOOT button is used to toggle the LED test pattern during hardware setup.
 
-### Also Compatible
+### Also Compatible: ESP32-S3 Mini
 
-| Board | Notes |
-|-------|-------|
-| ESP32-S3 DevKitC | Newer generation, works well with RGFX |
-| ESP32-S3 Mini | Smallest and cheapest option, but requires soldering headers and has fewer breakout options |
-| NodeMCU-32S | Common WROOM-32 variant |
-| Wemos D1 Mini ESP32 | Compact form factor |
+The S3 Mini is the smallest and cheapest option, but requires soldering headers and has fewer breakout options.
+
 Any ESP32 dev board using a WROOM-32 or S3 chip should work. The Hub detects the chip type automatically when flashing firmware.
 
 ## LED Types
@@ -50,10 +46,8 @@ Search for "WS2812B LED strip" or "WS2812B LED matrix" on Amazon, AliExpress, or
 
 | | LED Strips | LED Matrices |
 |---|---|---|
-| **Best for** | Accent lighting, cabinet edges, marquee | Score displays, bitmaps, scrolling text |
+| **Best for** | Accent lighting, cabinet edges, projectile effects, explosions, ambilight | Score displays, bitmaps, scrolling text, marquee, explosions |
 | **Layout** | 1D — linear effects, pulses, wipes | 2D — full effects including bitmaps and text rendering |
-| **Price** | ~$10 for 1 meter | ~$15-25 per panel |
-| **Mounting** | Adhesive backing, easy to position | Attach to project board with double-sided tape |
 | **Combine** | Longer strips or multiple runs | Multiple panels for larger displays |
 
 Most setups benefit from at least one strip and one matrix, but start with whichever matches what you want to see first.
@@ -69,5 +63,4 @@ Different LED chipsets wire their color channels differently. The most common or
 - **GRB** — WS2812B default (most common)
 - **RGB** — standard order
 - **BRG** — some LED variants
-
-If your colors appear wrong (e.g., red shows as green), adjust the color order in [LED Configuration](configure.md).
+- **RGBW** — SK6812 RGBW with white channel first for improved color rendition

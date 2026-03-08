@@ -1,6 +1,6 @@
 # Visual Effects
 
-These are the visual effects available on RGFX drivers. Use the [FX Playground](../hub-app/fx-playground.md) to experiment with any effect interactively — adjust parameters, trigger effects, and see results on your LEDs in real-time.
+These are the visual effects available on RGFX drivers. Use the [FX Playground](fx-playground.md) to experiment with any effect interactively — adjust parameters, trigger effects, and see results on your LEDs in real-time.
 
 ## How Effects Work
 

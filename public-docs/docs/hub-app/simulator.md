@@ -41,7 +41,3 @@ Multiple rows can have auto-trigger enabled simultaneously.
 ## How It Works
 
 Simulated events are processed through the same transformer pipeline as real MAME events, making this ideal for testing effect mappings without needing a running game.
-
-## Persistence
-
-Event configurations persist across sessions. Your test events and auto-trigger settings are remembered when you reopen the Hub.

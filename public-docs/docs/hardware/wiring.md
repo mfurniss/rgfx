@@ -33,4 +33,3 @@ USB power is fine for most setups. If you need more power, use an external 5V po
 ## Next Steps
 
 - [Configure your LED hardware](configure.md) in the Hub
-- View [Build Examples](examples.md) to see real wiring setups

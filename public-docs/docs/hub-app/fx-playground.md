@@ -1,6 +1,6 @@
 # FX Playground
 
-The FX Playground lets you experiment with all the visual effects interactively — pick an effect, tweak the parameters, and trigger it on your connected drivers. No game required.
+The FX Playground lets you experiment with all the visual effects interactively — choose an effect, tweak the parameters, and trigger it on your connected drivers.
 
 ![FX Playground](../assets/images/rgfx-hub-fx-playground.png)
 
@@ -34,11 +34,11 @@ Switch to the **Transformer Code** tab to see JavaScript code that produces the 
 Copy this code directly into your transformer scripts:
 
 ```javascript
-context.broadcast('effects/pulse', {
-  color: '#ff0000',
-  duration: 500,
-  // ... other props
+broadcast({
+  effect: 'pulse',
+  props: {
+    color: '#ff0000',
+    duration: 500,
+  },
 });
 ```
-
-This helps bridge the gap between playground experimentation and production transformer code.

@@ -21,15 +21,15 @@ Interceptors go far beyond simple memory monitoring. They:
 ```mermaid
 flowchart TB
     subgraph MAME["MAME Emulator"]
-        rgfx["rgfx.lua<br/>(via -autoboot_script)"]
+        rgfx["rgfx.lua"]
         detect["Detects which game is running"]
-        load["Loads interceptor from rom_map.json"]
+        load["Loads matching interceptor"]
         intercept["Game Interceptor"]
 
         rgfx --> detect --> load --> intercept
     end
 
-    intercept --> |"_G.event()"| logfile["interceptor-events.log"]
+    intercept --> logfile["interceptor-events.log"]
     logfile --> hub["RGFX Hub"]
     hub --> led["LED Effects"]
 ```
@@ -43,9 +43,6 @@ Interceptors are stored in the `interceptors/` subdirectory of your [config dire
 ```
 interceptors/
 ├── rom_map.json          # Maps ROM variant names to interceptors
-├── ambilight.lua         # Screen color sampling utility
-├── fft.lua               # Audio analysis utility
-├── sprite-extract.lua    # ROM sprite extraction utility
 └── games/
     ├── pacman_rgfx.lua
     ├── galaga_rgfx.lua
