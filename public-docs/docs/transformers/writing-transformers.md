@@ -101,7 +101,7 @@ export async function transform({ subject, property, payload }, { broadcast }) {
     }
     ```
 
-See [Visual Effects](../hardware/effects.md) for the full list of effects and their parameters.
+See [Visual Effects](../hub-app/effects.md) for the full list of effects and their parameters.
 
 ## Step 4: Target Drivers
 

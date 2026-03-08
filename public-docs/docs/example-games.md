@@ -6,8 +6,6 @@ Any game that runs in MAME can work with RGFX. The included scripts are starting
 
 ## Included Examples
 
-### Full Examples
-
 These games have both an interceptor (detects game events) and a transformer (maps events to LED effects):
 
 | Game | ROM | Events Detected |
@@ -21,6 +19,7 @@ These games have both an interceptor (detects game events) and a transformer (ma
 | Defender | `defender` | Score, lives, smart bombs, humanoid count/lost, enemy counts (6 types), player explosion |
 | OutRun | `outrun` | Ambilight, game time, music channels (FM) |
 | Super Hang-On | `shangon` | Ambilight, music channels (FM) |
+| Super Street Fighter II | `ssf2` | Sound commands, ambilight |
 
 ### Interceptor Only
 
@@ -29,7 +28,6 @@ These games have interceptors that detect events but use default effect mappings
 | Game | ROM | Events Detected |
 |------|-----|----------------|
 | Space Harrier | `sharrier` | Ambilight |
-| Super Street Fighter II | `ssf2` | Sound commands, ambilight |
 | G-Force 2 | `gforce2` | Ambilight |
 
 ## Create Your Own

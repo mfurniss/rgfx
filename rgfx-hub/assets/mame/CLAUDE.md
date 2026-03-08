@@ -16,6 +16,8 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
 | `event.lua` | Event logging — writes to `~/.rgfx/interceptor-events.log`, defines `_G.event()` and `_G.boot_delay()` |
 | `ram.lua` | RAM monitoring — watches memory addresses and fires callbacks on value changes. `install_monitors(map, mem)` takes a table of named monitor configs. |
 | `sprite-extract.lua` | Extracts sprite graphics from ROM regions and writes JSON files matching GifBitmapResult format |
+| `ambilight.lua` | Screen edge color sampling — samples pixels along screen edges, averages over N frames, emits `rgfx/ambilight/frame` events with 12-bit color zones |
+| `fft.lua` | Audio spectrum analysis — performs FFT on MAME audio samples, emits `rgfx/audio/fft` events with normalized frequency bands |
 
 ---
 

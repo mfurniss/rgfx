@@ -27,10 +27,6 @@ Flash firmware directly via USB cable. Required for new ESP32 boards or recovery
 2. Select the serial port from the dropdown
 3. Click **Update Firmware**
 4. Confirm the flash operation
-
-!!! warning
-    USB flashing erases all driver settings including WiFi configuration. You'll need to reconfigure WiFi after flashing.
-
 **WiFi Config (USB)**: Configure WiFi credentials on the connected device.
 
 ## Chip-Aware Updates

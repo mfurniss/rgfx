@@ -51,7 +51,7 @@ local function goertzel(samples, target_freq, sr)
 	local sin_omega = math.sin(omega)
 	local coeff = 2 * cos_omega
 
-	local s0, s1, s2 = 0, 0, 0
+	local s0, s1, s2 = 0, 0, 0  -- luacheck: ignore s0
 	for i = 1, n do
 		s0 = samples[i] + coeff * s1 - s2
 		s2 = s1
