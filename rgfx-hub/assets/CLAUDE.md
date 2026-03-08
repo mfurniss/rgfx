@@ -40,10 +40,12 @@ MAME Lua scripts that intercept game state and emit events:
   - SMB (nes_smb_rgfx.lua) uses DisplayDigits buffer from SMB disassembly: P1 score at $07DE-$07E2, P2 score at $07E4-$07E8 (ScoreOffsets $0B/$11). Monitors SFX queues ($00FD-$00FF) and music track via MusicDataLow ($F5).
 
 ### mame/
-MAME event handling utilities:
+MAME core Lua modules (system-level, not user-editable):
 - `rgfx.lua` - Main RGFX bootstrap, registers prestart and frame callbacks to load interceptors. Emits `rgfx/reset` before loading to clear all driver effects, then delays `{game}/init` by ~500ms (30 frames) so MQTT clears reach drivers first. Init payload is the MAME system description (e.g., "Pac-Man (Midway)") for display in the world record scroll text. Uses a boolean guard (`init_sent`) to ensure init fires exactly once. Screen info is printed after 10 frames via `register_frame_done` callback to ensure screen properties are initialized. Note: MAME shutdown detection is handled by `scripts/launch-mame.sh` (not Lua) because `emu.add_machine_stop_notifier` is unreliable.
 - `event.lua` - Event emission and logging utilities; writes to `interceptor-events.log`; defines `_G.boot_delay(seconds)` to suppress all events except `/init` during boot. All interceptors call `_G.boot_delay()` before `require("ram")` to avoid emitting events during power-on tests.
 - `ram.lua` - RAM monitoring and memory read helpers
+- `ambilight.lua` - Screen edge color sampling module; samples pixels along screen edges, averages over N frames, emits `rgfx/ambilight/frame` events
+- `fft.lua` - Audio spectrum analysis module; performs FFT on MAME audio samples, emits `rgfx/audio/fft` events
 - `docs/` - Documentation for MAME integration
 
 ### transformers/
