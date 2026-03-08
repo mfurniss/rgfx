@@ -1,3 +1,5 @@
+_G.boot_delay(2)
+
 -- Extract sprites from CHR ROM
 local sprite_extract = require("sprite-extract")
 sprite_extract.extract({
@@ -33,11 +35,16 @@ local ram = require("ram")
 -- This interceptor is shared by multiple SMB variants (smb, smw)
 -- The game prefix is passed via _G.rgfx.rom
 
-local cpu = manager.machine.devices[":maincpu"]
-local mem = cpu.spaces["program"]
+local mem = manager.machine.devices[":maincpu"].spaces["program"]
 
 -- Get the game name from global (set by rgfx.lua before loading interceptor)
-local game_name = _G.game_name or "smb"
+local game_name = (_G.rgfx and _G.rgfx.rom) or "smb"
+
+-- Pre-build topic strings (avoid per-event concatenation)
+local topic_score_p1 = game_name .. "/player/score/p1"
+local topic_score_p2 = game_name .. "/player/score/p2"
+local topic_music    = game_name .. "/music"
+local topic_sfx      = game_name .. "/sfx/"
 
 -- Sound effect value maps (from SMB disassembly)
 -- Reference: https://gist.github.com/1wErt3r/4048722
@@ -70,41 +77,55 @@ local sfx_noise_map = {
 	[0x08] = "explosion",
 }
 
--- Helper function to read score (6 digits)
--- Score layout: 0x07DE-0x07E2 stores 5 digits as one byte per digit (ones digit is always 0)
-local function get_score()
+-- Helper function to read score (5 visible digits × 10, one byte per digit)
+-- DisplayDigits ($07D7) layout from SMB disassembly (ScoreOffsets: $0B, $11):
+--   DigitsMathRoutine works backwards: Y=$0B→$06 (P1), Y=$11→$0C (P2)
+--   $07D7-$07DC: Top/High score (offsets $00-$05, $07D7 zero-suppressed)
+--   $07DD-$07E2: P1 (Mario) score (offsets $06-$0B, $07DD zero-suppressed)
+--   $07E3-$07E8: P2 (Luigi) score (offsets $0C-$11, $07E3 zero-suppressed)
+-- First byte of each score is always 0 (zero-suppressed leading digit).
+-- Ones digit is always 0 (smallest increment is 50). Read 5 middle digits × 10.
+local function get_score(base_addr)
 	local score = 0
-	-- Read 5 bytes, each containing one digit (0-9)
 	for i = 0, 4 do
-		local digit = mem:read_u8(0x07DE + i)
+		local digit = mem:read_u8(base_addr + i)
 		score = score * 10 + digit
 	end
-	return score * 10 -- Multiply by 10 since ones digit is always 0
+	return score * 10
 end
 
-local last_score = -1
+local last_score_p1 = 0
+local last_score_p2 = 0
 
 -- RAM monitoring map
 local map = {
-	-- Score - monitor the 5 bytes that store the score (one digit per byte)
-	score = {
+	score_p1 = {
 		addr_start = 0x07DE,
 		addr_end = 0x07E2,
 		callback = function()
-			local score = get_score()
-			if score ~= last_score then
-				_G.event(game_name .. "/player/score", string.format("%06d", score))
-				last_score = score
+			local score = get_score(0x07DE)
+			if score ~= last_score_p1 then
+				_G.event(topic_score_p1, string.format("%06d", score))
+				last_score_p1 = score
 			end
 		end,
 	},
 
-	-- Sound Queue Monitoring for FFT Simulation
-	-- Reference: https://gist.github.com/1wErt3r/4048722 (SMB Disassembly)
-	-- The sound engine reads these RAM queues every frame and writes to APU
+	score_p2 = {
+		addr_start = 0x07E4,
+		addr_end = 0x07E8,
+		callback = function()
+			local score = get_score(0x07E4)
+			if score ~= last_score_p2 then
+				_G.event(topic_score_p2, string.format("%06d", score))
+				last_score_p2 = score
+			end
+		end,
+	},
 
 	-- Sound Effect Detection via Sound Queues
-	-- Reference: https://gist.github.com/1wErt3r/4048722
+	-- Reference: https://gist.github.com/1wErt3r/4048722 (SMB Disassembly)
+	-- The sound engine reads these RAM queues every frame and writes to APU
 	sfx = {
 		addr_start = 0x00FD,
 		addr_end = 0x00FF,
@@ -115,7 +136,7 @@ local map = {
 					or sfx_noise_map
 				local sfx = sfx_map[current]
 				if sfx then
-					_G.event(game_name .. "/sfx/" .. sfx)
+					_G.event(topic_sfx .. sfx)
 				else
 					-- Debug: log unknown SFX values
 					local channel = address == 0x00FF and "sq1"
@@ -148,7 +169,7 @@ local map = {
 			callback = function(_, current, _)
 				local song = song_map[current]
 				if song and song ~= last_song then
-					_G.event(game_name .. "/music", song)
+					_G.event(topic_music, song)
 					last_song = song
 				end
 			end,

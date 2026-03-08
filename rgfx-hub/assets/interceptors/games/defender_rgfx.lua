@@ -4,7 +4,7 @@
 -- Memory addresses sourced from Aaron Bottegal's Defender disassembly
 
 -- Don't emit events during power-on test
-_G.boot_delay(14)
+_G.boot_delay(18)
 
 local ram = require("ram")
 local cpu = manager.machine.devices[":maincpu"]
@@ -42,7 +42,7 @@ local map = {
 		addr_start = 0xA1C9,
 		callback_changed = function(current, previous)
 			_G.event("defender/player/lives", current)
-			if current < previous and current >= 0 then
+			if current < previous then
 				_G.event("defender/player/die", previous - current)
 			end
 		end,

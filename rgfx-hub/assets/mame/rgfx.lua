@@ -20,8 +20,22 @@ local user_path = home .. sep .. ".rgfx" .. sep .. "interceptors" .. sep
 -- Load system modules from bundle (event.lua, ram.lua)
 package.path = system_path .. "?.lua;" .. package.path
 
--- Load user files from ~/.rgfx/interceptors/ (rom_map.lua, game interceptors)
+-- Load user files from ~/.rgfx/interceptors/ (rom_map.json, game interceptors)
 package.path = user_path .. "?.lua;" .. user_path .. "games" .. sep .. "?.lua;" .. package.path
+
+-- Minimal JSON decoder for rom_map.json (flat object with string array values)
+-- MAME's json plugin isn't accessible from autoboot scripts, so we parse it ourselves
+local function parse_json_map(str)
+	local result = {}
+	for key, arr in string.gmatch(str, '"([^"]+)"%s*:%s*(%b[])') do
+		local values = {}
+		for val in string.gmatch(arr, '"([^"]+)"') do
+			values[#values + 1] = val
+		end
+		result[key] = values
+	end
+	return result
+end
 
 -- Load event logging module (defines _G.event and event_file)
 require("event")
@@ -84,7 +98,7 @@ local load_interceptor = function()
 	local map_path = user_path .. "rom_map.json"
 	local map_file = io.open(map_path, "r")
 	if map_file then
-		local ok, variants = pcall(json.parse, map_file:read("*a"))
+		local ok, variants = pcall(parse_json_map, map_file:read("*a"))
 		map_file:close()
 		if ok and type(variants) == "table" then
 			for base, names in pairs(variants) do

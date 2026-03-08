@@ -15,6 +15,7 @@ export async function installDefaultTransformers(): Promise<void> {
       bundledDir: getBundledAssetDir('transformers'),
       targetDir: TRANSFORMERS_DIRECTORY,
       label: 'transformers',
+      alwaysOverwrite: (name) => name.endsWith('.d.ts'),
     });
   } catch (error) {
     log.error('Failed to install default transformers:', error);

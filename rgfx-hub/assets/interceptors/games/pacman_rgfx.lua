@@ -76,14 +76,14 @@ local SCORE_EVENTS = {
 	[400] = "ghost2",
 	[800] = "ghost3",
 	[1600] = "ghost4",
-  [100] = "cherry",
-  [300] = "strawberry",
-  [500] = "orange",
-  [700] = "apple",
-  [1000] = "melon",
-  [2000] = "galaxian",
-  [3000] = "bell",
-  [5000] = "key"
+	[100] = "cherry",
+	[300] = "strawberry",
+	[500] = "orange",
+	[700] = "apple",
+	[1000] = "melon",
+	[2000] = "galaxian",
+	[3000] = "bell",
+	[5000] = "key"
 }
 
 -- Track previous score for delta detection
@@ -142,26 +142,26 @@ local map = {
 	-- 0x1d (29) = cutscene color (intermissions only)
 	red_ghost_state = {
 		addr_start = 0x4C03,
-		callback = function(value, _, _)
-			_G.event("pacman/ghost/red/state", value)
+		callback_changed = function(current, _)
+			_G.event("pacman/ghost/red/state", current)
 		end,
 	},
 	pink_ghost_state = {
 		addr_start = 0x4C05,
-		callback = function(value, _, _)
-			_G.event("pacman/ghost/pink/state", value)
+		callback_changed = function(current, _)
+			_G.event("pacman/ghost/pink/state", current)
 		end,
 	},
 	cyan_ghost_state = {
 		addr_start = 0x4C07,
-		callback = function(value, _, _)
-			_G.event("pacman/ghost/cyan/state", value)
+		callback_changed = function(current, _)
+			_G.event("pacman/ghost/cyan/state", current)
 		end,
 	},
 	orange_ghost_state = {
 		addr_start = 0x4C09,
-		callback = function(value, _, _)
-			_G.event("pacman/ghost/orange/state", value)
+		callback_changed = function(current, _)
+			_G.event("pacman/ghost/orange/state", current)
 		end,
 	},
 	-- SOUND EFFECT MONITORING

@@ -38,7 +38,7 @@ local SCORE_LUT = {
 	[200]  = "don-attack",    -- don attacking
 --	[300]  = "don",           -- don in formation
 	[400]  = "boss",          -- boss attacking solo
-  [500]  = "don",           -- attacking don
+	[500]  = "don",           -- attacking don
 	[600]  = "hiyoko",        -- formation escort (4 hits)
 	[800]  = "boss-convoy",   -- boss + 1 escort
 	[900]  = "pan",
@@ -59,17 +59,23 @@ local last_score = -1
 emu.register_frame_done(function()
 	local score = read_score()
 	if score ~= last_score then
-		if last_score >= 0 and score > last_score then
-			local delta = score - last_score
-			local enemy = SCORE_LUT[delta]
-			if enemy then
-				_G.event("galaga88/enemy/destroy/" .. enemy, delta)
+		if last_score >= 0 then
+			if score < last_score then
+				-- Score decreased (new game started) — reset baseline
+				last_score = 0
+			end
+			if score > last_score then
+				local delta = score - last_score
+				local enemy = SCORE_LUT[delta]
+				if enemy then
+					_G.event("galaga88/enemy/destroy/" .. enemy, delta)
+				end
 			end
 		end
 		_G.event("galaga88/player/score/p1", score)
 		last_score = score
 	end
-end)
+end, "galaga88_score")
 
 -- Shot counter at 0x3000C3 (increments by 1 each time player fires during gameplay)
 local SHOT_COUNTER_ADDR = 0x3000C3
@@ -77,7 +83,8 @@ local prev_shots = 0
 
 emu.register_frame_done(function()
 	local shots = c117_mem:read_u8(SHOT_COUNTER_ADDR)
-	if shots > prev_shots then
+	local diff = (shots - prev_shots) & 0xFF
+	if diff > 0 and diff < 128 then
 		_G.event("galaga88/player/fire", shots)
 	end
 	prev_shots = shots

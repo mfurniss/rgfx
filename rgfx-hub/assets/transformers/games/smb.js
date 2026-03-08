@@ -1,27 +1,26 @@
-// Super Mario Bros game-specific mapper
-
 import { NAMED_DRIVERS, MATRIX_DRIVERS } from '../global.js';
 
 let coinSprite;
 let throttledScoreBroadcast;
 
+/** @type {import('../rgfx').TransformerHandler} */
 export async function transform(
-  { subject, property, _qualifier, payload },
+  { subject, property, qualifier, payload },
   { broadcast, loadSprite, state, utils },
 ) {
-  const { randomInt, sleep, throttleLatest } = utils;
+  const { randomInt, sleep, throttleLatest, pick } = utils;
 
   if (!throttledScoreBroadcast) {
-    throttledScoreBroadcast = throttleLatest((score) => {
+    throttledScoreBroadcast = throttleLatest((score, player) => {
       broadcast({
         effect: 'text',
         props: {
           text: score,
           gradient: ['#D0D0A0'],
-          accentColor: '#700000',
+          accentColor: player === 'p1' ? '#800000' : '#008000',
           align: 'center',
           reset: true,
-          duration: 10000,
+          duration: 8000,
         },
         drivers: [NAMED_DRIVERS.primaryMatrix],
       });
@@ -45,8 +44,7 @@ export async function transform(
   }
 
   if (subject === 'player' && property === 'score') {
-    throttledScoreBroadcast(payload);
-    return true;
+    throttledScoreBroadcast(payload, qualifier);
   }
 
   if (subject === 'sfx') {
@@ -84,6 +82,7 @@ export async function transform(
             duration: 400,
           },
         });
+
         await sleep(200);
       }
     }
@@ -100,6 +99,7 @@ export async function transform(
             collapse: 'vertical',
           },
         });
+
         await sleep(150);
       }
     }
@@ -113,6 +113,7 @@ export async function transform(
           fadeDuration: 0,
         },
       });
+
       for (var i = 0; i < 3; i++) {
         broadcast({
           effect: 'wipe',
@@ -124,6 +125,7 @@ export async function transform(
             blendMode: 'replace',
           },
         });
+
         await sleep(300);
       }
     }
@@ -143,6 +145,7 @@ export async function transform(
           direction: 'right',
         },
       });
+
       broadcast({
         effect: 'projectile',
         drivers: [NAMED_DRIVERS.leftStrip, NAMED_DRIVERS.rightStrip],
@@ -238,7 +241,7 @@ export async function transform(
     if (payload === 'castle') {
       broadcast({
         effect: 'particle_field',
-        drivers: [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.primaryMatrix],
+        drivers: MATRIX_DRIVERS,
         props: {
           direction: 'up',
           density: 50,
@@ -297,6 +300,7 @@ export async function transform(
             powerSpread: 80,
           },
         });
+
         await sleep(250);
       }
     } else if (payload === 'swimming') {
@@ -316,6 +320,37 @@ export async function transform(
           enabled: 'fadeIn',
         },
       });
+
+      (async function bubble() {
+        const x = randomInt(20, 80);
+
+        broadcast({
+          effect: 'bitmap',
+          drivers: pick(
+            [NAMED_DRIVERS.leftMatrix, NAMED_DRIVERS.rightMatrix],
+            1,
+          ),
+          props: {
+            reset: false,
+            centerX: x,
+            centerY: 120,
+            endX: x,
+            endY: -20,
+            duration: randomInt(2500, 3500),
+            easing: 'quadraticOut',
+            fadeIn: 200,
+            fadeOut: 200,
+            palette: ['#A0A0A0'],
+            images: [['.00.', '0..0', '0..0', '.00.']],
+          },
+        });
+
+        await sleep(randomInt(400, 1200));
+
+        if (state.get('musicTrack') === 'swimming') {
+          bubble();
+        }
+      })();
     } else if (payload === 'power-star') {
       broadcast({
         effect: 'plasma',
@@ -323,6 +358,7 @@ export async function transform(
           enabled: 'off',
         },
       });
+
       async function loop() {
         broadcast({
           effect: 'wipe',
@@ -334,15 +370,15 @@ export async function transform(
             blendMode: 'additive',
           },
         });
+
         await sleep(400);
+
         if (state.get('musicTrack') === 'power-star') {
           loop();
         }
       }
+
       loop();
     }
   }
-
-  // Let other handlers try if we don't match
-  return false;
 }

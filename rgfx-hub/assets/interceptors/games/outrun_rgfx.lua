@@ -193,5 +193,5 @@ ambilight.init({
 	zones = 12,
 	depth = 10,
 	event_interval = 3,
-  brightness = 0.8,
+	brightness = 0.8,
 })

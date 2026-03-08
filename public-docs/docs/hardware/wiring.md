@@ -22,27 +22,13 @@ LED strips have a data direction — signals flow from data-in to data-out. Make
 
 ## Power
 
-The power supply you need depends on how many LEDs you're driving. Each WS2812B LED can draw up to ~60mA at full white brightness:
-
-| LEDs | Max Current | Power Supply |
-|------|------------|-------------|
-| 30 | ~1.8A | USB is usually fine |
-| 60 | ~3.6A | 5V 4A supply |
-| 100 | ~6A | 5V 8A supply |
-| 256 (16x16 matrix) | ~15A | 5V 20A supply |
-
-For small setups (30 LEDs or fewer), USB power alone is sufficient. For larger builds, use an external 5V power supply — search for "5V LED power supply" on Amazon or your preferred electronics supplier. These are typically barrel-jack or screw-terminal supplies in the $10–15 range. Connect the supply's 5V and GND outputs to the matching pins on your ESP32 breakout board, which distributes power to both the ESP32 and the LEDs.
+USB power is fine for most setups. If you need more power, use an external 5V power supply connected to the 5V and GND pins on your ESP32 breakout board.
 
 !!! tip
-    In practice, effects rarely drive all LEDs at full white simultaneously. RGFX's driver firmware includes a **max power (mA) setting** that dynamically scales brightness to stay within your power supply's capacity. Always configure this limit to match your actual power supply.
+    RGFX's driver firmware includes a **max power (mA) setting** that dynamically scales brightness to stay within your power supply's capacity. Always configure this limit to match your actual power supply.
 
-### Power Injection
-
-For long strips (100+ LEDs), voltage drop along the strip can cause LEDs at the far end to appear dimmer or discolored. Injecting power at both ends — or at intervals along the strip — solves this. Connect additional 5V and GND wires from your power supply to power pads further along the strip.
-
-## Level Shifters
-
-The ESP32 outputs 3.3V logic, while WS2812B LEDs expect 5V signals. For short data wire runs, this usually works fine without any conversion. If you experience flickering or unreliable behavior — especially with longer data wires — a logic level shifter between the ESP32 and the first LED can help.
+!!! info "Larger builds"
+    For setups with long LED strips, LED matrices, or high LED counts, you may need power injection, level shifting, or higher-capacity power supplies. The [r/led subreddit](https://www.reddit.com/r/led/) and [QuinLED](https://quinled.info/) are excellent resources for advanced wiring guidance.
 
 ## Next Steps
 
