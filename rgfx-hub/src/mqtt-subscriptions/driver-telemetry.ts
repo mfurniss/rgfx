@@ -46,6 +46,9 @@ function createMinimalRegistration(minimal: MinimalDriverRegistration) {
     sdkVersion: minimal.sdkVersion ?? 'unknown',
     sketchSize: minimal.sketchSize ?? 0,
     freeSketchSpace: minimal.freeSketchSpace ?? 0,
+    currentFps: 0,
+    minFps: 0,
+    maxFps: 0,
   });
 
   // Build and validate complete registration data
@@ -130,17 +133,28 @@ export function subscribeDriverTelemetry(deps: DriverTelemetryDeps): void {
             `Registering driver with minimal telemetry (old firmware): ${minimalData.mac} at ${minimalData.ip}`,
           );
 
-          // Create minimal driver registration with placeholder telemetry
-          const registrationData = createMinimalRegistration(minimalData);
-          const driver = driverRegistry.registerDriver(registrationData);
+          try {
+            // Create minimal driver registration with placeholder telemetry
+            const registrationData = createMinimalRegistration(minimalData);
+            const driver = driverRegistry.registerDriver(registrationData);
 
-          log.debug(
-            `Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
-          );
+            log.debug(
+              `Minimal registration completed for ${minimalData.mac} (elapsed: ${Date.now() - mqttReceiveTime}ms)`,
+            );
 
-          // Notify renderer of driver update (UI will show "Update Required" badge)
-          sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
-          log.debug(`driver:updated sent for ${driver.id} (minimal)`);
+            // Notify renderer of driver update (UI will show "Update Required" badge)
+            sendToRenderer(getMainWindow, IPC.DRIVER_UPDATED, driver);
+            log.debug(`driver:updated sent for ${driver.id} (minimal)`);
+          } catch (regErr) {
+            log.error(
+              `Minimal registration failed for ${minimalData.mac}: ${getErrorMessage(regErr)}`,
+            );
+            eventBus.emit('system:error', {
+              errorType: 'driver',
+              message: `Driver ${minimalData.mac} at ${minimalData.ip}: minimal registration failed — firmware update required`,
+              timestamp: Date.now(),
+            });
+          }
         } else {
           // Completely invalid - reject and surface as system error
           const errorDetails = JSON.stringify({

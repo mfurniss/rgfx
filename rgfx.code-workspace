@@ -59,5 +59,6 @@
       "*.h": "cpp",
       "random": "cpp"
     },
+    "platformio-ide.activateProjectOnTextEditorChange": true,
   },
 }

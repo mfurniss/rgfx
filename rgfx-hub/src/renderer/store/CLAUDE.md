@@ -241,9 +241,12 @@ interface Notification {
 **AppInfo Shape:**
 ```typescript
 interface AppInfo {
-  name: string;
   version: string;
+  platform: string;
+  licensePath: string;
+  docsPath: string;
   defaultRgfxConfigDir: string;
+  defaultMameRomsDir: string;
 }
 ```
 

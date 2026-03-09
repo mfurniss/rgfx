@@ -10,6 +10,7 @@ export function registerGetAppInfoHandler(): void {
 
     return {
       version: pkg.version,
+      platform: process.platform,
       licensePath: app.isPackaged
         ? join(process.resourcesPath, 'LICENSE')
         : join(app.getAppPath(), '..', 'LICENSE'),

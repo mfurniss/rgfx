@@ -20,6 +20,12 @@ vi.mock('electron', () => ({
   ipcMain: { handle: vi.fn() },
 }));
 
+// ESM resolution in tasmota-webserial-esptool is broken under vitest
+vi.mock('tasmota-webserial-esptool', () => ({
+  ESPLoader: vi.fn(),
+  connectWithPort: vi.fn(),
+}));
+
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
 
