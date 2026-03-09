@@ -8,63 +8,16 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  type TooltipProps,
 } from 'recharts';
-import { format } from 'date-fns';
 import { CHART_HEIGHT, DEFAULT_CHART_Y_AXIS_WIDTH } from '@/config/constants';
-
-const formatTime = (timestamp: number): string => format(timestamp, 'h:mm:ss a');
-const formatTimeWithSeconds = (timestamp: number): string => format(timestamp, 'h:mm:ss a');
+import { formatTime, getCssVar } from './chart-utils';
+import { CustomTooltip } from './chart-tooltip';
 
 interface LineConfig {
   dataKey: string;
   name: string;
   color: string;
 }
-
-interface CustomTooltipProps extends TooltipProps<number, string> {
-  formatter?: (value: number) => string;
-}
-
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, formatter }) => {
-  if (!active || !payload || payload.length === 0) {
-    return null;
-  }
-
-  return (
-    <Box
-      sx={{
-        bgcolor: 'background.paper',
-        border: 1,
-        borderColor: 'divider',
-        borderRadius: 1,
-        px: 1.5,
-        py: 0.75,
-        boxShadow: 2,
-      }}
-    >
-      <Typography variant="caption" color="text.secondary" display="block">
-        {formatTimeWithSeconds(label as number)}
-      </Typography>
-      {payload.map((entry) => (
-        <Typography
-          key={entry.dataKey}
-          variant="body2"
-          sx={{ color: entry.color, display: 'flex', gap: 1 }}
-        >
-          <span>{entry.name}:</span>
-          <span>
-            {formatter && entry.value !== undefined ? formatter(entry.value) : entry.value}
-          </span>
-        </Typography>
-      ))}
-    </Box>
-  );
-};
-
-const getCssVar = (varName: string): string => {
-  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-};
 
 interface MultiLineChartProps<T> {
   title: string;
@@ -188,7 +141,7 @@ export function MultiLineChart<T extends { time: number }>({
               tickLine={false}
               axisLine={false}
             />
-            <Tooltip content={<CustomTooltip formatter={tooltipFormatter} />} />
+            <Tooltip content={<CustomTooltip formatter={tooltipFormatter} multiLine />} />
             <Legend
               wrapperStyle={{ fontSize: 12, cursor: 'pointer' }}
               iconType="line"

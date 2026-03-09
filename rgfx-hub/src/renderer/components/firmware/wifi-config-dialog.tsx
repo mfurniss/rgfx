@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
@@ -11,6 +10,8 @@ import {
   Alert,
   Typography,
 } from '@mui/material';
+import WifiIcon from '@mui/icons-material/Wifi';
+import { DialogTitleWithIcon } from '@/renderer/components/common/dialog-title-with-icon';
 
 interface WifiConfigDialogProps {
   open: boolean;
@@ -59,7 +60,7 @@ const WifiConfigDialog: React.FC<WifiConfigDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Configure Driver WiFi</DialogTitle>
+      <DialogTitleWithIcon icon={<WifiIcon />} title="Configure Driver WiFi" />
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           {description && (

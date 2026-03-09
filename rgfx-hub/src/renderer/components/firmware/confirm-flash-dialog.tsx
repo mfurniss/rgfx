@@ -1,12 +1,13 @@
 import React from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Typography,
   Button,
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { DialogTitleWithIcon } from '@/renderer/components/common/dialog-title-with-icon';
 
 type FlashMethod = 'usb' | 'ota';
 
@@ -29,7 +30,11 @@ const ConfirmFlashDialog: React.FC<ConfirmFlashDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="md" fullWidth>
-      <DialogTitle>Confirm Firmware Flash</DialogTitle>
+      <DialogTitleWithIcon
+        icon={<WarningAmberIcon />}
+        title="Confirm Firmware Flash"
+        iconColor="warning"
+      />
       <DialogContent>
         <Typography sx={{ mb: 2 }}>
           You are about to flash firmware version <strong>{firmwareVersion}</strong>.

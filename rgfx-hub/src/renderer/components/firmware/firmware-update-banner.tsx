@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { Link } from '@mui/material';
 import { useDriverStore } from '@/renderer/store/driver-store';
 import { useSystemStatusStore } from '@/renderer/store/system-status-store';
 import { useFirmwareFlashStore } from '@/renderer/store/firmware-flash-store';
@@ -34,7 +35,7 @@ export function FirmwareUpdateBanner() {
   return (
     <PageBanner color="warning">
       New driver firmware is available for {driverText}, see the&nbsp;
-      <Link to="/firmware">Firmware Update</Link> page.
+      <Link component={RouterLink} to="/firmware">Firmware Update</Link> page.
     </PageBanner>
   );
 }

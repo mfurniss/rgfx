@@ -15,11 +15,14 @@ export function UpdateAvailableBanner() {
 
   const handleClick = () => {
     void window.rgfx.openExternal(updateAvailable);
+  };
+
+  const handleClose = () => {
     setDismissed(true);
   };
 
   return (
-    <PageBanner color="info">
+    <PageBanner color="info" onClose={handleClose}>
       A new version of RGFX Hub is available.{' '}
       <Link component="button" variant="body2" onClick={handleClick}>
         View release
