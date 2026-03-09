@@ -10,7 +10,6 @@
 import { connectWithPort } from 'tasmota-webserial-esptool';
 
 export interface EspStub {
-  eraseFlash(): Promise<void>;
   flashData(
     data: ArrayBuffer,
     updateProgress: (

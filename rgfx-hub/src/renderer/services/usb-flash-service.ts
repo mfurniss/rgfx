@@ -188,9 +188,10 @@ export async function flashViaUSB(
     onLog('Loading flasher stub...');
     const stub = await loader.runStub();
 
-    // Erase flash for clean NVS initialization on fresh devices
-    onLog('Erasing flash...');
-    await stub.eraseFlash();
+    // Note: No full flash erase here. flashDeflBegin (inside flashData with
+    // compress=true) handles erasing regions being written. Full eraseFlash()
+    // caused "Invalid head of packet" failures on Windows with CP2102 chips
+    // due to prolonged serial activity at 115200 baud.
 
     // Calculate total size for progress reporting
     const totalSize = fileArray.reduce((sum, f) => sum + f.size, 0);
