@@ -51,6 +51,9 @@ classify_files() {
             rgfx-hub/assets/mame/*.lua|rgfx-hub/assets/interceptors/*.lua)
                 LUA_CHANGES=true
                 ;;
+            package.json|rgfx-hub/package.json)
+                HUB_CHANGES=true
+                ;;
             rgfx-hub/*.ts|rgfx-hub/*.tsx|rgfx-hub/*.js|rgfx-hub/*.jsx|rgfx-hub/*.json)
                 HUB_CHANGES=true
                 ;;
