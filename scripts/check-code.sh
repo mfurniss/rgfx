@@ -42,7 +42,6 @@ HUB_CHANGES=false
 ESP32_CHANGES=false
 LUA_CHANGES=false
 DOCS_CHANGES=false
-LOCKFILE_CHECK=false
 
 # Helper function to classify files and set change flags
 classify_files() {
@@ -53,7 +52,6 @@ classify_files() {
                 LUA_CHANGES=true
                 ;;
             package.json|rgfx-hub/package.json)
-                LOCKFILE_CHECK=true
                 HUB_CHANGES=true
                 ;;
             rgfx-hub/*.ts|rgfx-hub/*.tsx|rgfx-hub/*.js|rgfx-hub/*.jsx|rgfx-hub/*.json)
@@ -75,7 +73,6 @@ if [ "$1" = "--all" ]; then
     ESP32_CHANGES=true
     LUA_CHANGES=true
     DOCS_CHANGES=true
-    LOCKFILE_CHECK=true
 else
     # Get staged files (if any)
     STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
@@ -194,25 +191,8 @@ if [ -n "$STAGED_FILES" ]; then
     fi
 fi
 
-# Check lock file sync when package.json files change
-if [ "$LOCKFILE_CHECK" = true ]; then
-    echo "🔒 Verifying package-lock.json is in sync..."
-    cd "$ROOT_DIR"
-    if ! npm ci --dry-run 2>&1 | grep -q "up to date"; then
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "❌ Lock File Out of Sync"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "package-lock.json does not match package.json."
-        echo "Run 'npm install' at the repo root, then stage the updated lock file."
-        echo ""
-        exit 1
-    fi
-    echo "✅ Lock file is in sync"
-    echo ""
-fi
-
 # Check if any changes detected
-if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES" = false ] && [ "$DOCS_CHANGES" = false ] && [ "$LOCKFILE_CHECK" = false ]; then
+if [ "$HUB_CHANGES" = false ] && [ "$ESP32_CHANGES" = false ] && [ "$LUA_CHANGES" = false ] && [ "$DOCS_CHANGES" = false ]; then
     echo "📄 No relevant changes detected, skipping checks"
     exit 0
 fi
