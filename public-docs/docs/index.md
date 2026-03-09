@@ -12,6 +12,8 @@ RGFX monitors game state in MAME and drives real-time LED effects on ESP32 hardw
 ---
 
 [:material-download: Download RGFX](https://github.com/mfurniss/rgfx/releases/latest){ .md-button .md-button--primary }
+&nbsp;&nbsp;
+[:fontawesome-brands-youtube: See it in action](https://youtu.be/gh673Zi6PzE){ .md-button .md-button--primary }
 
 ---
 
