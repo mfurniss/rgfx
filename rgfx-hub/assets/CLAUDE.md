@@ -81,4 +81,4 @@ LED hardware definition files (JSON):
 
 ### Build Packaging
 
-Assets are bundled by `forge.config.js` via `extraResource`. The `generateAssets` hook skips the docs build on Windows and in CI environments. The macOS build is unsigned (no Apple Developer certificate) — `entitlements.mac.plist` exists at the hub root for future use if signing is added.
+Assets are bundled by `forge.config.js` via `extraResource`. Documentation is no longer bundled — it is hosted online at rgfx.io/docs. The macOS build is unsigned (no Apple Developer certificate) — `entitlements.mac.plist` exists at the hub root for future use if signing is added.
