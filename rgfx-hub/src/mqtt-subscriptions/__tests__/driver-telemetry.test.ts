@@ -146,7 +146,7 @@ describe('subscribeDriverTelemetry', () => {
       expect(registrationCall.telemetry.maxFps).toBe(50.0);
     });
 
-    it('should reject payload missing required FPS fields', () => {
+    it('should fall back to minimal path and default FPS to 0 when FPS fields are missing', () => {
       const payload = JSON.stringify({
         ip: '192.168.1.100',
         mac: 'AA:BB:CC:DD:EE:FF',
@@ -168,11 +168,19 @@ describe('subscribeDriverTelemetry', () => {
         sdkVersion: 'v4.4',
         sketchSize: 1000000,
         freeSketchSpace: 2000000,
-        // Missing currentFps, minFps, maxFps
+        // Missing currentFps, minFps, maxFps — handled by minimal registration
       });
       mqttMock.triggerMessage('rgfx/system/driver/telemetry', payload);
 
-      expect(mockDriverRegistry.registerDriver).not.toHaveBeenCalled();
+      expect(mockDriverRegistry.registerDriver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          telemetry: expect.objectContaining({
+            currentFps: 0,
+            minFps: 0,
+            maxFps: 0,
+          }),
+        }),
+      );
     });
   });
 
@@ -280,6 +288,59 @@ describe('subscribeDriverTelemetry', () => {
         testActive: boolean;
       };
       expect(registrationCall.testActive).toBe(true);
+    });
+  });
+
+  describe('minimal registration (old firmware)', () => {
+    beforeEach(() => {
+      subscribeDriverTelemetry({
+        mqtt: mqttMock.mockMqtt,
+        driverRegistry: mockDriverRegistry,
+        getMainWindow: () => mockMainWindow,
+      });
+    });
+
+    it('should register driver with only ip and mac', () => {
+      const payload = JSON.stringify({
+        ip: '192.168.10.245',
+        mac: 'CC:DB:A7:97:70:20',
+      });
+      mqttMock.triggerMessage('rgfx/system/driver/telemetry', payload);
+
+      expect(mockDriverRegistry.registerDriver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ip: '192.168.10.245',
+          mac: 'CC:DB:A7:97:70:20',
+          telemetry: expect.objectContaining({
+            currentFps: 0,
+            minFps: 0,
+            maxFps: 0,
+          }),
+        }),
+      );
+    });
+
+    it('should emit system:error without crashing when minimal registration throws', () => {
+      mockDriverRegistry.registerDriver.mockImplementation(() => {
+        throw new Error('registration exploded');
+      });
+
+      const payload = JSON.stringify({
+        ip: '192.168.10.245',
+        mac: 'CC:DB:A7:97:70:20',
+      });
+
+      expect(() => {
+        mqttMock.triggerMessage('rgfx/system/driver/telemetry', payload);
+      }).not.toThrow();
+
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'system:error',
+        expect.objectContaining({
+          errorType: 'driver',
+          message: expect.stringContaining('CC:DB:A7:97:70:20'),
+        }),
+      );
     });
   });
 
