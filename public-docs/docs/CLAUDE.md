@@ -11,7 +11,7 @@ Use standard markdown wherever possible. HTML should only be used where there is
 Accepted exceptions:
 
 - LED test pattern visualizations in `getting-started/test-leds.md` — CSS-driven diagrams with no markdown equivalent
-- Download button on `index.md` — uses `md_in_html` extension with `{ .md-button .md-button--primary }` attribute syntax
+- Download and YouTube buttons on `index.md` — uses `md_in_html` extension with `{ .md-button .md-button--primary }` attribute syntax
 
 ### Before Making Documentation Changes
 
