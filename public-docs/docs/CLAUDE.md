@@ -74,6 +74,8 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 
 **Do NOT run `npm run docs:build` or `mkdocs build` yourself.** The user has a watch process that rebuilds automatically.
 
+The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js from jsDelivr on every rebuild. The source copy at `docs/assets/js/mermaid.min.js` should be committed when it changes.
+
 ### Key Technical Facts (Verified Feb 2026)
 
 - ROM-to-interceptor mapping uses `rom_map.json` (not `.lua`). The framework auto-loads `{romname}_rgfx.lua` by convention; `rom_map.json` is only needed for variant/clone ROMs whose name differs from the interceptor base name. Writing interceptors Step 3 reflects this.
