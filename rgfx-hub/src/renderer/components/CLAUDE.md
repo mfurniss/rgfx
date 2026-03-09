@@ -119,6 +119,34 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+## Chart Components
+
+### chart-utils.ts
+
+**File:** [charts/chart-utils.ts](charts/chart-utils.ts)
+
+**Purpose:** Shared pure utility functions for chart components.
+
+**Functions:**
+- `formatTime(timestamp)` - Formats timestamp as `h:mm a`
+- `formatTimeWithSeconds(timestamp)` - Formats timestamp as `h:mm:ss a`
+- `getCssVar(varName)` - Reads a CSS custom property from `document.documentElement`
+
+---
+
+### CustomTooltip
+
+**File:** [charts/chart-tooltip.tsx](charts/chart-tooltip.tsx)
+
+**Purpose:** Shared Recharts tooltip component used by LineChart and MultiLineChart.
+
+**Props:**
+- `formatter?: (value: number) => string` - Optional value formatter
+- `multiLine?: boolean` - Show entry name labels (for multi-series charts)
+- Standard Recharts `TooltipProps`
+
+---
+
 ## Driver Components
 
 ### DriverListTable
@@ -405,6 +433,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 - Shown when any connected driver has different firmware version than its chip type's target
 - Uses chip-aware version comparison via `mapChipNameToVariant()` to match each driver's chip model to the correct target version
 - Hidden automatically during OTA flashing operations (reads state from `firmware-flash-store`)
+- Uses MUI `<Link component={RouterLink}>` for router navigation
 - Navigates to firmware page when clicked
 
 ---
@@ -417,6 +446,7 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Guides user to connect a driver before flashing
+- Uses MUI `<Link component={RouterLink}>` for router navigation
 - Links to documentation
 
 ---
@@ -425,12 +455,32 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **File:** [common/page-banner.tsx](common/page-banner.tsx)
 
-**Purpose:** Reusable banner component for page-level notifications.
+**Purpose:** Reusable banner component for page-level notifications using MUI Alert.
 
 **Props:**
-- `severity: 'info' | 'warning' | 'error'` - Banner type
-- `message: string` - Banner text
-- `action?: ReactNode` - Optional action button
+- `color: 'info' | 'warning'` - Banner color/severity
+- `children: React.ReactNode` - Banner content
+- `onClose?: () => void` - Optional close handler; renders X button when provided
+
+**Features:**
+- Uses MUI `Alert` with `variant="filled"` and `icon={false}`
+- Full-width centered message text
+- Optional close button via `action` prop
+- Link/button children inherit banner color with bold weight
+
+---
+
+### UpdateAvailableBanner
+
+**File:** [common/update-available-banner.tsx](common/update-available-banner.tsx)
+
+**Purpose:** Info banner shown when a newer hub version is available on GitHub.
+
+**Features:**
+- Reads `updateAvailable` from `useSystemStatusStore` (piggybacked on existing SystemStatus push)
+- Dismissable via explicit X close button (resets on app restart)
+- "View release" link uses MUI `<Link component="button">` for consistent styling
+- Clicking "View release" opens the release URL via `openExternal` IPC (does not dismiss)
 
 ---
 

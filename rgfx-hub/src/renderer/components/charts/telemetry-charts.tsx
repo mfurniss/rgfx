@@ -4,6 +4,7 @@ import { Timeline as TimelineIcon } from '@mui/icons-material';
 import { useTelemetryHistoryStore } from '@/renderer/store/telemetry-history-store';
 import { formatBytes } from '@/renderer/utils/formatters';
 import { LineChart } from './line-chart';
+import { getCssVar } from './chart-utils';
 
 interface TelemetryChartsProps {
   driverId: string;
@@ -17,10 +18,6 @@ interface ChartData {
   fps: number;
   fragmentation: number;
 }
-
-const getCssVar = (varName: string): string => {
-  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-};
 
 const TelemetryCharts: React.FC<TelemetryChartsProps> = ({ driverId }) => {
   useColorScheme(); // Ensures component re-renders when color scheme changes

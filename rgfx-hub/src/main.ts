@@ -110,6 +110,7 @@ if (!systemErrorTracker.hasCriticalError()) {
     windowManager,
     systemErrorTracker,
     eventStats,
+    hubVersion: pkg.version,
     log,
   });
 } else {

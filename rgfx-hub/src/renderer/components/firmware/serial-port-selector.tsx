@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, FormControl, Select, MenuItem, Alert } from '@mui/material';
+import { Box, FormControl, Select, MenuItem, Alert, Typography } from '@mui/material';
 
 interface PortInfo {
   port: SerialPort;
@@ -223,7 +223,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
             sx={{ height: 42 }}
             renderValue={(value) => {
               if (value === '' || !availablePorts?.[value]) {
-                return <span style={{ color: 'inherit', opacity: 0.5 }}>Select a port...</span>;
+                return <Typography component="span" sx={{ color: 'inherit', opacity: 0.5 }}>Select a port...</Typography>;
               }
               return availablePorts[value].displayName;
             }}

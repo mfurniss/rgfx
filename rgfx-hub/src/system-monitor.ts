@@ -4,6 +4,7 @@ import { firmwareVersionService } from './services/firmware-version-service';
 import { FirmwareWatcher } from './services/firmware-watcher';
 import { getLocalIP } from './network/network-utils';
 import type { MqttBroker } from './network/mqtt-broker';
+import { checkForUpdate } from './services/update-checker';
 
 interface UdpStats {
   sent: number;
@@ -25,6 +26,7 @@ export class SystemMonitor {
   private onFirmwareUpdatedCallback?: (version: string | null) => void;
   private udpStatsByDriver = new Map<string, UdpStats>();
   private statusSources?: StatusSources;
+  private updateReleaseUrl: string | null = null;
 
   constructor(mqtt: MqttBroker) {
     this.mqtt = mqtt;
@@ -78,6 +80,14 @@ export class SystemMonitor {
   stopFirmwareMonitoring(): void {
     log.info('[SystemMonitor] Stopping firmware monitoring');
     this.firmwareWatcher.stop();
+  }
+
+  startUpdateChecker(currentVersion: string): void {
+    setTimeout(() => {
+      void checkForUpdate(currentVersion).then((url) => {
+        this.updateReleaseUrl = url;
+      });
+    }, 5_000);
   }
 
   registerStatusSources(sources: StatusSources): void {
@@ -136,6 +146,7 @@ export class SystemMonitor {
       udpMessagesFailed,
       udpStatsByDriver: Object.fromEntries(this.udpStatsByDriver),
       systemErrors: errors,
+      updateAvailable: this.updateReleaseUrl ?? undefined,
     };
   }
 }

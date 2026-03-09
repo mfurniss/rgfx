@@ -23,6 +23,7 @@ export interface ServiceStartupDeps {
   windowManager: WindowManager;
   systemErrorTracker: SystemErrorTracker;
   eventStats: EventStats;
+  hubVersion: string;
   log: Logger;
 }
 
@@ -157,6 +158,9 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
       });
     },
   );
+
+  // Check GitHub releases for newer hub version
+  services.systemMonitor.startUpdateChecker(deps.hubVersion);
 
   // Start firmware monitoring
   services.systemMonitor.startFirmwareMonitoring((_version: string | null) => {

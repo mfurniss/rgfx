@@ -81,6 +81,7 @@ describe('startServices', () => {
       ledHardwareManager: {},
       systemMonitor: {
         startFirmwareMonitoring: vi.fn(),
+        startUpdateChecker: vi.fn(),
         registerStatusSources: vi.fn(),
       },
       transformerEngine: {
@@ -123,6 +124,7 @@ describe('startServices', () => {
       windowManager: mockWindowManager,
       systemErrorTracker: mockSystemErrorTracker,
       eventStats: mockEventStats,
+      hubVersion: '1.0.3',
       log: mockLog,
     };
   });

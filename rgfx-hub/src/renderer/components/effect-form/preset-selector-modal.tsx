@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   List,
   ListItemButton,
@@ -10,9 +9,11 @@ import {
   IconButton,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import PaletteIcon from '@mui/icons-material/Palette';
 import type { PresetType, PresetData } from '@/schemas';
 import { plasmaPresets, getGradientForPreset } from '@/renderer/data/plasma-presets';
 import { gradientPresets } from '@/renderer/data/gradient-presets';
+import { DialogTitleWithIcon } from '@/renderer/components/common/dialog-title-with-icon';
 
 interface PresetSelectorModalProps {
   open: boolean;
@@ -78,12 +79,15 @@ export function PresetSelectorModal({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {title}
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+      <DialogTitleWithIcon
+        icon={<PaletteIcon />}
+        title={title}
+        action={
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        }
+      />
       <DialogContent sx={{ p: 0 }}>
         <List sx={{ pt: 0 }}>
           {presets.map((preset) => {

@@ -41,7 +41,7 @@ function FieldWithHelp({ description, defaultValue, children }: FieldWithHelpPro
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-      <Tooltip title={<span style={{ whiteSpace: 'pre-line' }}>{tooltip}</span>} placement="top" arrow>
+      <Tooltip title={<Box component="span" sx={{ whiteSpace: 'pre-line' }}>{tooltip}</Box>} placement="top" arrow>
         <HelpOutlineIcon
           sx={{
             fontSize: 16,
