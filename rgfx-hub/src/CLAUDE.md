@@ -60,7 +60,7 @@ Global test setup (`__tests__/setup.ts`) provides:
 
 Key test helpers:
 - `__tests__/helpers/ipc-handler.helper.ts` — `setupIpcHandlerCapture()` for IPC handler tests
-- `__tests__/factories/` — Mock factories for drivers, electron, MQTT subscriptions
+- `__tests__/factories/` — Mock factories for drivers, telemetry, MQTT subscriptions
 - `__tests__/factories/mqtt.factory.ts` — `createMqttSubscriptionMock()` for MQTT subscription tests
 
 Tests for components using `use-stick-to-bottom` must mock the module:
