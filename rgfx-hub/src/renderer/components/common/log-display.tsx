@@ -1,37 +1,33 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useLayoutEffect } from 'react';
 import { List, ListItem, ListItemText } from '@mui/material';
 
 interface LogDisplayProps {
   messages: string[];
 }
 
+const SCROLL_THRESHOLD = 50;
+
 const LogDisplay: React.FC<LogDisplayProps> = ({ messages }) => {
   const listRef = useRef<HTMLUListElement>(null);
-  const bufferRef = useRef(50);
+  const prevScrollHeight = useRef(0);
 
-  // Tick down buffer every 500ms, minimum 50
-  useEffect(() => {
-    const interval = setInterval(() => {
-      bufferRef.current = Math.max(50, bufferRef.current - 50);
-    }, 500);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Increase buffer and scroll on new messages
-  useEffect(() => {
+  // Runs synchronously after DOM mutation, before paint — no async race
+  useLayoutEffect(() => {
     const el = listRef.current;
 
     if (!el) {
       return;
     }
 
-    bufferRef.current += 50;
-    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < bufferRef.current;
+    // Was the user at the bottom before new content was added?
+    const wasAtBottom =
+      prevScrollHeight.current === 0 ||
+      prevScrollHeight.current - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
 
-    if (isAtBottom) {
-      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    prevScrollHeight.current = el.scrollHeight;
+
+    if (wasAtBottom) {
+      el.scrollTop = el.scrollHeight;
     }
   }, [messages]);
 

@@ -1,13 +1,3 @@
-// Convert ArrayBuffer to binary string (each byte becomes a char code)
-export function arrayBufferToBinaryString(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
-  return binary;
-}
 
 // Calculate SHA-256 hash of binary data
 export async function sha256(data: ArrayBuffer): Promise<string> {

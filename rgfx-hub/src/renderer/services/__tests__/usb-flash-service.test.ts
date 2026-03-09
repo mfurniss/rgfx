@@ -224,7 +224,7 @@ describe('flashViaUSB', () => {
   });
 
   describe('error handling', () => {
-    it('should handle ESPLoader connection failure', async () => {
+    it('should handle non-sync connection failure without retrying', async () => {
       mockInitialize.mockRejectedValue(new Error('Connection failed'));
 
       const callbacks = createMockCallbacks();
@@ -235,6 +235,8 @@ describe('flashViaUSB', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Connection failed');
+      // Non-sync errors should not trigger retries
+      expect(getPort).toHaveBeenCalledTimes(1);
     });
 
     it('should handle flash write failure', async () => {
@@ -272,6 +274,98 @@ describe('flashViaUSB', () => {
       await flashViaUSB(getPort, callbacks);
 
       expect(mockDisconnect).toHaveBeenCalled();
+    });
+  });
+
+  describe('connection retry', () => {
+    it('should retry on sync timeout and succeed', async () => {
+      vi.useFakeTimers();
+      mockInitialize
+        .mockRejectedValueOnce(new Error('Sync timeout'))
+        .mockResolvedValueOnce(undefined);
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const flashPromise = flashViaUSB(getPort, callbacks);
+      // Advance past the retry delay
+      await vi.advanceTimersByTimeAsync(1500);
+      const result = await flashPromise;
+
+      expect(result.success).toBe(true);
+      expect(getPort).toHaveBeenCalledTimes(2);
+      expect(callbacks.logs.some((log) => log.includes('Retry 2/3'))).toBe(true);
+      vi.useRealTimers();
+    });
+
+    it('should fail after all retry attempts exhausted', async () => {
+      vi.useFakeTimers();
+      mockInitialize.mockRejectedValue(new Error('Sync timeout'));
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const flashPromise = flashViaUSB(getPort, callbacks);
+      await vi.advanceTimersByTimeAsync(5000);
+      const result = await flashPromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Sync timeout');
+      expect(getPort).toHaveBeenCalledTimes(3);
+      vi.useRealTimers();
+    });
+
+    it('should disconnect before retrying', async () => {
+      vi.useFakeTimers();
+      mockInitialize
+        .mockRejectedValueOnce(new Error('Sync timeout'))
+        .mockResolvedValueOnce(undefined);
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const flashPromise = flashViaUSB(getPort, callbacks);
+      await vi.advanceTimersByTimeAsync(1500);
+      await flashPromise;
+
+      // disconnect called during retry cleanup + final cleanup
+      expect(mockDisconnect).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should not retry on non-sync errors', async () => {
+      mockInitialize.mockRejectedValue(new Error('Port access denied'));
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const result = await flashViaUSB(getPort, callbacks);
+
+      expect(result.success).toBe(false);
+      expect(getPort).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry on errors containing "timeout" in message', async () => {
+      vi.useFakeTimers();
+      mockInitialize
+        .mockRejectedValueOnce(new Error('Connection timeout expired'))
+        .mockResolvedValueOnce(undefined);
+
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      const flashPromise = flashViaUSB(getPort, callbacks);
+      await vi.advanceTimersByTimeAsync(1500);
+      const result = await flashPromise;
+
+      expect(result.success).toBe(true);
+      expect(getPort).toHaveBeenCalledTimes(2);
+      vi.useRealTimers();
     });
   });
 

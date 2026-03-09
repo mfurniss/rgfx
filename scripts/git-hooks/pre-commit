@@ -39,7 +39,14 @@ echo "🔧 Running ESLint with auto-fix..."
 npm run lint -- --fix
 echo "✅ ESLint passed"
 
-# 3. Run Hub tests
+# 3. Check for unused exports (skip on Windows — known ts-unused-exports bug #302)
+if [[ "$(uname -s)" != MINGW* && "$(uname -s)" != MSYS* && "$(uname -s)" != CYGWIN* ]]; then
+    echo "🔍 Checking for unused exports..."
+    npm run unused-exports
+    echo "✅ No unused exports found"
+fi
+
+# 4. Run Hub tests
 echo "🧪 Running Hub tests..."
 npm test
 echo "✅ Hub tests passed"
@@ -49,7 +56,7 @@ echo ""
 echo "🔌 Checking ESP32 driver..."
 cd "$ROOT_DIR/esp32"
 
-# 4. Run native unit tests (fast, no hardware required)
+# 5. Run native unit tests (fast, no hardware required)
 echo "🧪 Running ESP32 native tests..."
 pio test -e native
 echo "✅ ESP32 native tests passed"

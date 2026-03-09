@@ -5,11 +5,9 @@
  * contact with those types — callers get clean interfaces.
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { connectWithPort } from 'tasmota-webserial-esptool';
 
-export interface EspStub {
+interface EspStub {
   flashData(
     data: ArrayBuffer,
     updateProgress: (

@@ -17,6 +17,9 @@ export interface FlashCallbacks {
   onProgress: (percent: number) => void;
 }
 
+const MAX_CONNECT_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1000;
+
 interface FlashResult {
   success: boolean;
   firmwareVersion: string;
@@ -138,6 +141,59 @@ function createLogger(onLog: (message: string) => void): FlashLogger {
 }
 
 /**
+ * Connect to ESP32 with automatic retry on sync/timeout failures.
+ * USB-UART bridges (CP2102, CH340) can have indeterminate DTR/RTS states
+ * on first open, causing bootloader entry to fail. Disconnecting resets
+ * the signal state, so a retry typically succeeds.
+ */
+async function connectWithRetry(
+  getPort: () => Promise<SerialPort>,
+  logger: FlashLogger,
+  onLog: (message: string) => void,
+): Promise<EspLoaderApi> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= MAX_CONNECT_ATTEMPTS; attempt++) {
+    let loader: EspLoaderApi | undefined;
+
+    try {
+      const port = await getPort();
+      onLog(attempt === 1 ? 'Connecting to device...' : `Retry ${attempt}/${MAX_CONNECT_ATTEMPTS}...`);
+      loader = await createEspLoader(port, logger);
+      await loader.initialize();
+
+      return loader;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+
+      // Only retry on sync/timeout errors
+      const msg = lastError.message.toLowerCase();
+      const isSyncError = msg.includes('sync') || msg.includes('timeout');
+
+      if (!isSyncError || attempt === MAX_CONNECT_ATTEMPTS) {
+        throw lastError;
+      }
+
+      onLog(`Connection attempt ${attempt} failed: ${lastError.message}`);
+
+      // Clean up before retry
+      try {
+        if (loader) {
+          await loader.disconnect();
+        }
+      } catch {
+        // Ignore disconnect errors during retry cleanup
+      }
+
+      onLog(`Waiting ${RETRY_DELAY_MS}ms before retry...`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    }
+  }
+
+  throw lastError ?? new Error('Connection failed');
+}
+
+/**
  * Flash firmware to ESP32 via USB serial.
  * Uses tasmota-webserial-esptool which handles multi-strategy bootloader
  * entry (UnixTight, Classic, inverted variants) for cross-platform reliability.
@@ -155,13 +211,8 @@ export async function flashViaUSB(
     // Load manifest first to check available variants
     const manifest = await loadFirmwareManifest(onLog);
 
-    // Get fresh, clean port from selector
-    const port = await getPort();
-
-    onLog('Connecting to device...');
     const logger = createLogger(onLog);
-    loader = await createEspLoader(port, logger);
-    await loader.initialize();
+    loader = await connectWithRetry(getPort, logger, onLog);
 
     const chipName = loader.chipName ?? 'Unknown';
     onLog(`Connected to ${chipName}`);
