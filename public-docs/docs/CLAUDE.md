@@ -89,6 +89,7 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - Configure MAME page (`getting-started/configure-mame.md`) documents the `-autoboot_script` flag, rgfx.lua locations per platform, launch scripts for both macOS (.sh) and Windows (.bat), and frontend integration with per-platform examples
 - Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
+- First-driver page includes a Windows USB driver admonition linking to the Silicon Labs CP210x driver download page
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
 - FFT module requires `emit_events = true` to emit events (defaults to false)

@@ -9,6 +9,9 @@ Plug your ESP32 development board into your computer using a USB cable.
 !!! warning
     Make sure you're using a **data** USB cable, not a charge-only cable. Charge-only cables won't show a serial port. If nothing appears in the port dropdown, try a different cable.
 
+!!! info "Windows USB driver"
+    Most ESP32 boards use a CP2102 USB-to-serial chip that requires a driver on Windows. If your board doesn't appear in the port dropdown, download and install the [Silicon Labs CP210x driver](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads).
+
 ## Flash the Firmware
 
 1. In RGFX Hub, go to [**Firmware**](../hub-app/firmware.md) in the sidebar
