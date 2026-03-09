@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from '@mui/material';
 import { useSystemStatusStore } from '@/renderer/store/system-status-store';
 import { PageBanner } from './page-banner';
 
@@ -20,15 +21,9 @@ export function UpdateAvailableBanner() {
   return (
     <PageBanner color="info">
       A new version of RGFX Hub is available.{' '}
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          handleClick();
-        }}
-      >
+      <Link component="button" variant="body2" onClick={handleClick}>
         View release
-      </a>
+      </Link>
     </PageBanner>
   );
 }

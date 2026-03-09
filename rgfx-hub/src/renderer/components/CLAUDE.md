@@ -443,7 +443,8 @@ This folder contains reusable React components for the RGFX Hub renderer process
 **Features:**
 - Reads `updateAvailable` from `useSystemStatusStore` (piggybacked on existing SystemStatus push)
 - Dismissable via local `useState` (resets on app restart)
-- Clicking "View release" opens the release URL via `openExternal` IPC and auto-dismisses
+- "View release" link uses MUI `<Link component="button">` for consistent styling
+- Clicking opens the release URL via `openExternal` IPC and auto-dismisses
 
 ---
 
