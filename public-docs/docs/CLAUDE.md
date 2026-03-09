@@ -93,6 +93,7 @@ Generated site files in `public-docs/site/` must be committed. After updating do
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
 - FFT module requires `emit_events = true` to emit events (defaults to false)
 - Interceptor and transformer docs are cross-linked — related pages link to their counterpart (e.g., ambilight interceptor ↔ ambilight transformer, events → transformers, writing-interceptors → writing-transformers)
+- Acknowledgements page uses concise project descriptions (no redundant context in table cells)
 
 ### When Adding New Features
 

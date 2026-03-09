@@ -23,12 +23,12 @@ RGFX is built on the shoulders of many outstanding open-source projects. Thanks 
 |---------|-------------|
 | [Electron](https://www.electronjs.org/) | Cross-platform desktop application framework |
 | [React](https://react.dev/) | UI component library |
-| [Material UI](https://mui.com/) | React component library for the Hub interface |
+| [Material UI](https://mui.com/) | React UI component library |
 | [Zustand](https://zustand.docs.pmnd.rs/) | Lightweight state management |
-| [Zod](https://zod.dev/) | Schema validation for configuration and messages |
-| [Aedes](https://github.com/moscajs/aedes) | Embedded MQTT broker powering Hub-to-driver communication |
-| [Recharts](https://recharts.org/) | Charting library for the event monitor and system stats |
-| [Framer Motion](https://www.framer.com/motion/) | Animation library for UI transitions |
+| [Zod](https://zod.dev/) | Schema validation |
+| [Aedes](https://github.com/moscajs/aedes) | Embedded MQTT broker |
+| [Recharts](https://recharts.org/) | Charting library |
+| [Framer Motion](https://www.framer.com/motion/) | React animation library |
 | [Vite](https://vite.dev/) | Build tooling via Electron Forge |
 | [Vitest](https://vitest.dev/) | Test framework |
 
@@ -36,10 +36,10 @@ RGFX is built on the shoulders of many outstanding open-source projects. Thanks 
 
 | Project | Description |
 |---------|-------------|
-| [FastLED](https://fastled.io/) | LED driver library — the engine behind every visual effect |
-| [ArduinoJson](https://arduinojson.org/) | JSON parsing for configuration and messaging |
-| [MQTT](https://github.com/256dpi/arduino-mqtt) | MQTT client library for driver communication |
-| [IotWebConf](https://github.com/prampec/IotWebConf) | Captive portal for initial Wi-Fi configuration |
+| [FastLED](https://fastled.io/) | LED driver library |
+| [ArduinoJson](https://arduinojson.org/) | JSON parsing |
+| [MQTT](https://github.com/256dpi/arduino-mqtt) | MQTT client library |
+| [IotWebConf](https://github.com/prampec/IotWebConf) | Captive Wi-Fi portal |
 
 ## Data Sources
 
@@ -57,7 +57,7 @@ RGFX is built on the shoulders of many outstanding open-source projects. Thanks 
 
 | Project | Description |
 |---------|-------------|
-| [TypeScript](https://www.typescriptlang.org/) | Type-safe JavaScript for the Hub codebase |
+| [TypeScript](https://www.typescriptlang.org/) | Type-safe JavaScript |
 | [ESLint](https://eslint.org/) | Code quality and style enforcement |
 | [PlatformIO](https://platformio.org/) | Build system and toolchain for ESP32 development |
 | [Claude Code](https://claude.ai/claude-code) | AI-assisted development |
