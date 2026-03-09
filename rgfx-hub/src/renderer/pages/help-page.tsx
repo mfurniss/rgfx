@@ -5,15 +5,12 @@ import {
   MenuBook as DocsIcon,
 } from '@mui/icons-material';
 import { PageTitle } from '../components/layout/page-title';
-import { useAppInfoStore } from '../store/app-info-store';
+
+const DOCS_URL = 'https://rgfx.io/docs';
 
 const HelpPage: React.FC = () => {
-  const appInfo = useAppInfoStore((state) => state.appInfo);
-
   const handleOpenDocs = () => {
-    if (appInfo?.docsPath) {
-      void window.rgfx.openFile(appInfo.docsPath);
-    }
+    void window.rgfx.openExternal(DOCS_URL);
   };
 
   return (
@@ -31,7 +28,6 @@ const HelpPage: React.FC = () => {
           variant="contained"
           startIcon={<DocsIcon />}
           onClick={handleOpenDocs}
-          disabled={!appInfo?.docsPath}
         >
           Open Documentation
         </Button>

@@ -223,17 +223,17 @@ Refactored components and utilities extracted from the main page:
 
 ---
 
-### Support Page
+### Help Page
 
-**File:** [support-page.tsx](support-page.tsx)
+**File:** [help-page.tsx](help-page.tsx)
 
-**Route:** `/support`
+**Route:** `/help`
 
 **Purpose:** Documentation and help resources.
 
 **Features:**
-- Button to open bundled documentation in default browser
-- Uses `AppInfoStore` to get documentation path
+- Button to open online documentation (rgfx.io/docs) in default browser via `openExternal`
+- No dependency on `AppInfoStore` — docs URL is a constant
 
 ---
 

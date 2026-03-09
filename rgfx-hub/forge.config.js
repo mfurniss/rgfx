@@ -5,24 +5,9 @@ const { VitePlugin } = require("@electron-forge/plugin-vite");
 const { FuseV1Options, flipFuses, FuseVersion } = require("@electron/fuses");
 const path = require("path");
 const fs = require("fs");
-const { execSync } = require("child_process");
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
-  hooks: {
-    generateAssets: async () => {
-      // Skip docs build on Windows (requires bash/mkdocs) and in CI (docs are pre-built)
-      if (process.platform === "win32" || process.env.CI) {
-        console.log("Skipping docs build (CI or Windows)");
-        return;
-      }
-      console.log("Building documentation...");
-      execSync("npm run docs:build", {
-        cwd: path.join(__dirname, ".."),
-        stdio: "inherit",
-      });
-    },
-  },
   packagerConfig: {
     appBundleId: "com.rgfx.hub",
     asar: true,
@@ -40,7 +25,6 @@ const config = {
       "./assets/mame",
       "./assets/led-hardware",
       "../LICENSE",
-      "../public-docs/site",
     ],
     // Apply fuses after packaging instead of using the FusesPlugin directly
     afterCopy: [

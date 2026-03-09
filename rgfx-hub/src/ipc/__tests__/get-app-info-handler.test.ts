@@ -114,6 +114,7 @@ describe('registerGetAppInfoHandler', () => {
       expect(result).toHaveProperty('licensePath');
       expect(result).toHaveProperty('defaultRgfxConfigDir');
       expect(result).toHaveProperty('defaultMameRomsDir');
+      expect(result).not.toHaveProperty('docsPath');
     });
   });
 });

@@ -295,7 +295,6 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 **Returns:** `AppInfo` object containing:
 - `version` - App version from package.json
 - `licensePath` - Path to LICENSE file
-- `docsPath` - Path to documentation
 - `defaultRgfxConfigDir` - Default `~/.rgfx` config directory
 - `defaultMameRomsDir` - Default `~/mame-roms` directory
 
