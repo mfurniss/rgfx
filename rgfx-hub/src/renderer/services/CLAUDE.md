@@ -41,11 +41,11 @@ Handles USB serial firmware flashing with automatic chip detection:
 2. Connect to device via Web Serial API (`ESPLoader.initialize()`)
 3. Detect chip type from device
 4. Load and verify firmware files for detected chip (size + SHA256)
-5. Upload flasher stub (`runStub()`) then erase flash for clean NVS
-6. Flash each partition file with progress reporting
+5. Upload flasher stub (`runStub()`)
+6. Flash each partition file with progress reporting (region erase handled by `flashDeflBegin` internally)
 7. Reset device to firmware mode after successful flash
 
-**Note:** USB flashing erases all flash to ensure clean NVS initialization on fresh devices. This erases all settings including WiFi credentials, so the user must reconfigure after flashing.
+**Note:** No full flash erase is performed. The `flashDeflBegin` call inside `flashData` handles erasing regions being written. A full `eraseFlash()` was removed because it caused "Invalid head of packet" failures on Windows with CP2102 USB-UART bridges due to prolonged serial activity at 115200 baud. NVS and other unwritten regions are preserved across flashes.
 
 **Return:** `FlashResult` with `success`, `firmwareVersion`, `chipType`, `error?`
 

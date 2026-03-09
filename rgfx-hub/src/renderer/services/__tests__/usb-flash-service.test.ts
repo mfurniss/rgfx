@@ -7,7 +7,6 @@ const mockInitialize = vi.fn();
 const mockRunStub = vi.fn();
 const mockDisconnect = vi.fn();
 const mockHardResetToFirmware = vi.fn();
-const mockEraseFlash = vi.fn();
 const mockFlashData = vi.fn();
 
 let mockChipName = 'ESP32';
@@ -80,10 +79,8 @@ beforeEach(() => {
   mockGetFirmwareFile.mockResolvedValue(new Uint8Array(100));
   mockInitialize.mockResolvedValue(undefined);
   mockRunStub.mockResolvedValue({
-    eraseFlash: mockEraseFlash,
     flashData: mockFlashData,
   });
-  mockEraseFlash.mockResolvedValue(undefined);
   mockFlashData.mockResolvedValue(undefined);
   mockDisconnect.mockResolvedValue(undefined);
   mockHardResetToFirmware.mockResolvedValue(undefined);
@@ -157,16 +154,6 @@ describe('flashViaUSB', () => {
       await flashViaUSB(getPort, callbacks);
 
       expect(callbacks.logs.some((log) => log.includes('1.0.0'))).toBe(true);
-    });
-
-    it('should erase flash before writing', async () => {
-      const callbacks = createMockCallbacks();
-      const mockPort = createMockPort();
-      const getPort = vi.fn().mockResolvedValue(mockPort);
-
-      await flashViaUSB(getPort, callbacks);
-
-      expect(mockEraseFlash).toHaveBeenCalled();
     });
 
     it('should reset device after flash', async () => {
