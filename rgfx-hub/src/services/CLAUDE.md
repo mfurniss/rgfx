@@ -98,6 +98,15 @@ Tracks event processing statistics.
 - Counts events processed per topic
 - Provides stats for system status display
 
+### update-checker.ts
+
+Checks GitHub releases for newer hub versions.
+
+- `checkForUpdate(currentVersion)`: fetches latest release from GitHub API, returns release URL if newer, null otherwise
+- `isNewerVersion(current, latest)`: semver comparison (exported for testing)
+- Returns `null` on any error (silent fail) or when `app.isPackaged` is false
+- Called once by `SystemMonitor.startUpdateChecker()` with 5s delay after startup
+
 ### event-bus.ts
 
 Simple pub/sub event bus for inter-service communication.

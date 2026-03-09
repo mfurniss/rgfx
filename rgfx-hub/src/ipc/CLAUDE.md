@@ -198,6 +198,22 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 
 ---
 
+### `app:open-external`
+
+**File:** [open-external-handler.ts](open-external-handler.ts)
+
+**Purpose:** Opens a URL in the user's default browser.
+
+**Parameters:**
+- `url: string` - URL to open
+
+**Returns:** void
+
+**Behavior:**
+- Calls `shell.openExternal(url)`
+
+---
+
 ### `file:open`
 
 **File:** [open-file-handler.ts](open-file-handler.ts)

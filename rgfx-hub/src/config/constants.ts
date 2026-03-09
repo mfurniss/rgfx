@@ -280,3 +280,11 @@ export const MAX_SYSTEM_ERRORS = 100;
  * Oldest topics are evicted when this limit is exceeded.
  */
 export const MAX_EVENT_TOPICS = 500;
+
+// ============================================================================
+// GitHub API Configuration
+// ============================================================================
+
+/** GitHub API endpoint for checking latest release */
+export const GITHUB_RELEASES_API_URL =
+  'https://api.github.com/repos/mfurniss/rgfx/releases/latest';

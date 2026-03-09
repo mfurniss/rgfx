@@ -3,6 +3,7 @@ import { Box, Drawer, Toolbar, Typography } from '@mui/material';
 import { SidebarNav } from './sidebar-nav';
 import { NoDriversBanner } from '../firmware/no-drivers-banner';
 import { FirmwareUpdateBanner } from '../firmware/firmware-update-banner';
+import { UpdateAvailableBanner } from '../common/update-available-banner';
 import { DRAWER_WIDTH } from '@/config/constants';
 
 interface AppLayoutProps {
@@ -41,6 +42,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           flexDirection: 'column',
         }}
       >
+        <UpdateAvailableBanner />
         <NoDriversBanner />
         <FirmwareUpdateBanner />
         <Box sx={{ p: 3, flexGrow: 1 }}>

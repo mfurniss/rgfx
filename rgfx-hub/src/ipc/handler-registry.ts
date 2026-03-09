@@ -33,6 +33,7 @@ import { registerLogsHandler } from './logs-handler';
 import { registerClearTransformerStateHandler } from './clear-transformer-state-handler';
 import { registerBackupHandler } from './backup-handler';
 import { registerSetDriverFallbackHandler } from './set-driver-fallback-handler';
+import { registerOpenExternalHandler } from './open-external-handler';
 
 export interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -78,4 +79,5 @@ export const handlers: ((deps: IpcHandlersDeps) => void)[] = [
   registerClearTransformerStateHandler,
   registerBackupHandler,
   registerSetDriverFallbackHandler,
+  registerOpenExternalHandler,
 ];

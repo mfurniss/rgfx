@@ -34,6 +34,8 @@ export interface SystemStatus {
   udpMessagesFailed: number;
   udpStatsByDriver: Record<string, UdpStats>;
   systemErrors: readonly SystemError[];
+  /** Release URL when a newer version exists on GitHub */
+  updateAvailable?: string;
 }
 
 export interface GameInfo {

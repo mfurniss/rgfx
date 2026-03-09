@@ -434,6 +434,19 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 ---
 
+### UpdateAvailableBanner
+
+**File:** [common/update-available-banner.tsx](common/update-available-banner.tsx)
+
+**Purpose:** Info banner shown when a newer hub version is available on GitHub.
+
+**Features:**
+- Reads `updateAvailable` from `useSystemStatusStore` (piggybacked on existing SystemStatus push)
+- Dismissable via local `useState` (resets on app restart)
+- Clicking "View release" opens the release URL via `openExternal` IPC and auto-dismisses
+
+---
+
 ### ConfirmActionButton
 
 **File:** [common/confirm-action-button.tsx](common/confirm-action-button.tsx)
