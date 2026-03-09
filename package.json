@@ -45,6 +45,7 @@
     "vite-plugin-static-copy": "^3.1.4"
   },
   "dependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0",
     "date-fns": "^4.1.0"
   }
 }

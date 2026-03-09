@@ -1,4 +1,3 @@
-import { ESPLoader, Transport } from 'esptool-js';
 import {
   FirmwareManifestSchema,
   type FirmwareManifest,
@@ -6,7 +5,12 @@ import {
   type SupportedChip,
   mapChipNameToVariant,
 } from '@/schemas';
-import { arrayBufferToBinaryString, sha256 } from '../utils/binary';
+import { sha256 } from '../utils/binary';
+import {
+  createEspLoader,
+  type EspLoaderApi,
+  type FlashLogger,
+} from './esp-loader-factory';
 
 export interface FlashCallbacks {
   onLog: (message: string) => void;
@@ -21,8 +25,10 @@ interface FlashResult {
 }
 
 interface FirmwareFileData {
-  data: string;
+  data: ArrayBuffer;
   address: number;
+  name: string;
+  size: number;
 }
 
 /**
@@ -94,11 +100,11 @@ async function loadAndVerifyFirmwareFiles(
 
     onLog(`  ✓ ${fileInfo.name} (${fileInfo.size} bytes, checksum verified)`);
 
-    // Convert to binary string for esptool-js
-    const binaryString = arrayBufferToBinaryString(buffer);
     fileArray.push({
-      data: binaryString,
+      data: buffer,
       address: fileInfo.address,
+      name: fileInfo.name,
+      size: fileInfo.size,
     });
   }
 
@@ -107,99 +113,41 @@ async function loadAndVerifyFirmwareFiles(
 }
 
 /**
- * Find the index of the largest file (app binary) for progress reporting
+ * Create a Logger adapter for the tasmota-webserial-esptool library.
+ * Only suppresses raw hex dumps and byte-level trace data.
  */
-function findLargestFileIndex(fileArray: FirmwareFileData[]): number {
-  return fileArray.reduce(
-    (maxIdx, file, idx, arr) => (file.data.length > arr[maxIdx].data.length ? idx : maxIdx),
-    0,
-  );
-}
-
-/**
- * Create ESPLoader terminal that filters verbose logs
- */
-function createFilteredTerminal(onLog: (message: string) => void) {
-  const isVerboseLog = (data: string): boolean =>
-    data.startsWith('TRACE') ||
-    data.startsWith('Write bytes') ||
-    data.includes('bytes:') ||
-    /^\s*[0-9a-f]{16}\s+[0-9a-f]{16}\s+\|/.test(data); // hex dump lines
+function createLogger(onLog: (message: string) => void): FlashLogger {
+  const isHexDump = (msg: string): boolean =>
+    /^\s*[0-9a-f]{16}\s+[0-9a-f]{16}\s+\|/.test(msg);
 
   return {
-    clean() {
-      // Terminal clean
-    },
-    writeLine(data: string) {
-      if (!isVerboseLog(data)) {
-        onLog(data);
+    log(msg: string) {
+      if (!isHexDump(msg)) {
+        onLog(msg);
       }
     },
-    write(data: string) {
-      if (!isVerboseLog(data)) {
-        onLog(data);
+    error(msg: string) {
+      onLog(`Error: ${msg}`);
+    },
+    debug(msg: string) {
+      if (!isHexDump(msg)) {
+        onLog(msg);
       }
     },
   };
 }
 
 /**
- * Reset ESP32 device using RTS signal
- * RTS is active-low and connected to EN via transistor circuit
- */
-async function resetDevice(port: SerialPort, onLog: (message: string) => void): Promise<void> {
-  onLog('Resetting device...');
-  // Setting RTS true (active) pulls EN low (chip in reset)
-  await port.setSignals({ requestToSend: true });
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  // Setting RTS false (inactive) releases EN high (chip boots)
-  await port.setSignals({ requestToSend: false });
-  await new Promise((resolve) => setTimeout(resolve, 50));
-  onLog('Device reset complete');
-}
-
-/**
- * Clean up transport and port resources
- */
-async function cleanupResources(
-  transport: Transport | null,
-  port: SerialPort | undefined,
-  onLog: (message: string) => void,
-): Promise<void> {
-  try {
-    if (transport) {
-      onLog('Disconnecting transport...');
-      await transport.disconnect();
-    }
-  } catch {
-    // Ignore disconnect errors
-  }
-
-  try {
-    if (port) {
-      // Check if port is still open before closing
-      if (port.readable || port.writable) {
-        onLog('Closing serial port...');
-        await port.close();
-        onLog('Serial port closed');
-      }
-    }
-  } catch {
-    // Ignore close errors
-  }
-}
-
-/**
- * Flash firmware to ESP32 via USB serial
- * Automatically detects chip type and selects correct firmware variant
+ * Flash firmware to ESP32 via USB serial.
+ * Uses tasmota-webserial-esptool which handles multi-strategy bootloader
+ * entry (UnixTight, Classic, inverted variants) for cross-platform reliability.
  */
 export async function flashViaUSB(
   getPort: () => Promise<SerialPort>,
   callbacks: FlashCallbacks,
 ): Promise<FlashResult> {
   const { onLog, onProgress } = callbacks;
-  let portToFlash: SerialPort | undefined;
-  let transport: Transport | null = null;
+  let loader: EspLoaderApi | undefined;
 
   try {
     onProgress(0);
@@ -208,20 +156,14 @@ export async function flashViaUSB(
     const manifest = await loadFirmwareManifest(onLog);
 
     // Get fresh, clean port from selector
-    portToFlash = await getPort();
-
-    onLog('Initializing ESP loader (will open port)...');
-    transport = new Transport(portToFlash, true);
-
-    const loader = new ESPLoader({
-      transport,
-      baudrate: 921600,
-      romBaudrate: 115200,
-      terminal: createFilteredTerminal(onLog),
-    });
+    const port = await getPort();
 
     onLog('Connecting to device...');
-    const chipName = await loader.main();
+    const logger = createLogger(onLog);
+    loader = await createEspLoader(port, logger);
+    await loader.initialize();
+
+    const chipName = loader.chipName ?? 'Unknown';
     onLog(`Connected to ${chipName}`);
 
     // Map detected chip to supported variant
@@ -241,33 +183,58 @@ export async function flashViaUSB(
 
     // Load and verify firmware files for this chip
     const fileArray = await loadAndVerifyFirmwareFiles(variantFiles, onLog);
-    const largestFileIndex = findLargestFileIndex(fileArray);
 
+    // Upload stub for faster flashing and erase support
+    onLog('Loading flasher stub...');
+    const stub = await loader.runStub();
+
+    // Erase flash for clean NVS initialization on fresh devices
+    onLog('Erasing flash...');
+    await stub.eraseFlash();
+
+    // Calculate total size for progress reporting
+    const totalSize = fileArray.reduce((sum, f) => sum + f.size, 0);
+    let totalWritten = 0;
+    let lastLoggedPct = 0;
+
+    // Flash each firmware file
     onLog('Starting flash operation...');
-    await loader.writeFlash({
-      fileArray,
-      flashSize: 'keep',
-      flashMode: 'dio',
-      flashFreq: '40m',
-      eraseAll: true,
-      compress: true,
-      reportProgress: (fileIndex, written, total) => {
-        // Only report progress for the largest file (app binary)
-        if (fileIndex === largestFileIndex) {
-          const progressPct = (written / total) * 100;
-          onProgress(Math.round(progressPct));
-        }
 
-        if (written === total) {
-          onLog(`File ${fileIndex + 1}/${fileArray.length} complete`);
-        }
-      },
-    });
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      const fileBaseWritten = totalWritten;
+      onLog(`Flashing ${file.name} at 0x${file.address.toString(16)}...`);
+
+      await stub.flashData(
+        file.data,
+        (bytesWritten: number) => {
+          const overallWritten = fileBaseWritten + bytesWritten;
+          totalWritten = overallWritten;
+          const progressPct = Math.round(
+            (overallWritten / totalSize) * 100,
+          );
+          onProgress(progressPct);
+
+          if (progressPct > lastLoggedPct && progressPct < 100) {
+            lastLoggedPct = progressPct;
+            const kb = Math.round(overallWritten / 1024);
+            const totalKb = Math.round(totalSize / 1024);
+            onLog(`  ${progressPct}% (${kb}/${totalKb} KB)`);
+          }
+        },
+        file.address,
+        true,
+      );
+
+      onLog(`File ${i + 1}/${fileArray.length} complete`);
+    }
 
     onLog('Flash complete!');
 
-    // Reset the device
-    await resetDevice(portToFlash, onLog);
+    // Reset device to run the new firmware
+    onLog('Resetting device...');
+    await loader.hardResetToFirmware();
+    onLog('Device reset complete');
 
     onLog(`Firmware v${variant.version} (${chipType}) flashed successfully!`);
     onProgress(100);
@@ -286,6 +253,12 @@ export async function flashViaUSB(
       error: errorMessage,
     };
   } finally {
-    await cleanupResources(transport, portToFlash, onLog);
+    try {
+      if (loader) {
+        await loader.disconnect();
+      }
+    } catch {
+      // Ignore disconnect errors
+    }
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, FormControl, Select, MenuItem, Alert, Typography } from '@mui/material';
+import { useAppInfoStore } from '../../store/app-info-store';
 
 interface PortInfo {
   port: SerialPort;
@@ -39,6 +40,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
   onLog,
   onError,
 }) => {
+  const platform = useAppInfoStore((s) => s.appInfo?.platform);
   const [availablePorts, setAvailablePorts] = useState<PortInfo[] | null>(null);
   const [selectedPortIndex, setSelectedPortIndex] = useState<number | ''>('');
 
@@ -99,7 +101,7 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
       await refreshPorts();
     } catch (err) {
       if (err instanceof DOMException && err.name === 'NotFoundError') {
-        onLog('Port selection cancelled');
+        onLog('No matching serial ports found by the system');
         return;
       }
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -239,8 +241,16 @@ const SerialPortSelector: React.FC<SerialPortSelectorProps> = ({
 
       {availablePorts !== null && availablePorts.length === 0 && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          No ports with granted access. Click the dropdown again and select your ESP32 device from
-          the browser dialog.
+          No ports with granted access. Click the dropdown again to select your ESP32 device.
+          {platform === 'win32' && (
+            <>
+              <br /><br />
+              If your device does not appear, check that it shows as a COM port in Device Manager
+              under &quot;Ports (COM &amp; LPT)&quot;. If it appears under
+              &quot;Universal Serial Bus devices&quot; instead, the USB driver
+              may need to be changed to the Windows CDC driver.
+            </>
+          )}
         </Alert>
       )}
     </>

@@ -98,7 +98,6 @@
     "electron-squirrel-startup": "^1.0.1",
     "electron-window-state": "^5.0.3",
     "esp-ota": "^1.2.0",
-    "esptool-js": "^0.5.7",
     "framer-motion": "^12.23.25",
     "gifuct-js": "^2.1.2",
     "ip": "^2.0.1",
@@ -109,12 +108,15 @@
     "react-hook-form": "^7.67.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^2.15.0",
+    "tasmota-webserial-esptool": "^9.2.20",
     "zod": "^4.2.0",
     "zustand": "^5.0.8"
   },
   "optionalDependencies": {
     "@esbuild/darwin-arm64": "^0.25.12",
+    "@esbuild/win32-x64": "^0.25.12",
     "@rollup/rollup-darwin-arm64": "^4.53.1",
-    "@rollup/rollup-linux-x64-gnu": "^4.53.1"
+    "@rollup/rollup-linux-x64-gnu": "^4.53.1",
+    "@rollup/rollup-win32-x64-msvc": "^4.53.1"
   }
 }

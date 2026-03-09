@@ -300,9 +300,11 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Scans for previously granted ports on dropdown open
-- Requests new port access via browser dialog if none available
+- Requests new port access via device selection dialog if none available
 - Recognizes common USB-to-serial chips (CP2102, CH340, FTDI, Espressif)
 - Handles port cleanup (close/release locks) before returning
+- Platform-aware messaging: shows Windows-specific driver troubleshooting guidance when no ports detected
+- Uses `useAppInfoStore` to read `platform` for conditional UI
 
 ---
 

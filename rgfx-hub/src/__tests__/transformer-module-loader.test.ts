@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createTransformerModuleLoader } from '../transformer-module-loader';
 import type { TransformerHandler } from '../types/transformer-types';
@@ -107,7 +108,9 @@ describe('createTransformerModuleLoader', () => {
       const loader = createTransformerModuleLoader(mockImport, mockLog);
       const handlers = await loader.loadHandlersFromDir('/mock/dir');
 
-      expect(mockImport).toHaveBeenCalledWith('/mock/dir/test.js');
+      expect(mockImport).toHaveBeenCalledWith(
+        path.join('/mock/dir', 'test.js'),
+      );
       expect(handlers.get('test')).toBe(handler);
 
       vi.restoreAllMocks();

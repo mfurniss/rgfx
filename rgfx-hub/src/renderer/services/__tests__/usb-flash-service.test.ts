@@ -2,24 +2,32 @@ import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { flashViaUSB, type FlashCallbacks } from '../usb-flash-service';
 import { sha256 } from '@/renderer/utils/binary';
 
-// Mock esptool-js
-const mockWriteFlash = vi.fn();
-const mockMain = vi.fn();
+// Mock esp-loader-factory
+const mockInitialize = vi.fn();
+const mockRunStub = vi.fn();
 const mockDisconnect = vi.fn();
+const mockHardResetToFirmware = vi.fn();
+const mockEraseFlash = vi.fn();
+const mockFlashData = vi.fn();
 
-vi.mock('esptool-js', () => ({
-  ESPLoader: vi.fn().mockImplementation(() => ({
-    main: mockMain,
-    writeFlash: mockWriteFlash,
-  })),
-  Transport: vi.fn().mockImplementation(() => ({
-    disconnect: mockDisconnect,
-  })),
+let mockChipName = 'ESP32';
+
+vi.mock('../esp-loader-factory', () => ({
+  createEspLoader: vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      initialize: mockInitialize,
+      get chipName() {
+        return mockChipName;
+      },
+      runStub: mockRunStub,
+      disconnect: mockDisconnect,
+      hardResetToFirmware: mockHardResetToFirmware,
+    }),
+  ),
 }));
 
 // Mock binary utils
 vi.mock('@/renderer/utils/binary', () => ({
-  arrayBufferToBinaryString: vi.fn(() => 'binary-data'),
   sha256: vi.fn(() => Promise.resolve('a'.repeat(64))),
 }));
 
@@ -29,6 +37,7 @@ const mockGetFirmwareFile = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockChipName = 'ESP32';
 
   // Reset sha256 mock to correct checksum for each test
   (sha256 as Mock).mockResolvedValue('a'.repeat(64));
@@ -69,9 +78,15 @@ beforeEach(() => {
   });
 
   mockGetFirmwareFile.mockResolvedValue(new Uint8Array(100));
-  mockMain.mockResolvedValue('ESP32');
-  mockWriteFlash.mockResolvedValue(undefined);
+  mockInitialize.mockResolvedValue(undefined);
+  mockRunStub.mockResolvedValue({
+    eraseFlash: mockEraseFlash,
+    flashData: mockFlashData,
+  });
+  mockEraseFlash.mockResolvedValue(undefined);
+  mockFlashData.mockResolvedValue(undefined);
   mockDisconnect.mockResolvedValue(undefined);
+  mockHardResetToFirmware.mockResolvedValue(undefined);
 });
 
 describe('flashViaUSB', () => {
@@ -94,6 +109,7 @@ describe('flashViaUSB', () => {
     close: vi.fn().mockResolvedValue(undefined),
     readable: true,
     writable: true,
+    getInfo: vi.fn().mockReturnValue({}),
   });
 
   describe('successful flash', () => {
@@ -111,7 +127,7 @@ describe('flashViaUSB', () => {
     });
 
     it('should detect and flash ESP32-S3', async () => {
-      mockMain.mockResolvedValue('ESP32-S3');
+      mockChipName = 'ESP32-S3';
 
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -143,6 +159,16 @@ describe('flashViaUSB', () => {
       expect(callbacks.logs.some((log) => log.includes('1.0.0'))).toBe(true);
     });
 
+    it('should erase flash before writing', async () => {
+      const callbacks = createMockCallbacks();
+      const mockPort = createMockPort();
+      const getPort = vi.fn().mockResolvedValue(mockPort);
+
+      await flashViaUSB(getPort, callbacks);
+
+      expect(mockEraseFlash).toHaveBeenCalled();
+    });
+
     it('should reset device after flash', async () => {
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -150,19 +176,7 @@ describe('flashViaUSB', () => {
 
       await flashViaUSB(getPort, callbacks);
 
-      // Should set RTS true then false for reset
-      expect(mockPort.setSignals).toHaveBeenCalledWith({ requestToSend: true });
-      expect(mockPort.setSignals).toHaveBeenCalledWith({ requestToSend: false });
-    });
-
-    it('should close port after flash', async () => {
-      const callbacks = createMockCallbacks();
-      const mockPort = createMockPort();
-      const getPort = vi.fn().mockResolvedValue(mockPort);
-
-      await flashViaUSB(getPort, callbacks);
-
-      expect(mockPort.close).toHaveBeenCalled();
+      expect(mockHardResetToFirmware).toHaveBeenCalled();
     });
   });
 
@@ -180,7 +194,7 @@ describe('flashViaUSB', () => {
     });
 
     it('should fail for unsupported chip type', async () => {
-      mockMain.mockResolvedValue('ESP32-C3'); // Not supported
+      mockChipName = 'ESP32-C3';
 
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -224,7 +238,7 @@ describe('flashViaUSB', () => {
 
   describe('error handling', () => {
     it('should handle ESPLoader connection failure', async () => {
-      mockMain.mockRejectedValue(new Error('Connection failed'));
+      mockInitialize.mockRejectedValue(new Error('Connection failed'));
 
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -237,7 +251,7 @@ describe('flashViaUSB', () => {
     });
 
     it('should handle flash write failure', async () => {
-      mockWriteFlash.mockRejectedValue(new Error('Flash write failed'));
+      mockFlashData.mockRejectedValue(new Error('Flash write failed'));
 
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -250,7 +264,7 @@ describe('flashViaUSB', () => {
     });
 
     it('should log error message on failure', async () => {
-      mockWriteFlash.mockRejectedValue(new Error('Flash write failed'));
+      mockFlashData.mockRejectedValue(new Error('Flash write failed'));
 
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -262,7 +276,7 @@ describe('flashViaUSB', () => {
     });
 
     it('should still cleanup on error', async () => {
-      mockWriteFlash.mockRejectedValue(new Error('Flash write failed'));
+      mockFlashData.mockRejectedValue(new Error('Flash write failed'));
 
       const callbacks = createMockCallbacks();
       const mockPort = createMockPort();
@@ -271,26 +285,10 @@ describe('flashViaUSB', () => {
       await flashViaUSB(getPort, callbacks);
 
       expect(mockDisconnect).toHaveBeenCalled();
-      expect(mockPort.close).toHaveBeenCalled();
     });
   });
 
   describe('cleanup behavior', () => {
-    it('should not try to close already closed port', async () => {
-      const callbacks = createMockCallbacks();
-      const mockPort = {
-        setSignals: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-        readable: false,
-        writable: false,
-      };
-      const getPort = vi.fn().mockResolvedValue(mockPort);
-
-      await flashViaUSB(getPort, callbacks);
-
-      expect(mockPort.close).not.toHaveBeenCalled();
-    });
-
     it('should handle disconnect errors gracefully', async () => {
       mockDisconnect.mockRejectedValue(new Error('Disconnect failed'));
 
