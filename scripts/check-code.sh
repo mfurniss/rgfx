@@ -8,6 +8,9 @@
 
 set -e
 
+# Fix PlatformIO Unicode output on Windows (cp1252 can't encode checkmarks)
+export PYTHONIOENCODING=utf-8
+
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
 # Cross-platform notification helper
