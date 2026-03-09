@@ -263,6 +263,48 @@ describe('FirmwarePage', () => {
     });
   });
 
+  describe('default flash method by driver presence', () => {
+    it('sets flash method to USB when no drivers exist on mount', () => {
+      const setFirmwareFlashMethodMock = vi.fn();
+
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
+        return selector(createUiState({
+          setFirmwareFlashMethod: setFirmwareFlashMethodMock,
+        }));
+      }) as any);
+
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = { drivers: [] };
+        return selector(state);
+      }) as any);
+
+      render(<FirmwarePage />);
+
+      expect(setFirmwareFlashMethodMock).toHaveBeenCalledWith('usb');
+    });
+
+    it('does not override flash method when drivers exist on mount', () => {
+      const setFirmwareFlashMethodMock = vi.fn();
+
+      vi.mocked(useFirmwareFlashStore).mockImplementation(((selector: any) => {
+        return selector(createUiState({
+          setFirmwareFlashMethod: setFirmwareFlashMethodMock,
+        }));
+      }) as any);
+
+      vi.mocked(useDriverStore).mockImplementation(((selector: any) => {
+        const state = {
+          drivers: [{ id: 'rgfx-driver-0001', state: 'connected' }],
+        };
+        return selector(state);
+      }) as any);
+
+      render(<FirmwarePage />);
+
+      expect(setFirmwareFlashMethodMock).not.toHaveBeenCalledWith('usb');
+    });
+  });
+
   describe('error alert', () => {
     it('shows error alert when not flashing and error exists', () => {
       vi.mocked(useFlashState).mockReturnValue({

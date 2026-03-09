@@ -114,7 +114,8 @@ This folder contains reusable React components for the RGFX Hub renderer process
 
 **Features:**
 - Monospace font for log readability
-- Auto-scrolls to bottom when new messages arrive (with adaptive buffer)
+- Auto-scrolls to bottom when new messages arrive using `use-stick-to-bottom` (ResizeObserver-based, spring animation)
+- Respects manual scroll: if user scrolls up, auto-scroll disengages; resumes when user scrolls back to bottom
 - Max height of 300px with overflow scrolling
 
 ---

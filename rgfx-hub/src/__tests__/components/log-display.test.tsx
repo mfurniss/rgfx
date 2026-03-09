@@ -1,7 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import LogDisplay from '@/renderer/components/common/log-display';
+
+vi.mock('use-stick-to-bottom', () => ({
+  useStickToBottom: () => ({
+    scrollRef: { current: null },
+    contentRef: { current: null },
+  }),
+}));
 
 describe('LogDisplay', () => {
   it('renders empty state when no messages', () => {

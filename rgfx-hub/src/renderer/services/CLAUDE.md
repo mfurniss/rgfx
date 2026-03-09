@@ -36,9 +36,11 @@ Handles USB serial firmware flashing with automatic chip detection:
 - Loads correct firmware files from manifest variants
 - Rejects unsupported chip types with clear error message
 
+**Connection Retry:** Uses `connectWithRetry()` which automatically retries up to 3 times on sync/timeout errors. USB-UART bridges (CP2102, CH340) can have indeterminate DTR/RTS states on first open, causing bootloader entry to fail. The retry disconnects, waits 1s for signals to settle, then reconnects. Non-sync errors (e.g., port access denied) are not retried.
+
 **Process:**
 1. Load and validate `manifest.json` with all chip variants
-2. Connect to device via Web Serial API (`ESPLoader.initialize()`)
+2. Connect to device via Web Serial API with automatic retry (`connectWithRetry()`)
 3. Detect chip type from device
 4. Load and verify firmware files for detected chip (size + SHA256)
 5. Upload flasher stub (`runStub()`)
@@ -55,6 +57,6 @@ Handles USB serial firmware flashing with automatic chip detection:
 
 **File:** [esp-loader-factory.ts](esp-loader-factory.ts)
 
-Isolates the `tasmota-webserial-esptool` unsafe type boundary. The library's `ESPLoader` class has `any[]` typed properties that cascade ESLint `no-unsafe-*` errors. This factory module is the only file that imports the library directly — it exports clean typed interfaces (`EspLoaderApi`, `EspStub`, `FlashLogger`) and a `createEspLoader()` factory function. The file-level `eslint-disable` for `no-unsafe-assignment`/`no-unsafe-call` is intentional and contained to this single file.
+Isolates the `tasmota-webserial-esptool` unsafe type boundary. The library's `ESPLoader` class has `any[]` typed properties that cascade ESLint `no-unsafe-*` errors. This factory module is the only file that imports the library directly — it exports clean typed interfaces (`EspLoaderApi`, `FlashLogger`) and a `createEspLoader()` factory function. `EspStub` is internal (not exported) — used only as the return type of `EspLoaderApi.runStub()`. The file-level `eslint-disable` for `no-unsafe-assignment` is intentional and contained to this single file.
 
 <\!-- No per-file license headers — see root LICENSE -->

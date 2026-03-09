@@ -172,7 +172,7 @@ export async function transform(
             '#00FFFF',
             '#0000FF',
             '#FF00FF',
-            '#FFFFFF,',
+            '#FFFFFF',
             '#FF0000',
           ],
           gradientSpeed: 12,

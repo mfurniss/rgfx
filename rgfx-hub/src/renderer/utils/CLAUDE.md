@@ -8,12 +8,9 @@ Utility functions for the renderer process (React UI).
 
 ### binary.ts
 
-Binary data conversion utilities.
+Binary data utilities for firmware integrity verification.
 
-- `arrayBufferToBinaryString(buffer)`: converts ArrayBuffer to string (byte → char code)
 - `sha256(data)`: calculates SHA-256 hash using Web Crypto API
-
-Used for firmware integrity verification.
 
 ### formatters.ts
 

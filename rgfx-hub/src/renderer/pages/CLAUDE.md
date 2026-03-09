@@ -158,6 +158,7 @@ Refactored components and utilities extracted from the main page:
 
 **Features:**
 - Two flash methods: USB Serial and OTA WiFi
+- Defaults to USB Serial when no drivers exist (first-time setup); OTA WiFi otherwise
 - Flash method is read directly from `firmware-flash-store` (no local state) — eliminates the bidirectional sync that caused infinite loops on Windows
 - Uses shared `useDriverSelection` hook for driver picker state
 - **USB Serial:**

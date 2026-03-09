@@ -107,6 +107,13 @@ const FirmwarePage: React.FC = () => {
     setFirmwareDriverFlashStatus(Object.fromEntries(flashState.driverFlashStatus));
   }, [flashState.driverFlashStatus, setFirmwareDriverFlashStatus]);
 
+  // Default to USB when no drivers exist (first-time setup)
+  useEffect(() => {
+    if (drivers.length === 0) {
+      setFirmwareFlashMethod('usb');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handlePortSelect = (portGetter: (() => Promise<SerialPort>) | null) => {
     setGetPort(() => portGetter);
   };
