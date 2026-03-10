@@ -180,21 +180,22 @@ jobs:
         run: npm run make
         working-directory: rgfx-hub
 
-      - name: Notarize
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
-          echo "Submitting $DMG for notarization..."
-          xcrun notarytool submit "$DMG" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_ID_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait --timeout 30m
-          echo "Stapling notarization ticket..."
-          xcrun stapler staple "$DMG"
+      # TODO: Re-enable once Apple notarization service is reliable
+      # - name: Notarize
+      #   env:
+      #     APPLE_ID: ${{ secrets.APPLE_ID }}
+      #     APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      #   run: |
+      #     DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
+      #     echo "Submitting $DMG for notarization..."
+      #     xcrun notarytool submit "$DMG" \
+      #       --apple-id "$APPLE_ID" \
+      #       --password "$APPLE_ID_PASSWORD" \
+      #       --team-id "$APPLE_TEAM_ID" \
+      #       --wait --timeout 30m
+      #     echo "Stapling notarization ticket..."
+      #     xcrun stapler staple "$DMG"
 
       - name: Rename installer
         run: |
