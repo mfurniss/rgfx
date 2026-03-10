@@ -24,15 +24,6 @@ const config = {
         entitlementsInherit: "./entitlements.mac.plist",
       }),
     },
-    ...(process.env.APPLE_ID && process.env.APPLE_ID_PASSWORD && process.env.APPLE_TEAM_ID
-      ? {
-          osxNotarize: {
-            appleId: process.env.APPLE_ID,
-            appleIdPassword: process.env.APPLE_ID_PASSWORD,
-            teamId: process.env.APPLE_TEAM_ID,
-          },
-        }
-      : {}),
     extraResource: [
       "./assets/transformers",
       "./assets/interceptors",
