@@ -208,7 +208,7 @@ describe('transformer-installer', () => {
       await installDefaultTransformers();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining(path.join('resources', 'assets', 'transformers')),
+        expect.stringContaining(path.join('resources', 'transformers')),
       );
 
       // Cleanup
