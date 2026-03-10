@@ -14,7 +14,7 @@ import {
   Alert,
   Stack,
 } from '@mui/material';
-import { SportsEsports as GamesIcon } from '@mui/icons-material';
+import GamesIcon from '@mui/icons-material/SportsEsports';
 import { Link as RouterLink } from 'react-router-dom';
 import type { GameInfo } from '@/types';
 import { PageTitle } from '../components/layout/page-title';

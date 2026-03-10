@@ -1,5 +1,5 @@
 import React from 'react';
-import { Science as ScienceIcon } from '@mui/icons-material';
+import ScienceIcon from '@mui/icons-material/Science';
 import SuperButton from '../common/super-button';
 import type { DriverButtonProps } from './types';
 import { usePendingWithTimeout } from '@/renderer/hooks/use-pending-with-timeout';

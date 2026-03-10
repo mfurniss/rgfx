@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography } from '@mui/material';
-import { Refresh as RefreshIcon } from '@mui/icons-material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import ConfirmActionButton from '../common/confirm-action-button';
 import type { DriverButtonProps } from './types';
 

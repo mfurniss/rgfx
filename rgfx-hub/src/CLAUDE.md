@@ -51,6 +51,10 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `utils/firmware-paths.ts` — Firmware directory helpers: `getFirmwareDir`, `getFirmwareFilePath`
 - `utils/error-utils.ts` — `getErrorMessage` for safe error-to-string conversion
 
+## Import Conventions
+
+**Use deep imports for `@mui/icons-material`** — barrel imports cause EMFILE errors in vitest by resolving all ~7000 icon modules. Use `import FooIcon from '@mui/icons-material/Foo'` instead of `import { Foo as FooIcon } from '@mui/icons-material'`.
+
 ## Test Infrastructure
 
 Global test setup (`__tests__/setup.ts`) provides:

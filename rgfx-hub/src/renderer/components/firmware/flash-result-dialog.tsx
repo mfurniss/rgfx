@@ -6,7 +6,8 @@ import {
   Typography,
   Button,
 } from '@mui/material';
-import { CheckCircle as SuccessIcon, Error as ErrorIcon } from '@mui/icons-material';
+import SuccessIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import { DialogTitleWithIcon } from '../common/dialog-title-with-icon';
 import type { FlashMethod } from '../../hooks/use-flash-state';
 

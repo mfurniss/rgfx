@@ -81,4 +81,4 @@ LED hardware definition files (JSON):
 
 ### Build Packaging
 
-Assets are bundled by `forge.config.js` via `extraResource`. Documentation is no longer bundled — it is hosted online at rgfx.io/docs. The macOS build is unsigned (no Apple Developer certificate) — `entitlements.mac.plist` exists at the hub root for future use if signing is added.
+Assets are bundled by `forge.config.js` via `extraResource`. Documentation is no longer bundled — it is hosted online at rgfx.io/docs. The macOS build uses a `postPackage` hook to re-sign with a valid ad-hoc signature (workaround for Electron Forge bug #3757). Full code signing requires an Apple Developer certificate — `entitlements.mac.plist` exists at the hub root for future use.

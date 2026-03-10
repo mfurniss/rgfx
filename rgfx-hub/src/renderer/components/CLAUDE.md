@@ -4,6 +4,18 @@
 
 This folder contains reusable React components for the RGFX Hub renderer process.
 
+## Import Convention
+
+**Use deep imports for `@mui/icons-material`** — barrel imports cause EMFILE errors during vitest runs by resolving all ~7000 icon modules at once.
+
+```tsx
+// Correct
+import DeleteIcon from '@mui/icons-material/Delete';
+
+// Wrong — causes EMFILE
+import { Delete as DeleteIcon } from '@mui/icons-material';
+```
+
 ---
 
 ## Layout Components

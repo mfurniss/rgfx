@@ -1,5 +1,5 @@
 import React from 'react';
-import { SettingsInputAntenna as ConfigWifiIcon } from '@mui/icons-material';
+import ConfigWifiIcon from '@mui/icons-material/SettingsInputAntenna';
 import SuperButton from '../common/super-button';
 import WifiConfigDialog from './wifi-config-dialog';
 import { sendWifiCommandToPort } from '@/renderer/utils/serial-wifi';

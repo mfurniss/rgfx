@@ -1,6 +1,8 @@
 import React from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { Brightness4, Brightness7, SettingsBrightness } from '@mui/icons-material';
+import Brightness4 from '@mui/icons-material/Brightness4';
+import Brightness7 from '@mui/icons-material/Brightness7';
+import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import { useColorScheme } from '@mui/material/styles';
 import { SettingsSection } from './settings-section';
 

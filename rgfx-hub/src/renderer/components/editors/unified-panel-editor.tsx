@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Box, Typography, Button, Paper, TextField, Stack } from '@mui/material';
-import { GridView as GridIcon, Clear as ClearIcon } from '@mui/icons-material';
+import GridIcon from '@mui/icons-material/GridView';
+import ClearIcon from '@mui/icons-material/Clear';
 import {
   DndContext,
   closestCenter,

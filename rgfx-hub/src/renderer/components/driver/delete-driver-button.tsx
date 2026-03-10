@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@mui/material';
-import { Delete as DeleteIcon, Warning as WarningIcon } from '@mui/icons-material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import WarningIcon from '@mui/icons-material/Warning';
 import ConfirmActionButton from '../common/confirm-action-button';
 import type { DriverButtonProps } from './types';
 

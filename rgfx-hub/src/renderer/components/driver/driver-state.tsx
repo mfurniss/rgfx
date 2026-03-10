@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Chip, type ChipProps, CircularProgress, Tooltip, IconButton } from '@mui/material';
-import { Warning as WarningIcon } from '@mui/icons-material';
+import WarningIcon from '@mui/icons-material/Warning';
 import type { Driver, DriverState as DriverStateType } from '@/types';
 import { mapChipNameToVariant } from '@/schemas/firmware-manifest';
 

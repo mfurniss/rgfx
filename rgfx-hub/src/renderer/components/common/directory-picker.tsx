@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconButton, InputAdornment, SxProps, TextField, Theme } from '@mui/material';
-import { FolderOpen } from '@mui/icons-material';
+import FolderOpen from '@mui/icons-material/FolderOpen';
 
 interface DirectoryPickerProps {
   label: string;

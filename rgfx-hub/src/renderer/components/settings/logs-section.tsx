@@ -12,7 +12,7 @@ import {
   TableRow,
   Tooltip,
 } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ConfirmActionButton from '../common/confirm-action-button';
 import { notify } from '../../store/notification-store';
 import { formatBytes } from '../../utils/formatters';

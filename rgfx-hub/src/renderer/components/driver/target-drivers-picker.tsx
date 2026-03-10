@@ -9,7 +9,7 @@ import {
   Popover,
   Chip,
 } from '@mui/material';
-import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { Driver } from '@/types';
 
 interface TargetDriversPickerProps {

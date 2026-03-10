@@ -15,13 +15,11 @@ import {
   Tooltip,
   Button,
 } from '@mui/material';
-import {
-  Science as ScienceIcon,
-  ContentCopy as CopyIcon,
-  RestartAlt as ResetIcon,
-  Shuffle as ShuffleIcon,
-  Palette as PaletteIcon,
-} from '@mui/icons-material';
+import ScienceIcon from '@mui/icons-material/Science';
+import CopyIcon from '@mui/icons-material/ContentCopy';
+import ResetIcon from '@mui/icons-material/RestartAlt';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
+import PaletteIcon from '@mui/icons-material/Palette';
 import { PageTitle } from '../components/layout/page-title';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
 import SuperButton from '../components/common/super-button';

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Paper, Typography, Button } from '@mui/material';
-import { Save as SaveIcon } from '@mui/icons-material';
+import SaveIcon from '@mui/icons-material/Save';
 import { PageTitle } from '../components/layout/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { notify } from '../store/notification-store';

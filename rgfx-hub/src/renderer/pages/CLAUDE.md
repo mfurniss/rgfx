@@ -4,6 +4,8 @@
 
 This folder contains the main page components for the RGFX Hub application. Each page is a React functional component that renders a full-page view accessible via React Router.
 
+**Import convention:** Use deep imports for `@mui/icons-material` (e.g., `import SaveIcon from '@mui/icons-material/Save'`). Barrel imports cause EMFILE errors in vitest.
+
 ---
 
 ## Pages
