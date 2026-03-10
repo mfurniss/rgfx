@@ -218,7 +218,7 @@ describe('interceptor-installer', () => {
       await installDefaultInterceptors();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining(path.join('resources', 'assets', 'interceptors')),
+        expect.stringContaining(path.join('resources', 'interceptors')),
       );
 
       // Cleanup

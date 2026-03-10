@@ -221,7 +221,7 @@ describe('led-hardware-installer', () => {
 
       expect(mockLogInfo).toHaveBeenCalledWith(
         expect.stringContaining(
-          path.join('resources', 'assets', 'led-hardware'),
+          path.join('resources', 'led-hardware'),
         ),
       );
 

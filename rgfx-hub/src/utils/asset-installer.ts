@@ -6,11 +6,11 @@ import log from 'electron-log/main';
 /**
  * Resolve the bundled assets directory for a given subdirectory.
  * In development: <appPath>/assets/<subdir>
- * In production: <resourcesPath>/assets/<subdir>
+ * In production: <resourcesPath>/<subdir>
  */
 export function getBundledAssetDir(subdir: string): string {
   return app.isPackaged
-    ? join(process.resourcesPath, 'assets', subdir)
+    ? join(process.resourcesPath, subdir)
     : join(app.getAppPath(), 'assets', subdir);
 }
 
