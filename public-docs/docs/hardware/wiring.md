@@ -28,7 +28,7 @@ USB power is fine for most setups. If you need more power, use an external 5V po
     RGFX's driver firmware includes a **max power (mA) setting** that dynamically scales brightness to stay within your power supply's capacity. Always configure this limit to match your actual power supply.
 
 !!! info "Larger builds"
-    For setups with long LED strips, LED matrices, or high LED counts, you may need power injection, level shifting, or higher-capacity power supplies. The [r/led subreddit](https://www.reddit.com/r/led/) and [QuinLED](https://quinled.info/) are excellent resources for advanced wiring guidance.
+    For setups with long LED strips, LED matrices, or high LED counts, you may need power injection, level shifting, or higher-capacity power supplies. The [r/led](https://www.reddit.com/r/led/), [r/FastLED](https://www.reddit.com/r/FastLED/), and [r/esp32](https://www.reddit.com/r/esp32/) subreddits are excellent resources for advanced wiring guidance.
 
 ## Next Steps
 

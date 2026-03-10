@@ -87,7 +87,7 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - Sprite extraction (`sprite-extract.lua`) reads ROM graphics at runtime; manifests declared in interceptors; outputs JSON to `transformers/bitmaps/`
 - `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
 - Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
-- Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led and QuinLED for advanced setups
+- Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led for advanced setups
 - Configure MAME page (`getting-started/configure-mame.md`) documents the `-autoboot_script` flag, rgfx.lua locations per platform, launch scripts for both macOS (.sh) and Windows (.bat), and frontend integration with per-platform examples
 - Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
