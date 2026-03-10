@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import SuperButton from '@/renderer/components/common/super-button';
-import { Star as StarIcon } from '@mui/icons-material';
+import StarIcon from '@mui/icons-material/Star';
 
 describe('SuperButton', () => {
   it('renders button with children text', () => {

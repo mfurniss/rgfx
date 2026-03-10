@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Paper } from '@mui/material';
-import { Usb as UsbIcon } from '@mui/icons-material';
+import UsbIcon from '@mui/icons-material/Usb';
 import { useDriverStore } from '../store/driver-store';
 import DriverListTable from '../components/driver/driver-list-table';
 import { PageTitle } from '../components/layout/page-title';

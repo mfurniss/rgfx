@@ -17,12 +17,10 @@ import WifiConfigButton from '../components/firmware/wifi-config-button';
 import WifiConfigOtaButton from '../components/firmware/wifi-config-ota-button';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
 import SuperButton from '../components/common/super-button';
-import {
-  Upload as FlashIcon,
-  Usb as UsbIcon,
-  Wifi as WifiIcon,
-  Memory as FirmwareIcon,
-} from '@mui/icons-material';
+import FlashIcon from '@mui/icons-material/Upload';
+import UsbIcon from '@mui/icons-material/Usb';
+import WifiIcon from '@mui/icons-material/Wifi';
+import FirmwareIcon from '@mui/icons-material/Memory';
 import { PageTitle } from '../components/layout/page-title';
 import { useDriverStore } from '../store/driver-store';
 import { useSystemStatusStore } from '../store/system-status-store';

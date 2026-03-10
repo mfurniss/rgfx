@@ -7,7 +7,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { PlayArrow as PlayArrowIcon } from '@mui/icons-material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { debounce } from 'lodash-es';
 import { useUiStore, SimulatorAutoInterval } from '../../store/ui-store';
 import SuperButton from '../common/super-button';

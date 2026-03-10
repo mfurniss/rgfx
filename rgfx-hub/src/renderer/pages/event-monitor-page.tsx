@@ -12,11 +12,9 @@ import {
   DialogActions,
   Stack,
 } from '@mui/material';
-import {
-  Monitor as MonitorIcon,
-  Refresh as RefreshIcon,
-  Warning as WarningIcon,
-} from '@mui/icons-material';
+import MonitorIcon from '@mui/icons-material/Monitor';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import WarningIcon from '@mui/icons-material/Warning';
 import { useEventStore } from '../store/event-store';
 import { PageTitle } from '../components/layout/page-title';
 import { useSortableTable } from '../hooks/use-sortable-table';

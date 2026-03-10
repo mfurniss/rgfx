@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface PageTitleProps {
   icon?: ReactNode;

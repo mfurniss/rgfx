@@ -1,5 +1,6 @@
 import React from 'react';
-import { Block as BlockIcon, PlayArrow as PlayArrowIcon } from '@mui/icons-material';
+import BlockIcon from '@mui/icons-material/Block';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useAsyncAction } from '../../hooks/use-async-action';
 import SuperButton from '../common/super-button';
 import type { DriverButtonProps } from './types';

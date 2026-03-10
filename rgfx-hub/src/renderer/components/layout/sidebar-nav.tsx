@@ -1,17 +1,15 @@
 import React from 'react';
 import { Divider, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import {
-  Dashboard as DashboardIcon,
-  Usb as UsbIcon,
-  Monitor as MonitorIcon,
-  Memory as FirmwareIcon,
-  Science as ScienceIcon,
-  Terminal as TerminalIcon,
-  Settings as SettingsIcon,
-  Info as InfoIcon,
-  SportsEsports as GamesIcon,
-  HelpOutline as HelpIcon,
-} from '@mui/icons-material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import UsbIcon from '@mui/icons-material/Usb';
+import MonitorIcon from '@mui/icons-material/Monitor';
+import FirmwareIcon from '@mui/icons-material/Memory';
+import ScienceIcon from '@mui/icons-material/Science';
+import TerminalIcon from '@mui/icons-material/Terminal';
+import SettingsIcon from '@mui/icons-material/Settings';
+import InfoIcon from '@mui/icons-material/Info';
+import GamesIcon from '@mui/icons-material/SportsEsports';
+import HelpIcon from '@mui/icons-material/HelpOutline';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 interface NavItem {

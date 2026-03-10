@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Box, Paper, Link, Stack } from '@mui/material';
-import { Info as InfoIcon } from '@mui/icons-material';
+import InfoIcon from '@mui/icons-material/Info';
 import { PageTitle } from '../components/layout/page-title';
 import { useAppInfoStore } from '../store/app-info-store';
 

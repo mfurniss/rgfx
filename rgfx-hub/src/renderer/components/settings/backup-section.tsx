@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Stack, Typography } from '@mui/material';
-import { Archive as ArchiveIcon } from '@mui/icons-material';
+import ArchiveIcon from '@mui/icons-material/Archive';
 import SuperButton from '../common/super-button';
 import { notify } from '../../store/notification-store';
 import { SettingsSection } from './settings-section';

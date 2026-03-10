@@ -10,11 +10,9 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import {
-  ErrorOutline as ErrorIcon,
-  FolderOpen as FolderIcon,
-  ContentCopy as CopyIcon,
-} from '@mui/icons-material';
+import ErrorIcon from '@mui/icons-material/ErrorOutline';
+import FolderIcon from '@mui/icons-material/FolderOpen';
+import CopyIcon from '@mui/icons-material/ContentCopy';
 import type { SystemError } from '@/types';
 import { DialogTitleWithIcon } from './dialog-title-with-icon';
 

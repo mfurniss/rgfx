@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Divider, Stack, useColorScheme } from '@mui/material';
-import { Timeline as TimelineIcon } from '@mui/icons-material';
+import TimelineIcon from '@mui/icons-material/Timeline';
 import { useTelemetryHistoryStore } from '@/renderer/store/telemetry-history-store';
 import { formatBytes } from '@/renderer/utils/formatters';
 import { LineChart } from './line-chart';

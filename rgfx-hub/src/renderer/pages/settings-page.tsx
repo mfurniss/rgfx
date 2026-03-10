@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Stack } from '@mui/material';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { PageTitle } from '../components/layout/page-title';
 import {
   AppearanceSection,

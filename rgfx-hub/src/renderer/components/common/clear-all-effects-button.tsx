@@ -1,7 +1,7 @@
 import React from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@mui/material';
-import { LayersClear as LayersClearIcon } from '@mui/icons-material';
+import LayersClearIcon from '@mui/icons-material/LayersClear';
 import { useDriverStore } from '../../store/driver-store';
 import { useUiStore } from '../../store/ui-store';
 

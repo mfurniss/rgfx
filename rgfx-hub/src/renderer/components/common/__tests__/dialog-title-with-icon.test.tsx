@@ -2,7 +2,9 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Dialog, IconButton } from '@mui/material';
-import { Warning as WarningIcon, Error as ErrorIcon, Close as CloseIcon } from '@mui/icons-material';
+import WarningIcon from '@mui/icons-material/Warning';
+import ErrorIcon from '@mui/icons-material/Error';
+import CloseIcon from '@mui/icons-material/Close';
 import { DialogTitleWithIcon } from '../dialog-title-with-icon';
 
 const renderWithDialog = (ui: React.ReactElement) => {

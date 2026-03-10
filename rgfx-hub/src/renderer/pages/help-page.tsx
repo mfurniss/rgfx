@@ -1,9 +1,7 @@
 import React from 'react';
 import { Typography, Box, Paper, Button } from '@mui/material';
-import {
-  HelpOutline as HelpIcon,
-  MenuBook as DocsIcon,
-} from '@mui/icons-material';
+import HelpIcon from '@mui/icons-material/HelpOutline';
+import DocsIcon from '@mui/icons-material/MenuBook';
 import { PageTitle } from '../components/layout/page-title';
 
 const DOCS_URL = 'https://rgfx.io/docs';

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Stack } from '@mui/material';
-import { Save } from '@mui/icons-material';
+import Save from '@mui/icons-material/Save';
 import { useUiStore } from '../../store/ui-store';
 import { useAppInfoStore } from '../../store/app-info-store';
 import { notify } from '../../store/notification-store';

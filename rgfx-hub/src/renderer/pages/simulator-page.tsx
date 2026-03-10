@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Paper, Stack } from '@mui/material';
-import { Terminal as TerminalIcon } from '@mui/icons-material';
+import TerminalIcon from '@mui/icons-material/Terminal';
 import { SIMULATOR_ROW_COUNT } from '@/config/constants';
 import { PageTitle } from '../components/layout/page-title';
 import { ClearAllEffectsButton } from '../components/common/clear-all-effects-button';

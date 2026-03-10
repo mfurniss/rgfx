@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Box, Paper, Stack } from '@mui/material';
-import { Dashboard as DashboardIcon } from '@mui/icons-material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import SystemStatus from '../components/system/system-status';
 import { SystemErrors } from '../components/system/system-errors';
 import { EventsRateChart } from '../components/charts/events-rate-chart';

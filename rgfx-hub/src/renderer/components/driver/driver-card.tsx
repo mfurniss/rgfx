@@ -3,15 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Paper, Typography, Box, IconButton, Alert, Stack } from '@mui/material';
 import SuperButton from '../common/super-button';
 import DriverState from './driver-state';
-import {
-  Lightbulb as LightbulbIcon,
-  Speed as SpeedIcon,
-  Sensors as SensorsIcon,
-  ArrowBack as ArrowBackIcon,
-  Settings as SettingsIcon,
-  Description as DescriptionIcon,
-  Info as InfoIcon,
-} from '@mui/icons-material';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import SpeedIcon from '@mui/icons-material/Speed';
+import SensorsIcon from '@mui/icons-material/Sensors';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SettingsIcon from '@mui/icons-material/Settings';
+import DescriptionIcon from '@mui/icons-material/Description';
+import InfoIcon from '@mui/icons-material/Info';
 import type { Driver } from '@/types';
 import InfoSection from '../common/info-section';
 import TestLedButton from './test-led-button';

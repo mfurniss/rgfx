@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography } from '@mui/material';
-import { RestartAlt as RestartAltIcon, Warning as WarningIcon } from '@mui/icons-material';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import WarningIcon from '@mui/icons-material/Warning';
 import ConfirmActionButton from '../common/confirm-action-button';
 import type { DriverButtonProps } from './types';
 
