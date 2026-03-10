@@ -18,6 +18,21 @@ const config = {
       NSLocalNetworkUsageDescription: "RGFX Hub needs local network access to communicate with LED drivers via UDP and MQTT.",
       NSBonjourServices: ["_mqtt._tcp", "_rgfx._udp"],
     },
+    osxSign: {
+      optionsForFile: () => ({
+        entitlements: "./entitlements.mac.plist",
+        entitlementsInherit: "./entitlements.mac.plist",
+      }),
+    },
+    ...(process.env.APPLE_ID && process.env.APPLE_ID_PASSWORD && process.env.APPLE_TEAM_ID
+      ? {
+          osxNotarize: {
+            appleId: process.env.APPLE_ID,
+            appleIdPassword: process.env.APPLE_ID_PASSWORD,
+            teamId: process.env.APPLE_TEAM_ID,
+          },
+        }
+      : {}),
     extraResource: [
       "./assets/transformers",
       "./assets/interceptors",
@@ -47,24 +62,6 @@ const config = {
   },
 
   rebuildConfig: {},
-
-  hooks: {
-    postPackage: async (_forgeConfig, options) => {
-      if (options.platform === "darwin") {
-        // Electron Forge produces a broken ad-hoc signature (forge#3757)
-        // which causes macOS to show "damaged" instead of "unidentified developer".
-        // Re-signing with a valid ad-hoc signature fixes this.
-        const { execSync } = require("child_process");
-        const appBundle = fs.readdirSync(options.outputPaths[0])
-          .find((f) => f.endsWith(".app"));
-        if (!appBundle) return;
-        const appPath = path.join(options.outputPaths[0], appBundle);
-        execSync(`codesign --force --deep --sign - "${appPath}"`, {
-          stdio: "inherit",
-        });
-      }
-    },
-  },
 
   makers: [
     new MakerSquirrel({
