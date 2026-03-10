@@ -2,14 +2,14 @@
 const { MakerSquirrel } = require("@electron-forge/maker-squirrel");
 const { MakerDMG } = require("@electron-forge/maker-dmg");
 const { VitePlugin } = require("@electron-forge/plugin-vite");
-const { FuseV1Options, flipFuses, FuseVersion } = require("@electron/fuses");
-const path = require("path");
-const fs = require("fs");
+const { FusesPlugin } = require("@electron-forge/plugin-fuses");
+const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
   packagerConfig: {
     appBundleId: "com.rgfx.hub",
+    executableName: "rgfx-hub",
     asar: true,
     icon: "./assets/icons/icon",
     darwinDarkModeSupport: true,
@@ -24,15 +24,6 @@ const config = {
         entitlementsInherit: "./entitlements.mac.plist",
       }),
     },
-    ...(process.env.APPLE_ID && process.env.APPLE_ID_PASSWORD && process.env.APPLE_TEAM_ID
-      ? {
-          osxNotarize: {
-            appleId: process.env.APPLE_ID,
-            appleIdPassword: process.env.APPLE_ID_PASSWORD,
-            teamId: process.env.APPLE_TEAM_ID,
-          },
-        }
-      : {}),
     extraResource: [
       "./assets/transformers",
       "./assets/interceptors",
@@ -40,24 +31,6 @@ const config = {
       "./assets/mame",
       "./assets/led-hardware",
       "../LICENSE",
-    ],
-    // Apply fuses after packaging instead of using the FusesPlugin directly
-    afterCopy: [
-      async (buildPath, electronVersion, platform, arch, callback) => {
-        const appPath = path.join(buildPath, "resources", "app.asar.unpacked");
-        if (fs.existsSync(appPath)) {
-          await flipFuses(appPath, {
-            version: FuseVersion.V1,
-            [FuseV1Options.RunAsNode]: false,
-            [FuseV1Options.EnableCookieEncryption]: true,
-            [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-            [FuseV1Options.EnableNodeCliInspectArguments]: false,
-            [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-            [FuseV1Options.OnlyLoadAppFromAsar]: true,
-          });
-        }
-        if (callback) callback();
-      },
     ],
   },
 
@@ -94,6 +67,15 @@ const config = {
           config: "src/renderer/vite.renderer.config.ts",
         },
       ],
+    }),
+    new FusesPlugin({
+      version: FuseVersion.V1,
+      [FuseV1Options.RunAsNode]: false,
+      [FuseV1Options.EnableCookieEncryption]: true,
+      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+      [FuseV1Options.EnableNodeCliInspectArguments]: false,
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+      [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
 };
