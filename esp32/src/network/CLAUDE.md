@@ -26,6 +26,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 | `mqtt_discovery.cpp` | UDP broadcast listener for MQTT broker discovery |
 | `mqtt_publisher.cpp` | Outbound MQTT messages: telemetry, test state, errors |
 | `mqtt_config_handler.cpp` | Handles driver configuration messages from Hub (parses rgbw_mode for RGBW strips). Note: name/description fields removed from config parsing. |
+| `mqtt_ota.h/cpp` | MQTT-initiated HTTP pull OTA. Hub publishes `{url, size, md5}` to `rgfx/driver/{mac}/ota`. ESP32 downloads firmware via HTTPClient, applies via Arduino Update class. Publishes progress every 5% to `rgfx/driver/{deviceId}/ota/progress` and result to `rgfx/driver/{deviceId}/ota/result`. Uses deferred processing pattern (queued in mqtt_callback.cpp, executed outside MQTT callback). |
 | `network_init.h/cpp` | Initializes all network services when WiFi connects |
 | `network_task.h/cpp` | FreeRTOS task running network loop on Core 0 |
 | `ota_update.h/cpp` | ArduinoOTA setup with LED progress indicators |
@@ -39,11 +40,14 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 - `rgfx/driver/{device-id}/test` - Test mode toggle
 - `rgfx/driver/{device-id}/reset` - Factory reset command
 - `rgfx/driver/{device-id}/reboot` - Reboot command
+- `rgfx/driver/{MAC}/ota` - MQTT OTA command from Hub (JSON: `{url, size, md5}`)
 
 ### Published Topics (Driver sends)
 - `rgfx/system/driver/telemetry` - Periodic telemetry (30s interval)
 - `rgfx/driver/{device-id}/status` - Online/offline status (with LWT)
 - `rgfx/driver/{device-id}/test/state` - Current test mode state (published only when test mode changes, not on reconnect)
+- `rgfx/driver/{device-id}/ota/progress` - OTA download progress (JSON: `{percent}`)
+- `rgfx/driver/{device-id}/ota/result` - OTA result (JSON: `{success, error?}`)
 
 ## Broker Discovery
 

@@ -44,6 +44,7 @@ static char topicReboot[TOPIC_BUFFER_SIZE];       // rgfx/driver/{mac}/reboot
 static char topicLogging[TOPIC_BUFFER_SIZE];      // rgfx/driver/{mac}/logging
 static char topicClearEffects[TOPIC_BUFFER_SIZE]; // rgfx/driver/{mac}/clear-effects
 static char topicWifi[TOPIC_BUFFER_SIZE];         // rgfx/driver/{mac}/wifi
+static char topicOta[TOPIC_BUFFER_SIZE];          // rgfx/driver/{mac}/ota
 static char clientId[32];                         // Device ID as client ID
 static bool topicsInitialized = false;
 
@@ -65,6 +66,7 @@ static void initMQTTTopics() {
 	snprintf(topicLogging, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/logging", macAddress.c_str());
 	snprintf(topicClearEffects, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/clear-effects", macAddress.c_str());
 	snprintf(topicWifi, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/wifi", macAddress.c_str());
+	snprintf(topicOta, TOPIC_BUFFER_SIZE, "rgfx/driver/%s/ota", macAddress.c_str());
 	strncpy(clientId, deviceId.c_str(), sizeof(clientId) - 1);
 	clientId[sizeof(clientId) - 1] = '\0';
 
@@ -144,6 +146,7 @@ void reconnectMQTT() {
 		allSubscribed &= mqttClient.subscribe(topicLogging, 2);
 		allSubscribed &= mqttClient.subscribe(topicClearEffects, 2);
 		allSubscribed &= mqttClient.subscribe(topicWifi, 2);
+		allSubscribed &= mqttClient.subscribe(topicOta, 2);
 
 		if (!allSubscribed) {
 			log("One or more MQTT subscriptions failed - forcing reconnect", LogLevel::ERROR);
@@ -160,6 +163,7 @@ void reconnectMQTT() {
 		log("  - " + String(topicReboot));
 		log("  - " + String(topicClearEffects));
 		log("  - " + String(topicWifi));
+		log("  - " + String(topicOta));
 
 		// Load saved remote logging level from NVS
 		String savedLoggingLevel = ConfigNVS::loadLoggingLevel();

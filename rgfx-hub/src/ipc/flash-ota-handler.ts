@@ -1,8 +1,10 @@
+import crypto from 'crypto';
 import fs from 'fs';
+import http from 'http';
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
-import EspOTA from 'esp-ota';
 import type { DriverRegistry } from '../driver-registry';
+import type { MqttBroker } from '../network';
 import { INVOKE_CHANNELS } from './contract';
 import { eventBus } from '../services/event-bus';
 import { addActiveOtaDriver, removeActiveOtaDriver } from '../services/global-error-handler';
@@ -12,14 +14,16 @@ import {
   mapChipNameToVariant,
 } from '../schemas/firmware-manifest';
 import { getFirmwareFilePath } from '../utils/firmware-paths';
+import { getLocalIP } from '../network/network-utils';
+
+const OTA_TIMEOUT_MS = 120_000;
+const FIRST_CONTACT_TIMEOUT_MS = 15_000;
 
 interface FlashOtaHandlerDeps {
   driverRegistry: DriverRegistry;
+  mqtt: MqttBroker;
 }
 
-/**
- * Validate and map driver's chip model to supported chip type
- */
 function getChipType(chipModel: string | undefined): SupportedChip {
   if (!chipModel) {
     throw new Error(
@@ -43,8 +47,63 @@ function getFirmwarePath(chipType: SupportedChip): string {
   return getFirmwareFilePath(getOtaFirmwareFilename(chipType));
 }
 
+function calculateMd5(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('md5');
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('end', () => {
+      resolve(hash.digest('hex'));
+    });
+    stream.on('error', reject);
+  });
+}
+
+function createFirmwareServer(
+  firmwarePath: string,
+): Promise<{ server: http.Server; port: number }> {
+  return new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      if (req.method === 'GET' && req.url === '/firmware.bin') {
+        const stat = fs.statSync(firmwarePath);
+        res.writeHead(200, {
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': stat.size,
+        });
+        fs.createReadStream(firmwarePath).pipe(res);
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+
+    server.listen(0, () => {
+      const addr = server.address();
+
+      if (addr && typeof addr === 'object') {
+        resolve({ server, port: addr.port });
+      } else {
+        server.close();
+        reject(new Error('Failed to get server port'));
+      }
+    });
+
+    server.on('error', reject);
+  });
+}
+
+function markDriverDisconnected(driverRegistry: DriverRegistry, driverId: string): void {
+  const driver = driverRegistry.getDriver(driverId);
+
+  if (driver) {
+    driver.state = 'disconnected';
+    driver.ip = undefined;
+    eventBus.emit('driver:disconnected', { driver, reason: 'restarting' });
+  }
+}
+
 export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
-  const { driverRegistry } = deps;
+  const { driverRegistry, mqtt } = deps;
 
   ipcMain.handle(INVOKE_CHANNELS.flashOTA, async (_event, driverId: string): Promise<void> => {
     const driver = driverRegistry.getDriver(driverId);
@@ -57,137 +116,146 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       throw new Error('Driver is not connected');
     }
 
-    const ipAddress = driver.ip;
-
-    if (!ipAddress) {
+    if (!driver.ip) {
       throw new Error('Driver IP address not available');
     }
 
-    // Determine chip type and firmware path
+    if (!driver.mac) {
+      throw new Error('Driver MAC address not available — cannot send MQTT OTA command');
+    }
+
     const chipType = getChipType(driver.telemetry?.chipModel);
     const firmwarePath = getFirmwarePath(chipType);
-
-    log.info(`Starting OTA flash to ${driverId} (${ipAddress}), chip: ${chipType}...`);
-
-    // Track active OTA driver for error context in global error handler
-    addActiveOtaDriver(driverId);
-
-    // Mark driver as updating - this prevents LWT "offline" from disconnecting it
-    // and shows "Updating" state in the UI
-    driver.state = 'updating';
-    eventBus.emit('driver:updated', { driver });
-
-    // Touch driver immediately at OTA start to reset timeout
-    driverRegistry.touchDriver(driverId);
 
     if (!fs.existsSync(firmwarePath)) {
       throw new Error(`Firmware file not found for ${chipType}: ${firmwarePath}`);
     }
 
-    // Pass explicit defaults for host/port/chunkSize to set timeout (4th param) to 30s
-    const esp = new EspOTA('0.0.0.0', 0, 1460, 30);
+    log.info(`Starting MQTT OTA flash to ${driverId} (${driver.ip}), chip: ${chipType}...`);
 
-    // Note: Socket errors (ECONNRESET, etc.) are handled by the global error handler
-    // in global-error-handler.ts. The esp.on('error') handler below handles errors
-    // emitted by the esp-ota library for UI feedback.
+    addActiveOtaDriver(driverId);
+    driver.state = 'updating';
+    eventBus.emit('driver:updated', { driver });
+    driverRegistry.touchDriver(driverId);
 
-    esp.on('state', (state: string) => {
-      log.info(`OTA state: ${state}`);
+    const [md5, firmwareStat] = await Promise.all([
+      calculateMd5(firmwarePath),
+      fs.promises.stat(firmwarePath),
+    ]);
 
-      // Touch driver on state changes to prevent heartbeat timeout
-      driverRegistry.touchDriver(driverId);
+    const { server, port } = await createFirmwareServer(firmwarePath);
+    const hubIP = getLocalIP();
+    const firmwareUrl = `http://${hubIP}:${port}/firmware.bin`;
 
-      eventBus.emit('flash:ota:state', { driverId, state });
-    });
+    const progressTopic = `rgfx/driver/${driverId}/ota/progress`;
+    const resultTopic = `rgfx/driver/${driverId}/ota/result`;
+    const commandTopic = `rgfx/driver/${driver.mac}/ota`;
 
     let lastPercent = -1;
-    // Object property avoids TS narrowing the callback-mutated value as always-false
-    const progressState = { reachedFull: false };
-    esp.on('progress', (data: { sent: number; total: number }) => {
-      const percent = Math.round((data.sent / data.total) * 100);
-
-      if (percent !== lastPercent) {
-        log.info(`OTA progress: ${driverId} ${percent}%`);
-
-        if (percent >= 100) {
-          progressState.reachedFull = true;
-        }
-
-        // Touch driver to keep it marked as connected during OTA
-        // (OTA activity proves the driver is still responsive)
-        driverRegistry.touchDriver(driverId);
-
-        eventBus.emit('flash:ota:progress', {
-          driverId,
-          sent: data.sent,
-          total: data.total,
-          percent,
-        });
-        lastPercent = percent;
-      }
-    });
-
-    // Handle errors from esp-ota library for UI feedback (modal dialog)
-    // SystemErrors for the System Errors panel are emitted by global-error-handler.ts
-    const errorState = { error: null as Error | null };
-    esp.on('error', (error: Error) => {
-      log.error(`OTA error for ${driverId}:`, error.message);
-      errorState.error = error;
-      eventBus.emit('flash:ota:error', {
-        driverId,
-        error: error.message,
-      });
-    });
 
     try {
-      await esp.uploadFile(firmwarePath, ipAddress, 3232, EspOTA.FLASH);
+      const result = await new Promise<{ success: boolean; error?: string }>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          // If progress was near-complete, device likely rebooted before sending result
+          if (lastPercent >= 95) {
+            log.info(`OTA to ${driverId} likely succeeded (${lastPercent}% complete, device rebooted)`);
+            resolve({ success: true });
+          } else {
+            reject(new Error(`OTA timeout after ${OTA_TIMEOUT_MS / 1000}s (last progress: ${lastPercent}%)`));
+          }
+        }, OTA_TIMEOUT_MS);
 
-      // Check if an error occurred during upload (may not reject the promise)
-      if (errorState.error) {
-        throw errorState.error;
-      }
+        // Fail fast if the driver never responds — likely running old firmware without MQTT OTA
+        const firstContactTimeout = setTimeout(() => {
+          if (lastPercent === -1) {
+            clearTimeout(timeout);
+            reject(new Error(
+              'Driver did not respond to OTA command within 15 seconds. ' +
+              'The driver firmware may not support MQTT OTA — please update via USB Serial first.',
+            ));
+          }
+        }, FIRST_CONTACT_TIMEOUT_MS);
 
-      log.info(`OTA flash to ${driverId} (${chipType}) completed successfully`);
+        mqtt.subscribe(progressTopic, (_topic, payload) => {
+          try {
+            const data = JSON.parse(payload) as { percent: number };
+            const {percent} = data;
 
-      // Re-fetch driver from registry - the reference may have been replaced
-      // by telemetry events during OTA upload (race condition)
-      const updatedDriver = driverRegistry.getDriver(driverId);
+            if (percent !== lastPercent) {
+              clearTimeout(firstContactTimeout);
+              log.info(`OTA progress: ${driverId} ${percent}%`);
+              lastPercent = percent;
 
-      if (updatedDriver) {
-        updatedDriver.state = 'disconnected';
-        updatedDriver.ip = undefined;
-        eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
+              driverRegistry.touchDriver(driverId);
+
+              eventBus.emit('flash:ota:progress', {
+                driverId,
+                sent: Math.round((percent / 100) * firmwareStat.size),
+                total: firmwareStat.size,
+                percent,
+              });
+
+              eventBus.emit('flash:ota:state', {
+                driverId,
+                state: `downloading: ${percent}%`,
+              });
+            }
+          } catch {
+            log.warn(`Invalid OTA progress payload from ${driverId}: ${payload}`);
+          }
+        });
+
+        mqtt.subscribe(resultTopic, (_topic, payload) => {
+          clearTimeout(firstContactTimeout);
+          clearTimeout(timeout);
+
+          try {
+            const data = JSON.parse(payload) as { success: boolean; error?: string };
+            resolve(data);
+          } catch {
+            reject(new Error(`Invalid OTA result payload: ${payload}`));
+          }
+        });
+
+        // Send OTA command to ESP32
+        const otaPayload = JSON.stringify({
+          url: firmwareUrl,
+          size: firmwareStat.size,
+          md5,
+        });
+
+        log.info(`Publishing OTA command to ${commandTopic}: ${otaPayload}`);
+
+        mqtt.publish(commandTopic, otaPayload).catch((err: unknown) => {
+          clearTimeout(timeout);
+          const message = err instanceof Error
+            ? err.message : String(err);
+
+          reject(new Error(
+            `Failed to publish OTA command: ${message}`,
+          ));
+        });
+      });
+
+      if (result.success) {
+        log.info(`OTA flash to ${driverId} (${chipType}) completed successfully`);
+        markDriverDisconnected(driverRegistry, driverId);
+      } else {
+        throw new Error(result.error ?? 'OTA failed on device');
       }
     } catch (error) {
-      const err = error as Error;
-
-      // If we reached 100% progress and got a timeout, the firmware was actually
-      // flashed successfully - the ESP32 just rebooted before sending confirmation
-      if (progressState.reachedFull && err.message.toLowerCase().includes('timeout')) {
-        log.info(`OTA flash to ${driverId} completed (device rebooted before confirmation)`);
-        const updatedDriver = driverRegistry.getDriver(driverId);
-
-        if (updatedDriver) {
-          updatedDriver.state = 'disconnected';
-          updatedDriver.ip = undefined;
-          eventBus.emit('driver:disconnected', { driver: updatedDriver, reason: 'restarting' });
-        }
-
-        return;
-      }
-
-      // Real error - mark driver as disconnected and re-throw
       const errorDriver = driverRegistry.getDriver(driverId);
 
       if (errorDriver) {
         errorDriver.state = 'disconnected';
         eventBus.emit('driver:updated', { driver: errorDriver });
       }
-
       throw error;
     } finally {
-      // Clear active OTA driver tracking regardless of success/failure
+      mqtt.unsubscribe(progressTopic);
+      mqtt.unsubscribe(resultTopic);
       removeActiveOtaDriver(driverId);
+      server.close();
     }
   });
 }

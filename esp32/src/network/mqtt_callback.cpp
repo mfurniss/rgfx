@@ -1,4 +1,5 @@
 #include "network/mqtt.h"
+#include "network/mqtt_ota.h"
 #include "network/network_init.h"
 #include "log.h"
 #include "utils.h"
@@ -26,6 +27,8 @@ static String pendingLoggingPayload;
 static bool pendingWifiConfig = false;
 static String pendingWifiSsid;
 static String pendingWifiPassword;
+static bool hasPendingOta = false;
+static String pendingOtaPayload;
 
 // MQTT callback function - called when a message is received
 // IMPORTANT: Keep this lightweight! The arduino-mqtt library is not reentrant.
@@ -82,6 +85,14 @@ void mqttCallback(String& topic, String& payload) {
 		log("Queuing logging configuration for processing");
 		pendingLoggingConfig = true;
 		pendingLoggingPayload = payload;
+	}
+
+	// Handle MQTT OTA request - queue for deferred processing
+	// OTA does HTTP download, Update.write, and MQTT publish (all heavy operations)
+	else if (topic.startsWith("rgfx/driver/") && topic.endsWith("/ota")) {
+		log("Queuing MQTT OTA request for processing");
+		pendingOtaPayload = payload;
+		hasPendingOta = true;
 	}
 
 	// Handle WiFi configuration - queue for deferred processing
@@ -161,6 +172,15 @@ void processPendingMqttOperations() {
 			ConfigNVS::saveLoggingLevel(levelStr);
 			log("Remote logging level set to: " + levelStr);
 		}
+	}
+
+	// Process pending MQTT OTA request
+	if (hasPendingOta) {
+		hasPendingOta = false;
+		String payload = pendingOtaPayload;
+		pendingOtaPayload = "";  // Free memory immediately
+		log("Processing deferred MQTT OTA request");
+		handleMqttOta(payload);
 	}
 
 	// Process pending WiFi configuration

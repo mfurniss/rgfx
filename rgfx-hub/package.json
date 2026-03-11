@@ -95,7 +95,6 @@
     "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
     "electron-window-state": "^5.0.3",
-    "esp-ota": "^1.2.0",
     "framer-motion": "^12.23.25",
     "gifuct-js": "^2.1.2",
     "ip": "^2.0.1",
