@@ -127,6 +127,26 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | Settings don't save | Verify the directories exist on disk. The Hub validates paths before saving. |
 | Events processed but no effects | Check that the game has a transformer script. Games with interceptors but no transformer use default effect mappings. |
 
+### macOS: Effects don't reach drivers (EHOSTUNREACH)
+
+On macOS Sequoia (15.x), the Hub may connect to drivers via MQTT but fail to send LED effects over UDP. This happens because macOS requires apps to have **Local Network** permission to send UDP packets to other devices on the network.
+
+When the Hub is launched from the **Applications folder** (double-click), macOS enforces this permission. When launched from **Terminal**, the permission check is bypassed because Terminal is a system app.
+
+**Symptoms:**
+
+- Drivers appear as connected in the Hub
+- MQTT commands work (test on/off, config upload)
+- LED effects don't reach drivers
+- The Hub log (`~/Library/Logs/RGFX Hub/main.log`) shows errors like:
+  `UDP send to 192.168.10.x failed: send EHOSTUNREACH`
+
+**Fix:**
+
+1. Open **System Settings → Privacy & Security → Local Network**
+2. Find `rgfx-hub` in the list and make sure it is toggled **on**
+3. If it was already on, toggle it **off** then back **on** — this resets the permission and resolves a known macOS bug where the permission is granted but not applied
+
 ### macOS: "can't be opened because Apple cannot verify the developer"
 
 RGFX Hub is not signed with an Apple Developer certificate. macOS will block the app after downloading. To allow it:

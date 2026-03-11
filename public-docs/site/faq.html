@@ -1819,6 +1819,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#macos-effects-dont-reach-drivers-ehostunreach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS: Effects don't reach drivers (EHOSTUNREACH)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#macos-cant-be-opened-because-apple-cannot-verify-the-developer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2139,6 +2150,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#macos-effects-dont-reach-drivers-ehostunreach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS: Effects don't reach drivers (EHOSTUNREACH)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#macos-cant-be-opened-because-apple-cannot-verify-the-developer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2440,6 +2462,23 @@
 </tr>
 </tbody>
 </table>
+<h3 id="macos-effects-dont-reach-drivers-ehostunreach">macOS: Effects don't reach drivers (EHOSTUNREACH)<a class="headerlink" href="#macos-effects-dont-reach-drivers-ehostunreach" title="Permanent link">¶</a></h3>
+<p>On macOS Sequoia (15.x), the Hub may connect to drivers via MQTT but fail to send LED effects over UDP. This happens because macOS requires apps to have <strong>Local Network</strong> permission to send UDP packets to other devices on the network.</p>
+<p>When the Hub is launched from the <strong>Applications folder</strong> (double-click), macOS enforces this permission. When launched from <strong>Terminal</strong>, the permission check is bypassed because Terminal is a system app.</p>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Drivers appear as connected in the Hub</li>
+<li>MQTT commands work (test on/off, config upload)</li>
+<li>LED effects don't reach drivers</li>
+<li>The Hub log (<code>~/Library/Logs/RGFX Hub/main.log</code>) shows errors like:
+  <code>UDP send to 192.168.10.x failed: send EHOSTUNREACH</code></li>
+</ul>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Open <strong>System Settings → Privacy &amp; Security → Local Network</strong></li>
+<li>Find <code>rgfx-hub</code> in the list and make sure it is toggled <strong>on</strong></li>
+<li>If it was already on, toggle it <strong>off</strong> then back <strong>on</strong> — this resets the permission and resolves a known macOS bug where the permission is granted but not applied</li>
+</ol>
 <h3 id="macos-cant-be-opened-because-apple-cannot-verify-the-developer">macOS: "can't be opened because Apple cannot verify the developer"<a class="headerlink" href="#macos-cant-be-opened-because-apple-cannot-verify-the-developer" title="Permanent link">¶</a></h3>
 <p>RGFX Hub is not signed with an Apple Developer certificate. macOS will block the app after downloading. To allow it:</p>
 <ol>
