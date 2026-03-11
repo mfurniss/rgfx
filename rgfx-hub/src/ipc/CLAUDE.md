@@ -79,18 +79,22 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 **Returns:** `Promise<void>` (throws on error)
 
 **Behavior:**
-1. Validates driver exists and is connected
+1. Validates driver exists, is connected, has IP and MAC address
 2. Detects chip type from driver telemetry (`chipModel`) using `mapChipNameToVariant()`
 3. Selects correct firmware variant (ESP32 or ESP32-S3) via `getOtaFirmwareFilename()`
-4. Uses `esp-ota` library to upload firmware to driver's IP address on port 3232
-5. Emits progress events to renderer via `flash:ota:state`, `flash:ota:progress`, and `flash:ota:error` channels
-6. Sets driver state to `updating` during flash, `disconnected` on completion (driver reboots)
-7. Uses object property pattern (`progressState.reachedFull`) instead of `let` variable to avoid TypeScript narrowing issue where callback-mutated booleans appear always-false at catch sites
+4. Calculates MD5 hash of firmware file, starts temporary HTTP server (port 0, OS-assigned)
+5. Publishes MQTT command to `rgfx/driver/{mac}/ota` with JSON payload: `{url, size, md5}`
+6. Subscribes to `rgfx/driver/{driverId}/ota/progress` and `rgfx/driver/{driverId}/ota/result`
+7. Forwards progress events to renderer via `flash:ota:state` and `flash:ota:progress` channels
+8. Sets driver state to `updating` during flash, `disconnected` on completion (driver reboots)
+9. 120s timeout with heuristic: if progress >= 95% at timeout, treat as success (device rebooted before sending result)
+10. Cleans up in `finally`: unsubscribes MQTT topics, closes HTTP server, removes active OTA tracking
 
 **Multi-chip Support:**
 - Firmware files: `firmware-esp32.bin`, `firmware-esp32s3.bin`
 - Rejects unsupported chips (ESP32-C, ESP32-S2, ESP32-H series)
 - Fails gracefully if driver doesn't report chip type (old firmware)
+- Requires `driver.mac` for MQTT topic addressing
 
 ---
 

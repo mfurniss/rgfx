@@ -357,7 +357,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - Warns about 1-2 minute duration
 - Warns not to disconnect or close app
 - Warning about potential bricking
-- USB-specific note: warns that settings will be erased and WiFi reconfiguration needed
+- USB-specific note: confirms WiFi credentials and NVS settings are preserved
 
 ---
 

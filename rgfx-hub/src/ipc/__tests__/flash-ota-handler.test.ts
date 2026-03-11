@@ -1,12 +1,24 @@
-import path from 'path';
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { Readable } from 'stream';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+  type Mock,
+} from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 import { registerFlashOtaHandler } from '../flash-ota-handler';
+import { INVOKE_CHANNELS } from '../contract';
 import { eventBus } from '@/services/event-bus';
 import type { DriverRegistry } from '@/driver-registry';
+import type { MqttBroker } from '@/network';
 import { Driver } from '@/types';
 import { createMockDriver } from '@/__tests__/factories';
-import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
+import {
+  setupIpcHandlerCapture,
+} from '@/__tests__/helpers/ipc-handler.helper';
 
 vi.mocked(eventBus);
 
@@ -20,10 +32,45 @@ vi.mock('electron', () => ({
   },
 }));
 
-vi.mock('fs', () => ({
-  default: { existsSync: vi.fn(() => true) },
-  existsSync: vi.fn(() => true),
-}));
+function createMockReadableStream(): Readable {
+  const readable = new Readable();
+  readable.push(Buffer.from('fake-firmware-data'));
+  readable.push(null);
+
+  return readable;
+}
+
+vi.mock('fs', async () => {
+  const actual =
+    await vi.importActual<typeof import('fs')>('fs');
+
+  return {
+    ...actual,
+    default: {
+      ...actual,
+      existsSync: vi.fn(() => true),
+      createReadStream: vi.fn(
+        () => createMockReadableStream(),
+      ),
+      statSync: vi.fn(() => ({ size: 1000000 })),
+      promises: {
+        stat: vi.fn(
+          () => Promise.resolve({ size: 1000000 }),
+        ),
+      },
+    },
+    existsSync: vi.fn(() => true),
+    createReadStream: vi.fn(
+      () => createMockReadableStream(),
+    ),
+    statSync: vi.fn(() => ({ size: 1000000 })),
+    promises: {
+      stat: vi.fn(
+        () => Promise.resolve({ size: 1000000 }),
+      ),
+    },
+  };
+});
 
 vi.mock('@/services/event-bus', () => ({
   eventBus: {
@@ -31,322 +78,455 @@ vi.mock('@/services/event-bus', () => ({
   },
 }));
 
-// Static control for mock behavior — vi.hoisted ensures these are available
-// when vi.mock factories run (vitest hoists vi.mock above all other code)
-const { MockEspOTA, mockState } = vi.hoisted(() => {
-  const state = {
-    uploadShouldFail: false,
-    uploadError: null as Error | null,
-    progressSequence: [] as { sent: number; total: number }[],
+vi.mock('@/services/global-error-handler', () => ({
+  addActiveOtaDriver: vi.fn(),
+  removeActiveOtaDriver: vi.fn(),
+}));
+
+vi.mock('http', () => {
+  const mockServer = {
+    listen: vi.fn((_port: number, cb: () => void) => {
+      process.nextTick(cb);
+    }),
+    address: vi.fn(() => ({ port: 54321 })),
+    close: vi.fn((cb?: () => void) => {
+      if (cb) {
+        cb();
+      }
+    }),
+    on: vi.fn(),
   };
 
-  class MockEspOTAClass {
-    static FLASH = 'flash';
-    private handlers: Record<string, (data: unknown) => void> = {};
-
-    uploadFile = vi.fn(() => {
-      for (const progress of state.progressSequence) {
-        this.handlers.progress(progress);
-      }
-
-      if (state.uploadShouldFail && state.uploadError) {
-        return Promise.reject(state.uploadError);
-      }
-
-      return Promise.resolve();
-    });
-
-    on = vi.fn((event: string, handler: (data: unknown) => void) => {
-      this.handlers[event] = handler;
-      return this;
-    });
-  }
-
-  return { MockEspOTA: MockEspOTAClass, mockState: state };
+  return {
+    default: { createServer: vi.fn(() => mockServer) },
+    createServer: vi.fn(() => mockServer),
+  };
 });
 
-vi.mock('esp-ota', () => ({
-  default: MockEspOTA,
+vi.mock('@/network/network-utils', () => ({
+  getLocalIP: vi.fn(() => '192.168.1.50'),
 }));
+
+async function resetFsMocks() {
+  const fs = await import('fs');
+  (fs.default.existsSync as Mock).mockReturnValue(true);
+  (fs.default.createReadStream as Mock).mockImplementation(
+    () => createMockReadableStream(),
+  );
+  (fs.default.statSync as Mock).mockReturnValue(
+    { size: 1000000 },
+  );
+  const fsDef = fs.default as any;
+  (fsDef.promises.stat as Mock).mockReturnValue(
+    Promise.resolve({ size: 1000000 }),
+  );
+  (fs.promises.stat as Mock).mockReturnValue(
+    Promise.resolve({ size: 1000000 }),
+  );
+}
 
 describe('registerFlashOtaHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
+  let mockMqtt: MockProxy<MqttBroker>;
   let mockDriver: Driver;
-  let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
-  let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
+  let registeredHandler: (
+    event: unknown,
+    driverId: string,
+  ) => Promise<void>;
+  let ipc: Awaited<
+    ReturnType<typeof setupIpcHandlerCapture>
+  >;
+  let mqttSubscriptions: Map<
+    string,
+    (topic: string, payload: string) => void
+  >;
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    mqttSubscriptions = new Map();
 
-    // Reset mock control flags
-    mockState.uploadShouldFail = false;
-    mockState.uploadError = null;
-    mockState.progressSequence = [];
-
-    const fs = await import('fs');
-    (fs.default.existsSync as Mock).mockReturnValue(true);
+    await resetFsMocks();
 
     mockDriver = createMockDriver();
 
     mockDriverRegistry = mock<DriverRegistry>();
-    mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
-    mockDriverRegistry.touchDriver.mockReturnValue(mockDriver);
+    mockDriverRegistry.getDriver
+      .mockReturnValue(mockDriver);
+    mockDriverRegistry.touchDriver
+      .mockReturnValue(mockDriver);
+
+    mockMqtt = mock<MqttBroker>();
+    mockMqtt.publish.mockResolvedValue(undefined);
+    mockMqtt.subscribe.mockImplementation(
+      (
+        topic: string,
+        cb: (topic: string, payload: string) => void,
+      ) => {
+        mqttSubscriptions.set(topic, cb);
+      },
+    );
+    mockMqtt.unsubscribe.mockImplementation(
+      (topic: string) => {
+        mqttSubscriptions.delete(topic);
+      },
+    );
 
     ipc = await setupIpcHandlerCapture();
 
     registerFlashOtaHandler({
       driverRegistry: mockDriverRegistry,
+      mqtt: mockMqtt,
     });
 
-    registeredHandler = ipc.getHandler('driver:flash-ota') as typeof registeredHandler;
+    registeredHandler = ipc.getHandler(
+      INVOKE_CHANNELS.flashOTA,
+    ) as typeof registeredHandler;
   });
 
+  afterEach(() => {
+    mqttSubscriptions.clear();
+  });
+
+  function simulateOtaResult(
+    driverId: string,
+    result: { success: boolean; error?: string },
+  ) {
+    const topic =
+      `rgfx/driver/${driverId}/ota/result`;
+    const handler = mqttSubscriptions.get(topic);
+
+    if (handler) {
+      handler(topic, JSON.stringify(result));
+    }
+  }
+
+  function simulateOtaProgress(
+    driverId: string,
+    percent: number,
+  ) {
+    const topic =
+      `rgfx/driver/${driverId}/ota/progress`;
+    const handler = mqttSubscriptions.get(topic);
+
+    if (handler) {
+      handler(topic, JSON.stringify({ percent }));
+    }
+  }
+
+  function mockPublishWithResult(
+    result: { success: boolean; error?: string },
+    progressSteps?: number[],
+  ) {
+    mockMqtt.publish.mockImplementation(
+      (_topic: string, _payload: string) => {
+        if (progressSteps) {
+          for (const p of progressSteps) {
+            simulateOtaProgress('rgfx-driver-0001', p);
+          }
+        }
+
+        simulateOtaResult('rgfx-driver-0001', result);
+
+        return Promise.resolve();
+      },
+    );
+  }
+
   describe('handler registration', () => {
-    it('should register handler for driver:flash-ota channel', () => {
-      ipc.assertChannel('driver:flash-ota');
+    it('registers for driver:flash-ota channel', () => {
+      ipc.assertChannel(INVOKE_CHANNELS.flashOTA);
     });
   });
 
   describe('driver validation', () => {
-    it('should throw error for non-existent driver', async () => {
-      mockDriverRegistry.getDriver.mockReturnValue(undefined);
+    it('throws for non-existent driver', async () => {
+      mockDriverRegistry.getDriver
+        .mockReturnValue(undefined);
 
-      await expect(registeredHandler({}, 'unknown-driver')).rejects.toThrow('Driver not found');
+      await expect(
+        registeredHandler({}, 'unknown-driver'),
+      ).rejects.toThrow('Driver not found');
     });
 
-    it('should throw error for disconnected driver', async () => {
+    it('throws for disconnected driver', async () => {
       mockDriver.state = 'disconnected';
-      mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
-        'Driver is not connected',
-      );
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('Driver is not connected');
     });
 
-    it('should throw error if driver has no IP address', async () => {
+    it('throws if driver has no IP', async () => {
       mockDriver.ip = undefined;
-      mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
-        'Driver IP address not available',
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('Driver IP address not available');
+    });
+
+    it('throws if driver has no MAC', async () => {
+      mockDriver.mac = undefined as unknown as string;
+
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow(
+        'Driver MAC address not available',
       );
     });
   });
 
   describe('firmware file validation', () => {
-    it('should throw error if firmware file not found', async () => {
+    it('throws if firmware file not found', async () => {
       const fs = await import('fs');
-      (fs.default.existsSync as Mock).mockReturnValue(false);
+      (fs.default.existsSync as Mock)
+        .mockReturnValue(false);
 
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
-        'Firmware file not found',
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('Firmware file not found');
+    });
+  });
+
+  describe('MQTT OTA flow', () => {
+    it('publishes OTA command to correct topic', async () => {
+      mockPublishWithResult({ success: true });
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(mockMqtt.publish).toHaveBeenCalledWith(
+        `rgfx/driver/${mockDriver.mac}/ota`,
+        expect.stringContaining('"url"'),
+      );
+    });
+
+    it('includes URL, size, and MD5 in command', async () => {
+      mockMqtt.publish.mockImplementation(
+        (_topic: string, payload: string) => {
+          const data = JSON.parse(payload);
+
+          expect(data).toHaveProperty('url');
+          expect(data).toHaveProperty('size', 1000000);
+          expect(data).toHaveProperty('md5');
+          expect(data.url).toMatch(
+            /^http:\/\/192\.168\.1\.50:\d+\/firmware\.bin$/,
+          );
+          expect(data.md5).toMatch(/^[a-f0-9]{32}$/);
+          simulateOtaResult(
+            'rgfx-driver-0001',
+            { success: true },
+          );
+
+          return Promise.resolve();
+        },
+      );
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+    });
+
+    it('subscribes to progress and result topics', async () => {
+      mockPublishWithResult({ success: true });
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(mockMqtt.subscribe).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/ota/progress',
+        expect.any(Function),
+      );
+      expect(mockMqtt.subscribe).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/ota/result',
+        expect.any(Function),
+      );
+    });
+
+    it('unsubscribes on success', async () => {
+      mockPublishWithResult({ success: true });
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(mockMqtt.unsubscribe).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/ota/progress',
+      );
+      expect(mockMqtt.unsubscribe).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/ota/result',
+      );
+    });
+
+    it('sets driver state to updating before OTA', async () => {
+      let stateWhenFirstEmitCalled: string | undefined;
+
+      vi.mocked(eventBus.emit).mockImplementationOnce(
+        (event, data) => {
+          if (event === 'driver:updated') {
+            stateWhenFirstEmitCalled =
+              (data as { driver: Driver }).driver.state;
+          }
+        },
+      );
+
+      mockPublishWithResult({ success: true });
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(stateWhenFirstEmitCalled).toBe('updating');
+    });
+
+    it('emits driver:disconnected on success', async () => {
+      mockPublishWithResult({ success: true });
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'driver:disconnected',
+        {
+          driver: expect.objectContaining({
+            state: 'disconnected',
+            ip: undefined,
+          }),
+          reason: 'restarting',
+        },
       );
     });
   });
 
-  describe('OTA upload', () => {
-    it('should complete without throwing on successful upload', async () => {
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
-    });
-
-    it('should emit driver:disconnected with restarting reason on success', async () => {
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
-        driver: expect.objectContaining({ state: 'disconnected', ip: undefined }),
-        reason: 'restarting',
-      });
-    });
-
-    it('should touch driver during progress updates', async () => {
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      // touchDriver should be called during progress updates
-      expect(mockDriverRegistry.touchDriver).toHaveBeenCalled();
-    });
-
-    it('should set driver state to updating before upload', async () => {
-      // Track state transitions by capturing when emit is called
-      let stateWhenFirstEmitCalled: string | undefined;
-      vi.mocked(eventBus.emit).mockImplementationOnce((event, data) => {
-        if (event === 'driver:updated') {
-          stateWhenFirstEmitCalled = (data as { driver: Driver }).driver.state;
-        }
-      });
+  describe('progress events', () => {
+    it('forwards progress updates to event bus', async () => {
+      mockPublishWithResult({ success: true }, [25, 50]);
 
       await registeredHandler({}, 'rgfx-driver-0001');
 
-      // driver:updated should have been called with state 'updating'
-      expect(stateWhenFirstEmitCalled).toBe('updating');
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'flash:ota:progress',
+        expect.objectContaining({
+          driverId: 'rgfx-driver-0001',
+          percent: 25,
+        }),
+      );
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'flash:ota:progress',
+        expect.objectContaining({
+          driverId: 'rgfx-driver-0001',
+          percent: 50,
+        }),
+      );
+    });
+
+    it('touches driver on progress updates', async () => {
+      mockPublishWithResult({ success: true }, [50]);
+
+      await registeredHandler({}, 'rgfx-driver-0001');
+
+      expect(
+        mockDriverRegistry.touchDriver,
+      ).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('error handling', () => {
-    it('should throw for non-existent driver', async () => {
-      mockDriverRegistry.getDriver.mockReturnValue(undefined);
-
-      await expect(registeredHandler({}, 'unknown-driver')).rejects.toThrow('Driver not found');
-    });
-
-    it('should propagate Error objects correctly', async () => {
-      mockDriverRegistry.getDriver.mockImplementation(() => {
-        throw new Error('Custom error message');
+    it('throws when device reports OTA failure', async () => {
+      mockPublishWithResult({
+        success: false,
+        error: 'MD5 mismatch',
       });
 
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
-        'Custom error message',
-      );
-    });
-  });
-
-  describe('progress calculation', () => {
-    it('should round progress percentage correctly (50%)', () => {
-      const percent = Math.round((50 / 100) * 100);
-      expect(percent).toBe(50);
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('MD5 mismatch');
     });
 
-    it('should round progress percentage correctly (33%)', () => {
-      const percent = Math.round((333 / 1000) * 100);
-      expect(percent).toBe(33);
-    });
-
-    it('should round progress percentage correctly (100%)', () => {
-      const percent = Math.round((1000 / 1000) * 100);
-      expect(percent).toBe(100);
-    });
-
-    it('should round progress percentage correctly (0%)', () => {
-      const percent = Math.round((0 / 1000) * 100);
-      expect(percent).toBe(0);
-    });
-  });
-
-  describe('firmware path resolution', () => {
-    it('should use development path when not packaged', async () => {
-      const fs = await import('fs');
-      const existsSyncMock = fs.default.existsSync as Mock;
-      existsSyncMock.mockReturnValue(true);
-
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      expect(existsSyncMock).toHaveBeenCalledWith(
-        expect.stringContaining(path.join('assets', 'esp32', 'firmware', 'firmware-esp32.bin')),
-      );
-    });
-  });
-
-  // Note: uncaughtException handling is now done globally in global-error-handler.ts
-  // Tests for that functionality are in global-error-handler.test.ts
-
-  describe('driver reference race condition', () => {
-    it('should re-fetch driver after OTA to avoid stale reference', async () => {
-      // Simulate race condition: telemetry arrives during OTA, replacing driver object
-      const originalDriver = createMockDriver({ id: 'rgfx-driver-0001' });
-      const replacedDriver = createMockDriver({ id: 'rgfx-driver-0001' });
-
-      // First call returns original, subsequent calls return replaced driver
-      mockDriverRegistry.getDriver
-        .mockReturnValueOnce(originalDriver)
-        .mockReturnValueOnce(replacedDriver);
-
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      // Handler should call getDriver twice: once at start, once after OTA completes
-      expect(mockDriverRegistry.getDriver).toHaveBeenCalledTimes(2);
-
-      // The replaced driver should have state set to 'disconnected', not the original
-      expect(replacedDriver.state).toBe('disconnected');
-      expect(replacedDriver.ip).toBeUndefined();
-    });
-
-    it('should emit driver:disconnected with the fresh driver reference', async () => {
-      const originalDriver = createMockDriver({ id: 'rgfx-driver-0001' });
-      const replacedDriver = createMockDriver({ id: 'rgfx-driver-0001' });
-
-      mockDriverRegistry.getDriver
-        .mockReturnValueOnce(originalDriver)
-        .mockReturnValueOnce(replacedDriver);
-
-      await registeredHandler({}, 'rgfx-driver-0001');
-
-      // Should emit with the replaced driver, not original
-      expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
-        driver: replacedDriver,
-        reason: 'restarting',
+    it('marks driver disconnected on error', async () => {
+      mockPublishWithResult({
+        success: false,
+        error: 'Write failed',
       });
+
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow();
+
+      expect(eventBus.emit).toHaveBeenCalledWith(
+        'driver:updated',
+        {
+          driver: expect.objectContaining({
+            state: 'disconnected',
+          }),
+        },
+      );
     });
 
-    it('should handle case where driver no longer exists after OTA', async () => {
-      const originalDriver = createMockDriver({ id: 'rgfx-driver-0001' });
+    it('cleans up MQTT subscriptions on error', async () => {
+      mockPublishWithResult({
+        success: false,
+        error: 'Failed',
+      });
 
-      // Driver exists at start but is removed during OTA
-      mockDriverRegistry.getDriver
-        .mockReturnValueOnce(originalDriver)
-        .mockReturnValueOnce(undefined);
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow();
 
-      // Should still complete without throwing (driver just disappeared)
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
-      // Should not emit driver:disconnected since driver no longer exists
-      expect(eventBus.emit).not.toHaveBeenCalledWith(
-        'driver:disconnected',
-        expect.any(Object),
+      expect(mockMqtt.unsubscribe).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/ota/progress',
       );
+      expect(mockMqtt.unsubscribe).toHaveBeenCalledWith(
+        'rgfx/driver/rgfx-driver-0001/ota/result',
+      );
+    });
+
+    it('fails fast if driver does not respond within 15 seconds', async () => {
+      vi.useFakeTimers();
+
+      // publish succeeds but driver never responds (old firmware)
+      mockMqtt.publish.mockResolvedValue(undefined);
+
+      const promise = registeredHandler(
+        {},
+        'rgfx-driver-0001',
+      ).catch((err: unknown) => err);
+
+      // Advance past the 15-second first contact timeout
+      await vi.advanceTimersByTimeAsync(15_000);
+
+      const error = await promise;
+
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'Driver did not respond to OTA command',
+      );
+      expect((error as Error).message).toContain(
+        'USB Serial',
+      );
+
+      vi.useRealTimers();
+    });
+
+    it('throws when MQTT publish fails', async () => {
+      mockMqtt.publish.mockRejectedValue(
+        new Error('MQTT connection lost'),
+      );
+
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('Failed to publish OTA command');
     });
   });
 
-  describe('timeout after full progress', () => {
-    it('should treat timeout after 100% progress as success', async () => {
-      // Simulate: reached 100%, then timeout
-      mockState.progressSequence = [
-        { sent: 500000, total: 1000000 }, // 50%
-        { sent: 1000000, total: 1000000 }, // 100%
-      ];
-      mockState.uploadShouldFail = true;
-      mockState.uploadError = new Error('Transmission timeout');
+  describe('chip type detection', () => {
+    it('throws for unknown chip model', async () => {
+      mockDriver.telemetry = undefined;
 
-      // Should NOT throw - timeout after 100% is treated as success
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
-
-      // Should emit driver:disconnected with 'restarting' reason
-      expect(eventBus.emit).toHaveBeenCalledWith('driver:disconnected', {
-        driver: expect.objectContaining({ state: 'disconnected' }),
-        reason: 'restarting',
-      });
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('Driver chip type unknown');
     });
 
-    it('should throw timeout error if 100% was never reached', async () => {
-      // Simulate: only 90% progress, then timeout
-      mockState.progressSequence = [
-        { sent: 500000, total: 1000000 }, // 50%
-        { sent: 900000, total: 1000000 }, // 90%
-      ];
-      mockState.uploadShouldFail = true;
-      mockState.uploadError = new Error('Transmission timeout');
+    it('throws for unsupported chip type', async () => {
+      mockDriver.telemetry = {
+        ...mockDriver.telemetry!,
+        chipModel: 'ESP32-C3',
+      };
 
-      // Should throw - real timeout before completion
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
-        'Transmission timeout',
-      );
-    });
-
-    it('should throw non-timeout errors even after 100%', async () => {
-      // Simulate: 100% reached, but a different error
-      mockState.progressSequence = [{ sent: 1000000, total: 1000000 }]; // 100%
-      mockState.uploadShouldFail = true;
-      mockState.uploadError = new Error('Connection reset');
-
-      // Should throw - not a timeout error
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow('Connection reset');
-    });
-
-    it('should handle case-insensitive timeout detection', async () => {
-      // Simulate: 100%, then UPPERCASE timeout message
-      mockState.progressSequence = [{ sent: 1000000, total: 1000000 }];
-      mockState.uploadShouldFail = true;
-      mockState.uploadError = new Error('TRANSMISSION TIMEOUT');
-
-      // Should NOT throw - case-insensitive match
-      await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
+      await expect(
+        registeredHandler({}, 'rgfx-driver-0001'),
+      ).rejects.toThrow('Unsupported chip type');
     });
   });
 });

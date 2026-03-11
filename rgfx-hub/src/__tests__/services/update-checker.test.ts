@@ -35,9 +35,19 @@ describe('isNewerVersion', () => {
     expect(isNewerVersion('v1.0.0', '1.0.1')).toBe(true);
   });
 
-  it('handles different segment counts', () => {
-    expect(isNewerVersion('1.0', '1.0.1')).toBe(true);
-    expect(isNewerVersion('1.0.1', '1.0')).toBe(false);
+  it('handles prerelease versions', () => {
+    expect(isNewerVersion('1.0.0-dev', '1.0.0')).toBe(true);
+    expect(isNewerVersion('1.0.0', '1.0.0-dev')).toBe(false);
+  });
+
+  it('handles build metadata', () => {
+    expect(isNewerVersion('1.0.0-dev+abc123', '1.0.1')).toBe(true);
+    expect(isNewerVersion('1.0.1', '1.0.0-dev+abc123')).toBe(false);
+  });
+
+  it('returns false for invalid versions', () => {
+    expect(isNewerVersion('not-a-version', '1.0.0')).toBe(false);
+    expect(isNewerVersion('1.0.0', 'not-a-version')).toBe(false);
   });
 });
 

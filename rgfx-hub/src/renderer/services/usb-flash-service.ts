@@ -239,10 +239,16 @@ export async function flashViaUSB(
     onLog('Loading flasher stub...');
     const stub = await loader.runStub();
 
-    // Note: No full flash erase here. flashDeflBegin (inside flashData with
-    // compress=true) handles erasing regions being written. Full eraseFlash()
-    // caused "Invalid head of packet" failures on Windows with CP2102 chips
-    // due to prolonged serial activity at 115200 baud.
+    // Erase the otadata partition so the bootloader defaults to app0 (ota_0).
+    // Without this, a device previously updated via ArduinoOTA boots from app1,
+    // ignoring the firmware we just wrote to app0 at 0x10000.
+    const OTADATA_OFFSET = 0xe000;
+    const OTADATA_SIZE = 0x2000; // 8KB
+    onLog('Erasing OTA data partition (resetting boot selection)...');
+    const emptyOtaData = new ArrayBuffer(OTADATA_SIZE);
+    new Uint8Array(emptyOtaData).fill(0xff);
+    const noop = (): void => { /* no progress needed */ };
+    await stub.flashData(emptyOtaData, noop, OTADATA_OFFSET, true);
 
     // Calculate total size for progress reporting
     const totalSize = fileArray.reduce((sum, f) => sum + f.size, 0);

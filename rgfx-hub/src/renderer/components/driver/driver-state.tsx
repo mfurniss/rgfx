@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Chip, type ChipProps, CircularProgress, Tooltip, IconButton } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
 import type { Driver, DriverState as DriverStateType } from '@/types';
-import { mapChipNameToVariant } from '@/schemas/firmware-manifest';
+import { getDriverFirmwareUpdateInfo } from '@/renderer/utils/firmware-helpers';
 
 interface DriverStateProps {
   driver: Driver;
@@ -15,26 +15,6 @@ const stateConfig: Record<DriverStateType, { label: string; color: ChipProps['co
   disconnected: { label: 'Disconnected', color: 'error' },
   updating: { label: 'Updating', color: 'info' },
 };
-
-/**
- * Get the target firmware version for a driver based on its chip type
- */
-function getTargetVersion(
-  driver: Driver,
-  firmwareVersions: Record<string, string> | undefined,
-): string | null {
-  if (!firmwareVersions || !driver.telemetry?.chipModel) {
-    return null;
-  }
-
-  const chipType = mapChipNameToVariant(driver.telemetry.chipModel);
-
-  if (!chipType) {
-    return null;
-  }
-
-  return firmwareVersions[chipType] ?? null;
-}
 
 function ChipWithWarning({
   chip,
@@ -85,15 +65,10 @@ const DriverState: React.FC<DriverStateProps> = ({ driver, firmwareVersions }) =
 
   const { label, color } = stateConfig[state];
 
-  // Get target version for this driver's chip type
-  const targetVersion = getTargetVersion(driver, firmwareVersions);
-
-  // Only show update warning when connected and firmware versions differ
-  const needsFirmwareUpdate =
-    state === 'connected' &&
-    targetVersion &&
-    telemetry?.firmwareVersion &&
-    telemetry.firmwareVersion !== targetVersion;
+  // Only show update warning when connected and bundled firmware is newer
+  const updateInfo = state === 'connected'
+    ? getDriverFirmwareUpdateInfo(driver, firmwareVersions)
+    : null;
 
   // Show LED config warning when connected but no LED hardware configured
   const needsLedConfig = state === 'connected' && !ledConfig;
@@ -113,11 +88,11 @@ const DriverState: React.FC<DriverStateProps> = ({ driver, firmwareVersions }) =
   }
 
   // Firmware update takes priority over LED config warning
-  if (needsFirmwareUpdate) {
+  if (updateInfo?.needsUpdate) {
     return (
       <ChipWithWarning
         chip={chip}
-        tooltip={`Firmware update: v${telemetry.firmwareVersion} → v${targetVersion}`}
+        tooltip={`Firmware update: v${updateInfo.driverVersion} → v${updateInfo.targetVersion}`}
         iconColor="warning.main"
         onClick={(e) => {
           e.stopPropagation();

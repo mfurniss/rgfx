@@ -36,7 +36,7 @@ const firmwareVersions: Record<string, string> = {
 };
 
 describe('driverNeedsUpdate', () => {
-  it('should return true when driver firmware differs from target', () => {
+  it('should return true when bundled firmware is newer than driver', () => {
     const driver = makeDriver({ firmwareVersion: '1.0.0' });
     expect(driverNeedsUpdate(driver, firmwareVersions)).toBe(true);
   });
@@ -44,6 +44,29 @@ describe('driverNeedsUpdate', () => {
   it('should return false when driver firmware matches target', () => {
     const driver = makeDriver({ firmwareVersion: '2.0.0' });
     expect(driverNeedsUpdate(driver, firmwareVersions)).toBe(false);
+  });
+
+  it('should return false when driver is running newer firmware than bundled', () => {
+    const driver = makeDriver({ firmwareVersion: '3.0.0' });
+    expect(driverNeedsUpdate(driver, firmwareVersions)).toBe(false);
+  });
+
+  it('should return false when bundled is a dev prerelease and driver is newer', () => {
+    const devVersions: Record<string, string> = {
+      'ESP32': '1.0.12-dev+c6c2a4a8',
+      'ESP32-S3': '1.0.12-dev+c6c2a4a8',
+    };
+    const driver = makeDriver({ firmwareVersion: '1.0.13' });
+    expect(driverNeedsUpdate(driver, devVersions)).toBe(false);
+  });
+
+  it('should return false when bundled is prerelease of same version as driver', () => {
+    const devVersions: Record<string, string> = {
+      'ESP32': '1.0.12-dev+c6c2a4a8',
+      'ESP32-S3': '1.0.12-dev+c6c2a4a8',
+    };
+    const driver = makeDriver({ firmwareVersion: '1.0.12' });
+    expect(driverNeedsUpdate(driver, devVersions)).toBe(false);
   });
 
   it('should return false when firmwareVersions is undefined', () => {

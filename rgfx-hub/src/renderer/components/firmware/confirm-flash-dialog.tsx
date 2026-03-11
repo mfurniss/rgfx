@@ -52,8 +52,8 @@ const ConfirmFlashDialog: React.FC<ConfirmFlashDialogProps> = ({
         </Typography>
         {isUsb && (
           <Typography sx={{ mb: 2 }} color="info.main">
-            <strong>Note:</strong> USB flashing erases all settings. You will need to configure
-            WiFi credentials after flashing.
+            <strong>Note:</strong> WiFi credentials and other NVS settings are preserved during
+            USB flashing.
           </Typography>
         )}
         <Typography color="warning.main">

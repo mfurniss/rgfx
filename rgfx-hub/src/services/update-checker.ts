@@ -1,28 +1,20 @@
 import { app } from 'electron';
 import log from 'electron-log/main';
+import semver from 'semver';
 import { GITHUB_RELEASES_API_URL } from '../config/constants';
 
 /**
  * Compare two semver strings. Returns true if latest is newer than current.
  */
 export function isNewerVersion(current: string, latest: string): boolean {
-  const parse = (v: string) => v.replace(/^v/, '').split('.').map(Number);
-  const cur = parse(current);
-  const lat = parse(latest);
+  const cur = semver.parse(semver.clean(current) ?? current);
+  const lat = semver.parse(semver.clean(latest) ?? latest);
 
-  for (let i = 0; i < Math.max(cur.length, lat.length); i++) {
-    const c = cur[i] ?? 0;
-    const l = lat[i] ?? 0;
-
-    if (l > c) {
-      return true;
-    }
-
-    if (l < c) {
-      return false;
-    }
+  if (!cur || !lat) {
+    return false;
   }
-  return false;
+
+  return semver.gt(lat, cur);
 }
 
 /**
