@@ -71,9 +71,3 @@ flowchart TB
 - **Ambilight mode** — sample screen edge colors for ambient lighting that follows the game
 - **LED strips and matrices** — works with WS2812B and SK6812 addressable LEDs
 - **Multiple drivers** — run several ESP32 boards with different LED setups, all synchronized
-
-## Get Started
-
-- **[Getting Started](getting-started/requirements.md)** — everything you need to go from zero to LEDs reacting to gameplay
-- **[Example Games](example-games.md)** — browse included game scripts or learn how to add your favorite game
-- **[FX Playground](hub-app/fx-playground.md)** — experiment with effects interactively, no game required

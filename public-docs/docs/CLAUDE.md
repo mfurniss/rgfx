@@ -52,7 +52,7 @@ Use neutral voice for most content and first person "I" for personal opinions or
 
 ```
 docs/
-├── index.md                    # Landing page with hero video and download button
+├── index.md                    # Landing page with hero video, download button, and feature highlights
 ├── example-games.md            # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 6-page onboarding flow (requirements → hub-setup → first-driver → test-leds → configure-mame → play)

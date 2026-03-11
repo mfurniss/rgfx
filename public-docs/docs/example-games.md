@@ -38,7 +38,7 @@ For mapping events to effects, see the [Writing Transformers](transformers/writi
 
 ## Contribute Your Scripts
 
-RGFX is a community project. If you've written an interceptor or transformer for a game, consider contributing it back so everyone can enjoy it.
+RGFX is a community project. If you've written an interceptor or transformer for a game, consider contributing it back.
 
 ### How to Contribute
 

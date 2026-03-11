@@ -1,6 +1,6 @@
 # What You'll Need
 
-Before you begin, here's what you'll need to set up RGFX. The minimum viable setup is surprisingly simple and inexpensive.
+Before you begin, here's what you'll need to set up RGFX.
 
 ## Software
 
