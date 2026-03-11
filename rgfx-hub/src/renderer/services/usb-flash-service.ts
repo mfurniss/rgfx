@@ -19,7 +19,6 @@ export interface FlashCallbacks {
 
 const MAX_CONNECT_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
-const FLASH_BAUD_RATE = 460800;
 
 interface FlashResult {
   success: boolean;
@@ -239,11 +238,6 @@ export async function flashViaUSB(
     // Upload stub for faster flashing and erase support
     onLog('Loading flasher stub...');
     const stub = await loader.runStub();
-
-    // Increase baud rate from ROM default (115200) for faster flashing.
-    // 460800 is the esptool.py default — reliable across CP2102/CH340/FTDI.
-    onLog(`Setting baud rate to ${FLASH_BAUD_RATE}...`);
-    await stub.setBaudrate(FLASH_BAUD_RATE);
 
     // Erase the otadata partition so the bootloader defaults to app0 (ota_0).
     // Without this, a device previously updated via ArduinoOTA boots from app1,

@@ -44,10 +44,9 @@ Handles USB serial firmware flashing with automatic chip detection:
 3. Detect chip type from device
 4. Load and verify firmware files for detected chip (size + SHA256)
 5. Upload flasher stub (`runStub()`)
-6. Increase baud rate to 460800 (esptool.py default) for faster flashing
-7. Erase otadata partition (0xe000, 8KB) to reset boot selection to app0 — required because ArduinoOTA writes to app1 and updates otadata to boot from app1, so without this the device ignores firmware written to app0
-8. Flash each partition file with progress reporting (region erase handled by `flashDeflBegin` internally)
-9. Reset device to firmware mode after successful flash
+6. Erase otadata partition (0xe000, 8KB) to reset boot selection to app0 — required because ArduinoOTA writes to app1 and updates otadata to boot from app1, so without this the device ignores firmware written to app0
+7. Flash each partition file with progress reporting (region erase handled by `flashDeflBegin` internally)
+8. Reset device to firmware mode after successful flash
 
 **Note:** No full flash erase is performed. The `flashDeflBegin` call inside `flashData` handles erasing regions being written. A full `eraseFlash()` was removed because it caused "Invalid head of packet" failures on Windows with CP2102 USB-UART bridges due to prolonged serial activity at 115200 baud. NVS and other unwritten regions are preserved across flashes.
 
@@ -59,6 +58,6 @@ Handles USB serial firmware flashing with automatic chip detection:
 
 **File:** [esp-loader-factory.ts](esp-loader-factory.ts)
 
-Isolates the `tasmota-webserial-esptool` unsafe type boundary. The library's `ESPLoader` class has `any[]` typed properties that cascade ESLint `no-unsafe-*` errors. This factory module is the only file that imports the library directly — it exports clean typed interfaces (`EspLoaderApi`, `FlashLogger`) and a `createEspLoader()` factory function. `EspStub` is internal (not exported) — used only as the return type of `EspLoaderApi.runStub()`. `EspStub` exposes `setBaudrate()` and `flashData()` methods. The file-level `eslint-disable` for `no-unsafe-assignment` is intentional and contained to this single file.
+Isolates the `tasmota-webserial-esptool` unsafe type boundary. The library's `ESPLoader` class has `any[]` typed properties that cascade ESLint `no-unsafe-*` errors. This factory module is the only file that imports the library directly — it exports clean typed interfaces (`EspLoaderApi`, `FlashLogger`) and a `createEspLoader()` factory function. `EspStub` is internal (not exported) — used only as the return type of `EspLoaderApi.runStub()`. `EspStub` exposes `flashData()` method. The file-level `eslint-disable` for `no-unsafe-assignment` is intentional and contained to this single file.
 
 <\!-- No per-file license headers — see root LICENSE -->
