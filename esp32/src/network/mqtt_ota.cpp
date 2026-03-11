@@ -196,14 +196,13 @@ void handleMqttOta(const String& payload) {
 
 		totalRead += bytesRead;
 
-		// Report progress every 5%
+		// Report progress every 1%
 		int percent = (totalRead * 100) / contentLength;
-		int reportThreshold = (percent / 5) * 5;
-		if (reportThreshold > lastReportedPercent) {
-			lastReportedPercent = reportThreshold;
-			log("OTA Progress: " + String(reportThreshold) + "%");
-			publishOtaProgress(deviceId, reportThreshold);
-			showOtaProgress((float)reportThreshold);
+		if (percent > lastReportedPercent) {
+			lastReportedPercent = percent;
+			log("OTA Progress: " + String(percent) + "%");
+			publishOtaProgress(deviceId, percent);
+			showOtaProgress((float)percent);
 		}
 	}
 

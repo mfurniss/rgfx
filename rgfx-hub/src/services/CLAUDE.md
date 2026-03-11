@@ -17,7 +17,7 @@ Singleton service that reads firmware versions from `manifest.json` in the bundl
 Key methods:
 - `getVersions()`: returns `Record<SupportedChip, string>` with all chip versions
 - `getVersionForChip(chipType)`: returns version string for a specific chip type
-- `needsUpdate(driverVersion, chipType)`: compares driver version with the target version for its chip type
+- `needsUpdate(driverVersion, chipType)`: uses `semver.gt()` to check if bundled firmware is strictly newer than the driver's version. Prevents false "downgrade" warnings when running dev prerelease builds.
 
 This per-chip version tracking prevents false "update needed" notifications when only one chip variant has been rebuilt.
 
@@ -103,7 +103,7 @@ Tracks event processing statistics.
 Checks GitHub releases for newer hub versions.
 
 - `checkForUpdate(currentVersion)`: fetches latest release from GitHub API, returns release URL if newer, null otherwise
-- `isNewerVersion(current, latest)`: semver comparison (exported for testing)
+- `isNewerVersion(current, latest)`: semver comparison using `semver` package (exported for testing)
 - Returns `null` on any error (silent fail) or when `app.isPackaged` is false
 - Called once by `SystemMonitor.startUpdateChecker()` with 5s delay after startup
 

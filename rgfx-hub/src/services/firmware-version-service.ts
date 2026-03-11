@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { app } from 'electron';
 import log from 'electron-log/main';
+import semver from 'semver';
 import {
   FirmwareManifestSchema,
   type FirmwareManifest,
@@ -87,7 +88,15 @@ class FirmwareVersionService {
       return false;
     }
 
-    return driverVersion !== targetVersion;
+    // Only flag update when bundled firmware is strictly newer than what the driver is running
+    const target = semver.parse(semver.clean(targetVersion) ?? targetVersion);
+    const driver = semver.parse(semver.clean(driverVersion) ?? driverVersion);
+
+    if (!target || !driver) {
+      return false;
+    }
+
+    return semver.gt(target, driver);
   }
 }
 

@@ -79,6 +79,7 @@ beforeEach(() => {
   mockGetFirmwareFile.mockResolvedValue(new Uint8Array(100));
   mockInitialize.mockResolvedValue(undefined);
   mockRunStub.mockResolvedValue({
+    setBaudrate: vi.fn().mockResolvedValue(undefined),
     flashData: mockFlashData,
   });
   mockFlashData.mockResolvedValue(undefined);

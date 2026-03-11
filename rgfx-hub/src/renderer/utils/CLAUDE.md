@@ -52,6 +52,19 @@ Color utilities for hex color validation and conversion.
 - `normalizeHex(value)`: Normalizes various hex formats to #RRGGBB
 - `valueToHex(value)`: Converts color values (number, named, hex) to #RRGGBB
 
+### firmware-helpers.ts
+
+Centralized firmware version comparison logic using the `semver` package.
+
+- `getDriverFirmwareUpdateInfo(driver, firmwareVersions)`: Returns `{needsUpdate, driverVersion, targetVersion}` or `null`. Uses `semver.gt()` to determine if bundled firmware is strictly newer than what the driver is running. Maps driver chip model to variant via `mapChipNameToVariant()`.
+- `driverNeedsUpdate(driver, firmwareVersions)`: Convenience boolean wrapper around `getDriverFirmwareUpdateInfo`.
+
+Used by `driver-state.tsx` and the firmware flash UI. Replaces duplicated version comparison logic that previously existed in multiple files.
+
+### ring-buffer.ts
+
+Fixed-size ring buffer for telemetry history.
+
 ## Notes
 
 - These utilities are renderer-only (no Node.js APIs)

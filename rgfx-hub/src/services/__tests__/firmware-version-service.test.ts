@@ -112,7 +112,7 @@ describe('FirmwareVersionService', () => {
   });
 
   describe('needsUpdate', () => {
-    it('should return true when versions differ for ESP32', async () => {
+    it('should return true when bundled firmware is newer than driver', async () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
@@ -130,13 +130,43 @@ describe('FirmwareVersionService', () => {
       expect(needsUpdate).toBe(false);
     });
 
+    it('should return false when driver is running newer firmware than bundled', async () => {
+      mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+
+      // Bundled is 1.2.3, driver is running 1.3.0 — no downgrade
+      expect(firmwareVersionService.needsUpdate('1.3.0', 'ESP32')).toBe(false);
+    });
+
+    it('should return false when bundled is a dev prerelease of same version', async () => {
+      const devManifest = {
+        ...validManifest,
+        variants: {
+          ...validManifest.variants,
+          ESP32: {
+            ...validManifest.variants.ESP32,
+            version: '1.0.12-dev+c6c2a4a8',
+          },
+        },
+      };
+      mockReadFileSync.mockReturnValue(JSON.stringify(devManifest));
+
+      const { firmwareVersionService } = await import('../firmware-version-service.js');
+
+      // Bundled 1.0.12-dev < driver 1.0.13 — no update
+      expect(firmwareVersionService.needsUpdate('1.0.13', 'ESP32')).toBe(false);
+      // Bundled 1.0.12-dev < driver 1.0.12 — no update (prerelease < release)
+      expect(firmwareVersionService.needsUpdate('1.0.12', 'ESP32')).toBe(false);
+    });
+
     it('should compare against correct chip variant', async () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(validManifest));
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
 
       // ESP32 version is 1.2.3, ESP32-S3 version is 1.2.4
-      // Driver with version 1.2.3 on ESP32-S3 should need update
+      // Driver with version 1.2.3 on ESP32-S3 should need update (1.2.4 > 1.2.3)
       expect(firmwareVersionService.needsUpdate('1.2.3', 'ESP32-S3')).toBe(true);
       // Driver with version 1.2.4 on ESP32-S3 should NOT need update
       expect(firmwareVersionService.needsUpdate('1.2.4', 'ESP32-S3')).toBe(false);
