@@ -1,5 +1,7 @@
+import fs from 'fs';
 import { ipcMain } from 'electron';
 import log from 'electron-log/main';
+import EspOTA from 'esp-ota';
 import type { DriverRegistry } from '../driver-registry';
 import { INVOKE_CHANNELS } from './contract';
 import { eventBus } from '../services/event-bus';
@@ -78,13 +80,10 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     // Touch driver immediately at OTA start to reset timeout
     driverRegistry.touchDriver(driverId);
 
-    const fs = await import('fs');
-
     if (!fs.existsSync(firmwarePath)) {
       throw new Error(`Firmware file not found for ${chipType}: ${firmwarePath}`);
     }
 
-    const EspOTA = (await import('esp-ota')).default;
     // Pass explicit defaults for host/port/chunkSize to set timeout (4th param) to 30s
     const esp = new EspOTA('0.0.0.0', 0, 1460, 30);
 

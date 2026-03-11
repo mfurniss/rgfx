@@ -53,6 +53,8 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 
 ## Import Conventions
 
+**Do NOT use dynamic imports (`import()`) in production code unless 100% necessary.** This is a desktop app — bundle size and bandwidth are irrelevant. Use static `import` statements for everything. Dynamic imports add unnecessary complexity and make code harder to follow. **Exception: dynamic imports in tests are fine** — vitest often requires them for module isolation.
+
 **Use deep imports for `@mui/icons-material`** — barrel imports cause EMFILE errors in vitest by resolving all ~7000 icon modules. Use `import FooIcon from '@mui/icons-material/Foo'` instead of `import { Foo as FooIcon } from '@mui/icons-material'`.
 
 ## Test Infrastructure
