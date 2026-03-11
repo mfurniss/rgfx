@@ -180,6 +180,8 @@ void setup() {
 				if (leds) {
 					fill_solid(leds, firstDevice.count, CRGB::Green);
 					hal::getLedController().show();
+					fill_solid(leds, firstDevice.count, CRGB::Black);
+					hal::getLedController().show();
 				}
 			}
 		}
