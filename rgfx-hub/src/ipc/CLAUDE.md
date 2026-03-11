@@ -395,6 +395,10 @@ Files needing additional electron mocks (`app`, `shell`, `dialog`) provide their
 
 ---
 
+## Import Conventions
+
+**Use static imports only.** Do not use dynamic `import()` in handler code — this is a desktop app, not a web app. All dependencies (including `fs`, `esp-ota`, etc.) should be imported statically at the top of the file.
+
 ## Error Handling
 
 All handlers follow a standardized error handling pattern:

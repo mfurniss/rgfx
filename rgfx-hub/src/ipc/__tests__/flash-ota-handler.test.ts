@@ -21,6 +21,7 @@ vi.mock('electron', () => ({
 }));
 
 vi.mock('fs', () => ({
+  default: { existsSync: vi.fn(() => true) },
   existsSync: vi.fn(() => true),
 }));
 
@@ -30,33 +31,39 @@ vi.mock('@/services/event-bus', () => ({
   },
 }));
 
-// Static control for mock behavior
-let mockUploadShouldFail = false;
-let mockUploadError: Error | null = null;
-let mockProgressSequence: { sent: number; total: number }[] = [];
+// Static control for mock behavior — vi.hoisted ensures these are available
+// when vi.mock factories run (vitest hoists vi.mock above all other code)
+const { MockEspOTA, mockState } = vi.hoisted(() => {
+  const state = {
+    uploadShouldFail: false,
+    uploadError: null as Error | null,
+    progressSequence: [] as { sent: number; total: number }[],
+  };
 
-class MockEspOTA {
-  static FLASH = 'flash';
-  private handlers: Record<string, (data: unknown) => void> = {};
+  class MockEspOTAClass {
+    static FLASH = 'flash';
+    private handlers: Record<string, (data: unknown) => void> = {};
 
-  uploadFile = vi.fn(() => {
-    // Simulate progress events
-    for (const progress of mockProgressSequence) {
-      this.handlers.progress(progress);
-    }
+    uploadFile = vi.fn(() => {
+      for (const progress of state.progressSequence) {
+        this.handlers.progress(progress);
+      }
 
-    if (mockUploadShouldFail && mockUploadError) {
-      return Promise.reject(mockUploadError);
-    }
+      if (state.uploadShouldFail && state.uploadError) {
+        return Promise.reject(state.uploadError);
+      }
 
-    return Promise.resolve();
-  });
+      return Promise.resolve();
+    });
 
-  on = vi.fn((event: string, handler: (data: unknown) => void) => {
-    this.handlers[event] = handler;
-    return this;
-  });
-}
+    on = vi.fn((event: string, handler: (data: unknown) => void) => {
+      this.handlers[event] = handler;
+      return this;
+    });
+  }
+
+  return { MockEspOTA: MockEspOTAClass, mockState: state };
+});
 
 vi.mock('esp-ota', () => ({
   default: MockEspOTA,
@@ -72,12 +79,12 @@ describe('registerFlashOtaHandler', () => {
     vi.clearAllMocks();
 
     // Reset mock control flags
-    mockUploadShouldFail = false;
-    mockUploadError = null;
-    mockProgressSequence = [];
+    mockState.uploadShouldFail = false;
+    mockState.uploadError = null;
+    mockState.progressSequence = [];
 
     const fs = await import('fs');
-    (fs.existsSync as Mock).mockReturnValue(true);
+    (fs.default.existsSync as Mock).mockReturnValue(true);
 
     mockDriver = createMockDriver();
 
@@ -129,7 +136,7 @@ describe('registerFlashOtaHandler', () => {
   describe('firmware file validation', () => {
     it('should throw error if firmware file not found', async () => {
       const fs = await import('fs');
-      (fs.existsSync as Mock).mockReturnValue(false);
+      (fs.default.existsSync as Mock).mockReturnValue(false);
 
       await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
         'Firmware file not found',
@@ -217,7 +224,7 @@ describe('registerFlashOtaHandler', () => {
   describe('firmware path resolution', () => {
     it('should use development path when not packaged', async () => {
       const fs = await import('fs');
-      const existsSyncMock = fs.existsSync as Mock;
+      const existsSyncMock = fs.default.existsSync as Mock;
       existsSyncMock.mockReturnValue(true);
 
       await registeredHandler({}, 'rgfx-driver-0001');
@@ -290,12 +297,12 @@ describe('registerFlashOtaHandler', () => {
   describe('timeout after full progress', () => {
     it('should treat timeout after 100% progress as success', async () => {
       // Simulate: reached 100%, then timeout
-      mockProgressSequence = [
+      mockState.progressSequence = [
         { sent: 500000, total: 1000000 }, // 50%
         { sent: 1000000, total: 1000000 }, // 100%
       ];
-      mockUploadShouldFail = true;
-      mockUploadError = new Error('Transmission timeout');
+      mockState.uploadShouldFail = true;
+      mockState.uploadError = new Error('Transmission timeout');
 
       // Should NOT throw - timeout after 100% is treated as success
       await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
@@ -309,12 +316,12 @@ describe('registerFlashOtaHandler', () => {
 
     it('should throw timeout error if 100% was never reached', async () => {
       // Simulate: only 90% progress, then timeout
-      mockProgressSequence = [
+      mockState.progressSequence = [
         { sent: 500000, total: 1000000 }, // 50%
         { sent: 900000, total: 1000000 }, // 90%
       ];
-      mockUploadShouldFail = true;
-      mockUploadError = new Error('Transmission timeout');
+      mockState.uploadShouldFail = true;
+      mockState.uploadError = new Error('Transmission timeout');
 
       // Should throw - real timeout before completion
       await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow(
@@ -324,9 +331,9 @@ describe('registerFlashOtaHandler', () => {
 
     it('should throw non-timeout errors even after 100%', async () => {
       // Simulate: 100% reached, but a different error
-      mockProgressSequence = [{ sent: 1000000, total: 1000000 }]; // 100%
-      mockUploadShouldFail = true;
-      mockUploadError = new Error('Connection reset');
+      mockState.progressSequence = [{ sent: 1000000, total: 1000000 }]; // 100%
+      mockState.uploadShouldFail = true;
+      mockState.uploadError = new Error('Connection reset');
 
       // Should throw - not a timeout error
       await expect(registeredHandler({}, 'rgfx-driver-0001')).rejects.toThrow('Connection reset');
@@ -334,9 +341,9 @@ describe('registerFlashOtaHandler', () => {
 
     it('should handle case-insensitive timeout detection', async () => {
       // Simulate: 100%, then UPPERCASE timeout message
-      mockProgressSequence = [{ sent: 1000000, total: 1000000 }];
-      mockUploadShouldFail = true;
-      mockUploadError = new Error('TRANSMISSION TIMEOUT');
+      mockState.progressSequence = [{ sent: 1000000, total: 1000000 }];
+      mockState.uploadShouldFail = true;
+      mockState.uploadError = new Error('TRANSMISSION TIMEOUT');
 
       // Should NOT throw - case-insensitive match
       await expect(registeredHandler({}, 'rgfx-driver-0001')).resolves.toBeUndefined();
