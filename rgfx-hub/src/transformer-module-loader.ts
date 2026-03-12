@@ -34,14 +34,18 @@ function extractHandler(module: Record<string, unknown>): TransformerHandler | n
 }
 
 /**
- * Rewrite relative import specifiers with content-hash cache-busting.
- * Ensures dependencies are always loaded fresh from disk on hot reload.
+ * Rewrite relative import specifiers to absolute file:// URLs with content-hash
+ * cache-busting. Returns null if no relative imports were found (no rewrite needed).
  */
-async function rewriteRelativeImports(filePath: string, content: string): Promise<string> {
+export async function rewriteRelativeImports(
+  filePath: string,
+  content: string,
+): Promise<string | null> {
   const dir = dirname(filePath);
   const importRegex = /from\s+['"](\.[^'"]+)['"]/g;
   let result = content;
   const seen = new Set<string>();
+  let didRewrite = false;
 
   for (const match of content.matchAll(importRegex)) {
     const specifier = match[1];
@@ -57,14 +61,16 @@ async function rewriteRelativeImports(filePath: string, content: string): Promis
     try {
       const depContent = await fs.readFile(depPath, 'utf-8');
       const depHash = createHash('sha1').update(depContent).digest('hex').slice(0, 12);
-      result = result.replaceAll(`'${specifier}'`, `'${specifier}?v=${depHash}'`);
-      result = result.replaceAll(`"${specifier}"`, `"${specifier}?v=${depHash}"`);
+      const absoluteUrl = `${pathToFileURL(depPath).href}?v=${depHash}`;
+      result = result.replaceAll(`'${specifier}'`, `'${absoluteUrl}'`);
+      result = result.replaceAll(`"${specifier}"`, `"${absoluteUrl}"`);
+      didRewrite = true;
     } catch {
       // Dependency doesn't exist — skip rewriting
     }
   }
 
-  return result;
+  return didRewrite ? result : null;
 }
 
 /**
@@ -76,25 +82,20 @@ function createProductionImporter(): (filePath: string) => Promise<Record<string
   return async (filePath: string) => {
     const content = await fs.readFile(filePath, 'utf-8');
     const rewritten = await rewriteRelativeImports(filePath, content);
-    const hash = createHash('sha1').update(rewritten).digest('hex').slice(0, 12);
 
-    if (rewritten === content) {
+    if (!rewritten) {
+      const hash = createHash('sha1').update(content).digest('hex').slice(0, 12);
       const url = pathToFileURL(filePath).href;
+
       return (await import(`${url}?v=${hash}`)) as Record<string, unknown>;
     }
 
-    // Temp file in same directory preserves relative path resolution.
-    // The .mjs extension is ignored by the file watcher (.js filter).
-    const tempPath = join(dirname(filePath), `.rgfx-${hash}.mjs`);
-    await fs.writeFile(tempPath, rewritten);
+    // Relative imports rewritten to absolute file:// URLs — load via data URL
+    // so no temp file is needed (avoids EPERM races on Windows).
+    // Data URLs are never cached by Node's module loader, so no hash needed here.
+    const encoded = Buffer.from(rewritten).toString('base64');
 
-    try {
-      const url = pathToFileURL(tempPath).href;
-
-      return (await import(url)) as Record<string, unknown>;
-    } finally {
-      await fs.unlink(tempPath).catch(() => undefined);
-    }
+    return (await import(`data:text/javascript;base64,${encoded}`)) as Record<string, unknown>;
   };
 }
 
