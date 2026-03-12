@@ -263,7 +263,12 @@ jobs:
         run: |
           $tag = "${{ needs.prepare.outputs.tag }}"
           $version = $tag.TrimStart("v")
-          $exe = Get-ChildItem -Path "rgfx-hub/out" -Filter "*.exe" -Recurse | Select-Object -First 1
+          Write-Host "Contents of rgfx-hub/out:"
+          Get-ChildItem -Path "rgfx-hub/out" -Recurse | ForEach-Object { Write-Host $_.FullName }
+          $exe = Get-ChildItem -Path "rgfx-hub/out" -Filter "*.exe" -Recurse | Where-Object { $_.Name -match "Setup" } | Select-Object -First 1
+          if (-not $exe) {
+            $exe = Get-ChildItem -Path "rgfx-hub/out" -Filter "*.exe" -Recurse | Select-Object -First 1
+          }
           $dest = "rgfx-${version}-windows-x64.exe"
           Copy-Item $exe.FullName $dest
           "ARTIFACT_NAME=$dest" | Out-File -FilePath $env:GITHUB_ENV -Append
