@@ -9,13 +9,14 @@ export function getTransformersDir(): string {
   return TRANSFORMERS_DIRECTORY;
 }
 
-export async function installDefaultTransformers(): Promise<void> {
+export async function installDefaultTransformers(forceOverwrite = false): Promise<void> {
   try {
     await installBundledAssets({
       bundledDir: getBundledAssetDir('transformers'),
       targetDir: TRANSFORMERS_DIRECTORY,
       label: 'transformers',
       alwaysOverwrite: (name) => name.endsWith('.d.ts'),
+      forceOverwrite,
     });
   } catch (error) {
     log.error('Failed to install default transformers:', error);

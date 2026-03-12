@@ -24,7 +24,7 @@ Auto-generates the preload API by looping over channel maps. No per-method boile
 
 ### handler-registry.ts
 
-Contains the `IpcHandlersDeps` interface and the `handlers` array of all 25 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
+Contains the `IpcHandlersDeps` interface and the `handlers` array of all 26 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
 
 ### index.ts
 
@@ -380,6 +380,22 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 
 **Behavior:**
 - Calls `udpClient.setDriverFallbackEnabled(enabled)` to update the fallback flag
+
+---
+
+### `assets:reinstall`
+
+**File:** [reinstall-assets-handler.ts](reinstall-assets-handler.ts)
+
+**Purpose:** Reinstalls all bundled default assets, overwriting existing files.
+
+**Parameters:** None
+
+**Returns:** `{ success: boolean, error?: string }`
+
+**Behavior:**
+- Calls `reinstallAllAssets()` from `asset-reinstaller.ts` which runs all four installers with `forceOverwrite: true`
+- Used by the Settings UI "Reinstall Default Assets" button
 
 ---
 

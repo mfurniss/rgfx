@@ -57,6 +57,7 @@ export const INVOKE_CHANNELS = {
   createBackup: 'backup:create',
   setDriverId: 'driver:set-id',
   openExternal: 'app:open-external',
+  reinstallAssets: 'assets:reinstall',
 } as const;
 
 /** Push channels: main sends to renderer via webContents.send. */
@@ -204,6 +205,10 @@ export interface InvokeContract {
   openExternal: {
     args: [url: string];
     return: undefined;
+  };
+  reinstallAssets: {
+    args: [];
+    return: { success: boolean; error?: string };
   };
 }
 

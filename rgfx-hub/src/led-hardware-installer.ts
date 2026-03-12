@@ -7,13 +7,14 @@ import {
 
 const isJsonFile = (name: string): boolean => name.endsWith('.json');
 
-export async function installDefaultLedHardware(): Promise<void> {
+export async function installDefaultLedHardware(forceOverwrite = false): Promise<void> {
   try {
     await installBundledAssets({
       bundledDir: getBundledAssetDir('led-hardware'),
       targetDir: LED_HARDWARE_DIRECTORY,
       label: 'LED hardware configs',
       fileFilter: isJsonFile,
+      forceOverwrite,
     });
   } catch (error) {
     log.error('Failed to install LED hardware:', error);

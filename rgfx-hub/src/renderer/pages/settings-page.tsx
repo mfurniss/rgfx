@@ -9,6 +9,7 @@ import {
   DriverFallbackSection,
   EffectModifiersSection,
   LogsSection,
+  ReinstallAssetsSection,
 } from '../components/settings';
 
 const SettingsPage: React.FC = () => {
@@ -21,6 +22,7 @@ const SettingsPage: React.FC = () => {
         <EffectModifiersSection />
         <DirectoriesSection />
         <BackupSection />
+        <ReinstallAssetsSection />
         <LogsSection />
       </Stack>
     </Box>
