@@ -35,6 +35,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `interceptor-installer.ts` — Installs interceptor scripts (`.lua`) and config files (`.json`, e.g. `rom_map.json`) to `~/.rgfx/interceptors/`.
 - `transformer-installer.ts` — Installs transformer scripts to `~/.rgfx/transformers/`. Uses `alwaysOverwrite` for `.d.ts` files (type declarations for IntelliSense).
 - `led-hardware-installer.ts` — Installs LED hardware definitions to `~/.rgfx/led-hardware/`
+- `launch-script-installer.ts` — Installs platform-specific MAME launch script (`launch-mame.sh` on macOS, `launch-mame.bat` on Windows) to `~/.rgfx/`. Reads template from bundled `assets/scripts/`, replaces `{{RGFX_LUA_PATH}}` and `{{ROM_PATH}}` placeholders with resolved paths, sets executable permission on macOS. Only writes if file does not exist (preserves user edits).
 - `led-hardware-manager.ts` — Loads and manages LED hardware definition files (JSON)
 
 ## Infrastructure

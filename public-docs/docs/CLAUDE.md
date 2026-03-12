@@ -88,7 +88,7 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
 - Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
 - Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led for advanced setups
-- Configure MAME page (`getting-started/configure-mame.md`) documents the `-autoboot_script` flag, rgfx.lua locations per platform, launch scripts for both macOS (.sh) and Windows (.bat), and frontend integration with per-platform examples
+- Configure MAME page (`getting-started/configure-mame.md`) documents the launch script installed to `~/.rgfx/` by the Hub on first launch, the `-autoboot_script` flag for manual/frontend use, and how to customize paths by editing the script
 - Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
 - First-driver page includes a Windows USB driver admonition linking to the Silicon Labs CP210x driver download page
