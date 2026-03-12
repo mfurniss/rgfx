@@ -42,10 +42,17 @@ const packagerSignConfig = process.env.AZURE_ENDPOINT
     }
   : undefined;
 
-// For MakerSquirrel — plain string passed to signtool via Squirrel's Update.exe
-const squirrelSignParams =
+// For MakerSquirrel — serializable config (no functions) because Squirrel
+// creates a SEA binary that calls @electron/windows-sign with these options.
+// Uses the system signtool (supports /dlib) instead of Squirrel's bundled vendor copy.
+const squirrelSignConfig =
   process.env.AZURE_ENDPOINT && azureDlib && azureDmdf
-    ? `/fd sha256 /tr http://timestamp.acs.microsoft.com /td sha256 /dlib "${azureDlib}" /dmdf "${azureDmdf}"`
+    ? {
+        signToolPath: process.env.SIGNTOOL_PATH,
+        signWithParams: `/dlib "${azureDlib}" /dmdf "${azureDmdf}"`,
+        hashes: /** @type {any} */ (['sha256']),
+        timestampServer: 'http://timestamp.acs.microsoft.com',
+      }
     : undefined;
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
@@ -85,7 +92,7 @@ const config = {
     new MakerSquirrel(
       {
         setupIcon: './assets/icons/icon.ico',
-        ...(squirrelSignParams ? { signWithParams: squirrelSignParams } : {}),
+        ...(squirrelSignConfig ? { windowsSign: squirrelSignConfig } : {}),
       },
       ['win32']
     ),
