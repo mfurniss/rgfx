@@ -27,7 +27,7 @@ Accepted exceptions:
 ### Documentation Standards
 
 - Link to relevant subreddits (r/led, r/esp32, r/MAME) and external resources in the FAQ "Still stuck?" section
-- The FAQ Troubleshooting section includes a macOS Gatekeeper workaround (right-click → Open) and requirements.md has a matching admonition
+- The FAQ Troubleshooting section includes a macOS Sequoia EHOSTUNREACH workaround (Local Network privacy toggle), a macOS Gatekeeper workaround (right-click → Open), and requirements.md has a matching admonition
 - Use precise technical terminology
 - Include actual configuration options with correct defaults
 - Document all parameters, not just common ones
@@ -52,7 +52,7 @@ Use neutral voice for most content and first person "I" for personal opinions or
 
 ```
 docs/
-├── index.md                    # Landing page with hero video and download button
+├── index.md                    # Landing page with hero video, download button, and feature highlights
 ├── example-games.md            # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 6-page onboarding flow (requirements → hub-setup → first-driver → test-leds → configure-mame → play)
@@ -88,7 +88,7 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
 - Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
 - Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led for advanced setups
-- Configure MAME page (`getting-started/configure-mame.md`) documents the `-autoboot_script` flag, rgfx.lua locations per platform, launch scripts for both macOS (.sh) and Windows (.bat), and frontend integration with per-platform examples
+- Configure MAME page (`getting-started/configure-mame.md`) documents the launch script installed to `~/.rgfx/` by the Hub on first launch, the `-autoboot_script` flag for manual/frontend use, and how to customize paths by editing the script
 - Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
 - First-driver page includes a Windows USB driver admonition linking to the Silicon Labs CP210x driver download page

@@ -10,6 +10,7 @@ import { createDriverConnectService } from './driver-connect-service';
 import { installDefaultTransformers } from '../transformer-installer';
 import { installDefaultInterceptors } from '../interceptor-installer';
 import { installDefaultLedHardware } from '../led-hardware-installer';
+import { installLaunchScript } from '../launch-script-installer';
 import { eventBus } from './event-bus';
 import { IPC } from '../config/ipc-channels';
 
@@ -86,6 +87,10 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
 
   void installDefaultLedHardware().catch((error: unknown) => {
     log.error('Failed to install LED hardware definitions:', error);
+  });
+
+  void installLaunchScript().catch((error: unknown) => {
+    log.error('Failed to install launch script:', error);
   });
 
   // Register status data sources so getFullStatus() works everywhere

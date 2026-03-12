@@ -55,10 +55,10 @@ describe('interceptor-installer', () => {
   });
 
   describe('installDefaultInterceptors', () => {
-    it('should copy .lua files only, excluding type stubs', async () => {
+    it('should copy .lua files and skip non-lua/json files', async () => {
       mockReaddir.mockResolvedValue([
         { name: 'pacman_rgfx.lua', isDirectory: () => false, isFile: () => true },
-        { name: 'mame.lua', isDirectory: () => false, isFile: () => true },
+        { name: 'helper.lua', isDirectory: () => false, isFile: () => true },
         { name: 'readme.md', isDirectory: () => false, isFile: () => true },
         { name: 'notes.txt', isDirectory: () => false, isFile: () => true },
       ]);
@@ -69,15 +69,14 @@ describe('interceptor-installer', () => {
 
       await installDefaultInterceptors();
 
-      // Should only copy game interceptor .lua files, not type stubs
-      expect(mockCopyFile).toHaveBeenCalledTimes(1);
+      expect(mockCopyFile).toHaveBeenCalledTimes(2);
       expect(mockCopyFile).toHaveBeenCalledWith(
         expect.stringContaining('pacman_rgfx.lua'),
         expect.stringContaining('pacman_rgfx.lua'),
       );
-      expect(mockCopyFile).not.toHaveBeenCalledWith(
-        expect.stringContaining('mame.lua'),
-        expect.anything(),
+      expect(mockCopyFile).toHaveBeenCalledWith(
+        expect.stringContaining('helper.lua'),
+        expect.stringContaining('helper.lua'),
       );
     });
 

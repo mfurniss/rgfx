@@ -68,7 +68,7 @@ Key global variables shared between cores:
 3. Crash handler initialization
 4. NVS flash init with error recovery (handles fresh flash formatting)
 5. NVS configuration load (WiFi credentials, driver ID)
-6. Power-on LED test (if config exists in NVS)
+6. Power-on LED test (if config exists in NVS) — flashes green then immediately clears to black
 7. WiFi connection via IotWebConf portal (uses default TX power)
 8. Create FreeRTOS task for network operations on Core 0
 9. Main loop waits for LED config from Hub via MQTT

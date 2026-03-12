@@ -81,6 +81,7 @@ Orchestrates service initialization on app startup.
 - Starts MQTT broker, network manager, and other services
 - Creates `eventProcessor` callback that forwards events to transformer engine, increments stats, sends IPC events, and emits system:error for interceptor errors
 - Sets up firmware monitoring callback to broadcast system status updates
+- Installs launch script to `~/.rgfx/` via `installLaunchScript()`
 - Returns `PowerSaveHandle` for cleanup during app shutdown
 
 ### system-error-tracker.ts
