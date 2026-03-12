@@ -106,7 +106,7 @@ jobs:
         run: pip install platformio
 
       - name: Cache PlatformIO
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.platformio
@@ -127,7 +127,7 @@ jobs:
         run: python3 esp32/copy_firmware.py
 
       - name: Upload firmware assets for Hub builds
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hub-firmware-assets
           path: rgfx-hub/assets/esp32/firmware/
@@ -153,7 +153,7 @@ jobs:
         run: npm install
 
       - name: Download firmware assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: hub-firmware-assets
           path: rgfx-hub/assets/esp32/firmware/
@@ -208,7 +208,7 @@ jobs:
           echo "ARTIFACT_NAME=$DEST" >> "$GITHUB_ENV"
 
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hub-installer-macos
           path: ${{ env.ARTIFACT_NAME }}
@@ -238,7 +238,7 @@ jobs:
         run: npm install
 
       - name: Download firmware assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: hub-firmware-assets
           path: rgfx-hub/assets/esp32/firmware/
@@ -291,7 +291,7 @@ jobs:
           "ARTIFACT_NAME=$dest" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hub-installer-windows
           path: ${{ env.ARTIFACT_NAME }}
@@ -320,13 +320,13 @@ jobs:
           echo "rgfx.io" > _site/CNAME
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   create-release:
     name: Create Release
@@ -341,13 +341,13 @@ jobs:
           fetch-depth: 0
 
       - name: Download macOS installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: hub-installer-macos
           path: artifacts/
 
       - name: Download Windows installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: hub-installer-windows
           path: artifacts/
