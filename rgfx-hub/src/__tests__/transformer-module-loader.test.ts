@@ -1,6 +1,11 @@
 import path from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTransformerModuleLoader } from '../transformer-module-loader';
+import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import {
+  createTransformerModuleLoader,
+  rewriteRelativeImports,
+} from '../transformer-module-loader';
 import type { TransformerHandler } from '../types/transformer-types';
 
 describe('createTransformerModuleLoader', () => {
@@ -138,6 +143,108 @@ describe('createTransformerModuleLoader', () => {
 
       // Should not throw — default logger is a no-op
       expect(loader.loadHandlersFromDir).toBeTypeOf('function');
+    });
+  });
+
+  describe('rewriteRelativeImports', () => {
+    it('should return null when no relative imports exist', async () => {
+      const result = await rewriteRelativeImports(
+        '/app/transformers/test.js',
+        'export function transform() { return 1; }',
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when relative import dependency does not exist', async () => {
+      const { promises: fs } = await import('node:fs');
+      vi.spyOn(fs, 'readFile').mockRejectedValue(new Error('ENOENT'));
+
+      const result = await rewriteRelativeImports(
+        '/app/transformers/test.js',
+        "import { foo } from './nonexistent.js';",
+      );
+
+      expect(result).toBeNull();
+      vi.restoreAllMocks();
+    });
+
+    it('should rewrite relative imports to absolute file:// URLs with hashes', async () => {
+      const depContent = 'export const x = 42;';
+      const depHash = createHash('sha1')
+        .update(depContent)
+        .digest('hex')
+        .slice(0, 12);
+
+      const { promises: fs } = await import('node:fs');
+      vi.spyOn(fs, 'readFile').mockResolvedValue(depContent);
+
+      const filePath = path.resolve('/app/transformers/test.js');
+      const result = await rewriteRelativeImports(
+        filePath,
+        "import { foo } from './utils.js';",
+      );
+
+      const expectedDepPath = path.resolve('/app/transformers/utils.js');
+      const expectedUrl = `${pathToFileURL(expectedDepPath).href}?v=${depHash}`;
+
+      expect(result).toBe(`import { foo } from '${expectedUrl}';`);
+      vi.restoreAllMocks();
+    });
+
+    it('should handle double-quoted imports', async () => {
+      const depContent = 'export const x = 1;';
+
+      const { promises: fs } = await import('node:fs');
+      vi.spyOn(fs, 'readFile').mockResolvedValue(depContent);
+
+      const filePath = path.resolve('/app/transformers/test.js');
+      const result = await rewriteRelativeImports(
+        filePath,
+        'import { bar } from "./global.js";',
+      );
+
+      expect(result).not.toBeNull();
+      expect(result).toContain('file:///');
+      expect(result).toContain('?v=');
+      vi.restoreAllMocks();
+    });
+
+    it('should handle multiple relative imports', async () => {
+      const { promises: fs } = await import('node:fs');
+      vi.spyOn(fs, 'readFile').mockResolvedValue('export default 1;');
+
+      const filePath = path.resolve('/app/transformers/test.js');
+      const content = [
+        "import { a } from './utils.js';",
+        "import { b } from './global.js';",
+      ].join('\n');
+
+      const result = await rewriteRelativeImports(filePath, content);
+
+      expect(result).not.toBeNull();
+      // Both imports should be rewritten
+      expect(result!.match(/file:\/\//g)).toHaveLength(2);
+      vi.restoreAllMocks();
+    });
+
+    it('should deduplicate identical specifiers', async () => {
+      const { promises: fs } = await import('node:fs');
+      const readSpy = vi
+        .spyOn(fs, 'readFile')
+        .mockResolvedValue('export default 1;');
+
+      const filePath = path.resolve('/app/transformers/test.js');
+      const content = [
+        "import { a } from './utils.js';",
+        "import { b } from './utils.js';",
+      ].join('\n');
+
+      await rewriteRelativeImports(filePath, content);
+
+      // readFile called once for the dependency, not twice
+      expect(readSpy).toHaveBeenCalledTimes(1);
+      vi.restoreAllMocks();
     });
   });
 });

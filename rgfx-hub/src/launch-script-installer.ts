@@ -15,7 +15,7 @@ const PLACEHOLDERS: Record<string, () => string> = {
   '{{ROM_PATH}}': () => join(homedir(), 'mame-roms'),
 };
 
-export async function installLaunchScript(): Promise<void> {
+export async function installLaunchScript(forceOverwrite = false): Promise<void> {
   const scriptFilename = SCRIPT_FILENAMES[process.platform];
 
   if (!scriptFilename) {
@@ -25,13 +25,15 @@ export async function installLaunchScript(): Promise<void> {
 
   const targetPath = join(CONFIG_DIRECTORY, scriptFilename);
 
-  // Skip if file already exists (preserves user edits)
-  try {
-    await fs.access(targetPath);
-    log.info(`Launch script already exists, skipping: ${targetPath}`);
-    return;
-  } catch {
-    // File doesn't exist — continue with installation
+  if (!forceOverwrite) {
+    // Skip if file already exists (preserves user edits)
+    try {
+      await fs.access(targetPath);
+      log.info(`Launch script already exists, skipping: ${targetPath}`);
+      return;
+    } catch {
+      // File doesn't exist — continue with installation
+    }
   }
 
   const templatePath = join(getBundledAssetDir('scripts'), scriptFilename);

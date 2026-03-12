@@ -22,6 +22,8 @@ interface InstallBundledAssetsOptions {
   fileFilter?: (filename: string) => boolean;
   /** Return true for files that should always be overwritten (system files, not user-editable) */
   alwaysOverwrite?: (filename: string) => boolean;
+  /** When true, overwrite all existing files (used by reinstall feature) */
+  forceOverwrite?: boolean;
 }
 
 /**
@@ -31,12 +33,18 @@ interface InstallBundledAssetsOptions {
 export async function installBundledAssets(
   options: InstallBundledAssetsOptions,
 ): Promise<void> {
-  const { bundledDir, targetDir, label, fileFilter, alwaysOverwrite } = options;
+  const {
+    bundledDir, targetDir, label,
+    fileFilter, alwaysOverwrite, forceOverwrite,
+  } = options;
 
   log.info(`Copying default ${label} from: ${bundledDir}`);
   log.info(`Installing to: ${targetDir}`);
 
-  await copyDirectory(bundledDir, targetDir, targetDir, label, fileFilter, alwaysOverwrite);
+  await copyDirectory(
+    bundledDir, targetDir, targetDir, label,
+    fileFilter, alwaysOverwrite, forceOverwrite,
+  );
 
   log.info(`Default ${label} installation complete`);
 }
@@ -48,6 +56,7 @@ async function copyDirectory(
   label: string,
   fileFilter?: (filename: string) => boolean,
   alwaysOverwrite?: (filename: string) => boolean,
+  forceOverwrite?: boolean,
 ): Promise<void> {
   await fs.mkdir(dest, { recursive: true });
 
@@ -58,9 +67,13 @@ async function copyDirectory(
     const destPath = join(dest, entry.name);
 
     if (entry.isDirectory()) {
-      await copyDirectory(srcPath, destPath, baseDir, label, fileFilter, alwaysOverwrite);
+      await copyDirectory(
+        srcPath, destPath, baseDir, label,
+        fileFilter, alwaysOverwrite, forceOverwrite,
+      );
     } else if (entry.isFile() && (!fileFilter || fileFilter(entry.name))) {
-      const shouldOverwrite = alwaysOverwrite?.(entry.name) ?? false;
+      const shouldOverwrite = forceOverwrite === true
+        || (alwaysOverwrite?.(entry.name) ?? false);
 
       try {
         await fs.access(destPath);

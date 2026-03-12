@@ -363,8 +363,13 @@ function exports.extract(manifest)
 		return false
 	end
 
-	-- Ensure output directory exists
-	os.execute("mkdir -p " .. output_dir)
+	-- Ensure output directory exists (cross-platform)
+	local sep = package.config:sub(1, 1)
+	if sep == "\\" then
+		os.execute('mkdir "' .. output_dir:gsub("/", "\\") .. '" 2>nul')
+	else
+		os.execute("mkdir -p " .. output_dir)
+	end
 
 	local extracted = 0
 

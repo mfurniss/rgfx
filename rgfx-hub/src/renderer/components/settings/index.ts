@@ -4,3 +4,4 @@ export { DirectoriesSection } from './directories-section';
 export { DriverFallbackSection } from './driver-fallback-section';
 export { EffectModifiersSection } from './effect-modifiers-section';
 export { LogsSection } from './logs-section';
+export { ReinstallAssetsSection } from './reinstall-assets-section';
