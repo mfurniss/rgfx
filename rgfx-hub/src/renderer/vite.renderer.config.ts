@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../../dist/renderer/main_window',
+    outDir: 'dist/renderer/main_window',
     emptyOutDir: true,
   },
 });
