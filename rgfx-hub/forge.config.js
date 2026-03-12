@@ -5,12 +5,27 @@ const { VitePlugin } = require("@electron-forge/plugin-vite");
 const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 
-// Azure Artifact Signing — only active in CI when AZURE_ENDPOINT is set
+// Azure Trusted Signing — only active in CI when AZURE_ENDPOINT is set.
+// Uses a hookFunction to get full control over the signtool command line,
+// because signWithParams is appended after the library's own flags which
+// conflict with dlib-based signing (adds /fd without /a or /f, causing
+// "No certificates were found" errors).
 const windowsSignConfig = process.env.AZURE_ENDPOINT ? {
-  signToolPath: process.env.SIGNTOOL_PATH,
-  timestampServer: 'http://timestamp.acs.microsoft.com',
-  hashes: ['sha256'],
-  signWithParams: `/v /dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_METADATA_PATH}"`,
+  hookFunction: async (fileToSign) => {
+    const { execFile } = require("child_process");
+    const { promisify } = require("util");
+    const execFileAsync = promisify(execFile);
+    await execFileAsync(process.env.SIGNTOOL_PATH, [
+      "sign",
+      "/v",
+      "/fd", "sha256",
+      "/tr", "http://timestamp.acs.microsoft.com",
+      "/td", "sha256",
+      "/dlib", process.env.AZURE_CODE_SIGNING_DLIB,
+      "/dmdf", process.env.AZURE_METADATA_PATH,
+      fileToSign,
+    ]);
+  },
 } : undefined;
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
