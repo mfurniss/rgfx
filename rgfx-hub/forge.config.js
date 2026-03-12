@@ -6,39 +6,47 @@ const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
 // Azure Trusted Signing — only active in CI when AZURE_ENDPOINT is set.
-// Uses a hookFunction to get full control over the signtool command line,
-// because signWithParams is appended after the library's own flags which
-// conflict with dlib-based signing (adds /fd without /a or /f, causing
-// "No certificates were found" errors).
-const windowsSignConfig = process.env.AZURE_ENDPOINT
+// Two configs needed because packager and Squirrel have different signing mechanisms:
+// - packager runs in-process, so hookFunction works (and avoids flag conflicts)
+// - Squirrel serializes config into a SEA binary, so functions can't be used;
+//   it calls signtool.exe directly with signWithParams
+const azureDlib = process.env.AZURE_CODE_SIGNING_DLIB;
+const azureDmdf = process.env.AZURE_METADATA_PATH;
+
+// For @electron/packager — hookFunction gives full control over signtool args
+const packagerSignConfig = process.env.AZURE_ENDPOINT
   ? {
       hookFunction: async (/** @type {string} */ fileToSign) => {
         const { execFile } = require('child_process');
         const { promisify } = require('util');
         const execFileAsync = promisify(execFile);
-        const signtoolPath = /** @type {string} */ (process.env.SIGNTOOL_PATH);
-        const dlib = /** @type {string} */ (
-          process.env.AZURE_CODE_SIGNING_DLIB
+        await execFileAsync(
+          /** @type {string} */ (process.env.SIGNTOOL_PATH),
+          [
+            'sign',
+            '/v',
+            '/fd',
+            'sha256',
+            '/tr',
+            'http://timestamp.acs.microsoft.com',
+            '/td',
+            'sha256',
+            '/dlib',
+            /** @type {string} */ (azureDlib),
+            '/dmdf',
+            /** @type {string} */ (azureDmdf),
+            fileToSign,
+          ]
         );
-        const dmdf = /** @type {string} */ (process.env.AZURE_METADATA_PATH);
-        await execFileAsync(signtoolPath, [
-          'sign',
-          '/v',
-          '/fd',
-          'sha256',
-          '/tr',
-          'http://timestamp.acs.microsoft.com',
-          '/td',
-          'sha256',
-          '/dlib',
-          dlib,
-          '/dmdf',
-          dmdf,
-          fileToSign,
-        ]);
       },
     }
   : undefined;
+
+// For MakerSquirrel — plain string passed to signtool via Squirrel's Update.exe
+const squirrelSignParams =
+  process.env.AZURE_ENDPOINT && azureDlib && azureDmdf
+    ? `/fd sha256 /tr http://timestamp.acs.microsoft.com /td sha256 /dlib "${azureDlib}" /dmdf "${azureDmdf}"`
+    : undefined;
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
@@ -68,7 +76,7 @@ const config = {
       './assets/led-hardware',
       '../LICENSE',
     ],
-    ...(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
+    ...(packagerSignConfig ? { windowsSign: packagerSignConfig } : {}),
   },
 
   rebuildConfig: {},
@@ -77,7 +85,7 @@ const config = {
     new MakerSquirrel(
       {
         setupIcon: './assets/icons/icon.ico',
-        ...(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
+        ...(squirrelSignParams ? { signWithParams: squirrelSignParams } : {}),
       },
       ['win32']
     ),
