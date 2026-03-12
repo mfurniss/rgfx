@@ -8,7 +8,7 @@ const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 // Azure Artifact Signing — only active in CI when AZURE_ENDPOINT is set
 const windowsSignConfig = process.env.AZURE_ENDPOINT ? {
   signToolPath: process.env.SIGNTOOL_PATH,
-  signWithParams: `/v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_METADATA_PATH}"`,
+  signWithParams: `/v /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_METADATA_PATH}"`,
 } : undefined;
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
