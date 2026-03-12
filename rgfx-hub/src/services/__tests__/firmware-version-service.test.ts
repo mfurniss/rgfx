@@ -139,7 +139,7 @@ describe('FirmwareVersionService', () => {
       expect(firmwareVersionService.needsUpdate('1.3.0', 'ESP32')).toBe(false);
     });
 
-    it('should return false when bundled is a dev prerelease of same version', async () => {
+    it('should always flag update when bundled is a dev build', async () => {
       const devManifest = {
         ...validManifest,
         variants: {
@@ -154,10 +154,11 @@ describe('FirmwareVersionService', () => {
 
       const { firmwareVersionService } = await import('../firmware-version-service.js');
 
-      // Bundled 1.0.12-dev < driver 1.0.13 — no update
-      expect(firmwareVersionService.needsUpdate('1.0.13', 'ESP32')).toBe(false);
-      // Bundled 1.0.12-dev < driver 1.0.12 — no update (prerelease < release)
-      expect(firmwareVersionService.needsUpdate('1.0.12', 'ESP32')).toBe(false);
+      // Dev builds are always considered newer (freshly built firmware)
+      expect(firmwareVersionService.needsUpdate('1.0.13', 'ESP32')).toBe(true);
+      expect(firmwareVersionService.needsUpdate('1.0.12', 'ESP32')).toBe(true);
+      // Unless the version matches exactly (already flashed this build)
+      expect(firmwareVersionService.needsUpdate('1.0.12-dev+c6c2a4a8', 'ESP32')).toBe(false);
     });
 
     it('should compare against correct chip variant', async () => {

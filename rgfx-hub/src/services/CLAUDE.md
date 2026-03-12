@@ -17,7 +17,7 @@ Singleton service that reads firmware versions from `manifest.json` in the bundl
 Key methods:
 - `getVersions()`: returns `Record<SupportedChip, string>` with all chip versions
 - `getVersionForChip(chipType)`: returns version string for a specific chip type
-- `needsUpdate(driverVersion, chipType)`: uses `semver.gt()` to check if bundled firmware is strictly newer than the driver's version. Prevents false "downgrade" warnings when running dev prerelease builds.
+- `needsUpdate(driverVersion, chipType)`: Dev builds (version contains `-dev`) are always considered newer than what the driver is running (unless exact match), so the firmware update banner always appears during development. Release builds use `semver.gt()` for strict comparison.
 
 This per-chip version tracking prevents false "update needed" notifications when only one chip variant has been rebuilt.
 

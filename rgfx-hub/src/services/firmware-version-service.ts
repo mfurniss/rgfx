@@ -88,7 +88,13 @@ class FirmwareVersionService {
       return false;
     }
 
-    // Only flag update when bundled firmware is strictly newer than what the driver is running
+    // Dev builds (e.g. 1.0.13-dev+hash) are always considered newer — they represent
+    // freshly built firmware that should always be flashable during development
+    if (targetVersion.includes('-dev')) {
+      return targetVersion !== driverVersion;
+    }
+
+    // Release builds: only flag update when bundled firmware is strictly newer
     const target = semver.parse(semver.clean(targetVersion) ?? targetVersion);
     const driver = semver.parse(semver.clean(driverVersion) ?? driverVersion);
 
