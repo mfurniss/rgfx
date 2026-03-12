@@ -246,9 +246,39 @@ jobs:
       - name: Inject Hub version
         run: node scripts/inject-version-hub.js
 
+      - name: Install signing tools
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget.exe
+          .\nuget.exe install Microsoft.ArtifactSigning.Client -x -OutputDirectory signing-tools
+
+      - name: Configure signing
+        shell: pwsh
+        run: |
+          $dlib = Get-ChildItem -Path signing-tools -Filter "Azure.CodeSigning.Dlib.dll" -Recurse |
+            Where-Object { $_.FullName -match 'x64' } | Select-Object -First 1
+          echo "AZURE_CODE_SIGNING_DLIB=$($dlib.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Filter "signtool.exe" -Recurse |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          echo "SIGNTOOL_PATH=$($signtool.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          $metadataPath = Join-Path $env:RUNNER_TEMP "metadata.json"
+          @{
+            Endpoint = "${{ secrets.AZURE_ENDPOINT }}"
+            CodeSigningAccountName = "${{ secrets.AZURE_CODE_SIGNING_ACCOUNT }}"
+            CertificateProfileName = "${{ secrets.AZURE_CERT_PROFILE_NAME }}"
+          } | ConvertTo-Json | Out-File -FilePath $metadataPath -Encoding UTF8
+          echo "AZURE_METADATA_PATH=$metadataPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Build installer
         run: npm run make
         working-directory: rgfx-hub
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
 
       - name: Rename installer
         shell: pwsh
