@@ -191,7 +191,6 @@ export default tseslint.config(
       'eslint.config.mjs',
       '*.config.ts',
       '*.config.js',
-      'electron-builder.js',
       'assets/transformers/**/*.js', // User-editable transformer files (JavaScript, not TypeScript)
       'assets/transformers/**/*.d.ts', // Type declarations for transformer IntelliSense
       'scripts/**/*.js', // Build scripts (Node.js scripts, not TypeScript)
