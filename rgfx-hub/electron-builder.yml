@@ -26,12 +26,12 @@ extraResources:
 asar: true
 
 electronFuses:
-  RunAsNode: false
-  EnableCookieEncryption: true
-  EnableNodeOptionsEnvironmentVariable: false
-  EnableNodeCliInspectArguments: false
-  EnableEmbeddedAsarIntegrityValidation: true
-  OnlyLoadAppFromAsar: true
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
 
 # --- macOS ---
 mac:
@@ -58,6 +58,7 @@ win:
   target: nsis
   icon: assets/icons/icon.ico
   azureSignOptions:
+    publisherName: ${env.AZURE_PUBLISHER_NAME}
     endpoint: ${env.AZURE_ENDPOINT}
     certificateProfileName: ${env.AZURE_CERT_PROFILE_NAME}
     codeSigningAccountName: ${env.AZURE_CODE_SIGNING_ACCOUNT}
