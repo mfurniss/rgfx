@@ -240,7 +240,7 @@ if [ "$HUB_CHANGES" = true ]; then
     echo "📦 Checking for unused dependencies..."
     # Note: colord and d3-scale may be unused - audit separately
     # cross-env is used in npm scripts but depcheck doesn't detect that
-    npx depcheck --ignores="@types/*,electron,@electron-forge/*,@electron/osx-sign,@electron/windows-sign,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,png2icons,colord,d3-scale,@eslint/*,cross-env"
+    npx depcheck --ignores="@types/*,electron,@electron/fuses,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,png2icons,colord,d3-scale,@eslint/*,cross-env,nodemon"
     echo "✅ No unused dependencies found"
 
     echo "📜 Checking dependency licenses..."

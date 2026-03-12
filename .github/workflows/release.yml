@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
@@ -78,7 +78,7 @@ jobs:
           git add rgfx-hub/package.json package-lock.json
           git commit -m "Bump hub version to ${VERSION}"
           git tag "$TAG"
-          git push origin main
+          git push origin ${{ github.ref_name }}
           git push origin "$TAG"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
@@ -177,7 +177,7 @@ jobs:
           security list-keychains -d user -s $KEYCHAIN_PATH login.keychain-db
 
       - name: Build installer
-        run: npm run make
+        run: npm run make:mac
         working-directory: rgfx-hub
 
       # TODO: Re-enable once Apple notarization service is reliable
@@ -187,7 +187,7 @@ jobs:
       #     APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
       #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       #   run: |
-      #     DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
+      #     DMG=$(find rgfx-hub/out -name "*.dmg" | head -1)
       #     echo "Submitting $DMG for notarization..."
       #     xcrun notarytool submit "$DMG" \
       #       --apple-id "$APPLE_ID" \
@@ -202,7 +202,7 @@ jobs:
           TAG="${{ needs.prepare.outputs.tag }}"
           VERSION="${TAG#v}"
           ARCH=$(uname -m)
-          DMG=$(find rgfx-hub/out/make -name "*.dmg" | head -1)
+          DMG=$(find rgfx-hub/out -name "*.dmg" | head -1)
           DEST="rgfx-${VERSION}-macos-${ARCH}.dmg"
           cp "$DMG" "$DEST"
           echo "ARTIFACT_NAME=$DEST" >> "$GITHUB_ENV"
@@ -246,46 +246,23 @@ jobs:
       - name: Inject Hub version
         run: node scripts/inject-version-hub.js
 
-      - name: Install signing tools
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget.exe
-          .\nuget.exe install Microsoft.ArtifactSigning.Client -x -OutputDirectory signing-tools
-
-      - name: Configure signing
-        shell: pwsh
-        run: |
-          $dlib = Get-ChildItem -Path signing-tools -Filter "Azure.CodeSigning.Dlib.dll" -Recurse |
-            Where-Object { $_.FullName -match 'x64' } | Select-Object -First 1
-          echo "AZURE_CODE_SIGNING_DLIB=$($dlib.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Filter "signtool.exe" -Recurse |
-            Sort-Object FullName -Descending | Select-Object -First 1
-          echo "SIGNTOOL_PATH=$($signtool.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          $metadataPath = Join-Path $env:RUNNER_TEMP "metadata.json"
-          @{
-            Endpoint = "${{ secrets.AZURE_ENDPOINT }}"
-            CodeSigningAccountName = "${{ secrets.AZURE_CODE_SIGNING_ACCOUNT }}"
-            CertificateProfileName = "${{ secrets.AZURE_CERT_PROFILE_NAME }}"
-          } | ConvertTo-Json | Out-File -FilePath $metadataPath -Encoding UTF8
-          echo "AZURE_METADATA_PATH=$metadataPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-
       - name: Build installer
-        run: npm run make
+        run: npm run make:win
         working-directory: rgfx-hub
         env:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ secrets.AZURE_CODE_SIGNING_ACCOUNT }}
+          AZURE_CERT_PROFILE_NAME: ${{ secrets.AZURE_CERT_PROFILE_NAME }}
 
       - name: Rename installer
         shell: pwsh
         run: |
           $tag = "${{ needs.prepare.outputs.tag }}"
           $version = $tag.TrimStart("v")
-          $exe = Get-ChildItem -Path "rgfx-hub/out/make" -Filter "*.exe" -Recurse | Select-Object -First 1
+          $exe = Get-ChildItem -Path "rgfx-hub/out" -Filter "*.exe" -Recurse | Select-Object -First 1
           $dest = "rgfx-${version}-windows-x64.exe"
           Copy-Item $exe.FullName $dest
           "ARTIFACT_NAME=$dest" | Out-File -FilePath $env:GITHUB_ENV -Append

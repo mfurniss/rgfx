@@ -4,9 +4,14 @@ import path from 'node:path';
 
 export default defineConfig({
   plugins: [react({})],
+  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '..'),
     },
+  },
+  build: {
+    outDir: '../../dist/renderer/main_window',
+    emptyOutDir: true,
   },
 });

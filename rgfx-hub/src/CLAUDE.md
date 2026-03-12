@@ -46,7 +46,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 
 ## Utilities
 
-- `utils/asset-installer.ts` — Shared asset installation logic used by interceptor/transformer/led-hardware installers. `getBundledAssetDir` resolves to `<appPath>/assets/<subdir>` in dev, `<resourcesPath>/<subdir>` in production (Forge `extraResource` copies dirs directly into Resources/). Supports `alwaysOverwrite` predicate for system files that should be refreshed on every launch rather than skipped if they exist.
+- `utils/asset-installer.ts` — Shared asset installation logic used by interceptor/transformer/led-hardware installers. `getBundledAssetDir` resolves to `<appPath>/assets/<subdir>` in dev, `<resourcesPath>/<subdir>` in production (electron-builder `extraResources` copies dirs into Resources/). Supports `alwaysOverwrite` predicate for system files that should be refreshed on every launch rather than skipped if they exist.
 - `utils/color-utils.ts` — Color helpers: `parseAmbilight` (12-bit → 24-bit), `hslToHex` (HSL → hex)
 - `utils/http-context.ts` — HTTP helpers: `createHttpContext`, `mergeHeaders`
 - `utils/firmware-paths.ts` — Firmware directory helpers: `getFirmwareDir`, `getFirmwareFilePath`

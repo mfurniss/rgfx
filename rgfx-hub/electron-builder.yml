@@ -1,0 +1,70 @@
+appId: com.rgfx.hub
+productName: RGFX Hub
+executableName: rgfx-hub
+
+directories:
+  output: out
+
+files:
+  - dist/**/*
+  - package.json
+
+extraResources:
+  - from: assets/transformers
+    to: transformers
+  - from: assets/interceptors
+    to: interceptors
+  - from: assets/esp32/firmware
+    to: firmware
+  - from: assets/mame
+    to: mame
+  - from: assets/led-hardware
+    to: led-hardware
+  - from: ../LICENSE
+    to: LICENSE
+
+asar: true
+
+electronFuses:
+  RunAsNode: false
+  EnableCookieEncryption: true
+  EnableNodeOptionsEnvironmentVariable: false
+  EnableNodeCliInspectArguments: false
+  EnableEmbeddedAsarIntegrityValidation: true
+  OnlyLoadAppFromAsar: true
+
+# --- macOS ---
+mac:
+  target: dmg
+  icon: assets/icons/icon.icns
+  darkModeSupport: true
+  hardenedRuntime: true
+  entitlements: entitlements.mac.plist
+  entitlementsInherit: entitlements.mac.plist
+  extendInfo:
+    NSLocalNetworkUsageDescription: >-
+      RGFX Hub needs local network access to communicate with
+      LED drivers via UDP and MQTT.
+    NSBonjourServices:
+      - _mqtt._tcp
+      - _rgfx._udp
+
+dmg:
+  format: ULFO
+  icon: assets/icons/icon.icns
+
+# --- Windows ---
+win:
+  target: nsis
+  icon: assets/icons/icon.ico
+  azureSignOptions:
+    endpoint: ${env.AZURE_ENDPOINT}
+    certificateProfileName: ${env.AZURE_CERT_PROFILE_NAME}
+    codeSigningAccountName: ${env.AZURE_CODE_SIGNING_ACCOUNT}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: assets/icons/icon.ico
+  uninstallerIcon: assets/icons/icon.ico

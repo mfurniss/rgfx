@@ -1,6 +1,5 @@
 import { app, ipcMain, Menu, shell } from 'electron';
 import path from 'node:path';
-import started from 'electron-squirrel-startup';
 import pkg from '../package.json';
 
 // Set app name and dock icon for dev mode (in production, these come from the packaged app)
@@ -23,11 +22,6 @@ import { registerAppLifecycleHandlers } from './lifecycle';
 import { ConfigError } from './errors/config-error';
 import { MAX_SYSTEM_ERRORS } from './config/constants';
 import { INVOKE_CHANNELS, SEND_CHANNELS } from './ipc/contract';
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling
-if (started) {
-  app.quit();
-}
 
 // Prevent multiple instances — focus existing window if already running
 const gotTheLock = app.requestSingleInstanceLock();

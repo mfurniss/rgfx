@@ -20,6 +20,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*", "config/**/*", "forge.env.d.ts"],
+  "include": ["src/**/*", "config/**/*"],
   "exclude": ["node_modules", "dist", ".vite", "out", "vitest.config.ts"]
 }
