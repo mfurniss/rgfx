@@ -5,6 +5,12 @@ const { VitePlugin } = require("@electron-forge/plugin-vite");
 const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 
+// Azure Artifact Signing — only active in CI when AZURE_ENDPOINT is set
+const windowsSignConfig = process.env.AZURE_ENDPOINT ? {
+  signToolPath: process.env.SIGNTOOL_PATH,
+  signWithParams: `/v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_METADATA_PATH}"`,
+} : undefined;
+
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
   packagerConfig: {
@@ -32,6 +38,7 @@ const config = {
       "./assets/led-hardware",
       "../LICENSE",
     ],
+    ...(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
   },
 
   rebuildConfig: {},
@@ -39,6 +46,7 @@ const config = {
   makers: [
     new MakerSquirrel({
       setupIcon: "./assets/icons/icon.ico",
+      ...(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
     }, ["win32"]),
     new MakerDMG({
       format: "ULFO",
