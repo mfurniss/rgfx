@@ -9,6 +9,7 @@ const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 const windowsSignConfig = process.env.AZURE_ENDPOINT ? {
   signToolPath: process.env.SIGNTOOL_PATH,
   timestampServer: 'http://timestamp.acs.microsoft.com',
+  hashes: ['sha256'],
   signWithParams: `/v /dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_METADATA_PATH}"`,
 } : undefined;
 
