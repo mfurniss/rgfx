@@ -40,6 +40,13 @@
 }
 
 
+/* Hero buttons - stack on mobile */
+.hero-buttons p {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 /* LED test pattern visualizations */
 :root {
   --led-red: #ff0000;
