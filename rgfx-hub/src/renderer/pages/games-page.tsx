@@ -78,7 +78,9 @@ const GamesPage: React.FC = () => {
   };
 
   const isConfigured = (game: GameInfo) =>
-    Boolean(game.interceptorName && game.transformerName);
+    hasMameRomsDirectory
+      ? Boolean(game.romName && game.interceptorName && game.transformerName)
+      : Boolean(game.interceptorName && game.transformerName);
 
   const filteredGames = hideUnconfigured ? games.filter(isConfigured) : games;
 
