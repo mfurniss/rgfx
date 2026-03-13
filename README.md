@@ -11,132 +11,21 @@ Real-time LED effects driven by retro arcade games. RGFX monitors game state ins
 - **Real-Time Effects** — Sub-10ms latency from game event to LED update
 - **Multi-Device Architecture** — Central Hub coordinates multiple ESP32 Driver devices
 - **MAME Integration** — Lua scripts monitor game internals and publish events
-- **Zero Configuration** — Automatic device discovery via SSDP and mDNS
-- **Dual Protocol** — MQTT (QoS 2) for reliability, UDP for low-latency effects
 - **OTA Updates** — Wireless firmware updates for ESP32 devices
-- **Flexible Configuration** — Multiple LED devices per Driver with custom mappings
-- **Game Library** — Includes example code to help get setup quickly
-
-## How It Works
-
-RGFX is a distributed system with three components:
-
-**RGFX Hub** — A desktop app (macOS/Windows) that monitors MAME's event output, discovers ESP32 devices on the network, and maps game events to LED effects.
-
-**RGFX Driver** — ESP32 firmware that receives commands from the Hub and controls the connected LED hardware. Multiple Drivers can run simultaneously for multi-zone setups.
-
-**MAME Interceptors** — Lua scripts that run inside MAME, reading game RAM to detect events like score changes, entity movement, and game state transitions. Events are written to a log file that the Hub monitors.
-
-The Hub communicates with Drivers using MQTT (QoS 2) for configuration and reliable messaging, and UDP broadcast for low-latency game event delivery. Devices discover each other automatically — no manual IP configuration needed.
-
-For the full architecture details, see the [documentation](https://rgfx.io/docs).
-
-## Included examples
-
-RGFX includes examples for the following titles:
-
-| Game | Interceptor | Transformer |
-|------|:-----------:|:-----------:|
-| Defender | yes | yes |
-| Galaga | yes | yes |
-| Galaga '88 | yes | yes |
-| OutRun | yes | yes |
-| Pac-Man | yes | yes |
-| Robotron: 2084 | yes | yes |
-| Star Wars | yes | yes |
-| Super Hang-On | yes | yes |
-| Super Mario Bros (NES) | yes | yes |
-
-See the [full game list](https://rgfx.io/hub-app/games/) for details on each game's supported events.
-
-## Getting Started
-
-### Prerequisites
-
-- **macOS or Windows**
-- **MAME** 0.250+
-- **ESP32 hardware** with connected LED strips or matrices
-
-### Install the RGFX Package
-
-Download the latest installer from the [Releases](https://github.com/mfurniss/rgfx/releases/latest) page:
-- **macOS** — `.dmg` installer
-- **Windows** — `.exe` installer
-
-### Launch MAME
-
-Start MAME with the RGFX autoboot script. See the [Getting Started guide](https://rgfx.io/docs/getting-started/configure-mame.html) for launch instructions.
 
 ## Documentation
 
-Full documentation is available at **[rgfx.io](https://rgfx.io/docs)**, covering:
+Full documentation is available at **[rgfx.io/docs](https://rgfx.io/docs)**, covering installation, configuration, hardware setup, writing custom interceptors and transformers, and architecture details.
 
-- Getting started and installation
-- Hub app configuration
-- LED hardware setup
-- Writing custom interceptors and transformers
-- Architecture and protocols
-- FAQ
+## Downloads
 
-## Development
+Download the latest installer from the [Releases](https://github.com/mfurniss/rgfx/releases/latest) page.
 
-### Hub (Electron/TypeScript)
+## Contributing
 
-Requires **Node.js 18+**.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and how to submit changes.
 
-```bash
-cd rgfx-hub
-npm install
-npm start            # Development mode
-npm run check        # TypeScript + ESLint + tests
-npm run make         # Build installer
-```
-
-### ESP32 Driver (C++/PlatformIO)
-
-```bash
-cd esp32
-pio run              # Compile
-pio run -t upload    # Flash via serial
-pio test             # Unit tests
-```
-
-### OTA Firmware Updates
-
-```bash
-dns-sd -B _arduino._tcp local.                                           # Discover devices
-pio run -e rgfx-driver-ota -t upload --upload-port rgfx-driver-xxxx.local  # Upload
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and how to submit changes.
-
-## Project Structure
-
-```
-rgfx/
-├── rgfx-hub/              # Electron Hub application
-│   ├── src/
-│   │   ├── main.ts                  # Main process entry point
-│   │   ├── event-file-reader.ts     # MAME event monitor
-│   │   ├── driver-registry.ts       # Driver management
-│   │   ├── transformer-engine.ts    # Event-to-effect transformer
-│   │   ├── network/                 # MQTT and UDP modules
-│   │   ├── renderer/                # React UI
-│   │   └── ...
-│   └── assets/
-│       ├── interceptors/games/      # Bundled Lua interceptors
-│       └── transformers/games/      # Bundled JS transformers
-├── esp32/                 # ESP32 Driver firmware
-│   ├── src/
-│   │   ├── main.cpp                 # Firmware entry point
-│   │   ├── effects/                 # LED effect implementations
-│   │   ├── graphics/                # Matrix rendering
-│   │   ├── network/                 # MQTT and UDP modules
-│   │   └── ...
-│   └── platformio.ini
-├── public-docs/           # Documentation site (rgfx.io)
-└── scripts/               # Build and development scripts
-```
+For project governance, see [MAINTAINERS.md](MAINTAINERS.md). For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ## Trademarks
 
@@ -146,23 +35,9 @@ All game titles, character names, and related properties mentioned in this proje
 
 This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See [LICENSE](LICENSE) for full text.
 
-- **Use freely** — Commercial and non-commercial use permitted
-- **Modify** — Create derivatives and modifications
-- **Share** — Distribute original or modified versions
-- **Copyleft for modifications** — Modified MPL-2.0 files must remain MPL-2.0
-- **Mix with proprietary** — Can combine with proprietary code (file-level copyleft only)
-
 ## Author
 
-**Matt Furniss**
-Email: furniss@gmail.com
-GitHub: [@mfurniss](https://github.com/mfurniss)
-
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and how to submit changes.
-
-For project governance, see [MAINTAINERS.md](MAINTAINERS.md). For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+**Matt Furniss** — [@mfurniss](https://github.com/mfurniss)
 
 ## Acknowledgments
 
