@@ -2,7 +2,9 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in RGFX, please open a [GitHub issue](https://github.com/mfurniss/rgfx/issues/new) using the **bug report** template and add the `security` label.
+**Please do not open a public issue for security vulnerabilities.**
+
+Instead, use [GitHub's private vulnerability reporting](https://github.com/mfurniss/rgfx/security/advisories/new).
 
 Include as much detail as possible:
 
@@ -11,6 +13,8 @@ Include as much detail as possible:
 - Which component is affected (Hub, ESP32 Driver, MAME scripts)
 - Potential impact
 - Suggested fix (if any)
+
+You will receive a response within 7 days.
 
 ## Scope
 

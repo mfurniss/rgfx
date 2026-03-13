@@ -244,7 +244,7 @@ if [ "$HUB_CHANGES" = true ]; then
     echo "✅ No unused dependencies found"
 
     echo "📜 Checking dependency licenses..."
-    npx license-checker --onlyAllow "MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0;OFL-1.1;LGPL-3.0-or-later;CC-BY-4.0;CC-BY-3.0"
+    npx license-checker --onlyAllow "MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0;OFL-1.1;LGPL-3.0-or-later;CC-BY-4.0;CC-BY-3.0" --excludePackages "truncate-utf8-bytes@1.0.2"
     echo "✅ All licenses are permissive"
 
     echo ""

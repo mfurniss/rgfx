@@ -7,7 +7,6 @@ This document outlines the current maintainers of the RGFX project and provides 
 ### Lead Maintainer
 
 **Matt Furniss**
-- Email: furniss@gmail.com
 - GitHub: [@mfurniss](https://github.com/mfurniss)
 - Role: Project creator, lead developer, and primary maintainer
 - Responsibilities:
@@ -25,9 +24,9 @@ For development setup, code standards, and how to submit changes, see [CONTRIBUT
 
 ### Review Timeline
 
-- **Initial Response**: Within 3-5 business days
-- **Full Review**: Within 7-14 days depending on complexity
-- **Small Fixes**: May be reviewed and merged within 24-48 hours
+- **Initial Response**: Within 7 days
+- **Full Review**: 7-14 days depending on complexity
+- **Small Fixes**: May be reviewed sooner
 
 ### Review Criteria
 
@@ -64,9 +63,9 @@ We use GitHub labels to categorize issues:
 
 ### Issue Response
 
-- **Bug Reports**: Acknowledged within 2-3 business days
-- **Feature Requests**: Acknowledged within 1 week
-- **Questions**: Answered within 3-5 business days
+- **Bug Reports**: Acknowledged within 7 days
+- **Feature Requests**: Acknowledged within 7 days
+- **Questions**: Answered within 7 days
 
 ## Release Management
 
@@ -80,13 +79,12 @@ RGFX follows [Semantic Versioning](https://semver.org/):
 
 ### Release Process
 
-Releases are triggered by git tags and managed via GitHub Actions:
+Releases are managed via a one-click GitHub Actions workflow:
 
-1. **Prepare release**: `npm run prepare-release -- v1.0.0` (bumps version, opens PR)
-2. **Merge PR** and pull main
-3. **Run release**: `npm run release -- v1.0.0` (validates, tags, pushes)
-4. **GitHub Actions builds**: macOS DMG, Windows EXE, ESP32 firmware
-5. **Release published**: GitHub Release with installers attached
+1. **Trigger**: GitHub → Actions → Release → Run workflow → enter version (e.g., `v1.0.0`)
+2. **Automated steps**: Validates, runs quality checks, bumps version, tags, builds
+3. **Build artifacts**: macOS DMG, Windows EXE, ESP32 firmware
+4. **Release published**: GitHub Release with installers attached
 
 ## Decision Making
 
@@ -133,15 +131,13 @@ New features must align with project goals:
 
 - **GitHub Issues** - Bug reports, feature requests, discussions
 - **GitHub Pull Requests** - Code contributions and reviews
-- **Email** - Direct contact with maintainers (furniss@gmail.com)
 
 ### Response Expectations
 
 Maintainers are volunteers. Please allow reasonable time for responses:
 
-- **Issues**: 2-5 business days
-- **Pull Requests**: 3-14 days depending on complexity
-- **Email**: 3-7 business days
+- **Issues**: Within 7 days
+- **Pull Requests**: Within 7 days
 
 ## Becoming a Maintainer
 
@@ -172,12 +168,10 @@ By submitting a contribution, you agree that:
 
 For questions about contributing or project governance:
 
-**Matt Furniss**
-Email: furniss@gmail.com
-GitHub: [@mfurniss](https://github.com/mfurniss)
+**Matt Furniss** — [@mfurniss](https://github.com/mfurniss)
 
 ---
 
 **Thank you for contributing to RGFX!**
 
-*Last updated: 2026-02-24*
+*Last updated: 2026-03-13*

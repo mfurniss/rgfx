@@ -30,12 +30,11 @@
   },
   "keywords": [],
   "author": {
-    "name": "Matt Furniss",
-    "email": "furniss@gmail.com"
+    "name": "Matt Furniss"
   },
   "license": "MPL-2.0",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0"
   },
   "devDependencies": {
     "@electron/fuses": "^1.8.0",
