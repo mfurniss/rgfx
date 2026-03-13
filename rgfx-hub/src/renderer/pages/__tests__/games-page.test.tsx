@@ -119,11 +119,14 @@ describe('GamesPage', () => {
     });
 
     it('does not show launch button when ROM is missing (orphan interceptor)', async () => {
-      mockRgfx.listGames.mockResolvedValue([ORPHAN_INTERCEPTOR]);
+      mockRgfx.listGames.mockResolvedValue([FULL_GAME, ORPHAN_INTERCEPTOR]);
       renderPage();
+      await disableHideUnconfigured();
 
       await screen.findByText('galaga_rgfx.lua');
-      expect(screen.queryByRole('button', { name: /Launch/ })).toBeNull();
+      const launchButtons = screen.getAllByRole('button', { name: /Launch/ });
+      // Only pacman should have a launch button, not galaga (no ROM)
+      expect(launchButtons).toHaveLength(1);
     });
 
     it('calls launchMame with ROM name stripped of extension', async () => {
@@ -142,6 +145,13 @@ describe('GamesPage', () => {
       // Games missing interceptor or transformer are hidden
       expect(screen.queryByText('donkeykong_rgfx.lua')).toBeNull();
       expect(screen.queryByText('frogger.js')).toBeNull();
+    });
+
+    it('hides orphan interceptors (no ROM) when hide unconfigured is on', async () => {
+      renderPage();
+
+      await screen.findByText('pacman_rgfx.lua');
+      expect(screen.queryByText('galaga_rgfx.lua')).toBeNull();
     });
   });
 
