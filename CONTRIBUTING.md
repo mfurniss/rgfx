@@ -132,7 +132,7 @@ The Hub is a cross-platform Electron desktop app that processes game events from
 
 **macOS:**
 ```bash
-brew install node        # Node.js 20+
+brew install node        # Node.js 24+
 brew install mame        # MAME 0.250+ (for testing with games)
 brew install luacheck stylua  # Lua linting tools
 ```
@@ -213,7 +213,7 @@ pio test -e native   # Run unit tests
 - Use `.clang-format` for formatting
 - Firmware must compile with `pio run`
 
-> **New effects:** ESP32 flash and RAM are limited, so new LED effects must be generally useful across multiple games and configurable via the Hub. Before writing a new effect, please [open a discussion](https://github.com/mfurniss/rgfx/discussions) or contact the maintainer to confirm it will be accepted.
+> **New effects:** ESP32 flash and RAM are limited, so new LED effects must be generally useful across multiple games and configurable via the Hub. Before writing a new effect, please [open an issue](https://github.com/mfurniss/rgfx/issues) or contact the maintainer to confirm it will be accepted.
 
 ---
 
