@@ -139,7 +139,7 @@ brew install luacheck stylua  # Lua linting tools
 
 **Windows:**
 ```powershell
-# Node.js 20+ - download from nodejs.org
+# Node.js 24+ - download from nodejs.org
 # MAME 0.250+ - download from https://www.mamedev.org/release.html
 # Lua tools - install luacheck and stylua via LuaRocks or download binaries
 ```
@@ -331,9 +331,9 @@ Changelogs are maintained by the project maintainer at release time.
 
 ### What to Expect
 
-- **Initial response**: 3-5 business days
+- **Initial response**: Within 7 days
 - **Full review**: 7-14 days depending on complexity
-- **Small fixes**: May be reviewed within 24-48 hours
+- **Small fixes**: May be reviewed sooner
 
 Maintainers may request changes - this is normal and collaborative. See [MAINTAINERS.md](MAINTAINERS.md) for review criteria and project governance.
 

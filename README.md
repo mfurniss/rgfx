@@ -38,11 +38,3 @@ This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See
 ## Author
 
 **Matt Furniss** — [@mfurniss](https://github.com/mfurniss)
-
-## Acknowledgments
-
-- [MAME](https://www.mamedev.org/) — Arcade emulation framework
-- [FastLED](https://fastled.io/) — High-performance LED library
-- [Aedes](https://github.com/moscajs/aedes) — Lightweight MQTT broker
-- [Electron](https://www.electronjs.org/) — Cross-platform desktop framework
-- [PlatformIO](https://platformio.org/) — Embedded development platform
