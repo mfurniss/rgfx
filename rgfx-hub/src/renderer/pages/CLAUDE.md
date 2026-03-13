@@ -262,6 +262,7 @@ Refactored components and utilities extracted from the main page:
 ## Testing Notes
 
 - **Do NOT call `cleanup()` in page tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.
+- **Avoid unnecessary optional chaining on DOM properties.** `textContent` on `HTMLElement` is always `string`, so `?.` is not needed and triggers build warnings.
 
 ## Cross-Platform Considerations
 

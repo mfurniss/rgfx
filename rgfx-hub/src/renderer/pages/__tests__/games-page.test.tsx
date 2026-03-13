@@ -104,7 +104,7 @@ describe('GamesPage', () => {
       await screen.findByText('donkeykong_rgfx.lua');
       // donkeykong has interceptor but no transformer — no launch button
       const rows = screen.getAllByRole('row');
-      const dkRow = rows.find((r) => r.textContent?.includes('donkeykong'));
+      const dkRow = rows.find((r) => r.textContent.includes('donkeykong'));
       expect(dkRow?.querySelector('[role="button"]')).toBeNull();
     });
 
@@ -114,7 +114,7 @@ describe('GamesPage', () => {
 
       await screen.findByText('frogger.js');
       const rows = screen.getAllByRole('row');
-      const froggerRow = rows.find((r) => r.textContent?.includes('frogger'));
+      const froggerRow = rows.find((r) => r.textContent.includes('frogger'));
       expect(froggerRow?.querySelector('[role="button"]')).toBeNull();
     });
 
