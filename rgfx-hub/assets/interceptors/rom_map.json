@@ -1,5 +1,4 @@
 {
-  "pacman": ["mspacman"],
   "defender": ["defenderg", "defenderb", "defenderw"],
   "outrun": ["outruna", "outrunb"],
   "sharrier": ["sharrier1", "sharrierj"],
