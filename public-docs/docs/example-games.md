@@ -56,3 +56,7 @@ RGFX is a community project. If you've written an interceptor or transformer for
 ### Enhance Existing Scripts
 
 The included examples detect common gameplay events, but there's always room to improve. Maybe you've found additional memory addresses for events I missed, or you've written a transformer that creates a better effect sequence. Improvements to existing scripts are just as welcome as entirely new games.
+
+---
+
+*All game titles and character names mentioned on this page are trademarks of their respective owners. RGFX is not affiliated with or endorsed by any game publisher.*

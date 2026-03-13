@@ -138,6 +138,10 @@ rgfx/
 └── scripts/               # Build and development scripts
 ```
 
+## Trademarks
+
+All game titles, character names, and related properties mentioned in this project are trademarks of their respective owners. RGFX is an independent project and is not affiliated with, endorsed by, or sponsored by any game publisher or hardware manufacturer. Game names are used solely for identification and interoperability purposes.
+
 ## License
 
 This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See [LICENSE](LICENSE) for full text.

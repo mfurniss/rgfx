@@ -97,6 +97,7 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - FFT module requires `emit_events = true` to emit events (defaults to false)
 - Interceptor and transformer docs are cross-linked — related pages link to their counterpart (e.g., ambilight interceptor ↔ ambilight transformer, events → transformers, writing-interceptors → writing-transformers)
 - Acknowledgements page uses concise project descriptions (no redundant context in table cells)
+- Trademark disclaimers appear as italicized footer text on `index.md` and `example-games.md` — any page that references specific game titles should include a similar disclaimer
 
 ### When Adding New Features
 

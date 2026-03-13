@@ -378,3 +378,7 @@ Found a security vulnerability? Please report it privately - see [SECURITY.md](S
 ---
 
 Thank you for contributing to RGFX!
+
+---
+
+*All game titles and character names mentioned in this project are trademarks of their respective owners. RGFX is not affiliated with or endorsed by any game publisher.*
