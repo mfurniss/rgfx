@@ -180,8 +180,18 @@ jobs:
         run: npm run make:mac
         working-directory: rgfx-hub
 
-      # TODO: Re-enable once Apple notarization service is reliable
-      # - name: Notarize
+      - name: Sign DMG
+        run: |
+          DMG=$(find rgfx-hub/out -name "*.dmg" | head -1)
+          IDENTITY=$(security find-identity -v -p codesigning | grep "$APPLE_TEAM_ID" | head -1 | awk -F'"' '{print $2}')
+          echo "Signing $DMG with identity: $IDENTITY"
+          codesign --sign "$IDENTITY" --options runtime "$DMG"
+          codesign --verify --strict "$DMG"
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      # TODO: Re-enable once Apple notarization is confirmed working
+      # - name: Notarize and staple
       #   env:
       #     APPLE_ID: ${{ secrets.APPLE_ID }}
       #     APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -196,6 +206,8 @@ jobs:
       #       --wait --timeout 30m
       #     echo "Stapling notarization ticket..."
       #     xcrun stapler staple "$DMG"
+      #     echo "Verifying notarization..."
+      #     xcrun spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG"
 
       - name: Rename installer
         run: |
