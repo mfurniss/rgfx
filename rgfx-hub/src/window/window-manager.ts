@@ -74,6 +74,7 @@ export function createWindowManager(deps: WindowManagerDeps): WindowManager {
       width: mainWindowState.width,
       height: mainWindowState.height,
       title: '',
+      autoHideMenuBar: true,
       backgroundColor: '#121212',
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),

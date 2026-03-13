@@ -4,7 +4,7 @@
 
 Real-time LED effects driven by retro arcade games. RGFX monitors game state inside MAME and translates events like score changes, player and enemy behavior into synchronized lighting effects on ESP32-controlled LED strips and matrices.
 
-[![RGFX Demo](https://img.youtube.com/vi/6lCLMydJWps/maxresdefault.jpg)](https://www.youtube.com/shorts/6lCLMydJWps)
+[![RGFX Demo](https://img.youtube.com/vi/gh673Zi6PzE/maxresdefault.jpg)](https://youtu.be/gh673Zi6PzE)
 
 ## Features
 
@@ -137,6 +137,10 @@ rgfx/
 ├── public-docs/           # Documentation site (rgfx.io)
 └── scripts/               # Build and development scripts
 ```
+
+## Trademarks
+
+All game titles, character names, and related properties mentioned in this project are trademarks of their respective owners. RGFX is an independent project and is not affiliated with, endorsed by, or sponsored by any game publisher or hardware manufacturer. Game names are used solely for identification and interoperability purposes.
 
 ## License
 

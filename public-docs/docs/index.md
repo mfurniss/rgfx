@@ -71,3 +71,7 @@ flowchart TB
 - **Ambilight mode** — sample screen edge colors for ambient lighting that follows the game
 - **LED strips and matrices** — works with WS2812B and SK6812 addressable LEDs
 - **Multiple drivers** — run several ESP32 boards with different LED setups, all synchronized
+
+---
+
+*All game titles and character names referenced in this project are trademarks of their respective owners. RGFX is an independent project and is not affiliated with, endorsed by, or sponsored by any game publisher or hardware manufacturer.*

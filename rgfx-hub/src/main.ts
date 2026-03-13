@@ -71,13 +71,10 @@ const windowManager = createWindowManager({
   log,
 });
 
-// Set application menu with Help > Documentation
+// Minimal menu: app menu on macOS (Quit/Hide/About) + Help > Documentation
 const isMac = process.platform === 'darwin';
 const menuTemplate: Electron.MenuItemConstructorOptions[] = [
   ...(isMac ? [{ role: 'appMenu' as const }] : []),
-  { role: 'fileMenu' as const },
-  { role: 'editMenu' as const },
-  { role: 'viewMenu' as const },
   {
     role: 'help' as const,
     submenu: [
