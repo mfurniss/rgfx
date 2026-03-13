@@ -4,7 +4,7 @@
 
 Real-time LED effects driven by retro arcade games. RGFX monitors game state inside MAME and translates events like score changes, player and enemy behavior into synchronized lighting effects on ESP32-controlled LED strips and matrices.
 
-[![RGFX Demo](https://img.youtube.com/vi/6lCLMydJWps/maxresdefault.jpg)](https://www.youtube.com/shorts/6lCLMydJWps)
+[![RGFX Demo](https://img.youtube.com/vi/gh673Zi6PzE/maxresdefault.jpg)](https://youtu.be/gh673Zi6PzE)
 
 ## Features
 
