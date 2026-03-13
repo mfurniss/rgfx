@@ -220,8 +220,10 @@ Refactored components and utilities extracted from the main page:
 
 **Features:**
 - Sortable table showing all configured games
-- Columns: MAME ROM name, interceptor script, transformer script
+- Columns: MAME ROM name, interceptor script, transformer script, launch button
 - Clickable links to open interceptor/transformer files in default editor
+- "Hide unconfigured" toggle filters to games with BOTH interceptor AND transformer
+- Launch column (visible when ROMs directory is configured): play button for games with ROM, interceptor, and transformer; fires `window.rgfx.launchMame(romName)` (extension stripped) to launch MAME via the user's launch script
 - Data loaded via `window.rgfx.listGames()` IPC call
 
 ---

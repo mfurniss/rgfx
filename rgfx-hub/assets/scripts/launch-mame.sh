@@ -90,7 +90,7 @@ echo ""
 # Run MAME with autoboot script
 "$MAME_EXEC" "$@" \
   -rompath "$ROM_PATH" \
-  -skip_gameinfo \
+  -window -nomaximize -skip_gameinfo \
   -autoboot_script "$RGFX_LUA_PATH"
 MAME_EXIT_CODE=$?
 

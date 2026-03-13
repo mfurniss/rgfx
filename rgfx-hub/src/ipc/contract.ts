@@ -78,6 +78,7 @@ export const PUSH_CHANNELS = {
 export const SEND_CHANNELS = {
   rendererReady: 'renderer:ready',
   quitApp: 'app:quit',
+  launchMame: 'mame:launch',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -241,6 +242,7 @@ export interface PushContract {
 export interface SendContract {
   rendererReady: [];
   quitApp: [];
+  launchMame: [romName: string];
 }
 
 // ---------------------------------------------------------------------------

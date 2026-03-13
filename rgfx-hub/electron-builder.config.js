@@ -38,6 +38,7 @@ module.exports = {
     hardenedRuntime: true,
     entitlements: 'entitlements.mac.plist',
     entitlementsInherit: 'entitlements.mac.plist',
+    signIgnore: ['/firmware/.*\\.bin$'],
     extendInfo: {
       NSLocalNetworkUsageDescription:
         'RGFX Hub needs local network access to communicate with LED drivers via UDP and MQTT.',

@@ -383,6 +383,25 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 
 ---
 
+### `mame:launch`
+
+**File:** [launch-mame-handler.ts](launch-mame-handler.ts)
+
+**Purpose:** Launches MAME via the user's launch script in `~/.rgfx/`.
+
+**Parameters:**
+- `romName: string` - ROM name to pass to the launch script
+
+**Returns:** void (fire-and-forget via `SEND_CHANNELS` / `ipcMain.on`)
+
+**Behavior:**
+1. Resolves script path: `launch-mame.sh` on macOS, `launch-mame.bat` on Windows
+2. Spawns script with `detached: true`, `stdio: 'ignore'`, then `unref()`
+3. Windows uses `cmd.exe /c` wrapper
+4. Logs spawn errors via `error` event listener
+
+---
+
 ### `assets:reinstall`
 
 **File:** [reinstall-assets-handler.ts](reinstall-assets-handler.ts)
