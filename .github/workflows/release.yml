@@ -183,12 +183,11 @@ jobs:
       - name: Sign DMG
         run: |
           DMG=$(find rgfx-hub/out -name "*.dmg" | head -1)
-          echo "Signing $DMG..."
-          codesign --sign "Developer ID Application: $APPLE_TEAM_NAME ($APPLE_TEAM_ID)" \
-            --options runtime "$DMG"
+          IDENTITY=$(security find-identity -v -p codesigning | grep "$APPLE_TEAM_ID" | head -1 | awk -F'"' '{print $2}')
+          echo "Signing $DMG with identity: $IDENTITY"
+          codesign --sign "$IDENTITY" --options runtime "$DMG"
           codesign --verify --strict "$DMG"
         env:
-          APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       # TODO: Re-enable once Apple notarization is confirmed working
