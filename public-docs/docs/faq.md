@@ -156,13 +156,6 @@ RGFX Hub is not signed with an Apple Developer certificate. macOS will block the
 3. Scroll down to the **Security** section — you'll see a message about RGFX Hub being blocked
 4. Click **Open Anyway**, then confirm with **Open**
 
-### Windows: "Windows protected your PC" (SmartScreen)
-
-RGFX Hub is not signed with a Microsoft code-signing certificate. Windows Defender SmartScreen may block the installer. To proceed:
-
-1. Click **More info** in the SmartScreen dialog
-2. Click **Run anyway**
-
 ### Serial commands
 
 Connect your ESP32 driver via USB and open a serial monitor at 115200 baud. The following commands are available:

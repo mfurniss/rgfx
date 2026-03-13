@@ -181,12 +181,12 @@ describe('preload API', () => {
       'onDriverUpdated', 'onDriverRestarting', 'onDriverDeleted',
       'onSystemStatus', 'onFlashOtaState', 'onFlashOtaProgress',
       'onFlashOtaError', 'onEvent',
-      // Send (2)
-      'rendererReady', 'quitApp',
+      // Send (3)
+      'rendererReady', 'quitApp', 'launchMame',
     ];
 
-    it('has exactly 43 methods', () => {
-      expect(Object.keys(rgfxAPI)).toHaveLength(43);
+    it('has exactly 44 methods', () => {
+      expect(Object.keys(rgfxAPI)).toHaveLength(44);
     });
 
     it('contains all expected methods', () => {

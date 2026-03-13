@@ -27,7 +27,7 @@ Accepted exceptions:
 ### Documentation Standards
 
 - Link to relevant subreddits (r/led, r/esp32, r/MAME) and external resources in the FAQ "Still stuck?" section
-- The FAQ Troubleshooting section includes a macOS Sequoia EHOSTUNREACH workaround (Local Network privacy toggle), a macOS Gatekeeper workaround (right-click → Open), and requirements.md has a matching admonition
+- The FAQ Troubleshooting section includes a macOS Sequoia EHOSTUNREACH workaround (Local Network privacy toggle) and a macOS Gatekeeper workaround (right-click → Open). The Windows app is now code-signed so no SmartScreen workaround is needed.
 - Use precise technical terminology
 - Include actual configuration options with correct defaults
 - Document all parameters, not just common ones

@@ -7,7 +7,7 @@ Main process modules at the root of `src/`. Subdirectories have their own CLAUDE
 ## App Lifecycle
 
 - `main.ts` — Electron entry point; initializes app, IPC channels, and core services
-- `preload.ts` — Exposes secure IPC API to renderer via `window.rgfx`
+- `preload.ts` — Exposes secure IPC API to renderer via `window.rgfx` (44 methods: invoke, push, and send channels)
 - `shutdown.ts` — Graceful shutdown; sends clear-effects to all connected drivers
 
 ## Driver Management

@@ -13,8 +13,10 @@ import {
   Switch,
   Alert,
   Stack,
+  Button,
 } from '@mui/material';
 import GamesIcon from '@mui/icons-material/SportsEsports';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { Link as RouterLink } from 'react-router-dom';
 import type { GameInfo } from '@/types';
 import { PageTitle } from '../components/layout/page-title';
@@ -45,7 +47,7 @@ const GamesPage: React.FC = () => {
       cols.push({ field: 'romName', label: 'MAME ROM File' });
     }
     cols.push({ field: 'interceptorName', label: 'MAME Interceptor' });
-    cols.push({ field: 'transformerName', label: 'RGFX Hub Transformer' });
+    cols.push({ field: 'transformerName', label: 'Transformer' });
     return cols;
   }, [hasMameRomsDirectory]);
 
@@ -66,7 +68,17 @@ const GamesPage: React.FC = () => {
     }
   };
 
-  const isConfigured = (game: GameInfo) => Boolean(game.interceptorName ?? game.transformerName);
+  const canLaunch = (game: GameInfo) =>
+    Boolean(game.romName && game.interceptorName && game.transformerName);
+
+  const stripExtension = (filename: string) => filename.replace(/\.[^.]+$/, '');
+
+  const handleLaunch = (romName: string) => {
+    window.rgfx.launchMame(stripExtension(romName));
+  };
+
+  const isConfigured = (game: GameInfo) =>
+    Boolean(game.interceptorName && game.transformerName);
 
   const filteredGames = hideUnconfigured ? games.filter(isConfigured) : games;
 
@@ -115,10 +127,11 @@ const GamesPage: React.FC = () => {
               sortField={sortField}
               sortOrder={sortOrder}
               onSort={handleSort}
+              extraColumns={hasMameRomsDirectory ? <TableCell>Launch</TableCell> : undefined}
             />
             <TableBody>
               {sortedGames.length === 0 ? (
-                <TableEmptyRow colSpan={hasMameRomsDirectory ? 3 : 2} message="No games configured" />
+                <TableEmptyRow colSpan={hasMameRomsDirectory ? 4 : 2} message="No games configured" />
               ) : (
                 sortedGames.map((game, index) => (
                   <TableRow key={index}>
@@ -151,6 +164,24 @@ const GamesPage: React.FC = () => {
                         </Link>
                       ) : null}
                     </TableCell>
+                    {hasMameRomsDirectory ? (
+                      <TableCell>
+                        {canLaunch(game) ? (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<PlayArrowIcon />}
+                            onClick={() => {
+                              if (game.romName) {
+                                handleLaunch(game.romName);
+                              }
+                            }}
+                          >
+                            Launch
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                    ) : null}
                   </TableRow>
                 ))
               )}
