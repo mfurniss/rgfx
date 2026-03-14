@@ -137,6 +137,7 @@ jobs:
     needs: [prepare, build-driver]
     if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.build-driver.result == 'success' }}
     runs-on: macos-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v5
@@ -190,24 +191,24 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      # TODO: Re-enable once Apple notarization is confirmed working
-      # - name: Notarize and staple
-      #   env:
-      #     APPLE_ID: ${{ secrets.APPLE_ID }}
-      #     APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      #   run: |
-      #     DMG=$(find rgfx-hub/out -name "*.dmg" | head -1)
-      #     echo "Submitting $DMG for notarization..."
-      #     xcrun notarytool submit "$DMG" \
-      #       --apple-id "$APPLE_ID" \
-      #       --password "$APPLE_ID_PASSWORD" \
-      #       --team-id "$APPLE_TEAM_ID" \
-      #       --wait --timeout 30m
-      #     echo "Stapling notarization ticket..."
-      #     xcrun stapler staple "$DMG"
-      #     echo "Verifying notarization..."
-      #     xcrun spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG"
+      - name: Notarize and staple
+        continue-on-error: true
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          DMG=$(find rgfx-hub/out -name "*.dmg" | head -1)
+          echo "Submitting $DMG for notarization..."
+          xcrun notarytool submit "$DMG" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait --timeout 20m
+          echo "Stapling notarization ticket..."
+          xcrun stapler staple "$DMG"
+          echo "Verifying notarization..."
+          xcrun spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG"
 
       - name: Rename installer
         run: |
