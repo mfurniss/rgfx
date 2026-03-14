@@ -44,6 +44,7 @@ export async function transform(
       await sleep(70);
     }
   });
+
   // Let init events pass through to subject handlers (for world record fetch)
   if (subject === 'init') {
     return false;
@@ -128,19 +129,31 @@ export async function transform(
 
     if (property === 'enforcer') {
       broadcast({
-        effect: 'explode',
-        drivers: ['*', '*'],
+        effect: 'bitmap',
+        drivers: randomDrivers(),
         props: {
-          color: '#80D0FF',
-          centerX: 'random',
-          centerY: 'random',
-          friction: 6,
-          lifespan: 800,
-          lifespanSpread: 0,
-          particleCount: 150,
-          particleSize: 3,
-          power: 400,
-          powerSpread: 100,
+          centerX: 50,
+          centerY: 50,
+          endX: 'random',
+          duration: 1200,
+          fadeIn: 0,
+          fadeOut: 0,
+          shatter: 'random',
+          images: [
+            [
+              '....6....',
+              '...666...',
+              '..6BBB6..',
+              '.6888886.',
+              '...666..',
+              '7.66C66.7',
+              '.77CCC77.',
+              '7.CCCCC.7',
+              '....6....',
+              '..99999..',
+              '.9999999.',
+            ],
+          ],
         },
       });
     }
@@ -166,24 +179,35 @@ export async function transform(
     }
 
     if (property === 'grunt') {
-      const drivers = randomDrivers();
-
-      for (const collapse of ['vertical', 'horizontal']) {
-        broadcast({
-          effect: 'pulse',
-          drivers,
-          props: {
-            color: '#B00000',
-            reset: false,
-            duration: 600,
-            easing: 'quinticOut',
-            fade: true,
-            collapse,
-          },
-        });
-
-        await sleep(100);
-      }
+      broadcast({
+        effect: 'bitmap',
+        drivers: randomDrivers(),
+        props: {
+          centerX: 50,
+          centerY: 50,
+          endX: 'random',
+          duration: 1200,
+          fadeIn: 0,
+          fadeOut: 0,
+          shatter: 'random',
+          images: [
+            [
+              '...888...',
+              '..BBBBB..',
+              '..DDDDD..',
+              '...BBB...',
+              'BB7BBB7BB',
+              'A8877788A',
+              'A.88788.A',
+              'A..888..A',
+              '...888...',
+              '..88.88..',
+              '..88.88..',
+              '.AAA.AAA.',
+            ],
+          ],
+        },
+      });
     }
 
     if (property === 'quark') {
@@ -255,7 +279,9 @@ export async function transform(
           powerSpread: 0,
         },
       });
+
       await sleep(120);
+
       broadcast({
         effect: 'explode',
         drivers,

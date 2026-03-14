@@ -80,12 +80,15 @@ When adding new MQTT publish calls, always use the log queue pattern or ensure t
 
 1. WiFi connects (via IotWebConf portal or saved credentials)
 2. `setupNetworkServices()` is called:
+   - 500ms delay before green flash (allows serial flash to interrupt before LEDs latch)
+   - Show green LEDs during network setup (using direct LED buffer when config loaded early)
    - Disable WiFi power saving for low latency
    - Start mDNS responder
    - Setup OTA updates
    - Load saved LED config from NVS
    - Initialize MQTT client
    - Start UDP listener
+   - Clear LEDs for normal operation
 3. `networkTask()` runs continuous loop:
    - Process config portal requests
    - Poll for MQTT broker (every 3s until found)

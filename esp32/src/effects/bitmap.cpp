@@ -203,6 +203,22 @@ void BitmapEffect::add(JsonDocument& props) {
 
 	newBitmap.frameRate = props["frameRate"] | static_cast<int>(effect_defaults::bitmap::frameRate);
 
+	// Parse shatter mode
+	const char* shatterStr = props["shatter"] | "";
+	ShatterMode shatter = ShatterMode::NONE;
+	if (strcmp(shatterStr, "horizontal") == 0) {
+		shatter = ShatterMode::HORIZONTAL;
+	} else if (strcmp(shatterStr, "vertical") == 0) {
+		shatter = ShatterMode::VERTICAL;
+	} else if (strcmp(shatterStr, "random") == 0) {
+		shatter = (hal::random(2) == 0) ? ShatterMode::HORIZONTAL : ShatterMode::VERTICAL;
+	}
+	// Strips only have one axis — force horizontal
+	if (shatter != ShatterMode::NONE && matrix.layoutType == LayoutType::STRIP) {
+		shatter = ShatterMode::HORIZONTAL;
+	}
+	newBitmap.shatter = shatter;
+
 	// Parse images array (array of frames, each frame is array of row strings)
 	if (props["images"].is<JsonArray>()) {
 		JsonArray imagesArray = props["images"].as<JsonArray>();
@@ -393,22 +409,106 @@ void BitmapEffect::render() {
 		uint8_t fadeAlpha = calculateFadeAlpha(
 		    bmp.elapsedTime, bmp.duration, bmp.fadeInMs, bmp.fadeOutMs);
 
-		// Render current frame using palette lookup
-		for (uint8_t row = 0; row < currentFrame.height; row++) {
-			for (uint8_t col = 0; col < currentFrame.width; col++) {
-				uint8_t idx = currentFrame.indices[row * currentFrame.width + col];
-				if (idx != TRANSPARENT_INDEX && idx < bmp.paletteSize) {
-					const CRGBA& pixel = bmp.palette[idx];
-					// Apply fade alpha (palette colors have alpha=255)
-					uint8_t effectiveAlpha = (pixel.a * fadeAlpha) / 255;
-					if (effectiveAlpha > 0) {
-						// Draw a 4x4 block for each pixel
-						int16_t x = offsetX + col * scale;
-						int16_t y = offsetY + row * scale;
-						canvas.drawRectangle(x, y, scale, scale,
-						    CRGBA(pixel.r, pixel.g, pixel.b, effectiveAlpha), BlendMode::ALPHA);
+		if (bmp.shatter != ShatterMode::NONE) {
+			renderShatter(bmp, currentFrame, offsetX, offsetY, fadeAlpha, scale);
+		} else {
+			// Optimized render path for normal (non-shatter) bitmaps
+			for (uint8_t row = 0; row < currentFrame.height; row++) {
+				for (uint8_t col = 0; col < currentFrame.width; col++) {
+					uint8_t idx = currentFrame.indices[row * currentFrame.width + col];
+					if (idx != TRANSPARENT_INDEX && idx < bmp.paletteSize) {
+						const CRGBA& pixel = bmp.palette[idx];
+						uint8_t effectiveAlpha = (pixel.a * fadeAlpha) / 255;
+						if (effectiveAlpha > 0) {
+							int16_t x = offsetX + col * scale;
+							int16_t y = offsetY + row * scale;
+							canvas.drawRectangle(x, y, scale, scale,
+							    CRGBA(pixel.r, pixel.g, pixel.b, effectiveAlpha), BlendMode::ALPHA);
+						}
 					}
 				}
+			}
+		}
+	}
+}
+
+void BitmapEffect::renderShatter(const Bitmap& bmp, const Frame& frame,
+                                  int16_t offsetX, int16_t offsetY,
+                                  uint8_t fadeAlpha, uint8_t scale) {
+	uint16_t canvasWidth = canvas.getWidth();
+	uint16_t canvasHeight = canvas.getHeight();
+
+	// --- Frame-level pre-computation (float ok here, runs once) ---
+
+	float rawProgress = static_cast<float>(bmp.elapsedTime) / bmp.duration;
+	rawProgress = std::min(1.0f, std::max(0.0f, rawProgress));
+	float shatterProgress = quarticEaseOutf(rawProgress);
+
+	static constexpr int16_t MAX_SHATTER_DISTANCE = 512;
+
+	// Accelerated fade for center strips — constant for entire frame
+	uint8_t accelFade8 = (rawProgress > 0.0f)
+	    ? static_cast<uint8_t>(std::max(0.0f, 1.0f - rawProgress * 2.0f) * 255.0f)
+	    : 255;
+
+	// --- Per-strip LUTs (float ok here, max 32 iterations) ---
+
+	int16_t stripOffset[MAX_FRAME_DIMENSION];
+	uint16_t stripFade8[MAX_FRAME_DIMENSION];
+
+	if (bmp.shatter == ShatterMode::VERTICAL) {
+		float centerRow = (frame.height - 1) / 2.0f;
+		for (uint8_t i = 0; i < frame.height; i++) {
+			float d = (i - centerRow) / (centerRow > 0.0f ? centerRow : 1.0f) * 0.7f;
+			stripOffset[i] = static_cast<int16_t>(d * shatterProgress * MAX_SHATTER_DISTANCE);
+			uint8_t dist8 = static_cast<uint8_t>(std::min(std::abs(d), 1.0f) * 255.0f);
+			stripFade8[i] = accelFade8 + ((uint16_t)dist8 * (255u - accelFade8) >> 8);
+		}
+	} else {
+		float centerCol = (frame.width - 1) / 2.0f;
+		for (uint8_t i = 0; i < frame.width; i++) {
+			float d = (i - centerCol) / (centerCol > 0.0f ? centerCol : 1.0f) * 0.7f;
+			stripOffset[i] = static_cast<int16_t>(d * shatterProgress * MAX_SHATTER_DISTANCE);
+			uint8_t dist8 = static_cast<uint8_t>(std::min(std::abs(d), 1.0f) * 255.0f);
+			stripFade8[i] = accelFade8 + ((uint16_t)dist8 * (255u - accelFade8) >> 8);
+		}
+	}
+
+	// --- Inner loops: integer math only ---
+
+	if (bmp.shatter == ShatterMode::VERTICAL) {
+		for (uint8_t row = 0; row < frame.height; row++) {
+			int16_t yBase = offsetY + row * scale + stripOffset[row];
+			if (yBase + scale <= 0 || yBase >= static_cast<int16_t>(canvasHeight)) continue;
+			uint16_t fade = stripFade8[row];
+
+			for (uint8_t col = 0; col < frame.width; col++) {
+				uint8_t idx = frame.indices[row * frame.width + col];
+				if (idx == TRANSPARENT_INDEX || idx >= bmp.paletteSize) continue;
+				const CRGBA& pixel = bmp.palette[idx];
+				uint8_t effectiveAlpha = static_cast<uint8_t>(
+				    ((uint32_t)pixel.a * fadeAlpha * fade) >> 16);
+				if (effectiveAlpha == 0) continue;
+				int16_t x = offsetX + col * scale;
+				canvas.drawRectangle(x, yBase, scale, scale,
+				    CRGBA(pixel.r, pixel.g, pixel.b, effectiveAlpha), BlendMode::ALPHA);
+			}
+		}
+	} else {
+		for (uint8_t row = 0; row < frame.height; row++) {
+			int16_t y = offsetY + row * scale;
+
+			for (uint8_t col = 0; col < frame.width; col++) {
+				uint8_t idx = frame.indices[row * frame.width + col];
+				if (idx == TRANSPARENT_INDEX || idx >= bmp.paletteSize) continue;
+				int16_t x = offsetX + col * scale + stripOffset[col];
+				if (x + scale <= 0 || x >= static_cast<int16_t>(canvasWidth)) continue;
+				const CRGBA& pixel = bmp.palette[idx];
+				uint8_t effectiveAlpha = static_cast<uint8_t>(
+				    ((uint32_t)pixel.a * fadeAlpha * stripFade8[col]) >> 16);
+				if (effectiveAlpha == 0) continue;
+				canvas.drawRectangle(x, y, scale, scale,
+				    CRGBA(pixel.r, pixel.g, pixel.b, effectiveAlpha), BlendMode::ALPHA);
 			}
 		}
 	}

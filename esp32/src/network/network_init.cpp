@@ -112,6 +112,8 @@ static void cleanupNetworkServicesCore() {
 
 void setupNetworkServices(Matrix& m) {
 	log("WiFi connected - setting up OTA, MQTT and UDP");
+	// Delay before green so serial flash can interrupt before LEDs latch
+	delay(500);
 	fill_solid(m.leds, m.size, CRGB::Green);
 	hal::getLedController().show();
 
@@ -140,16 +142,31 @@ void cleanupNetworkServices(Matrix& m) {
 
 // Overload without Matrix for when it's not ready
 void setupNetworkServices() {
-	log("WiFi connected - setting up OTA, MQTT and UDP (no LED feedback yet)");
+	log("WiFi connected - setting up OTA, MQTT and UDP");
 
-	// Clear LEDs if matrix is available (e.g., after reset when purple LEDs remain lit)
-	// Check both pointer and leds buffer, and ensure config update isn't in progress
-	if (!g_configUpdateInProgress && matrix != nullptr && matrix->leds != nullptr) {
-		fill_solid(matrix->leds, matrix->size, CRGB::Black);
-		hal::getLedController().show();
+	// Delay before green so serial flash can interrupt before LEDs latch
+	delay(500);
+
+	// Show green LEDs during network setup using direct LED buffer
+	CRGB* leds = nullptr;
+	uint16_t ledCount = 0;
+	if (!g_driverConfig.devices.empty()) {
+		const auto& firstDevice = g_driverConfig.devices[0];
+		leds = getLEDsForDevice(firstDevice.id);
+		ledCount = firstDevice.count;
+		if (leds) {
+			fill_solid(leds, ledCount, CRGB::Green);
+			hal::getLedController().show();
+		}
 	}
 
 	setupNetworkServicesCore();
+
+	// Go dark for normal operation
+	if (leds) {
+		fill_solid(leds, ledCount, CRGB::Black);
+		hal::getLedController().show();
+	}
 }
 
 void cleanupNetworkServices() {

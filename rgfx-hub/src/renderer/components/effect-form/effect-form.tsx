@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Grid, Stack } from '@mui/material';
@@ -26,8 +26,12 @@ export function EffectForm(props: EffectFormProps) {
   const {
     schema, defaultValues, onChange, onValidityChange, fieldTypes, layoutConfig,
   } = props;
-  const fields = useMemo(() => extractFieldMetadata(schema, fieldTypes), [schema, fieldTypes]);
-  const fieldMap = useMemo(() => new Map(fields.map((f) => [f.name, f])), [fields]);
+  const fields = useMemo(
+    () => extractFieldMetadata(schema, fieldTypes), [schema, fieldTypes],
+  );
+  const fieldMap = useMemo(
+    () => new Map(fields.map((f) => [f.name, f])), [fields],
+  );
 
   const methods = useForm({
     resolver: zodResolver(schema),
@@ -42,9 +46,18 @@ export function EffectForm(props: EffectFormProps) {
     formState: { errors, isValid },
   } = methods;
 
-  // Reset form when schema changes
+  // Track previous defaultValues to avoid resetting when values haven't
+  // actually changed (prevents feedback loop: watch → onChange → store
+  // write → new defaultValues object ref → reset → watch → ...).
+  const prevDefaultsJsonRef = useRef(JSON.stringify(defaultValues));
+
   useEffect(() => {
-    reset(defaultValues);
+    const incoming = JSON.stringify(defaultValues);
+
+    if (incoming !== prevDefaultsJsonRef.current) {
+      prevDefaultsJsonRef.current = incoming;
+      reset(defaultValues);
+    }
   }, [schema, defaultValues, reset]);
 
   // Notify parent of form validity once the user has edited a field.
@@ -70,7 +83,12 @@ export function EffectForm(props: EffectFormProps) {
   }, [watch, onChange]);
 
   const renderField = (field: FieldMetadata) => (
-    <FieldRenderer key={field.name} field={field} control={control} errors={errors} />
+    <FieldRenderer
+      key={field.name}
+      field={field}
+      control={control}
+      errors={errors}
+    />
   );
 
   // Render with layout config (column-based)
@@ -83,7 +101,9 @@ export function EffectForm(props: EffectFormProps) {
               <Stack spacing={3}>
                 {columnFields
                   .map((fieldName) => fieldMap.get(fieldName))
-                  .filter((field): field is FieldMetadata => field !== undefined)
+                  .filter(
+                    (field): field is FieldMetadata => field !== undefined,
+                  )
                   .map(renderField)}
               </Stack>
             </Grid>

@@ -42,6 +42,16 @@ export function getDriverFirmwareUpdateInfo(
   }
 
   const driverFw = driver.telemetry.firmwareVersion;
+
+  // Dev builds are always considered newer unless exact match
+  if (targetVersion.includes('-dev')) {
+    return {
+      needsUpdate: targetVersion !== driverFw,
+      driverVersion: driverFw,
+      targetVersion,
+    };
+  }
+
   const target = semver.parse(
     semver.clean(targetVersion) ?? targetVersion,
   );

@@ -212,7 +212,7 @@ describe('effect defaults', () => {
 
   describe('completeness — schema props covered in defaults', () => {
     const excludedProps: Record<string, string[]> = {
-      bitmap: ['endX', 'endY'],
+      bitmap: ['endX', 'endY', 'shatter'],
     };
 
     for (const [name, schema] of Object.entries(effectPropsSchemas)) {
