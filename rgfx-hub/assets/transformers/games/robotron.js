@@ -487,20 +487,6 @@ export async function transform(
       }
     }
 
-    if (property === 'enforcer-spawn') {
-      broadcast({
-        effect: 'sparkle',
-        props: {
-          duration: 300,
-          density: 100,
-          gradient: ['#000000', '#00FFFF', '#000000'],
-          speed: 2,
-          bloom: 90,
-          reset: false,
-        },
-      });
-    }
-
     if (property == 'extra-life') {
       broadcast({
         effect: 'scroll_text',
