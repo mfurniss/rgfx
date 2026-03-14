@@ -52,6 +52,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `utils/http-context.ts` — HTTP helpers: `createHttpContext`, `mergeHeaders`
 - `utils/firmware-paths.ts` — Firmware directory helpers: `getFirmwareDir`, `getFirmwareFilePath`
 - `utils/error-utils.ts` — `getErrorMessage` for safe error-to-string conversion
+- `utils/sprite-presets.ts` — Built-in sprite presets for the bitmap effect (Invader, Ghost, Grunt, etc.)
 
 ## Import Conventions
 

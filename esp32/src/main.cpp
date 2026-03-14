@@ -165,25 +165,11 @@ void setup() {
 	// Will be rebuilt when config is received from Hub
 	rebuildGammaLUT();
 
-	// Power-on LED test - light all LEDs green if config exists
+	// Load saved LED config early so FastLED is initialized before WiFi connects
 	if (ConfigNVS::hasLEDConfig()) {
-		log("Running power-on LED test...");
 		String savedConfig = ConfigNVS::loadLEDConfig();
 		if (savedConfig.length() > 0) {
-			// Parse and apply LED config
 			handleDriverConfig(savedConfig);
-
-			// Get first device and light all LEDs green
-			if (!g_driverConfig.devices.empty()) {
-				const auto& firstDevice = g_driverConfig.devices[0];
-				CRGB* leds = getLEDsForDevice(firstDevice.id);
-				if (leds) {
-					fill_solid(leds, firstDevice.count, CRGB::Green);
-					hal::getLedController().show();
-					fill_solid(leds, firstDevice.count, CRGB::Black);
-					hal::getLedController().show();
-				}
-			}
 		}
 	}
 

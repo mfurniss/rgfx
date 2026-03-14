@@ -32,7 +32,7 @@ Key global variables shared between cores:
 
 | File | Purpose |
 |------|---------|
-| `main.cpp` | Entry point with `setup()` and `loop()`. Initializes all subsystems, creates FreeRTOS task for Core 0, runs LED rendering loop on Core 1. BOOT button (GPIO 0) toggles test mode with debouncing. Processes one UDP message per frame (not all queued) to avoid heap fragmentation from burst JSON alloc/free cycles. |
+| `main.cpp` | Entry point with `setup()` and `loop()`. Initializes all subsystems, creates FreeRTOS task for Core 0, runs LED rendering loop on Core 1. Loads saved LED config early in setup (before WiFi) so FastLED is initialized. BOOT button (GPIO 0) toggles test mode with debouncing. Processes one UDP message per frame (not all queued) to avoid heap fragmentation from burst JSON alloc/free cycles. |
 | `driver_config.h/cpp` | Defines `LEDDeviceConfig` and `DriverConfigData` structs. Holds global driver state including all LED device configurations. Note: name/description removed - devices identified by ID. |
 | `crash_handler.h/cpp` | Detects unexpected resets, stores crash info in RTC memory, reports crash details to Hub on next boot. |
 | `safe_restart.h/cpp` | Safe device restart that signals Core 1 to stop, clears LEDs (if initialized), then restarts. Checks `isFastLEDInitialized()` to avoid crash on fresh devices without LED config. |

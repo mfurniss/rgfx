@@ -633,7 +633,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Features:**
 - Introspects Zod schema to generate form fields automatically
 - Uses react-hook-form with Zod resolver for validation
-- Resets form when schema changes
+- Resets form when defaultValues actually change (deep comparison via JSON.stringify prevents feedback loop where store-echoed values trigger unnecessary resets)
 - Reports form validity to parent via `onValidityChange` (only after user edits)
 - Grid layout with responsive columns
 

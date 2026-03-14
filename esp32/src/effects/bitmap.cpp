@@ -213,6 +213,10 @@ void BitmapEffect::add(JsonDocument& props) {
 	} else if (strcmp(shatterStr, "random") == 0) {
 		shatter = (hal::random(2) == 0) ? ShatterMode::HORIZONTAL : ShatterMode::VERTICAL;
 	}
+	// Strips only have one axis — force horizontal
+	if (shatter != ShatterMode::NONE && matrix.layoutType == LayoutType::STRIP) {
+		shatter = ShatterMode::HORIZONTAL;
+	}
 	newBitmap.shatter = shatter;
 
 	// Parse images array (array of frames, each frame is array of row strings)
@@ -437,13 +441,10 @@ void BitmapEffect::renderShatter(const Bitmap& bmp, const Frame& frame,
 	// Decelerating progress — strips burst apart fast, then slow down
 	float rawProgress = static_cast<float>(bmp.elapsedTime) / bmp.duration;
 	rawProgress = std::min(1.0f, std::max(0.0f, rawProgress));
-	float shatterProgress = quadraticEaseOutf(rawProgress);
+	float shatterProgress = quarticEaseOutf(rawProgress);
 
-	// Max distance ensures strips fully clear the canvas
-	// Horizontal: strips spread horizontally, vertical: strips spread vertically
-	float maxDistance = (bmp.shatter == ShatterMode::HORIZONTAL)
-	    ? static_cast<float>(canvasWidth)
-	    : static_cast<float>(canvasHeight);
+	// Fixed max distance for consistent shatter velocity across all display sizes
+	float maxDistance = 512.0f;
 
 	uint16_t scaledWidth = frame.width * scale;
 	uint16_t scaledHeight = frame.height * scale;
@@ -457,7 +458,7 @@ void BitmapEffect::renderShatter(const Bitmap& bmp, const Frame& frame,
 		int16_t rowOffset = 0;
 		float stripDist = 0.0f;  // 0 = center, 1 = edge
 		if (bmp.shatter == ShatterMode::VERTICAL) {
-			float distFromCenter = (row - centerRow) / (centerRow > 0 ? centerRow : 1.0f);
+			float distFromCenter = (row - centerRow) / (centerRow > 0 ? centerRow : 1.0f) * 0.7f;
 			stripDist = std::abs(distFromCenter);
 			rowOffset = static_cast<int16_t>(distFromCenter * shatterProgress * maxDistance);
 
@@ -487,7 +488,7 @@ void BitmapEffect::renderShatter(const Bitmap& bmp, const Frame& frame,
 
 					// Horizontal shatter: columns spread apart horizontally
 					if (bmp.shatter == ShatterMode::HORIZONTAL) {
-						float distFromCenter = (col - centerCol) / (centerCol > 0 ? centerCol : 1.0f);
+						float distFromCenter = (col - centerCol) / (centerCol > 0 ? centerCol : 1.0f) * 0.7f;
 						stripDist = std::abs(distFromCenter);
 						int16_t colOffset = static_cast<int16_t>(distFromCenter * shatterProgress * maxDistance);
 						x += colOffset;

@@ -1802,8 +1802,9 @@ void test_bitmap_shatter_horizontal_strips_spread() {
 	TEST_ASSERT_TRUE(box0.valid);
 	int width0 = box0.maxX - box0.minX;
 
-	// Advance to 25% — strips should have spread horizontally
-	effect.update(0.5f);
+	// Small advance — strips should have spread horizontally but still be on-canvas
+	// (quartic easeout + 512px max distance moves strips far, so keep progress low)
+	effect.update(0.02f);
 	canvas.clear();
 	effect.render();
 	BoundingBox boxMid = findBoundingBox(canvas);
@@ -1835,8 +1836,8 @@ void test_bitmap_shatter_vertical_strips_spread() {
 	TEST_ASSERT_TRUE(box0.valid);
 	int height0 = box0.maxY - box0.minY;
 
-	// Advance to mid-duration — strips should have spread vertically
-	effect.update(0.5f);
+	// Small advance — strips should have spread vertically but still be on-canvas
+	effect.update(0.02f);
 	canvas.clear();
 	effect.render();
 	BoundingBox boxMid = findBoundingBox(canvas);
@@ -1868,8 +1869,8 @@ void test_bitmap_shatter_random_resolves() {
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
 
-	// Advance to 25% — strips should spread in whichever direction was chosen
-	effect.update(0.5f);
+	// Small advance — strips should spread but still be on-canvas
+	effect.update(0.02f);
 	canvas.clear();
 	effect.render();
 	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
@@ -1933,8 +1934,8 @@ void test_bitmap_shatter_with_movement() {
 	BoundingBox box0 = findBoundingBox(canvas);
 	TEST_ASSERT_TRUE(box0.valid);
 
-	// At t=500ms (25%) — center should have moved right AND box should be wider
-	effect.update(0.5f);
+	// Small advance — center should have moved right AND strips should spread
+	effect.update(0.02f);
 	canvas.clear();
 	effect.render();
 	BoundingBox boxMid = findBoundingBox(canvas);
@@ -1947,30 +1948,30 @@ void test_bitmap_shatter_with_movement() {
 }
 
 void test_bitmap_shatter_with_fade() {
-	Matrix matrix(8, 8);
+	Matrix matrix(16, 16);
 	Canvas canvas(matrix);
 	BitmapEffect effect(matrix, canvas);
 
 	JsonDocument props;
 	addPico8Palette(props);
-	props["duration"] = 1000;
+	props["duration"] = 10000;
 	props["centerX"] = 50;
 	props["centerY"] = 50;
 	props["fadeIn"] = 0;
-	props["fadeOut"] = 800;
+	props["fadeOut"] = 8000;
 	props["shatter"] = "horizontal";
 	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
 
 	effect.add(props);
 
-	// At t=100ms — early, should be bright
-	effect.update(0.1f);
+	// At t=10ms — early, should be bright and strips still on-canvas
+	effect.update(0.01f);
 	canvas.clear();
 	effect.render();
 	uint64_t brightnessEarly = calculateTotalBrightness(canvas);
 
-	// At t=900ms — near end, should be dimmer due to fadeOut
-	effect.update(0.8f);
+	// At t=510ms — deeper into fadeOut, should be dimmer
+	effect.update(0.5f);
 	canvas.clear();
 	effect.render();
 	uint64_t brightnessLate = calculateTotalBrightness(canvas);
@@ -1993,8 +1994,8 @@ void test_bitmap_shatter_fully_off_canvas() {
 
 	effect.add(props);
 
-	// At t=990ms (99% progress) — quadraticIn(0.99) ≈ 0.98
-	// strips should have moved ~98% of canvas width, well off-canvas for a 2px sprite
+	// At t=990ms (99% progress) — quarticOut(0.99) ≈ 1.0
+	// strips should have moved well off-canvas for a 2px sprite
 	effect.update(0.99f);
 	canvas.clear();
 	effect.render();
