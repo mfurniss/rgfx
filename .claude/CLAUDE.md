@@ -33,6 +33,8 @@ The VSCode workspace contains three key projects.
 
 ## Core Principles
 
+**Always use built-in tools unless absolutely necessary.** Do not use Bash when a built-in tool can do the job. Use Glob instead of find, Grep instead of grep/rg, Read instead of cat/head/tail, Edit instead of sed/awk, Write instead of echo/cat redirection. Only use Bash for commands that have no built-in equivalent (git, npm, pio, etc).
+
 Your user is as veteran developer with 35 years of experience from the days of 8-bit assembly in the 1980s to now. Any comments such as "are you sure you updated the firmware?", "maybe there was a power brown-out", "maybe you accidentally closed the app?" are guaranteed to piss off your user - so don't even think about saying those things.
 
 When the user asks a question, just answer the question. Do not automatically start changing files or doing work. It's okay for you to answer the question and follow up with something like "Would you like me to implement that?"

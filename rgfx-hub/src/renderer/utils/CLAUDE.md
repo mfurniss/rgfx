@@ -56,7 +56,7 @@ Color utilities for hex color validation and conversion.
 
 Centralized firmware version comparison logic using the `semver` package.
 
-- `getDriverFirmwareUpdateInfo(driver, firmwareVersions)`: Returns `{needsUpdate, driverVersion, targetVersion}` or `null`. Uses `semver.gt()` to determine if bundled firmware is strictly newer than what the driver is running. Maps driver chip model to variant via `mapChipNameToVariant()`.
+- `getDriverFirmwareUpdateInfo(driver, firmwareVersions)`: Returns `{needsUpdate, driverVersion, targetVersion}` or `null`. Dev builds (version contains `-dev`) are always considered newer unless exact match. Release builds use `semver.gt()` for strict comparison. Maps driver chip model to variant via `mapChipNameToVariant()`.
 - `driverNeedsUpdate(driver, firmwareVersions)`: Convenience boolean wrapper around `getDriverFirmwareUpdateInfo`.
 
 Used by `driver-state.tsx` and the firmware flash UI. Replaces duplicated version comparison logic that previously existed in multiple files.

@@ -351,6 +351,49 @@ describe('bitmapSchema', () => {
     });
   });
 
+  describe('shatter validation', () => {
+    it('should accept horizontal shatter', () => {
+      const result = bitmapSchema.safeParse({ shatter: 'horizontal' });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.shatter).toBe('horizontal');
+      }
+    });
+
+    it('should accept vertical shatter', () => {
+      const result = bitmapSchema.safeParse({ shatter: 'vertical' });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.shatter).toBe('vertical');
+      }
+    });
+
+    it('should accept random shatter', () => {
+      const result = bitmapSchema.safeParse({ shatter: 'random' });
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.shatter).toBe('random');
+      }
+    });
+
+    it('should be undefined when not provided', () => {
+      const result = bitmapSchema.safeParse({});
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.shatter).toBeUndefined();
+      }
+    });
+
+    it('should reject invalid shatter value', () => {
+      const result = bitmapSchema.safeParse({ shatter: 'diagonal' });
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('strict mode', () => {
     it('should reject unknown properties', () => {
       const result = bitmapSchema.safeParse({

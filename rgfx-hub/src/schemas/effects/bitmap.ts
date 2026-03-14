@@ -30,7 +30,7 @@ export const layoutConfig: LayoutConfig = [
   ['endX'],         ['endY'],
   ['duration'],     ['easing'],
   ['fadeIn'],       ['fadeOut'],
-  ['frameRate'],
+  ['frameRate'],    ['shatter'],
 ];
 
 export function randomize(): Record<string, unknown> {
@@ -134,6 +134,8 @@ export default baseEffect
     endY: centerY.describe('End Y position (0-100 or random)'),
     duration: z.number().positive().optional().default(d.duration),
     easing: easing.optional().default(d.easing as 'quadraticInOut'),
+    shatter: z.enum(['horizontal', 'vertical', 'random']).optional()
+      .describe('Split sprite into strips that radiate outward'),
     fadeIn: z.number().int().nonnegative().optional().default(d.fadeIn)
       .describe('Fade in duration in milliseconds'),
     fadeOut: z.number().int().nonnegative().optional().default(d.fadeOut)

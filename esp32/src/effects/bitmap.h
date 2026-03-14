@@ -8,6 +8,9 @@
 
 class BitmapEffect : public IEffect {
    private:
+	// Shatter mode for Robotron-style strip explosion
+	enum class ShatterMode : uint8_t { NONE, HORIZONTAL, VERTICAL };
+
 	// Memory limits
 	static constexpr uint8_t MAX_FRAMES_PER_BITMAP = 32;
 	static constexpr uint8_t MAX_FRAME_DIMENSION = 32;
@@ -36,6 +39,7 @@ class BitmapEffect : public IEffect {
 		uint32_t fadeOutMs;              // Fade out duration in milliseconds (0 = disabled)
 		CRGBA palette[16];               // Color palette for this bitmap
 		uint8_t paletteSize;             // Number of colors in palette
+		ShatterMode shatter;             // Strip explosion direction (NONE = normal)
 		size_t memoryUsed;               // Memory used by this bitmap (for tracking)
 		uint32_t remaining() const { return duration - elapsedTime; }
 
@@ -51,6 +55,11 @@ class BitmapEffect : public IEffect {
 	const Matrix& matrix;
 	Canvas& canvas;
 	size_t totalMemoryUsed = 0;  // Track total memory used by all bitmaps
+
+	// Separate render path for shatter effect (keeps normal path optimized)
+	void renderShatter(const Bitmap& bmp, const Frame& frame,
+	                   int16_t offsetX, int16_t offsetY,
+	                   uint8_t fadeAlpha, uint8_t scale);
 
 	// Helper to estimate memory needed for a bitmap before parsing
 	size_t estimateBitmapMemory(JsonDocument& props);

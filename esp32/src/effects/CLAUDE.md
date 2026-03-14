@@ -77,6 +77,7 @@ The bitmap effect supports animated sprites with these features:
 - `easing`: Easing function name for movement (e.g., "easeInOutQuad")
 - `fadeInMs`, `fadeOutMs`: Fade in/out duration in milliseconds
 - `duration`: Total effect duration in milliseconds
+- `shatter`: Optional Robotron 2084-style strip explosion (`"horizontal"`, `"vertical"`, or `"random"`). Splits bitmap into 1-pixel strips that radiate outward from center with ease-out deceleration. Strip velocity is proportional to distance from center (edge strips move faster). Center strips fade faster than edge strips. Composes with movement tweening (shatter offsets are additive on interpolated position). Separate render path (`renderShatter`) keeps normal bitmap rendering unaffected.
 
 **Positioning:**
 - Positions are snapped to LED boundaries (4-pixel canvas intervals)

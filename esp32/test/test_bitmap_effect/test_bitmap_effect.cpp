@@ -1777,6 +1777,233 @@ void test_bitmap_property_all_configs_render() {
 }
 
 // =============================================================================
+// 14. Shatter Effect Tests
+// =============================================================================
+
+void test_bitmap_shatter_horizontal_strips_spread() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["shatter"] = "horizontal";
+	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
+
+	effect.add(props);
+
+	// At t=0, render and measure bounding box
+	canvas.clear();
+	effect.render();
+	BoundingBox box0 = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box0.valid);
+	int width0 = box0.maxX - box0.minX;
+
+	// Advance to 25% — strips should have spread horizontally
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	BoundingBox boxMid = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(boxMid.valid);
+	int widthMid = boxMid.maxX - boxMid.minX;
+
+	TEST_ASSERT_GREATER_THAN(width0, widthMid);
+}
+
+void test_bitmap_shatter_vertical_strips_spread() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["shatter"] = "vertical";
+	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
+
+	effect.add(props);
+
+	// At t=0, render and measure bounding box
+	canvas.clear();
+	effect.render();
+	BoundingBox box0 = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box0.valid);
+	int height0 = box0.maxY - box0.minY;
+
+	// Advance to mid-duration — strips should have spread vertically
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	BoundingBox boxMid = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(boxMid.valid);
+	int heightMid = boxMid.maxY - boxMid.minY;
+
+	TEST_ASSERT_GREATER_THAN(height0, heightMid);
+}
+
+void test_bitmap_shatter_random_resolves() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	hal::test::seedRandom(42);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["shatter"] = "random";
+	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
+
+	effect.add(props);
+
+	// Should render without crash and have pixels
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+
+	// Advance to 25% — strips should spread in whichever direction was chosen
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	TEST_ASSERT_TRUE(countNonBlackPixels(canvas) > 0);
+}
+
+void test_bitmap_shatter_none_by_default() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
+
+	effect.add(props);
+
+	// At t=0
+	canvas.clear();
+	effect.render();
+	BoundingBox box0 = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box0.valid);
+	int width0 = box0.maxX - box0.minX;
+	int height0 = box0.maxY - box0.minY;
+
+	// At t=500ms — should be the same size (no shatter)
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	BoundingBox boxMid = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(boxMid.valid);
+	int widthMid = boxMid.maxX - boxMid.minX;
+	int heightMid = boxMid.maxY - boxMid.minY;
+
+	TEST_ASSERT_EQUAL(width0, widthMid);
+	TEST_ASSERT_EQUAL(height0, heightMid);
+}
+
+void test_bitmap_shatter_with_movement() {
+	Matrix matrix(16, 16);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 20;
+	props["centerY"] = 50;
+	props["endX"] = 80;
+	props["endY"] = 50;
+	props["shatter"] = "horizontal";
+	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
+
+	effect.add(props);
+
+	// At t=0
+	canvas.clear();
+	effect.render();
+	BoundingBox box0 = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(box0.valid);
+
+	// At t=500ms (25%) — center should have moved right AND box should be wider
+	effect.update(0.5f);
+	canvas.clear();
+	effect.render();
+	BoundingBox boxMid = findBoundingBox(canvas);
+	TEST_ASSERT_TRUE(boxMid.valid);
+
+	// Center of bounding box should have moved right
+	int center0 = (box0.minX + box0.maxX) / 2;
+	int centerMid = (boxMid.minX + boxMid.maxX) / 2;
+	TEST_ASSERT_GREATER_THAN(center0, centerMid);
+}
+
+void test_bitmap_shatter_with_fade() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["fadeIn"] = 0;
+	props["fadeOut"] = 800;
+	props["shatter"] = "horizontal";
+	addSingleFrameImage(props, {"8888", "8888", "8888", "8888"});
+
+	effect.add(props);
+
+	// At t=100ms — early, should be bright
+	effect.update(0.1f);
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessEarly = calculateTotalBrightness(canvas);
+
+	// At t=900ms — near end, should be dimmer due to fadeOut
+	effect.update(0.8f);
+	canvas.clear();
+	effect.render();
+	uint64_t brightnessLate = calculateTotalBrightness(canvas);
+
+	TEST_ASSERT_GREATER_THAN(brightnessLate, brightnessEarly);
+}
+
+void test_bitmap_shatter_fully_off_canvas() {
+	Matrix matrix(8, 8);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 1000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["shatter"] = "horizontal";
+	addSingleFrameImage(props, {"88", "88"});
+
+	effect.add(props);
+
+	// At t=990ms (99% progress) — quadraticIn(0.99) ≈ 0.98
+	// strips should have moved ~98% of canvas width, well off-canvas for a 2px sprite
+	effect.update(0.99f);
+	canvas.clear();
+	effect.render();
+
+	int pixels = countNonBlackPixels(canvas);
+	TEST_ASSERT_EQUAL(0, pixels);
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -1873,6 +2100,15 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_digest_96x8_t100);
 	RUN_TEST(test_bitmap_property_static_no_change);
 	RUN_TEST(test_bitmap_property_all_configs_render);
+
+	// 14. Shatter Effect Tests
+	RUN_TEST(test_bitmap_shatter_horizontal_strips_spread);
+	RUN_TEST(test_bitmap_shatter_vertical_strips_spread);
+	RUN_TEST(test_bitmap_shatter_random_resolves);
+	RUN_TEST(test_bitmap_shatter_none_by_default);
+	RUN_TEST(test_bitmap_shatter_with_movement);
+	RUN_TEST(test_bitmap_shatter_with_fade);
+	RUN_TEST(test_bitmap_shatter_fully_off_canvas);
 
 	return UNITY_END();
 }
