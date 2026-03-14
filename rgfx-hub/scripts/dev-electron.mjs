@@ -21,9 +21,11 @@ const sharedWatchConfig = {
 };
 
 let electronProcess = null;
+let restarting = false;
 
 function startElectron() {
   if (electronProcess) {
+    restarting = true;
     electronProcess.kill();
   }
   electronProcess = spawn(String(electronPath), ['.'], {
@@ -31,6 +33,10 @@ function startElectron() {
     env: { ...process.env, VITE_DEV_SERVER_URL: devServerUrl },
   });
   electronProcess.on('close', (code) => {
+    if (restarting) {
+      restarting = false;
+      return;
+    }
     if (code !== null) {
       server.close();
       process.exit(code);

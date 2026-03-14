@@ -6,7 +6,7 @@ Main process modules at the root of `src/`. Subdirectories have their own CLAUDE
 
 ## App Lifecycle
 
-- `main.ts` — Electron entry point; initializes app, IPC channels, and core services. Menu bar is minimal: macOS app menu (Quit/Hide/About) + Help > Documentation only (no File/Edit/View menus)
+- `main.ts` — Electron entry point; initializes app, IPC channels, and core services. Menu bar is minimal: macOS app menu (Quit/Hide/About) + Edit (copy/paste/cut/select-all) + Help > Documentation only (no File/View menus)
 - `preload.ts` — Exposes secure IPC API to renderer via `window.rgfx` (44 methods: invoke, push, and send channels)
 - `shutdown.ts` — Graceful shutdown; sends clear-effects to all connected drivers
 
