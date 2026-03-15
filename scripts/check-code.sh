@@ -237,7 +237,12 @@ if [ "$HUB_CHANGES" = true ]; then
 
     notify "Running Hub tests..."
     echo "🧪 Running tests..."
-    npm test -- --reporter=basic
+    # Show suite-level results only; full detail on failure
+    TEST_OUTPUT=$(npm test 2>&1) || {
+        echo "$TEST_OUTPUT"
+        exit 1
+    }
+    echo "$TEST_OUTPUT" | grep -E "^ (✓|×|✗)|Test Files|Tests |Start at|Duration"
     echo "✅ Tests passed"
 
     echo "📦 Checking for unused dependencies..."
@@ -270,7 +275,12 @@ if [ "$ESP32_CHANGES" = true ]; then
 
     notify "Running ESP32 tests..."
     echo "🧪 Running esp32 tests..."
-    pio test -e native
+    # Show suite-level results only; full detail on failure
+    PIO_TEST_OUTPUT=$(pio test -e native 2>&1) || {
+        echo "$PIO_TEST_OUTPUT"
+        exit 1
+    }
+    echo "$PIO_TEST_OUTPUT" | grep -E "^-.*\[(PASSED|FAILED)\]|^=.*="
     echo "✅ esp32 tests passed"
 
     echo ""
