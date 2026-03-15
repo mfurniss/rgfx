@@ -166,7 +166,8 @@ void log(const char* /* message */, LogLevel /* level */) {}
 #define UDP_VIDEO_H
 static constexpr uint32_t VIDEO_FRAME_TIMEOUT_MS = 500;
 void setVideoFrameSize(uint16_t /* width */, uint16_t /* height */) {}
-const uint8_t* getVideoFrame() { return nullptr; }
+const uint8_t* peekVideoFrame() { return nullptr; }
+void consumeVideoFrame() {}
 bool hasNewVideoFrame() { return false; }
 uint32_t getLastVideoFrameTime() { return 0; }
 
@@ -174,9 +175,10 @@ uint32_t getLastVideoFrameTime() { return 0; }
 #include "effects/video.h"
 #include "effects/video.cpp"
 
-// Include the EffectProcessor (this also includes downsample_to_matrix.h)
+// Include the EffectProcessor and downsample implementation
 #include "effects/effect_processor.h"
 #include "effects/effect_processor.cpp"
+#include "graphics/downsample_to_matrix.cpp"
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"

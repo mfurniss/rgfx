@@ -6,7 +6,7 @@
 #include <cstdio>
 
 VideoEffect::VideoEffect(Matrix& m, Canvas& c)
-	: canvas(c), matrix(m), active(false), activatedAt(0) {}
+	: canvas(c), matrix(m), active(false), activatedAt(0), lastFrame(nullptr) {}
 
 void VideoEffect::add(JsonDocument& props) {
 	const char* action = props["action"] | "";
@@ -43,22 +43,32 @@ void VideoEffect::update(float /* deltaTime */) {
 void VideoEffect::render() {
 	if (!active) return;
 
-	const uint8_t* frame = getVideoFrame();
-	if (!frame) return;
+	// Consume a new frame if available, otherwise repaint from cached pointer.
+	// The canvas is cleared every frame by the effect processor, so we must
+	// repaint on every render call — but we only advance lastFrame when new
+	// data has actually arrived, avoiding peek/consume overhead on stale frames
+	// (e.g., 30 FPS video source in a 120 FPS render loop).
+	if (hasNewVideoFrame()) {
+		lastFrame = peekVideoFrame();
+		consumeVideoFrame();
+	}
+
+	if (!lastFrame) return;
 
 	uint16_t matrixW = matrix.width;
 	uint16_t matrixH = matrix.height;
 
-	// Each video pixel maps to a 4x4 block on the Canvas
+	// Running src pointer eliminates per-pixel multiply for offset calculation.
+	const uint8_t* src = lastFrame;
 	for (uint16_t my = 0; my < matrixH; my++) {
 		for (uint16_t mx = 0; mx < matrixW; mx++) {
-			size_t offset = (my * matrixW + mx) * 3;
-			CRGB color(frame[offset], frame[offset + 1], frame[offset + 2]);
-			canvas.fillBlock4x4(mx * 4, my * 4, color);
+			canvas.fillBlock4x4(mx * 4, my * 4, CRGB(src[0], src[1], src[2]));
+			src += 3;
 		}
 	}
 }
 
 void VideoEffect::reset() {
 	active = false;
+	lastFrame = nullptr;
 }

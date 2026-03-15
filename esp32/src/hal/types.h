@@ -76,6 +76,11 @@ inline CRGB hsvToRgb(const CHSV& hsv) {
 #include <algorithm>
 #include <cmath>
 
+// IRAM_ATTR is ESP32-specific; define as empty on native/test platforms
+#ifndef IRAM_ATTR
+#define IRAM_ATTR
+#endif
+
 // Arduino compatibility
 #ifndef PI
 #define PI 3.14159265358979323846

@@ -73,6 +73,10 @@ The types.h file includes RGB/HSV conversion functions for non-ESP32 builds:
 - `rgb2hsv_approximate(CRGB)` - Convert RGB to HSV
 - `hsv2rgb_rainbow(CHSV)` - Convert HSV to RGB with rainbow hue mapping
 
+## IRAM_ATTR Compatibility
+
+`types.h` defines `IRAM_ATTR` as an empty macro on non-ESP32 platforms (native/test) so that IRAM-annotated functions compile without `#ifdef` guards.
+
 ## Random Number Generation
 
 All FastLED-compatible random functions (`random8()`, `random16()`) route through `hal::random()` for consistent per-device seeding. The seed is set at MQTT connect time based on the device's IP address and boot timing (see `mqtt.cpp`). This ensures each driver produces unique random sequences for visual variety across a multi-driver setup.

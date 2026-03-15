@@ -20,6 +20,7 @@ class VideoEffect : public IEffect {
 	Matrix& matrix;
 	bool active;
 	uint32_t activatedAt;
+	const uint8_t* lastFrame;  // Cached pointer — avoids peek/consume overhead on stale frames
 
    public:
 	VideoEffect(Matrix& matrix, Canvas& canvas);

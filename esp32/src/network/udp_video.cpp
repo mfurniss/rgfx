@@ -119,17 +119,22 @@ void handleVideoPacket(const uint8_t* data, size_t length) {
 		bytesReceived = 0;
 	}
 
-	// Log stats once per second while active
+	// Log stats once per second while active (snprintf avoids heap alloc in hot path)
 	uint32_t nowMs = millis();
 	if (framesCompleted > 0 && (nowMs - lastStatsLogMs) >= 1000) {
-		log("Video UDP: packets=" + String(packetsReceived) + " frames=" + String(framesCompleted));
+		char buf[64];
+		snprintf(buf, sizeof(buf), "Video UDP: packets=%u frames=%u", packetsReceived, framesCompleted);
+		log(buf);
 		lastStatsLogMs = nowMs;
 	}
 }
 
-const uint8_t* getVideoFrame() {
-	frameReady = false;
+const uint8_t* peekVideoFrame() {
 	return frontBuffer;
+}
+
+void consumeVideoFrame() {
+	frameReady = false;
 }
 
 bool hasNewVideoFrame() {

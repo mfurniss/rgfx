@@ -33,9 +33,6 @@ export interface VideoPlayOptions {
   fit?: VideoFitMode;
 }
 
-// Default frame rate when source fps is unknown and no override specified
-const DEFAULT_FPS = 30;
-
 interface DriverGroup {
   width: number;
   height: number;
@@ -43,11 +40,8 @@ interface DriverGroup {
   ffmpeg?: ChildProcess;
   frameSize: number;
   sequenceNumber: number;
-  pendingFrame?: Buffer;
-  paceTimer?: ReturnType<typeof setInterval>;
   statusTimer?: ReturnType<typeof setInterval>;
   framesSent: number;
-  framesDropped: number;
 }
 
 /**
@@ -187,7 +181,6 @@ export class VideoPlayer {
   private groups: DriverGroup[] = [];
   private playing = false;
   private ffmpegPath: string | null = null;
-  private frameTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.socket = dgram.createSocket('udp4');
@@ -265,7 +258,6 @@ export class VideoPlayer {
           frameSize: dims.width * dims.height * 3,
           sequenceNumber: 0,
           framesSent: 0,
-          framesDropped: 0,
         };
         dimensionMap.set(key, group);
       }
@@ -340,51 +332,39 @@ export class VideoPlayer {
     const ffmpeg = spawn(this.ffmpegPath!, args);
     group.ffmpeg = ffmpeg;
 
-    const fps = options.fps ?? DEFAULT_FPS;
-    const frameIntervalMs = 1000 / fps;
-
     const driverIps = group.drivers
       .map((d) => `${d.id}@${d.ip ?? 'no-ip'}`)
       .join(', ');
+
     log.info(
       `Video: spawned ffmpeg for ${group.width}x${group.height} ` +
         `(${group.drivers.length} driver(s), frameSize=${group.frameSize}, ` +
-        `fps=${fps}, targets=[${driverIps}])`,
+        `targets=[${driverIps}])`,
     );
 
     let frameBuffer = Buffer.alloc(0);
 
-    // Extract complete frames from ffmpeg stdout into pendingFrame.
-    // Only the latest frame is kept — older frames are dropped.
+    // Send each frame immediately as ffmpeg produces it.
+    // The -re flag paces ffmpeg output at the source frame rate,
+    // so no additional pace timer is needed.
     ffmpeg.stdout.on('data', (chunk: Buffer) => {
       frameBuffer = Buffer.concat([frameBuffer, chunk]);
 
       while (frameBuffer.length >= group.frameSize) {
-        if (group.pendingFrame) {
-          group.framesDropped++;
-        }
-
-        group.pendingFrame = Buffer.from(
+        const frame = Buffer.from(
           frameBuffer.subarray(0, group.frameSize),
         );
         frameBuffer = frameBuffer.subarray(group.frameSize);
-      }
-    });
-
-    // Pace timer sends the latest frame at the target fps
-    group.paceTimer = setInterval(() => {
-      if (group.pendingFrame) {
-        sendFrame(this.socket, group.pendingFrame, group);
-        group.pendingFrame = undefined;
+        sendFrame(this.socket, frame, group);
         group.framesSent++;
       }
-    }, frameIntervalMs);
+    });
 
     // Status log once per second
     group.statusTimer = setInterval(() => {
       log.info(
         `Video: ${group.width}x${group.height} — ` +
-          `sent=${group.framesSent}, dropped=${group.framesDropped}`,
+          `sent=${group.framesSent}`,
       );
     }, 1000);
 
@@ -394,24 +374,12 @@ export class VideoPlayer {
 
     ffmpeg.on('close', (code) => {
       log.info(
-        `ffmpeg exited with code ${code} — ` +
-          `total sent=${group.framesSent}, dropped=${group.framesDropped}`,
+        `ffmpeg exited with code ${code} — total sent=${group.framesSent}`,
       );
-
-      if (group.paceTimer) {
-        clearInterval(group.paceTimer);
-        group.paceTimer = undefined;
-      }
 
       if (group.statusTimer) {
         clearInterval(group.statusTimer);
         group.statusTimer = undefined;
-      }
-
-      // Send any remaining frame before closing
-      if (group.pendingFrame) {
-        sendFrame(this.socket, group.pendingFrame, group);
-        group.pendingFrame = undefined;
       }
 
       group.ffmpeg = undefined;
@@ -457,19 +425,8 @@ export class VideoPlayer {
 
     this.playing = false;
 
-    if (this.frameTimer) {
-      clearTimeout(this.frameTimer);
-      this.frameTimer = null;
-    }
-
-    // Kill all ffmpeg processes, timers, and buffered frames
+    // Kill all ffmpeg processes and timers
     for (const group of this.groups) {
-      group.pendingFrame = undefined;
-
-      if (group.paceTimer) {
-        clearInterval(group.paceTimer);
-      }
-
       if (group.statusTimer) {
         clearInterval(group.statusTimer);
       }
@@ -496,10 +453,6 @@ export class VideoPlayer {
     this.playing = false;
 
     for (const group of this.groups) {
-      if (group.paceTimer) {
-        clearInterval(group.paceTimer);
-      }
-
       if (group.statusTimer) {
         clearInterval(group.statusTimer);
       }

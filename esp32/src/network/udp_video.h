@@ -21,11 +21,15 @@ static constexpr uint32_t VIDEO_FRAME_TIMEOUT_MS = 500;
 // Called by processUDP() when the first byte matches VIDEO_MAGIC.
 void handleVideoPacket(const uint8_t* data, size_t length);
 
-// Called by VideoEffect to access the latest complete frame
-// Returns pointer to front buffer (RGB24 data), or nullptr if no frame available
-const uint8_t* getVideoFrame();
+// Returns pointer to front buffer (RGB24 data) without consuming the frame.
+// Caller must call consumeVideoFrame() after using the data to clear the ready flag.
+const uint8_t* peekVideoFrame();
 
-// Returns true if a new frame has arrived since last call to getVideoFrame()
+// Marks the current frame as consumed (clears the ready flag).
+// Call after peekVideoFrame() once the frame has been rendered.
+void consumeVideoFrame();
+
+// Returns true if a new frame has arrived since the last consumeVideoFrame() call.
 bool hasNewVideoFrame();
 
 // Set the expected frame size based on matrix dimensions
