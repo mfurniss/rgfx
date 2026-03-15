@@ -33,11 +33,13 @@ export function VideoFileField<T extends FieldValues>({
           }
         };
 
-        const handleSelectFile = () => {
+        const handleSelectFile = (e?: React.MouseEvent) => {
+          e?.stopPropagation();
           void selectFile();
         };
 
-        const handleClear = () => {
+        const handleClear = (e: React.MouseEvent) => {
+          e.stopPropagation();
           onChange('' as never);
         };
 
@@ -50,6 +52,7 @@ export function VideoFileField<T extends FieldValues>({
             fullWidth
             error={!!error}
             helperText={error ?? (filePath ? filePath : undefined)}
+            onClick={handleSelectFile}
             slotProps={{
               input: {
                 readOnly: true,

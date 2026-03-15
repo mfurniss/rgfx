@@ -708,7 +708,8 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Purpose:** File picker field for selecting video files for the video effect.
 
 **Features:**
-- "Select Video" icon button opens native file dialog via `window.rgfx.selectVideoFile()` IPC
+- Clicking anywhere on the TextField opens native file dialog via `window.rgfx.selectVideoFile()` IPC
+- Icon button and clear button use `stopPropagation` to prevent double-firing from event bubbling
 - Displays selected filename (extracted from path using string split for cross-platform support)
 - Shows full file path in helper text
 - Clear button to deselect file

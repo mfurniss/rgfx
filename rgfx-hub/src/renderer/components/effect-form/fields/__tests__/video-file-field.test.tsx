@@ -76,19 +76,31 @@ describe('VideoFileField', () => {
     expect(buttons).toHaveLength(1);
   });
 
-  it('should call selectVideoFile on button click', async () => {
+  it('should call selectVideoFile on icon button click without double-firing', async () => {
     const mockSelectVideoFile = vi.fn().mockResolvedValue('/new/video.mp4');
     window.rgfx = { selectVideoFile: mockSelectVideoFile } as never;
 
     render(<TestWrapper />);
 
     const selectButton = screen.getByRole('button');
-
     fireEvent.click(selectButton);
 
-    // Button click + TextField onClick both trigger selectFile
     await vi.waitFor(() => {
-      expect(mockSelectVideoFile).toHaveBeenCalled();
+      expect(mockSelectVideoFile).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('should open file picker when clicking the text field', async () => {
+    const mockSelectVideoFile = vi.fn().mockResolvedValue('/new/video.mp4');
+    window.rgfx = { selectVideoFile: mockSelectVideoFile } as never;
+
+    render(<TestWrapper />);
+
+    const input = screen.getByRole('textbox');
+    fireEvent.click(input);
+
+    await vi.waitFor(() => {
+      expect(mockSelectVideoFile).toHaveBeenCalledTimes(1);
     });
   });
 
