@@ -8,6 +8,7 @@ import {
   Alert,
   Popover,
   Chip,
+  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { Driver } from '@/types';
@@ -30,7 +31,7 @@ export function TargetDriversPicker({
   disabled = false,
 }: TargetDriversPickerProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const connectedDrivers = drivers.filter((d) => d.state === 'connected' && !d.disabled);
 
   if (drivers.length === 0) {
     return <Alert severity="warning">No drivers available</Alert>;
@@ -74,42 +75,60 @@ export function TargetDriversPicker({
               label={`All Available Drivers (${connectedDrivers.length})`}
               sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.9rem' } }}
             />
-            {[...drivers].sort((a, b) => a.id.localeCompare(b.id)).map((driver) => (
-              <FormControlLabel
-                key={driver.id}
-                control={
-                  <Checkbox
-                    checked={selectedDrivers.has(driver.id)}
-                    onChange={() => {
-                      onDriverToggle(driver.id);
-                    }}
-                    disabled={driver.state !== 'connected'}
-                    size="small"
-                  />
-                }
-                label={
-                  <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <span>{driver.id}</span>
-                    {driver.telemetry?.chipModel && (
-                      <Chip
-                        label={driver.telemetry.chipModel}
-                        size="small"
-                        variant="outlined"
-                        sx={{ height: 18, fontSize: '0.7rem' }}
-                      />
-                    )}
-                    <Box component="span" sx={{ color: 'text.secondary' }}>
-                      ({driver.ip ?? 'disconnected'})
+            {[...drivers].sort((a, b) => a.id.localeCompare(b.id)).map((driver) => {
+              const isDisabled = driver.state !== 'connected' || driver.disabled;
+              const row = (
+                <FormControlLabel
+                  key={driver.id}
+                  control={
+                    <Checkbox
+                      checked={selectedDrivers.has(driver.id)}
+                      onChange={() => {
+                        onDriverToggle(driver.id);
+                      }}
+                      disabled={isDisabled}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <span>{driver.id}</span>
+                      {driver.telemetry?.chipModel && (
+                        <Chip
+                          label={driver.telemetry.chipModel}
+                          size="small"
+                          variant="outlined"
+                          sx={{ height: 18, fontSize: '0.7rem' }}
+                        />
+                      )}
+                      <Box component="span" sx={{ color: 'text.secondary' }}>
+                        ({driver.ip ?? 'disconnected'})
+                      </Box>
                     </Box>
-                  </Box>
-                }
-                sx={{
-                  ml: 2,
-                  opacity: driver.state === 'connected' ? 1 : 0.4,
-                  '& .MuiFormControlLabel-label': { fontSize: '0.9rem' },
-                }}
-              />
-            ))}
+                  }
+                  sx={{
+                    ml: 2,
+                    opacity: isDisabled ? 0.4 : 1,
+                    '& .MuiFormControlLabel-label': { fontSize: '0.9rem' },
+                  }}
+                />
+              );
+
+              if (driver.disabled) {
+                return (
+                  <Tooltip
+                    key={driver.id}
+                    title="Driver is disabled"
+                    arrow
+                    disableInteractive
+                  >
+                    <span>{row}</span>
+                  </Tooltip>
+                );
+              }
+
+              return row;
+            })}
           </FormGroup>
         </Box>
       </Popover>

@@ -176,6 +176,7 @@ describe('preload API', () => {
       'clearTransformerState', 'loadGif', 'restartDriver',
       'deleteDriver', 'showInFolder', 'getLogSizes', 'clearAllLogs',
       'createBackup', 'setDriverId', 'openExternal', 'reinstallAssets',
+      'selectVideoFile',
       // Push (10)
       'onDriverConnected', 'onDriverDisconnected',
       'onDriverUpdated', 'onDriverRestarting', 'onDriverDeleted',
@@ -185,8 +186,8 @@ describe('preload API', () => {
       'rendererReady', 'quitApp', 'launchMame',
     ];
 
-    it('has exactly 44 methods', () => {
-      expect(Object.keys(rgfxAPI)).toHaveLength(44);
+    it('has exactly 45 methods', () => {
+      expect(Object.keys(rgfxAPI)).toHaveLength(45);
     });
 
     it('contains all expected methods', () => {

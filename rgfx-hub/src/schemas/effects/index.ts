@@ -11,6 +11,7 @@ import plasmaSchema, { randomize as randomizePlasma, presetConfig as plasmaPrese
 import warpSchema, { randomize as randomizeWarp, presetConfig as warpPresetConfig, fieldTypes as warpFieldTypes } from './warp';
 import particleFieldSchema, { randomize as randomizeParticleField } from './particle-field';
 import sparkleSchema, { randomize as randomizeSparkle, fieldTypes as sparkleFieldTypes, cleanCodeProps as sparkleCleanCodeProps } from './sparkle';
+import videoSchema, { fieldTypes as videoFieldTypes, layoutConfig as videoLayoutConfig } from './video';
 import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import type { CodeGenerator, CodePropsTransform } from '@/renderer/pages/effects-playground/utils/code-generator';
 
@@ -53,6 +54,7 @@ export const effectSchemas = {
   warp: warpSchema,
   particle_field: particleFieldSchema,
   sparkle: sparkleSchema,
+  video: videoSchema,
 } as const;
 
 /**
@@ -72,6 +74,7 @@ export const effectPropsSchemas = {
   warp: warpSchema.omit({ name: true, description: true }),
   particle_field: particleFieldSchema.omit({ name: true, description: true }),
   sparkle: sparkleSchema.omit({ name: true, description: true }),
+  video: videoSchema.omit({ name: true, description: true }),
 } as const;
 
 export const effectRandomizers = {
@@ -87,6 +90,7 @@ export const effectRandomizers = {
   warp: randomizeWarp,
   particle_field: randomizeParticleField,
   sparkle: randomizeSparkle,
+  video: () => ({}),
 } as const;
 
 type EffectName = keyof typeof effectSchemas;
@@ -104,7 +108,8 @@ type EffectProps =
   | z.infer<typeof plasmaSchema>
   | z.infer<typeof warpSchema>
   | z.infer<typeof particleFieldSchema>
-  | z.infer<typeof sparkleSchema>;
+  | z.infer<typeof sparkleSchema>
+  | z.infer<typeof videoSchema>;
 
 /**
  * Check if a string is a valid effect name
@@ -167,6 +172,7 @@ export const effectFieldTypes: Record<string, FieldTypeMap | undefined> = {
   plasma: plasmaFieldTypes,
   warp: warpFieldTypes,
   sparkle: sparkleFieldTypes,
+  video: videoFieldTypes,
 };
 
 /**
@@ -177,6 +183,7 @@ export const effectLayoutConfigs: Record<string, LayoutConfig | undefined> = {
   bitmap: bitmapLayoutConfig,
   text: textLayoutConfig,
   scroll_text: scrollTextLayoutConfig,
+  video: videoLayoutConfig,
 };
 
 /**

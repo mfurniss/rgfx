@@ -21,6 +21,14 @@ export function registerTriggerEffectHandler(deps: TriggerEffectHandlerDeps): vo
 
   ipcMain.handle(INVOKE_CHANNELS.triggerEffect, (_event, payload: EffectPayload) => {
     try {
+      // Video effect is intercepted by UdpClient — skip schema validation
+      if (payload.effect === 'video') {
+        const { stripLifespanScale: _, ...rest } = payload;
+        udpClient.broadcast(rest);
+        log.info(`Effect broadcast: ${payload.effect}`, rest);
+        return;
+      }
+
       // Validate and apply schema defaults to props
       const result = safeValidateEffectProps(payload.effect, payload.props);
 

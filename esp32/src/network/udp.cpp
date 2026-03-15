@@ -1,4 +1,5 @@
 #include "network/udp.h"
+#include "network/udp_video.h"
 #include "network/mqtt.h"
 #include "log.h"
 #include <ArduinoJson.h>
@@ -85,9 +86,19 @@ void processUDP() {
 			continue;
 		}
 
-		// Read directly into queue slot to avoid stack allocation
-		// (4KB temp buffer would overflow ESP32's ~8KB stack)
-		if (messageQueue.count < UDP_QUEUE_SIZE) {
+		// Peek at first byte to distinguish JSON effects from binary video frames
+		// Video packets start with VIDEO_MAGIC (0x56), JSON starts with '{'
+		uint8_t firstByte = udp.peek();
+
+		if (firstByte == VIDEO_MAGIC) {
+			// Binary video frame — read into temp buffer and pass to video handler
+			static uint8_t videoBuf[UDP_BUFFER_SIZE];
+			int len = udp.read(videoBuf, UDP_BUFFER_SIZE);
+			if (len > 0) {
+				handleVideoPacket(videoBuf, static_cast<size_t>(len));
+			}
+		} else if (messageQueue.count < UDP_QUEUE_SIZE) {
+			// JSON effect — read into queue slot
 			uint8_t idx = messageQueue.head;
 			int len = udp.read(messageQueue.messages[idx].buffer, UDP_BUFFER_SIZE - 1);
 			if (len > 0) {

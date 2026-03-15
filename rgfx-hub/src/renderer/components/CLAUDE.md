@@ -701,6 +701,19 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - Custom gradient color editing
 - Orientation toggle (horizontal/vertical)
 
+### VideoFileField
+
+**File:** [effect-form/fields/video-file-field.tsx](effect-form/fields/video-file-field.tsx)
+
+**Purpose:** File picker field for selecting video files for the video effect.
+
+**Features:**
+- "Select Video" icon button opens native file dialog via `window.rgfx.selectVideoFile()` IPC
+- Displays selected filename (extracted from path using string split for cross-platform support)
+- Shows full file path in helper text
+- Clear button to deselect file
+- Read-only text input (click to select when empty)
+
 ### GradientArrayField
 
 **File:** [effect-form/fields/gradient-array-field.tsx](effect-form/fields/gradient-array-field.tsx)

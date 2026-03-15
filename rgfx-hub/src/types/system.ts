@@ -5,6 +5,7 @@ export interface SystemError {
     | 'driver'
     | 'network'
     | 'transformer'
+    | 'video'
     | 'general';
   message: string;
   timestamp: number;

@@ -17,6 +17,7 @@
 #include "effects/music.h"
 #include "effects/particle_field.h"
 #include "effects/sparkle.h"
+#include "effects/video.h"
 #include "effects/particle_system.h"
 #include "effects/effect.h"
 #include "hal/display.h"
@@ -76,9 +77,10 @@ class EffectProcessor {
 	MusicEffect musicEffect;
 	ParticleFieldEffect particleFieldEffect;
 	SparkleEffect sparkleEffect;
+	VideoEffect videoEffect;
 	uint32_t lastFrameTime;  // Microseconds for high-precision timing
 
-	static constexpr size_t EFFECT_COUNT = 15;
+	static constexpr size_t EFFECT_COUNT = 16;
 	EffectEntry effectMap[EFFECT_COUNT];
 
    public:

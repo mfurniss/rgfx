@@ -42,7 +42,7 @@ const FirmwarePage: React.FC = () => {
   const firmwareVersions = useSystemStatusStore(
     (state) => state.systemStatus.firmwareVersions,
   );
-  const connectedDrivers = drivers.filter((d) => d.state === 'connected');
+  const connectedDrivers = drivers.filter((d) => d.state === 'connected' && !d.disabled);
   const driversNeedingUpdate = connectedDrivers.filter((d) =>
     driverNeedsUpdate(d, firmwareVersions),
   );

@@ -6,3 +6,4 @@ export { SpritePresetField } from './sprite-preset-field';
 export { StringField } from './string-field';
 export { GradientArrayField } from './gradient-array-field';
 export { BackgroundGradientField } from './background-gradient-field';
+export { VideoFileField } from './video-file-field';

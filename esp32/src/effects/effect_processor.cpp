@@ -52,10 +52,12 @@ EffectProcessor::EffectProcessor(Matrix& matrix, hal::IDisplay& display)
 	  musicEffect(matrix, canvas),
 	  particleFieldEffect(matrix, canvas),
 	  sparkleEffect(matrix, canvas),
+	  videoEffect(matrix, canvas),
 	  lastFrameTime(0),
 	  effectMap{
 		  {"particle_field", &particleFieldEffect},
 		  {"sparkle", &sparkleEffect},
+		  {"video", &videoEffect},
 		  {"pulse", &pulseEffect},
 		  {"bitmap", &bitmapEffect},
 		  {"wipe", &wipeEffect},
@@ -108,7 +110,11 @@ void EffectProcessor::update() {
 	}
 	backgroundEffect.update(deltaTime);
 
-	// Render plasma SECOND (on top of background, below other effects)
+	// Render video SECOND (replaces background when active)
+	videoEffect.render();
+	videoEffect.update(deltaTime);
+
+	// Render plasma THIRD (on top of background/video, below other effects)
 	plasmaEffect.render();
 	plasmaEffect.update(deltaTime);
 
@@ -121,6 +127,7 @@ void EffectProcessor::update() {
 	for (const auto& entry : effectMap) {
 		if (strcmp(entry.name, "test_leds") != 0 && strcmp(entry.name, "background") != 0 &&
 		    strcmp(entry.name, "plasma") != 0 && strcmp(entry.name, "warp") != 0 &&
+		    strcmp(entry.name, "video") != 0 &&
 		    strcmp(entry.name, "text") != 0 && strcmp(entry.name, "scroll_text") != 0) {
 			entry.effect->render();
 			entry.effect->update(deltaTime);

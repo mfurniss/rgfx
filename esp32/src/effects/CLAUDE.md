@@ -6,6 +6,12 @@ This folder contains the visual effects system for the ESP32 driver. Effects are
 
 ---
 
+## Logging
+
+**Use `log()` from `log.h`, NOT `hal::log()` from `hal/platform.h`.** The global `log()` function sends messages through the remote logging queue (serial + MQTT to Hub). `hal::log()` only writes to serial and will not appear in the Hub's driver log. Effects must `#include "log.h"` and call `log("message")` with Arduino `String` concatenation.
+
+---
+
 ## Architecture
 
 ### Effect Interface

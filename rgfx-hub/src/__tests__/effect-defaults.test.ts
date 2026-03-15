@@ -9,9 +9,16 @@ const headerPath = path.resolve(
   '../../../esp32/src/effects/generated/effect_defaults.h',
 );
 
+// Effects that don't use defaults.json (hub-only, no ESP32 counterpart)
+const excludedFromDefaults = ['video'];
+
 describe('effect defaults', () => {
   describe('schema validation — defaults pass their own schemas', () => {
     for (const [name, schema] of Object.entries(effectPropsSchemas)) {
+      if (excludedFromDefaults.includes(name)) {
+        continue;
+      }
+
       it(`${name}: parse({}) applies valid defaults`, () => {
         expect(() => schema.parse({})).not.toThrow();
       });
@@ -216,6 +223,10 @@ describe('effect defaults', () => {
     };
 
     for (const [name, schema] of Object.entries(effectPropsSchemas)) {
+      if (excludedFromDefaults.includes(name)) {
+        continue;
+      }
+
       it(`${name}: all properties have defaults`, () => {
         const schemaKeys = Object.keys(schema.shape);
         const effectDefaults =

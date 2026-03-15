@@ -16,6 +16,8 @@ import {
   Button,
 } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
 import CopyIcon from '@mui/icons-material/ContentCopy';
 import ResetIcon from '@mui/icons-material/RestartAlt';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
@@ -43,11 +45,12 @@ export default function TestEffectsPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [isFormValid, setIsFormValid] = useState(true);
 
   const drivers = useDriverStore((state) => state.drivers);
   const connectedDrivers = useMemo(
-    () => drivers.filter((d) => d.state === 'connected'),
+    () => drivers.filter((d) => d.state === 'connected' && !d.disabled),
     [drivers],
   );
   const selectedEffect = useUiStore((state) => state.testEffectsSelectedEffect);
@@ -118,6 +121,7 @@ export default function TestEffectsPage() {
       // Get saved props for this effect, or use defaults
       const savedProps = propsMap[effect];
       setTestEffectsState(effect, savedProps || getDefaultProps(effect), selectedDrivers);
+      setVideoPlaying(false);
     }
   };
 
@@ -299,25 +303,69 @@ export default function TestEffectsPage() {
               onDriverToggle={handleDriverToggleWithPersist}
               onSelectAll={handleSelectAllWithPersist}
             />
-            <SuperButton
-              variant="contained"
-              color="primary"
-              onClick={handleTriggerEffect}
-              icon={<ScienceIcon />}
-              disabled={selectedDrivers.size === 0 || !isFormValid}
-              data-testid="trigger-effect-btn"
-            >
-              Trigger Effect
-            </SuperButton>
-            <SuperButton
-              variant="outlined"
-              color="primary"
-              onClick={handleRandomTrigger}
-              icon={<ShuffleIcon />}
-              disabled={selectedDrivers.size === 0 || !isFormValid}
-            >
-              Random Trigger
-            </SuperButton>
+            {selectedEffect === 'video' ? (
+              videoPlaying ? (
+                <SuperButton
+                  variant="contained"
+                  color="error"
+                  onClick={() => {
+                    void window.rgfx.triggerEffect({
+                      effect: 'video',
+                      props: { action: 'stop' },
+                      drivers: Array.from(selectedDrivers),
+                    });
+                    setVideoPlaying(false);
+                  }}
+                  icon={<StopIcon />}
+                  disabled={selectedDrivers.size === 0}
+                  data-testid="trigger-effect-btn"
+                >
+                  Stop Video
+                </SuperButton>
+              ) : (
+                <SuperButton
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    handleTriggerEffect();
+                    setVideoPlaying(true);
+                  }}
+                  icon={<PlayArrowIcon />}
+                  disabled={
+                    selectedDrivers.size === 0
+                    || !isFormValid
+                    || !currentProps.file
+                  }
+                  data-testid="trigger-effect-btn"
+                >
+                  Start Video
+                </SuperButton>
+              )
+            ) : (
+              <>
+                <SuperButton
+                  variant="contained"
+                  color="primary"
+                  onClick={handleTriggerEffect}
+                  icon={<ScienceIcon />}
+                  disabled={selectedDrivers.size === 0 || !isFormValid}
+                  data-testid="trigger-effect-btn"
+                >
+                  Trigger Effect
+                </SuperButton>
+                <SuperButton
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleRandomTrigger}
+                  icon={<ShuffleIcon />}
+                  disabled={
+                    selectedDrivers.size === 0 || !isFormValid
+                  }
+                >
+                  Random Trigger
+                </SuperButton>
+              </>
+            )}
           </Box>
 
           <TabPanel value={tabIndex} index={0}>
