@@ -196,6 +196,9 @@ void handleMqttOta(const String& payload) {
 
 		totalRead += bytesRead;
 
+		// Yield after flash write to let WiFi/LWIP stack recover from SPI bus stall
+		delay(10);
+
 		// Report progress every 1%
 		int percent = (totalRead * 100) / contentLength;
 		if (percent > lastReportedPercent) {
@@ -218,8 +221,13 @@ void handleMqttOta(const String& payload) {
 
 	log("MQTT OTA complete! Rebooting...");
 	publishOtaResult(deviceId, true);
-	mqttClient.loop();
-	delay(MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS);
+
+	// Poll MQTT during pre-reboot delay to complete the QoS 2 handshake
+	unsigned long rebootDelayStart = millis();
+	while (millis() - rebootDelayStart < MQTT_PUBLISH_BEFORE_REBOOT_DELAY_MS) {
+		mqttClient.loop();
+		delay(10);
+	}
 
 	safeRestart();
 }

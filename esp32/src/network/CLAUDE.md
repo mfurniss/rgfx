@@ -26,7 +26,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 | `mqtt_discovery.cpp` | UDP broadcast listener for MQTT broker discovery |
 | `mqtt_publisher.cpp` | Outbound MQTT messages: telemetry, test state, errors |
 | `mqtt_config_handler.cpp` | Handles driver configuration messages from Hub (parses rgbw_mode for RGBW strips). Note: name/description fields removed from config parsing. |
-| `mqtt_ota.h/cpp` | MQTT-initiated HTTP pull OTA. Hub publishes `{url, size, md5}` to `rgfx/driver/{mac}/ota`. ESP32 downloads firmware via HTTPClient, applies via Arduino Update class. Publishes progress every 1% to `rgfx/driver/{deviceId}/ota/progress` and result to `rgfx/driver/{deviceId}/ota/result`. Uses deferred processing pattern (queued in mqtt_callback.cpp, executed outside MQTT callback). |
+| `mqtt_ota.h/cpp` | MQTT-initiated HTTP pull OTA. Hub publishes `{url, size, md5}` to `rgfx/driver/{mac}/ota`. ESP32 downloads firmware via HTTPClient, applies via Arduino Update class. Publishes progress every 1% (QoS 0) to `rgfx/driver/{deviceId}/ota/progress` and result (QoS 2) to `rgfx/driver/{deviceId}/ota/result`. Yields 10ms after each flash write to let WiFi/LWIP stack recover from SPI bus stalls. Polls `mqttClient.loop()` during pre-reboot delay to complete QoS 2 result handshake. Uses deferred processing pattern (queued in mqtt_callback.cpp, executed outside MQTT callback). |
 | `network_init.h/cpp` | Initializes all network services when WiFi connects |
 | `network_task.h/cpp` | FreeRTOS task running network loop on Core 0 |
 | `ota_update.h/cpp` | ArduinoOTA setup with LED progress indicators |
