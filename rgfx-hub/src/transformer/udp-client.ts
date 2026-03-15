@@ -296,6 +296,7 @@ export class UdpClientImpl implements UdpClient {
     const options: VideoPlayOptions = {
       fps: typeof props.fps === 'number' ? props.fps : undefined,
       loop: typeof props.loop === 'boolean' ? props.loop : false,
+      fit: props.fit === 'stretch' ? 'stretch' : 'crop',
     };
 
     // Delegate to VideoPlayer — broadcast start/stop via this.broadcast

@@ -222,8 +222,8 @@ interface Notification {
 
 **Features:**
 - Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates
-- Persists sort preferences, simulator rows, and WiFi credentials
-- Storage key: `rgfx-ui-preferences`
+- Persists sort preferences, simulator rows, WiFi credentials, and selected effect
+- Storage key: `rgfx-ui-preferences` (version 5)
 
 ---
 

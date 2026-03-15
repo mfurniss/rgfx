@@ -712,7 +712,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - Displays selected filename (extracted from path using string split for cross-platform support)
 - Shows full file path in helper text
 - Clear button to deselect file
-- Read-only text input (click to select when empty)
+- Read-only text input
 
 ### GradientArrayField
 

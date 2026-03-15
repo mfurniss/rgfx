@@ -25,9 +25,12 @@ const VIDEO_HEADER_SIZE = 8;
 const VIDEO_MAX_PACKET_SIZE = 1400;
 const VIDEO_MAX_PAYLOAD = VIDEO_MAX_PACKET_SIZE - VIDEO_HEADER_SIZE; // 1392 bytes
 
+type VideoFitMode = 'crop' | 'stretch';
+
 export interface VideoPlayOptions {
   fps?: number;
   loop?: boolean;
+  fit?: VideoFitMode;
 }
 
 // Default frame rate when source fps is unknown and no override specified
@@ -300,17 +303,33 @@ export class VideoPlayer {
     group: DriverGroup,
     broadcastStartStop: (payload: Record<string, unknown>) => void,
   ): void {
+    const w = group.width;
+    const h = group.height;
+    const fit = options.fit ?? 'crop';
+
+    // Build video filter chain based on fit mode
+    let vf: string;
+
+    if (fit === 'crop') {
+      // Scale so smallest dimension fills the target, then center-crop the overflow
+      vf = `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`;
+    } else {
+      // Stretch to exact target dimensions (ignores aspect ratio)
+      vf = `scale=${w}:${h}`;
+    }
+
     const args = [
       '-hide_banner',
       '-loglevel', 'error',
-      '-re',  // Read input at native frame rate (real-time playback)
+      '-re',
       '-i', filePath,
+      '-an',                        // Skip audio decoding
+      '-vf', vf,
+      '-vsync', 'cfr',              // Constant frame rate output
       '-f', 'rawvideo',
       '-pix_fmt', 'rgb24',
-      '-s', `${group.width}x${group.height}`,
     ];
 
-    // Add fps override if specified
     if (options.fps) {
       args.push('-r', String(options.fps));
     }
@@ -443,8 +462,10 @@ export class VideoPlayer {
       this.frameTimer = null;
     }
 
-    // Kill all ffmpeg processes and timers
+    // Kill all ffmpeg processes, timers, and buffered frames
     for (const group of this.groups) {
+      group.pendingFrame = undefined;
+
       if (group.paceTimer) {
         clearInterval(group.paceTimer);
       }

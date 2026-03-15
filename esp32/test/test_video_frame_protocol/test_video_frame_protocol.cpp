@@ -285,6 +285,42 @@ void test_big_endian_sequence() {
 	TEST_ASSERT_TRUE(r.processPacket(packet, packetLen));
 }
 
+// ============================================================
+// Test: Reset clears stale frame data (stop/start scenario)
+// ============================================================
+void test_reset_clears_stale_frames() {
+	const size_t frameSize = 768;
+	FrameReassembler r(frameSize);
+
+	uint8_t packet[1472];
+	size_t packetLen;
+
+	// Play first video — fill front buffer with 0xAA
+	uint8_t frame1[768];
+	memset(frame1, 0xAA, 768);
+	buildPacket(packet, &packetLen, 1, frameSize, 0, true, frame1, 768);
+	r.processPacket(packet, packetLen);
+	TEST_ASSERT_EQUAL_UINT8(0xAA, r.frontBuffer[0]);
+
+	// Simulate stop + start: clear front buffer and reset state
+	memset(r.frontBuffer, 0, frameSize);
+	r.currentSequence = 0xFFFF;
+	r.bytesReceived = 0;
+	r.frameReady = false;
+
+	// Front buffer should be zeroed (no stale frame from previous video)
+	TEST_ASSERT_EQUAL_UINT8(0x00, r.frontBuffer[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, r.frontBuffer[767]);
+	TEST_ASSERT_FALSE(r.frameReady);
+
+	// New video frame arrives — should work normally
+	uint8_t frame2[768];
+	memset(frame2, 0xBB, 768);
+	buildPacket(packet, &packetLen, 1, frameSize, 0, true, frame2, 768);
+	TEST_ASSERT_TRUE(r.processPacket(packet, packetLen));
+	TEST_ASSERT_EQUAL_UINT8(0xBB, r.frontBuffer[0]);
+}
+
 int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
@@ -298,5 +334,6 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_new_sequence_resets_reassembly);
 	RUN_TEST(test_double_buffer_swap);
 	RUN_TEST(test_big_endian_sequence);
+	RUN_TEST(test_reset_clears_stale_frames);
 	return UNITY_END();
 }

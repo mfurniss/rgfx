@@ -168,7 +168,7 @@ export const HEX_COLOR_RRGGBB_REGEX = /^#[0-9a-fA-F]{6}$/;
 /**
  * Default effect selected in the Effects Playground page.
  */
-export const DEFAULT_FX_PLAYGROUND_EFFECT = 'background';
+export const DEFAULT_FX_PLAYGROUND_EFFECT = 'explode';
 
 // ============================================================================
 // UI Refresh Configuration

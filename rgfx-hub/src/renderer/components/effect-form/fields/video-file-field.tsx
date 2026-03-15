@@ -71,7 +71,6 @@ export function VideoFileField<T extends FieldValues>({
                 ) : undefined,
               },
             }}
-            onClick={!filePath ? handleSelectFile : undefined}
             sx={{ cursor: !filePath ? 'pointer' : undefined }}
           />
         );

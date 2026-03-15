@@ -8,7 +8,7 @@ export const fieldTypes: FieldTypeMap = {
 
 export const layoutConfig: LayoutConfig = [
   ['file'], [],
-  ['loop'], [],
+  ['fit'], ['loop'],
 ];
 
 /**
@@ -23,6 +23,7 @@ export default z
     name: z.literal('Video'),
     description: z.literal('Stream a video file to LED matrix'),
     file: z.string().min(1, 'Select a video file').default('').describe('Path to video file'),
+    fit: z.enum(['crop', 'stretch']).default('crop').describe('Crop preserves aspect ratio, stretch fills the matrix'),
     loop: z.boolean().default(false).describe('Loop playback'),
   })
   .strict();

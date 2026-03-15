@@ -31,7 +31,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 | `network_task.h/cpp` | FreeRTOS task running network loop on Core 0 |
 | `ota_update.h/cpp` | ArduinoOTA setup with LED progress indicators |
 | `udp.h/cpp` | UDP listener for real-time effect messages. Uses static JsonDocument in `checkUDPMessage()` to reuse heap pool across calls and reduce fragmentation. Peeks first byte to route binary video packets (magic `0x56`) to `handleVideoPacket()` vs JSON effects to the message queue. |
-| `udp_video.h/cpp` | Binary video frame receiver. Reassembles fragmented UDP packets into complete RGB24 frames using double-buffered storage. Called from `processUDP()` when packets start with VIDEO_MAGIC byte. Provides `getVideoFrame()`, `hasNewVideoFrame()`, `setVideoFrameSize()` for the VideoEffect. Logs per-second packet/frame stats while active. |
+| `udp_video.h/cpp` | Binary video frame receiver. Reassembles fragmented UDP packets into complete RGB24 frames using double-buffered storage. Called from `processUDP()` when packets start with VIDEO_MAGIC byte. Provides `getVideoFrame()`, `hasNewVideoFrame()`, `setVideoFrameSize()` for the VideoEffect. `setVideoFrameSize()` clears stale frame data and resets reassembly state on each start to prevent flash of previous video. Logs per-second packet/frame stats while active. |
 
 ## MQTT Topics
 

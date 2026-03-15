@@ -35,7 +35,15 @@ void setVideoFrameSize(uint16_t width, uint16_t height) {
 		frameSize = newSize;
 		log("Video: Frame buffer allocated (" + String(width) + "x" + String(height) +
 		    " = " + String(newSize) + " bytes x2)");
+	} else {
+		// Same size — clear stale frame data from previous playback
+		memset(frontBuffer, 0, frameSize);
 	}
+
+	// Reset reassembly state for clean start
+	currentSequence = 0xFFFF;
+	bytesReceived = 0;
+	frameReady = false;
 }
 
 static bool firstPacketLogged = false;
