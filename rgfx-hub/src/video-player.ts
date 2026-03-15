@@ -160,19 +160,36 @@ function sendFrame(
 
 /**
  * Detect the system ffmpeg binary path.
- * Returns the path or null if not found.
+ * Tries to run `ffmpeg -version` directly rather than relying on `which`,
+ * because Electron apps on macOS don't inherit the shell PATH.
  */
 function detectFfmpeg(): Promise<string | null> {
+  const candidates =
+    process.platform === 'win32'
+      ? ['ffmpeg']
+      : ['ffmpeg', '/opt/homebrew/bin/ffmpeg', '/usr/local/bin/ffmpeg'];
+
   return new Promise((resolve) => {
-    const cmd = process.platform === 'win32' ? 'where' : 'which';
-    execFile(cmd, ['ffmpeg'], (err, stdout) => {
-      if (err) {
-        resolve(null);
-        return;
-      }
-      const path = stdout.trim().split('\n')[0];
-      resolve(path || null);
-    });
+    let resolved = false;
+    let remaining = candidates.length;
+
+    for (const candidate of candidates) {
+      execFile(candidate, ['-version'], (err) => {
+        if (resolved) {
+          return;
+        }
+
+        if (!err) {
+          resolved = true;
+          resolve(candidate);
+          return;
+        }
+
+        if (--remaining === 0) {
+          resolve(null);
+        }
+      });
+    }
   });
 }
 

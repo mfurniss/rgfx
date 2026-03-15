@@ -59,8 +59,14 @@ function calculateMd5(filePath: string): Promise<string> {
   });
 }
 
+interface FirmwareServerCallbacks {
+  onDownloadStarted?: () => void;
+  onDownloadComplete?: () => void;
+}
+
 function createFirmwareServer(
   firmwarePath: string,
+  callbacks?: FirmwareServerCallbacks,
 ): Promise<{ server: http.Server; port: number }> {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
@@ -70,7 +76,12 @@ function createFirmwareServer(
           'Content-Type': 'application/octet-stream',
           'Content-Length': stat.size,
         });
+        callbacks?.onDownloadStarted?.();
         fs.createReadStream(firmwarePath).pipe(res);
+
+        res.on('finish', () => {
+          callbacks?.onDownloadComplete?.();
+        });
       } else {
         res.writeHead(404);
         res.end();
@@ -143,7 +154,19 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
       fs.promises.stat(firmwarePath),
     ]);
 
-    const { server, port } = await createFirmwareServer(firmwarePath);
+    let httpDownloadComplete = false;
+    let onHttpDownloadStarted: (() => void) | undefined;
+
+    const { server, port } = await createFirmwareServer(firmwarePath, {
+      onDownloadStarted: () => {
+        log.info(`HTTP firmware download started for ${driverId}`);
+        onHttpDownloadStarted?.();
+      },
+      onDownloadComplete: () => {
+        httpDownloadComplete = true;
+        log.info(`HTTP firmware download complete for ${driverId}`);
+      },
+    });
     const hubIP = getLocalIP();
     const firmwareUrl = `http://${hubIP}:${port}/firmware.bin`;
 
@@ -156,18 +179,25 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
     try {
       const result = await new Promise<{ success: boolean; error?: string }>((resolve, reject) => {
         const timeout = setTimeout(() => {
-          // If progress was near-complete, device likely rebooted before sending result
-          if (lastPercent >= 95) {
-            log.info(`OTA to ${driverId} likely succeeded (${lastPercent}% complete, device rebooted)`);
+          // If HTTP download completed or MQTT progress was near-complete,
+          // device likely rebooted before sending the QoS 2 result message
+          if (httpDownloadComplete || lastPercent >= 95) {
+            log.info(
+              `OTA to ${driverId} likely succeeded ` +
+              `(httpComplete: ${httpDownloadComplete}, mqttProgress: ${lastPercent}%)`,
+            );
             resolve({ success: true });
           } else {
-            reject(new Error(`OTA timeout after ${OTA_TIMEOUT_MS / 1000}s (last progress: ${lastPercent}%)`));
+            reject(new Error(
+              `OTA timeout after ${OTA_TIMEOUT_MS / 1000}s ` +
+              `(last progress: ${lastPercent}%, httpComplete: ${httpDownloadComplete})`,
+            ));
           }
         }, OTA_TIMEOUT_MS);
 
         // Fail fast if the driver never responds — likely running old firmware without MQTT OTA
         const firstContactTimeout = setTimeout(() => {
-          if (lastPercent === -1) {
+          if (lastPercent === -1 && !httpDownloadComplete) {
             clearTimeout(timeout);
             reject(new Error(
               'Driver did not respond to OTA command within 15 seconds. ' +
@@ -175,6 +205,11 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
             ));
           }
         }, FIRST_CONTACT_TIMEOUT_MS);
+
+        // Clear first-contact timeout when HTTP download starts (device is responding)
+        onHttpDownloadStarted = () => {
+          clearTimeout(firstContactTimeout);
+        };
 
         mqtt.subscribe(progressTopic, (_topic, payload) => {
           try {

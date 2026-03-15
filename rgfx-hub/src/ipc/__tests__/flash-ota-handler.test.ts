@@ -1,4 +1,4 @@
-import { Readable } from 'stream';
+import { Readable, Writable } from 'stream';
 import {
   describe,
   it,
@@ -83,6 +83,10 @@ vi.mock('@/services/global-error-handler', () => ({
   removeActiveOtaDriver: vi.fn(),
 }));
 
+// Captured HTTP request handler for simulating download events
+let capturedHttpRequestHandler:
+  ((req: { method: string; url: string }, res: { on: Mock }) => void) | null = null;
+
 vi.mock('http', () => {
   const mockServer = {
     listen: vi.fn((_port: number, cb: () => void) => {
@@ -98,8 +102,18 @@ vi.mock('http', () => {
   };
 
   return {
-    default: { createServer: vi.fn(() => mockServer) },
-    createServer: vi.fn(() => mockServer),
+    default: {
+      createServer: vi.fn((handler: typeof capturedHttpRequestHandler) => {
+        capturedHttpRequestHandler = handler;
+
+        return mockServer;
+      }),
+    },
+    createServer: vi.fn((handler: typeof capturedHttpRequestHandler) => {
+      capturedHttpRequestHandler = handler;
+
+      return mockServer;
+    }),
   };
 });
 
@@ -185,6 +199,7 @@ describe('registerFlashOtaHandler', () => {
 
   afterEach(() => {
     mqttSubscriptions.clear();
+    capturedHttpRequestHandler = null;
   });
 
   function simulateOtaResult(
@@ -211,6 +226,24 @@ describe('registerFlashOtaHandler', () => {
     if (handler) {
       handler(topic, JSON.stringify({ percent }));
     }
+  }
+
+  function simulateHttpDownload() {
+    if (!capturedHttpRequestHandler) {
+      return;
+    }
+
+    const mockRes = new Writable({
+      write(_chunk, _encoding, callback) {
+        callback();
+      },
+    });
+    (mockRes as unknown as { writeHead: Mock }).writeHead = vi.fn();
+
+    capturedHttpRequestHandler(
+      { method: 'GET', url: '/firmware.bin' },
+      mockRes as unknown as { on: Mock },
+    );
   }
 
   function mockPublishWithResult(
@@ -506,6 +539,62 @@ describe('registerFlashOtaHandler', () => {
       await expect(
         registeredHandler({}, 'rgfx-driver-0001'),
       ).rejects.toThrow('Failed to publish OTA command');
+    });
+
+    it('treats timeout as success when HTTP download completed', async () => {
+      vi.useFakeTimers();
+
+      // Publish succeeds, simulate HTTP download completing, but no MQTT result
+      mockMqtt.publish.mockImplementation(() => {
+        // Simulate HTTP download completing after OTA command sent
+        simulateHttpDownload();
+
+        return Promise.resolve();
+      });
+
+      const promise = registeredHandler({}, 'rgfx-driver-0001');
+
+      // Advance past the 120-second timeout
+      await vi.advanceTimersByTimeAsync(120_000);
+
+      // Should resolve successfully (not reject) because HTTP download completed
+      await expect(promise).resolves.toBeUndefined();
+
+      vi.useRealTimers();
+    });
+
+    it('skips first-contact timeout when HTTP download starts', async () => {
+      vi.useFakeTimers();
+
+      // Publish succeeds, HTTP download starts but no MQTT progress
+      mockMqtt.publish.mockImplementation(() => {
+        simulateHttpDownload();
+
+        return Promise.resolve();
+      });
+
+      const promise = registeredHandler(
+        {},
+        'rgfx-driver-0001',
+      ).catch((err: unknown) => err);
+
+      // Advance past 15-second first contact timeout
+      await vi.advanceTimersByTimeAsync(15_000);
+
+      // Should NOT have rejected with "did not respond" error
+      // (still running, waiting for 120s timeout)
+      const settled = await Promise.race([
+        promise.then((v) => ({ settled: true, value: v })),
+        Promise.resolve({ settled: false }),
+      ]);
+
+      expect(settled.settled).toBe(false);
+
+      // Clean up: advance to full timeout (HTTP complete → success)
+      await vi.advanceTimersByTimeAsync(105_000);
+      await promise;
+
+      vi.useRealTimers();
     });
   });
 
