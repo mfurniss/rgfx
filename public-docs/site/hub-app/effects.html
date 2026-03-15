@@ -1075,6 +1075,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2061,6 +2072,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2176,6 +2198,11 @@
 </tr>
 <tr>
 <td>Music</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td>Video</td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">yes</td>
 </tr>
@@ -2682,6 +2709,35 @@
 </tbody>
 </table>
 <p>Features auto-scaling pitch range, per-channel hue rotation (full cycle every 120 seconds), and peak indicators with hold-and-fall behavior.</p>
+<h3 id="video">Video<a class="headerlink" href="#video" title="Permanent link">¶</a></h3>
+<p>Streams a video file to LED matrices in real-time. The Hub uses ffmpeg to transcode the video into raw frames sized to each driver's matrix dimensions, then streams them over UDP. Matrix only.</p>
+<div class="admonition note">
+<p class="admonition-title">Requires ffmpeg</p>
+<p>The video effect requires <a href="https://ffmpeg.org/">ffmpeg</a> installed on your system. The Hub will log a warning at startup if ffmpeg is not found.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>file</code></td>
+<td>Path to video file. Absolute paths are used as-is; relative paths resolve to the <a href="../getting-started/hub-setup.html#config-directory">config directory</a>.</td>
+</tr>
+<tr>
+<td><code>fit</code></td>
+<td>Scaling mode: <code>crop</code> (default) preserves aspect ratio by filling and center-cropping, <code>stretch</code> scales to exact matrix dimensions</td>
+</tr>
+<tr>
+<td><code>loop</code></td>
+<td>Restart playback when the video ends (default: <code>false</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Any format ffmpeg supports works — MP4, WebM, AVI, MOV, MKV, etc. Drivers with different matrix dimensions each receive video transcoded to their native resolution.</p>
 <h2 id="blend-modes">Blend Modes<a class="headerlink" href="#blend-modes" title="Permanent link">¶</a></h2>
 <p>Effects can use different blend modes when compositing:</p>
 <ul>
