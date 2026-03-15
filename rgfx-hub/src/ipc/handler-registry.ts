@@ -36,6 +36,7 @@ import { registerSetDriverFallbackHandler } from './set-driver-fallback-handler'
 import { registerOpenExternalHandler } from './open-external-handler';
 import { registerReinstallAssetsHandler } from './reinstall-assets-handler';
 import { registerLaunchMameHandler } from './launch-mame-handler';
+import { registerSelectVideoFileHandler } from './select-video-file-handler';
 
 export interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -84,4 +85,5 @@ export const handlers: ((deps: IpcHandlersDeps) => void)[] = [
   registerOpenExternalHandler,
   registerReinstallAssetsHandler,
   registerLaunchMameHandler,
+  registerSelectVideoFileHandler,
 ];

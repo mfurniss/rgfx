@@ -151,7 +151,7 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'rgfx-ui-preferences',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => createDebouncedStorage(500)),
       partialize: (state) => ({
         tableSortPreferences: state.tableSortPreferences,
@@ -162,6 +162,7 @@ export const useUiStore = create<UiState>()(
         lastWifiPassword: state.lastWifiPassword,
         driverFallbackEnabled: state.driverFallbackEnabled,
         stripLifespanScale: state.stripLifespanScale,
+        testEffectsSelectedEffect: state.testEffectsSelectedEffect,
       }),
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<UiState>;

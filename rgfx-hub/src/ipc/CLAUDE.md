@@ -416,6 +416,20 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 - Calls `reinstallAllAssets()` from `asset-reinstaller.ts` which runs all four installers with `forceOverwrite: true`
 - Used by the Settings UI "Reinstall Default Assets" button
 
+### `dialog:select-video-file`
+
+**File:** [select-video-file-handler.ts](select-video-file-handler.ts)
+
+**Purpose:** Opens a native file picker dialog for selecting video files.
+
+**Parameters:** None
+
+**Returns:** Selected file path or `null` if cancelled
+
+**Behavior:**
+- Opens `dialog.showOpenDialog` with video file filters (mp4, webm, avi, mov, mkv, gif)
+- Returns the selected file path for use with the video effect
+
 ---
 
 ## Tests

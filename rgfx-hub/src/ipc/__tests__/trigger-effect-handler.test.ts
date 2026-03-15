@@ -342,4 +342,61 @@ describe('registerTriggerEffectHandler', () => {
       expect(call).not.toHaveProperty('stripLifespanScale');
     });
   });
+
+  describe('video effect bypass', () => {
+    it('should skip schema validation for video effect', () => {
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/path/to/video.mp4', loop: false },
+        drivers: ['driver-1'],
+      };
+
+      registeredHandler({}, payload);
+
+      expect(mockUdpClient.broadcast).toHaveBeenCalledTimes(1);
+    });
+
+    it('should pass video stop command directly to broadcast', () => {
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { action: 'stop' },
+        drivers: ['driver-1'],
+      };
+
+      registeredHandler({}, payload);
+
+      expect(mockUdpClient.broadcast).toHaveBeenCalledTimes(1);
+
+      const call = mockUdpClient.broadcast.mock.calls[0][0];
+      expect(call.effect).toBe('video');
+      expect((call.props as Record<string, unknown>).action).toBe('stop');
+    });
+
+    it('should strip stripLifespanScale from video payload', () => {
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/video.mp4' },
+        drivers: ['driver-1'],
+        stripLifespanScale: 0.5,
+      };
+
+      registeredHandler({}, payload);
+
+      const call = mockUdpClient.broadcast.mock.calls[0][0];
+      expect(call).not.toHaveProperty('stripLifespanScale');
+    });
+
+    it('should preserve driver targeting for video', () => {
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/video.mp4' },
+        drivers: ['driver-1', 'driver-2'],
+      };
+
+      registeredHandler({}, payload);
+
+      const call = mockUdpClient.broadcast.mock.calls[0][0];
+      expect(call.drivers).toEqual(['driver-1', 'driver-2']);
+    });
+  });
 });

@@ -6,6 +6,12 @@ This folder contains the visual effects system for the ESP32 driver. Effects are
 
 ---
 
+## Logging
+
+**Use `log()` from `log.h`, NOT `hal::log()` from `hal/platform.h`.** The global `log()` function sends messages through the remote logging queue (serial + MQTT to Hub). `hal::log()` only writes to serial and will not appear in the Hub's driver log. Effects must `#include "log.h"` and call `log("message")` with Arduino `String` concatenation.
+
+---
+
 ## Architecture
 
 ### Effect Interface
@@ -55,6 +61,7 @@ Effects call `publishError(effectName, errorMessage, props)` when required prope
 | **Spectrum** | [spectrum.h](spectrum.h)/[spectrum.cpp](spectrum.cpp) | FFT spectrum analyzer visualization. |
 | **Music** | [music.h](music.h)/[music.cpp](music.cpp) | Music channel visualizer. FIFO of decaying vertical bars with VU-meter peak indicators, auto-scaling pitch range (resets after 5s idle), and slow hue rotation (120s cycle). Matrix-only. Uses fixed-point integer math (0.16 for life/height, ms for timers), HSV LUT, hex digit LUT, and pre-computed reciprocal multiply for pitch-to-X mapping. |
 | **Text** | [text.h](text.h)/[text.cpp](text.cpp) | Static text with gradient color animation. Uses DEN 8x8 bitmap font. Gradient phase is preserved across reset cycles when the same gradient config is re-added, preventing visual jumps in continuous score displays. |
+| **Video** | [video.h](video.h)/[video.cpp](video.cpp) | Streams video frames from Hub to LED matrix. Caches last frame pointer to avoid redundant peek/consume on stale frames (e.g., 30 FPS source in 120 FPS render loop). Uses running pointer for efficient pixel iteration. |
 | **Test LEDs** | [test_leds.h](test_leds.h)/[test_leds.cpp](test_leds.cpp) | Hardware validation pattern. Cycles through colors to verify LED wiring. |
 | **Wipe** | [wipe.h](wipe.h)/[wipe.cpp](wipe.cpp) | Directional color wipe (left, right, up, down). |
 

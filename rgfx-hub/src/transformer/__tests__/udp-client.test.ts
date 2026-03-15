@@ -20,6 +20,18 @@ const mockSystemMonitor = {
 // Create UDP socket mock with separate driver/localhost tracking
 const udpMock = createUdpSocketMock();
 
+// Mock VideoPlayer
+vi.mock('@/video-player', () => ({
+  VideoPlayer: vi.fn().mockImplementation(() => ({
+    init: vi.fn().mockResolvedValue(undefined),
+    play: vi.fn(),
+    stop: vi.fn(),
+    destroy: vi.fn(),
+    isPlaying: vi.fn().mockReturnValue(false),
+    isFfmpegAvailable: vi.fn().mockReturnValue(false),
+  })),
+}));
+
 // Mock dgram module
 vi.mock('dgram', () => ({
   default: {

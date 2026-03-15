@@ -5,6 +5,7 @@ export interface SystemError {
     | 'driver'
     | 'network'
     | 'transformer'
+    | 'video'
     | 'general';
   message: string;
   timestamp: number;
@@ -36,6 +37,8 @@ export interface SystemStatus {
   systemErrors: readonly SystemError[];
   /** Release URL when a newer version exists on GitHub */
   updateAvailable?: string;
+  /** Whether ffmpeg is installed on the system (required for video effect) */
+  ffmpegAvailable: boolean;
 }
 
 export interface GameInfo {

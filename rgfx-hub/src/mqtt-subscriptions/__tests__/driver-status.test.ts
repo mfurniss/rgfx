@@ -4,8 +4,8 @@ import { subscribeDriverStatus } from '../driver-status';
 import type { DriverRegistry } from '@/driver-registry';
 import type { SystemMonitor } from '@/system-monitor';
 import type { BrowserWindow } from 'electron';
-import { Driver, type SystemStatus } from '@/types';
-import { createMockDriver, createMqttSubscriptionMock } from '@/__tests__/factories';
+import { Driver } from '@/types';
+import { createMockDriver, createMockSystemStatus, createMqttSubscriptionMock } from '@/__tests__/factories';
 
 describe('subscribeDriverStatus', () => {
   let mqttMock: ReturnType<typeof createMqttSubscriptionMock>;
@@ -26,22 +26,12 @@ describe('subscribeDriverStatus', () => {
     mockDriverRegistry.getConnectedCount.mockReturnValue(1);
     mockDriverRegistry.getAllDrivers.mockReturnValue([mockDriver]);
 
-    const mockStatus: SystemStatus = {
-      mqttBroker: 'running',
-      discovery: 'active',
-      eventReader: 'monitoring',
+    const mockStatus = createMockSystemStatus({
       driversConnected: 1,
       driversTotal: 1,
-      hubIp: '192.168.1.1',
       eventsProcessed: 100,
-      eventLogSizeBytes: 0,
-      hubStartTime: Date.now(),
       firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' },
-      udpMessagesSent: 0,
-      udpMessagesFailed: 0,
-      udpStatsByDriver: {},
-      systemErrors: [],
-    };
+    });
 
     mockSystemMonitor = mock<SystemMonitor>();
     mockSystemMonitor.getFullStatus.mockReturnValue(mockStatus);

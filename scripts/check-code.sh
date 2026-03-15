@@ -210,7 +210,10 @@ if [ "$HUB_CHANGES" = true ]; then
 
     notify "Checking dependencies..."
     echo "🔒 Checking for dependency vulnerabilities..."
-    npm audit --audit-level=critical
+    AUDIT_OUTPUT=$(npm audit --audit-level=critical 2>&1) || {
+        echo "$AUDIT_OUTPUT"
+        exit 1
+    }
     echo "✅ No critical vulnerabilities found"
 
     notify "TypeScript type checking..."
@@ -234,7 +237,12 @@ if [ "$HUB_CHANGES" = true ]; then
 
     notify "Running Hub tests..."
     echo "🧪 Running tests..."
-    npm test
+    # Show suite-level results only; full detail on failure
+    TEST_OUTPUT=$(npm test 2>&1) || {
+        echo "$TEST_OUTPUT"
+        exit 1
+    }
+    echo "$TEST_OUTPUT" | grep -E "^ (✓|×|✗)|Test Files|Tests |Start at|Duration"
     echo "✅ Tests passed"
 
     echo "📦 Checking for unused dependencies..."
@@ -244,7 +252,10 @@ if [ "$HUB_CHANGES" = true ]; then
     echo "✅ No unused dependencies found"
 
     echo "📜 Checking dependency licenses..."
-    npx license-checker --onlyAllow "MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0;OFL-1.1;LGPL-3.0-or-later;CC-BY-4.0;CC-BY-3.0" --excludePackages "truncate-utf8-bytes@1.0.2"
+    LICENSE_OUTPUT=$(npx license-checker --onlyAllow "MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0;OFL-1.1;LGPL-3.0-or-later;CC-BY-4.0;CC-BY-3.0" --excludePackages "truncate-utf8-bytes@1.0.2" 2>&1) || {
+        echo "$LICENSE_OUTPUT"
+        exit 1
+    }
     echo "✅ All licenses are permissive"
 
     echo ""
@@ -264,7 +275,12 @@ if [ "$ESP32_CHANGES" = true ]; then
 
     notify "Running ESP32 tests..."
     echo "🧪 Running esp32 tests..."
-    pio test -e native
+    # Show suite-level results only; full detail on failure
+    PIO_TEST_OUTPUT=$(pio test -e native 2>&1) || {
+        echo "$PIO_TEST_OUTPUT"
+        exit 1
+    }
+    echo "$PIO_TEST_OUTPUT" | grep -E "^-.*\[(PASSED|FAILED)\]|^=.*="
     echo "✅ esp32 tests passed"
 
     echo ""

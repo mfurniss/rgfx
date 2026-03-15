@@ -5,3 +5,4 @@ export {
   createMockTelemetryData,
 } from './telemetry.factory';
 export { createMqttSubscriptionMock } from './mqtt.factory';
+export { createMockSystemStatus } from './system-status.factory';

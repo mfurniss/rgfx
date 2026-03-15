@@ -287,6 +287,75 @@ describe('TargetDriversPicker', () => {
     });
   });
 
+  describe('disabled drivers', () => {
+    it('should disable checkbox for disabled drivers', () => {
+      const drivers = [
+        createMockDriver({ id: 'driver-1', state: 'connected' }),
+        createMockDriver({ id: 'driver-2', state: 'connected', disabled: true }),
+      ];
+      render(
+        <TargetDriversPicker
+          drivers={drivers}
+          selectedDrivers={new Set()}
+          selectAll={false}
+          onDriverToggle={vi.fn()}
+          onSelectAll={vi.fn()}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button'));
+      const checkbox = screen.getByLabelText(/driver-2/);
+
+      expect(checkbox).toHaveProperty('disabled', true);
+    });
+
+    it('should exclude disabled drivers from available count', () => {
+      const drivers = [
+        createMockDriver({ id: 'driver-1', state: 'connected' }),
+        createMockDriver({ id: 'driver-2', state: 'connected', disabled: true }),
+      ];
+      render(
+        <TargetDriversPicker
+          drivers={drivers}
+          selectedDrivers={new Set()}
+          selectAll={false}
+          onDriverToggle={vi.fn()}
+          onSelectAll={vi.fn()}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(screen.getByText(/All Available Drivers \(1\)/)).toBeDefined();
+    });
+
+    it('should show tooltip for disabled drivers', async () => {
+      const drivers = [
+        createMockDriver({ id: 'driver-1', state: 'connected' }),
+        createMockDriver({
+          id: 'driver-2', state: 'connected', disabled: true,
+        }),
+      ];
+      render(
+        <TargetDriversPicker
+          drivers={drivers}
+          selectedDrivers={new Set()}
+          selectAll={false}
+          onDriverToggle={vi.fn()}
+          onSelectAll={vi.fn()}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button'));
+      const driver2Label = screen.getByText('driver-2');
+      fireEvent.mouseOver(driver2Label);
+
+      expect(
+        await screen.findByRole('tooltip', { name: 'Driver is disabled' }),
+      ).toBeDefined();
+    });
+  });
+
   describe('checkbox states', () => {
     it('should show checked state for selected drivers', () => {
       const drivers = createMockDrivers();

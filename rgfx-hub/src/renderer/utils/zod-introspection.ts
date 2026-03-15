@@ -10,6 +10,7 @@ type FieldType =
   | 'spritePreset'
   | 'gradientArray'
   | 'backgroundGradient'
+  | 'videoFile'
   | 'hidden';
 
 /** Field configuration: can be just a type string or an object with type and emptyValue */

@@ -76,6 +76,7 @@ const isMac = process.platform === 'darwin';
 const menuTemplate: Electron.MenuItemConstructorOptions[] = [
   ...(isMac ? [{ role: 'appMenu' as const }] : []),
   { role: 'editMenu' as const },
+  { role: 'viewMenu' as const },
   {
     role: 'help' as const,
     submenu: [

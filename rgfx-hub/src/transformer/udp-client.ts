@@ -14,6 +14,8 @@ import type { SystemMonitor } from '../system-monitor';
 import type { Driver } from '../types';
 import { UDP_PORT, UDP_BUFFER_SIZE } from '../config/constants';
 import { eventBus } from '../services/event-bus';
+import { VideoPlayer } from '../video-player';
+import type { VideoPlayOptions } from '../video-player';
 
 /**
  * UDP client implementation for broadcasting effects to drivers
@@ -25,6 +27,7 @@ export class UdpClientImpl implements UdpClient {
   private socket: dgram.Socket;
   private closed = false;
   private driverFallbackEnabled = false;
+  private videoPlayer: VideoPlayer;
 
   constructor(
     private driverRegistry: DriverRegistry,
@@ -35,6 +38,15 @@ export class UdpClientImpl implements UdpClient {
       log.error(`UDP client socket error: ${err.message}`);
     });
     log.debug('UDP client socket initialized');
+
+    this.videoPlayer = new VideoPlayer();
+    this.videoPlayer.init().then(() => {
+      this.systemMonitor.setFfmpegAvailable(
+        this.videoPlayer.isFfmpegAvailable(),
+      );
+    }).catch((err: unknown) => {
+      log.error(`VideoPlayer init failed: ${String(err)}`);
+    });
   }
 
   setDriverFallbackEnabled(enabled: boolean): void {
@@ -50,6 +62,11 @@ export class UdpClientImpl implements UdpClient {
   broadcast(payload: EffectPayload): boolean {
     if (this.closed) {
       return false;
+    }
+
+    // Intercept video effect — delegate to VideoPlayer instead of JSON UDP
+    if (payload.effect === 'video') {
+      return this.handleVideoEffect(payload);
     }
 
     // Extract drivers property for routing, don't send it in UDP payload
@@ -230,10 +247,103 @@ export class UdpClientImpl implements UdpClient {
   }
 
   /**
+   * Handle video effect — start/stop video playback via VideoPlayer
+   */
+  private handleVideoEffect(payload: EffectPayload): boolean {
+    const props = (payload.props ?? payload) as Record<string, unknown>;
+
+    // Stop command
+    if (props.action === 'stop') {
+      this.videoPlayer.stop((stopPayload) => {
+        this.broadcastJsonDirect(stopPayload as EffectPayload);
+      });
+      return true;
+    }
+
+    // Play command requires a file path
+    const file = props.file as string | undefined;
+
+    if (!file) {
+      log.warn('Video effect requires "file" prop');
+      return false;
+    }
+
+    if (!this.videoPlayer.isFfmpegAvailable()) {
+      log.warn('Video effect unavailable: ffmpeg not found');
+      eventBus.emit('system:error', {
+        errorType: 'video',
+        message: 'ffmpeg not found — install ffmpeg to use video effects',
+        timestamp: Date.now(),
+      });
+      return false;
+    }
+
+    // Resolve target drivers
+    let drivers = this.driverRegistry
+      .getConnectedDrivers()
+      .filter((d) => !d.disabled);
+
+    if (payload.drivers?.length) {
+      const targetIds = payload.drivers;
+      drivers = drivers.filter(({ id }) => targetIds.includes(id));
+    }
+
+    if (drivers.length === 0) {
+      log.warn('No connected drivers for video playback');
+      return false;
+    }
+
+    const options: VideoPlayOptions = {
+      fps: typeof props.fps === 'number' ? props.fps : undefined,
+      loop: typeof props.loop === 'boolean' ? props.loop : false,
+      fit: props.fit === 'stretch' ? 'stretch' : 'crop',
+    };
+
+    // Delegate to VideoPlayer — broadcast start/stop via this.broadcast
+    this.videoPlayer.play(file, options, drivers, (startStopPayload) => {
+      // Send start/stop JSON commands via normal UDP path
+      // Use direct JSON broadcast to avoid re-entering handleVideoEffect
+      this.broadcastJsonDirect(startStopPayload as EffectPayload);
+    });
+
+    return true;
+  }
+
+  /**
+   * Send JSON effect payload directly without video interception.
+   * Used by VideoPlayer to send start/stop commands.
+   */
+  private broadcastJsonDirect(payload: EffectPayload): void {
+    const { drivers: targetDriverIds, ...effectData } = payload;
+
+    let drivers = this.driverRegistry
+      .getConnectedDrivers()
+      .filter((d) => !d.disabled);
+
+    if (targetDriverIds?.length) {
+      drivers = drivers.filter(({ id }) => targetDriverIds.includes(id));
+    }
+
+    const buffer = Buffer.from(JSON.stringify(effectData));
+
+    for (const driver of drivers) {
+      this.sendBufferToDriver(driver, buffer);
+    }
+
+    // Also send to localhost for led-sim
+    this.socket.send(buffer, UDP_PORT, '127.0.0.1', (err) => {
+      if (err) {
+        log.error(`UDP send to localhost failed: ${err.message}`);
+      }
+    });
+  }
+
+  /**
    * Stop the UDP client and close the socket
    */
   stop(): void {
     this.closed = true;
+    this.videoPlayer.destroy();
     this.socket.close();
     log.debug('UDP client socket closed');
   }

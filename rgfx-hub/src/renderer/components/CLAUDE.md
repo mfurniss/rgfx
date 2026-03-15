@@ -156,7 +156,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Props:**
 - `formatter?: (value: number) => string` - Optional value formatter
 - `multiLine?: boolean` - Show entry name labels (for multi-series charts)
-- Standard Recharts `TooltipProps`
+- Recharts injects `active`, `payload`, and `label` at runtime
 
 ---
 
@@ -700,6 +700,20 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - Gradient preset selector with preview
 - Custom gradient color editing
 - Orientation toggle (horizontal/vertical)
+
+### VideoFileField
+
+**File:** [effect-form/fields/video-file-field.tsx](effect-form/fields/video-file-field.tsx)
+
+**Purpose:** File picker field for selecting video files for the video effect.
+
+**Features:**
+- Clicking anywhere on the TextField opens native file dialog via `window.rgfx.selectVideoFile()` IPC
+- Icon button and clear button use `stopPropagation` to prevent double-firing from event bubbling
+- Displays selected filename (extracted from path using string split for cross-platform support)
+- Shows full file path in helper text
+- Clear button to deselect file
+- Read-only text input
 
 ### GradientArrayField
 

@@ -75,6 +75,7 @@ describe('SystemMonitor', () => {
         udpMessagesFailed: 0,
         udpStatsByDriver: {},
         systemErrors: [],
+        ffmpegAvailable: false,
       });
     });
 
@@ -99,6 +100,7 @@ describe('SystemMonitor', () => {
         udpMessagesFailed: 0,
         udpStatsByDriver: {},
         systemErrors: [],
+        ffmpegAvailable: false,
       });
     });
 

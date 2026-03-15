@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { CHART_HEIGHT, DEFAULT_CHART_Y_AXIS_WIDTH } from '@/config/constants';
+import { CHART_HEIGHT } from '@/config/constants';
 import { formatTime, getCssVar } from './chart-utils';
 import { CustomTooltip } from './chart-tooltip';
 
@@ -40,11 +40,11 @@ export function LineChart<T extends { time: number }>({
         {title}
       </Typography>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-        <RechartsLineChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
+        <RechartsLineChart data={data} margin={{ top: 5, right: 10, bottom: 15, left: 0 }}>
           <XAxis
             dataKey="time"
             tickFormatter={formatTime}
-            tick={tickStyle}
+            tick={{ ...tickStyle, dy: 10 }}
             stroke={axisColor}
             tickLine={false}
             axisLine={false}
@@ -54,7 +54,7 @@ export function LineChart<T extends { time: number }>({
           <YAxis
             domain={domain}
             tickFormatter={tickFormatter}
-            width={DEFAULT_CHART_Y_AXIS_WIDTH}
+            width="auto"
             tick={tickStyle}
             stroke={axisColor}
             tickLine={false}

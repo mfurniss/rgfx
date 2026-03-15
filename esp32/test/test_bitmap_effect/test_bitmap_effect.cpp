@@ -1706,6 +1706,75 @@ void test_bitmap_digest_96x8_t100() {
 	assertDigest(0x5E6D3FB4DC49F9D5ull, digest, "bitmap_96x8_t100");
 }
 
+static uint64_t runShatterDigest(const TestConfig& config, float updateTime,
+                                  const char* shatterMode,
+                                  const std::vector<std::string>& image = {"8888", "8888", "8888", "8888"}) {
+	hal::test::setTime(0);
+	hal::test::seedRandom(12345);
+	initTestGammaLUT();
+
+	String layout = config.layout ? config.layout : "matrix-br-v-snake";
+	Matrix matrix(config.width, config.height, layout);
+	Canvas canvas(matrix);
+	BitmapEffect effect(matrix, canvas);
+
+	JsonDocument props;
+	addPico8Palette(props);
+	props["duration"] = 2000;
+	props["centerX"] = 50;
+	props["centerY"] = 50;
+	props["shatter"] = shatterMode;
+	JsonArray images = props["images"].to<JsonArray>();
+	JsonArray frame = images.add<JsonArray>();
+	for (const auto& row : image) {
+		frame.add(row.c_str());
+	}
+	effect.add(props);
+
+	effect.update(updateTime);
+	canvas.clear();
+	effect.render();
+	downsampleToMatrix(canvas, &matrix);
+
+	return computeFrameDigest(matrix);
+}
+
+// Shatter at t=0: strips haven't moved yet, should match non-shatter rendering
+void test_bitmap_shatter_digest_horizontal_t0() {
+	uint64_t digest = runShatterDigest(TEST_CONFIGS[1], 0.0f, "horizontal");
+	assertDigest(0x943A64246B0DEFA5ull, digest, "shatter_horiz_16x16_t0");
+}
+
+// Horizontal shatter at t=100ms on 16x16 matrix
+void test_bitmap_shatter_digest_horizontal_16x16() {
+	uint64_t digest = runShatterDigest(TEST_CONFIGS[1], 0.1f, "horizontal");
+	assertDigest(0x219DBFDA3C5DE895ull, digest, "shatter_horiz_16x16_t100");
+}
+
+// Vertical shatter at t=100ms on 16x16 matrix
+void test_bitmap_shatter_digest_vertical_16x16() {
+	uint64_t digest = runShatterDigest(TEST_CONFIGS[1], 0.1f, "vertical");
+	assertDigest(0x1D01962C2FAB90B5ull, digest, "shatter_vert_16x16_t100");
+}
+
+// Horizontal shatter on strip layout at t=100ms
+void test_bitmap_shatter_digest_strip() {
+	uint64_t digest = runShatterDigest(TEST_CONFIGS[0], 0.1f, "horizontal");
+	assertDigest(0x6381FC256AEF5D21ull, digest, "shatter_horiz_strip_t100");
+}
+
+// Horizontal shatter at t=500ms — strips well-spread, partially faded
+void test_bitmap_shatter_digest_horizontal_late() {
+	uint64_t digest = runShatterDigest(TEST_CONFIGS[1], 0.5f, "horizontal");
+	assertDigest(0x9FA9E040E0EEDF25ull, digest, "shatter_horiz_16x16_t500");
+}
+
+// Vertical shatter on wide matrix at t=100ms
+void test_bitmap_shatter_digest_vertical_wide() {
+	uint64_t digest = runShatterDigest(TEST_CONFIGS[2], 0.1f, "vertical");
+	assertDigest(0xD3F7EC18A0F85725ull, digest, "shatter_vert_96x8_t100");
+}
+
 void test_bitmap_property_static_no_change() {
 	hal::test::setTime(0);
 	hal::test::seedRandom(12345);
@@ -2102,7 +2171,15 @@ int main(int argc, char** argv) {
 	RUN_TEST(test_bitmap_property_static_no_change);
 	RUN_TEST(test_bitmap_property_all_configs_render);
 
-	// 14. Shatter Effect Tests
+	// 14. Shatter Pixel Digest Tests
+	RUN_TEST(test_bitmap_shatter_digest_horizontal_t0);
+	RUN_TEST(test_bitmap_shatter_digest_horizontal_16x16);
+	RUN_TEST(test_bitmap_shatter_digest_vertical_16x16);
+	RUN_TEST(test_bitmap_shatter_digest_strip);
+	RUN_TEST(test_bitmap_shatter_digest_horizontal_late);
+	RUN_TEST(test_bitmap_shatter_digest_vertical_wide);
+
+	// 15. Shatter Behavioral Tests
 	RUN_TEST(test_bitmap_shatter_horizontal_strips_spread);
 	RUN_TEST(test_bitmap_shatter_vertical_strips_spread);
 	RUN_TEST(test_bitmap_shatter_random_resolves);

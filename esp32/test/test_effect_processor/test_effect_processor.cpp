@@ -157,9 +157,28 @@ std::atomic<bool> testModeActive(false);
 #include "effects/music.h"
 #include "effects/music.cpp"
 
-// Include the EffectProcessor (this also includes downsample_to_matrix.h)
+// Stub log() for native builds (video.cpp uses log() from log.h)
+#include "log.h"
+void log(const char* /* message */, LogLevel /* level */) {}
+
+// Stub udp_video for native builds — define guard to prevent real header inclusion
+// (udp_video.h includes <Arduino.h> which doesn't exist natively)
+#define UDP_VIDEO_H
+static constexpr uint32_t VIDEO_FRAME_TIMEOUT_MS = 500;
+void setVideoFrameSize(uint16_t /* width */, uint16_t /* height */) {}
+const uint8_t* peekVideoFrame() { return nullptr; }
+void consumeVideoFrame() {}
+bool hasNewVideoFrame() { return false; }
+uint32_t getLastVideoFrameTime() { return 0; }
+
+// Include video effect
+#include "effects/video.h"
+#include "effects/video.cpp"
+
+// Include the EffectProcessor and downsample implementation
 #include "effects/effect_processor.h"
 #include "effects/effect_processor.cpp"
+#include "graphics/downsample_to_matrix.cpp"
 
 // Include test helpers
 #include "helpers/effect_test_helpers.h"

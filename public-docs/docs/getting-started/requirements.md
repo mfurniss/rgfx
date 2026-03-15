@@ -8,6 +8,8 @@ Before you begin, here's what you'll need to set up RGFX.
 
 - **MAME** version 0.250 or later — [download from mamedev.org](https://www.mamedev.org/release.html)
 
+- **ffmpeg** *(optional)* — required only for the [Video effect](../hub-app/effects.md#video), which streams video files to LED matrices — [download from ffmpeg.org](https://ffmpeg.org/download.html)
+
 ## Hardware
 
 ### The Essentials

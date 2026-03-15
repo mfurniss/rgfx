@@ -68,6 +68,7 @@ Stores can call into each other:
   - `udpMessagesFailed: number` - Failed UDP messages
   - `udpStatsByDriver: Record<string, UdpStats>` - Per-driver UDP statistics
   - `systemErrors: array` - Array of system errors
+  - `ffmpegAvailable: boolean` - Whether ffmpeg is installed (for video effect)
 
 **Actions:**
 - `onSystemStatusUpdate(newStatus)` - Updates status and triggers notifications for IP changes and new system errors; updates events-rate-history-store
@@ -221,8 +222,8 @@ interface Notification {
 
 **Features:**
 - Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates
-- Persists sort preferences, simulator rows, and WiFi credentials
-- Storage key: `rgfx-ui-preferences`
+- Persists sort preferences, simulator rows, WiFi credentials, and selected effect
+- Storage key: `rgfx-ui-preferences` (version 5)
 
 ---
 

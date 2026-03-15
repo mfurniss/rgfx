@@ -168,7 +168,7 @@ export const HEX_COLOR_RRGGBB_REGEX = /^#[0-9a-fA-F]{6}$/;
 /**
  * Default effect selected in the Effects Playground page.
  */
-export const DEFAULT_FX_PLAYGROUND_EFFECT = 'background';
+export const DEFAULT_FX_PLAYGROUND_EFFECT = 'explode';
 
 // ============================================================================
 // UI Refresh Configuration
@@ -212,11 +212,6 @@ export const DRAWER_WIDTH = 220;
  * Height of telemetry chart components (pixels).
  */
 export const CHART_HEIGHT = 144;
-
-/**
- * Default width of chart Y-axis area (pixels).
- */
-export const DEFAULT_CHART_Y_AXIS_WIDTH = 35;
 
 // ============================================================================
 // Telemetry History Configuration

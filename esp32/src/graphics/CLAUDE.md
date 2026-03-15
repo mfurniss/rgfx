@@ -19,7 +19,7 @@ Effects → Canvas (4x resolution, RGBA) → Downsample → Matrix (1x resolutio
 | `canvas.h/cpp` | High-resolution RGBA drawing surface with blend modes |
 | `matrix.h/cpp` | Physical LED matrix abstraction with coordinate mapping |
 | `coordinate_transforms.h/cpp` | Layout-based coordinate transformations for various matrix wiring patterns, including unified multi-panel support |
-| `downsample_to_matrix.h` | Optimized downsampling from Canvas to Matrix with gamma correction |
+| `downsample_to_matrix.h/cpp` | Downsampling from Canvas to Matrix with gamma correction. Defined in `.cpp` with `IRAM_ATTR` to keep the hot-path function body in IRAM (inline + IRAM_ATTR causes Xtensa linker literal pool errors). |
 
 ## Canvas
 
@@ -35,7 +35,7 @@ The Canvas class provides a 32-bit RGBA drawing surface at 4x the matrix resolut
 - `AVERAGE` - Average existing and new color
 
 ### Optimized Block Rendering
-- `fillBlock4x4(x, y, color, alpha)` - Fast 4x4 block fill with alpha blending
+- `fillBlock4x4(x, y, color, alpha)` - Fast 4x4 block fill with alpha blending (`IRAM_ATTR` for flash cache avoidance)
 - `fillBlock4x4Additive(x, y, color, alpha)` - Fast 4x4 block fill with additive blending (for sparkle/glow effects)
 
 ### RGBA Macros
@@ -144,10 +144,11 @@ Where `effW` and `effH` are the effective dimensions (swapped for 90°/270° on 
 ### downsampleToMatrix()
 Downsamples a single Canvas to the physical LED Matrix with gamma correction:
 ```cpp
-inline void downsampleToMatrix(Canvas& canvas, Matrix* matrix);
+void downsampleToMatrix(Canvas& canvas, Matrix* matrix);  // IRAM_ATTR in .cpp
 ```
 
 Features:
+- `IRAM_ATTR` placement avoids flash instruction-cache pressure on the hot path
 - Direct buffer access eliminates per-pixel bounds checking overhead
 - Optimized paths for strips (4 pixels → 1 LED) vs matrices (4x4 pixels → 1 LED)
 - Per-channel gamma correction via precomputed lookup tables

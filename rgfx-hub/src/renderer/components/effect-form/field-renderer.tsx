@@ -13,6 +13,7 @@ import {
   StringField,
   GradientArrayField,
   BackgroundGradientField,
+  VideoFileField,
 } from './fields';
 import {
   formatLabel,
@@ -185,6 +186,18 @@ export function FieldRenderer<T extends FieldValues>({
       return (
         <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
           <BackgroundGradientField
+            name={field.name as FieldPath<T>}
+            control={control}
+            label={label}
+            error={errorMessage}
+          />
+        </FieldWithHelp>
+      );
+
+    case 'videoFile':
+      return (
+        <FieldWithHelp description={field.description} defaultValue={field.defaultValue}>
+          <VideoFileField
             name={field.name as FieldPath<T>}
             control={control}
             label={label}

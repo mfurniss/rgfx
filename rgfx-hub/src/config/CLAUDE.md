@@ -38,11 +38,14 @@ All tunable constants in one place. Categories:
 **UI**
 - `UI_TIMESTAMP_UPDATE_INTERVAL_MS`: 1000
 - `TOAST_AUTO_HIDE_DURATION_MS`: 5000
-- `DEFAULT_FX_PLAYGROUND_EFFECT`: 'background'
+- `DEFAULT_FX_PLAYGROUND_EFFECT`: 'explode'
 
 **Effects**
 - `MAX_GRADIENT_COLORS`: 64 (maximum colors in gradient array)
 - `HEX_COLOR_RRGGBB_REGEX`: Regex for validating #RRGGBB hex color strings
+
+**Charts**
+- `CHART_HEIGHT`: 144 (chart height in pixels)
 
 **GitHub API**
 - `GITHUB_RELEASES_API_URL`: endpoint for checking latest release

@@ -23,6 +23,10 @@ Click **Random Trigger** to apply random parameter values and immediately trigge
 
 Some effects (like gradients and plasma) support presets. Click **Select Preset** to choose from predefined configurations.
 
+### Video Playback
+
+The Video effect works differently from other effects — instead of triggering a one-shot command, it streams video frames continuously. Select a video file using the file picker, then use the play/stop controls to manage playback.
+
 ### Clear All Effects
 
 Click **Clear All Effects** to immediately stop all running effects on connected drivers.

@@ -89,7 +89,9 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
 - Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led for advanced setups
 - Configure MAME page (`getting-started/configure-mame.md`) documents the launch script installed to `~/.rgfx/` by the Hub on first launch, the `-autoboot_script` flag for manual/frontend use, and how to customize paths by editing the script
-- Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, and Music are matrix-only
+- Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, Music, and Video are matrix-only
+- Video effect requires ffmpeg; documented with an admonition on effects.md and listed as optional dependency on requirements.md
+- FX Playground page (`hub-app/fx-playground.md`) includes a Video Playback subsection explaining the file picker and play/stop controls
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
 - First-driver page includes a Windows USB driver admonition linking to the Silicon Labs CP210x driver download page
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists

@@ -98,6 +98,7 @@ Each effect has its own schema extending `baseEffect` (kebab-case filenames):
 - `warp.ts` - Center-radiating animated gradient with linear perspective scale. Uses `enabled` enum with fade support.
 - `wipe.ts` - Color wipe sweeping across the display with random blend mode option. Exports `cleanCodeProps` (strips reset:false).
 - `sparkle.ts` - Sparkling particles cycling through a gradient with bloom support. Exports `cleanCodeProps` (strips reset:false).
+- `video.ts` - Video streaming effect. Hub-only schema (no ESP32 counterpart in defaults.json). Props: `file` (path, defaults to empty string), `fit` (enum: crop/stretch, default crop), `loop` (boolean). The hub intercepts this effect and delegates to VideoPlayer instead of sending JSON to drivers. Exports `fieldTypes` (`file` → `'videoFile'`) and `layoutConfig`.
 
 ### Per-Effect Randomize Functions
 Each effect schema exports a `randomize()` function that generates randomized props:

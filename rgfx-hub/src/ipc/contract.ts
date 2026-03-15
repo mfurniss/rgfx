@@ -58,6 +58,7 @@ export const INVOKE_CHANNELS = {
   setDriverId: 'driver:set-id',
   openExternal: 'app:open-external',
   reinstallAssets: 'assets:reinstall',
+  selectVideoFile: 'dialog:select-video-file',
 } as const;
 
 /** Push channels: main sends to renderer via webContents.send. */
@@ -210,6 +211,10 @@ export interface InvokeContract {
   reinstallAssets: {
     args: [];
     return: { success: boolean; error?: string };
+  };
+  selectVideoFile: {
+    args: [];
+    return: string | null;
   };
 }
 

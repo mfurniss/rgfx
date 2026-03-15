@@ -26,6 +26,7 @@ Most effects work on both LED strips and matrices. A few require a 2D layout:
 | Sparkle | yes | yes |
 | Spectrum | — | yes |
 | Music | — | yes |
+| Video | — | yes |
 
 ## Effects Reference
 
@@ -216,6 +217,21 @@ This effect is driven by game-specific transformers (OutRun, Space Harrier, Hang
 | `decayRate` | Note decay speed (default: 2.0) |
 
 Features auto-scaling pitch range, per-channel hue rotation (full cycle every 120 seconds), and peak indicators with hold-and-fall behavior.
+
+### Video
+
+Streams a video file to LED matrices in real-time. The Hub uses ffmpeg to transcode the video into raw frames sized to each driver's matrix dimensions, then streams them over UDP. Matrix only.
+
+!!! note "Requires ffmpeg"
+    The video effect requires [ffmpeg](https://ffmpeg.org/) installed on your system. The Hub will log a warning at startup if ffmpeg is not found.
+
+| Parameter | Description |
+|-----------|-------------|
+| `file` | Path to video file. Absolute paths are used as-is; relative paths resolve to the [config directory](../getting-started/hub-setup.md#config-directory). |
+| `fit` | Scaling mode: `crop` (default) preserves aspect ratio by filling and center-cropping, `stretch` scales to exact matrix dimensions |
+| `loop` | Restart playback when the video ends (default: `false`) |
+
+Any format ffmpeg supports works — MP4, WebM, AVI, MOV, MKV, etc. Drivers with different matrix dimensions each receive video transcoded to their native resolution.
 
 ## Blend Modes
 

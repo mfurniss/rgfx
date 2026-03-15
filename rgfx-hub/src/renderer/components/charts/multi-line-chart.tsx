@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { CHART_HEIGHT, DEFAULT_CHART_Y_AXIS_WIDTH } from '@/config/constants';
+import { CHART_HEIGHT } from '@/config/constants';
 import { formatTime, getCssVar } from './chart-utils';
 import { CustomTooltip } from './chart-tooltip';
 
@@ -27,7 +27,6 @@ interface MultiLineChartProps<T> {
   tickFormatter: (value: number) => string;
   tooltipFormatter: (value: number) => string;
   height?: number;
-  yAxisWidth?: number;
 }
 
 export function MultiLineChart<T extends { time: number }>({
@@ -38,7 +37,6 @@ export function MultiLineChart<T extends { time: number }>({
   tickFormatter,
   tooltipFormatter,
   height = CHART_HEIGHT,
-  yAxisWidth = DEFAULT_CHART_Y_AXIS_WIDTH,
 }: MultiLineChartProps<T>): React.ReactElement {
   const axisColor = getCssVar('--mui-palette-text-primary');
   const tickStyle = { fontSize: 12, fill: axisColor };
@@ -119,12 +117,12 @@ export function MultiLineChart<T extends { time: number }>({
         <ResponsiveContainer width="100%" height={height}>
           <RechartsLineChart
             data={data}
-            margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
+            margin={{ top: 5, right: 10, bottom: 15, left: 0 }}
           >
             <XAxis
               dataKey="time"
               tickFormatter={formatTime}
-              tick={tickStyle}
+              tick={{ ...tickStyle, dy: 10 }}
               stroke={axisColor}
               tickLine={false}
               axisLine={false}
@@ -135,7 +133,7 @@ export function MultiLineChart<T extends { time: number }>({
               domain={[0, yAxisTicks[yAxisTicks.length - 1]]}
               ticks={yAxisTicks}
               tickFormatter={tickFormatter}
-              width={yAxisWidth}
+              width="auto"
               tick={tickStyle}
               stroke={axisColor}
               tickLine={false}
