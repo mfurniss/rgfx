@@ -1,9 +1,18 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { type TooltipProps } from 'recharts';
 import { formatTimeWithSeconds } from './chart-utils';
 
-interface CustomTooltipProps extends TooltipProps<number, string> {
+interface TooltipPayloadEntry {
+  dataKey?: string;
+  name?: string;
+  value?: number;
+  color?: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: number;
   formatter?: (value: number) => string;
   multiLine?: boolean;
 }
@@ -32,7 +41,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       }}
     >
       <Typography variant="caption" color="text.secondary" display="block">
-        {formatTimeWithSeconds(label as number)}
+        {formatTimeWithSeconds(label ?? 0)}
       </Typography>
       {payload.map((entry) => (
         <Typography

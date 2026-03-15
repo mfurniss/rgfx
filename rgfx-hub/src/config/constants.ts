@@ -213,11 +213,6 @@ export const DRAWER_WIDTH = 220;
  */
 export const CHART_HEIGHT = 144;
 
-/**
- * Default width of chart Y-axis area (pixels).
- */
-export const DEFAULT_CHART_Y_AXIS_WIDTH = 35;
-
 // ============================================================================
 // Telemetry History Configuration
 // ============================================================================

@@ -44,6 +44,9 @@ All tunable constants in one place. Categories:
 - `MAX_GRADIENT_COLORS`: 64 (maximum colors in gradient array)
 - `HEX_COLOR_RRGGBB_REGEX`: Regex for validating #RRGGBB hex color strings
 
+**Charts**
+- `CHART_HEIGHT`: 144 (chart height in pixels)
+
 **GitHub API**
 - `GITHUB_RELEASES_API_URL`: endpoint for checking latest release
 

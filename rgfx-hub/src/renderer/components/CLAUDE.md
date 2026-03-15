@@ -156,7 +156,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Props:**
 - `formatter?: (value: number) => string` - Optional value formatter
 - `multiLine?: boolean` - Show entry name labels (for multi-series charts)
-- Standard Recharts `TooltipProps`
+- Recharts injects `active`, `payload`, and `label` at runtime
 
 ---
 

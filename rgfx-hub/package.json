@@ -97,7 +97,7 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.67.0",
     "react-router-dom": "^7.9.4",
-    "recharts": "^2.15.0",
+    "recharts": "^3.8.0",
     "semver": "^7.7.4",
     "tasmota-webserial-esptool": "^9.2.20",
     "use-stick-to-bottom": "^1.1.3",
