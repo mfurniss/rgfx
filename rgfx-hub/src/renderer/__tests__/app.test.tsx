@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from '../app';
 import type { Driver, SystemStatus, SystemError } from '@/types';
+import { createMockSystemStatus } from '@/__tests__/factories';
 import {
   installRgfxMock,
   type MockRgfxAPI,
@@ -35,21 +36,9 @@ vi.mock('../store/driver-store', () => ({
 // Mock Zustand system status store
 const mockOnSystemStatusUpdate = vi.fn();
 
-let mockSystemStatus: SystemStatus = {
-  mqttBroker: 'running',
-  discovery: 'active',
-  eventReader: 'monitoring',
-  driversConnected: 0,
-  driversTotal: 0,
+let mockSystemStatus: SystemStatus = createMockSystemStatus({
   hubIp: '192.168.1.100',
-  eventsProcessed: 0,
-  eventLogSizeBytes: 0,
-  hubStartTime: Date.now(),
-  udpMessagesSent: 0,
-  udpMessagesFailed: 0,
-  udpStatsByDriver: {},
-  systemErrors: [],
-};
+});
 
 const createMockSystemStatusState = () => ({
   systemStatus: mockSystemStatus,
@@ -132,21 +121,8 @@ describe('App IPC Listener Registration', () => {
 
 describe('App Critical Error Handling', () => {
   // Create a fresh system status for each test to avoid state bleeding
-  const createFreshSystemStatus = (): SystemStatus => ({
-    mqttBroker: 'running',
-    discovery: 'active',
-    eventReader: 'monitoring',
-    driversConnected: 0,
-    driversTotal: 0,
-    hubIp: '192.168.1.100',
-    eventsProcessed: 0,
-    eventLogSizeBytes: 0,
-    hubStartTime: Date.now(),
-    udpMessagesSent: 0,
-    udpMessagesFailed: 0,
-    udpStatsByDriver: {},
-    systemErrors: [],
-  });
+  const createFreshSystemStatus = (): SystemStatus =>
+    createMockSystemStatus({ hubIp: '192.168.1.100' });
 
   beforeEach(() => {
     vi.clearAllMocks();

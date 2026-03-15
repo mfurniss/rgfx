@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { debounce } from 'lodash-es';
 import {
+  Alert,
   Box,
   Paper,
   Typography,
@@ -26,6 +27,7 @@ import { PageTitle } from '../components/layout/page-title';
 import { TargetDriversPicker } from '../components/driver/target-drivers-picker';
 import SuperButton from '../components/common/super-button';
 import { useDriverStore } from '../store/driver-store';
+import { useSystemStatusStore } from '../store/system-status-store';
 import { useUiStore } from '../store/ui-store';
 import { useDriverSelection } from '../hooks/use-driver-selection';
 import type { EffectPayload } from '@/types/transformer-types';
@@ -47,6 +49,9 @@ export default function TestEffectsPage() {
   const [presetModalOpen, setPresetModalOpen] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [isFormValid, setIsFormValid] = useState(true);
+  const ffmpegAvailable = useSystemStatusStore(
+    (s) => s.systemStatus.ffmpegAvailable,
+  );
 
   const drivers = useDriverStore((state) => state.drivers);
   const connectedDrivers = useMemo(
@@ -335,6 +340,7 @@ export default function TestEffectsPage() {
                     selectedDrivers.size === 0
                     || !isFormValid
                     || !currentProps.file
+                    || !ffmpegAvailable
                   }
                   data-testid="trigger-effect-btn"
                 >
@@ -370,6 +376,12 @@ export default function TestEffectsPage() {
 
           <TabPanel value={tabIndex} index={0}>
             <Stack spacing={3}>
+              {selectedEffect === 'video' && !ffmpegAvailable && (
+                <Alert severity="warning">
+                  ffmpeg is not installed. Install it to use the video
+                  effect (e.g. <code>brew install ffmpeg</code>).
+                </Alert>
+              )}
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Effect</InputLabel>

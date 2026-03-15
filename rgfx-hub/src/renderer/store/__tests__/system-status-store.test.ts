@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useSystemStatusStore } from '../system-status-store';
 import * as notificationStore from '../notification-store';
+import { createMockSystemStatus } from '@/__tests__/factories';
 
 // Mock the notification store
 vi.mock('../notification-store', () => ({
@@ -29,42 +30,27 @@ describe('system-status-store', () => {
   beforeEach(() => {
     // Reset store state before each test
     useSystemStatusStore.setState({
-      systemStatus: {
+      systemStatus: createMockSystemStatus({
         mqttBroker: 'stopped',
         discovery: 'inactive',
         eventReader: 'stopped',
-        driversConnected: 0,
-        driversTotal: 0,
         hubIp: 'Unknown',
-        eventsProcessed: 0,
-        eventLogSizeBytes: 0,
         hubStartTime: 0,
-        udpMessagesSent: 0,
-        udpMessagesFailed: 0,
-        udpStatsByDriver: {},
-        systemErrors: [],
-      },
+      }),
     });
     vi.clearAllMocks();
   });
 
   describe('onSystemStatusUpdate', () => {
     it('should notify when new system error is detected', () => {
-      const statusWithError = {
-        mqttBroker: 'running' as const,
-        discovery: 'active' as const,
-        eventReader: 'monitoring' as const,
+      const statusWithError = createMockSystemStatus({
         driversConnected: 1,
         driversTotal: 1,
         hubIp: '192.168.1.100',
         eventsProcessed: 100,
-        eventLogSizeBytes: 0,
-        hubStartTime: Date.now(),
         udpMessagesSent: 50,
-        udpMessagesFailed: 0,
-        udpStatsByDriver: {},
-        systemErrors: [{ errorType: 'interceptor' as const, message: 'Test error', timestamp: Date.now() }],
-      };
+        systemErrors: [{ errorType: 'interceptor', message: 'Test error', timestamp: Date.now() }],
+      });
 
       useSystemStatusStore.getState().onSystemStatusUpdate(statusWithError);
 

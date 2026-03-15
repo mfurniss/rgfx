@@ -40,7 +40,11 @@ export class UdpClientImpl implements UdpClient {
     log.debug('UDP client socket initialized');
 
     this.videoPlayer = new VideoPlayer();
-    this.videoPlayer.init().catch((err: unknown) => {
+    this.videoPlayer.init().then(() => {
+      this.systemMonitor.setFfmpegAvailable(
+        this.videoPlayer.isFfmpegAvailable(),
+      );
+    }).catch((err: unknown) => {
       log.error(`VideoPlayer init failed: ${String(err)}`);
     });
   }

@@ -3,7 +3,8 @@ import { setupDriverEventHandlers } from '../driver-callbacks';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverConnectService } from '../services/driver-connect-service';
 import type { BrowserWindow } from 'electron';
-import type { Driver, SystemStatus } from '../types';
+import type { Driver } from '../types';
+import { createMockSystemStatus } from './factories';
 import { eventBus } from '../services/event-bus';
 
 describe('setupDriverEventHandlers', () => {
@@ -74,22 +75,12 @@ describe('setupDriverEventHandlers', () => {
       },
     };
 
-    const mockStatus: SystemStatus = {
-      mqttBroker: 'running',
-      discovery: 'active',
-      eventReader: 'monitoring',
+    const mockStatus = createMockSystemStatus({
       driversConnected: 1,
       driversTotal: 1,
-      hubIp: '192.168.1.1',
       eventsProcessed: 100,
-      eventLogSizeBytes: 0,
-      hubStartTime: Date.now(),
       firmwareVersions: { 'ESP32': '1.0.0', 'ESP32-S3': '1.0.0' },
-      udpMessagesSent: 0,
-      udpMessagesFailed: 0,
-      udpStatsByDriver: {},
-      systemErrors: [],
-    };
+    });
 
     mockSystemMonitor = {
       getFullStatus: vi.fn(() => mockStatus),

@@ -30,7 +30,7 @@ TransformerEngine
 |------|---------|
 | `logger-wrapper.ts` | Wraps electron-log for transformer logging |
 | `mqtt-client-wrapper.ts` | MQTT publish interface for transformers |
-| `udp-client.ts` | UDP broadcast for sending effects to drivers. Intercepts `effect: "video"` payloads and delegates to `VideoPlayer` instead of JSON UDP — sends binary video frames to matrix drivers and start/stop commands via `broadcastJsonDirect()`. |
+| `udp-client.ts` | UDP broadcast for sending effects to drivers. Intercepts `effect: "video"` payloads and delegates to `VideoPlayer` instead of JSON UDP — sends binary video frames to matrix drivers and start/stop commands via `broadcastJsonDirect()`. Reports ffmpeg availability to SystemMonitor after VideoPlayer init. |
 | `state-store.ts` | In-memory key-value store for game state |
 | `validate-effect.ts` | Validates transformer effects against Zod schemas, applies defaults, logs warnings with property paths and props |
 

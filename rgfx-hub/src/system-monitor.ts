@@ -27,6 +27,7 @@ export class SystemMonitor {
   private udpStatsByDriver = new Map<string, UdpStats>();
   private statusSources?: StatusSources;
   private updateReleaseUrl: string | null = null;
+  private _ffmpegAvailable = false;
 
   constructor(mqtt: MqttBroker) {
     this.mqtt = mqtt;
@@ -147,6 +148,11 @@ export class SystemMonitor {
       udpStatsByDriver: Object.fromEntries(this.udpStatsByDriver),
       systemErrors: errors,
       updateAvailable: this.updateReleaseUrl ?? undefined,
+      ffmpegAvailable: this._ffmpegAvailable,
     };
+  }
+
+  setFfmpegAvailable(available: boolean): void {
+    this._ffmpegAvailable = available;
   }
 }

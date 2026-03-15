@@ -68,6 +68,7 @@ Stores can call into each other:
   - `udpMessagesFailed: number` - Failed UDP messages
   - `udpStatsByDriver: Record<string, UdpStats>` - Per-driver UDP statistics
   - `systemErrors: array` - Array of system errors
+  - `ffmpegAvailable: boolean` - Whether ffmpeg is installed (for video effect)
 
 **Actions:**
 - `onSystemStatusUpdate(newStatus)` - Updates status and triggers notifications for IP changes and new system errors; updates events-rate-history-store

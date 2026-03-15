@@ -116,7 +116,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 - **Debounced store writes:** `handlePropsChange` uses lodash `debounce` (150ms) with `useRef` for stable callback identity, preventing rapid keystrokes from thrashing the store. Debounce is flushed before triggering effects or randomizing to ensure store is current
 - **Single driver store subscription:** uses one `drivers` subscription with `useMemo` to derive `connectedDrivers` and `connectedDriverIds`, avoiding redundant store subscriptions
 - **Driver selection:** uses shared `useDriverSelection` hook for driver picker state (removed local auto-reselect useEffect)
-- **Video effect:** When video effect is selected, shows Start/Stop Video buttons instead of Trigger/Random. Start Video is disabled when no file is selected (`!currentProps.file`). Stop sends `{action:'stop'}` command. `videoPlaying` state resets on effect change.
+- **Video effect:** When video effect is selected, shows Start/Stop Video buttons instead of Trigger/Random. Start Video is disabled when no file is selected (`!currentProps.file`) or ffmpeg is not available. Shows warning Alert when ffmpeg is missing. Stop sends `{action:'stop'}` command. `videoPlaying` state resets on effect change.
 
 ### Effects Playground Subdirectory
 
