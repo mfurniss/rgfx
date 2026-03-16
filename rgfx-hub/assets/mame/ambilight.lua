@@ -16,7 +16,6 @@ local config = {
 
 local initialized = false
 local last_payload = ""
-local accumulator = {}   -- running sum per zone
 local accum_count = 0    -- frames accumulated
 
 -- Hex lookup for 8-bit to 4-bit conversion
@@ -25,128 +24,43 @@ for i = 0, 255 do
 	HEX[i] = string.format("%X", floor(i / 16))
 end
 
--- Get pixel at (x, y) from MAME snapshot buffer
--- MAME uses row-major BGRA format, y=0 at top
-local function get_pixel(pixels, width, x, y)
-	local offset = y * width * 4 + x * 4 + 1
-	local b, g, r = byte(pixels, offset, offset + 2)
-	return r or 0, g or 0, b or 0
-end
+-- Brightness-applied hex LUT: BRIGHT_HEX[v] = HEX[floor(v * brightness)]
+-- Built at init time after brightness is known
+local BRIGHT_HEX = {}
 
--- Sample an edge and return array of {r, g, b} colors
--- edge: "left", "right", "top", "bottom"
--- Returns colors in clockwise order from bottom-left start
-local function sample_edge(pixels, width, height, edge)
-	local colors = {}
-	local depth = config.depth
+-- Cached config values (set at init)
+local zones, depth, event_interval
 
-	if edge == "left" then
-		-- Bottom to top (y from height-1 down to 0)
-		for y = height - 1, 0, -1 do
-			local r_sum, g_sum, b_sum, count = 0, 0, 0, 0
-			for x = 0, depth - 1 do
-				local r, g, b = get_pixel(pixels, width, x, y)
-				r_sum, g_sum, b_sum = r_sum + r, g_sum + g, b_sum + b
-				count = count + 1
-			end
-			colors[#colors + 1] = {
-				r = floor(r_sum / count),
-				g = floor(g_sum / count),
-				b = floor(b_sum / count)
-			}
-		end
-	elseif edge == "top" then
-		-- Left to right (x from 0 to width-1)
-		for x = 0, width - 1 do
-			local r_sum, g_sum, b_sum, count = 0, 0, 0, 0
-			for y = 0, depth - 1 do
-				local r, g, b = get_pixel(pixels, width, x, y)
-				r_sum, g_sum, b_sum = r_sum + r, g_sum + g, b_sum + b
-				count = count + 1
-			end
-			colors[#colors + 1] = {
-				r = floor(r_sum / count),
-				g = floor(g_sum / count),
-				b = floor(b_sum / count)
-			}
-		end
-	elseif edge == "right" then
-		-- Top to bottom (y from 0 to height-1)
-		for y = 0, height - 1 do
-			local r_sum, g_sum, b_sum, count = 0, 0, 0, 0
-			for x = width - depth, width - 1 do
-				local r, g, b = get_pixel(pixels, width, x, y)
-				r_sum, g_sum, b_sum = r_sum + r, g_sum + g, b_sum + b
-				count = count + 1
-			end
-			colors[#colors + 1] = {
-				r = floor(r_sum / count),
-				g = floor(g_sum / count),
-				b = floor(b_sum / count)
-			}
-		end
-	elseif edge == "bottom" then
-		-- Right to left (x from width-1 down to 0)
-		for x = width - 1, 0, -1 do
-			local r_sum, g_sum, b_sum, count = 0, 0, 0, 0
-			for y = height - depth, height - 1 do
-				local r, g, b = get_pixel(pixels, width, x, y)
-				r_sum, g_sum, b_sum = r_sum + r, g_sum + g, b_sum + b
-				count = count + 1
-			end
-			colors[#colors + 1] = {
-				r = floor(r_sum / count),
-				g = floor(g_sum / count),
-				b = floor(b_sum / count)
-			}
-		end
+-- Flat accumulator arrays: 4 edges * zones entries each
+-- Indices 1..zones=left, zones+1..2*zones=top, 2*zones+1..3*zones=right, 3*zones+1..4*zones=bottom
+local acc_r, acc_g, acc_b = {}, {}, {}
+
+-- Per-frame zone work buffers (reused, never reallocated)
+local zr, zg, zb, zn = {}, {}, {}, {}
+
+-- Pre-allocated output tables (reused each emit)
+local parts = {}
+local payloads = {}
+
+-- Zone maps: pixel position -> zone index (1-based)
+-- Rebuilt only when screen dimensions change
+local vt_zone = {}   -- [y] -> zone for vertical edges (left/right)
+local hz_zone = {}   -- [x] -> zone for horizontal edges (top/bottom)
+local cached_w, cached_h = 0, 0
+
+-- Build zone maps for current dimensions
+local function rebuild_zone_maps(w, h)
+	-- Vertical edges: map each row (0-based y) to zone 1..zones
+	-- Left edge traverses bottom-to-top, so y=height-1 is zone 1
+	-- We store the "forward" zone (top-to-bottom), caller reverses for left edge
+	for y = 0, h - 1 do
+		vt_zone[y] = floor(y * zones / h) + 1
 	end
-
-	return colors
-end
-
--- Downsample colors array to target count
-local function downsample(colors, target_count)
-	local result = {}
-	local src_len = #colors
-
-	for i = 1, target_count do
-		local start_idx = floor((i - 1) * src_len / target_count) + 1
-		local end_idx = floor(i * src_len / target_count)
-
-		local r_sum, g_sum, b_sum, count = 0, 0, 0, 0
-		for j = start_idx, end_idx do
-			local c = colors[j]
-			if c then
-				r_sum = r_sum + c.r
-				g_sum = g_sum + c.g
-				b_sum = b_sum + c.b
-				count = count + 1
-			end
-		end
-
-		if count > 0 then
-			result[i] = {
-				r = floor(r_sum / count),
-				g = floor(g_sum / count),
-				b = floor(b_sum / count)
-			}
-		else
-			result[i] = { r = 0, g = 0, b = 0 }
-		end
+	-- Horizontal edges: map each column (0-based x) to zone 1..zones
+	for x = 0, w - 1 do
+		hz_zone[x] = floor(x * zones / w) + 1
 	end
-
-	return result
-end
-
--- Convert colors to hex payload string with brightness applied
-local function to_payload(colors)
-	local parts = {}
-	local bright = config.brightness
-	for i, c in ipairs(colors) do
-		parts[i] = HEX[floor(c.r * bright)] .. HEX[floor(c.g * bright)] .. HEX[floor(c.b * bright)]
-	end
-	return concat(parts, ",")
+	cached_w, cached_h = w, h
 end
 
 local function on_frame()
@@ -157,51 +71,114 @@ local function on_frame()
 	local pixels = video:snapshot_pixels()
 	if not pixels or width == 0 or height == 0 then return end
 
-	-- Sample all 4 edges clockwise from bottom-left
-	local edges = { "left", "top", "right", "bottom" }
-	local all_colors = {}
+	-- Rebuild zone maps if dimensions changed
+	if width ~= cached_w or height ~= cached_h then
+		rebuild_zone_maps(width, height)
+	end
 
-	for _, edge in ipairs(edges) do
-		local colors = sample_edge(pixels, width, height, edge)
-		local downsampled = downsample(colors, config.zones)
-		for _, c in ipairs(downsampled) do
-			all_colors[#all_colors + 1] = c
+	local total = zones * 4
+
+	-- Zero per-frame work buffers
+	for i = 1, total do
+		zr[i] = 0; zg[i] = 0; zb[i] = 0; zn[i] = 0
+	end
+
+	local row_stride = width * 4
+	local dep = depth
+
+	-- Edge offsets into the flat zone arrays
+	local left_off = 0          -- zones 1..zones
+	local top_off = zones       -- zones+1..2*zones
+	local right_off = zones * 2 -- 2*zones+1..3*zones
+	local bottom_off = zones * 3 -- 3*zones+1..4*zones
+
+	-- LEFT edge: bottom-to-top (y from height-1 down to 0), depth pixels from left
+	-- Zone mapping is reversed: y=height-1 maps to zone 1
+	for y = 0, height - 1 do
+		local z = left_off + vt_zone[height - 1 - y]
+		local row_base = y * row_stride + 1
+		for x = 0, dep - 1 do
+			local off = row_base + x * 4
+			local b, g, r = byte(pixels, off, off + 2)
+			zr[z] = zr[z] + (r or 0)
+			zg[z] = zg[z] + (g or 0)
+			zb[z] = zb[z] + (b or 0)
+			zn[z] = zn[z] + 1
 		end
 	end
 
-	-- Accumulate colors
-	for i, c in ipairs(all_colors) do
-		if not accumulator[i] then
-			accumulator[i] = { r = 0, g = 0, b = 0 }
+	-- TOP edge: left-to-right (x from 0 to width-1), depth pixels from top
+	for x = 0, width - 1 do
+		local z = top_off + hz_zone[x]
+		for y = 0, dep - 1 do
+			local off = y * row_stride + x * 4 + 1
+			local b, g, r = byte(pixels, off, off + 2)
+			zr[z] = zr[z] + (r or 0)
+			zg[z] = zg[z] + (g or 0)
+			zb[z] = zb[z] + (b or 0)
+			zn[z] = zn[z] + 1
 		end
-		accumulator[i].r = accumulator[i].r + c.r
-		accumulator[i].g = accumulator[i].g + c.g
-		accumulator[i].b = accumulator[i].b + c.b
+	end
+
+	-- RIGHT edge: top-to-bottom (y from 0 to height-1), depth pixels from right
+	local right_x_start = width - dep
+	for y = 0, height - 1 do
+		local z = right_off + vt_zone[y]
+		local row_base = y * row_stride + 1
+		for x = right_x_start, width - 1 do
+			local off = row_base + x * 4
+			local b, g, r = byte(pixels, off, off + 2)
+			zr[z] = zr[z] + (r or 0)
+			zg[z] = zg[z] + (g or 0)
+			zb[z] = zb[z] + (b or 0)
+			zn[z] = zn[z] + 1
+		end
+	end
+
+	-- BOTTOM edge: right-to-left (x from width-1 down to 0), depth pixels from bottom
+	-- Zone mapping is reversed: x=width-1 maps to zone 1
+	local bottom_y_start = height - dep
+	for x = 0, width - 1 do
+		local z = bottom_off + hz_zone[width - 1 - x]
+		for y = bottom_y_start, height - 1 do
+			local off = y * row_stride + x * 4 + 1
+			local b, g, r = byte(pixels, off, off + 2)
+			zr[z] = zr[z] + (r or 0)
+			zg[z] = zg[z] + (g or 0)
+			zb[z] = zb[z] + (b or 0)
+			zn[z] = zn[z] + 1
+		end
+	end
+
+	-- Average each zone and accumulate into cross-frame accumulator
+	for i = 1, total do
+		local n = zn[i]
+		if n > 0 then
+			acc_r[i] = acc_r[i] + floor(zr[i] / n)
+			acc_g[i] = acc_g[i] + floor(zg[i] / n)
+			acc_b[i] = acc_b[i] + floor(zb[i] / n)
+		end
 	end
 	accum_count = accum_count + 1
 
 	-- Emit when interval reached
-	if accum_count >= config.event_interval then
-		local averaged = {}
-		for i, acc in ipairs(accumulator) do
-			averaged[i] = {
-				r = floor(acc.r / accum_count),
-				g = floor(acc.g / accum_count),
-				b = floor(acc.b / accum_count)
-			}
-			accumulator[i] = { r = 0, g = 0, b = 0 }
+	if accum_count >= event_interval then
+		local cnt = accum_count
+
+		-- Build payloads for each edge
+		for e = 0, 3 do
+			local base = e * zones
+			for j = 1, zones do
+				local idx = base + j
+				parts[j] = BRIGHT_HEX[floor(acc_r[idx] / cnt)]
+					.. BRIGHT_HEX[floor(acc_g[idx] / cnt)]
+					.. BRIGHT_HEX[floor(acc_b[idx] / cnt)]
+				-- Reset accumulator in place
+				acc_r[idx] = 0; acc_g[idx] = 0; acc_b[idx] = 0
+			end
+			payloads[e + 1] = concat(parts, ",")
 		end
 		accum_count = 0
-
-		-- Build payloads
-		local payloads = {}
-		for i = 0, 3 do
-			local edge_colors = {}
-			for j = 1, config.zones do
-				edge_colors[j] = averaged[i * config.zones + j]
-			end
-			payloads[#payloads + 1] = to_payload(edge_colors)
-		end
 
 		local combined = concat(payloads, "|")
 		if combined ~= last_payload then
@@ -221,8 +198,30 @@ function M.init(opts)
 		if opts.brightness then config.brightness = opts.brightness end
 	end
 
+	-- Cache config as upvalue locals for hot path
+	zones = config.zones
+	depth = config.depth
+	event_interval = config.event_interval
+
+	-- Build brightness-applied hex LUT
+	local bright = config.brightness
+	for i = 0, 255 do
+		BRIGHT_HEX[i] = HEX[floor(i * bright)]
+	end
+
+	-- Pre-size flat accumulator arrays
+	local total = zones * 4
+	for i = 1, total do
+		acc_r[i] = 0; acc_g[i] = 0; acc_b[i] = 0
+		zr[i] = 0; zg[i] = 0; zb[i] = 0; zn[i] = 0
+	end
+
+	-- Pre-size output tables
+	for i = 1, zones do parts[i] = "" end
+	for i = 1, 4 do payloads[i] = "" end
+
 	print(string.format("Ambilight: zones=%d, depth=%d, interval=%d, brightness=%.2f",
-		config.zones, config.depth, config.event_interval, config.brightness))
+		zones, depth, event_interval, bright))
 
 	emu.register_frame_done(on_frame)
 	initialized = true
