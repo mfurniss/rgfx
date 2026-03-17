@@ -103,6 +103,8 @@ markdown_extensions:
   - toc:
       permalink: true
 
+copyright: "RGFX v1.4.1"
+
 extra_css:
   - assets/css/custom.css
 

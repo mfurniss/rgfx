@@ -68,6 +68,15 @@ docs/
 
 Never hardcode `~/.rgfx` paths. Use "config directory" with a link to `getting-started/hub-setup.md#config-directory` on first mention per page. The hub-setup page has the canonical platform table (macOS/Windows).
 
+### Footer Overrides
+
+The docs footer is customized via template overrides in `public-docs/overrides/partials/`:
+
+- `copyright.html` — Renders the version string (from `copyright` in `mkdocs.yml`), the per-page last-updated date, and the "Made with Material for MkDocs" attribution
+- `source-file.html` — Empty override to suppress the default in-content date display (moved to footer)
+
+The `copyright` field in `mkdocs.yml` is automatically updated by the release workflow during version bumps. The deploy-pages job rebuilds the docs from source so the deployed site always reflects the current version.
+
 ### Build Artifacts
 
 Generated site files in `public-docs/site/` must be committed. After updating documentation source files, regenerate the site and commit both source and generated files.
