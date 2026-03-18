@@ -36,7 +36,7 @@ Key global variables shared between cores:
 | `driver_config.h/cpp` | Defines `LEDDeviceConfig` and `DriverConfigData` structs. Holds global driver state including all LED device configurations. Note: name/description removed - devices identified by ID. |
 | `crash_handler.h/cpp` | Detects unexpected resets, stores crash info in RTC memory, reports crash details to Hub on next boot. |
 | `safe_restart.h/cpp` | Safe device restart that signals Core 1 to stop, clears LEDs (if initialized), then restarts. Checks `isFastLEDInitialized()` to avoid crash on fresh devices without LED config. |
-| `telemetry.h/cpp` | Collects system metrics (heap usage, uptime, CPU load). Periodically sent to Hub via MQTT. |
+| `telemetry.h/cpp` | Collects system metrics (heap usage, uptime, CPU load). Periodically sent to Hub via MQTT. Includes `discoveryMethod` field reporting how the MQTT broker was found (mDNS, UDP broadcast, cached, unknown). |
 | `log.h/cpp` | Thread-safe logging system. Uses FreeRTOS queue to pass messages from Core 1 to Core 0 for MQTT publishing. **All code must use `log()` from `log.h` for logging — NOT `hal::log()` which only writes to serial and skips remote logging.** |
 | `serial.h/cpp` | Serial command processor. Handles CLI commands for debugging (help, reboot, wifi, etc.). |
 | `utils.h/cpp` | General utility functions. |

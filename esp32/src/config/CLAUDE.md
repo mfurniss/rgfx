@@ -24,6 +24,7 @@ This folder manages driver configuration, persistent storage, and WiFi setup for
 **Stored Values:**
 - `led_config` - Full LED configuration JSON from Hub
 - `device_id` - Custom driver identifier
+- `broker_ip` - Cached MQTT broker IP for fast reconnect (cleared after 10 MQTT failures)
 - `log_level` - Remote logging level ("all", "errors", "off")
 
 **Key Functions:**

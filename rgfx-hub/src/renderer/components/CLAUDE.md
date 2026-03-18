@@ -208,7 +208,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Functions:**
 - `getRotatedDimensions(rotation, width, height)` - Calculate actual dimensions based on rotation code
 - `buildTelemetryRows(params)` - Build telemetry section rows (FPS, uptime, last seen)
-- `buildHardwareRows(params)` - Build hardware section rows (chip model, cores, heap, etc.)
+- `buildHardwareRows(params)` - Build hardware section rows (chip model, cores, heap, discovery method, etc.)
 - `buildLedHardwareRows(params)` - Build LED hardware info rows (filename, layout, count)
 - `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, rotation, etc.)
 - `buildDriverStatusRows(params)` - Build driver status rows (ID, MAC, IP, hostname, etc.)

@@ -121,6 +121,9 @@ export function buildHardwareRows({ driver, telemetry }: HardwareRowsParams): In
     ...(telemetry.firmwareVersion
       ? [['Firmware Version', telemetry.firmwareVersion] as InfoRowData]
       : []),
+    ...(telemetry.discoveryMethod
+      ? [['Discovery Method', telemetry.discoveryMethod] as InfoRowData]
+      : []),
   ];
 }
 

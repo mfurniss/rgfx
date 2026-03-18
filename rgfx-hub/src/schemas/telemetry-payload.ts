@@ -54,5 +54,7 @@ export const TelemetryPayloadSchema = z.object({
     .optional(),
   // LED health status (false = RMT peripheral appears corrupted)
   ledHealthy: z.boolean().optional(),
+  // Discovery method used to find the MQTT broker (mDNS, UDP broadcast, cached, unknown)
+  discoveryMethod: z.string().optional(),
 });
 

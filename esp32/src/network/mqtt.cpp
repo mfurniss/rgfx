@@ -17,6 +17,7 @@ void mqttCallback(String& topic, String& payload);
 // Fixed-size char array avoids heap fragmentation from String operations
 char mqttServerIP[16] = {0};
 bool mqttServerDiscovered = false;
+const char* mqttDiscoveryMethod = "unknown";
 
 // MQTT client - read buffer for incoming config, write buffer only needs header/topic (payloads stream)
 WiFiClient espClient;
@@ -200,7 +201,9 @@ void reconnectMQTT() {
 			    " times - resetting broker discovery", LogLevel::ERROR);
 			mqttServerDiscovered = false;
 			mqttServerIP[0] = '\0';
+			mqttDiscoveryMethod = "unknown";
 			mqttConsecutiveFailures = 0;
+			ConfigNVS::clearBrokerIP();
 		}
 
 	}
