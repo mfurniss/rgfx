@@ -29,6 +29,9 @@ export const SSDP_PORT = 1900;
 /** SSDP service URN for MQTT broker discovery */
 export const SSDP_SERVICE_URN = 'urn:rgfx:service:mqtt:1';
 
+/** mDNS service type for MQTT broker discovery */
+export const MDNS_SERVICE_TYPE = 'rgfx-mqtt';
+
 /** UDP port for broker discovery broadcasts (ESP32 listens on this port) */
 export const UDP_DISCOVERY_PORT = 8889;
 

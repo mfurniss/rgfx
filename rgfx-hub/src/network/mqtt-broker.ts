@@ -4,6 +4,7 @@ import log from 'electron-log/main';
 import { MQTT_DEFAULT_PORT, MQTT_QOS_LEVEL } from '../config/constants';
 import { getLocalIP } from './network-utils';
 import type { DiscoveryService } from './discovery-service';
+import { MdnsDiscovery } from './mdns-discovery';
 import { SsdpDiscovery } from './ssdp-discovery';
 import { UdpDiscovery } from './udp-discovery';
 
@@ -36,7 +37,11 @@ export class MqttBroker {
     this.setupEventHandlers();
 
     // Use provided discovery services or create defaults
-    this.discoveryServices = discoveryServices ?? [new SsdpDiscovery(), new UdpDiscovery()];
+    this.discoveryServices = discoveryServices ?? [
+      new MdnsDiscovery(),
+      new SsdpDiscovery(),
+      new UdpDiscovery(),
+    ];
   }
 
   /**
