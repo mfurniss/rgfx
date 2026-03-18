@@ -72,10 +72,10 @@ Never hardcode `~/.rgfx` paths. Use "config directory" with a link to `getting-s
 
 The docs footer is customized via template overrides in `public-docs/overrides/partials/`:
 
-- `copyright.html` — Renders the version string (from `copyright` in `mkdocs.yml`), the per-page last-updated date, and the "Made with Material for MkDocs" attribution
+- `copyright.html` — Renders the version string (from `copyright` in `mkdocs.yml`), the release date (from `extra.release_date`), and the "Made with Material for MkDocs" attribution
 - `source-file.html` — Empty override to suppress the default in-content date display (moved to footer)
 
-The `copyright` field in `mkdocs.yml` is automatically updated by the release workflow during version bumps. The deploy-pages job rebuilds the docs from source so the deployed site always reflects the current version.
+Both `copyright` and `extra.release_date` in `mkdocs.yml` are automatically updated by the release workflow during version bumps. The deploy-pages job rebuilds the docs from source so the deployed site always reflects the current version and release date.
 
 ### Build Artifacts
 
