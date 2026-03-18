@@ -4,9 +4,9 @@
       {{ config.copyright }}
     </div>
   {% endif %}
-  {% if page and page.meta and page.meta.git_revision_date_localized %}
+  {% if config.extra.release_date %}
     <div class="md-copyright__updated">
-      Last updated: {{ page.meta.git_revision_date_localized }}
+      Released: {{ config.extra.release_date }}
     </div>
   {% endif %}
   {% if not config.extra.generator == false %}

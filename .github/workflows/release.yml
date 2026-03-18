@@ -68,6 +68,8 @@ jobs:
             fs.writeFileSync('rgfx-hub/package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
           sed -i 's/^copyright: .*/copyright: "RGFX v'"${VERSION}"'"/' public-docs/mkdocs.yml
+          RELEASE_DATE=$(date -u +"%B %-d, %Y")
+          sed -i 's/^  release_date: .*/  release_date: "'"${RELEASE_DATE}"'"/' public-docs/mkdocs.yml
 
       - name: Commit and tag
         id: push

@@ -105,6 +105,9 @@ markdown_extensions:
 
 copyright: "RGFX v1.4.3"
 
+extra:
+  release_date: "{RELEASE_DATE}"
+
 extra_css:
   - assets/css/custom.css
 
