@@ -67,6 +67,7 @@ jobs:
             pkg.version = '${VERSION}';
             fs.writeFileSync('rgfx-hub/package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
+          sed -i 's/^copyright: .*/copyright: "RGFX v'"${VERSION}"'"/' public-docs/mkdocs.yml
 
       - name: Commit and tag
         id: push
@@ -75,7 +76,7 @@ jobs:
           VERSION="${TAG#v}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add rgfx-hub/package.json package-lock.json
+          git add rgfx-hub/package.json package-lock.json public-docs/mkdocs.yml
           git commit -m "Bump hub version to ${VERSION}"
           git tag "$TAG"
           git push origin ${{ github.ref_name }}
@@ -305,6 +306,16 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build docs
+        run: |
+          pip install -r public-docs/requirements.txt
+          mkdocs build -f public-docs/mkdocs.yml -d public-docs/site
 
       - name: Assemble site
         run: |
