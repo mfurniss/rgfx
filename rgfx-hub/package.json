@@ -1,7 +1,7 @@
 {
   "name": "rgfx-hub",
   "productName": "RGFX Hub",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Visual effects controller for retro arcade games",
   "main": "dist/main/main.js",
   "scripts": {
