@@ -315,7 +315,7 @@ jobs:
       - name: Build docs
         run: |
           pip install -r public-docs/requirements.txt
-          mkdocs build -f public-docs/mkdocs.yml -d public-docs/site
+          mkdocs build -f public-docs/mkdocs.yml -d site
 
       - name: Assemble site
         run: |

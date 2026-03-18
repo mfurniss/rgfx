@@ -79,7 +79,7 @@ The `copyright` field in `mkdocs.yml` is automatically updated by the release wo
 
 ### Build Artifacts
 
-Generated site files in `public-docs/site/` must be committed. After updating documentation source files, regenerate the site and commit both source and generated files.
+`public-docs/site/` is gitignored — the CI release workflow builds the docs fresh and deploys to Pages. Do not commit generated site files.
 
 **Do NOT run `npm run docs:build` or `mkdocs build` yourself.** The user has a watch process that rebuilds automatically.
 

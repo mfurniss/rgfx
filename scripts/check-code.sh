@@ -313,12 +313,6 @@ if [ "$DOCS_CHANGES" = true ]; then
     npm run docs:build
     echo "✅ Docs built"
 
-    # Auto-stage generated site if running as pre-commit (staged files present)
-    if [ -n "$STAGED_FILES" ]; then
-        echo "📎 Staging public-docs/site/..."
-        git add public-docs/site/
-    fi
-
     echo ""
 fi
 

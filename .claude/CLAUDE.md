@@ -29,7 +29,7 @@ The VSCode workspace contains three key projects.
 
 6. **When fixing bugs DO NOT change or remove features without the user's EXPRESS PERMISSION**
 
-7. **Always commit `public-docs/site/`** after modifying documentation. This is the built site used for online docs. Run `npm run docs:build` then commit both source and generated files.
+7. **Do NOT commit `public-docs/site/`** — it is gitignored. The CI release workflow builds the docs fresh and deploys to Pages.
 
 ## Core Principles
 
