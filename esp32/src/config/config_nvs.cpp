@@ -175,8 +175,28 @@ bool ConfigNVS::hasBrokerIP() {
 void ConfigNVS::clearBrokerIP() {
 	prefs.begin(NAMESPACE, false);
 	prefs.remove(KEY_BROKER_IP);
+	prefs.remove(KEY_BROKER_DISC);
 	prefs.end();
 	log("Broker IP cleared from NVS");
+}
+
+bool ConfigNVS::saveBrokerDiscoveryMethod(const String& method) {
+	if (method.length() == 0 || method.length() > 32) {
+		return false;
+	}
+
+	prefs.begin(NAMESPACE, false);
+	size_t bytesWritten = prefs.putString(KEY_BROKER_DISC, method);
+	prefs.end();
+
+	return bytesWritten > 0;
+}
+
+String ConfigNVS::loadBrokerDiscoveryMethod() {
+	prefs.begin(NAMESPACE, true);
+	String method = prefs.getString(KEY_BROKER_DISC, "");
+	prefs.end();
+	return method;
 }
 
 bool ConfigNVS::saveLoggingLevel(const String& level) {

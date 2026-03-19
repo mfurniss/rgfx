@@ -110,11 +110,23 @@ class ConfigNVS {
 	static bool hasBrokerIP();
 
 	/**
-	 * Clear broker IP from NVS
+	 * Clear broker IP and discovery method from NVS
 	 *
 	 * Removes cached broker IP (e.g., when discovery needs to restart fresh).
 	 */
 	static void clearBrokerIP();
+
+	/**
+	 * Save the discovery method that found the broker (e.g., "mDNS", "UDP broadcast")
+	 */
+	static bool saveBrokerDiscoveryMethod(const String& method);
+
+	/**
+	 * Load the discovery method that originally found the broker
+	 *
+	 * @return Discovery method string, or empty string if not found
+	 */
+	static String loadBrokerDiscoveryMethod();
 
 	/**
 	 * Save remote logging level to NVS
@@ -139,6 +151,7 @@ class ConfigNVS {
 	static constexpr const char* KEY_LED_CONFIG = "led_config";
 	static constexpr const char* KEY_DEVICE_ID = "device_id";
 	static constexpr const char* KEY_BROKER_IP = "broker_ip";
+	static constexpr const char* KEY_BROKER_DISC = "broker_disc";
 	static constexpr const char* KEY_LOG_LEVEL = "log_level";
 };
 

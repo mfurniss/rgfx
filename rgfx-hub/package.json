@@ -26,7 +26,8 @@
     "smoke-test": "python3 ../scripts/e2e-smoke-test.py",
     "smoke-test:verbose": "python3 ../scripts/e2e-smoke-test.py -v",
     "smoke-test:stress": "python3 ../scripts/e2e-smoke-test.py -d 300 --density high -v",
-    "generate:defaults": "node scripts/generate-effect-defaults.mjs"
+    "generate:defaults": "node scripts/generate-effect-defaults.mjs",
+    "postinstall": "node scripts/setup-firewall.mjs"
   },
   "keywords": [],
   "author": {

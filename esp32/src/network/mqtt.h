@@ -20,7 +20,7 @@ extern char mqttServerIP[16];  // "xxx.xxx.xxx.xxx\0"
 extern bool mqttServerDiscovered;
 
 // Discovery method tracking - reports how the broker was found
-extern const char* mqttDiscoveryMethod;
+extern String mqttDiscoveryMethod;
 
 // MQTT client
 extern MQTTClient mqttClient;

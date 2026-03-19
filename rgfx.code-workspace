@@ -60,5 +60,6 @@
       "random": "cpp"
     },
     "platformio-ide.activateProjectOnTextEditorChange": true,
+    "platformio-ide.projectDir": "esp32",
   },
 }

@@ -43,6 +43,7 @@ static void setBrokerDiscovered(const char* ipStr, int port, const char* method)
 	mqttDiscoveryMethod = method;
 	mqttClient.setHost(mqttServerIP, port);
 	ConfigNVS::saveBrokerIP(String(mqttServerIP));
+	ConfigNVS::saveBrokerDiscoveryMethod(String(method));
 	log("MQTT broker discovered via " + String(method) + ": " + String(mqttServerIP) + ":" + String(port));
 }
 
@@ -53,12 +54,20 @@ bool tryLastKnownBroker() {
 		return false;
 	}
 
-	log("Trying cached broker IP: " + cachedIP);
+	String originalMethod = ConfigNVS::loadBrokerDiscoveryMethod();
+
+	if (originalMethod.length() == 0) {
+		log("Cached broker IP has no discovery method - clearing for fresh discovery");
+		ConfigNVS::clearBrokerIP();
+		return false;
+	}
+
+	log("Trying cached broker IP: " + cachedIP + " (originally via " + originalMethod + ")");
 
 	strncpy(mqttServerIP, cachedIP.c_str(), sizeof(mqttServerIP) - 1);
 	mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
 	mqttServerDiscovered = true;
-	mqttDiscoveryMethod = "cached";
+	mqttDiscoveryMethod = "cached (" + originalMethod + ")";
 	mqttClient.setHost(mqttServerIP, MQTT_PORT);
 
 	return true;
