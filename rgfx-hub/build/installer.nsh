@@ -1,8 +1,6 @@
 ; RGFX Hub - Custom NSIS installer script
 ; Adds Windows Firewall rules so the hub can communicate with ESP32 drivers
 
-!include "MUI.nsh"
-
 !macro customInstall
   ; Remove any existing rule first to prevent duplicates on reinstall/upgrade
   nsExec::ExecToLog 'netsh advfirewall firewall delete rule name="RGFX Hub"'
