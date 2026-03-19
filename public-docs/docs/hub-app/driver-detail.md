@@ -4,6 +4,40 @@ The Driver Detail page shows everything about a single ESP32 driver — its LED 
 
 ![RGFX Hub — Driver Detail page](../assets/images/rgfx-hub-driver-detail.png)
 
+## Status
+
+Basic identification and state:
+
+- **Description** - User-assigned description
+- **Status** - Enabled or disabled
+- **Remote Logging** - Remote log level (All Messages, Errors Only, Off)
+- **Update Rate** - Effect update frequency (Hz)
+- **Failed Heartbeats** - Missed heartbeat count (shown when > 0)
+
+## Network
+
+Network connectivity and communication:
+
+- **IP Address** - Current network address
+- **MAC Address** - Hardware identifier
+- **Hostname** - mDNS hostname
+- **SSID** - Connected WiFi network
+- **WiFi Signal** - RSSI signal strength with quality rating
+- **Discovery Method** - How the driver found the broker (mDNS, SSDP, etc.)
+- **MQTT Messages Received** - Total messages received
+- **MQTT Errors** - Message error count
+
+## Hardware
+
+ESP32 chip specifications:
+
+- **Chip Model** - ESP32, ESP32-S3, etc.
+- **Chip Revision** - Hardware revision
+- **CPU Cores** - Number of processor cores
+- **CPU Frequency** - Clock speed
+- **Flash Size / Speed** - Storage capacity and bus speed
+- **Firmware Version** - Currently installed firmware
+
 ## LED Hardware
 
 Displays the selected LED hardware definition for this driver, including the hardware type and configuration source file.
@@ -26,27 +60,7 @@ Shows the driver's LED settings:
 - **Reverse Direction** - Whether LED order is reversed (strips only)
 - **Power Supply** - Voltage and max power (mA) settings
 
-## Driver Status
-
-Basic identification and network information:
-
-- **Driver ID** - User-assigned friendly name
-- **MAC Address** - Hardware identifier
-- **IP Address** - Current network address
-- **Hostname** - mDNS hostname
-
-## Driver Hardware
-
-ESP32 chip specifications:
-
-- **Chip Model** - ESP32, ESP32-S3, etc.
-- **Chip Revision** - Hardware revision
-- **CPU Cores** - Number of processor cores
-- **CPU Frequency** - Clock speed
-- **Flash Size / Speed** - Storage capacity and bus speed
-- **Firmware Version** - Currently installed firmware
-
-## Driver Telemetry
+## Telemetry
 
 Real-time performance metrics:
 
@@ -56,8 +70,7 @@ Real-time performance metrics:
 - **Crash Count** - Number of crashes since flash
 - **Driver Uptime** - Time since last reboot
 - **Memory** - Free heap, min free heap, max allocatable, PSRAM
-- **WiFi Signal** - RSSI signal strength
-- **MQTT Messages / Errors** - Message and error counts
+- **Telemetry Events** - Total telemetry events received
 - **Last Updated** - Timestamp of last telemetry report
 
 ## Actions

@@ -1,3 +1,4 @@
+import os from 'os';
 import { Bonjour, type Service } from 'bonjour-service';
 import log from 'electron-log/main';
 import { MDNS_SERVICE_TYPE } from '../config/constants';
@@ -10,6 +11,8 @@ import type { DiscoveryService, DiscoveryServiceConfig } from './discovery-servi
  * mDNS uses multicast group 224.0.0.251:5353, which Windows allows by default
  * (unlike UDP broadcast which is often blocked by Windows Firewall).
  * This makes it more reliable than UDP broadcast on Windows networks.
+ *
+ * Service name includes hostname to allow multiple hubs on the same network.
  */
 export class MdnsDiscovery implements DiscoveryService {
   private bonjour?: Bonjour;
@@ -17,19 +20,24 @@ export class MdnsDiscovery implements DiscoveryService {
 
   start(config: DiscoveryServiceConfig): void {
     const { mqttPort, localIP } = config;
+    const serviceName = `RGFX Hub (${os.hostname()})`;
 
     try {
       this.bonjour = new Bonjour();
 
       this.service = this.bonjour.publish({
-        name: 'RGFX MQTT Broker',
+        name: serviceName,
         type: MDNS_SERVICE_TYPE,
         protocol: 'tcp',
         port: mqttPort,
         txt: { ip: localIP },
       });
 
-      log.info(`mDNS discovery enabled: _${MDNS_SERVICE_TYPE}._tcp on port ${mqttPort}`);
+      this.service.on('error', (err: Error) => {
+        log.warn('mDNS service error:', err.message);
+      });
+
+      log.info(`mDNS discovery enabled: ${serviceName} _${MDNS_SERVICE_TYPE}._tcp on port ${mqttPort}`);
       log.info(`mDNS TXT record: ip=${localIP}`);
     } catch (err) {
       log.error('Failed to start mDNS discovery:', err);

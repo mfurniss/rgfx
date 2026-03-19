@@ -3,6 +3,7 @@ import {
   getRotatedDimensions,
   buildTelemetryRows,
   buildHardwareRows,
+  buildNetworkRows,
   buildLedHardwareRows,
   buildLedConfigRows,
   buildDriverStatusRows,
@@ -52,7 +53,6 @@ describe('driver-card-rows', () => {
 
       // Should still have stats rows
       expect(rows.some(row => row[0] === 'Telemetry Events')).toBe(true);
-      expect(rows.some(row => row[0] === 'MQTT Messages Received')).toBe(true);
     });
 
     it('includes frame rate when telemetry present', () => {
@@ -129,20 +129,6 @@ describe('driver-card-rows', () => {
       expect(psramRow).toBeUndefined();
     });
 
-    it('includes WiFi signal when rssi available', () => {
-      const driver = createMockDriver({ rssi: -65 });
-      const rows = buildTelemetryRows({
-        driver,
-        telemetry: undefined,
-        currentUptime: 0,
-        now: Date.now(),
-      });
-
-      const signalRow = rows.find(row => row[0] === 'WiFi Signal');
-      expect(signalRow).toBeDefined();
-      expect(signalRow![1]).toContain('-65');
-    });
-
     it('includes crash count when greater than 0', () => {
       const driver = createMockDriver();
       const telemetry = createMockTelemetry({ crashCount: 3 });
@@ -190,28 +176,17 @@ describe('driver-card-rows', () => {
 
   describe('buildHardwareRows', () => {
     it('returns empty array when telemetry is undefined', () => {
-      const driver = createMockDriver();
-      const rows = buildHardwareRows({ driver, telemetry: undefined });
+      const rows = buildHardwareRows(undefined);
       expect(rows).toEqual([]);
     });
 
-    it('includes IP and MAC addresses', () => {
-      const driver = createMockDriver({ ip: '192.168.1.100', mac: 'AA:BB:CC:DD:EE:FF' });
-      const telemetry = createMockTelemetry();
-      const rows = buildHardwareRows({ driver, telemetry });
-
-      expect(rows.find(row => row[0] === 'IP Address')?.[1]).toBe('192.168.1.100');
-      expect(rows.find(row => row[0] === 'MAC Address')?.[1]).toBe('AA:BB:CC:DD:EE:FF');
-    });
-
     it('includes chip information', () => {
-      const driver = createMockDriver();
       const telemetry = createMockTelemetry({
         chipModel: 'ESP32-S3',
         chipRevision: 2,
         chipCores: 2,
       });
-      const rows = buildHardwareRows({ driver, telemetry });
+      const rows = buildHardwareRows(telemetry);
 
       expect(rows.find(row => row[0] === 'Chip Model')?.[1]).toBe('ESP32-S3');
       expect(rows.find(row => row[0] === 'Chip Revision')?.[1]).toBe('2');
@@ -219,9 +194,8 @@ describe('driver-card-rows', () => {
     });
 
     it('includes firmware version when present', () => {
-      const driver = createMockDriver();
       const telemetry = createMockTelemetry({ firmwareVersion: '1.2.3' });
-      const rows = buildHardwareRows({ driver, telemetry });
+      const rows = buildHardwareRows(telemetry);
 
       const fwRow = rows.find(row => row[0] === 'Firmware Version');
       expect(fwRow).toBeDefined();
@@ -229,12 +203,65 @@ describe('driver-card-rows', () => {
     });
 
     it('excludes firmware version when not present', () => {
-      const driver = createMockDriver();
       const telemetry = createMockTelemetry({ firmwareVersion: undefined });
-      const rows = buildHardwareRows({ driver, telemetry });
+      const rows = buildHardwareRows(telemetry);
 
       const fwRow = rows.find(row => row[0] === 'Firmware Version');
       expect(fwRow).toBeUndefined();
+    });
+  });
+
+  describe('buildNetworkRows', () => {
+    it('includes IP and MAC addresses', () => {
+      const driver = createMockDriver({ ip: '192.168.1.100', mac: 'AA:BB:CC:DD:EE:FF' });
+      const telemetry = createMockTelemetry();
+      const rows = buildNetworkRows({ driver, telemetry });
+
+      expect(rows.find(row => row[0] === 'IP Address')?.[1]).toBe('192.168.1.100');
+      expect(rows.find(row => row[0] === 'MAC Address')?.[1]).toBe('AA:BB:CC:DD:EE:FF');
+    });
+
+    it('includes hostname and SSID', () => {
+      const driver = createMockDriver({ hostname: 'rgfx-driver', ssid: 'MyWiFi' });
+      const rows = buildNetworkRows({ driver, telemetry: undefined });
+
+      expect(rows.find(row => row[0] === 'Hostname')?.[1]).toBe('rgfx-driver');
+      expect(rows.find(row => row[0] === 'SSID')?.[1]).toBe('MyWiFi');
+    });
+
+    it('includes WiFi signal when rssi available', () => {
+      const driver = createMockDriver({ rssi: -65 });
+      const rows = buildNetworkRows({ driver, telemetry: undefined });
+
+      const signalRow = rows.find(row => row[0] === 'WiFi Signal');
+      expect(signalRow).toBeDefined();
+      expect(signalRow![1]).toContain('-65');
+    });
+
+    it('includes discovery method when present', () => {
+      const driver = createMockDriver();
+      const telemetry = createMockTelemetry({ discoveryMethod: 'mDNS' });
+      const rows = buildNetworkRows({ driver, telemetry });
+
+      expect(rows.find(row => row[0] === 'Discovery Method')?.[1]).toBe('mDNS');
+    });
+
+    it('excludes discovery method when not present', () => {
+      const driver = createMockDriver();
+      const telemetry = createMockTelemetry({ discoveryMethod: undefined });
+      const rows = buildNetworkRows({ driver, telemetry });
+
+      expect(rows.find(row => row[0] === 'Discovery Method')).toBeUndefined();
+    });
+
+    it('includes MQTT stats', () => {
+      const driver = createMockDriver();
+      driver.stats.mqttMessagesReceived = 42;
+      driver.stats.mqttMessagesFailed = 3;
+      const rows = buildNetworkRows({ driver, telemetry: undefined });
+
+      expect(rows.find(row => row[0] === 'MQTT Messages Received')?.[1]).toBe('42');
+      expect(rows.find(row => row[0] === 'MQTT Errors')?.[1]).toBe('3');
     });
   });
 

@@ -1,3 +1,4 @@
+import os from 'os';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MdnsDiscovery } from '../mdns-discovery';
 import { Bonjour } from 'bonjour-service';
@@ -12,6 +13,7 @@ describe('MdnsDiscovery', () => {
   beforeEach(() => {
     mockService = {
       stop: vi.fn(),
+      on: vi.fn(),
     };
 
     mockBonjour = {
@@ -36,11 +38,11 @@ describe('MdnsDiscovery', () => {
       expect(Bonjour).toHaveBeenCalled();
     });
 
-    it('should publish service with correct configuration', () => {
+    it('should publish service with hostname in name', () => {
       mdnsDiscovery.start({ mqttPort: 1883, localIP: '192.168.1.100' });
 
       expect(mockBonjour.publish).toHaveBeenCalledWith({
-        name: 'RGFX MQTT Broker',
+        name: `RGFX Hub (${os.hostname()})`,
         type: 'rgfx-mqtt',
         protocol: 'tcp',
         port: 1883,
@@ -57,6 +59,12 @@ describe('MdnsDiscovery', () => {
           txt: { ip: '10.0.0.5' },
         }),
       );
+    });
+
+    it('should register error handler on service', () => {
+      mdnsDiscovery.start({ mqttPort: 1883, localIP: '192.168.1.100' });
+
+      expect(mockService.on).toHaveBeenCalledWith('error', expect.any(Function));
     });
 
     it('should handle Bonjour creation failure gracefully', () => {

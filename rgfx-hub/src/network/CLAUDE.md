@@ -28,7 +28,7 @@ The `MqttBroker` class wraps the [Aedes](https://github.com/moscajs/aedes) MQTT 
 **Note:** SSDP multicast is often blocked on consumer WiFi routers due to IGMP filtering. UDP broadcast discovery is more reliable for home networks.
 
 ### mdns-discovery.ts
-`MdnsDiscovery` implements `DiscoveryService` using mDNS (multicast DNS) via the `bonjour-service` package. Advertises the broker as a `_rgfx-mqtt._tcp` service with a TXT record containing the broker IP. mDNS uses multicast group 224.0.0.251:5353 which Windows allows by default, making it more reliable than UDP broadcast on Windows networks where firewall silently drops broadcast packets.
+`MdnsDiscovery` implements `DiscoveryService` using mDNS (multicast DNS) via the `bonjour-service` package. Advertises the broker as a `_rgfx-mqtt._tcp` service with a TXT record containing the broker IP. Service name includes hostname (e.g., `RGFX Hub (MacBook-Pro)`) to allow multiple hubs on the same network without mDNS name collisions. Registers an error handler on the published service to catch async errors from the mDNS probe. mDNS uses multicast group 224.0.0.251:5353 which Windows allows by default, making it more reliable than UDP broadcast on Windows networks where firewall silently drops broadcast packets.
 
 ### udp-discovery.ts
 `UdpDiscovery` implements `DiscoveryService` using UDP broadcast. Sends JSON discovery messages to the network broadcast address (e.g., `192.168.1.255`). This is the more reliable discovery method for typical home networks.

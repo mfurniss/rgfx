@@ -171,6 +171,39 @@ describe('DriverTelemetrySchema', () => {
     });
   });
 
+  describe('discoveryMethod field', () => {
+    it('should accept telemetry with discoveryMethod', () => {
+      const result = DriverTelemetrySchema.safeParse({
+        ...validTelemetry,
+        discoveryMethod: 'mDNS',
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.discoveryMethod).toBe('mDNS');
+      }
+    });
+
+    it('should accept telemetry without discoveryMethod (backward compatibility)', () => {
+      const result = DriverTelemetrySchema.safeParse(validTelemetry);
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.discoveryMethod).toBeUndefined();
+      }
+    });
+
+    it('should reject non-string discoveryMethod', () => {
+      const result = DriverTelemetrySchema.safeParse({
+        ...validTelemetry,
+        discoveryMethod: 123,
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('type validation', () => {
     it('should reject non-number chipRevision', () => {
       const result = DriverTelemetrySchema.safeParse({
