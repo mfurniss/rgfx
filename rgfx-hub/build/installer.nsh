@@ -4,6 +4,8 @@
 !include "MUI.nsh"
 
 !macro customInstall
+  ; Remove any existing rule first to prevent duplicates on reinstall/upgrade
+  nsExec::ExecToLog 'netsh advfirewall firewall delete rule name="RGFX Hub"'
   ; Allow the app through Windows Firewall (UDP discovery + mDNS)
   nsExec::ExecToLog 'netsh advfirewall firewall add rule name="RGFX Hub" dir=in action=allow program="$INSTDIR\rgfx-hub.exe" enable=yes'
 !macroend
