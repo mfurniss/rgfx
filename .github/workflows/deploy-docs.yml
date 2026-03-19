@@ -32,6 +32,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Update release date
+        run: |
+          RELEASE_DATE=$(date -u +"%B %-d, %Y")
+          sed -i "s/^  release_date: .*/  release_date: \"${RELEASE_DATE}\"/" public-docs/mkdocs.yml
+
       - name: Build docs
         run: |
           pip install -r public-docs/requirements.txt
