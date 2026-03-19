@@ -79,7 +79,12 @@ Both `copyright` and `extra.release_date` in `mkdocs.yml` are automatically upda
 
 ### Build Artifacts
 
-`public-docs/site/` is gitignored — the CI release workflow builds the docs fresh and deploys to Pages. Do not commit generated site files.
+`public-docs/site/` is gitignored — CI builds the docs fresh and deploys to Pages. Do not commit generated site files.
+
+There are two ways to deploy docs:
+
+- **Docs only**: Actions > **Deploy Docs** (`deploy-docs.yml`) — manual dispatch, no version bump or tag
+- **Full release**: Actions > **Release** (`release.yml`) — calls `deploy-docs.yml` as a reusable workflow, passing the version-bumped commit SHA
 
 **Do NOT run `npm run docs:build` or `mkdocs build` yourself.** The user has a watch process that rebuilds automatically.
 

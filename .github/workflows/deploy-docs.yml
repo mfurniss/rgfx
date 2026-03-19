@@ -1,0 +1,61 @@
+name: Deploy Docs
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref to checkout (commit SHA, branch, or tag)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy-pages:
+    name: Deploy Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Update release date
+        run: |
+          RELEASE_DATE=$(date -u +"%B %-d, %Y")
+          sed -i "s/^  release_date: .*/  release_date: \"${RELEASE_DATE}\"/" public-docs/mkdocs.yml
+
+      - name: Build docs
+        run: |
+          pip install -r public-docs/requirements.txt
+          mkdocs build -f public-docs/mkdocs.yml -d site
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/docs _site/assets
+          cp rgfx.io/index.html _site/
+          cp rgfx.io/favicon.ico _site/
+          cp -r rgfx.io/assets/* _site/assets/
+          cp -r public-docs/site/* _site/docs/
+          echo "rgfx.io" > _site/CNAME
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
