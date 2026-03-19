@@ -1,6 +1,6 @@
 # Acknowledgements
 
-![Thank you](assets/images/thank-you.gif)
+![Thank you!](assets/images/thank-you.gif)
 
 A personal thank you to everyone in the retro-gaming community who has inspired me to create this project. The passion for preserving and celebrating arcade and home console history keeps video games alive in ways their creators never imagined.
 
