@@ -22,6 +22,15 @@ using String = std::string;
 // Mock MQTT client
 #include "../mocks/mock_mqtt.h"
 
+// Mock NVS (ConfigNVS stubs for this test)
+namespace ConfigNVS {
+	static String lastSavedBrokerIP;
+	bool saveBrokerIP(const String& ip) { lastSavedBrokerIP = ip; return true; }
+	String loadBrokerIP() { return ""; }
+	bool hasBrokerIP() { return false; }
+	void clearBrokerIP() { lastSavedBrokerIP = ""; }
+}
+
 // Stubs
 void log(const char*) {}
 void log(const String&) {}
@@ -34,6 +43,7 @@ void delay(unsigned long ms) { mockMillisValue += ms; }
 // Global MQTT state (from mqtt.cpp)
 char mqttServerIP[16] = {0};
 bool mqttServerDiscovered = false;
+const char* mqttDiscoveryMethod = "unknown";
 MQTTClient mqttClient(512);
 
 // Mock WiFi class with configurable IP/subnet
@@ -45,6 +55,26 @@ struct MockWiFiClass {
 	IPAddress subnetMask() { return mockSubnetMask; }
 };
 static MockWiFiClass WiFi;
+
+// --- Subnet validation helper (mirrors mqtt_discovery.cpp) ---
+static bool isSameSubnet(IPAddress a, IPAddress b, IPAddress mask) {
+	for (int j = 0; j < 4; j++) {
+		if ((a[j] & mask[j]) != (b[j] & mask[j])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// --- Helper to set broker state (mirrors mqtt_discovery.cpp) ---
+static void setBrokerDiscovered(const char* ipStr, int port, const char* method) {
+	strncpy(mqttServerIP, ipStr, sizeof(mqttServerIP) - 1);
+	mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
+	mqttServerDiscovered = true;
+	mqttDiscoveryMethod = method;
+	mqttClient.setHost(mqttServerIP, port);
+	ConfigNVS::saveBrokerIP(String(mqttServerIP));
+}
 
 // --- Extracted: discoverMQTTBroker (mirrors mqtt_discovery.cpp) ---
 // Uses injected WiFiUDP rather than creating its own
@@ -84,20 +114,9 @@ bool discoverMQTTBroker() {
 				if (ipStr && port > 0) {
 					IPAddress brokerIP;
 					if (brokerIP.fromString(ipStr)) {
-						bool sameSubnet = true;
-						for (int j = 0; j < 4; j++) {
-							if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
-								sameSubnet = false;
-								break;
-							}
-						}
-
-						if (sameSubnet) {
-							strncpy(mqttServerIP, ipStr, sizeof(mqttServerIP) - 1);
-							mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
-							mqttServerDiscovered = true;
-							mqttClient.setHost(mqttServerIP, port);
+						if (isSameSubnet(ourIP, brokerIP, ourSubnet)) {
 							testUdp.stop();
+							setBrokerDiscovered(ipStr, port, "UDP broadcast");
 							return true;
 						}
 					}
@@ -118,9 +137,11 @@ bool discoverMQTTBroker() {
 void setUp(void) {
 	mqttServerIP[0] = '\0';
 	mqttServerDiscovered = false;
+	mqttDiscoveryMethod = "unknown";
 	mockMillisValue = 0;
 	mockLocalIP = IPAddress(192, 168, 1, 100);
 	mockSubnetMask = IPAddress(255, 255, 255, 0);
+	ConfigNVS::lastSavedBrokerIP = "";
 	// Clear any leftover packets
 	while (!testUdp.incomingPackets.empty()) {
 		testUdp.incomingPackets.pop();
@@ -149,6 +170,22 @@ void test_valid_discovery_packet_sets_broker_ip() {
 	TEST_ASSERT_TRUE(result);
 	TEST_ASSERT_EQUAL_STRING("192.168.1.50", mqttServerIP);
 	TEST_ASSERT_TRUE(mqttServerDiscovered);
+}
+
+void test_discovery_sets_method_to_udp_broadcast() {
+	injectValidPacket("192.168.1.50");
+
+	discoverMQTTBroker();
+
+	TEST_ASSERT_EQUAL_STRING("UDP broadcast", mqttDiscoveryMethod);
+}
+
+void test_discovery_caches_broker_ip_in_nvs() {
+	injectValidPacket("192.168.1.50");
+
+	discoverMQTTBroker();
+
+	TEST_ASSERT_EQUAL_STRING("192.168.1.50", ConfigNVS::lastSavedBrokerIP.c_str());
 }
 
 void test_discovery_with_custom_port() {
@@ -283,6 +320,8 @@ int main(int /* argc */, char** /* argv */) {
 
 	// Successful discovery
 	RUN_TEST(test_valid_discovery_packet_sets_broker_ip);
+	RUN_TEST(test_discovery_sets_method_to_udp_broadcast);
+	RUN_TEST(test_discovery_caches_broker_ip_in_nvs);
 	RUN_TEST(test_discovery_with_custom_port);
 
 	// Subnet validation

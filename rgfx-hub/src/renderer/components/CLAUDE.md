@@ -191,7 +191,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 
 **Features:**
 - Sticky header with back button, driver ID, status chip, and configure button
-- Sections: LED Hardware (filename derived from hardwareRef), LED Configuration, Driver Status, Driver Hardware, Driver Telemetry
+- Sections (in order): Status, Network, Hardware, LED Hardware, LED Configuration, Telemetry
 - Live uptime calculation based on driver's reported uptime
 - Test LED, Reset, Restart, Disable, and Delete buttons
 - Alert shown when LED configuration is missing
@@ -207,11 +207,12 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 
 **Functions:**
 - `getRotatedDimensions(rotation, width, height)` - Calculate actual dimensions based on rotation code
-- `buildTelemetryRows(params)` - Build telemetry section rows (FPS, uptime, last seen)
-- `buildHardwareRows(params)` - Build hardware section rows (chip model, cores, heap, etc.)
+- `buildDriverStatusRows(driver)` - Build status rows (description, enabled/disabled, remote logging, update rate)
+- `buildNetworkRows(params)` - Build network rows (IP, MAC, hostname, SSID, WiFi signal, discovery method, MQTT stats)
+- `buildHardwareRows(telemetry)` - Build hardware rows (chip model, cores, CPU freq, flash, firmware version)
 - `buildLedHardwareRows(params)` - Build LED hardware info rows (filename, layout, count)
 - `buildLedConfigRows(params)` - Build LED configuration rows (pin, offset, brightness, rotation, etc.)
-- `buildDriverStatusRows(params)` - Build driver status rows (ID, MAC, IP, hostname, etc.)
+- `buildTelemetryRows(params)` - Build telemetry rows (FPS, frame timing, uptime, memory, crash count)
 
 ---
 

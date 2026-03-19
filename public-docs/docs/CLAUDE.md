@@ -56,7 +56,7 @@ docs/
 ├── example-games.md            # Example games & community scripts
 ├── faq.md                      # FAQ and troubleshooting
 ├── getting-started/            # 6-page onboarding flow (requirements → hub-setup → first-driver → test-leds → configure-mame → play)
-├── hub-app/                    # Hub application reference (9 pages, settings includes driver fallback toggle)
+├── hub-app/                    # Hub application reference (9 pages, settings includes driver fallback toggle). Driver detail sections ordered: Status, Network, Hardware, LED Hardware, LED Configuration, Telemetry
 ├── hub-app/effects.md          # Visual Effects reference (standalone top-level nav item, not a Hub page)
 ├── hardware/                   # LED hardware (choosing, wiring, configure, definitions, examples)
 ├── interceptors/               # Lua interceptor docs (8 pages incl. sprite-extraction.md, all examples use _G.event() with real game events)

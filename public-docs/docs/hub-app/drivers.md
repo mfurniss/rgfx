@@ -34,11 +34,12 @@ Connected drivers may also show warning icons for firmware updates available or 
 
 Click a driver row to view:
 
+- **Status** - Description, enabled/disabled, remote logging
+- **Network** - IP, MAC, hostname, SSID, WiFi signal, MQTT stats
+- **Hardware** - ESP32 chip model, cores, flash, firmware version
 - **LED Hardware** - Selected hardware definition
 - **LED Configuration** - GPIO pin, brightness, power settings
-- **Driver Status** - Device ID, MAC address, IP, hostname
-- **Driver Hardware** - ESP32 chip model, cores, heap memory
-- **Driver Telemetry** - FPS, uptime, last seen timestamp
+- **Telemetry** - FPS, frame timing, uptime, memory, crash count
 
 ### Driver Actions
 

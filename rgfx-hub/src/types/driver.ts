@@ -148,6 +148,7 @@ export interface DriverTelemetry {
   };
 
   ledHealthy?: boolean;
+  discoveryMethod?: string;
 }
 
 export type DriverState = 'connected' | 'disconnected' | 'updating';

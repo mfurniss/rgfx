@@ -47,7 +47,11 @@ export class SsdpDiscovery implements DiscoveryService {
 
   stop(): void {
     if (this.ssdpServer) {
-      this.ssdpServer.stop();
+      try {
+        this.ssdpServer.stop();
+      } catch {
+        // Ignore if stop() is called before start() has resolved
+      }
       this.ssdpServer = undefined;
     }
   }

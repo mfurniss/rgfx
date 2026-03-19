@@ -1,8 +1,122 @@
 #include "network/mqtt.h"
+#include "config/config_nvs.h"
+#include "config/constants.h"
 #include "log.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <ESPmDNS.h>
 #include <ArduinoJson.h>
+
+// Subnet validation helper - checks if two IPs are on the same subnet
+static bool isSameSubnet(IPAddress a, IPAddress b, IPAddress mask) {
+	for (int j = 0; j < 4; j++) {
+		if ((a[j] & mask[j]) != (b[j] & mask[j])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Log network diagnostic info for debugging discovery issues
+void logNetworkDiagnostics() {
+	IPAddress ip = WiFi.localIP();
+	IPAddress subnet = WiFi.subnetMask();
+	IPAddress gateway = WiFi.gatewayIP();
+
+	// Calculate broadcast address from IP and subnet mask
+	IPAddress broadcast;
+	for (int i = 0; i < 4; i++) {
+		broadcast[i] = ip[i] | ~subnet[i];
+	}
+
+	log("Network: IP=" + ip.toString() +
+	    " Subnet=" + subnet.toString() +
+	    " Gateway=" + gateway.toString() +
+	    " Broadcast=" + broadcast.toString());
+}
+
+// Helper to set broker state after successful discovery
+static void setBrokerDiscovered(const char* ipStr, int port, const char* method) {
+	strncpy(mqttServerIP, ipStr, sizeof(mqttServerIP) - 1);
+	mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
+	mqttServerDiscovered = true;
+	mqttDiscoveryMethod = method;
+	mqttClient.setHost(mqttServerIP, port);
+	ConfigNVS::saveBrokerIP(String(mqttServerIP));
+	ConfigNVS::saveBrokerDiscoveryMethod(String(method));
+	log("MQTT broker discovered via " + String(method) + ": " + String(mqttServerIP) + ":" + String(port));
+}
+
+// Try connecting using cached broker IP from NVS
+bool tryLastKnownBroker() {
+	String cachedIP = ConfigNVS::loadBrokerIP();
+	if (cachedIP.length() == 0) {
+		return false;
+	}
+
+	String originalMethod = ConfigNVS::loadBrokerDiscoveryMethod();
+
+	if (originalMethod.length() == 0) {
+		log("Cached broker IP has no discovery method - clearing for fresh discovery");
+		ConfigNVS::clearBrokerIP();
+		return false;
+	}
+
+	log("Trying cached broker IP: " + cachedIP + " (originally via " + originalMethod + ")");
+
+	strncpy(mqttServerIP, cachedIP.c_str(), sizeof(mqttServerIP) - 1);
+	mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
+	mqttServerDiscovered = true;
+	mqttDiscoveryMethod = "cached (" + originalMethod + ")";
+	mqttClient.setHost(mqttServerIP, MQTT_PORT);
+
+	return true;
+}
+
+// Discover MQTT broker via mDNS service query
+// Queries for _rgfx-mqtt._tcp services advertised by the Hub
+bool discoverMQTTBrokerMdns() {
+	IPAddress ourIP = WiFi.localIP();
+	IPAddress ourSubnet = WiFi.subnetMask();
+
+	log("Querying mDNS for _rgfx-mqtt._tcp...");
+
+	int found = MDNS.queryService("rgfx-mqtt", "tcp");
+	if (found <= 0) {
+		log("No mDNS services found");
+		return false;
+	}
+
+	log("Found " + String(found) + " mDNS service(s)");
+
+	for (int i = 0; i < found; i++) {
+		IPAddress brokerIP = MDNS.IP(i);
+		int port = MDNS.port(i);
+
+		// Try TXT record "ip" field first (Hub sets this explicitly)
+		String txtIP = MDNS.txt(i, "ip");
+		if (txtIP.length() > 0) {
+			IPAddress parsedIP;
+			if (parsedIP.fromString(txtIP)) {
+				brokerIP = parsedIP;
+			}
+		}
+
+		if (port <= 0) {
+			port = MQTT_PORT;
+		}
+
+		if (!isSameSubnet(ourIP, brokerIP, ourSubnet)) {
+			log("mDNS broker on different subnet (" + brokerIP.toString() + ") - ignoring");
+			continue;
+		}
+
+		setBrokerDiscovered(brokerIP.toString().c_str(), port, "mDNS");
+		return true;
+	}
+
+	return false;
+}
 
 // Discover MQTT broker via UDP broadcast
 // Listens for discovery announcements from Hub - single attempt called periodically from networkTask
@@ -56,25 +170,9 @@ bool discoverMQTTBroker() {
 				if (ipStr && port > 0) {
 					IPAddress brokerIP;
 					if (brokerIP.fromString(ipStr)) {
-						// Check if on same subnet
-						bool sameSubnet = true;
-						for (int j = 0; j < 4; j++) {
-							if ((ourIP[j] & ourSubnet[j]) != (brokerIP[j] & ourSubnet[j])) {
-								sameSubnet = false;
-								break;
-							}
-						}
-
-						if (sameSubnet) {
-							strncpy(mqttServerIP, ipStr, sizeof(mqttServerIP) - 1);
-							mqttServerIP[sizeof(mqttServerIP) - 1] = '\0';
-							log("MQTT broker discovered via UDP broadcast: " + String(mqttServerIP) + ":" + String(port));
-							mqttServerDiscovered = true;
-
-							// Update client with discovered broker address
-							mqttClient.setHost(mqttServerIP, port);
-
+						if (isSameSubnet(ourIP, brokerIP, ourSubnet)) {
 							udp.stop();
+							setBrokerDiscovered(ipStr, port, "UDP broadcast");
 							return true;
 						} else {
 							log("Broker on different subnet - ignoring");

@@ -206,4 +206,37 @@ describe('TelemetryPayloadSchema', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('discoveryMethod field', () => {
+    it('should accept telemetry with discoveryMethod', () => {
+      const result = TelemetryPayloadSchema.safeParse({
+        ...validTelemetry,
+        discoveryMethod: 'mDNS',
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.discoveryMethod).toBe('mDNS');
+      }
+    });
+
+    it('should accept telemetry without discoveryMethod', () => {
+      const result = TelemetryPayloadSchema.safeParse(validTelemetry);
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.discoveryMethod).toBeUndefined();
+      }
+    });
+
+    it('should reject non-string discoveryMethod', () => {
+      const result = TelemetryPayloadSchema.safeParse({
+        ...validTelemetry,
+        discoveryMethod: 123,
+      });
+      expect(result.success).toBe(false);
+    });
+  });
 });

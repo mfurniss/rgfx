@@ -28,8 +28,10 @@ void networkTask(void* parameter) {
 	// Wait for setup to complete initialization
 	delay(500);
 
-	// Track last SSDP discovery poll
+	// Track last discovery poll
 	unsigned long lastSsdpPoll = 0;
+	bool triedCachedBroker = false;
+	bool loggedNetworkDiagnostics = false;
 
 	// Track last telemetry broadcast
 	unsigned long lastTelemetryBroadcast = 0;
@@ -56,9 +58,32 @@ void networkTask(void* parameter) {
 		if (isConnected && mqttSetupDone && !otaInProgress && !pendingRestart) {
 			unsigned long now = millis();
 
-			// Poll for MQTT broker via SSDP every 3 seconds (until found)
+			// Discovery fallback chain: cached IP → mDNS → UDP broadcast
 			if (!mqttClient.connected() && (now - lastSsdpPoll >= SSDP_POLL_INTERVAL_MS)) {
-				discoverMQTTBroker();
+				// Log network info once per discovery cycle for diagnostics
+				if (!loggedNetworkDiagnostics) {
+					loggedNetworkDiagnostics = true;
+					logNetworkDiagnostics();
+				}
+
+				bool discovered = false;
+
+				// 1. Try cached broker IP (first attempt only)
+				if (!discovered && !triedCachedBroker) {
+					triedCachedBroker = true;
+					discovered = tryLastKnownBroker();
+				}
+
+				// 2. Try mDNS service discovery (~3s timeout)
+				if (!discovered) {
+					discovered = discoverMQTTBrokerMdns();
+				}
+
+				// 3. Fall back to UDP broadcast (~6s timeout)
+				if (!discovered) {
+					discoverMQTTBroker();
+				}
+
 				lastSsdpPoll = now;
 			}
 

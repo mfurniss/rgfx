@@ -22,6 +22,7 @@ using String = std::string;
 static constexpr const char* NAMESPACE = "rgfx";
 static constexpr const char* KEY_LED_CONFIG = "led_config";
 static constexpr const char* KEY_DEVICE_ID = "device_id";
+static constexpr const char* KEY_BROKER_IP = "broker_ip";
 static constexpr const char* KEY_LOG_LEVEL = "log_level";
 
 // Static Preferences instance (mirrors config_nvs.cpp)
@@ -108,6 +109,38 @@ bool hasDeviceId() {
 	bool exists = prefs.isKey(KEY_DEVICE_ID);
 	prefs.end();
 	return exists;
+}
+
+bool saveBrokerIP(const String& ip) {
+	if (ip.length() == 0 || ip.length() > 15) {
+		return false;
+	}
+
+	prefs.begin(NAMESPACE, false);
+	size_t bytesWritten = prefs.putString(KEY_BROKER_IP, ip);
+	prefs.end();
+
+	return bytesWritten > 0;
+}
+
+String loadBrokerIP() {
+	prefs.begin(NAMESPACE, true);
+	String ip = prefs.getString(KEY_BROKER_IP, "");
+	prefs.end();
+	return ip;
+}
+
+bool hasBrokerIP() {
+	prefs.begin(NAMESPACE, true);
+	bool exists = prefs.isKey(KEY_BROKER_IP);
+	prefs.end();
+	return exists;
+}
+
+void clearBrokerIP() {
+	prefs.begin(NAMESPACE, false);
+	prefs.remove(KEY_BROKER_IP);
+	prefs.end();
 }
 
 bool saveLoggingLevel(const String& level) {
@@ -272,6 +305,60 @@ void test_load_logging_level_defaults_to_off() {
 }
 
 // =============================================================================
+// Broker IP Cache Tests
+// =============================================================================
+
+void test_save_and_load_broker_ip_round_trip() {
+	TEST_ASSERT_TRUE(ConfigNVS::saveBrokerIP("192.168.1.50"));
+
+	String loaded = ConfigNVS::loadBrokerIP();
+	TEST_ASSERT_EQUAL_STRING("192.168.1.50", loaded.c_str());
+}
+
+void test_save_broker_ip_rejects_empty_string() {
+	TEST_ASSERT_FALSE(ConfigNVS::saveBrokerIP(""));
+}
+
+void test_save_broker_ip_rejects_too_long() {
+	// 16 characters exceeds the 15-char limit for IPv4
+	String longIP(16, '1');
+	TEST_ASSERT_FALSE(ConfigNVS::saveBrokerIP(longIP));
+}
+
+void test_has_broker_ip_false_when_empty() {
+	TEST_ASSERT_FALSE(ConfigNVS::hasBrokerIP());
+}
+
+void test_has_broker_ip_true_after_save() {
+	ConfigNVS::saveBrokerIP("10.0.0.1");
+	TEST_ASSERT_TRUE(ConfigNVS::hasBrokerIP());
+}
+
+void test_clear_broker_ip_removes_cached_ip() {
+	ConfigNVS::saveBrokerIP("192.168.1.100");
+	TEST_ASSERT_TRUE(ConfigNVS::hasBrokerIP());
+
+	ConfigNVS::clearBrokerIP();
+	TEST_ASSERT_FALSE(ConfigNVS::hasBrokerIP());
+
+	String loaded = ConfigNVS::loadBrokerIP();
+	TEST_ASSERT_EQUAL_STRING("", loaded.c_str());
+}
+
+void test_load_broker_ip_returns_empty_when_not_saved() {
+	String loaded = ConfigNVS::loadBrokerIP();
+	TEST_ASSERT_EQUAL_STRING("", loaded.c_str());
+}
+
+void test_save_broker_ip_overwrites_previous() {
+	ConfigNVS::saveBrokerIP("192.168.1.1");
+	ConfigNVS::saveBrokerIP("10.0.0.1");
+
+	String loaded = ConfigNVS::loadBrokerIP();
+	TEST_ASSERT_EQUAL_STRING("10.0.0.1", loaded.c_str());
+}
+
+// =============================================================================
 // Factory Reset Tests
 // =============================================================================
 
@@ -327,6 +414,16 @@ int main(int /* argc */, char** /* argv */) {
 	RUN_TEST(test_has_device_id_false_when_empty);
 	RUN_TEST(test_has_device_id_true_after_save);
 	RUN_TEST(test_load_device_id_returns_empty_when_not_saved);
+
+	// Broker IP Cache
+	RUN_TEST(test_save_and_load_broker_ip_round_trip);
+	RUN_TEST(test_save_broker_ip_rejects_empty_string);
+	RUN_TEST(test_save_broker_ip_rejects_too_long);
+	RUN_TEST(test_has_broker_ip_false_when_empty);
+	RUN_TEST(test_has_broker_ip_true_after_save);
+	RUN_TEST(test_clear_broker_ip_removes_cached_ip);
+	RUN_TEST(test_load_broker_ip_returns_empty_when_not_saved);
+	RUN_TEST(test_save_broker_ip_overwrites_previous);
 
 	// Logging Level
 	RUN_TEST(test_save_logging_level_accepts_all);

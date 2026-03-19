@@ -10,10 +10,10 @@ This module contains [Zod](https://zod.dev/) schemas for validating data structu
 Public exports for all schemas and types.
 
 ### telemetry-payload.ts
-`TelemetryPayloadSchema` - Validates telemetry data sent by ESP32 drivers via the `rgfx/system/driver/telemetry` MQTT topic. Includes network info, runtime metrics, hardware details, and `ledHealthy` (optional boolean, false when RMT peripheral appears corrupted).
+`TelemetryPayloadSchema` - Validates telemetry data sent by ESP32 drivers via the `rgfx/system/driver/telemetry` MQTT topic. Includes network info, runtime metrics, hardware details, `ledHealthy` (optional boolean, false when RMT peripheral appears corrupted), and `discoveryMethod` (optional string: how the driver discovered the MQTT broker, e.g. "mDNS", "SSDP", "NVS Cache").
 
 ### driver-telemetry.ts
-`DriverTelemetrySchema` - A subset of telemetry focused on hardware/firmware information (chip model, flash size, firmware version, `ledHealthy`, etc.). Stored in `Driver.telemetry`.
+`DriverTelemetrySchema` - A subset of telemetry focused on hardware/firmware information (chip model, flash size, firmware version, `ledHealthy`, `discoveryMethod`, etc.). Stored in `Driver.telemetry`.
 
 ### driver-registration.ts
 `DriverRegistrationSchema` - Combines network info, runtime metrics, and telemetry for the `registerDriver()` function. Composed from `TelemetryPayloadSchema.pick()`.

@@ -6,6 +6,7 @@ import DriverState from './driver-state';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import SpeedIcon from '@mui/icons-material/Speed';
 import SensorsIcon from '@mui/icons-material/Sensors';
+import WifiIcon from '@mui/icons-material/Wifi';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -23,6 +24,7 @@ import { useSystemStatusStore } from '@/renderer/store/system-status-store';
 import {
   buildTelemetryRows,
   buildHardwareRows,
+  buildNetworkRows,
   buildLedHardwareRows,
   buildLedConfigRows,
   buildDriverStatusRows,
@@ -89,7 +91,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
   // Build data rows using extracted utilities
   const telemetryRows = buildTelemetryRows({ driver, telemetry, currentUptime, now });
-  const hardwareRows = buildHardwareRows({ driver, telemetry });
+  const hardwareRows = buildHardwareRows(telemetry);
+  const networkRows = buildNetworkRows({ driver, telemetry });
   const ledHardwareRows = buildLedHardwareRows({ hardware, hardwareFilename });
   const ledConfigRows = buildLedConfigRows({ ledConfig, hardware, actualWidth, actualHeight });
   const driverStatusRows = buildDriverStatusRows(driver);
@@ -160,11 +163,37 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
 
       {/* Scrollable Content */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-        {/* LED Hardware Section - static properties from hardware JSON */}
+        <InfoSection
+          title="Status"
+          icon={<InfoIcon fontSize="small" color="action" />}
+          rows={driverStatusRows}
+        />
+
+        <InfoSection
+          title="Network"
+          icon={<WifiIcon fontSize="small" color="action" />}
+          rows={networkRows}
+          showDivider
+        />
+
+        <InfoSection
+          title="Hardware"
+          icon={<SpeedIcon fontSize="small" color="action" />}
+          rows={hardwareRows}
+          showDivider
+        >
+          {!telemetry && (
+            <Typography variant="body2" color="text.secondary">
+              Hardware details will be displayed when the driver connects.
+            </Typography>
+          )}
+        </InfoSection>
+
         <InfoSection
           title="LED Hardware"
           icon={<LightbulbIcon fontSize="small" color="action" />}
           rows={ledHardwareRows}
+          showDivider
         >
           {!driver.resolvedHardware && (
             <Alert severity="warning">
@@ -174,7 +203,6 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           )}
         </InfoSection>
 
-        {/* LED Configuration Section - driver-specific settings */}
         <InfoSection
           title="LED Configuration"
           icon={<SettingsIcon fontSize="small" color="action" />}
@@ -188,29 +216,8 @@ const DriverCard: React.FC<DriverCardProps> = ({ driver }) => {
           )}
         </InfoSection>
 
-        {/* Driver Status Section - metadata and connection health */}
         <InfoSection
-          title="Driver Status"
-          icon={<InfoIcon fontSize="small" color="action" />}
-          rows={driverStatusRows}
-          showDivider
-        />
-
-        <InfoSection
-          title="Driver Hardware"
-          icon={<SpeedIcon fontSize="small" color="action" />}
-          rows={hardwareRows}
-          showDivider
-        >
-          {!telemetry && (
-            <Typography variant="body2" color="text.secondary">
-              Hardware details will be displayed when the driver connects.
-            </Typography>
-          )}
-        </InfoSection>
-
-        <InfoSection
-          title="Driver Telemetry"
+          title="Telemetry"
           icon={<SensorsIcon fontSize="small" color="action" />}
           rows={telemetry ? telemetryRows : []}
           showDivider

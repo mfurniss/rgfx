@@ -72,5 +72,8 @@ JsonDocument Telemetry::getTelemetry() {
 	// LED health status
 	doc["ledHealthy"] = getLedHealthy();
 
+	// Discovery method used to find the MQTT broker
+	doc["discoveryMethod"] = mqttDiscoveryMethod;
+
 	return doc;
 }

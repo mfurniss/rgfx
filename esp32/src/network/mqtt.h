@@ -19,6 +19,9 @@ inline void publishError(const char*, const char*) {}
 extern char mqttServerIP[16];  // "xxx.xxx.xxx.xxx\0"
 extern bool mqttServerDiscovered;
 
+// Discovery method tracking - reports how the broker was found
+extern String mqttDiscoveryMethod;
+
 // MQTT client
 extern MQTTClient mqttClient;
 
@@ -30,7 +33,10 @@ extern uint32_t mqttMessagesReceived;
 
 // Function declarations
 void setupMQTT();
+void logNetworkDiagnostics();
+bool discoverMQTTBrokerMdns();
 bool discoverMQTTBroker();
+bool tryLastKnownBroker();
 void reconnectMQTT();
 void mqttLoop();
 void sendDriverTelemetry();

@@ -140,6 +140,65 @@ bool ConfigNVS::hasDeviceId() {
 	return exists;
 }
 
+bool ConfigNVS::saveBrokerIP(const String& ip) {
+	if (ip.length() == 0 || ip.length() > 15) {
+		return false;
+	}
+
+	prefs.begin(NAMESPACE, false);
+	size_t bytesWritten = prefs.putString(KEY_BROKER_IP, ip);
+	prefs.end();
+
+	if (bytesWritten == 0) {
+		log("Failed to save broker IP to NVS");
+		return false;
+	}
+
+	log("Broker IP cached in NVS: " + ip);
+	return true;
+}
+
+String ConfigNVS::loadBrokerIP() {
+	prefs.begin(NAMESPACE, true);
+	String ip = prefs.getString(KEY_BROKER_IP, "");
+	prefs.end();
+	return ip;
+}
+
+bool ConfigNVS::hasBrokerIP() {
+	prefs.begin(NAMESPACE, true);
+	bool exists = prefs.isKey(KEY_BROKER_IP);
+	prefs.end();
+	return exists;
+}
+
+void ConfigNVS::clearBrokerIP() {
+	prefs.begin(NAMESPACE, false);
+	prefs.remove(KEY_BROKER_IP);
+	prefs.remove(KEY_BROKER_DISC);
+	prefs.end();
+	log("Broker IP cleared from NVS");
+}
+
+bool ConfigNVS::saveBrokerDiscoveryMethod(const String& method) {
+	if (method.length() == 0 || method.length() > 32) {
+		return false;
+	}
+
+	prefs.begin(NAMESPACE, false);
+	size_t bytesWritten = prefs.putString(KEY_BROKER_DISC, method);
+	prefs.end();
+
+	return bytesWritten > 0;
+}
+
+String ConfigNVS::loadBrokerDiscoveryMethod() {
+	prefs.begin(NAMESPACE, true);
+	String method = prefs.getString(KEY_BROKER_DISC, "");
+	prefs.end();
+	return method;
+}
+
 bool ConfigNVS::saveLoggingLevel(const String& level) {
 	if (level != "all" && level != "errors" && level != "off") {
 		log("ERROR: Invalid logging level: " + level);

@@ -23,7 +23,7 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 |------|-------------|
 | `mqtt.h/cpp` | MQTT client setup, connection lifecycle, topic management |
 | `mqtt_callback.cpp` | MQTT message routing and deferred operation processing |
-| `mqtt_discovery.cpp` | UDP broadcast listener for MQTT broker discovery |
+| `mqtt_discovery.cpp` | Broker discovery with fallback chain: cached IP → mDNS → UDP broadcast. Includes `logNetworkDiagnostics()`, `tryLastKnownBroker()`, `discoverMQTTBrokerMdns()`, and `discoverMQTTBroker()`. Caches broker IP in NVS on successful discovery. |
 | `mqtt_publisher.cpp` | Outbound MQTT messages: telemetry, test state, errors |
 | `mqtt_config_handler.cpp` | Handles driver configuration messages from Hub (parses rgbw_mode for RGBW strips). Note: name/description fields removed from config parsing. |
 | `mqtt_ota.h/cpp` | MQTT-initiated HTTP pull OTA. Hub publishes `{url, size, md5}` to `rgfx/driver/{mac}/ota`. ESP32 downloads firmware via HTTPClient, applies via Arduino Update class. Publishes progress every 1% (QoS 0) to `rgfx/driver/{deviceId}/ota/progress` and result (QoS 2) to `rgfx/driver/{deviceId}/ota/result`. Yields 10ms after each flash write to let WiFi/LWIP stack recover from SPI bus stalls. Polls `mqttClient.loop()` during pre-reboot delay to complete QoS 2 result handshake. Uses deferred processing pattern (queued in mqtt_callback.cpp, executed outside MQTT callback). |
@@ -52,10 +52,15 @@ The network module runs primarily on **Core 0** (the "protocol core") via `netwo
 
 ## Broker Discovery
 
-The driver discovers the MQTT broker via UDP broadcast:
-1. Hub broadcasts `{"service":"rgfx-mqtt-broker","ip":"...","port":1883}` on port 8889 every 5 seconds
-2. Driver listens and validates broker is on same subnet
-3. Once discovered, MQTT connection is established
+The driver discovers the MQTT broker using a three-tier fallback chain (in `mqtt_discovery.cpp`):
+
+1. **Cached IP** (NVS) — tried once per boot. If stale, clears after 10 MQTT failures.
+2. **mDNS query** — queries `_rgfx-mqtt._tcp` service (~3s timeout). Reliable on Windows where UDP broadcast is blocked.
+3. **UDP broadcast** — listens on port 8889 for 6 seconds. Works on macOS, often fails on Windows.
+
+All methods validate same-subnet before accepting a broker. The discovery method used is tracked in `mqttDiscoveryMethod` and included in telemetry.
+
+Network diagnostics (IP, subnet, gateway, broadcast address) are logged once per discovery cycle for debugging.
 
 ## Thread Safety
 

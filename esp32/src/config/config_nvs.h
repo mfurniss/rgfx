@@ -88,6 +88,47 @@ class ConfigNVS {
 	static bool hasDeviceId();
 
 	/**
+	 * Save broker IP to NVS for fast reconnect on reboot
+	 *
+	 * @param ip - Broker IP address string (e.g., "192.168.1.100")
+	 * @return true if saved successfully, false on error
+	 */
+	static bool saveBrokerIP(const String& ip);
+
+	/**
+	 * Load broker IP from NVS
+	 *
+	 * @return Broker IP string, or empty string if not found
+	 */
+	static String loadBrokerIP();
+
+	/**
+	 * Check if broker IP exists in NVS
+	 *
+	 * @return true if broker IP exists, false otherwise
+	 */
+	static bool hasBrokerIP();
+
+	/**
+	 * Clear broker IP and discovery method from NVS
+	 *
+	 * Removes cached broker IP (e.g., when discovery needs to restart fresh).
+	 */
+	static void clearBrokerIP();
+
+	/**
+	 * Save the discovery method that found the broker (e.g., "mDNS", "UDP broadcast")
+	 */
+	static bool saveBrokerDiscoveryMethod(const String& method);
+
+	/**
+	 * Load the discovery method that originally found the broker
+	 *
+	 * @return Discovery method string, or empty string if not found
+	 */
+	static String loadBrokerDiscoveryMethod();
+
+	/**
 	 * Save remote logging level to NVS
 	 *
 	 * @param level - Logging level ("all", "errors", or "off")
@@ -109,6 +150,8 @@ class ConfigNVS {
 	// NVS keys
 	static constexpr const char* KEY_LED_CONFIG = "led_config";
 	static constexpr const char* KEY_DEVICE_ID = "device_id";
+	static constexpr const char* KEY_BROKER_IP = "broker_ip";
+	static constexpr const char* KEY_BROKER_DISC = "broker_disc";
 	static constexpr const char* KEY_LOG_LEVEL = "log_level";
 };
 

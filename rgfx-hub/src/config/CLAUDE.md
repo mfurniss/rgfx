@@ -16,6 +16,7 @@ All tunable constants in one place. Categories:
 - `UDP_PORT`: 8811 (LED effects)
 - `UDP_MAX_PACKET_SIZE`: 1472 (MTU limit for UDP)
 - `SSDP_PORT`: 1900, `SSDP_SERVICE_URN`: broker discovery
+- `MDNS_SERVICE_TYPE`: 'rgfx-mqtt' (mDNS service type for broker discovery)
 - `UDP_DISCOVERY_PORT`: 8889, `UDP_DISCOVERY_INTERVAL_MS`: 5000
 
 **Driver Connection**

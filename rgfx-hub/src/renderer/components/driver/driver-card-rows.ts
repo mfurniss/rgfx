@@ -79,15 +79,10 @@ export function buildTelemetryRows({
         ['SDK Version', telemetry.sdkVersion] as InfoRowData,
       ]
       : []),
-    ...(driver.rssi !== undefined
-      ? [['WiFi Signal', `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`] as InfoRowData]
-      : []),
     ...(driver.uptimeMs !== undefined
       ? [['Uptime', formatUptime(driver.uptimeMs)] as InfoRowData]
       : []),
     ['Telemetry Events', formatNumber(driver.stats.telemetryEventsReceived)],
-    ['MQTT Messages Received', formatNumber(driver.stats.mqttMessagesReceived)],
-    ['MQTT Errors', formatNumber(driver.stats.mqttMessagesFailed)],
     ...(driver.lastHeartbeat
       ? [['Last Updated', `${Math.floor(Math.abs(now - driver.lastHeartbeat) / 1000)}s ago`] as InfoRowData]
       : []),
@@ -100,18 +95,34 @@ interface HardwareRowsParams {
 }
 
 /**
- * Builds hardware info rows for the driver card.
+ * Builds network info rows for the driver card.
  */
-export function buildHardwareRows({ driver, telemetry }: HardwareRowsParams): InfoRowData[] {
-  if (!telemetry) {
-    return [];
-  }
-
+export function buildNetworkRows({ driver, telemetry }: HardwareRowsParams): InfoRowData[] {
   return [
     ['IP Address', driver.ip ?? ''],
     ['MAC Address', driver.mac ?? ''],
     ['Hostname', driver.hostname ?? ''],
     ['SSID', driver.ssid ?? ''],
+    ...(driver.rssi !== undefined
+      ? [['WiFi Signal', `${formatNumber(driver.rssi)} dBm (${getSignalQuality(driver.rssi)})`] as InfoRowData]
+      : []),
+    ...(telemetry?.discoveryMethod
+      ? [['Discovery Method', telemetry.discoveryMethod] as InfoRowData]
+      : []),
+    ['MQTT Messages Received', formatNumber(driver.stats.mqttMessagesReceived)],
+    ['MQTT Errors', formatNumber(driver.stats.mqttMessagesFailed)],
+  ];
+}
+
+/**
+ * Builds hardware info rows for the driver card.
+ */
+export function buildHardwareRows(telemetry: DriverTelemetry | undefined): InfoRowData[] {
+  if (!telemetry) {
+    return [];
+  }
+
+  return [
     ['Chip Model', telemetry.chipModel],
     ['Chip Revision', formatNumber(telemetry.chipRevision)],
     ['CPU Cores', formatNumber(telemetry.chipCores)],

@@ -83,7 +83,7 @@ vi.mock('use-stick-to-bottom', () => ({
 ## Type Declarations
 
 - `types/` — Shared types split into focused modules:
-  - `types/driver.ts` — Driver, telemetry, and LED config types (LEDChipset supports WS2812B/WS2811/SK6812/WS2814, DriverTelemetry includes `ledHealthy?: boolean`)
+  - `types/driver.ts` — Driver, telemetry, and LED config types (LEDChipset supports WS2812B/WS2811/SK6812/WS2814, DriverTelemetry includes `ledHealthy?: boolean`, `discoveryMethod?: string`)
   - `types/system.ts` — System status and monitoring types
   - `types/app.ts` — AppInfo (version, licensePath, defaultRgfxConfigDir, defaultMameRomsDir) and application-level types
   - `types/global.d.ts` — Global type declarations

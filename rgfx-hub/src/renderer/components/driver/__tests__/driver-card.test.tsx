@@ -198,21 +198,28 @@ describe('DriverCard', () => {
       expect(screen.getByText(/Configuration will be displayed when LED hardware/)).toBeDefined();
     });
 
-    it('shows Driver Status section', () => {
+    it('shows Status section', () => {
       const driver = createMockDriver();
       render(<DriverCard driver={driver} />);
 
-      expect(screen.getByText('Driver Status')).toBeDefined();
+      expect(screen.getByText('Status')).toBeDefined();
     });
 
-    it('shows Driver Hardware section', () => {
+    it('shows Network section', () => {
       const driver = createMockDriver();
       render(<DriverCard driver={driver} />);
 
-      expect(screen.getByText('Driver Hardware')).toBeDefined();
+      expect(screen.getByText('Network')).toBeDefined();
     });
 
-    it('shows message when no telemetry in Driver Hardware section', () => {
+    it('shows Hardware section', () => {
+      const driver = createMockDriver();
+      render(<DriverCard driver={driver} />);
+
+      expect(screen.getByText('Hardware')).toBeDefined();
+    });
+
+    it('shows message when no telemetry in Hardware section', () => {
       // lodash merge ignores undefined, so delete telemetry after creation
       const driver = createMockDriver();
       delete (driver as { telemetry?: unknown }).telemetry;
@@ -221,7 +228,7 @@ describe('DriverCard', () => {
       expect(screen.getByText(/Hardware details will be displayed/)).toBeDefined();
     });
 
-    it('shows message when no telemetry in Driver Telemetry section', () => {
+    it('shows message when no telemetry in Telemetry section', () => {
       // lodash merge ignores undefined, so delete telemetry after creation
       const driver = createMockDriver();
       delete (driver as { telemetry?: unknown }).telemetry;
@@ -230,11 +237,11 @@ describe('DriverCard', () => {
       expect(screen.getByText(/No telemetry data received/)).toBeDefined();
     });
 
-    it('shows Driver Telemetry section', () => {
+    it('shows Telemetry section', () => {
       const driver = createMockDriver();
       render(<DriverCard driver={driver} />);
 
-      expect(screen.getByText('Driver Telemetry')).toBeDefined();
+      expect(screen.getByText('Telemetry')).toBeDefined();
     });
   });
 
