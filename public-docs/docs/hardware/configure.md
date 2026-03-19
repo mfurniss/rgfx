@@ -62,16 +62,12 @@ When enabled, logical LED index 0 maps to the last physical LED. Use this if you
 
 ## Matrix-Specific Settings
 
-### Panel Rotation
+### Single Panel Rotation
 
-For single-panel matrices (not using unified multi-panel layout), rotate the display:
+For single-panel matrices, rotate the entire display output to match how your panel is physically mounted.
 
-- `0` degrees (default)
-- `90` degrees
-- `180` degrees
-- `270` degrees
+![Panel Rotation dropdown](../assets/images/rgfx-hub-single-panel-rotation.png){ width="50%" }
 
-Multi-panel unified layouts use per-panel rotation in the layout editor instead.
 
 ### Unified Multi-Panel Layout
 

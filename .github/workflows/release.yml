@@ -299,43 +299,9 @@ jobs:
     name: Deploy Pages
     needs: [prepare]
     if: ${{ !cancelled() && needs.prepare.result == 'success' }}
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Build docs
-        run: |
-          pip install -r public-docs/requirements.txt
-          mkdocs build -f public-docs/mkdocs.yml -d site
-
-      - name: Assemble site
-        run: |
-          mkdir -p _site/docs _site/assets
-          cp rgfx.io/index.html _site/
-          cp rgfx.io/favicon.ico _site/
-          cp -r rgfx.io/assets/* _site/assets/
-          cp -r public-docs/site/* _site/docs/
-          echo "rgfx.io" > _site/CNAME
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: _site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    uses: ./.github/workflows/deploy-docs.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
 
   create-release:
     name: Create Release
