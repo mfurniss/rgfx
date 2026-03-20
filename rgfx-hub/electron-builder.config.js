@@ -16,6 +16,7 @@ module.exports = {
     { from: 'assets/esp32/firmware', to: 'firmware' },
     { from: 'assets/mame', to: 'mame' },
     { from: 'assets/led-hardware', to: 'led-hardware' },
+    { from: 'assets/scripts', to: 'scripts' },
     { from: '../LICENSE', to: 'LICENSE' },
   ],
 
