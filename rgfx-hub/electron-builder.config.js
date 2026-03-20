@@ -2,7 +2,7 @@
 module.exports = {
   appId: 'com.rgfx.hub',
   productName: 'RGFX Hub',
-  executableName: 'rgfx-hub',
+  executableName: 'RGFX Hub',
 
   directories: {
     output: 'out',

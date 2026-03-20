@@ -61,6 +61,20 @@ You can run multiple ESP32 drivers simultaneously for separate LED strips or mat
 
 RGFX stores interceptors, transformers, LED hardware definitions, and driver configurations in a [config directory](getting-started/hub-setup.md#config-directory) on your computer. You can change this location in [Settings](hub-app/settings.md).
 
+## Log files
+
+The Hub writes a log file that records network activity, errors, and diagnostic information. This is the first place to look when troubleshooting.
+
+| Platform | Path |
+|----------|------|
+| macOS | `~/Library/Logs/RGFX Hub/main.log` |
+| Windows | `C:\Users\<username>\AppData\Roaming\RGFX Hub\logs\main.log` |
+
+The log file is rotated automatically. To view it while the Hub is running, open it with any text editor or use the terminal:
+
+- **macOS:** `tail -f ~/Library/Logs/RGFX\ Hub/main.log`
+- **Windows (PowerShell):** `Get-Content "$env:APPDATA\RGFX Hub\logs\main.log" -Tail 50 -Wait`
+
 ---
 
 ## Troubleshooting
@@ -69,23 +83,35 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 
 | Check | Details |
 |-------|---------|
-| WiFi credentials | Did you enter the correct network name and password during setup? Reflash WiFi config via USB if needed. |
+| WiFi credentials | Did you enter the correct network name and password during setup? [Reflash WiFi config via USB](getting-started/first-driver.md) if needed. |
 | Same network | The ESP32 and the computer running RGFX Hub must be on the same local network. Guest networks or VLANs may isolate devices. |
 | Hub is running | The Hub's embedded MQTT broker must be running for drivers to connect. Check the [System Status](hub-app/system-status.md) page — the MQTT Broker status should show as active. |
-| Firewall | Your computer's firewall may be blocking MQTT (port 1883) or SSDP discovery (port 1900). |
+| Firewall | On Windows, the installer adds firewall rules automatically. On macOS, allow the app when prompted. If rules were removed manually, the Hub needs inbound access on UDP ports 8889 (discovery), 1883 (MQTT), and 1900 (SSDP). |
 | ESP32 power | Is the ESP32's power LED lit? Try a different USB port or cable. |
 | Serial monitor | Connect the ESP32 via USB and check the serial output for connection errors. |
+
+### Windows: Driver not discovered
+
+On Windows, UDP broadcast packets used for driver discovery can be silently dropped even when the firewall appears to allow traffic. The Hub's `send()` call returns success, but the packet never reaches the ESP32.
+
+Starting with v1.4.7, the Hub uses mDNS (Bonjour) as a fallback discovery method, which resolves most cases. If drivers still don't appear:
+
+| Check | Details |
+|-------|---------|
+| Network profile | Open **Settings > Network & Internet** and select your WiFi network. If it shows **Public**, change it to **Private**. Windows blocks broadcast and discovery traffic on Public networks — silently, with no log entry. |
+| Virtual adapters | Run `ipconfig /all` and look for adapters from WSL, Docker, Hyper-V, or VPN software. These can hijack broadcast routing. Try temporarily disabling them and restarting the Hub. |
+| Correct IP | Check the [Hub log](#log-files) for `Detected local IP:` — confirm this matches your actual WiFi adapter IP (not a virtual adapter) by comparing with `ipconfig` output. |
 
 ### My LEDs don't respond to effects
 
 | Check | Details |
 |-------|---------|
-| GPIO pin | Verify the configured GPIO pin matches the physical pin your data wire is connected to. |
-| LED count | Make sure the LED hardware definition matches your actual hardware (correct LED count and layout type). |
+| GPIO pin | Verify the configured [GPIO pin](hub-app/driver-detail.md) matches the physical pin your data wire is connected to. |
+| LED count | Make sure the [LED hardware definition](hardware/definitions.md) matches your actual hardware (correct LED count and layout type). |
 | Power | Are the LEDs receiving power? Check that the 5V supply is connected and turned on. |
 | Data direction | LED strips have a direction — signals flow from DIN to DOUT. Make sure you're connected to the input end. |
-| Test pattern | Press the ESP32's **BOOT** button to trigger a test pattern without needing the Hub. If the test pattern works but Hub effects don't, the issue is network-side, not hardware. |
-| Brightness | Check that maximum brightness isn't set to 0 in the driver configuration. |
+| Test pattern | Press the ESP32's **BOOT** button to trigger a [test pattern](getting-started/test-leds.md) without needing the Hub. If the test pattern works but Hub effects don't, the issue is network-side, not hardware. |
+| Brightness | Check that maximum brightness isn't set to 0 in the [driver configuration](hub-app/driver-detail.md). |
 
 ### No events appear when playing a game
 
@@ -97,7 +123,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | Interceptor loading | Check MAME's console output for errors. If the interceptor has a Lua syntax error, MAME will report it. |
 | Config directory | Verify the RGFX Config Directory in [Settings](hub-app/settings.md) points to your config directory. |
 | Event log | Check that `interceptor-events.log` is being created and updated in your config directory while the game runs. |
-| Boot delay | Some interceptors have a boot delay that suppresses events during the power-on self test. Wait for the delay to expire before expecting events. |
+| Boot delay | Some interceptors have a [boot delay](interceptors/writing-interceptors.md) that suppresses events during the power-on self test. Wait for the delay to expire before expecting events. |
 
 ### My LEDs flicker or show wrong colors
 
@@ -107,16 +133,16 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 | Flickering or random pixels | Data signal integrity | Shorten the data wire, add a level shifter, or check for loose connections |
 | LEDs at the far end are dim or discolored | Voltage drop | Inject power at both ends of the strip — see [Wiring & Power](hardware/wiring.md) |
 | Only the first few LEDs work | Data line break | Check wiring continuity past the working LEDs |
-| Dim flicker at low brightness | Normal LED behavior | Enable **temporal dithering** in driver config, or adjust **floor cutoff** |
+| Dim flicker at low brightness | Normal LED behavior | Enable **temporal dithering** in [driver config](hub-app/driver-detail.md), or adjust **floor cutoff** |
 
 ### Firmware update fails
 
 | Check | Details |
 |-------|---------|
-| USB cable | Use a **data** cable, not charge-only. Try a different cable if the serial port doesn't appear. |
+| USB cable | Use a **data** cable, not charge-only. Try a different cable if the serial port doesn't appear. On Windows, you may need to install the [USB driver](getting-started/first-driver.md). |
 | Serial port | Make sure no other application (serial monitor, IDE) has the port open. |
 | Boot mode | If USB flash fails, hold the ESP32's **BOOT** button while pressing **RESET** to enter bootloader mode, then try again. |
-| OTA timeout | For OTA updates, the driver must be connected and responsive. If it's in a bad state, reflash via USB. |
+| OTA timeout | For [OTA updates](hub-app/firmware.md), the driver must be connected and responsive. If it's in a bad state, reflash via USB. |
 | Multiple drivers | OTA can update multiple drivers in parallel. If one fails, the others continue independently. |
 
 ### Hub application issues
@@ -125,7 +151,7 @@ RGFX stores interceptors, transformers, LED hardware definitions, and driver con
 |---------|-------|
 | Hub won't start | Check that no other instance is already running (the MQTT broker binds to a fixed port). |
 | Settings don't save | Verify the directories exist on disk. The Hub validates paths before saving. |
-| Events processed but no effects | Check that the game has a transformer script. Games with interceptors but no transformer use default effect mappings. |
+| Events processed but no effects | Check that the game has a [transformer script](transformers/index.md). Games with interceptors but no transformer use default effect mappings. |
 
 ### macOS: Effects don't reach drivers (EHOSTUNREACH)
 
@@ -138,7 +164,7 @@ When the Hub is launched from the **Applications folder** (double-click), macOS 
 - Drivers appear as connected in the Hub
 - MQTT commands work (test on/off, config upload)
 - LED effects don't reach drivers
-- The Hub log (`~/Library/Logs/RGFX Hub/main.log`) shows errors like:
+- The [Hub log](#log-files) shows errors like:
   `UDP send to 192.168.10.x failed: send EHOSTUNREACH`
 
 **Fix:**
