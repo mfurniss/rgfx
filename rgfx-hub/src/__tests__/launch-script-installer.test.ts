@@ -145,25 +145,6 @@ describe('launch-script-installer', () => {
       Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
     });
 
-    it('should use custom ROM path when provided', async () => {
-      const originalPlatform = process.platform;
-      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
-
-      mockAccess.mockRejectedValue(new Error('ENOENT'));
-      mockReadFile.mockResolvedValue(TEMPLATE_CONTENT);
-      mockWriteFile.mockResolvedValue(undefined);
-      mockMkdir.mockResolvedValue(undefined);
-      mockChmod.mockResolvedValue(undefined);
-
-      await installLaunchScript({ romPath: 'D:\\MyRoms' });
-
-      const writtenContent = mockWriteFile.mock.calls[0][1] as string;
-      expect(writtenContent).toContain('D:\\MyRoms');
-      expect(writtenContent).not.toContain('mame-roms');
-
-      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
-    });
-
     it('should convert to CRLF line endings on Windows', async () => {
       const originalPlatform = process.platform;
       Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });

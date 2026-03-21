@@ -445,7 +445,7 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 **Returns:** `{ success: boolean }`
 
 **Behavior:**
-- Calls `installLaunchScript({ forceOverwrite: true, romPath: romsDirectory })`
+- Calls `updateLaunchScriptRomPath(romsDirectory)` which does a targeted replacement of only the ROM_PATH line, preserving all other user customizations
 - Called from Settings > Directories when the user saves a new MAME ROMs path
 
 ---

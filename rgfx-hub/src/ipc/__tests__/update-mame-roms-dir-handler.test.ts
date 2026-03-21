@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { registerUpdateMameRomsDirHandler } from '../update-mame-roms-dir-handler';
 import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
-const { mockInstallLaunchScript } = vi.hoisted(() => ({
-  mockInstallLaunchScript: vi.fn().mockResolvedValue(undefined),
+const { mockUpdateLaunchScriptRomPath } = vi.hoisted(() => ({
+  mockUpdateLaunchScriptRomPath: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/launch-script-installer', () => ({
-  installLaunchScript: mockInstallLaunchScript,
+vi.mock('@/launch-script-updater', () => ({
+  updateLaunchScriptRomPath: mockUpdateLaunchScriptRomPath,
 }));
 
 describe('registerUpdateMameRomsDirHandler', () => {
@@ -27,22 +27,16 @@ describe('registerUpdateMameRomsDirHandler', () => {
     ipc.assertChannel('settings:update-mame-roms-dir');
   });
 
-  it('calls installLaunchScript with forceOverwrite and romPath', async () => {
+  it('calls updateLaunchScriptRomPath with the directory', async () => {
     const result = await registeredHandler({}, 'D:\\MyRoms');
 
-    expect(mockInstallLaunchScript).toHaveBeenCalledWith({
-      forceOverwrite: true,
-      romPath: 'D:\\MyRoms',
-    });
+    expect(mockUpdateLaunchScriptRomPath).toHaveBeenCalledWith('D:\\MyRoms');
     expect(result).toEqual({ success: true });
   });
 
   it('passes the ROM directory path through', async () => {
     await registeredHandler({}, '/home/user/roms');
 
-    expect(mockInstallLaunchScript).toHaveBeenCalledWith({
-      forceOverwrite: true,
-      romPath: '/home/user/roms',
-    });
+    expect(mockUpdateLaunchScriptRomPath).toHaveBeenCalledWith('/home/user/roms');
   });
 });

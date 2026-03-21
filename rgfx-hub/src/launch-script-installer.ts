@@ -10,13 +10,7 @@ const SCRIPT_FILENAMES: Record<string, string> = {
   win32: 'launch-mame.bat',
 };
 
-interface LaunchScriptOptions {
-  forceOverwrite?: boolean;
-  romPath?: string;
-}
-
-export async function installLaunchScript(options: LaunchScriptOptions = {}): Promise<void> {
-  const { forceOverwrite = false, romPath } = options;
+export async function installLaunchScript(forceOverwrite = false): Promise<void> {
   const scriptFilename = SCRIPT_FILENAMES[process.platform];
 
   if (!scriptFilename) {
@@ -39,7 +33,7 @@ export async function installLaunchScript(options: LaunchScriptOptions = {}): Pr
 
   const placeholders: Record<string, string> = {
     '{{RGFX_LUA_PATH}}': join(getBundledAssetDir('mame'), 'rgfx.lua'),
-    '{{ROM_PATH}}': romPath ?? join(homedir(), 'mame-roms'),
+    '{{ROM_PATH}}': join(homedir(), 'mame-roms'),
   };
 
   const templatePath = join(getBundledAssetDir('scripts'), scriptFilename);
