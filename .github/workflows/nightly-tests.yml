@@ -1,0 +1,125 @@
+name: Nightly Tests
+
+on:
+  schedule:
+    - cron: '0 10 * * *' # 10:00 UTC = 2am PST
+  workflow_dispatch: {}
+
+permissions: read-all
+
+jobs:
+  test-hub:
+    name: Hub Tests (shuffled)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rgfx-hub
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: .
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --sequence.shuffle
+
+  test-driver:
+    name: Driver Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.platformio
+            esp32/.pio
+          key: pio-${{ hashFiles('esp32/platformio.ini') }}
+          restore-keys: pio-
+
+      - name: Inject version
+        run: node scripts/inject-version-driver.js
+
+      - name: Generate HTML headers
+        run: python3 esp32/html_to_progmem.py
+
+      - name: Build firmware
+        run: pio run --project-dir esp32
+
+      - name: Run native tests
+        env:
+          CFLAGS: "-fno-pie"
+          CXXFLAGS: "-fno-pie"
+          LDFLAGS: "-no-pie"
+          ASAN_OPTIONS: "detect_leaks=0"
+        run: pio test -e native --project-dir esp32
+
+  report-failures:
+    name: Report Failures
+    needs: [test-hub, test-driver]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Create issue for nightly failure
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Ensure the label exists (idempotent)
+          gh label create nightly-failure --color D93F0B --description "Nightly test run failure" --force
+
+          # Skip if an open issue with this label already exists
+          OPEN=$(gh issue list --label nightly-failure --state open --limit 1 --json number --jq length)
+          if [ "$OPEN" -gt 0 ]; then
+            echo "Open nightly-failure issue already exists — skipping"
+            exit 0
+          fi
+
+          # Build failure summary
+          DATE=$(date -u +%Y-%m-%d)
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          BODY="## Nightly test failure — ${DATE}
+
+          **Run:** ${RUN_URL}
+
+          | Job | Status |
+          |-----|--------|
+          | Hub Tests (shuffled) | ${{ needs.test-hub.result }} |
+          | Driver Tests | ${{ needs.test-driver.result }} |
+
+          Check the [workflow run](${RUN_URL}) for details."
+
+          gh issue create \
+            --title "Nightly test failure — ${DATE}" \
+            --body "$BODY" \
+            --label nightly-failure
