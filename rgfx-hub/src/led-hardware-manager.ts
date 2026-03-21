@@ -25,7 +25,7 @@ export class LEDHardwareManager {
   /**
    * Load LED hardware definition from file.
    * Always reads from disk - the JSON file is the source of truth.
-   * @param hardwareRef - Relative path like "led-hardware/hjhx-8x8-matrix.json"
+   * @param hardwareRef - Relative path like "led-hardware/ws2812b-matrix-8x8.json"
    * @returns Parsed LEDHardware or null if file doesn't exist
    * @throws ConfigError if file exists but cannot be parsed or validated
    */

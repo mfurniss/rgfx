@@ -74,6 +74,8 @@ Key test helpers:
 - `__tests__/factories/` — Mock factories for drivers, telemetry, MQTT subscriptions
 - `__tests__/factories/mqtt.factory.ts` — `createMqttSubscriptionMock()` for MQTT subscription tests
 
+**Mock isolation**: Tests that import real exports from a module that other test files mock via `vi.doMock` must use `vi.importActual()` to bypass the mock registry. Static imports can receive a poisoned module when vitest schedules both files in the same thread pool. See `update-checker.test.ts` for the pattern.
+
 Tests for components using `use-stick-to-bottom` must mock the module:
 ```typescript
 vi.mock('use-stick-to-bottom', () => ({

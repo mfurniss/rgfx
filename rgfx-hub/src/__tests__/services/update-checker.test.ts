@@ -1,10 +1,24 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { isNewerVersion, checkForUpdate } from '../../services/update-checker';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+// Static import satisfies unused-exports checker
+import { isNewerVersion as _isNewerVersion, checkForUpdate as _checkForUpdate } from '../../services/update-checker';
 
 vi.mock('electron', () => ({
   app: { isPackaged: true },
   ipcMain: { handle: vi.fn() },
 }));
+
+// Use vi.importActual to get the real module, bypassing any vi.doMock
+// pollution from other tests sharing the same vitest thread pool
+let isNewerVersion: typeof _isNewerVersion;
+let checkForUpdate: typeof _checkForUpdate;
+
+beforeAll(async () => {
+  const mod = await vi.importActual<typeof import('../../services/update-checker')>(
+    '../../services/update-checker',
+  );
+  isNewerVersion = mod.isNewerVersion;
+  checkForUpdate = mod.checkForUpdate;
+});
 
 describe('isNewerVersion', () => {
   it('returns true when latest is newer (patch)', () => {

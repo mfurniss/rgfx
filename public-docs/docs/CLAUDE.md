@@ -109,7 +109,7 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - Video effect requires ffmpeg; documented with an admonition on effects.md and listed as optional dependency on requirements.md
 - FX Playground page (`hub-app/fx-playground.md`) includes a Video Playback subsection explaining the file picker and play/stop controls
 - Writing interceptors page has an expanded MAME debugger section with command table and link to official debugger reference
-- First-driver page includes a Windows USB driver admonition linking to the Silicon Labs CP210x driver download page. Hardware definition examples reference actual bundled filenames (e.g., "sezo-16x16-matrix") not generic names.
+- First-driver page includes a Windows USB driver admonition linking to the Silicon Labs CP210x driver download page. Hardware definition examples reference actual bundled filenames (e.g., "ws2812b-matrix-16x16") not generic names.
 - ESP32 firmware variants: `esp32dev` (WROOM) and `lolin_s3_mini` (S3) — no ESP32-C3 firmware exists
 - GPIO valid range is 0-48 (ESP32-S3 has higher GPIO numbers than original ESP32)
 - FFT module requires `emit_events = true` to emit events (defaults to false)

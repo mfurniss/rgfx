@@ -1,9 +1,0 @@
-{
-  "description": "1m FCOB WS2814 RGBW LED strip, 784 LEDs/m (196 pixels), warm white 3000K, DC24V",
-  "sku": null,
-  "asin": null,
-  "layout": "strip",
-  "count": 14,
-  "chipset": "WS2814",
-  "colorOrder": "WRGB"
-}
