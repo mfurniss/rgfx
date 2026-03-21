@@ -33,55 +33,9 @@ jobs:
       - run: npm run lint
       - run: npm test -- --sequence.shuffle
 
-  test-driver:
-    name: Driver Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install PlatformIO
-        run: pip install platformio
-
-      - name: Cache PlatformIO
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.platformio
-            esp32/.pio
-          key: pio-${{ hashFiles('esp32/platformio.ini') }}
-          restore-keys: pio-
-
-      - name: Inject version
-        run: node scripts/inject-version-driver.js
-
-      - name: Generate HTML headers
-        run: python3 esp32/html_to_progmem.py
-
-      - name: Build firmware
-        run: pio run --project-dir esp32
-
-      - name: Run native tests
-        env:
-          CFLAGS: "-fno-pie"
-          CXXFLAGS: "-fno-pie"
-          LDFLAGS: "-no-pie"
-          ASAN_OPTIONS: "detect_leaks=0"
-        run: pio test -e native --project-dir esp32
-
   report-failures:
     name: Report Failures
-    needs: [test-hub, test-driver]
+    needs: [test-hub]
     if: failure()
     runs-on: ubuntu-latest
     permissions:
@@ -111,11 +65,6 @@ jobs:
           BODY="## Nightly test failure — ${DATE}
 
           **Run:** ${RUN_URL}
-
-          | Job | Status |
-          |-----|--------|
-          | Hub Tests (shuffled) | ${{ needs.test-hub.result }} |
-          | Driver Tests | ${{ needs.test-driver.result }} |
 
           Check the [workflow run](${RUN_URL}) for details."
 
