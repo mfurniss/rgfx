@@ -286,4 +286,109 @@ describe('SystemMonitor', () => {
       expect(systemMonitor.getUdpStatsForDriver('driver-1')).toEqual({ sent: 1, failed: 0 });
     });
   });
+
+  describe('getFullStatus', () => {
+    it('should throw when status sources not registered', () => {
+      expect(() => systemMonitor.getFullStatus()).toThrow('Status sources not registered');
+    });
+
+    it('should return full status using registered sources', () => {
+      systemMonitor.registerStatusSources({
+        getConnectedCount: () => 3,
+        getTotalCount: () => 5,
+        getEventsProcessed: () => 100,
+        getEventLogSizeBytes: () => 2048,
+        getErrors: () => [],
+      });
+
+      const status = systemMonitor.getFullStatus();
+
+      expect(status.driversConnected).toBe(3);
+      expect(status.driversTotal).toBe(5);
+      expect(status.eventsProcessed).toBe(100);
+      expect(status.eventLogSizeBytes).toBe(2048);
+    });
+
+    it('should include errors from registered sources', () => {
+      const errors = [
+        { errorType: 'interceptor' as const, message: 'test', timestamp: 1000 },
+      ];
+
+      systemMonitor.registerStatusSources({
+        getConnectedCount: () => 0,
+        getTotalCount: () => 0,
+        getEventsProcessed: () => 0,
+        getEventLogSizeBytes: () => 0,
+        getErrors: () => errors,
+      });
+
+      const status = systemMonitor.getFullStatus();
+
+      expect(status.systemErrors).toEqual(errors);
+    });
+  });
+
+  describe('setFfmpegAvailable', () => {
+    it('should update ffmpegAvailable in system status', () => {
+      systemMonitor.setFfmpegAvailable(true);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.ffmpegAvailable).toBe(true);
+    });
+
+    it('should default to false', () => {
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.ffmpegAvailable).toBe(false);
+    });
+  });
+
+  describe('getUdpStatsByDriver', () => {
+    it('should return the full stats map', () => {
+      systemMonitor.trackUdpSent('driver-1', true);
+      systemMonitor.trackUdpSent('driver-2', false);
+
+      const statsMap = systemMonitor.getUdpStatsByDriver();
+
+      expect(statsMap).toBeInstanceOf(Map);
+      expect(statsMap.get('driver-1')).toEqual({ sent: 1, failed: 0 });
+      expect(statsMap.get('driver-2')).toEqual({ sent: 0, failed: 1 });
+    });
+  });
+
+  describe('startUpdateChecker', () => {
+    it('should schedule an update check after delay', () => {
+      vi.useFakeTimers();
+
+      const mockCheckForUpdate = vi.fn().mockResolvedValue('https://github.com/release/v1.0.0');
+      vi.doMock('../services/update-checker', () => ({
+        checkForUpdate: mockCheckForUpdate,
+      }));
+
+      systemMonitor.startUpdateChecker('0.9.0');
+
+      // Should not be called immediately
+      expect(mockCheckForUpdate).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe('updateAvailable in status', () => {
+    it('should include update URL when set', () => {
+      // Access private field via any to simulate update check result
+      (systemMonitor as any).updateReleaseUrl = 'https://github.com/release/v2.0.0';
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.updateAvailable).toBe('https://github.com/release/v2.0.0');
+    });
+
+    it('should be undefined when no update available', () => {
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.updateAvailable).toBeUndefined();
+    });
+  });
 });

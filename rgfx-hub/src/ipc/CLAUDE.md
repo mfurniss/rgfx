@@ -479,3 +479,4 @@ All handlers follow a standardized error handling pattern:
 - `backup-handler`, `load-gif-handler`, and others use `getErrorMessage()` utility for safe error-to-string conversion
 
 <\!-- No per-file license headers — see root LICENSE -->
+

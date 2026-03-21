@@ -115,6 +115,23 @@ describe('registerAppLifecycleHandlers', () => {
     expect(mockApp.on).toHaveBeenCalledWith('activate', expect.any(Function));
   });
 
+  describe('second-instance handler', () => {
+    it('should focus the window when a second instance is launched', async () => {
+      const mockFocusWindow = vi.fn();
+      deps.windowManager = {
+        ...deps.windowManager,
+        focusWindow: mockFocusWindow,
+      } as unknown as WindowManager;
+
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('second-instance');
+
+      expect(mockFocusWindow).toHaveBeenCalled();
+    });
+  });
+
   describe('ready handler', () => {
     it('should set about panel options', async () => {
       const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
@@ -137,6 +154,56 @@ describe('registerAppLifecycleHandlers', () => {
       triggerAppEvent('ready');
 
       expect(mockWindowManager.createWindow).toHaveBeenCalled();
+    });
+
+    it('should load Redux DevTools in dev mode', async () => {
+      // Set dev server URL to simulate dev mode
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = 'http://localhost:5173';
+
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('ready');
+
+      expect(mockSession.defaultSession.extensions.loadExtension).toHaveBeenCalledWith(
+        expect.stringContaining('lmhkpmbekcpmknklioeibfkpmmfibljd'),
+        expect.objectContaining({ allowFileAccess: true }),
+      );
+
+      // Reset
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
+    });
+
+    it('should handle Redux DevTools load failure gracefully', async () => {
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = 'http://localhost:5173';
+      mockSession.defaultSession.extensions.loadExtension.mockRejectedValueOnce(
+        new Error('Extension not found'),
+      );
+
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('ready');
+
+      // Should not throw — error is caught and logged as warning
+      await vi.waitFor(() => {
+        expect(mockLog.warn).toHaveBeenCalledWith(
+          expect.stringContaining('Redux DevTools not available'),
+        );
+      });
+
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
+    });
+
+    it('should not load Redux DevTools in production mode', async () => {
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
+
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('ready');
+
+      expect(mockSession.defaultSession.extensions.loadExtension).not.toHaveBeenCalled();
     });
   });
 
@@ -217,6 +284,15 @@ describe('registerAppLifecycleHandlers', () => {
       triggerAppEvent('before-quit');
 
       expect(mockSetShuttingDown).toHaveBeenCalled();
+    });
+
+    it('should stop event reader', async () => {
+      const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
+
+      registerAppLifecycleHandlers(deps);
+      triggerAppEvent('before-quit');
+
+      expect(mockServices.eventReader.stop).toHaveBeenCalled();
     });
   });
 

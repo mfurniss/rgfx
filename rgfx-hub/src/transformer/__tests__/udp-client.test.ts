@@ -21,15 +21,17 @@ const mockSystemMonitor = {
 const udpMock = createUdpSocketMock();
 
 // Mock VideoPlayer
+const mockVideoPlayerInstance = {
+  init: vi.fn().mockResolvedValue(undefined),
+  play: vi.fn(),
+  stop: vi.fn(),
+  destroy: vi.fn(),
+  isPlaying: vi.fn().mockReturnValue(false),
+  isFfmpegAvailable: vi.fn().mockReturnValue(false),
+};
+
 vi.mock('@/video-player', () => ({
-  VideoPlayer: vi.fn().mockImplementation(() => ({
-    init: vi.fn().mockResolvedValue(undefined),
-    play: vi.fn(),
-    stop: vi.fn(),
-    destroy: vi.fn(),
-    isPlaying: vi.fn().mockReturnValue(false),
-    isFfmpegAvailable: vi.fn().mockReturnValue(false),
-  })),
+  VideoPlayer: vi.fn().mockImplementation(() => mockVideoPlayerInstance),
 }));
 
 // Mock dgram module
@@ -759,6 +761,122 @@ describe('UdpClientImpl', () => {
 
       expect(udpMock.driverSendCount).toBe(1);
       expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.102');
+    });
+  });
+
+  describe('video effect handling', () => {
+    it('should delegate video stop to VideoPlayer', () => {
+      const mockVideoPlayer = mockVideoPlayerInstance;
+
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { action: 'stop' },
+      };
+
+      const result = udpClient.broadcast(payload);
+
+      expect(result).toBe(true);
+      expect(mockVideoPlayer.stop).toHaveBeenCalled();
+    });
+
+    it('should delegate video play to VideoPlayer when ffmpeg available', () => {
+      const mockVideoPlayer = mockVideoPlayerInstance;
+      mockVideoPlayer.isFfmpegAvailable.mockReturnValue(true);
+
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/test.mp4', fps: 30, loop: true, fit: 'stretch' },
+      };
+
+      const result = udpClient.broadcast(payload);
+
+      expect(result).toBe(true);
+      expect(mockVideoPlayer.play).toHaveBeenCalledWith(
+        '/test.mp4',
+        expect.objectContaining({ fps: 30, loop: true, fit: 'stretch' }),
+        expect.any(Array),
+        expect.any(Function),
+      );
+    });
+
+    it('should return false for video without file prop', () => {
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { action: 'play' },
+      };
+
+      const result = udpClient.broadcast(payload);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false for video when ffmpeg unavailable', () => {
+      const mockVideoPlayer = mockVideoPlayerInstance;
+      mockVideoPlayer.isFfmpegAvailable.mockReturnValue(false);
+
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/test.mp4' },
+      };
+
+      const result = udpClient.broadcast(payload);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false for video when no connected drivers', () => {
+      const mockVideoPlayer = mockVideoPlayerInstance;
+      mockVideoPlayer.isFfmpegAvailable.mockReturnValue(true);
+
+      const emptyRegistry = new DriverRegistry();
+      const emptyClient = new UdpClientImpl(emptyRegistry, mockSystemMonitor);
+
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/test.mp4' },
+      };
+
+      const result = emptyClient.broadcast(payload);
+
+      expect(result).toBe(false);
+      emptyClient.stop();
+    });
+
+    it('should filter video drivers by payload.drivers', () => {
+      const mockVideoPlayer = mockVideoPlayerInstance;
+      mockVideoPlayer.isFfmpegAvailable.mockReturnValue(true);
+
+      const payload: EffectPayload = {
+        effect: 'video',
+        props: { file: '/test.mp4' },
+        drivers: ['rgfx-driver-0001'],
+      };
+
+      udpClient.broadcast(payload);
+
+      const playCall = mockVideoPlayer.play.mock.calls[0];
+      const drivers = playCall[2] as Driver[];
+      expect(drivers).toHaveLength(1);
+      expect(drivers[0].id).toBe('rgfx-driver-0001');
+    });
+  });
+
+  describe('stop', () => {
+    it('should close socket and destroy video player', () => {
+      const mockVideoPlayer = mockVideoPlayerInstance;
+
+      udpClient.stop();
+
+      expect(mockVideoPlayer.destroy).toHaveBeenCalled();
+      expect(udpMock.mockSocketClose).toHaveBeenCalled();
+    });
+
+    it('should return false for broadcast after stop', () => {
+      udpClient.stop();
+
+      const result = udpClient.broadcast({ effect: 'test' });
+
+      expect(result).toBe(false);
     });
   });
 

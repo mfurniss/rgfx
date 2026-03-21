@@ -93,3 +93,4 @@ vi.mock('use-stick-to-bottom', () => ({
 - `vite-env.d.ts` — Vite environment variable declarations
 
 <\!-- No per-file license headers — see root LICENSE -->
+
