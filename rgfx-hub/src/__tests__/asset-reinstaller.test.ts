@@ -33,6 +33,12 @@ import { reinstallAllAssets } from '../asset-reinstaller';
 describe('reinstallAllAssets', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Restore default resolved values — clearMocks only clears call history,
+    // not mockRejectedValue set by other tests in shuffled order
+    mockInstallDefaultInterceptors.mockResolvedValue(undefined);
+    mockInstallDefaultTransformers.mockResolvedValue(undefined);
+    mockInstallDefaultLedHardware.mockResolvedValue(undefined);
+    mockInstallLaunchScript.mockResolvedValue(undefined);
   });
 
   it('should call all four installers with forceOverwrite=true', async () => {

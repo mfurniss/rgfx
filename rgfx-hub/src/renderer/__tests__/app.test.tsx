@@ -1,7 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import App from '../app';
 import type { Driver, SystemStatus, SystemError } from '@/types';
 import { createMockSystemStatus } from '@/__tests__/factories';
 import {
@@ -49,11 +48,20 @@ vi.mock('../store/system-status-store', () => ({
   useSystemStatusStore: vi.fn((selector) => selector(createMockSystemStatusState())),
 }));
 
+// Dynamic import so vi.resetModules() gives us a fresh module with
+// rendererReadyCalled=false regardless of test ordering
+async function importApp(): Promise<React.FC> {
+  const mod = await import('../app.js') as unknown as { default: React.FC };
+  return mod.default;
+}
+
 describe('App IPC Listener Registration', () => {
   let mock: MockRgfxAPI;
+  let App: React.FC;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules();
     mock = installRgfxMock({
       getAppInfo: vi.fn().mockResolvedValue({
         version: '0.0.1-test',
@@ -65,6 +73,7 @@ describe('App IPC Listener Registration', () => {
         system: null, events: null, drivers: [],
       }),
     });
+    App = await importApp();
   });
 
   it('should register IPC listeners exactly once on mount', () => {
@@ -120,12 +129,15 @@ describe('App IPC Listener Registration', () => {
 });
 
 describe('App Critical Error Handling', () => {
+  let App: React.FC;
+
   // Create a fresh system status for each test to avoid state bleeding
   const createFreshSystemStatus = (): SystemStatus =>
     createMockSystemStatus({ hubIp: '192.168.1.100' });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules();
     // Reset mockSystemStatus to clean state for each test
     mockSystemStatus = createFreshSystemStatus();
     installRgfxMock({
@@ -139,6 +151,7 @@ describe('App Critical Error Handling', () => {
         system: null, events: null, drivers: [],
       }),
     });
+    App = await importApp();
   });
 
   it('should render CriticalErrorModal when config error exists', () => {

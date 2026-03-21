@@ -28,6 +28,10 @@ describe('registerGlobalErrorHandlers', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset module cache so each test gets fresh module state
+    // (shuttingDown, activeOtaDrivers). Without this, shuffled test
+    // ordering can leak shuttingDown=true from the shutdown tests.
+    vi.resetModules();
     vi.useFakeTimers();
 
     // Capture the handlers when process.on is called

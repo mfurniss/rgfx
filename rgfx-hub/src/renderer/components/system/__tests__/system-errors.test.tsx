@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SystemErrors } from '../system-errors';
+import { useUiStore } from '@/renderer/store/ui-store';
 import type { SystemError } from '@/types';
 
 const createMockError = (overrides: Partial<SystemError> = {}): SystemError => ({
@@ -13,7 +14,8 @@ const createMockError = (overrides: Partial<SystemError> = {}): SystemError => (
 
 describe('SystemErrors', () => {
   beforeEach(() => {
-    // Reset any state between tests
+    // Reset persisted sort preferences so tests don't depend on ordering
+    useUiStore.setState({ tableSortPreferences: {} });
   });
   describe('empty state', () => {
     it('shows success alert when no errors', () => {
