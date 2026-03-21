@@ -117,3 +117,4 @@ const props = randomizeExplode(); // Returns randomized explode props
 - **Shared Constants**: Gradient array schemas use `HEX_COLOR_RRGGBB_REGEX` from `@/config/constants`
 
 <\!-- No per-file license headers — see root LICENSE -->
+

@@ -41,7 +41,7 @@ Now tell the driver what LEDs are connected to it:
 
 1. Click on your driver in the [Drivers](../hub-app/drivers.md) list
 2. Click [**Configure Driver**](../hardware/configure.md)
-3. Select your LED hardware definition from the dropdown — choose the entry that matches your LED type and dimensions (e.g., "WS2812B 16x16 Matrix" or "WS2812B 60 LED Strip"). If nothing matches exactly, pick the closest option and adjust the LED count afterward. See [Hardware Definitions](../hardware/definitions.md) to create a custom definition.
+3. Select your LED hardware definition from the dropdown — choose the entry that matches your LED type and dimensions (e.g., "ws2812b-matrix-16x16" or "ws2812b-strip-300"). If nothing matches exactly, pick the closest option and adjust the LED count afterward, or [create a custom definition](../hardware/definitions.md) for your specific hardware.
 4. Set the **GPIO pin** connected to your LED data line (default: 16)
 5. Adjust **brightness** and **power limits** to match your setup
 6. Click **Save Configuration**

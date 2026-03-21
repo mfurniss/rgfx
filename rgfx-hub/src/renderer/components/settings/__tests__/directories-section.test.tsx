@@ -56,6 +56,7 @@ describe('DirectoriesSection', () => {
     (window as unknown as { rgfx: Record<string, unknown> }).rgfx = {
       verifyDirectory: mockVerifyDirectory,
       selectDirectory: mockSelectDirectory,
+      updateMameRomsDirectory: vi.fn().mockResolvedValue({ success: true }),
     };
   });
 

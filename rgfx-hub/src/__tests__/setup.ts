@@ -29,6 +29,12 @@ vi.mock('tasmota-webserial-esptool', () => ({
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
 
+// Provide a default window.rgfx mock so renderer tests that set it in
+// beforeEach always start from a clean baseline, regardless of test ordering.
+// Tests can override specific methods via installRgfxMock() or direct assignment.
+import { createRgfxMock } from './create-rgfx-mock';
+(window as Window & { rgfx: unknown }).rgfx = createRgfxMock();
+
 // Define Vite globals injected by Electron Forge at build time
 // These must be defined for tests that import window-manager
 (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
@@ -102,7 +108,19 @@ afterEach(async () => {
   // Clean up rendered React components to prevent test isolation issues
   cleanup();
 
+  // Restore window.rgfx to a fresh default mock so no test leaks its
+  // partial mock into another test in the same thread pool
+  (window as Window & { rgfx: unknown }).rgfx = createRgfxMock();
+
+  // Clear localStorage to prevent Zustand persisted state (sort preferences,
+  // UI settings) from leaking between tests in shuffled order
+  localStorage.clear();
+
   vi.clearAllTimers();
+  // Restore real timers if a test used vi.useFakeTimers() without restoring.
+  // clearAllTimers only clears pending timers; useRealTimers restores the
+  // native setTimeout/setInterval so async tests don't hang.
+  vi.useRealTimers();
 
   // Force cleanup of all tracked resources
   for (const resource of activeResources) {
@@ -116,9 +134,11 @@ afterEach(async () => {
   }
   activeResources.length = 0;
 
-  // NOTE: restoreAllMocks() disabled because it breaks vi.mock() with vi.fn()
-  // Tests that use vi.spyOn() should manually restore their spies
-  // vi.restoreAllMocks();
+  // NOTE: Do NOT enable restoreMocks in vitest config. It calls mockRestore()
+  // on every vi.fn(), which strips implementations set in vi.mock() factories
+  // (since vi.fn() has no "original" to restore to, it becomes a noop returning
+  // undefined). Only vi.spyOn() benefits from restore — tests using spyOn should
+  // call .mockRestore() manually.
 });
 
 // Emergency cleanup after all tests complete

@@ -176,7 +176,7 @@ describe('preload API', () => {
       'clearTransformerState', 'loadGif', 'restartDriver',
       'deleteDriver', 'showInFolder', 'getLogSizes', 'clearAllLogs',
       'createBackup', 'setDriverId', 'openExternal', 'reinstallAssets',
-      'selectVideoFile',
+      'selectVideoFile', 'updateMameRomsDirectory',
       // Push (10)
       'onDriverConnected', 'onDriverDisconnected',
       'onDriverUpdated', 'onDriverRestarting', 'onDriverDeleted',
@@ -186,8 +186,8 @@ describe('preload API', () => {
       'rendererReady', 'quitApp', 'launchMame',
     ];
 
-    it('has exactly 45 methods', () => {
-      expect(Object.keys(rgfxAPI)).toHaveLength(45);
+    it('has exactly 46 methods', () => {
+      expect(Object.keys(rgfxAPI)).toHaveLength(46);
     });
 
     it('contains all expected methods', () => {

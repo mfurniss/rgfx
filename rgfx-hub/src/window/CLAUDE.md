@@ -24,3 +24,4 @@ Manages the main application window lifecycle:
 Re-exports WindowManager for clean imports.
 
 <\!-- No per-file license headers — see root LICENSE -->
+

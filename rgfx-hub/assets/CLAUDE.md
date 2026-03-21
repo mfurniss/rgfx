@@ -76,8 +76,8 @@ JavaScript modules that transform game events into LED effects. Hot-reloaded by 
 ### led-hardware/
 LED hardware definition files (JSON):
 - Define physical LED products with description, SKU, layout, pixel count, chipset
-- Includes RGBW LED support (btf-ws2814-rgbw-cob-14px.json, sk6812-rgbw-5v-300px.json)
-- Includes virtual hardware definitions for simulator (virtual-strip.json, virtual-wide-matrix.json)
+- Generic definitions named by chipset and form factor (e.g., ws2812b-strip-300, ws2812b-matrix-16x16, sk6812-strip-300)
+- Includes RGBW LED support (sk6812-strip-300.json)
 
 ### Build Packaging
 

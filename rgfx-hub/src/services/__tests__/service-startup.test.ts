@@ -72,6 +72,10 @@ describe('startServices', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Restore default mock implementations — clearMocks only clears call
+    // history, not mockReturnValue set by other tests in shuffled order
+    mockPowerSaveBlocker.start.mockReturnValue(42);
+    mockPowerSaveBlocker.isStarted.mockReturnValue(true);
 
     mockServices = {
       mqtt: { start: vi.fn() },

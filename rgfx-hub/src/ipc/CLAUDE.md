@@ -24,7 +24,7 @@ Auto-generates the preload API by looping over channel maps. No per-method boile
 
 ### handler-registry.ts
 
-Contains the `IpcHandlersDeps` interface and the `handlers` array of all 26 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
+Contains the `IpcHandlersDeps` interface and the `handlers` array of all 27 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
 
 ### index.ts
 
@@ -433,6 +433,23 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 
 ---
 
+### `settings:update-mame-roms-dir`
+
+**File:** [update-mame-roms-dir-handler.ts](update-mame-roms-dir-handler.ts)
+
+**Purpose:** Regenerates the MAME launch script with an updated ROM path.
+
+**Parameters:**
+- `romsDirectory: string` - The user's configured MAME ROMs directory
+
+**Returns:** `{ success: boolean }`
+
+**Behavior:**
+- Calls `updateLaunchScriptRomPath(romsDirectory)` which does a targeted replacement of only the ROM_PATH line, preserving all other user customizations
+- Called from Settings > Directories when the user saves a new MAME ROMs path
+
+---
+
 ## Tests
 
 ### Test Pattern
@@ -462,3 +479,4 @@ All handlers follow a standardized error handling pattern:
 - `backup-handler`, `load-gif-handler`, and others use `getErrorMessage()` utility for safe error-to-string conversion
 
 <\!-- No per-file license headers — see root LICENSE -->
+

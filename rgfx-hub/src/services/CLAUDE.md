@@ -119,6 +119,8 @@ Simple pub/sub event bus for inter-service communication.
 ## Testing Notes
 
 - Global `vi.mock('electron-log/main')` in `setup.ts` provides default log mock; tests needing custom log refs (e.g., `logging.test.ts`) override per-file with `vi.hoisted()`.
+- `global-error-handler.test.ts` uses `vi.resetModules()` in `beforeEach` because the module has mutable state (`shuttingDown`, `activeOtaDrivers`) that persists across shuffled tests.
+- `service-startup.test.ts` restores `mockPowerSaveBlocker` return values in `beforeEach` because `vi.clearAllMocks()` only clears call history, not `mockReturnValue` implementations.
 
 ## Usage
 

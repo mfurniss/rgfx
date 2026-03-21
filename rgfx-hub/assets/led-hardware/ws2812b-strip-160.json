@@ -1,9 +1,9 @@
 {
-  "description": "45 pixel ring",
+  "description": "WS2812B 160 LED strip",
   "sku": null,
   "asin": null,
   "layout": "strip",
-  "count": 45,
+  "count": 160,
   "chipset": "WS2812B",
   "colorOrder": "GRB"
 }

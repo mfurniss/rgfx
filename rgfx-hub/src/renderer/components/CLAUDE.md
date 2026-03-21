@@ -839,9 +839,25 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 
 ---
 
+### DirectoriesSection
+
+**File:** [settings/directories-section.tsx](settings/directories-section.tsx)
+
+**Purpose:** Settings section for configuring RGFX config and MAME ROMs directories.
+
+**Features:**
+- Config directory and MAME ROMs directory pickers with validation
+- Save button validates directories exist before persisting
+- On save, calls `updateMameRomsDirectory` IPC to regenerate the MAME launch script with the new ROM path
+- Uses initialization refs to prevent infinite loops on Windows
+
+---
+
 ## Testing Notes
 
 - **Do NOT call `cleanup()` in component tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.
 - **Do NOT add `vi.mock('electron-log/main')` or `vi.mock('electron')` unless you need custom mock refs.** Global mocks in `setup.ts` cover the standard cases.
+- **Set `window.rgfx` in `beforeEach`, not at module level.** Global `afterEach` resets `window.rgfx` to a default mock after each test, so module-level assignments are lost. Use `installRgfxMock()` or direct assignment in `beforeEach`.
+- **Reset Zustand store state in `beforeEach`** when tests depend on default store values (e.g., `useUiStore.setState({ tableSortPreferences: {} })`). Zustand singletons persist in memory across tests even after `localStorage.clear()`.
 
 <\!-- No per-file license headers — see root LICENSE -->

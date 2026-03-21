@@ -1,5 +1,5 @@
 {
-  "description": "8x32 WS2812B flexible LED panel with 256 individually addressable pixels",
+  "description": "WS2812B 8x32 LED matrix",
   "sku": null,
   "asin": null,
   "layout": "matrix-br-h-snake",

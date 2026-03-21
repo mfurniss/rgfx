@@ -145,6 +145,85 @@ describe('launch-script-installer', () => {
       Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
     });
 
+    it('should produce valid quoting for Windows paths with spaces', async () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+
+      const batTemplate = [
+        '@echo off',
+        'set "RGFX_LUA_PATH={{RGFX_LUA_PATH}}"',
+        'set "ROM_PATH={{ROM_PATH}}"',
+        'set "MAME_PATH="',
+      ].join('\n');
+
+      mockAccess.mockRejectedValue(new Error('ENOENT'));
+      mockReadFile.mockResolvedValue(batTemplate);
+      mockWriteFile.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await installLaunchScript();
+
+      const writtenContent = mockWriteFile.mock.calls[0][1] as string;
+
+      // Paths with spaces must be inside set "VAR=value" (no embedded quotes)
+      expect(writtenContent).toMatch(/^set "RGFX_LUA_PATH=[^"]+rgfx\.lua"$/m);
+      expect(writtenContent).toMatch(/^set "ROM_PATH=[^"]+mame-roms"$/m);
+
+      // The value must NOT contain embedded quotes
+      const luaMatch = /^set "RGFX_LUA_PATH=(.*)"$/m.exec(writtenContent);
+      expect(luaMatch?.[1]).not.toContain('"');
+
+      const romMatch = /^set "ROM_PATH=(.*)"$/m.exec(writtenContent);
+      expect(romMatch?.[1]).not.toContain('"');
+
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+    });
+
+    it('should produce valid quoting for macOS paths with spaces', async () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
+
+      const shTemplate = [
+        '#!/bin/bash',
+        'RGFX_LUA_PATH="{{RGFX_LUA_PATH}}"',
+        'ROM_PATH="{{ROM_PATH}}"',
+        'MAME_PATH=""',
+      ].join('\n');
+
+      mockAccess.mockRejectedValue(new Error('ENOENT'));
+      mockReadFile.mockResolvedValue(shTemplate);
+      mockWriteFile.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+      mockChmod.mockResolvedValue(undefined);
+
+      await installLaunchScript();
+
+      const writtenContent = mockWriteFile.mock.calls[0][1] as string;
+
+      // Paths must be inside VAR="value" (no embedded quotes)
+      expect(writtenContent).toMatch(/^RGFX_LUA_PATH="[^"]+rgfx\.lua"$/m);
+      expect(writtenContent).toMatch(/^ROM_PATH="[^"]+mame-roms"$/m);
+
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+    });
+
+    it('should convert to CRLF line endings on Windows', async () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+
+      mockAccess.mockRejectedValue(new Error('ENOENT'));
+      mockReadFile.mockResolvedValue('line1\nline2\nline3');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await installLaunchScript();
+
+      const writtenContent = mockWriteFile.mock.calls[0][1] as string;
+      expect(writtenContent).toBe('line1\r\nline2\r\nline3');
+
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+    });
+
     it('should not overwrite existing file', async () => {
       const originalPlatform = process.platform;
       Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });

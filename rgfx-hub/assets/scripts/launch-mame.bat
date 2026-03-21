@@ -14,6 +14,10 @@ set "ROM_PATH={{ROM_PATH}}"
 :: Leave empty to auto-detect MAME from common locations and PATH
 set "MAME_PATH="
 
+:: Strip embedded quotes from paths (handles both set "VAR=value" and set VAR="value")
+set "RGFX_LUA_PATH=%RGFX_LUA_PATH:"=%"
+set "ROM_PATH=%ROM_PATH:"=%"
+
 :: Verify rgfx.lua exists
 if not exist "%RGFX_LUA_PATH%" (
     echo Error: rgfx.lua not found at: %RGFX_LUA_PATH%

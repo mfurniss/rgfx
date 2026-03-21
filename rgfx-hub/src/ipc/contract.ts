@@ -59,6 +59,7 @@ export const INVOKE_CHANNELS = {
   openExternal: 'app:open-external',
   reinstallAssets: 'assets:reinstall',
   selectVideoFile: 'dialog:select-video-file',
+  updateMameRomsDirectory: 'settings:update-mame-roms-dir',
 } as const;
 
 /** Push channels: main sends to renderer via webContents.send. */
@@ -215,6 +216,10 @@ export interface InvokeContract {
   selectVideoFile: {
     args: [];
     return: string | null;
+  };
+  updateMameRomsDirectory: {
+    args: [romsDirectory: string];
+    return: { success: boolean };
   };
 }
 

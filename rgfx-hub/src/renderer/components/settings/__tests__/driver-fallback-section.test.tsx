@@ -19,14 +19,15 @@ const mockSetDriverFallbackEnabledIpc = vi.fn().mockResolvedValue({
   success: true,
 });
 
-(window as unknown as { rgfx: Record<string, unknown> }).rgfx = {
-  setDriverFallbackEnabled: mockSetDriverFallbackEnabledIpc,
-};
-
 describe('DriverFallbackSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockDriverFallbackEnabled = false;
+    // Set window.rgfx in beforeEach (not at module level) because
+    // global afterEach resets it to a default mock after each test
+    (window as unknown as { rgfx: Record<string, unknown> }).rgfx = {
+      setDriverFallbackEnabled: mockSetDriverFallbackEnabledIpc,
+    };
   });
 
   describe('rendering', () => {

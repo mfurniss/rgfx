@@ -23,3 +23,4 @@ Manages application startup and shutdown:
 Re-exports lifecycle functions for clean imports.
 
 <\!-- No per-file license headers — see root LICENSE -->
+

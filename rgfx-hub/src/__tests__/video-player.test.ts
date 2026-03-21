@@ -1,13 +1,73 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Driver } from '../types';
+import { createDriver } from '../types/driver';
+
+const {
+  mockSocketSend,
+  mockSocketClose,
+  mockSocketOn,
+  mockStdoutOn,
+  mockStderrOn,
+  mockProcessOn,
+  mockProcessKill,
+  mockSpawn,
+  mockExecFile,
+} = vi.hoisted(() => {
+  const mockStdoutOn = vi.fn();
+  const mockStderrOn = vi.fn();
+  const mockProcessOn = vi.fn();
+  const mockProcessKill = vi.fn();
+
+  return {
+    mockSocketSend: vi.fn((
+      _buf: Buffer, _port: number, _addr: string,
+      cb?: (err: Error | null) => void,
+    ) => {
+      if (cb) {
+        cb(null);
+      }
+    }),
+    mockSocketClose: vi.fn(),
+    mockSocketOn: vi.fn(),
+    mockStdoutOn,
+    mockStderrOn,
+    mockProcessOn,
+    mockProcessKill,
+    mockSpawn: vi.fn(() => ({
+      stdout: { on: mockStdoutOn },
+      stderr: { on: mockStderrOn },
+      on: mockProcessOn,
+      kill: mockProcessKill,
+    })),
+    mockExecFile: vi.fn((_cmd: string, _args: string[], cb: (err: Error | null) => void) => {
+      cb(null); // ffmpeg found by default
+    }),
+  };
+});
+
+vi.mock('dgram', () => ({
+  default: {
+    createSocket: vi.fn(() => ({
+      send: mockSocketSend,
+      close: mockSocketClose,
+      on: mockSocketOn,
+    })),
+  },
+}));
+
+vi.mock('child_process', () => ({
+  default: { spawn: mockSpawn, execFile: mockExecFile },
+  spawn: mockSpawn,
+  execFile: mockExecFile,
+}));
+
 import {
   resolveVideoPath,
   getDriverMatrixDimensions,
   buildVideoPacket,
+  VideoPlayer,
 } from '../video-player';
-import type { Driver } from '../types';
-import { createDriver } from '../types/driver';
 
-// Helper to create a driver with hardware config
 function makeDriver(
   id: string,
   width: number,
@@ -74,7 +134,6 @@ describe('getDriverMatrixDimensions', () => {
   });
 
   it('should scale dimensions for unified panels', () => {
-    // 2x2 grid of 16x16 panels = 32x32
     const driver = makeDriver('test', 16, 16, 'matrix-br-v-snake', [
       ['0a', '1a'],
       ['2a', '3a'],
@@ -84,7 +143,6 @@ describe('getDriverMatrixDimensions', () => {
   });
 
   it('should handle 1x4 horizontal unified panels', () => {
-    // 4 panels in a row: 8x8 each = 32x8
     const driver = makeDriver('test', 8, 8, 'matrix-br-v-snake', [
       ['0a', '1a', '2a', '3a'],
     ]);
@@ -93,7 +151,6 @@ describe('getDriverMatrixDimensions', () => {
   });
 
   it('should swap dimensions for 270° rotated unified panels', () => {
-    // 3 panels of 8x32 rotated 'd' (270°) in a row: each becomes 32x8, total 96x8
     const driver = makeDriver('test', 8, 32, 'matrix-br-v-snake', [
       ['2d', '1d', '0d'],
     ]);
@@ -102,7 +159,6 @@ describe('getDriverMatrixDimensions', () => {
   });
 
   it('should swap dimensions for 90° rotated unified panels', () => {
-    // 2 panels of 8x32 rotated 'b' (90°) vertically: each becomes 32x8, total 32x16
     const driver = makeDriver('test', 8, 32, 'matrix-br-v-snake', [
       ['1b'],
       ['0d'],
@@ -139,41 +195,311 @@ describe('buildVideoPacket', () => {
     const payload = Buffer.from([0xff, 0x00, 0x88]);
     const packet = buildVideoPacket(payload, 42, 768, 0, true);
 
-    // Header: magic, flags, seq(2), totalSize(2), offset(2)
-    expect(packet[0]).toBe(0x56); // VIDEO_MAGIC
-    expect(packet[1]).toBe(0x01); // VIDEO_FLAG_LAST_FRAGMENT
-    expect(packet.readUInt16BE(2)).toBe(42); // sequence
-    expect(packet.readUInt16BE(4)).toBe(768); // totalSize
-    expect(packet.readUInt16BE(6)).toBe(0); // fragmentOffset
-    // Payload follows header
+    expect(packet[0]).toBe(0x56);
+    expect(packet[1]).toBe(0x01);
+    expect(packet.readUInt16BE(2)).toBe(42);
+    expect(packet.readUInt16BE(4)).toBe(768);
+    expect(packet.readUInt16BE(6)).toBe(0);
     expect(packet[8]).toBe(0xff);
     expect(packet[9]).toBe(0x00);
     expect(packet[10]).toBe(0x88);
-    expect(packet.length).toBe(11); // 8 header + 3 payload
+    expect(packet.length).toBe(11);
   });
 
   it('should set flags correctly for non-last fragment', () => {
     const payload = Buffer.alloc(100);
     const packet = buildVideoPacket(payload, 0, 6144, 1464, false);
 
-    expect(packet[1]).toBe(0x00); // No last-fragment flag
-    expect(packet.readUInt16BE(6)).toBe(1464); // fragmentOffset
-    expect(packet.readUInt16BE(4)).toBe(6144); // totalSize
+    expect(packet[1]).toBe(0x00);
+    expect(packet.readUInt16BE(6)).toBe(1464);
+    expect(packet.readUInt16BE(4)).toBe(6144);
   });
 
   it('should wrap sequence number at 16 bits', () => {
     const payload = Buffer.alloc(1);
     const packet = buildVideoPacket(payload, 0x1ffff, 1, 0, true);
 
-    // 0x1FFFF & 0xFFFF = 0xFFFF
     expect(packet.readUInt16BE(2)).toBe(0xffff);
   });
 
   it('should produce correct packet size for full MTU payload', () => {
-    const maxPayload = 1464; // VIDEO_MAX_PAYLOAD
+    const maxPayload = 1464;
     const payload = Buffer.alloc(maxPayload);
     const packet = buildVideoPacket(payload, 0, 6144, 0, false);
 
-    expect(packet.length).toBe(1472); // 8 + 1464 = MTU limit
+    expect(packet.length).toBe(1472);
+  });
+});
+
+describe('VideoPlayer', () => {
+  let player: VideoPlayer;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset ffmpeg to "available" for each test
+    mockExecFile.mockImplementation(
+      (_cmd: string, _args: string[], cb: (err: Error | null) => void) => {
+        cb(null);
+      },
+    );
+    player = new VideoPlayer();
+  });
+
+  afterEach(() => {
+    player.destroy();
+  });
+
+  it('should detect ffmpeg during init', async () => {
+    await player.init();
+    expect(player.isFfmpegAvailable()).toBe(true);
+  });
+
+  it('should report ffmpeg unavailable when detection fails', async () => {
+    mockExecFile.mockImplementation(
+      (_cmd: string, _args: string[], cb: (err: Error | null) => void) => {
+        cb(new Error('not found'));
+      },
+    );
+
+    player = new VideoPlayer();
+    await player.init();
+    expect(player.isFfmpegAvailable()).toBe(false);
+  });
+
+  it('should report not playing initially', () => {
+    expect(player.isPlaying()).toBe(false);
+  });
+
+  it('should not play when ffmpeg is not available', async () => {
+    mockExecFile.mockImplementation(
+      (_cmd: string, _args: string[], cb: (err: Error | null) => void) => {
+        cb(new Error('not found'));
+      },
+    );
+
+    player = new VideoPlayer();
+    await player.init();
+
+    const broadcast = vi.fn();
+    player.play('/test.mp4', {}, [makeDriver('d1', 16, 16)], broadcast);
+
+    expect(player.isPlaying()).toBe(false);
+    expect(broadcast).not.toHaveBeenCalled();
+  });
+
+  it('should skip strip-layout drivers', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    player.play('/test.mp4', {}, [makeDriver('s1', 60, 1, 'strip')], broadcast);
+
+    expect(player.isPlaying()).toBe(false);
+  });
+
+  it('should skip drivers without resolved hardware', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    const driver = createDriver({
+      id: 'no-hw',
+      state: 'connected',
+      lastSeen: Date.now(),
+      failedHeartbeats: 0,
+      disabled: false,
+    });
+    player.play('/test.mp4', {}, [driver], broadcast);
+
+    expect(player.isPlaying()).toBe(false);
+  });
+
+  it('should group drivers by dimensions and broadcast start', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    const drivers = [makeDriver('m1', 16, 16), makeDriver('m2', 16, 16)];
+
+    player.play('/test.mp4', { fps: 30, fit: 'crop' }, drivers, broadcast);
+
+    expect(player.isPlaying()).toBe(true);
+    expect(broadcast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        effect: 'video',
+        props: { action: 'start' },
+        drivers: ['m1', 'm2'],
+      }),
+    );
+    expect(mockSpawn).toHaveBeenCalled();
+  });
+
+  it('should spawn separate ffmpeg for different dimensions', async () => {
+    await player.init();
+
+    const drivers = [makeDriver('m1', 16, 16), makeDriver('m2', 32, 8)];
+    player.play('/test.mp4', {}, drivers, vi.fn());
+
+    expect(mockSpawn).toHaveBeenCalledTimes(2);
+  });
+
+  it('should stop playback and kill ffmpeg', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    player.play('/test.mp4', {}, [makeDriver('m1', 16, 16)], broadcast);
+    expect(player.isPlaying()).toBe(true);
+
+    player.stop(broadcast);
+    expect(player.isPlaying()).toBe(false);
+    expect(mockProcessKill).toHaveBeenCalledWith('SIGKILL');
+    expect(broadcast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        effect: 'video',
+        props: { action: 'stop' },
+      }),
+    );
+  });
+
+  it('should be a no-op when stopping without playing', () => {
+    const broadcast = vi.fn();
+    player.stop(broadcast);
+    expect(broadcast).not.toHaveBeenCalled();
+  });
+
+  it('should clean up on destroy', async () => {
+    await player.init();
+
+    player.play('/test.mp4', {}, [makeDriver('m1', 16, 16)], vi.fn());
+    player.destroy();
+
+    expect(player.isPlaying()).toBe(false);
+    expect(mockSocketClose).toHaveBeenCalled();
+    expect(mockProcessKill).toHaveBeenCalledWith('SIGKILL');
+
+    // Prevent afterEach from double-destroying
+    player = new VideoPlayer();
+  });
+
+  it('should stop current playback before starting new', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    const drivers = [makeDriver('m1', 16, 16)];
+
+    player.play('/test.mp4', {}, drivers, broadcast);
+    player.play('/test2.mp4', {}, drivers, broadcast);
+
+    expect(player.isPlaying()).toBe(true);
+    expect(broadcast).toHaveBeenCalledWith(
+      expect.objectContaining({ props: { action: 'stop' } }),
+    );
+  });
+
+  it('should use stretch filter when fit is stretch', async () => {
+    await player.init();
+
+    player.play('/test.mp4', { fit: 'stretch' }, [makeDriver('m1', 32, 8)], vi.fn());
+
+    const spawnArgs = (mockSpawn.mock.calls[0] as unknown[])[1] as string[];
+    const vfIndex = spawnArgs.indexOf('-vf');
+    expect(spawnArgs[vfIndex + 1]).toBe('scale=32:8');
+  });
+
+  it('should use crop filter by default', async () => {
+    await player.init();
+
+    player.play('/test.mp4', {}, [makeDriver('m1', 32, 8)], vi.fn());
+
+    const spawnArgs = (mockSpawn.mock.calls[0] as unknown[])[1] as string[];
+    const vfIndex = spawnArgs.indexOf('-vf');
+    expect(spawnArgs[vfIndex + 1]).toContain('crop=32:8');
+  });
+
+  it('should include fps flag when specified', async () => {
+    await player.init();
+
+    player.play('/test.mp4', { fps: 24 }, [makeDriver('m1', 16, 16)], vi.fn());
+
+    const spawnArgs = (mockSpawn.mock.calls[0] as unknown[])[1] as string[];
+    const rIndex = spawnArgs.indexOf('-r');
+    expect(rIndex).toBeGreaterThan(-1);
+    expect(spawnArgs[rIndex + 1]).toBe('24');
+  });
+
+  it('should send frames when stdout data arrives', async () => {
+    await player.init();
+
+    player.play('/test.mp4', {}, [makeDriver('m1', 2, 2)], vi.fn());
+
+    const dataHandler = mockStdoutOn.mock.calls.find(
+      (c: unknown[]) => c[0] === 'data',
+    )?.[1];
+
+    expect(dataHandler).toBeDefined();
+
+    // 2x2 RGB24 = 12 bytes per frame
+    dataHandler(Buffer.alloc(12, 0xff));
+
+    expect(mockSocketSend).toHaveBeenCalled();
+  });
+
+  it('should handle ffmpeg close event and broadcast stop', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    player.play('/test.mp4', {}, [makeDriver('m1', 16, 16)], broadcast);
+
+    const closeHandler = mockProcessOn.mock.calls.find(
+      (c: unknown[]) => c[0] === 'close',
+    )?.[1];
+
+    expect(closeHandler).toBeDefined();
+    closeHandler(0);
+
+    expect(player.isPlaying()).toBe(false);
+    expect(broadcast).toHaveBeenCalledWith(
+      expect.objectContaining({ props: { action: 'stop' } }),
+    );
+  });
+
+  it('should handle ffmpeg error event without throwing', async () => {
+    await player.init();
+
+    player.play('/test.mp4', {}, [makeDriver('m1', 16, 16)], vi.fn());
+
+    const errorHandler = mockProcessOn.mock.calls.find(
+      (c: unknown[]) => c[0] === 'error',
+    )?.[1];
+
+    expect(errorHandler).toBeDefined();
+    expect(() => errorHandler(new Error('spawn failed'))).not.toThrow();
+  });
+
+  it('should handle ffmpeg stderr output without throwing', async () => {
+    await player.init();
+
+    player.play('/test.mp4', {}, [makeDriver('m1', 16, 16)], vi.fn());
+
+    const stderrHandler = mockStderrOn.mock.calls.find(
+      (c: unknown[]) => c[0] === 'data',
+    )?.[1];
+
+    expect(stderrHandler).toBeDefined();
+    expect(() => stderrHandler(Buffer.from('error output'))).not.toThrow();
+  });
+
+  it('should loop when loop option is set and ffmpeg exits', async () => {
+    await player.init();
+
+    const broadcast = vi.fn();
+    player.play('/test.mp4', { loop: true }, [makeDriver('m1', 16, 16)], broadcast);
+
+    const closeHandler = mockProcessOn.mock.calls.find(
+      (c: unknown[]) => c[0] === 'close',
+    )?.[1];
+
+    closeHandler(0);
+
+    // Should restart — spawn called twice (original + restart)
+    expect(mockSpawn).toHaveBeenCalledTimes(2);
+    expect(player.isPlaying()).toBe(true);
   });
 });

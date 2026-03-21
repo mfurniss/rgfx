@@ -10,11 +10,6 @@ const SCRIPT_FILENAMES: Record<string, string> = {
   win32: 'launch-mame.bat',
 };
 
-const PLACEHOLDERS: Record<string, () => string> = {
-  '{{RGFX_LUA_PATH}}': () => join(getBundledAssetDir('mame'), 'rgfx.lua'),
-  '{{ROM_PATH}}': () => join(homedir(), 'mame-roms'),
-};
-
 export async function installLaunchScript(forceOverwrite = false): Promise<void> {
   const scriptFilename = SCRIPT_FILENAMES[process.platform];
 
@@ -36,13 +31,23 @@ export async function installLaunchScript(forceOverwrite = false): Promise<void>
     }
   }
 
+  const placeholders: Record<string, string> = {
+    '{{RGFX_LUA_PATH}}': join(getBundledAssetDir('mame'), 'rgfx.lua'),
+    '{{ROM_PATH}}': join(homedir(), 'mame-roms'),
+  };
+
   const templatePath = join(getBundledAssetDir('scripts'), scriptFilename);
   log.info(`Installing launch script from: ${templatePath}`);
 
   let content = await fs.readFile(templatePath, 'utf-8');
 
-  for (const [placeholder, resolve] of Object.entries(PLACEHOLDERS)) {
-    content = content.replaceAll(placeholder, resolve());
+  for (const [placeholder, resolved] of Object.entries(placeholders)) {
+    content = content.replaceAll(placeholder, resolved);
+  }
+
+  // Ensure CRLF line endings for Windows batch files
+  if (process.platform === 'win32') {
+    content = content.replace(/\r?\n/g, '\r\n');
   }
 
   await fs.mkdir(CONFIG_DIRECTORY, { recursive: true });

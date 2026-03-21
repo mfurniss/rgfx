@@ -1,7 +1,7 @@
 {
-  "description": "8x8 WS2812B serpentine matrix with 64 individually addressable pixels",
+  "description": "WS2812B 8x8 LED matrix",
   "sku": null,
-  "asin": "B0B775PTVF",
+  "asin": null,
   "layout": "matrix-br-h-snake",
   "count": 64,
   "chipset": "WS2812B",

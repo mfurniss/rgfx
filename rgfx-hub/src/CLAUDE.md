@@ -35,7 +35,8 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `interceptor-installer.ts` — Installs interceptor scripts (`.lua`) and config files (`.json`, e.g. `rom_map.json`) to `~/.rgfx/interceptors/`.
 - `transformer-installer.ts` — Installs transformer scripts to `~/.rgfx/transformers/`. Uses `alwaysOverwrite` for `.d.ts` files (type declarations for IntelliSense).
 - `led-hardware-installer.ts` — Installs LED hardware definitions to `~/.rgfx/led-hardware/`
-- `launch-script-installer.ts` — Installs platform-specific MAME launch script (`launch-mame.sh` on macOS, `launch-mame.bat` on Windows) to `~/.rgfx/`. Reads template from bundled `assets/scripts/`, replaces `{{RGFX_LUA_PATH}}` and `{{ROM_PATH}}` placeholders with resolved paths, sets executable permission on macOS. Only writes if file does not exist (preserves user edits).
+- `launch-script-installer.ts` — Installs platform-specific MAME launch script (`launch-mame.sh` on macOS, `launch-mame.bat` on Windows) to `~/.rgfx/`. Reads template from bundled `assets/scripts/`, replaces `{{RGFX_LUA_PATH}}` and `{{ROM_PATH}}` placeholders with resolved paths, sets executable permission on macOS. Ensures CRLF line endings on Windows. Only writes if file does not exist (preserves user edits) unless `forceOverwrite` is set. Tests verify correct quoting for paths with spaces (no embedded quotes in `set "VAR=value"` on Windows or `VAR="value"` on macOS).
+- `launch-script-updater.ts` — Updates only the `ROM_PATH` line in the existing launch script, preserving all other user customizations (MAME_PATH, comments, etc.). Uses platform-specific regex patterns to match and replace the line. Used by the `updateMameRomsDirectory` IPC handler when the user saves a new ROM path in Settings. Tests verify paths with spaces produce valid quoting and that other lines are unchanged.
 - `asset-reinstaller.ts` — Orchestrator that calls all four installers with `forceOverwrite: true`. Used by the `assets:reinstall` IPC handler for the Settings UI reinstall button.
 - `led-hardware-manager.ts` — Loads and manages LED hardware definition files (JSON)
 
@@ -67,11 +68,17 @@ Global test setup (`__tests__/setup.ts`) provides:
 - `vi.mock('electron-log/main')` — default log mock (files needing custom log refs override per-file)
 - `vi.mock('electron')` — default ipcMain mock (files needing `app`, `shell`, `dialog` etc. override per-file)
 - `cleanup()` in `afterEach` — component tests should NOT call `cleanup()` themselves
+- Default `window.rgfx` mock via `createRgfxMock()` — reset in `afterEach` to prevent cross-test leakage
+- `localStorage.clear()` in `afterEach` — prevents Zustand persisted state (sort prefs, UI settings) from leaking
+- `vi.useRealTimers()` in `afterEach` — restores real timers if a test used `vi.useFakeTimers()` without restoring
+- **Do NOT enable `restoreMocks: true`** in vitest config — it strips `vi.fn()` implementations set in `vi.mock()` factories (vi.fn has no "original" to restore to)
 
 Key test helpers:
 - `__tests__/helpers/ipc-handler.helper.ts` — `setupIpcHandlerCapture()` for IPC handler tests
 - `__tests__/factories/` — Mock factories for drivers, telemetry, MQTT subscriptions
 - `__tests__/factories/mqtt.factory.ts` — `createMqttSubscriptionMock()` for MQTT subscription tests
+
+**Mock isolation**: Tests that import real exports from a module that other test files mock via `vi.doMock` must use `vi.importActual()` to bypass the mock registry. Static imports can receive a poisoned module when vitest schedules both files in the same thread pool. See `update-checker.test.ts` for the pattern.
 
 Tests for components using `use-stick-to-bottom` must mock the module:
 ```typescript
@@ -92,3 +99,4 @@ vi.mock('use-stick-to-bottom', () => ({
 - `vite-env.d.ts` — Vite environment variable declarations
 
 <\!-- No per-file license headers — see root LICENSE -->
+
