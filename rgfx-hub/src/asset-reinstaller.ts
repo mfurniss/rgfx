@@ -13,7 +13,7 @@ export async function reinstallAllAssets(): Promise<void> {
   await installDefaultInterceptors(true);
   await installDefaultTransformers(true);
   await installDefaultLedHardware(true);
-  await installLaunchScript(true);
+  await installLaunchScript({ forceOverwrite: true });
 
   log.info('All default assets reinstalled successfully');
 }

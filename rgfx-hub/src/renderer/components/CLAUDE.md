@@ -839,6 +839,20 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 
 ---
 
+### DirectoriesSection
+
+**File:** [settings/directories-section.tsx](settings/directories-section.tsx)
+
+**Purpose:** Settings section for configuring RGFX config and MAME ROMs directories.
+
+**Features:**
+- Config directory and MAME ROMs directory pickers with validation
+- Save button validates directories exist before persisting
+- On save, calls `updateMameRomsDirectory` IPC to regenerate the MAME launch script with the new ROM path
+- Uses initialization refs to prevent infinite loops on Windows
+
+---
+
 ## Testing Notes
 
 - **Do NOT call `cleanup()` in component tests.** Global `afterEach(cleanup)` in `setup.ts` handles this automatically.

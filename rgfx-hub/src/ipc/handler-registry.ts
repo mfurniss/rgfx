@@ -37,6 +37,7 @@ import { registerOpenExternalHandler } from './open-external-handler';
 import { registerReinstallAssetsHandler } from './reinstall-assets-handler';
 import { registerLaunchMameHandler } from './launch-mame-handler';
 import { registerSelectVideoFileHandler } from './select-video-file-handler';
+import { registerUpdateMameRomsDirHandler } from './update-mame-roms-dir-handler';
 
 export interface IpcHandlersDeps {
   driverRegistry: DriverRegistry;
@@ -86,4 +87,5 @@ export const handlers: ((deps: IpcHandlersDeps) => void)[] = [
   registerReinstallAssetsHandler,
   registerLaunchMameHandler,
   registerSelectVideoFileHandler,
+  registerUpdateMameRomsDirHandler,
 ];

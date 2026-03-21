@@ -35,7 +35,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 - `interceptor-installer.ts` — Installs interceptor scripts (`.lua`) and config files (`.json`, e.g. `rom_map.json`) to `~/.rgfx/interceptors/`.
 - `transformer-installer.ts` — Installs transformer scripts to `~/.rgfx/transformers/`. Uses `alwaysOverwrite` for `.d.ts` files (type declarations for IntelliSense).
 - `led-hardware-installer.ts` — Installs LED hardware definitions to `~/.rgfx/led-hardware/`
-- `launch-script-installer.ts` — Installs platform-specific MAME launch script (`launch-mame.sh` on macOS, `launch-mame.bat` on Windows) to `~/.rgfx/`. Reads template from bundled `assets/scripts/`, replaces `{{RGFX_LUA_PATH}}` and `{{ROM_PATH}}` placeholders with resolved paths, sets executable permission on macOS. Only writes if file does not exist (preserves user edits).
+- `launch-script-installer.ts` — Installs platform-specific MAME launch script (`launch-mame.sh` on macOS, `launch-mame.bat` on Windows) to `~/.rgfx/`. Reads template from bundled `assets/scripts/`, replaces `{{RGFX_LUA_PATH}}` and `{{ROM_PATH}}` placeholders with resolved paths, sets executable permission on macOS. Accepts `LaunchScriptOptions` object with optional `forceOverwrite` and `romPath` fields. Ensures CRLF line endings on Windows. Only writes if file does not exist (preserves user edits) unless `forceOverwrite` is set.
 - `asset-reinstaller.ts` — Orchestrator that calls all four installers with `forceOverwrite: true`. Used by the `assets:reinstall` IPC handler for the Settings UI reinstall button.
 - `led-hardware-manager.ts` — Loads and manages LED hardware definition files (JSON)
 

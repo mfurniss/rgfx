@@ -79,6 +79,12 @@ export function DirectoriesSection() {
       if (isValid) {
         setRgfxConfigDirectory(configDir.trim());
         setMameRomsDirectory(romsDir.trim());
+
+        // Update launch script with new ROM path
+        if (romsDir.trim()) {
+          await window.rgfx.updateMameRomsDirectory(romsDir.trim());
+        }
+
         notify('Settings saved', 'success');
       } else {
         notify('Settings not saved, fix error(s)', 'error');
