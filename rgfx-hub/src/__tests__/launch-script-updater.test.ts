@@ -116,6 +116,63 @@ describe('launch-script-updater', () => {
       Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
     });
 
+    it('should handle ROM path with spaces on Windows', async () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+
+      const existingScript = [
+        '@echo off',
+        'set "RGFX_LUA_PATH=C:\\Program Files\\RGFX Hub\\resources\\mame\\rgfx.lua"',
+        'set "ROM_PATH=C:\\Users\\Brad\\mame-roms"',
+        'set "MAME_PATH=C:\\mame\\mame.exe"',
+      ].join('\r\n');
+
+      mockReadFile.mockResolvedValue(existingScript);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await updateLaunchScriptRomPath('D:\\My Games\\MAME ROMs');
+
+      const writtenContent = mockWriteFile.mock.calls[0][1] as string;
+
+      // Path with spaces must be inside set "ROM_PATH=..." with no embedded quotes
+      expect(writtenContent).toContain('set "ROM_PATH=D:\\My Games\\MAME ROMs"');
+
+      const romMatch = /^set "ROM_PATH=(.*)"$/m.exec(writtenContent);
+      expect(romMatch?.[1]).toBe('D:\\My Games\\MAME ROMs');
+
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+    });
+
+    it('should handle ROM path with spaces on macOS', async () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
+
+      const existingScript = [
+        '#!/bin/bash',
+        'RGFX_LUA_PATH="/Applications/RGFX Hub.app/Contents/Resources/mame/rgfx.lua"',
+        'ROM_PATH="/Users/brad/mame-roms"',
+        'MAME_PATH=""',
+      ].join('\n');
+
+      mockReadFile.mockResolvedValue(existingScript);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await updateLaunchScriptRomPath('/Users/brad/My Games/MAME ROMs');
+
+      const writtenContent = mockWriteFile.mock.calls[0][1] as string;
+
+      // Path with spaces must be inside ROM_PATH="..." with no embedded quotes
+      expect(writtenContent).toContain('ROM_PATH="/Users/brad/My Games/MAME ROMs"');
+
+      const romMatch = /^ROM_PATH="(.*)"$/m.exec(writtenContent);
+      expect(romMatch?.[1]).toBe('/Users/brad/My Games/MAME ROMs');
+
+      // RGFX_LUA_PATH with spaces must be preserved unchanged
+      expect(writtenContent).toContain('RGFX_LUA_PATH="/Applications/RGFX Hub.app/Contents/Resources/mame/rgfx.lua"');
+
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+    });
+
     it('should warn and not write if ROM_PATH line is not found', async () => {
       const originalPlatform = process.platform;
       Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
