@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventsRateChart } from '../events-rate-chart';
 import { useEventsRateHistoryStore } from '@/renderer/store/events-rate-history-store';

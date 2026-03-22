@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DeleteDriverButton from '../delete-driver-button';
 import { createMockDriver } from '@/__tests__/factories';

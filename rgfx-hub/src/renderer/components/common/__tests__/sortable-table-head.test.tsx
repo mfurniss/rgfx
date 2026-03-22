@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@/__tests__/render';
 import { describe, it, expect, vi } from 'vitest';
 import { Table, TableCell } from '@mui/material';
 import { SortableTableHead, type SortableColumn } from '../sortable-table-head';

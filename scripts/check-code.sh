@@ -237,25 +237,15 @@ if [ "$HUB_CHANGES" = true ]; then
 
     notify "Running Hub tests..."
     echo "🧪 Running tests..."
-    # Show suite-level results only; full detail on failure
-    TEST_OUTPUT=$(npm test 2>&1) || {
-        echo "$TEST_OUTPUT"
-        exit 1
-    }
-    echo "$TEST_OUTPUT" | grep -E "^ (✓|×|✗)|Test Files|Tests |Start at|Duration"
+    npm test
     echo "✅ Tests passed"
 
     echo "📦 Checking for unused dependencies..."
-    # Note: colord and d3-scale may be unused - audit separately
-    # cross-env is used in npm scripts but depcheck doesn't detect that
-    npx depcheck --ignores="@types/*,electron,@electron/fuses,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,png2icons,colord,d3-scale,@eslint/*,cross-env,nodemon"
+    npm run depcheck
     echo "✅ No unused dependencies found"
 
     echo "📜 Checking dependency licenses..."
-    LICENSE_OUTPUT=$(npx license-checker --onlyAllow "MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0;OFL-1.1;LGPL-3.0-or-later;CC-BY-4.0;CC-BY-3.0" --excludePackages "truncate-utf8-bytes@1.0.2" 2>&1) || {
-        echo "$LICENSE_OUTPUT"
-        exit 1
-    }
+    npm run license-check
     echo "✅ All licenses are permissive"
 
     echo ""

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@/__tests__/render';
 import { useFlashState } from '../use-flash-state';
 import type { DriverFlashStatus } from '@/renderer/store/firmware-flash-store';
 

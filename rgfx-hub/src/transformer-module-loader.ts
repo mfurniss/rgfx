@@ -1,5 +1,5 @@
 import { promises as fs } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve } from 'pathe';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import type { TransformerHandler } from './types/transformer-types';

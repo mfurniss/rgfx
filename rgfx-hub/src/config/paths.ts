@@ -4,7 +4,7 @@
  */
 
 import { homedir } from 'os';
-import { join } from 'path';
+import { join } from 'pathe';
 
 /** Base directory for configuration files (user's home directory) */
 export const CONFIG_DIRECTORY = join(homedir(), '.rgfx');

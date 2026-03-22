@@ -1,13 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DirectoriesSection } from '../directories-section';
 
 const mockSetRgfxConfigDirectory = vi.fn();
+const mockSetMameDirectory = vi.fn();
 const mockSetMameRomsDirectory = vi.fn();
 const mockNotify = vi.fn();
 
 let mockStoredRgfxConfigDirectory = '/home/user/.rgfx';
+const mockStoredMameDirectory = '';
 let mockStoredMameRomsDirectory = '/home/user/mame-roms';
 let mockDefaultRgfxConfigDir = '/home/user/.rgfx';
 
@@ -15,8 +17,10 @@ vi.mock('../../../store/ui-store', () => ({
   useUiStore: vi.fn((selector) =>
     selector({
       rgfxConfigDirectory: mockStoredRgfxConfigDirectory,
+      mameDirectory: mockStoredMameDirectory,
       mameRomsDirectory: mockStoredMameRomsDirectory,
       setRgfxConfigDirectory: mockSetRgfxConfigDirectory,
+      setMameDirectory: mockSetMameDirectory,
       setMameRomsDirectory: mockSetMameRomsDirectory,
       stripLifespanScale: 0.6,
       setStripLifespanScale: vi.fn(),
@@ -35,6 +39,18 @@ vi.mock('../../../store/app-info-store', () => ({
   ),
 }));
 
+let mockDetectedMamePath: string | undefined;
+
+vi.mock('../../../store/system-status-store', () => ({
+  useSystemStatusStore: vi.fn((selector) =>
+    selector({
+      systemStatus: {
+        detectedMamePath: mockDetectedMamePath,
+      },
+    }),
+  ),
+}));
+
 vi.mock('../../../store/notification-store', () => ({
   notify: (...args: unknown[]) => mockNotify(...args),
 }));
@@ -48,6 +64,7 @@ describe('DirectoriesSection', () => {
     mockStoredRgfxConfigDirectory = '/home/user/.rgfx';
     mockStoredMameRomsDirectory = '/home/user/mame-roms';
     mockDefaultRgfxConfigDir = '/home/user/.rgfx';
+    mockDetectedMamePath = undefined;
 
     mockVerifyDirectory = vi.fn().mockResolvedValue(true);
     mockSelectDirectory = vi.fn().mockResolvedValue(null);
@@ -56,6 +73,7 @@ describe('DirectoriesSection', () => {
     (window as unknown as { rgfx: Record<string, unknown> }).rgfx = {
       verifyDirectory: mockVerifyDirectory,
       selectDirectory: mockSelectDirectory,
+      updateMameDirectory: vi.fn().mockResolvedValue({ success: true }),
       updateMameRomsDirectory: vi.fn().mockResolvedValue({ success: true }),
     };
   });
@@ -85,6 +103,21 @@ describe('DirectoriesSection', () => {
     it('renders Save button', () => {
       render(<DirectoriesSection />);
       expect(screen.getByRole('button', { name: /save/i })).toBeDefined();
+    });
+
+    it('shows detected MAME path as helper text when available', () => {
+      mockDetectedMamePath = '/opt/homebrew/bin';
+      render(<DirectoriesSection />);
+
+      expect(screen.getByText('/opt/homebrew/bin')).toBeDefined();
+    });
+
+    it('shows default helper text when MAME path is not detected', () => {
+      render(<DirectoriesSection />);
+
+      expect(screen.getByText(
+        'Directory containing the MAME executable (optional, auto-detected if empty)',
+      )).toBeDefined();
     });
 
     it('renders folder picker buttons', () => {
@@ -165,7 +198,7 @@ describe('DirectoriesSection', () => {
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('RGFX Config Directory is required')).toBeDefined();
+        expect(screen.getByText('Directory is required')).toBeDefined();
       });
     });
 
@@ -251,7 +284,6 @@ describe('DirectoriesSection', () => {
     });
 
     it('shows Saving... text while saving', async () => {
-      // Use a deferred pattern to control promise resolution
       let resolveVerify!: (value: boolean) => void;
       const verifyPromise = new Promise<boolean>((resolve) => {
         resolveVerify = resolve;
@@ -262,18 +294,20 @@ describe('DirectoriesSection', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-      // Check for saving state (button is disabled while saving)
       await waitFor(() => {
         const button = screen.getByRole('button', { name: /save/i });
         expect(button).toHaveProperty('disabled', true);
       });
 
-      // Resolve to allow test to complete
       resolveVerify(true);
+
+      await waitFor(() => {
+        const button = screen.getByRole('button', { name: /save/i });
+        expect(button).toHaveProperty('disabled', false);
+      });
     });
 
     it('disables save button while saving', async () => {
-      // Use a deferred pattern to control promise resolution
       let resolveVerify!: (value: boolean) => void;
       const verifyPromise = new Promise<boolean>((resolve) => {
         resolveVerify = resolve;
@@ -289,8 +323,12 @@ describe('DirectoriesSection', () => {
         expect(button).toHaveProperty('disabled', true);
       });
 
-      // Resolve to allow test to complete
       resolveVerify(true);
+
+      await waitFor(() => {
+        const button = screen.getByRole('button', { name: /save/i });
+        expect(button).toHaveProperty('disabled', false);
+      });
     });
 
     it('allows empty ROMs directory', async () => {

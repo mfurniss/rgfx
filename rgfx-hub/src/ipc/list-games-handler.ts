@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'pathe';
 import log from 'electron-log/main';
 import type { GameInfo } from '../types';
 import { CONFIG_DIRECTORY } from '../config/paths';

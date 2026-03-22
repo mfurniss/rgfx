@@ -18,7 +18,11 @@ The simplest way to launch MAME with RGFX is using the launch script in your [co
 
 Replace `<romname>` with your actual ROM name.
 
-The launch script auto-detects your MAME installation, sets the ROM path, and passes the correct `-autoboot_script` flag. You can edit the script to customize paths — the configurable variables are at the top of the file. Delete the script and relaunch the Hub to get a fresh copy.
+The launch script auto-detects your MAME installation, sets the ROM path, and passes the correct `-autoboot_script` flag.
+
+If MAME is installed in a non-standard location, go to **[Settings](../hub-app/settings.md)** and set the **MAME Installation Directory** to the folder containing your MAME executable. The Hub updates the launch script automatically.
+
+You can also edit the script directly to customize paths — the configurable variables are at the top of the file. Delete the script and relaunch the Hub to get a fresh copy.
 
 ## What Happens at Launch
 

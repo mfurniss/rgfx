@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@/__tests__/render';
 import { describe, it, expect } from 'vitest';
 import { useForm } from 'react-hook-form';
 import { NumberField } from '@/renderer/components/common/number-field';

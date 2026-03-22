@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useForm, FormProvider } from 'react-hook-form';
 import { VideoFileField } from '../video-file-field';
@@ -85,7 +85,7 @@ describe('VideoFileField', () => {
     const selectButton = screen.getByRole('button');
     fireEvent.click(selectButton);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockSelectVideoFile).toHaveBeenCalledTimes(1);
     });
   });
@@ -99,7 +99,7 @@ describe('VideoFileField', () => {
     const input = screen.getByRole('textbox');
     fireEvent.click(input);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockSelectVideoFile).toHaveBeenCalledTimes(1);
     });
   });

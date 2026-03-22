@@ -48,6 +48,10 @@ Go to **[Settings](../hub-app/settings.md)** in the sidebar and configure:
 
 ![Settings](../assets/images/rgfx-hub-settings.png)
 
+### MAME Installation Directory
+
+**Optional.** If MAME is installed in a non-standard location (not on `PATH` or in `C:\mame\`), point this to the folder containing your MAME executable. The Hub updates the launch script automatically.
+
 ### MAME ROMs Directory
 
 **Optional.** Point this to the folder where your MAME ROM files are stored. This allows the [Games](../hub-app/games.md) page to show which ROMs have matching interceptors and transformers.

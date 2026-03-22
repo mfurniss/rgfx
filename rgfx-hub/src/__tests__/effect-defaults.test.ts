@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
-import path from 'path';
+import path from 'pathe';
 import { effectPropsSchemas } from '../schemas/effects';
 import defaults from '../schemas/effects/defaults.json';
 

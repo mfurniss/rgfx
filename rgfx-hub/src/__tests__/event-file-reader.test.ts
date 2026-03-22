@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventFileReader, isValidTopic } from '../event-file-reader';
 import { writeFileSync, existsSync, mkdirSync, rmSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join } from 'pathe';
 import {
   EVENT_LOG_MAX_SIZE_BYTES,
   EVENT_LOG_TRIM_TARGET_BYTES,

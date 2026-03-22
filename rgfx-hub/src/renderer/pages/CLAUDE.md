@@ -197,13 +197,14 @@ Refactored components and utilities extracted from the main page:
 
 **Features:**
 - **Appearance:** Theme mode selection (system/light/dark) via MUI color scheme
-- **Driver Fallback:** Toggle to route effects targeting non-existent/offline drivers to the first available online driver (default: enabled)
-- **Effect Modifiers:** Strip lifespan scaling setting for LED strips
-- **Directories:**
+- **Directories:** (rendered after Appearance)
   - RGFX Config Directory (required) - for interceptors, transformers, driver configs
+  - MAME Installation Directory (optional) - auto-detected if empty
   - MAME ROMs Directory (optional) - for ROM file location
   - Directory validation with folder picker dialogs
   - Uses `SuperButton` for save action with busy state
+- **Driver Fallback:** Toggle to route effects targeting non-existent/offline drivers to the first available online driver (default: enabled)
+- **Effect Modifiers:** Strip lifespan scaling setting for LED strips
 - **Backup:** One-click zip backup of entire `~/.rgfx` config directory via native save dialog
 - **Logs:** Log file management with size display and clear functionality
 - Saves to `UiStore` (localStorage persistence)

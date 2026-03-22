@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'pathe';
 import { app } from 'electron';
 import log from 'electron-log/main';
 import type { DriverLogPersistence } from './driver-log-persistence';

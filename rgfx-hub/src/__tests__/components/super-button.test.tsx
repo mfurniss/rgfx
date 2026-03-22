@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@/__tests__/render';
 import { describe, it, expect, vi } from 'vitest';
 import SuperButton from '@/renderer/components/common/super-button';
 import StarIcon from '@mui/icons-material/Star';

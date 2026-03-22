@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@/__tests__/render';
 import { useSortableTable } from '../use-sortable-table';
 import { useUiStore } from '@/renderer/store/ui-store';
 

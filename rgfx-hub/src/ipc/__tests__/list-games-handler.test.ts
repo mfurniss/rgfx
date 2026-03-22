@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
-import path from 'path';
+import path from 'pathe';
 import { registerListGamesHandler } from '@/ipc/list-games-handler';
 import * as fs from 'fs';
 import type { GameInfo } from '@/types';

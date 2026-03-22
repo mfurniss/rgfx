@@ -24,7 +24,7 @@ Auto-generates the preload API by looping over channel maps. No per-method boile
 
 ### handler-registry.ts
 
-Contains the `IpcHandlersDeps` interface and the `handlers` array of all 27 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
+Contains the `IpcHandlersDeps` interface and the `handlers` array of all 28 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
 
 ### index.ts
 
@@ -450,6 +450,26 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 
 ---
 
+### `settings:update-mame-dir`
+
+**File:** [update-mame-dir-handler.ts](update-mame-dir-handler.ts)
+
+**Purpose:** Updates the MAME installation directory and detects the MAME version.
+
+**Parameters:**
+- `mameDirectory: string` - Path to directory containing MAME executable (empty string to revert to auto-detect)
+
+**Returns:** `{ success: boolean; mameVersion?: string }`
+
+**Behavior:**
+- Constructs platform-specific exe path from the directory (appends `mame` on macOS, `mame.exe` on Windows)
+- Calls `updateLaunchScriptMamePath()` to update the MAME_PATH variable in the launch script
+- Runs `detectMameVersion()` to detect MAME version from the directory
+- Updates `SystemMonitor` with detected version via `setMameVersion()`
+- Returns detected version string in response (or undefined if not found)
+
+---
+
 ## Tests
 
 ### Test Pattern
@@ -460,6 +480,8 @@ IPC handler tests use `setupIpcHandlerCapture()` from `@/__tests__/helpers/ipc-h
 
 Files needing additional electron mocks (`app`, `shell`, `dialog`) provide their own `vi.mock('electron')` which overrides the global one.
 
+**Platform-dependent handlers** (e.g., `update-mame-dir-handler`) use `process.platform` at call time. Tests must set `process.platform` in `beforeEach` (default to `darwin`) and restore in `afterEach`, since CI runs on Linux where platform-specific config maps have no entry.
+
 ### `firmware-assets.test.ts`
 
 **Purpose:** Integration test that validates firmware binaries referenced in `manifest.json` actually exist on disk with correct sizes and SHA256 checksums. Prevents broken firmware assets from being committed. Uses real file I/O — no mocks.
@@ -468,7 +490,7 @@ Files needing additional electron mocks (`app`, `shell`, `dialog`) provide their
 
 ## Import Conventions
 
-**Use static imports only.** Do not use dynamic `import()` in handler code — this is a desktop app, not a web app. All dependencies (including `fs`, `esp-ota`, etc.) should be imported statically at the top of the file.
+**Use static imports only.** Do not use dynamic `import()` in handler code — this is a desktop app, not a web app. All dependencies (including `fs`, `esp-ota`, etc.) should be imported statically at the top of the file. **Use `pathe` instead of `node:path`** for cross-platform path compatibility.
 
 ## Error Handling
 

@@ -3,6 +3,19 @@ import React from 'react';
 import { cleanup } from '@testing-library/react';
 import { seedRandom } from '../utils/random';
 
+
+// Suppress false-positive act() warnings from Zustand v5 useShallow.
+// useSyncExternalStoreWithSelector schedules memoization updates as microtasks
+// that escape act() boundaries. This is a known React 19 + Zustand v5 issue:
+// https://github.com/pmndrs/zustand/issues/2636
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('not wrapped in act')) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 // Global mocks for electron and electron-log (most tests need these)
 // Per-file vi.mock() calls will override these when custom mock behavior is needed
 vi.mock('electron-log/main', () => ({

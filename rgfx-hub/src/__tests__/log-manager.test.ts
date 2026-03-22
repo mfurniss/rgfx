@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type * as fs from 'fs';
-import path from 'path';
+import path from 'pathe';
 import { LogManager } from '../log-manager';
 import type { DriverLogPersistence } from '../driver-log-persistence';
 

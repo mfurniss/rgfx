@@ -60,6 +60,7 @@ export const INVOKE_CHANNELS = {
   reinstallAssets: 'assets:reinstall',
   selectVideoFile: 'dialog:select-video-file',
   updateMameRomsDirectory: 'settings:update-mame-roms-dir',
+  updateMameDirectory: 'settings:update-mame-dir',
 } as const;
 
 /** Push channels: main sends to renderer via webContents.send. */
@@ -220,6 +221,10 @@ export interface InvokeContract {
   updateMameRomsDirectory: {
     args: [romsDirectory: string];
     return: { success: boolean };
+  };
+  updateMameDirectory: {
+    args: [mameDirectory: string];
+    return: { success: boolean; mameVersion?: string };
   };
 }
 

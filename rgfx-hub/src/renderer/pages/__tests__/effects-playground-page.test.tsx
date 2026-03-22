@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock all heavy dependencies before importing the page

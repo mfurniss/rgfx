@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render } from '@/__tests__/render';
 import { describe, it, expect, vi } from 'vitest';
 import LogDisplay from '../log-display';
 

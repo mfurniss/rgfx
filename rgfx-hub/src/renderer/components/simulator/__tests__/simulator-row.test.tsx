@@ -4,7 +4,7 @@ import {
   screen,
   fireEvent,
   act,
-} from '@testing-library/react';
+} from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SimulatorRow } from '../simulator-row';
 import { useUiStore } from '@/renderer/store/ui-store';

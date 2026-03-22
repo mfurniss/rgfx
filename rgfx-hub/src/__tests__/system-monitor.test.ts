@@ -375,6 +375,30 @@ describe('SystemMonitor', () => {
     });
   });
 
+  describe('setMameVersion', () => {
+    it('should include mameVersion in system status when set', () => {
+      systemMonitor.setMameVersion('0.286');
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.mameVersion).toBe('0.286');
+    });
+
+    it('should be undefined when not set', () => {
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.mameVersion).toBeUndefined();
+    });
+
+    it('should be undefined when set to null', () => {
+      systemMonitor.setMameVersion(null);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.mameVersion).toBeUndefined();
+    });
+  });
+
   describe('updateAvailable in status', () => {
     it('should include update URL when set', () => {
       // Access private field via any to simulate update check result

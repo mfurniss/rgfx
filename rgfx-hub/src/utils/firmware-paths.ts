@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import path from 'node:path';
+import path from 'pathe';
 
 /**
  * Resolve the firmware directory.

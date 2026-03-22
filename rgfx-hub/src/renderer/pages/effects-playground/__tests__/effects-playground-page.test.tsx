@@ -4,7 +4,7 @@ import {
   screen,
   fireEvent,
   act,
-} from '@testing-library/react';
+} from '@/__tests__/render';
 import {
   describe,
   it,

@@ -3,7 +3,7 @@ import {
   render,
   screen,
   fireEvent,
-} from '@testing-library/react';
+} from '@/__tests__/render';
 import { Table, TableBody } from '@mui/material';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventRow } from '../event-row';

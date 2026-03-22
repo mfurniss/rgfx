@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ConfirmActionButton from '../confirm-action-button';
@@ -154,6 +154,10 @@ describe('ConfirmActionButton', () => {
       });
 
       resolveAction!();
+
+      await waitFor(() => {
+        expect(screen.getByText('Delete')).toBeDefined();
+      });
     });
 
     it('calls onSuccess after successful completion', async () => {

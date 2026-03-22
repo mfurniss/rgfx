@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import { promises as fs } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative } from 'pathe';
 import log from 'electron-log/main';
 
 /**

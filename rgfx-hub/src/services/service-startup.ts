@@ -11,6 +11,7 @@ import { installDefaultTransformers } from '../transformer-installer';
 import { installDefaultInterceptors } from '../interceptor-installer';
 import { installDefaultLedHardware } from '../led-hardware-installer';
 import { installLaunchScript } from '../launch-script-installer';
+import { detectMameVersion } from '../mame-detector';
 import { eventBus } from './event-bus';
 import { IPC } from '../config/ipc-channels';
 
@@ -91,6 +92,14 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
 
   void installLaunchScript().catch((error: unknown) => {
     log.error('Failed to install launch script:', error);
+  });
+
+  // Detect MAME version (auto-detect from common paths at startup)
+  void detectMameVersion('').then(({ version, detectedPath }) => {
+    services.systemMonitor.setMameVersion(version);
+    services.systemMonitor.setDetectedMamePath(detectedPath);
+  }).catch((error: unknown) => {
+    log.error('Failed to detect MAME version:', error);
   });
 
   // Register status data sources so getFullStatus() works everywhere

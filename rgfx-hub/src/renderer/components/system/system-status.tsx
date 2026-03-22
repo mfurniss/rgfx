@@ -46,6 +46,7 @@ const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
     { name: 'Events Processed', value: formatNumber(status.eventsProcessed) },
     { name: 'UDP Messages Sent', value: formatNumber(status.udpMessagesSent) },
     { name: 'UDP Errors', value: formatNumber(status.udpMessagesFailed) },
+    { name: 'MAME Version', value: status.mameVersion ?? 'not detected' },
   ];
 
   return (

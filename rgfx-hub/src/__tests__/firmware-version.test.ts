@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { execSync } from 'child_process';
-import path from 'path';
+import path from 'pathe';
 
 describe('firmware versioning', () => {
   const projectRoot = path.join(__dirname, '../../..');
