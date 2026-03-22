@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { registerUpdateMameDirHandler } from '../update-mame-dir-handler';
 import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
@@ -26,8 +26,12 @@ describe('registerUpdateMameDirHandler', () => {
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
   const mockSystemMonitor = { setMameVersion: vi.fn(), setDetectedMamePath: vi.fn() };
 
+  const originalPlatform = process.platform;
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    // Default to darwin — tests for win32 override explicitly
+    Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
 
     ipc = await setupIpcHandlerCapture();
     registerUpdateMameDirHandler({ systemMonitor: mockSystemMonitor as never });
@@ -35,32 +39,28 @@ describe('registerUpdateMameDirHandler', () => {
     registeredHandler = ipc.getHandler('settings:update-mame-dir') as typeof registeredHandler;
   });
 
+  afterEach(() => {
+    Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
+  });
+
   it('registers the settings:update-mame-dir handler', () => {
     ipc.assertChannel('settings:update-mame-dir');
   });
 
   it('constructs exe path from directory on Windows and calls updater', async () => {
-    const original = process.platform;
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
 
     const result = await registeredHandler({}, 'F:\\Mame');
 
     expect(mockUpdateLaunchScriptMamePath).toHaveBeenCalledWith('F:\\Mame\\mame.exe');
     expect(result.success).toBe(true);
-
-    Object.defineProperty(process, 'platform', { value: original, configurable: true });
   });
 
   it('constructs exe path from directory on macOS and calls updater', async () => {
-    const original = process.platform;
-    Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
-
     const result = await registeredHandler({}, '/opt/homebrew');
 
     expect(mockUpdateLaunchScriptMamePath).toHaveBeenCalledWith('/opt/homebrew/mame');
     expect(result.success).toBe(true);
-
-    Object.defineProperty(process, 'platform', { value: original, configurable: true });
   });
 
   it('clears MAME_PATH when directory is empty', async () => {

@@ -480,6 +480,8 @@ IPC handler tests use `setupIpcHandlerCapture()` from `@/__tests__/helpers/ipc-h
 
 Files needing additional electron mocks (`app`, `shell`, `dialog`) provide their own `vi.mock('electron')` which overrides the global one.
 
+**Platform-dependent handlers** (e.g., `update-mame-dir-handler`) use `process.platform` at call time. Tests must set `process.platform` in `beforeEach` (default to `darwin`) and restore in `afterEach`, since CI runs on Linux where platform-specific config maps have no entry.
+
 ### `firmware-assets.test.ts`
 
 **Purpose:** Integration test that validates firmware binaries referenced in `manifest.json` actually exist on disk with correct sizes and SHA256 checksums. Prevents broken firmware assets from being committed. Uses real file I/O — no mocks.

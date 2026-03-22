@@ -64,7 +64,7 @@ function tryExec(binary: string): Promise<string | null> {
   });
 }
 
-export interface MameDetectionResult {
+interface MameDetectionResult {
   version: string | null;
   /** Directory where MAME was found (null if not detected) */
   detectedPath: string | null;
