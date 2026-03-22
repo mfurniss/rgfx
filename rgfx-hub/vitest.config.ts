@@ -19,11 +19,6 @@ export default defineConfig({
     unstubGlobals: true,
     clearMocks: true,
     pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true, // Single fork prevents orphaned worker processes
-      },
-    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
