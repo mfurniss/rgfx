@@ -103,10 +103,10 @@ markdown_extensions:
   - toc:
       permalink: true
 
-copyright: "RGFX v1.4.9"
+copyright: "RGFX v1.5.0"
 
 extra:
-  release_date: "March 21, 2026"
+  release_date: "March 22, 2026"
 
 extra_css:
   - assets/css/custom.css
