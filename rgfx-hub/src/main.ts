@@ -1,5 +1,5 @@
 import { app, ipcMain, Menu, shell } from 'electron';
-import path from 'node:path';
+import path from 'pathe';
 import pkg from '../package.json';
 
 // Set app name and dock icon for dev mode (in production, these come from the packaged app)

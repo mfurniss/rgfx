@@ -22,6 +22,10 @@ Electron desktop app that bridges MAME game events to ESP32 LED drivers. Written
 - `npm start` — Dev mode with hot reload
 - `npm run build` — Production build
 
+## Path Handling
+
+All path operations use `pathe` instead of `node:path` for cross-platform compatibility (normalizes to forward slashes on all platforms). ESLint `no-restricted-imports` bans `node:path` and `path`.
+
 ## Test Configuration
 
 Tests use vitest with jsdom environment and parallel forks (`pool: "forks"`). Global setup in `src/__tests__/setup.ts` provides electron/electron-log mocks, jsdom compatibility shims, and automatic cleanup. See `src/CLAUDE.md` for test infrastructure details.

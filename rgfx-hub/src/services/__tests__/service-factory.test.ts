@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import path from 'path';
+import path from 'pathe';
 
 // Mock all service constructors
 const mockMqttBroker = vi.fn();

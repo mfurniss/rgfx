@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { join } from 'node:path';
+import { join } from 'pathe';
 import { TransformerEngine } from '../transformer-engine';
 import type { TransformerContext, RgfxTopic } from '../types/transformer-types';
 import * as fs from 'node:fs/promises';

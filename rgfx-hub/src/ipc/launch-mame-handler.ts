@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { spawn } from 'child_process';
-import { join } from 'path';
+import { join } from 'pathe';
 import log from 'electron-log/main';
 import { SEND_CHANNELS } from './contract';
 import { CONFIG_DIRECTORY } from '@/config/paths';

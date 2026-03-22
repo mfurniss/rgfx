@@ -1,5 +1,5 @@
 import { promises as fs } from 'node:fs';
-import { join } from 'node:path';
+import { join } from 'pathe';
 import log from 'electron-log/main';
 import { CONFIG_DIRECTORY } from './config/paths';
 

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { defineConfig } from "vitest/config";
-import path from "node:path";
+import path from "pathe";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

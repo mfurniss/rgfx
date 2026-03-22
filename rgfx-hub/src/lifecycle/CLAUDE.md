@@ -17,6 +17,7 @@ Manages application startup and shutdown:
 - Configures app-level settings
 - Calls `setShuttingDown()` on 'before-quit' to suppress socket errors during shutdown
 - Uses `driver-connect-service` for driver connection lifecycle management
+- Uses `pathe` for cross-platform path handling
 
 ### index.ts
 

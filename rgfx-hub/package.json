@@ -97,6 +97,7 @@
     "ip": "^2.0.1",
     "lodash-es": "^4.17.21",
     "node-ssdp": "^4.0.1",
+    "pathe": "^2.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.67.0",

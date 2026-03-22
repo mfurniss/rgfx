@@ -1,4 +1,4 @@
-import path from 'node:path';
+import path from 'pathe';
 import type { ElectronLogger } from '../config/logging';
 import { MqttBroker, NetworkManager } from '../network';
 import { EventFileReader } from '../event-file-reader';

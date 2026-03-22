@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
-import path from 'path';
+import path from 'pathe';
 
 /**
  * Guard against accidental reintroduction of electron-trpc.

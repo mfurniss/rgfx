@@ -8,7 +8,7 @@
  */
 
 import { watch } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join, basename } from 'pathe';
 import type { TransformerContext, TransformerHandler, RgfxTopic } from './types/transformer-types';
 import { getTransformersDir } from './transformer-installer';
 import { eventBus } from './services/event-bus';

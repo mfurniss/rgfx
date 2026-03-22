@@ -11,7 +11,7 @@
 import { spawn, execFile } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import dgram from 'dgram';
-import { isAbsolute, join } from 'path';
+import { isAbsolute, join } from 'pathe';
 import log from 'electron-log/main';
 import { UDP_PORT } from './config/constants';
 import { CONFIG_DIRECTORY } from './config/paths';

@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'pathe';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Driver } from '../types';
 import { createDriver } from '../types/driver';

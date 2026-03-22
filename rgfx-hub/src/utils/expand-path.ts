@@ -1,5 +1,5 @@
 import { homedir } from 'os';
-import { resolve } from 'path';
+import { resolve } from 'pathe';
 
 /**
  * Expands ~ to the user's home directory

@@ -33,6 +33,16 @@ export default tseslint.config(
       }],
       // Warn on unnecessary conditions - allows compile-time feature flags
       '@typescript-eslint/no-unnecessary-condition': 'warn',
+      // Ban node:path — use pathe for cross-platform compatibility
+      'no-restricted-imports': ['error', {
+        paths: [{
+          name: 'node:path',
+          message: 'Use "pathe" instead for cross-platform compatibility.',
+        }, {
+          name: 'path',
+          message: 'Use "pathe" instead for cross-platform compatibility.',
+        }],
+      }],
       // Enforce const for variables that are never reassigned
       'prefer-const': 'error',
       // Enforce object shorthand syntax

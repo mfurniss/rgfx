@@ -9,7 +9,7 @@ import {
   mkdirSync,
   writeFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join } from 'pathe';
 import chokidar, { type FSWatcher } from 'chokidar';
 import log from 'electron-log/main';
 import {

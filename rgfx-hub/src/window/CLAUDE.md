@@ -13,7 +13,7 @@ Manages the main application window lifecycle:
 - Creates BrowserWindow with appropriate settings
 - Handles window events (close, focus, blur)
 - Manages devtools in development mode
-- Sets up preload script for IPC bridge
+- Sets up preload script for IPC bridge (uses `pathe` for cross-platform paths)
 - Handles window bounds persistence
 - Uses `autoHideMenuBar: true` to hide the menu bar by default (visible with Alt key on Windows)
 - Provides `sendSystemStatus()` for broadcasting system status to renderer; uses `systemMonitor.getFullStatus()` for status assembly

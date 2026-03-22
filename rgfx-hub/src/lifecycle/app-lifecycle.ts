@@ -1,5 +1,5 @@
 import { app, BrowserWindow, session } from 'electron';
-import path from 'node:path';
+import path from 'pathe';
 import type { AppServices, Logger } from '../services/service-factory';
 import type { WindowManager } from '../window/window-manager';
 import type { PowerSaveHandle } from '../services/service-startup';

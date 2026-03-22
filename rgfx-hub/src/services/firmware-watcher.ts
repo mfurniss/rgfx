@@ -1,5 +1,5 @@
 import { watch, readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join } from 'pathe';
 import { app } from 'electron';
 import log from 'electron-log/main';
 import { EventEmitter } from 'node:events';

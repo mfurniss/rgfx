@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'pathe';
 import { DriverConfig } from '../driver-config';
 import { ConfigError } from '../errors/config-error';
 

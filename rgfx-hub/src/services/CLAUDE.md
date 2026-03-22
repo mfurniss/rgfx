@@ -2,7 +2,7 @@
 
 > **Keep this file updated!** After making changes in this folder, update this CLAUDE.md to reflect the current state.
 
-Main process services for firmware management, application lifecycle, and error handling.
+Main process services for firmware management, application lifecycle, and error handling. All path operations use `pathe` for cross-platform compatibility.
 
 ## Files
 

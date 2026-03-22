@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join } from 'pathe';
 import { app } from 'electron';
 import log from 'electron-log/main';
 import semver from 'semver';

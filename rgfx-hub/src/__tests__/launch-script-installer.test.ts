@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'pathe';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { installLaunchScript } from '@/launch-script-installer';
 

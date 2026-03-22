@@ -488,7 +488,7 @@ Files needing additional electron mocks (`app`, `shell`, `dialog`) provide their
 
 ## Import Conventions
 
-**Use static imports only.** Do not use dynamic `import()` in handler code — this is a desktop app, not a web app. All dependencies (including `fs`, `esp-ota`, etc.) should be imported statically at the top of the file.
+**Use static imports only.** Do not use dynamic `import()` in handler code — this is a desktop app, not a web app. All dependencies (including `fs`, `esp-ota`, etc.) should be imported statically at the top of the file. **Use `pathe` instead of `node:path`** for cross-platform path compatibility.
 
 ## Error Handling
 

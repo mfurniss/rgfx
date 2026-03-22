@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import path from 'node:path';
+import path from 'pathe';
 import fs from 'node:fs/promises';
 import log from 'electron-log/main';
 import { INVOKE_CHANNELS } from './contract';

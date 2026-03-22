@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'pathe';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { registerLaunchMameHandler } from '../launch-mame-handler';
 import { SEND_CHANNELS } from '../contract';

@@ -59,7 +59,7 @@ File system paths (main process only).
 - `TRANSFORMERS_DIRECTORY`: `~/.rgfx/transformers`
 - `INTERCEPTORS_DIRECTORY`: `~/.rgfx/interceptors`
 
-**Important**: Do not import paths.ts from renderer process (uses Node.js `os.homedir()`).
+**Important**: Do not import paths.ts from renderer process (uses Node.js `os.homedir()`). Uses `pathe` for cross-platform path handling.
 
 ### logging.ts
 

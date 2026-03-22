@@ -1,4 +1,4 @@
-import path from 'node:path';
+import path from 'pathe';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';

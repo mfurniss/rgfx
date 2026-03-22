@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import path from 'node:path';
+import path from 'pathe';
 import windowStateKeeper from 'electron-window-state';
 import type { SystemMonitor } from '../system-monitor';
 import type { DriverRegistry } from '../driver-registry';

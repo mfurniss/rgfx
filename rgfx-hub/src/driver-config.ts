@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'pathe';
 import log from 'electron-log/main';
 import type { DriverLEDConfig } from './types';
 import { CONFIG_VERSION } from './config/constants';

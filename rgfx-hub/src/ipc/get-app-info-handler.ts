@@ -1,5 +1,5 @@
 import { ipcMain, app } from 'electron';
-import { join } from 'path';
+import { join } from 'pathe';
 import type { AppInfo } from '../types';
 import pkg from '../../package.json';
 import { INVOKE_CHANNELS } from './contract';

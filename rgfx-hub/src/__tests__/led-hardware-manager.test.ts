@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import path from 'path';
+import path from 'pathe';
 import * as fs from 'fs';
 import { LEDHardwareManager } from '../led-hardware-manager';
 import { ConfigError } from '../errors/config-error';
