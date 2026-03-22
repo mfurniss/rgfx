@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/render';
 import { describe, it, expect } from 'vitest';
 import { Table, TableBody } from '@mui/material';
 import { TableEmptyRow } from '../table-empty-row';

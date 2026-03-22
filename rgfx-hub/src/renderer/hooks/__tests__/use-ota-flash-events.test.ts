@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook } from '@/__tests__/render';
 import { useOtaFlashEvents } from '../use-ota-flash-events';
 import type { DriverFlashStatus } from '@/renderer/store/firmware-flash-store';
 

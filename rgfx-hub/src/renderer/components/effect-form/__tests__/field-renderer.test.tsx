@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/render';
 import { describe, it, expect } from 'vitest';
 import { useForm, FormProvider } from 'react-hook-form';
 import { FieldRenderer } from '../field-renderer';

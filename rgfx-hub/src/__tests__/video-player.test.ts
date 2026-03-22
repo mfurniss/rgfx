@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Driver } from '../types';
 import { createDriver } from '../types/driver';
@@ -116,7 +117,7 @@ describe('resolveVideoPath', () => {
   it('should resolve relative paths against CONFIG_DIRECTORY', () => {
     const result = resolveVideoPath('videos/intro.mp4');
     expect(result).toContain('.rgfx');
-    expect(result).toContain('videos/intro.mp4');
+    expect(result).toContain(join('videos', 'intro.mp4'));
   });
 });
 

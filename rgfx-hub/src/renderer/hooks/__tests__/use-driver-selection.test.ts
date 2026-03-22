@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@/__tests__/render';
 import { useDriverSelection } from '../use-driver-selection';
 import { createMockDriver } from '@/__tests__/factories';
 

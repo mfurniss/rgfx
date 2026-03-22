@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TestLedButton from '../test-led-button';
 import type { Driver, DriverLEDConfig } from '@/types';

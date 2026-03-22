@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { registerLaunchMameHandler } from '../launch-mame-handler';
 import { SEND_CHANNELS } from '../contract';
@@ -56,7 +57,7 @@ describe('launch-mame-handler', () => {
       handler({}, 'pacman');
 
       expect(spawn).toHaveBeenCalledWith(
-        '/mock/.rgfx/launch-mame.sh',
+        join('/mock/.rgfx', 'launch-mame.sh'),
         ['pacman'],
         { detached: true, stdio: 'ignore' },
       );
@@ -75,7 +76,7 @@ describe('launch-mame-handler', () => {
 
       expect(spawn).toHaveBeenCalledWith(
         'cmd.exe',
-        ['/c', '/mock/.rgfx/launch-mame.bat', 'galaga'],
+        ['/c', join('/mock/.rgfx', 'launch-mame.bat'), 'galaga'],
         { detached: true, stdio: 'ignore' },
       );
     } finally {

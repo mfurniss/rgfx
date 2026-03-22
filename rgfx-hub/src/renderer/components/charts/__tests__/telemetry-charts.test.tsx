@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/render';
 import { describe, it, expect, beforeEach } from 'vitest';
 import TelemetryCharts from '../telemetry-charts';
 import { useTelemetryHistoryStore, type TelemetryDataPoint } from '@/renderer/store/telemetry-history-store';

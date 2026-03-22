@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@/__tests__/render';
 import { usePendingWithTimeout } from '../use-pending-with-timeout';
 
 describe('usePendingWithTimeout', () => {

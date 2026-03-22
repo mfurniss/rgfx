@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@/__tests__/render';
 import { useWifiConfigDialog } from '../use-wifi-config-dialog';
 
 const mockSetLastWifiCredentials = vi.fn();

@@ -3,6 +3,7 @@ import React from 'react';
 import { cleanup } from '@testing-library/react';
 import { seedRandom } from '../utils/random';
 
+
 // Global mocks for electron and electron-log (most tests need these)
 // Per-file vi.mock() calls will override these when custom mock behavior is needed
 vi.mock('electron-log/main', () => ({

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/render';
 import { describe, it, expect } from 'vitest';
 import { Dialog, IconButton } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';

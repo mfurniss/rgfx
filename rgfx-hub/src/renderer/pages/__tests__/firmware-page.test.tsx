@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import FirmwarePage from '../firmware-page';
 import { useDriverStore } from '../../store/driver-store';

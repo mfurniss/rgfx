@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@/__tests__/render';
 import { describe, it, expect } from 'vitest';
 import { useForm } from 'react-hook-form';
 import { GpioPinSelect } from '@/renderer/components/common/gpio-pin-select';

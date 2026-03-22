@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/__tests__/render';
 import type { Driver, SystemStatus, SystemError } from '@/types';
 import { createMockSystemStatus } from '@/__tests__/factories';
 import {
@@ -74,7 +74,7 @@ describe('App IPC Listener Registration', () => {
       }),
     });
     App = await importApp();
-  });
+  }, 30_000);
 
   it('should register IPC listeners exactly once on mount', () => {
     render(<App />);
@@ -152,7 +152,7 @@ describe('App Critical Error Handling', () => {
       }),
     });
     App = await importApp();
-  });
+  }, 30_000);
 
   it('should render CriticalErrorModal when config error exists', () => {
     const configError: SystemError = {

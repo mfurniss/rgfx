@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@/__tests__/render';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ClearAllEffectsButton } from '../clear-all-effects-button';
 import { useDriverStore } from '@/renderer/store/driver-store';
