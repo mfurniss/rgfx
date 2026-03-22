@@ -95,8 +95,9 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
   });
 
   // Detect MAME version (auto-detect from common paths at startup)
-  void detectMameVersion('').then((version) => {
+  void detectMameVersion('').then(({ version, detectedPath }) => {
     services.systemMonitor.setMameVersion(version);
+    services.systemMonitor.setDetectedMamePath(detectedPath);
   }).catch((error: unknown) => {
     log.error('Failed to detect MAME version:', error);
   });

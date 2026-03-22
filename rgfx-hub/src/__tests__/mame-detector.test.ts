@@ -46,9 +46,10 @@ describe('detectMameVersion', () => {
         cb(null, '0.286 (unknown)\n');
       });
 
-      const version = await detectMameVersion('/opt/homebrew');
+      const result = await detectMameVersion('/opt/homebrew');
 
-      expect(version).toBe('0.286');
+      expect(result.version).toBe('0.286');
+      expect(result.detectedPath).toBe('/opt/homebrew');
       expect(mockExecFile).toHaveBeenCalledWith(
         '/opt/homebrew/mame',
         ['-version'],
@@ -62,9 +63,10 @@ describe('detectMameVersion', () => {
         cb(null, '0.286 (mame0286)\n');
       });
 
-      const version = await detectMameVersion('F:\\Mame');
+      const result = await detectMameVersion('F:\\Mame');
 
-      expect(version).toBe('0.286');
+      expect(result.version).toBe('0.286');
+      expect(result.detectedPath).toBe('F:\\Mame');
       expect(mockExecFile).toHaveBeenCalledWith(
         'F:\\Mame\\mame.exe',
         ['-version'],
@@ -78,9 +80,10 @@ describe('detectMameVersion', () => {
         cb(new Error('ENOENT'));
       });
 
-      const version = await detectMameVersion('/nonexistent');
+      const result = await detectMameVersion('/nonexistent');
 
-      expect(version).toBeNull();
+      expect(result.version).toBeNull();
+      expect(result.detectedPath).toBeNull();
       expect(mockLogWarn).toHaveBeenCalledWith(expect.stringContaining('not found'));
     }));
 
@@ -89,9 +92,10 @@ describe('detectMameVersion', () => {
         cb(null, 'not a version string');
       });
 
-      const version = await detectMameVersion('/opt/homebrew');
+      const result = await detectMameVersion('/opt/homebrew');
 
-      expect(version).toBeNull();
+      expect(result.version).toBeNull();
+      expect(result.detectedPath).toBeNull();
     }));
   });
 
@@ -109,9 +113,9 @@ describe('detectMameVersion', () => {
         }
       });
 
-      const version = await detectMameVersion('');
+      const result = await detectMameVersion('');
 
-      expect(version).toBe('0.285');
+      expect(result.version).toBe('0.285');
       expect(mockExecFile).toHaveBeenCalledTimes(2);
     }));
 
@@ -120,9 +124,10 @@ describe('detectMameVersion', () => {
         cb(new Error('ENOENT'));
       });
 
-      const version = await detectMameVersion('');
+      const result = await detectMameVersion('');
 
-      expect(version).toBeNull();
+      expect(result.version).toBeNull();
+      expect(result.detectedPath).toBeNull();
       expect(mockLogWarn).toHaveBeenCalledWith(expect.stringContaining('not detected'));
     }));
   });

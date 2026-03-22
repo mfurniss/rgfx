@@ -1,17 +1,19 @@
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
-import { join as posixJoin } from 'node:path/posix';
-import { join as win32Join } from 'node:path/win32';
+import { join as posixJoin, dirname as posixDirname } from 'node:path/posix';
+import { join as win32Join, dirname as win32Dirname } from 'node:path/win32';
 import log from 'electron-log/main';
 
 const PLATFORM_CONFIG: Record<string, {
   exeName: string;
   join: typeof posixJoin;
+  dirname: typeof posixDirname;
   candidates: () => string[];
 }> = {
   darwin: {
     exeName: 'mame',
     join: posixJoin,
+    dirname: posixDirname,
     candidates: () => [
       'mame',
       posixJoin(homedir(), 'mame', 'mame'),
@@ -22,6 +24,7 @@ const PLATFORM_CONFIG: Record<string, {
   win32: {
     exeName: 'mame.exe',
     join: win32Join,
+    dirname: win32Dirname,
     candidates: () => [
       'mame',
       win32Join(homedir(), 'mame', 'mame.exe'),
@@ -29,6 +32,20 @@ const PLATFORM_CONFIG: Record<string, {
     ],
   },
 };
+
+function resolveFromPath(
+  exeName: string,
+  dirname: typeof posixDirname,
+): string | null {
+  try {
+    const cmd = process.platform === 'win32' ? 'where' : 'which';
+    const result = execFileSync(cmd, [exeName], { timeout: 3_000 })
+      .toString().trim().split(/\r?\n/)[0];
+    return result ? dirname(result) : null;
+  } catch {
+    return null;
+  }
+}
 
 function parseVersion(stdout: string): string | null {
   const match = /^(\d+\.\d+)/.exec(stdout.trim());
@@ -47,15 +64,21 @@ function tryExec(binary: string): Promise<string | null> {
   });
 }
 
+export interface MameDetectionResult {
+  version: string | null;
+  /** Directory where MAME was found (null if not detected) */
+  detectedPath: string | null;
+}
+
 /**
  * Detect MAME version by executing the binary with -version.
  * If mameDirectory is provided, looks for the exe there.
  * If empty, tries common install paths and PATH.
- * Returns version string (e.g. "0.286") or null if not found.
+ * Returns version string (e.g. "0.286") and detected path, or nulls if not found.
  */
 export async function detectMameVersion(
   mameDirectory: string,
-): Promise<string | null> {
+): Promise<MameDetectionResult> {
   const config = PLATFORM_CONFIG[process.platform];
 
   if (mameDirectory) {
@@ -67,7 +90,7 @@ export async function detectMameVersion(
     } else {
       log.warn(`MAME not found at: ${binary}`);
     }
-    return version;
+    return { version, detectedPath: version ? mameDirectory : null };
   }
 
   // Auto-detect from common locations
@@ -76,10 +99,13 @@ export async function detectMameVersion(
 
     if (version) {
       log.info(`MAME ${version} detected at: ${candidate}`);
-      return version;
+      const dir = candidate === 'mame'
+        ? resolveFromPath(candidate, config.dirname)
+        : config.dirname(candidate);
+      return { version, detectedPath: dir };
     }
   }
 
   log.warn('MAME not detected in any common location');
-  return null;
+  return { version: null, detectedPath: null };
 }

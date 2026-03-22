@@ -3,6 +3,7 @@ import { Stack } from '@mui/material';
 import Save from '@mui/icons-material/Save';
 import { useUiStore } from '../../store/ui-store';
 import { useAppInfoStore } from '../../store/app-info-store';
+import { useSystemStatusStore } from '../../store/system-status-store';
 import { notify } from '../../store/notification-store';
 import SuperButton from '../common/super-button';
 import { SettingsSection } from './settings-section';
@@ -17,6 +18,9 @@ export function DirectoriesSection() {
   const setMameRomsDirectory = useUiStore((s) => s.setMameRomsDirectory);
   const appInfo = useAppInfoStore((s) => s.appInfo);
   const defaultConfigDir = appInfo?.defaultRgfxConfigDir ?? '';
+  const detectedMamePath = useSystemStatusStore(
+    (s) => s.systemStatus.detectedMamePath,
+  );
 
   const configRef = useRef<DirectoryFieldHandle>(null);
   const mameRef = useRef<DirectoryFieldHandle>(null);
@@ -83,7 +87,8 @@ export function DirectoriesSection() {
         ref={mameRef}
         label="MAME Installation Directory"
         dialogTitle="Select MAME Installation Directory"
-        helperText="Directory containing the MAME executable (optional, auto-detected if empty)"
+        helperText={detectedMamePath
+          ?? 'Directory containing the MAME executable (optional, auto-detected if empty)'}
         storedValue={storedMameDir}
       />
       <DirectoryField

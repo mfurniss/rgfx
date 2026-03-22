@@ -29,6 +29,7 @@ export class SystemMonitor {
   private updateReleaseUrl: string | null = null;
   private _ffmpegAvailable = false;
   private _mameVersion: string | null = null;
+  private _detectedMamePath: string | null = null;
 
   constructor(mqtt: MqttBroker) {
     this.mqtt = mqtt;
@@ -151,6 +152,7 @@ export class SystemMonitor {
       updateAvailable: this.updateReleaseUrl ?? undefined,
       ffmpegAvailable: this._ffmpegAvailable,
       mameVersion: this._mameVersion ?? undefined,
+      detectedMamePath: this._detectedMamePath ?? undefined,
     };
   }
 
@@ -160,5 +162,9 @@ export class SystemMonitor {
 
   setMameVersion(version: string | null): void {
     this._mameVersion = version;
+  }
+
+  setDetectedMamePath(path: string | null): void {
+    this._detectedMamePath = path;
   }
 }

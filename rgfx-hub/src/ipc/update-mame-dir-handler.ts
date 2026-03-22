@@ -33,8 +33,9 @@ export function registerUpdateMameDirHandler(deps: UpdateMameDirHandlerDeps): vo
       await updateLaunchScriptMamePath(mamePath);
 
       // Detect version and update system status
-      const mameVersion = await detectMameVersion(mameDirectory);
+      const { version: mameVersion, detectedPath } = await detectMameVersion(mameDirectory);
       systemMonitor.setMameVersion(mameVersion);
+      systemMonitor.setDetectedMamePath(detectedPath);
 
       return { success: true, mameVersion: mameVersion ?? undefined };
     },

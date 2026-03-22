@@ -39,6 +39,18 @@ vi.mock('../../../store/app-info-store', () => ({
   ),
 }));
 
+let mockDetectedMamePath: string | undefined;
+
+vi.mock('../../../store/system-status-store', () => ({
+  useSystemStatusStore: vi.fn((selector) =>
+    selector({
+      systemStatus: {
+        detectedMamePath: mockDetectedMamePath,
+      },
+    }),
+  ),
+}));
+
 vi.mock('../../../store/notification-store', () => ({
   notify: (...args: unknown[]) => mockNotify(...args),
 }));
@@ -52,6 +64,7 @@ describe('DirectoriesSection', () => {
     mockStoredRgfxConfigDirectory = '/home/user/.rgfx';
     mockStoredMameRomsDirectory = '/home/user/mame-roms';
     mockDefaultRgfxConfigDir = '/home/user/.rgfx';
+    mockDetectedMamePath = undefined;
 
     mockVerifyDirectory = vi.fn().mockResolvedValue(true);
     mockSelectDirectory = vi.fn().mockResolvedValue(null);
@@ -90,6 +103,21 @@ describe('DirectoriesSection', () => {
     it('renders Save button', () => {
       render(<DirectoriesSection />);
       expect(screen.getByRole('button', { name: /save/i })).toBeDefined();
+    });
+
+    it('shows detected MAME path as helper text when available', () => {
+      mockDetectedMamePath = '/opt/homebrew/bin';
+      render(<DirectoriesSection />);
+
+      expect(screen.getByText('/opt/homebrew/bin')).toBeDefined();
+    });
+
+    it('shows default helper text when MAME path is not detected', () => {
+      render(<DirectoriesSection />);
+
+      expect(screen.getByText(
+        'Directory containing the MAME executable (optional, auto-detected if empty)',
+      )).toBeDefined();
     });
 
     it('renders folder picker buttons', () => {

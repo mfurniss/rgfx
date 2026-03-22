@@ -4,7 +4,7 @@ import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 const { mockUpdateLaunchScriptMamePath, mockDetectMameVersion } = vi.hoisted(() => ({
   mockUpdateLaunchScriptMamePath: vi.fn().mockResolvedValue(undefined),
-  mockDetectMameVersion: vi.fn().mockResolvedValue(null),
+  mockDetectMameVersion: vi.fn().mockResolvedValue({ version: null, detectedPath: null }),
 }));
 
 vi.mock('@/launch-script-updater', () => ({
@@ -24,7 +24,7 @@ describe('registerUpdateMameDirHandler', () => {
     event: unknown, mameDirectory: string,
   ) => Promise<HandlerReturn>;
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
-  const mockSystemMonitor = { setMameVersion: vi.fn() };
+  const mockSystemMonitor = { setMameVersion: vi.fn(), setDetectedMamePath: vi.fn() };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -71,21 +71,23 @@ describe('registerUpdateMameDirHandler', () => {
   });
 
   it('detects MAME version and updates system monitor', async () => {
-    mockDetectMameVersion.mockResolvedValue('0.286');
+    mockDetectMameVersion.mockResolvedValue({ version: '0.286', detectedPath: '/opt/homebrew' });
 
     const result = await registeredHandler({}, '/opt/homebrew');
 
     expect(mockDetectMameVersion).toHaveBeenCalledWith('/opt/homebrew');
     expect(mockSystemMonitor.setMameVersion).toHaveBeenCalledWith('0.286');
+    expect(mockSystemMonitor.setDetectedMamePath).toHaveBeenCalledWith('/opt/homebrew');
     expect(result.mameVersion).toBe('0.286');
   });
 
   it('returns undefined mameVersion when detection fails', async () => {
-    mockDetectMameVersion.mockResolvedValue(null);
+    mockDetectMameVersion.mockResolvedValue({ version: null, detectedPath: null });
 
     const result = await registeredHandler({}, '/nonexistent');
 
     expect(mockSystemMonitor.setMameVersion).toHaveBeenCalledWith(null);
+    expect(mockSystemMonitor.setDetectedMamePath).toHaveBeenCalledWith(null);
     expect(result.mameVersion).toBeUndefined();
   });
 });
