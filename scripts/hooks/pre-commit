@@ -1,0 +1,15 @@
+#!/bin/bash
+# Pre-commit hook - delegates to check-code.sh for all quality checks
+
+# Block commits directly to main
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" = "main" ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "❌ COMMIT BLOCKED: Direct commits to main are not allowed."
+    echo "   Create a feature branch first: git checkout -b <branch-name>"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    exit 1
+fi
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+exec "$ROOT_DIR/scripts/check-code.sh"
