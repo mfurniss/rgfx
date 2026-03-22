@@ -541,13 +541,13 @@ describe('registerFlashOtaHandler', () => {
       ).rejects.toThrow('Failed to publish OTA command');
     });
 
-    it('treats timeout as success when HTTP download completed', async () => {
+    it('treats timeout as success when HTTP download completed AND progress near-complete', async () => {
       vi.useFakeTimers();
 
-      // Publish succeeds, simulate HTTP download completing, but no MQTT result
+      // Publish succeeds, simulate HTTP download completing and progress reaching 96%
       mockMqtt.publish.mockImplementation(() => {
-        // Simulate HTTP download completing after OTA command sent
         simulateHttpDownload();
+        simulateOtaProgress('rgfx-driver-0001', 96);
 
         return Promise.resolve();
       });
@@ -557,8 +557,36 @@ describe('registerFlashOtaHandler', () => {
       // Advance past the 120-second timeout
       await vi.advanceTimersByTimeAsync(120_000);
 
-      // Should resolve successfully (not reject) because HTTP download completed
+      // Should resolve successfully because BOTH conditions are met
       await expect(promise).resolves.toBeUndefined();
+
+      vi.useRealTimers();
+    });
+
+    it('rejects timeout when HTTP download completed but progress is low', async () => {
+      vi.useFakeTimers();
+
+      // Publish succeeds, HTTP download completes but MQTT progress only reached 50%
+      mockMqtt.publish.mockImplementation(() => {
+        simulateHttpDownload();
+        simulateOtaProgress('rgfx-driver-0001', 50);
+
+        return Promise.resolve();
+      });
+
+      const promise = registeredHandler(
+        {},
+        'rgfx-driver-0001',
+      ).catch((err: unknown) => err);
+
+      // Advance past the 120-second timeout
+      await vi.advanceTimersByTimeAsync(120_000);
+
+      const error = await promise;
+
+      // Should reject — HTTP complete alone is not enough (fixes #97)
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain('OTA timeout');
 
       vi.useRealTimers();
     });
@@ -590,7 +618,7 @@ describe('registerFlashOtaHandler', () => {
 
       expect(settled.settled).toBe(false);
 
-      // Clean up: advance to full timeout (HTTP complete → success)
+      // Clean up: advance to full timeout (rejects, but .catch converts to value)
       await vi.advanceTimersByTimeAsync(105_000);
       await promise;
 
