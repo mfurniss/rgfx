@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@/__tests__/render';
+import { render, screen, waitFor } from '@/__tests__/render';
 import type { Driver, SystemStatus, SystemError } from '@/types';
 import { createMockSystemStatus } from '@/__tests__/factories';
 import {
@@ -76,33 +76,42 @@ describe('App IPC Listener Registration', () => {
     App = await importApp();
   }, 30_000);
 
-  it('should register IPC listeners exactly once on mount', () => {
+  it('should register IPC listeners exactly once on mount', async () => {
     render(<App />);
 
     // Verify each IPC listener is registered exactly once
-    expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    });
     expect(mock.onDriverDisconnected).toHaveBeenCalledTimes(1);
     expect(mock.onSystemStatus).toHaveBeenCalledTimes(1);
     expect(mock.rendererReady).toHaveBeenCalledTimes(1);
   });
 
-  it('should NOT re-register IPC listeners on re-render', () => {
+  it('should NOT re-register IPC listeners on re-render', async () => {
     const { rerender } = render(<App />);
 
-    // Initial registration
-    expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    });
 
     // Force re-render
     rerender(<App />);
 
     // Still only registered once (not twice)
-    expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    });
     expect(mock.onDriverDisconnected).toHaveBeenCalledTimes(1);
     expect(mock.onSystemStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('should call Zustand action exactly once when IPC event fires', () => {
+  it('should call Zustand action exactly once when IPC event fires', async () => {
     render(<App />);
+
+    await waitFor(() => {
+      expect(mock.onDriverConnected).toHaveBeenCalledTimes(1);
+    });
 
     // Get the registered callback
     const registeredCallback = mock.onDriverConnected.mock.calls[0][0];
@@ -178,7 +187,7 @@ describe('App Critical Error Handling', () => {
     expect(screen.getByText(configError.details!)).toBeDefined();
   });
 
-  it('should not render CriticalErrorModal for interceptor errors', () => {
+  it('should not render CriticalErrorModal for interceptor errors', async () => {
     const interceptorError: SystemError = {
       errorType: 'interceptor',
       message: 'Interceptor failed to load',
@@ -194,6 +203,8 @@ describe('App Critical Error Handling', () => {
     render(<App />);
 
     // Should NOT show the critical error modal for interceptor errors
-    expect(screen.queryByText('Configuration Error')).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByText('Configuration Error')).toBeNull();
+    });
   });
 });

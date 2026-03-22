@@ -256,7 +256,6 @@ describe('DirectoriesSection', () => {
     });
 
     it('shows Saving... text while saving', async () => {
-      // Use a deferred pattern to control promise resolution
       let resolveVerify!: (value: boolean) => void;
       const verifyPromise = new Promise<boolean>((resolve) => {
         resolveVerify = resolve;
@@ -267,18 +266,20 @@ describe('DirectoriesSection', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-      // Check for saving state (button is disabled while saving)
       await waitFor(() => {
         const button = screen.getByRole('button', { name: /save/i });
         expect(button).toHaveProperty('disabled', true);
       });
 
-      // Resolve to allow test to complete
       resolveVerify(true);
+
+      await waitFor(() => {
+        const button = screen.getByRole('button', { name: /save/i });
+        expect(button).toHaveProperty('disabled', false);
+      });
     });
 
     it('disables save button while saving', async () => {
-      // Use a deferred pattern to control promise resolution
       let resolveVerify!: (value: boolean) => void;
       const verifyPromise = new Promise<boolean>((resolve) => {
         resolveVerify = resolve;
@@ -294,8 +295,12 @@ describe('DirectoriesSection', () => {
         expect(button).toHaveProperty('disabled', true);
       });
 
-      // Resolve to allow test to complete
       resolveVerify(true);
+
+      await waitFor(() => {
+        const button = screen.getByRole('button', { name: /save/i });
+        expect(button).toHaveProperty('disabled', false);
+      });
     });
 
     it('allows empty ROMs directory', async () => {

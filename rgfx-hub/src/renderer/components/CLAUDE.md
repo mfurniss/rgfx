@@ -898,5 +898,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - **Do NOT add `vi.mock('electron-log/main')` or `vi.mock('electron')` unless you need custom mock refs.** Global mocks in `setup.ts` cover the standard cases.
 - **Set `window.rgfx` in `beforeEach`, not at module level.** Global `afterEach` resets `window.rgfx` to a default mock after each test, so module-level assignments are lost. Use `installRgfxMock()` or direct assignment in `beforeEach`.
 - **Reset Zustand store state in `beforeEach`** when tests depend on default store values (e.g., `useUiStore.setState({ tableSortPreferences: {} })`). Zustand singletons persist in memory across tests even after `localStorage.clear()`.
+- **Use `findBy*` instead of `getBy*`** for assertions on content that appears after async effects (e.g., components with `useEffect` data fetching). `findBy*` wraps in `act()` automatically.
+- **`act()` warnings from `useShallow`** are false positives suppressed globally in `setup.ts` — do not add manual `act()` wrappers to fix them.
 
 <\!-- No per-file license headers — see root LICENSE -->

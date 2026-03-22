@@ -75,6 +75,7 @@ Global test setup (`__tests__/setup.ts`) provides:
 - `localStorage.clear()` in `afterEach` — prevents Zustand persisted state (sort prefs, UI settings) from leaking
 - `vi.useRealTimers()` in `afterEach` — restores real timers if a test used `vi.useFakeTimers()` without restoring
 - **Do NOT enable `restoreMocks: true`** in vitest config — it strips `vi.fn()` implementations set in `vi.mock()` factories (vi.fn has no "original" to restore to)
+- Suppresses false-positive `act()` warnings from Zustand v5 `useShallow` + React 19 ([pmndrs/zustand#2636](https://github.com/pmndrs/zustand/issues/2636))
 
 Key test helpers:
 - `__tests__/helpers/ipc-handler.helper.ts` — `setupIpcHandlerCapture()` for IPC handler tests

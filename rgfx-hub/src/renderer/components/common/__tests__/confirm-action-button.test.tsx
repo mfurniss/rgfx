@@ -154,6 +154,10 @@ describe('ConfirmActionButton', () => {
       });
 
       resolveAction!();
+
+      await waitFor(() => {
+        expect(screen.getByText('Delete')).toBeDefined();
+      });
     });
 
     it('calls onSuccess after successful completion', async () => {

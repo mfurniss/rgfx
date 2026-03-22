@@ -69,11 +69,11 @@ const renderWithRouter = (mac: string) => {
 describe('DriverConfigPage', () => {
   describe('loading states', () => {
 
-    it('shows not found when driver does not exist', () => {
+    it('shows not found when driver does not exist', async () => {
       mock.getLEDHardwareList.mockResolvedValue([]);
       renderWithRouter('AA:BB:CC:DD:EE:FF');
 
-      expect(screen.getByText('Driver Not Found')).toBeDefined();
+      expect(await screen.findByText('Driver Not Found')).toBeDefined();
       expect(screen.getByText(/No driver found with MAC/)).toBeDefined();
     });
   });
@@ -125,7 +125,7 @@ describe('DriverConfigPage', () => {
   });
 
   describe('LED hardware selection', () => {
-    it('shows loading state while fetching hardware options', () => {
+    it('shows loading state while fetching hardware options', async () => {
       const mac = '44:1D:64:F8:9A:58';
       mockDrivers = [createTestDriver(mac, 'test-driver')];
       // Don't resolve the promise yet - use a never-resolving promise
@@ -133,7 +133,7 @@ describe('DriverConfigPage', () => {
 
       renderWithRouter(mac);
 
-      expect(screen.getByText('Loading hardware options...')).toBeDefined();
+      expect(await screen.findByText('Loading hardware options...')).toBeDefined();
     });
 
     it('shows warning when no hardware options available', async () => {
