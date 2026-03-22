@@ -39,6 +39,8 @@ export interface SystemStatus {
   updateAvailable?: string;
   /** Whether ffmpeg is installed on the system (required for video effect) */
   ffmpegAvailable: boolean;
+  /** MAME version string (e.g. "0.286") if detected, undefined if not found */
+  mameVersion?: string;
 }
 
 export interface GameInfo {

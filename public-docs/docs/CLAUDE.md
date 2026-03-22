@@ -104,7 +104,7 @@ The build script (`public-docs/build.sh`) downloads the latest mermaid.min.js fr
 - `loadSprite(path)` loads JSON sprite files; returns same format as `loadGif` but `palette` is optional (defaults to PICO-8)
 - Requirements page lists WS2812B (RGB) as recommended starter LEDs; SK6812 (RGBW) noted as supported alternative in a tip admonition
 - Wiring page covers basic 3-wire connection (DATA, GND, 5V) and simple power guidance; links to r/led for advanced setups
-- Configure MAME page (`getting-started/configure-mame.md`) documents the launch script installed to `~/.rgfx/` by the Hub on first launch, the `-autoboot_script` flag for manual/frontend use, and how to customize paths by editing the script
+- Configure MAME page (`getting-started/configure-mame.md`) documents the launch script installed to `~/.rgfx/` by the Hub on first launch, the `-autoboot_script` flag for manual/frontend use, how to customize paths by editing the script, and the MAME Installation Directory setting in Hub Settings for non-standard install locations
 - Effects page (`hub-app/effects.md`, top-level nav) includes a strip/matrix compatibility table; Bitmap, Text, Scroll Text, Spectrum, Music, and Video are matrix-only
 - Video effect requires ffmpeg; documented with an admonition on effects.md and listed as optional dependency on requirements.md
 - FX Playground page (`hub-app/fx-playground.md`) includes a Video Playback subsection explaining the file picker and play/stop controls

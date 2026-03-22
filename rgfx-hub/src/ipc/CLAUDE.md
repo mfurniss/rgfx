@@ -24,7 +24,7 @@ Auto-generates the preload API by looping over channel maps. No per-method boile
 
 ### handler-registry.ts
 
-Contains the `IpcHandlersDeps` interface and the `handlers` array of all 27 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
+Contains the `IpcHandlersDeps` interface and the `handlers` array of all 28 registration functions. Each handler accepts its own narrow deps interface; TypeScript contravariance allows them to be called with the full deps object.
 
 ### index.ts
 
@@ -447,6 +447,26 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 **Behavior:**
 - Calls `updateLaunchScriptRomPath(romsDirectory)` which does a targeted replacement of only the ROM_PATH line, preserving all other user customizations
 - Called from Settings > Directories when the user saves a new MAME ROMs path
+
+---
+
+### `settings:update-mame-dir`
+
+**File:** [update-mame-dir-handler.ts](update-mame-dir-handler.ts)
+
+**Purpose:** Updates the MAME installation directory and detects the MAME version.
+
+**Parameters:**
+- `mameDirectory: string` - Path to directory containing MAME executable (empty string to revert to auto-detect)
+
+**Returns:** `{ success: boolean; mameVersion?: string }`
+
+**Behavior:**
+- Constructs platform-specific exe path from the directory (appends `mame` on macOS, `mame.exe` on Windows)
+- Calls `updateLaunchScriptMamePath()` to update the MAME_PATH variable in the launch script
+- Runs `detectMameVersion()` to detect MAME version from the directory
+- Updates `SystemMonitor` with detected version via `setMameVersion()`
+- Returns detected version string in response (or undefined if not found)
 
 ---
 

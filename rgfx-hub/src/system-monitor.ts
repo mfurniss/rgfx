@@ -28,6 +28,7 @@ export class SystemMonitor {
   private statusSources?: StatusSources;
   private updateReleaseUrl: string | null = null;
   private _ffmpegAvailable = false;
+  private _mameVersion: string | null = null;
 
   constructor(mqtt: MqttBroker) {
     this.mqtt = mqtt;
@@ -149,10 +150,15 @@ export class SystemMonitor {
       systemErrors: errors,
       updateAvailable: this.updateReleaseUrl ?? undefined,
       ffmpegAvailable: this._ffmpegAvailable,
+      mameVersion: this._mameVersion ?? undefined,
     };
   }
 
   setFfmpegAvailable(available: boolean): void {
     this._ffmpegAvailable = available;
+  }
+
+  setMameVersion(version: string | null): void {
+    this._mameVersion = version;
   }
 }

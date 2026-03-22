@@ -30,6 +30,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - Fixed-width (240px) permanent drawer with app title and theme toggle
 - Contains `SidebarNav` for navigation
 - Main content area with overflow scrolling
+- Banner stack: `UpdateAvailableBanner`, `NoDriversBanner`, `FirmwareUpdateBanner`, `MameVersionBanner`
 
 ---
 
@@ -109,7 +110,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Purpose:** Dashboard panel showing overall hub system status.
 
 **Features:**
-- Displays: Version, IP Address, Uptime, MQTT Broker, Discovery, Event Reader, Drivers Connected, Events Processed
+- Displays: Version, IP Address, Uptime, MQTT Broker, Discovery, Event Reader, Drivers Connected, Events Processed, MAME Version
 - Live uptime counter (updates every second when visible)
 - Real-time event count via IPC subscription
 
@@ -500,6 +501,19 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 
 ---
 
+### MameVersionBanner
+
+**File:** [common/mame-version-banner.tsx](common/mame-version-banner.tsx)
+
+**Purpose:** Warning banner displayed when MAME 0.250+ is not detected.
+
+**Features:**
+- Reads `mameVersion` from `useSystemStatusStore`
+- Hidden when MAME version >= 0.250 is detected
+- Uses `PageBanner` with warning color and link to Settings page
+
+---
+
 ### ConfirmActionButton
 
 **File:** [common/confirm-action-button.tsx](common/confirm-action-button.tsx)
@@ -839,17 +853,42 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 
 ---
 
+### DirectoryField
+
+**File:** [settings/directory-field.tsx](settings/directory-field.tsx)
+
+**Purpose:** Reusable directory input field with validation via `forwardRef`/`useImperativeHandle`.
+
+**Props:**
+- `label: string` - Field label
+- `dialogTitle: string` - Title for native folder dialog
+- `helperText: string` - Helper text shown below field
+- `storedValue: string` - Initial value from store
+- `defaultPath?: string` - Default path for folder dialog
+- `required?: boolean` - Whether the field is required
+
+**Handle Methods (via ref):**
+- `validate()` - Validates directory exists (or is empty if not required); returns `Promise<boolean>`
+- `getValue()` - Returns trimmed current value
+
+**Features:**
+- Local state with init-once pattern (ref guard prevents infinite loops on Windows)
+- Wraps `DirectoryPicker` component
+- Clears error on user input
+
+---
+
 ### DirectoriesSection
 
 **File:** [settings/directories-section.tsx](settings/directories-section.tsx)
 
-**Purpose:** Settings section for configuring RGFX config and MAME ROMs directories.
+**Purpose:** Settings section for configuring RGFX config, MAME installation, and MAME ROMs directories.
 
 **Features:**
-- Config directory and MAME ROMs directory pickers with validation
-- Save button validates directories exist before persisting
-- On save, calls `updateMameRomsDirectory` IPC to regenerate the MAME launch script with the new ROM path
-- Uses initialization refs to prevent infinite loops on Windows
+- Three directory fields using `DirectoryField` component: Config (required), MAME Installation (optional, auto-detected if empty), MAME ROMs (optional)
+- Save button validates all directories exist before persisting
+- On save, calls `updateMameDirectory` IPC to update MAME_PATH in launch script and detect version, then `updateMameRomsDirectory` IPC if ROMs directory is set
+- Shows MAME version in save notification when detected (e.g., "Settings saved — MAME 0.286 detected")
 
 ---
 

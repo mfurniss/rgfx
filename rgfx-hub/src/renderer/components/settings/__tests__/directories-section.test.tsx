@@ -4,10 +4,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DirectoriesSection } from '../directories-section';
 
 const mockSetRgfxConfigDirectory = vi.fn();
+const mockSetMameDirectory = vi.fn();
 const mockSetMameRomsDirectory = vi.fn();
 const mockNotify = vi.fn();
 
 let mockStoredRgfxConfigDirectory = '/home/user/.rgfx';
+const mockStoredMameDirectory = '';
 let mockStoredMameRomsDirectory = '/home/user/mame-roms';
 let mockDefaultRgfxConfigDir = '/home/user/.rgfx';
 
@@ -15,8 +17,10 @@ vi.mock('../../../store/ui-store', () => ({
   useUiStore: vi.fn((selector) =>
     selector({
       rgfxConfigDirectory: mockStoredRgfxConfigDirectory,
+      mameDirectory: mockStoredMameDirectory,
       mameRomsDirectory: mockStoredMameRomsDirectory,
       setRgfxConfigDirectory: mockSetRgfxConfigDirectory,
+      setMameDirectory: mockSetMameDirectory,
       setMameRomsDirectory: mockSetMameRomsDirectory,
       stripLifespanScale: 0.6,
       setStripLifespanScale: vi.fn(),
@@ -56,6 +60,7 @@ describe('DirectoriesSection', () => {
     (window as unknown as { rgfx: Record<string, unknown> }).rgfx = {
       verifyDirectory: mockVerifyDirectory,
       selectDirectory: mockSelectDirectory,
+      updateMameDirectory: vi.fn().mockResolvedValue({ success: true }),
       updateMameRomsDirectory: vi.fn().mockResolvedValue({ success: true }),
     };
   });
@@ -165,7 +170,7 @@ describe('DirectoriesSection', () => {
       fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('RGFX Config Directory is required')).toBeDefined();
+        expect(screen.getByText('Directory is required')).toBeDefined();
       });
     });
 

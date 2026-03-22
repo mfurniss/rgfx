@@ -18,9 +18,9 @@ const SettingsPage: React.FC = () => {
       <PageTitle icon={<SettingsIcon />} title="Settings" />
       <Stack spacing={3}>
         <AppearanceSection />
+        <DirectoriesSection />
         <DriverFallbackSection />
         <EffectModifiersSection />
-        <DirectoriesSection />
         <BackupSection />
         <ReinstallAssetsSection />
         <LogsSection />

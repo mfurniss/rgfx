@@ -82,6 +82,7 @@ Orchestrates service initialization on app startup.
 - Creates `eventProcessor` callback that forwards events to transformer engine, increments stats, sends IPC events, and emits system:error for interceptor errors
 - Sets up firmware monitoring callback to broadcast system status updates
 - Installs launch script to `~/.rgfx/` via `installLaunchScript()`
+- Auto-detects MAME version at startup (fire-and-forget) via `detectMameVersion('')` and updates `systemMonitor`
 - Returns `PowerSaveHandle` for cleanup during app shutdown
 
 ### system-error-tracker.ts

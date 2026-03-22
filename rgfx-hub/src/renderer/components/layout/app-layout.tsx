@@ -4,6 +4,7 @@ import { SidebarNav } from './sidebar-nav';
 import { NoDriversBanner } from '../firmware/no-drivers-banner';
 import { FirmwareUpdateBanner } from '../firmware/firmware-update-banner';
 import { UpdateAvailableBanner } from '../common/update-available-banner';
+import { MameVersionBanner } from '../common/mame-version-banner';
 import { DRAWER_WIDTH } from '@/config/constants';
 
 interface AppLayoutProps {
@@ -45,6 +46,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <UpdateAvailableBanner />
         <NoDriversBanner />
         <FirmwareUpdateBanner />
+        <MameVersionBanner />
         <Box sx={{ p: 3, flexGrow: 1 }}>
           {children}
         </Box>

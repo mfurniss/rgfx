@@ -25,6 +25,12 @@ Choose your preferred theme mode:
 
 Default: see [Config Directory](../getting-started/hub-setup.md#config-directory)
 
+### MAME Installation Directory
+
+**Optional.** Path to the directory containing your MAME executable. When set, the [launch script](../getting-started/configure-mame.md) uses this path instead of auto-detecting MAME from common locations.
+
+Leave empty to auto-detect MAME from `%USERPROFILE%\mame\`, `C:\mame\`, or `PATH` (Windows) / Homebrew or `PATH` (macOS).
+
 ### MAME ROMs Directory
 
 **Optional.** Path to your MAME ROM files. When configured, the [Games](games.md) page shows which ROMs have interceptors and transformers.

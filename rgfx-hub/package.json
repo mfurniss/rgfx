@@ -23,6 +23,8 @@
     "test:coverage": "vitest run --coverage",
     "check": "npm run typecheck && npm run lint && npm test",
     "unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='config/mappings;src/preload.ts;src/__tests__;src/ipc/contract.ts;vite.renderer.config.ts' --exitWithCount",
+    "depcheck": "depcheck --ignores=\"@types/*,electron,@electron/fuses,@testing-library/*,@vitest/*,depcheck,license-checker,sharp,png2icons,colord,d3-scale,@eslint/*,cross-env,nodemon\"",
+    "license-check": "license-checker --onlyAllow \"MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;MPL-2.0;OFL-1.1;LGPL-3.0-or-later;CC-BY-4.0;CC-BY-3.0\" --excludePackages \"truncate-utf8-bytes@1.0.2\"",
     "smoke-test": "python3 ../scripts/e2e-smoke-test.py",
     "smoke-test:verbose": "python3 ../scripts/e2e-smoke-test.py -v",
     "smoke-test:stress": "python3 ../scripts/e2e-smoke-test.py -d 300 --density high -v",

@@ -69,6 +69,7 @@ Stores can call into each other:
   - `udpStatsByDriver: Record<string, UdpStats>` - Per-driver UDP statistics
   - `systemErrors: array` - Array of system errors
   - `ffmpegAvailable: boolean` - Whether ffmpeg is installed (for video effect)
+  - `mameVersion?: string` - Detected MAME version (e.g. "0.286")
 
 **Actions:**
 - `onSystemStatusUpdate(newStatus)` - Updates status and triggers notifications for IP changes and new system errors; updates events-rate-history-store
@@ -197,32 +198,36 @@ interface Notification {
 **Purpose:** Persists user interface preferences across sessions.
 
 **State:**
-- `driverTableSortField: SortField` - Current sort field for driver table ('id' | 'name' | 'ip' | 'status')
-- `driverTableSortOrder: SortOrder` - Sort direction ('asc' | 'desc')
+- `tableSortPreferences: Record<string, TableSortPreference>` - Generic table sort preferences (for useSortableTable hook)
 - `testEffectsSelectedEffect: string` - Selected effect type on test page
-- `testEffectsPropsJson: string` - JSON props for test effect
+- `testEffectsPropsMap: Record<string, string>` - Per-effect props JSON map
 - `testEffectsSelectedDrivers: string[]` - Selected driver IDs for testing
-- `testEffectsSelectAll: boolean` - Whether "select all" is checked
-- `simulatorRows: SimulatorRow[]` - Array of 6 simulator row configurations
-- `wifiSsid: string` - Persisted WiFi SSID for driver configuration
-- `wifiPassword: string` - Persisted WiFi password for driver configuration
-- `stripExplosionLifespanScale: number` - Scaling factor for explosion effect lifespan on strips
+- `simulatorRows: SimulatorRow[]` - Array of simulator row configurations
+- `rgfxConfigDirectory: string` - RGFX config directory path
+- `mameDirectory: string` - MAME installation directory path
+- `mameRomsDirectory: string` - MAME ROMs directory path
+- `lastWifiSsid: string` - Persisted WiFi SSID for driver configuration
+- `lastWifiPassword: string` - Persisted WiFi password for driver configuration
+- `stripLifespanScale: number` - Scaling factor for strip effect lifespan
 - `driverFallbackEnabled: boolean` - Whether driver fallback mode is active (default: true)
 
 **Actions:**
-- `setDriverTableSort(field, order)` - Updates driver table sort preferences
-- `setTestEffectsState(effect, props, drivers, selectAll)` - Saves test effects page state
+- `setTableSort(key, field, order)` - Updates table sort preferences by key
+- `setTestEffectsState(effect, props, drivers)` - Saves test effects page state
 - `setSimulatorRow(index, eventLine, autoInterval)` - Updates a simulator row
 - `resetAllAutoIntervals()` - Sets all simulator rows' autoInterval to 'off' (used by Clear All Effects)
-- `setWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
-- `setStripExplosionLifespanScale(scale)` - Sets explosion lifespan scale for strips
+- `setRgfxConfigDirectory(path)` - Sets config directory path
+- `setMameDirectory(path)` - Sets MAME installation directory path
+- `setMameRomsDirectory(path)` - Sets MAME ROMs directory path
+- `setLastWifiCredentials(ssid, password)` - Saves WiFi credentials for reuse
+- `setStripLifespanScale(scale)` - Sets strip effect lifespan scale
 - `setDriverFallbackEnabled(enabled)` - Toggles driver fallback mode
 
 **Note:** Firmware flash state (flash method, OTA progress, etc.) has been moved to `firmware-flash-store.ts`.
 
 **Features:**
 - Uses Zustand persist middleware with debounced storage (500ms) to avoid blocking UI during rapid updates
-- Persists sort preferences, simulator rows, WiFi credentials, and selected effect
+- Persists sort preferences, simulator rows, directories, WiFi credentials, and selected effect
 - Storage key: `rgfx-ui-preferences` (version 5)
 
 ---

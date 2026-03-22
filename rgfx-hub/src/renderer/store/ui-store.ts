@@ -35,6 +35,7 @@ interface UiState {
 
   // Settings page state
   rgfxConfigDirectory: string;
+  mameDirectory: string;
   mameRomsDirectory: string;
 
   // WiFi configuration persistence
@@ -54,6 +55,7 @@ interface UiState {
   ) => void;
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
+  setMameDirectory: (path: string) => void;
   setMameRomsDirectory: (path: string) => void;
   setLastWifiCredentials: (ssid: string, password: string) => void;
   setDriverFallbackEnabled: (enabled: boolean) => void;
@@ -82,6 +84,7 @@ export const useUiStore = create<UiState>()(
 
       // Settings defaults
       rgfxConfigDirectory: '',
+      mameDirectory: '',
       mameRomsDirectory: '',
 
       // WiFi configuration defaults
@@ -124,6 +127,10 @@ export const useUiStore = create<UiState>()(
         set({ rgfxConfigDirectory: path });
       },
 
+      setMameDirectory: (path) => {
+        set({ mameDirectory: path });
+      },
+
       setMameRomsDirectory: (path) => {
         set({ mameRomsDirectory: path });
       },
@@ -157,6 +164,7 @@ export const useUiStore = create<UiState>()(
         tableSortPreferences: state.tableSortPreferences,
         simulatorRows: state.simulatorRows,
         rgfxConfigDirectory: state.rgfxConfigDirectory,
+        mameDirectory: state.mameDirectory,
         mameRomsDirectory: state.mameRomsDirectory,
         lastWifiSsid: state.lastWifiSsid,
         lastWifiPassword: state.lastWifiPassword,
