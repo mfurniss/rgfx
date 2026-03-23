@@ -115,8 +115,13 @@ const App: React.FC = () => {
       void getAppInfo();
 
       // Sync persisted settings to main process
-      const { driverFallbackEnabled } = useUiStore.getState();
+      const { driverFallbackEnabled, mameDirectory } = useUiStore.getState();
       void window.rgfx.setDriverFallbackEnabled(driverFallbackEnabled);
+
+      // Re-detect MAME using the saved directory (auto-detect may miss non-standard paths)
+      if (mameDirectory) {
+        void window.rgfx.updateMameDirectory(mameDirectory);
+      }
 
       rendererReadyCalled = true;
     }

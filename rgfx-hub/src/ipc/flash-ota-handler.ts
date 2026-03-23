@@ -181,7 +181,7 @@ export function registerFlashOtaHandler(deps: FlashOtaHandlerDeps): void {
         const timeout = setTimeout(() => {
           // If HTTP download completed or MQTT progress was near-complete,
           // device likely rebooted before sending the QoS 2 result message
-          if (httpDownloadComplete || lastPercent >= 95) {
+          if (httpDownloadComplete && lastPercent >= 95) {
             log.info(
               `OTA to ${driverId} likely succeeded ` +
               `(httpComplete: ${httpDownloadComplete}, mqttProgress: ${lastPercent}%)`,

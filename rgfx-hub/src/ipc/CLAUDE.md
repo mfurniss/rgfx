@@ -88,7 +88,7 @@ All handlers are registered via `registerIpcHandlers()` in [index.ts](index.ts),
 7. Forwards progress events to renderer via `flash:ota:state` and `flash:ota:progress` channels
 8. Sets driver state to `updating` during flash, `disconnected` on completion (driver reboots)
 9. Tracks HTTP download completion server-side via `onDownloadStarted`/`onDownloadComplete` callbacks on the firmware HTTP server
-10. 120s timeout with dual heuristic: if HTTP download completed OR MQTT progress >= 95% at timeout, treat as success (device rebooted before sending QoS 2 result). HTTP download start also clears the first-contact timeout.
+10. 120s timeout with dual heuristic: if HTTP download completed AND MQTT progress >= 95% at timeout, treat as success (device rebooted before sending QoS 2 result). Both conditions are required to prevent false positives from TCP buffering (see #97). HTTP download start also clears the first-contact timeout.
 11. Cleans up in `finally`: unsubscribes MQTT topics, closes HTTP server, removes active OTA tracking
 
 **Multi-chip Support:**
