@@ -646,6 +646,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - `layoutConfig?: LayoutConfig` - Optional layout configuration
 
 **Features:**
+- Wrapped in `React.memo` to prevent re-renders when parent re-renders for unrelated reasons
 - Introspects Zod schema to generate form fields automatically
 - Uses react-hook-form with Zod resolver for validation
 - Resets form when defaultValues actually change (deep comparison via JSON.stringify prevents feedback loop where store-echoed values trigger unnecessary resets)

@@ -20,7 +20,7 @@ interface EffectFormProps {
   layoutConfig?: LayoutConfig;
 }
 
-export function EffectForm(props: EffectFormProps) {
+export const EffectForm = React.memo(function EffectForm(props: EffectFormProps) {
   const {
     schema, defaultValues, onChange, onValidityChange, fieldTypes, layoutConfig,
   } = props;
@@ -123,4 +123,4 @@ export function EffectForm(props: EffectFormProps) {
       </Grid>
     </FormProvider>
   );
-}
+});

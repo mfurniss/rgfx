@@ -42,6 +42,10 @@ export default tseslint.config(
           name: 'path',
           message: 'Use "pathe" instead for cross-platform compatibility.',
         }],
+        patterns: [{
+          group: ['../../..*'],
+          message: 'Use @/ path alias instead of deep relative imports.',
+        }],
       }],
       // Enforce const for variables that are never reassigned
       'prefer-const': 'error',
@@ -188,6 +192,16 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
+      // Allow deep relative imports in tests (vi.mock paths, package.json imports)
+      'no-restricted-imports': ['error', {
+        paths: [{
+          name: 'node:path',
+          message: 'Use "pathe" instead for cross-platform compatibility.',
+        }, {
+          name: 'path',
+          message: 'Use "pathe" instead for cross-platform compatibility.',
+        }],
+      }],
     },
   },
 
