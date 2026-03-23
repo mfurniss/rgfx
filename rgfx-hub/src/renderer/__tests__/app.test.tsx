@@ -208,3 +208,49 @@ describe('App Critical Error Handling', () => {
     });
   });
 });
+
+describe('App Startup Settings Sync', () => {
+  let mock: MockRgfxAPI;
+  let App: React.FC;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    vi.resetModules();
+    mock = installRgfxMock({
+      getAppInfo: vi.fn().mockResolvedValue({
+        version: '0.0.1-test',
+        licensePath: '/mock/LICENSE',
+        defaultRgfxConfigDir: '/mock/.rgfx',
+        defaultMameRomsDir: '/mock/mame-roms',
+      }),
+      getLogSizes: vi.fn().mockResolvedValue({
+        system: null, events: null, drivers: [],
+      }),
+      updateMameDirectory: vi.fn().mockResolvedValue({ success: true, mameVersion: '0.286' }),
+    });
+    App = await importApp();
+  }, 30_000);
+
+  it('should sync saved mameDirectory to main process on startup', async () => {
+    // Set mameDirectory on the same store instance the app will use
+    const { useUiStore } = await import('../store/ui-store.js');
+    useUiStore.setState({ mameDirectory: 'C:\\Users\\brad\\mame' });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(mock.updateMameDirectory).toHaveBeenCalledWith('C:\\Users\\brad\\mame');
+    });
+  });
+
+  it('should NOT call updateMameDirectory when mameDirectory is empty', async () => {
+    // Default state has empty mameDirectory — no need to setState
+    render(<App />);
+
+    await waitFor(() => {
+      expect(mock.rendererReady).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mock.updateMameDirectory).not.toHaveBeenCalled();
+  });
+});
