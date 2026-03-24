@@ -25,7 +25,7 @@ describe('registerSaveDriverConfigHandler', () => {
   let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
   type HandlerFn = (
     event: unknown,
-    config: ConfiguredDriverInput
+    config: ConfiguredDriverInput,
   ) => Promise<{ success: boolean; driverRebooted: boolean }>;
   let registeredHandler: HandlerFn;
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;

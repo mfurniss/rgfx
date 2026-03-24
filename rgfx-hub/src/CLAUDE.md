@@ -72,6 +72,7 @@ Global test setup (`__tests__/setup.ts`) provides:
 - `vi.mock('electron')` — default ipcMain mock (files needing `app`, `shell`, `dialog` etc. override per-file)
 - `cleanup()` in `afterEach` — component tests should NOT call `cleanup()` themselves
 - Default `window.rgfx` mock via `createRgfxMock()` — reset in `afterEach` to prevent cross-test leakage
+- `vi.mock('debounced-storage')` — replaces debounced storage with synchronous writes to prevent lodash debounce timers from firing after jsdom teardown. Tests for the real debounced behavior use `vi.importActual()`.
 - `localStorage.clear()` in `afterEach` — prevents Zustand persisted state (sort prefs, UI settings) from leaking
 - `vi.useRealTimers()` in `afterEach` — restores real timers if a test used `vi.useFakeTimers()` without restoring
 - **Do NOT enable `restoreMocks: true`** in vitest config — it strips `vi.fn()` implementations set in `vi.mock()` factories (vi.fn has no "original" to restore to)

@@ -20,7 +20,7 @@ interface UseSortableTableResult<T extends string> {
   handleSort: (field: T) => void;
   sortData: <D>(
     data: D[],
-    compareFn?: (a: D, b: D, field: T) => number
+    compareFn?: (a: D, b: D, field: T) => number,
   ) => D[];
 }
 

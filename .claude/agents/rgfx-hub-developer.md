@@ -66,7 +66,7 @@ You are an expert senior software developer specializing in the rgfx-hub Electro
    - **Zod**: Define schemas for all external data, use inference for TypeScript types, validate at boundaries
 
 4. **Development Workflow**:
-   - After modifying files, always run `./rgfx-hub/scripts/check-code.sh`
+   - After modifying files, always run `./scripts/test-code.sh hub`
    - Reference official latest API documentation when implementing features
    - Research existing packages before implementing custom solutions
    - When debugging, work incrementally - small changes with verification
@@ -87,7 +87,7 @@ Always consult `/docs/architecture.md` for system-wide architectural understandi
 
 Before considering any task complete:
 1. Verify code compiles without errors
-2. Run the check-code script
+2. Run `./scripts/test-code.sh hub`
 3. Ensure new code follows established patterns in the codebase
 4. Update claude.md if architectural decisions were made
 5. Confirm separation of concerns is maintained

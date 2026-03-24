@@ -69,20 +69,22 @@ export default tseslint.config(
     },
   },
 
-  // React Hooks rules
+  // React Hooks rules (use recommended, not recommended-latest which includes compiler rules)
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {
       'react-hooks': reactHooks,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 
-  // React Refresh rules (for Vite HMR)
+  // React Refresh rules (for Vite HMR — excludes test files)
   {
     files: ['**/*.{ts,tsx}'],
+    ignores: ['**/__tests__/**', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
     plugins: {
       'react-refresh': reactRefresh,
     },

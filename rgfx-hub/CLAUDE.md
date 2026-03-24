@@ -13,12 +13,12 @@ Electron desktop app that bridges MAME game events to ESP32 LED drivers. Written
 
 ## Key Commands
 
-- `npm run test` — Run tests (`vitest run`, parallel forks)
+- `scripts/test-code.sh hub` — All hub checks (audit, typecheck, lint, unused exports, tests, depcheck, licenses)
+- `scripts/test-code.sh vitest` — Hub unit tests only (vitest)
+- `scripts/test-code.sh lint` — Hub lint only (eslint)
+- `scripts/test-code.sh typecheck` — Hub typecheck only (tsc)
 - `npm run test:watch` — Watch mode
 - `npm run test:coverage` — Coverage report (v8 provider)
-- `npm run lint` — ESLint
-- `npm run typecheck` — TypeScript type checking
-- `npm run check` — All three (typecheck + lint + test)
 - `npm start` — Dev mode with hot reload
 - `npm run build` — Production build
 
