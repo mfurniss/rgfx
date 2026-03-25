@@ -21,13 +21,20 @@ const AboutPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Retro Game Effects
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Version {appInfo?.version ?? '...'}
+          </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
             A system framework for monitoring emulated game states and publishing
             network events to connected LED drivers.
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Version {appInfo?.version ?? '...'}
-          </Typography>
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => void window.rgfx.openExternal('https://github.com/mfurniss/rgfx')}
+          >
+            https://github.com/mfurniss/rgfx
+          </Link>
         </Paper>
 
         <Paper sx={{ p: 3 }}>
