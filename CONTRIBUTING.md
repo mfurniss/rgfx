@@ -222,7 +222,7 @@ pio test -e native   # Run unit tests
 Before submitting any changes, run the check script:
 
 ```bash
-./scripts/check-code.sh --all
+./scripts/test-code.sh all
 ```
 
 This runs TypeScript compilation, ESLint, unit tests, ESP32 build verification, and Lua linting — depending on which files you changed. The same checks run in CI.
@@ -289,7 +289,7 @@ rgfx/
 4. **Make your changes** — keep commits focused and atomic
 5. **Run checks** before pushing:
    ```bash
-   ./scripts/check-code.sh --all
+   ./scripts/test-code.sh all
    ```
 6. **Push** to your fork and open a pull request
 
@@ -322,7 +322,7 @@ This project was developed with the help of [Claude Code](https://claude.ai/clau
 
 ## Submitting a Pull Request
 
-1. Ensure all checks pass: `./scripts/check-code.sh --all`
+1. Ensure all checks pass: `./scripts/test-code.sh all`
 2. Push your branch and create a pull request on GitHub
 3. Fill in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)
 4. Wait for CI to pass and a maintainer to review

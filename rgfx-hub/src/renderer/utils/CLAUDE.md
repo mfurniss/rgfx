@@ -32,7 +32,7 @@ Extracts field metadata from effect schemas to auto-generate form controls:
 
 - **FieldType**: `enum`, `boolean`, `number`, `color`, `centerXY`, `spritePreset`, `videoFile`
 - Unwraps `ZodDefault` and `ZodOptional` wrappers
-- Extracts constraints (min/max for numbers, enum values) from Zod v4 schema-like check wrappers (`_zod.def.check` format)
+- Extracts constraints (min/max for numbers, enum values) from Zod v4 check wrappers (`_zod.def.check` format)
 - Detects special union types:
   - Color: `namedColors | hexString | number`
   - CenterXY: `'random' | number`

@@ -169,6 +169,8 @@ interface Notification {
 
 **Used by:** Event Store, UI Store (both with 500ms delay)
 
+**Testing:** Global setup mocks this module with synchronous writes. The dedicated `debounced-storage.test.ts` uses `vi.importActual()` to test the real debounced behavior.
+
 ---
 
 ### Event Store

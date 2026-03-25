@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-commit hook - delegates to check-code.sh for all quality checks
+# Pre-commit hook - delegates to test-code.sh for all quality checks
 
 # Block commits directly to main
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -12,4 +12,4 @@ if [ "$BRANCH" = "main" ]; then
 fi
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
-exec "$ROOT_DIR/scripts/check-code.sh"
+exec "$ROOT_DIR/scripts/test-code.sh"

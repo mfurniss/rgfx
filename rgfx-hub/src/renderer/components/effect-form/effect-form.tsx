@@ -11,10 +11,8 @@ import {
 import { FieldRenderer } from './field-renderer';
 import type { LayoutConfig } from '@/schemas/effects';
 
-type ZodShape = Record<string, z.ZodType>;
-
 interface EffectFormProps {
-  schema: z.ZodObject<ZodShape>;
+  schema: z.ZodObject;
   defaultValues: Record<string, unknown>;
   onChange: (values: Record<string, unknown>) => void;
   onValidityChange?: (isValid: boolean) => void;

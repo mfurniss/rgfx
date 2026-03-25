@@ -103,7 +103,7 @@ describe('setupDriverEventHandlers', () => {
     setupDriverEventHandlers({
       systemMonitor: mockSystemMonitor as unknown as SystemMonitor,
       driverConnectService: mockDriverConnectService as unknown as DriverConnectService,
-      getMainWindow: mockGetMainWindow,
+      getMainWindow: mockGetMainWindow as () => BrowserWindow | null,
     });
   });
 

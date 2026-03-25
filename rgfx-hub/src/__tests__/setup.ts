@@ -39,6 +39,22 @@ vi.mock('tasmota-webserial-esptool', () => ({
   connectWithPort: vi.fn(),
 }));
 
+// Replace debounced storage with synchronous writes in tests.
+// The real debounce (500ms lodash) outlives jsdom teardown and causes
+// "localStorage is not defined" errors. The dedicated debounced-storage.test.ts
+// uses vi.importActual() to test the real implementation.
+vi.mock('../renderer/store/debounced-storage', () => ({
+  createDebouncedStorage: () => ({
+    getItem: (name: string) => localStorage.getItem(name),
+    setItem: (name: string, value: string) => {
+      localStorage.setItem(name, value);
+    },
+    removeItem: (name: string) => {
+      localStorage.removeItem(name);
+    },
+  }),
+}));
+
 // Make React globally available for JSX transform
 (globalThis as any).React = React;
 

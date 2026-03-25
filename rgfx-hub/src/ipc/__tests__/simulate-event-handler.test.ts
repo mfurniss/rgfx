@@ -3,7 +3,7 @@ import { registerSimulateEventHandler } from '../simulate-event-handler';
 import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerSimulateEventHandler', () => {
-  let mockOnEventProcessed: ReturnType<typeof vi.fn>;
+  let mockOnEventProcessed: ReturnType<typeof vi.fn<(topic: string, payload: string) => void>>;
   let registeredHandler: (event: unknown, eventLine: string) => void;
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 

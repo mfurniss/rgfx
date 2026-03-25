@@ -23,7 +23,7 @@ Describe the testing you performed.
 ## Checklist
 
 - [ ] My code follows the project's coding standards
-- [ ] I have run `scripts/check-code.sh` and all checks pass
+- [ ] I have run `scripts/test-code.sh` and all checks pass
 - [ ] I have run `pio run` (if ESP32 changes) and the build compiles
 - [ ] I have added/updated tests where appropriate
 - [ ] I have updated documentation where appropriate

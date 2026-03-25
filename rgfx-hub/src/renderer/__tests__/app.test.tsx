@@ -244,7 +244,10 @@ describe('App Startup Settings Sync', () => {
   });
 
   it('should NOT call updateMameDirectory when mameDirectory is empty', async () => {
-    // Default state has empty mameDirectory — no need to setState
+    // Explicitly clear store state to prevent leakage from prior test
+    const { useUiStore } = await import('../store/ui-store.js');
+    useUiStore.setState({ mameDirectory: '' });
+
     render(<App />);
 
     await waitFor(() => {

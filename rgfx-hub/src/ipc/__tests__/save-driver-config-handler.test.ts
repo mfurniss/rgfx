@@ -22,10 +22,10 @@ describe('registerSaveDriverConfigHandler', () => {
   let mockDriverConfig: MockProxy<DriverConfig>;
   let mockDriverRegistry: MockProxy<DriverRegistry>;
   let mockMqtt: MockProxy<MqttBroker>;
-  let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
+  let mockUploadConfigToDriver: ReturnType<typeof vi.fn<(macAddress: string) => Promise<boolean>>>;
   type HandlerFn = (
     event: unknown,
-    config: ConfiguredDriverInput
+    config: ConfiguredDriverInput,
   ) => Promise<{ success: boolean; driverRebooted: boolean }>;
   let registeredHandler: HandlerFn;
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
@@ -66,7 +66,7 @@ describe('registerSaveDriverConfigHandler', () => {
 
     mockMqtt = mock<MqttBroker>();
     mockMqtt.publish.mockResolvedValue(undefined);
-    mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
+    mockUploadConfigToDriver = vi.fn(() => Promise.resolve(true));
 
     ipc = await setupIpcHandlerCapture();
 

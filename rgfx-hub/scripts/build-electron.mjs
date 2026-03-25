@@ -1,8 +1,9 @@
 import { build } from 'vite';
 import { rmSync } from 'fs';
 
-// Clean previous build
+// Clean previous builds
 rmSync('dist', { recursive: true, force: true });
+rmSync('out', { recursive: true, force: true });
 
 // Build main process
 await build({ configFile: 'vite.main.config.ts' });

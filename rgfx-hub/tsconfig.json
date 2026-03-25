@@ -6,18 +6,16 @@
     "moduleResolution": "NodeNext",
     "allowJs": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
+    "noUncheckedSideEffectImports": false,
     "sourceMap": true,
-    "baseUrl": ".",
     "outDir": "dist",
     "resolveJsonModule": true,
     "types": ["vitest/globals", "node", "w3c-web-serial"],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*", "config/**/*"],

@@ -254,7 +254,8 @@ Refactored components and utilities extracted from the main page:
 
 **Features:**
 - Application name and description
-- Version number
+- Version number (shown above description)
+- Clickable GitHub repository link via `openExternal`
 - System architecture overview (Hub, Drivers, Communication)
 - Technology stack details
 - License and copyright information (MPL 2.0)

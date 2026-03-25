@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createDebouncedStorage } from '../debounced-storage';
+import type { StateStorage } from 'zustand/middleware';
 
-beforeEach(() => {
+// Bypass the global mock in setup.ts to test the real debounced implementation
+let createDebouncedStorage: (delay?: number) => StateStorage;
+
+beforeEach(async () => {
+  const actual = await vi.importActual<{
+    createDebouncedStorage: (delay?: number) => StateStorage;
+  }>('../debounced-storage');
+  createDebouncedStorage = actual.createDebouncedStorage;
   vi.useFakeTimers();
   localStorage.clear();
 });

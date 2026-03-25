@@ -77,8 +77,6 @@ export interface FieldMetadata {
   emptyValue?: number;
 }
 
-type ZodShape = Record<string, z.ZodType>;
-
 /** Zod v4 check stored in _zod.def of each check object */
 interface ZodV4CheckDef {
   check: string;
@@ -451,13 +449,13 @@ function analyzeField(name: string, schema: z.ZodType, fieldConfig?: FieldConfig
  * @param fieldTypes - Optional map of field names to UI types/config (overrides inference)
  */
 export function extractFieldMetadata(
-  schema: z.ZodObject<ZodShape>,
+  schema: z.ZodObject,
   fieldTypes?: FieldTypeMap,
 ): FieldMetadata[] {
   const { shape } = schema;
   const fields: FieldMetadata[] = [];
 
-  for (const [name, fieldSchema] of Object.entries(shape)) {
+  for (const [name, fieldSchema] of Object.entries(shape) as [string, z.ZodType][]) {
     fields.push(analyzeField(name, fieldSchema, fieldTypes?.[name]));
   }
 

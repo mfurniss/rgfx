@@ -51,7 +51,7 @@ interface UiState {
   setTestEffectsState: (
     selectedEffect: string,
     propsJson: string,
-    selectedDrivers: Set<string>
+    selectedDrivers: Set<string>,
   ) => void;
   setSimulatorRow: (index: number, eventLine: string, autoInterval: SimulatorAutoInterval) => void;
   setRgfxConfigDirectory: (path: string) => void;
