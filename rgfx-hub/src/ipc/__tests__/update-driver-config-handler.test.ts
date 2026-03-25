@@ -8,7 +8,7 @@ import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerUpdateDriverConfigHandler', () => {
   let mockDriverRegistry: MockProxy<DriverRegistry>;
-  let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
+  let mockUploadConfigToDriver: ReturnType<typeof vi.fn<(macAddress: string) => Promise<boolean>>>;
   let mockDriver: Driver;
   let registeredHandler: (event: unknown, driverId: string) => Promise<void>;
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
@@ -21,7 +21,7 @@ describe('registerUpdateDriverConfigHandler', () => {
     mockDriverRegistry = mock<DriverRegistry>();
     mockDriverRegistry.getDriver.mockReturnValue(mockDriver);
 
-    mockUploadConfigToDriver = vi.fn(() => Promise.resolve());
+    mockUploadConfigToDriver = vi.fn(() => Promise.resolve(true));
 
     ipc = await setupIpcHandlerCapture();
 
@@ -93,6 +93,7 @@ describe('registerUpdateDriverConfigHandler', () => {
       mockUploadConfigToDriver.mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
         uploadCompleted = true;
+        return true;
       });
 
       await registeredHandler({}, 'rgfx-driver-0001');
@@ -146,7 +147,7 @@ describe('registerUpdateDriverConfigHandler', () => {
       });
       mockUploadConfigToDriver.mockImplementation(() => {
         callOrder.push('uploadConfig');
-        return Promise.resolve();
+        return Promise.resolve(true);
       });
 
       await registeredHandler({}, 'rgfx-driver-0001');

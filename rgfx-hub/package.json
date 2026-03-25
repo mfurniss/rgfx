@@ -69,7 +69,7 @@
     "png2icons": "^2.0.1",
     "sharp": "^0.34.5",
     "ts-unused-exports": "^11.0.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "typescript-eslint": "^8.19.1",
     "vite": "^7.1.12",
     "vitest": "^3.2.4",

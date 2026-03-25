@@ -9,8 +9,8 @@ import {
 import type { TransformerHandler } from '../types/transformer-types';
 
 describe('createTransformerModuleLoader', () => {
-  let mockImport: ReturnType<typeof vi.fn>;
-  let mockLog: { error: ReturnType<typeof vi.fn> };
+  let mockImport: ReturnType<typeof vi.fn<(path: string) => Promise<Record<string, unknown>>>>;
+  let mockLog: any;
 
   beforeEach(() => {
     mockImport = vi.fn();

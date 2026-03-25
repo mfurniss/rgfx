@@ -3,7 +3,7 @@ import { registerResetEventCountsHandler } from '../reset-event-counts-handler';
 import { setupIpcHandlerCapture } from '@/__tests__/helpers/ipc-handler.helper';
 
 describe('registerResetEventCountsHandler', () => {
-  let mockResetEventsProcessed: ReturnType<typeof vi.fn>;
+  let mockResetEventsProcessed: ReturnType<typeof vi.fn<() => void>>;
   let registeredHandler: () => void;
   let ipc: Awaited<ReturnType<typeof setupIpcHandlerCapture>>;
 

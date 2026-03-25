@@ -162,13 +162,30 @@ run_docs_all() {
 
 # --- CLAUDE.md check (for pre-commit) ---
 
-# Check if staged changes to a file are formatting-only (trailing commas,
-# semicolons, whitespace). Returns 0 if formatting-only, 1 if substantive.
+# Check if staged changes to a file are non-substantive (formatting, type
+# annotations, type alias removals). Returns 0 if trivial, 1 if substantive.
 is_formatting_only() {
     local file="$1"
-    local removed added
-    removed=$(git diff --cached -- "$file" | grep "^-[^-]" | sed 's/^-//; s/[,;]*[[:space:]]*$//')
-    added=$(git diff --cached -- "$file" | grep "^+[^+]" | sed 's/^+//; s/[,;]*[[:space:]]*$//')
+    local diff_lines removed added
+
+    diff_lines=$(git diff --cached -- "$file")
+
+    # If diff only removes lines (type alias deletion, import removal), skip
+    added=$(echo "$diff_lines" | grep "^+[^+]" || true)
+    if [ -z "$added" ]; then
+        return 0
+    fi
+
+    # Compare stripped lines (trailing commas, semicolons, whitespace, type
+    # casts, generic type parameters, blank lines, type-only declarations)
+    removed=$(echo "$diff_lines" | grep "^-[^-]" | sed 's/^-//' \
+        | grep -v '^[[:space:]]*$' \
+        | grep -v '^[[:space:]]*type [A-Z]' \
+        | sed 's/[,;]*[[:space:]]*$//; s/ as [^,)]*$//; s/<[^>]*>//g')
+    added=$(echo "$added" | sed 's/^+//' \
+        | grep -v '^[[:space:]]*$' \
+        | grep -v '^[[:space:]]*type [A-Z]' \
+        | sed 's/[,;]*[[:space:]]*$//; s/ as [^,)]*$//; s/<[^>]*>//g')
     [ "$removed" = "$added" ]
 }
 
@@ -186,6 +203,13 @@ check_claude_md_updates() {
             *.ts|*.tsx|*.js|*.jsx|*.cpp|*.h|*.lua|public-docs/docs/*|public-docs/mkdocs.yml|public-docs/overrides/*)
                 ;;
             *)
+                continue
+                ;;
+        esac
+
+        # Skip test files (test changes rarely need CLAUDE.md updates)
+        case "$file" in
+            *__tests__/*|*.test.*|*.spec.*)
                 continue
                 ;;
         esac

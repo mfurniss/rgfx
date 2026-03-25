@@ -11,7 +11,7 @@ describe('createDriverConnectService', () => {
   let mockMqtt: {
     publish: ReturnType<typeof vi.fn>;
   };
-  let mockUploadConfigToDriver: ReturnType<typeof vi.fn>;
+  let mockUploadConfigToDriver: ReturnType<typeof vi.fn<(macAddress: string) => Promise<boolean>>>;
   let mockDriver: Driver;
 
   beforeEach(() => {
