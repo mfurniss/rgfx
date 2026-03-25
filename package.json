@@ -45,5 +45,8 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-win32-x64-msvc": "^4.59.0"
+  },
+  "devDependencies": {
+    "electron": "41.0.3"
   }
 }
