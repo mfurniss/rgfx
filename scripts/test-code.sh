@@ -302,17 +302,23 @@ auto_detect() {
         local files="$1"
         for file in $files; do
             case "$file" in
+                # Lua check must come before the rgfx-hub/* catch-all
                 rgfx-hub/assets/mame/*.lua|rgfx-hub/assets/interceptors/*.lua)
                     LUA_CHANGES=true
                     ;;
                 package.json|rgfx-hub/package.json)
                     HUB_CHANGES=true
                     ;;
-                rgfx-hub/*.ts|rgfx-hub/*.tsx|rgfx-hub/*.js|rgfx-hub/*.jsx|rgfx-hub/*.json)
-                    HUB_CHANGES=true
+                # Use prefix match so subdirectories (e.g. rgfx-hub/src/**) are detected
+                rgfx-hub/*)
+                    case "$file" in
+                        *.ts|*.tsx|*.js|*.jsx|*.json) HUB_CHANGES=true ;;
+                    esac
                     ;;
-                esp32/*.cpp|esp32/*.h|esp32/*.c|esp32/*.ini)
-                    ESP32_CHANGES=true
+                esp32/*)
+                    case "$file" in
+                        *.cpp|*.h|*.c|*.ini) ESP32_CHANGES=true ;;
+                    esac
                     ;;
                 public-docs/docs/*|public-docs/mkdocs.yml|public-docs/overrides/*|public-docs/requirements.txt)
                     DOCS_CHANGES=true

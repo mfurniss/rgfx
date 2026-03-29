@@ -19,12 +19,11 @@ import type { FieldTypeMap } from '@/renderer/utils/zod-introspection';
 import type { LayoutConfig, PresetConfig } from '@/schemas/effects';
 import { effectDisplayNames, formEffects } from '../effect-helpers';
 
-type ZodShape = Record<string, z.ZodType>;
 
 interface EffectFormPanelProps {
   selectedEffect: string;
   ffmpegAvailable: boolean;
-  currentSchema: z.ZodObject<ZodShape> | null;
+  currentSchema: z.ZodObject | null;
   currentProps: Record<string, unknown>;
   currentFieldTypes?: FieldTypeMap;
   currentLayoutConfig?: LayoutConfig;
