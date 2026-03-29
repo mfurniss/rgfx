@@ -15,6 +15,7 @@ import {
   Stack,
   Button,
 } from '@mui/material';
+import { join } from 'pathe';
 import GamesIcon from '@mui/icons-material/SportsEsports';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { Link as RouterLink } from 'react-router-dom';
@@ -68,13 +69,10 @@ const GamesPage: React.FC = () => {
     }
   };
 
-  const canLaunch = (game: GameInfo) =>
-    Boolean(game.romName && game.interceptorName && game.transformerName);
-
-  const stripExtension = (filename: string) => filename.replace(/\.[^.]+$/, '');
+  const canLaunch = (game: GameInfo) => Boolean(game.romName);
 
   const handleLaunch = (romName: string) => {
-    window.rgfx.launchMame(stripExtension(romName));
+    window.rgfx.launchMame(join(mameRomsDirectory, romName));
   };
 
   const isConfigured = (game: GameInfo) =>

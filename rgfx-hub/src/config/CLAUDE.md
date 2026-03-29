@@ -41,6 +41,9 @@ All tunable constants in one place. Categories:
 - `TOAST_AUTO_HIDE_DURATION_MS`: 5000
 - `DEFAULT_FX_PLAYGROUND_EFFECT`: 'explode'
 
+**MAME / ROM**
+- `ROM_EXTENSIONS: Record<string, string[]>` — maps MAME system name → file extensions (e.g., `nes: ['.nes']`, `snes: ['.sfc', '.smc', ...]`). The `''` (empty string) key covers arcade ROMs (`.zip`, `.rom`). Single source of truth for console ROM detection — search directly with `Object.entries().find()` / `.some()`, never flatten.
+
 **Effects**
 - `MAX_GRADIENT_COLORS`: 64 (maximum colors in gradient array)
 - `HEX_COLOR_RRGGBB_REGEX`: Regex for validating #RRGGBB hex color strings

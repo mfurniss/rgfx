@@ -30,6 +30,7 @@ MAME provides `emu` and `manager` as global objects — these are not bugs or un
    - Detects cartridge name (console systems) or uses ROM name (arcade)
    - Looks up interceptor via `rom_map.json` (parsed with `parse_json_map()`), falls back to `{name}_rgfx`
    - Sends `rgfx/reset` event to clear driver state
+   - Checks interceptor file existence via `find_interceptor()` before loading; if missing, logs a clean one-liner and continues without effects (no Lua error dump)
    - Loads the game-specific interceptor
    - Waits 30 frames (~500ms) then sends `{game}/init` event with the MAME system description as payload
 

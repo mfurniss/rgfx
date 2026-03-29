@@ -214,7 +214,7 @@ describe('registerListGamesHandler', () => {
   });
 
   describe('ROM base name extraction', () => {
-    it('should strip known extensions (.zip, .nes, .smc, .sfc, .bin, .rom)', () => {
+    it('should strip known extensions (.zip, .nes, .smc, .sfc, .md, .gb)', () => {
       vi.mocked(fs.existsSync).mockImplementation((p) => {
         const pathStr = String(p);
 
@@ -241,8 +241,8 @@ describe('registerListGamesHandler', () => {
             'mario.nes',
             'zelda.smc',
             'metroid.sfc',
-            'sonic.bin',
-            'tetris.rom',
+            'sonic.md',
+            'tetris.gb',
           ];
         }
 

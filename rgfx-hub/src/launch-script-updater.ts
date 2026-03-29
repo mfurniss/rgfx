@@ -67,3 +67,10 @@ export async function updateLaunchScriptRomPath(romPath: string): Promise<void> 
 export async function updateLaunchScriptMamePath(mamePath: string): Promise<void> {
   return updateLaunchScriptVariable('MAME_PATH', mamePath);
 }
+
+/**
+ * Updates only the RGFX_LUA_PATH line in the existing launch script.
+ */
+export async function updateLaunchScriptLuaPath(luaPath: string): Promise<void> {
+  return updateLaunchScriptVariable('RGFX_LUA_PATH', luaPath);
+}

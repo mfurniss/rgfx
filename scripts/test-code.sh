@@ -144,7 +144,7 @@ run_lua_all() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     notify "Running Lua checks..."
     echo "🔍 Running luacheck..."
-    luacheck "$ROOT_DIR/rgfx-hub/assets/mame/"*.lua
+    luacheck --config "$ROOT_DIR/rgfx-hub/assets/mame/.luacheckrc" "$ROOT_DIR/rgfx-hub/assets/mame/"*.lua
     echo "✅ Lua checks passed"
     echo ""
 }

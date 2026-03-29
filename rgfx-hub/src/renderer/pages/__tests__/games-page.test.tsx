@@ -97,25 +97,24 @@ describe('GamesPage', () => {
       expect(buttons).toHaveLength(1);
     });
 
-    it('does not show launch button when transformer is missing', async () => {
+    it('shows launch button when transformer is missing but ROM exists', async () => {
       renderPage();
       await disableHideUnconfigured();
 
       await screen.findByText('donkeykong_rgfx.lua');
-      // donkeykong has interceptor but no transformer — no launch button
       const rows = screen.getAllByRole('row');
       const dkRow = rows.find((r) => r.textContent.includes('donkeykong'));
-      expect(dkRow?.querySelector('[role="button"]')).toBeNull();
+      expect(dkRow?.querySelector('button')).not.toBeNull();
     });
 
-    it('does not show launch button when interceptor is missing', async () => {
+    it('shows launch button when interceptor is missing but ROM exists', async () => {
       renderPage();
       await disableHideUnconfigured();
 
       await screen.findByText('frogger.js');
       const rows = screen.getAllByRole('row');
       const froggerRow = rows.find((r) => r.textContent.includes('frogger'));
-      expect(froggerRow?.querySelector('[role="button"]')).toBeNull();
+      expect(froggerRow?.querySelector('button')).not.toBeNull();
     });
 
     it('does not show launch button when ROM is missing (orphan interceptor)', async () => {
@@ -129,13 +128,13 @@ describe('GamesPage', () => {
       expect(launchButtons).toHaveLength(1);
     });
 
-    it('calls launchMame with ROM name stripped of extension', async () => {
+    it('calls launchMame with the full ROM path', async () => {
       renderPage();
 
       const button = await screen.findByRole('button', { name: /Launch/ });
       fireEvent.click(button);
 
-      expect(mockRgfx.launchMame).toHaveBeenCalledWith('pacman');
+      expect(mockRgfx.launchMame).toHaveBeenCalledWith('/mock/roms/pacman.zip');
     });
 
     it('hides unconfigured games by default', async () => {

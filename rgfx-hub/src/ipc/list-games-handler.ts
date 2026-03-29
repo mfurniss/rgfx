@@ -8,10 +8,14 @@ import { expandPath } from '../utils/expand-path';
 import { ROM_EXTENSIONS } from '../config/constants';
 import { INVOKE_CHANNELS } from './contract';
 
+function isKnownRomExtension(ext: string): boolean {
+  return Object.values(ROM_EXTENSIONS).some((exts) => exts.includes(ext));
+}
+
 function getRomBaseName(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
 
-  if (ROM_EXTENSIONS.includes(ext)) {
+  if (isKnownRomExtension(ext)) {
     return path.basename(filename, ext);
   }
 
@@ -59,7 +63,7 @@ export function registerListGamesHandler(): void {
       if (expandedRomsDir && fs.existsSync(expandedRomsDir)) {
         const romFiles = fs.readdirSync(expandedRomsDir).filter((f) => {
           const ext = path.extname(f).toLowerCase();
-          return ROM_EXTENSIONS.includes(ext);
+          return isKnownRomExtension(ext);
         });
 
         for (const romFile of romFiles) {

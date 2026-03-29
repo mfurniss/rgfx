@@ -391,15 +391,20 @@ Uses `getFirmwareDir`/`getFirmwareFilePath` from `utils/firmware-paths` for path
 **Purpose:** Launches MAME via the user's launch script in `~/.rgfx/`.
 
 **Parameters:**
-- `romName: string` - ROM name to pass to the launch script
+- `romPath: string` - Full ROM file path to pass to the launch script
 
 **Returns:** void (fire-and-forget via `SEND_CHANNELS` / `ipcMain.on`)
 
 **Behavior:**
-1. Resolves script path: `launch-mame.sh` on macOS, `launch-mame.bat` on Windows
-2. Spawns script with `detached: true`, `stdio: 'ignore'`, then `unref()`
-3. Windows uses `cmd.exe /c` wrapper
-4. Logs spawn errors via `error` event listener
+1. Calls `buildMameArgs(romPath)` (async) to determine MAME arguments
+   - Non-`.zip` files: maps extension via `ROM_EXTENSIONS` → `[system, '-cart', romPath]` or `[romPath]` for arcade/unknown
+   - `.zip` files: inspects the archive via `getZipInnerExtension()` to detect console ROMs inside, then maps the inner extension
+2. Resolves script path: `launch-mame.sh` on macOS, `launch-mame.bat` on Windows
+3. Spawns script with args and `detached: true`, then `unref()`
+4. Windows uses `cmd.exe /c` wrapper
+5. Logs spawn errors via `error` event listener
+
+`buildMameArgs` and `getMameSystem` are exported for testing. Zip inspection is delegated to `utils/zip-utils.ts`.
 
 ---
 

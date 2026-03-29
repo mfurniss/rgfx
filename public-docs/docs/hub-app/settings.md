@@ -39,7 +39,7 @@ Leave empty to auto-detect MAME from `%USERPROFILE%\mame\`, `C:\mame\`, or `PATH
 
 When enabled, effects targeting non-existent or offline drivers are routed to the first available online driver instead of being silently dropped.
 
-This is useful when you have fewer drivers than your transformer configuration expects. For example, the default `global.js` transformer references multiple named drivers — with fallback enabled, all effects will reach your connected driver even if you only have one.
+This is useful when you have fewer drivers than your transformer configuration expects. For example, the default `global.js` transformer references multiple named drivers — with fallback enabled, all effects will reach your connected driver even if you only have one connected.
 
 Enabled by default.
 

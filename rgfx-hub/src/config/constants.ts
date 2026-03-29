@@ -94,10 +94,48 @@ export const CONFIG_VERSION = '1.0';
 export const FIRMWARE_WATCHER_POLL_INTERVAL_MS = 5000;
 
 /**
- * Supported ROM file extensions for game detection.
- * Used to identify ROM files in the MAME ROMs directory.
+ * Maps MAME system names to their ROM file extensions.
+ * Console ROMs are launched as `<system> -cart <romPath>`.
+ * Arcade ROMs (.zip) and unknowns are passed directly to the launch script.
  */
-export const ROM_EXTENSIONS = ['.zip', '.nes', '.smc', '.sfc', '.bin', '.rom'];
+export const ROM_EXTENSIONS: Record<string, string[]> = {
+  // Arcade — no system prefix, passed directly to MAME
+  '':       ['.zip', '.rom'],
+  // Nintendo
+  nes:      ['.nes'],
+  fds:      ['.fds'],
+  snes:     ['.sfc', '.smc', '.fig', '.swc'],
+  gameboy:  ['.gb'],
+  gbcolor:  ['.gbc'],
+  gba:      ['.gba'],
+  vboy:     ['.vb'],
+  n64:      ['.n64', '.z64', '.v64'],
+  // Sega
+  sms:      ['.sms'],
+  gamegear: ['.gg'],
+  genesis:  ['.md', '.gen'],
+  '32x':    ['.32x'],
+  // Atari
+  a2600:    ['.a26'],
+  a5200:    ['.a52'],
+  a7800:    ['.a78'],
+  lynx:     ['.lnx'],
+  jaguar:   ['.jag'],
+  // NEC
+  pce:      ['.pce'],
+  sgx:      ['.sgx'],
+  // SNK
+  ngp:      ['.ngp'],
+  ngpc:     ['.ngc'],
+  // Bandai
+  wswan:    ['.ws'],
+  wscolor:  ['.wsc'],
+  // Other
+  coleco:   ['.col', '.cv'],
+  intv:     ['.int'],
+  vectrex:  ['.vec'],
+  channelf: ['.chf'],
+};
 
 // ============================================================================
 // Event File Reader Configuration
