@@ -257,7 +257,7 @@ export interface PushContract {
 export interface SendContract {
   rendererReady: [];
   quitApp: [];
-  launchMame: [romName: string];
+  launchMame: [romPath: string];
 }
 
 // ---------------------------------------------------------------------------

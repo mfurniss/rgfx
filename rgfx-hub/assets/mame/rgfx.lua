@@ -122,12 +122,36 @@ local load_interceptor = function()
 		game_script = fallback_script
 	end
 
-	print("Loading interceptor: " .. game_script .. ".lua")
 	-- Set game name in global scope so interceptor can use it for event prefixes
 	_G.rgfx.rom = lookup_key
 	-- Reset clears timers, state, and all driver effects (UDP + MQTT QoS 2).
 	-- Sent before loading so any in-flight effects from a previous game are killed.
 	event("rgfx/reset", lookup_key)
+
+	-- Check if interceptor file exists before requiring it.
+	-- Missing file = clean log message; broken file = full error.
+	local function find_interceptor(name)
+		local paths = {
+			user_path .. name .. ".lua",
+			user_path .. "games" .. sep .. name .. ".lua",
+		}
+		for _, path in ipairs(paths) do
+			local f = io.open(path, "r")
+			if f then
+				f:close()
+				return path
+			end
+		end
+		return nil
+	end
+
+	local found_path = find_interceptor(game_script)
+	if not found_path then
+		print("No interceptor for: " .. lookup_key .. " (running without RGFX effects)")
+		return
+	end
+
+	print("Loading interceptor: " .. found_path)
 
 	local status, err = pcall(require, game_script)
 	if status then

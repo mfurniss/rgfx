@@ -49,6 +49,22 @@ vi.mock('../../led-hardware-installer', () => ({
   installDefaultLedHardware: mockInstallDefaultLedHardware,
 }));
 
+vi.mock('../../launch-script-installer', () => ({
+  installLaunchScript: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../launch-script-updater', () => ({
+  updateLaunchScriptLuaPath: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../utils/asset-installer', () => ({
+  getBundledAssetDir: vi.fn().mockReturnValue('/mock/assets/mame'),
+}));
+
+vi.mock('../../mame-detector', () => ({
+  detectMameVersion: vi.fn().mockResolvedValue({ version: null, detectedPath: null }),
+}));
+
 const mockDriverConnectService = { onDriverConnected: vi.fn() };
 vi.mock('../driver-connect-service', () => ({
   createDriverConnectService: vi.fn(() => mockDriverConnectService),

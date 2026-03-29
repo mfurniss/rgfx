@@ -50,6 +50,7 @@ Copy bundled defaults to `~/.rgfx/` on first run (skip existing files to preserv
 
 ## Utilities
 
+- `utils/zip-utils.ts` — `getZipInnerExtension(zipPath)`: opens a zip archive and returns the file extension of the first non-directory entry (lowercased), or `null` if the zip is unreadable or empty. Used by `launch-mame-handler` to detect console ROMs inside `.zip` files.
 - `utils/asset-installer.ts` — Shared asset installation logic used by interceptor/transformer/led-hardware installers. `getBundledAssetDir` resolves to `<appPath>/assets/<subdir>` in dev, `<resourcesPath>/<subdir>` in production (electron-builder `extraResources` copies dirs into Resources/). Supports `alwaysOverwrite` predicate for system files that should be refreshed on every launch rather than skipped if they exist. Supports `forceOverwrite` option to overwrite all existing files (used by reinstall feature).
 - `utils/color-utils.ts` — Color helpers: `parseAmbilight` (12-bit → 24-bit), `hslToHex` (HSL → hex)
 - `utils/http-context.ts` — HTTP helpers: `createHttpContext`, `mergeHeaders`

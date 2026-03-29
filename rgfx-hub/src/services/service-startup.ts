@@ -11,6 +11,8 @@ import { installDefaultTransformers } from '../transformer-installer';
 import { installDefaultInterceptors } from '../interceptor-installer';
 import { installDefaultLedHardware } from '../led-hardware-installer';
 import { installLaunchScript } from '../launch-script-installer';
+import { updateLaunchScriptLuaPath } from '../launch-script-updater';
+import { getBundledAssetDir } from '../utils/asset-installer';
 import { detectMameVersion } from '../mame-detector';
 import { eventBus } from './event-bus';
 import { IPC } from '../config/ipc-channels';
@@ -90,8 +92,14 @@ export function startServices(deps: ServiceStartupDeps): PowerSaveHandle {
     log.error('Failed to install LED hardware definitions:', error);
   });
 
+  const rgfxLuaPath = `${getBundledAssetDir('mame')}/rgfx.lua`;
+
   void installLaunchScript().catch((error: unknown) => {
     log.error('Failed to install launch script:', error);
+  });
+
+  void updateLaunchScriptLuaPath(rgfxLuaPath).catch((error: unknown) => {
+    log.error('Failed to update launch script Lua path:', error);
   });
 
   // Detect MAME version (auto-detect from common paths at startup)

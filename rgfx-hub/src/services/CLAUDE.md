@@ -81,7 +81,7 @@ Orchestrates service initialization on app startup.
 - Starts MQTT broker, network manager, and other services
 - Creates `eventProcessor` callback that forwards events to transformer engine, increments stats, sends IPC events, and emits system:error for interceptor errors
 - Sets up firmware monitoring callback to broadcast system status updates
-- Installs launch script to `~/.rgfx/` via `installLaunchScript()`
+- Installs launch script to `~/.rgfx/` via `installLaunchScript()` and immediately updates `RGFX_LUA_PATH` via `updateLaunchScriptLuaPath()` so dev mode always uses dev assets (not production app path)
 - Auto-detects MAME version at startup (fire-and-forget) via `detectMameVersion('')` and updates `systemMonitor`
 - Returns `PowerSaveHandle` for cleanup during app shutdown
 
