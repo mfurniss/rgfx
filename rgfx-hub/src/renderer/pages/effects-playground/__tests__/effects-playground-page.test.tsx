@@ -31,13 +31,13 @@ let mockDrivers: MockDriver[] = [
   },
 ];
 
-vi.mock('../../../store/driver-store', () => ({
+vi.mock('@/renderer/store/driver-store', () => ({
   useDriverStore: vi.fn((selector) =>
     selector({ drivers: mockDrivers }),
   ),
 }));
 
-vi.mock('../../../store/ui-store', () => {
+vi.mock('@/renderer/store/ui-store', () => {
   const state = {
     testEffectsSelectedEffect: 'scrollText',
     testEffectsPropsMap: {

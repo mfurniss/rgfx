@@ -72,16 +72,20 @@ vi.mock('@/schemas', () => {
     effectFormDefaults: {},
     effectLayoutConfigs: {},
     isEffectName: (name: string) => name === 'solid',
+    effectSchemas: {
+      solid: {
+        shape: {
+          name: { _zod: { def: { values: ['Solid'] } } },
+        },
+      },
+    },
   };
 });
 
 vi.mock('../effects-playground', () => ({
-  effectDisplayNames: { solid: 'Solid' } as Record<string, string>,
-  formEffects: ['solid'],
   TabPanel: (
     { children, value, index }: { children: React.ReactNode; value: number; index: number },
   ) => (value === index ? <div>{children}</div> : null),
-  generateBroadcastCode: () => 'mock code',
 }));
 
 // Driver store — mutable so we can simulate connection changes

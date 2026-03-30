@@ -100,7 +100,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 
 **Route:** `/effects`
 
-**Purpose:** Interactive testing interface for LED effects.
+**Purpose:** Interactive testing interface for LED effects. Thin render shell that delegates state management to `useEffectsPlayground` hook and form/code display to extracted panel components.
 
 **Features:**
 - Dropdown to select effect type (pulse, wipe, explode, etc.)
@@ -111,23 +111,21 @@ Refactored components, hooks, and utilities extracted from the main page:
 - Preset selection modal for gradient and plasma effects
 - State persisted in `UiStore` across navigation
 - Code generation tab showing JavaScript code for transformers
-- **Per-effect form defaults:** `getDefaultProps()` merges `effectFormDefaults` on top of schema defaults (e.g., bitmap endX/endY default to 'random' in the form without changing wire schema)
-- **Form validation gate:** Trigger and Random Trigger buttons are disabled when the form has validation errors (`isFormValid` state, fed by `EffectForm.onValidityChange`)
-- **Debounced store writes:** `handlePropsChange` uses lodash `debounce` (150ms) with `useRef` for stable callback identity, preventing rapid keystrokes from thrashing the store. Debounce is flushed before triggering effects or randomizing to ensure store is current
-- **Single driver store subscription:** uses one `drivers` subscription with `useMemo` to derive `connectedDrivers` and `connectedDriverIds`, avoiding redundant store subscriptions
-- **Driver selection:** uses shared `useDriverSelection` hook for driver picker state (removed local auto-reselect useEffect)
 - **Video effect:** When video effect is selected, shows Start/Stop Video buttons instead of Trigger/Random. Start Video is disabled when no file is selected (`!currentProps.file`) or ffmpeg is not available. Shows warning Alert when ffmpeg is missing. Stop sends `{action:'stop'}` command. `videoPlaying` state resets on effect change.
 
 ### Effects Playground Subdirectory
 
 **Directory:** [effects-playground/](effects-playground/)
 
-Refactored components and utilities extracted from the main page:
+Refactored components, hooks, and utilities extracted from the main page:
 
 | File | Purpose |
 |------|---------|
+| `hooks/use-effects-playground.ts` | Custom hook: all state, store subscriptions, derived data, and handlers for the page |
+| `components/effect-form-panel.tsx` | Effect selector dropdown, preset button, reset button, and EffectForm (`React.memo`) |
+| `components/transformer-code-panel.tsx` | Code display tab with copy-to-clipboard (`React.memo`) |
 | `components/tab-panel.tsx` | Tab panel wrapper for tabbed interface |
-| `effect-helpers.ts` | Effect manipulation helpers (randomize, defaults) |
+| `effect-helpers.ts` | Effect display names and sorted effect list derived from schemas |
 | `utils/code-generator.ts` | Generic JavaScript code generator; per-effect overrides via `effectCodeGenerators` and `effectCodePropsTransforms` maps from schemas |
 | `utils/value-formatter.ts` | Formats values for code output (escapes single quotes and backslashes in strings) |
 

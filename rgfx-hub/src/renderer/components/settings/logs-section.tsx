@@ -17,7 +17,7 @@ import ConfirmActionButton from '../common/confirm-action-button';
 import { notify } from '../../store/notification-store';
 import { formatBytes } from '../../utils/formatters';
 import { SettingsSection } from './settings-section';
-import type { LogSizes } from '../../../log-manager';
+import type { LogSizes } from '@/log-manager';
 
 export function LogsSection() {
   const [logSizes, setLogSizes] = useState<LogSizes | null>(null);
