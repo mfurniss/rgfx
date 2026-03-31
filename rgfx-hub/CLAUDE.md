@@ -29,3 +29,5 @@ All path operations use `pathe` instead of `node:path` for cross-platform compat
 ## Test Configuration
 
 Tests use vitest with jsdom environment and parallel forks (`pool: "forks"`). Global setup in `src/__tests__/setup.ts` provides electron/electron-log mocks, jsdom compatibility shims, and automatic cleanup. See `src/CLAUDE.md` for test infrastructure details.
+
+`src/renderer/**` is excluded from test collection (renderer entry runs `document.getElementById` at module scope which is unreliable in fork workers; renderer is already excluded from coverage). `src/**/index.ts` barrel files are excluded from coverage (pure re-exports with no logic).

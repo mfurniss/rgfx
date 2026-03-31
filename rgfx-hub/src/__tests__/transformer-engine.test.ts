@@ -1549,4 +1549,68 @@ describe('TransformerEngine', () => {
       });
     });
   });
+
+  describe('loadTransformers', () => {
+    it('should load subject and default handlers and start file watcher', async () => {
+      const subjectHandler = vi.fn().mockReturnValue(true);
+      const defaultHandler = vi.fn().mockReturnValue(true);
+
+      vi.mocked(fs.readdir)
+        .mockResolvedValueOnce(['player.js'] as any) // subjects/
+        .mockResolvedValueOnce([] as any); // properties/
+
+      const mockImportModule = vi.fn().mockImplementation((p: string) => {
+        if (p.includes('player.js')) {
+          return Promise.resolve({ transform: subjectHandler });
+        }
+
+        if (p.includes('default.js')) {
+          return Promise.resolve({ transform: defaultHandler });
+        }
+
+        return Promise.resolve({});
+      });
+
+      const { TransformerEngine: TE } = await import('../transformer-engine.js');
+      const testEngine = new TE(mockContext, { importModule: mockImportModule });
+      await testEngine.loadTransformers();
+
+      expect((testEngine as any).subjectHandlers.get('player')).toBe(subjectHandler);
+      expect((testEngine as any).defaultHandler).toBe(defaultHandler);
+      expect(mockContext.log.info).toHaveBeenCalledWith(
+        expect.stringContaining('Loaded default transformers'),
+      );
+    });
+
+    it('should start file watcher after loading', async () => {
+      vi.mocked(fs.readdir).mockResolvedValue([] as any);
+      const mockWatch = vi.mocked(fsSync.watch);
+      mockWatch.mockReturnValue({ close: vi.fn() } as any);
+
+      const { TransformerEngine: TE } = await import('../transformer-engine.js');
+      const testEngine = new TE(mockContext);
+      await testEngine.loadTransformers();
+
+      expect(mockWatch).toHaveBeenCalledWith(
+        '/mock/transformers',
+        { recursive: true },
+        expect.any(Function),
+      );
+    });
+
+    it('should throw and log error when loading fails', async () => {
+      vi.mocked(fs.readdir).mockRejectedValueOnce(
+        Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }),
+      );
+
+      const { TransformerEngine: TE } = await import('../transformer-engine.js');
+      const testEngine = new TE(mockContext);
+
+      await expect(testEngine.loadTransformers()).rejects.toThrow('EACCES');
+      expect(mockContext.log.error).toHaveBeenCalledWith(
+        'Failed to load transformers:',
+        expect.any(Error),
+      );
+    });
+  });
 });

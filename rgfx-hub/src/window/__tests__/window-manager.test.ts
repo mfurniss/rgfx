@@ -445,4 +445,30 @@ describe('createWindowManager', () => {
       manager.stopStatusUpdates();
     }).not.toThrow();
   });
+
+  it('should not throw when focusWindow is called before createWindow', async () => {
+    const { createWindowManager } = await import('../window-manager.js');
+    const manager = createWindowManager(mockDeps);
+
+    // No window created — should be a silent no-op
+    expect(() => {
+      manager.focusWindow();
+    }).not.toThrow();
+  });
+
+  it('should not throw when focusWindow is called on a destroyed window', async () => {
+    const { createWindowManager } = await import('../window-manager.js');
+    const manager = createWindowManager(mockDeps);
+
+    manager.createWindow();
+    mockWindow.isDestroyed.mockReturnValue(true);
+    (mockWindow as any).isMinimized = vi.fn();
+    (mockWindow as any).focus = vi.fn();
+
+    // Window exists but is destroyed — should be a silent no-op
+    expect(() => {
+      manager.focusWindow();
+    }).not.toThrow();
+    expect((mockWindow as any).focus).not.toHaveBeenCalled();
+  });
 });

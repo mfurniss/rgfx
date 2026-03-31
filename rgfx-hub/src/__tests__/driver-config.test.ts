@@ -450,4 +450,107 @@ describe('DriverConfig', () => {
       expect(drivers.map((d) => d.id)).toContain('rgfx-driver-0003');
     });
   });
+
+  describe('setRemoteLogging', () => {
+    it('should set remote logging level and persist to disk', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+
+      const result = config.setRemoteLogging('rgfx-driver-0001', 'all');
+
+      expect(result).toBe(true);
+      expect(config.getDriver('rgfx-driver-0001')?.remoteLogging).toBe('all');
+
+      const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
+      expect(data.drivers[0].remoteLogging).toBe('all');
+    });
+
+    it('should return false for non-existent driver', () => {
+      const config = new DriverConfig(testConfigDir);
+
+      const result = config.setRemoteLogging('nonexistent', 'all');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('setDisabled', () => {
+    it('should disable a driver and persist to disk', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+
+      const result = config.setDisabled('rgfx-driver-0001', true);
+
+      expect(result).toBe(true);
+      expect(config.getDriver('rgfx-driver-0001')?.disabled).toBe(true);
+
+      const data = JSON.parse(fs.readFileSync(testConfigFile, 'utf8'));
+      expect(data.drivers[0].disabled).toBe(true);
+    });
+
+    it('should re-enable a disabled driver', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+      config.setDisabled('rgfx-driver-0001', true);
+
+      const result = config.setDisabled('rgfx-driver-0001', false);
+
+      expect(result).toBe(true);
+      expect(config.getDriver('rgfx-driver-0001')?.disabled).toBe(false);
+    });
+
+    it('should return false for non-existent driver', () => {
+      const config = new DriverConfig(testConfigDir);
+
+      const result = config.setDisabled('nonexistent', true);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isDisabled', () => {
+    it('should return true for a disabled driver', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+      config.setDisabled('rgfx-driver-0001', true);
+
+      expect(config.isDisabled('rgfx-driver-0001')).toBe(true);
+    });
+
+    it('should return false for an enabled driver', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+
+      expect(config.isDisabled('rgfx-driver-0001')).toBe(false);
+    });
+
+    it('should return false for a non-existent driver', () => {
+      const config = new DriverConfig(testConfigDir);
+
+      expect(config.isDisabled('nonexistent')).toBe(false);
+    });
+  });
+
+  describe('isDisabledByMac', () => {
+    it('should return true for a disabled driver looked up by MAC', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+      config.setDisabled('rgfx-driver-0001', true);
+
+      expect(config.isDisabledByMac('aa:bb:cc:dd:ee:ff')).toBe(true);
+    });
+
+    it('should return false for an enabled driver looked up by MAC', () => {
+      const config = new DriverConfig(testConfigDir);
+      config.addDriver('rgfx-driver-0001', 'aa:bb:cc:dd:ee:ff');
+
+      expect(config.isDisabledByMac('aa:bb:cc:dd:ee:ff')).toBe(false);
+    });
+
+    it('should return false for a non-existent MAC address', () => {
+      const config = new DriverConfig(testConfigDir);
+
+      expect(config.isDisabledByMac('ff:ee:dd:cc:bb:aa')).toBe(false);
+    });
+  });
 });

@@ -47,6 +47,6 @@ export function installRgfxMock(
   overrides?: Partial<Record<keyof RgfxAPI, Mock>>,
 ): MockRgfxAPI {
   const mock = createRgfxMock(overrides);
-  (window as Window & { rgfx: unknown }).rgfx = mock;
+  (globalThis as any).rgfx = mock;
   return mock;
 }

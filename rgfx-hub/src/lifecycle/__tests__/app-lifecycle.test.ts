@@ -134,6 +134,7 @@ describe('registerAppLifecycleHandlers', () => {
 
   describe('ready handler', () => {
     it('should set about panel options', async () => {
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
       const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
 
       registerAppLifecycleHandlers(deps);
@@ -148,6 +149,7 @@ describe('registerAppLifecycleHandlers', () => {
     });
 
     it('should create window', async () => {
+      (globalThis as any).MAIN_WINDOW_VITE_DEV_SERVER_URL = undefined;
       const { registerAppLifecycleHandlers } = await import('../app-lifecycle.js');
 
       registerAppLifecycleHandlers(deps);
