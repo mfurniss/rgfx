@@ -95,7 +95,11 @@ describe('startServices', () => {
 
     mockServices = {
       mqtt: { start: vi.fn() },
-      driverRegistry: { startConnectionMonitor: vi.fn() },
+      driverRegistry: {
+        startConnectionMonitor: vi.fn(),
+        getConnectedCount: vi.fn().mockReturnValue(2),
+        getAllDrivers: vi.fn().mockReturnValue([{}, {}]),
+      },
       driverConfig: {},
       driverLogPersistence: {},
       ledHardwareManager: {},
@@ -400,6 +404,72 @@ describe('startServices', () => {
 
       expect(mockWindowManager.sendSystemStatus)
         .toHaveBeenCalled();
+    });
+  });
+
+  describe('status source accessors', () => {
+    it('should register status sources that delegate to services', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      const registeredSources = vi.mocked(mockServices.systemMonitor.registerStatusSources)
+        .mock.calls[0][0] as unknown as Record<string, () => unknown>;
+
+      expect(registeredSources.getConnectedCount()).toBe(2);
+      expect(mockServices.driverRegistry.getConnectedCount).toHaveBeenCalled();
+
+      expect(registeredSources.getTotalCount()).toBe(2);
+      expect(mockServices.driverRegistry.getAllDrivers).toHaveBeenCalled();
+
+      expect(registeredSources.getEventsProcessed()).toBe(0);
+      expect(mockEventStats.getCount).toHaveBeenCalled();
+
+      expect(registeredSources.getEventLogSizeBytes()).toBe(0);
+      expect(mockServices.eventReader.getFileSizeBytes).toHaveBeenCalled();
+
+      expect(registeredSources.getErrors()).toBe(mockSystemErrorTracker.errors);
+    });
+  });
+
+  describe('IPC handler accessors', () => {
+    it('should register resetEventsProcessed that resets event stats', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      type IpcArgs = Record<string, unknown>;
+      const ipcArgs = vi.mocked(mockRegisterIpcHandlers).mock.calls[0][0] as IpcArgs;
+      const resetEventsProcessed = ipcArgs.resetEventsProcessed as () => void;
+
+      resetEventsProcessed();
+
+      expect(mockEventStats.reset).toHaveBeenCalled();
+    });
+
+    it('should register getMainWindow that returns current window', async () => {
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      type IpcArgs = Record<string, unknown>;
+      const ipcArgs = vi.mocked(mockRegisterIpcHandlers).mock.calls[0][0] as IpcArgs;
+      const getMainWindow = ipcArgs.getMainWindow as () => unknown;
+
+      const win = getMainWindow();
+
+      expect(win).toBeDefined();
+      expect(mockWindowManager.getWindow).toHaveBeenCalled();
+    });
+
+    it('should throw from IPC getMainWindow when window is null', async () => {
+      vi.mocked(mockWindowManager.getWindow).mockReturnValue(null);
+
+      const { startServices } = await import('../service-startup.js');
+      startServices(deps);
+
+      type IpcArgs = Record<string, unknown>;
+      const ipcArgs = vi.mocked(mockRegisterIpcHandlers).mock.calls[0][0] as IpcArgs;
+      const getMainWindow = ipcArgs.getMainWindow as () => unknown;
+
+      expect(() => getMainWindow()).toThrow('Main window not initialized');
     });
   });
 });

@@ -944,4 +944,76 @@ describe('UdpClientImpl', () => {
       eventBusEmitSpy.mockRestore();
     });
   });
+
+  describe('broadcastJsonDirect', () => {
+    it('should send to all connected non-disabled drivers', () => {
+      const payload: EffectPayload = { effect: 'video-stop' };
+
+      (udpClient as any).broadcastJsonDirect(payload);
+
+      // driver-0001 and driver-0002 are connected with IPs
+      expect(udpMock.driverSendCount).toBe(2);
+    });
+
+    it('should always send to localhost for led-sim', () => {
+      const payload: EffectPayload = { effect: 'video-stop' };
+
+      (udpClient as any).broadcastJsonDirect(payload);
+
+      expect(udpMock.localhostSendCount).toBe(1);
+    });
+
+    it('should strip the drivers property from the UDP payload', () => {
+      const payload: EffectPayload = {
+        effect: 'video-start',
+        drivers: ['rgfx-driver-0001'],
+      };
+
+      (udpClient as any).broadcastJsonDirect(payload);
+
+      const sentData = JSON.parse(
+        udpMock.calls.driverCalls[0].buffer.toString(),
+      ) as Record<string, unknown>;
+      expect(sentData.drivers).toBeUndefined();
+      expect(sentData.effect).toBe('video-start');
+    });
+
+    it('should filter to specified drivers when drivers array is provided', () => {
+      const payload: EffectPayload = {
+        effect: 'video-start',
+        drivers: ['rgfx-driver-0001'],
+      };
+
+      (udpClient as any).broadcastJsonDirect(payload);
+
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.101');
+    });
+
+    it('should skip disabled drivers', () => {
+      // Disable driver-0001 directly in the registry
+      const drivers = (driverRegistry as any).drivers as Map<string, Driver>;
+      const driver1 = drivers.get('rgfx-driver-0001')!;
+      drivers.set('rgfx-driver-0001', { ...driver1, disabled: true });
+
+      const payload: EffectPayload = { effect: 'video-stop' };
+      (udpClient as any).broadcastJsonDirect(payload);
+
+      // Only driver-0002 should receive it
+      expect(udpMock.driverSendCount).toBe(1);
+      expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.102');
+    });
+
+    it('should still send to localhost even when no drivers match', () => {
+      const payload: EffectPayload = {
+        effect: 'video-stop',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      (udpClient as any).broadcastJsonDirect(payload);
+
+      expect(udpMock.driverSendCount).toBe(0);
+      expect(udpMock.localhostSendCount).toBe(1);
+    });
+  });
 });
