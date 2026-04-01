@@ -39,6 +39,10 @@ export interface SystemStatus {
   updateAvailable?: string;
   /** Whether ffmpeg is installed on the system (required for video effect) */
   ffmpegAvailable: boolean;
+  /** True if driver fallback has routed at least one effect this session */
+  driverFallbackActive?: boolean;
+  /** False until startup MAME detection completes; suppresses banner flash on load */
+  mameVersionChecked: boolean;
   /** MAME version string (e.g. "0.286") if detected, undefined if not found */
   mameVersion?: string;
   /** Directory where MAME was auto-detected (undefined if not found or user-configured) */

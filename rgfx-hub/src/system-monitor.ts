@@ -19,6 +19,7 @@ interface StatusSources {
   getErrors: () => readonly SystemError[];
 }
 
+
 export class SystemMonitor {
   private readonly hubStartTime: number;
   private readonly firmwareWatcher: FirmwareWatcher;
@@ -28,6 +29,8 @@ export class SystemMonitor {
   private statusSources?: StatusSources;
   private updateReleaseUrl: string | null = null;
   private _ffmpegAvailable = false;
+  private _driverFallbackActive = false;
+  private _mameVersionChecked = false;
   private _mameVersion: string | null = null;
   private _detectedMamePath: string | null = null;
 
@@ -151,6 +154,8 @@ export class SystemMonitor {
       systemErrors: errors,
       updateAvailable: this.updateReleaseUrl ?? undefined,
       ffmpegAvailable: this._ffmpegAvailable,
+      driverFallbackActive: this._driverFallbackActive || undefined,
+      mameVersionChecked: this._mameVersionChecked,
       mameVersion: this._mameVersion ?? undefined,
       detectedMamePath: this._detectedMamePath ?? undefined,
     };
@@ -160,7 +165,12 @@ export class SystemMonitor {
     this._ffmpegAvailable = available;
   }
 
+  setDriverFallbackActive(active: boolean): void {
+    this._driverFallbackActive = active;
+  }
+
   setMameVersion(version: string | null): void {
+    this._mameVersionChecked = true;
     this._mameVersion = version;
   }
 

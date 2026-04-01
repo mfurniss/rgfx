@@ -76,6 +76,7 @@ describe('SystemMonitor', () => {
         udpStatsByDriver: {},
         systemErrors: [],
         ffmpegAvailable: false,
+        mameVersionChecked: false,
       });
     });
 
@@ -101,6 +102,7 @@ describe('SystemMonitor', () => {
         udpStatsByDriver: {},
         systemErrors: [],
         ffmpegAvailable: false,
+        mameVersionChecked: false,
       });
     });
 
@@ -344,6 +346,22 @@ describe('SystemMonitor', () => {
     });
   });
 
+  describe('setDriverFallbackActive', () => {
+    it('should default to driverFallbackActive undefined in status', () => {
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.driverFallbackActive).toBeUndefined();
+    });
+
+    it('should include driverFallbackActive true in status after being set', () => {
+      systemMonitor.setDriverFallbackActive(true);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.driverFallbackActive).toBe(true);
+    });
+  });
+
   describe('getUdpStatsByDriver', () => {
     it('should return the full stats map', () => {
       systemMonitor.trackUdpSent('driver-1', true);
@@ -396,6 +414,28 @@ describe('SystemMonitor', () => {
       const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
 
       expect(status.mameVersion).toBeUndefined();
+    });
+
+    it('should have mameVersionChecked false before setMameVersion is called', () => {
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.mameVersionChecked).toBe(false);
+    });
+
+    it('should have mameVersionChecked true after setMameVersion is called', () => {
+      systemMonitor.setMameVersion('0.286');
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.mameVersionChecked).toBe(true);
+    });
+
+    it('should have mameVersionChecked true even when version is null', () => {
+      systemMonitor.setMameVersion(null);
+
+      const status = systemMonitor.getSystemStatus(0, 0, 0, 0);
+
+      expect(status.mameVersionChecked).toBe(true);
     });
   });
 

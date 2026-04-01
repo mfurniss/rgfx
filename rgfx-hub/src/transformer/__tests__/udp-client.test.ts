@@ -15,6 +15,7 @@ import { UDP_BUFFER_SIZE } from '@/config/constants';
 // Create mock SystemMonitor
 const mockSystemMonitor = {
   trackUdpSent: vi.fn(),
+  setDriverFallbackActive: vi.fn(),
 } as unknown as SystemMonitor;
 
 // Create UDP socket mock with separate driver/localhost tracking
@@ -761,6 +762,35 @@ describe('UdpClientImpl', () => {
 
       expect(udpMock.driverSendCount).toBe(1);
       expect(udpMock.calls.driverCalls[0].ip).toBe('192.168.1.102');
+    });
+
+    it('should notify systemMonitor when fallback routes an effect', () => {
+      udpClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      udpClient.broadcast(payload);
+
+      expect(mockSystemMonitor.setDriverFallbackActive).toHaveBeenCalledWith(true);
+    });
+
+    it('should not notify systemMonitor when no connected drivers are available for fallback', () => {
+      const emptyRegistry = new DriverRegistry();
+      const emptyClient = new UdpClientImpl(emptyRegistry, mockSystemMonitor);
+      emptyClient.setDriverFallbackEnabled(true);
+
+      const payload: EffectPayload = {
+        effect: 'test',
+        drivers: ['rgfx-driver-9999'],
+      };
+
+      emptyClient.broadcast(payload);
+
+      expect(mockSystemMonitor.setDriverFallbackActive).not.toHaveBeenCalled();
+      emptyClient.stop();
     });
   });
 

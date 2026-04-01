@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Paper, Grid } from '@mui/material';
-import type { SystemStatus as SystemStatusType } from '@/types';
 import SystemStatusItem from './system-status-item';
 import { formatBytes, formatNumber, formatUptime } from '@/renderer/utils/formatters';
 import { UI_TIMESTAMP_UPDATE_INTERVAL_MS } from '@/config/constants';
 import { useAppInfoStore } from '@/renderer/store/app-info-store';
-
-interface SystemStatusProps {
-  status: SystemStatusType;
-}
+import { useSystemStatusStore } from '@/renderer/store/system-status-store';
 
 /**
  * Displays the overall system status including MQTT broker, UDP server,
  * event reader, and connected drivers count
  */
-const SystemStatus: React.FC<SystemStatusProps> = ({ status }) => {
+const SystemStatus: React.FC = () => {
+  const status = useSystemStatusStore((state) => state.systemStatus);
   const appInfo = useAppInfoStore((state) => state.appInfo);
   const [now, setNow] = useState(Date.now());
 

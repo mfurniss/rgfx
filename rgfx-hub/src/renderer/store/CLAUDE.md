@@ -69,6 +69,7 @@ Stores can call into each other:
   - `udpStatsByDriver: Record<string, UdpStats>` - Per-driver UDP statistics
   - `systemErrors: array` - Array of system errors
   - `ffmpegAvailable: boolean` - Whether ffmpeg is installed (for video effect)
+  - `driverFallbackActive?: boolean` - True if fallback routing fired at least once this session
   - `mameVersion?: string` - Detected MAME version (e.g. "0.286")
 
 **Actions:**

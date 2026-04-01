@@ -15,6 +15,7 @@ const defaultSystemStatus: SystemStatus = {
   udpStatsByDriver: {},
   systemErrors: [],
   ffmpegAvailable: false,
+  mameVersionChecked: true,
 };
 
 /**

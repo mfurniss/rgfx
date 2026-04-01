@@ -25,6 +25,7 @@ export const useSystemStatusStore = create<SystemStatusStoreState>()((set, get) 
     udpStatsByDriver: {},
     systemErrors: [],
     ffmpegAvailable: false,
+    mameVersionChecked: false,
   },
 
   onSystemStatusUpdate: (newStatus) => {

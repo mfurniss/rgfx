@@ -19,9 +19,12 @@ This folder contains the main page components for the RGFX Hub application. Each
 **Purpose:** Main dashboard showing system health and all connected drivers.
 
 **Features:**
-- Displays system status (MQTT broker, UDP server, event reader, hub IP, etc.)
-- Shows a sortable table of all known drivers with connection status
-- Uses `SystemStatus` and `DriverListTable` components
+- Pure composition of self-contained store-connected components; no local state or store reads
+- `OfflineNotification` — error alert when hub has no network IP
+- `SystemStatus` — dashboard metrics panel (reads store directly, no props)
+- `DriverFallbackNotification` — dismissable warning when fallback routing has fired
+- `SystemErrors` — sortable error table (reads store directly, no props)
+- `EventsRateChart` — events per second chart
 
 ---
 

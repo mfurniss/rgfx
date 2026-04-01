@@ -21,6 +21,16 @@ describe('MameVersionBanner', () => {
     });
   });
 
+  it('renders nothing while MAME check is pending', () => {
+    useSystemStatusStore.setState({
+      systemStatus: createMockSystemStatus({ mameVersionChecked: false, mameVersion: undefined }),
+    });
+
+    const { container } = renderBanner();
+
+    expect(container.innerHTML).toBe('');
+  });
+
   it('shows warning when MAME is not detected', () => {
     useSystemStatusStore.setState({
       systemStatus: createMockSystemStatus({ mameVersion: undefined }),

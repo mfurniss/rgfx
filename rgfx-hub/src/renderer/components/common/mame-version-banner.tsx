@@ -7,9 +7,16 @@ import { PageBanner } from './page-banner';
 const MIN_MAME_VERSION = '0.250';
 
 export function MameVersionBanner() {
+  const mameVersionChecked = useSystemStatusStore(
+    (state) => state.systemStatus.mameVersionChecked,
+  );
   const mameVersion = useSystemStatusStore(
     (state) => state.systemStatus.mameVersion,
   );
+
+  if (!mameVersionChecked) {
+    return null;
+  }
 
   if (mameVersion && mameVersion >= MIN_MAME_VERSION) {
     return null;
