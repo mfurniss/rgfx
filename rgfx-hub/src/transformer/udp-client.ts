@@ -90,6 +90,7 @@ export class UdpClientImpl implements UdpClient {
 
           if (allConnected.length > 0) {
             drivers = [allConnected[0]];
+            this.systemMonitor.setDriverFallbackActive(true);
             log.info(`Driver fallback: routing to ${drivers[0].id} (targets: ${targetDriverIds.join(', ')})`);
           } else {
             log.warn('Driver fallback: no connected drivers available');

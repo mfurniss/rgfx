@@ -12,6 +12,7 @@ import {
 import type { SystemError } from '@/types';
 import { useSortableTable } from '@/renderer/hooks/use-sortable-table';
 import { SortableTableHead, type SortableColumn } from '@/renderer/components/common/sortable-table-head';
+import { useSystemStatusStore } from '@/renderer/store/system-status-store';
 
 type SortField = 'timestamp' | 'errorType' | 'message';
 
@@ -25,11 +26,8 @@ const COLUMNS: SortableColumn<SortField>[] = [
   { field: 'message', label: 'Message' },
 ];
 
-interface SystemErrorsProps {
-  errors: readonly SystemError[];
-}
-
-export const SystemErrors: React.FC<SystemErrorsProps> = ({ errors }) => {
+export const SystemErrors: React.FC = () => {
+  const errors = useSystemStatusStore((state) => state.systemStatus.systemErrors);
   const { sortField, sortOrder, handleSort, sortData } = useSortableTable<SortField>({
     storageKey: 'systemErrors',
     defaultField: 'timestamp',

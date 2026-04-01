@@ -96,10 +96,36 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 **Purpose:** Sortable table displaying system errors on the System Status page.
 
 **Features:**
+- Reads `systemErrors` directly from `useSystemStatusStore` (no props)
 - Columns: Time, Error Type, Message
 - Renders optional `filePath` and `details` fields below the message when present
 - Details rendered as `<pre>` for stack trace readability
 - Shows success alert when no errors
+
+---
+
+### OfflineNotification
+
+**File:** [system/offline-notification.tsx](system/offline-notification.tsx)
+
+**Purpose:** Error alert shown when the hub has no network IP.
+
+**Features:**
+- Reads `hubIp` from `useSystemStatusStore` (no props)
+- Renders nothing when online; shows error Alert when `hubIp === 'Unknown'`
+
+---
+
+### DriverFallbackNotification
+
+**File:** [system/driver-fallback-notification.tsx](system/driver-fallback-notification.tsx)
+
+**Purpose:** Dismissable warning alert shown when driver fallback has routed at least one effect this session.
+
+**Features:**
+- Reads `driverFallbackActive` from `useSystemStatusStore` (no props)
+- Local dismissed state; close button hides until next app restart
+- Renders nothing when fallback has not fired
 
 ---
 
