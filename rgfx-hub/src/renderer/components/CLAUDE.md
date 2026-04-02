@@ -126,6 +126,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 - Reads `driverFallbackActive` from `useSystemStatusStore` (no props)
 - Local dismissed state; close button hides until next app restart
 - Renders nothing when fallback has not fired
+- "fallback driver" link opens docs in default browser via `window.rgfx.openExternal`
 
 ---
 

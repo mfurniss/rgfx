@@ -58,8 +58,19 @@ export const EffectFormPanel = React.memo(
       <Stack spacing={3}>
         {selectedEffect === 'video' && !ffmpegAvailable && (
           <Alert severity="warning">
-            ffmpeg is not installed. Install it to use the video
-            effect (e.g. <code>brew install ffmpeg</code>).
+            ffmpeg is not installed.{' '}
+            <Box
+              component="a"
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                void window.rgfx.openExternal('https://ffmpeg.org/download.html');
+              }}
+              sx={{ color: 'inherit' }}
+            >
+              Install it
+            </Box>
+            {' '}to use the video effect.
           </Alert>
         )}
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
