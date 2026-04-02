@@ -18,7 +18,13 @@ export const DriverFallbackNotification: React.FC = () => {
       onClose={setDismissed.bind(null, true)}
     >
       Effects are being routed to a{' '}
-      <a target="blank" href="https://rgfx.io/docs/hub-app/settings.html?h=fallback#driver-fallback">
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          void window.rgfx.openExternal('https://rgfx.io/docs/hub-app/settings.html?h=fallback#driver-fallback');
+        }}
+      >
         fallback driver
       </a>{' '}
       because one or more targeted drivers are offline or unconfigured.

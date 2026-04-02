@@ -114,7 +114,7 @@ Refactored components, hooks, and utilities extracted from the main page:
 - Preset selection modal for gradient and plasma effects
 - State persisted in `UiStore` across navigation
 - Code generation tab showing JavaScript code for transformers
-- **Video effect:** When video effect is selected, shows Start/Stop Video buttons instead of Trigger/Random. Start Video is disabled when no file is selected (`!currentProps.file`) or ffmpeg is not available. Shows warning Alert when ffmpeg is missing. Stop sends `{action:'stop'}` command. `videoPlaying` state resets on effect change.
+- **Video effect:** When video effect is selected, shows Start/Stop Video buttons instead of Trigger/Random. Start Video is disabled when no file is selected (`!currentProps.file`) or ffmpeg is not available. Shows warning Alert when ffmpeg is missing with a link to ffmpeg.org/download.html that opens in the default browser via `window.rgfx.openExternal`. Stop sends `{action:'stop'}` command. `videoPlaying` state resets on effect change.
 
 ### Effects Playground Subdirectory
 
