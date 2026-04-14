@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RGFX - Retro Game Effects</title>
     <link rel="icon" href="favicon.ico" />
-    <meta name="description" content="Visual effects for retro video games" />
+    <meta name="description" content="RGFX adds real LED light effects to retro arcade games. Works with MAME, ESP32, and LED strips to sync lights to in-game events like scoring, power-ups, and game over." />
     <style>
       body {
         margin: 0;
@@ -82,6 +82,23 @@
         pointer-events: none;
       }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "RGFX",
+      "alternateName": "Retro Game Effects",
+      "description": "RGFX adds real LED light effects to retro arcade games. Works with MAME, ESP32, and LED strips to sync lights to in-game events like scoring, power-ups, and game over.",
+      "url": "https://rgfx.io",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "macOS, Windows",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
   </head>
   <body>
     <video id="hero-video" autoplay muted loop playsinline preload="auto">
