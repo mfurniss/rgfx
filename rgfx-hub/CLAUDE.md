@@ -22,6 +22,12 @@ Electron desktop app that bridges MAME game events to ESP32 LED drivers. Written
 - `npm start` — Dev mode with hot reload
 - `npm run build` — Production build
 
+## Docs Commands (run from repo root)
+
+- `npm run docs:serve` — Serve docs locally with live reload
+- `npm run docs:build` — Build static docs site
+- `npm run docs:setup` — Create Python venv and install MkDocs dependencies
+
 ## Path Handling
 
 All path operations use `pathe` instead of `node:path` for cross-platform compatibility (normalizes to forward slashes on all platforms). ESLint `no-restricted-imports` bans `node:path` and `path`.
