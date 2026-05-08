@@ -4,6 +4,8 @@
 site_name: RGFX Documentation
 site_url: https://rgfx.io/
 site_description: Retro Game Effects - External visual effects for retro video games
+repo_url: https://github.com/mfurniss/rgfx
+repo_name: mfurniss/rgfx
 strict: true
 
 exclude_docs: |

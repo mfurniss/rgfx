@@ -11,17 +11,6 @@ Electron desktop app that bridges MAME game events to ESP32 LED drivers. Written
 - `config/` — Build and app configuration
 - `scripts/` — Dev tooling (build scripts, icon generation)
 
-## Key Commands
-
-- `scripts/test-code.sh hub` — All hub checks (audit, typecheck, lint, unused exports, tests, depcheck, licenses)
-- `scripts/test-code.sh vitest` — Hub unit tests only (vitest)
-- `scripts/test-code.sh lint` — Hub lint only (eslint)
-- `scripts/test-code.sh typecheck` — Hub typecheck only (tsc)
-- `npm run test:watch` — Watch mode
-- `npm run test:coverage` — Coverage report (v8 provider)
-- `npm start` — Dev mode with hot reload
-- `npm run build` — Production build
-
 ## Path Handling
 
 All path operations use `pathe` instead of `node:path` for cross-platform compatibility (normalizes to forward slashes on all platforms). ESLint `no-restricted-imports` bans `node:path` and `path`.

@@ -207,6 +207,13 @@ check_claude_md_updates() {
                 ;;
         esac
 
+        # Skip minified/generated files
+        case "$file" in
+            *.min.js)
+                continue
+                ;;
+        esac
+
         # Skip test files (test changes rarely need CLAUDE.md updates)
         case "$file" in
             *__tests__/*|*.test.*|*.spec.*)

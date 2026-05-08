@@ -70,6 +70,10 @@ docs/
 
 Never hardcode `~/.rgfx` paths. Use "config directory" with a link to `getting-started/hub-setup.md#config-directory` on first mention per page. The hub-setup page has the canonical platform table (macOS/Windows).
 
+### Header
+
+The docs header includes a GitHub icon link to the repo, configured via `repo_url` and `repo_name` in `mkdocs.yml`. Material for MkDocs renders this automatically.
+
 ### Footer Overrides
 
 The docs footer is customized via template overrides in `public-docs/overrides/partials/`:
