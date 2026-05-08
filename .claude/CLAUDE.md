@@ -89,6 +89,27 @@ If a particular test is difficult or problematic, do not skip or delete the test
 
 ---
 
+## Key Commands
+
+### Hub
+
+- `scripts/test-code.sh hub` — All hub checks (audit, typecheck, lint, unused exports, tests, depcheck, licenses)
+- `scripts/test-code.sh vitest` — Hub unit tests only (vitest)
+- `scripts/test-code.sh lint` — Hub lint only (eslint)
+- `scripts/test-code.sh typecheck` — Hub typecheck only (tsc)
+- `npm run test:watch` — Watch mode (run from `rgfx-hub/`)
+- `npm run test:coverage` — Coverage report (run from `rgfx-hub/`)
+- `npm start` — Dev mode with hot reload (run from `rgfx-hub/`)
+- `npm run build` — Production build (run from `rgfx-hub/`)
+
+### Docs (run from repo root)
+
+- `npm run docs:serve` — Serve docs locally with live reload
+- `npm run docs:build` — Build static docs site
+- `npm run docs:setup` — Create Python venv and install MkDocs dependencies
+
+---
+
 ## System Architecture
 
 **CRITICAL - READ ARCHITECTURE FIRST:**
